@@ -59,8 +59,7 @@ public:
   { /* Nothing to do here */ }
 
 
-  void append(Workspace& ws,
-              const String& methodname, const TokVal& keywordvalue);
+  void append(const String& methodname, const TokVal& keywordvalue);
   void check(Workspace& ws);
   void push_back(MRecord n);
   void execute(Workspace& ws) const;

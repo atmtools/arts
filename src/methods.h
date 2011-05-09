@@ -98,6 +98,7 @@ public:
   const Array<String>&     GInDescription() const { return mgindesc; }
   const ArrayOfIndex&      InOnly()         const { return minonly; }
   const ArrayOfIndex&      InOut()          const { return minout; }
+  const ArrayOfIndex&      OutOnly()        const { return moutonly; }
   bool                     SetMethod()      const { return mset_method; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
@@ -185,6 +186,9 @@ private:
   //! Indexes of Input-only variables.
   ArrayOfIndex minonly;
 
+  //! Indexes of Output-only variables.
+  ArrayOfIndex moutonly;
+  
   //! Indexes of Input-Output variables.
   ArrayOfIndex minout;
 

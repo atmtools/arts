@@ -63,8 +63,7 @@ void give_up(const String& message)
   \author Mattias Ekstrom
   \date   2005-01-05
 */
-void Agenda::append(Workspace& ws,
-                    const String& methodname,
+void Agenda::append(const String& methodname,
                     const TokVal& keywordvalue)
 {
   extern const map<String, Index> MdMap;
@@ -77,13 +76,10 @@ void Agenda::append(Workspace& ws,
   ArrayOfIndex output = md_data[id].Out();
 
   // Find explicit method id in MdMap.
-  ArrayOfIndex input = md_data[id].In();
-  Agenda dummy;
-  dummy.resize(0);
+  ArrayOfIndex input = md_data[id].InOnly();
   
-  // Append the method
-  dummy.push_back (MRecord(id,output,input,keywordvalue,dummy));
-  AgendaAppend(ws, *this, mname, *this, mname, dummy);
+  mml.push_back(MRecord(id,output,input,keywordvalue,Agenda()));
+  mchecked = false;
 }
 
 

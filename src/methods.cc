@@ -4533,7 +4533,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do",
+        IN( "iy_error", "iy_error_type",
+            "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid", "abs_species",
@@ -4622,7 +4623,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do",
+        IN( "iy_error", "iy_error_type",
+            "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
@@ -4905,11 +4907,7 @@ void define_md_data_raw()
         GIN_DESC( "Calculation method. See above",
                   "Size of perturbation to apply.", 
                   "Flag to also include frequency stretch."
-                  ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true  )
+                  )
         ));
 
   md_data_raw.push_back
@@ -4943,11 +4941,7 @@ void define_md_data_raw()
                   "pointing off-sets.",
                   "Calculation method. See above",
                   "Size of perturbation to apply (when applicable)."
-                  ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true  )
+                  )
         ));
 
   md_data_raw.push_back
@@ -4986,11 +4980,7 @@ void define_md_data_raw()
                   "line-of-sights (inside each measurement block).", 
                   "Set to 1 if the baseline off-set is the same for all "
                   "measurement blocks." 
-                  ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true  )
+                  )
         ));
 
   md_data_raw.push_back
@@ -5034,11 +5024,7 @@ void define_md_data_raw()
                   "Flag to assume HSE or not (\"on\" or \"off\").",
                   "Calculation method. See above.",
                   "Size of perturbation [K]." 
-                  ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true  )
+                  )
         ));
 
   /*
@@ -5082,6 +5068,31 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddAbsSpecies and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "imblock", "iyb", "yb" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianCalcAbsSpecies" ),
         DESCRIPTION
         (
@@ -5096,7 +5107,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
+        IN( "jacobian",
+            "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "t_field", "z_field", "vmr_field", "abs_species", 
             "cloudbox_on", "stokes_dim", 
             "f_grid", "sensor_pos", "sensor_los", "mblock_za_grid", 
@@ -5127,7 +5139,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "imblock", "iyb", "yb", "stokes_dim", "f_grid", "mblock_za_grid",
+        IN( "jacobian",
+            "imblock", "iyb", "yb", "stokes_dim", "f_grid", "mblock_za_grid",
             "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_response_pol_grid", 
             "sensor_response_f_grid", "sensor_response_za_grid", 
@@ -5155,7 +5168,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
+        IN( "jacobian",
+            "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
@@ -5183,7 +5197,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "imblock", "iyb", "yb", "sensor_response",
+        IN( "jacobian", "imblock", "iyb", "yb", "sensor_response",
             "sensor_response_pol_grid", "sensor_response_f_grid", 
             "sensor_response_za_grid", 
             "jacobian_quantities", "jacobian_indices" ),
@@ -5210,7 +5224,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
+        IN( "jacobian",
+            "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "t_field", "z_field", "vmr_field", "abs_species",
             "r_geoid", "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", 
             "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
@@ -5270,11 +5285,11 @@ void define_md_data_raw()
          "No calculations are performed here.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian_do", "jacobian", "jacobian_indices" ),
+        OUT( "jacobian_do", "jacobian", "jacobian_indices", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "sensor_pos", "sensor_response" ),
+        IN( "jacobian_agenda", "jacobian_quantities", "sensor_pos", "sensor_response" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

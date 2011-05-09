@@ -1,3 +1,78 @@
+2011-05-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-202
+
+	* More fixes for cases where output-only variables were used as input.
+
+	* src/agendas.cc:
+
+	jacobian_agenda: Add WSV jacobian as input for jacobian_agenda because
+	the agenda modifies the existing jacobian values and thus jacobian must
+	also be defined as input to the agenda.
+
+	iy_clearsky_agenda: iy_error and iy_error_type are used as input under
+	some circumstances, so they can't be declared output-only.
+
+	* src/methods.cc:
+
+	iyEmissionStandardClearsky, iyBeerLambertStandardClearsky:
+	Only initialize iy_error and iy_error_type if iy_agenda_call1 is 1.
+	Otherwise they are used as input. Therefore, both MUST be declared as
+	input variables.
+
+	jacobianCalc*: All the functions that are meant to be used inside the
+	jacobian_agenda modify the jacobian variable. But jacobian was defined
+	as output-only. Added jacobian as input too for all of them.
+
+	jacobianCalcAbsSpeciesAnalytical: Dummmy method that is added to the
+	jacobian_agenda for analytical calculation to satisfy the
+	jacobian_agenda input/output requirements.
+
+	jacobianAdd*: Remove the PASSWORKSPACE() flag for all of these, it's
+	passed anyway because they have an agenda as input.
+
+	jacobianClose: Add jacobian_agenda as input and output to run the
+	consistency check inside this function.
+
+	* m_jacbobian.cc:
+	
+	(jacobianClose): Run the self-consistency check for the
+	jacobian_agenda here.
+	
+	(jacobianCalcAbsSpeciesAnalytical): Added.
+
+	(jacobianAdd*): Mark ws argument as unused. jacobian_agenda.append()
+	no longer needs ws.
+
+	(jacobianAddAbsSpecies): Add jacobianCalcAbsSpeciesAnalytical to the
+	jacobian_agenda for the analytical case.
+
+	* src/m_rte.cc (iyBeerLamberStandardCloudbox):
+
+	Has iy_error and iy_error_type as output only, but never initialized
+	them.
+
+	* src/methods.h, src/methods_aux.cc:
+
+	Cache an ArrayOfIndex with the output only variables in MdRecord.
+
+	* tests/MonteCarlo/TestRteCalcMC.arts:
+
+	Add Ignore for iy_error and iy_error_type to iy_clearsky_agenda.
+
+	* src/make_auto_md_cc.cc:
+
+	In Debug mode, initialize Output only variables with values that
+	should trigger assertions or runtime errors if they are misused as
+	inputs. Currently Numeric is set to NaN, Index to -1, Vectors
+	and Matrices are resized to 0. More to come...
+
+	* src/agenda_class.cc (Agenda::append):
+
+	Set the input of the new MRecord to InOnly() instead of In().
+	Don't call AgendaAppend to avoid the consistency check. It has to be
+	done at a later stage after building up the Agenda is finished.
+
 2011-05-06	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-201

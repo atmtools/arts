@@ -238,6 +238,20 @@ MdRecord::MdRecord(const char                   name[],
     for (ArrayOfIndex::const_iterator k=minput.begin(); k<minput.end(); ++k)
       if ( *j == *k )
         minout.push_back(i);
+
+  // Determine variables that are only output
+  moutonly = moutput;    // Output
+  for (ArrayOfIndex::const_iterator j=minput.begin(); j<minput.end(); ++j)
+    for (ArrayOfIndex::iterator k=moutonly.begin(); k<moutonly.end(); ++k)
+      if ( *j == *k )
+      {
+        k = moutonly.erase(k) - 1;
+        // We need the -1 here, otherwise due to the
+        // following increment we would miss the element
+        // behind the erased one, which is now at the
+        // position of the erased one.
+      }
+  
 }
 
 

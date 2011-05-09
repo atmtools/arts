@@ -1115,6 +1115,10 @@ void iyBeerLambertStandardCloudbox(
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
 
+  // Error are considered to be zero
+  iy_error.resize( 0, 0 );
+  iy_error_type = 0;
+
   // Determine ppath through the cloudbox
   //
   Ppath  ppath;

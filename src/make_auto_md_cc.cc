@@ -116,6 +116,9 @@ int main()
           // write. 
           ArrayOfIndex  vo=mdd.Out();   // Output 
           const ArrayOfIndex& vi = mdd.InOnly(); // Input
+#ifndef NDEBUG
+          const ArrayOfIndex& voutonly = mdd.OutOnly(); // Output only
+#endif
           ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
           ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
           // vo and vi contain handles of workspace variables, 
@@ -183,6 +186,43 @@ int main()
                     << "{\n";
                 }
             }
+          
+          // Erase all Output only variables to uncover if they are
+          // misused as Input variables
+#ifndef NDEBUG
+#define DUMMY_ELEMS 0
+#define DUMMY_COLS DUMMY_ELEMS
+#define DUMMY_ROWS DUMMY_ELEMS
+#define DUMMY_PAGES DUMMY_ELEMS
+          for (Index j=0; j < voutonly.nelem(); j++)
+          {
+            ostringstream docstr;
+            docstr << "  " << "// " << wsv_data[voutonly[j]].Name() << " is Output only.\n";
+
+            String gname = wsv_group_names[wsv_data[voutonly[j]].Group()];
+            ostringstream initstr;
+            if (gname == "Numeric")
+              initstr << " = NAN;";
+            else if (gname == "Index")
+              initstr << " = -1;";
+            else if (gname == "Vector")
+              initstr << ".resize(" << DUMMY_ELEMS << ");";
+            else if (gname == "Matrix")
+              initstr << ".resize(" << DUMMY_ROWS << ","
+                                    << DUMMY_COLS << ");";
+            
+            
+            if (initstr.str().length())
+            {
+              ofs << "  (*(("
+              << wsv_group_names[wsv_data[voutonly[j]].Group()]
+              << " *)ws[" << voutonly[j]
+              << "]))" << initstr.str();
+            }
+            ofs << docstr.str();
+            
+          }
+#endif /* NDEBUG */
 
           ofs << "  " << mdd.Name() << "(";
 

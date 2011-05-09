@@ -76,9 +76,11 @@ extern const String TEMPERATURE_MAINTAG;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianClose(
+        Workspace&                 ws,
         Index&                     jacobian_do,
         Matrix&                    jacobian,
         ArrayOfArrayOfIndex&       jacobian_indices,
+        Agenda&                    jacobian_agenda,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const Matrix&                    sensor_pos,
   const Sparse&                    sensor_response )
@@ -132,6 +134,7 @@ void jacobianClose(
   jacobian.resize( nrows, ncols );
   jacobian = 0;
 
+  jacobian_agenda.check(ws);
   jacobian_do = 1;
 }
 
@@ -171,7 +174,7 @@ void jacobianOff(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddAbsSpecies(
-  Workspace&                  ws,
+  Workspace&                  ws _U_,
   ArrayOfRetrievalQuantity&   jq,
   Agenda&                     jacobian_agenda,
   const Index&                atmosphere_dim,
@@ -264,6 +267,7 @@ void jacobianAddAbsSpecies(
   if( analytical )
     {
       out3 << "  Calculations done by semi-analytical expressions.\n"; 
+      jacobian_agenda.append( "jacobianCalcAbsSpeciesAnalytical", TokVal() );
     }
   else
     {
@@ -272,10 +276,22 @@ void jacobianAddAbsSpecies(
       out3 << "  Calculations done by perturbation, size " << dx 
            << " " << mode << ".\n"; 
 
-      jacobian_agenda.append( ws, "jacobianCalcAbsSpecies", species );
+      jacobian_agenda.append( "jacobianCalcAbsSpecies", species );
     }
 }                    
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcAbsSpeciesAnalytical(
+                            Matrix&        jacobian _U_,
+                            const Index&   imblock _U_,
+                            const Vector&  iyb _U_,
+                            const Vector&  yb _U_)
+{
+  /* Nothing to do here for the analytical case, this function just exists
+   to satisfy the required inputs and outputs of the jacobian_agenda */
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -468,7 +484,7 @@ void jacobianCalcAbsSpecies(
         
               // Calculate the perturbed spectrum  
               //
-              Index         dummy2;
+              Index         dummy2 = 0;
               Vector        iybp, dummy1;
               Matrix        dummy3;
               ArrayOfMatrix dummy4;      
@@ -507,7 +523,7 @@ void jacobianCalcAbsSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddFreqShiftAndStretch(
-  Workspace&                 ws,
+  Workspace&                 ws _U_,
   ArrayOfRetrievalQuantity&  jacobian_quantities,
   Agenda&                    jacobian_agenda,
   const String&              calcmode,
@@ -547,7 +563,7 @@ void jacobianAddFreqShiftAndStretch(
   if( calcmode == "iybinterp" )
     { 
       rq.Mode( FREQUENCY_CALCMODE_A );
-      jacobian_agenda.append( ws, "jacobianCalcFreqShiftAndStretchIybinterp", 
+      jacobian_agenda.append( "jacobianCalcFreqShiftAndStretchIybinterp", 
                                                                            "" );
    }
   else
@@ -706,7 +722,7 @@ void jacobianCalcFreqShiftAndStretchIybinterp(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddPointingZa(
-  Workspace&                 ws,
+  Workspace&                 ws _U_,
   ArrayOfRetrievalQuantity&  jacobian_quantities,
   Agenda&                    jacobian_agenda,
   const Matrix&              sensor_pos,
@@ -770,7 +786,7 @@ void jacobianAddPointingZa(
   if( calcmode == "iybrecalc" )
     { 
       rq.Mode( POINTING_CALCMODE_A );  
-      jacobian_agenda.append( ws, "jacobianCalcPointingZaIybrecalc", "" );
+      jacobian_agenda.append( "jacobianCalcPointingZaIybrecalc", "" );
    }
   else
     throw runtime_error( "Possible choices for *calcmode* are \"iybrecalc\"." ); 
@@ -899,7 +915,7 @@ void jacobianCalcPointingZaIybrecalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddPolyfit(
-  Workspace&                 ws,
+  Workspace&                 ws _U_,
   ArrayOfRetrievalQuantity&  jq,
   Agenda&                    jacobian_agenda,
   const ArrayOfIndex&        sensor_response_pol_grid,
@@ -983,7 +999,7 @@ void jacobianAddPolyfit(
       jq.push_back( rq );
 
       // Add pointing method to the jacobian agenda
-      jacobian_agenda.append( ws, "jacobianCalcPolyfit", i );
+      jacobian_agenda.append( "jacobianCalcPolyfit", i );
     }
 }
 
@@ -1079,7 +1095,7 @@ void jacobianCalcPolyfit(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddTemperature(
-  Workspace&                  ws,
+  Workspace&                  ws _U_,
   ArrayOfRetrievalQuantity&   jq,
   Agenda&                     jacobian_agenda,
   const Index&                atmosphere_dim,
@@ -1179,7 +1195,7 @@ void jacobianAddTemperature(
     { 
       out3 << "  Calculations done by perturbations, of size " << dx << ".\n"; 
 
-      jacobian_agenda.append( ws, "jacobianCalcTemperature", "" );
+      jacobian_agenda.append( "jacobianCalcTemperature", "" );
     }
 }                    
 
@@ -1354,7 +1370,7 @@ void jacobianCalcTemperature(
                 }
        
               // Calculate the perturbed spectrum  
-              Index         dummy2;
+              Index         dummy2 = 0;
               Vector        iybp, dummy1;
               Matrix        dummy3;
               ArrayOfMatrix dummy4;      
