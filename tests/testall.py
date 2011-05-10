@@ -17,10 +17,6 @@ class ArtsRun:
     def run(self):
         """Run the control file"""
         print self.subdir;
-        if os.environ['TOPSRCDIR'][0] == '/':
-            includeprefix=''
-        else:
-            includeprefix='../'
 
         artsbin='../../src/arts'
         try:
@@ -30,9 +26,7 @@ class ArtsRun:
             pass
 
         w,r,e=os.popen3('cd ' + self.subdir + '; '
-                + artsbin + ' '
-                + '-I' + includeprefix + os.environ['TOPSRCDIR'] + '/includes '
-                + self.control_file)
+                + artsbin + ' ' + self.control_file)
         self.output=r.read()
         self.error=e.read()
     def get_val(self,name):

@@ -8,6 +8,9 @@
 /* Compiler */
 #cmakedefine COMPILER "${COMPILER}"
 
+/* Default directory for ARTS include files */
+#cmakedefine ARTS_DEFAULT_INCLUDE_DIR "${ARTS_DEFAULT_INCLUDE_DIR}"
+
 /* Define system constant */
 #cmakedefine LINUX 1
 #cmakedefine OSX 1

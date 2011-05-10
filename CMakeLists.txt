@@ -206,6 +206,8 @@ elseif (WIN)
   set (WINDOWS 1)
 endif (APPLE)
   
+set (ARTS_DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes")
+
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
 

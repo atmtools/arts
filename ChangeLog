@@ -1,3 +1,20 @@
+2011-05-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-207
+
+	* src/parameters.cc:
+
+	Add the includes directory in the ARTS source directory
+	automatically to the include search path.
+
+	* CMakeLists.txt, config.h.cmake:
+
+	Define ARTS_DEFAULT_INCLUDE_DIR.
+
+	* tests/testall.py, cmake/modules/ArtsTestcases.cmake:
+
+	Remove TOPSRC dir. Not needed for include path anymore.
+
 2011-05-10  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-206
