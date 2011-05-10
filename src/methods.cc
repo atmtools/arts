@@ -8141,7 +8141,7 @@ void define_md_data_raw()
          "surface chapter in AUG).\n"
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
-         "that the refelctivity and emissivity add up to 1. The\n"
+         "that reflectivity and emissivity add up to 1. The\n"
          "emission is unpolarised here.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),

@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 
-#This control file handels a DOIT batch calculation with ARTS internal
+#This control file handles a DOIT batch calculation with ARTS internal
 #pnd_field calculations. Four atmospheres from Chevallier91L
 #data are used for atmospheric input. No sensor characteristics 
 #are applied. Only two frequencies and two line of sights are used,

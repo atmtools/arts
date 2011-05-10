@@ -1134,6 +1134,22 @@ void abs_lookupSetupBatch(// WS Output:
   // convert it here to the natural log:
   const Numeric p_step = log(pow(10.0, p_step10));
 
+  // Derive field, where abs_species profiles start
+  // (in batch_fields, first 2 are T and z, then we have an unknown number of
+  // part_species fields, followed by N fields corresponding to the N entries in
+  // abs_species)
+  const Index indoff = batch_fields[0].data.nbooks()-abs_species.nelem();
+//  cout << "abs species start at column " << indoff << ", i.e.,\n"
+//       << indoff-2 << " particle related columns are present\n";
+
+  // Derive which abs_species is H2O (required for nonlinear species handling)
+  // returns -1 if no H2O present
+  const Index h2o_index = find_first_species_tg( abs_species,
+                            species_index_from_species_name("H2O") );
+//  cout << "The " << h2o_index+1 << ". species in abs_species is H2O\n";
+//  cout << "That is, H2O is expected to be the " << indoff+h2o_index
+//       << ". column of the atmospheric fields\n";
+
   // Check that the field names in batch_fields are good. (We check
   // only the first field in the batch.)  
   {
@@ -1154,10 +1170,31 @@ void abs_lookupSetupBatch(// WS Output:
         throw runtime_error( os.str() );
       }
 
+    if (abs_species.nelem() < 1)
+      {
+        os << "At least one absorption species needs to be defined "
+           << "in abs_species.";
+        throw runtime_error( os.str() );
+      }
+
+/*
     if (abs_species.nelem() != field_names.nelem()-2)
       {
         os << "Dimension of fields in batch_fields does not match that of abs_species.\n"
            << "(First two fields must be T and z, rest must match absorption species.)\n"
+           << "Field names:        " << field_names << "\n"
+           << "Absorption species: " << species_names; 
+        throw runtime_error( os.str() );
+      }
+*/
+    // field_names.nelem = 2(T,z) + M(part_species) + N(abs_species)
+    // but we don't know M, so we can only check whether we have at least
+    // N+2 (abs_species+T+z) atmospheric fields
+    if (abs_species.nelem() >  field_names.nelem()-2)
+      {
+        os << "Dimension of fields in batch_fields does not match that of abs_species.\n"
+           << "(First two fields must be T and z, the N last fields must match the\n"
+           << "absorption species, where N is the number of species as defined in abs_species.)\n"
            << "Field names:        " << field_names << "\n"
            << "Absorption species: " << species_names; 
         throw runtime_error( os.str() );
@@ -1180,15 +1217,26 @@ void abs_lookupSetupBatch(// WS Output:
         bail = true;
       }
 
+    // One of the abs_species has to be H2O
+    // (ideally that should be checked later, when we know whether there are
+    // nonlinear species present. however, currently batch mode REQUIRES H2O to
+    // be present, so we check that immediately)
+    if (h2o_index < 0)
+      {
+        os << "One of the atmospheric fields must be H2O.\n";
+        bail = true;
+      }
+
     // The other fields must match abs_species:
     bool wrong_species = false;
     for (Index i=0; i<abs_species.nelem(); ++i)
-      if (field_names[2+i] != species_names[i])
+      if (field_names[indoff+i] != species_names[i])
         wrong_species = true;
 
     if (wrong_species)
       {
-        os << "The third to last field name must match the absorption species in\n"
+        os << "The " << abs_species.nelem() << " last field names must "
+           << "match the absorption species in\n"
            << "abs_species, which are:\n"
            << species_names << "\n";
         bail = true;
@@ -1250,7 +1298,9 @@ void abs_lookupSetupBatch(// WS Output:
   // Now we have to determine the statistics of T and VMRs, we need
   // profiles of min, max, and mean of these, on the abs_p grid.
 
-  Index n_variables = batch_fields[0].data.nbooks();
+//  Index n_variables = batch_fields[0].data.nbooks();
+  // we will do statistics for data fields excluding the part_species fields
+  Index n_variables = 2+abs_species.nelem();
 
   // The first dimension of datamin, datamax, and datamean is the
   // variable (T,Z,H2O,O3,...). The second dimension is pressure. We
@@ -1280,8 +1330,7 @@ void abs_lookupSetupBatch(// WS Output:
           != batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES))
         throw runtime_error("All fields in the batch must have the same field names.");
 
-      // Check that the first field is indeed T and the third field is
-      // indeed H2O:
+      // Check that the first field is indeed T 
       if ("T" != batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[0])
         {
           ostringstream os;
@@ -1290,11 +1339,16 @@ void abs_lookupSetupBatch(// WS Output:
           throw runtime_error( os.str() );
         }
 
-      if ("H2O" != batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[2])
+      // Check that field h2o_index+indoff is indeed H2O:
+      if ("H2O" != 
+        batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[indoff+h2o_index])
         {
           ostringstream os;
-          os << "The third variable in the compact atmospheric state must be \"H2O\",\n"
-             << "but yours is: " << batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[0];
+          os << "According to abs_species setting the " << indoff+h2o_index
+             << ". variable in the compact\n"
+             << "atmospheric state is supposed to be \"H2O\",\n"
+             << "but yours is: "
+             << batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[indoff+h2o_index];
           throw runtime_error( os.str() );
         }
 
@@ -1315,9 +1369,11 @@ void abs_lookupSetupBatch(// WS Output:
           // Field 0 is temperature:
           if (data(0,ip,ilat,ilon) < mint) mint = data(0,ip,ilat,ilon);
           if (data(0,ip,ilat,ilon) > maxt) maxt = data(0,ip,ilat,ilon);
-          // Field 2 is H2O:
-          if (data(2,ip,ilat,ilon) < minh2o) minh2o = data(2,ip,ilat,ilon);
-          if (data(2,ip,ilat,ilon) > maxh2o) maxh2o = data(2,ip,ilat,ilon);
+          // Field indoff+h2o_index is H2O:
+          if (data(indoff+h2o_index,ip,ilat,ilon) < minh2o)
+            { minh2o = data(indoff+h2o_index,ip,ilat,ilon); }
+          if (data(indoff+h2o_index,ip,ilat,ilon) > maxh2o)
+            { maxh2o = data(indoff+h2o_index,ip,ilat,ilon); }
         }
 
       // Interpolate the current batch fields to the abs_p grid. We
@@ -1372,18 +1428,31 @@ void abs_lookupSetupBatch(// WS Output:
       // We have to loop over fields, latitudes, and longitudes here, doing the
       // pressure interpolation for all. The dimensions of data are: 
       // data[N_fields][N_p][N_lat][N_lon]
-      Tensor4 data_interp(data.nbooks(),
+      // For data_interp we reduce data by the particle related fields, i.e.,
+      // the ones in between the first two and the last N=abs_species.nelem().
+//      Tensor4 data_interp(data.nbooks(),
+      Tensor4 data_interp(n_variables,
                           active_log_abs_p.nelem(),
                           data.nrows(),
                           data.ncols());
 
       for (Index lo=0; lo<data.ncols(); ++lo)
         for (Index la=0; la<data.nrows(); ++la)
-          for (Index fi=0; fi<data.nbooks(); ++fi)
-            interp(data_interp(fi, joker, la, lo),
-                   itw,
-                   data(fi, joker, la, lo),
-                   gp);
+          {
+//          for (Index fi=0; fi<data.nbooks(); ++fi)
+            // we have to handle T/z and abs_species parts separately since they
+            // can have part_species in between, which we want to ignore
+            for (Index fi=0; fi<2; ++fi)
+              interp(data_interp(fi, joker, la, lo),
+                     itw,
+                     data(fi, joker, la, lo),
+                     gp);
+            for (Index fi=indoff; fi<data.nbooks(); ++fi)
+              interp(data_interp(fi-indoff+2, joker, la, lo),
+                     itw,
+                     data(fi, joker, la, lo),
+                     gp);
+          }
 
       // Now update our datamin, datamax, and datamean variables.
       // We need the min and max only for the T and H2O profile, 
@@ -1399,8 +1468,8 @@ void abs_lookupSetupBatch(// WS Output:
                 if (1!=fi)      // We skip the z field, which we do not need
                   for (Index pr=0; pr<data_interp.npages(); ++pr)
                     {
-                      if (0==fi || 2==fi) // Min and max only needed
-                                          // for T and H2o
+                      // Min and max only needed for T and H2o
+                      if (0==fi || (h2o_index+2)==fi) 
                         {
                           if (data_interp(fi, pr, la, lo) < datamin(fi, first_p+pr))
                             datamin(fi, first_p+pr) = data_interp(fi, pr, la, lo);
@@ -1472,8 +1541,8 @@ void abs_lookupSetupBatch(// WS Output:
             smooth_datamean(fi,i) /= (Numeric)gp.idx.nelem();            
           }
 //       cout << "H2O-raw / H2O-smooth: "
-//            << datamean(2,i) << " / "
-//            << smooth_datamean(2,i) << "\n";
+//            << datamean(h2o_index+2,i) << " / "
+//            << smooth_datamean(h2o_index+2,i) << "\n";
     }
 
   // There is another complication: If the (smoothed) mean for the H2O
@@ -1483,12 +1552,13 @@ void abs_lookupSetupBatch(// WS Output:
   // divide by the reference value. So, we set it here to 1e-9.
   for (Index i=0; i<np; ++i)
     {
-      // Assert that really H2O has index 2 in the VMR field list
-      assert("H2O" == batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES)[2]);
+      // Assert that really H2O has index h2o_index+indoff in the VMR field list
+      assert("H2O" == 
+        batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES)[indoff+h2o_index]);
 
       // Find mean and max H2O for this level:
-      Numeric& mean_h2o = smooth_datamean(2,i);
-      Numeric& max_h2o  = datamax(2,i);
+      Numeric& mean_h2o = smooth_datamean(h2o_index+2,i);
+      Numeric& max_h2o  = datamax(h2o_index+2,i);
       if (mean_h2o <= 0)
         {
           mean_h2o = 1e-9;
@@ -1517,9 +1587,11 @@ void abs_lookupSetupBatch(// WS Output:
   //  cout << "abs_t_pert: " << abs_t_pert << "\n";
 
   // Construct abs_nls_pert:
-  ConstVectorView h2omin = datamin(2,joker);
-  ConstVectorView h2omax = datamax(2,joker);
-  choose_abs_nls_pert(abs_nls_pert, abs_vmrs(0,joker), h2omin, h2omax, h2o_step, abs_p_interp_order, abs_nls_interp_order);
+  ConstVectorView h2omin = datamin(h2o_index+2,joker);
+  ConstVectorView h2omax = datamax(h2o_index+2,joker);
+  choose_abs_nls_pert(abs_nls_pert, abs_vmrs(h2o_index,joker),
+                      h2omin, h2omax, h2o_step,
+                      abs_p_interp_order, abs_nls_interp_order);
   //  cout << "abs_nls_pert: " << abs_nls_pert << "\n";
 
   // Append the explicitly given user extreme values, if necessary:

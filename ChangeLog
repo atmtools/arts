@@ -1,3 +1,18 @@
+2011-05-10  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-206
+
+	* src/m_abs_lookup.cc:
+
+	abs_lookupSetupBatch:
+	- allow batch_fields to contain particle related profiles (current
+	requirement: they need to be placed in between (T,z) and abs_species
+        corresponding data), i.e., now able to handle batch_atm_fields_compact
+        as well as batch_atm_fields_compact_all types
+	- de-hardwire position of H2O profiles (before: first abs_species, i.e.,
+	first (abs)profile in batch_fields. now: any place ok (same as has
+	already been in abs_lookupSetup; position derived by tag comparison)
+
 2011-05-09	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-205
