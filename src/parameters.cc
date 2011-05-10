@@ -361,7 +361,7 @@ bool get_parameters(int argc, char **argv)
   
 #ifdef ARTS_DEFAULT_INCLUDE_DIR
   String arts_default_include_path (ARTS_DEFAULT_INCLUDE_DIR);
-  if (arts_default_include_path != "")
+  if (arts_default_include_path != "" && !parameters.includepath.nelem())
   {
     parameters.includepath.push_back (arts_default_include_path);
   }

@@ -1,5 +1,15 @@
 2011-05-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-208
+
+	* src/parameters.cc:
+
+	Only use ARTS_DEFAULT_INCLUDE_DIR if the user hasn't passed a custom
+	path by setting the environment variable ARTS_INCLUDE_PATH or by
+	passing the -I option to arts.
+
+2011-05-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-207
 
 	* src/parameters.cc:
