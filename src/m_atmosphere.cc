@@ -254,10 +254,8 @@ void atm_fields_compactFromMatrix(// WS Output:
 
   af.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
   
-  // GH 2011-05-09: changed Vector() to Vector(0, 1, 1), or .checksize()
-  // will fail
-  af.set_grid(GFIELD4_LAT_GRID, Vector(0, 1, 1));
-  af.set_grid(GFIELD4_LON_GRID, Vector(0, 1, 1));
+  af.set_grid(GFIELD4_LAT_GRID, Vector());
+  af.set_grid(GFIELD4_LON_GRID, Vector());
   
   af.resize(nf_1,np,1,1); // Resize it according to the required fields
   af.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));

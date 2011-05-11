@@ -202,7 +202,8 @@ public:
   */
   virtual bool checksize() const
     {
-      return (data.nelem() == get_grid_size(0));
+      return ((!get_grid_size(0) && data.nelem() == 1
+               || data.nelem() == get_grid_size(0)));
     }
 
   //! Make this GriddedField1 the same size as the given one.
@@ -242,8 +243,10 @@ public:
   */
   virtual bool checksize() const
     {
-      return (data.ncols() == get_grid_size(1)
-              && data.nrows() == get_grid_size(0));
+      return ((!get_grid_size(1) && data.ncols() == 1
+               || data.ncols() == get_grid_size(1))
+              && (!get_grid_size(0) && data.nrows() == 1
+                  || data.nrows() == get_grid_size(0)));
     }
 
   //! Make this GriddedField2 the same size as the given one.
@@ -291,9 +294,12 @@ public:
   */
   virtual bool checksize() const
     {
-      return (data.ncols() == get_grid_size(2)
-              && data.nrows() == get_grid_size(1)
-              && data.npages() == get_grid_size(0));
+      return ((!get_grid_size(2) && data.ncols() == 1
+               || data.ncols() == get_grid_size(2))
+              && (!get_grid_size(1) && data.nrows() == 1
+                  || data.nrows() == get_grid_size(1))
+              && (!get_grid_size(0) && data.npages() == 1
+                  || data.npages() == get_grid_size(0)));
     }
 
   //! Make this GriddedField3 the same size as the given one.
@@ -335,10 +341,14 @@ public:
   */
   virtual bool checksize() const
     {
-      return (data.ncols() == get_grid_size(3)
-              && data.nrows() == get_grid_size(2)
-              && data.npages() == get_grid_size(1)
-              && data.nbooks() == get_grid_size(0));
+      return ((!get_grid_size(3) && data.ncols() == 1
+               || data.ncols() == get_grid_size(3))
+              && (!get_grid_size(2) && data.nrows() == 1
+                  || data.nrows() == get_grid_size(2))
+              && (!get_grid_size(1) && data.npages() == 1
+                  || data.npages() == get_grid_size(1))
+              && (!get_grid_size(0) && data.nbooks() == 1
+                  || data.nbooks() == get_grid_size(0)));
     }
 
   //! Make this GriddedField4 the same size as the given one.

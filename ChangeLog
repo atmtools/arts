@@ -1,3 +1,17 @@
+2011-05-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-209
+
+	* src/gridded_fields.h (checksize):
+
+	Allow the grids for dimensions of size 1 to be empty.
+
+	* src/m_atmosphere (atm_fields_compactFromMatrix):
+
+	After the above changes, lat and lon grids can be set to empty again.
+
+	* NEWS: Removed.
+
 2011-05-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-208
