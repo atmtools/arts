@@ -1,3 +1,16 @@
+2011-05-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-210
+
+	* A quick check of the BRDF part of the surface chapter (still
+	"inactive"), after reading the Petty book (for the first time).
+	
+	* doc/uguide/surface.tex: Removed some stray letters. Changed
+	i index between "in and out angles" in definition of r for BRDF.
+	Added citation of Petty.  
+
+	* doc/uguide/references.bib: Added the Petty book. 
+
 2011-05-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-209

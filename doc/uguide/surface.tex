@@ -1,4 +1,4 @@
-d bu\chapter{Surface emission and reflections}
+\chapter{Surface emission and reflections}
  \label{sec:surface}
 
 
@@ -263,8 +263,8 @@ the values to put into \artsstyle{surface\_rmatrix} and
 The scattering of rough surfaces is normally described by the bidirectional
 reflectance distribution function, BRDF. With the BRDF,
 $f(\theta_0,\phi_0,\theta_1,\phi_1)$, the scattered radiance in the
-direction $(\theta_1,\phi_1)$ can be written as (see e.g. Section 3.3.1.\ of 
-\citet{rees:01})
+direction $(\theta_1,\phi_1)$ can be written as (see e.g.\ 
+\citet{rees:01} or \citet{petty:06})
 \begin{equation}
   \label{eq:surface:brdf1}
   I'(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} I(\theta,\phi) 
@@ -276,11 +276,11 @@ and azimuth angle $\phi$. One important property of the BRDF is
 \begin{equation}
   f(\theta_0,\phi_0,\theta_1,\phi_1) = f(\theta_1,\phi_1,\theta_0,\phi_0).
 \end{equation}
-The reflectivity is the half-sphere integral of the BRDF \citep{rees:01}
+The reflectivity is the half-sphere integral of the BRDF
 \begin{equation}
   \label{eq:surface:brdf:r}
   r(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} 
-  f(\theta,\phi,\theta_1,\phi_1) \cos(\theta)
+  f(\theta_1,\phi_1,\theta,\phi) \cos(\theta)
   \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
 \end{equation}
 
@@ -302,7 +302,7 @@ angle weight.
 \label{sec:surface:rough:lambertian}
 %---
 An ideally rough surface is denoted as Lambertian. The BRDF is for this case
-constant \citep[e.g.][]{rees:01}:
+constant \citep[e.g.][]{petty:06}:
 \begin{equation}
   \label{eq:surface:lambertian1}
   f = \frac{r_d}{\pi}
