@@ -202,7 +202,7 @@ public:
   */
   virtual bool checksize() const
     {
-      return ((!get_grid_size(0) && data.nelem() == 1
+      return (((!get_grid_size(0) && data.nelem() == 1)
                || data.nelem() == get_grid_size(0)));
     }
 
@@ -243,9 +243,9 @@ public:
   */
   virtual bool checksize() const
     {
-      return ((!get_grid_size(1) && data.ncols() == 1
+      return (((!get_grid_size(1) && data.ncols() == 1)
                || data.ncols() == get_grid_size(1))
-              && (!get_grid_size(0) && data.nrows() == 1
+              && ((!get_grid_size(0) && data.nrows() == 1)
                   || data.nrows() == get_grid_size(0)));
     }
 
@@ -294,11 +294,11 @@ public:
   */
   virtual bool checksize() const
     {
-      return ((!get_grid_size(2) && data.ncols() == 1
+      return (((!get_grid_size(2) && data.ncols() == 1)
                || data.ncols() == get_grid_size(2))
-              && (!get_grid_size(1) && data.nrows() == 1
+              && ((!get_grid_size(1) && data.nrows() == 1)
                   || data.nrows() == get_grid_size(1))
-              && (!get_grid_size(0) && data.npages() == 1
+              && ((!get_grid_size(0) && data.npages() == 1)
                   || data.npages() == get_grid_size(0)));
     }
 
@@ -341,13 +341,13 @@ public:
   */
   virtual bool checksize() const
     {
-      return ((!get_grid_size(3) && data.ncols() == 1
+      return (((!get_grid_size(3) && data.ncols() == 1)
                || data.ncols() == get_grid_size(3))
-              && (!get_grid_size(2) && data.nrows() == 1
+              && ((!get_grid_size(2) && data.nrows() == 1)
                   || data.nrows() == get_grid_size(2))
-              && (!get_grid_size(1) && data.npages() == 1
+              && ((!get_grid_size(1) && data.npages() == 1)
                   || data.npages() == get_grid_size(1))
-              && (!get_grid_size(0) && data.nbooks() == 1
+              && ((!get_grid_size(0) && data.nbooks() == 1)
                   || data.nbooks() == get_grid_size(0)));
     }
 
