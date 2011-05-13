@@ -16,6 +16,10 @@
 	rte_doppler. (By adding Ignore(rte_doppler)) Put also comments
 	there how to turn Doppler on.
 
+	* tests/Abs/TestAbsDoppler.arts: Added. A new test, specifically
+	for the doppler shifted absorption. Demonstrates how Doppler can
+	be turned on.
+
 	* tests: Added Ignore(rte_doppler) to abs_scalar_gas_agenda in all
 	test cases.
 
