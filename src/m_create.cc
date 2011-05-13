@@ -61,9 +61,33 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfGriddedField1Create(// WS Generic Output:
-                          ArrayOfGriddedField1& aogf1 )
+                          ArrayOfGriddedField1& aogf )
 {
-  aogf1 = ArrayOfGriddedField1();
+  aogf = ArrayOfGriddedField1();
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfGriddedField2Create(// WS Generic Output:
+                                ArrayOfGriddedField2& aogf )
+{
+  aogf = ArrayOfGriddedField2();
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfGriddedField3Create(// WS Generic Output:
+                                ArrayOfGriddedField3& aogf )
+{
+  aogf = ArrayOfGriddedField3();
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfGriddedField4Create(// WS Generic Output:
+                                ArrayOfGriddedField4& aogf )
+{
+  aogf = ArrayOfGriddedField4();
 }
 
 

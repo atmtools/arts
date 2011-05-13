@@ -210,6 +210,10 @@ int main()
             else if (gname == "Matrix")
               initstr << ".resize(" << DUMMY_ROWS << ","
                                     << DUMMY_COLS << ");";
+            else if (gname == "Tensor3")
+              initstr << ".resize(" << DUMMY_PAGES << ","
+                                    << DUMMY_ROWS  << ","
+                                    << DUMMY_COLS  << ");";
             
             
             if (initstr.str().length())

@@ -1877,6 +1877,69 @@ void define_md_data_raw()
         ));
 
   md_data_raw.push_back
+  ( MdRecord
+   ( NAME( "ArrayOfGriddedField2Create" ),
+    DESCRIPTION
+    (
+     "Creates an empty ArrayOfGriddedField2.\n"
+     "\n"
+     "If the variable already exists, it will be reset.\n"
+     ),
+    AUTHORS( "Oliver Lemke" ),
+    OUT(),
+    GOUT(      "agf" ),
+    GOUT_TYPE( "ArrayOfGriddedField2" ),
+    GOUT_DESC( "Variable to create." ),
+    IN(),
+    GIN(),
+    GIN_TYPE(),
+    GIN_DEFAULT(),
+    GIN_DESC()
+    ));
+  
+  md_data_raw.push_back
+  ( MdRecord
+   ( NAME( "ArrayOfGriddedField3Create" ),
+    DESCRIPTION
+    (
+     "Creates an empty ArrayOfGriddedField3.\n"
+     "\n"
+     "If the variable already exists, it will be reset.\n"
+     ),
+    AUTHORS( "Oliver Lemke" ),
+    OUT(),
+    GOUT(      "agf" ),
+    GOUT_TYPE( "ArrayOfGriddedField3" ),
+    GOUT_DESC( "Variable to create." ),
+    IN(),
+    GIN(),
+    GIN_TYPE(),
+    GIN_DEFAULT(),
+    GIN_DESC()
+    ));
+  
+  md_data_raw.push_back
+  ( MdRecord
+   ( NAME( "ArrayOfGriddedField4Create" ),
+    DESCRIPTION
+    (
+     "Creates an empty ArrayOfGriddedField4.\n"
+     "\n"
+     "If the variable already exists, it will be reset.\n"
+     ),
+    AUTHORS( "Oliver Lemke" ),
+    OUT(),
+    GOUT(      "agf" ),
+    GOUT_TYPE( "ArrayOfGriddedField4" ),
+    GOUT_DESC( "Variable to create." ),
+    IN(),
+    GIN(),
+    GIN_TYPE(),
+    GIN_DEFAULT(),
+    GIN_DESC()
+    ));
+  
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ArrayOfIndexCreate" ),
         DESCRIPTION
@@ -3078,6 +3141,9 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Deletes a workspace variable.\n"
+         "\n"
+         "The variable is marked as uninitialized and its memory freed.\n"
+         "It is not removed from the workspace though.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
