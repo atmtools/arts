@@ -1,3 +1,4 @@
+#DEFINITIONS:  -*-sh-*-
 # This is a test doing Odin-SMR simulations. Same test as in
 # testOdinSMR, but the calculations are here performed inside a single
 # measurement block. This approach can only be used for 1D.
@@ -56,6 +57,7 @@ VectorSet( abs_t_pert, [] )
 abs_lookupCreate
 
 AgendaSet( abs_scalar_gas_agenda ){
+  Ignore(rte_doppler)
   abs_scalar_gasExtractFromLookup
 }
 

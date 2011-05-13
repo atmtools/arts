@@ -159,6 +159,7 @@ void dtauc_ssalbCalc(Workspace& ws,
      abs_scalar_gas_agendaExecute(ws,
                                   abs_scalar_gas_local, 
                                   f_index,  // monochromatic calculation
+                                  0,
                                   rte_pressure_local, 
                                   rte_temperature_local, 
                                   rte_vmr_list_local,

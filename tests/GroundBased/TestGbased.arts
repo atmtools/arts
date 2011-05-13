@@ -1,3 +1,4 @@
+#DEFINITIONS:  -*-sh-*-
 # Simple simulations of ground-based measurements of ozone at 110.8 GHz,
 # mainly to test different sensor response methods.
 # User defined variables are also used heavily, to set up consistent 
@@ -93,6 +94,7 @@ VectorSet( abs_t_pert, [] )
 abs_lookupCreate
 
 AgendaSet( abs_scalar_gas_agenda ){
+  Ignore(rte_doppler)
   abs_scalar_gasExtractFromLookup
 }
 

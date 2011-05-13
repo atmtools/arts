@@ -1234,7 +1234,7 @@ void iyBeerLambertStandardCloudbox(
           emp1 = emp2;
 
           // Gas absorption
-          abs_scalar_gas_agendaExecute( ws, asg2, -1, ppath_p[ip], ppath_t[ip], 
+          abs_scalar_gas_agendaExecute( ws, asg2, -1, 0, ppath_p[ip], ppath_t[ip], 
                                   ppath_vmr(joker,ip), abs_scalar_gas_agenda );
 
           // Extinction matrix and absorption vector for gases

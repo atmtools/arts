@@ -94,6 +94,7 @@ abs_lookupCreate
 # Set abs_scalar_gas_agenda to use lookup table
 # ---
 AgendaSet( abs_scalar_gas_agenda ){
+  Ignore(rte_doppler)
   abs_scalar_gasExtractFromLookup
 }
 

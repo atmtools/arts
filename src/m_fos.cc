@@ -453,7 +453,7 @@ void iyFOS(
           s1   = s2;
 
           // Gas absorption and blackbody radiation
-          abs_scalar_gas_agendaExecute( ws, asg2, -1, ppath_p[ip], ppath_t[ip], 
+          abs_scalar_gas_agendaExecute( ws, asg2, -1, 0, ppath_p[ip], ppath_t[ip], 
                                   ppath_vmr(joker,ip), abs_scalar_gas_agenda );
           emission_agendaExecute( ws, b2, ppath_t[ip], emission_agenda );
 

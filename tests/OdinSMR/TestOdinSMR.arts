@@ -1,3 +1,4 @@
+#DEFINITIONS:  -*-sh-*-
 # This is a test doing Odin-SMR simulations.
 #
 # The calculations are using multiple measuremeent blocks and the control file
@@ -66,6 +67,7 @@ VectorSet( abs_t_pert, [] )
 abs_lookupCreate
 
 AgendaSet( abs_scalar_gas_agenda ){
+  Ignore(rte_doppler)
   abs_scalar_gasExtractFromLookup
 }
 

@@ -1,3 +1,58 @@
+2011-05-13  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-0
+
+	* (Version number): New minor version number, since these changes will break
+	controlfiles that explicitly define there own
+	abs_scalar_gas_agenda. In that case, the fix is to add
+	Ignore(rte_doppler) in abs_scalar_gas_agenda.
+
+	* (New features): Now handles Doppler shift in on-the-fly
+	absorption simulations, if abs_scalar_gas_agenda is defined
+	properly. Does not yet handle Doppler shift when absorption is
+	taken from lookup table.
+
+	* includes/general.arts: Redefined abs_scalar_gas_agenda to ignore
+	rte_doppler. (By adding Ignore(rte_doppler)) Put also comments
+	there how to turn Doppler on.
+
+	* tests: Added Ignore(rte_doppler) to abs_scalar_gas_agenda in all
+	test cases.
+
+	* src/agendas.cc (abs_scalar_gas_agenda): Added input parameter rte_doppler.
+
+	* src/workspace.cc (abs_doppler, abs_doppler_do): Removed, since
+	these are not needed with this new solution to the Doppler
+	problem.
+	(rte_doppler): Added. This is the communication variable for
+	abs_scalar_gas_agenda.
+
+	* src/methods.cc (abs_fieldCalc): Added new argument doppler,
+	for doppler absorption coefficient testing. This is a generic
+	input argument with an empty vector as default value.
+
+	* src/m_abs_lookup.cc (abs_fieldCalc): Added new argument doppler,
+	for doppler absorption coefficient testing.
+
+	* src/disort.cc (dtauc_ssalbCalc): Put 0 for new rte_doppler
+	argument of abs_scalar_gas_agenda.
+
+	* src/doit.cc (cloud_RT_no_background,
+	cloud_ppath_update1D_planeparallel): Put 0 for new rte_doppler
+	argument of abs_scalar_gas_agenda.
+
+	* src/m_fos.cc (iyFOS): Put 0 for new rte_doppler argument of
+	abs_scalar_gas_agenda.
+
+	* src/m_rte.cc (iyBeerLambertStandardCloudbox): Put 0 for new
+	rte_doppler argument of abs_scalar_gas_agenda.
+
+	* src/montecarlo.cc (clear_rt_vars_at_gp, cloudy_rt_vars_at_gp):
+	Put 0 for new rte_doppler argument of abs_scalar_gas_agenda.
+
+	* src/rte.cc (get_step_vars_for_standardRT): Put 0 for new
+	rte_doppler argument of abs_scalar_gas_agenda.
+
 2011-05-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-212

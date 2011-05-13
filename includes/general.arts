@@ -59,13 +59,19 @@ abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 # calculations.
 # 
 AgendaSet( abs_scalar_gas_agenda ){
+  # Doppler shift:
+  Ignore(rte_doppler)
+  # To activate Doppler shift for on-the-fly calculations, replace ignore by:
+  #NumericScale( rte_doppler, rte_doppler, -1 )
+  #VectorAddScalar( f_grid, f_grid, rte_doppler )
+  # Positive Doppler shift means negative shift of f_grid!
+
+  # !!!!! DOPPLER SHIFT FOR LOOKUP TABLE CALCULATIONS IS NOT YET IMPLEMENTED!!!!!
+
+  # Absorption calculation:
   abs_scalar_gasCalcLBL
-# The above method is a shortcut for the sequence of methods below:
-#   f_gridSelectFIndex
-#   AbsInputFromRteScalars
-#   abs_h2oSet
-#   abs_coefCalc
-#   abs_scalar_gasFromAbsCoef
+  # To use the absorption lookup table, replace by:
+  #abs_scalar_gasExtractFromLookup
 }
 
 #

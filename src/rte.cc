@@ -418,7 +418,7 @@ void get_step_vars_for_standardRT(
       Vector   evector;
       Matrix   sgmatrix;
       //
-      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, ppath_p[ip], ppath_t[ip], 
+      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, 0, ppath_p[ip], ppath_t[ip], 
                                       ppath_vmr(joker,ip), abs_scalar_agenda );
       ppath_abs_scalar(joker,joker,ip) = sgmatrix;
       //

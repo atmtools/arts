@@ -1979,7 +1979,9 @@ void abs_fieldCalc(Workspace& ws,
                    const Vector&  lat_grid,
                    const Vector&  lon_grid,
                    const Tensor3& t_field,
-                   const Tensor4& vmr_field )
+                   const Tensor4& vmr_field,
+                   // WS Generic Input:
+                   const Vector&  doppler )
 {
   Matrix  asg;
   Vector  a_vmr_list;
@@ -2024,6 +2026,15 @@ void abs_fieldCalc(Workspace& ws,
                  lat_grid,
                  lon_grid );
 
+  // Check that doppler is empty or matches p_grid
+  if (0!=doppler.nelem() && p_grid.nelem()!=doppler.nelem())
+    {
+      ostringstream os;
+      os << "Variable doppler must either be empty, or match the dimension of "
+         << "p_grid.";
+      throw runtime_error( os.str() );
+    }
+  
   // We also set the start and extent for the frequency loop.
   Index f_extent;
 
@@ -2092,7 +2103,10 @@ void abs_fieldCalc(Workspace& ws,
       try
         {
           Numeric a_pressure = p_grid[ipr];
-
+          
+          Numeric a_doppler = 0;
+          if (0!=doppler.nelem()) a_doppler = doppler[ipr];
+          
           {
             ostringstream os;
             os << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
@@ -2111,7 +2125,7 @@ void abs_fieldCalc(Workspace& ws,
                 // Agenda output: asg
                 abs_scalar_gas_agendaExecute(l_ws,
                                              asg,
-                                             f_index, a_pressure,
+                                             f_index, a_doppler, a_pressure,
                                              a_temperature, a_vmr_list,
                                              l_sga_agenda);
 

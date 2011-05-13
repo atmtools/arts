@@ -75,7 +75,8 @@ void define_agenda_data()
         "input variables, such as *f_grid*, *species*, etc.\n"
         ),
        OUTPUT( "abs_scalar_gas" ),
-       INPUT(  "f_index", "rte_pressure", "rte_temperature", "rte_vmr_list" )));
+       INPUT(  "f_index", "rte_doppler", "rte_pressure", "rte_temperature", 
+               "rte_vmr_list" )));
   
  agenda_data.push_back
     (AgRecord

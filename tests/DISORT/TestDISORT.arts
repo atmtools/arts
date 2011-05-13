@@ -53,6 +53,7 @@ ReadXML( abs_lookup ){
 abs_lookupAdapt
 
 AgendaSet( abs_scalar_gas_agenda ){
+   Ignore(rte_doppler)
    abs_scalar_gasExtractFromLookup
 }
 

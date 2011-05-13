@@ -1286,10 +1286,11 @@ void define_md_data_raw()
             "atmosphere_dim",
             "p_grid", "lat_grid", "lon_grid",
             "t_field", "vmr_field" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN("doppler"),
+        GIN_TYPE("Vector"),
+        GIN_DEFAULT("[]"),
+        GIN_DESC("A vector of doppler shift values in Hz. Must either be\n"
+                 "empty or have same dimension as p_grid\n")
         ));
 
   md_data_raw.push_back

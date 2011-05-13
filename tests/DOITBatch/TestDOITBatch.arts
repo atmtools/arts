@@ -137,7 +137,10 @@ ReadXML( abs_lookup, "abs_lookupBatch.xml" )
 abs_lookupAdapt
 
 # Set abs_scalar_gas_agenda to use lookup table
-AgendaSet( abs_scalar_gas_agenda ){ abs_scalar_gasExtractFromLookup }
+AgendaSet( abs_scalar_gas_agenda ){ 
+  Ignore(rte_doppler)
+  abs_scalar_gasExtractFromLookup 
+}
 
 
 # 6.Specification of cloud-----------------------------------------------

@@ -325,42 +325,6 @@ void Workspace::define_wsv_data()
     
     wsv_data.push_back
     (WsvRecord
-     (NAME( "abs_doppler" ),
-      DESCRIPTION
-      (
-       "Doppler shift values for absorption calculation.\n"
-       "\n"
-       "There will be a Doppler shift in the absorption coefficients if this\n"
-       "variable is not zero, and if *abs_doppler_do* is 1.\n"
-       "\n"
-       "Positive values mean that line positions are shifted to higher\n"
-       "frequencies. This corresponds to source and observer moving towards each\n"
-       "other.\n"
-       "\n"
-       "Usage: Set by user or agenda input.\n"
-       "\n"
-       "Units: Hz.\n"
-       "\n"
-       "Size: Number of elements has to fit *abs_p*.\n"
-       ),
-      GROUP( "Vector" )));
-
-    wsv_data.push_back
-    (WsvRecord
-     (NAME( "abs_doppler_do" ),
-      DESCRIPTION
-      (
-       "Flag to switch Doppler shift treatment in absorption functions on or\n"
-       "off.\n"
-       "\n"
-       "1 means do doppler shift, 0 means don't. No other values are allowed.\n"
-       "\n"
-       "See also: *abs_doppler*\n"
-      ),
-      GROUP( "Index" )));
-    
-    wsv_data.push_back
-    (WsvRecord
      (NAME( "abs_h2o" ),
       DESCRIPTION
       (
@@ -2748,6 +2712,26 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
+  wsv_data.push_back
+  (WsvRecord
+   ( NAME( "rte_doppler" ),
+    DESCRIPTION
+    (
+     "A doppler shift for radiative transfer calculations.\n"
+     "\n"
+     "This scalar variable can hold the local doppler shift. It is intended\n"
+     "mainly for communication with various methods and agendas, such as\n"
+     "methods and agendas calculating absorption coefficients.\n"
+     "\n"
+     "Positive values mean that the spectrum is shifted towards higher\n"
+     "frequencies\n"
+     "\n"
+     "Usage: Communication variable.\n"
+     "\n"
+     "Units: [ Hz ]\n"
+     ),
+    GROUP( "Numeric" )));
+  
  wsv_data.push_back
    (WsvRecord
     ( NAME( "rte_do_vmr_jacs" ),

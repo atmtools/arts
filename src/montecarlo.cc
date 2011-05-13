@@ -106,7 +106,7 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   temperature = t_vec[0];
   
   //calcualte absorption coefficient
-  abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,p_vec[0],
+  abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,0,p_vec[0],
     temperature,vmr_mat(joker,0),abs_scalar_gas_agenda );
   opt_prop_gas_agendaExecute( ws, local_ext_mat, local_abs_vec, f_index,
                               local_abs_scalar_gas, opt_prop_gas_agenda );
@@ -178,7 +178,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
-  abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,p_ppath[0],
+  abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,0,p_ppath[0],
         temperature,vmr_ppath(joker,0),abs_scalar_gas_agenda );
   opt_prop_gas_agendaExecute( ws, local_ext_mat, local_abs_vec, f_index,
                               local_abs_scalar_gas, opt_prop_gas_agenda );
