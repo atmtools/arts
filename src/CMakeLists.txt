@@ -12,6 +12,10 @@ set (ALL_ARTS_LIBRARIES
   matpack
   )
 
+file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+set(SOURCES ${HEADERFILES})
+add_custom_target(UtilityHeaders SOURCES ${SOURCES})
+
 if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)
 endif (ENABLE_DISORT)

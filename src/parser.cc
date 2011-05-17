@@ -508,20 +508,6 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
             }
           tv = v;
         }
-      else if (mdd->GInType()[gin_index] == get_wsv_group_id ("ArrayOfIndex")) 
-        {
-          ostringstream os;
-          os << "Default values for generic inputs with type "
-            << "ArrayOfIndex are not supported.\n"
-            << "Either remove the default value for generic input '"
-            << mdd->GIn()[gin_index] << "' in workspace method *"
-            << mdd->Name() << "* in methods.cc or discuss this "
-            << "issue on the arts-dev mailing list.\n";
-          throw ParseError (os.str(),
-                            msource.File(),
-                            msource.Line(),
-                            msource.Column());
-        }
       else if (mdd->GInType()[gin_index] == get_wsv_group_id ("Vector")) 
         {
           Vector v;
@@ -533,10 +519,22 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
           tv = v;
         }
       else
-        {
-          failed = true;
-        }
-
+      {
+        extern const ArrayOfString wsv_group_names;
+        ostringstream os;
+        os
+        << "Default values for generic inputs with type "
+        << wsv_group_names[mdd->GInType()[gin_index]] << " are not supported.\n"
+        << "Either remove the default value for generic input '"
+        << mdd->GIn()[gin_index] << "' in workspace method\n"
+        << "*" << mdd->Name() << "* in methods.cc or discuss this "
+        << "issue on the arts-dev mailing list.\n";
+        throw ParseError (os.str(),
+                          msource.File(),
+                          msource.Line(),
+                          msource.Column());
+      }
+      
       Index wsvid;
 
       {
