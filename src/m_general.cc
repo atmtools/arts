@@ -338,7 +338,16 @@ void Exit()
 void Test( )
 {
   // This function can be used to test stuff.
+  
+  Vector x( 1, 5, 1 );
 
+  Vector y( 0.5, 6, 1 );
+
+  ArrayOfGridPos   gp(y.nelem());
+
+  gridpos( gp, x, y, 1 );
+
+  Print( gp, 0 );
 }
 
 
