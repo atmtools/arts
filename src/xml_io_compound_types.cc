@@ -1181,3 +1181,22 @@ xml_write_to_stream (ostream&,
   throw runtime_error("Method not implemented!");
 }
 
+//=== Verbosity ================================================
+
+void
+xml_read_from_stream (istream&,
+                      Verbosity&,
+                      bifstream * /* pbifs */)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_write_to_stream (ostream&,
+                     const Verbosity&,
+                     bofstream * /* pbofs */,
+                     const String& /* name */)
+{
+  throw runtime_error("Method not implemented!");
+}
+

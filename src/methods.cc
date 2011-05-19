@@ -9193,6 +9193,113 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "verbositySet" ),
+        DESCRIPTION
+        (
+         "Sets the verbosity levels.\n"
+         "\n"
+         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "verbosity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(         "agenda", "screen", "file" ),
+        GIN_TYPE(    "Index",  "Index",  "Index" ),
+        GIN_DEFAULT( NODEF,    NODEF,    NODEF),
+        GIN_DESC(    "Agenda verbosity level",
+                     "Screen verbosity level",
+                     "Report file verbosity level")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "verbositySetAgenda" ),
+        DESCRIPTION
+        (
+         "Sets the verbosity level for agenda output.\n"
+         "\n"
+         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "verbosity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "verbosity" ),
+        GIN(         "level" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( NODEF),
+        GIN_DESC(    "Agenda verbosity level")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "verbositySetFile" ),
+        DESCRIPTION
+        (
+         "Sets the verbosity level for report file output.\n"
+         "\n"
+         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "verbosity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "verbosity" ),
+        GIN(         "level" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( NODEF),
+        GIN_DESC(    "Report file verbosity level")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "verbositySetScreen" ),
+        DESCRIPTION
+        (
+         "Sets the verbosity level for screen output.\n"
+         "\n"
+         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "verbosity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "verbosity" ),
+        GIN(         "level" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( NODEF),
+        GIN_DESC(    "Screen verbosity level")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "TestVerbosity" ),
+        DESCRIPTION
+        (
+         "Temporary WSM to test new verbosity.\n"
+         "\n"
+         "!!! UNDER CONSTRUCTION !!!\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN("string"),
+        GIN_TYPE("String"),
+        GIN_DEFAULT(""),
+        GIN_DESC("Some string")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "WriteMolTau" ),
         DESCRIPTION
         (

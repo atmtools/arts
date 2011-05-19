@@ -3994,6 +3994,19 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "verbosity" ),
+      DESCRIPTION
+      (
+       "ARTS verbosity.\n"
+       "\n"
+       "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+       "\n"
+       "Usage:      Set by user.\n"
+       ),
+      GROUP( "Verbosity" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "vmr_field" ),
       DESCRIPTION
       (

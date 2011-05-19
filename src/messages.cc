@@ -118,3 +118,14 @@ Out1 out1;
 Out2 out2;
 /** Level 3 output stream. @see OutStream */
 Out3 out3;
+
+
+ostream& operator<<(ostream& os, Verbosity v)
+{
+  os << "Agenda Verbosity: " << v.get_agenda_verbosity() << "\n";
+  os << "Screen Verbosity: " << v.get_screen_verbosity() << "\n";
+  os << "File Verbosity  : " << v.get_file_verbosity() << "\n";
+  
+  return os;
+}
+

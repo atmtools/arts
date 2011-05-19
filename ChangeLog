@@ -1,3 +1,62 @@
+2011-05-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-3
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Don't try to store y in ybatch if it's empty.
+	Prevents an assertion if one tries to do something dirty like:
+
+	AgendaSet(ybatch_calc_agenda){
+		Touch(y)
+		Touch(jacobian)
+		Print(ybatch_index)
+	}
+
+	IndexSet(ybatch_start, 0)
+	IndexSet(ybatch_n, 10)
+
+	ybatchCalc
+
+	* src/CMakeLists.txt: Cosmetics.
+
+	* Working on the foundation for the new verbosity implementation.
+	Nothing to see here, yet.
+
+	* src/methods.cc, src/groups.cc, src/workspace.cc:
+
+	New WSMs: verbositySet, verbositySetAgenda, verbositySetFile,
+	verbositySetScreen and temporary TestVerbosity.
+
+	New WSV: verbosity.
+
+	New Group: Verbosity.
+
+	* src/m_general.h:
+
+	Add WSMs to modify verbosity and a temporary test function.
+
+	* src/message.h:
+
+	Add new ArtsOut class and derive ArtsOut0-3 from that.
+
+	Add Verbosity class.
+
+        Add output operator for ArtsOut.
+
+	* src/messages.cc: Add verbosity output operator.
+
+	* src/xml_io_instantiation.h, src/xml_io_compound_types.cc,
+	src/xml_io_types.h:
+
+	Add dummy functions for verbosity reading/writing.
+
+	* src/make_auto_md_cc.cc, src/make_auto_md_h.cc:
+
+	Add code to add the verbosity argument to the parameter list of the
+	TestVerbosity WSM. Eventually, the argument will be appended to every
+	WSM.
+
 2011-05-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-15-2

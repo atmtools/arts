@@ -350,5 +350,51 @@ void Test( )
   Print( gp, 0 );
 }
 
+void verbositySet(// WS Output:
+                  Verbosity& verbosity,
+                  // WS Generic Input:
+                  const Index& agenda,
+                  const Index& screen,
+                  const Index& file)
+{
+  verbosity.set_agenda_verbosity(agenda);
+  verbosity.set_screen_verbosity(screen);
+  verbosity.set_file_verbosity(file);
+}
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void verbositySetAgenda(// WS Output:
+                        Verbosity& verbosity,
+                        // WS Generic Input:
+                        const Index& level)
+{
+  verbosity.set_agenda_verbosity(level);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void verbositySetFile(// WS Output:
+                      Verbosity& verbosity,
+                      // WS Generic Input:
+                      const Index& level)
+{
+  verbosity.set_file_verbosity(level);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void verbositySetScreen(// WS Output:
+                        Verbosity& verbosity,
+                        // WS Generic Input:
+                        const Index& level)
+{
+  verbosity.set_screen_verbosity(level);
+}
+
+void TestVerbosity (const String& s,const Verbosity& v)
+{
+  ArtsOut1 out_one(v);
+  
+  out_one << s << "\n";
+}

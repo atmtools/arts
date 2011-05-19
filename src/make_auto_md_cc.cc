@@ -358,6 +358,18 @@ int main()
               ofs << "mr.Tasks()";
             }
 
+          // FIXME OLE: Pass verbosity.
+          if ( mdd.Name() == "TestVerbosity" )
+          {
+            static Index verbosity_wsv_id = get_wsv_id("verbosity");
+            static Index verbosity_group_id = get_wsv_group_id("Verbosity");
+            align(ofs,is_first_parameter,indent);
+            ofs << "*((" << wsv_group_names[verbosity_group_id]
+            << " *)ws[" << verbosity_wsv_id
+            << "])";
+          }
+          
+          
           ofs << ");\n";
           ofs << "}\n\n";
         }

@@ -516,6 +516,15 @@ void write_method_header( ofstream& ofs,
       ofs << "const Agenda& input_agenda";
     }
 
+  // FIXME OLE: Write verbosity argument:
+  if ( fullname == "TestVerbosity" )
+  {
+    align(ofs,is_first_parameter,indent);
+    ofs << "// Verbosity object:\n";
+    ofs << indent;              
+    ofs << "const Verbosity& verbosity";
+  }
+  
   ofs << ");\n\n";
 }
 

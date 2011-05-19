@@ -95,6 +95,7 @@ TMPL_XML_READ_WRITE_STREAM( SLIData2 )
 TMPL_XML_READ_WRITE_STREAM( SingleScatteringData )
 TMPL_XML_READ_WRITE_STREAM( SpeciesRecord )
 TMPL_XML_READ_WRITE_STREAM( SpeciesTag )
+TMPL_XML_READ_WRITE_STREAM( Verbosity )
 
 //=== Array Types ==========================================================
 

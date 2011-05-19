@@ -217,5 +217,153 @@ extern Out2 out2;
 extern Out3 out3; 
 
 
+//----------< New ARTS Message implementation >----------
+
+class Verbosity {
+public:
+  Verbosity() : va(0), vs(1), vf(1)
+  {
+    // FIXME OLE: Buggy, only for testing
+    extern Messages arts_messages;
+    va = arts_messages.va;
+    vs = arts_messages.vs;
+    vf = arts_messages.vf;
+  }
+  
+  Verbosity(Index vagenda, Index vscreen, Index vfile)
+  : va(vagenda), vs(vscreen), vf(vfile) {}
+
+  Index get_agenda_verbosity() const { return va; }
+  Index get_screen_verbosity() const { return vs; }
+  Index get_file_verbosity()   const { return vf; }
+  
+  void set_agenda_verbosity(Index v) { va = v; }
+  void set_screen_verbosity(Index v) { vs = v; }
+  void set_file_verbosity(Index v)   { vf = v; }
+
+  friend ostream& operator<<(ostream& os, Verbosity v);
+private:
+  //! Verbosity for agenda output. Can be 0-3.
+  Index va;
+  //! Verbosity for output to screen. Can be 0-3.
+  Index vs;
+  //! Verbosity for output to file. Can be 0-3.
+  Index vf; 
+};
+
+
+class ArtsOut {
+public:
+  ArtsOut (const int p, const Verbosity& v)
+  : verbosity(v), priority(p) { }
+  
+  int get_priority () const { return priority; }
+  const Verbosity& get_verbosity () const { return verbosity; }
+  
+  //! Does the current message have sufficient priority for agenda?
+  /*! 
+   \param priority Priority of current message.
+   
+   \return true if priority is sufficient, otherwise false. */
+  bool sufficient_priority_agenda() const
+  {
+    return verbosity.get_agenda_verbosity() >= priority;
+  }
+  
+  //! Does the current message have sufficient priority for screen?
+  /*! 
+   \param priority Priority of current message.
+   
+   \return true if priority is sufficient, otherwise false. */
+  bool sufficient_priority_screen() const
+  {
+    return verbosity.get_screen_verbosity() >= priority;
+  }
+  
+  //! Does the current message have sufficient priority for file?
+  /*! 
+   \param priority Priority of current message.
+   
+   \return true if priority is sufficient, otherwise false. */
+  bool sufficient_priority_file() const
+  {
+    return verbosity.get_file_verbosity() >= priority;
+  }
+  
+private:
+  Verbosity verbosity;
+  int priority;
+};
+
+class ArtsOut0 : public ArtsOut {
+public:
+  ArtsOut0 (const Verbosity& v) : ArtsOut(0, v) { }
+};
+
+class ArtsOut1 : public ArtsOut {
+public:
+  ArtsOut1 (const Verbosity& v) : ArtsOut(1, v) { }
+};
+
+class ArtsOut2 : public ArtsOut {
+public:
+  ArtsOut2 (const Verbosity& v) : ArtsOut(2, v) { }
+};
+
+class ArtsOut3 : public ArtsOut {
+public:
+  ArtsOut3 (const Verbosity& v) : ArtsOut(3, v) { }
+};
+
+
+/** Output operator for ArtsOut. */
+template<class T>
+ArtsOut& operator<<(ArtsOut& aos, const T& t)
+{
+  extern ofstream report_file;
+  
+  // cout << "Printing object of type: " << typeid(t).name() << "\n";
+  
+  // If we are not in the main agenda, then the condition for agenda
+  // output must be fulfilled in addition to the condition for
+  // screen or file. 
+  
+  if (in_main_agenda || aos.sufficient_priority_agenda())
+  {
+    // We are marking the actual output operations as omp
+    // critical, to somewhat reduce the mess when several threads
+    // output simultaneously. 
+    
+    // This works well if the output operations themselves are
+    // atomic, that is if a string is prepared beforehand and then
+    // put to outx with a single << operation.
+    
+    if (aos.sufficient_priority_screen())
+    {
+#pragma omp critical
+      {
+        if (aos.get_priority() == 0)
+          cerr << t;
+        else
+          cout << t;
+      }
+    }
+    
+    if (aos.sufficient_priority_file())
+    {
+#pragma omp critical
+      {
+        //    if (report_file)              // Check if report file is good
+        report_file << t << flush;
+        // The flush here is necessary to make the output really
+        // appear in the report file. We are not producing a huge
+        // amount of output to the report file, so I think the
+        // performance penalty here is acceptable.
+      }
+    }
+  }
+
+  return aos;
+}
 
 #endif // messages_h

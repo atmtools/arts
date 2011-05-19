@@ -13,8 +13,7 @@ set (ALL_ARTS_LIBRARIES
   )
 
 file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
-set(SOURCES ${HEADERFILES})
-add_custom_target(UtilityHeaders SOURCES ${SOURCES})
+add_custom_target(UtilityHeaders SOURCES ${HEADERFILES})
 
 if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)

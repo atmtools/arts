@@ -239,10 +239,13 @@ void ybatchCalc(Workspace&      ws,
           
           is_first = false;
 
-          ybatch(joker, first_ybatch_index) = y;
-          
-          if(store_jacobians)
+          if (y.nelem())
+          {
+            ybatch(joker, first_ybatch_index) = y;
+            
+            if(store_jacobians)
               ybatch_jacobians[first_ybatch_index] = jacobian;
+          }
         }
       catch (runtime_error e)
         {
@@ -310,10 +313,13 @@ void ybatchCalc(Workspace&      ws,
                                      ybatch_start+ybatch_index,
                                      l_ybatch_calc_agenda );
  
-          ybatch( joker, ybatch_index ) = y;
-
-          if(store_jacobians)
-              ybatch_jacobians[ybatch_index] = jacobian;          
+          if (y.nelem())
+          {
+            ybatch( joker, ybatch_index ) = y;
+            
+            if(store_jacobians)
+              ybatch_jacobians[ybatch_index] = jacobian;
+          }
         }
       catch (runtime_error e)
         {
