@@ -1945,12 +1945,19 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                                       const Index&        f_index,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
-                                      const Vector&       a_vmr_list)
+                                      const Vector&       a_vmr_list,
+                                      const Vector&       f_grid)
 {
   // Check if the table has been adapted:
   if ( 1!=abs_lookup_is_adapted )
     throw runtime_error("Gas absorption lookup table must be adapted,\n"
                         "use method abs_lookupAdapt.");
+
+  // Check f_grid nicelyhood
+  Vector gas_abs_f_grid;
+  abs_lookup.GetFgrid(gas_abs_f_grid);
+  chk_if_equal("f_grid", "lookup table f_grid", f_grid, gas_abs_f_grid, 0);
+  
 
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument

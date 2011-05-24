@@ -1223,7 +1223,7 @@ void define_md_data_raw()
         IN( "abs_lookup", "abs_lookup_is_adapted",
             "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order", 
             "f_index", 
-            "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+            "rte_pressure", "rte_temperature", "rte_vmr_list", "f_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2173,7 +2173,7 @@ void define_md_data_raw()
          "   2. the corresponding altitude field\n"
          "   3. vmr fields for the gaseous species\n"
          "This method interpolates the fields of raw data (*t_field_raw*,\n"
-         "*z_field_raw* and *p_field_raw*) which can be stored on arbitrary\n"
+         "*z_field_raw*) which can be stored on arbitrary\n"
          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
          "\n"
          "With parameter interp_order you can control the order of \n"
@@ -2357,6 +2357,30 @@ void define_md_data_raw()
         GIN_DESC( "Name of additional atmospheric field.",
                   "Value of additional atmospheric field." )
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "batch_atm_fields_compactAddConstant" ),
+        DESCRIPTION
+        (
+         "Adds a constant field to batch_atm_fields_compact.\n"
+         "\n"
+         "Applies *atm_fields_compactAddConstant* to each batch.\n"
+         "The format is equal to that WSM.\n"
+         ),
+        AUTHORS( "Gerrit Holl" ),
+        OUT( "batch_atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "batch_atm_fields_compact" ),
+        GIN( "name",   "value" ),
+        GIN_TYPE(    "String", "Numeric" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN_DESC( "Name of additional atmospheric field, with constant value.",
+                  "Constant value of additional field." )
+        ));
+
 
    md_data_raw.push_back
     ( MdRecord
@@ -8928,13 +8952,13 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The new grid vector" ),
         IN(),
         GIN(       "gin1"      , "gin2"       ),
         GIN_TYPE(     "Vector", "Vector" ),
         GIN_DEFAULT(  NODEF   , NODEF    ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The original grid vector",
+                  "The points to insert" )
         ));
 
   md_data_raw.push_back

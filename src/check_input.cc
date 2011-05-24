@@ -260,7 +260,7 @@ void chk_vector_length(
   if ( x1.nelem() != x2.nelem() )
     {
       ostringstream os;
-      os << "The vectors *" << x1_name <<  "* and *" << x1_name 
+      os << "The vectors *" << x1_name <<  "* and *" << x2_name 
          <<  "* must have the same length.\n"
          << "The length of *"<< x1_name <<  "* is " << x1.nelem() << ".\n"
          << "The length of *"<< x2_name <<  "* is " << x2.nelem() << ".";

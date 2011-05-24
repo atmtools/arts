@@ -1,3 +1,55 @@
+2011-05-24  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-15-5
+
+	* src/m_atmosphere.cc:
+	  (batch_atm_fields_compactAddConstant): Added
+	  - Added WSM to add constat to batch_atm_fields. I need this because
+	    I need to add a constant profile to some, but a constant value to
+		others, and need to add those in the same order as in abs_species.
+		Hence, I cannot use the constant-setting in
+		batch_atm_fields_compactFromArrayOfMatrix directly.
+	  (batch_atm_fields_compactFromArrayOfMatrix): Adapted
+	  - Parallelise for-loop.
+
+	* src/m_abs_lookup.cc (abs_scalar_gasExtractFromLookup): Adapted
+	  - Added check to verify the lookup table frequency grid is the same
+	    as the radiative transfer frequency grid. I included hirs_fast,
+		then set my frequency grid monochromatically (hirs_fast still
+		contains a lot of other settings useful for IR), and got an
+		assertion. Now this raises a runtime-error instead. To be
+		discussed: maybe this check should be somewhere else?
+		This method now needs f_grid as an input (that should be no
+		problem, as it's unlikely anybody calling this method does not
+		have f_grid set, or?)
+
+	* src/methods.cc: Adapted
+	  - Added batch_atm_fields_compactAddConstant (see above).
+	  - Added f_grid as dependency to abs_scalar_gasExtractFromLookup (see
+	    above).
+	  - For VectorInsertGridPoints, fixed FIXME DOCS with appropiate
+	    documentation.
+	  - For AtmRawRead, removed reference to *p_field_raw*. What could
+	    this possibly have meant, ever?
+
+	* src/workspace.cc: Adapted
+	  - For doit_za_grid_opt, replaced *DoitGridOptimization* by
+	    *doit_za_grid_optCalc*.
+	  - For abs_lookup, replaced FIXME with reference to the appropiate
+	    chapter in the AUG.
+
+	* src/optproperties.cc: Fixed documentation bugs
+	  (ext_matTransform): docbugfix
+	  - I guess ext_mat_lab/ext_mat_data is the extinction matrix and not the
+	    absorption vector.
+	  (pha_matTransform): dogbugfix
+	  - I guess pha_mat_lab/pha_mat_data is the phase matrix and not the
+	    absorption vector.
+	
+	* src/check_input.cc: Fixed bug
+	  - When outputting error message, output names of two vectors, not
+	    just one.
+
 2011-05-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-15-4

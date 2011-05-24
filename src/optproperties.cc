@@ -173,9 +173,9 @@ case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
   the hydrometeor species. 
 
   Output and Input:
-  \param ext_mat_lab Absorption vector in Laboratory frame.
+  \param ext_mat_lab Extinction matrix in Laboratory frame.
   Input:
-  \param ext_mat_data Absorption vector in database.
+  \param ext_mat_data Extinction matrix in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
   \param ptype Clasiification of the hydometeor species.
@@ -321,8 +321,8 @@ void ext_matTransform(//Output and Input
   See AUG for information about different classifications of 
   the hydrometeor species. 
 
-  \param[out,in] pha_mat_lab   Absorption vector in Laboratory frame.
-  \param[in]     pha_mat_data  Absorption vector in database.
+  \param[out,in] pha_mat_lab   Phase matrix in Laboratory frame.
+  \param[in]     pha_mat_data  Phase matrix in database.
   \param[in]     za_datagrid   Zenith angle grid in the database.
   \param[in]     aa_datagrid   Zenith angle grid in the database.
   \param[in]     ptype         Classification of the hydometeor species.

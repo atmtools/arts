@@ -472,6 +472,21 @@ void atm_fields_compactAddSpecies(// WS Output:
 }
 
 // Workspace method, doxygen header is auto-generated
+// 2011-05-11 Gerrit Holl
+void batch_atm_fields_compactAddConstant(// WS Output:
+                                         ArrayOfGriddedField4& batch_atm_fields_compact,
+                                         // WS Generic Input:
+                                         const String& name,
+                                         const Numeric& value)
+{
+    for (Index i=0; i<batch_atm_fields_compact.nelem(); i++)
+    {
+        atm_fields_compactAddConstant(batch_atm_fields_compact[i], name, value);
+    }
+
+}
+
+// Workspace method, doxygen header is auto-generated
 // 2011-05-09 Gerrit Holl
 void batch_atm_fields_compactAddSpecies(// WS Output:
                                         ArrayOfGriddedField4& batch_atm_fields_compact,
@@ -481,7 +496,9 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
 {
     const Index nelem = batch_atm_fields_compact.nelem();
 
-    // FIXME: can this loop be parallelised?
+// Parallelise this for-loop (some interpolation is being done, so it may
+// be beneficial)
+#pragma omp parallel for if(!arts_omp_in_parallel())
     for (Index i=0; i<nelem; i++)
     {
         atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species);

@@ -375,8 +375,8 @@ void Workspace::define_wsv_data()
         "routines are implemented as member functions. \n"
         "\n"
         "This has quite a complicated structure. See Doxygen documentation for\n"
-        "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
-        "once the chapter on the lookup table has been written.\n"
+        "class GasAbsLookup for details. See also the Arts User Guide, \n"
+        "Chapter 3.1 (\"The gas absorption lookup table\").\n"
         ), 
        GROUP( "GasAbsLookup" )));
 
@@ -1246,9 +1246,9 @@ void Workspace::define_wsv_data()
        (
         "Optimized zenith angle grid.\n"
         "\n"
-        "Output of the method *DoitGridOptimization*.\n"
+        "Output of the method *doit_za_grid_optCalc*.\n"
         "\n"
-        "Usage:   Output of *DoitGridOptimization*   \n"
+        "Usage:   Output of *doit_za_grid_optCalc*   \n"
         "\n"
         "Unit:    degrees \n"
         ),
