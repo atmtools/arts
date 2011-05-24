@@ -107,6 +107,15 @@ void from_dpath_to_dx(
         { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
     }
 }
+// A quick fix, while sorting out definition of extrapolation
+void fix_extrap( ArrayOfGridPos   gp )
+{
+  for( Index i=0; i<gp.nelem(); i++ )
+    { 
+      if( gp[i].fd[0] < 0 ) {  gp[i].fd[0] = 0; gp[i].fd[1] = 1; }
+      else if( gp[i].fd[0] > 1 ) {  gp[i].fd[0] = 1; gp[i].fd[1] = 0; }
+    }
+}
 //
 void diy_from_path_to_rgrids(
          Tensor3View          diy_dx,
@@ -130,6 +139,7 @@ void diy_from_path_to_rgrids(
       Index            nr1 = r_grid.nelem();
       ArrayOfGridPos   gp_p(ppath.np);
       p2gridpos( gp_p, r_grid, ppath_p, extpolfac );
+      fix_extrap( gp_p );
 
       // Latitude
       Index            nr2 = 1;
@@ -140,6 +150,7 @@ void diy_from_path_to_rgrids(
           r_grid = jacobian_quantity.Grids()[1];
           nr2    = r_grid.nelem();
           gridpos( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
+          fix_extrap( gp_lat );
         }
 
       // Longitude
@@ -151,6 +162,7 @@ void diy_from_path_to_rgrids(
           r_grid = jacobian_quantity.Grids()[2];
           nr3    = r_grid.nelem();
           gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
+          fix_extrap( gp_lon );
         }
       
       //- 1D
