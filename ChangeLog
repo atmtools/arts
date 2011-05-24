@@ -1,3 +1,14 @@
+2011-05-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-4
+
+	* cmake/scripts/update_doxyfile.cmake, doc/doxygen/Doxyfile.in:
+
+	Add build/src to the Doxygen input path. Since we no longer build
+	inside the source tree, the auto_* files are generated in the
+	build/src directory. If doxygen can't find the auto_* files, the
+	documentation for workspace methods is missing. Bug reported by Gerrit.
+
 2011-05-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-15-3
