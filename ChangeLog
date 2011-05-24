@@ -1,5 +1,16 @@
 2011-05-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-15-7
+
+	* src/m_rte.cc (fix_extrap): Missed to use referencing here.
+	(Noticed by Oliver. Thanks.)
+
+	* src/ppath.h (struct Ppath): Renamed filed p to nreal. To store real
+	part of refractive index.
+	Removed fields t and vmr (not used for a long time!)
+
+2011-05-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-15-6
 
 	* src/m_rte.cc (diy_from_path_to_rgrids): Added a small

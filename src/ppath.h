@@ -72,9 +72,7 @@ struct Ppath {
   String            background;
   Vector            tan_pos;
   Vector            geom_tan_pos;
-  Vector            p;
-  Vector            t;
-  Matrix            vmr;
+  Vector            nreal;
   ArrayOfIndex      next_parts;
 };
 

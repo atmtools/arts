@@ -270,6 +270,10 @@ where the data type is given inside square brackets.
      this tangent point position. This field is not handled by
      \artsstyle{ppath\_step\_agenda}. Definition of the tangent point
      as for \artsstyle{tan\_pos}.
+
+   \item[nreal] [Vector] The real part of the refractive index at each path
+     position. Length is accordingly \artsstyle{np}. 
+
 \end{description}
 
 The fields above are set as when the propagation path is determined
@@ -277,22 +281,11 @@ The fields above are set as when the propagation path is determined
 set at a later stage:
 
 \begin{description}
-
-\item[p] [Vector] The pressure for each path position. Length is
-  accordingly \artsstyle{np}. Set by \funcindex{iy\_calc}.
-
-\item[t] [Vector] The temperature for each path position. Length is
-  accordingly \artsstyle{np}. Set by \artsstyle{iy\_calc}.
-  
-\item[vmr] [Matrix] The VMR of each gas species at each path
-  position. Set by \artsstyle{iy\_calc}.
   
 \item[next\_parts] [ArrayOfIndex] The index in
   \wsvindex{ppath\_array} of following propagation path parts. Not
   defined for individual propagation paths. A negative value means
   that there is no following part.
-  Set by functions where new propagation path are calculated, such as
-  \artsstyle{surfaceCalc}.
 \end{description}
 
 

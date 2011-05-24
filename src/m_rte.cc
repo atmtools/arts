@@ -108,7 +108,7 @@ void from_dpath_to_dx(
     }
 }
 // A quick fix, while sorting out definition of extrapolation
-void fix_extrap( ArrayOfGridPos   gp )
+void fix_extrap( ArrayOfGridPos&   gp )
 {
   for( Index i=0; i<gp.nelem(); i++ )
     { 

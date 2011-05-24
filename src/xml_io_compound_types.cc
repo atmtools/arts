@@ -646,9 +646,7 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ppath.background, pbifs);
   xml_read_from_stream (is_xml, ppath.tan_pos, pbifs);
   xml_read_from_stream (is_xml, ppath.geom_tan_pos, pbifs);
-  xml_read_from_stream (is_xml, ppath.p, pbifs);
-  xml_read_from_stream (is_xml, ppath.t, pbifs);
-  xml_read_from_stream (is_xml, ppath.vmr, pbifs);
+  xml_read_from_stream (is_xml, ppath.nreal, pbifs);
   xml_read_from_stream (is_xml, ppath.next_parts, pbifs);
 
   tag.read_from_stream (is_xml);
@@ -698,9 +696,7 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, ppath.tan_pos, pbofs, "TangentPointPosition");
   xml_write_to_stream (os_xml, ppath.geom_tan_pos, pbofs,
                        "GeometricalTangentPointPosition");
-  xml_write_to_stream (os_xml, ppath.p, pbofs, "Pressures"); 
-  xml_write_to_stream (os_xml, ppath.t, pbofs, "Temperatures");
-  xml_write_to_stream (os_xml, ppath.vmr, pbofs, "VMRs");
+  xml_write_to_stream (os_xml, ppath.nreal, pbofs, "RefractiveIndexRealPart"); 
   xml_write_to_stream (os_xml, ppath.next_parts, pbofs, "NextPpathParts");
 
   close_tag.set_name ("/Ppath");
