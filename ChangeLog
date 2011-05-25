@@ -1,3 +1,23 @@
+2011-05-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-15-8
+
+	* includes/general.arts: Added standard definition of
+	ppath_atmvars_agenda (setting winds to zero).
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): Now using
+	ppath_atmvars_agenda.
+	
+	* src/m_ppath.cc (interpolation_weightsFromPpathForAtmFields)
+	(ppath_pFromPgrid, ppath_tFromTfield, ppath_vmrFromVMRfield)
+	(ppath_windsZero): New WSMs.
+
+	* src/workspace.cc: Removed obselete variables ppath_transmissions
+	and ppath_array. Added WSV:
+	interpolation_weights, ppath_p, ppath_t, ppath_vmr, ppath_winds
+
+	* src/groups.cc: Removed ArrayOfPpath. Not used any longer.
+
 2011-05-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-15-7

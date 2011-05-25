@@ -1394,6 +1394,7 @@ void iyEmissionStandardClearsky(
   const Agenda&                     iy_space_agenda,
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda,
+  const Agenda&                     ppath_atmvars_agenda,
   const Tensor3&                    iy_transmission,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
@@ -1452,15 +1453,16 @@ void iyEmissionStandardClearsky(
   //
   const Index     np  = ppath.np;
         Vector    ppath_p, ppath_t, total_tau;
-        Matrix    ppath_vmr, ppath_emission, ppath_tau;
+        Matrix    ppath_vmr, ppath_winds, ppath_emission, ppath_tau;
         Tensor3   ppath_abs_scalar, iy_trans_new;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
       //
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, t_field, vmr_field );
+      ppath_atmvars_agendaExecute( ws, ppath_p, ppath_t, ppath_vmr, ppath_winds,
+                                   ppath, ppath_atmvars_agenda );
+      
 
       // Get emission, absorption, optical thickness for each step, and total
       // optical thickness

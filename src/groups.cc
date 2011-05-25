@@ -115,7 +115,6 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfLineshapeSpec");
   wsv_group_names.push_back("ArrayOfArrayOfSpeciesTag");
   wsv_group_names.push_back("Ppath");
-  wsv_group_names.push_back("ArrayOfPpath");
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("GridPos");
   wsv_group_names.push_back("GasAbsLookup");

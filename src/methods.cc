@@ -4617,6 +4617,30 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "interpolation_weightsFromPpathForAtmFields" ),
+        DESCRIPTION
+        (
+         "Converts grid positions of *ppath* to interpolation weights.\n"
+         "\n"
+         "The interpolation weights returned are valid for interpolation of\n"
+         "atmospheric fields, such as *t_field* and *vmr_field*.\n"
+         "\n"
+         "The resulting interpolation is (multi-)linear.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "interpolation_weights" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "ppath" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyBeerLambertStandardClearsky" ),
         DESCRIPTION
         (
@@ -4748,7 +4772,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "abs_species", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
-            "surface_prop_agenda", "iy_cloudbox_agenda",
+            "surface_prop_agenda", "iy_cloudbox_agenda", "ppath_atmvars_agenda",
             "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -6801,6 +6825,27 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppath_pFromPgrid" ),
+        DESCRIPTION
+        (
+         "Interpolation of *p_grid* to determine *ppapth_p*.\n"
+         "\n"
+         "A linear interpolation of log(p) is performed. Grid positions are\n"
+         "taken from *ppath*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath_p" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath", "p_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6870,6 +6915,67 @@ void define_md_data_raw()
         IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
             "z_surface", "ppath_lmax", "ppath_lraytrace" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppath_tFromTfield" ),
+        DESCRIPTION
+        (
+         "Interpolation of *t_field* to determine *ppapth_t*.\n"
+         "\n"
+         "The interpolation is based on *interpolation_weights*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath_t" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath", "atmosphere_dim", "t_field", "interpolation_weights" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppath_vmrFromVMRfield" ),
+        DESCRIPTION
+        (
+         "Interpolation of *vmr_field* to determine *ppapth_vmr*.\n"
+         "\n"
+         "The interpolation is based on *interpolation_weights*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath_vmr" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath", "atmosphere_dim", "vmr_field", "interpolation_weights" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppath_windsZero" ),
+        DESCRIPTION
+        (
+         "Sets *ppapth_winds* to be zero.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath_winds" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

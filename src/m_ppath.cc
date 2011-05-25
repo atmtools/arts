@@ -62,72 +62,15 @@ extern const Numeric EARTH_GRAV_CONST;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losSet(
-        // WS Output:
-              Vector&    rte_los,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        // Control Parameters:
-        const Numeric&   za,
-        const Numeric&   aa )
+void interpolation_weightsFromPpathForAtmFields(
+        Matrix&      interpolation_weights, 
+  const Index&       atmosphere_dim,
+  const Ppath&       ppath )
 {
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-
-  if( atmosphere_dim == 1 )
-    { rte_los.resize(1); }
-  else
-    {
-      rte_los.resize(2);
-      rte_los[1] = aa;
-    }
-  rte_los[0] = za;
+  interp_atmfield_gp2itw( interpolation_weights, atmosphere_dim, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
 }
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posAddRgeoid(
-        // WS Output:
-              Vector&    rte_pos,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Matrix&    r_geoid )
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
-
-  // Use *sensor_posAddRgeoid* to perform the calculations.
-  Matrix m(1,rte_pos.nelem());
-  m(0,joker) = rte_pos;
-  sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid );
-  rte_pos[0] = m(0,0);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posSet(
-        // WS Output:
-              Vector&    rte_pos,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        // Control Parameters:
-        const Numeric&   r_or_z,
-        const Numeric&   lat,
-        const Numeric&   lon )
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-
-  rte_pos.resize(atmosphere_dim);
-  rte_pos[0] = r_or_z;
-  if( atmosphere_dim >= 2 )
-    { rte_pos[1] = lat; }
-  if( atmosphere_dim == 3 )
-    { rte_pos[2] = lon; }
-}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -153,6 +96,23 @@ void ppathCalc(
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_pFromPgrid(
+        Vector&      ppath_p, 
+  const Ppath&       ppath,
+  const Vector&      p_grid )
+{
+  // No checks for efficiency reasons
+  const Index np  = ppath.np;
+  ppath_p.resize(np);
+  Matrix itw_p(np,2);
+  interpweights( itw_p, ppath.gp_p );      
+  itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -190,6 +150,7 @@ void ppath_stepGeometric(
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -245,6 +206,134 @@ void ppath_stepRefractionEuler(
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_tFromTfield(
+        Vector&      ppath_t, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim,
+  const Tensor3&     t_field,
+  const Matrix&      interpolation_weights )
+{
+  // No checks for efficiency reasons
+  const Index np = ppath.np;
+  ppath_t.resize(np);
+  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, t_field, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
+                          interpolation_weights );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_vmrFromVMRfield(
+        Matrix&      ppath_vmr, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim,
+  const Tensor4&     vmr_field,
+  const Matrix&      interpolation_weights )
+{
+  // No checks for efficiency reasons
+  const Index np = ppath.np;
+  const Index ns = vmr_field.nbooks();
+  ppath_vmr.resize(ns,np);
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
+                              vmr_field( is, joker, joker,  joker ), 
+                              ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
+                              interpolation_weights );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_windsZero(
+        Matrix&      ppath_winds, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim )
+{
+  if( atmosphere_dim <= 2 )
+    { ppath_winds.resize( 2, ppath.np ); }
+  else 
+    { ppath_winds.resize( 3, ppath.np ); }
+  ppath_winds = 0;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_posAddRgeoid(
+        // WS Output:
+              Vector&    rte_pos,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Matrix&    r_geoid )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
+
+  // Use *sensor_posAddRgeoid* to perform the calculations.
+  Matrix m(1,rte_pos.nelem());
+  m(0,joker) = rte_pos;
+  sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid );
+  rte_pos[0] = m(0,0);
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losSet(
+        // WS Output:
+              Vector&    rte_los,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        // Control Parameters:
+        const Numeric&   za,
+        const Numeric&   aa )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  if( atmosphere_dim == 1 )
+    { rte_los.resize(1); }
+  else
+    {
+      rte_los.resize(2);
+      rte_los[1] = aa;
+    }
+  rte_los[0] = za;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_posSet(
+        // WS Output:
+              Vector&    rte_pos,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        // Control Parameters:
+        const Numeric&   r_or_z,
+        const Numeric&   lat,
+        const Numeric&   lon )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  rte_pos.resize(atmosphere_dim);
+  rte_pos[0] = r_or_z;
+  if( atmosphere_dim >= 2 )
+    { rte_pos[1] = lat; }
+  if( atmosphere_dim == 3 )
+    { rte_pos[2] = lon; }
 }
 
 

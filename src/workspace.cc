@@ -1567,6 +1567,15 @@ void Workspace::define_wsv_data()
       GROUP( "Index" )));
 
   wsv_data.push_back
+    (WsvRecord
+     (NAME( "interpolation_weights" ),
+      DESCRIPTION
+      (
+       "Pre-calculated weights for interpolation. \n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),
       DESCRIPTION
@@ -2532,7 +2541,7 @@ void Workspace::define_wsv_data()
       (
        "The propagation path for one line-of-sight.\n"
        "\n"
-       "This variable described the total (pencil beam) propagation path for\n"
+       "This variable describes the total (pencil beam) propagation path for\n"
        "a given combination of starting point and line-of-sight. The path is\n"
        "described by a data structure of type Ppath. This structure contains\n"
        "also additional fields to faciliate the calculation of spectra and\n"
@@ -2549,25 +2558,12 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppath_array" ),
+    ( NAME( "ppath_atmvars_agenda" ),
       DESCRIPTION
       (
-       "The complete set of propagation paths.\n"
-       "\n"
-       "In the case of scattering (either inside the atmosphere or by the \n"
-       "surface) the propagation path is divided into parts, with one part\n"
-       "between each scattering event. This variable describes this complete\n"
-       "set of propagation paths, in contrast to *ppath* that describes only\n"
-       "one part.\n"
-       "\n"
-       "This variable is not always filled. It used as part of analytical \n"
-       "jacobian calculations for gases and temperature.\n"
-       "\n"
-       "See the user guide for further details.\n"
-       "\n"
-       "Usage: See above.\n"
+        "See agendas.cc.\n"
        ),
-      GROUP( "ArrayOfPpath" )));
+      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2595,6 +2591,19 @@ void Workspace::define_wsv_data()
        "Usage: Refraction ppath methods such as *ppath_stepRefractionEuler*.\n"
        ),
       GROUP( "Numeric" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_p" ),
+      DESCRIPTION
+      (
+       "The pressure corresponding to each point of *ppath*\n"
+       "\n"
+       "Usage: Output of *ppath_atmvars_agenda*.\n"
+       "\n"
+       "Size:  [ ppath.np ]\n"
+       ),
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2627,22 +2636,44 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppath_transmissions" ),
+    ( NAME( "ppath_t" ),
       DESCRIPTION
       (
-        "Transmissions along the propagation path (ppath).\n"
-        "\n"
-        "The variable stores the transmission between neighbouring points\n"
-        "along the propagation path. The transmission is stored as a Muller\n"
-        "matrix and the case of polarised extinction is handled.\n"
-        "\n"
-        "Usage: Used by radiative transfer functions.\n"
-        "\n"
-        "Size: [ np-1, nf, stokes_dim, stokes_dim ] where np is the number of\n"
-        "      of points of the propagation path and nf is the number of\n"
-        "      frequencies.\n"
+       "The temperature corresponding to each point of *ppath*\n"
+       "\n"
+       "Usage: Output of *ppath_atmvars_agenda*.\n"
+       "\n"
+       "Size:  [ ppath.np ]\n"
        ),
-      GROUP( "Tensor4" )));
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_vmr" ),
+      DESCRIPTION
+      (
+       "The VMR values corresponding to each point of *ppath*\n"
+       "\n"
+       "Usage: Output of *ppath_atmvars_agenda*.\n"
+       "\n"
+       "Size:  [ abs_species.nelem(), ppath.np ]\n"
+       ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_winds" ),
+      DESCRIPTION
+      (
+       "The wind speeds corresponding to each point of *ppath*\n"
+       "\n"
+       "FILL IN DETAILS (work in progress) ...\n"
+       "\n"
+       "Usage: Output of *ppath_atmvars_agenda*.\n"
+       "\n"
+       "Size:  [ 2 or 3, ppath.np ]\n"
+       ),
+      GROUP( "Matrix" )));
 
    wsv_data.push_back
    (WsvRecord
