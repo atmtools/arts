@@ -6,6 +6,13 @@
 
 Arts2 {
 
+
+#
+# Initialize verbosity levels
+#
+verbosityInit
+
+
 #
 # Default output format
 #

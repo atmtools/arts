@@ -350,6 +350,20 @@ void Test( )
   Print( gp, 0 );
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void verbosityInit(// WS Output:
+                   Verbosity& verbosity)
+{
+  extern Messages arts_messages;
+  
+  verbosity.set_agenda_verbosity(arts_messages.va);
+  verbosity.set_screen_verbosity(arts_messages.vs);
+  verbosity.set_file_verbosity(arts_messages.vf);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void verbositySet(// WS Output:
                   Verbosity& verbosity,
                   // WS Generic Input:

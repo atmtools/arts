@@ -9323,6 +9323,29 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "verbosityInit" ),
+        DESCRIPTION
+        (
+         "Initializes the verbosity levels.\n"
+         "\n"
+         "Sets verbosity to defaults or the levels specified by -r on the command line.\n"
+         "\n"
+         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "verbosity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "verbositySet" ),
         DESCRIPTION
         (

@@ -1440,11 +1440,11 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
     ds_insert_title (os, "Index");
     
     os
-    << "<p>Jump to: "
-    << "<a href=\"#groups\">Groups</a>&nbsp;-&nbsp;"
-    << "<a href=\"#variables\">Variables</a>&nbsp;-&nbsp;"
-    << "<a href=\"#methods\">Methods</a>&nbsp;-&nbsp;"
-    << "<a href=\"#agendas\">Agendas</a>"
+    << "<p>Go to: "
+    << "<a href=\"" << ds_baseurl << "/groups/\">Groups</a>&nbsp;-&nbsp;"
+    << "<a href=\"" << ds_baseurl << "/variables/\">Variables</a>&nbsp;-&nbsp;"
+    << "<a href=\"" << ds_baseurl << "/methods/\">Methods</a>&nbsp;-&nbsp;"
+    << "<a href=\"" << ds_baseurl << "/agendas/\">Agendas</a>"
     << endl;
     
     os << "<table class=\"list\">" << endl;

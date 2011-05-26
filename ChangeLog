@@ -1,3 +1,19 @@
+2011-05-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-9
+
+	* src/m_general.cc, src/methods.cc:
+
+	Add WSM verbosityInit which initializes the verbosity WSV with
+	defaults or the levels specified on the command line.
+
+	* includes/general.arts: Add call to verbosityInit.
+
+	* src/docserver.cc (ds_insert_index):
+
+	Change the 'Jump to' link targets to point to the separate index pages
+	instead of the anchors on the main pages.
+
 2011-05-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-15-8
