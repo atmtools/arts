@@ -1306,11 +1306,6 @@ void define_md_data_raw()
          "\n"
          "See *SpeciesSet* for details on how tags are defined and examples of\n"
          "how to input them in the control file.\n"
-         "\n"
-         "Keywords:\n"
-         "   species : Specify one String for each tag group that you want to\n"
-         "             add. Inside the String, separate the tags by commas\n"
-         "             (plus optional blanks).\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_species" ),
@@ -1321,7 +1316,9 @@ void define_md_data_raw()
         GIN( "species" ),
         GIN_TYPE(    "ArrayOfString"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Specify one String for each tag group that you want to\n"
+                  "add. Inside the String, separate the tags by commas\n"
+                  "(plus optional blanks).\n")
         ));
  
   md_data_raw.push_back
@@ -1353,13 +1350,14 @@ void define_md_data_raw()
                      "String", "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
                      NODEF,     NODEF,    NODEF,  NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" ),
+        GIN_DESC( "Pressure retrieval grid.",
+                  "Latitude retrieval grid.",
+                  "Longitude retreival grid.",
+                  "The species tag of the retrieval quantity.",
+                  "Calculation method. See above.",
+                  "Retrieval unit. See above.",
+                  "Size of perturbation."
+                  ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false  ),
         SUPPRESSHEADER( false ),
@@ -1378,10 +1376,6 @@ void define_md_data_raw()
          "absorption calculation that is as complete as possible. The method\n"
          "goes through all defined species and tries to open the VMR file. If\n"
          "this works the tag is included, otherwise it is skipped.\n"
-         "\n"
-         "Keywords:\n"
-         "   basename : The name and path of a particular atmospheric scenario.\n"
-         "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_species" ),
@@ -1392,7 +1386,8 @@ void define_md_data_raw()
         GIN( "basename" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "The name and path of a particular atmospheric scenario.\n"
+                  "For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical" )
         ));
 
   md_data_raw.push_back
@@ -2274,11 +2269,6 @@ void define_md_data_raw()
          "consistent with *abs_lookupSetup* and *abs_lookupSetupBatch*. (New\n"
          "points are added between the original ones, so that the spacing is\n"
          "always below p_step.)\n"
-         "\n"
-         "Keywords:\n"
-         "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
-         "              the pressure grid is coarser than this, additional points\n"
-         "              are added until each log step is smaller than this.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "p_grid",
@@ -2291,7 +2281,9 @@ void define_md_data_raw()
         GIN( "p_step" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC("Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
+                 "the pressure grid is coarser than this, additional points\n"
+                 "are added until each log step is smaller than this.\n")
         ));
 
   md_data_raw.push_back
@@ -2305,10 +2297,6 @@ void define_md_data_raw()
          "appended at the end of the fields that are already there. All\n"
          "dimensions (pressure, latitude, longitude) are filled up, so this\n"
          "works for 1D, 2D, or 3D atmospheres.\n"
-         "\n"
-         "Keywords:\n"
-         "   name  : The field name. Use, e.g., vmr_o2 for oxygen VMR.\n"
-         "   value : The constant value of this field.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "atm_fields_compact" ),
@@ -2340,10 +2328,6 @@ void define_md_data_raw()
          "The grids in *atm_fields_compact* must fully encompass the grids in\n"
          "the *GriddedField3* to be added, for interpolation to succeed. If\n"
          "this is not the case, a RuntimeError is thrown.\n"
-         "\n"
-         "Keywords:\n"
-         "   name  : The field name. Use, e.g., vmr_ch4 for methane VMR.\n"
-         "   value : The *GriddedField3* containing the value of this field.\n"
          ),
         AUTHORS( "Gerrit Holl" ),
         OUT( "atm_fields_compact" ),
@@ -2391,10 +2375,6 @@ void define_md_data_raw()
          "\n"
          "This method appends a *GriddedField3* to each *atm_fields_compact*.\n"
          "in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.\n"
-         "\n"
-         "Keywords:\n"
-         "   name  : The field name. Use, e.g., vmr_ch4 for methane VMR.\n"
-         "   value : The *GriddedField3* containing the value of this field.\n"
          ),
         AUTHORS( "Gerrit Holl" ),
         OUT( "batch_atm_fields_compact" ),
@@ -2405,7 +2385,7 @@ void define_md_data_raw()
         GIN( "name",   "value" ),
         GIN_TYPE(    "String", "GriddedField3" ),
         GIN_DEFAULT( NODEF,    NODEF ),
-        GIN_DESC( "Name of additional atmospheric field.",
+        GIN_DESC( "Name of additional atmospheric field. Use, e.g., vmr_ch4 for methane VMR",
                   "Value of additional atmospheric field." )
         ));
 
@@ -5552,25 +5532,18 @@ void define_md_data_raw()
          "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
          "if Y and X are the same Matrix. This function is handy for\n"
          "multiplying the H Matrix to batch spectra.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : The result of the multiplication (dimension mxc).\n"
-         "\n"
-         "Generic input:\n"
-         "   Matrix : The Matrix to multiply (dimension mxn).\n"
-         "   Matrix : The original Matrix (dimension nxc).\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The result of the multiplication (dimension mxc)." ),
         IN(),
         GIN(      "gin1"      , "gin2"       ),
         GIN_TYPE(    "Matrix", "Matrix" ),
         GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The Matrix to multiply (dimension mxn).",
+                  "The original Matrix (dimension nxc)." )
         ));
 
   md_data_raw.push_back
@@ -5657,12 +5630,13 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The newly created matrix" ),
         IN(),
         GIN( "values"   ),
         GIN_TYPE(    "Matrix" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "The values of the newly created matrix. Elements are separated "
+                  "by commas, rows by semicolons."),
         SETMETHOD( true )
         ));
 
@@ -8223,14 +8197,6 @@ void define_md_data_raw()
          "This method used to be a specific method for *abs_species*. Now it is\n"
          "generic, so that it can also be used to set *abs_nls* and *abs_pts*.\n"
          "\n"
-         "Generic Output:\n"
-         "   ArrayOfArrayOfSpeciesTag : Output tag groups.\n"
-         "\n"
-         "Keywords:\n"
-         "   species : Specify one String for each tag group that you want to\n"
-         "             create. Inside the String, separate the tags by commas\n"
-         "             (plus optional blanks).\n"
-         "\n"
          "Example:\n"
          "\n"
          "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
@@ -8250,12 +8216,14 @@ void define_md_data_raw()
         OUT(),
         GOUT(       "gout1"                         ),
         GOUT_TYPE( "ArrayOfArrayOfSpeciesTag" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output tag groups" ),
         IN(),
         GIN( "species" ),
         GIN_TYPE(    "ArrayOfString"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC("Specify one String for each tag group that you want to\n"
+                 "create. Inside the String, separate the tags by commas\n"
+                 "(plus optional blanks).\n")
         ));
 
 
@@ -9656,7 +9624,7 @@ void define_md_data_raw()
          "lat-lon of the metoffice profile files as a Matrix. It then\n"
          "loops over the number of profiles and corresponding to each\n"
          "longitude create the appropriate profile basename. Then,\n"
-         "Corresponding to each basename we have temperature field, altitude\n"
+         "corresponding to each basename we have temperature field, altitude\n"
          "field, humidity field and particle number density field. The\n"
          "temperature field and altitude field are stored in the same dimensions\n"
          "as *t_field_raw* and *z_field_raw*. The oxygen and nitrogen VMRs are\n"

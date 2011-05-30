@@ -1954,9 +1954,38 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                         "use method abs_lookupAdapt.");
 
   // Check f_grid nicelyhood
+  //
+  // GH: enabled and then disabled this check again.
+  // In theory, this check should happen here, so that the user cannot
+  // trigger an assertion. However, this method is very deep inside and
+  // thus a check here is very expensive. Alternatives would be:
+  // - When abs_lookup_is_adapted is set to 1 (by abs_lookupAdapt), set
+  //   all the appropiate variables read-only. This is not currently
+  //   (2011-05-26) possible in ARTS. Ideally, only abs_lookupAdapt should
+  //   be able to set abs_lookup_is_adapted.
+  // - When any of the relevant variables is changed, set
+  //   abs_lookup_is_adapted to 0. That is probably not easy to implement
+  //
+  // Instead, check just the lengths of the vectors.
+
   Vector gas_abs_f_grid;
   abs_lookup.GetFgrid(gas_abs_f_grid);
+  if (f_grid.nelem() != gas_abs_f_grid.nelem())
+    {
+      ostringstream os;
+      os << "f_grid must equal the abs_lookup frequency grid. "
+         << "However, f_grid has "
+         << f_grid.nelem()
+         << " elements, whereas the abs_lookup frequency grid has "
+         << gas_abs_f_grid.nelem() << " elements. They cannot possibly be "
+         << " equal. Maybe you changed f_grid after creating or "
+         << " adapting the lookup table? In that case, call "
+         << " *abs_lookupAdapt* again.\n";
+      throw runtime_error(os.str());
+    }
+  /*
   chk_if_equal("f_grid", "lookup table f_grid", f_grid, gas_abs_f_grid, 0);
+  */
   
 
   // The function we are going to call here is one of the few helper

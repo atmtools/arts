@@ -1,3 +1,29 @@
+2011-05-30  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-15-10
+
+	* src/methods.cc: Cleanup
+	  - Wherever keywords were described in the main documentation string
+	    but the actual GIN_DESC were FIXME DOC, moved this documentation
+		to the GIN_DESC. For two methods, FIXME DOC remains, because I
+		didn't know what to write. Those are: *ybatchMetProfiles* and
+		*ybatchMetProfilesClear*.
+	
+	* src/m_abs_lookup.cc(abs_scalar_gasExtractFromLookup):
+	  - As discussed with Stefan, uncommented the full check for equal
+	    frequency grids and, as a compromise, replaced this by a check
+		checking just the length. Ultimately, 
+		In theory, this check should happen here, so that the user cannot
+		trigger an assertion. However, this method is very deep inside and
+		thus a check here is very expensive. Alternatives would be:
+		- When abs_lookup_is_adapted is set to 1 (by abs_lookupAdapt), set
+		  all the appropiate variables read-only. This is not currently
+		  possible in ARTS. Ideally, only abs_lookupAdapt should be able
+		  to set abs_lookup_is_adapted.
+		- When any of the relevant variables is changed, set
+		  abs_lookup_is_adapted to 0. That is probably not easy to
+		  implement.
+
 2011-05-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-15-9
