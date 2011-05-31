@@ -1,3 +1,11 @@
+2011-05-31  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-15-11
+
+	* src/optproperties.cc(interpolate_scat_angle): bugfix
+	  - nans can occur not only when aa_sca-aa_inc ~= 0, but also
+	    abs(aa_sca-aa_inc) ~= 360. Account for this.
+
 2011-05-30  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-15-10

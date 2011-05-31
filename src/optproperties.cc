@@ -622,8 +622,11 @@ void interpolate_scat_angle(//Output:
   //The two special cases are implemented here to avoid NaNs that can 
   //sometimes occur in in the acos... formula in forward and backscatter
   //cases. CPD 5/10/03.
+  //
+  // Consider not only aa_sca-aa_inc ~= 0, but also aa_sca-aa_inc ~= 360.
+  // GH 2011-05-31
   
-  if(abs(aa_sca-aa_inc)<ANG_TOL)
+  if( (abs(aa_sca-aa_inc)<ANG_TOL) || (abs(abs(aa_sca-aa_inc)-360) < ANG_TOL) )
     {
       theta_rad=DEG2RAD*abs(za_sca-za_inc);
     }
