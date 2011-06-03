@@ -3966,6 +3966,158 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "FrequencyFromWavelength" ),
+        DESCRIPTION
+        (
+         "Convert from wavelength [m] to frequency [Hz].\n"
+         "\n"
+         "This is a generic method. It can take a single wavelength value or a wavelength vector as input.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT(),
+        GOUT("frequency"),
+        GOUT_TYPE("Numeric, Vector"),
+        GOUT_DESC("frequency [Hz]"),
+        IN(),
+        GIN( "wavelength"),
+        GIN_TYPE("Numeric, Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("wavelength [m]" ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "FlagOff" ),
+        DESCRIPTION
+        (
+         "Sets an index variable that acts as an on/off flag to 0.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "i" ),
+        GOUT_TYPE( "Index" ),
+        GOUT_DESC( "Variable to set to 0." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "FlagOn" ),
+        DESCRIPTION
+        (
+         "Sets an index variable that acts as an on/off flag to 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "i" ),
+        GOUT_TYPE( "Index" ),
+        GOUT_DESC( "Variable to set to 1." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "ForLoop" ),
+        DESCRIPTION
+        (
+         "A simple for loop.\n"
+         "\n"
+         "This method is handy when you quickly want to test out a calculation\n"
+         "with a set of different settings.\n"
+         "\n"
+         "It does a for loop from start to stop in steps of step. (Who would\n"
+         "have guessed that.) For each iteration, the agenda *forloop_agenda* is\n"
+         "executed. Inside the agenda, the variable *forloop_index* is available\n"
+         "as index counter.\n"
+         "\n"
+         "There are no other inputs to *forloop_agenda*, and also no outputs. That\n"
+         "means, if you want to get any results out of this loop, you have to\n"
+         "save it to files (for example with *WriteXMLIndexed*), since\n"
+         "variables used inside the agenda will only be local.\n"
+         "\n"
+         "Note that this kind of for loop is not parallel.\n"
+         "\n"
+         "The method is intended for simple testing, not as a replacement of\n"
+         "*ybatchCalc*. However, it is compatible with *ybatchCalc*, in the sense\n"
+         "that *ybatchCalc* may occur inside *forloop_agenda*.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "forloop_agenda" ),
+        GIN( "start", "stop",  "step" ),
+        GIN_TYPE(    "Index", "Index", "Index" ),
+        GIN_DEFAULT( NODEF,   NODEF,   NODEF ),
+        GIN_DESC( "Start value.",
+                  "End value.",
+                  "Step size." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "fos_yStandard" ),
+        DESCRIPTION
+        (
+         "DO NOT USE!\n"
+         "\n"
+         "This method is used by Patrick for testing a new scattering scheme.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "fos_y", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "iy_aux_do", "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
+            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
+            "f_grid", "ppath_step_agenda", "emission_agenda",
+            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "iy_transmission", "pnd_field", "scat_data_raw", 
+            "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
+            "fos_use_mean_scat_data", "fos_n", "fos_i" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "f_gridFromGasAbsLookup" ),
+        DESCRIPTION
+        (
+         "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
+         "\n"
+         "Must be called between importing/creating raw absorption table and\n"
+         "call of *abs_lookupAdapt*.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lookup" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "f_gridFromSensorAMSU" ),
@@ -4044,64 +4196,6 @@ void define_md_data_raw()
         GIN_DESC( "Desired grid spacing in Hz." )
         ));
   
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "FrequencyFromWavelength" ),
-        DESCRIPTION
-        (
-         "Convert from wavelength [m] to frequency [Hz].\n"
-         "\n"
-         "This is a generic method. It can take a single wavelength value or a wavelength vector as input.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT(),
-        GOUT("frequency"),
-        GOUT_TYPE("Numeric, Vector"),
-        GOUT_DESC("frequency [Hz]"),
-        IN(),
-        GIN( "wavelength"),
-        GIN_TYPE("Numeric, Vector" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC("wavelength [m]" ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "WMRFSelectChannels" ),
-        DESCRIPTION
-        (
-         "Select some channels for WMRF calculation.\n"
-         "\n"
-         "The HIRS fast setup consists of a precalculated frequency grid\n"
-         "covering all HIRS channels, and associated weights for each channel,\n"
-         "stored in a weight matrix. (A sensor_response matrix.)\n"
-         "\n"
-         "If not all channels are requested for\n"
-         "simulation, then this method can be used to remove the unwanted\n"
-         "channels. It changes a number of variables in consistent fashion:\n"
-         "\n"
-         "- Unwanted channels are removed from f_backend. \n"
-         "- Unwanted channels are removed from wmrf_weights.\n"
-         "- Unnecessary frequencies are removed from f_grid.\n"
-         "- Unnecessary frequencies are removed from wmrf_weights.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "f_grid", "wmrf_weights",
-             "f_backend" ),
-        GOUT(      ),
-        GOUT_TYPE( ),
-        GOUT_DESC(),
-        IN( "f_grid", "f_backend", 
-            "wmrf_weights", "wmrf_channels"  ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "f_gridSelectFIndex" ),
@@ -4122,134 +4216,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "f_index" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "FlagOff" ),
-        DESCRIPTION
-        (
-         "Sets an index variable that acts as an on/off flag to 0.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT( "i" ),
-        GOUT_TYPE( "Index" ),
-        GOUT_DESC( "Variable to set to 0." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "FlagOn" ),
-        DESCRIPTION
-        (
-         "Sets an index variable that acts as an on/off flag to 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT( "i" ),
-        GOUT_TYPE( "Index" ),
-        GOUT_DESC( "Variable to set to 1." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "f_gridFromGasAbsLookup" ),
-        DESCRIPTION
-        (
-         "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
-         "\n"
-         "Must be called between importing/creating raw absorption table and\n"
-         "call of *abs_lookupAdapt*.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "f_grid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_lookup" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "ForLoop" ),
-        DESCRIPTION
-        (
-         "A simple for loop.\n"
-         "\n"
-         "This method is handy when you quickly want to test out a calculation\n"
-         "with a set of different settings.\n"
-         "\n"
-         "It does a for loop from start to stop in steps of step. (Who would\n"
-         "have guessed that.) For each iteration, the agenda *forloop_agenda* is\n"
-         "executed. Inside the agenda, the variable *forloop_index* is available\n"
-         "as index counter.\n"
-         "\n"
-         "There are no other inputs to *forloop_agenda*, and also no outputs. That\n"
-         "means, if you want to get any results out of this loop, you have to\n"
-         "save it to files (for example with *WriteXMLIndexed*), since\n"
-         "variables used inside the agenda will only be local.\n"
-         "\n"
-         "Note that this kind of for loop is not parallel.\n"
-         "\n"
-         "The method is intended for simple testing, not as a replacement of\n"
-         "*ybatchCalc*. However, it is compatible with *ybatchCalc*, in the sense\n"
-         "that *ybatchCalc* may occur inside *forloop_agenda*.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "forloop_agenda" ),
-        GIN( "start", "stop",  "step" ),
-        GIN_TYPE(    "Index", "Index", "Index" ),
-        GIN_DEFAULT( NODEF,   NODEF,   NODEF ),
-        GIN_DESC( "Start value.",
-                  "End value.",
-                  "Step size." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "fos_yStandard" ),
-        DESCRIPTION
-        (
-         "DO NOT USE!\n"
-         "\n"
-         "This method is used by Patrick for testing a new scattering scheme.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "fos_y", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "rte_pos", "iy_aux_do", "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
-            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
-            "f_grid", "ppath_step_agenda", "emission_agenda",
-            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
-            "iy_transmission", "pnd_field", "scat_data_raw", 
-            "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
-            "fos_use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4597,30 +4563,6 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "interpolation_weightsFromPpathForAtmFields" ),
-        DESCRIPTION
-        (
-         "Converts grid positions of *ppath* to interpolation weights.\n"
-         "\n"
-         "The interpolation weights returned are valid for interpolation of\n"
-         "atmospheric fields, such as *t_field* and *vmr_field*.\n"
-         "\n"
-         "The resulting interpolation is (multi-)linear.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "interpolation_weights" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "ppath" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "iyBeerLambertStandardClearsky" ),
         DESCRIPTION
         (
@@ -4716,10 +4658,9 @@ void define_md_data_raw()
          "outside the cloudbox (no scattering or polarised absorption).\n"
          "Assumes local thermodynamic equilibrium for emission.\n"
          "\n"
-         "The overall strategy is to average basic atmospheric quantities\n"
-         "(such as temperature) between the end points of each step of\n"
-         "the propagation path, and to calculate emission and absorption\n"
-         "for these averaged values. See further the user guide. *iy_error*\n"
+         "The overall strategy is to take the average of the absorption and\n"
+         "the emission source function at the end points of each step of\n"
+         "the propagation path. See further the user guide. *iy_error*\n"
          "is considered to be 0. \n" 
          "\n"
          "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
@@ -4731,8 +4672,8 @@ void define_md_data_raw()
          "    cloud box is calculated. For FOS the transmission is valid for\n"
          "    the total unscattered path through the atmosphere, with\n" 
          "    attenuation due particle scattering is included.\n"
-         "    Note that this is the scalar transmission, set to be the same for\n"
-         "    all Stokes components.\n"
+         "    Note that this is the scalar transmission, set to be the same\n"
+         "    for all Stokes components.\n"
          " 2. Radiative background index, for primary propagation path\n"
          "    branch, where 1 is TOA, 2 the surface, 3 cloudbox boundary and\n"
          "    4 cloudbox interior.\n"
@@ -4752,7 +4693,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "abs_species", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
-            "surface_prop_agenda", "iy_cloudbox_agenda", "ppath_atmvars_agenda",
+            "surface_prop_agenda", "iy_cloudbox_agenda",
             "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -6801,28 +6742,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ppath_pFromPgrid" ),
-        DESCRIPTION
-        (
-         "Interpolation of *p_grid* to determine *ppapth_p*.\n"
-         "\n"
-         "A linear interpolation of log(p) is performed. Grid positions are\n"
-         "taken from *ppath*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath_p" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath", "p_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ppath_stepGeometric" ),
         DESCRIPTION
         (
@@ -6889,67 +6808,6 @@ void define_md_data_raw()
         IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
             "z_surface", "ppath_lmax", "ppath_lraytrace" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppath_tFromTfield" ),
-        DESCRIPTION
-        (
-         "Interpolation of *t_field* to determine *ppapth_t*.\n"
-         "\n"
-         "The interpolation is based on *interpolation_weights*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath_t" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath", "atmosphere_dim", "t_field", "interpolation_weights" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppath_vmrFromVMRfield" ),
-        DESCRIPTION
-        (
-         "Interpolation of *vmr_field* to determine *ppapth_vmr*.\n"
-         "\n"
-         "The interpolation is based on *interpolation_weights*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath_vmr" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath", "atmosphere_dim", "vmr_field", "interpolation_weights" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppath_windsZero" ),
-        DESCRIPTION
-        (
-         "Sets *ppapth_winds* to be zero.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath_winds" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9417,6 +9275,40 @@ void define_md_data_raw()
         GIN_TYPE("String"),
         GIN_DEFAULT(""),
         GIN_DESC("Some string")
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "WMRFSelectChannels" ),
+        DESCRIPTION
+        (
+         "Select some channels for WMRF calculation.\n"
+         "\n"
+         "The HIRS fast setup consists of a precalculated frequency grid\n"
+         "covering all HIRS channels, and associated weights for each channel,\n"
+         "stored in a weight matrix. (A sensor_response matrix.)\n"
+         "\n"
+         "If not all channels are requested for\n"
+         "simulation, then this method can be used to remove the unwanted\n"
+         "channels. It changes a number of variables in consistent fashion:\n"
+         "\n"
+         "- Unwanted channels are removed from f_backend. \n"
+         "- Unwanted channels are removed from wmrf_weights.\n"
+         "- Unnecessary frequencies are removed from f_grid.\n"
+         "- Unnecessary frequencies are removed from wmrf_weights.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "f_grid", "wmrf_weights",
+             "f_backend" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        GOUT_DESC(),
+        IN( "f_grid", "f_backend", 
+            "wmrf_weights", "wmrf_channels"  ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back

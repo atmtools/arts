@@ -163,13 +163,6 @@ AgendaSet( iy_space_agenda ){
   MatrixCBR( iy, stokes_dim, f_grid )
 }
 #
-AgendaSet( ppath_atmvars_agenda ){
-  ppath_pFromPgrid
-  interpolation_weightsFromPpathForAtmFields
-  ppath_tFromTfield
-  ppath_vmrFromVMRfield
-  ppath_windsZero
-}
 AgendaSet( iy_clearsky_agenda ){
   iyEmissionStandardClearsky
 }

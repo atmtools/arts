@@ -1567,15 +1567,6 @@ void Workspace::define_wsv_data()
       GROUP( "Index" )));
 
   wsv_data.push_back
-    (WsvRecord
-     (NAME( "interpolation_weights" ),
-      DESCRIPTION
-      (
-       "Pre-calculated weights for interpolation. \n"
-       ),
-      GROUP( "Matrix" )));
-
-  wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),
       DESCRIPTION
@@ -2558,15 +2549,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppath_atmvars_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "ppath_lmax" ),
       DESCRIPTION
       (
@@ -2591,19 +2573,6 @@ void Workspace::define_wsv_data()
        "Usage: Refraction ppath methods such as *ppath_stepRefractionEuler*.\n"
        ),
       GROUP( "Numeric" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_p" ),
-      DESCRIPTION
-      (
-       "The pressure corresponding to each point of *ppath*\n"
-       "\n"
-       "Usage: Output of *ppath_atmvars_agenda*.\n"
-       "\n"
-       "Size:  [ ppath.np ]\n"
-       ),
-      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2633,47 +2602,6 @@ void Workspace::define_wsv_data()
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_t" ),
-      DESCRIPTION
-      (
-       "The temperature corresponding to each point of *ppath*\n"
-       "\n"
-       "Usage: Output of *ppath_atmvars_agenda*.\n"
-       "\n"
-       "Size:  [ ppath.np ]\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_vmr" ),
-      DESCRIPTION
-      (
-       "The VMR values corresponding to each point of *ppath*\n"
-       "\n"
-       "Usage: Output of *ppath_atmvars_agenda*.\n"
-       "\n"
-       "Size:  [ abs_species.nelem(), ppath.np ]\n"
-       ),
-      GROUP( "Matrix" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_winds" ),
-      DESCRIPTION
-      (
-       "The wind speeds corresponding to each point of *ppath*\n"
-       "\n"
-       "FILL IN DETAILS (work in progress) ...\n"
-       "\n"
-       "Usage: Output of *ppath_atmvars_agenda*.\n"
-       "\n"
-       "Size:  [ 2 or 3, ppath.np ]\n"
-       ),
-      GROUP( "Matrix" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -4101,6 +4029,74 @@ void Workspace::define_wsv_data()
        "Channel 0 is the first instrument channel!\n"
        ),
       GROUP( "ArrayOfIndex" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "wind_x_field" ),
+      DESCRIPTION
+      (
+       "Second horisontal wind component field for 3D.\n"
+       "\n"
+       "The east-west wind component. Air moving towards higher\n"
+       "longitudes is a positive wind.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       m/s\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       ),
+      GROUP( "Tensor3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "wind_y_field" ),
+      DESCRIPTION
+      (
+       "Horisontal 1D, 2D or 3D wind components.\n"
+       "\n"
+       "This wind component is defined differently for the atmospheric\n"
+       "dimensionalities.\n"
+       "\n"       
+       " 1D: Complete vertical wind. The wind is treated to always be aligned\n"
+       "azimuthally with the observation direction. That is, the vertical\n"
+       "winds converge/start at geographicalposition of the sensor. A wind\n"
+       "going away from the sensor is treated as positive.\n"
+       "\n"       
+       " 2D: Complete vertical wind. The wind is treated to be aligned with\n"
+       "the 2D cross-section the atmosphere represents. Air moving towards\n"
+       "higher latitudes is considered as a positive wind.\n"
+       "\n"       
+       " 3D: The north-south wind component. Air moving towards higher\n"
+       "latitudes is a positive wind.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       m/s\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       ),
+      GROUP( "Tensor3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "wind_z_field" ),
+      DESCRIPTION
+      (
+       "Vertical wind component field.\n"
+       "\n"
+       "Upward moving air correspoinds to a positive wind speed.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       m/s\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       ),
+      GROUP( "Tensor3" ))); 
 
   wsv_data.push_back
    (WsvRecord

@@ -562,20 +562,6 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "ppath_atmvars_agenda" ),
-       DESCRIPTION
-       (
-        "Determines some atmospheric variables along the propagation path.\n"
-        "\n"
-        "This agenda shall provide the pressure, temperature, VMR values and\n"
-        "winds at each point of the propagation path. This should normally be\n"
-        "done by interpolating the corresponding main variables.\n"
-        ),
-       OUTPUT( "ppath_p", "ppath_t", "ppath_vmr", "ppath_winds" ),
-       INPUT( "ppath" )));
-  
-  agenda_data.push_back
-    (AgRecord
      ( NAME( "refr_index_agenda" ),
        DESCRIPTION
        (

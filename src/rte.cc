@@ -418,8 +418,9 @@ void get_step_vars_for_standardRT(
       Vector   evector;
       Matrix   sgmatrix;
       //
-      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, 0, ppath_p[ip], ppath_t[ip], 
-                                      ppath_vmr(joker,ip), abs_scalar_agenda );
+      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, 0, ppath_p[ip], 
+                                    ppath_t[ip], ppath_vmr(joker,ip), 
+                                    abs_scalar_agenda );
       ppath_abs_scalar(joker,joker,ip) = sgmatrix;
       //
       if( emission_do )
@@ -437,7 +438,7 @@ void get_step_vars_for_standardRT(
               ppath_tau(iv,ip-1) = 0.5 * ppath.l_step[ip-1] * (
                                          ppath_abs_scalar(iv,joker,ip-1).sum() +
                                          ppath_abs_scalar(iv,joker,ip).sum() );
-              total_tau[iv]    += ppath_tau(iv,ip-1);
+              total_tau[iv] += ppath_tau(iv,ip-1);
             }
         }
     }

@@ -62,18 +62,6 @@ extern const Numeric EARTH_GRAV_CONST;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void interpolation_weightsFromPpathForAtmFields(
-        Matrix&      interpolation_weights, 
-  const Index&       atmosphere_dim,
-  const Ppath&       ppath )
-{
-  interp_atmfield_gp2itw( interpolation_weights, atmosphere_dim, 
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalc(
               Workspace&      ws,
         // WS Output:
@@ -95,22 +83,6 @@ void ppathCalc(
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, 
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_pFromPgrid(
-        Vector&      ppath_p, 
-  const Ppath&       ppath,
-  const Vector&      p_grid )
-{
-  // No checks for efficiency reasons
-  const Index np  = ppath.np;
-  ppath_p.resize(np);
-  Matrix itw_p(np,2);
-  interpweights( itw_p, ppath.gp_p );      
-  itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
 }
 
 
@@ -206,62 +178,6 @@ void ppath_stepRefractionEuler(
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_tFromTfield(
-        Vector&      ppath_t, 
-  const Ppath&       ppath,
-  const Index&       atmosphere_dim,
-  const Tensor3&     t_field,
-  const Matrix&      interpolation_weights )
-{
-  // No checks for efficiency reasons
-  const Index np = ppath.np;
-  ppath_t.resize(np);
-  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, t_field, 
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
-                          interpolation_weights );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_vmrFromVMRfield(
-        Matrix&      ppath_vmr, 
-  const Ppath&       ppath,
-  const Index&       atmosphere_dim,
-  const Tensor4&     vmr_field,
-  const Matrix&      interpolation_weights )
-{
-  // No checks for efficiency reasons
-  const Index np = ppath.np;
-  const Index ns = vmr_field.nbooks();
-  ppath_vmr.resize(ns,np);
-  for( Index is=0; is<ns; is++ )
-    {
-      interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
-                              vmr_field( is, joker, joker,  joker ), 
-                              ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
-                              interpolation_weights );
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_windsZero(
-        Matrix&      ppath_winds, 
-  const Ppath&       ppath,
-  const Index&       atmosphere_dim )
-{
-  if( atmosphere_dim <= 2 )
-    { ppath_winds.resize( 2, ppath.np ); }
-  else 
-    { ppath_winds.resize( 3, ppath.np ); }
-  ppath_winds = 0;
 }
 
 

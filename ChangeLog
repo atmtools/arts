@@ -1,3 +1,30 @@
+2011-06-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-15-12
+
+	* Gave on my attempt to "open up" the RT methods. In the end I had
+	to add so many variables and metodhs, that the small gain was
+	outweighted by increased complexity. Made a first small step
+	towards adding winds.
+
+	* src/workspace.cc: Added wind_x_field, wind_y_field and
+	wind_z_field.
+
+	* src/m_ppath.cc: Removed functions added in my last commit.
+
+	* includes/general.arts: Removed definition of
+	ppath_atmvars_agenda. 
+
+	* src/agendas.cc: Removed ppath_atmvars_agenda.
+
+	* src/methods.cc: Corrected description for
+	iyEmissionStandardClearsky. Put some methods at correct place
+	alphabetically.
+
+	* src/rte.cc (get_step_vars_for_standardRT): Cosmetic changes.
+
+	* src/m_rte.cc (iyXXXXX): Cosmetic changes.
+	
 2011-05-31  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-15-11

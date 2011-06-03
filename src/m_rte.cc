@@ -307,14 +307,9 @@ void get_pointers_for_analytical_jacobians(
 
 
 
-
-
-
-
 /*===========================================================================
   === Main help functions (get_iy_of_background and iyb_calc)
   ===========================================================================*/
-
 
 //! get_iy_of_background
 /*!
@@ -849,13 +844,13 @@ void iyBeerLambertStandardClearsky(
   //
   if( iy_agenda_call1 )
     {
-      // Error are considered to be zero
+      // iy_error
       iy_error.resize( 0, 0 );
       iy_error_type = 0;
-      //
+      // iy_aux
       if( iy_aux_do ) { iy_aux.resize( N_AUX, nf, stokes_dim ); iy_aux = -999; }
       else            { iy_aux.resize( 0, 0, 0 ); }
-      //
+      // diy_dx
       if( j_analytical_do ) 
         {
           diy_dx.resize( jacobian_indices.nelem() ); 
@@ -908,18 +903,13 @@ void iyBeerLambertStandardClearsky(
       total_tau = 0;
     }
 
-  // Handle iy_transmission (the variable not needed when background is
-  // space or no analytical jacobians will be calculated)
+  // iy_transmission
   //
-  if( i_background > 1 && j_analytical_do )
-    {
-      if( iy_agenda_call1 )
-        { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, 
-                                                                 total_tau ); }
-      else
-        { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
-                                                                 total_tau ); }
-    }
+  if( iy_agenda_call1 )
+    { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, total_tau ); }
+  else
+    { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
+                                                                total_tau ); }
 
   // Radiative background
   //
@@ -1394,11 +1384,24 @@ void iyEmissionStandardClearsky(
   const Agenda&                     iy_space_agenda,
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda,
-  const Agenda&                     ppath_atmvars_agenda,
   const Tensor3&                    iy_transmission,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
+  // All variables associated with iy_error, iy_aux and diy_dx are set up 
+  // when iy_agenda_call1 is true. 
+  //
+  // The error is set to type 0. Accordingly, if any radiative background wants
+  // to flag an error, iy_error must be resized. No subsequent scaling of the
+  // error is made. Thus the iy_transmission should be considered when adding
+  // a term to the error.
+  // 
+  // Some parts of iy_aux are set at first call, others by radiative background.
+  // See on-line doc for the content of this variable.
+
+  // The WSV *iy_transmission* shall hold the transmission between the sensor
+  // and the end of the propagation path.
+
   // A minimal amount of checks, for efficiency reasons
   assert( rte_pos.nelem() == atmosphere_dim );
   assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
@@ -1414,17 +1417,17 @@ void iyEmissionStandardClearsky(
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
 
-  // If primary call, initilise iy_aux and diy_dx
+  // If primary call, initilise iy_error, iy_aux and diy_dx
   //
   if( iy_agenda_call1 )
     {
-      // Error are considered to be zero
+      // iy_error
       iy_error.resize( 0, 0 );
       iy_error_type = 0;
-      //
+      // iy_aux
       if( iy_aux_do ) { iy_aux.resize( N_AUX, nf, stokes_dim ); iy_aux = 0.0; }
       else            { iy_aux.resize( 0, 0, 0 ); }
-      //
+      // diy_dx
       if( j_analytical_do ) 
         {
           diy_dx.resize( jacobian_indices.nelem() ); 
@@ -1452,25 +1455,21 @@ void iyEmissionStandardClearsky(
   // Get quantities required for each ppath point
   //
   const Index     np  = ppath.np;
-        Vector    ppath_p, ppath_t, total_tau;
+        Vector    ppath_p, ppath_t, ppath_doppler, total_tau;
         Matrix    ppath_vmr, ppath_winds, ppath_emission, ppath_tau;
         Tensor3   ppath_abs_scalar, iy_trans_new;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      //
-      ppath_atmvars_agendaExecute( ws, ppath_p, ppath_t, ppath_vmr, ppath_winds,
-                                   ppath, ppath_atmvars_agenda );
-      
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, t_field, vmr_field );
 
-      // Get emission, absorption, optical thickness for each step, and total
-      // optical thickness
-      //
+      // Get emission, absorption and optical thickness for each step
       get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
-                                    ppath_tau, total_tau, abs_scalar_agenda, 
-                                    emission_agenda, ppath, ppath_p, ppath_t, 
-                                    ppath_vmr, nf, 1 );
+                                    ppath_tau, total_tau, 
+                                    abs_scalar_agenda, emission_agenda,
+                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     { 
@@ -1478,28 +1477,22 @@ void iyEmissionStandardClearsky(
       total_tau = 0;
     }
 
-  // Handle iy_transmission (the variable not needed when background is
-  // space or no analytical jacobians will be calculated, but always with
-  // iy_aux_do set to true)
+  // iy_transmission
   //
-  if( ( i_background > 1 && j_analytical_do )  ||  iy_aux_do )
-    {
-      if( iy_agenda_call1 )
-        { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, 
-                                                                 total_tau ); }
-      else
-        { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
-                                                                 total_tau ); }
-    }
+  if( iy_agenda_call1 )
+    { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, total_tau ); }
+  else
+    { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
+                                                                total_tau ); }
 
   // Radiative background
   //
   get_iy_of_background( 
-                ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
-                lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
-                cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
-                iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
+               ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
+               iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
+               lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
+               cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
+               iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
   // Do RT calculations
   //
@@ -1764,12 +1757,10 @@ void iyEmissionStandardClearskyBasic(
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      //
       get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
                            p_grid, t_field, vmr_field );
 
       // Get emission, absorption and optical thickness for each step
-      //
       get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
                                     ppath_tau, total_tau, 
                                     abs_scalar_agenda, emission_agenda,
@@ -2407,3 +2398,6 @@ void y_unitApply(
         }
     }
 }
+
+
+
