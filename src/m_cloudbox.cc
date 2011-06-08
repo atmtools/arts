@@ -770,7 +770,10 @@ void ScatteringParticlesSelect (//WS Output:
           pow ( 3./4. * scat_data_meta_array_tmp[j].V * 1e18 / PI , 1./3. );
 	
 	// check if particle is in size range
-        if ( r_particle  >= sizemin && sizemax >= r_particle )
+  // (sizemax < 0 results from wildcard usage and means all sizes on the
+  // upper end)
+        if ( r_particle  >= sizemin &&
+             ( sizemax >= r_particle || sizemax < 0. ))
 	{
 	  // fill ArrayOfIndex with indices of selected scattering data
           intarr.push_back ( j );

@@ -1153,10 +1153,24 @@ void parse_part_size ( //WS Output:
   
   // convert String for size range, into Numeric
   // 1. third entry is minimum particle radius
-  istringstream os1 ( strarr[2] );
-  os1 >> sizemin;
+  if ( strarr.nelem() < 3 || strarr[2] == "*" )
+  {
+    sizemin = 0.;
+  }
+  else
+  {
+    istringstream os1 ( strarr[2] );
+    os1 >> sizemin;
+  }
   // 2. fourth entry is maximum particle radius
-  istringstream os2 ( strarr[3] );
-  os2 >> sizemax;
+  if ( strarr.nelem() < 4 || strarr[3] == "*" )
+  {
+    sizemax = -1.;
+  }
+  else
+  {
+    istringstream os2 ( strarr[3] );
+    os2 >> sizemax;
+  }
 
 }
