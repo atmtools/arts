@@ -274,8 +274,11 @@ approximately 60 of them.
 
 As the example in Figure \ref{fig:hello} shows, \textindex{workspace
   variables} can be freely created by the user with methods like
-\artsstyle{StringCreate}, \artsstyle{VectorCreate}, and so on. Each
-group has its own create method.
+\artsstyle{StringCreate}, \artsstyle{VectorCreate}, and so on. The
+idea is that each group can have its own create method. (Currently
+implemented are only create methods for groups where it was actually
+needed, but adding them for other groups is trivial and will be done
+on demand.)
 
 However, in most cases it is not necessary to create new variables in
 this way, since a lot of variables are predefined in ARTS. The
@@ -316,8 +319,8 @@ controlfile are followed by their output and input arguments (workspace
 variables) in parentheses. (`\artsstyle{Print(s)}' prints the content of variable
 \artsstyle{s}.)
 
-From the methods point of view, arguments can be either \emph{output}
-or \emph{input}, and additionally, they can be either
+From the methods point of view, arguments can be \emph{output},
+\emph{input}, or both, and additionally they can be either
 \emph{\textindex{specific}} (= referring to a predefined variable) or
 \emph{\textindex{generic}} (= not referring to a predefined
 variable). To illustrate this, Figure \ref{fig:WriteXML} shows the
@@ -336,8 +339,7 @@ Workspace method = WriteXML
 -----------------------------------------------------------
 Writes a workspace variable to an XML file.
 
-This is a supergeneric method. It can write variables 
-of any group.
+This method can write variables of any group.
 
 If the filename is omitted, the variable is written
 to <basename>.<variable_name>.xml.
@@ -449,6 +451,8 @@ AgendaSet( abs_scalar_gas_agenda ){
 }
 \end{lstlisting}
 \end{minipage}
+\hspace*{\fill}
+\rule[-40pt]{.5pt}{40pt}
 \hspace*{\fill}
 \begin{minipage}[t]{0.48\hsize}
 \begin{lstlisting}

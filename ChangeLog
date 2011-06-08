@@ -1,3 +1,13 @@
+2011-06-08  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-14
+
+	* doc/uguide/concept.tex: Some editorial changes, following Gerrit's
+	comments.
+
+	* src/methods.cc: Eliminated the outdated term "supergeneric" from
+	all method descriptions.
+
 2011-06-08  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-15-13

@@ -1827,7 +1827,7 @@ void define_md_data_raw()
         (
          "Append a workspace variable to another workspace variable.\n"
          "\n"
-         "This is a supergeneric method. It can append a workspace variable\n"
+         "This method can append a workspace variable\n"
          "to another workspace variable of the same group. (E.g., a *Matrix* to\n"
          "another *Matrix*.)\n"
          "\n"
@@ -3111,7 +3111,7 @@ void define_md_data_raw()
         (
          "Copy a workspace variable.\n"
          "\n"
-         "This is a supergeneric method. It can copy any workspace variable\n"
+         "This method can copy any workspace variable\n"
          "to another workspace variable of the same group. (E.g., a Matrix to\n"
          "another Matrix.)\n"
          "\n"
@@ -4344,7 +4344,7 @@ void define_md_data_raw()
          "about unused input workspace variables. What it does is: Nothing!\n"
          "In other words, it just ignores the variable it is called on.\n"
          "\n"
-         "This is a supergeneric method. It can ignore any workspace variable\n"
+         "This method can ignore any workspace variable\n"
          "you want.\n"
          "\n"
          "Usage example:\n"
@@ -4357,9 +4357,6 @@ void define_md_data_raw()
          "Without Ignore you would get an error message, because els_agenda is\n"
          "supposed to use the Doppler width *ls_sigma*, but the Lorentz lineshape\n"
          "*elsLorentz* does not need it.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
@@ -6911,7 +6908,7 @@ void define_md_data_raw()
         (
          "Reads a workspace variable from a NetCDF file.\n"
          "\n"
-         "This is a supergeneric method. It can read variables of any group.\n"
+         "This method can read variables of any group.\n"
          "\n"
          "If the filename is omitted, the variable is read\n"
          "from <basename>.<variable_name>.nc.\n"
@@ -6941,7 +6938,7 @@ void define_md_data_raw()
         (
          "Reads a workspace variable from an XML file.\n"
          "\n"
-         "This is a supergeneric method. It can read variables of any group.\n"
+         "This method can read variables of any group.\n"
          "\n"
          "If the filename is omitted, the variable is read\n"
          "from <basename>.<variable_name>.xml.\n"
@@ -9348,7 +9345,7 @@ void define_md_data_raw()
         (
          "Writes a workspace variable to a NetCDF file.\n"
          "\n"
-         "This is a supergeneric method. It can write variables of any group.\n"
+         "This method can write variables of any group.\n"
          "\n"
          "If the filename is omitted, the variable is written\n"
          "to <basename>.<variable_name>.nc.\n"
@@ -9382,7 +9379,7 @@ void define_md_data_raw()
         (
          "Writes a workspace variable to an XML file.\n"
          "\n"
-         "This is a supergeneric method. It can write variables of any group.\n"
+         "This method can write variables of any group.\n"
          "\n"
          "If the filename is omitted, the variable is written\n"
          "to <basename>.<variable_name>.xml.\n"
