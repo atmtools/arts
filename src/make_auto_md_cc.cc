@@ -403,6 +403,7 @@ int main()
         ofs << "};\n\n";
       }
 
+      
       // Create implementation of the agenda wrappers
 
       // Initialize agenda data.
@@ -524,6 +525,32 @@ int main()
 
           ofs << "}\n\n";
         }
+      
+      
+      // Create implementation of the GroupCreate WSMs
+      //
+      for (ArrayOfString::const_iterator it = wsv_group_names.begin();
+           it != wsv_group_names.end(); it++)
+      {
+        if (*it != "Any")
+        {
+          ofs
+          << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
+          << "void " << *it << "Create(" << *it << "& var)\n"
+          << "{ ";
+          
+          // Treat atomic types separately.
+          // For objects the default constructor is used.
+          if (*it == "Index")
+            ofs << "var = 0;";
+          else if (*it == "Numeric")
+            ofs << "var = 0.;";
+          else
+            ofs << "var = " << *it << "();";
+          
+          ofs << " }\n\n";
+        }
+      }
     }
   catch (runtime_error x)
     {

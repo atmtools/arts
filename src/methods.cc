@@ -128,6 +128,37 @@ void define_md_data_raw()
 
   const String ARRAY_GROUPS = get_array_groups_as_string();
 
+  extern const ArrayOfString wsv_group_names;
+  
+  for (ArrayOfString::const_iterator it = wsv_group_names.begin();
+       it != wsv_group_names.end(); it++)
+  {
+    if (*it != "Any")
+    {
+      md_data_raw.push_back
+      (MdRecord
+       (NAME( String(*it + "Create").c_str() ),
+        DESCRIPTION
+        (
+         String("Creates a variable of group " + *it + ".\n"
+                "\n"
+                "If the variable already exists, it'll be reinitialized.\n").c_str()
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "var" ),
+        GOUT_TYPE( (*it).c_str() ),
+        GOUT_DESC( "Variable to create." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        )
+       );
+    }
+  }
+  
   /////////////////////////////////////////////////////////////////////////////
   // Let's put in the functions in alphabetical order. This gives a clear rule
   // for where to place a new function and this gives a nicer results when
@@ -1853,111 +1884,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ArrayOfGriddedField1Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty ArrayOfGriddedField1.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "agf" ),
-        GOUT_TYPE( "ArrayOfGriddedField1" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-  ( MdRecord
-   ( NAME( "ArrayOfGriddedField2Create" ),
-    DESCRIPTION
-    (
-     "Creates an empty ArrayOfGriddedField2.\n"
-     "\n"
-     "If the variable already exists, it will be reset.\n"
-     ),
-    AUTHORS( "Oliver Lemke" ),
-    OUT(),
-    GOUT(      "agf" ),
-    GOUT_TYPE( "ArrayOfGriddedField2" ),
-    GOUT_DESC( "Variable to create." ),
-    IN(),
-    GIN(),
-    GIN_TYPE(),
-    GIN_DEFAULT(),
-    GIN_DESC()
-    ));
-  
-  md_data_raw.push_back
-  ( MdRecord
-   ( NAME( "ArrayOfGriddedField3Create" ),
-    DESCRIPTION
-    (
-     "Creates an empty ArrayOfGriddedField3.\n"
-     "\n"
-     "If the variable already exists, it will be reset.\n"
-     ),
-    AUTHORS( "Oliver Lemke" ),
-    OUT(),
-    GOUT(      "agf" ),
-    GOUT_TYPE( "ArrayOfGriddedField3" ),
-    GOUT_DESC( "Variable to create." ),
-    IN(),
-    GIN(),
-    GIN_TYPE(),
-    GIN_DEFAULT(),
-    GIN_DESC()
-    ));
-  
-  md_data_raw.push_back
-  ( MdRecord
-   ( NAME( "ArrayOfGriddedField4Create" ),
-    DESCRIPTION
-    (
-     "Creates an empty ArrayOfGriddedField4.\n"
-     "\n"
-     "If the variable already exists, it will be reset.\n"
-     ),
-    AUTHORS( "Oliver Lemke" ),
-    OUT(),
-    GOUT(      "agf" ),
-    GOUT_TYPE( "ArrayOfGriddedField4" ),
-    GOUT_DESC( "Variable to create." ),
-    IN(),
-    GIN(),
-    GIN_TYPE(),
-    GIN_DEFAULT(),
-    GIN_DESC()
-    ));
-  
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfIndexCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty ArrayOfIndex.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "ai" ),
-        GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ArrayOfIndexSet" ),
         DESCRIPTION
         (
@@ -1974,90 +1900,6 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Indexes for initializiation." ),
         SETMETHOD( true )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfLineRecordCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty ArrayOfLineRecord.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "alr" ),
-        GOUT_TYPE( "ArrayOfLineRecord" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfLineshapeSpecCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty ArrayOfLineshapeSpec.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "als" ),
-        GOUT_TYPE( "ArrayOfLineshapeSpec" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfMatrixCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty ArrayOfMatrix.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "am" ),
-        GOUT_TYPE( "ArrayOfMatrix" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfStringCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty ArrayOfString.\n"
-         "\n"
-         "If the variable already exists, it'll be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "as" ),
-        GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -2079,27 +1921,6 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Strings for initialization." ),
         SETMETHOD( true )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ArrayOfVectorCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty ArrayOfVector.\n"
-         "\n"
-         "If the variable already exists, it'll be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "av" ),
-        GOUT_TYPE( "ArrayOfVector" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -4224,90 +4045,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "GriddedField1Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty GriddedField1.\n"
-         "\n"
-         "If the variable already exists, it'll be reset.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gfield"       ),
-        GOUT_TYPE( "GriddedField1" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "GriddedField2Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty GriddedField2.\n"
-         "\n"
-         "If the variable already exists, it'll be reset.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gfield"       ),
-        GOUT_TYPE( "GriddedField2" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "GriddedField3Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty GriddedField3.\n"
-         "\n"
-         "If the variable already exists, it'll be reset.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gfield"       ),
-        GOUT_TYPE( "GriddedField3" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "GriddedField4Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty GriddedField4.\n"
-         "\n"
-         "If the variable already exists, it'll be reset.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gfield"       ),
-        GOUT_TYPE( "GriddedField4" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-    
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "Massdensity_cleanup" ),
         DESCRIPTION
         (
@@ -4412,27 +4149,6 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "IndexCreate" ),
-        DESCRIPTION
-        (
-         "Creates an Index variable.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "i" ),
-        GOUT_TYPE( "Index" ),
-        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -5440,27 +5156,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MatrixCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty Matrix.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "m"       ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "MatrixMatrixMultiply" ),
         DESCRIPTION
         (
@@ -5938,30 +5633,6 @@ void define_md_data_raw()
                      NODEF ),
         GIN_DESC( "Input numeric.",
                   "Value to add." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "NumericCreate" ),
-        DESCRIPTION
-        (
-         "Creates a Numeric variable.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Numeric: New Numeric variable.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "n" ),
-        GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -7980,27 +7651,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "SparseCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty Sparse matrix.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "sm" ),
-        GOUT_TYPE( "Sparse" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "SparseSparseMultiply" ),
         DESCRIPTION
         (
@@ -8082,27 +7732,6 @@ void define_md_data_raw()
                  "(plus optional blanks).\n")
         ));
 
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "StringCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty String.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "s" ),
-        GOUT_TYPE( "String" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8319,27 +7948,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "Tensor3Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty Tensor3.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "t" ),
-        GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "Tensor3AddScalar" ),
         DESCRIPTION
         (
@@ -8407,27 +8015,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "Tensor4Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty Tensor4.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "t" ),
-        GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "Tensor4Scale" ),
         DESCRIPTION
         (
@@ -8468,27 +8055,6 @@ void define_md_data_raw()
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF     ),
         GIN_DESC( "Tensor value." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "Tensor5Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty Tensor5.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "t" ),
-        GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -8537,27 +8103,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "Tensor6Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty Tensor6.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "t" ),
-        GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "Tensor6Scale" ),
         DESCRIPTION
         (
@@ -8598,27 +8143,6 @@ void define_md_data_raw()
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF     ),
         GIN_DESC( "Tensor value." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "Tensor7Create" ),
-        DESCRIPTION
-        (
-         "Creates an empty Tensor7.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "t" ),
-        GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -8783,27 +8307,6 @@ void define_md_data_raw()
         GIN_TYPE(    "Vector", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF     ),
         GIN_DESC( "Output vector", "The value to be added to the vector." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "VectorCreate" ),
-        DESCRIPTION
-        (
-         "Creates an empty Vector.\n"
-         "\n"
-         "If the variable already exists, it will be reset.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "v"       ),
-        GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "Variable to create." ),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back

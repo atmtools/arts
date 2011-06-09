@@ -1,3 +1,19 @@
+2011-06-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-15
+
+	* src/methods.cc, src/make_auto_md_cc.cc:
+
+	Automatically generate Create methods for all groups.
+
+	* src/m_create.cc: Removed.
+
+	* src/CMakeLists.txt: Removed m_create.cc from sources.
+
+	* doc/uguide/concept.tex: Updated.
+
+	* src/groups.cc: Removed unused group SLIData2.
+
 2011-06-08  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-14
