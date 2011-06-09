@@ -1,3 +1,9 @@
+2011-06-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-17
+
+	* src/main.cc: Also output timing info in case a runtime error occured.
+
 2011-06-09  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-15-16

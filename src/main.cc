@@ -1118,6 +1118,28 @@ int main (int argc, char **argv)
     }
   catch (runtime_error x)
     {
+#ifdef TIME_SUPPORT
+      struct tms arts_cputime_end;
+      clock_t arts_realtime_end;
+      long clktck = 0;
+      
+      clktck = sysconf (_SC_CLK_TCK);
+      arts_realtime_end = times (&arts_cputime_end);
+      if (clktck > 0
+          && arts_realtime_start != (clock_t)-1
+          && arts_realtime_end != (clock_t)-1)
+      {
+        out1 << "This run took " << fixed << setprecision(2)
+        << (Numeric)
+        (arts_realtime_end - arts_realtime_start)
+        / (Numeric)clktck
+        << "s (" << fixed << setprecision(2) << (Numeric)
+        ((arts_cputime_end.tms_stime - arts_cputime_start.tms_stime)
+         + (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime))
+        / (Numeric)clktck << "s CPU time)\n";
+      }
+#endif
+
       arts_exit_with_error_message(x.what());
     }
 
