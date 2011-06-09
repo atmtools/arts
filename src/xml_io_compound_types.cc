@@ -802,6 +802,17 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ssdata.f_grid, pbifs);
   xml_read_from_stream (is_xml, ssdata.T_grid, pbifs);
   xml_read_from_stream (is_xml, ssdata.za_grid, pbifs);
+  /* Verify that we have a good coverage for the za grid */
+  if ((ssdata.za_grid[0]>1) || ssdata.za_grid[ssdata.za_grid.nelem()-1]<179)
+  {
+      ostringstream os;
+      os << "Missing data in xml-stream. Expected za_grid: [0, 180]. "
+         << "Found za_grid: [" << ssdata.za_grid[0]
+         << ", "
+         << ssdata.za_grid[ssdata.za_grid.nelem()-1]
+         << "]";
+      throw runtime_error(os.str());
+  }
   xml_read_from_stream (is_xml, ssdata.aa_grid, pbifs);
 
   xml_read_from_stream (is_xml, ssdata.pha_mat_data, pbifs);
