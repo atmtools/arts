@@ -1,16 +1,17 @@
-\chapter{Radiative transfer: definitions and approach}
+\chapter{Overview of clear-sky radiative transfer 
+calculations}
  \label{sec:rte}
 
 
  \starthistory
- 110428 & Extension and general revision of the chapter (PE).\\
- 050613 & First complete version finished by PE.\\
+ 110610 & Extended and general revision (Patrick Eriksson).\\
+ 050613 & First complete version by Patrick Eriksson.\\
  \stophistory
 
 \graphicspath{{Figs/rte/}}
 
-This chapters defines some concepts and quantities, and gives an overview of
-the approach to handle the radiative transfer calculations. This includes an
+This section defines some concepts and quantities, and gives an overview of
+the approach to handle radiative transfer calculations. This includes an
 overview of how effects caused by the sensor and surface are incorporated.
 
 The default assumption is that there is no particle scattering and the
@@ -18,11 +19,11 @@ The default assumption is that there is no particle scattering and the
 denoted as clear-sky calculations. Cases involving scattering or polarised
 absorption are handled by the ``cloud box'' (Sec.~\ref{sec:fm_defs:cloudbox}).
 In short, the more demanding calculations are restricted to a smaller domain of
-the model atmosphere, and the radiative transfer approach to apply in this
-domain is specified seperately.
+the model atmosphere, and the radiative transfer in this
+domain is treated by dedicated workspace methods.
 
-This chapter deals with general aspects of radiative transfer and the
-algorithms applied outside the cloudbox. Even though the atmospheric absorption
+The section deals with general aspects of radiative transfer and the
+algorithms applied outside the cloud box. Even though the atmospheric absorption
 and emission outside the cloud box are unpolarised, the expressions to apply
 must allow that polarisation signals from the surface and the cloud box are
 correctly propagated to the sensor.
@@ -49,7 +50,7 @@ where the first component ($I$) is the full intensity of the
 radiation, the second component ($Q$) is the difference between
 vertical and horizontal polarisation, the third component ($U$) is the
 difference for $\pm$45$^\circ$ polarisation and the last component
-($Q$) is the difference between left and right circular polarisation.
+($V$) is the difference between left and right circular polarisation.
 That is:
 \begin{eqnarray}
   I &=&   \Iv + \Ih = \Ipff + \Imff = \Ilhc + \Irhc, \\
@@ -70,7 +71,7 @@ variable \wsvindex{stokes\_dim}. For example, gaseous absorption and
 emission are in general unpolarised, and if not scattering has to be
 considered it is sufficient to only include the first Stokes
 components in the simulations. To include higher order Stokes
-components results in this case only in slower calculations. The
+components results only, in this case, in slower calculations. The
 general case is here denoted as \textindex{vector radiative transfer},
 while \textindex{scalar radiative transfer} refers to the case when
 only the first Stokes component is considered.
@@ -82,12 +83,35 @@ only the first Stokes component is considered.
 %===================
 \label{sec:fm_defs:calcproc}
 
-The structure of the part handling the radiative transfer calculations is
-fixed. The corresponding workspace method is \wsmindex{yCalc}. The calculation
-procedure of \artsstyle{yCalc} is outlined in
+The structure of the part handling complete radiative transfer calculations is
+fixed, where the main workspace method is denoted as \wsmindex{yCalc}. That is,
+most ARTS control files include a call of \artsstyle{yCalc} and this section
+outlines this method and the associated main variables.
+
+The calculation approach fits with the formalism presented in Sections
+\ref{T-sec:formalism:fm}-\ref{T-sec:formalism:sensor} of \theory, where the
+separation between atmospheric radiative transfer and inclusion of sensor
+effects shall be noted especially, and a similar nomenclature is used here:
+\begin{description}
+\item[\MsrVct]: Complete measurement vector. In addition to atmospheric
+  radiative transfer, the vector can include effects by sensor characteristics
+  and data reduction operations. The corresponding workspace variable is 
+  \wsvindex{y}.
+\item[\aMpiVct{b}]: Monochromatic pencil beam data for a measurement block. The
+  definition of a measurement block is found in
+  Section~\ref{sec:fm_defs:seqsandblocks}. This vector is only affected by
+  atmospheric radiative transfer. Only used internally and there is no
+  corresponding workspace variable.
+\item[\aMpiVct{y}]: Monochromatic data for a single (pencil beam)
+  line-of-sight. \aMpiVct{b} consists of one or several \aMpiVct{y} appended.
+  The corresponding workspace variable is \wsvindex{iy}.
+\item[\aSnsMtr{b}]: The complete sensor response matrix, for a measurement
+  block. Can include data reduction. The corresponding workspace variable is
+  \wsvindex{sensor\_response}.
+\end{description}
+The \artsstyle{yCalc} method is outlined in
 Algorithm~\ref{alg:fm_defs:yCalc}. For further details of each calculation
 step, see the indicated equation or section.
-
 \begin{algorithm}
  \begin{algorithmic}
   \STATE{allocate memory for the matrix $\MsrVct$}
@@ -101,8 +125,11 @@ step, see the indicated equation or section.
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
     \STATE{determine the radiation at the start of the propagation path}
     \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
-    \STATE{call \artsstyle{iy\_clearsky\_agenda}}
-    \STATE{copy \artsstyle{iy} to correct part of \aMpiVct{b}}
+    \STATE{call \artsstyle{iy\_clearsky\_agenda}, giving \aMpiVct{y}}
+    \COMMENT{Section \ref{sec:fm_defs:rte}}
+    \STATE{unit conversion of \aMpiVct{y} following \wsvindex{y\_unit}}
+    \COMMENT{Section \ref{sec:fm_defs:unit}}
+    \STATE{copy \aMpiVct{y} to correct part of \aMpiVct{b}}
    \ENDFOR
    \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of 
           $\MsrVct$}
@@ -115,7 +142,93 @@ step, see the indicated equation or section.
 
 
 
+\section{Basic radiative transfer variables and expressions}
+%---
+\label{sec:fm_defs:rte}
 
+Atmospheric radiative transfer is solved for each individual pencil beam
+direction (line-of-sight) individually. It is the task of
+\wsvindex{iy\_clearsky\_agenda} to perform a single such clear sky radiative
+transfer calculation. All methods developed for
+\artsstyle{iy\_clearsky\_agenda} adapt automatically to the value of
+\wsvindex{stokes\_dim}.
+
+This section describes how the core radiative transfer equation is solved
+practically in ARTS. Focus is put on emission measurements as ARTS is
+intended primarily for such observations. However, simulations of transmission
+measurements are also possible.
+
+Beside the actual radiances, \artsstyle{iy\_clearsky\_agenda} can provide
+weighting functions and auxiliary data. These later variables are not supported
+by all parts of ARTS, and for efficiency reasons there exists a simpler version
+of the agenda. This version is denoted as
+\wsvindex{iy\_clearsky\_basic\_agenda} and returns only radiances.
+
+
+\subsection{Cases with emission}
+%===================
+\label{sec:fm_defs:emission}
+
+The complete vector radiative transfer equation, including scattering, is given
+by Equation \ref{T-eq:rtetheory:VRTE} in \theory. If scattering can be
+neglected, the equation can be written as
+\begin{equation}
+  \label{eq:rte:vrte}
+  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
+\end{equation}
+where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the
+distance along the propagation path, \ExtMat\ is the extinction
+matrix, \AbsVec\ is the absorption vector and $B$ is the source
+function (a scalar). If local thermodynamic equilibrium applies, $B$
+equals the Planck function describing blackbody radiation. See further
+\theory, Section~\ref{T-sec:rte_theory}.
+
+The radiative transfer equation above can be solved in many ways, and with
+different level of refinement. The standard approach in ARTS is to
+solve the radiative transfer from one point of the propagation path to
+next (compare \theory, Equation~\ref{T-eq:rtetheory:layer})
+\begin{equation}
+  \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
+  \label{eq:fm_defs:rte_step}
+\end{equation}
+where $\Mpi(\Frq)$ is the monochromatic intensity, $i$ is path step index,
+\aOth\ is the optical thickness, $B$ the Planck function, and \Tmp\ is the
+temperature. The optical thickness of the path step, $\aOth{i}$, is calculated
+as the mean of the absorption at the end points of the step, multiplied with
+the propagation path length. The effective temperature of the path step,
+$\aTmp{i}$, is calculated likewise, as the mean of the temperature at the end
+points of the step. The start value of \Mpi\ is determined by the ultimate 
+radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
+
+The emission is unpolarised for the conditions assumed here, and the emission
+term vanishes. The extinction matrix is diagonal, with all diagonal elements
+equal. Accordingly, the expression for the second Stokes component is
+\begin{equation}
+  Q_{i+1}(\Frq) = Q_i(\Frq)e^{-\aOth{i}}.
+  \label{eq:fm_defs:rte_step2}
+\end{equation}
+The third and forth Stokes component are handled likewise.
+
+The expressions above are implemented in the workspace method
+\wsmindex{iyEmissionStandardClearsky}, intended to be part of
+\artsstyle{iy\_clearsky\_agenda}. For inclusion in
+\artsstyle{iy\_clearsky\_basic\_agenda}, there is a version denoted as
+\wsmindex{iyEmissionStandardClearskyBasic}
+
+
+\subsection{Pure transmission calculations}
+%===================
+\label{sec:fm_defs:transmission}
+
+If only the attenuation of a signal is of concern (i.e.\ atmospheric and
+surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
+applied for all Stokes elements. The initiation of the Stokes vector by the
+radiative background must also be adopted. Otherwise the calculations are
+performed exactly as for cases with emission.
+
+Calculations of pure transmission type are performed by the method denoted as
+\wsmindex{iyBeerLambertStandardClearsky}. This method is complemented by
+\wsmindex{iyBeerLambertStandardCloudbox}, to be applied inside the cloud box.
 
 
 \section{Output unit}
@@ -131,92 +244,8 @@ The primary unit for emission spectra, the unit of
 [W/(Hz$\cdot$m$^2\cdot$sr)]. The emission intensity corresponds directly with
 the definition of the Planck function in \theory,
 Equation~\ref{T-eq:rtetheory:planck}. This radiance can be converted to other
-emission units, a selction between existing options is made through 
+emission units, a selection between existing options is made through 
 \wsvindex{y\_unit}.
-
-
-\section{Radiative transfer theory and algorithms}
-%---
-\label{sec:fm_defs:rte}
-
-This section describes how the core radiative transfer equation is solved
-practically in ARTS. The general presentation assumes that the simulations deal
-with an emission measurement. Focus is put on emission measurements as ARTS is
-intended primarily for such observations. However, simulations of transmission
-measurements are also possible.
-
-
-\subsection{Theory}
-%===================
-\label{sec:fm_defs:rte_agenda}
-
-The complete vector radiative transfer equation, including scattering, is given
-by Equation \ref{T-eq:rtetheory:VRTE} in \theory. If scattering can be
-neglected, the equation can be written as
-\begin{equation}
-  \label{eq:rte:vrte}
-  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
-\end{equation}
-where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the
-distance along the propagation path, \ExtMat\ is the extinction
-matrix, \AbsVec\ is the absorption vector and $B$ is the source
-function (a scalar). If local thermodynamic equilibrium applies, $B$
-equals the Planck function describing blackbody radiation. See further
-\theory, Chapter~\ref{T-sec:rte_theory}.
-
-
-
-\subsection{The agenda for clear sky radiative transfer, \artsstyle{iy\_agenda}}
-%===================
-\label{sec:fm_defs:rte_agenda}
-
-The task of \wsmindex{iy\_clearsky\_agenda} is to perform the clear sky
-radiative transfer calculation for the specified line-of-sight. That is, it
-calculates monochromatixc pencil beam spectra. All methods for
-\artsstyle{iy\_clearsky\_agenda} adapt automatically to the value of
-\wsvindex{stokes\_dim} (see also Section~\ref{sec:fm_defs:polarisation}).
-
-
-\subsection{Standard solution approach}
-%===================
-
-The radiative transfer equation can be solved in many ways, and with
-different level of refinement. The standard approach in ARTS is to
-solve the radiative transfer from one point of the propagation path to
-next. The simplest expression, for scalar radiative transfer, that can
-be used in this way is (compare \theory, Equation~\ref{T-eq:rtetheory:layer})
-\begin{equation}
-  \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
-  \label{eq:fm_defs:rte_step}
-\end{equation}
-where $\Mpi(\Frq)$ is the monochromatic intensity, $i$ is path step index,
-\aOth\ is the optical thickness, $B$ the Planck function, and \Tmp\ is the
-temperature. The optical thickness of the path step, $\aOth{i}$, is calculated
-as the mean of the absorption at the end points of the step, multiplicated with
-the propagation path length. The effective temperature of the path step,
-$\aTmp{i}$, is calculated likewise, as the mean of the temperature at the end
-points of the step.
-
-The emission is unpolarised for the conditions assumed here, and the expression
-for higher Stokes component is
-\begin{equation}
-  \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}}.
-  \label{eq:fm_defs:rte_step2}
-\end{equation}
-These expressions are implemented in the method
-\wsmindex{iyEmissionStandardClearsky}.
-
-
-% As scattering here is neglected, the elements of \ExtMat\ and \AbsVec\ 
-% are linked to each other, and we have that\footnote{This equation is
-%   for sure valid for unpolarised absorption. We have not confirmed
-%   generally for polarised absorption, but appears to be valid for
-%   Zeeman splitting.}:
-% \begin{eqnarray*}
-%   \ExtMat^{-1}\AbsVec &=& \left[\begin{array}{c} \alpha\\0\\0\\0 \end{array}\right],
-% \end{eqnarray*}
-% where $\alpha$ is the total gas absorption coefficient. 
-
 
 
 

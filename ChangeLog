@@ -1,5 +1,16 @@
 2011-06-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-15-19
+
+	* doc/uguide/rte.tex: Started on revision. 
+
+	* doc/uguide/atmosphere.tex: Changed from calling the part chapter
+	to section.
+
+	* doc/uguide/formalism.tex: Removed some outdated information.
+
+2011-06-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-15-18
 
 	* Started some more active work on AUG. Let's start with a
@@ -12,7 +23,7 @@
 	* doc/uguide/arts_user.tex: Activated the surface chapter, as
 	there are references to this chapter from other chapters.
 
-	* doc/uguide/concept.tex: Checked. Removed details from old history. 
+	* doc/uguide/concept.tex: Checked. Removed details from old history.
 
 2011-06-09  Oliver Lemke  <olemke@core-dump.info>
 

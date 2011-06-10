@@ -8,15 +8,8 @@
 \chapter{Theoretical formalism}
  \label{sec:formalism}
 
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
 \starthistory
+  110610 & Outdated information was removed (Patrick Eriksson). \\
   000306 & Written by Patrick Eriksson, partly 
            based on \citet{eriksson:99} and \\ & \citet{eriksson:00a}. \\
 \stophistory
@@ -32,10 +25,7 @@ extensions are made, for example, the distinction between the
 atmospheric and sensor parts of the forward model is also discussed.
 After this chapter was written, C.D. Rodgers published a textbook
 \citep{rodgers:00} presenting the formalism in more detail than
-\citet{rodgers:90}. Modelling of sensor characteristics is not yet
-included in ARTS (this part is so far covered by AMI), but treatment
-of the sensor is here included for completeness.
-
+\citet{rodgers:90}. 
 
 
 \section{The forward model}
@@ -87,8 +77,7 @@ of the sensor is here included for completeness.
  it is suitable to make a separation of the forward model into two
  main sections, a first part describing the atmospheric radiative
  transfer for \textindex{pencil beam} (infinite spatial resolution)
- \textindex{monochromatic} (infinite frequency resolution) signals
- \citep{eriksson:99},
+ \textindex{monochromatic} (infinite frequency resolution) signals,
  \begin{equation}
    \MpiVct = \FrwMdl_r(\aSttVct{r},\aFrwMdlVct{r})
   \label{eq:formalism:fma}
@@ -124,18 +113,19 @@ of the sensor is here included for completeness.
 \section{The sensor transfer matrix} 
  \label{sec:formalism:sensor}
   
- The modelling of the different sensor parts can be described by a
- number of of analytical expressions (see \citet{eriksson:97a}) that
- together makes the basis for the sensor model. These expressions are
- throughout linear operations and it possible, as suggested in
- \citet{eriksson:00a}, to implement the sensor model as a
+ The modelling of the different sensor parts can be described by a number of
+ analytical expressions that together makes the basis for the sensor model.
+ These expressions are throughout linear operations and it possible, as
+ suggested in \citet{eriksson:00a}, to implement the sensor model as a
  straightforward matrix multiplication:
  \begin{equation}
    \MsrVct = \SnsMtr \MpiVct + \MsrErrVct
   \label{eq:formalism:H}
  \end{equation}
- where \SnsMtr\ is here denoted as the \textindex{sensor transfer
-   matrix}.  The matrix \SnsMtr\ can further incorporate effects of a
+ where \SnsMtr\ is here denoted as the \textindex{sensor transfer matrix}. 
+ Expressions to determine \SnsMtr\ are given by \citet{eriksson:06}.
+
+ The matrix \SnsMtr\ can further incorporate effects of a
  \textindex{data reduction} and the total transfer matrix is then
  \begin{equation}
    \SnsMtr = \aSnsMtr{d} \aSnsMtr{s}
