@@ -2,27 +2,76 @@
  \label{sec:atmosphere}
 
 \starthistory
- 090424 & This section created by moving text from removed section (PE).\\ 
- 020315 & Text by Patrick Eriksson (PE).\\
+ 110610 & Revised by Patrick Eriksson.\\ 
+ 020315 & First version by Patrick Eriksson.\\
 \stophistory
 
 \graphicspath{{Figs/atmosphere/}}
+
+This chapter discusses the model atmosphere: how it is defined, its boundaries
+and the variables describing the basic properties. One aspect that can cause
+confusion is that several vertical coordinates must be used
+(Section~\ref{sec:fm_defs:altitudes}). The main vertical coordinate is pressure
+and atmospheric quantities are defined as a function of pressure
+(Section~\ref{sec:fm_defs:grids}), but the effective vertical coordinate from a
+geometrical perspective (such as the determination of propagation paths) is the
+radius (Section~\ref{sec:fm_defs:atmdim}). Pressures and radii are linked by
+specifying the geometrical altitudes (\artsstyle{z\_field}).
+
+
+\section{Altitude coordinates}
+%===================
+\label{sec:fm_defs:altitudes}
+
+\begin{description}
+  
+\item[Pressure\index{pressure}] The main altitude coordinate is
+  pressure. This is most clearly manifested by the fact that the
+  vertical atmospheric grid consists of levels with equal pressure.
+  The vertical grid is consistently denoted as the pressure grid and
+  the corresponding workspace variable is \wsvindex{p\_grid}. The
+  choice of having pressure as main altitude coordinate results in
+  that atmospheric quantities are retrieved as a function of pressure,
+  not as a function of geometrical altitude.
+  
+\item[Pressure altitude\index{pressure altitude}] A basic assumption
+  in ARTS is that atmospheric quantities (temperature, geometric
+  altitude, species VMR etc.) vary linearly with the logarithm of the
+  pressure. This corresponds roughly to assuming a linear variation
+  with altitude. 
+
+\item[Radius\index{radius}] Geometrical altitudes are
+  needed to determine the propagation path through the atmosphere etc.
+  The main geometrical altitude coordinate is the distance to the
+  centre of the coordinate system used, the radius. This is a natural
+  consequence of using a spherical or polar coordinate system. The
+  radius is used inside ARTS for all geometrical calculations and to
+  store the position of the sensor (Section 
+  \ref{sec:fm_defs:sensor1}).
+  
+\item[Geometrical altitude\index{geometrical altitude}] The term geometrical
+  altitude signifies here the difference in radius between a point and the
+  geoid (Section \ref{sec:fm_defs:geoid}) along the vector to the centre of the
+  coordinate system (Equation \ref{eq:fm_defs:zsurface}). This is consistent
+  with the usage of geocentric latitudes (see below). Hence, the altitude is
+  not measured along the local zenith direction.
+\end{description}
+
 
 
 \section{Atmospheric dimensionality}
 %===================
 \label{sec:fm_defs:atmdim}
 
-The structure of the modelled atmosphere can be selected to have
-different degree of complexity, the \textindex{atmospheric
-  dimensionality}. There exist three levels for the complexity of the
-atmosphere, 1D, 2D and 3D, where 1D and 2D can be seen as special
-cases of 3D. The significance of these different atmospheric
-dimensionalities and the coordinate systems used are described below
-in this section. The atmospheric dimensionality is selected by setting
-the workspace variable \wsvindex{atmosphere\_dim} to a value between 1
-and 3. The atmospheric dimensionality is most easily set by the
-functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
+The structure of the modelled atmosphere can be selected to have different
+degree of complexity, the \textindex{atmospheric dimensionality}. There exist
+three levels for the complexity of the atmosphere, 1D, 2D and 3D, where 1D and
+2D can be seen as special cases of 3D. The significance of these different
+atmospheric dimensionalities and the geometrical coordinate systems used
+are described below in this section. The atmospheric dimensionality is selected
+by setting the workspace variable \wsvindex{atmosphere\_dim} to a value between
+1 and 3. The atmospheric dimensionality is most easily set by the functions
+\wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 \wsmindex{AtmosphereSet3D}.
 
 \begin{figure}
@@ -36,7 +85,7 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
     the surface up to a pressure level, or between two pressure
     levels (which is the case shown in the figure). The figure shows
     further that the surface must be above the lowermost pressure
-    level. }
+    level.}
   \label{fig:fm_defs:1d}  
  \end{center}
 \end{figure}
@@ -50,7 +99,7 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
     grid points. The atmospheric fields vary linearly along the
     pressure levels and the latitude grid points (that is, along the
     dotted lines). Inside the grid cells, the fields have a bi-linear
-    variation. The cloud box is not defined for 2D.  }
+    variation. No cloud box is included in this figure.}
   \label{fig:fm_defs:2d}
  \end{center}
 \end{figure}
@@ -92,41 +141,37 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
   accordingly sufficient when dealing with atmospheric quantities, but
   the angular distance between the sensor and a point along the
   propagation path can be of interest, for example when determining
-  the cross-link between two satellites. A polar coordinate system is
-  for this reason used when describing propagation paths, where the
-  coordinate additional to the radius gives the angular distance
-  inside the viewing plane between the sensor and the point of
-  interest (see also Section \ref{sec:ppath:Ppath}). This latter
-  coordinate system coincides with the one used for 2D if the sensor
-  position is set to be the zero point for the latitudes. A 1D
+  the cross-link between two satellites. This distance is tracked, 
+  basically using the 2D view (see below) with the sensor
+  position set to be the zero point for the latitudes. A 1D
   atmosphere is shown in Figure \ref{fig:fm_defs:1d}.
   
-\item[\textindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D
-  atmosphere extends only inside a plane
-  (Figure \ref{fig:fm_defs:2d}). A spherical coordinate system is
-  accordingly not needed and a polar system\index{polar coordinate
-    system}, consisting of a radial and an angular coordinate, is
-  used. The 2D case is most likely used for satellite measurements
-  where the atmosphere is observed inside the orbit plane. The angular
-  coordinate corresponds then to the angular distance along the
+\item[\textindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D atmosphere
+  is strictly defined only inside a plane (Figure \ref{fig:fm_defs:2d}). A
+  spherical coordinate system is accordingly not needed and a polar
+  system\index{polar coordinate system}, consisting of a radial and an angular
+  coordinate, is used. The 2D case is most likely used for satellite
+  measurements where the atmosphere is observed inside the orbit plane. The
+  angular coordinate corresponds then to the angular distance along the
   satellite track, but the coordinate is for simplicity denoted as the
-  latitude. The zero point for the 2D latitude is arbitrary. No lower
-  and upper limit exists for the 2D latitude, and this allows that
-  measurements from several subsequent orbits can be simulated as one
-  unit. The atmosphere is treated to be undefined outside the
-  considered plane. A 2D atmosphere is shown in
-  Figure \ref{fig:fm_defs:2d}.
+  latitude. The zero point for the 2D latitude is arbitrary. No lower and upper
+  limit exists for the 2D latitude, and this allows that measurements from
+  several subsequent orbits can be simulated as one unit. The atmosphere is
+  normally treated to be undefined outside the considered plane, but some
+  scattering calculations treat the surrounding atmosphere in an simplified
+  manner [FIXME: Add reference to FOS, when chapyer exists.]. A 2D atmosphere
+  is shown in Figure \ref{fig:fm_defs:2d}.
 
 \end{description}
 
-\begin{figure}
+\begin{figure}[p]
  \begin{center}
   \includegraphics*[angle=-90,width=0.98\hsize]{atm_dim_3d}
   \vspace*{-15mm}
   \caption{Schematic of a 3D atmosphere. Plotting symbols as in 
     Figure \ref{fig:fm_defs:2d}. Radii and fields are here defined to
     vary linearly along the latitude and longitude grid points. This
-    means that surfaces (such as the radius of the surface) have a
+    means that the radius of a pressure level has a
     bi-linear variation inside the area limited by two latitude and
     longitude grid values, while the atmospheric fields have a
     tri-linear variation inside the grid cells. }
@@ -135,7 +180,7 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_atm_dims.
 
-\begin{figure}
+\begin{figure}[p]
  \begin{center}
   \includegraphics*[width=0.98\hsize]{atm_dim_3dcross}
   \caption{A latitudinal, or longitudinal, cross section of a 3D atmosphere. 
@@ -152,67 +197,6 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 
 
 
-\section{Altitude coordinates}
-%===================
-\label{sec:fm_defs:altitudes}
-
-\begin{description}
-  
-\item[Pressure\index{pressure}] The main altitude coordinate is
-  pressure. This is most clearly manifested by the fact that the
-  vertical atmospheric grid consists of levels with equal pressure.
-  The vertical grid is consistently denoted as the pressure grid and
-  the corresponding workspace variable is \wsvindex{p\_grid}. The
-  choice of having pressure as main altitude coordinate results in
-  that atmospheric quantities are retrieved as a function of pressure,
-  not as a function of geometrical altitude.
-  
-\item[Pressure altitude\index{pressure altitude}] A basic assumption
-  in ARTS is that atmospheric quantities (temperature, geometric
-  altitude, species VMR etc.) vary linearly with the logarithm of the
-  pressure. This corresponds roughly to assuming a linear variation
-  with altitude. 
-%  To obtain a more intuitive unit for the logarithm of
-%  the pressure, the quantity pressure altitude, \PrsAlt, is
-%  introduced, and it is defined as
-%  \begin{equation}
-%   \PrsAlt = \aPrsAlt{s}\left( \log_{10}(\aPrs{0}) - \log_{10}(\Prs) \right)
-%   \label{eq:fm_defs:prsalt}
-%  \end{equation}
-%  where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
-%  \fileindex{arts.h}), but suitably selected in such a way that the pressure
-%  altitude corresponds roughly to the geometrical altitude.  This
-%  correspondence is achieved if the two parameters are treated as a
-%  fixed scale height (for decreases of the pressure by a factor of
-%  10) and the surface pressure, respectively. Values around
-%  $\aPrsAlt{s}=15.5$\,km and $\aPrs{0}=1013$\,hPa are suitable for
-%  simulations dealing with the Earth's atmosphere.
-  
-\item[Radius\index{radius}] Geometrical altitudes are
-  needed to determine the propagation path through the atmosphere etc.
-  The main geometrical altitude coordinate is the distance to the
-  centre of the coordinate system used, the radius. This is a natural
-  consequence of using a spherical or polar coordinate system. The
-  radius is used inside ARTS for all geometrical calculations and to
-  store the position of the sensor (Section 
-  \ref{sec:fm_defs:sensor1}).
-  
-\item[Geometrical altitude\index{geometrical altitude}] The term
-  geometrical altitude signifies here the difference in radius between
-  a point and the geoid (Section \ref{sec:fm_defs:geoid}) along the
-  vector to the centre of the coordinate system
-  (Equation \ref{eq:fm_defs:zsurface}). Hence, the geometrical altitude
-  is not measured along the local zenith direction (the normal to the
-  reference geoid). Geometrical altitudes are mainly used to
-  facilitate the input of the surface altitude, the altitude of the
-  pressure levels etc. This is the case as these quantities are known
-  rather with respect to the geoid than with respect to the Earth's
-  centre.
-
-\end{description}
-
-
-
 \section{Atmospheric grids and fields}
 %===================
 \label{sec:fm_defs:grids}
@@ -220,11 +204,6 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 As mentioned above, the vertical grid of the atmosphere consists of a
 set of layers with equal pressure, the pressure grid
 (\wsvindex{p\_grid}).  This grid must of course always be specified.
-It is not allowed that there is an altitude gap between the surface and
-the lowermost pressure level.  That is, the surface pressure must be
-smaller than the pressure of the lowermost vertical grid level. On
-the other hand, it is not necessary to match the surface and the first
-pressure level, the pressure grid can extend below the surface level.
 The upper end of the pressure grid gives the practical upper limit of
 the atmosphere as vacuum is assumed above. With other words, no
 absorption and refraction take place above the uppermost pressure
@@ -238,7 +217,7 @@ calculated for the vector going from the centre of the coordinate
 system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
 latitudes (see Section \ref{sec:ppath:geoid}). This is in accordance
-to the definition of geometric altitudes found above.  For 3D, a
+to the definition of geometric altitudes above. For 3D, a
 \textindex{longitude} grid (\wsvindex{lon\_grid}) must also be specified.
 Valid ranges for latitude and longitude values are given in
 Section \ref{sec:fm_defs:atmdim}.
@@ -252,12 +231,10 @@ the atmosphere (the uppermost pressure level). See further
 Section \ref{sec:fm_defs:ppaths}. The volume (or area for 2D) covered
 by the grids is denoted as the \textindex{model atmosphere}.
 
-If the longitude and latitude grids are not used for the selected
-atmospheric dimensionality, then the longitude grid (for 1D and 2D)
-and the latitude grid (for 1D) must be set to be empty, but when
-dealing with the size of variables the grid length shall be treated to
-be one. For example, the matrix describing the geoid (see
-Section \ref{sec:fm_defs:geoid}) has for 1D the size $[1,1]$.
+If the longitude and latitude grids are not used for the selected atmospheric
+dimensionality, then the longitude grid (for 1D and 2D) and the latitude grid
+(for 1D) can normally be set to be empty, but some methods require a scalar
+latitude and longitude. 
 
 The basic atmospheric quantities are represented by their values at
 each crossing of the involved grids (indicated by thick dots in
@@ -272,7 +249,7 @@ linear functions vertically (with pressure altitude as the vertical
 coordinate, Section \ref{sec:fm_defs:altitudes}), and along the
 latitude and longitude edges of 2D and 3D grid boxes. For points
 inside 2D and 3D grid boxes, multidimensional linear interpolation is
-applied (that is, bilinear interpolation for 2D etc.). Note especially
+applied (that is, bi-linear interpolation for 2D etc.). Note especially
 that this is also valid for the field of geometrical altitudes
 (\artsstyle{z\_field}). Fields are rank-3 tensors. For example, the
 temperature field is $T=T(\Prs,\Lat,\Lon)$. That means each field is
@@ -283,11 +260,33 @@ page.
 
 
 
+\section{The geoid and surface}
+%===================
+\label{sec:fm_defs:surf}
+
+Geometrical altitudes are specified as the vertical distance to a reference
+geoid. The geoid is defined by giving the radius for each latitude and
+longitude grid point. Accordingly, this is a matrix, named as
+\wsvindex{r\_geoid}. For 1D atmosphere, this matrix has the size $[1,1]$.
+See further Section \ref{sec:fm_defs:geoid}.
+
+The lower boundary of the atmosphere is denoted as the surface. The surface is
+specified by its geometrical altitude on the latitude and longitude grids.
+The workspace variable holding these data is called \wsvindex{z\_surface}, and
+is a matrix of same size as \artsstyle{r\_geoid}.
+
+It is not allowed that there is an altitude gap between the surface and
+the lowermost pressure level.  That is, the surface pressure must be
+smaller than the pressure of the lowermost vertical grid level. On
+the other hand, it is not necessary to match the surface and the first
+pressure level, the pressure grid can extend below the surface level.
+
+
 \section{The cloud box}
 %===================
 \label{sec:fm_defs:cloudbox}
 In order to save computational time, calculations involving scattering and
-polarised gas absorption are limitied to a special atmospherc domain. This
+polarised gas absorption are limited to a special atmospheric domain. This
 atmospheric region is denoted as the \textindex{cloud box}, reflecting that it
 was introduced primarily to simplify scattering calculations. The cloud box is
 discussed here as it acts as an additional atmospheric limit when calculating
