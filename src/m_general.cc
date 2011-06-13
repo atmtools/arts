@@ -140,10 +140,6 @@ Print(
   Print( x.dim, level );
   SWITCH_OUTPUT (level, "np: ")
   Print( x.np, level );
-  SWITCH_OUTPUT (level, "refraction: ")
-  Print( x.refraction, level );
-  SWITCH_OUTPUT (level, "method: ")
-  Print( x.method, level );
   SWITCH_OUTPUT (level, "constant: ")
   Print( x.constant, level );
   SWITCH_OUTPUT (level, "pos: ")

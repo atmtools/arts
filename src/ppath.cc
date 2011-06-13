@@ -2468,8 +2468,6 @@ void ppath_init_structure(
 
   ppath.dim        = atmosphere_dim;
   ppath.np         = np;
-  ppath.refraction = 0;
-  ppath.method     = "-";
   ppath.constant   = -1;   
   if( atmosphere_dim < 3 )
     {
@@ -2606,8 +2604,6 @@ void ppath_copy(
   // The field np shall not be copied !
 
   ppath1.dim        = ppath2.dim;
-  ppath1.refraction = ppath2.refraction;
-  ppath1.method     = ppath2.method;
   ppath1.constant   = ppath2.constant;
   ppath1.background = ppath2.background;
 
@@ -3070,8 +3066,6 @@ void ppath_end_1d(
         const Index&      ip,
         const Index&      endface,
         const Index&      tanpoint,
-        const String&     method,
-        const Index&      refraction,
         const double&     ppc )
 {
   // Number of path points
@@ -3081,8 +3075,6 @@ void ppath_end_1d(
   //
   ppath_init_structure(  ppath, 1, np );
   //
-  ppath.method     = method;
-  ppath.refraction = refraction;
   ppath.constant   = ppc;
   //
   ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), r_geoid, 
@@ -3251,8 +3243,6 @@ void ppath_end_2d(
         const Index&      ilat,
         const Index&      endface,
         const Index&      tanpoint,
-        const String&     method,
-        const Index&      refraction,
         const double&     ppc )
 {
   // Number of path points
@@ -3263,8 +3253,6 @@ void ppath_end_2d(
   //
   ppath_init_structure(  ppath, 2, np );
   //
-  ppath.method     = method;
-  ppath.refraction = refraction;
   ppath.constant   = ppc;
   //
   ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_field, lat_grid, 
@@ -3507,8 +3495,6 @@ void ppath_end_3d(
         const Index&      ilon,
         const Index&      endface,
         const Index&      tanpoint,
-        const String&     method,
-        const Index&      refraction,
         const double&     ppc )
 {
   // Number of path points
@@ -3519,8 +3505,6 @@ void ppath_end_3d(
   //
   ppath_init_structure(  ppath, 3, np );
   //
-  ppath.method     = method;
-  ppath.refraction = refraction;
   ppath.constant   = ppc;
   //
   ppath_fill_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, 
@@ -3846,14 +3830,8 @@ void ppath_step_geom_1d(
 
   // Fill *ppath*
   //
-  String   method;
-  if( lmax < 0 )
-    { method     = "1D geometrical"; }
-  else
-    { method     = "1D geometrical with length criterion"; }
-  //
   ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
-                                                    tanpoint, method, 0, ppc );
+                                                              tanpoint, ppc );
 
 
   // Make part from a tangent point and up to the starting pressure level.
@@ -3933,14 +3911,8 @@ void ppath_step_geom_2d(
 
   // Fill *ppath*
   //
-  String   method;
-  if( lmax < 0 )
-    { method     = "2D geometrical"; }
-  else
-    { method     = "2D geometrical with length criterion"; }
-  //
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-                                 ip, ilat, endface, tanpoint, method, 0, ppc );
+                                            ip, ilat, endface, tanpoint, ppc );
 
 
   // Make part after a tangent point.
@@ -4033,15 +4005,8 @@ void ppath_step_geom_3d(
 
   // Fill *ppath*
   //
-  String   method;
-  if( lmax < 0 )
-    { method     = "3D geometrical"; }
-  else
-    { method     = "3D geometrical with length criterion"; }
-  //
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
-                lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint,
-                                                              method, 0, ppc );
+          lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint, ppc );
 
 
   // Make part after a tangent point.
@@ -4802,19 +4767,11 @@ void ppath_step_refr_1d(
   lat_array.push_back( lat_start );
   za_array.push_back( za_start );
   //
-  // String to store description of ray tracing method
-  String   method;
-  //
   // Number coding for end face
   Index   endface, tanpoint;
   //
   if( rtrace_method  == "linear_euler" )
     {
-      if( lmax < 0 )
-        { method = "1D linear Euler"; }
-      else
-        { method = "1D linear Euler, with length criterion"; }
-
       raytrace_1d_linear_euler( ws,
         r_array, lat_array, za_array, l_array, endface,
         tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
@@ -4843,7 +4800,7 @@ void ppath_step_refr_1d(
 
   // Fill *ppath*
   ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
-                                                    tanpoint, method, 1, ppc );
+                                                               tanpoint, ppc );
 
 
   //--- End point is a tangent point
@@ -4943,19 +4900,11 @@ void ppath_step_refr_2d(
   lat_array.push_back( lat_start );
   za_array.push_back( za_start );
   //
-  // String to store description of ray tracing method
-  String   method;
-  //
   // Number coding for end face
   Index   endface, tanpoint;
   //
   if( rtrace_method  == "linear_euler" )
     {
-      if( lmax < 0 )
-        { method = "2D linear Euler"; }
-      else
-        { method = "2D linear Euler, with length criterion"; }
-
       raytrace_2d_linear_euler( ws,
         r_array, lat_array, za_array, l_array, endface,
         tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
@@ -4984,7 +4933,7 @@ void ppath_step_refr_2d(
 
   // Fill *ppath*
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-                                  ip, ilat, endface, tanpoint, method, 1, -1 );
+                                             ip, ilat, endface, tanpoint, -1 );
 
 
   // Make part after a tangent point.
@@ -5094,19 +5043,11 @@ void ppath_step_refr_3d(
   za_array.push_back( za_start );
   aa_array.push_back( aa_start );
   //
-  // String to store description of ray tracing method
-  String   method;
-  //
   // Number coding for end face
   Index   endface, tanpoint;
   //
   if( rtrace_method  == "linear_euler" )
     {
-      if( lmax < 0 )
-        { method = "3D linear Euler"; }
-      else
-        { method = "3D linear Euler, with length criterion"; }
-
       raytrace_3d_linear_euler( ws, r_array, lat_array, lon_array, za_array, 
                                 aa_array, l_array, endface, tanpoint, r_start,
                                 lat_start, lon_start, za_start, aa_start, 
@@ -5140,8 +5081,7 @@ void ppath_step_refr_3d(
 
   // Fill *ppath*
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
-                lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint,
-                                                               method, 1, -1 );
+           lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint, -1 );
 
 
   // Make part after a tangent point.
@@ -6568,22 +6508,5 @@ void ppath_calc(
          
         }
     }  
-  ppath.method     = ppath_step.method;
-  ppath.refraction = ppath_step.refraction;
-  ppath.constant   = ppath_step.constant;
   ppath.background = ppath_step.background;
-
-
-  // If refraction has been considered, make a simple check that the
-  // refraction at the top of the atmosphere is sufficiently close to 1.
-  if( ppath.refraction  &&  min( z_field(z_field.npages()-1,0,0) ) < 60e3 )
-    {
-      out2 << "  *** WARNING****\n" 
-           << "  The calculated propagation path can be inexact as the "
-           << "atmosphere\n  only extends to " 
-           <<  min( z_field(z_field.npages()-1,0,0) ) << " km. \n" 
-           << "  The importance of this depends on the observation "
-           << "geometry.\n  It is recommended that the top of the atmosphere "
-           << "is not below 60 km.\n";
-    }
 }

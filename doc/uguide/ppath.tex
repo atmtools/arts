@@ -3,7 +3,7 @@
 
 
 \starthistory
-  110613 & Revised by Patrick Eriksson (equations not checked).\\
+  110613 & Slightly extended and revised (except equations) by Patrick Eriksson.\\
   030310 & First complete version written by Patrick Eriksson.\\
 \stophistory
 
@@ -13,14 +13,15 @@
 
 A propagation path is the name given in ARTS to the way the radiation travels
 to reach the sensor for a specified line-of-sight. Propagation paths are
-introduced in Section \ref{sec:fm_defs:ppaths} and it can be a good idea to
-read that section before continuing here. For a general usage of ARTS, it
-should suffice to read Sections~\ref{sec:ppath:usage}-{sec:ppath:approach}.
-
-The remaining sub-sections are detailed and deal with more low-level aspects of
-the calculations. It turned out that to find stable algorithms for the
-propagation path calculations was the main obstacle to handle 2D and 3D cases,
-and those later sub-sections aim at summarising that development work.
+introduced in Section \ref{sec:fm_defs:ppaths} and this section provides
+further details. For a general usage of ARTS, it should suffice to read
+Section~\ref{sec:ppath:usage}. The remaining sub-sections deal with more
+low-level aspects of the calculations, and are of interest only if you want to
+understand the finer details of ARTS. It turned out that the main obstacle to
+handle 2D and 3D cases was to find stable algorithms for the propagation path
+calculations, and the sub-sections starting with
+Section~\ref{sec:ppath:approach} aim also at documenting the experience of that
+development work.
 
 
 
@@ -29,17 +30,25 @@ and those later sub-sections aim at summarising that development work.
 \label{sec:ppath:usage}
 
 The ray tracing algorithm to be applied for the calculation of propagation path
-is effectively selected by specifying \wsaindex{ppath\_step\_agenda} (see also
-Section~\ref{sec:fm_defs:ppaths}). The fastest calculations are obtained if
-refraction is neglected, denoted as geometrical calcutions. The workspace
-method to apply if this assumption can be made is
-\wsmindex{ppath\_stepGeometric}. 
+is effectively selected by specifying \wsaindex{ppath\_step\_agenda} (see
+further Section~\ref{sec:fm_defs:ppaths}). The fastest calculations are
+obtained if refraction is neglected, denoted as geometrical calcutions. The
+workspace method to apply if this assumption can be made is
+\wsmindex{ppath\_stepGeometric}.
 
+The main consideration for using \artsstyle{ppath\_stepGeometric} is to select
+a value for \wsvindex{ppath\_lmax}. This variable controls to some extent the
+calculation accuarcy, as described in Section~\ref{sec:fm_defs:accuracy}. This
+variable sets the maximum distance between points of the (final) propagation
+path. Set this variable to e.g.\ -1 if you don't want to apply such a length
+criterion.
 
- or not, a
-length criterion between the path points will be applied etc. Functions
-intended for \artsstyle{ppath\_step\_agenda} include
- and \wsmindex{ppath\_stepRefractionEuler}.
+A straightforward, but inefficient, treatment of refraction is provided by
+\wsmindex{ppath\_stepRefractionEuler}. This method divides the propagation path
+into a series of geomtrical ray tracing steps. The size of the ray tracing
+steps is selected by \wsvindex{ppath\_lraytrace}. This variable affects only
+the ray tracing part, the distance between points of the propagation path
+actually returned is controled by \artsstyle{ppath\_lmax} as above.
 
 
 
@@ -49,31 +58,25 @@ intended for \artsstyle{ppath\_step\_agenda} include
 %===================
 \label{sec:ppath:approach}
 
-The propagation paths are calculated in steps, as outlined below in
-this section. The path steps are normally from one crossing of the
-atmospheric grids to next. This solution is necessary to allow that
-the same code is used throughout the program. To introduce propagation
-paths steps was necessary to handle the iterative solution for
-scattering inside the cloud box, as made clear from
-Figure \ref{fig:scattering:average}.
+The propagation paths are calculated in steps, as outlined in
+Section~\ref{sec:fm_defs:ppaths}. The path steps are normally from one crossing
+of the atmospheric grids to next. To introduce
+propagation paths steps was necessary to handle the iterative solution for
+scattering inside the cloud box, as made clear from Figure
+\ref{fig:scattering:average}.
 
-A full propagation path is stored in the workspace variable
-\wsvindex{ppath}, that is of the type \artsstyle{Ppath} (see
-Section \ref{sec:ppath:Ppath}). The paths are determined by
-calculating a number of path steps. A path step is the path from a
-point to the next crossing of either the pressure, latitude or
-longitude grid (Figure \ref{fig:ppath:ex1}). There is one exception to
-this definition of a path step, and that is when there is an
-intersection with the surface, which ends the propagation path at that
-point. The starting point for the calculation of a path step is
-normally a grid crossing point, but can also be an arbitrary point
-inside the atmosphere, such as the sensor position. Only points inside
-the model atmosphere are handled. The path steps are stored in the
-workspace variable \wsvindex{ppath\_step}, that is of the same type as
-\artsstyle{ppath}. The path steps are calculated by an agenda called
-\wsaindex{ppath\_step\_agenda}. Example on methods that can be used in
-\artsstyle{ppath\_step\_agenda} are \artsstyle{ppath\_stepGeometric}
-and \artsstyle{ppath\_stepRefractionEuler}.
+A full propagation path is stored in the workspace variable \wsvindex{ppath},
+that is of the type \artsstyle{Ppath} (see Section \ref{sec:ppath:Ppath}). The
+paths are determined by calculating a number of path steps. A path step is the
+path from a point to the next crossing of either the pressure, latitude or
+longitude grid (Figure~\ref{fig:ppath:ex1}). There is one
+exception to this definition of a path step, and that is when there is an
+intersection with the surface, which ends the propagation path at that point.
+The starting point for the calculation of a path step is normally a grid
+crossing point, but can also be an arbitrary point inside the atmosphere, such
+as the sensor position. Only points inside the model atmosphere are handled.
+The path steps are stored in the workspace variable \wsvindex{ppath\_step},
+that is of the same type as \artsstyle{ppath}.
 
 \begin{figure}
  \begin{center}
@@ -105,12 +108,12 @@ and \artsstyle{ppath\_stepRefractionEuler}.
 % This figure was produced by the Matlab function mkfigs_ppath
 
 
-Propagation paths are calculated with the workspace method
-\wsmindex{ppathCalc}. The communication between this method and
+Propagation paths are calculated with the internal function
+\funcindex{ppath\_calc}. The communication between this method and
 \artsstyle{ppath\_step\_agenda} is handled by \artsstyle{ppath\_step}.
 That variable is used both as input and output to
 \artsstyle{ppath\_step\_agenda}.  The agenda gets back
-\artsstyle{ppath\_step} as returned to \wsmindex{ppathCalc} and the
+\artsstyle{ppath\_step} as returned to \artsstyle{ppath\_calc} and the
 last path point hold by the structure is accordingly the starting
 point for the new calculations. If a total propagation path shall be
 determined, the agenda is called repeatedly until the starting point
@@ -125,7 +128,7 @@ path. This is either the position of the sensor (true or
 hypothetical), or some point at the top of the atmosphere (determined
 by geometrical calculations starting at the sensor). This
 initialization is not handled by \artsstyle{ppath\_step\_agenda}. 
-The field \artsstyle{constant} is set by \artsstyle{ppathCalc}
+The field \artsstyle{constant} is set by \artsstyle{ppath\_calc}
 to the correct value if the sensor is above the model atmosphere.
 Otherwise, the field is set to be negative and is corrected by
 \artsstyle{ppath\_step\_agenda} at the first call. This procedure is
@@ -133,29 +136,18 @@ needed as the propagation path constant changes if refraction is
 considered, or not, when the sensor is placed inside the atmosphere.
 
 The agenda performs only calculations to next crossing of a grid, all
-other tasks are performed by \wsmindex{ppathCalc}, with one exception.
+other tasks are performed by \artsstyle{ppath\_calc}, with one exception.
 If there is an intersection with the surface, the calculations stop at
 this point. This is flagged by setting the background field of
-\artsstyle{ppath\_step}. Beside this, \wsmindex{ppathCalc} checks if
+\artsstyle{ppath\_step}. Beside this, \artsstyle{ppath\_calc} checks if
 the starting point of the calculations is inside the scattering box or
 below the surface level, and check if the last point of the path has
 been reached. 
 
-The \artsstyle{ppath\_step\_agenda} put in points along the
-propagation path at all crossings with the grids, tangent points and
-points of surface reflection. Additional points can be included in the
-propagation paths. For example, an upper distance between the points
-defining the path can be set for \artsstyle{ppath\_stepGeometric} by
-the generic input \artsstyle{lmax} (see Figure \ref{fig:ppath:ex2}).
-
 In many cases the propagation path can/must be considered to consist
 of several parts. One exemple is surface reflection (see
 Figure \ref{fig:fm_defs:surface_refl}). The variable \artsstyle{ppath}
-describes then only a single part of the propagation path, while the
-complete path is put into \wsvindex{ppath\_array}. The part closest to
-the sensor is first in this array (index 0). The order of the
-following parts is described by the \artsstyle{next\_parts} field
-of the \artsstyle{Ppath} structure (see below).
+describes then only a single part of the propagation path.
 
 
 
@@ -186,17 +178,9 @@ where the data type is given inside square brackets.
      identical to the sensor position and that position can be used to
      determinate the radiative background (see below).
 
-   \item[refraction] [Index] A flag (0 or 1) to indicate if refraction
-     has been considered when determining the path. A value of 1 means
-     that refraction has been considered.
-
-   \item[method] [String] A string describing the calculation approach.
-     For example, '1D basic geometrical'.
-     
    \item[constant] [Numeric] The propagation path constant. Such a
      constant can be assigned to all geometrical paths and for 1D
-     cases (with or without refraction). See
-     Sections \ref{sec:ppath:basicgeom} and [**]. This field can be
+     cases (with or without refraction). This field can be
      initiated to a negative value to indicate that the constant is
      undefined or not yet set. For cases where the constant applies,
      \artsstyle{ppath\_step\_agenda} sets this constant at the first
@@ -212,7 +196,6 @@ where the data type is given inside square brackets.
      and are useful if the propagation path shall be plotted. The
      latitudes for 1D give the angular distance to the sensor (see
      further Section \ref{sec:fm_defs:atmdim}).
-     
      The propagation path is stored in reversed order, that is, the
      position with index 0 is the path point closest to the sensor
      (and equals the sensor position if it is inside the atmosphere).
@@ -279,17 +262,7 @@ where the data type is given inside square brackets.
 
 \end{description}
 
-The fields above are set as when the propagation path is determined
-(inside(\artsstyle{ppath\_calc}). Remaining fields, listed below, are
-set at a later stage:
 
-\begin{description}
-  
-\item[next\_parts] [ArrayOfIndex] The index in
-  \wsvindex{ppath\_array} of following propagation path parts. Not
-  defined for individual propagation paths. A negative value means
-  that there is no following part.
-\end{description}
 
 
 \section{Structure of implementation}
@@ -404,11 +377,7 @@ example, the sub-functions to \artsstyle{ppath\_stepGeometric} are
 \funcindex{ppath\_step\_geom\_1d}, \funcindex{ppath\_step\_geom\_2d}
 and \funcindex{ppath\_step\_geom\_3d}. See \artsstyle{m\_ppath.cc} to
 get the names of the sub-functions for other propagation path step
-workspace methods. The variables to describe the atmosphere are
-compacted for 1D and 2D when handed over to atmospheric dimensionality
-specific sub-functions. For example, the variable in
-\artsstyle{ppath\_step\_geom\_2d} for the geoid radius is a vector,
-while the workspace variable is a matrix.
+workspace methods. 
 
 \begin{algorithm}
  \begin{algorithmic}
@@ -1181,7 +1150,7 @@ calculations.
 \end{figure}
 \begin{figure}
  \begin{center}
-  \includegraphics*[width=0.80\hsize]{ppath_N}
+  \includegraphics*[width=0.7\hsize]{ppath_N}
   \caption{Vertical variation of refractivity $(n-1)\topowerten{6}$.
      Calculated for a mid-latitude summer climatology (FASCODE), where
      the dashed line is for a completely dry atmosphere, and the solid line
@@ -1241,7 +1210,7 @@ refractive index.
 %-----------------------
 \begin{figure}
  \begin{center}
-  \includegraphics*[width=0.85\hsize]{ppath_dndr}
+  \includegraphics*[width=0.7\hsize]{ppath_dndr}
   \caption{Vertical gradient of the refractive index.
      Calculated for a mid-latitude summer climatology (FASCODE), where
      the dashed line is for a completely dry atmosphere, and the solid line
@@ -1253,7 +1222,7 @@ refractive index.
 
 \begin{figure}
  \begin{center}
-  \includegraphics*[width=0.85\hsize]{ppath_dndlat}
+  \includegraphics*[width=0.7\hsize]{ppath_dndlat}
   \caption{Latitude gradient of the refractive index due to varying radius 
     of the geoid. The gradient is given as the change in refractive
     index over 1\,m, which allows direct comparison with the values in

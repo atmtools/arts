@@ -169,19 +169,20 @@ The three following sections describes the main calculation steps of
 %===================
 \label{sec:fm_defs:ppaths}
 
-A pencil beam path through the atmosphere to reach a position along a
-specific line-of-sight is denoted as the \textindex{propagation path}.
-Propagation paths are described by a set of points on the path, and
-the distance along the path between the points. These quantities, and
-a number of auxiliary variables, are stored together in a structure
-described in Section~\ref{sec:ppath:Ppath}. The path points are
-primarily placed at the crossings of the path with the atmospheric
-grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
-\artsstyle{lon\_grid}). A path point is also placed at the sensor if
-it is placed inside the atmosphere.  Points of surface reflections and
-tangent points are also included if such exist. More points can also
-be added to the propagation path, for example, by setting an upper
-limit for the distance along the path between the points.
+A pencil beam path through the atmosphere to reach a position along a specific
+line-of-sight is denoted as the \textindex{propagation path}. Propagation paths
+are described by a set of points on the path, and the distance along the path
+between the points. These quantities, and a number of auxiliary variables, are
+stored together in a structure described in Section~\ref{sec:ppath:Ppath}. The
+path points are primarily placed at the crossings of the path with the
+atmospheric grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
+\artsstyle{lon\_grid}). A path point is also placed at the sensor if it is
+placed inside the atmosphere. Points of surface reflections and tangent points
+are also included if such exist. More points can also be added to the
+propagation path, for example, by setting an upper limit for the distance along
+the path between the points. This is achieved by the variable
+\artsstyle{ppath\_lmax}, see further Sections \ref{sec:fm_defs:accuracy} and
+\ref{sec:ppath:usage}.
 
 \begin{figure}
  \begin{center}
@@ -263,8 +264,8 @@ Propagation paths can be calculated seperately by the method
 are calculated internally by \artsstyle{yCalc}. The calculation of the path
 from one crossing of the grids to next crossing is defined by
 \wsaindex{ppath\_step\_agenda}. Depending on which function that is selected
-for \artsstyle{ppath\_step\_agenda}, refraction will be considered. Available
-workspace methods are presented in Section~\ref{sec:ppath:usage}.
+for \artsstyle{ppath\_step\_agenda}, refraction will be considered etc.
+Available workspace methods are presented in Section~\ref{sec:ppath:usage}.
 
 
 

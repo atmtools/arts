@@ -59,8 +59,6 @@
 struct Ppath {
   Index             dim;
   Index             np;
-  Index             refraction;
-  String            method;
   Numeric           constant;
   Matrix            pos;
   Vector            z;

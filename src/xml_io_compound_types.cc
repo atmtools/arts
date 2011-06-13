@@ -633,8 +633,6 @@ xml_read_from_stream (istream& is_xml,
 
   xml_read_from_stream (is_xml, ppath.dim, pbifs);
   xml_read_from_stream (is_xml, ppath.np, pbifs);
-  xml_read_from_stream (is_xml, ppath.refraction, pbifs);
-  xml_read_from_stream (is_xml, ppath.method, pbifs);
   xml_read_from_stream (is_xml, ppath.constant, pbifs);
   xml_read_from_stream (is_xml, ppath.pos, pbifs);
   xml_read_from_stream (is_xml, ppath.z, pbifs);
@@ -677,8 +675,6 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, ppath.dim, pbofs, "AtmosphericDimensionality");
   xml_write_to_stream (os_xml, ppath.np, pbofs,
                        "NumberOfPositionInPropagationPath");
-  xml_write_to_stream (os_xml, ppath.refraction, pbofs, "RefractionFlag");
-  xml_write_to_stream (os_xml, ppath.method, pbofs, "CalculationApproach");
   xml_write_to_stream (os_xml, ppath.constant, pbofs,
                        "PropagationPathConstant");
   xml_write_to_stream (os_xml, ppath.pos, pbofs,

@@ -1,17 +1,30 @@
 2011-06-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-15-21
+
+	* doc/uguide/ppath.tex: This section modified and revised.
+
+	* src/m_general.cc (Print):
+	* src/xml_io_compound_types.cc:
+	* src/ppath.cc: Adopted to removed fields: method and refraction.
+
+	* src/ppath.h: Removed fields method and refraction. They fill no
+	practical purpose.
+
+2011-06-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-15-20
 
 	* doc/uguide/rte.tex (section{Propagation paths}): Some
 	corrections and moved some information to ppath section.
 
 	* doc/uguide/ppath.tex: Moved geoid part to surface section. Work
-	in progress. 
+	in progress.
 
 	* doc/uguide/surface.tex: Added geiod text from ppath section. Work
 	in progress.
-	
-	* doc/uguide/rte.tex: Extended and revised. 
+
+	* doc/uguide/rte.tex: Extended and revised.
 
 	* doc/uguide/arts_user.tex: Placed surface section before ppath one.
 
@@ -19,7 +32,7 @@
 
 	* arts-1-15-19
 
-	* doc/uguide/rte.tex: Started on revision. 
+	* doc/uguide/rte.tex: Started on revision.
 
 	* doc/uguide/atmosphere.tex: Changed from calling the part chapter
 	to section.
