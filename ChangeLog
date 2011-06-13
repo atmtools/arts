@@ -1,5 +1,18 @@
 2011-06-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-15-22
+
+	* doc/uguide/rte_theory.tex: Added a section for surfaces and
+	moved large parts of the old AUG surface section.
+
+	* doc/uguide/surface.tex: In revision. Not comple.
+
+	* src/m_surface.cc (surfaceLambertianSimple): "Activated" the
+	method. It has not been tested heavily, but the theoretical
+	aspects appear to be OK.
+
+2011-06-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-15-21
 
 	* doc/uguide/ppath.tex: This section modified and revised.

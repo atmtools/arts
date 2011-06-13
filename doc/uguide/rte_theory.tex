@@ -917,6 +917,217 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
     \label{fig:rtetheory:rayjean}
   \end{center}
  \end{figure} 
+
+
+\section{Surface emission and reflection}
+ \label{sec:rtetheory:surface}
+
+
+\subsection{The dielectric constant and the refractive index}
+ %===================
+ The properties of a material can be reported either as the relative
+ dielectric constant, $\epsilon$, or the refractive index, $n$. Both
+ these quantities can be complex and are related as
+ \begin{equation}
+   \label{eq:surface_eps2n}
+   n = \sqrt{\epsilon}.
+ \end{equation}
+
+
+\subsection{Relating reflectivity and emissivity}
+ %===================
+ Kirchoff's law applied to thermodynamics states that under conditions
+ of local thermodynamic equilibrium, thermal emission has to be equal
+ to absorption \citep[see e.g.][page 215]{ulaby:81}. This is a consequence of
+ the fact that there must exist a radiation equilibrium between an
+ object and its surrounding, if it is surrounded by a blackbody having
+ the same temperature (with no physical contact). 
+ 
+ Thermodynamic equilibrium can be assumed for natural surfaces, as
+ long as there exist no strong temperature gradients. The Kirchoff law
+ can then be used to relate the reflectivity and emissivity of a
+ surface. For rough surfaces the scattering properties must be
+ integrated over the half sphere (above the surface) to determine the
+ emissivity \citep[see e.g.][Eq.\ 4.186]{ulaby:81}. For specular
+ reflections (defined below) and scalar radiative transfer
+ calculations, the emissivity $e$ is
+ \begin{equation}
+  \label{eq:e=1-r}
+   e = 1 - r,
+ \end{equation}
+ where $r$ is the reflective (power reflection coefficient) of the
+ surface.  Equation \ref{eq:e=1-r} is valid for each polarisation state
+ individually \citep[Eq.\ 4.190a]{ulaby:81}.
+
+ We have then that
+ \begin{equation}
+  \Mpi^\mathrm{up} = \Mpi^\mathrm{down}r + (1-r)B,
+ \end{equation}
+ where $\Mpi^\mathrm{up}$ is upwelling radiation, $\Mpi^\mathrm{down}$
+ is downwelling radiation and $B$ is the magnitude of blackbody
+ radiation. As expected, if $\Mpi^\mathrm{down}=B$, also
+ $\Mpi^\mathrm{up}$ equals $B$.  Expressing the last observation using
+ vector nomenclature gives
+ \begin{equation}
+   \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] =
+  \MtrStl{R} \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] + 
+  \VctStl{b},
+ \end{equation}
+ where $\MtrStl{R}$ is the matrix (4\,x\,4) correspondence to the
+ scalar reflectivity, describing the properties of the surface
+ reflection. The vector \VctStl{b} is the surface emission, that
+ can be expressed as
+ \begin{equation}
+  \label{eq:surface:bvector} 
+  \VctStl{b} = (\MtrStl{1}-\MtrStl{R})
+      \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right],
+ \end{equation}
+ where \MtrStl{1} is the identity matrix. 
+
+
+
+\subsection{Specular reflections}
+ %===================
+ 
+ If the surface is sufficiently smooth, radiation will be
+ reflected/scattered only in the complementary angle, specular
+ reflection. Required smoothness for assuming specular reflection is
+ normally estimated by the Rayleigh criterion:
+ \begin{equation}
+   \label{eq:surface:rayleigh}
+   \Delta h < \frac{\Wvl}{8\cos\theta_1}
+ \end{equation}
+ where $\Delta h$ is the root mean square variation of the surface
+ height, \Wvl\ the wavelength and $\theta_1$ the angle between the
+ surface normal and the incident direction of the radiation. The
+ criterion can also be defined with the factor 8 replaced with a 
+ higher number.
+ 
+ The complex reflection coefficient for the amplitude of the
+ electromagnetic wave for vertical ($R_v$) and horizontal ($R_v$)
+ polarisation is for a flat surface (if the relative magnetic
+ permeability ($\mu_r$) of both media is 1) given by the Fresnel equations:
+ \begin{eqnarray}
+   \label{eq:surface_fresnel}
+   R_v &=& \frac{n_2\cos\theta_1-n_1\cos\theta_2}
+                                           {n_2\cos\theta_1+n_1\cos\theta_2} \\
+   R_h &=& \frac{n_1\cos\theta_1-n_2\cos\theta_2}
+                                           {n_1\cos\theta_1+n_2\cos\theta_2} 
+ \end{eqnarray}
+ where $n_1$ is refractive index for the medium where the reflected radiation
+ is propagating, $\theta_1$ is the incident angle (measured from the local
+ surface normal) and $n_2$ is the refractive index of the reflecting medium.
+ The angle $\theta_2$ is the propagation direction for the transmitted part,
+ and is (approximately) given by Snell's law:
+ \begin{equation}
+   \label{eq:surface:snell}
+   \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2,
+ \end{equation}
+ where $\Re(\cdot)$ denotes the real real part. Equation~\ref{eq:surface:snell}
+ is theoretically correct only if both $n_1$ and $n_2$ have no imaginary part. 
+ For cases where medium 1 is air, $n_1$ can (in this context) be set to 1, and 
+an expression allowing $n_2$ to be complex is found in Section 5.4.1.3 of
+\citet{liou:02}. We are not awere of any expression for the case when both
+$n_1$ and $n_2$ are complex.
+
+The power reflection coefficients are converted to an intensity
+ reflection coefficient as
+ \begin{equation}
+   \label{eq:surface:R2r}
+   r = |R|^2,
+ \end{equation}
+ where $|\!\cdot\!|$ denotes the absolute value. Note that $R$ can be
+ complex, while $r$ is always real.
+
+The surface reflection can be seen as a scattering event and
+Section \ref{polarization:ampmatrix} can be used to derive the
+reflection matrix values. The scattering amplitude functions of
+Equation \ref{polarisation:ampmatrix1} are simply
+\begin{eqnarray}
+  S_2 &=& R_v, \\
+  S_1 &=& R_h, \\
+  S_3 = S_4 &=& =0.
+\end{eqnarray}
+This leads to that the transformation matrix for a specular surface
+reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
+\begin{equation}
+  \label{eq:surface:specular_matrix}
+  \MtrStl{R} =
+     \left[\begin{array}{cccc}
+       \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
+       \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
+    0&0&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}&i\frac{R_hR_v^\ast-R_vR_h^\ast}{2}\\
+    0&0&i\frac{R_vR_h^\ast-R_hR_v^\ast}{2}&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}\\
+     \end{array}
+     \right].
+\end{equation}
+For the case of $R_v=R_h$ the matrix in
+Equation~\ref{eq:surface:specular_matrix} is strictly diagonal and all the
+diagonal elements have the same value, $(r_v+r_h)/2$.
+have the same  
+If the downwelling radiation is unpolarised, the reflected part of the
+upwelling radiation is
+\begin{equation}
+  \MtrStl{R}
+  \left[ \begin{array}{c} I\\0\\0\\0 \end{array} \right] =
+  \left[ \begin{array}{c} I(r_v+r_h)/2\\I(r_v-r_h)/2\\0\\0 
+  \end{array} \right].
+\end{equation}
+as expected.
+
+
+If \MtrStl{R} is given by Equation \ref{eq:surface:specular_matrix},
+Equation \ref{eq:surface:bvector} gives that the surface emission  is
+\begin{equation}
+  \label{eq:surface:specular_emission}
+   \VctStl{b} = \left[\begin{array}{c}
+     B\left(1-\frac{r_v+r_h}{2}\right) \\
+     B\frac{r_h-r_v}{2} \\
+     0\\0
+   \end{array}\right].
+\end{equation}
+
+
+\subsection{Rough surfaces}
+%---
+The scattering of rough surfaces is normally described by the bidirectional
+reflectance distribution function, BRDF. With the BRDF,
+$f(\theta_0,\phi_0,\theta_1,\phi_1)$, the scattered radiance in the
+direction $(\theta_1,\phi_1)$ can be written as (see e.g.\ 
+\citet{rees:01} or \citet{petty:06})
+\begin{equation}
+  \label{eq:surface:brdf1}
+  I'(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} I(\theta,\phi) 
+  \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
+  \sin(\theta) \, \DiffD\phi \, \DiffD\theta,
+\end{equation}
+where $I(\theta,\phi)$ is the downwelling radiance for incidance angle $\theta$
+and azimuth angle $\phi$. One important property of the BRDF is
+\begin{equation}
+  f(\theta_0,\phi_0,\theta_1,\phi_1) = f(\theta_1,\phi_1,\theta_0,\phi_0).
+\end{equation}
+The reflectivity is the half-sphere integral of the BRDF
+\begin{equation}
+  \label{eq:surface:brdf:r}
+  r(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} 
+  f(\theta_1,\phi_1,\theta,\phi) \cos(\theta)
+  \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
+\end{equation}
+
+
+An ideally rough surface is denoted as Lambertian. The BRDF is for this case
+constant \citep[e.g.][]{petty:06}:
+\begin{equation}
+  \label{eq:surface:lambertian1}
+  f = \frac{r_d}{\pi}
+\end{equation}
+where $r_d$ is the diffuse reflectivity. From Eq.~\ref{eq:surface:brdf:r} it 
+follows that $r = r_d$.
+
+
+
+
+
   
 %%% Local Variables: 
 %%% mode: latex

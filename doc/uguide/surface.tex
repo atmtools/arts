@@ -21,44 +21,22 @@ of pressure levels. Any shape of the geoid is allowed but a smoothly
 varying geoid is the natural choice, with the centers of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
-WGS-84. For further reading on geoid ellipsoids and WGS-84, see
-Section \ref{sec:ppath:geoid}.
+WGS-84, see below.
 
 Inside ARTS, the geoid is represented as a matrix (\wsvindex{r\_geoid}),
 holding the geoid radius, \aRds{\odot}, for each crossing of the latitude and
 longitude grids, $\aRds{\odot}=\aRds{\odot}(\Lat,\Lon)$. The geoid is not
 defined outside the ranges covered by the latitude and longitude grids, with
-the exception for 1D where the geoid by definition is a full sphere. The
-surface altitude, \aAlt{g}, is given as the geometrical altitude above the
-geoid. The radius for the surface is accordingly
-\begin{equation}
-  \aRds{g} = \aRds{\odot} + \aAlt{g}
- \label{eq:fm_defs:zsurface}
-\end{equation}
-As already mentioned, a gap between the surface and the 
-lowermost pressure level is not allowed.
+the exception for 1D where the geoid by definition is a full sphere. 
 
-The ARTS variable for the \textindex{surface altitude}
-(\wsvindex{z\_surface}) is a matrix of the same size as the geoid
-matrix. For 1D, the surface is a sphere by definition (as the geoid),
-while for 2D and 3D any shape is allowed and a rough model of the
-surface topography can be made. The treatment of surface emission
-and reflectivity is discussed in Section \ref{sec:fm_defs:surface}.
 
-\section{Geoid ellipsoids and geodetic datums}
-%===================
-\label{sec:ppath:geoids}
-
-This section defines the geoid ellipsoid and discusses related
-issues. The geoid is introduced in Section \ref{sec:fm_defs:geoid}.
-The workspace variable representing the geoid is \wsvindex{r\_geoid}.
 
 
 \subsection{Geoid ellipsoids}
 %===================
 \label{sec:ppath:geoid}
 
-All geodetic datums are based on a reference ellipsoid\index{geoid
+A geodetic datums is based on a reference ellipsoid\index{geoid
   ellipsoid}. The ellipsoid is rotationally symmetric around the
 north-south axis. That is, the ellipsoid radius has no longitude
 variation, it is only a function of latitude. The ellipsoid is
@@ -81,12 +59,6 @@ and an east-west direction. For example, at the equator and a
 north-south direction, the curvature radius is smaller then the local
 radius, while at the poles (for all directions) it is greater (see
 further Figure \ref{fig:ppath:wgs84radii}). 
-
-%The implications of
-%approximating the geoid by the local curvature radius, instead of
-%using a complete representation, is exemplified in
-%Figure \ref{fig:ppath:wgs84_dz}.
-
 The \textindex{curvature radius}, \aRds{c}, of an ellipsoid is 
 \citep{rodgers:00}
 \begin{equation}
@@ -166,6 +138,24 @@ shall rather be valid for a middle point of the propagation paths
 %\end{figure}
 % This figure was produced by the Matlab function mkfigs_geoid
 
+Table \ref{tab:ppath:geodatums} gives the equatorial and polar radii
+of the reference ellipsoid for the geodetic datums handled by ARTS.
+
+\begin{table}
+  \begin{center}
+    \begin{tabular}{c c c c l}
+     Datum & \aRds{e} & \aRds{p} & $1/f$ & Reference \vspace*{1mm} \\ 
+     \hline 
+     WGS-84 & 6378.137 km & \emph{6356.752 km} & 298.2572235 & {\small \citet{montenbruck:00}}  \rule{0mm}{5mm} \vspace*{1mm} \\
+     \hline
+    \end{tabular}
+    \caption{Equatorial and polar radius of reference ellipsoids. Values 
+      given as \emph{italic} are 
+      derived by the other two values and Equation \ref{eq:ppath:flattening}.}
+    \label{tab:ppath:geodatums}
+  \end{center}
+\end{table}
+
 
 \subsection{Geocentric and geodetic latitudes}
 %===================
@@ -210,225 +200,68 @@ For an altitude of 100\,km around $\Lat=45\degree$, the difference is
 about 350\,m.
 
 
-\subsection{Geodetic datums}
+
+
+
+
+\section{Surface altitude}
 %===================
-\label{sec:ppath:geodatums}
 
-Table \ref{tab:ppath:geodatums} gives the equatorial and polar radii
-of the reference ellipsoid for the geodetic datums handled by ARTS.
+The surface altitude, \aAlt{g}, is given as the geometrical altitude above the
+geoid. The radius for the surface is accordingly
+\begin{equation}
+  \aRds{g} = \aRds{\odot} + \aAlt{g}
+ \label{eq:fm_defs:zsurface}
+\end{equation}
+As also mentioned in Section~\ref{sec:fm_defs:surf}, a gap between the surface
+and the lowermost pressure level is not allowed.
 
-\begin{table}
-  \begin{center}
-    \begin{tabular}{c c c c l}
-     Datum & \aRds{e} & \aRds{p} & $1/f$ & Reference \vspace*{1mm} \\ 
-     \hline 
-     WGS-84 & 6378.137 km & \emph{6356.752 km} & 298.2572235 & {\small \citet{montenbruck:00}}  \rule{0mm}{5mm} \vspace*{1mm} \\
-     \hline
-    \end{tabular}
-    \caption{Equatorial and polar radius of reference ellipsoids. Values 
-      given as \emph{italic} are 
-      derived by the other two values and Equation \ref{eq:ppath:flattening}.}
-    \label{tab:ppath:geodatums}
-  \end{center}
-\end{table}
+The ARTS variable for the \textindex{surface altitude}
+(\wsvindex{z\_surface}) is a matrix of the same size as the geoid
+matrix. For 1D, the surface is a sphere by definition (as the geoid),
+while for 2D and 3D any shape is allowed and a rough model of the
+surface topography can be made. 
 
 
 
-\section{The dielectric constant and the refractive index}
- 
- The properties of a material are reported either as the relative
- dielectric constant, $\epsilon$, or the refractive index, $n$. Both
- these quantities can be complex and are related as
- \begin{equation}
-   \label{eq:surface_eps2n}
-   n = \sqrt{\epsilon}.
- \end{equation}
+
+\section{Surface emission and reflection}
+%===================
+
+Section~\ref{T-sec:sec:rtetheory:surface} of \theory provides the theoretical
+background for this part.
 
 
-\section{Relating reflectivity and emissivity}
- \label{sec:surface:surface:ref2emi}
- 
- Kirchoff's law applied to thermodynamics states that under conditions
- of local thermodynamic equilibrium, thermal emission has to be equal
- to absorption \citep[page 215]{ulaby:81}. This is a consequence of
- the fact that there must exist a radiation equilibrium between an
- object and its surrounding, if it is surrounded by a blackbody having
- the same temperature (with no physical contact). 
- 
- Thermodynamic equilibrium can be assumed for natural surfaces, as
- long as there exist no strong temperature gradients. The Kirchoff law
- can then be used to relate the reflectivity and emissivity of a
- surface. For rough surfaces the scattering properties must be
- integrated over the half sphere (above the surface) to determine the
- emissivity \citep[see e.g.][Eq.\ 4.186]{ulaby:81}. For specular
- reflections (defined below) and scalar radiative transfer
- calculations, the emissivity $e$ is
- \begin{equation}
-  \label{eq:e=1-r}
-   e = 1 - r,
- \end{equation}
- where $r$ is the reflective (power reflection coefficient) of the
- surface.  Equation \ref{eq:e=1-r} is valid for each polarisation state
- individually \citep[Eq.\ 4.190a]{ulaby:81}.
-
- We have then that
- \begin{equation}
-  \Mpi^\mathrm{up} = \Mpi^\mathrm{down}r + (1-r)B,
- \end{equation}
- where $\Mpi^\mathrm{up}$ is upwelling radiation, $\Mpi^\mathrm{down}$
- is downwelling radiation and $B$ is the magnitude of blackbody
- radiation. As expected, if $\Mpi^\mathrm{down}=B$, also
- $\Mpi^\mathrm{up}$ equals $B$.  Expressing the last observation using
- vector nomenclature gives
- \begin{equation}
-   \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] =
-  \MtrStl{R} \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] + 
-  \VctStl{b},
- \end{equation}
- where $\MtrStl{R}$ is the matrix (4\,x\,4) correspondence to the
- scalar reflectivity, describing the properties of the surface
- reflection. The vector \VctStl{b} is the surface emission, that
- can be expressed as
- \begin{equation}
-  \label{eq:surface:bvector} 
-  \VctStl{b} = (\MtrStl{1}-\MtrStl{R})
-      \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right],
- \end{equation}
- where \MtrStl{1} is the identity matrix. 
-
-
-
-\section{Main surface workspace variables}
+\subsection{Main surface workspace variables}
 \label{sec:surface:surface:wsvs}
 %--------------
 An introduction to the treatment of surface emission and reflections is given
 in Section \ref{sec:fm_defs:surface}. As described in that section, the surface
-properties are described by three workspace variables The methods developed to
-handle different surface properties all set the variables
+properties are described by three workspace variables and the methods developed
+to handle different surface properties set these variables:
 \wsvindex{surface\_emission}, \wsvindex{surface\_los} and
-\wsvindex{surface\_rmatrix}.
+\wsvindex{surface\_rmatrix}. The sections below outlines the methods avaliable,
+how these set the output variables.
 
-Let us start with a simple (but unrealistic) example in order to explain the
-usage of these workspace variables. We will here assume that all downwelling
-radiation is reflected. This assumption is made for all polarisation states. We
-assume further a 1D simulation, that the downwelling radiation shall be
-calculated for nine zenith angles and that all downwelling directions
-contribute equally (which is clearly not a realistic assumption!). The relevant
-workspace variables should then be set as follows:
- 
- \wsvindex{surface\_emission}: A matrix (of correct size) of zeros.
 
- \wsvindex{surface\_los}: A vector of length 9, covering the zenith
- angle range. A possible choice would be [5,15,25,\dots,85].
-
- \wsvindex{surface\_rmatrix}: Each reflection matrix is a diagonal
- matrix with the value 1/9 throughout on the diagonal. That is, all
- elements with index (:,:,i,i) is 1/9. Size matching
- \artsstyle{surface\_los}, \artsstyle{f\_grid} and
- \artsstyle{stokes\_dim}
+\subsection{Blackbody surface}
+%
+If the surface can be assumed to act as a blackbody, the workspace method
+\wsmindex{surfaceBlackbody} can be used. This method sets
+\artsstyle{surface\_emission} to $[B,0,0,0]^T$, and \artsstyle{surface\_los}
+and \artsstyle{surface\_rmatrix} to be empty.
 
 
 
-\section{Specular reflections}
- \label{sec:surface:surface:specular}
- 
- If the surface is sufficiently smooth, radiation will be
- reflected/scattered only in the complementary angle, specular
- reflection. Required smoothness for assuming specular reflection is
- normally estimated by the Rayleigh criterion:
- \begin{equation}
-   \label{eq:surface:rayleigh}
-   \Delta h < \frac{\Wvl}{8\cos\theta_1}
- \end{equation}
- where $\Delta h$ is the root mean square variation of the surface
- height, \Wvl\ the wavelength and $\theta_1$ the angle between the
- surface normal and the incident direction of the radiation. The
- criterion can also be defined with the factor 8 replaced with a 
- higher number.
- 
- The complex reflection coefficient for the amplitude of the
- electromagnetic wave for vertical ($R_v$) and horizontal ($R_v$)
- polarisation is for a flat surface (if the relative magnetic
- permeability ($\mu_r$) of both media is 1) given by the Fresnel equations:
- \begin{eqnarray}
-   \label{eq:surface_fresnel}
-   R_v &=& \frac{n_2\cos\theta_1-n_1\cos\theta_2}
-                                           {n_2\cos\theta_1+n_1\cos\theta_2} \\
-   R_h &=& \frac{n_1\cos\theta_1-n_2\cos\theta_2}
-                                           {n_1\cos\theta_1+n_2\cos\theta_2} 
- \end{eqnarray}
- where $n_1$ is refractive index for the medium where the reflected radiation
- is propagating, $\theta_1$ is the incident angle (measured from the local
- surface normal) and $n_2$ is the refractive index of the reflecting medium.
- The angle $\theta_2$ is the propagation direction for the transmitted part,
- and is (approximately) given by Snell's law:
- \begin{equation}
-   \label{eq:surface:snell}
-   \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2,
- \end{equation}
- where $\Re(\cdot)$ denotes the real real part. Equation~\ref{eq:surface:snell}
- is theoretically correct only if both $n_1$ and $n_2$ have no imaginary part. 
- For cases where medium 1 is air, $n_1$ can (in this context) be set to 1, and 
-an expression allowing $n_2$ to be complex is found in Section 5.4.1.3 of
-\citet{liou:02}. We are not awere of any expression for the case when both
-$n_1$ and $n_2$ are complex.
 
-The power reflection coefficients are converted to an intensity
- reflection coefficient as
- \begin{equation}
-   \label{eq:surface:R2r}
-   r = |R|^2,
- \end{equation}
- where $|\!\cdot\!|$ denotes the absolute value. Note that $R$ can be
- complex, while $r$ is always real.
+\subsection{Specular reflections}
+%
+Several methods to incorporate a flat surface exist, including
+\wsmindex{surfaceFlatRefractiveIndex} and
+\wsmindex{surfaceFlatSingleEmissivity}. The methods differ in how the delectric
+properties of the surface are given, and if these are constant or not with
+frequency.
 
-The surface reflection can be seen as a scattering event and
-Section \ref{T-sec:polarization:ampmatrix} in \theory\ can be used to derive the
-reflection matrix values. The scattering amplitude functions of
-Equation \ref{T-eq:polarisation:ampmatrix1} in \theory\ are simply
-\begin{eqnarray}
-  S_2 &=& R_v, \\
-  S_1 &=& R_h, \\
-  S_3 = S_4 &=& =0.
-\end{eqnarray}
-This leads to that the transformation matrix for a specular surface
-reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
-\begin{equation}
-  \label{eq:surface:specular_matrix}
-  \MtrStl{R} =
-     \left[\begin{array}{cccc}
-       \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
-       \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
-    0&0&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}&i\frac{R_hR_v^\ast-R_vR_h^\ast}{2}\\
-    0&0&i\frac{R_vR_h^\ast-R_hR_v^\ast}{2}&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}\\
-     \end{array}
-     \right].
-\end{equation}
-For the case of $R_v=R_h$ the matrix in
-Equation~\ref{eq:surface:specular_matrix} is strictly diagonal and all the
-diagonal elements have the same value, $(r_v+r_h)/2$.
-have the same  
-If the downwelling radiation is unpolarised, the reflected part of the
-upwelling radiation is
-\begin{equation}
-  \MtrStl{R}
-  \left[ \begin{array}{c} I\\0\\0\\0 \end{array} \right] =
-  \left[ \begin{array}{c} I(r_v+r_h)/2\\I(r_v-r_h)/2\\0\\0 
-  \end{array} \right].
-\end{equation}
-as expected.
-
-
-If \MtrStl{R} is given by Equation \ref{eq:surface:specular_matrix},
-Equation \ref{eq:surface:bvector} gives that the surface emission  is
-\begin{equation}
-  \label{eq:surface:specular_emission}
-   \VctStl{b} = \left[\begin{array}{c}
-     B\left(1-\frac{r_v+r_h}{2}\right) \\
-     B\frac{r_h-r_v}{2} \\
-     0\\0
-   \end{array}\right].
-\end{equation}
 In the case of specular reflections, \artsstyle{surface\_los} has the length 1.
 The specular direction is calculated by the internal function
 \funcindex{surface\_specular\_los}\footnote{Any tilt of the surface is
@@ -436,80 +269,24 @@ The specular direction is calculated by the internal function
   to consider surface tilt, almost complete code for this task existed in
   \artsstyle{surface\_specular\_los} but was removed in version 1-1-876. The
   code can be obtained by e.g.\ checking out version 1-1-875.}. Equations
-\ref{eq:surface:specular_matrix} and \ref{eq:surface:specular_emission} give
-the values to put into \artsstyle{surface\_rmatrix} and
+\ref{T-sec:eq:surface:specular_matrix}-\ref{T-sec:eq:surface:specular_emission}
+in \theory give the values of \artsstyle{surface\_rmatrix} and
 \artsstyle{surface\_emission}.
 
 
 
-\section{Rough surfaces}
- \label{sec:surface:rough}
-
-
-\subsection{Theory}
-\label{sec:surface:rough:theory}
-%---
-The scattering of rough surfaces is normally described by the bidirectional
-reflectance distribution function, BRDF. With the BRDF,
-$f(\theta_0,\phi_0,\theta_1,\phi_1)$, the scattered radiance in the
-direction $(\theta_1,\phi_1)$ can be written as (see e.g.\ 
-\citet{rees:01} or \citet{petty:06})
-\begin{equation}
-  \label{eq:surface:brdf1}
-  I'(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} I(\theta,\phi) 
-  \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
-  \sin(\theta) \, \DiffD\phi \, \DiffD\theta,
-\end{equation}
-where $I(\theta,\phi)$ is the downwelling radiance for incidance angle $\theta$
-and azimuth angle $\phi$. One important property of the BRDF is
-\begin{equation}
-  f(\theta_0,\phi_0,\theta_1,\phi_1) = f(\theta_1,\phi_1,\theta_0,\phi_0).
-\end{equation}
-The reflectivity is the half-sphere integral of the BRDF
-\begin{equation}
-  \label{eq:surface:brdf:r}
-  r(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} 
-  f(\theta_1,\phi_1,\theta,\phi) \cos(\theta)
-  \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
-\end{equation}
-
-If an angle in \artsstyle{surface\_los} gives the down-welling radiation
-representing the directions defined by the ranges $[\theta_a,\theta_b]$ and
-$[\phi_a,\phi_b]$, the value to put into the corresponding part of
-\artsstyle{surface\_rmatrix} is
-\begin{equation}
-  \label{eq:surface:brdf2}
-  w = \int_{\theta_a}^{\theta_b} \! \int_{\phi_a}^{\phi_b} 
-  \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
-  \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
-\end{equation}
-Thus, this value is a combination of the surface reflectivity and an solid
-angle weight.
-
-
 \subsection{Lambertian surface}
-\label{sec:surface:rough:lambertian}
 %---
-An ideally rough surface is denoted as Lambertian. The BRDF is for this case
-constant \citep[e.g.][]{petty:06}:
-\begin{equation}
-  \label{eq:surface:lambertian1}
-  f = \frac{r_d}{\pi}
-\end{equation}
-where $r_d$ is the diffuse reflectivity. From Eq.~\ref{eq:surface:brdf:r} it 
-follows that $r = r_d$.
+Basic treatment of Lambertian surfaces is provided by method
+\wsmindex{surfaceLambertianSimple}. This method assumes that the down-welling
+radiation has no azimuthal dependency, which is the case for 1D atmospheres.
+The number of angles to apply in \artsstyle{surface\_los} is selected by the
+user.
 
-The integral in Equation~\ref{eq:surface:brdf2} can here be solved. For the
-case of $[\phi_a,\phi_b]$ = $[0,2\pi]$ we get
+For a Lambertian surface the reflected radiation is unpolarised (thus
+indpendent of the polarisation of the downwelling radiation). That is,
+each \artsstyle{surface\_rmatrix} has the structure:
 \begin{equation}
-  \label{eq:surface:lambertian1}
-  w = \frac{r_d}{2}\left[\cos(2\theta_a)-\cos(2\theta_b)\right].
-\end{equation}
-A second aspect of a Lambertian surface is that the reflected radiation is
-unpolarised (thus indpendent of the polarisation of the downwelling radiation),
-that is 
-\begin{equation}
-  \label{eq:surface:lambertian_matrix}
   \MtrStl{R} =
      \left[\begin{array}{cccc}
        w&0&0&0\\
@@ -519,7 +296,14 @@ that is
      \end{array}
      \right].
 \end{equation}
-The emission of a Lambertian surface is isotropic and unpolarised
+The ``weight'' $w$ is obtained from Equation~\ref{T-sec:eq:surface:brdf2} of
+\theory. The method \artsstyle{surfaceLambertianSimple} assumes that the
+down-welling radiance ($I$) is constant is constant inside each zenith angle
+range $[\theta_a,\theta_b]$, and with $[\phi_a,\phi_b]$ = $[0,2\pi]$, we get
+\begin{equation}
+  w = \frac{r_d}{2}\left[\cos(2\theta_a)-\cos(2\theta_b)\right].
+\end{equation}
+The emission (\artsstyle{surface\_emission}) becomes:
 \begin{equation}
   \label{eq:surface:blambertian} 
   \VctStl{b} =  \left[\begin{array}{c} r_dB \\ 0 \\0\\0 \end{array}\right].

@@ -7900,13 +7900,13 @@ void define_md_data_raw()
                   )
         ));
 
-  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "surfaceLambertianSimple" ),
         DESCRIPTION
         (
-        "Creates variables to mimic a Lambertian surface.\n"
+        "Creates variables to mimic a Lambertian surface, ignoring the\n"
+        "azimuthal dimension.\n"
         "\n"
         "A lambertian surface can be characterised solely by its\n"
         "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
@@ -7944,7 +7944,6 @@ void define_md_data_raw()
                   "angle grid. See above."
                   )
         ));
-  */
 
   md_data_raw.push_back
     ( MdRecord
