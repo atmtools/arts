@@ -4,23 +4,21 @@ calculations}
 
 
  \starthistory
- 110610 & Extended and general revision (Patrick Eriksson).\\
+ 110611 & Extended and general revision (Patrick Eriksson).\\
  050613 & First complete version by Patrick Eriksson.\\
  \stophistory
 
 \graphicspath{{Figs/rte/}}
 
-This section defines some concepts and quantities, and gives an overview of
-the approach to handle radiative transfer calculations. This includes an
-overview of how effects caused by the sensor and surface are incorporated.
-
-The default assumption is that there is no particle scattering and the
-(atmospheric) absorption/emission is unpolarised. This is for simplicity
-denoted as clear-sky calculations. Cases involving scattering or polarised
-absorption are handled by the ``cloud box'' (Sec.~\ref{sec:fm_defs:cloudbox}).
-In short, the more demanding calculations are restricted to a smaller domain of
-the model atmosphere, and the radiative transfer in this
-domain is treated by dedicated workspace methods.
+This section gives an overview of the variables and the approach used to handle
+radiative transfer calculations. This includes an overview of how effects
+caused by the sensor and surface are incorporated. The default assumption is
+that there is no particle scattering and the (atmospheric) absorption/emission
+is unpolarised. This is for simplicity denoted as clear-sky calculations. Cases
+involving scattering or polarised absorption are handled by the ``cloud box''
+(Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more demanding calculations
+are restricted to a smaller domain of the model atmosphere, and the radiative
+transfer in this domain is treated by dedicated workspace methods.
 
 The section deals with general aspects of radiative transfer and the
 algorithms applied outside the cloud box. Even though the atmospheric absorption
@@ -109,9 +107,14 @@ effects shall be noted especially, and a similar nomenclature is used here:
   block. Can include data reduction. The corresponding workspace variable is
   \wsvindex{sensor\_response}.
 \end{description}
-The \artsstyle{yCalc} method is outlined in
-Algorithm~\ref{alg:fm_defs:yCalc}. For further details of each calculation
-step, see the indicated equation or section.
+The \artsstyle{yCalc} method is outlined in Algorithm~\ref{alg:fm_defs:yCalc}.
+For further details of each calculation step, see the indicated equation or
+section. In summary, \artsstyle{yCalc} appends data from different pencil beam
+calculations and applies the sensor response matrix (\aSnsMtr{b}). The actual
+radiative transfer calculations are not part of \artsstyle{yCalc}, but are
+performed by \artsstyle{iy\_clearsky\_agenda}
+(Algorithm~\ref{alg:fm_defs:iyCSagenda}). This agenda, in its turn, makes us of
+other agendas, such as \artsstyle{ppath\_step\_agenda}.
 \begin{algorithm}
  \begin{algorithmic}
   \STATE{allocate memory for the matrix $\MsrVct$}
@@ -121,12 +124,8 @@ step, see the indicated equation or section.
   \FORALL{sensor positions}
    \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
                                     {pencil beam directions of the block}
-    \STATE{determine the propagation path by \artsstyle{ppathCalc}}
-    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
-    \STATE{determine the radiation at the start of the propagation path}
-    \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
     \STATE{call \artsstyle{iy\_clearsky\_agenda}, giving \aMpiVct{y}}
-    \COMMENT{Section \ref{sec:fm_defs:rte}}
+    \COMMENT{Algorithm \ref{alg:fm_defs:iyCSagenda}}
     \STATE{unit conversion of \aMpiVct{y} following \wsvindex{y\_unit}}
     \COMMENT{Section \ref{sec:fm_defs:unit}}
     \STATE{copy \aMpiVct{y} to correct part of \aMpiVct{b}}
@@ -140,113 +139,30 @@ step, see the indicated equation or section.
  \label{alg:fm_defs:yCalc}
 \end{algorithm}
 
+\begin{algorithm}
+ \begin{algorithmic}
+   \STATE{determine the propagation path by \artsstyle{ppath\_calc}}
+   \COMMENT{Section \ref{sec:fm_defs:ppaths}}
+   \STATE{determine the radiation at the start of the propagation path}
+   \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
+   \STATE{perform radiative transfer along the propagation path}
+   \COMMENT{Section \ref{sec:fm_defs:rte}}
+ \end{algorithmic}
+ \caption{The main operations for methods to be part of
+   \wsvindex{iy\_clearsky\_agenda}. The same applies to methods for
+   \wsvindex{iy\_clearsky\_basic\_agenda}.}
+ \label{alg:fm_defs:iyCSagenda}
+\end{algorithm}
 
+That is, \artsstyle{yCalc} is a common method, independent of the details of
+the radiative transfer. For exemple, \artsstyle{yCalc} is used both if emission
+measurements or pure transmission data are simulated, that choice is made
+inside \artsstyle{iy\_clearsky\_agenda} (see further Section
+\ref{sec:fm_defs:rte}). Further, if refraction is considered or not is
+controled by \artsstyle{ppath\_step\_agenda}. 
 
-\section{Basic radiative transfer variables and expressions}
-%---
-\label{sec:fm_defs:rte}
-
-Atmospheric radiative transfer is solved for each individual pencil beam
-direction (line-of-sight) individually. It is the task of
-\wsvindex{iy\_clearsky\_agenda} to perform a single such clear sky radiative
-transfer calculation. All methods developed for
-\artsstyle{iy\_clearsky\_agenda} adapt automatically to the value of
-\wsvindex{stokes\_dim}.
-
-This section describes how the core radiative transfer equation is solved
-practically in ARTS. Focus is put on emission measurements as ARTS is
-intended primarily for such observations. However, simulations of transmission
-measurements are also possible.
-
-Beside the actual radiances, \artsstyle{iy\_clearsky\_agenda} can provide
-weighting functions and auxiliary data. These later variables are not supported
-by all parts of ARTS, and for efficiency reasons there exists a simpler version
-of the agenda. This version is denoted as
-\wsvindex{iy\_clearsky\_basic\_agenda} and returns only radiances.
-
-
-\subsection{Cases with emission}
-%===================
-\label{sec:fm_defs:emission}
-
-The complete vector radiative transfer equation, including scattering, is given
-by Equation \ref{T-eq:rtetheory:VRTE} in \theory. If scattering can be
-neglected, the equation can be written as
-\begin{equation}
-  \label{eq:rte:vrte}
-  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
-\end{equation}
-where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the
-distance along the propagation path, \ExtMat\ is the extinction
-matrix, \AbsVec\ is the absorption vector and $B$ is the source
-function (a scalar). If local thermodynamic equilibrium applies, $B$
-equals the Planck function describing blackbody radiation. See further
-\theory, Section~\ref{T-sec:rte_theory}.
-
-The radiative transfer equation above can be solved in many ways, and with
-different level of refinement. The standard approach in ARTS is to
-solve the radiative transfer from one point of the propagation path to
-next (compare \theory, Equation~\ref{T-eq:rtetheory:layer})
-\begin{equation}
-  \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
-  \label{eq:fm_defs:rte_step}
-\end{equation}
-where $\Mpi(\Frq)$ is the monochromatic intensity, $i$ is path step index,
-\aOth\ is the optical thickness, $B$ the Planck function, and \Tmp\ is the
-temperature. The optical thickness of the path step, $\aOth{i}$, is calculated
-as the mean of the absorption at the end points of the step, multiplied with
-the propagation path length. The effective temperature of the path step,
-$\aTmp{i}$, is calculated likewise, as the mean of the temperature at the end
-points of the step. The start value of \Mpi\ is determined by the ultimate 
-radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
-
-The emission is unpolarised for the conditions assumed here, and the emission
-term vanishes. The extinction matrix is diagonal, with all diagonal elements
-equal. Accordingly, the expression for the second Stokes component is
-\begin{equation}
-  Q_{i+1}(\Frq) = Q_i(\Frq)e^{-\aOth{i}}.
-  \label{eq:fm_defs:rte_step2}
-\end{equation}
-The third and forth Stokes component are handled likewise.
-
-The expressions above are implemented in the workspace method
-\wsmindex{iyEmissionStandardClearsky}, intended to be part of
-\artsstyle{iy\_clearsky\_agenda}. For inclusion in
-\artsstyle{iy\_clearsky\_basic\_agenda}, there is a version denoted as
-\wsmindex{iyEmissionStandardClearskyBasic}
-
-
-\subsection{Pure transmission calculations}
-%===================
-\label{sec:fm_defs:transmission}
-
-If only the attenuation of a signal is of concern (i.e.\ atmospheric and
-surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
-applied for all Stokes elements. The initiation of the Stokes vector by the
-radiative background must also be adopted. Otherwise the calculations are
-performed exactly as for cases with emission.
-
-Calculations of pure transmission type are performed by the method denoted as
-\wsmindex{iyBeerLambertStandardClearsky}. This method is complemented by
-\wsmindex{iyBeerLambertStandardCloudbox}, to be applied inside the cloud box.
-
-
-\section{Output unit}
-%==============================================================================
-\label{sec:fm_defs:unit}
-
-There is no fixed unit for calculated spectra (\wsvindex{y}), it depends on the
-calculation set-up. For example, if emission is considered, or if just
-transmissions are calculated. 
-
-The primary unit for emission spectra, the unit of
-\aMpiVct{b} in Equation~\ref{eq:fm_defs:measseq}, is
-[W/(Hz$\cdot$m$^2\cdot$sr)]. The emission intensity corresponds directly with
-the definition of the Planck function in \theory,
-Equation~\ref{T-eq:rtetheory:planck}. This radiance can be converted to other
-emission units, a selection between existing options is made through 
-\wsvindex{y\_unit}.
-
+The three following sections describes the main calculation steps of 
+\artsstyle{iy\_clearsky\_agenda}, in the order they are exucuted.
 
 
 \section{Propagation paths}
@@ -342,16 +258,14 @@ atmosphere, as long as the viewing direction is downward and the
 lowest point of the path, the tangent point, is inside the latitude
 and longitude limits of the model atmosphere.
 
-Propagation paths are determined by the function \wsmindex{ppathCalc}.
-This function is normally only called from \artsstyle{yCalc}, but it
-can be called separately if needed. The calculation of the path from
-one crossing of the grids to next crossing is defined by
-\wsaindex{ppath\_step\_agenda}. Depending on which function that is
-selected for \artsstyle{ppath\_step\_agenda}, refraction will be
-considered or not, a length criterion between the path points will be
-applied etc. Functions intended for \artsstyle{ppath\_step\_agenda}
-include \wsmindex{ppath\_stepGeometric} and
-\wsmindex{ppath\_stepRefractionEuler}.
+Propagation paths can be calculated seperately by the method
+\wsmindex{ppathCalc}. However, for standard calculations the propagation paths
+are calculated internally by \artsstyle{yCalc}. The calculation of the path
+from one crossing of the grids to next crossing is defined by
+\wsaindex{ppath\_step\_agenda}. Depending on which function that is selected
+for \artsstyle{ppath\_step\_agenda}, refraction will be considered. Available
+workspace methods are presented in Section~\ref{sec:ppath:usage}.
+
 
 
 
@@ -359,6 +273,9 @@ include \wsmindex{ppath\_stepGeometric} and
 %===================
 \label{sec:fm_defs:rad_bkgr}
 
+\subsection{Overview}
+%===================
+%
 The radiative intensity at the starting point of the path, and in the
 direction of the line-of-sight at that point, is denoted as the
 \textindex{radiative background}. Four possible radiative backgrounds
@@ -371,14 +288,13 @@ exist:
   directed towards the sun. The radiative background at the top of the
   atmosphere is determined by \wsaindex{iy\_space\_agenda}. If a
   propagation path is totally outside the model atmosphere, the
-  observed monochromatic pencil beam intensity (\aMpiVct{b}\ in
+  observed monochromatic pencil beam intensity (\aMpiVct{y}\ in
   Algorithm~\ref{alg:fm_defs:yCalc}) equals the output of
   \artsstyle{iy\_space\_agenda}.
-\item[The surface] The sum of surface emission and radiation reflected
-  by the surface is the radiative background when the propagation path
-  intersects with the surface. The calculation of the up-welling
-  radiation from the surface is described in
-  Section~\ref{sec:fm_defs:surface}.
+\item[The surface] The sum of surface emission and radiation reflected by the
+  surface is the radiative background when the propagation path intersects with
+  the surface. The calculation of the up-welling radiation from the surface is
+  treated by a dedicated section below (Section~\ref{sec:fm_defs:surface}.)
 \item[Surface of cloud box] For cases when the propagation path enters
   the cloud box the radiative background is the intensities leaving
   the cloud box. This radiation is obtained by
@@ -390,21 +306,21 @@ exist:
   the direction of the sensor line-of-sight. This case is also handled
   by \artsstyle{iy\_cloudbox\_agenda}.
 \end{description}
-It should be noted that except for the first case above, the
-determination of the radiative background involves further radiative
-transfer calculations. For example, the radiation reflected by the
-surface can be calculated by a recursive call of \artsstyle{yCalc}
-and the radiative background for that calculation is then space or the
-cloud box. The intensity field entering the cloud box is calculated by
-calls of \artsstyle{yCalc} (with cloud box deactivated) and the
-radiative background is then space or the surface. This results in that
-space is normally the ultimate radiative background for the
-calculations. The exception is for propagation paths that intersects
-with the surface, and the surface is treated to act as a blackbody. For
-such cases, the propagation path effectively starts at the surface.
+It should be noted that except for the first case above, the determination of
+the radiative background involves further radiative transfer calculations. For
+example, in the case of surface reflection, the down-welling radiation is
+determined by a new call of \artsstyle{iy\_clearsky\_agenda} and the radiative
+background for that calculation is then space or the cloud box. The intensity
+field entering the cloud box is calculated by calls of
+\artsstyle{iy\_clearsky\_basic\_agenda} (with cloud box deactivated) and the
+radiative background is then space or the surface. This results in that space
+is normally the ultimate radiative background for the calculations. The
+exception is for propagation paths that intersects with the surface, and the
+surface is treated to act as a blackbody. For such cases, the propagation path
+effectively starts at the surface.
 
 
-\section{Surface scattering and emission}
+\subsection{Surface scattering and emission}
 %===================
 \label{sec:fm_defs:surface}
 
@@ -437,20 +353,130 @@ discussed further in Section~\ref{sec:surface}.
  \end{center}
 \end{figure}
 
-%\begin{figure}
-% \begin{center}
-%  \includegraphics*[width=0.95\hsize]{ppath_ground}
-%  \caption{The influence of a surface slope on the propagation path. The zenith
-%    angle of the sensor line-of-sight is the same for the two paths (but with
-%    different sign, which matters here as this is a 2D case), and the paths
-%    would have been symmetric around the latitude of the sensor without a 
-%    surface slope. The maximum path step length is here set to be a value
-%    equaling half the vertical distance between the two shown pressure
-%    surfaces.}
-%  \label{fig:fm_defs:ppath_surface}
-% \end{center}
-%\end{figure}
-%% This figure was produced by the Matlab function mkfigs_ppath_cases.
+
+
+\section{Basic radiative transfer variables and expressions}
+%---
+\label{sec:fm_defs:rte}
+
+Atmospheric radiative transfer is solved for each individual pencil beam
+direction (line-of-sight) individually. It is the task of
+\wsvindex{iy\_clearsky\_agenda} to perform a single such clear sky radiative
+transfer calculation. All methods developed for
+\artsstyle{iy\_clearsky\_agenda} adapt automatically to the value of
+\wsvindex{stokes\_dim}.
+
+This section describes how the core radiative transfer equation is solved
+practically in ARTS. Focus is put on emission measurements as ARTS is
+intended primarily for such observations. However, simulations of transmission
+measurements are also possible.
+
+Beside the actual radiances, \artsstyle{iy\_clearsky\_agenda} can provide
+weighting functions and auxiliary data. These later variables are not supported
+by all parts of ARTS, and for efficiency reasons there exists a simpler version
+of the agenda. This version is denoted as
+\wsvindex{iy\_clearsky\_basic\_agenda} and returns only radiances.
+
+
+\subsection{Cases with emission}
+%===================
+\label{sec:fm_defs:emission}
+
+The complete vector radiative transfer equation, including scattering, is given
+by Equation \ref{T-eq:rtetheory:VRTE} in \theory. If scattering can be
+neglected, the equation can be written as
+\begin{equation}
+  \label{eq:rte:vrte}
+  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
+\end{equation}
+where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the distance
+along the propagation path, \ExtMat\ is the extinction matrix, \AbsVec\ is the
+absorption vector and $B$ is the source function (a scalar). If local
+thermodynamic equilibrium applies, $B$ equals the Planck function describing
+blackbody radiation. See further \theory, Section~\ref{T-sec:rte_theory}. For
+``clear-sky conditions'' the matrix \ExtMat\ is diagonal, with all diagonal
+elements equal, and only the first of the elements of \AbsVec\ is non-zero.
+
+The radiative transfer equation above can be solved in many ways, and with
+different level of refinement. The standard approach in ARTS is to solve the
+radiative transfer from one point of the propagation path to next for the first
+Stokes element as (compare \theory, Equation~\ref{T-eq:rtetheory:layer})
+\begin{equation}
+  \label{eq:fm_defs:rte_step}
+  I_{i+1} = I_ie^{-\aOth{i}} + \bar{B}_i(1-e^{-\aOth{i}}),
+\end{equation}
+with
+\begin{eqnarray}
+  \bar{B}_i &=& (B(T_i)+B(T_{i+1}))/2, \\
+  \aOth{i} &=& \Delta s_i(k_i+k_{i+1})/2, 
+  \label{eq:taustep}
+\end{eqnarray}
+where $I_i$, $T_i$ and $k_i$ are the radiance, temperature and absorption
+coefficient, respectively, at point $i$ of the propagation path, and $\Delta
+s_i$ is the distance along the path between point $i$ and $i+1$. That is,
+$\bar{B}_i$ is a Planck function average of the path step, and the absorption
+is assumed to vary linearly between the two points. The start value of \Mpi\ is
+determined by the radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
+
+% \begin{equation}
+%   \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
+%   \label{eq:fm_defs:rte_step}
+% \end{equation}
+% where $\Mpi(\Frq)$ is the monochromatic intensity, $i$ is path step index,
+% \aOth\ is the optical thickness, $B$ the Planck function, and \Tmp\ is the
+% temperature. The optical thickness of the path step, $\aOth{i}$, is calculated
+% as the mean of the absorption at the end points of the step, multiplied with
+% the propagation path length. The effective temperature of the path step,
+% $\aTmp{i}$, is calculated likewise, as the mean of the temperature at the end
+% points of the step. 
+
+As mentioned, the emission is unpolarised for the conditions assumed here, and
+the emission term vanishes for higher Stokes elements. Accordingly, the
+expression for the second Stokes component is
+\begin{equation}
+  Q_{i+1}(\Frq) = Q_i(\Frq)e^{-\aOth{i}}.
+  \label{eq:fm_defs:rte_step2}
+\end{equation}
+The third and forth Stokes component are handled likewise.
+
+The expressions above are implemented in the workspace method
+\wsmindex{iyEmissionStandardClearsky}, intended to be part of
+\artsstyle{iy\_clearsky\_agenda}. For inclusion in
+\artsstyle{iy\_clearsky\_basic\_agenda}, there is a version denoted as
+\wsmindex{iyEmissionStandardClearskyBasic}
+
+
+\subsection{Pure transmission calculations}
+%===================
+\label{sec:fm_defs:transmission}
+
+If only the attenuation of a signal is of concern (i.e.\ atmospheric and
+surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
+applied for all Stokes elements. The initiation of the Stokes vector by the
+radiative background must also be adopted. Otherwise the calculations are
+performed exactly as for cases with emission.
+
+Calculations of pure transmission type are performed by the method denoted as
+\wsmindex{iyBeerLambertStandardClearsky}. This method is complemented by
+\wsmindex{iyBeerLambertStandardCloudbox}, to be applied inside the cloud box.
+
+
+\section{Output unit}
+%==============================================================================
+\label{sec:fm_defs:unit}
+
+There is no fixed unit for calculated spectra (\wsvindex{y}), it depends on the
+calculation set-up. For example, if emission is considered, or if just
+transmissions are calculated. 
+
+The primary unit for emission data (radiances) is [W/(Hz$\cdot$m$^2\cdot$sr)].
+The emission intensity corresponds directly with the definition of the Planck
+function in \theory, Equation~\ref{T-eq:rtetheory:planck}. This radiance can be
+converted to other emission units by the workspace variable \wsvindex{y\_unit}.
+
+Expressions for the unit conversion and further details are found in
+\citet{eriksson:arts2:11}.
+
 
 
 \section{Compulsory sensor and data reduction variables}
@@ -786,19 +812,17 @@ represent correctly atmospheric fields with a lot of structure, while
 the grids can have fewer points when the atmospheric fields are
 smooth. 
 
-The accuracy when performing the actual radiative transfer
-calculations depends on the refinement of the expressions used and the
-discretisation of the propagation path. If
-Equation \ref{eq:fm_defs:rte_step} is used, the underlaying
-assumptions are that the temperature is constant, and that the
-absorption varies linearly, along the propagation path step. These
-assumptions are of course less violated if the path step length is
-made small. An upper limit of the path step length is set by the
-generic input argument \artsstyle{lmax}. In many cases it should suffice to
+The accuracy when performing the actual radiative transfer calculations depends
+on the refinement of the expressions used and the discretisation of the
+propagation path. If Equation \ref{eq:fm_defs:rte_step} is used, the
+underlaying assumption is that the Planck function and the absorption vary
+linearly along the propagation path step. These assumptions are of course less
+violated if the path step length is made small. An upper limit of the path step
+length is set by \wsvindex{ppath\_lmax}. In many cases it should suffice to
 just include path points at the crossings of the atmospheric grids
-(\artsstyle{lmax}$\leq0$). An exception can be limb sounding where the
-path step length can be very long around the tangent point, but a
-limit of about 25~km should suffice normally. 
+(\artsstyle{ppath\_lmax}$\leq0$). An exception can be limb sounding where the
+path step length can be very long around the tangent point, but a limit of
+about 25~km should suffice normally.
 
 As points are always included in the propagation paths at the
 crossings of the atmospheric grids, finer grids will give shorter path
