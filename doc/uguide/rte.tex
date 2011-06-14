@@ -107,15 +107,7 @@ effects shall be noted especially, and a similar nomenclature is used here:
   block. Can include data reduction. The corresponding workspace variable is
   \wsvindex{sensor\_response}.
 \end{description}
-The \artsstyle{yCalc} method is outlined in Algorithm~\ref{alg:fm_defs:yCalc}.
-For further details of each calculation step, see the indicated equation or
-section. In summary, \artsstyle{yCalc} appends data from different pencil beam
-calculations and applies the sensor response matrix (\aSnsMtr{b}). The actual
-radiative transfer calculations are not part of \artsstyle{yCalc}, but are
-performed by \artsstyle{iy\_clearsky\_agenda}
-(Algorithm~\ref{alg:fm_defs:iyCSagenda}). This agenda, in its turn, makes us of
-other agendas, such as \artsstyle{ppath\_step\_agenda}.
-\begin{algorithm}
+\begin{algorithm}[t]
  \begin{algorithmic}
   \STATE{allocate memory for the matrix $\MsrVct$}
   \COMMENT{Equation \ref{eq:fm_defs:measseq}}
@@ -138,8 +130,7 @@ other agendas, such as \artsstyle{ppath\_step\_agenda}.
    (\artsstyle{yCalc}).}
  \label{alg:fm_defs:yCalc}
 \end{algorithm}
-
-\begin{algorithm}
+\begin{algorithm}[t]
  \begin{algorithmic}
    \STATE{determine the propagation path by \artsstyle{ppath\_calc}}
    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
@@ -153,13 +144,25 @@ other agendas, such as \artsstyle{ppath\_step\_agenda}.
    \wsvindex{iy\_clearsky\_basic\_agenda}.}
  \label{alg:fm_defs:iyCSagenda}
 \end{algorithm}
+The \artsstyle{yCalc} method is outlined in Algorithm~\ref{alg:fm_defs:yCalc}.
+For further details of each calculation step, see the indicated equation or
+section. In summary, \artsstyle{yCalc} appends data from different pencil beam
+calculations and applies the sensor response matrix (\aSnsMtr{b}). The actual
+radiative transfer calculations are not part of \artsstyle{yCalc}.
+
+Atmospheric radiative transfer is solved for each pencil beam direction
+(line-of-sight) separately. It is the task of \wsvindex{iy\_clearsky\_agenda}
+(Algorithm~\ref{alg:fm_defs:iyCSagenda}) to perform a single such clear sky
+radiative transfer calculation. This agenda, in its turn, makes us of other
+agendas, such as \artsstyle{ppath\_step\_agenda}. All methods developed for
+\artsstyle{iy\_clearsky\_agenda} adapt automatically to the value of
+\wsvindex{stokes\_dim}.
 
 That is, \artsstyle{yCalc} is a common method, independent of the details of
 the radiative transfer. For exemple, \artsstyle{yCalc} is used both if emission
 measurements or pure transmission data are simulated, that choice is made
 inside \artsstyle{iy\_clearsky\_agenda} (see further Section
-\ref{sec:fm_defs:rte}). Further, if refraction is considered or not is
-controled by \artsstyle{ppath\_step\_agenda}. 
+\ref{sec:fm_defs:rte}). 
 
 The three following sections describes the main calculation steps of 
 \artsstyle{iy\_clearsky\_agenda}, in the order they are exucuted.
@@ -345,7 +348,7 @@ travelling intensities are given by \wsvindex{surface\_los}, and the
 reflection coefficients $(\mathbf{R})$ are stored in
 \wsvindex{surface\_rmatrix}. These workspace variables are handled by
 \wsaindex{surface\_prop\_agenda}. Surface reflections and emission are
-discussed further in Section~\ref{sec:surface}.
+discussed further in Section~\ref{sec:surf:eandr}.
 \begin{figure}
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ground_refl}
@@ -359,13 +362,6 @@ discussed further in Section~\ref{sec:surface}.
 \section{Basic radiative transfer variables and expressions}
 %---
 \label{sec:fm_defs:rte}
-
-Atmospheric radiative transfer is solved for each individual pencil beam
-direction (line-of-sight) individually. It is the task of
-\wsvindex{iy\_clearsky\_agenda} to perform a single such clear sky radiative
-transfer calculation. All methods developed for
-\artsstyle{iy\_clearsky\_agenda} adapt automatically to the value of
-\wsvindex{stokes\_dim}.
 
 This section describes how the core radiative transfer equation is solved
 practically in ARTS. Focus is put on emission measurements as ARTS is
@@ -417,7 +413,9 @@ coefficient, respectively, at point $i$ of the propagation path, and $\Delta
 s_i$ is the distance along the path between point $i$ and $i+1$. That is,
 $\bar{B}_i$ is a Planck function average of the path step, and the absorption
 is assumed to vary linearly between the two points. The start value of \Mpi\ is
-determined by the radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
+governed by the radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
+
+
 
 % \begin{equation}
 %   \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
@@ -431,9 +429,9 @@ determined by the radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
 % $\aTmp{i}$, is calculated likewise, as the mean of the temperature at the end
 % points of the step. 
 
-As mentioned, the emission is unpolarised for the conditions assumed here, and
-the emission term vanishes for higher Stokes elements. Accordingly, the
-expression for the second Stokes component is
+As mentioned above, the emission is unpolarised for the conditions assumed
+here, and the emission term vanishes for higher Stokes elements. Accordingly,
+the expression for the second Stokes component is
 \begin{equation}
   Q_{i+1}(\Frq) = Q_i(\Frq)e^{-\aOth{i}}.
   \label{eq:fm_defs:rte_step2}
@@ -442,9 +440,26 @@ The third and forth Stokes component are handled likewise.
 
 The expressions above are implemented in the workspace method
 \wsmindex{iyEmissionStandardClearsky}, intended to be part of
-\artsstyle{iy\_clearsky\_agenda}. For inclusion in
-\artsstyle{iy\_clearsky\_basic\_agenda}, there is a version denoted as
-\wsmindex{iyEmissionStandardClearskyBasic}
+\artsstyle{iy\_clearsky\_agenda}. 
+
+An alternative way to perform the calculations for the first Stokes elemnt
+would be
+\begin{equation}
+  \label{eq:fm_defs:rte_alt}
+  I = \sum_i \mathcal{T}_{i+1} \bar{B}_i(1-e^{-\aOth{i}}),
+\end{equation}
+where $I$ is the final intensity and $\mathcal{T}_i$ is the transmission
+between the sensor and point $i$. This calculation aproach is not used as it
+fits poorer with the calculation of weighting functions (Section~[FIXME]).
+However, the the calculation of weighting functions is simplified if
+$\mathcal{T}_i$ is at hand, and this quantity is also tracked by
+\artsstyle{iyEmissionStandardClearsky}. The value of $\mathcal{T}$ at the
+radiative background can also be outputted as auxilary data
+(\wsvindex{iy\_aux}). See further the built-in documentation.
+
+For inclusion in \artsstyle{iy\_clearsky\_basic\_agenda}, there is a version
+denoted as \wsmindex{iyEmissionStandardClearskyBasic}. This version is not
+calculating $\mathcal{T}_i$, or provides any auxilary data.
 
 
 \subsection{Pure transmission calculations}
@@ -474,6 +489,7 @@ The primary unit for emission data (radiances) is [W/(Hz$\cdot$m$^2\cdot$sr)].
 The emission intensity corresponds directly with the definition of the Planck
 function in \theory, Equation~\ref{T-eq:rtetheory:planck}. This radiance can be
 converted to other emission units by the workspace variable \wsvindex{y\_unit}.
+See further the built-in documentation for this workspace variable.
 
 Expressions for the unit conversion and further details are found in
 \citet{eriksson:arts2:11}.

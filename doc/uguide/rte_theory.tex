@@ -919,19 +919,20 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
  \end{figure} 
 
 
-\section{Surface emission and reflection}
- \label{sec:rtetheory:surface}
 
+
+\section{Surface emission and reflection}
+\label{sec:surface}
 
 \subsection{The dielectric constant and the refractive index}
- %===================
- The properties of a material can be reported either as the relative
- dielectric constant, $\epsilon$, or the refractive index, $n$. Both
- these quantities can be complex and are related as
- \begin{equation}
-   \label{eq:surface_eps2n}
-   n = \sqrt{\epsilon}.
- \end{equation}
+%===================
+The properties of a material can be reported either as the relative
+dielectric constant, $\epsilon$, or the refractive index, $n$. Both
+these quantities can be complex and are related as
+\begin{equation}
+  \label{eq:surface_eps2n}
+  n = \sqrt{\epsilon}.
+\end{equation}
 
 
 \subsection{Relating reflectivity and emissivity}
@@ -947,8 +948,8 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
  long as there exist no strong temperature gradients. The Kirchoff law
  can then be used to relate the reflectivity and emissivity of a
  surface. For rough surfaces the scattering properties must be
- integrated over the half sphere (above the surface) to determine the
- emissivity \citep[see e.g.][Eq.\ 4.186]{ulaby:81}. For specular
+ integrated to determine the
+ emissivity (Equation~\ref{eq:surface:brdf:r}). For specular
  reflections (defined below) and scalar radiative transfer
  calculations, the emissivity $e$ is
  \begin{equation}
@@ -1040,9 +1041,9 @@ The power reflection coefficients are converted to an intensity
  complex, while $r$ is always real.
 
 The surface reflection can be seen as a scattering event and
-Section \ref{polarization:ampmatrix} can be used to derive the
+Section~\ref{sec:polarization:ampmatrix} can be used to derive the
 reflection matrix values. The scattering amplitude functions of
-Equation \ref{polarisation:ampmatrix1} are simply
+Equation~\ref{eq:polarisation:ampmatrix1} are simply
 \begin{eqnarray}
   S_2 &=& R_v, \\
   S_1 &=& R_h, \\
@@ -1064,7 +1065,6 @@ reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
 For the case of $R_v=R_h$ the matrix in
 Equation~\ref{eq:surface:specular_matrix} is strictly diagonal and all the
 diagonal elements have the same value, $(r_v+r_h)/2$.
-have the same  
 If the downwelling radiation is unpolarised, the reflected part of the
 upwelling radiation is
 \begin{equation}

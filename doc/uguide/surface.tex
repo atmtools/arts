@@ -3,7 +3,7 @@
 
 
 \starthistory
-  110613 & Extended and revised (Patrick Eriksson). \\
+  110614 & Extended and revised (Patrick Eriksson). \\
   050613 & First version finished by Patrick Eriksson. \\
 \stophistory
 
@@ -21,7 +21,7 @@ of pressure levels. Any shape of the geoid is allowed but a smoothly
 varying geoid is the natural choice, with the centers of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
-WGS-84, see below.
+WGS-84.
 
 Inside ARTS, the geoid is represented as a matrix (\wsvindex{r\_geoid}),
 holding the geoid radius, \aRds{\odot}, for each crossing of the latitude and
@@ -42,7 +42,7 @@ north-south axis. That is, the ellipsoid radius has no longitude
 variation, it is only a function of latitude. The ellipsoid is
 described by an equatorial radius, \aRds{e}, and a polar radius,
 \aRds{p}. These radii are indicated in Figure \ref{fig:ppath:lats}.
-The radius of the ellipsoid for a given latitude is
+The radius of the ellipsoid for a given latitude, \Lat, is
 \begin{equation}
  \aRds{\odot}(\Lat) = \sqrt{\frac{\aRds{e}^2\aRds{p}^2}
                     {\aRds{e}^2\sin^2\Lat+\aRds{p}^2\cos^2\Lat}}
@@ -165,7 +165,7 @@ The fact that the geoid is an ellipsoid, instead of a sphere, opens up
 for the two different definitions of the latitude. The
 \textindex{geocentric latitude}, which is the the one used here, is the
 angle between the equatorial plane and the vector from the coordinate
-system center to the position of concern. The \textindex{geodetic
+system centre to the position of concern. The \textindex{geodetic
   latitude} is also defined with respect to the equatorial plane, but
 the angle to the normal to the reference ellipsoid is considered here, as
 shown in Figure \ref{fig:ppath:lats}. It could be mentioned that a
@@ -186,18 +186,18 @@ The value of $f$ for the Earth is about 1/298.26. This means that the
 largest differences between \Lat\ and $\Lat^*$ are found at
 mid-latitudes and the maximum value is about 12 arc-minutes.
 
-The \textindex{zenith} and \textindex{nadir} directions shall normally be
-defined to follow the normal to the reference ellipsoid, but, if
-nothing else is mentioned, these directions are here treated to go
-along the vector the center of the coordinate system, as indicated in
-Figure \ref{fig:ppath:lats}. This latter definition is preferred
-as it results in that a propagation path in the zenith/nadir direction
-can be described by a single latitude and longitude value. The
-difference in geometrical altitude when using these two possible
-definitions on the zenith direction is proportional to the deviation
-between geocentric and geodetic latitude (Equation \ref{eq:ppath:lats}).
-For an altitude of 100\,km around $\Lat=45\degree$, the difference is
-about 350\,m.
+% The \textindex{zenith} and \textindex{nadir} directions shall normally be
+% defined to follow the normal to the reference ellipsoid, but, if
+% nothing else is mentioned, these directions are here treated to go
+% along the vector the center of the coordinate system, as indicated in
+% Figure \ref{fig:ppath:lats}. This latter definition is preferred
+% as it results in that a propagation path in the zenith/nadir direction
+% can be described by a single latitude and longitude value. The
+% difference in geometrical altitude when using these two possible
+% definitions on the zenith direction is proportional to the deviation
+% between geocentric and geodetic latitude (Equation \ref{eq:ppath:lats}).
+% For an altitude of 100\,km around $\Lat=45\degree$, the difference is
+% about 350\,m.
 
 
 
@@ -210,7 +210,7 @@ about 350\,m.
 The surface altitude, \aAlt{g}, is given as the geometrical altitude above the
 geoid. The radius for the surface is accordingly
 \begin{equation}
-  \aRds{g} = \aRds{\odot} + \aAlt{g}
+  \aRds{s} = \aRds{\odot} + \aAlt{s}
  \label{eq:fm_defs:zsurface}
 \end{equation}
 As also mentioned in Section~\ref{sec:fm_defs:surf}, a gap between the surface
@@ -226,22 +226,19 @@ surface topography can be made.
 
 
 \section{Surface emission and reflection}
+\label{sec:surf:eandr}
 %===================
 
-Section~\ref{T-sec:sec:rtetheory:surface} of \theory provides the theoretical
-background for this part.
-
-
-\subsection{Main surface workspace variables}
-\label{sec:surface:surface:wsvs}
-%--------------
 An introduction to the treatment of surface emission and reflections is given
 in Section \ref{sec:fm_defs:surface}. As described in that section, the surface
 properties are described by three workspace variables and the methods developed
 to handle different surface properties set these variables:
 \wsvindex{surface\_emission}, \wsvindex{surface\_los} and
-\wsvindex{surface\_rmatrix}. The sections below outlines the methods avaliable,
+\wsvindex{surface\_rmatrix}. The sections below outlines the methods available,
 how these set the output variables.
+Section~\ref{T-sec:surface} of \theory\ provides the theoretical
+background.
+
 
 
 \subsection{Blackbody surface}
@@ -258,7 +255,7 @@ and \artsstyle{surface\_rmatrix} to be empty.
 %
 Several methods to incorporate a flat surface exist, including
 \wsmindex{surfaceFlatRefractiveIndex} and
-\wsmindex{surfaceFlatSingleEmissivity}. The methods differ in how the delectric
+\wsmindex{surfaceFlatSingleEmissivity}. The methods differ in how the dielectric
 properties of the surface are given, and if these are constant or not with
 frequency.
 
@@ -269,7 +266,7 @@ The specular direction is calculated by the internal function
   to consider surface tilt, almost complete code for this task existed in
   \artsstyle{surface\_specular\_los} but was removed in version 1-1-876. The
   code can be obtained by e.g.\ checking out version 1-1-875.}. Equations
-\ref{T-sec:eq:surface:specular_matrix}-\ref{T-sec:eq:surface:specular_emission}
+\ref{T-eq:surface:specular_matrix}-\ref{T-eq:surface:specular_emission}
 in \theory give the values of \artsstyle{surface\_rmatrix} and
 \artsstyle{surface\_emission}.
 
@@ -277,14 +274,14 @@ in \theory give the values of \artsstyle{surface\_rmatrix} and
 
 \subsection{Lambertian surface}
 %---
-Basic treatment of Lambertian surfaces is provided by method
+A basic treatment of Lambertian surfaces is provided by the method
 \wsmindex{surfaceLambertianSimple}. This method assumes that the down-welling
-radiation has no azimuthal dependency, which is the case for 1D atmospheres.
-The number of angles to apply in \artsstyle{surface\_los} is selected by the
-user.
+radiation has no azimuthal dependency, which fits the assumptions for 1D
+atmospheres. The number of angles to apply in \artsstyle{surface\_los} is
+selected by the user. 
 
 For a Lambertian surface the reflected radiation is unpolarised (thus
-indpendent of the polarisation of the downwelling radiation). That is,
+independent of the polarisation of the down-welling radiation). That is,
 each \artsstyle{surface\_rmatrix} has the structure:
 \begin{equation}
   \MtrStl{R} =
@@ -296,13 +293,24 @@ each \artsstyle{surface\_rmatrix} has the structure:
      \end{array}
      \right].
 \end{equation}
-The ``weight'' $w$ is obtained from Equation~\ref{T-sec:eq:surface:brdf2} of
-\theory. The method \artsstyle{surfaceLambertianSimple} assumes that the
-down-welling radiance ($I$) is constant is constant inside each zenith angle
-range $[\theta_a,\theta_b]$, and with $[\phi_a,\phi_b]$ = $[0,2\pi]$, we get
+When determining the ``weight'' $w$ above, the method assumes that the
+down-welling radiance ($I$) is constant inside each zenith angle range:
+$[\theta_a,\theta_b]$. Hence, $w$ equals (cf.\
+Equation~\ref{T-eq:surface:brdf1} of \theory)
+\begin{equation}
+  \label{eq:surface:brdf2}
+  w = \int_{\theta_a}^{\theta_b} \! \int_{\phi_a}^{\phi_b} 
+  \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
+  \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
+\end{equation}
+that gives
 \begin{equation}
   w = \frac{r_d}{2}\left[\cos(2\theta_a)-\cos(2\theta_b)\right].
 \end{equation}
+Thus, this value is a combination of the surface reflectivity and an solid
+angle weight.
+
+
 The emission (\artsstyle{surface\_emission}) becomes:
 \begin{equation}
   \label{eq:surface:blambertian} 
