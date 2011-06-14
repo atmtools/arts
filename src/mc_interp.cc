@@ -98,19 +98,20 @@ ostream& operator<< (ostream& os, const SLIData2& /* sli */)
   The dimension of itw must be consistent with the dimension of the
   interpolation (2^n).
 
-  \param itw  Interpolation weights.
-  \param a    The field to interpolate.(ArrayOfMatrix)
-  \param tc   The grid position for the column dimension.
+  \param[out] tia  Interpolated value.
+  \param[in]  itw  Interpolation weights.
+  \param[in]  a    The field to interpolate.(ArrayOfMatrix)
+  \param[in]  tc   The grid position for the column dimension.
 
-  \return Interpolated value.
 
   \author Cory Davis (modified original code by Stefan Buehler)
   \date   2003-06-19
 */
 
-Matrix interp( ConstVectorView itw,
-                ArrayOfMatrix a,    
-                const GridPos&  tc )
+void interp(MatrixView tia,
+            ConstVectorView itw,
+            const ArrayOfMatrix& a,    
+            const GridPos&  tc )
 {
   DEBUG_ONLY (const Numeric sum_check_epsilon = 1e-6);
 
@@ -123,19 +124,17 @@ Matrix interp( ConstVectorView itw,
                                   1,
                                   sum_check_epsilon ) );
   
-  // To store interpolated value:
-  Matrix tia(a[0].nrows(),a[0].ncols(),0.0);
-  Matrix b(a[0].nrows(),a[0].ncols(),0.0);
-  Index iti = 0;
-  for ( Index c=0; c<2; ++c )
+  Index anr = a[0].nrows();
+  Index anc = a[0].ncols();
+  
+  assert(tia.nrows() == anr);
+  assert(tia.ncols() == anc);
+  
+  for (Index inr = 0; inr < anr; inr++)
+    for (Index inc = 0; inc < anc; inc++)
     {
-      b=a[tc.idx+c];
-      b*=itw[iti];   
-      tia += b;
-      ++iti;
+      tia(inr,inc) = a[tc.idx](inr,inc)*itw[0] + a[tc.idx+1](inr,inc)*itw[1];
     }
-
-  return tia;
 }               
 
 
@@ -147,22 +146,21 @@ Matrix interp( ConstVectorView itw,
   The dimension of itw must be consistent with the dimension of the
   interpolation (2^n).
 
-  \param itw  Interpolation weights.
-  \param a    The field to interpolate. (ArrayOfVector)
-  \param tc   The grid position for the column dimension.
+  \param[out] tia  Interpolated value.
+  \param[in]  itw  Interpolation weights.
+  \param[in]  a    The field to interpolate. (ArrayOfVector)
+  \param[in]  tc   The grid position for the column dimension.
 
-  \return Interpolated value.
   \author Cory Davis (modified original code by Stefan Buehler)
   \date   2003-06-19
 
 */
-
-Vector interp( ConstVectorView itw,
-                ArrayOfVector a,    
-                const GridPos&  tc )
+void interp(VectorView tia,
+            ConstVectorView itw,
+            const ArrayOfVector& a,    
+            const GridPos&  tc )
 {
   DEBUG_ONLY (const Numeric sum_check_epsilon = 1e-6);
-  
   assert(is_size(itw,2));       // We need 2 interpolation
                                 // weights.
 
@@ -172,19 +170,14 @@ Vector interp( ConstVectorView itw,
                                   1,
                                   sum_check_epsilon ) );
   
-  // To store interpolated value:
-  Vector tia(a[0].nelem(),0.0);
-  Vector b(a[0].nelem(),0.0);
-  Index iti = 0;
-  for ( Index c=0; c<2; ++c )
-    {
-      b=a[tc.idx+c];
-      b*=itw[iti];   
-      tia += b;
-      ++iti;
-    }
+  Index an = a[0].nelem();
+  
+  assert(tia.nelem() == an);
 
-  return tia;
+  for ( Index i=0; i<an; ++i )
+  {
+    tia[i] = a[tc.idx][i]*itw[0] + a[tc.idx+1][i]*itw[1];
+  }
 }               
 
 void interp_scat_angle_temperature(//Output:
@@ -323,7 +316,7 @@ void interpTArray(Matrix& T,
   //interpolate transmittance matrix
   gridpos(gp, cum_l_step, pathlength);
   interpweights(itw,gp[0]);
-  K = interp(itw,ext_matArray,gp[0]);
+  interp(K, itw,ext_matArray,gp[0]);
   delta_s = pathlength - cum_l_step[gp[0].idx];
   opt_depth_mat = K;
   opt_depth_mat+=ext_matArray[gp[0].idx];
@@ -346,7 +339,7 @@ void interpTArray(Matrix& T,
     }
   mult(T,TArray[gp[0].idx],incT);
   
-  K_abs = interp(itw, abs_vecArray,gp[0]);
+  interp(K_abs, itw, abs_vecArray,gp[0]);
  
   temperature=interp(itw,t_ppath,gp[0]);
 

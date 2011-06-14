@@ -754,7 +754,7 @@ void mcPathTraceGeneral(Workspace&            ws,
       gridpos(gp, x, ds);
       assert(gp[0].idx==0);
       interpweights(itw,gp[0]);
-      ext_mat_mono = interp(itw,ext_matArray,gp[0]);
+      interp(ext_mat_mono, itw, ext_matArray, gp[0]);
       opt_depth_mat = ext_mat_mono;
       opt_depth_mat+=ext_matArray[gp[0].idx];
       opt_depth_mat*=-ds/2;
@@ -775,9 +775,9 @@ void mcPathTraceGeneral(Workspace&            ws,
           matrix_exp_p30(incT,opt_depth_mat);
         }
       mult(evol_op,evol_opArray[gp[0].idx],incT);
-      abs_vec_mono = interp(itw, abs_vecArray,gp[0]);
+      interp(abs_vec_mono, itw, abs_vecArray,gp[0]);
       temperature=interp(itw,tArray,gp[0]);
-      pnd_vec=interp(itw,pnd_vecArray,gp[0]);
+      interp(pnd_vec, itw,pnd_vecArray,gp[0]);
       if (np > 2)
         {
           gridpos(gp,cum_l_step,ds);
@@ -1111,7 +1111,7 @@ void mcPathTraceIPA(Workspace&            ws,
       gridpos(gp, l_vec, ds);
       interpweights(itw1d,gp);
       //interpolate optical properties at required point
-      ext_mat_mono = interp(itw1d,ext_matArray,gp);
+      interp(ext_mat_mono, itw1d, ext_matArray, gp);
       opt_depth_mat = ext_mat_mono;
       opt_depth_mat+=ext_matArray[gp.idx];
       opt_depth_mat*=-ds/2;
@@ -1132,9 +1132,9 @@ void mcPathTraceIPA(Workspace&            ws,
           matrix_exp_p30(incT,opt_depth_mat);
         }
       mult(evol_op,evol_opArray[gp.idx],incT);
-      abs_vec_mono = interp(itw1d, abs_vecArray,gp);
-      temperature=interp(itw1d,tArray,gp);
-      pnd_vec=interp(itw1d,pnd_vecArray,gp);
+      interp(abs_vec_mono, itw1d, abs_vecArray,gp);
+      temperature=interp(itw1d,tArray, gp);
+      interp(pnd_vec, itw1d, pnd_vecArray, gp);
       //move cartesion coordinates back to required point.
       x+=(ds-lstep)*dx;
       y+=(ds-lstep)*dy;

@@ -73,13 +73,15 @@ public:
 ostream& operator<< (ostream& os, const SLIData2& sli);
 
 
-Matrix interp( ConstVectorView itw,
-               ArrayOfMatrix a,    
-               const GridPos&  tc );
+void interp(MatrixView tia,
+            ConstVectorView itw,
+            const ArrayOfMatrix& a,    
+            const GridPos&  tc );
 
-Vector interp( ConstVectorView itw,
-                ArrayOfVector a,    
-               const GridPos&  tc );
+void interp(VectorView tia,
+            ConstVectorView itw,
+            const ArrayOfVector& a,    
+            const GridPos&  tc );
 
 void interp_scat_angle_temperature(//Output:
                                    VectorView pha_mat_int,
