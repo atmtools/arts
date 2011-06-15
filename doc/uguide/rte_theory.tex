@@ -14,14 +14,15 @@
 
 
 \starthistory
-  050224 & Copied chapter 1 from Claudia Emde's phd-thesis. \\
+  110615 & Revised, and moved parts about surface from AUG (PE). \\
+  050224 & Added chapter 1 from Claudia Emde's phd-thesis. \\
   030305 & Copied from a compendium written by Patrick Eriksson.
 \stophistory
 
 
  When dealing with atmospheric radiation a division can be made
  between two different wavelength ranges where the limit is found
- around 5 $\mu$m, i.e. one range consists of the near IR, visible and UV
+ around 5 $\mu$m, i.e.\ one range consists of the near IR, visible and UV
  regions while the second range covers thermal and far IR and
  microwaves. The first reason to this division is the principal
  sources to the radiation in the two ranges, for wavelengths shorter
@@ -39,7 +40,7 @@
  The radiative transfer in the atmosphere must be adequately described
  in many situations, as when estimating rates of photochemical
  reactions, calculating radiative forcing in the atmosphere or
- evaluating an remote sensing observation. It is not totally
+ evaluating a remote sensing observation. It is not totally
  straightforward to quantify the radiative transfer with good accuracy
  because the calculations can be very computationally demanding and
  many of the parameters needed are hard to determine. For example,
@@ -130,47 +131,39 @@ Intensity has the dimension of monochromatic flux
 [$\mathrm{energy}/(\mathrm{area}\times\mathrm{time})$].
   
 
-\section[The Stokes parameters]{The Stokes parameters}
-\label{sec:rtetheory:Stokes_components}
-  
+% \section[The Stokes parameters]{The Stokes parameters}
+% \label{sec:rtetheory:Stokes_components}
+% Sensors usually do not measure directly the electric and the magnetic
+% fields associated with a beam of radiation. They measure quantities
+% that are time averages of real-valued linear combinations of products
+% of field vector components and have the dimension of intensity.
+% Examples of such observable quantities are the Stokes parameters.
+% Figure \ref{fig:RT_theory_coordinates} shows the coordinate system used
+% to describe the direction of propagation $\hat{\PDir}$ and the
+% polarization state of a plane electromagnetic wave.
+% The unit vector $\hat{\PDir}$ can equivalently be described by a
+% couplet $(\ZntAng, \AzmAng)$, where ${\ZntAng \in [0,\pi]}$ is the polar
+% (zenith) angle and $\AzmAng \in [0,2\pi)$ is the azimuth angle. The
+% electric field at the observation point is given by $\VctStl{E} =
+% \VctStl{E}_\ZntAng + \VctStl{E}_\AzmAng$, where $ \VctStl{E}_\ZntAng$ and
+% $\VctStl{E}_\AzmAng$ are the $\ZntAng$- and $\AzmAng$-components of the
+% electric field vector.  $\VctStl{E}_\ZntAng$ lies in the meridional
+% plane, which is the plane through $\hat{\PDir}$ and the $z$-axis, and
+% $\VctStl{E}_\AzmAng$ is perpendicular to this plane.
+% The Stokes parameters are defined as linear combinations of products
+% of the amplitudes $\VctStl{E}_\ZntAng$ and  $\VctStl{E}_\AzmAng$ which
+% form the $4\times1$ column vector \StoVec,
+% which is known as the Stokes vector.  Since the Stokes parameters are
+% real-valued and have the dimension of intensity, they can be measured
+% directly with suitable instruments. The Stokes parameters are a
+% complete set of quantities needed to characterize a plane
+% electromagnetic wave. They carry information of the complex amplitudes
+% and the phase difference.  The first Stokes parameter $I$ is the
+% intensity and the other components $Q$, $U$ and $V$ describe the
+% polarization state of the wave. For a detailed definition of the
+% Stokes parameters and how they can be measured refer to
+% Section \ref{sec:polarization}.
 
-Sensors usually do not measure directly the electric and the magnetic
-fields associated with a beam of radiation. They measure quantities
-that are time averages of real-valued linear combinations of products
-of field vector components and have the dimension of intensity.
-Examples of such observable quantities are the Stokes parameters.
-Figure \ref{fig:RT_theory_coordinates} shows the coordinate system used
-to describe the direction of propagation $\hat{\PDir}$ and the
-polarization state of a plane electromagnetic wave.
-\begin{figure}[t]
- \begin{center}
-   \includegraphics*[width=0.6\hsize]{coordinate_system}
-   \caption{Coordinate system to describe the direction of propagation and the polarization state of a plane electromagnetic wave (adapted from Mishchenko).}
-  \label{fig:RT_theory_coordinates}  
- \end{center}
-\end{figure}
-The unit vector $\hat{\PDir}$ can equivalently be described by a
-couplet $(\ZntAng, \AzmAng)$, where ${\ZntAng \in [0,\pi]}$ is the polar
-(zenith) angle and $\AzmAng \in [0,2\pi)$ is the azimuth angle. The
-electric field at the observation point is given by $\VctStl{E} =
-\VctStl{E}_\ZntAng + \VctStl{E}_\AzmAng$, where $ \VctStl{E}_\ZntAng$ and
-$\VctStl{E}_\AzmAng$ are the $\ZntAng$- and $\AzmAng$-components of the
-electric field vector.  $\VctStl{E}_\ZntAng$ lies in the meridional
-plane, which is the plane through $\hat{\PDir}$ and the $z$-axis, and
-$\VctStl{E}_\AzmAng$ is perpendicular to this plane.
-The Stokes parameters are defined as linear combinations of products
-of the amplitudes $\VctStl{E}_\ZntAng$ and  $\VctStl{E}_\AzmAng$ which
-form the $4\times1$ column vector \StoVec,
-which is known as the Stokes vector.  Since the Stokes parameters are
-real-valued and have the dimension of intensity, they can be measured
-directly with suitable instruments. The Stokes parameters are a
-complete set of quantities needed to characterize a plane
-electromagnetic wave. They carry information of the complex amplitudes
-and the phase difference.  The first Stokes parameter $I$ is the
-intensity and the other components $Q$, $U$ and $V$ describe the
-polarization state of the wave. For a detailed definition of the
-Stokes parameters and how they can be measured refer to
-Section \ref{sec:polarization}.
 
 \section[Single particle scattering]{Scattering, absorption and thermal emission by a single particle}
 \label{sec:rtetheory:theory_single_part}
@@ -186,6 +179,8 @@ effects:
   extracted from the beam and scattered into all spatial directions at
   the frequency of the incident beam. Scattering can change the
   polarization state of the radiation.
+\item[Inelastic scattering:] As above, but the frequency is changed by the
+  scattering. This process is neglected below.
 \item[Extinction:] The energy of the incident beam is reduced by
   an amount equal to the sum of absorption and scattering.
 \item[Dichroism:] The change of the polarization state of the beam
@@ -325,7 +320,7 @@ where $W^e$ is the power of the emitted radiation and \Planck\ is the
 Planck function.  In order to calculate \AbsVec\ we assume that the
 particle is placed inside an opaque cavity of dimensions large
 compared to the particle and any wavelengths under consideration. We
-have thermodynamic equilibrium if the cavity and the particle are
+have thermodynamic equilibrium if the cavity and the particle is
 maintained at the constant temperature $T$. The emitted radiation
 inside the cavity is isotropic, homogeneous, and unpolarized. We can
 represent this radiation as a collection of quasi-monochromatic,
@@ -431,6 +426,14 @@ as a fixed cluster, but as a measurement takes a finite amount of
 time, one measures a statistical average over a large number of
 different cluster realizations.
 
+\begin{figure}[t]
+ \begin{center}
+   \includegraphics*[width=0.6\hsize]{coordinate_system}
+   \caption{Coordinate system to describe the direction of propagation and the polarization state of a plane electromagnetic wave (adapted from Mishchenko).}
+  \label{fig:RT_theory_coordinates}  
+ \end{center}
+\end{figure}
+
 Solving the Maxwell equations for a whole cluster, like a collection
 of particles in a cloud, is computationally too expensive.
 Fortunately, particles forming a random group can often be considered
@@ -524,8 +527,6 @@ hold for particle ensembles.
 \end{figure}
 
 
-\clearpage
-
 \section[Radiative transfer equation]{Phenomenological derivation of the radiative transfer equation}
 \label{sec:rtetheory:theory_rte}
 
@@ -584,21 +585,17 @@ fully describes the radiation and it can directly be associated with
 the measurements carried out by a radiometer used for remote sensing.
 For the definition of the components of the specific intensity vector
 refer to Section \ref{sec:polarization}, where the Stokes
-components are described. Since the specific intensity vector is a
-superposition of Stokes vectors, the polarization state of the
-specific intensity vector can be analysed in the same way as the
-polarization state of the Stokes vector.
+components are described. 
 
-The three terms on the right hand side of Equation \ref{eq:rtetheory:VRTE} describe
-physical processes in an atmosphere containing different particle
-types and different trace gases. The first term represents the
-extinction of radiation traveling through the scattering medium. It is
-determined by the ensemble averaged extinction coefficient matrix
-$\EnsAvr\ExtMat$.  For microwave radiation in cloudy
-atmospheres, extinction is caused by gaseous absorption, particle
-absorption and particle scattering. Therefore $\EnsAvr\ExtMat$
-can be written as a sum of two matrices, the particle extinction
-matrix $\EnsAvr{\ExtMat^{p}}$ and the gaseous extinction matrix
+The three terms on the right hand side of Equation \ref{eq:rtetheory:VRTE}
+describe physical processes in an atmosphere containing different particle
+types and different trace gases. The first term represents the extinction of
+radiation traveling through the scattering medium. It is determined by the
+ensemble averaged extinction coefficient matrix $\EnsAvr\ExtMat$. For microwave
+radiation in cloudy atmospheres, extinction is caused by gaseous absorption,
+particle absorption and particle scattering. Therefore $\EnsAvr\ExtMat$ can be
+written as a sum of two matrices, the particle extinction matrix
+$\EnsAvr{\ExtMat^{p}}$ and the gaseous extinction matrix
 $\EnsAvr{\ExtMat^{g}}$:
 \begin{equation}
   \EnsAvr{\ExtMat(\PDir, \nu, T)} =
@@ -614,24 +611,24 @@ weighted by their particle number densities $n^p_i$:
   \sum_{i=1}^N n^p_i \EnsAvr{\ExtMat_i^p (\PDir, \nu, T)}.
 \label{eq:rtetheory:ext_mat_p}
 \end{equation}
-A particle distribution, which can include various particle sizes,
-shapes and orientations, can be represented by a single particle type,
-since it is possible to derive an ensemble averaged phase matrix
-\EnsAvr{\PhaMat_i}, an ensemble averaged extinction matrix
-\EnsAvr{\ExtMat_i} and an ensemble averaged absorption vector
-\EnsAvr{\AbsVec_i}.  The gaseous extinction matrix is directly derived
-from the scalar gas absorption. As there is no polarization due to gas
-absorption at cloud altitudes, the off-diagonal elements of the
-gaseous extinction matrix are zero. At very high altitudes above
-approximately 40\,km there is polarization due to the Zeeman effect,
-mainly due to oxygen molecules.  However, in the toposphere and
-stratosphere molecular scattering can be neglected in the microwave
-frequency range. Hence the coefficients on the diagonal correspond to
-the gas absorption coefficient:
+A particle distribution, which can include various particle sizes, shapes and
+orientations, can be represented by a single particle type, since it is
+possible to derive an ensemble averaged phase matrix \EnsAvr{\PhaMat_i}, an
+ensemble averaged extinction matrix \EnsAvr{\ExtMat_i} and an ensemble averaged
+absorption vector \EnsAvr{\AbsVec_i}. The gaseous extinction matrix can
+normnally be derived from the scalar gas absorption. This as there is no
+polarization due to gas absorption at cloud altitudes, and the off-diagonal
+elements of the gaseous extinction matrix are zero. On the other hand, at very
+high altitudes above approximately 40\,km there is polarization due to the
+Zeeman effect, mainly due to oxygen molecules. In addition, in the toposphere
+and stratosphere molecular scattering can be neglected in the microwave
+frequency range. Hence the coefficients on the diagonal correspond to the gas
+absorption coefficient:
 \begin{eqnarray}
 \EnsAvr{\ExtMat^{g}_{l,m}(\nu, T)} =
-\EnsAvr{\alpha^g(\nu, T)} & \mathrm{if } l = m \\
+\EnsAvr{\alpha^g(\nu, T)} & \mathrm{if } l = m \nonumber \\
 0 & \mathrm{if } l \neq m.
+\label{eq:rtetheory:Kgas}
 \end{eqnarray}
 where $T$ is the temperature of the atmosphere and $\EnsAvr{ \alpha^g
 }$ is the total scalar gas absorption coefficient, which is
@@ -641,9 +638,9 @@ $n^g_i$ as:
 \begin{equation}
    \EnsAvr{ \alpha^g(\nu, T) } =  \sum_{i=1}^M  n^g_i \alpha_i^g(\nu, T).
 \end{equation}
-The second term in Equation \ref{eq:rtetheory:VRTE} is the thermal source term. It
-describes thermal emission by gases and particles in the atmosphere.
-The ensemble averaged absorption vector $\EnsAvr{\AbsVec}$ is
+The second term in Equation \ref{eq:rtetheory:VRTE} is the thermal source term.
+It describes thermal emission by gases and particles in the atmosphere. The
+ensemble averaged absorption vector $\EnsAvr{\AbsVec}$ is
 \begin{equation}
   \EnsAvr{\AbsVec (\PDir, \nu, T)}  =
   \EnsAvr{\AbsVec^{p} (\PDir, \nu, T)} +
@@ -673,7 +670,6 @@ phase matrices \EnsAvr{\PhaMat_i} weighted with $n^p_i$:
     \PDir', \nu, T)}}.
   \label{eq:rtetheory:pha_mat}
 \end{equation}
-
 The scalar radiative transfer equation (SRTE)
 \begin{eqnarray}
   \label{eq:rtetheory:SRTE}
@@ -691,68 +687,69 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
 
  
-\section{Blackbody radiation}
- \label{sec:rtetheory:rtetheory:planck}
+% \section{Blackbody radiation}
+%  \label{sec:rtetheory:rtetheory:planck}
  
- All natural bodies with a temperature $>$ 0 K emit thermal radiation.
- The thermal motion in the matter is translated by collisions to
- excitations in the molecules. The transition from the excited state
- to a lower state causes emission of electromagnetic radiation.
- Depending on the temperature the distribution of the emission will
- change. An ideal body that absorbs all incoming radiation is called a
- blackbody and its emittance follows Planck's formula: 
+%  All natural bodies with a temperature $>$ 0 K emit thermal radiation.
+%  The thermal motion in the matter is translated by collisions to
+%  excitations in the molecules. The transition from the excited state
+%  to a lower state causes emission of electromagnetic radiation.
+%  Depending on the temperature the distribution of the emission will
+%  change. An ideal body that absorbs all incoming radiation is called a
+%  blackbody and its emittance follows Planck's formula: 
 
- \begin{equation}
-   B(\lambda,T) = \frac{2\pi hc^2}{\lambda^5} \frac{1}{e^{hc/\lambda k_bT}-1}
-  \label{eq:rtetheory:planck}
- \end{equation}
- where $B$ is the emitted radiation, $\lambda$ the wavelength, $T$ the 
- temperature, $h$ the Planck constant, $c$ the speed of light and $k_b$
- the Boltzmann constant. Equation \ref{eq:rtetheory:planck} is shown in Figure 
- \ref{fig:rtetheory:planck} for some temperatures.
+%  \begin{equation}
+%    B(\lambda,T) = \frac{2\pi hc^2}{\lambda^5} \frac{1}{e^{hc/\lambda k_bT}-1}
+%   \label{eq:rtetheory:planck}
+%  \end{equation}
+%  where $B$ is the emitted radiation, $\lambda$ the wavelength, $T$ the 
+%  temperature, $h$ the Planck constant, $c$ the speed of light and $k_b$
+%  the Boltzmann constant. Equation \ref{eq:rtetheory:planck} is shown in Figure 
+%  \ref{fig:rtetheory:planck} for some temperatures.
 
- \begin{figure}
-  \begin{center}
-   \includegraphics*[width=0.8\hsize]{fig_planck}
-    \caption{The blackbody radiation as a function of wavelength for
-             some temperatures.}
-    \label{fig:rtetheory:planck}
-  \end{center}
- \end{figure}   
+%  \begin{figure}
+%   \begin{center}
+%    \includegraphics*[width=0.8\hsize]{fig_planck}
+%     \caption{The blackbody radiation as a function of wavelength for
+%              some temperatures.}
+%     \label{fig:rtetheory:planck}
+%   \end{center}
+%  \end{figure}   
                                        
- The maximum of the Planck formula is a function temperature and is
- given by the Wien's displacement law. The maximum of
- Equation \ref{eq:rtetheory:planck} is found at: 
+%  The maximum of the Planck formula is a function temperature and is
+%  given by the Wien's displacement law. The maximum of
+%  Equation \ref{eq:rtetheory:planck} is found at: 
 
- \begin{equation}
-   \lambda_{max} = \frac{K}{T}
-  \label{eq:rtetheory:wien}
- \end{equation}
- where is $\lambda_{max}$ the wavelength of maximum emittance and $K
- =$~2.898\topowerten{-3} Km. Consequently the maximum is encountered
- at a shorter wavelength for a higher temperature as can be seen in
- Figure \ref{fig:rtetheory:planck}.
+%  \begin{equation}
+%    \lambda_{max} = \frac{K}{T}
+%   \label{eq:rtetheory:wien}
+%  \end{equation}
+%  where is $\lambda_{max}$ the wavelength of maximum emittance and $K
+%  =$~2.898\topowerten{-3} Km. Consequently the maximum is encountered
+%  at a shorter wavelength for a higher temperature as can be seen in
+%  Figure \ref{fig:rtetheory:planck}.
                                      
- No natural object can be said to be a perfect blackbody but the Sun
- and the Earth can approximately be treated as blackbodies with
- temperature of about 6000 and 290 K, respectively, to explain some
- basic conditions. Wien's displacement law gives maximum for the solar
- radiation at 0.55 $\mu$m while the Earth thermal radiation is maximal
- around 10 $\mu$m. The solar maximum coincides with a region of high
- atmospheric transmission and this explains why the
- evolution has placed the vision between about 400 - 700 nm, the
- amount of energy at surface level is maximal in this range.  
+%  No natural object can be said to be a perfect blackbody but the Sun
+%  and the Earth can approximately be treated as blackbodies with
+%  temperature of about 6000 and 290 K, respectively, to explain some
+%  basic conditions. Wien's displacement law gives maximum for the solar
+%  radiation at 0.55 $\mu$m while the Earth thermal radiation is maximal
+%  around 10 $\mu$m. The solar maximum coincides with a region of high
+%  atmospheric transmission and this explains why the
+%  evolution has placed the vision between about 400 - 700 nm, the
+%  amount of energy at surface level is maximal in this range.  
  
- If the radiation from the Sun is scaled to compensate for the
- attenuation due to the distance it will be found that the radiation
- from the Earth itself will dominate for wavelengths longer than about
- 5 $\mu$m. This means, for example, that remote sensing techniques in
- the thermal IR and microwave region primarily detect thermal emission
- from the surface or the atmosphere while observations in the optical
- and UV regions use absorbed, scattered or reflected solar radiation.
- This also explains why gases that exhibit absorption between 5 - 50
- $\mu$m are called greenhouse gases, they absorb partly some of the
- outgoing radiation from the surface and the sea.
+%  If the radiation from the Sun is scaled to compensate for the
+%  attenuation due to the distance it will be found that the radiation
+%  from the Earth itself will dominate for wavelengths longer than about
+%  5 $\mu$m. This means, for example, that remote sensing techniques in
+%  the thermal IR and microwave region primarily detect thermal emission
+%  from the surface or the atmosphere while observations in the optical
+%  and UV regions use absorbed, scattered or reflected solar radiation.
+%  This also explains why gases that exhibit absorption between 5 - 50
+%  $\mu$m are called greenhouse gases, they absorb partly some of the
+%  outgoing radiation from the surface and the sea.
+
 
 \section{Simple solution without scattering and polarization}
 
@@ -769,35 +766,13 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
  The basic equation describing radiative transfer along a specific 
  direction is
  \begin{equation}
-   \frac{dI(\nu)}{dl} = -k(l,\nu)I(\nu) + S(l,\nu)
+   \frac{dI(\nu)}{dl} = -k(l,\nu)(I(\nu) + B(l,\nu))
   \label{eq:rtetheory:chand}
  \end{equation} 
  where $I$ is the intensity per unit area, $\nu$ the frequency, $l$
  the distance along the propagation path, $k$ the total absorption
- coefficient (summed over all species and transitions) and $S$ the
- source term. In this general expression both $k$ and $S$ include
- effects of scattering, i.e. energy lost and gained in the viewing
- direction due to scattering. The discussion will here be restricted
- to situations where the scattering can be neglected. This can be a
- valid assumption for cloud free conditions and wavelengths greater
- than a few micrometers. At microwave wavelengths scattering can
- normally be neglected also when clouds are present. For the
- frequencies considered and altitudes below about 75 km the molecules
- in the atmosphere can also be considered to be in local thermodynamic
- equilibrium. This implies that the de-excitation and excitation of a
- transition have the same probability and the absorption and emission
- coefficients will be equal.  The Kirchoff law then states that the
- emitted radiance, the source function, is
-
- \begin{equation}
-   S = k(l,\nu)B(T(l),\nu)
-  \label{eq:rtetheory:kirch}
- \end{equation}  
- For the conditions given, no scattering and local thermodynamic
- equilibrium, the radiative transfer equation is obtained by combining
- Equations \ref{eq:rtetheory:chand} and \ref{eq:rtetheory:kirch}. The resulting
- differential equation can be solved to give
-
+ coefficient (summed over all species and transitions) and $B$ the
+ Planck function. This differential equation can be solved:
  \begin{equation}
    I(\nu) = I_0(\nu)e^{-\int^h_0{k(l',\nu)dl'}} + 
      \int^h_0{k(l,\nu)B(T(l),\nu) e^{-\int^l_0{k(l',\nu)dl'}} dl}
@@ -843,8 +818,8 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
  occultation observations.  
  
  If the temperature is constant through the medium studied (Fig.
- \ref{fig:rtetheory:layer}) the integral in Equation \ref{eq:rtetheory:rte} can be solved
- analytically:
+ \ref{fig:rtetheory:layer}) the integral in Equation \ref{eq:rtetheory:rte} can
+ be solved analytically:
 
  \begin{figure}
   \begin{center}
@@ -910,14 +885,20 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
  \begin{figure}
   \begin{center}
-    \includegraphics*[width=0.8\hsize]{fig_rayjean}
+   \begin{minipage}[c]{0.35\textwidth}
+    \centering
     \caption{The difference between the physical temperarature of a 
              blackbody and the equivalent brightness temperature
              calculated using the Rayleight-Jeans approximation.}
     \label{fig:rtetheory:rayjean}
+   \end{minipage}%
+   \hspace{0.05\textwidth}%
+   \begin{minipage}[c]{0.55\textwidth}
+    \centering
+    \includegraphics*[width=0.99\hsize]{fig_rayjean}
+   \end{minipage}
   \end{center}
- \end{figure} 
-
+ \end{figure}   
 
 
 
@@ -937,13 +918,6 @@ these quantities can be complex and are related as
 
 \subsection{Relating reflectivity and emissivity}
  %===================
- Kirchoff's law applied to thermodynamics states that under conditions
- of local thermodynamic equilibrium, thermal emission has to be equal
- to absorption \citep[see e.g.][page 215]{ulaby:81}. This is a consequence of
- the fact that there must exist a radiation equilibrium between an
- object and its surrounding, if it is surrounded by a blackbody having
- the same temperature (with no physical contact). 
- 
  Thermodynamic equilibrium can be assumed for natural surfaces, as
  long as there exist no strong temperature gradients. The Kirchoff law
  can then be used to relate the reflectivity and emissivity of a
@@ -1113,16 +1087,14 @@ The reflectivity is the half-sphere integral of the BRDF
   f(\theta_1,\phi_1,\theta,\phi) \cos(\theta)
   \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
 \end{equation}
-
-
 An ideally rough surface is denoted as Lambertian. The BRDF is for this case
-constant \citep[e.g.][]{petty:06}:
+constant, and normally expressed using the the diffuse reflectivity, $r_d$ 
+ \citep[e.g.][]{petty:06}:
 \begin{equation}
   \label{eq:surface:lambertian1}
-  f = \frac{r_d}{\pi}
+  f = \frac{r_d}{\pi}.
 \end{equation}
-where $r_d$ is the diffuse reflectivity. From Eq.~\ref{eq:surface:brdf:r} it 
-follows that $r = r_d$.
+From Eq.~\ref{eq:surface:brdf:r} it follows that $r = r_d$.
 
 
 

@@ -1,39 +1,15 @@
-\graphicspath{{Figs/polarization/}}
-%
-% To start the document, use
-%  \chapter{...}
-% For lover level, sections use
-%  \section{...}
-%  \subsection{...}
-%
-\chapter{Polarization and Stokes parameters}
+\chapter{Polarisation and Stokes parameters}
  \label{sec:polarization}
 
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
+
 \starthistory
-  040524 & Section scattering matrices by Patrick Eriksson. \\
+  040524 & Section on scattering matrices added by Patrick Eriksson. \\
   040426 & Created and written by Christian Melsheimer.\\
-%   260304 & Subsection on antenna added by Christian Melsheimer.\\
-%   180404 & Subsection on polarization directions added by Christian Melsheimer.\\
 \stophistory
 
 
-%
-% Symbol table, format:
-%  \startsymbols
-%    ... & \artsstyle{...} & text ... \\
-%    ... & \artsstyle{...} & text ... \\
-%    ....
-%  \stopsymbols
-%
-%=====================================================================
+\graphicspath{{Figs/polarization/}}
+
 
 
 %=====================================================================
@@ -62,42 +38,40 @@
 The present version of ARTS implements the radiative transfer equation
 in tensor form, i.e., for the 4 components of the Stokes vector, not
 just for its first component, the intensity or radiance.
-This means that the model can include polarization dependence in
+This means that the model can include polarisation dependence in
 absorption or scattering processes.
-It is therefore necessary to give some details on the polarization of
+It is therefore necessary to give some details on the polarisation of
 radiation, the definition of
-the Stokes parameters, and the definition of antenna polarization.
+the Stokes parameters, and the definition of antenna polarisation.
 
-\section{Polarization directions}
+
+\section{Polarisation directions}
 %=====================================================================
 \label{sec:polarization:directions}
 Electromagnetic waves in homogeneous, isotropic media are transverse
 waves, i.e., their oscillating electric and magnetic fields are in a
 plane perpendicular to the propagation direction. The choice of two
-basis vectors -- we shall call them polarization directions here --
+basis vectors -- we shall call them polarisation directions here --
 that span that transverse plane is arbitrary; often they are called
 ``horizontal'' and ``vertical'' and correspond to some horizontal and
 vertical direction of the particular setting. Nevertheless, what is
 meant by horizontal/vertical, or parallel/perpendicular, is purely a
 matter of definition.
 
-Here, we stick to the system called laboratory frame or fixed frame,
-used by Mishchenko or Tsang (FIXME: references): We use a coordinate
-system where the $z$-axis points toward local zenith (FIXME: does the
-$x$-axis point toward north?).  We denote the propagation direction of
-radiation by a unit vector $\VctStl{n} = \VctStl{k}/k$, where
-$k$ is the wave number. $\VctStl{n}$ is given by two
-angles, the zenith angle $\theta$ , i.e., the angle between
-$\VctStl{n}$ and the $z$-axis, and the azimuth angle $\phi$, i.e., the
-angle between the projection of $\VctStl{n}$ into the $xy$-plane and
-the $x$-axis:
+Here, we stick to the system called laboratory frame or fixed frame, used by
+\citet{Mishchenko:02}: We use a coordinate system where the $z$-axis points
+toward local zenith. We denote the propagation direction of radiation by a unit
+vector $\VctStl{n} = \VctStl{k}/k$, where $k$ is the wave number. $\VctStl{n}$
+is given by two angles, the zenith angle $\theta$ , i.e., the angle between
+$\VctStl{n}$ and the $z$-axis, and the azimuth angle $\phi$, i.e., the angle
+between the projection of $\VctStl{n}$ into the $xy$-plane and the $x$-axis:
 \begin{equation}
   \label{eq:polarization:propdir}
    \VctStl{n} = \ColVct{\cos\phi \sin\theta}%
                        {\sin\phi \sin\theta}%
                        { \cos\theta}                    
 \end{equation}
-Then we define the polarization directions by the partial derivatives
+Then we define the polarisation directions by the partial derivatives
 of  $\VctStl{n}$ with respect to $\theta$ and $\phi$. We shall call
 them $\theta$-direction (also: vertical) and $\phi$-direction (also:
 horizontal), respectively, see
@@ -110,8 +84,8 @@ Figure \ref{fig:polarization:directions}.
    \end{center}
   \end{minipage}
   \begin{minipage}[c]{0.9\textwidth}
-   \caption{The definition of the polarization directions, adapted
-     from Mishchenko FIXME: reference}
+   \caption{The definition of the polarisation directions, adapted
+     from \citet{Mishchenko:02}}
    \label{fig:polarization:directions}
   \end{minipage}
  \end{center}
@@ -161,7 +135,7 @@ Plane monochromatic electromagnetic waves are commonly written in the form
 \end{equation}
 where $\VctStl{E}$ is the electric field vector, the subscripts $v$
 and $h$ denote the components with vertical and horizontal
-polarization, respectively. $E_v$ and $E_h$, the amplitudes, are
+polarisation, respectively. $E_v$ and $E_h$, the amplitudes, are
 complex numbers, $\VctStl{k}$ and $\omega$ are the wavenumber vector
 and the angular frequency, respectively, of the plane wave, and the
 unit vectors $\eVrt = (1,0)\Trp$, $\eHor = (0,1)\Trp$.  It is always
@@ -171,7 +145,7 @@ $E_v$ and $E_h$ using real, non-negative amplitudes $a_v$ and $a_h$, and
 phases $\delta_v$ and $\delta_h$,
 \begin{equation}
   \label{eq:polarization:compl_ampl}
-  E_v=a_v e^{i\delta_v}\mbox{ , }
+  E_v=a_v e^{i\delta_v}\mbox{, }
   E_h=a_h e^{i\delta_h}
 \end{equation}
 the actual electric field vector $\VctStl{\tilde{E}}$ is
@@ -183,7 +157,6 @@ the actual electric field vector $\VctStl{\tilde{E}}$ is
             a_h\cdot \cos(\VctStl{k}\VctStl{x} - \omega t + \delta_h) 
        \right] 
 \end{equation}
-
 In general, instruments do not measure the electric or magnetic field
 vectors of an electromagnetic wave, but rather the time-averaged
 intensity, i.e., the energy flux, $F$. This is the time-averaged Poynting
@@ -257,7 +230,7 @@ we can rewrite the Stokes parameters as
   \label{eq:polarization:stokesparam_alt_V}
  V &=&   - \InvImp  a_v a_h \sin(\delta_v-\delta_h)
 \end{eqnarray}
-The Stokes parameters fully characterize the electromagnetic wave and
+The Stokes parameters fully characterise the electromagnetic wave and
 therefore contain the same information as the electric field vector
 (except for one absolute phase).  Since instruments generally measure
 intensities (fluxes), describing electromagnetic radiation by the
@@ -267,12 +240,12 @@ always real numbers.  Note that the Stokes parameters are sometimes
 defined with different signs of $Q$, $U$, or $V$ (the definitions and
 signs used here are based on
 \citet{mishchenko00:_light_scatt_nonsp_partic}). Moreover, their
-normalization may vary. In particular, the Stokes parameters can be
-normalized to represent radiance or irradiance (instead of intensity),
+normalisation may vary. In particular, the Stokes parameters can be
+normalised to represent radiance or irradiance (instead of intensity),
 which is usually done in radiative transfer contexts.
  
 In order understand what the Stokes parameters mean, we have to go
-back to the electric field vector and see what polarization state it
+back to the electric field vector and see what polarisation state it
 describes.  To do so, we look at the curve that the tip of the
 physical electric field vector $\VctStl{\tilde{E}}$ describes with
 time at a fixed position $\VctStl{x_0}$:
@@ -303,13 +276,13 @@ it should have the following form
 \end{eqnarray}
 Here $\beta$ must be between $-45\degree$ and $45\degree$: the tip of
 the vector $\VctStl{\tilde{E}}$ describes a circle for $\beta = \pm
-45\degree$ (circular polarization), oscillates along the $h$-axis for
-$\beta = 0$ (linear polarization) and else describes an ellipse (cf.
+45\degree$ (circular polarisation), oscillates along the $h$-axis for
+$\beta = 0$ (linear polarisation) and else describes an ellipse (cf.
 Figure \ref{fig:polarization:ellipse_aligned}). The sense of rotation
 is counterclockwise for positive $\beta$ (corresponding to left-circular
-or left-elliptic polarization) and clockwise for negative
+or left-elliptic polarisation) and clockwise for negative
 $\beta$ (corresponding to right-circular
-or right-elliptic polarization).
+or right-elliptic polarisation).
 %which corresponds to left-handed
 Since $|\tan\beta|$ is the ratio of the semi-minor and semi-major axes
 of the ellipse (the ellipticity), $\beta$ is called the ellipticity
@@ -357,15 +330,15 @@ Figure \ref{fig:polarization:ellipse_arbitrary})\label{def:orientation-angle}:
   \end{minipage}
  \end{center}
 \end{figure}   
-With these definitions, horizontal polarization corresponds to
-$\beta=0\degree$ and $\zeta=0\degree$; vertical polarization to 
+With these definitions, horizontal polarisation corresponds to
+$\beta=0\degree$ and $\zeta=0\degree$; vertical polarisation to 
 $\beta=0\degree$ and $\zeta=90\degree$; left-circular to 
 $\beta=45\degree$ and any value of $\zeta$; right-circular to 
 $\beta=-45\degree$ and any value of $\zeta$.
     
 Now we want to establish a direct connection between the parameters
 $\beta$ and $\zeta$ describing the shape (ellipticity) and orientation
-of the polarization ellipse on the one hand, and the amplitudes $a_v$
+of the polarisation ellipse on the one hand, and the amplitudes $a_v$
 and $a_h$ and phases $\delta_v$ and $\delta_h$ of the components of
 the electric field vector on the other hand.  Comparing the
 $\sin(\omega t)$ and $\cos(\omega t)$ terms in
@@ -427,8 +400,8 @@ Equation \ref{eq:polarization:corresp1b}:
 \end{equation}
 Finally, we use the above 3 equations
 (\ref{eq:polarization:sinzetacosbeta}, 
-(\ref{eq:polarization:sinbeta} and 
-(\ref{eq:polarization:cosbetazeta} to rewrite the Stokes parameters
+\ref{eq:polarization:sinbeta} and 
+\ref{eq:polarization:cosbetazeta}) to rewrite the Stokes parameters
 (Equations \ref{eq:polarization:stokesparam_alt_I} to
 \ref{eq:polarization:stokesparam_alt_V}) 
 as
@@ -464,23 +437,23 @@ We get the ellipticity angle $\beta$  from
  \tan(2\beta) = - \frac{V}{(Q^2 + U^2)^{1/2}}  
 \end{equation}
 
-$I$ is the total intensity of the radiation, 
-$Q$ is the difference in the intensity of the vertically and
-horizontally polarized components
-(cf. Section \ref{sec:polarization:measuring}, i.e., next section).
-$I$ is always non-negative, and $Q$, $U$, and $V$ are between $+I$ and $-I$,
-since they can be expressed as a product of $I$ with sines and/or
-cosines
-(Equations \ref{eq:polarization:stokesparam_alt2_Q} to
-\ref{eq:polarization:stokesparam_alt2_V}). 
-Note also that the 4 Stokes parameters are not independent, since the
-following equality applies:
+$I$ is the total intensity of the radiation, $Q$ is the difference in the
+intensity of the vertically and horizontally polarised components (cf. Section
+\ref{sec:polarization:measuring}). $I$ is always non-negative, and $Q$, $U$,
+and $V$ are between $+I$ and $-I$, since they can be expressed as a product of
+$I$ with sines and/or cosines (Equations
+\ref{eq:polarization:stokesparam_alt2_Q} to
+\ref{eq:polarization:stokesparam_alt2_V}). Note also that the 4 Stokes
+parameters are not independent (for completely polarised radiation, see further
+Section~\ref{sec:polarization:part_pol}), since the following equality applies:
 \begin{equation}
   \label{eq:polarization:Isquare}
   I^2 = Q^2 + U^2 + V^2
 \end{equation}
-Some examples of Stokes parameters for specific polarizations are given
-at the end of the next section (page \pageref{stokes-examples})
+Some examples of Stokes parameters for specific polarisations are given
+at the end of the next section (page \pageref{stokes-examples}).
+
+
 \section{Measuring Stokes parameters}
 %=====================================================================
 \label{sec:polarization:measuring}
@@ -493,7 +466,7 @@ we are going to rewrite them while keeping in mind that most
 instruments can just measure intensities of radiation.
 
 We have seen above that the Stokes parameter $Q$ is the difference in
-the intensity of the vertically and horizontally polarized components 
+the intensity of the vertically and horizontally polarised components 
 (Equations \ref{eq:polarization:stokesparam_Q},
 or \ref{eq:polarization:stokesparam_alt_Q})
 \begin{equation}
@@ -509,22 +482,20 @@ where
 \end{eqnarray}
   
 Thus if we measure $I_v$ and $I_h$ using -- for optical wavelengths --
-a polarizer aligned with the $v$- and the $h$-axis, respectively, or
+a polariser aligned with the $v$- and the $h$-axis, respectively, or
 using -- for microwaves -- two appropriately aligned dipole antennas, we
 can directly obtain $I$ by taking their sum and $Q$ by taking their
 difference.
 
 $U$ and $V$ can likewise be expressed as differences of intensities, but not
-with respect to the linear base \eVrt and \eHor:
-
-We recall Equation \ref{eq:polarization:e_field}, omitting the
-oscillatory term:
+with respect to the linear base \eVrt and \eHor. We recall Equation
+\ref{eq:polarization:e_field}, omitting the oscillatory term:
 \begin{equation}
   \label{eq:polarization:E_linbase}
   \VctStl{E}= \left(E_v \eVrt +  E_h \eHor \right) 
 \end{equation}
 
-Now we want to write \VctStl{E} by two components along polarization axes at
+Now we want to write \VctStl{E} by two components along polarisation axes at
 $\pm 45\degree$ with respect to the $h$-axes. The basis vectors are
 thus (cf.\ Figure \ref{fig:polarization:e45})
 \begin{eqnarray}
@@ -557,9 +528,6 @@ and we get the field vector in this modified linear basis:
   \end{minipage}
  \end{center}
 \end{figure}   
-%FIXME: Image showing \eVrt, \eHor, \ePls, \eMin.
-
-%
 With the definitions of intensities of the components,
 \begin{eqnarray}
   \label{eq:polarization:Im45}
@@ -584,14 +552,14 @@ Therefore (cf. Equation \ref{eq:polarization:stokesparam_U})
   U =   I_{+45\degree} -  I_{-45\degree}
 \end{equation}
 Thus if we measure $I_{+45\degree}$ and $I_{-45\degree}$ using -- for
-optical wavelengths -- a polarizer aligned at $+45\degree$ and
+optical wavelengths -- a polariser aligned at $+45\degree$ and
 $-45\degree$ with respect to the $h$-axis, respectively, or using --
 for microwaves -- two appropriately aligned dipole antennas, we can
 directly obtain $U$ by taking their difference.
 
 In order to see how to measure the fourth Stokes parameter, $V$, we
 have to transform to the circular basis, i.e., express \VctStl{E} by a
-left-hand ($LH$) and a right-hand ($RH$) circularly polarized component. The
+left-hand ($LH$) and a right-hand ($RH$) circularly polarised component. The
 relevant equations:
 
 Basis vectors
@@ -643,15 +611,15 @@ Thus if we measure $I_{RH}$ and $I_{LH}$ using -- for microwaves --
 appropriate helical beam antennas, we can directly obtain $V$ by
 taking their difference.  Unfortunately, for optical wavelengths, we
 cannot measure $I_{RH}$ and $I_{LH}$ directly with the help of
-filters like  polarizers and retarders%
+filters like  polarisers and retarders%
 \footnote{A retarder allows the phase of two orthogonal components 
-of light to be varied  with respect to each other}.  
+of light to be varied  with respect to each other.}.  
 However, a combination of a retarder and a polarizer can be used
 to measure the sum of $I$ and $V$:
 
 The light first passes through a retarder that delays the phase of
-the horizontally polarized component by 90\degree{} with respect to
-the phase of the vertically polarized component (a quarter-wave
+the horizontally polarised component by 90\degree{} with respect to
+the phase of the vertically polarised component (a quarter-wave
 plate).
 A phase delay by 90\degree can be expressed as a multiplication of the
 horizontal component by $i$, so the resulting
@@ -680,8 +648,6 @@ Measuring the intensity now, we get
    &=& \half ( I + V )
   \label{eq:polarization:I_retarded_polarized}
 \end{eqnarray}
-
-
 Here is a summary of the Stokes parameters in terms of intensities of
 orthogonal components:
 \begin{eqnarray}
@@ -694,15 +660,15 @@ orthogonal components:
   \label{eq:polarization:stokesparam_Idiff_V}
   V &=&  I_{RH} - I_{LH}
 \end{eqnarray}
-We see that $Q$ and $U$ are both related to linear polarization, while
-$V$ is related to circular polarization.
+We see that $Q$ and $U$ are both related to linear polarisation, while
+$V$ is related to circular polarisation.
 
-Here are the Stokes parameters for some standard polarizations:
+Here are the Stokes parameters for some standard polarisations:
 \begin{center}
 \label{stokes-examples}
 \begin{tabular}{r@{\hspace{2em}(}r@{,}r@{,}r@{,}r@{)}}
 \hline
-polarization & $I$ &   $Q$   &   $U$  &   $V$ \\ \hline
+polarisation & $I$ &   $Q$   &   $U$  &   $V$ \\ \hline
 horizontal   & $I$ &  $-I$   &    0   &   0   \\ 
 vertical     & $I$ &  $+I$   &    0   &   0   \\ 
 linear $\pm 45\degree$
@@ -714,14 +680,14 @@ left-circular& $I$ &   0     &    0   &  $-I$ \\ \hline
 
 
 
-\section{Partial polarization}
+\section{Partial polarisation}
 %=====================================================================
 \label{sec:polarization:part_pol}
 The equality   $I^2 = Q^2 + U^2 + V^2$
 (Equation \ref{eq:polarization:Isquare}) 
 %and in fact all of section \ref{sec:polarization:monochrom} 
 is valid for the ideal case of a 
-monochromatic plane wave that is completely polarized, i.e., where the
+monochromatic plane wave that is completely polarised, i.e., where the
 amplitudes $a_v$ and
 $a_h$ and the phases $\delta_v$ and $\delta_v$ are fixed and do not
 vary with time. This means that the plane wave is emitted by one
@@ -733,19 +699,19 @@ originates from several sources that do not emit radiation coherently,
 and since the emission from one source usually has very short
 coherence times. This
 means that we usually have a superposition of radiation from several incoherent
-sources, and that the polarization state of the radiation from each
+sources, and that the polarisation state of the radiation from each
 source fluctuates as well\footnote{This does, of course, not apply to
-  coherent sources like lasers or coherent radars}. 
+  coherent sources like lasers or coherent radars.}. 
 Typically, such fluctuations have time scales that are longer than the
 period ($2\pi/\omega$) of the oscillation, but that are still shorter
 than the integration time of the instrument that measures the
 radiation. Thus, the instrument measures an incoherent
  superposition of time averages
-over of the fluctuating polarization. If the fluctuations are
+over of the fluctuating polarisation. If the fluctuations are
 random for all the sources and if the different sources emit 
 incoherently and are not in any way oriented, then there is no preferred
 orientation, ellipticity or handedness of the emitted radiation, which
-is then called unpolarized. This is the case for radiation from the sun.
+is then called unpolarised. This is the case for radiation from the sun.
 %, but also to
 %a large extent for thermal radiation emitted by the atmosphere:
 %While the emission from individual molecules might be polarized
@@ -753,7 +719,7 @@ is then called unpolarized. This is the case for radiation from the sun.
 %orientation of the molecules causes the resulting radiation to be
 %unpolarized.
 If the fluctuations are not completely random, the
-radiation is called partially polarized.
+radiation is called partially polarised.
 
 To quantify this rather heuristic argumentation, we express the
 above-mentioned ideas in the language of the Stokes parameters: The
@@ -770,7 +736,7 @@ amplitude quantities -- can simply be added up:
   U = \sum_i U_i \: \mbox{, }\; 
   V = \sum_i V_i
 \end{equation}
-In the case of unpolarized radiation, i.e., when the amplitudes and
+In the case of unpolarised radiation, i.e., when the amplitudes and
 phases, or equivalently, the orientation angle $\zeta$ and the
 ellipticity angle $\beta$ are random (uniformly distributed), 
 $Q$, $U$, and $V$
@@ -843,7 +809,7 @@ dividing by 4), the sums over just $i$ cancel and we get:
     \cos(\delta^{(i)}-\delta^{(j)}) 
 \end{eqnarray}
 where the cosine addition theorem was used.  In the summation, we now
-change from $i \not= j$ to $i<j$, so we have to symmetrize the first
+change from $i \not= j$ to $i<j$, so we have to symmetrise the first
 term (the second term is already symmetric with respect to $i$ and $j$ and
 therefore just gets a factor 2):
 \begin{eqnarray}
@@ -864,11 +830,11 @@ $a_v^{(i)}/a_h^{(i)} = a_v^{(j)}/a_h^{(j)}$ for all $i,j$, i.e., if
 the phase difference and amplitude ratio between the horizontal and
 vertical component of the electric field is the same for all
 contributions, in other words: if all contributions have the same
-polarization.
+polarisation.
 
 For completeness, we shall now restate the definition of the Stokes
 component, extended to include natural radiation (i.e., including the
-case of partially polarized and unpolarized radiation).
+case of partially polarised and unpolarised radiation).
 Instead of summing over the individual emission events, we use
 ensemble averages, denoted by angular brackets:
 \begin{eqnarray}
@@ -881,60 +847,59 @@ ensemble averages, denoted by angular brackets:
   \label{eq:polarization:stokesparam_V_general}
   V &=& i \half\InvImp \EnsAvr{E_h E_v^\ast - E_v E_h^\ast}
 \end{eqnarray}
-Except for the ensemble average \EnsAvr{..}, the definition is
-identical to the one for monochromatic, plane waves
-(Equations \ref{eq:polarization:stokesparam_I}
-to \ref{eq:polarization:stokesparam_V}).The same applies to the second
-and third definitions of the Stokes parameters (Equations \ref{eq:polarization:stokesparam_alt_I}
-to \ref{eq:polarization:stokesparam_alt_V} and  
-Equations \ref{eq:polarization:stokesparam_alt2_I}
-to \ref{eq:polarization:stokesparam_alt2_V}, respectively).
-Note that the fourth definition (Equations \ref{eq:polarization:stokesparam_Idiff_I}
-to \ref{eq:polarization:stokesparam_Idiff_V}) which uses sums and
-differences of intensities, is equally valid for fully polarized,
-partially polarized and unpolarized radiation. The definition of
-intensities, however, has to include the ensemble average: $I_h =
-\EnsAvr{E_h E_h^\ast}$ etc.
+Except for the ensemble average \EnsAvr{..}, the definition is identical to the
+one for monochromatic, plane waves (Equations
+\ref{eq:polarization:stokesparam_I} to \ref{eq:polarization:stokesparam_V}).
+The same applies to the second and third definitions of the Stokes parameters
+(Equations \ref{eq:polarization:stokesparam_alt_I} to
+\ref{eq:polarization:stokesparam_alt_V} and Equations
+\ref{eq:polarization:stokesparam_alt2_I} to
+\ref{eq:polarization:stokesparam_alt2_V}, respectively). Note that the fourth
+definition (Equations \ref{eq:polarization:stokesparam_Idiff_I} to
+\ref{eq:polarization:stokesparam_Idiff_V}) which uses sums and differences of
+intensities, is equally valid for fully polarised, partially polarised and
+unpolarised radiation. The definition of intensities, however, has to include
+the ensemble average: $I_h = \EnsAvr{E_h E_h^\ast}$ etc.
 
 Now we can define a measure for
-the degree of polarization, $p$, as:
+the degree of polarisation, $p$, as:
 \begin{equation}
   \label{eq:polarization:pol_degree}
   p = \frac{\sqrt{Q^2 + U^2 + V^2}}{I}
 \end{equation}
-For completely polarized radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
-1$, and for unpolarized radiation, $Q = U = V = 0$, so $p = 0$.
+For completely polarised radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
+1$, and for unpolarised radiation, $Q = U = V = 0$, so $p = 0$.
 
-Furthermore, it can be convenient to define the the polarized
+Furthermore, it can be convenient to define the polarised
 component of radiation by
 \begin{equation}
   \label{eq:polarization:pol_component}
   I_p^2 = Q^2 + U^2 + V^2
 \end{equation}
-and the unpolarized component as
+and the unpolarised component as
 \begin{equation}
   \label{eq:polarization:unpol_component}
   I_u = I - I_p
 \end{equation}
-Thus, partially polarized radiation, described by a Stokes vector $(I,
+Thus, partially polarised radiation, described by a Stokes vector $(I,
 Q, U, V)$, can be regarded as as a superposition of completely
-polarized radiation described by the Stokes vector $(I_p, Q, U, V)$
-and unpolarized radiation described by the Stokes vector $(I_u,
+polarised radiation described by the Stokes vector $(I_p, Q, U, V)$
+and unpolarised radiation described by the Stokes vector $(I_u,
 0,0,0)$.  We see that the Stokes parameter formalism can conveniently
-deal with partially polarized and with unpolarized radiation, much in
+deal with partially polarised and with unpolarised radiation, much in
 contrast to the formalism using the electric field (amplitude and
 phase).
 
-In addition to the degree of polarization, $p$, we can define measures
-for the circularity and the linearity of the polarization.
+In addition to the degree of polarisation, $p$, we can define measures
+for the circularity and the linearity of the polarisation.
 Recalling Equations \ref{eq:polarization:stokesparam_Idiff_U}
 and \ref{eq:polarization:stokesparam_Idiff_V},
-we can define the degree of linear polarization, $p_{lin}$, as
+we can define the degree of linear polarisation, $p_{lin}$, as
 \begin{equation}
   \label{eq:polarization:p_lin}
  p_{lin} = \frac{\sqrt{Q^2 + U^2}}{I} 
 \end{equation}
-and the the degree of circular polarization, $p_{circ}$, as
+and the the degree of circular polarisation, $p_{circ}$, as
 \begin{equation}
   \label{eq:polarization:p_circ}
  p_{circ} = \frac{V}{I} 
@@ -942,54 +907,50 @@ and the the degree of circular polarization, $p_{circ}$, as
 %(Stephens p.61)
 
 
-\subsection{Polarization of Radiation in the Atmosphere}
+\subsection{Polarisation of Radiation in the Atmosphere}
 \label{sec:polarization:atmosphere}
 The radiation encountered in atmospheric sounding (for which ARTS is
 intended) is natural radiation, coming from the sun, space (cosmic
 background), and/or the atmosphere and the Earth surface (thermal
 radiation, scattered radiation)\footnote{This is not so for active
   sounding techniques that use a coherent source, such as lidar.}.
-Radiation from the sun is unpolarized, as already mentioned; the same
+Radiation from the sun is unpolarised, as already mentioned; the same
 applies for the cosmic background.  In contrast,
-radiation emitted by the ground can be weakly polarized, dependent on
+radiation emitted by the ground can be polarised, dependent on
 material, texture and direction.  Radiation emitted by the atmosphere
-(thermal radiation) is almost unpolarized because of the random
-orientation of the air molecules.  An exception might be caused by the
+(thermal radiation) is almost unpolarised because of the random
+orientation of the air molecules.  An exception is caused by the
 Zeeman effect induced in oxygen molecules by the -- anisotropic --
 Earth's magnetic field.  Scattering of radiation by oriented
-particles, e.g.\ cirrus clouds, is sensitive to polarization, and
-generally increases the degree of polarization.  Typically $I > |Q| >
+particles, e.g.\ cirrus clouds, is sensitive to polarisation, and
+generally increases the degree of polarisation.  Typically $I > |Q| >
 |U|,|V|$.
 
-FIXME: Give some typical numbers for the relative magnitude of $I$,
-$Q$, $U$, $V$
-for realistic radiation in relevant cases ($I \gg Q \gg U,V$ when?)
 
-
-\subsection{Antenna polarization}
+\subsection{Antenna polarisation}
 \label{sec:polarization:antenna}
-Finally we want to know what an antenna of arbitrary polarization
-response (antenna polarization)
-measures if radiation of some other arbitrary polarization is incident
+Finally we want to know what an antenna of arbitrary polarisation
+response (antenna polarisation)
+measures if radiation of some other arbitrary polarisation is incident
 on it.
 
 In order to clarify the concept, we first consider some trivial examples:
-We assume an antenna that receives only vertically polarized
+We assume an antenna that receives only vertically polarised
 radiation.
 \begin{itemize}
-\item If the incident radiation is fully horizontally polarized, the
+\item If the incident radiation is fully horizontally polarised, the
   antenna will measure nothing.
-\item If the incident radiation is fully vertically polarized, the
+\item If the incident radiation is fully vertically polarised, the
   antenna will measure the full intensity of the radiation.
-\item If the radiation is fully left- or right-circularly polarized,
+\item If the radiation is fully left- or right-circularly polarised,
   the antenna will measure half of the full intensity, for circularly
-  polarized radiation is made up of equal portions of vertically and
-  horizontally polarized radiation, superimposed with a phase lag of
+  polarised radiation is made up of equal portions of vertically and
+  horizontally polarised radiation, superimposed with a phase lag of
   90\degree.
 \end{itemize}
 
 In order to be able to describe the general case, we first have to
-formalize the description of the antenna polarization.  Polarized
+formalise the description of the antenna polarisation.  Polarised
 radiation is described by
 \begin{enumerate}
 \item 
@@ -997,29 +958,28 @@ the Jones vector, or
 \item the Stokes
 vector, or
 \item intensity, $I$, orientation angle, $\zeta$
-(i.e., the angle between the major axis of the polarization ellipse and
-the horizontal polarization direction), %see \pageref{def:orientation-angle}), 
+(i.e., the angle between the major axis of the polarisation ellipse and
+the horizontal polarisation direction), %see \pageref{def:orientation-angle}), 
 and ellipticity angle, $\beta$ (see
 page \pageref{def:ellipticity-angle}).
 \end{enumerate}
 Since the intensity of the
 radiation is the absolute square (the squared ``length'') of the
 complex Jones vector, or, in other words, the first Stokes component,
-$I$, the polarization alone is defined by
+$I$, the polarisation alone is defined by
 \begin{enumerate}
-\item a normalized Jones
+\item a normalised Jones
 vector, or
-\item three normalized Stokes components $Q$, $U$, and $V$
+\item three normalised Stokes components $Q$, $U$, and $V$
 (where $Q^2 + U^2 + V^2 = 1$), or 
 \item the orientation angle $\zeta$
 and the ellipticity angle $\beta$ (see
 Equation \ref{eq:polarization:tan2zeta} to \ref{eq:polarization:tan2beta}).
 \end{enumerate}
-
-In the same way, the polarization of the antenna can be described in
+In the same way, the polarisation of the antenna can be described in
 one of three ways:
 \begin{enumerate}
-\item a normalized Jones vector
+\item a normalised Jones vector
 \begin{equation}
 \VctStl{e}= \left[e_v \atop e_h\right]\qquad
    \mbox{where}\quad \VctStl{e}\cdot\VctStl{e}^\ast = 1
@@ -1027,7 +987,7 @@ one of three ways:
 (note  that in the scalar product of two complex vectors, the second one
 has to be complex-conjugated.)
 
-\item a normalized Stokes vector 
+\item a normalised Stokes vector 
 \begin{equation}
 \VctStl{i} = (1, q, u, v)\qquad
    \mbox{where}\quad q^2+u^2+v^2=1
@@ -1046,12 +1006,11 @@ has to be complex-conjugated.)
  v &=& - \sin(2\beta)
 \end{eqnarray}
 \end{enumerate}
-
 Now we can calculate the intensity $I^\prime$ 
 the antenna measures. In terms of the electrical fields, 
 i.e., Jones vectors,  we just have to
 project the Jones vector \VctStl{E} of the incident radiation onto the
-normalized Jones vector \VctStl{e} of the antenna,
+normalised Jones vector \VctStl{e} of the antenna,
 \begin{equation}
   \label{eq:polarization:antenna-projection}
    \VctStl{E}^\prime =  (\VctStl{E}\cdot\VctStl{e}^\ast) \VctStl{e}
@@ -1063,7 +1022,6 @@ absolute square
   I^\prime =  \half\InvImp\left| \VctStl{E}^{\prime} \right| ^2 
    = \half\InvImp\left|(\VctStl{E}\cdot\VctStl{e}^\ast) \right| ^2 
 \end{equation}
-
 With some elementary algebra (mainly using that $\half\InvImp E_v
 E_v^\ast = (I+Q)/2$, $\half\InvImp E_h E_h^\ast = (I-Q)/2$,
 $\half\InvImp E_v E_h^\ast = -(U - \mi V)/2$ which follow immediately
@@ -1088,9 +1046,9 @@ just a scalar product:
 \section{The scattering amplitude matrix}
 \label{sec:polarization:ampmatrix}
 %=====================================================================
-The electric field, $[E_v,E_h]^T$, originating from a single
-scattering event of an incident electric field $[E_v^0,E_h^0]^T$ may
-in the far field be written as (c.f.\ Equation \ref{eq:rtetheory:amplitude_matrix})
+The electric field, $[E_v,E_h]^T$, originating from a single scattering event
+of an incident electric field $[E_v^0,E_h^0]^T$ may in the far field be written
+as (see further Equation \ref{eq:rtetheory:amplitude_matrix})
 \begin{equation}
   \label{eq:polarisation:ampmatrix1}
    \left[ \begin{array}{c} E_v \\ E_h \end{array} \right] =
@@ -1135,7 +1093,7 @@ Depending on the properties of the scattering event, the structure of
 the matrix \MtrStl{F} differs. Two special cases are:
 \begin{eqnarray}
   \label{eq:Fcase1}
-  S_1=S2,\quad S_3=S_4=0 &\to&    \MtrStl{F} =
+  S_1=S_2,\quad S_3=S_4=0 &\to&    \MtrStl{F} =
       \left[\begin{array}{cccc}
         x&0&0&0\\
         0&x&0&0\\

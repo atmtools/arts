@@ -1,3 +1,16 @@
+2011-06-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-15-26
+
+	* doc/uguide/rte_theory.tex: Revised. Made an attempt to make it
+	less obvious that text from several places has been appended.
+	Removed some overlap and basic stuff, such as the section on blackbody
+	radiation.
+
+	* doc/uguide/polarization.tex: Corrected some typos. Added some
+	references, fixing some FIXME. Removed two FIXME that did not look
+	critical. Changed to UK spelling.
+
 2011-06-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-15-25
@@ -10,6 +23,7 @@
 
 	Improved layout on mobile devices.
 
+>>>>>>> .r7018
 2011-06-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-15-24
