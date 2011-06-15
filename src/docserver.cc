@@ -128,6 +128,32 @@ string ds_html_escape_string (const string& s)
   return ret;
 }
 
+//! Open the content div.
+/** 
+ Output the starting content div tag to stream.
+ 
+ \param[in,out]  os     Output stream.
+ 
+ \author Oliver Lemke
+ */
+void ds_begin_content (ostream &os)
+{
+  os << "<div class=\"content\">" << endl;
+}
+
+//! Close the content div.
+/** 
+ Output the ending content div tag to stream.
+ 
+ \param[in,out]  os     Output stream.
+ 
+ \author Oliver Lemke
+ */
+void ds_end_content (ostream &os)
+{
+  os << "</div>" << endl;
+}
+
 //! Output the docserver HTML page header to stream.
 /** 
  Output the HTML header and start of the body to the stream.
@@ -146,11 +172,11 @@ void ds_begin_page (ostream &os, string title)
   
   os
   << "<!DOCTYPE html>" << endl
-  << "<html>" << endl
+  << "<html lang=\"en\">" << endl
   << "<head>" << endl
   << "<title>" << title << "</title>" << endl
   << "<meta charset=\"utf-8\">" << endl
-  << "<meta name=\"viewport\" content=\"width=device-width\" />" << endl
+  << "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />" << endl
   << "<link rel=\"stylesheet\" href=\"" << ds_baseurl << "/styles.css\">" << endl
   << "</head>" << endl
   << "<body>" << endl;
@@ -260,10 +286,9 @@ void ds_list_agendas (ostream &os)
 {
   Index i;
   
-  os << "<tr><td colspan=\"2\">"
-  << "<h2><span id=\"agendas\">Agendas</span></h2></td></tr>" << endl
-  << "<tr><td><ul>" << endl;
+  os << "<h2>Agendas</h2>" << endl;
   
+  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   Index hitcount = 0;
   for ( i=0; i<Workspace::wsv_data.nelem(); ++i )
   {
@@ -276,15 +301,16 @@ void ds_list_agendas (ostream &os)
   {
     if (Workspace::wsv_data[i].Group() == get_wsv_group_id("Agenda"))
     {
-      os << "<li>" << ds_insert_agenda_link(Workspace::wsv_data[i].Name()) << endl;
+      os << "<li>" << ds_insert_agenda_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
       hitcount2++;
       
       if (hitcount2 == hitcount/2)
-        os << "</ul></td><td><ul>" << endl;
+        os << "</ul>" << endl << "</div>" << endl
+        << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
     }
   }
   
-  os << "</ul></td></tr>" << endl;
+  os << "</ul>" << endl << "</div>" << endl;
 }
 
 //! Output list of workspace groups to stream.
@@ -300,19 +326,19 @@ void ds_list_groups (ostream &os)
   extern const ArrayOfString wsv_group_names;
   Index i;
   
-  os << "<tr><td colspan=\"2\">"
-  << "<h2><span id=\"groups\">Workspace Groups</span></h2></td></tr>" << endl
-  << "<tr><td><ul>" << endl;
-  
+  os << "<h2>Workspace Groups</h2>" << endl;
+
+  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   for ( i=0; i<wsv_group_names.nelem(); ++i )
   {
-    os << "<li>" << ds_insert_group_link(wsv_group_names[i]) << endl;
+    os << "<li>" << ds_insert_group_link(wsv_group_names[i]) << "</li>" << endl;
     
     if (i+1 == wsv_group_names.nelem()/2)
-      os << "</ul></td><td><ul>" << endl;
+      os << "</ul>" << endl << "</div>" << endl
+      << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
   }
   
-  os << "</ul></td></tr>" << endl;
+  os << "</ul>" << endl << "</div>" << endl;
 }
 
 //! Output list of workspace methods to stream.
@@ -328,19 +354,19 @@ void ds_list_methods (ostream &os)
   extern const Array<MdRecord> md_data_raw;
   Index i;
   
-  os << "<tr><td colspan=\"2\">"
-  << "<h2><span id=\"methods\">Workspace Methods</span></h2></td></tr>" << endl
-  << "<tr><td><ul>" << endl;
+  os << "<h2>Workspace Methods</h2>" << endl;
   
+  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   for ( i=0; i<md_data_raw.nelem(); ++i )
   {
-    os << "<li>" << ds_insert_wsm_link(md_data_raw[i].Name()) << endl;
+    os << "<li>" << ds_insert_wsm_link(md_data_raw[i].Name()) << "</li>" << endl;
     
     if (i+1 == md_data_raw.nelem()/2)
-      os << "</ul></td><td><ul>" << endl;
+      os << "</ul>" << endl << "</div>" << endl
+      << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
   }
   
-  os << "</ul></td></tr>" << endl;
+  os << "</ul>" << endl << "</div>" << endl;
 }
 
 //! Output list of workspace variables to stream.
@@ -355,10 +381,9 @@ void ds_list_variables (ostream &os)
 {
   Index i;
   
-  os << "<tr><td colspan=\"2\">"
-  << "<h2><span id=\"variables\">Workspace Variables</span></h2></td></tr>" << endl
-  << "<tr><td><ul>" << endl;
+  os << "<h2>Workspace Variables</h2>" << endl;
   
+  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   Index hitcount = 0;
   for ( i=0; i<Workspace::wsv_data.nelem(); ++i )
   {
@@ -371,15 +396,16 @@ void ds_list_variables (ostream &os)
   {
     if (Workspace::wsv_data[i].Group() != get_wsv_group_id("Agenda"))
     {
-      os << "<li>" << ds_insert_wsv_link(Workspace::wsv_data[i].Name()) << endl;
+      os << "<li>" << ds_insert_wsv_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
       hitcount2++;
       
       if (hitcount2 == hitcount/2)
-        os << "</ul></td><td><ul>" << endl;
+        os << "</ul>" << endl << "</div>" << endl
+        << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
     }
   }
   
-  os << "</ul></td></tr>" << endl;
+  os << "</ul>" << endl << "</div>" << endl;
 }
 
 
@@ -1376,13 +1402,23 @@ void ds_insert_breadcrumbs (ostream& os, const vector<string>& tokens)
 {
   vector<string> ntokens = tokens;
   ntokens.insert(ntokens.begin(), "");
-  os << "<span class=\"breadcrumbs\">";
+  os << "<div class=\"breadcrumbs\">";
   for (size_t t = 0; t < ntokens.size(); t++)
   {
     if (t) os << "&nbsp;>>&nbsp;";
     ds_insert_breadcrumb_token (os, ntokens, t);
   }
-  os << "</span>" << endl;
+  os << "</div>" << endl;
+  
+os
+<< "<div class=\"goto\">Go to: "
+<< "<a href=\"" << ds_baseurl << "/groups/\">Groups</a>&nbsp;-&nbsp;"
+<< "<a href=\"" << ds_baseurl << "/variables/\">Variables</a>&nbsp;-&nbsp;"
+<< "<a href=\"" << ds_baseurl << "/methods/\">Methods</a>&nbsp;-&nbsp;"
+<< "<a href=\"" << ds_baseurl << "/agendas/\">Agendas</a>"
+<< "</div>" << endl;
+  
+
 }
 
 //! Output error.
@@ -1437,22 +1473,14 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
   {
     ds_begin_page(os, "");
     ds_insert_breadcrumbs (os, tokens);
+    ds_begin_content(os);
     ds_insert_title (os, "Index");
     
-    os
-    << "<p>Go to: "
-    << "<a href=\"" << ds_baseurl << "/groups/\">Groups</a>&nbsp;-&nbsp;"
-    << "<a href=\"" << ds_baseurl << "/variables/\">Variables</a>&nbsp;-&nbsp;"
-    << "<a href=\"" << ds_baseurl << "/methods/\">Methods</a>&nbsp;-&nbsp;"
-    << "<a href=\"" << ds_baseurl << "/agendas/\">Agendas</a>"
-    << endl;
-    
-    os << "<table class=\"list\">" << endl;
     ds_list_groups (os);
     ds_list_variables (os);
     ds_list_methods (os);
     ds_list_agendas (os);
-    os << "</table>" << endl;
+    ds_end_content(os);
     return;
   }
   else if (tokens[0] == "methods")
@@ -1479,16 +1507,20 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
   {
     ds_begin_page(os, "");
     ds_insert_breadcrumbs (os, tokens);
+    ds_begin_content(os);
     ds_insert_error (os, DS_ERROR_404);
+    ds_end_content(os);
     return;
   }
   
   ds_begin_page(os, title);
   ds_insert_breadcrumbs (os, tokens);
+  ds_begin_content(os);
   ds_insert_title (os, title);
   os << "<table class=\"list\">" << endl;
   (*index_method)(os);
   os << "</table>" << endl;
+  ds_end_content(os);
 }
 
 //! Output HTML documentation of a workspace member.
@@ -1531,16 +1563,20 @@ void ds_insert_doc (ostream& os, const vector<string>& tokens)
   {
     ds_begin_page(os, "");
     ds_insert_breadcrumbs (os, tokens);
+    ds_begin_content(os);
     ds_insert_error (os, DS_ERROR_404);
+    ds_end_content(os);
     return;
   }
   
   ds_begin_page(os, tokens[1]);
   ds_insert_breadcrumbs (os, tokens);
+  ds_begin_content(os);
   ds_insert_title (os);
   os << "<h2>" << title << "</h2>" << endl;
   
   (*doc_method)(os, tokens[1]);
+  ds_end_content(os);
 }
 
 //! Output docserver stylesheet.
@@ -1554,7 +1590,7 @@ void ds_insert_doc (ostream& os, const vector<string>& tokens)
 void ds_stylesheet (ostream& os)
 {
   os
-  << "body { font-family: monospace }" << endl
+  << "body { font-family: monospace; }" << endl
   << "a:link { color: #3465a4; text-decoration: none; }" << endl
   << "a:visited { color: #729fcf; text-decoration: none; }" << endl
   << "a:active { color: #ce5c00; text-decoration: none; background-color: #eeeeec}" << endl
@@ -1566,6 +1602,66 @@ void ds_stylesheet (ostream& os)
   << "margin-right: 5%;" << endl
   << "}" << endl
 
+  << "h1 {" << endl
+  << "font-size: 1.5em;" << endl
+  << "}" << endl
+  
+  << "h2 {" << endl
+  << "font-size: 1.25em;" << endl
+  << "}" << endl
+  
+  << "h3 {" << endl
+  << "font-size: 1em;" << endl
+  << "}" << endl
+  
+  << "li {" << endl
+  << "font-size: 1em;" << endl
+  << "}" << endl
+  
+  << ".firstcol {" << endl
+  << "float: left;" << endl
+  << "clear: left;" << endl
+  << "width: 50%;" << endl
+  << "white-space: nowrap;" << endl
+  << "}" << endl
+  
+  << ".firstcol ul {" << endl
+  << "float: left;" << endl
+  << "clear: both;" << endl
+  << "padding-top: 0;" << endl
+  << "}" << endl
+  
+  << ".secondcol ul {" << endl
+  << "float: left;" << endl
+  << "clear: both;" << endl
+  << "padding-top: 0;" << endl
+  << "}" << endl
+  
+  << ".secondcol {" << endl
+  << "float: left;" << endl
+  << "clear: right;" << endl
+  << "width: 50%;" << endl
+  << "white-space: nowrap;" << endl
+  << "}" << endl
+
+  << ".firstcol ul li {" << endl
+  << "margin-left: 0;" << endl
+  << "}" << endl
+  
+  << ".goto {" << endl
+  << "font-size: small;" << endl
+  << "float: right;" << endl
+  << "}" << endl
+  
+  << "@media only screen and (max-device-width: 480px) {" << endl
+  << ".firstcol { float: left; clear: left; width: 100%; }" << endl
+  << ".goto { float: left; clear: both; }" << endl
+  << ".secondcol { float: left; clear: both; width: 100%; }" << endl
+  << ".firstcol ul { margin-top: 0; margin-bottom: 0; }" << endl
+  << ".secondcol ul { margin-top: 0; }" << endl
+  << "ul { padding-left: 1em; }" << endl
+  << "}" << endl
+  
   << "table {" << endl
   << "border-width: 0px;" << endl
   << "}" << endl
@@ -1578,8 +1674,15 @@ void ds_stylesheet (ostream& os)
   << "text-align: right;" << endl
   << "}" << endl
   
+  << ".content {" << endl
+  << "padding-top: .2em;" << endl
+  << "clear: both;" << endl
+  << "width: 100%;" << endl
+  << "}" << endl
+  
   << ".breadcrumbs {" << endl
   << "font-size: small;" << endl
+  << "float: left;" << endl
   << "}" << endl
   
   << ".error {" << endl
@@ -1589,10 +1692,13 @@ void ds_stylesheet (ostream& os)
   << "}" << endl
   
   << "div.footer {" << endl
-  << "margin-top: 2.5em;" << endl
+  << "float: left;" << endl
   << "text-align: right;" << endl
   << "color: #aaaaa8;" << endl
   << "font-size: small;" << endl
+  << "clear: left;" << endl
+  << "margin-top: 2em;" << endl
+  << "width: 100%;" << endl
   << "}" << endl
   
   << endl;
@@ -1683,7 +1789,9 @@ ahc_echo (void *cls _U_,
       default:
         ds_begin_page(hout, "");
         ds_insert_breadcrumbs (hout, tokens);
+        ds_begin_content(hout);
         ds_insert_error (hout, DS_ERROR_404);
+        ds_end_content(hout);
     }
     
     ds_end_page (hout);
