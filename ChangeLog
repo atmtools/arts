@@ -1,3 +1,9 @@
+2011-06-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-27
+
+	* src/docserver.cc: Keep the navigation bar always visible.
+
 2011-06-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-15-26
@@ -23,7 +29,6 @@
 
 	Improved layout on mobile devices.
 
->>>>>>> .r7018
 2011-06-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-15-24

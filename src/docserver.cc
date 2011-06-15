@@ -1402,7 +1402,7 @@ void ds_insert_breadcrumbs (ostream& os, const vector<string>& tokens)
 {
   vector<string> ntokens = tokens;
   ntokens.insert(ntokens.begin(), "");
-  os << "<div class=\"breadcrumbs\">";
+  os << "<div id=\"navbar\"><div class=\"breadcrumbs\">";
   for (size_t t = 0; t < ntokens.size(); t++)
   {
     if (t) os << "&nbsp;>>&nbsp;";
@@ -1416,7 +1416,7 @@ os
 << "<a href=\"" << ds_baseurl << "/variables/\">Variables</a>&nbsp;-&nbsp;"
 << "<a href=\"" << ds_baseurl << "/methods/\">Methods</a>&nbsp;-&nbsp;"
 << "<a href=\"" << ds_baseurl << "/agendas/\">Agendas</a>"
-<< "</div>" << endl;
+<< "</div></div>" << endl;
   
 
 }
@@ -1618,6 +1618,18 @@ void ds_stylesheet (ostream& os)
   << "font-size: 1em;" << endl
   << "}" << endl
   
+  << "#navbar {" << endl
+  << "position: fixed;" << endl
+  << "top: 0px;" << endl
+  << "left: 10px;" << endl
+  << "right: 10px;" << endl
+  << "background-color: #fff;" << endl
+  << "border-bottom: solid 1px #ddd;" << endl
+  << "border-left: solid 1px #ddd;" << endl
+  << "border-right: solid 1px #ddd;" << endl
+  << "padding: 2px;" << endl
+  << "}" << endl
+  
   << ".firstcol {" << endl
   << "float: left;" << endl
   << "clear: left;" << endl
@@ -1653,9 +1665,16 @@ void ds_stylesheet (ostream& os)
   << "float: right;" << endl
   << "}" << endl
   
+  << ".breadcrumbs {" << endl
+  << "font-size: small;" << endl
+  << "float: left;" << endl
+  << "}" << endl
+  
   << "@media only screen and (max-device-width: 480px) {" << endl
+  << "#navbar { position: static; border: none; }" << endl
+  << ".goto { position: static; float: none; }" << endl
+  << ".breadcrumbs { position: static; float: none; }" << endl
   << ".firstcol { float: left; clear: left; width: 100%; }" << endl
-  << ".goto { float: left; clear: both; }" << endl
   << ".secondcol { float: left; clear: both; width: 100%; }" << endl
   << ".firstcol ul { margin-top: 0; margin-bottom: 0; }" << endl
   << ".secondcol ul { margin-top: 0; }" << endl
@@ -1675,14 +1694,9 @@ void ds_stylesheet (ostream& os)
   << "}" << endl
   
   << ".content {" << endl
-  << "padding-top: .2em;" << endl
+  << "padding-top: 1em;" << endl
   << "clear: both;" << endl
   << "width: 100%;" << endl
-  << "}" << endl
-  
-  << ".breadcrumbs {" << endl
-  << "font-size: small;" << endl
-  << "float: left;" << endl
   << "}" << endl
   
   << ".error {" << endl
