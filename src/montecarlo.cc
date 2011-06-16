@@ -531,6 +531,7 @@ void matrix_exp_p30(MatrixView M,
         {
           M(2,3)=sin(c);
           M(3,2)=-sin(c);
+          M(3,3)=cos(c); // Added by GH 2011-06-15 as per e-mail 2011-06-13
         }
     }
   M*=exp(a);    
