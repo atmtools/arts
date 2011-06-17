@@ -580,8 +580,9 @@ void mcPathTraceGeneral(Workspace&            ws,
                         const Tensor4&        vmr_field,
                         const ArrayOfIndex&   cloudbox_limits,
                         const Tensor4&        pnd_field,
-                        const ArrayOfSingleScatteringData& scat_data_mono,
-                        const Index           z_field_is_1D)
+                        const ArrayOfSingleScatteringData& scat_data_mono)
+                        // 2011-06-17 GH commented out, unused?
+                        // const Index           z_field_is_1D)
 
 { 
   ArrayOfMatrix evol_opArray(2);
@@ -601,7 +602,7 @@ void mcPathTraceGeneral(Workspace&            ws,
   id_mat(evol_op);
   evol_opArray[1]=evol_op;
   //initialise Ppath with ppath_start_stepping
-  Index rubbish=z_field_is_1D;rubbish+=1;
+  //Index rubbish=z_field_is_1D;rubbish+=1; // 2011-06-17 GH commented out, unused?
   ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_surface,
                         0, cloudbox_limits, false, 
@@ -798,7 +799,7 @@ void mcPathTraceGeneral(Workspace&            ws,
 Performs the tasks of pathlength sampling,
 ray tracing (but now only as far as determined by pathlength
 sampling) and calculation of the evolution operator and several 
-atmospheric variables at the new point.  THis is the same as mcPathTraceGeneral
+atmospheric variables at the new point.  This is the same as mcPathTraceGeneral
 modified for the independent pixel approximation.
 
 \author Cory Davis
@@ -1664,22 +1665,7 @@ void pha_mat_singleExtract(
 //! Sample_los
 
 /*!
-  Implementation one of two line of sight sampling methods determined by the 
-  input Index 'sampling_method'
-  
-  sampling_method==1:
-     Randomly samples incident direction using a probability density function 
-   proportional to sin(za)(cos(za)+1). sin(za) because dsolid_angle=sin(za)dzadaa
-   , and (cos(za)+1) because upward radiances tend to be greater than downward
-   radiances.  NOTE: THIS IS TERRIBLE IN OPTICALLY THICK CASES AND WILL BE 
-   REMOVED
-
-  sampling_method==2:
-     Randomly samples incident direction using a probability density function 
-   proportional to sin(za).  Better, but again, not very good.
-
-  THIS WHOLE FUNCTION MAY BE SOON REDUNDANT TO SAMPLE_LOS_Z WHICH USES A PDF 
-  PROPORTIONAL TO Z11SINZA
+  FIXME: 2011-06-17 Documentation removed by Gerrit (severely out of date)
 
    \param[out]    new_rte_los     incident line of sight for subsequent 
    \param[out]    g_los_csc_theta probability density for the chosen
@@ -1719,6 +1705,7 @@ void Sample_los (
   bool tryagain=true;
   Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
       
+  // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
   if(anyptype30)
     {
       Index np=pnd_vec.nelem();

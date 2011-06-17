@@ -1445,6 +1445,8 @@ void Workspace::define_wsv_data()
        "parellel and this variable is used for communication between methods,\n"
        "holding the index of the frequency treated presently.\n"
        "\n"
+       "In some contexts, a negative f_index means all frequencies.\n"
+       "\n"
        "Usage: Method output.\n"
        ),
       GROUP( "Index" )));

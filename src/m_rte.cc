@@ -1846,8 +1846,9 @@ void iyMC(
   const String&                     y_unit,
   const Numeric&                    mc_std_err,
   const Index&                      mc_max_time,
-  const Index&                      mc_max_iter,
-  const Index&                      mc_z_field_is_1D )
+  const Index&                      mc_max_iter)
+  // GH 2011-06-17 commented out, unused
+  // const Index&                      mc_z_field_is_1D )
 {
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 3 )
@@ -1912,7 +1913,7 @@ void iyMC(
                  r_geoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
                  pnd_field, scat_data_mono, atm_checked, mc_seed, y_unit, 
-                 mc_std_err, mc_max_time, mc_max_iter, mc_z_field_is_1D);
+                 mc_std_err, mc_max_time, mc_max_iter); // GH 2011-06-17, mc_z_field_is_1D);
 
       assert( y.nelem() == stokes_dim );
 

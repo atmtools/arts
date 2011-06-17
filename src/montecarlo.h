@@ -157,8 +157,9 @@ void mcPathTraceGeneral(Workspace&            ws,
                         const Tensor4&        vmr_field,
                         const ArrayOfIndex&   cloudbox_limits,
                         const Tensor4&        pnd_field,
-                        const ArrayOfSingleScatteringData& scat_data_mono,
-                        const Index           z_field_is_1D);
+                        const ArrayOfSingleScatteringData& scat_data_mono);
+                        // GH 2011-06-17 commented out
+                        // const Index           z_field_is_1D);
 
 void mcPathTraceIPA(Workspace&            ws,
                     MatrixView            evol_op,

@@ -217,8 +217,9 @@ void MCGeneral(Workspace&            ws,
                const String&         y_unit,
                const Numeric&        std_err,
                const Index&          max_time,
-               const Index&          max_iter,
-               const Index&          z_field_is_1D
+               const Index&          max_iter
+               // GH commented out 2011-06-17 unused
+               // const Index&          z_field_is_1D
                )
 {
   // Basic checks
@@ -347,7 +348,7 @@ void MCGeneral(Workspace&            ws,
                       abs_scalar_gas_agenda, stokes_dim, f_index, p_grid, 
                       lat_grid, lon_grid, z_field, r_geoid, z_surface,
                       t_field, vmr_field, cloudbox_limits, pnd_field,
-                      scat_data_mono, z_field_is_1D );
+                      scat_data_mono); //, z_field_is_1D ); // Unused?
            
           np=ppath_step.np;
           mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,

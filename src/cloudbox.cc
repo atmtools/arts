@@ -796,7 +796,7 @@ Numeric barometric_heightformula ( //output is p1
   
   //barometirc height formula
   Numeric M = 0.02896; //mean molar mass of air [kg mol^-1]
-  Numeric g = 9.807; //earth accelaration [kg m s^-1]
+  Numeric g = 9.807; //earth acceleration [kg m s^-1]
   Numeric R = 8.314; //universal gas constant [J K^−1 mol^−1]
   Numeric T = 253; //median tropospheric reference temperature [K]
     

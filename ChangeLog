@@ -1,3 +1,42 @@
+2011-06-17  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-15-29
+
+	* src/m_montecarlo.cc(MCGeneral): Minor change
+	  - Removed argument z_field_is_1D, unused.
+	
+	* src/montecarlo.cc:
+	  (mcPathTraceGeneral): Minor change
+	  - Removed argument z_field_is_1D, unused.
+	  - Removed meaningless line Index rubbish=z_field_is_1D;rubbish+=1;
+	  (mcPathTraceIPA): Fixed typo in comment
+	  (Sample_los): Cleanup
+	  - Removed documentation that beared no link to contents.
+	  - Added small comment documenting what is implemented here
+	
+	* src/methods.cc:
+	  (iyMC): Minor change
+	  - Removed unused z_field_is_1D.
+	  (MCGeneral): Minor change
+	  - Removed unused z_field_is_1D.
+	
+	* src/montecarlo.h:
+	  (mcPathTraceGeneral): Minor change
+	  - Removed unused z_field_is_1D.
+	
+	* src/cloudbox.cc:
+	  (barometric_heightformula): Minor change
+	  - Fixed typo in comment
+	
+	* src/m_rte.cc:
+	  (iYMC): Minor change
+	  - Removed unused z_field_is_1D.
+	
+	* src/workspace.cc:
+	  (f_index): Expanded documentation
+	  - Pointed out that in some contexts, f_index can be negative,
+	  meaning all frequencies.
+
 2011-06-16  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-15-28
