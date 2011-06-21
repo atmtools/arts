@@ -1,0 +1,46 @@
+\chapter{Atmospheric winds}
+ \label{sec:winds}
+
+
+ \starthistory
+ 110621 & Created by Patrick Eriksson.\\
+ \stophistory
+
+%\graphicspath{{Figs/rte/}}
+
+ Atmospheric transport is not considered by ARTS, but winds can still be of
+ importance due to the Doppler effect they can cause. This effect is most
+ significant at high altitudes where the line shape is narrow, and a frequency
+ shift of absorption and emission is most easily discerned. The effect depends
+ also on the angle between the wind vector and the line-of-sight.
+
+
+
+\section{Definitions}
+%==============================================================================
+\label{sec:winds:defs}
+
+The workspace variables to specify winds are \wsvindex{wind\_u\_field},
+\wsvindex{wind\_v\_field} and \wsvindex{wind\_w\_field}, here denoted as
+\WindWE, \WindSN\ and \WindVe, respectively. The definition of these winds
+should be customary for 3D atmospheres, while the \WindSN-wind is treated
+differenntly for 1D and 2D atmospheres.
+
+\subsection{3D}
+%
+\begin{itemize}
+\item[\WindWE] The zonal wind, where a positive wind is defined as air moving
+  from west to east (i.e.\ towards higher longitudes).
+\item[\WindSN] The meridional wind, where a positive wind is defined as air
+  moving from south to north (i.e.\ towards higher latitudes).
+\item[\WindVe] The vertical wind, where a positive wind is defined as air
+  moving upwards.
+\end{itemize}
+
+
+\subsection{1D and 2D}
+%
+The \WindSN-component is assumed to be aligned horisontally with the
+line-of-sight. 
+
+ The \WindWE-component is ignored.

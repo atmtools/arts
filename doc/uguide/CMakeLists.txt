@@ -19,6 +19,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/atmosphere.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/ppath.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/winds.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/surface.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/sensor.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/batch.tex"

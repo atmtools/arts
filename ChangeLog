@@ -1,3 +1,13 @@
+2011-06-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-15-30
+
+	* doc/uguide/CMakeLists.txt: Added winds.tex.
+
+	* doc/uguide/winds.tex: Started.
+
+	* doc/uguide/arts_user.tex: Now includes a wind section.
+
 2011-06-17  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-15-29
