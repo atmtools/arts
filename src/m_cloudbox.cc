@@ -1186,6 +1186,30 @@ void pnd_fieldSetup ( //WS Output:
     lon_cbend = cloudbox_limits[5]+1;
 
   }
+  
+  /* Do some checks. Not foolproof, but catches at least some. */
+
+  if ((p_cbend > massdensity_field.npages()) ||
+      (p_cbend > t_field.npages()) ||
+      (lat_cbend > massdensity_field.nrows()) ||
+      (lat_cbend > t_field.nrows()) ||
+      (lon_cbend > massdensity_field.ncols()) ||
+      (lon_cbend > t_field.ncols()))
+  {
+    ostringstream os;
+    os << "Cloudbox out of bounds compared to fields. "
+       << "Upper limits: (p, lat, lon): "
+       << "(" << p_cbend << ", " << lat_cbend << ", " << lon_cbend << "). "
+       << "*massdensity_field*: "
+       << "(" << massdensity_field.npages() << ", "
+       << massdensity_field.nrows() << ", "
+       << massdensity_field.ncols() << "). "
+       << "*t_field*: "
+       << "(" << t_field.npages() << ", "
+       << t_field.nrows() << ", "
+       << t_field.ncols() << ").";
+    throw runtime_error(os.str());
+  }
 
   //resize pnd_field to required atmospheric dimension and scatt particles
   pnd_field.resize ( scat_data_meta_array.nelem(), p_cbend-p_cbstart,
