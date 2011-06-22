@@ -15,6 +15,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
   include (ArtsBuildTexDoc)
 
   file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_user.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/common.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/concept.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/atmosphere.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte.tex"
@@ -33,6 +34,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
   ARTS_ADD_TEX_DOC ("arts_user" "${TEXFILES}" "${FIGFILES}")
   
   file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_developer.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/common.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/development.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/agendas.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/matrix_vector.tex"
@@ -44,6 +46,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
   ARTS_ADD_TEX_DOC ("arts_developer" "${TEXFILES}" "${FIGFILES}")
   
   file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_theory.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/common.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/formalismn.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte_theoryn.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/polarization.tex"

@@ -1,5 +1,19 @@
 2011-06-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-15-36
+
+	* doc/uguide/arts_theory.tex:
+
+	No need for further delays... only one verbatim here.
+
+	* doc/uguide/app_wsv.tex: Removed. Unused.
+
+	* doc/uguide/CMakeLists.txt: Add common.tex to all three targets.
+
+	* doc/uguide/common.tex: Remove verbatim package.
+
+2011-06-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-15-35
 
 	* doc/uguide/absorption.tex, doc/uguide/development.tex,
