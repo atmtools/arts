@@ -2199,12 +2199,6 @@ void define_lineshape_norm_data()
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord
-     ("linear",
-      "Linear normalization of the lineshape with f/f0.",
-      lineshape_norm_linear));
-
-  lineshape_norm_data.push_back
-    (LineshapeNormRecord
      ("quadratic",
       "Quadratic normalization of the lineshape with (f/f0)^2.",
       lineshape_norm_quadratic));

@@ -1,3 +1,36 @@
+2011-06-22  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-37
+
+	* src/methods.cc (abs_lineshapeDefine): Removed the option of a
+	linear forefactor (makes no physical sense, removal was already
+	decided at last ARTS workshop).
+
+	* src/continua.cc: Only cosmetics.
+
+	* src/lineshapes.cc (define_lineshape_norm_data): Removed the option of a
+	linear forefactor.
+
+	* doc/uguide/arts_theory.tex: Include new chapter absorption_theory.tex.
+
+	* doc/uguide/CMakeLists.txt (arts_user): Added absorption.tex,
+	which was missing, although it is already a part of the document.
+	(arts_theory): Added absorption_theory.tex, the new chapter.
+
+	* doc/uguide/absorption_theory.tex: Added. This will become the new
+	absorption chapter in the theory guide. Most of the ARTS-1
+	absorption documentation will go here. My plan is to then add a
+	short practical part in the user guide, with appropriate references to
+	the theory guide. Work in progress!
+
+	* doc/uguide/references.bib: Added some references needed by
+	absorption_theory.tex.
+
+	* doc/uguide/old_absorption.tex: Removed. This was obsolete, an
+	earlier attempt to move absorption documentation to ARTS-2, but
+	the ARTS-1 documentation has changed so much in the mean time that
+	I make a fresh start.
+
 2011-06-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-15-36
@@ -60,7 +93,7 @@
 
 	* src/m_cloudbox.cc(pnd_fieldSetup): Bugfix
 	  - Initialise pnd_field even if cloudbox is of (set zero-sized).
-	
+
 	* src/m_montecarlo.cc(MCGeneral): Bugfix
 	  - If there are no scattering particles, throw an exception (was
 	  assertion).
@@ -70,7 +103,7 @@
 	* arts-1-15-32
 
 	* doc/uguide/winds.tex: A complete version (described stuff not
-	yet implemented). 
+	yet implemented).
 
 	* doc/uguide/arts_user.tex: Added geoid and wind sections under
 	PE. Moved batch section from PE to SB.
@@ -99,7 +132,7 @@
 
 	* src/m_montecarlo.cc(MCGeneral): Minor change
 	  - Removed argument z_field_is_1D, unused.
-	
+
 	* src/montecarlo.cc:
 	  (mcPathTraceGeneral): Minor change
 	  - Removed argument z_field_is_1D, unused.

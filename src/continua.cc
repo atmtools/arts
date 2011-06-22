@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2008
+/* Copyright (C) 2001-2011
    Thomas Kuhn    <tkuhn@uni-bremen.de>
    Stefan Buehler <sbuehler@ltu.se>
 
@@ -9379,7 +9379,7 @@ Numeric WVSatPressureIce(const Numeric t)
                        however one is forced to give this input [1]
     \param  vmr        Volume mixing ratio profile of the actual species [1]
 
-   \author Stefan Bühler, Thomas Kuhn
+   \author Stefan Buehler, Thomas Kuhn
    \date 2001-11-05
  */
 void xsec_continuum_tag( MatrixView             xsec,
@@ -12641,7 +12641,7 @@ void xsec_continuum_tag( MatrixView             xsec,
 /**
    An auxiliary functions that checks if a given continuum model is
    listed in species_data.cc. This is just in order to verify that this
-   really represent a valid continuum model.
+   really represents a valid continuum model.
 
    The given name should be something like
    `ContStandardSelf'. The function simply checks if there is a
