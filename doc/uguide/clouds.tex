@@ -482,13 +482,13 @@ be included in an ARTS calculation.
 First we have to define the cloudbox region, i.e. the region where
 scattering objects are found. To do this we use the method
 \wsmindex{cloudboxSetManuallyAltitude}:
-\begin{verbatim}
+\begin{lstlisting}
 cloudboxSetManuallyAltitude( cloudbox_on, cloudbox_limits,
                              atmosphere_dim, p_grid,
                              lat_grid, lon_grid,
                              8000, 120000,
                              0, 0, 0, 0 )
-\end{verbatim}
+\end{lstlisting}
 If we want to do a simulation for a
 cirrus cloud at an altitude from 9 to 11\,km the cloudbox limits can
 be set to 8 and 12\,km. The latitude and longitude limits are set to
@@ -499,7 +499,7 @@ instead of altitude limits.
  
 Now we have to specify the cloud particles inside the scattering
 region:
-\begin{verbatim}
+\begin{lstlisting}
 # Initialisation
 ParticleTypeInit
 # Only one particle type is added in this example 
@@ -508,7 +508,7 @@ ParticleTypeAdd( scat_data_raw, pnd_field_raw,
                  lat_grid, lon_grid, cloudbox_limits,
                  "ssd_sphere_50um_p20.xml",
                  "pnd_sphere_50um_p20.xml" )
-\end{verbatim}
+\end{lstlisting}
 In the workspace method \wsmindex{ParticleTypeAdd} the single
 scattering properties for one particle type are read. The
 generic input \artsstyle{filename\_scat\_data} must be set to
@@ -521,13 +521,13 @@ different particle types \wsmindex{ParticleTypeAdd} can be used
 repeatedly for all particle types, for instance one could add to the
 randomly oriented spherical particles above horizontally aligned
 cylindrical particles:
-\begin{verbatim}
+\begin{lstlisting}
 ParticleTypeAdd( scat_data_raw, pnd_field_raw,
                  atmosphere_dim, f_grid, p_grid,
                  lat_grid, lon_grid, cloudbox_limits,
                  "ssd_cylinder_30um_p30.xml",
                  "pnd_cylinder_30um_p30.xml" )
-\end{verbatim}
+\end{lstlisting}
 Alternatively it is possible to use the method
 \wsmindex{ParticleTypeAddAll}, which is convenient to generate a size
 distribution using several size bins. In this case one needs to define
@@ -543,10 +543,10 @@ scattering data corresponds to the order of the particle number
 density fields in \wsvindex{pnd\_field\_raw}.
 After reading the data the workspace variable \wsvindex{pnd\_field} is
 calculated using \wsmindex{pnd\_fieldCalc}: 
-\begin{verbatim}
+\begin{lstlisting}
 # Calculate the particle number density field
 pnd_fieldCalc
-\end{verbatim}
+\end{lstlisting}
 
 The definition of the single scattering data along with the
 corresponding particle number density fields is common in both

@@ -38,6 +38,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/matrix_vector.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/gridded_fields.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/interpolation.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/integration.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/lin_alg.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_developer" "${TEXFILES}" "${FIGFILES}")

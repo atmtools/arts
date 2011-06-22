@@ -95,12 +95,12 @@ Each \artsstyle{GriddedFieldX} offers two constructors. One default
 constructor that creates an unnamed gridded field and a second constructor
 that takes a string with the name of the gridded field as an argument.
 
-\begin{verbatim}
+\begin{lstlisting}
 GriddedField1 gfone("I'm a GriddedField1");
 GriddedField2 gftwo;
 
 gftwo.set_name ("I'm a GriddedField2");
-\end{verbatim}
+\end{lstlisting}
 
 
 \subsection{Initializing the grids}
@@ -114,7 +114,7 @@ string grid. In the following example we set up two gridded fields: A
 with a numeric grid for the rows and a string grid for the columns. Each grid
 can be assigned a name to describe its contents or unit.
 
-\begin{verbatim}
+\begin{lstlisting}
 Vector gfonegrid(1,5,1);        // gfonegrid = [1,2,3,4,5]
 gfone.set_grid(0, gfonegrid);   // Set grid for the vector elements.
 
@@ -128,7 +128,7 @@ gfone.set_grid_name (0, "Pressure");
 
 gftwo.set_grid_name (0, "Pressure");
 gftwo.set_grid_name (1, "Channel");
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Initializing the data}
 %-------------------------------------------------------------------------
@@ -139,7 +139,7 @@ For a \artsstyle{GriddedField1} \artsstyle{data} is a \artsstyle{Vector}, for a 
 
 The following code shows how to fill the gridded fields from the previous example with data:
 
-\begin{verbatim}
+\begin{lstlisting}
 Vector avector(1,4,0.5);    // avector = [1,1.5,2,2.5]
 
 gfone.data = avector;
@@ -147,7 +147,7 @@ gfone.data = avector;
 Matrix amatrix(5,3,4.);     // amatrix = [[4,4,4],[4,4,4],...]
 
 gftwo.data = amatrix;
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Consistency check}
 %-------------------------------------------------------------------------
@@ -158,7 +158,7 @@ that the size of the grids does not match the size of the data anymore. Each
 gridded field provides a convenience function which can be called to perform a
 consistency check.
 
-\begin{verbatim}
+\begin{lstlisting}
 if (!gfone.checksize())
   cout << gfone.get_name()
        << ": Sizes of grid and data don't match" << endl;
@@ -167,7 +167,7 @@ if (!gfone.checksize())
 if (!gftwo.checksize())
   cout << gftwo.get_name()
        << ": Sizes of grids and data don't match" << endl;
-\end{verbatim}
+\end{lstlisting}
 
 The complete source code of the examples from this chapter can be found in
 \artsstyle{src/test\_gridded\_fields.cc}.

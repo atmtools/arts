@@ -129,8 +129,7 @@ The gas absorption lookup table is implemented by the class
 Below you find the actual declaration of the class GasAbsLookup with
 extensive comments.
 
-{\footnotesize
-\begin{verbatim}
+\begin{lstlisting}
 //! An absorption lookup table.
 /*! This class holds an absorption lookup table, as well as all
     information that is necessary to use the table to extract
@@ -267,8 +266,7 @@ private:
   */
   Tensor4 xsec;
 };
-\end{verbatim}
-}
+\end{lstlisting}
 
 \subsubsection{Workspace variables and methods}
 
@@ -329,7 +327,7 @@ not a complete controlfile. \FIXME{Eventually there should be a good
   complete example in doc/examples. For the moment you can look at the
 examples in sbuehler/arts\_calc/abs\_lookup\_2/.}
 
-\begin{verbatim}
+\begin{lstlisting}
 # Read lookup table:
 ReadXML( abs_lookup, "some_table.xml" )
 
@@ -352,7 +350,7 @@ abs_fieldCalc
 
 # Write out the field:
 WriteXML( "ascii", abs_field, "" )
-\end{verbatim}
+\end{lstlisting}
 
 Use the online documentation for the methods and variables mentioned
 to learn more.

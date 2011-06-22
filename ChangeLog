@@ -1,5 +1,24 @@
 2011-06-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-15-35
+
+	* doc/uguide/absorption.tex, doc/uguide/development.tex,
+	doc/uguide/integration.tex, doc/uguide/matrix_vector.tex,
+	doc/uguide/concept.tex, doc/uguide/scattering.tex,
+	doc/uguide/arts_user.tex, doc/uguide/CMakeLists.txt,
+	doc/uguide/batch.tex, doc/uguide/interpolation.tex,
+	doc/uguide/gridded_fields.tex, doc/uguide/clouds.tex,
+	doc/uguide/sensor.tex, doc/uguide/arts_developer.tex:
+
+	Replace all verbatim environments with lstlisting and remove font size
+	workarounds like \small or \footnotesize.
+
+	arts_theory files will follow after Stefan finished working on it.
+
+	* doc/uguide/CMakeLists.txt: Add missing integration.tex.
+
+2011-06-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-15-34
 
 	* doc/uguide/common.tex:

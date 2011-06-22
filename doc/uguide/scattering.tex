@@ -694,24 +694,24 @@ workspace methods and variables please refer also to the online help
 As a first step for a DOIT calculation we have to calculate the
 incoming field on the boundary of the cloudbox. This is done using the
 workspace method \wsmindex{CloudboxGetIncoming}:
-\begin{verbatim}
+\begin{lstlisting}
 CloudboxGetIncoming
-\end{verbatim}
+\end{lstlisting}
 The next step is the initialization of variables required for a DOIT
 calculation using \wsmindex{DoitInit}:
-\begin{verbatim}
+\begin{lstlisting}
 DoitInit
-\end{verbatim}
+\end{lstlisting}
 The grid discretization plays a very significant role in discrete
 ordinate methods. In spherical geometry the zenith angular grid is of
 particular importance (cf. Section \ref{sec:scattering:grid_opt_interp}). 
 The angular discretization is defined in the workspace method
 \wsmindex{DoitAngularGridsSet}:
-\begin{verbatim} 
+\begin{lstlisting} 
 DoitAngularGridsSet( doit_za_grid_size,
                      scat_aa_grid, scat_za_grid,
                      19, 10, "doit_za_grid_opt.xml" )
-\end{verbatim}
+\end{lstlisting}
 For down-looking geometries it is sufficient to define the generic inputs:
 \begin{tabular}{ll}
   \artsstyle{N\_za\_grid}& Number of grid points in zenith angle grid,
@@ -742,9 +742,9 @@ The main agenda for a DOIT calculation is
 \wsaindex{doit\_mono\_agenda}. 
 The agenda is executed by the workspace method
 \wsmindex{ScatteringDoit}:
-\begin{verbatim}
+\begin{lstlisting}
 ScatteringDoit
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{The DOIT main agenda}
 \label{sec:scattering:doit_main_agenda}
@@ -754,7 +754,7 @@ clearsky field on the cloudbox boundary as an input and gives as
 output the scattered field on the cloudbox boundary if the sensor is
 placed outside the cloudbox or the full scattered field in the
 cloudbox if the sensor is placed inside the cloudbox.
-\begin{verbatim}
+\begin{lstlisting}
 AgendaSet( doit_mono_agenda ){
  # Prepare scattering data for DOIT calculation (Optimized method):
    DoitScatteringDataPrepare
@@ -768,7 +768,7 @@ AgendaSet( doit_mono_agenda ){
  # Put solution into interface for clearsky calculation   
    DoitCloudboxFieldPut
  }		
-\end{verbatim}
+\end{lstlisting}
 The first method \wsmindex{DoitScatteringDataPrepare} reads the
 single scattering data and interpolates it on the requested
 frequency. It also performs the transformation from the scattering
@@ -815,7 +815,7 @@ To calculate the scattering integral (Equation \ref{eq:scattering:scat-int})
 the phase matrix (\wsvindex{pha\_mat}) is required. How 
 the phase matrix is calculated is defined in the agenda
 \wsaindex{pha\_mat\_spt\_agenda}:
-\begin{verbatim}
+\begin{lstlisting}
 # Calculation of the phase matrix
 AgendaSet( pha_mat_spt_agenda ){
  # Optimized option:
@@ -823,7 +823,7 @@ AgendaSet( pha_mat_spt_agenda ){
  # Alternative option:
  #  pha_mat_sptFromMonoData
 }
-\end{verbatim}
+\end{lstlisting}
 If in \wsaindex{doit\_mono\_agenda}
 the optimized method \wsmindex{DoitScatteringDataPrepare} is used we
 have to use here the corresponding method
@@ -832,13 +832,13 @@ have to use here the corresponding method
 
 To do the integration itself, we have to define
 \wsaindex{doit\_scat\_field\_agenda}:
-\begin{verbatim}
+\begin{lstlisting}
 AgendaSet( doit_scat_field_agenda ){
  doit_scat_fieldCalcLimb
  # Alternative: 
  # doit_scat_fieldCalc
 }
-\end{verbatim}
+\end{lstlisting}
 Here we have two options. One is \wsmindex{doit\_scat\_fieldCalcLimb},
 which should be used for limb simulations, for which we need a fine
 zenith angle grid resolution to represent the radiation field. This
@@ -873,14 +873,14 @@ method \wsmindex{doit\_i\_fieldUpdateSeq1DPP}. This method is not
 much more efficient than \wsmindex{doit\_i\_fieldUpdateSeq1D},
 therefore it is usually better to use
 \wsmindex{doit\_i\_fieldUpdateSeq1D} since it is more accurate. 
-\begin{verbatim}
+\begin{lstlisting}
 AgendaSet( doit_rte_agenda ){
      doit_i_fieldUpdateSeq1D
    # Alternatives:
    # doit_i_fieldUpdateSeq1DPP
    # i_fieldUpdate1D
    }
-\end{verbatim}
+\end{lstlisting}
 The optical properties of the particles, i.e., extinction matrix and
 absorption vector are required for solving the radiative transfer
 equation. How they are calculated is specified in
@@ -895,7 +895,7 @@ Section \ref{sec:scattering:doit_main_agenda}). The work space method
 extract the absorption vector \wsvindex{abs\_vec} and extinction
 matrix \wsvindex{ext\_mat} from the workspace variable
 \wsvindex{opt\_prop\_spt}. The gas absorption is added internally. 
-\begin{verbatim}
+\begin{lstlisting}
 AgendaSet( spt_calc_agenda ){
    opt_prop_sptFromMonoData
 }
@@ -905,7 +905,7 @@ AgendaSet( opt_prop_part_agenda ){
    ext_matAddPart
    abs_vecAddPart
 }
-\end{verbatim}
+\end{lstlisting}
 
 \paragraph{Convergence test:}
 After the radiative transfer calculations with a fixed scattering
@@ -927,7 +927,7 @@ convergence test using the workspace method
 \wsmindex{doit\_conv\_flagLsq}. Test calculations have shown that this
 test is not safe, therefore the least square convergence test should
 only be used for test purposes.
-\begin{verbatim}
+\begin{lstlisting}
 AgendaSet( doit_conv_test_agenda) {
     doit_conv_flagAbsBT( doit_conv_flag, doit_iteration_counter,
                          doit_i_field, doit_i_field_old,
@@ -944,7 +944,7 @@ AgendaSet( doit_conv_test_agenda) {
     # DoitWriteIterationFields( doit_iteration_counter, doit_i_field,
     #                           [2, 4] )
 }
-\end{verbatim}
+\end{lstlisting}
 \subsection{Propagation of the DOIT result towards the sensor}
 In order to propagate the result of the scattering calculation towards
 the sensor, the fields needs to be interpolated on the direction of
@@ -952,11 +952,11 @@ the sensor's line of sight. This is done in the workspace method
 \wsmindex{iyInterpCloudboxField}, which has to be put into the agenda
 \wsaindex{iy\_cloudbox\_agenda}:
 
-\begin{verbatim}
+\begin{lstlisting}
 AgendaSet( iy_cloudbox_agenda ){
     iyInterpCloudboxField
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{3D DOIT calculations}
 

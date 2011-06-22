@@ -133,17 +133,13 @@ further below).  The easiest way to access this documentation is on
 the web page
 \url{http://www.sat.ltu.se/arts/docserver}. Alternatively, start ARTS
 with
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts -s
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 or
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts --docserver
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 and then point your browser to \url{http://localhost:9000/}.
 
 \subsection{Test and include controlfiles}
@@ -176,17 +172,13 @@ general, there is a short form and a long form for each parameter. The
 short form consists of a minus sign and a single letter, whereas the
 long form consists of two minus signs and a descriptive name. To get a
 full list of available command line parameters, type
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts -h
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 or
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts --help
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 
 \section{ARTS as a scripting language}
 
@@ -198,11 +190,9 @@ manner. As a result, ARTS behaves like a \textindex{scripting
 instructions. When ARTS is executed, the controlfile is parsed, and
 then the instructions are executed sequentially. Controlfile
 \artsstyle{somefile.arts} is executed by running
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts somefile.arts
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 
 A minimal ARTS controlfile example (the well-known `Hello World' program) is
 given in Figure \ref{fig:hello}. In this example, the variable \artsstyle{s} is
@@ -289,7 +279,6 @@ documentation also lists all methods that take \artsstyle{f\_grid} as
 input and all methods that produce \artsstyle{f\_grid} as output.
 
 \begin{figure}
-\footnotesize
 \begin{lstlisting}
 *-------------------------------------------------------*
 Workspace variable = f_grid
@@ -413,7 +402,6 @@ temperature, and trace gas volume mixing ratio values as inputs. The agenda
 then provides absorption coefficients as output.
 
 \begin{figure}
-\footnotesize
 \begin{lstlisting}
 *-------------------------------------------------------------------*
 Workspace variable = abs_scalar_gas_agenda
@@ -444,17 +432,17 @@ Input  = f_index, rte_pressure, rte_temperature, rte_vmr_list
 \end{lstlisting}
 \begin{minipage}[t]{0.48\hsize}
 \begin{lstlisting}
-AgendaSet( abs_scalar_gas_agenda ){
+AgendaSet(abs_scalar_gas_agenda){
   abs_scalar_gasCalcLBL
 }
 \end{lstlisting}
 \end{minipage}
 \hspace*{\fill}
-\rule[-40pt]{.5pt}{40pt}
+\rule[-50pt]{.5pt}{50pt}
 \hspace*{\fill}
 \begin{minipage}[t]{0.48\hsize}
 \begin{lstlisting}
-AgendaSet( abs_scalar_gas_agenda ){
+AgendaSet(abs_scalar_gas_agenda){
   abs_scalar_gasExtractFromLookup
 }
 \end{lstlisting}
@@ -508,11 +496,9 @@ distribution.
 The directory \fileindex{tests} in the ARTS distribution contains some
 test and \textindex{example controlfiles}.  You should study them to learn more about how
 the program works. You can run these controlfiles like this:
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts TestAbs.arts
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 This assumes that you are in the directory where the control
 file resides, and that the \artsstyle{arts} executable is in
 your path. 
@@ -520,11 +506,9 @@ your path.
 Alternatively, you can run a standard set of the test controlfiles by
 going to the \fileindex{tests} directory under your build directory
 (\emph{not} the one in the ARTS distribution), and say
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   make check
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 This standard set of test is run by us on every automatic build, that
 means every time a new ARTS version is submitted to the subversion
 repository. If your ARTS installation is healthy, \artsstyle{make
@@ -535,17 +519,13 @@ on how to build ARTS.)
 \section{Verbosity levels}
 
 The command line parameter 
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts -r
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 or
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
   arts --reporting
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 can be used to set how much output ARTS produces. You can supply a
 three-digit integer here. Each digit can have a value between 0 and 3.
 

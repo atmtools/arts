@@ -98,8 +98,7 @@ convenient function \funcindex{chk\_interpolation\_grids} for this
 purpose, which resides in file \fileindex{check\_input.cc}. The
 function has the following parameters:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 const String&     which_interpolation   A string describing the 
                                         interpolation for which 
                                         the grids are intended. 
@@ -110,8 +109,7 @@ const Numeric&    extpolfac             The extrapolation fraction.
                                         details. Has a default 
                                         value, which is consistent 
                                         with gridpos.  
-\end{verbatim}
-}
+\end{lstlisting}
 
 There is also a special version for the case that the new grid is just
 a scalar. What the function does is check if old and new grid for an
@@ -146,14 +144,14 @@ many times over. We store the two numerics in a plain C array of
 dimension 2. (No need to use a fancy Array or Vector for this, since
 the dimension is fixed.) So the structure \typeindex{GridPos} looks like:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct GridPos  {
    Index   idx;      /*!< Original grid index below
                           interpolation point. */
    Numeric fd[2];    /*!< Fractional distance to next point
                           (0<=fd[0]<=1), fd[1] = 1-fd[0]. */ 
 };
-\end{verbatim}
+\end{lstlisting}
 
 For example, \artsstyle{idx}=3 and \artsstyle{fd}=0.5 means that this interpolation point is
 half-way between index 3 and 4 of the original grid.  Note, that
@@ -164,8 +162,7 @@ the interpolation point.  In other words, grid positions and
 fractional distances are defined relative to the order of the original
 grid. Examples:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 old grid = 2 3
 new grid = 2.25
 idx      = 0
@@ -175,8 +172,7 @@ old grid = 3 2
 new grid = 2.25
 idx      = 0
 fd[0]    = 0.75
-\end{verbatim}
-}
+\end{lstlisting}
 
 Note that \artsstyle{fd[0]} is different in the second case, because the old grid
 is sorted in descending order. Note also that \artsstyle{idx} is the same in
@@ -191,14 +187,12 @@ Grid positions for a whole new grid are stored in an \artsstyle{Array<GridPos>}
 There is only one function to set up grid position arrays, namely 
 \funcindex{gridpos}:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid 
               const Numeric&  extpolfac=0.5 );
-\end{verbatim}
-}
+\end{lstlisting}
 
 \hspace{-\parindent}Some points to remember:
 \begin{itemize}
@@ -223,17 +217,14 @@ void gridpos( ArrayOfGridPos& gp,
   than interpolation, you should know that gridpos guarantees the
   following:\newline
   For the ascending old grid case: 
-  {\small
-   \begin{verbatim}
+   \begin{lstlisting}
    old_grid[tgp.idx]<=tng || tgp.idx==0
-   \end{verbatim}
-  }
+   \end{lstlisting}
+
   And for the descending old grid case: 
-  {\small
-   \begin{verbatim}
+   \begin{lstlisting}
    old_grid[tgp.idx]>=tng || tgp.idx==0
-   \end{verbatim}
- }
+   \end{lstlisting}
 
 \item   Finally, note that parameter \artsstyle{extpolfac} plays the
   same role as explained above in Section
@@ -311,8 +302,7 @@ positions.
 
 In this case the functions are:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 void interpweights( MatrixView itw,
                     const ArrayOfGridPos& cgp );
 void interpweights( MatrixView itw,
@@ -329,8 +319,7 @@ void interpweights( MatrixView itw,
                     const ArrayOfGridPos& pgp,
                     const ArrayOfGridPos& rgp,
                     const ArrayOfGridPos& cgp );
-\end{verbatim}
-}
+\end{lstlisting}
 
 In all cases, the dimension of \artsstyle{itw} must be consistent with the
 given grid position arrays and the dimension of the interpolation
@@ -342,8 +331,7 @@ the same length.
 
 In this case the functions are:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 void interpweights( Tensor3View itw,
                     const ArrayOfGridPos& rgp,
                     const ArrayOfGridPos& cgp );
@@ -369,8 +357,7 @@ void interpweights( Tensor7View itw,
                     const ArrayOfGridPos& pgp,
                     const ArrayOfGridPos& rgp,
                     const ArrayOfGridPos& cgp );
-\end{verbatim}
-}
+\end{lstlisting}
 
 In this case the grid position arrays are interpreted as defining the
 grids for the interpolated field, therefore they can have different
@@ -390,8 +377,7 @@ performs this step.
 
 \subsection{Blue interpolation}
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 void interp( VectorView            ia,
              ConstMatrixView       itw,
              ConstVectorView       a,    
@@ -431,13 +417,11 @@ void interp( VectorView            ia,
              const ArrayOfGridPos& pgp,
              const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
-\end{verbatim}
-}
+\end{lstlisting}
 
 \subsection{Green interpolation}
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 void interp( MatrixView            ia,
              ConstTensor3View      itw,
              ConstMatrixView       a,   
@@ -473,8 +457,7 @@ void interp( Tensor6View           ia,
              const ArrayOfGridPos& pgp,
              const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
-\end{verbatim}
-}
+\end{lstlisting}
 
 \section{Examples}
 %----------------------------------------------------------------------
@@ -483,8 +466,7 @@ void interp( Tensor6View           ia,
 
 This example is contained in file \fileindex{test\_interpolation.cc}.
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 void test05()
 {
   cout << "Very simple interpolation case\n";
@@ -520,15 +502,13 @@ void test05()
 
   cout << "New field:\n" << nf << "\n";
 }
-\end{verbatim}
-}
+\end{lstlisting}
 
 \hspace{-\parindent}Ok, maybe you think this is not so simple, but a
 large part of the code is either setting up the example grids and
 fields, or output. And here is how the output looks like:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 Very simple interpolation case
 Original grid:
   1   2   3   4   5
@@ -550,8 +530,7 @@ Original field:
   0   0  10   0   0
 New field:
   0 2.5   5 7.5  10
-\end{verbatim}
-}
+\end{lstlisting}
 
 \subsection{A more elaborate example}
 
@@ -562,8 +541,7 @@ interpolation case. (Green type interpolation of all pages of a
 Tensor3.) This example is also contained in file
 \artsstyle{test\_interpolation.cc}.
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 void test04()
 {
   cout << "Green type interpolation of all "
@@ -630,13 +608,11 @@ void test04()
       cout << "page " << i << ":\n"
            << n(i,Range(joker),Range(joker)) << "\n";
 }
-\end{verbatim}
-}
+\end{lstlisting}
 
 \hspace{-\parindent}The output is:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 Green type interpolation of all pages of a Tensor3
 Original field:
 page 0:
@@ -670,8 +646,7 @@ page 2:
   0  15  30  15   0
   0 7.5  15 7.5   0
   0   0   0   0   0
-\end{verbatim}
-}
+\end{lstlisting}
 
 
 \section{Higher order interpolation}
@@ -719,10 +694,10 @@ are not yet implemented, but this should be a relatively simple matter.
 In contrast to \artsstyle{GridPos}, \artsstyle{GridPosPoly} stores
 weights \artsstyle{w} rather than fractional distances \artsstyle{fd}.
 For the linear case:
-\begin{verbatim}
+\begin{lstlisting}
   w[0] = fd[1]
   w[1] = fd[0]
-\end{verbatim}
+\end{lstlisting}
 
 So the two concepts are almost the same.  Because the w are associated
 with each interpolation point, they work also for higher interpolation
@@ -748,18 +723,18 @@ with \artsstyle{GridPosPoly} are implemented in
 \artsstyle{interpolation\_poly.cc}.) So, a complete interpolation chain
 involves:
 
-\begin{verbatim}
+\begin{lstlisting}
 gridpos_poly
 interpweights
 interp
-\end{verbatim}
+\end{lstlisting}
 
 For $O=1$ the result of the
 interpolation chain will be the same as for the linear interpolation
 routines. Below is a simple complete example, taken from
 the file \artsstyle{test\_interpolation.cc} in the arts source directory: 
 
-\begin{verbatim}
+\begin{lstlisting}
 void test08()
 {
   cout << "Very simple interpolation case for the "
@@ -812,7 +787,7 @@ void test08()
       cout << "\n";
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 
