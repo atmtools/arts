@@ -3,7 +3,7 @@
 
 
  \starthistory
- 110621 & Created by Patrick Eriksson.\\
+ 110622 & Created by Patrick Eriksson.\\
  \stophistory
 
 %\graphicspath{{Figs/rte/}}
@@ -16,18 +16,29 @@
 
 
 
-\section{Definitions}
+\section{Definitions and practicalities}
 %==============================================================================
 \label{sec:winds:defs}
 
-The workspace variables to specify winds are \wsvindex{wind\_u\_field},
-\wsvindex{wind\_v\_field} and \wsvindex{wind\_w\_field}, here denoted as
-\WindWE, \WindSN\ and \WindVe, respectively. The definition of these winds
-should be customary for 3D atmospheres, while the \WindSN-wind is treated
-differenntly for 1D and 2D atmospheres.
-
-\subsection{3D}
+\subsection{Needed input}
 %
+The workspace variables to specify winds are \wsvindex{wind\_u\_field},
+\wsvindex{wind\_v\_field} and \wsvindex{wind\_w\_field}, below denoted as
+\WindWE, \WindSN\ and \WindVe, respectively. The user need to set all these
+three variables. It is allowed for all three wind components to set the
+variable to be empty, which is shorthand for saying that the wind is zero
+throughout the atmosphere. Otherwise, the size of the variable is required to
+match the atmospheric grids. The variable \artsstyle{wind\_u\_field} is not
+considered for 1D and 2D.
+
+No further input is required, a Doppler shift is
+added as soon as any of the winds is non-zero (with exceptions discussed in
+Section~\ref{sec:winds:limitations}).
+
+
+\subsection{Definition for 3D atmospheres}
+%
+The definition of the winds should be the standard one for 3D atmospheres:
 \begin{itemize}
 \item[\WindWE] The zonal wind, where a positive wind is defined as air moving
   from west to east (i.e.\ towards higher longitudes).
@@ -38,9 +49,78 @@ differenntly for 1D and 2D atmospheres.
 \end{itemize}
 
 
-\subsection{1D and 2D}
+\subsection{Definition for 1D and 2D atmospheres}
 %
-The \WindSN-component is assumed to be aligned horisontally with the
-line-of-sight. 
+As these atmospheric dimensionalities do not have an azimuthal dimensions, it
+only makes sense to operate with a single horizontal wind component and
+\artsstyle{wind\_v\_field} is used for this purpose, \artsstyle{wind\_u\_field}
+is ignored. The \WindSN-component is assumed to be totally aligned azimuthally
+with the line-of-sight. That is, the horizontal wind is radial, centred around
+the sensor. For 1D a positive wind signifies air moving away from the sensor.
+For 2D, a positive wind is air moving against higher latitudes (as for 3D).
+The vertical component is defined as for 3D.
+ 
 
- The \WindWE-component is ignored.
+\subsection{Limitations}
+\label{sec:winds:limitations}
+%
+A single Doppler shift is applied for all frequencies. That is, broadband
+calculations are treated in an approximative manner. So far, non-zero winds
+require that the absorption is calculated ``on-the-fly''
+(Section~\ref{sec:absorption}). The scattering algorithms do not apply a
+Doppler shift, i.e.\ the winds are ignored.
+
+
+
+\section{Equations}
+%==============================================================================
+\label{sec:winds:eqs}
+
+The main equations for deriving the Doppler shift from the winds are given in
+theis section. The total wind, \Wind, is
+\begin{equation}
+  \Wind = \sqrt{\WindWE^2+\WindSN^2+\WindVe^2}.
+  \label{eq:winds:total}
+\end{equation}
+The zenith angle of the wind direction is 
+\begin{equation}
+  \aZntAng{\Wind} = \arccos(\WindVe/\Wind),
+  \label{eq:winds:za}
+\end{equation}
+and the azimuth angle (for 3D only) is 
+\begin{equation}
+  \aAzmAng{\Wind} = \arctan(\WindWE/\WindSN). \qquad 
+                           \mathrm{(implemented\ by\ the\ atan2\ function)}
+  \label{eq:winds:aa}
+\end{equation}
+For 1D and 2D, \aAzmAng{\Wind}\ is set to 0\degree\ if $\WindSN \geq 0$,
+otherwise to 180\degree. 
+
+The cosine of the angle between the wind vector and the line-of-sight is
+\begin{equation}
+  \cos\gamma = \cos\aZntAng{\Wind}\cos\aZntAng{l} + 
+               \sin\aZntAng{\Wind}\sin\aZntAng{l}
+               \cos(\aAzmAng{\Wind}-\aAzmAng{\l}),
+  \label{eq:winds:dang}
+\end{equation}
+where \aZntAng{l}\ and \aAzmAng{l}\ are the angles of the line-of-sight. In
+this equation, the azimuth angle \aAzmAng{l}\ is treated to be 0\degree\ for 1D
+and 2D with zenith angles above 0, and 180\degree for 2D with negative zenith
+angles.
+
+Finally, as the winds do not reach relativistic values, the Doppler shift can
+be calculated as
+\begin{equation}
+  \Delta\Frq = \frac{-\Wind\aFrq{0}\cos\gamma}{\speedoflight},
+  \label{eq:winds:aa}
+\end{equation}
+where \aFrq{0}\ is the rest frequency and \speedoflight\ is the speed of light.
+In practice, \aFrq{0}\ is taken as the median value of \artsstyle{f\_grid}.
+The sign of the expression can be understood by the fact that if the wind and
+line-of-sight are aligned and going in the same direction, the air movement is
+directly away from the sensor, that gives a shift towards lower frequencies. As
+workspace variable $\Delta\Frq$ is denoted as \wsvindex{doppler\_shift}, and is
+applied on \wsvindex{f\_grid} when extracting the (non-polirised) absorption
+(where a single $\Delta\Frq$ is applied on the complete \wsvindex{f\_grid}, as
+also mentioned in Section~\ref{sec:winds:limitations}).
+

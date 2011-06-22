@@ -1,3 +1,13 @@
+2011-06-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-15-32
+
+	* doc/uguide/winds.tex: A complete version (described stuff not
+	yet implemented). 
+
+	* doc/uguide/arts_user.tex: Added geoid and wind sections under
+	PE. Moved batch section from PE to SB.
+
 2011-06-21  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-15-31
