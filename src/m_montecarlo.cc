@@ -270,6 +270,14 @@ void MCGeneral(Workspace&            ws,
       throw runtime_error(os.str());
     }
 
+  if (pnd_field.nbooks() == 0)
+    {
+      ostringstream os;
+      os << "No scattering particles found! "
+         << "Maybe you calculated the pnd_field before you set up the cloudbox?";
+      throw runtime_error(os.str());
+    }
+
   Ppath ppath_step;
   Rng rng;                      //Random Number generator
   time_t start_time=time(NULL);

@@ -1159,7 +1159,12 @@ void pnd_fieldSetup ( //WS Output:
 )
 {
   // Cloudbox on/off?
-  if ( !cloudbox_on ) return;
+  if ( !cloudbox_on )
+  {
+    /* Must initialise pnd_field anyway; but empty */
+    pnd_field.resize(0, 0, 0, 0);
+    return;
+  }
 
   // ------- set pnd_field boundaries to cloudbox boundaries -------------------
   //initialize pnd_field boundaries

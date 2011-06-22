@@ -1,3 +1,14 @@
+2011-06-22  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-15-33
+
+	* src/m_cloudbox.cc(pnd_fieldSetup): Bugfix
+	  - Initialise pnd_field even if cloudbox is of (set zero-sized).
+	
+	* src/m_montecarlo.cc(MCGeneral): Bugfix
+	  - If there are no scattering particles, throw an exception (was
+	  assertion).
+
 2011-06-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-15-32
