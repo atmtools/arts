@@ -19,6 +19,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/concept.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/atmosphere.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/absorption.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/ppath.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/winds.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/surface.tex"
@@ -48,6 +49,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
   file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/common.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/formalismn.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/absorption_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte_theoryn.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/polarization.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/montecarlo.tex")

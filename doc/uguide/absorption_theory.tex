@@ -1,43 +1,12 @@
- %
-% To start the document, use
-%  \chapter{...}
-% For lover level, sections use
-%  \section{...}
-%  \subsection{...}
-%
+
 \chapter{Gas Absorption}
  \label{sec:absorption}
 
-
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
 \starthistory
-  2001-11-21 & Restarted for ARTS-1-1 by Stefan Buehler.\\
+  2011-06-22 & Revised for ARTS2 by Stefan Buehler.\\
   2001-11-21 & Continuum absorption part written, Thomas Kuhn.\\
   2001-10-05 & Line absorption part written, Nikolay Koulev.\\
-  2001-07-05 & Template created by Stefan Buehler.\\
 \stophistory
-%
-% Symbol table, format:
-%  \startsymbols
-%    ... & \artsstyle{...} & text ... \\
-%    ... & \artsstyle{...} & text ... \\
-%    ....
-%  \stopsymbols
-%
-%
-%\startsymbols
-%  -- & -- & -- \\
-% \label{symtable:wfuns}     
-%\stopsymbols
-
-% ============================================================================
 
 % ============================================================================
 % TKS definitions for the sections "Continuum Absorption" and 
@@ -192,36 +161,37 @@ continua and spectral lines.
 \label{sec:line_absorption}
 
  
-Staying close to the notation used by \citet{goodyandyung:89}, we'll introduce here the main concepts concerning
+We will introduce here the main concepts concerning
 line absorption. The approach, however, does not aim  at the
 derivation, but rather at the presentation the following expressions.
 
-Any line is presented by the corresponding profile of the absorption/emission
-coefficient as a function of the frequency, in our case that of the
-absorption - given by the quantity $\alpha(\nu)$. The latter dependency
-is related to other quantities, which express the three
-characteristics of a single line uniquely describing it - position,
-strength and shape. 
-The strength, or better the line intensity, is given by the quantity
-$S(T)$, where $T$ is absolute temperature. The shape and the position are expressed through the
-line-shape function $F(\nu)$. Thus we have the relation    
-\begin{equation}
+Any line is presented by the corresponding profile of the
+absorption/emission coefficient as a function of the frequency, in our
+case that of the absorption - given by the quantity $\alpha(\nu)$. The
+latter dependency is related to other quantities, which express the
+three characteristics of a single line uniquely describing it -
+position, strength and shape.  The strength, or better the line
+intensity, is given by the quantity $S(T)$, where $T$ is absolute
+temperature. The shape and the position are expressed through the
+line-shape function $F(\nu)$. Thus we have the relation
+\begin{equation}\label{abs_coeff}
   \alpha(\nu)=nS(T)F(\nu)
 \end{equation} 
-where $n$ is the number density of the absorber. The line-shape
+where $n$ is the number density of the absorber \citep{goodyandyung:89}. The line-shape
 function is normalized as follows
 
-\begin{equation}
+\begin{equation}\label{line_shape_norm}
   \int F(\nu)d\nu=1
 \end{equation}
 The values of $S(T)$ at reference temperature $T_0$ are contained in
 spectroscopic databases. The conversion to different temperatures is
 done by
-\begin{equation}
-S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/kT} - e^{-E_i/kT}}{e^{-E_f/kT_0} - e^{-E_i/kT_0}}
+\begin{equation}\label{line_intensity}
+  S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/(kT)}
+    - e^{-E_i/(kT)}}{e^{-E_f/(kT_0)} - e^{-E_i/(kT_0)}}
 \end{equation}
 given the energies $E_f$ and $E_i$ of the two levels between which the
-transition occurs as well as the partition function~~$Q(T)$. The
+transition occurs as well as the partition function~~$Q(T)$ \citep{rothman:98}. The
 databases contain the lower state energy $E_l$ tabulated along with
 the $S$ and the transition frequency $\nu$, so that the upper state
 energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
@@ -236,7 +206,7 @@ functions is treated in the following subsection. Another one is
 dedicated to the partition functions and their calculation..
 
 
-\subsection{Line Shape Functions} Up to date there is no way to calculate
+\subsection{Line Shape Functions} So far, there is no way to calculate
 the line-shape functions analytically just from the theoretical
 expressions of quantum dynamics, statistical physics, and theoretical
 mechanics. Certain approximations have to be made to account for
@@ -256,46 +226,45 @@ are of a conceptual importance for the broadening processes.
 
 The spectral line shape can be derived in the case of natural
 broadening from basic physical considerations and a well-known Fourier
-transform theorem from the time to the frequency domain. If we
-consider classically the spontaneous decay of the excited state of
-two-level system in the absence of external radiation, then population
-$n$ of these level decreases according to
-\begin{equation}
+transform theorem from the time to the frequency domain \citep{thorne:99}. If we
+consider classically the spontaneous decay of the excited state of a
+two-level system in the absence of external radiation, then the population
+$n$ of the upper level decreases according to
+\begin{equation}\label{spon_decay_diff}
   \frac{dn(t)}{dt} = -A\,n(t)
 \end{equation}
 where $A$ is Einstein A coefficient, which equation can also be
 interpreted as the rate of the spontaneously emitted photons because
-of decay. This relation is more usefully in this case to be written in
-the following manner 
-\begin{equation}
+of decay. The integral form of this relation is 
+\begin{equation}\label{spon_decay_exp}
   n(t)=n(0)~e^{-At}=n(0)e^{-t/\tau}
 \end{equation}
-where $ \tau$ is the mean lifetime of the excited state. Thus the
+where $ \tau$ is the mean lifetime of the excited state. Thus, the
 number of spontaneously emitted photons and in this way the flux of
 the emitted radiation then will be proportional to $n$. Therefore we
 can write for the flux $L$ that
-\begin{equation}
+\begin{equation}\label{flux}
   L(t)=L(0)~e^{-t/ \tau}=L(0)~e^{-\gamma t}
 \end{equation}
 By the afore mentioned theorem, multiplying in the time domain by
 $e^{-\gamma t}$ is equivalent to convolving in the frequency domain
-with a function $1/[\nu^2 - (\gamma/4\pi)^2]$. Accordingly the line
+with a function $1/[\nu^2 - (\gamma/4\pi)^2]$. Accordingly, the line
 profile of a spectral line at frequency $ \nu_0$ as a normalized
-line-shape function will be
-\begin{equation}
+line-shape function will be, as defined in \citet{thorne:99},
+\begin{equation}\label{natural_lorentz}
   F(\nu)=\frac{1}{\pi}\frac{\gamma/4\pi}{(\nu - \nu_0)^2 + (\gamma/4\pi)^2}
 \end{equation}
 This gives a bell-shaped profile and the function itself is called
 Lorentzian. The dependence on the position of the line is apparent
-through $\nu_0$, that is why some authors prefer to denote the function
-by $F(\nu,\nu_0)$.  The result is important because of two major reasons.
-Firstly, without the natural broadening the line would be the delta
-function~$\delta (\nu - \nu_o)$. So the spontaneous decay of
-the excited state is responsible for the finite width and the certain
-shape of the line-shape function. Secondly, the Lorentzian type of
-function comes significantly into play when explaining some of the
-other broadening effects or the complete picture of the broadened
-line.
+through $\nu_0$, that is why some authors prefer to denote the
+function by $F(\nu,\nu_0)$.  The result is important because of two
+major reasons.  Firstly, without the natural broadening the line would
+be the delta function~$\delta (\nu - \nu_o)$, as pointed out in
+\citet{bernath:95}. So the spontaneous decay of the excited state is
+responsible for the finite width and the certain shape of the
+line-shape function. Secondly, the Lorentzian type of function comes
+significantly into play when explaining some of the other broadening
+effects or the complete picture of the broadened line \citep{thorne:99}.
 
 The second effect, Doppler broadening, is important for the upper
 stratosphere and mesosphere for microwave frequencies. The line-shape
@@ -303,12 +272,12 @@ follows the velocity distribution of the particles. Under the conditions
 of thermodynamic equilibrium, we have  a probability distribution for
 the relative velocity $u$ between the gas molecule and the observer 
 of Maxwell type 
-\begin{equation}
+\begin{equation}\label{maxwell_distribution}
   p(u)=\sqrt{\frac{m}{2\pi kT}}~~exp~\left[-\frac{mu^2}{2kT}\right]
 \end{equation}
 where $m$ is the mass of the molecule. Using then the formula for the
 Doppler shift for the non-relativistic region~~  $\nu$- $\nu_0$ =
-$\nu_0$$u$ / $c$ , one can easily derive the line-shape function 
+$\nu_0$$u$ / $c$ , one can easily derive the line-shape function \citep{bernath:95}, 
 \begin{equation}
  F_D(\nu)=\frac{1}{\gamma_D\sqrt{\pi}}~~exp~\left[-\left(\frac{\nu - \nu_0}{\gamma_D}\right)^2\right]
 \end{equation}
@@ -320,12 +289,12 @@ In contrast to the afore mentioned line-shape function for the natural
 broadening the Doppler broadening is expressed by a Gaussian
 line-shape function $F(\nu)$. The Doppler line width $\gamma_D$ is so
 defined that it is equal to the half width at half of the maximum
-(HWWM) of the line-shape function. The same way of notating is used
+(HWWM) of the line-shape function. A similar notation is used
 for all other width parameters $\gamma_{xy}$ below.
 
 It can be said without any exaggeration that the pressure broadening
 effect is the most complicated one among the others and still
-represents a complex theoretical task to be tackled, and is in the
+represents a complex theoretical task to be tackled, and is at the
 same time of major experimental importance. So far, there is no way to
 calculate analytically from the basics the profile of a pressure, or
 collisional, line through a single approach near the line center as
@@ -336,19 +305,22 @@ they deal with.  The most popular among these approximations is the
 collisions of the gas particles is very small compared to the average
 time between the collisions. Lorentz was the first to achieve a result
 exploiting this approach, the Lorentz line-shape function:
-\begin{equation}
+\begin{equation}\label{pressure_lorentz}
  F_L(\nu)=\frac{\gamma_L}{\pi}\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}
 \end{equation}
-where $\gamma_L$ is the Lorentz line width. As one can see, the result
-(3.9) is pretty similar to (3.5) but the specific line parameters
-$\gamma$ and $\gamma_L$ make them differ significantly in the
-corresponding frequency regions of interest. For atmospheric pressures
-$\gamma_L$ is much greater and because of that, of experimental
+where $\gamma_L$ is the Lorentz line width \citep{thorne:99}. As one
+can see, the result Eq.\,\ref{pressure_lorentz} is pretty similar to
+Eq.\,\ref{natural_lorentz} but the specific line parameters $\gamma$
+and $\gamma_L$ make them differ significantly in the corresponding
+frequency regions of interest. For atmospheric pressures $\gamma_L$ is
+much greater and because of that, of experimental
 significance in contrast to $\gamma$.\\
 Elaborating the model of Lorentz, van Vleck and Weisskopf made a
-correction to it, particularly for the microwave region:
-\begin{equation}
- F_{VVW} (\nu)=\left(\frac{\nu}{\nu_0}\right)^2\frac{\gamma_L}{\pi}\left[\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}+\frac{1}{(\nu+\nu_0)^2+\gamma_L^2}\right]
+correction to it \citep{vanvleck:45},particularly for the microwave
+region:
+\begin{equation}\label{eq:vvw}
+ F_{VVW} (\nu)=\left(\frac{\nu}{\nu_0}\right)^2\frac{\gamma_L}{\pi}
+ \left[\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}+\frac{1}{(\nu+\nu_0)^2+\gamma_L^2}\right]
 \end{equation}
 which can be reduced to a Lorentzian for $(\nu-\nu_0) << \nu_0$ and $0
 << \nu_0$. Except for the additional factor $(\nu/\nu_0)^2$ ,
@@ -356,40 +328,51 @@ $F_{VVW}$ can be regarded as the sum of two $F_L$, or respectively
 lines, one with its center frequency at $\nu_0$, the other at
 $-\nu_o$.
 
+The van Vleck and Huber lineshape \citep{vanvleckhuber:77} is similar
+to Eq.\,\ref{eq:vvw}, except for the factor $(\nu/\nu_0)^2$ which is
+replaced by $(\nu * \tanh(h*\nu/(2kT)))/(\nu_0 *
+\tanh(h*\nu_0/(2kT)))$, with $k$ the Boltzmann constant, $h$ the Planck
+constant, and $T$ the atmospheric temperature (the denominator is
+actually a consequence of the line strength definition in the
+spectroscopic catalogs). The lineshape Eq.\,\ref{eq:vvw} with this
+factor can be used for the entire frequency range, since
+the microwave approximation: $\tanh(x) = x$, that leads to the factor
+$(\nu/\nu_0)^2$, is not made.
+
 The combined picture of a simultaneously Doppler and pressure
 broadened line is the next step of the approximations development. The
 line-shape function has to approximated in this case by the Voigt line-shape
 function 
-\begin{equation}
+\begin{equation}\label{voigt}
  F_{Voigt}(\nu,\nu_0)= \int F_L(\nu,\nu')~F_D(\nu',\nu_0)~d\nu'
 \end{equation}
 though there's no strict justification for its use - the two processes
 are assumed to act independently, which in reality is not the
-fact. Regardless of this flaw, it is the only way up to date to model
-the combination of the broadening processes. The integral in (3.11)
+fact. Regardless of this flaw, it is the only way up to now to model
+the combination of the broadening processes. The integral in Eq.\,\ref{voigt}
 can not be computed analytically, so certain approximation algorithms
 must be used.
 
 
-Another possibility would be the combination the last two equations
-(3.10) and (3.11). The respective result then will be 
-\begin{equation}
+Another possibility would be the combination of the last two equations
+Eq.\,\ref{eq:vvw} and Eq.\,\ref{voigt}. The respective result then will be 
+\begin{equation}\label{voigt_mirror}
  F_S=\left(\frac{\nu}{\nu_0}\right)^2~[F_{Voigt}(\nu,\nu_0)+F_{Voigt}(\nu,-\nu_0)]
 \end{equation}
 The advantage of such a model is that it behaves like a van
 Vleck-Weisskopf line-shape function in the high pressure limit and
 like a Voigt one in the low pressure limit. There is one important
-caveat to the equation (3.12): it has to be made sure that the
+caveat to the equation Eq.\,\ref{voigt_mirror}: it has to be made sure that the
 algorithm that is used to compute the Voigt function really produces a
 Lorentz line in the high pressure limit. Another point of significance
 is the demand that the model yields meaningful results far from the
 line center, since the line center from the ``mirror'' line at
 -$\nu_0$ is situated approximately 2$\nu_0$ away from the frequency
-$\nu_0$ of computation. The algorithm of \citet{Drayson:76} and
-\citet{Oliveiro:77} was explicitly checked to satisfy both
+$\nu_0$ of computation. The algorithms of \citet{Drayson:76} and
+\citet{Oliveiro:77} were explicitly checked to satisfy both
 requirements, while this was found to be not true for some other
 algorithms, commonly used for Voigt-shape computation. In particular,
-the it is not true for the Hui-Armstrong-Wray Formula, as defined in
+it is not true for the Hui-Armstrong-Wray Formula, as defined in
 \citet{hui:78} and in Equation 2.60 of \citet{pwr:93}. So, provided
 the stated above is fulfilled, the $F_S$ line shape gives a smooth
 transition from high tropospheric pressures to low stratospheric ones,
@@ -411,7 +394,7 @@ not optically thick at all frequencies, so the radiation energy is not
 represented by blackbody radiation. The most common assumption made,
 which is sufficient in the case of tropospheric and low stratospheric
 research, is the {\textit{local thermodynamic equilibrium}\nocorr} or
-{\textit{LTE }\nocorr}. According to it, it's possible to find a common temperature,
+{\textit{LTE}\nocorr}. According to it, it's possible to find a common temperature,
 which may vary from place to place, that fits the Boltzmann energy
 population distribution and the Maxwell velocities distribution.
 This practically means, that under $LTE$ the collisional processes
@@ -420,18 +403,18 @@ an excited state must have a higher probability of de-excitation by
 collision than by spontaneous radiation. This is the important
 factor which makes natural broadening differ quantitatively so much
 from the pressure (collisional) one, though both are described
-qualitatively almost identically by Lorentzian line- shape
+qualitatively almost identically by Lorentzian line-shape
 functions.
 
-According  to the Maxwell-Boltzmann distribution law, in $LTE$ the total number
+According to the Maxwell-Boltzmann distribution law, in $LTE$ the total number
 of gas particles $N_n$  in a state $E_n$ is given by 
-\begin{equation}
+\begin{equation}\label{maxwell_distribution}
  N_n=N_0\frac{g_n}{g_0}e^{-E_n/kT}
 \end{equation}
 where $N_0$ is particle number in the ground state, and $g_n$, $g_o$
 are the statistical weights (degeneracies) of the $n-$state and the
-ground state. Thus the total particle number $N$ is given by
-\begin{equation}
+ground state \citep{gordyandcook:70}. Thus the total particle number $N$ is given by
+\begin{equation}\label{total_part_number}
  N=\frac{N_0}{g_0}\sum_{n=0}^\infty g_n~e^{-E_n/kT}=\frac{N_0}{g_0}~Q(T)
 \end{equation}
 The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the
@@ -440,8 +423,8 @@ of the gas particles.
 
 The partition function for a perfect gas molecule can be represented
 by the product of the {\it{translational}\nocorr} and the
-{\it{internal}\nocorr} partition functions
-\begin{equation}
+{\it{internal}\nocorr} partition functions, as defined in \citet{herzberg:45},
+\begin{equation}\label{partition_f_general}
  Q  =  Q_{tr}~Q_{int}
 \end{equation}
 bearing in mind that the respective energies, translational and
@@ -457,23 +440,24 @@ of radiation. Accordingly $Q_{int}$ describes the
 distribution of energy among the internal energy states of the gas
 particles.
 
-The internal partition function for free gaseous molecules is  a
+The internal partition function for free gaseous molecules is a
 function of the electronic, the vibrational, the rotational, and the
-nuclear spin states. An approximation is used in order to display the
-individual contribution explicitly 
-\begin{equation}
+nuclear spin states. An approximation is used in
+\citet{gordyandcook:70} in order to display the individual
+contribution explicitly
+\begin{equation}\label{int_partition}
  Q_{int}=Q_e~Q_v~Q_r~Q_n
 \end{equation}
 and thus the interaction between these various states is neglected.
 For practically all polyatomic molecules the excited electronic states
 are entirely negligible to those of the ground states, i.e. $Q_e=1$ .
 Only for the very few polyatomic molecules with a multiplet ground
-state ($NO_2$ , $ClO_2$ , and free radicals) has the
-electronic contribution to be considered.\\
+state ($NO_2$ , $ClO_2$ , and free radicals) the
+electronic contribution has to be considered.\\
 If we neglect the anharmonicities, the vibrational partition function,
 with vibrational energy levels measured with respect to the ground
-state for the {\it harmonic oscillator}, is
-\begin{equation}
+state for the {\it harmonic oscillator}, is according to \citet{herzberg:45}
+\begin{equation}\label{vib_partition}
  Q_v=\left(\sum_{\nu_1}e^{-\nu_1 h\omega_1/kT}\right)\left(\sum_{\nu_2}e^{-\nu_2 h\omega_2/kT}\right)...
 \end{equation}
 where $\nu_1$, $\nu_2$,..., the vibrational quantum numbers, can each
@@ -482,56 +466,57 @@ frequencies of the fundamental modes of vibration. The summation is
 taken over all values of $\nu_1$, $\nu_2$,..., and each fundamental
 mode is counted separately. This result is valid for non-degenerate
 vibrations. If we use the simple expression for geometric progression
-\begin{equation}
+\begin{equation}\label{geom_progression}
  \sum_{\nu_i}e^{-\nu_i h\omega_i/kT}=\frac{1}{1-e^{h\omega_i/kT}}
 \end{equation}
 and the degeneracies $d_1$, $d_2$,... of the fundamental modes, we get
 finally for the vibrational partition function
-\begin{equation}
+\begin{equation}\label{vib_partition_fin}
 Q_v=\left(1-e^{h\omega_1/kT}\right)^{-d_1}\left(1-e^{h\omega_2/kT}\right)^{-d_2}...
 \end{equation}
 
 The rotational partition function looks differently for the different
 symmetry types of molecules.
 For diatomic and linear  polyatomic molecules with no center of
-symmetry the corresponding expression is 
-\begin{eqnarray}
+symmetry the corresponding expression is, as defined in \citet{gordyandcook:70}
+\begin{eqnarray}\label{rot_partition}
 Q_r & = & \sum_{J=0}^\infty (2J+1)e^{-hBJ(J+1)/kT}\nonumber\\
    & = & \frac{kT}{hB}+\frac{1}{3}+\frac{1}{15}\frac{hB}{kT}+\frac{4}{315}\left(\frac{hB}{kT}\right)^2+...\nonumber\\
    & \cong & \frac{kT}{hB}
 \end{eqnarray}
-For {\it{symmetric-}}, {\it{asymmetric-}}, and {\it{spherical}} top molecules there are also
+For {\it{ rigid symmetric-}}, {\it{asymmetric-}}, and {\it{spherical}} top molecules there are also
 other factors to be taken into consideration, such as the
 spatial structure of the molecules, nuclear spin, inversion and
-internal rotation. The general expression in this case is
-\begin{equation}
+internal rotation. The general expression in the case of a 
+{\it{ rigid symmetric-}} top molecule according to \citet{herzberg:45}
+is
+\begin{equation}\label{rot_partition_symtop}
 Q_r  =  \frac{1}{\sigma}\sum_{J=0}^\infty \sum_{K=-J}^{J}(2J+1)~e^{-h[BJ(J+1)+(A-B)K^2]/kT}
 \end{equation}
-where $\sigma$ is measure of the degree of symmetry. The usual
+where $\sigma$ is a measure of the degree of symmetry. The usual
 symmetric top has $C_3$ or $C_{3\nu}$ symmetry, therefore $\sigma$ = 3. To a good
-approximation, the summation above can expressed as
-\begin{equation}
+approximation, the summation above can expressed as in \citet{gordyandcook:70}
+\begin{equation}\label{rot_partition_top_appro}
 Q_r  = 
 \frac{1}{\sigma}\left[\left(\frac{\pi}{B^2A}\right)\left(\frac{kT}{h}\right)^3\right]^{1/2}=
 \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{B^{2}A}\right)^{1/2}
 \end{equation}
 For an  {\it{asymmetric}} top the formula would then be 
-\begin{equation}
+\begin{equation}\label{rot_partition_asymtop}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{ABC}\right)^{1/2}
 \end{equation}
-and for a {\it{spherical}} top
-\begin{equation}
+and for a {\it{spherical}} top, using the current notation of
+\citet{gordyandcook:70} in the respective expression in \citet{herzberg:45},
+\begin{equation}\label{rot_partition_sphetop}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 \end{equation}
 
 
+\subsection{Line Catalogs} 
 
+FIXME: Continue below...
 
-
-
-
-
-\subsection{Line Catalogs} There are several spectroscopic catalogs
+There are several spectroscopic catalogs
 implemented in ARTS: HITRAN, JPL, MYTRAN, and the ARTS inherent
 catalog format.
 
@@ -560,7 +545,7 @@ intensity is per molecule, i.e., it does not contain the isotopic
 ratio. This is similar to JPL, but different to HITRAN.  The line
 format is:
 
-\begin{verbatim}
+\begin{lstlisting}
 
 Col  Variable                     Label    Unit     
 -----------------------------------------------      
@@ -568,7 +553,7 @@ Col  Variable                     Label    Unit
  1   name                         NAME        -     
  2   center frequency                F       Hz     
  3   pressure shift of F           PSF    Hz/Pa    
- 4   line intensity                 I0   m^2*Hz     
+ 4   line intensity                 I0   m^2/Hz     
  5   reference temp. for I0       T_I0        K
  6   lower state energy           ELOW        J    
  7   air broadened width          AGAM    Hz/Pa     
@@ -586,27 +571,19 @@ Col  Variable                     Label    Unit
 19   error for NAIR              DNAIR        %
 20   error for NSELF            DNSELF        %
 21   error for PSF                DPSF        %
-22   quantum number code         QCODE           
-23   lower state quanta         QLOWER            
-24   upper state quanta         QUPPER            
-25   information source of F                      IF
-26   information source of I0                     II0
-27   information source of line width variables   ILW
-28   information source of pressure shift         IPSF
-29   information source of auxiliary parameters   IAUX
-\end{verbatim}
+
+\end{lstlisting}
 The parameters 0-12 must be present, the others can be missing, since
 they are not needed for the calculation. For the error fields (15-21),
-a~$-1$ means that no value exists. Fields 22-29 are strings inside quotes
-\artsstyle{""}  for maximum flexibility.\\
+a~$-1$ means that no value exists.\\
 Thus a valid ARTS line file would be:
-\begin{verbatim}
+\begin{lstlisting}
 ARTSCAT-2 2
 @ CH4-211 1011349857.063 0 2.96070344144819e-27 296
 2183.6851 13314.2468393782 21302.7949430052 0.75 0.75 296 0
 @ O3-666 1088246622.54 0 2.82913939200384e-22 296
 522.5576 21361.9693734024 27723.2206411054 0.76 0.76 296 0
-\end{verbatim}
+\end{lstlisting}
 Some species need special parameters that are not needed by other
 species (for example overlap coefficients for $O_2$). In the case of
 oxygen two parameters are sufficient to describe the overlap, but
@@ -660,7 +637,7 @@ of the JPL00 catalog.
 % --------------------- only end of table ------------------------------
  K & K & K & K & K \kill
  \hline
- \caption{Implemented species in ARTS} 
+ \caption{Implemented species in ARTS.} 
  \label{table:impl_secies}
  \endlastfoot
 % --------------------- body of table ---------------------------------- 
@@ -671,14 +648,16 @@ of the JPL00 catalog.
      & 181&  12&    12&  20003\\
      & 171&  13&    13&  19003\\
      & 162&  14&    14&  19002\\
-     & 182&  -1&    -1&  21001\\
+     & 182&  -1&    15&  21001\\
      & 172&  -1&    16&       \\
      & 262&  -1&    -1&  20001\\
      &SelfContStandardType&             -1&  -1 & \\      
-     &ForeignContStandardType&          -1&  -1 & \\      
+     &ForeignContStandardType&          -1&  -1 & \\  
+     &ForeignContMaTippingType&         -1&  -1 & \\      
      &ContMPM93&                        -1&  -1 & \\      
-     &SelfContCKD&                      -1&  -1 & \\      
-     &ForeignContCKD&                   -1&  -1 & \\      
+     &SelfContCKD24&                    -1&  -1 & \\      
+     &ForeignContCKD24&                 -1&  -1 & \\ 
+     &ForeignContATM01&                 -1&  -1 & \\         
      &CP98&                             -1&  -1 & \\      
      &MPM87&                            -1&  -1 & \\      
      &MPM89&                            -1&  -1 & \\      
@@ -730,21 +709,22 @@ of the JPL00 catalog.
     &SelfContStandardType&   -1        &-1&     \\
     &SelfContMPM93&          -1        &-1&     \\
     &SelfContPWR93&          -1        &-1&     \\
-    &PWR93&                  -1        &-1&     \\ 
+    &PWR98&                  -1        &-1&     \\ 
+    &PWR93&                  -1        &-1&     \\
+    &PWR88&                  -1        &-1&     \\  
     &MPM93&                  -1        &-1&     \\
-
-
-
-
+    &MPM92&                  -1        &-1&     \\
+    &MPM89&                  -1        &-1&     \\
+    &MPM85&                  -1        &-1&     \\
 \hline                  
   NO& 46&  81&    81&  30008\\
     & 56&  -1&    82&\\
     & 48&  -1&    83&\\
 \hline                  
   SO2& 626&  91&    91&  64002, 64005\\
-     & 646&  -1&    92&  66002\\
-     & 636&  -1&    -1&  65001\\
-     & 628&  -1&    -1&  66004\\
+     & 646&  92&    92&  66002\\
+     & 636&  93&    -1&  65001\\
+     & 628&  94&    -1&  66004\\
 \hline                  
   NO2& 646&  101&   101&  46006\\
 \hline                  
@@ -780,6 +760,7 @@ of the JPL00 catalog.
      & 624&  192&   192&  62001\\
      & 632&  193&   193&  61001\\
      & 822&  194&   194&  62002\\
+     & 623&  195&   195&       \\
 \hline                  
   H2CO& 1126&  201&   201&  30004\\
       & 1136&  202&   202&  31002\\
@@ -795,7 +776,7 @@ of the JPL00 catalog.
     &SelfContPWR93&             -1      &-1     \\
     &SelfContStandardType&      -1      &-1     \\
     &SelfContBorysow&           -1      &-1     \\
-
+    &DryContATM01&              -1      &-1     \\
 
 
 \hline                  
@@ -842,32 +823,56 @@ of the JPL00 catalog.
   OClO& 656&  431&    -1&  67001\\
       & 676&  432&    -1&  69001\\
 \hline                  
-  BrO& 96&  461&    -1&  95001\\
-     & 16&  462&    -1&  97001\\
+  BrO& 96&  401&    -1&  95001\\
+     & 16&  402&    -1&  97001\\
 \hline                  
   H2SO4& 126&  481&    -1&  98001\\
 \hline                  
   Cl2O2& 565&  491&    -1&  102001\\
        & 765&  492&    -1&  104001\\
+\hline                  
+  HOBr & 169&  371&    371&  96001\\
+       & 161&  372&    372&  98002\\
+\hline                  
+  C2H4 & 221&  381&    381&       \\
+       & 231&  382&    382&       \\
+\hline                  
+CH3CN & 211124&-1 & -1    & 41001 \\
+      & 311124&-1 & -1    & 42006 \\
+      & 211134&-1 & -1    & 42007 \\
+      & 211125&-1 & -1    & 42001 \\
+      & 211224&-1 & -1    & 42008 \\
+\hline                  
+  HNC & 142&  -1 & -1     & 27002 \\
+  HNC & 143&  -1 & -1     & 28005 \\
+  HNC & 152&  -1 & -1     & 28006 \\
+  HNC & 242&  -1 & -1     & 28007 \\
+\hline                  
+liquidcloud& MPM93&-1 &  -1   &       \\
+\hline                  
+icecloud& MPM9&    -1 &  -1   &       \\
+\hline                  
+rain     & MPM93 & -1 &  -1   &       \\
 \end{longtable}
  
 
 Table \ref{table:isoratio} gives an overview of the isotopic ratios
 and their sources, and the molecular mass of the species used in used
 in ARTS.  The isotopic ratio of the species was in general taken from
-HITRAN96, even for species where JPL00 and HITRAN96 give isotopic
-ratios. Species not present in HITRAN96 were extracted from JPL00.
+HITRAN00, even for species where JPL00 and HITRAN00 give isotopic
+ratios. 
+Species not present in HITRAN00 were extracted from JPL00.
 JPL00 isotopic ratios are normalized to 1 for some molecules, for
-these cases, the HITRAN96 isotopic ratio of the major isotope was used
+these cases, the HITRAN00 isotopic ratio of the major isotope was used
 to scale the JPL00 isotopic ratio to relative number.
 
 As in \ref{table:impl_secies} the first two columns give the ARTS
 molecule name and  the ARTS isotope name. The next two ones give the
 isotopic ratio and the source it is taken from respectively. An entry
-of 1 corresponds to HITRAN96, 2 to JPL00, 3 to JPL00 multiplied with
-the maximum abundance of this molecule in HITRAN. The last column
-contains the molecular masses of the isotopes. an entry of -1 is
-prescribed to the continuum tags.
+of 1 corresponds to HITRAN00, 2 to JPL00, 3 to JPL00 multiplied with
+the maximum abundance of this molecule in HITRAN. The
+last column contains the molecular masses of the isotopes. An entry of -1 is
+prescribed to the continuum tags. 
 
 
 
@@ -894,7 +899,7 @@ prescribed to the continuum tags.
 % --------------------- only end of table ------------------------------
  K & K & K & K & K   \kill
  \hline
- \caption{Isotopic ratios within ARTS, source of the ratios and molecular mass}
+ \caption{Isotopic ratios within ARTS, source of the ratios and molecular mass.}
  \label{table:isoratio}
  \endlastfoot
 % --------------------- body of table ---------------------------------- 
@@ -904,14 +909,16 @@ prescribed to the continuum tags.
      & 181&  0.00199983&  1&20\\
      & 171&  0.00037200&  1&19\\
      & 162&  0.00031069&  1&19\\
-     & 182&  6.1070746E-07&  3&21\\
+     & 182&  6.23003E-07& 1&21\\
      & 172&  1.15853E-07& 1& 20\\
      & 262&  2.2430204E-08&  3&20\\
      &SelfContStandardType&     -1    &-1    &-1     \\
      &ForeignContStandardType&  -1    &-1    &-1     \\
+     &ForeignContMaTippingType& -1    &-1    &-1     \\
      &ContMPM93&                -1    &-1    &-1     \\
-     &SelfContCKD&              -1    &-1    &-1     \\
-     &ForeignContCKD&           -1    &-1    &-1     \\
+     &SelfContCKD24&            -1    &-1    &-1     \\
+     &ForeignContCKD24&         -1    &-1    &-1     \\
+     &ForeignContATM01&         -1    &-1    &-1     \\
      &CP98&                     -1    &-1    &-1     \\
      &MPM87&                    -1    &-1    &-1     \\
      &MPM89&                    -1    &-1    &-1     \\
@@ -920,13 +927,13 @@ prescribed to the continuum tags.
 
 \hline                  
   CO2& 626&  0.98420&  1&44\\
-     & 636&  0.01106&  1&45\\
-     & 628&  0.0039471&  1&46\\
-     & 627&  0.000734&  1&45\\
-     & 638&  0.00004434&  1&47\\
-     & 637&  0.00000825&  1&46\\
-     & 828&  0.0000039573&  1&48\\
-     & 728&  0.00000147&  1&47\\
+     & 636&  0.0110574&  1&45\\
+     & 628&  0.00394707&  1&46\\
+     & 627&  0.000733989&  1&45\\
+     & 638&  0.000044346&  1&47\\
+     & 637&  0.0000082462&  1&46\\
+     & 828&  0.00000395734&  1&48\\
+     & 728&  0.0000014718&  1&47\\
      &SelfContPWR93&        -1  &-1     &-1     \\
      &ForeignContPWR93&     -1  &-1     &-1     \\
 \hline                  
@@ -937,37 +944,43 @@ prescribed to the continuum tags.
     & 676&   0.000370&  1&49\\
 \hline                  
   N2O& 446&  0.990333&  1&44\\
-     & 456&  0.0036409&  1&45\\
-     & 546&  0.0036409&  1&45\\
+     & 456&  0.00364093&  1&45\\
+     & 546&  0.00364093&  1&45\\
      & 448&  0.00198582&  1&46\\
      & 447&  0.000369&  1&46\\
 \hline                   
-  CO& 26&  0.98654&  1&28\\
-    & 36&  0.01108&  1&29\\
-    & 28&  0.0019782&  1&30\\
-    & 27&  0.000368&  1&29\\
-    & 38&  0.00002222&  1&31\\
-    & 37&  0.00000413&  1&30\\
+  CO& 26&  0.986544&  1&28\\
+    & 36&  0.0110836&  1&29\\
+    & 28&  0.00197822&  1&30\\
+    & 27&  0.00036867&  1&29\\
+    & 38&  0.000022225&  1&31\\
+    & 37&  0.0000041329&  1&30\\
 \hline                  
-  CH4& 211&  0.98827&  1&16\\
-     & 311&  0.01110&  1&17\\
-     & 212&  0.00061575&  1&17\\
+  CH4& 211&  0.988274&  1&16\\
+     & 311&  0.0111031&  1&17\\
+     & 212&  0.000615751&  1&17\\
 \hline                  
   O2& 66&  0.995262&  1&32\\
     & 68&  0.00399141&  1&34\\
-    & 67&  0.000742&  1&33\\
+    & 67&  0.00074235&  1&33\\
     &SelfContStandardType&      -1      &-1     &-1     \\
     &SelfContMPM93&             -1      &-1     &-1     \\
     &SelfContPWR93&             -1      &-1     &-1     \\
+    &PWR98&                     -1      &-1     &-1     \\
     &PWR93&                     -1      &-1     &-1     \\
-    &PM93&                      -1      &-1     &-1     \\
+    &PMR88&                     -1      &-1     &-1     \\
+    &MPM93&                     -1      &-1     &-1     \\
+    &MPM92&                     -1      &-1     &-1     \\
+    &MPM89&                     -1      &-1     &-1     \\
+    &MPM87&                     -1      &-1     &-1     \\
+    &MPM85&                     -1      &-1     &-1     \\
 \hline                  
   NO& 46&  0.993974&  1&30\\
-    & 56&  0.0036543&  1&31\\
+    & 56&  0.00365431&  1&31\\
     & 48&  0.00199312&  1&32\\
 \hline                  
-  SO2& 626&  0.94568&  1&64\\
-     & 646&  0.04195&  1&66\\
+  SO2& 626&  0.945678&  1&64\\
+     & 646&  0.0419503&  1&66\\
      & 636&  0.0074989421&  2&65\\
      & 628&  0.0020417379&  2&66\\
 
@@ -975,14 +988,14 @@ prescribed to the continuum tags.
   NO2& 646&  0.991616&  1&46\\
 \hline                  
   NH3& 4111& 0.9958715&  1&17\\
-     & 5111& 0.0036613&  1&18\\
+     & 5111& 0.00366129&  1&18\\
      & 4112& 0.00044792294&  3&18\\
 \hline                  
   HNO3& 146& 0.989110&  1&63\\
 \hline                  
   OH& 61&  0.997473&  1&17\\
     & 81&  0.00200014&  1&19\\
-    & 62&  0.00015537&  1&18\\
+    & 62&  0.000155371&  1&18\\
 \hline                  
   HF& 19&  0.99984425&  1&20\\
     & 29&  0.00014994513&  3&21\\
@@ -995,55 +1008,57 @@ prescribed to the continuum tags.
   HBr& 19&  0.50678&  1&80\\
      & 11&  0.49306&  1&82\\
 \hline                  
-  HI& 17&  -1&   171&128\\
+  HI& 17&  ,0.99984425& 2&128\\
 \hline                  
-  ClO& 56&  0.75591&  1&51\\
+  ClO& 56&  0.755908&  1&51\\
      & 76&  0.24172&  1&53\\
 \hline                  
-  OCS& 622&  0.93739&  1&60\\
-     & 624&  0.04158&  1&62\\
-     & 632&  0.01053&  1&61\\
-     & 822&  0.0018797&  1&61\\
+  OCS& 622&  0.937395&  1&60\\
+     & 624&  0.0415828&  1&62\\
+     & 632&  0.0105315&  1&61\\
+     & 623&  0.00739908 &1&61\\
+     & 822&  0.0018797&1&61\\
 \hline                  
-  H2CO& 1126&  0.98624&  1&30\\
-      & 1136&  0.01108&  1&31\\
-      & 1128&  0.0019776&  1&32\\
+  H2CO& 1126&  0.986237&  1&30\\
+      & 1136&  0.0110802&  1&31\\
+      & 1128&  0.00197761& 1&32\\
       & 1226&  0.00029578940&  3&31\\
       & 2226&  2.2181076E-08&  3&32\\
 \hline                  
   HOCl& 165&  0.75579&  1&52\\
-      & 167&  0.24168&  1&54\\
+      & 167&  0.241683&  1&54\\
 \hline                  
   N2& 44&  0.9926874&  1&28\\
     &SelfContMPM93&             -1      &-1     &-1\\
     &SelfContPWR93&             -1      &-1     &-1\\
     &SelfContStandardType&      -1      &-1     &-1\\
     &SelfContBorysow&           -1      &-1     &-1\\
+    &DryContATM01&              -1      &-1     &-1\\
 \hline                  
-  HCN& 124&  0.98511&  1&27\\
-     & 134&  0.01107&  1&28\\
-     & 125&  0.0036217&  1&28\\
+  HCN& 124&  0.985114&  1&27\\
+     & 134&  0.011076&  1&28\\
+     & 125&  0.00362174&  1&28\\
      & 224&  0.00014773545&  3&28\\
 \hline                  
-  CH3Cl& 215&  0.74894&  1&50\\
-       & 217&  0.23949&  1&52\\
+  CH3Cl& 215&  0.748937&  1&50\\
+       & 217&  0.239491&  1&52\\
 \hline                  
   H2O2& 1661&  0.994952&  1&34\\
 \hline                  
-  C2H2& 1221&  0.97760&  1&26\\
-      & 1231&  0.02197&  1&27\\
+  C2H2& 1221&  0.977599&  1&26\\
+      & 1231&  0.021966&  1&27\\
 \hline                  
   C2H6& 1221&  0.97699&  1&30\\
 \hline
   PH3& 1111&  0.99953283&  1&34\\
 \hline                  
-  COF2& 269&  0.98654&  1&66\\
+  COF2& 269&  0.986544&  1&66\\
 \hline                  
   SF6& 29&  0.95018&  1&146\\
 \hline                  
-  H2S& 121&  0.94988&  1&34\\
-     & 141&  0.04214&  1&36\\
-     & 131&  0.007498&  1&35\\
+  H2S& 121&  0.949884&  1&34\\
+     & 141&  0.0421369&  1&36\\
+     & 131&  0.00749766&  1&35\\
      & 122&  0.00029991625&  2&35\\
 \hline                  
   HCOOH& 1261&  0.983898&  1&46\\
@@ -1056,7 +1071,7 @@ prescribed to the continuum tags.
   O& 6&  0.997628&  1&16\\
 \hline                  
   ClONO2& 5646&  0.74957&  1&97\\
-        & 7646&  0.23970&  1&99\\
+        & 7646&  0.239694&  1&99\\
 \hline                  
   NO+& 46&  0.993974&  1&30\\
 \hline                  
@@ -1070,7 +1085,29 @@ prescribed to the continuum tags.
 \hline                  
   Cl2O2& 565&  0.57016427&  2&102\\
        & 765&  0.36982818&  2&104\\
-
+\hline                  
+  HOBr& 169&   0.505579  &  1&102\\
+      & 161&   0.491894  &  1&104\\
+\hline                  
+  C2H4& 221&   0.977294  &  1&28\\
+      & 231&   0.0219595 &  1&29\\
+\hline                  
+CH3CN &211124& 0.97366840&  3&41\\
+CH3CN &311124& 0.011091748& 3&42\\
+CH3CN &211134& 0.011091748& 3&42\\
+CH3CN &211125& 0.0036982817&3&42\\
+CH3CN &211224& 0.00044977985&3&42\\
+\hline                  
+  HNC & 142&   0.98505998  &3 &27\\
+  HNC & 143&   0.011091748 &3 &28\\
+  HNC & 152&   0.0036982817&3 &28\\
+  HNC & 242&   0.00014996849&3&28\\
+\hline
+liquidcloud&          -1 & -1& -1\\
+\hline
+icecloud&             -1 & -1& -1\\
+\hline
+rain&                 -1 & -1& -1\\
 \end{longtable}
 
 
@@ -1112,7 +1149,7 @@ tables above, are omitted in this case. The simple reason for this is
 because continua calculations do not need any partition functions.
 
 The partition function polynomials (PF) themselves for the individual
-species are to be found in \artsstyle{/arts/src/partition\_function\_data.cc}.
+species are to be found in {\verb /arts/src/partition_function_data.cc} .
 
 
 \begin{longtable}{llllll}
@@ -1143,7 +1180,7 @@ species are to be found in \artsstyle{/arts/src/partition\_function\_data.cc}.
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K\kill
  \hline
- \caption{Partition function (PF) within ARTS, comparison with HTRAN96
+ \caption[ARTS partition function data.]{Partition function (PF) within ARTS, comparison with HTRAN96
    and JPL00 PFs, vibrational modes (Note: O3-666 in JPL00 includes
    vibrational modes).}
  \label{table:part_fct}
@@ -1184,7 +1221,7 @@ species are to be found in \artsstyle{/arts/src/partition\_function\_data.cc}.
     & 38& 1& & & 2143.5\\
     & 37& 1& & & 2143.5\\
 %
-%\Breaker\Breit{Table \ref{table:part_fct}}
+%\Breaker\Breit{\tabref{table:part_fct}}
 %
 \hline
   CH4& 211& 1&      &      & 1306, 1306, 1306, 1534, 1534,\\
@@ -1279,7 +1316,7 @@ species are to be found in \artsstyle{/arts/src/partition\_function\_data.cc}.
 \hline
   C2H6& 1221& 1& & & no info\\
 %
-%\Breaker\Breit{Table \ref{table:part_fct}}
+%\Breaker\Breit{\tabref{table:part_fct}}
 %
 \hline
   PH3& 1111& 1& 3.70& 2.06& 992, 1122, 1122, 2323, 2328,\\
@@ -1321,15 +1358,6 @@ species are to be found in \artsstyle{/arts/src/partition\_function\_data.cc}.
 
 
 
-
-
-
-
-
-
-
-
-
 \subsection{ARTS Workspace Variables and Methods}
 
 Both expressions (3.1) and (3.3) are used for the line by line
@@ -1340,15 +1368,15 @@ arbitrarily chosen and given only for a better illustration.
 
 There are two alternative ways to calculate the absorption
 coefficients in ARTS.The first one is through the workspace method 
-\begin{verbatim}
-abs_coefCalc{}
-\end{verbatim}
+\begin{lstlisting}
+absCalc{}
+\end{lstlisting}
 This method actually works through calling internally in ARTS two other workspace
 methods:
-\begin{verbatim}
+\begin{lstlisting}
 xsec_per_tgCalc{}
-abs_coefCalcFromXsec{}
-\end{verbatim}
+absCalcFromXsec{}
+\end{lstlisting}
 The first one calculates the cross section {\it x} per tag group, the
 second one - the absorption coefficients $\alpha$ from the cross
 sections and the volume mixing ratios {\it VMR} at altitude $i$
@@ -1356,240 +1384,256 @@ through the expression $\alpha_i~=~x_i\times {\it VMR_i}$. The second
 alternative way of computing the absorption coefficients is by using
 the afore mentioned methods explicitly in the control file in
 combination with one another
-\begin{verbatim}
+\begin{lstlisting}
 xsec_per_tgCalc{}
-abs_coefCalcFromXsec{}
-\end{verbatim}
+absCalcFromXsec{}
+\end{lstlisting}
 Therefore we will pay special attention to the functioning, the input
-and output workspace variables of \artsstyle{ abs\_coefCalc }. This method
+and output workspace variables of {\verb absCalc }. This method
 calculates the total absorption coefficient as well as the ones per
 defined tag group. Thus the two output workspace variables are 
-\artsstyle{ abs\_coef } and \artsstyle{ abs\_per\_tag }. The input workspace variables are~: 
+{\verb abs } and {\verb abs_per_tag }. The input workspace variables are~: 
 
 \begin{description}
-\item{\artsstyle{ tgs }~:} defining the available tag groups for the 
+\item{{\verb tgs }~:} defining the available tag groups for the 
   calculation of the absorption coefficients;
-\item{\artsstyle{ f\_grid }~:} the monochromatic frequency grid [Hz];
-\item{\artsstyle{ abs\_p }~:} the pressure grid for the absorption coefficients [Pa]; 
-\item{\artsstyle{ abs\_t }~:} temperature associated with the pressures
-  in \artsstyle{ abs\_p } [K]; 
-\item{\artsstyle{ n2\_abs }~:} the total nitrogen profile associated with
-  the pressures in \artsstyle{ abs\_p } [-];
-\item{\artsstyle{ h2o\_abs }~:} the total water profile associated with the
-  pressures in \artsstyle{ abs\_p } [-];
-\item{\artsstyle{ vmrs }~:} the VMRs (unit: absolute number) on the 
-\artsstyle{ abs\_p } grid; 
-\item{\artsstyle{ abs\_lines\_per\_species }~:} a list of spectral line data for each tag;
-\item{\artsstyle{ abs\_lineshape  }~:} lineshape specification: function, norm, cutoff;
-\item{\artsstyle{ abs\_cont\_names }~:} a list of
+\item{{\verb f_mono }~:} the monochromatic frequency grid [Hz];
+\item{{\verb p_abs }~:} the pressure grid for the absorption coefficients [Pa]; 
+\item{{\verb t_abs }~:} temperature associated with the pressures
+  in {\verb p_abs } [K]; 
+\item{{\verb n2_abs }~:} the total nitrogen profile associated with
+  the pressures in {\verb p_abs } [-];
+\item{{\verb h2o_abs }~:} the total water profile associated with the
+  pressures in {\verb p_abs } [-];
+\item{{\verb vmrs }~:} the VMRs (unit: absolute number) on the 
+{\verb p_abs } grid; 
+\item{{\verb lines_per_tg }~:} a list of spectral line data for each tag;
+\item{{\verb lineshape  }~:} lineshape specification: function, norm, cutoff;
+\item{{\verb cont_description_names }~:} a list of
 names of continuum models;  
-\item{\artsstyle{ abs\_cont\_parameters }~:} continuum model parameters. 
+\item{{\verb cont_description_parameters }~:} continuum model parameters. 
 \end{description}
 All these input workspace variables have to be defined and set by the
 respective workspace methods for the proper functioning of 
-\artsstyle{ abs\_coefCalc }. Any exception of this will lead to an error message.\\
+{\verb absCalc }. Any exception of this will lead to an error message.\\
 First, the species of interest should be determined. This is done by the
 workspace method:
-\begin{verbatim}
+\begin{lstlisting}
 tgsDefine { 
      [ "O3",
        "ClO",
        "N2",
        "H2O" ]
 }
-\end{verbatim}
-which produces as output \artsstyle{ tgs }. In our case case this will
+\end{lstlisting}
+which produces as output {\verb tgs }. In our case case this will
 create  a list of four tag groups. For each of them the absorption
 coefficients will be calculated later on. The monochromatic grid is created through the method
-\begin{verbatim}
-VectorNLinSpace(f_grid){
+\begin{lstlisting}
+VectorNLinSpace(f_mono){
         start = 1e9
         stop  = 200e9
         n     = 200    
 }
-\end{verbatim}
-thus producing \artsstyle{ f\_grid } . The grid can be optionally saved into
-a file through \artsstyle{ VectorWriteAscii } \artsstyle{ (f\_grid) }
- \artsstyle{ {""} } . The  pressure grid  is created through the method 
-\begin{verbatim}
-VectorNLogSpace(abs_p){
+\end{lstlisting}
+thus producing {\verb f_mono } . The grid can be optionally saved into
+a file through {\verb VectorWriteAscii } {\verb (f_mono) }
+ {\verb {""} } . The  pressure grid  is created through the method 
+\begin{lstlisting}
+VectorNLogSpace(p_abs){
         start = 100000
         stop  = 10
         n     = 140
 }
-\end{verbatim}
-with output \artsstyle{ abs\_p }. Again, it can be optionally written into
+\end{lstlisting}
+with output {\verb p_abs }. Again, it can be optionally written into
 a file with
-\begin{verbatim}
-VectorWriteAscii(abs_p){""} 
-\end{verbatim}
+\begin{lstlisting}
+VectorWriteAscii(p_abs){""} 
+\end{lstlisting}
 The corresponding temperatures to the pressure as well as the VMRs is
 realized through loading the respective input profiles, defined by the
-workspace variables \artsstyle{ raw\_ptz } and \artsstyle{ raw\_vmrs }. The
+workspace variables {\verb raw_ptz } and {\verb raw_vmrs }. The
 corresponding methods are
-\begin{verbatim}
+\begin{lstlisting}
 MatrixReadAscii (raw_ptz) 
 {"/arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
-\end{verbatim}
+\end{lstlisting}
 and
-\begin{verbatim}
+\begin{lstlisting}
 raw_vmrsReadFromScenario
 {"/arts-data/atmosphere/fascod/midlatitude-summer"}
-\end{verbatim}
+\end{lstlisting}
 where the profiles are read from the atmospheric
-scenarios, in this case the one \artsstyle { midlatitude-summer }.
+scenarios, in this case the one { \verb midlatitude-summer }.
 Both physical profiles of ${\it H_2O}$  and ${\it N_2}$ are
 loaded through similar workspace methods
-\begin{verbatim}
-abs_h2oSet{}
-abs_n2Set{}
-\end{verbatim}
-needed for the input variables \artsstyle{ h2o\_abs } and \artsstyle{ n2\_abs }.
+\begin{lstlisting}
+h2o_absSet{}
+n2_absSet{}
+\end{lstlisting}
+needed for the input variables {\verb h2o_abs } and {\verb n2_abs }.
 Though they are at the bottom of the above given list of input
 workspace variables, it is better to treat the continuum variables at
 this place. In our case of line by line calculations we are not
 interested in the continuum description, that's why we should just
 call a workspace method to assign empty arrays to the variables:
-\begin{verbatim}
-abs_cont_descriptionInit{}
-\end{verbatim}
-The next variable to be set is \artsstyle{ abs\_lines\_per\_species } , done by the
+\begin{lstlisting}
+cont_descriptionInit{}
+\end{lstlisting}
+The next variable to be set is {\verb lines_per_tg } , done by the
 method
-\begin{verbatim}
-abs_lines_per_speciesReadFromCatalogues{
+\begin{lstlisting}
+lines_per_tgReadFromCatalogues{
   filenames = ["/arts-data/spectroscopy/jpl00/jpl00.cat",
     "/arts-dat/spectroscopy/hitran96/hitran96_lowfreq.par"]
    formats = [ "JPL", "HITRAN96" ]
    fmin    = [ 0,         0      ]       
    fmax    = [ 200e9,     200e9  ]   
  }
-\end{verbatim}
+\end{lstlisting}
 where lines from individual catalogs (here JPL and HITRAN96) are
 assigned to the different defined tag groups. Another possibility of
 doing this is to call two other methods one after another:
 {\small
-\begin{verbatim}
-abs_linesReadFromHitran {
+\begin{lstlisting}
+linesReadFromHitran {
 filename = "/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
 fmin     = 1e9
 fmax     = 200e9
 }
-\end{verbatim}
+\end{lstlisting}
 }
-and thus creating the variable \artsstyle{ abs_lines } , used afterward as
+and thus creating the variable {\verb lines } , used afterward as
 input in 
-\begin{verbatim}
-abs_lines_per_speciesCreateFromLines{}
-\end{verbatim}
-in order to get finally \artsstyle{ abs\_lines\_per\_species } defined. Here is the
+\begin{lstlisting}
+lines_per_tgCreateFromLines{}
+\end{lstlisting}
+in order to get finally {\verb lines_per_tg } defined. Here is the
 proper place to give the individual methods for reading the available
 spectroscopic catalogs in ARTS, i.e. creating the variable
-\artsstyle{ abs_lines } from them. The ARTS own catalog format is read by
-\begin{verbatim}
-abs_linesReadFromArts {
+{\verb lines } from them. The ARTS own catalog format is read by
+\begin{lstlisting}
+linesReadfromArts {
    filename = "ozone.al"
    fmin     = 0
    fmax     = 1e12
 }
-\end{verbatim}     
+\end{lstlisting}     
 A similar procedure is done for the other catalogs:
-\begin{verbatim}
-abs_linesReadFromHitran {
+\begin{lstlisting}
+linesReadfromHitran {
    filename = "hitran96_lowfreq.par"
    fmin     = 0
    fmax     = 1e12
 }
- \end{verbatim}
-for HITRAN96,
-\begin{verbatim}
-abs_linesReadFromJpl {
+ \end{lstlisting}
+for HITRAN96--01,
+\begin{lstlisting}
+linesReadfromHitran2004 {
+   filename = "hitran04.par"
+   fmin     = 0
+   fmax     = 1e12
+}
+ \end{lstlisting}
+for HITRAN04,
+\begin{lstlisting}
+linesReadfromJpl {
    filename = "jpl100.cat"
    fmin     = 0
    fmax     = 1e12
 }
-\end{verbatim}     
+\end{lstlisting}     
 for JPL, and 
-\begin{verbatim}
-abs_linesReadFromMytran {
+\begin{lstlisting}
+linesReadfromMytran {
    filename = "mytran98.my"
    fmin     = 0
    fmax     = 1e12
 }
-\end{verbatim} 
+\end{lstlisting} 
 for MYTRAN.\\
-The last input variable for \artsstyle{ abs\_coefCalc } to be discussed is 
-\artsstyle{ abs\_lineshape } . It is created either generally for all tag groups
+The last input variable for {\verb absCalc } to be discussed is 
+{\verb lineshape } . It is created either generally for all tag groups
 through 
-\begin{verbatim}
-abs_lineshapeDefine{
+\begin{lstlisting}
+lineshapeDefine{
   shape = "Voigt_Kuntz6" 
   normalizationfactor = "linear"
   cutoff = -1
 }
-\end{verbatim}
+\end{lstlisting}
 or to set it individually for each tag group
-\begin{verbatim}
-abs_lineshape_per_tgDefine{
+\begin{lstlisting}
+lineshape_per_tgDefine{
   shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6",]
   normalizationfactor = ["quadratic","no_norm","linear",]
   cutoff = [-1,-1,-1]
 }
-\end{verbatim}
-More elucidation on the three parameters \artsstyle{ shape } ,
-\artsstyle{ normalizationfactor } and \artsstyle{ cutoff }  is needed. The first
+\end{lstlisting}
+More elucidation on the three parameters {\verb shape } ,
+{\verb normalizationfactor } and {\verb cutoff }  is needed. The first
 one accounts for the different lineshape models now available in
-ARTS. It's done by setting \artsstyle{ shape } to a given model name
+ARTS. It's done by setting {\verb shape } to a given model name
 :
 \begin{description} 
-\item{\artsstyle{ Lorenz }~:} Lorenz line shape;
-\item{\artsstyle{ Doppler }~:} Doppler line shape
-\item{\artsstyle{ Voigt\_Kuntz6 }~:} Kuntz approximation to the Voigt line
+\item{{\verb Lorenz }~:} Lorenz line shape;
+\item{{\verb Doppler }~:} Doppler line shape
+\item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
   shape with relative accuracy better than $ 2 \times 10^{-6} $;
-\item{\artsstyle{ Voigt\_Kuntz4 }~:} Kuntz approximation to the Voigt line
+\item{{\verb Voigt_Kuntz4 }~:} Kuntz approximation to the Voigt line
   shape with relative accuracy better than $ 2 \times 10^{-4} $;
-\item{\artsstyle{ Voigt\_Kuntz3 }~:} Kuntz approximation to the Voigt line
+\item{{\verb Voigt_Kuntz3 }~:} Kuntz approximation to the Voigt line
   shape with relative accuracy better than $ 2 \times 10^{-3} $;
-\item{\artsstyle{ Voigt\_Drayson }~:} Drayson approximation to the Voigt
+\item{{\verb Voigt_Drayson }~:} Drayson approximation to the Voigt
   profile;
-\item{\artsstyle{ Rosenkranz\_Voigt\_Kuntz6 }~:} Rosenkranz oxygen
+\item{{\verb Rosenkranz_Voigt_Kuntz6 }~:} Rosenkranz oxygen
   absorption including overlap correction, at high altitudes Kuntz
   routine, requires the ARTS catalog with auxiliary overlap
   parameters;
   profile;
-\item{\artsstyle{ Rosenkranz\_Voigt\_Drayson }~:} Rosenkranz oxygen
+\item{{\verb Rosenkranz_Voigt_Drayson }~:} Rosenkranz oxygen
   absorption including overlap correction, at high altitudes Drayson
   routine, requires the ARTS catalog with auxiliary overlap
   parameters
 \end{description}
-The \artsstyle{ normalizationfactor } sets the different normalization
+The {\verb normalizationfactor } sets the different normalization
 factors of the line shape:
 \begin{description} 
-\item{\artsstyle{ no\_norm }~:} 1 (unity);
-\item{\artsstyle{ linear }~:} $(\nu / \nu_0)$;
-\item{\artsstyle{ quadratic }~:} $(\nu / \nu_0)^2$
+\item{{\verb no_norm }~:} 1 (unity);
+\item{{\verb linear }~:} $(\nu / \nu_0)$;
+\item{{\verb quadratic }~:} $(\nu / \nu_0)^2$;
+\item{{\verb VVH }~:} $(\nu * \tanh(h*\nu/(2kT)))/(\nu_0 * \tanh(h*\nu_0/(2kT)))$
 \end{description}
-The \artsstyle{ cutoff } can  be set to -1 for no cutoff or to a positive
-number for a cutoff at a given frequency in~ [Hz], e.g. 650e9.
+The {\verb cutoff } can be set to -1 for
+no cutoff or to a positive number for a cutoff at a given frequency
+in~ [Hz], e.g. 650e9.
 
 Thus we have generated all input workspace variables for 
-\artsstyle{ abs\_coefCalc }. Therefore this part of the subsection is a little bit short
+{\verb absCalc }. Therefore this part of the subsection is a little bit short
 of being able to serve as a control file in ARTS for absorption,
 provided that just one method is used where more alternatives are
 available and superfluous methods are skipped. The only addition to make
 it complete is to use after all input variable generating methods the 
-\begin{verbatim}
-abs_coefCalc{}
-\end{verbatim}
+\begin{lstlisting}
+absCalc{}
+\end{lstlisting}
 method, the result of which can be saved into files through
-\begin{verbatim}
-MatrixWriteAscii (abs_coef) {""}
-\end{verbatim}
+\begin{lstlisting}
+MatrixWriteAscii (abs) {""}
+\end{lstlisting}
 or
-\begin{verbatim}
-ArrayOfMatrixWriteAscii (abs_coef_per_species) {""}
-\end{verbatim}
+\begin{lstlisting}
+ArrayOfMatrixWriteAscii (abs_per_tg) {""}
+\end{lstlisting}
 
-
+There is also an alternative version of {\verb absCalc }: 
+{\verb absCalcSaveMemory }, which does not calculate 
+{\verb abs_per_tg } (only {\verb abs } is calculated), 
+thus is not suited for the calculation of weighting functions. 
+But {\verb absCalcSaveMemory } is able to handle larger absorption jobs than
+{\verb absCalc } if the jobs is close to the machine specific
+memory limitations.
 
 
 % ================================================================================
@@ -1614,10 +1658,10 @@ different for each of these molecules.
 
 Water Vapor has a strong electric dipole moment and posses therefore a 
 wealth of rotational transitions in the microwave up to the submillimeter 
-range. One explanation for the $\hzo$- continuum absorption is the inadequate 
+range. One explanation for the $\hzo$-continuum absorption is the inadequate 
 formulation of the far wings of a spectral line, since the usually employed 
 \citet{vanvleck:45} line shape is according to its derivation only valid 
-in the near wing zone. Other explanations are (see \cite{pwr:93} for details) 
+in the near wing zone. Other explanations are (see \citet{pwr:93} for details) 
 far wing contribution from far-infrared water vapor lines, collision induced 
 absorption (CIA), and water polymer absorption. At present one can not definitively 
 decide which of these possibilities is the correct one, probably all of them 
@@ -1633,14 +1677,14 @@ Debye line shape function.
 The homonuclear nitrogen molecule has in lowest order an electric quadrupole moment 
 of modest magnitude.
 For the frequency range below 1\,THz the collision induced rotation absorption 
-band \cite{goodyandyung:89} is of most importance. The band center is around 3\,THz and 
+band \citep{goodyandyung:89} is of most importance. The band center is around 3\,THz and 
 at 1\,THz the band strength is approximately 1/6 of the maximum value (see 
-Figure 5.2 of \cite{goodyandyung:89}). The electric field of the quadrupole 
+Figure 5.2 of \citet{goodyandyung:89}). The electric field of the quadrupole 
 moment of one molecule induces a dipole moment in the second molecule. This allows 
 rotational transitions according to the electric quadrupole selection rules, 
-$|\Delta\,J|=$0,2 (see \cite{pwr:93} for details). In a similar way exhibits 
+$|\Delta\,J|=$0,2 (see \citet{pwr:93} for details). In a similar way exhibits 
 carbon dioxide a collision induced absorption band (maximum around 1.5\,THz, 
-Figure 5.10 of \cite{goodyandyung:89}). Characteristic for collision induced 
+Figure 5.10 of \citet{goodyandyung:89}). Characteristic for collision induced 
 absorption is the dependency on the square of the molecular density.
 
 
@@ -1648,7 +1692,7 @@ absorption is the dependency on the square of the molecular density.
 \subsection{Water Vapor Continuum Models}
 \label{leveld:h2o_Cont}
 %------------------------------------
-As shown by \cite{liebeandlayton:87}, \cite{pwr:98}, and \cite{ma:90},
+As shown by \citet{liebeandlayton:87}, \citet{pwr:98}, and \citet{ma:90},
 the water vapor continuum absorption can be well described by 
 \begin{equation} 
   \label{eq:abs_cont}
@@ -1660,7 +1704,7 @@ where the microwave approximation ($h\nu\ll k_BT$ ) of the radiation field term
 is already applied. The adjustment of Eq. \ref{eq:abs_cont} to the data 
 is performed through the parameter set $\cso$, $\xs$, $\cdo$, and $\xf$. 
 Table \ref{tab:wvcontparam} gives some commonly used continuum parameter sets.
-\begin{table}
+\begin{table}[!hbt]
   \begin{center}
   \begin{tabular}{lrrrrr}
     \hline
@@ -1676,17 +1720,17 @@ Table \ref{tab:wvcontparam} gives some commonly used continuum parameter sets.
                                {\mbox{hPa}^2~\mbox{GHz}^2}\right]$} & 
              \multicolumn{1}{c}{$[1]$} & \\
     \hline
-%    MPM85  & 4.92$\cdot$10$^{-8}$ & 2.5 & 0.255$\cdot$10$^{-8}$  & -0.5 & \cite{liebe:85}\\
-    MPM87  & 6.50$\cdot$10$^{-8}$ & 7.5 & 0.206$\cdot$10$^{-8}$  &  0.0 & \cite{liebeandlayton:87}\\
-    MPM89  & 6.50$\cdot$10$^{-8}$ & 7.3 & 0.206$\cdot$10$^{-8}$  &  0.0 & \cite{liebe:89}\\
-    CP98   & 8.04$\cdot$10$^{-8}$ & 7.5 & 0.254$\cdot$10$^{-8}$  &  0.0 & \cite{cruzpol:98}\\ 
-    PWR98  & 7.80$\cdot$10$^{-8}$ & 4.5 & 0.236$\cdot$10$^{-8}$  &  0.0 & \cite{pwr:98}\\
+%    MPM85  & 4.92$\cdot$10$^{-8}$ & 2.5 & 0.255$\cdot$10$^{-8}$  & -0.5 & \citet{liebe:85}\\
+    MPM87  & 6.50$\cdot$10$^{-8}$ & 7.5 & 0.206$\cdot$10$^{-8}$  &  0.0 & \citet{liebeandlayton:87}\\
+    MPM89  & 6.50$\cdot$10$^{-8}$ & 7.3 & 0.206$\cdot$10$^{-8}$  &  0.0 & \citet{liebe:89}\\
+    CP98   & 8.04$\cdot$10$^{-8}$ & 7.5 & 0.254$\cdot$10$^{-8}$  &  0.0 & \citet{cruzpol:98}\\ 
+    PWR98  & 7.80$\cdot$10$^{-8}$ & 4.5 & 0.236$\cdot$10$^{-8}$  &  0.0 & \citet{pwr:98}\\
     \hline
-    MPM93$^*$ & 7.73$\cdot$10$^{-8}$ & 4.55 & 0.253$\cdot$10$^{-8}$  & 1.55 & \cite{liebeetal:93}\\
+    MPM93$^*$ & 7.73$\cdot$10$^{-8}$ & 4.55 & 0.253$\cdot$10$^{-8}$  & 1.55 & \citet{liebeetal:93}\\
     \hline
  \end{tabular}
 \end{center}
- \caption{Values of commonly used continuum parameter sets. The last line (MPM93$^*$)
+ \caption[Liebe-type continuum model parameters.]{Values of commonly used continuum parameter sets. The last line (MPM93$^*$)
    represents an approximation of the pseudo-line continuum of MPM93
    in the form of Eq. \ref{eq:abs_cont}.}
  \label{tab:wvcontparam}
@@ -1724,7 +1768,7 @@ larger compared to the physical water vapor line parameters of the
 same model. The only exception is $\bzks$, the parameter 
 which governs the exponential temperature behavior of the line strength. 
 %
-\begin{table}
+\begin{table}[!hbt]
   \begin{center}
   \begin{tabular}{rrrrrrr}
    \hline
@@ -1743,7 +1787,7 @@ which governs the exponential temperature behavior of the line strength.
 The magnitude of the pseudo-line width is shown for four different 
 cases in Table\,\ref{tab:mpm_psl_broad}. 
 %
-\begin{table}
+\begin{table}[!htb]
 \begin{center}
 \begin{tabular}{lrrr}
 \hline
@@ -1754,7 +1798,7 @@ $\gamc$(200\,K) & 40.8\,GHz & 80.4\,GHz & 121.2\,GHz\\
 $\gamc$(300\,K) &  5.4\,GHz & 23.0\,GHz &  28.4\,GHz\\
 \hline
 \end{tabular}
-\caption{Magnitude of the line width of the pseudo-line of the
+\caption[MPM93 parameters.]{Magnitude of the line width of the pseudo-line of the
   continuum term in MPM93. Assumed is a total pressure of 1000\,hPa
   and a water vapor partial pressure of 10\,hPa.}
 \label{tab:mpm_psl_broad}
@@ -1800,7 +1844,7 @@ exponent $\xs$ is in MPM93$^*$ only 60\,\% of the corresponding
 value in MPM89 and the temperature dependence of the $\hzo$-air 
 term is significant larger than for earlier MPM versions.
 This reduction of $\xs$ is mainly due to additional measurements 
-considered in MPM93 (Refs. \cite{beckerautler:46,godonetal:92}), 
+considered in MPM93 \citep{beckerautler:46,godonetal:92}, 
 while the continuum parameters in MPM87/MPM89 are determined 
 by a single laboratory measurement at 138\,GHz.
 
@@ -1951,7 +1995,7 @@ absorption term as for the nitrogen continuum, with
 where the parameter values $C_s = 3.23\cdot 10^{-11}$
 dB/(km\,hPa$^2$\,GHz$^2$), $C_f = 1.18\cdot 10^{-11}$
 dB/(km\,hPa$^2$\,GHz$^2$), $n_s=5.08$, and $n_f=4.7$, respectively, 
-are determined from laboratory measurements of \cite{ho:66,dagg:75}. 
+are determined from laboratory measurements of \citet{ho:66,dagg:75}. 
 Since the foreign term
 includes only nitrogen as perturber, one can get an estimate for dry
 air by replacing $\pnz$ by the dry air partial pressure in
@@ -1990,27 +2034,27 @@ To solve this ambiguity arts has two methods implemented which helps
 the user to select a single set of parameters in an easy way. 
 In connection with this input parameters we distinguish generally two 
 types, the referenced models which are taken from the literature 
-(e. g. \cite{liebeetal:93} or \cite{pwr:93}) and the user model, 
+(e. g. \citet{liebeetal:93} or \citet{pwr:93}) and the user model, 
 for which the arts user is providing the necessary parameter values.
 
 After selecting the continuum tag with the {\tt tagDefine} method, 
 the arts user has to setup the arts internal structure (i. e. the workspace 
-variables {\it abs\_cont\_names, abs\_cont\_models, 
-and abs\_cont\_parameters}) for the selected continuum tags, 
+variables {\it cont\_description\_names, cont\_description\_models, 
+and cont\_description\_parameters}) for the selected continuum tags, 
 which can simply be done by putting the following line into the 
 arts control file:
-\begin{verbatim}
-abs_cont_descriptionInit{}
-\end{verbatim}
+\begin{lstlisting}
+cont_descriptionInit{}
+\end{lstlisting}
 
 After this initialization is done, the continuum tag specific
 information has to be transfered to arts. This is possible with the 
-arts method {\it abs\_cont\_descriptionAppend}, which has itself 
+arts method {\it cont\_descriptionAppend}, which has itself 
 three input variables: {\it tagname}, {\it model}, and 
 {\it userparameters}. The user has to specify these input 
 variables in the arts control file for each selected continuum tag. 
 Below is a list of all the implemented continuum tags and the associated
-valid range of the input variables for {\it abs\_cont\_descriptionAppend}. 
+valid range of the input variables for {\it cont\_descriptionAppend}. 
 For a condensed overview of the possible continuum tags and their 
 referenced models see Table \ref{tab:artscontlist} and the 
 online documentation can be found under {\it arts/doc/doxygen/html/continua\_cc.html}.
@@ -2023,7 +2067,7 @@ rule that only the user model ({\it model ="user"}) needs input parameters
 via the input variable {\it userparameters}. All the referenced models 
 need no input via {\it userparameters}. If you try to run the arts control 
 file with a referenced model and input parameters you will get an error message.
-Below in the detailed description of {\it abs\_cont\_descriptionAppend} you 
+Below in the detailed description of {\it cont\_descriptionAppend} you 
 can find correct examples for all the continuum tags.
  
 \begin{itemize}
@@ -2037,7 +2081,7 @@ CP98 \citep{cruzpol:98}, PWR98 \citep{pwr:98} or with
 an arbitrary user defined model parameter set ($\cso$, $\xs$).
 The information if a referenced or a user model is selected 
 is given to arts via the input parameter {\it model} of the 
-method {\it abs\_cont\_descriptionAppend}. The valid models are
+method {\it cont\_descriptionAppend}. The valid models are
 "MPM87" (for the MPM87 model), "MPM89" (for the MPM89 model), 
 "CruzPol" (for the CP98 model), "Rosenkranz" (for the PWR98 model), 
 and "user"  (for the user defined model). Only in the case 
@@ -2052,7 +2096,7 @@ in these cases. However, if you give some valuers via
 {\it userparameters} to arts and select simultaneously a 
 referenced model via the input parameter {\it model} you will get 
 a warning message. It is a general rule that in the method 
-{\it abs\_cont\_descriptionAppend} the value of the input 
+{\it cont\_descriptionAppend} the value of the input 
 parameter {\it model} dominates over the values specified with 
 input parameter {\it userparameters}, so the calculation will be
 performed according to the selected model.
@@ -2060,33 +2104,33 @@ performed according to the selected model.
 The following list describes all the valid combinations of parameters for the
 tag {\tt "H2O-SelfContStandardType"} are listed (the values for the 
 model user are just example values): 
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "CruzPol"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "MPM87"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "MPM89"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "user"
     userparameters = [ 2.046e-33, 5.289 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 \item[$\bullet$] The general water vapor continuum function
@@ -2101,7 +2145,7 @@ CP98 \citep{cruzpol:98}, PWR98 \citep{pwr:98} or with
 an arbitrary user defined model parameter set ($\cso$, $\xs$).
 The information if a referenced or a user model is selected 
 is given to arts via the input parameter {\it model} of the 
-method {\it abs\_cont\_descriptionAppend}. The valid models are
+method {\it cont\_descriptionAppend}. The valid models are
 \"MPM87\" (for the MPM87 model), \"MPM89\" (for the MPM89 model), 
 \"CruzPol\" (for the CP98 model), \"Rosenkranz\" (for the PWR98 model), 
 and \"user\"  (for the user defined model). Only in the case 
@@ -2116,7 +2160,7 @@ in these cases. However, if you give some valuers via
 {\it userparameters} to arts and select simultaneously a 
 referenced model via the input parameter {\it model} you will get 
 a warning message. It is a general rule that in the method 
-{\it abs\_cont\_descriptionAppend} the value of the input 
+{\it cont\_descriptionAppend} the value of the input 
 parameter {\it model} dominates over the values specified with 
 input parameter {\it userparameters}, so the calculation will be
 performed according to the selected model.
@@ -2124,33 +2168,33 @@ performed according to the selected model.
 The following list describes all the valid combinations of parameters for the
 tag {\tt "H2O-ForeignContStandardType"} are listed (the values for the 
 model user are just example values): 
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "CruzPol"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "MPM87"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "MPM89"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "user"
     userparameters = [ 5.793e-35, 1.551 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 \item[$\bullet$] The MPM version 1993 ("MPM93") \citep{liebeetal:93} 
@@ -2159,10 +2203,10 @@ function of Eq. \ref{eq:abs_cont} is therefore not valid. In MPM93
 the $\hzo$-continuum is described by a pseudo water vapor line in the 
 far-infrared (FIR) region. This means that seven parameters are 
 needed, one central frequency and six line parameters. The original 
-parameter set is given in \cite{liebeetal:93}. The MPM93 water vapor 
+parameter set is given in \citet{liebeetal:93}. The MPM93 water vapor 
 continuum has the arts tag name {\tt "H2O-ContMPM93"}. Since this 
 parameterization is very special, the valid models 
-in the arts method {\it abs\_cont\_descriptionAppend} are only 
+in the arts method {\it cont\_descriptionAppend} are only 
 "MPM93" and "user". For the referenced model "MPM93" the 
 input parameter {\it userparameters} must be empty while 
 for the user model one has to specify all seven continuum 
@@ -2173,19 +2217,19 @@ $\nu^*$ (in Hz), and the six pseudo-line parameters $\beks$,$\cdots$,$\bsks$
 In the following all the valid possibilities for the
 tag {\tt "H2O-ContMPM93"} are listed (the values for the 
 model user are just example values):
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "H2O-ContMPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "H2O-ContMPM93"
     model          = "user"
     userparameters = [ 1780.0e9, 22300.0, 0.952, 
                        17.60e4, 30.5, 2.0, 5.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 \item[$\bullet$] The oxygen continuum models of Rosenkranz
@@ -2206,48 +2250,48 @@ abs_cont_descriptionAppend{
   The following list describes all the valid combinations of
   parameters for the tag {\tt "O2-SelfContStandardType"} are listed
   (the values for the model user are just example values):
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "O2-SelfContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-SelfContStandardType"
     model          = "MPM93"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-SelfContStandardType"
     model          = "user"
     userparameters = [ 1.23e-19, 5600.0, 
                        1.0, 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 
-\item[$\bullet$] The \cite{pwr:93} $\nz$-$\nz$ continuum as explained in Section 
+\item[$\bullet$] The \citet{pwr:93} $\nz$-$\nz$ continuum as explained in Section 
 \ref{levelc:n2cont} has the arts tag name {\tt "N2-SelfContStandardType"}. For this tag 
 two possible models are implemented: the referenced model of Rosenkranz and the 
 user model. In case of the user model one has to provide the parameters $C$, 
 $n_{\nu}$, $n_T$ , and $n_p$ in units of
 $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$, $[$1$]$, $[$1$]$, and $[$1$]$,
 respectively. Below are the two possibilities illustrated:
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "N2-SelfContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "N2-SelfContStandardType"
     model          = "user"
     userparameters = [ 1.05e-38, 2.00, 3.55, 2.00 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 \item[$\bullet$] The MPM93 model \citep{liebeetal:93} has a different approach 
-for the $\nz$-$\nz$ continuum than \cite{pwr:93}, as shown by 
+for the $\nz$-$\nz$ continuum than \citet{pwr:93}, as shown by 
 Eq. \ref{eq:abs_cont_MPM89_n2}. To be able to use this referenced model, one 
 has to use the tag called {\tt "N2-SelfContMPM93"}. Similarly to the 
 $\nz$-continuum tag described before, two allowed models are implemented: 
@@ -2255,21 +2299,21 @@ $\nz$-continuum tag described before, two allowed models are implemented:
 parameters $C$, $a$, and $n_{\nu}$ in units of 
 $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$, $[$GHz$^{-n_{\nu}}$$]$, and $[$1$]$, 
 respectively.
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "N2-SelfContMPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "N2-SelfContMPM93"
     model          = "user"
     userparameters = [ 5.87e-39, 6.10e-19 1.5 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 
-\item[$\bullet$] The \cite{pwr:93} $\coz$-$\coz$ continuum term is
+\item[$\bullet$] The \citet{pwr:93} $\coz$-$\coz$ continuum term is
   according to Equation~(\ref{eq:abs_cont_pwr_co2}) of
   Section~\ref{levelc:co2cont} proportional to $\pcoz^2$. This
   absorption feature has the arts tag name {\tt "CO2-SelfContPWR93"}.
@@ -2278,21 +2322,21 @@ abs_cont_descriptionAppend{
   one has to provide the parameters $C_s$ and $n_s$ in units of
   $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$ and $[$1$]$, respectively.
   Below are the two possibilities illustrated:
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "CO2-SelfContPWR93"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "CO2-SelfContPWR93"
     model          = "user"
     userparameters = [ 7.43e-37, 5.08 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
   
-\item[$\bullet$] The \cite{pwr:93} $\coz$-$\nz$ continuum term is
+\item[$\bullet$] The \citet{pwr:93} $\coz$-$\nz$ continuum term is
   according to as explained in Equation~(\ref{eq:abs_cont_pwr_co2}) of
   Section \ref{levelc:co2cont} proportional to $\pcoz \cdot \pnz$.
   This absorption feature has the arts tag name 
@@ -2301,29 +2345,29 @@ abs_cont_descriptionAppend{
   In case of the user model one has to provide the parameters $C_f$
   and $n_f$ in units of $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$ and
   $[$1$]$, respectively.  Below are the two possibilities illustrated:
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "CO2-ForeignContPWR93"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "CO2-ForeignContPWR93"
     model          = "user"
     userparameters = [ 2.71e-37, 4.7]
 }
-\end{verbatim}
+\end{lstlisting}
 \end{itemize}
 
 All the continuum tags have their individual fixed line shape. 
 Therefore the arts methods which controls this input information
 should be defined as follows:  {\it shape}\,=\,"no\_shape" , 
 {\it normalizationfactor}\,=\,"no\_norm", and {\it cutoff}\,=\,-1. An 
-example for the arts method {\it abs\_lineshape\_per\_tgDefine} is presented 
+example for the arts method {\it lineshape\_per\_tgDefine} is presented 
 below for the case of two selected continuum tags in the method 
 {\it tagDefine}:
-\begin{verbatim}
-abs_lineshape_per_tgDefine{
+\begin{lstlisting}
+lineshape_per_tgDefine{
         shape               = [ "no_shape", 
                                 "no_shape"]
         normalizationfactor = [ "no_norm", 
@@ -2331,7 +2375,7 @@ abs_lineshape_per_tgDefine{
         cutoff              = [ -1,
                                 -1]
 }
-\end{verbatim}
+\end{lstlisting}
 
 \begin{landscape}
  \setlength{\LTcapwidth}{200mm} % with of the caption in longtable
@@ -2340,14 +2384,14 @@ abs_lineshape_per_tgDefine{
 %
 % --------------------- only begin of table ------------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend} input} & 
+ continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend} input} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
  \endfirsthead
 % --------------------- every page begin of table ------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend}} & 
+ continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend}} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
@@ -2362,7 +2406,7 @@ abs_lineshape_per_tgDefine{
  \hline
  \caption{This table gives an overview of the implemented referenced 
    continua models and how they are specified in the arts method 
-   {\it abs\_cont\_descriptionAppend}. Additionally the reference and the arts 
+   {\it cont\_descriptionAppend}. Additionally the reference and the arts 
    source code function name (see file {\it arts/src/continua.cc} are provided. 
    The detailed online documentation can be found under 
    {\it arts/doc/doxygen/html/continua\_cc.html}).}
@@ -2373,25 +2417,25 @@ abs_lineshape_per_tgDefine{
  \hline
 % --------------------------------------------------------------
  Rosenkranz     & tagname &=& {\small \tt "H2O-SelfContStandardType"}     & 
-                  {\small \cite{pwr:98}}  & {\small Standard\_H2O\_self\_continuum}\\
+                  {\small \citet{pwr:98}}  & {\small Standard\_H2O\_self\_continuum}\\
  $\hzo-\hzo$    & model &=& "Rosenkranz" & {\small Sec. \ref{leveld:h2o_Cont}} & \\
                 & userparameters&=&[ ]                                       & & \\
 
  Rosenkranz     & tagname &=& {\small \tt "H2O-ForeignContStandardType"}       & 
-                  {\small \cite{pwr:98}}  & 
+                  {\small \citet{pwr:98}}  & 
                   {\small Standard\_H2O\_foreign\_continuum}\\
  $\hzo-$dry air & model &=& "Rosenkranz" & {\small Sec. \ref{leveld:h2o_Cont}} & \\
                 & userparameters &=& [ ]                                     & & \\
 \hline
 % --------------------------------------------------------------
  Cruz-Pol       & tagname &=& {\small \tt "H2O-SelfContStandardType"}       & 
-                  {\small \cite{cruzpol:98}} & 
+                  {\small \citet{cruzpol:98}} & 
                   {\small Standard\_H2O\_self\_continuum}\\
  $\hzo-\hzo$    & model &=& "CruzPol" & {\small Sec. \ref{leveld:h2o_Cont}} & \\
                 & userparameters &=& [ ]                                  & & \\
 
  Cruz-Pol       & tagname &=& {\small \tt "H2O-ForeignContStandardType"}    & 
-                  {\small \cite{cruzpol:98}} & 
+                  {\small \citet{cruzpol:98}} & 
                   {\small  {\small Standard\_H2O\_foreign\_continuum}}\\
  $\hzo-$dry air & model &=& "CruzPol" &  {\small Sec. \ref{leveld:h2o_Cont}}&  \\
                 & userparameters &=& [ ]                                &   &  \\
@@ -2399,68 +2443,68 @@ abs_lineshape_per_tgDefine{
 \hline
 % --------------------------------------------------------------
  MPM87          & tagname &=& {\small \tt "H2O-SelfContStandardType"}      & 
-                  {\small \cite{liebeandlayton:87}} & 
+                  {\small \citet{liebeandlayton:87}} & 
                   {\small Standard\_H2O\_self\_continuum}\\
  $\hzo-\hzo$    & model &=& "MPM87" &  {\small Sec. \ref{leveld:h2o_Cont}} &  \\
                 & userparameters &=& [ ]                               &   &  \\
 
  MPM87          & tagname &=& {\small \tt "H2O-ForeignContStandardType"}   & 
-                  {\small \cite{liebeandlayton:87}} &  
+                  {\small \citet{liebeandlayton:87}} &  
                   {\small Standard\_H2O\_foreign\_continuum}\\
  $\hzo-$dry air & model &=& "MPM87" &  {\small Sec. \ref{leveld:h2o_Cont}} &  \\
                 & userparameters &=& [ ]                               &   &  \\
 \hline 
 % --------------------------------------------------------------
  MPM89          & tagname &=& {\small \tt "H2O-SelfContStandardType"}     & 
-                  {\small \cite{liebe:89}} & {\small Standard\_H2O\_self\_continuum}\\
+                  {\small \citet{liebe:89}} & {\small Standard\_H2O\_self\_continuum}\\
  $\hzo-\hzo$    & model &=& "MPM89" & {\small Sec. \ref{leveld:h2o_Cont}} &  \\
                 & userparameters &=& [ ]                              &   &  \\
 
  MPM89          & tagname &=& {\small \tt "H2O-ForeignContStandardType"}  & 
-                  {\small \cite{liebe:89}} &  {\small Standard\_H2O\_foreign\_continuum}\\
+                  {\small \citet{liebe:89}} &  {\small Standard\_H2O\_foreign\_continuum}\\
  $\hzo-$dry air & model &=& "MPM89" &  {\small Sec. \ref{leveld:h2o_Cont}} &  \\
                 & userparameters &=& [ ] &   &  \\
 \hline 
 % --------------------------------------------------------------
  MPM93          & tagname &=& {\small \tt "H2O-ContMPM93"}  & 
-                  {\small \cite{liebeetal:93}} & {\small MPM93\_H2O\_continuum}\\
+                  {\small \citet{liebeetal:93}} & {\small MPM93\_H2O\_continuum}\\
  $\hzo-$air     & model &=& "MPM93"  & {\small Sec. \ref{leveld:mpm93:contabs}}  &  \\
                 & userparameters &=& [ ] &   &  \\
 % --------------------------------------------------------------
  \hline
  \multicolumn{6}{c}{{\bf oxygen ($\oz$)}}\\
  \hline
- Rosenkranz & tagname &=& {\small \tt "SelfContStandardType"} & {\small \cite{pwr:93}} & 
+ Rosenkranz & tagname &=& {\small \tt "SelfContStandardType"} & {\small \citet{pwr:93}} & 
               {\small Standard\_O2\_continuum}\\
 $\oz-$air   & model &=& "Rosenkranz" & {\small Sec. \ref{levelc:o2cont}} &  \\  
             & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
- MPM93      & tagname &=& {\small \tt "O2-SelfContStandardType"} & {\small \cite{liebeetal:93}} & 
+ MPM93      & tagname &=& {\small \tt "O2-SelfContStandardType"} & {\small \citet{liebeetal:93}} & 
               {\small Standard\_O2\_continuum}\\
 $\oz-$air   & model &=& "MPM93"  & {\small Sec. \ref{levelc:o2cont}}  &  \\
             & userparameters &=& [ ] &   & \\
  \hline
  \multicolumn{6}{c}{{\bf nitrogen ($\nz$)}}\\
  \hline
- Rosenkranz & tagname &=& {\small \tt "N2-SelfContStandardType"} & {\small \cite{pwr:93}} & 
+ Rosenkranz & tagname &=& {\small \tt "N2-SelfContStandardType"} & {\small \citet{pwr:93}} & 
               {\small Standard\_N2\_self\_continuum}\\
 $\nz-\nz$   & model &=& "Rosenkranz" & {\small Sec. \ref{levelc:n2cont}}  &  \\  
             & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
- MPM93      & tagname &=& {\small \tt "N2-SelfContMPM93"} & {\small \cite{liebeetal:93}} & 
+ MPM93      & tagname &=& {\small \tt "N2-SelfContMPM93"} & {\small \citet{liebeetal:93}} & 
               {\small MPM93\_N2\_continuum}\\
 $\nz-\nz$   & model &=& "Rosenkranz" &  {\small Sec. \ref{levelc:n2cont}} &  \\ 
             & userparameters &=& [ ] &   & \\
  \hline
  \multicolumn{6}{c}{{\bf carbon dioxide $\coz$}}\\
  \hline
- Rosenkranz & tagname &=& {\small \tt "CO2-SelfContPWR93"} & {\small \cite{pwr:93}} & 
+ Rosenkranz & tagname &=& {\small \tt "CO2-SelfContPWR93"} & {\small \citet{pwr:93}} & 
               {\small Rosenkranz\_CO2\_self\_continuum}\\
 $\coz-\coz$ & model &=& "Rosenkranz" &   {\small Sec. \ref{levelc:co2cont}} &  \\  
             & userparameters &=& [ ] &   & \\
 
 % --------------------------------------------------------------
- Rosenkranz & tagname &=& {\small \tt "CO2-ForeignContPWR93"} & {\small \cite{pwr:93}} & 
+ Rosenkranz & tagname &=& {\small \tt "CO2-ForeignContPWR93"} & {\small \citet{pwr:93}} & 
               {\small Rosenkranz\_CO2\_foreign\_continuum}\\
 $\coz-\nz$  & model &=& "Rosenkranz" &  {\small Sec. \ref{levelc:co2cont}}  &  \\  
             & userparameters &=& [ ] &   & \\
@@ -2486,13 +2530,13 @@ properly. You can find this example in the arts directory
 
 
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{abs_cont_page1}
+ %\includegraphics[scale=0.65, angle=0]{cont_description_page1}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{abs_cont_page2}
+ %\includegraphics[scale=0.65, angle=0]{cont_description_page2}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{abs_cont_page3}
+ %\includegraphics[scale=0.65, angle=0]{cont_description_page3}
 \end{flushleft}
 
 
@@ -2536,10 +2580,10 @@ $\oz$  & MPM93, PWR98 \\
 % ==================================
 In ARTS several complete water vapor absorption models are implemented and 
 can easily be used. Implemented models are the versions 
-MPM87 \cite{liebeandlayton:87}, MPM89 \cite{liebe:89}, and 
-MPM93 \cite{liebeetal:93} of the Liebe Millimeter-wave Propagation Model 
-and additionally the models of Cruz-Pol et al. (CP98) \cite{cruzpol:98} 
-and P.~W. Rosenkranz (PWR98) \cite{pwr:98}. 
+MPM87 \citep{liebeandlayton:87}, MPM89 \citep{liebe:89}, and 
+MPM93 \citep{liebeetal:93} of the Liebe Millimeter-wave Propagation Model 
+and additionally the models of Cruz-Pol et al. (CP98) \citep{cruzpol:98} 
+and P.~W. Rosenkranz (PWR98) \citep{pwr:98}. 
 MPM and PWR98 are especially desigend for fast absorption calculations in 
 the frequency range of 1-1000\,GHz while the CP98 model is a reduced model 
 for a narrow frequency band around the 22\,GHz $\hzo$-line (especially used 
@@ -2563,7 +2607,7 @@ interchanged between different models.
 \subsubsection{MPM87 Water Vapor Absorption Model}
 \label{leveld:mpm87}
 %------------------------------------------
-This version, which is described in \cite{liebeandlayton:87} and 
+This version, which is described in \citet{liebeandlayton:87} and 
 follows the general line of the MPM model to divide the total 
 water vapor absorption, $\alphampmotot$, into a spectral line 
 term, $\alphampmol$, and a continuum term not attributed to 
@@ -2578,7 +2622,7 @@ spectral lines, $\alphampmoc$:
 \paragraph{Water Vapor Line Absorption:}
 \label{levele:mpm87_h2olines}
 %-----------------------------------
-The MPM87 \cite{liebeandlayton:87} water vapor line catalog consists 
+The MPM87 \citep{liebeandlayton:87} water vapor line catalog consists 
 of 30 lines from 22\,GHz up to 988\,GHz. The center frequencies and parameter 
 values are listed in Table \ref{tab:mpm87linelist}. To describe the line 
 absorption, a set of three parameters ($\bek$ and $\bdk$) per line are used: two 
@@ -2624,7 +2668,7 @@ single parameter $\bdk$ in the following way:
 \end{equation}
 where $\pda$ is the partial pressure of dry air ($\pda=\ptot-\phzo$). 
 The parameterizations of $\inten$ and $\gamk$ are already in use for the 
-early version of MPM81 \cite{liebe:81}.
+early version of MPM81 \citep{liebe:81}.
 %
 \begin{longtable}{rrrrr}
  K & K & K & K & K \kill
@@ -2650,8 +2694,8 @@ early version of MPM81 \cite{liebe:81}.
 % --------------------- only end of table ------------------------------
  K & K & K & K & K \kill 
  \hline
- \caption{List of H$_2$O spectral lines and their spectroscopic 
-   parameters (H$_2$O-air mixture) for the MPM87 model \cite{liebeandlayton:87}.}
+ \caption[MPM87 parameters]{List of H$_2$O spectral lines and their spectroscopic 
+   parameters (H$_2$O-air mixture) for the MPM87 model \citep{liebeandlayton:87}.}
  \label{tab:mpm87linelist}
  \endlastfoot
 % --------------------- body of table  ----------------------------------  
@@ -2730,7 +2774,7 @@ The determined values of the continuum parameters are:
 \label{leveld:mpm89}
 %------------------------------------------
 %
-MPM89 is described in \cite{liebe:89} and follows the general line 
+MPM89 is described in \citet{liebe:89} and follows the general line 
 of the MPM model to devide the total water vapor absorption, 
 $\alphampmmtot$, into a spectral line term, $\alphampmml$, and a continuum 
 term not attributed to spectral lines, $\alphampmmc$:
@@ -2813,8 +2857,8 @@ $\bsk$ in the case of MPM89 whereas in MPM87 a single parameter
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K & K & K \kill
  \hline
- \caption{List of H$_2$O spectral lines and their spectroscopic 
-   parameters (H$_2$O-air mixture) for the MPM89 model \cite{liebe:89}.}
+ \caption[MPM89 parameters]{List of H$_2$O spectral lines and their spectroscopic 
+   parameters (H$_2$O-air mixture) for the MPM89 model \citep{liebe:89}.}
  \label{tab:mpm89linelist}
  \endlastfoot
 % --------------------- body of table  ----------------------------------  
@@ -2884,7 +2928,7 @@ with
 \subsubsection{MPM93 Water Vapor Absorption Model}
 \label{leveld:mpm93}
 %----------------------------------------------
-This version, which is described in \cite{liebeetal:93} and 
+This version, which is described in \citet{liebeetal:93} and 
 follows the general line of the MPM model to devide the total 
 water vapor absorption, $\alphampmntot$, into a spectral line 
 term, $\alphampmnl$, and a continuum term not attributed to 
@@ -2905,7 +2949,7 @@ distinguish a self- and foreign broadening term in the continuum.
 \paragraph{Water Vapor Line Absorption:}
 \label{levele:mpm93_h2olines}
 %-----------------------------------
-The water vapor line spectrum of MPM93 \cite{liebeetal:93} 
+The water vapor line spectrum of MPM93 \citep{liebeetal:93} 
 consists of 34 lines below 1\,THz (four more than in MPM89 and MPM87). 
 To describe the MPM93 water vapor line absorption, a set of six parameters 
 ($\bek$ and $\bdk$) per line are used: two for the line strength and 
@@ -2945,7 +2989,7 @@ single parameter $\bdk$ in the following way:
 where $\pda$ is the partial pressure of dry air ($\pda=\ptot-\phzo$). 
 
 The parameterizations of $\inten$ was already in use for the early 
-version of MPM81 \cite{liebe:81}. The expression for $\gamk$ is the
+version of MPM81 \citep{liebe:81}. The expression for $\gamk$ is the
 same as in MPM89. The main difference between MPM93 and MPM89 
 concerning the water vapor line absorption is the updated line catalog.
 %
@@ -2975,7 +3019,7 @@ concerning the water vapor line absorption is the updated line catalog.
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K & K & K \kill
  \hline
- \caption{List of used H$_2$O spectral lines and their spectroscopic 
+ \caption[MPM93 spectral line data.]{List of used H$_2$O spectral lines and their spectroscopic 
    coefficients of H$_2$O in air for the MPM93 model \citep{liebeetal:93}. 
    The last separated line is the unphysical pseudo-line used in MPM93. 
    The lines which are marked with a "$^+$" were not in the MPM87/MPM89 
@@ -3082,7 +3126,7 @@ $C_W=$\,1.0658$\pm$0.0096. The correlation between these two scaling
 factors was found to be negligible, as can be seen from 
 Table \ref{tab:cp_orr}.
 
-\begin{table}
+\begin{table}[!htb]
 \begin{center}
 \begin{tabular}{lllll}
 \hline
@@ -3099,13 +3143,13 @@ $C_X$       & -0.048 & 0.485  & -0.989 & 1\\
 \hline
 \end{tabular}
 \end{center}
-\caption{Scaling parameter values with standard deviation and 
+\caption[CP98 scaling parameter values.]{Scaling parameter values with standard deviation and 
   correlation coefficients according to \citep{cruzpol:98}.
   The scaling parameters are $C_L$:22\,GHz line strength, 
-  $C_W$:22\,GHz line width , $C_C$:$\hzo$-continuum, and 
+  $C_W$:22\,GHz line width, $C_C$:$\hzo$-continuum, and 
   $C_X$:$\oz$-absorption. $C_X$ scales the entire oxygen absorption, 
   the continuum as well as the line absorption. The Cruz-Pol et al.
-  model uses the \cite{pwr:93} oxygen absorption model.}
+  model uses the \citet{pwr:93} oxygen absorption model.}
 \label{tab:cp_orr}
 \end{table}
 
@@ -3179,7 +3223,7 @@ data base \citet{rothman:92}. Considered for this re-investigation are
 Table \ref{tab:pwr98linelist}.
 
 The line shape function $\shapec$ has a cutoff frequency, $\nucut$,
-and a baseline subtraction similar to the CKD model \cite{clough:89}.
+and a baseline subtraction similar to the CKD model \citep{clough:89}.
 The introduction of a cutoff frequency has two advantages: (1) the
 cutoff avoids applying the line shape to distant frequencies where the 
 line form is theoretically not well understood and (2) the cutoff also
@@ -3224,7 +3268,7 @@ parameters differ only in minor respects from the values used therein
 (only the parameters $x_{\rm s,1}$, $w_{\rm f,2}$ and $\rm w_{\rm s,2}$ 
 are significantly different).
 %
-\begin{table}
+\begin{table}[!htb]
 \begin{center}
 \begin{tabular}{rrrrrr}
  \hline
@@ -3249,7 +3293,7 @@ are significantly different).
   \hline
 \end{tabular}
 \end{center}
-  \caption{Line parameters of the Rosenkranz absorption model (R98) 
+  \caption[PWR98 spectral line data.]{Line parameters of the Rosenkranz absorption model (PWR98) 
   (values taken from \citet{pwr:98}).}
 \label{tab:pwr98linelist}
 \end{table}
@@ -3301,8 +3345,8 @@ This bulk of lines arise due to the fact that for rotational
 quantum numbers $K>1$ the allowed transitions \mbox{$\Delta J = \pm$1} 
 have an energy gap of approximately 60\,GHz.\\
 The most frequently used absorption model for this absorption effect is that of
-Liebe, Rosenkranz, and Hufford \cite{liebeetal:92} (also reported in 
-\cite{pwr:93} with a slightly different parameterization).
+Liebe, Rosenkranz, and Hufford \citep{liebeetal:92} (also reported in 
+\citet{pwr:93} with a slightly different parameterization).
 
 For oxygen -- like for water vapor -- the total absorption 
 ($\alphatot$) is modelled as the line absorption ($\alphal$) plus a  
@@ -3326,9 +3370,9 @@ models are not necessarily compatible and should therefore not be interchanged.
 %\label{levele:02_pwr98_line}
 \label{levele:pwr93_o2lines}
 %----------------------------------
-The oxygen absorption model of Rosenkranz is described in \cite{pwr:93}. It 
+The oxygen absorption model of Rosenkranz is described in \citet{pwr:93}. It 
 is based on the investigations made by Liebe, Rosenkranz, and Hufford 
-\cite{liebeetal:92}. The FORTRAN77 computer program of Rosenkranz for 
+\citep{liebeetal:92}. The FORTRAN77 computer program of Rosenkranz for 
 the $\oz$ absorption calculation can be downloaded via anonymous ftp from 
 mesa.mit.edu/phil/lbl\_rt.
 
@@ -3370,7 +3414,7 @@ $\alphapwrl$, is:
 \end{eqnarray}
 where $S_k(300\,{\rm K})$ denotes the reference line
 intensity at T=300\,K ant the exponential term approximates the exact 
-partition function. All model parameters (see Refs. \cite{pwr:93} and \cite{liebeetal:92}
+partition function. All model parameters (see Refs. \citet{pwr:93} and \citet{liebeetal:92}
 for the laboratory measurements and the fitting parameters) are 
 tabulated in Table \ref{tab:pwr02line}.
 %
@@ -3415,8 +3459,8 @@ tabulated in Table \ref{tab:pwr02line}.
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K & K \kill
  \hline
- \caption{List of $\oz$ spectral lines of the Rosenkranz absorption 
-          model \cite{pwr:93}.}
+ \caption[PWR93 oxygen line data.]{List of $\oz$ spectral lines of the Rosenkranz absorption 
+          model \citep{pwr:93}.}
  \label{tab:pwr02line}
  \endlastfoot
 % --------------------- body of table ----------------------------------  
@@ -3466,11 +3510,11 @@ tabulated in Table \ref{tab:pwr02line}.
 \paragraph{Oxygen Continuum Absorption:}
 \label{levele:pwr98_o2cont}
 %-----------------------------------
-As pointed out by Van~Vleck \cite{vv:87}, the standard theory for
-non-resonant absorption is that of Debye (see also Ref. \cite{townes:55}). 
+As pointed out by Van~Vleck \citep{vv:87}, the standard theory for
+non-resonant absorption is that of Debye (see also Ref. \citet{townes:55}). 
 The Debye line shape is obtained from the VVW line shape function by
 the limiting case $\nuk \rightarrow 0$.
-Rosenkranz \cite{pwr:93} adopt the Debye theory for his models: 
+Rosenkranz \citet{pwr:93} adopt the Debye theory for his models: 
 \begin{eqnarray}
   \label{eq:pwr_o2cont}
   \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
@@ -3536,7 +3580,7 @@ of the line absorption, $\alphampml$, is (in units of dB/km):
 \end{eqnarray}
 %
 where $a_{1-5,k}$ are the fitted parameters due to laboratory measurements 
-\cite{liebeetal:92}. All model parameters are tabulated in 
+\citep{liebeetal:92}. All model parameters are tabulated in 
 Table \ref{tab:mpm9302line}. One has to note that in the MPM93 code is a 
 threshold value for $\alphampml$ implemented:
 \begin{equation}
@@ -3593,8 +3637,8 @@ is remarkably higher than in the R93 model.
 % --------------------- only end of table ------------------------------
  K &  K & K & K & K & K & K & K \kill
  \hline
- \caption{List of $\oz$ spectral lines of the MPM93 absorption 
-          model \cite{liebeetal:93}.}
+ \caption[MPM93 oxygen line data.]{List of $\oz$ spectral lines of the MPM93 absorption 
+          model \citep{liebeetal:93}.}
  \label{tab:mpm9302line}
  \endlastfoot
 % --------------------- body of table ----------------------------------  
@@ -3651,11 +3695,11 @@ is remarkably higher than in the R93 model.
 \paragraph{Oxygen Continuum Absorption:}
 \label{levele:mpm93_o2cont}
 %-----------------------------------
-As pointed out by Van~Vleck \cite{vv:87}, the standard theory for
-non-resonant absorption is that of Debye (see also Ref. \cite{townes:55}). 
+As pointed out by Van~Vleck \citep{vv:87}, the standard theory for
+non-resonant absorption is that of Debye (see also Ref. \citet{townes:55}). 
 The Debye line shape is obtained from the VVW line shape function 
 by the limiting case $\nuk \rightarrow 0$.
-\cite{liebeetal:93} adopt the Debye theory for his model:
+\citet{liebeetal:93} adopt the Debye theory for his model:
 \begin{eqnarray}
   \label{eq:mpm93_o2cont}
   \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
@@ -3692,26 +3736,26 @@ To solve this ambiguity arts has two methods implemented which helps
 the user to select a single set of parameters in an easy way. 
 In connection with this input parameters we distinguish generally two 
 types, the referenced models which are taken from the literature 
-(e. g. \cite{liebeetal:93} or \cite{pwr:93}) and the user model, 
+(e. g. \citet{liebeetal:93} or \citet{pwr:93}) and the user model, 
 for which the arts user is providing the necessary parameter values.
 
 After selecting the continuum tag with the {\tt tagDefine} method, 
 the arts user has to setup the arts internal structure (i. e. the workspace 
-variables {\it abs\_cont\_names, abs\_cont\_models, 
-and abs\_cont\_parameters}) for the selected continuum tags, 
+variables {\it cont\_description\_names, cont\_description\_models, 
+and cont\_description\_parameters}) for the selected continuum tags, 
 which can simply be done by putting the following line into the arts control file:
-\begin{verbatim}
-abs_cont_descriptionInit{}
-\end{verbatim}
+\begin{lstlisting}
+cont_descriptionInit{}
+\end{lstlisting}
 
 After this initialization, the continuum tag specific
 information has to be transfered to arts. This is possible with the 
-arts method {\it abs\_cont\_descriptionAppend}, which has itself 
+arts method {\it cont\_descriptionAppend}, which has itself 
 three input variables: {\it tagname}, {\it model}, and 
 {\it userparameters}. The user has to specify these input 
 variables in the arts control file for each selected continuum tag. 
 Below is a list of all the implemented continuum tags and the associated
-valid range of the input variables for {\it abs\_cont\_descriptionAppend}. 
+valid range of the input variables for {\it cont\_descriptionAppend}. 
 For a condensed overview of the possible continuum tags and their 
 referenced models see Table \ref{tab:artsfullmodlist} and the 
 online documentation can be found under 
@@ -3725,7 +3769,7 @@ rule that only the user model ({\it model ="user"}) needs input parameters
 via the input variable {\it userparameters}. All the referenced models 
 need no input via {\it userparameters}. If you try to run the arts control 
 file with a referenced model and input parameters you will get an error message.
-Below in the detailed description of {\it abs\_cont\_descriptionAppend} you 
+Below in the detailed description of {\it cont\_descriptionAppend} you 
 can find correct examples for all the continuum tags.
 
 \begin{itemize}
@@ -3752,30 +3796,30 @@ can find correct examples for all the continuum tags.
      In the following all the valid possibilities for the
      tag {\tt "H2O-MPM87"} are listed (the values for the 
      model user are just example values): 
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "MPM87"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "MPM87Lines"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "MPM87Continuum"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
-\item[$\bullet$] The full water vapor absorption model MPM89 \cite{liebe:89} 
+\item[$\bullet$] The full water vapor absorption model MPM89 \citep{liebe:89} 
      has the arts tag name {\tt "H2O-MPM89"}. The details about 
      this water vapor absorption model are described in 
      Section \ref{leveld:mpm89}.
@@ -3799,29 +3843,29 @@ abs_cont_descriptionAppend{
      In the following all the valid possibilities for the
      tag {\tt "H2O-MPM89"} are listed (the values for the 
      model user are just example values): 
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "MPM89"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "MPM89Lines"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "MPM89Continuum"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
-\item[$\bullet$] The water vapor model of MPM93 \cite{liebeetal:93}
+\end{lstlisting}
+\item[$\bullet$] The water vapor model of MPM93 \citep{liebeetal:93}
      has the arts tag name {\tt H2O-MPM93}. The details about this water vapor 
      absorption model are described in Section \ref{leveld:mpm93}.
      The standard way to use the full (=continuum+lines) MPM93 water 
@@ -3844,28 +3888,28 @@ abs_cont_descriptionAppend{
      In the following all the valid possibilities for the
      tag {\tt "H2O-MPM93"} are listed (the values for the 
      model user are just example values): 
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "MPM93Lines"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "MPM93Continuum"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 \item[$\bullet$] The water vapor model of CP98 \citep{cruzpol:98}
      has the arts tag name {\tt "H2O-CP98"}. The details about this water 
@@ -3890,28 +3934,28 @@ abs_cont_descriptionAppend{
      In the following all the valid possibilities for the
      tag {\tt "H2O-CP98"} are listed (the values for the 
      model user are just example values): 
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "CruzPol"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "CruzPolLines"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "CruzPolContinuum"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 \item[$\bullet$] The water vapor model of PWR98 \citep{pwr:98}
      has the arts tag name {\tt "H2O-PWR98"}. The details about this water 
@@ -3936,28 +3980,28 @@ abs_cont_descriptionAppend{
      In the following all the valid possibilities for the
      tag {\tt "H2O-PWR98"} are listed (the values for the 
      model user are just example values):
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "RosenkranzLines"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "RosenkranzContinuum"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 \item[$\bullet$] The MPM93 full absorption model for oxygen \citep{liebeetal:93}
      has the arts tag name {\tt "O2-MPM93"}. The details about this 
@@ -3983,28 +4027,28 @@ abs_cont_descriptionAppend{
      In the following all the valid possibilities for the
      tag {\tt "O2-MPM93"} are listed (the values for the 
      model user are just example values):
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "MPM93Lines"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "MPM93Continuum"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 
 \item[$\bullet$] The PWR93 full absorption model for oxygen \citep{pwr:93}
      has the arts tag name {\tt "O2-PWR93"}. The details about this 
@@ -4030,28 +4074,28 @@ abs_cont_descriptionAppend{
      In the following all the valid possibilities for the
      tag {\tt "O2-PWR93"} are listed (the values for the 
      model user are just example values):
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "RosenkranzLines"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "RosenkranzContinuum"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0, 1.0]
 }
-\end{verbatim}
+\end{lstlisting}
 \end{itemize}
 
 \begin{landscape}
@@ -4061,14 +4105,14 @@ abs_cont_descriptionAppend{
 %
 % --------------------- only begin of table ------------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend} input} & 
+ continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend} input} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
  \endfirsthead
 % --------------------- every page begin of table ------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend}} & 
+ continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend}} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
@@ -4081,9 +4125,9 @@ abs_cont_descriptionAppend{
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K \kill 
  \hline
- \caption{This table gives an overview of the implemented referenced 
+ \caption[Complete absorption models summary table.]{This table gives an overview of the implemented referenced 
    full (continua+line) absorption models and how they are specified 
-   in the arts method {\it abs\_cont\_descriptionAppend}. Additionally the 
+   in the arts method {\it cont\_descriptionAppend}. Additionally the 
    reference and the arts source code function names (see file 
    {\it arts/src/continua.cc} are provided. The detailed online 
    documentation can be found under {\it arts/doc/doxygen/html/continua\_cc.html}).}
@@ -4092,34 +4136,34 @@ abs_cont_descriptionAppend{
 % --------------------- body of table  ----------------------------------  
  \multicolumn{6}{c}{{\bf water vapor ($\hzo$)}}\\
  \hline
- Rosenkranz  & tagname &=& {\tt "H2O-PWR98"}   & \cite{pwr:98} & PWR98H2OAbsModel\\
+ Rosenkranz  & tagname &=& {\tt "H2O-PWR98"}   & \citet{pwr:98} & PWR98H2OAbsModel\\
              & model &=& "Rosenkranz" &   &  \\ 
              & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
- Cruz-Pol    & tagname &=& {\tt "H2O-CP98"}    & \cite{cruzpol:98} & CP98H2OAbsModel\\
+ Cruz-Pol    & tagname &=& {\tt "H2O-CP98"}    & \citet{cruzpol:98} & CP98H2OAbsModel\\
              & model &=& "CruzPol" &   &  \\ 
              & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
- MPM97       & tagname &=& {\tt "H2O-MPM87"}   & \cite{liebeandlayton:87} & MPM87H2OAbsModel\\
+ MPM97       & tagname &=& {\tt "H2O-MPM87"}   & \citet{liebeandlayton:87} & MPM87H2OAbsModel\\
              & model &=& "MPM93" &   &  \\ 
              & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
- MPM89       & tagname &=& {\tt "H2O-MPM89"}   & \cite{liebe:89} & MPM89H2OAbsModel\\
+ MPM89       & tagname &=& {\tt "H2O-MPM89"}   & \citet{liebe:89} & MPM89H2OAbsModel\\
              & model &=& "MPM93" &   &  \\ 
              & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
- MPM93       & tagname &=& {\tt "H2O-MPM93"}   & \cite{liebeetal:93} & MPM93H2OAbsModel\\
+ MPM93       & tagname &=& {\tt "H2O-MPM93"}   & \citet{liebeetal:93} & MPM93H2OAbsModel\\
              & model &=& "MPM93" &   &  \\ 
              & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
  \hline
  \multicolumn{6}{c}{{\bf oxygen ($\oz$)}}\\
  \hline
- Rosenkranz  & tagname &=& {\tt "O2-SelfContPWR93"} & \cite{pwr:93} & PWR93O2AbsModel\\
+ Rosenkranz  & tagname &=& {\tt "O2-SelfContPWR93"} & \citet{pwr:93} & PWR93O2AbsModel\\
              & model &=& "Rosenkranz" &   &  \\ 
              & userparameters &=& [ ] &   & \\
 % --------------------------------------------------------------
- MPM93       & tagname &=& {\tt "O2-SelfContMPM93"} & \cite{liebeetal:93} & MPM93O2AbsModel\\
+ MPM93       & tagname &=& {\tt "O2-SelfContMPM93"} & \citet{liebeetal:93} & MPM93O2AbsModel\\
              & model &=& "MPM93" &   &  \\ 
              & userparameters &=& [ ] &   & \\
  \hline
@@ -4146,13 +4190,13 @@ You can find this example in the arts directory
 
 
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{fullmodel_description_page1}
+ %\includegraphics[scale=0.65, angle=0]{fullmodel_description_page1}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{fullmodel_description_page2}
+ %\includegraphics[scale=0.65, angle=0]{fullmodel_description_page2}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{fullmodel_description_page3}
+ %\includegraphics[scale=0.65, angle=0]{fullmodel_description_page3}
 \end{flushleft}
 
 
@@ -4220,11 +4264,11 @@ and temperature.
   \label{eq:comp_perm_lwc}
   \ree       & = & \epsilon_o~-~\nu^2\cdot
                    \left[\frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
-                   \frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_1^2}\right]\nonumber\\
+                   \frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_2^2}\right]\nonumber\\
 %
   \ime       & = & \nu\cdot\left[\gamma_1\cdot
                    \frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
-                   \gamma_2\cdot\frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_1^2}\right]\nonumber\\
+                   \gamma_2\cdot\frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_2^2}\right]\nonumber\\
 %
   \label{eq:comp_perm_lwc_epsilon_0}
   \epsilon_o & = & 77.66 + 103.3\cdot(\Theta-1)\\
@@ -4251,7 +4295,7 @@ $\bullet$ Complex permittivity for ice crystals:
   \ime    & = & \frac{a}{\nu}~+~b\cdot\nu\nonumber\\
 %
   \label{eq:comp_perm_iwc_a}
-  a       & = & (\Theta-0.171)\cdot\exp{(17.0-22.1\cdot\Theta)}\\
+  a       & = & (\Theta-0.1871)\cdot\exp{(17.0-22.1\cdot\Theta)}\\
   \label{eq:comp_perm_iwc_b}
   b       & = & \left[\left(\frac{0.233}{1-0.993/\Theta}\right)^2 + 
                 \frac{6.33}{\Theta} - 1.31\right]\cdot10^{-5}\\
@@ -4277,7 +4321,7 @@ of the order of 1-6\% as reported in \citet{lietal:97} and (2) from
 the fit of the complex permittivity.  Since $\epsilon(\nu,T)$ was
 fitted to measurements which were mostly performed above $0^\circ$C,
 the extrapolated values for $T<$0$^{\rm o}$C for super-cooled
-clouds are not well established. For example in \cite{liebeetal:91} 
+clouds are not well established. For example in \citet{liebeetal:91} 
 itself two different parameterizations for the so called primary 
 relaxation frequency ($\gamma_1$ in Equation \ref{eq:comp_perm_lwc}) 
 are given, one polynomial in $\Theta$ as presented in 
@@ -4293,48 +4337,48 @@ Figure \ref{fig:refrac_water_comp}. A more detailed
 discussion about this source of uncertainty is given in Section
 \ref{levelb:ref_uncert_clouds}.
 %
-\begin{table}
+\begin{table}[!htb]
 \begin{center}
 \begin{tabular}{llll}
 \hline
 \multicolumn{4}{c}{liquid water content ($LWC$)} \\
  cloud        & class & \multicolumn{1}{c}{(g/m$^3$)} & reference\\
 \hline
- stratus      & St    & 0.15        & \cite{salby:96}\\
-              &       & 0.09-0.9    & \cite{seinfeld:98}\\
-              &       & 0.28-0.3    & \cite{hess:98}\\
-              &       & 0.29        & \cite{abreu:96}\\
- nimbostratus & Ns    & 0.4         & \cite{salby:96}\\
-              &       & 0.65        & \cite{abreu:96}\\
-              &       & 0.05-0.3    & \cite{berton:00}\\
- altostratus  & As    & $<$0.01-0.2 & \cite{seinfeld:98}\\
-              &       & 0.41        & \cite{abreu:96}\\
-              &       & 0.1-1       & \cite{berton:00}\\
- stratocumulus& Sc    & 0.3         & \cite{salby:96}\\
-              &       & $<$0.1-0.7  & \cite{seinfeld:98}\\
-              &       & 0.15        & \cite{abreu:96}\\
-              &       & $<$0.5      & \cite{pawlowskaetal:00}\\
-              &       & 0.05-1      & \cite{berton:00}\\
- cumulus      & Cu    & 0.5         & \cite{salby:96}\\
-              &       & 0.26-0.44   & \cite{hess:98}\\
-              &       & 1.00        & \cite{abreu:96}\\
- cumulonimbus & Cb    & 2.5         & \cite{salby:96}\\
-              &       & 0.1-2       & \cite{berton:00}\\
+ stratus      & St    & 0.15        & \citet{salby:96}\\
+              &       & 0.09-0.9    & \citet{seinfeld:98}\\
+              &       & 0.28-0.3    & \citet{hess:98}\\
+              &       & 0.29        & \citet{abreu:96}\\
+ nimbostratus & Ns    & 0.4         & \citet{salby:96}\\
+              &       & 0.65        & \citet{abreu:96}\\
+              &       & 0.05-0.3    & \citet{berton:00}\\
+ altostratus  & As    & $<$0.01-0.2 & \citet{seinfeld:98}\\
+              &       & 0.41        & \citet{abreu:96}\\
+              &       & 0.1-1       & \citet{berton:00}\\
+ stratocumulus& Sc    & 0.3         & \citet{salby:96}\\
+              &       & $<$0.1-0.7  & \citet{seinfeld:98}\\
+              &       & 0.15        & \citet{abreu:96}\\
+              &       & $<$0.5      & \citet{pawlowskaetal:00}\\
+              &       & 0.05-1      & \citet{berton:00}\\
+ cumulus      & Cu    & 0.5         & \citet{salby:96}\\
+              &       & 0.26-0.44   & \citet{hess:98}\\
+              &       & 1.00        & \citet{abreu:96}\\
+ cumulonimbus & Cb    & 2.5         & \citet{salby:96}\\
+              &       & 0.1-2       & \citet{berton:00}\\
  cumulus 
-    congestus & Cg    & 0.1-3.2     & \cite{berton:00}\\
-FIRE-ACE      & -     & $<$0.7      & \cite{shupeetal:00}\\
+    congestus & Cg    & 0.1-3.2     & \citet{berton:00}\\
+FIRE-ACE      & -     & $<$0.7      & \citet{shupeetal:00}\\
 \hline
 \multicolumn{4}{c}{}  \\
 \multicolumn{4}{c}{ice water content ($IWC$)}  \\
  cloud        & class & \multicolumn{1}{c}{(g/m$^3$)} & reference\\
 \hline
- cirrus       & Ci    & 0.025                         & \cite{salby:96}\\
-              &       & 0.00193-0.0260                & \cite{hess:98}\\
-              &       & 3.128$\cdot$10$^{-4}$-0.06405 & \cite{abreu:96}\\ 
-              &       & 0.15-0.3                      & \cite{larsenetal:98}\\
-              &       & $<$0.1                        & \cite{berton:00}\\
-cirrostratus  & Cs    & 0.2                           & \cite{salby:96}\\
-              &       & 0.05-2                        & \cite{berton:00}\\
+ cirrus       & Ci    & 0.025                         & \citet{salby:96}\\
+              &       & 0.00193-0.0260                & \citet{hess:98}\\
+              &       & 3.128$\cdot$10$^{-4}$-0.06405 & \citet{abreu:96}\\ 
+              &       & 0.15-0.3                      & \citet{larsenetal:98}\\
+              &       & $<$0.1                        & \citet{berton:00}\\
+cirrostratus  & Cs    & 0.2                           & \citet{salby:96}\\
+              &       & 0.05-2                        & \citet{berton:00}\\
 \hline
 \end{tabular}
 \caption{Stated values for the liquid and ice water content of several 
@@ -4367,21 +4411,21 @@ a non-negligible large particle concentration can occur.
 The uncertainty in the relative dielectric constant of water 
 (see e.~g. \citet{liptonetal:99}) is largest below the freezing 
 temperature, since only a few measurements at -4$^{\rm o}$C 
-contributed to the parameterization of $\er$ in \cite{liebeetal:91}, 
+contributed to the parameterization of $\er$ in \citet{liebeetal:91}, 
 which in turn is used in the cloud liquid water absorption model of MPM93. 
 Figure \ref{fig:refrac_water_comp} shows a comparison of 
-\cite{liebeetal:91} and \cite{ray:72}\footnote{{The calculations
+\citet{liebeetal:91} and \citet{ray:72}\footnote{{The calculations
   for this parameterizastion are performed with the computer code}\\{
    of W. Wiscombe, NASA, GSFC}\\
   (ftp://climate.gsfc.nasa.gov/pub/wiscombe/Refrac\_Index/WATER/)
   For the microwave frequency range this program uses the
-  \cite{ray:72} temperature parameterization.} parameterizations 
+  \citet{ray:72} temperature parameterization.} parameterizations 
 for the temperature dependence of the expression
 $\Im{[(\er-1)/(\er+2)]}$, which is in the Rayleigh approximation 
 one of the relevant terms in the absorption calculation (see 
 Equation \ref{eq:abs_cloud}). Additionally the same calculations with 
 the alternative expression of the first  relaxation frequency, 
-$\gamma_1$, as stated in Equation~2b of \cite{liebeetal:91} is shown. 
+$\gamma_1$, as stated in Equation~2b of \citet{liebeetal:91} is shown. 
 The three versions give comparable results for temperatures warmer 
 than 260\,K but show significant  differences for temperatures below 
 240\,K. However, an uncertainty estimation of $\Im{[(\er-1)/(\er+2)]}$ 
@@ -4454,21 +4498,19 @@ with
 
 
 
-\begin{figure}
+\begin{figure}[!htb]
   \begin{center}
 % ---- uncertainty -------------------------------------
 %   \includegraphics*[scale=0.6, angle=90, viewport= 80 725 480 70]%
-   \includegraphics*[width=0.6\hsize, angle=90]%
-   {LWCcloud}\\
+   %\includegraphics*[width=0.6\hsize, angle=90]%{LWCcloud}\\
 % ---- ratio -------------------------------------------
 %   \includegraphics*[scale=0.6, angle=90, viewport= 80 725 480 66]%
-   \includegraphics*[width=0.6\hsize, angle=90]%
-   {IWCcloud}
+   %\includegraphics*[width=0.6\hsize, angle=90]{IWCcloud}
 % ------------------------------------------------------
   \end{center}
-  \caption{Cloud particle size distributions according to 
+  \caption[Cloud particle size distributions.]{Cloud particle size distributions according to 
     Equations~3a and 3c and the microphysical properties are from the 
-    Tables 1a and 1b of the OPAC model \cite{hess:98}. 
+    Tables 1a and 1b of the OPAC model \citep{hess:98}. 
     For the liquid water clouds (upper plot) a modified gamma 
     distribution is assumed whereas for the ice clouds (lower plot) 
     exponential functions are taken.}
@@ -4476,27 +4518,26 @@ with
 \end{figure}
 %
 %
-\begin{figure}
+\begin{figure}[!hbt]
   \begin{center}
 % ---- comparison --------------------------------------
-   \includegraphics*[width=0.75\hsize, angle=0]%
-   {refractive_water_comp_T}
+   %\includegraphics*[width=0.75\hsize, angle=0]{refractive_water_comp_T}
 % ------------------------------------------------------
   \end{center}
-  \caption{Comparison of the imaginary part of the expression 
+  \caption[Refractive index comparison.]{Comparison of the imaginary part of the expression 
     \mbox{$(\er-1)/(\er+2)$} for liquid water at the three 
     frequencies of 32.9, 22.6, and 10,3 GHz. Plotted are the two common
-    models of \cite{liebeetal:91} (a) and \cite{ray:72} (b). 
+    models of \citet{liebeetal:91} (a) and \citet{ray:72} (b). 
     The Ray parameterization is calculated with the F77 program 
     of W. Wiscombe, NASA, GSFC, take from 
     ftp://climate.gsfc.nasa.gov/pub/wiscombe/Refrac\_Index/WATER/.
-    Additionally the \cite{liebeetal:91} parameterization (c) with the 
+    Additionally the \citet{liebeetal:91} parameterization (c) with the 
     alternative expression for the first relaxation frequency, 
     $\gamma_1 = 20.1\cdot\exp{[7.88\cdot(1-\Theta)]}$, is plotted.}
 %
 %    $(\er-1)/(\er+2)$ for liquid water at the three WATS frequencies
 %    of interest. Plotted are the two common
-%    models of \cite{liebeetal:91} and \cite{ray:72} (calculated with 
+%    models of \citet{liebeetal:91} and \citet{ray:72} (calculated with 
 %    the F77 program of W. Wiscombe (NASA, GSFC) take from 
 %    ftp://climate.gsfc.nasa.gov/pub/wiscombe/Refrac\_Index/WATER/).}
   \label{fig:refrac_water_comp}
@@ -4518,7 +4559,7 @@ normal trace gas tags, since both need only a profile. But to have
 more flexibility one can run these absorption models as black boxes 
 or with some user given input. In connection with this input parameters 
 we distinguish generally two types, the referenced models which 
-are taken from the literature (e. g. \cite{liebeetal:93}) and the 
+are taken from the literature (e. g. \citet{liebeetal:93}) and the 
 user model, for which the arts user is providing the necessary 
 parameter values.
 
@@ -4526,22 +4567,22 @@ Formally the cloud tags are like the
 continuum or full model tags implemented. Therefore after selecting 
 the cloud tag with the {\tt tagDefine} method, the arts user has to 
 setup the arts internal structure (i. e. the workspace variables 
-{\it abs\_cont\_names, abs\_cont\_models, 
-and abs\_cont\_parameters}) for the selected continuum tags, 
+{\it cont\_description\_names, cont\_description\_models, 
+and cont\_description\_parameters}) for the selected continuum tags, 
 which can simply be done by putting the following line into the 
 arts control file:
-\begin{verbatim}
-abs_cont_descriptionInit{}
-\end{verbatim}
+\begin{lstlisting}
+cont_descriptionInit{}
+\end{lstlisting}
 
 After this initialization, the cloud tag specific
 information has to be transfered to arts. This is possible with the 
-arts method {\it abs\_cont\_descriptionAppend}, which has itself 
+arts method {\it cont\_descriptionAppend}, which has itself 
 three input variables: {\it tagname}, {\it model}, and 
 {\it userparameters}. The user has to specify these input 
 variables in the arts control file for each selected cloud tag. 
 Below is a list of all the implemented continuum tags and the associated
-valid range of the input variables for {\it abs\_cont\_descriptionAppend}. 
+valid range of the input variables for {\it cont\_descriptionAppend}. 
 For an overview of the possible continuum tags and their 
 referenced models see Table \ref{tab:artscloudlist} and the 
 online documentation can be found under 
@@ -4555,7 +4596,7 @@ rule that only the user model ({\it model ="user"}) needs input parameters
 via the input variable {\it userparameters}. The referenced models 
 need no input via {\it userparameters}. If you try to run the arts control 
 file with a referenced model and input parameters you will get an error message.
-Below in the detailed description of {\it abs\_cont\_descriptionAppend} you 
+Below in the detailed description of {\it cont\_descriptionAppend} you 
 can find correct examples for all the cloud tags.
 
 \begin{itemize}
@@ -4576,18 +4617,18 @@ can find correct examples for all the cloud tags.
      relaxation frequency, $\gamma_1$, (see Eq. 
      (\ref{eq:comp_perm_lwc_gamma_1})) and  $CE$ scales $\epsilon_o$ 
      (see Eq. \ref{eq:comp_perm_lwc_epsilon_0})
-\begin{verbatim}
-abs_cont_descriptionAppend{
+\begin{lstlisting}
+cont_descriptionAppend{
     tagname        = "liquidcloud-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "liquidcloud-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 \item[$\bullet$] The ice water cloud absorption model of 
      MPM93 \citep{liebeetal:93} has the arts tag name 
      {\tt "icecloud-MPM93"}. The details about this 
@@ -4604,20 +4645,20 @@ abs_cont_descriptionAppend{
      (see Eq. \ref{eq:abs_cloud}) while $CA$ scales $a$, (see Eq. 
      (\ref{eq:comp_perm_iwc_a})) and $CB$ scales $b$ 
      (see Eq. \ref{eq:comp_perm_iwc_b})
-\begin{verbatim}
+\begin{lstlisting}
 # MPM93 model for ice water particle absorption:
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "icecloud-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
 # MPM93 model for ice water particle absorption:
-abs_cont_descriptionAppend{
+cont_descriptionAppend{
     tagname        = "icecloud-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
 }
-\end{verbatim}
+\end{lstlisting}
 \end{itemize}
 
 
@@ -4632,7 +4673,7 @@ profiles from a midlatitude-summer scenario (this information is
 provided with the input variable {\it basename} which states the 
 basic scenario) and cumulonimbus and cirrus cloud profiles for 
 liquid water and ice water clouds, respectively:
-\begin{verbatim}
+\begin{lstlisting}
 # ATTENTION! THE PATH AND FILE NAMES ARE USER SPECIFIC!
 raw_vmrsReadFromFiles
   {seltags   = [ "liquidcloud-MPM93", 
@@ -4642,7 +4683,7 @@ raw_vmrsReadFromFiles
    basename  =   "midlatitude-summer"
   }
 #
-\end{verbatim}
+\end{lstlisting}
 The method {\tt raw\_vmrsReadFromFiles}can be used for any tag and 
 is not specific for cloud tags. In general one has to state in the 
 input variable {\it seltags} the tags which take their profile 
@@ -4665,14 +4706,14 @@ saturation over ice is taken.
 %
 % --------------------- only begin of table ------------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend} input} & 
+ continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend} input} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
  \endfirsthead
 % --------------------- every page begin of table ------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend}} & 
+ continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend}} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
@@ -4685,9 +4726,9 @@ saturation over ice is taken.
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K \kill 
  \hline
- \caption{This table gives an overview of the implemented referenced 
+ \caption[Cloud absorption models.]{This table gives an overview of the implemented referenced 
    cloud absorption models and how they are specified 
-   in the arts method {\it abs\_cont\_descriptionAppend}. Additionally the 
+   in the arts method {\it cont\_descriptionAppend}. Additionally the 
    reference and the arts source code function names (see file 
    {\it arts/src/continua.cc} are provided. The detailed online 
    documentation can be found under 
@@ -4698,13 +4739,13 @@ saturation over ice is taken.
  \multicolumn{6}{c}{{\bf water vapor ($\hzo$)}}\\
  \hline
 % --------------------------------------------------------------
- MPM93       & tagname &=& {\tt "liquidcloud-MPM93"} & \cite{liebeetal:93} & 
+ MPM93       & tagname &=& {\tt "liquidcloud-MPM93"} & \citet{liebeetal:93} & 
              MPM93WaterDropletAbs\\
              & model   &=& "MPM93"    &   &  \\ 
              & userparameters &=& [ ] &   & \\
  \hline
 % --------------------------------------------------------------
- MPM93       & tagname &=& {\tt "icecloud-MPM93"} & \cite{liebeetal:93} & 
+ MPM93       & tagname &=& {\tt "icecloud-MPM93"} & \citet{liebeetal:93} & 
                MPM93IceCrystalAbs\\
              & model   &=& "MPM93"    &   &  \\ 
              & userparameters &=& [ ] &   & \\
@@ -4729,21 +4770,20 @@ to run it properly. You can find this example in the
 arts directory {\it arts/doc/examples/cloud\_example.arts}
 %
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{cloud_description_page1}
+ %\includegraphics[scale=0.65, angle=0]{cloud_description_page1}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{cloud_description_page2}
+ %\includegraphics[scale=0.65, angle=0]{cloud_description_page2}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{cloud_description_page3}
+ %\includegraphics[scale=0.65, angle=0]{cloud_description_page3}
 \end{flushleft}
 
 
 
 %%% Local Variables: 
 %%% mode: latex 
-%%% TeX-master: "uguide"
-%%% TeX-master: "uguide"
+%%% TeX-master: "arts_theory"
 %%% End:
 
 % LocalWords:  Atmosperic
