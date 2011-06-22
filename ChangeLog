@@ -1,3 +1,26 @@
+2011-06-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-34
+
+	* doc/uguide/common.tex:
+
+	Use same font family for lstlisting as for verbatim and artsstyle.
+
+	* doc/uguide/agendas.tex:
+
+	Bring contents up to date.
+
+	Replace all verbatim environments with lstlisting.
+
+	* doc/uguide/concept.tex: Remove resolved fixme.
+
+	* src/arts.h, src/workspace.cc (get_wsv_id):
+
+	Add function overload that takes a char* as input for debugging
+	convenience.
+
+	* src/methods.cc: Update r_geoidSpherical a bit.
+
 2011-06-22  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-15-33

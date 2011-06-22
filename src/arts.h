@@ -125,6 +125,7 @@
 // FIXME OLE: These should be moved to a separate header file.
 void define_wsv_group_names();  
 Index get_wsv_id(const String& name);
+Index get_wsv_id(const char *name);
 bool is_valid_keyword_group(const Index name);
 void define_species_data();
 void define_lineshape_data();

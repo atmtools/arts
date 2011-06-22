@@ -4510,6 +4510,16 @@ void Workspace::define_wsv_data()
       GROUP( "Matrix" )));
 }
 
+
+//! Get index of WSV
+/** 
+ Returns the index the Workspace of the given WSV.
+ 
+ \param[in]  name   WSV name
+ \returns           Index in Workspace
+ 
+ \author Oliver Lemke
+ */
 Index get_wsv_id(const String& name)
 {
   map<String, Index>::const_iterator it = Workspace::WsvMap.find (name);
@@ -4519,3 +4529,20 @@ Index get_wsv_id(const String& name)
     return it->second;
 }
 
+
+//! Get index of WSV
+/** 
+ Returns the index the Workspace of the given WSV.
+ 
+ Convenience function which can be called from within the debugger because it
+ takes a plain char pointer instead of a String object as input.
+ 
+ \param[in]  name   WSV name
+ \returns           Index in Workspace
+ 
+ \author Oliver Lemke
+ */
+Index get_wsv_id(const char *name)
+{
+  return get_wsv_id(String(name));
+}

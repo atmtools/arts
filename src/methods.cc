@@ -6790,9 +6790,7 @@ void define_md_data_raw()
         (
          "Sets the geoid to be a perfect sphere.\n"
          "\n"
-         "The radius of the sphere is selected by the keyword argument *r*.\n"
-         "If the keyword is set to be negative, the radius is set to the\n"
-         "global internal variable *EARTH_RADIUS*, defined in constants.cc.\n"
+         "The radius of the sphere is selected by the generic argument r.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "r_geoid" ),
@@ -6803,7 +6801,9 @@ void define_md_data_raw()
         GIN( "r" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF     ),
-        GIN_DESC( "Radius of geoid sphere. See further above." )
+        GIN_DESC( "Radius of the geoid sphere. If negative, the radius is set to the "
+                  "global internal variable EARTH_RADIUS, defined in constants.cc."
+         )
         ));
 
   md_data_raw.push_back

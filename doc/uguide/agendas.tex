@@ -4,10 +4,9 @@
 \label{sec:workspace}
 
 \starthistory
+  110622 & Updated by Oliver Lemke.\\
   020605 & Created by Stefan Buehler.\\
 \stophistory
-
-{\Large \bf FIXME: This is a construction site. Please don't read!}
 
 This chapter deals with the main components of ARTS: \emph{Workspace
   variables}\index{workspace variables} (\textindex{WSVs}) and
@@ -30,7 +29,7 @@ group of WSVs.
 %----------------------------
 \label{sec:agendas:files}
 
-The two most important files are:
+The most important files are:
 \begin{itemize}
 \item \fileindex{workspace.cc}:\\
   Definition and documentation of WSVs.
@@ -53,19 +52,15 @@ When ARTS is built, a number of source code files are generated
 automatically. They are listed here in the order in which they are
 generated: 
 \begin{itemize}
-\item \fileindex{auto\_wsv\_groups.h}:\\
+\item \fileindex{auto\_workspace.h}:\\
   Generated from \artsstyle{groups.cc}.
-\item \fileindex{auto\_wsv.h}, \fileindex{auto\_wsv\_pointers.cc}:\\
-  Generated from \artsstyle{auto\_wsv\_groups.h} and \artsstyle{workspace.cc}. 
 \item \fileindex{auto\_md.h}, \fileindex{auto\_md.cc}:\\
-  Generated from \artsstyle{auto\_wsv\_groups.h},
-  \artsstyle{auto\_wsv.h}, \artsstyle{agendas.cc}, and \artsstyle{methods.cc}.
+  Generated from \artsstyle{auto\_workspace.h},
+  \artsstyle{agendas.cc}, \artsstyle{groups.cc}, and \artsstyle{methods.cc}.
 \end{itemize}
 This is achieved by a set of simple C++ programs:
 \begin{itemize}
-\item \fileindex{make\_auto\_wsv\_groups\_h.cc}
-\item \fileindex{make\_auto\_wsv\_h.cc}
-\item \fileindex{make\_auto\_wsv\_pointers\_cc.cc}
+\item \fileindex{make\_auto\_workspace\_h.cc}
 \item \fileindex{make\_auto\_md\_h.cc}
 \item \fileindex{make\_auto\_md\_cc.cc}
 \end{itemize}
@@ -77,8 +72,7 @@ for each file to be generated.  The generation of the
 Next, there are some files that contain the internal implementation
 of WSVs and WSMs. These are:
 \begin{itemize}
-\item \fileindex{wsv\_aux.h}, \fileindex{wsv\_aux.cc},
-  \fileindex{workspace\_aux.cc}:\\
+\item \fileindex{wsv\_aux.h}:\\
   Implementation of class
   \typeindex{WsvRecord}, which stores the lookup information for one
   WSV, plus auxiliary stuff for the workspace.
@@ -121,8 +115,7 @@ all WSVs are unset.
 WSVs are defined in the file \fileindex{workspace.cc}. A typical
 definition looks like this:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 wsv_data.push_back
   (WsvRecord
    ( NAME( "f_grid" ),
@@ -136,8 +129,7 @@ wsv_data.push_back
       "Unit:       Hz"
       ),
      GROUP( "Vector" )));
-\end{verbatim}
-}
+\end{lstlisting}
 
 \noindent
 All WSV definitions have the same three elements:
@@ -151,8 +143,7 @@ All WSV definitions have the same three elements:
 \item The \emph{group} to which the WSV belongs. You can think of a
   group as something similar to a C++ data type. The WSV in the
   example belongs to the group \artsstyle{Vector}. The allowed groups
-  are defined in file \fileindex{groups.cc}. Note that you have to add
-  an underscore to the group name.
+  are defined in file \fileindex{groups.cc}.
 \end{enumerate}
 
 \noindent
@@ -175,41 +166,28 @@ information on the available WSMs is stored. This place is the file
 \fileindex{methods.cc}. It contains a record for each WSM. Here is an
 example:
 
-{\small
-\begin{verbatim}
-md_data.push_back
+\begin{lstlisting}
+md_data_raw.push_back
   ( MdRecord
-    ( NAME("elsLorentz"),
+    ( NAME( "r_geoidSpherical" ),
       DESCRIPTION
       (
-       "The Lorentz lineshape.\n"
+       "Sets the geoid to be a perfect sphere.\n"
        "\n"
-       "This computes the simple Lorentz lineshape as:\n"
-       "\n"
-       "els[i] = 1/PI * ls_gamma /\n"
-       "         ( (els_f_grid[i])^2 + ls_gamma^2 )\n"
-       "\n"
-       "Note that the frequency grid els_f_grid must hold\n"
-       "offset frequencies from line center. Hence, the\n"
-       "line center frequency is not needed as input.\n"
-       "\n"
-       "Output:\n"
-       "   els        : The lineshape function [1/Hz]\n"
-       "\n"
-       "Input:\n"
-       "   ls_gamma   : Line width [Hz].\n"
-       "   els_f_grid : Frequency grid [Hz]."
+       "The radius of the sphere is selected by the generic argument r.\n"
       ),
-      OUT( "els" ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "r_geoid" ),
       GOUT(),
       GOUT_TYPE(),
-      IN( "ls_gamma", "els_f_grid" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-    ));
-\end{verbatim}
-}
+      GOUT_DESC(),
+      IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
+      GIN( "r" ),
+      GIN_TYPE(    "Numeric" ),
+      GIN_DEFAULT( NODEF     ),
+      GIN_DESC( "Radius of the geoid sphere."),
+      ));
+\end{lstlisting}
 
 \noindent
 All WSM definitions have the same elements:
@@ -223,94 +201,108 @@ All these WSVs are set by this WSM.
 \item The \emph{GOUT}. This is a list descriptive names for the generic
 outputs.
 \item The \emph{GOUT\_TYPE}. This is a list of WSV group names.
-This defines the group to which output arguments must belong (see below).
+This defines the group to which the generic output arguments must belong
+(see below).
+\item The \emph{GOUT\_DESC}, a list of short descriptions for the generic outputs.
 \item The \emph{IN}. This is a list of WSV names.
 All these WSVs are required as input by this WSM. This means they must have
 been set before.
 \item The \emph{GIN}, a list of descriptive names for the generic inputs.
-\item The \emph{GIN\_TYPE}. This is a list of WSV group names
-This defines the group to which input arguments must belong.
+\item The \emph{GIN\_TYPE}. This is a list of WSV group names.
+This defines the group to which the generic input arguments must belong.
 \item The \emph{GIN\_DEFAULT}, a list of default values for the generic inputs.
 \artsstyle{NODEF} means that the generic input has no default and the user has
 to set it in the control file.
+\item The \emph{GIN\_DESC}, a list of short descriptions for the generic inputs.
 \end{enumerate}
 
 \subsection{Specific WSMs}
 %---------------------
 
+\begin{lstlisting}
+md_data_raw.push_back     
+  ( MdRecord
+    ( NAME( "p_gridFromGasAbsLookup" ),
+      DESCRIPTION
+      (
+       "Sets *p_grid* to the frequency grid of *abs_lookup*.\n"
+      ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT( "p_grid" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lookup" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+      ));
+\end{lstlisting}
+
 For this type of WSM the output and input is fixed. Fields
 \artsstyle{GIN} and \artsstyle{GOUT} are empty. The example
-above belongs in this category. It sets the WSV \artsstyle{els}, using
-the WSVs \artsstyle{ls\_gamma} and \artsstyle{els\_f\_grid} as
-inputs. What the function actually does is to compute a Lorentzian
-lineshape function with width \artsstyle{ls\_gamma}, for the
-frequencies given in the grid \artsstyle{els\_f\_grid}. (The line center
-is at frequency 0.) The result is then stored in the output WSV
-\artsstyle{els}. 
+above belongs in this category. It sets the WSV \artsstyle{p\_grid}, using
+the WSV \artsstyle{abs\_lookup} as input.
 
 To call this method in the controlfile, you just have to write
-\verb|elsLorentz|. 
+\artsstyle{p\_gridFromGasAbsLookup}.
 
 \subsection{Generic WSMs}
 %--------------------
 
-This class of WSM is more powerful, because it can be applied to any
+This class of WSMs is more powerful, because it can be applied to any
 WSV that belongs to the right group. A good example is:
 
-{\small
-\begin{verbatim}
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("VectorSetConstant"),
-        DESCRIPTION
-        (
-         "Creates a workspace vector and sets all elements of the \n"
-         "vector to the specified value. The length of the vector is \n"
-         "determined by the variable *nelem*. \n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT( "vector" ),
-        GOUT_TYPE( "Vector" ),
-        IN( "nelem" ),
-        GIN(         "value"   ),
-        GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+\begin{lstlisting}
+md_data_raw.push_back
+  ( MdRecord
+    ( NAME( "VectorSetConstant" ),
+      DESCRIPTION
+      (
+       "Creates a vector and sets all elements to the specified value.\n"
+       "\n"
+       "The vector length is determined by *nelem*.\n"
+       ),
+      AUTHORS( "Patrick Eriksson" ),
+      OUT(),
+      GOUT(      "v"      ),
+      GOUT_TYPE( "Vector" ),
+      GOUT_DESC( "Variable to initialize." ),
+      IN( "nelem" ),
+      GIN(         "value"   ),
+      GIN_TYPE(    "Numeric" ),
+      GIN_DEFAULT( NODEF     ),
+      GIN_DESC(    "Vector value." )
       ));
-\end{verbatim}
-}
+\end{lstlisting}
 
 \noindent
 As you probably have guessed, this WSM resizes the output vector to have \artsstyle{nelem} elements and sets all elements to the given \artsstyle{value}.
 You would use it as follows:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 IndexSet(nelem, 10)
 VectorCreate(myvector)
 VectorSetConstant(myvector, nelem, 0)
-\end{verbatim}
-}
+\end{lstlisting}
 
 \noindent
 This would create the WSV \artsstyle{myvector} and then fill it with
 10 elements set to 1. Note that output arguments always come first,
 input arguments last. Try \artsstyle{arts -d VectorSetConstant} to get
 more information on this method. (See Section
-\ref{U-sec:concept:comline} in \user\ for information on command line
-switches.)
+\ref{U-sec:built-in_doc} in \user\ for information on the built-in
+documentation.)
 
 \noindent
 For basic types it is allowed to pass values instead of variables directly to
 the WSM. In that case, the above example would look like this:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 VectorCreate(myvector)
 VectorSetConstant(myvector, 10, 0)
-\end{verbatim}
-}
-
+\end{lstlisting}
 
 \subsection{Agenda WSMs}
 %---------------------------------
@@ -334,23 +326,22 @@ defined as output of the agenda will keep their values after the agenda
 execution. All other WSVs retain the values from before the agenda
 run.
 
-Even though it is possible to execute agenda directly from the control
+Even though it is possible to execute agendas directly from the control
 file with the \artsstyle{AgendaExecute} method, the more common and
 intended use case is the internal invocation by other WSMs. This adds a
-considerable amount of flexibility to arts. The \artsstyle{RteStd} method for
-example calculates (besides other components) the emission term. Without
-the means of an agenda, it would only be possible to use always the same
-method for the emission calculation. By the use of an agenda the user
-can choose between different methods to calculate the emission and plug
-them into the emission agenda in the control file:
+considerable amount of flexibility to arts.
+The \artsstyle{iyEmissionStandardClearsky} method for example calculates
+(besides other components) the emission term. Without the means of an agenda,
+it would only be possible to use always the same method for the emission
+calculation. By the use of an agenda the user can choose between different
+methods to calculate the emission and plug them into the emission agenda in
+the control file:
 
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 AgendaSet( emission_agenda ){
   emissionPlanck
 }
-\end{verbatim}
-}
+\end{lstlisting}
 
 
 %\section{ARTS online documentation}
