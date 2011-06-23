@@ -160,6 +160,7 @@ continua and spectral lines.
 %-----------------------
 \label{sec:line_absorption}
 
+\subsection{Theory}
  
 We will introduce here the main concepts concerning
 line absorption. The approach, however, does not aim  at the
@@ -206,7 +207,7 @@ functions is treated in the following subsection. Another one is
 dedicated to the partition functions and their calculation..
 
 
-\subsection{Line Shape Functions} So far, there is no way to calculate
+\subsubsection{Line Shape Functions} So far, there is no way to calculate
 the line-shape functions analytically just from the theoretical
 expressions of quantum dynamics, statistical physics, and theoretical
 mechanics. Certain approximations have to be made to account for
@@ -383,7 +384,7 @@ and should be valid near the line centers throughout the microwave region.
 
 
 
-\subsection{Partition Functions}
+\subsubsection{Partition Functions}
 
 The treatment of the partition functions is directly related to the molecular
 energy states and their statistical distribution during the
@@ -512,38 +513,31 @@ Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 \end{equation}
 
 
-\subsection{Line Catalogs} 
+\subsection{Spectral-Line-Specific Data in ARTS} 
 
-FIXME: Continue below...
+ARTS has an internal representation of spectral line data that maps
+naturally to a native catalogue format, which we will discuss
+below. But it can read also several other catalogue formats, in
+particular HITRAN and JPL format. If these other catalogues are used,
+line data are converted to the internal representation during
+reading. In other words, all unit conversions are done by the reading
+routines.
 
-There are several spectroscopic catalogs
-implemented in ARTS: HITRAN, JPL, MYTRAN, and the ARTS inherent
-catalog format.
+The ARTS internal spectral line data files contain an XML header and
+footer, and between them one entry for each spectral line. Each entry
+starts with with an `@' character. It then contains the different line
+parameters, separated by one or more blank characters. Scientific
+notation is allowed, e.g. 501.12345e9.  
 
-Special attention will be paid here only to the inherent format in ARTS.
-To keep track with the changes in the catalog format, every catalog file
-must start with $ARTSCAT-x$ , where for current version $x=2$.  Files
-with different or missing version will be rejected. The current
-version is stored in the private member variable mversion. It can be
-read with the member function Version, which returns a String `ARTSCAT-x'.
-After the version tag (ARTSCAT-x), ARTS outputs the number of lines
-when catalog files are written. This number is not used by reading
-routines, though.
+In contrast to other catalogues that are optimized for processing with
+programs written in the FORTRAN language, ARTS does not use fixed
+column widths. The advantage of this is that the precision of the
+parameters is not limited by the format.
 
-The line catalog should not have any fixed column widths because the
-precision of the parameters should not be limited by the format. The
-catalog can then be stored in principle as binary or ASCII, though
-currently are implemented only ASCII files. In the ASCII version
-the columns are separated by one or more blanks. The line format is
-then specified by only the order and the units of the columns. As the
-catalog entry for each transition can be quite long, it can be broken
-across lines in the ASCII file. Each new transition is marked with an
-`@' character.  The first column will contain the species and isotope,
-following the naming scheme described below. Scientific notation is
-allowed, e.g. 501.12345e9.  Note that starting with ARTSCAT-2, the
-intensity is per molecule, i.e., it does not contain the isotopic
-ratio. This is similar to JPL, but different to HITRAN.  The line
-format is:
+The first column of each entry contains the species and isotope,
+following the naming scheme described below. Note that the intensity
+is per molecule, i.e., it does not contain the isotopic ratio. This is
+similar to JPL, but different to HITRAN.  The line format is:
 
 \begin{lstlisting}
 
@@ -553,7 +547,7 @@ Col  Variable                     Label    Unit
  1   name                         NAME        -     
  2   center frequency                F       Hz     
  3   pressure shift of F           PSF    Hz/Pa    
- 4   line intensity                 I0   m^2/Hz     
+ 4   line intensity per molecule    I0   m^2/Hz     
  5   reference temp. for I0       T_I0        K
  6   lower state energy           ELOW        J    
  7   air broadened width          AGAM    Hz/Pa     
@@ -576,15 +570,8 @@ Col  Variable                     Label    Unit
 The parameters 0-12 must be present, the others can be missing, since
 they are not needed for the calculation. For the error fields (15-21),
 a~$-1$ means that no value exists.\\
-Thus a valid ARTS line file would be:
-\begin{lstlisting}
-ARTSCAT-2 2
-@ CH4-211 1011349857.063 0 2.96070344144819e-27 296
-2183.6851 13314.2468393782 21302.7949430052 0.75 0.75 296 0
-@ O3-666 1088246622.54 0 2.82913939200384e-22 296
-522.5576 21361.9693734024 27723.2206411054 0.76 0.76 296 0
-\end{lstlisting}
-Some species need special parameters that are not needed by other
+
+Some species may need special parameters that are not needed by other
 species (for example overlap coefficients for $O_2$). In the case of
 oxygen two parameters are sufficient to describe the overlap, but
 other species, e.g., methane, may need more coefficients. The default
@@ -592,25 +579,20 @@ for \texttt{N\_AUX} is zero. In that case, no further \texttt{AUX}
 fields are present.
 
 
+\subsection{Species-Specific Data in ARTS}
 
-
-
-
-
-\subsection{Species specific data}
-
-The following part treats the species related data in ARTS - all
+This section treats the species-related data in ARTS --- all
 currently implemented species with the respective molecular masses,
 isotopic ratios, partition functions, and the sources for this
 information. 
 
-Table \ref{table:impl_secies} lists the implemented species in ARTS.
-The first row gives the ARTS molecule name, the second the ARTS
+Table \ref{table:impl_secies} lists the molecular species that are
+currently implemented in ARTS.
+The first column gives the ARTS molecule name, the second the ARTS
 isotope name (these two identify the species within ARTS). The third
-row gives the number of this species in the MYTRAN catalog, the fourth
+column gives the number of this species in the MYTRAN catalog, the fourth
 the one used in HITRAN96, and the fifth the corresponding tag numbers
 of the JPL00 catalog.
-
 
 
 \begin{longtable}{lllll}
@@ -632,12 +614,15 @@ of the JPL00 catalog.
 % --------------------- every page end of table ------------------------
  K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K \kill
  \hline
- \caption{Implemented species in ARTS.} 
+ \caption[ARTS implemented molecular species.]{ARTS implemented
+   molecular species. Those entries for which the isotope is not just
+   a number refer to continuum models, which are discussed in detail
+   in Section \ref{levelb:ContAbs}.}
  \label{table:impl_secies}
  \endlastfoot
 % --------------------- body of table ---------------------------------- 
@@ -855,24 +840,29 @@ icecloud& MPM9&    -1 &  -1   &       \\
 rain     & MPM93 & -1 &  -1   &       \\
 \end{longtable}
  
+ARTS has an internal data structure that closely matches Table
+\ref{table:impl_secies}, and that can be found in file
+\fileindex{species\_data.cc}.  That file also contains a lot of
+additional information, such as the source of the different
+parameters.
 
-Table \ref{table:isoratio} gives an overview of the isotopic ratios
-and their sources, and the molecular mass of the species used in used
-in ARTS.  The isotopic ratio of the species was in general taken from
-HITRAN00, even for species where JPL00 and HITRAN00 give isotopic
-ratios. 
-Species not present in HITRAN00 were extracted from JPL00.
-JPL00 isotopic ratios are normalized to 1 for some molecules, for
-these cases, the HITRAN00 isotopic ratio of the major isotope was used
-to scale the JPL00 isotopic ratio to relative number.
+The next table, Table \ref{table:isoratio}, gives an overview of the
+isotopic ratios and their sources, and the molecular mass of the
+species used in used in ARTS.  The isotopic ratio of the species was
+in general taken from HITRAN00, even for species where JPL00 and
+HITRAN00 give isotopic ratios.  Species not present in HITRAN00 were
+extracted from JPL00.  JPL00 isotopic ratios are normalized to 1 for
+some molecules, for these cases, the HITRAN00 isotopic ratio of the
+major isotope was used to scale the JPL00 isotopic ratio to a relative
+number.
 
 As in \ref{table:impl_secies} the first two columns give the ARTS
-molecule name and  the ARTS isotope name. The next two ones give the
+molecule name and the ARTS isotope name. The next two ones give the
 isotopic ratio and the source it is taken from respectively. An entry
 of 1 corresponds to HITRAN00, 2 to JPL00, 3 to JPL00 multiplied with
-the maximum abundance of this molecule in HITRAN. The
-last column contains the molecular masses of the isotopes. An entry of -1 is
-prescribed to the continuum tags. 
+the maximum abundance of this molecule in HITRAN. The last column
+contains the molecular masses of the isotopes. An entry of -1 is marks
+continuum tags, which are discussed later.
 
 
 
@@ -894,7 +884,7 @@ prescribed to the continuum tags.
 % --------------------- every page end of table ------------------------
  K & K & K & K & K   \kill
  \hline
- \caption[]{(continued)}
+ \caption[]{(continued on next page)}
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K   \kill
@@ -1111,250 +1101,44 @@ rain&                 -1 & -1& -1\\
 \end{longtable}
 
 
+\subsubsection{Partition Function Data}
 
-Table \ref{table:part_fct} refers to the partition function data.  It
-is calculated following HITRAN96, where the coefficients of a third
-order polynomial in temperature of the partition function are given.
-Mainly HITRAN96 coefficients are used, the coefficients of species not
-covered in HITRAN96, but present in ARTS, were generated by a
-polynomial fit to the partition function given in JPL00. The source of
-the partition function coefficients is given in the third column,
-where~1 indicates the HITRAN96 source, and~2 the JPL00 source.
+ARTS uses third order polynomials to approximate partition functions,
+so four polynomial coefficients have to be stored for each isotopic
+species. These data can be found in file
+\fileindex{partition\_function\_data.cc}. The file also contains
+documentation, including the source of the data for the different species.
 
-Within the generation of partition function coefficients from the
-JPL00 catalog, a general comparison of the partition function ratio
-(the important quantity for the conversion of the catalog intensity to
-other temperatures) for species present in JPL00 and HITRAN96 was
-performed. The maximum error found between the JPL00 and HITRAN96
-partition function ratios within the temperature range of 150 K  to
-300 K is given in the table when both catalogs cover the species.
-Otherwise, the quality of the polynomial fit is given as the maximum
-difference found between 150 K and 300 K  for the original JPL00
-partition function and the polynomial fit.
+The consistency of partition function data from different sources, and
+the impact of partition function errors on sub-millimeter wave limb
+sounder retrievals, was studied in detail in \citet{cverdes:05}. The
+partition function data collection in ARTS is based on that study.
 
-Errors of more than 10\,\%  were found for some species when no
-correction for populated vibrational energy levels was applied. The
-correction for vibrational energy levels was performed with data
-mainly extracted from the  \citet{chase:85} compilation, except for $\oz$,
-$\co$,~ $\am$~ , and $\clo$ which were taken from \citet {pwr:93}.
-The vibrational modes for the minor isotopes were taken from the main
-isotope when no other data was available. A few species still have
-errors of about 10\,\%, which could either be explained by
-incorrect/missing vibrational modes or differences in the partition
-functions of the two catalogs. All species with no vibrational
-information are marked as `no info'.
+The data are from three different sources:
+\begin{description}
+\item[TIPS\_2003:]  Default.
+\item[JPL:] Only Species (including individual isotopes) not covered by TIPS\_2003.
+\item[Agnes Perrin:] Personal communication, only species BrO.
+\end{description}
 
-The continuum tags for the respective species, listed out in the two
-tables above, are omitted in this case. The simple reason for this is
-because continua calculations do not need any partition functions.
-
-The partition function polynomials (PF) themselves for the individual
-species are to be found in {\verb /arts/src/partition_function_data.cc} .
-
-
-\begin{longtable}{llllll}
- K & K & K & K & K & K \kill
-%
-% --------------------- only begin of table ------------------------------
- \hline
-
-   {\it ARTS}& {\it ARTS}&   {\it PF}&     {\it No Corr.}& {\it
-     Corr.}& {\it Vibrational Modes}\\
-   {\it Name }&  {\it Isotope}& {\it Source}& {\it \%}&  {\it \%}&  {\it $cm^{-1}$} \\
-
- \hline
- \endfirsthead
-% --------------------- every page begin of table ------------------------
- \hline
-   {\it ARTS}& {\it ARTS}&   {\it PF}&     {\it No Corr.}& {\it
-     Corr.}& {\it Vibrational Modes}\\
-   {\it Name }&  {\it Isotope}& {\it Source}& {\it \%}&  {\it \%}&  {\it $cm^{-1}$} \\
+In most cases, we calculated the coefficients using TIPS\_2003,
+provided by B. Gamache.  The program was obtained from the `Software
+and Data' section of the web page
+\url{http://faculty.uml.edu/robert_gamache/}.  It includes the data
+for all molecular species found in the 2000 HITRAN database.
   
- \hline
- \endhead
-% --------------------- every page end of table ------------------------
- K & K & K & K & K & K \kill
- \hline
- \caption[]{(continued)}\\
- \endfoot
-% --------------------- only end of table ------------------------------
- K & K & K & K & K & K\kill
- \hline
- \caption[ARTS partition function data.]{Partition function (PF) within ARTS, comparison with HTRAN96
-   and JPL00 PFs, vibrational modes (Note: O3-666 in JPL00 includes
-   vibrational modes).}
- \label{table:part_fct}
- \endlastfoot
-% --------------------- body of table ---------------------------------- 
-  H2O& 161& 1& 0.33& 0.28& 1594.7, 3651.1, 3755.9\\
-     & 181& 1& 0.33& 0.28& 1594.7, 3651.1, 3755.9\\
-     & 171& 1& 0.39& 0.35& 1594.7, 3651.1, 3755.9\\
-     & 162& 1& 0.50& 0.46& 1594.7, 3651.1, 3755.9\\
-     & 182& 2& 0.33& 0.32& 1594.7, 3651.1, 3755.9\\
-     & 262& 2& 0.35& 0.34& 1594.7, 3651.1, 3755.9\\
-\hline
-  CO2& 626& 1& & & no info\\
-     & 636& 1& & & no info\\
-     & 628& 1& 8.76& 4.40& 667.3, 1384.9,  2349.3\\
-     & 627& 1& 8.67& 4.32& 667.3, 1384.9,  2349.3\\
-     & 638& 1& & & no info\\
-     & 637& 1& & & no info\\
-     & 828& 1& & & no info\\
-     & 728& 1& & & no info\\
-\hline
-  O3& 666& 1& 1.30& & 705, 1043, 1110\\
-    & 668& 1& 5.82& 2.64& 693.0\\
-    & 686& 1& 5.88& 2.49& 678.0\\
-    & 667& 1& 5.25& 1.25& 705, 1043, 1110\\
-    & 676& 1& 5.29& 1.28& 705, 1043, 1110\\
-\hline
-  N2O& 446& 1& 12.71& 0.89& 588.8, 588.8, 1284.9, 2223.8\\
-     & 456& 1& 13.33& 1.26& 588.8, 588.8, 1284.9, 2223.8\\
-     & 546& 1& 12.83& 0.95& 588.8, 588.8, 1284.9, 2223.8\\
-     & 448& 1& 12.11& 0.82& 588.8, 588.8, 1284.9, 2223.8\\
-     & 447& 1& & & 588.8, 588.8, 1284.9, 2223.8\\
-\hline
-  CO& 26& 1& 0.03& 0.03& 2143.5\\
-    & 36& 1& 0.01& 0.01& 2143.5\\
-    & 28& 1& 0.01& 0.01& 2143.5\\
-    & 27& 1& 0.02& 0.02& 2143.5\\
-    & 38& 1& & & 2143.5\\
-    & 37& 1& & & 2143.5\\
-%
-%\Breaker\Breit{\tabref{table:part_fct}}
-%
-\hline
-  CH4& 211& 1&      &      & 1306, 1306, 1306, 1534, 1534,\\
-     &    &  &      &      & 2917, 3019\\
-     & 311& 1&      &      & 1306, 1306, 1306, 1534, 1534,\\
-     &    &  &      &      & 2917, 3019\\
-     & 212& 1& 22.18& 21.43& 1306, 1306, 1306, 1534, 1534,\\
-     &    &  &      &      & 2917, 3019\\
+The coefficients for the few species which are not covered in
+TIPS\_2003 were calculated from JPL values. The JPL catalogue has a
+different way to calculate the partition function, it gives the
+partition function at specific temperatures: 300, 225, 150, 75, 37.5,
+18.75, 9.375 K and an interpolation scheme is given for values
+inbetween. The partition functions are proportional to temperature
+$T^1.5$ for non-linear molecules (degrees of freedom: 3) and
+proportional to $T$ for linear molecules (degrees of freedom
+2).
 
-
-\hline
-  O2& 66& 1& 0.06& 0.11& 1556.5\\
-    & 68& 1& 0.68& 0.62& 1556.5\\
-    & 67& 1& 0.71& 0.65& 1556.5\\
-\hline
-  NO& 46& 1& 1.56& 1.56& no info\\
-    & 56& 1& & & no info\\
-    & 48& 1& & & no info\\
-\hline
-  SO2& 626& 1& 9.28& 1.26& 517.7, 1151.4, 1361.8\\
-     & 646& 1& 9.25& 1.23& 517.7, 1151.4, 1361.8\\
-     & 636& 2& 0.35& 1.32& 517.7, 1151.4, 1361.8\\
-     & 628& 2& 0.35& 1.32& 517.7, 1151.4, 1361.8\\
-\hline
-  NO2& 646& 1& 3.46& 0.98& 756.8, 1357.8, 1665.5\\
-\hline
-  NH3& 4111& 1& 2.07& 1.09& 950, 1629, 1629, 3335,\\
-     &     &  &     &     & 3414, 3414\\
-     & 5111& 1& 22.22& 21.12& 950, 1629, 1629, 3335,\\
-     &     &  &      &      & 3414, 3414\\
-     & 4112& 2& 0.52& 0.78& 950, 1629, 1629, 3335,\\
-     &     &  &     &     & 3414, 3414\\ 
-\hline
-  HNO3& 146& 2& 0.38& 4.00& 465, 583, 680, 765, 886,\\
-      &    &  &     &     & 1320, 1335, 1710, 3560\\
-\hline
-  OH& 61& 1& 0.85& 0.85& no info\\
-    & 81& 1& 0.84& 0.84& no info\\
-    & 62& 1& 1.04& 1.04& no info\\
-\hline
-  HF& 19& 1& 0.02& 0.02& no info\\
-    & 29& 2& 0.04& 0.04& no info\\
-\hline
-  HCl& 15& 1& 2.32& 2.32& no info\\
-     & 17& 1& 2.30& 2.30& no info\\
-     & 25& 2& 0.03& 0.03& no info\\
-     & 27& 2& 0.03& 0.03& no info\\
-\hline
-  HBr& 19& 1& 1.89& 1.89& no info\\
-     & 11& 1& 1.89& 1.89& no info\\
-\hline
-  HI& 17& 1& & & no info\\
-\hline
-  ClO& 56& 1& 0.83& 1.94& 842.4\\
-     & 76& 1& 0.81& 1.96& 842.4\\
-\hline
-  OCS& 622& 1& 19.14& 1.49& 524, 524, 859, 2064\\
-     & 624& 1& 19.14& 1.66& 524, 524, 859, 2064\\
-     & 632& 1& 20.48& 2.43& 524, 524, 859, 2064\\
-     & 822& 1& 20.07& 2.15& 524, 524, 859, 2064\\
-\hline
-  H2CO& 1126& 1& 3.55& 2.80& 1163.5, 1247.4, 1500.6, \\
-      &     &  &     &     & 1746.1, 2766.4, 2843.4\\
-      & 1136& 1& 3.94& 3.18& 1163.5, 1247.4, 1500.6, \\
-      &     &  &     &     & 1746.1, 2766.4, 2843.4 \\
-      & 1128& 1& 1.39& 0.74& 1163.5, 1247.4, 1500.6,\\
-      &     &  &     &     & 1746.1,2766.4, 2843.4\\
-      & 1226& 2& 0.34& 0.18& 1163.5, 1247.4, 1500.6,\\
-      &     &  &     &     & 1746.1,2766.4, 2843.4\\
-      & 2226& 2& 0.34& 0.21& 1163.5, 1247.4, 1500.6,\\
-      &     &  &     &     & 1746.1, 2766.4, 2843.4\\
-\hline
-  HOCl& 165& 1& 3.89& 0.95& 725, 1239.4, 3609.5\\
-      & 167& 1& 3.89& 0.95& 725, 1239.4, 3609.5\\
-\hline
-  N2& 44& 1& & & no info\\
-\hline
-  HCN& 124& 1& 6.84& 0.51& 713.5, 713.5, 2096.3, 3311.5\\
-     & 134& 1& 7.05& 0.38& 713.5, 713.5, 2096.3, 3311.5\\
-     & 125& 1& 7.13& 0.45& 713.5, 713.5, 2096.3, 3311.5\\
-     & 224& 2& 1.42& 1.72& 713.5, 713.5, 2096.3, 3311.5\\
-\hline
-  CH3Cl& 215& 1& 5.86& 1.65& 732, 1017, 1017, 1355, 1455,\\
-       &    &  &     &     & 1455, 2968, 3054, 3054\\
-       & 217& 1& 5.92& 1.71& 732, 1017, 1017, 1355, 1455,\\
-       &    &  &     &     & 1455, 2968, 3054, 3054\\
-\hline
-  H2O2& 1661& 1& 14.46& 14.46& no info\\
-\hline
-  C2H2& 1221& 1& & & no info\\
-      & 1231& 1& & & no info\\
-\hline
-  C2H6& 1221& 1& & & no info\\
-%
-%\Breaker\Breit{\tabref{table:part_fct}}
-%
-\hline
-  PH3& 1111& 1& 3.70& 2.06& 992, 1122, 1122, 2323, 2328,\\
-     &     &  &     &     & 2328\\
-\hline
-  COF2& 269& 1& 16.72& 13.92& 381, 381, 1074, 1978\\
-\hline
-  SF6& 29& 1& & & no info\\
-\hline
-  H2S& 121& 1& 0.60& 0.29& 1183,2615,2627\\
-     & 141& 1& & & no info\\
-     & 131& 1& & & no info\\
-     & 122& 2& 0.40& 0.32& 1183, 2615, 2627\\
-\hline
-  HCOOH& 1261& 1& 12.54& 12.54& no info\\
-       & 1361& 2& 6.53& 6.54& no info\\
-       & 2261& 2& 0.55& 0.55& no info\\
-       & 1262& 2& 0.57& 0.57& no info\\
-\hline
-  HO2& 166& 1& 1.10& 1.10& no info\\
-\hline
-  O& 6& 1& & & no info\\
-\hline
-  ClONO2& 5646& 2& 1.87& 1.87& no info\\
-        & 7646& 2& 1.85& 1.85& no info\\
-\hline
-  NO+& 46& 1& 0.01& 0.01& no info\\
-\hline
-  OClO& 656& 2& 1.55& 1.09& 447.4, 945.3, 1109\\
-      & 676& 2& 0.75& 1.13& 447.4, 945.3, 1109\\
-\hline
-  BrO& 96& 2& 0.09& 0.09& no info\\
-     & 16& 2& 0.09& 0.09& no info\\
-\hline
-  H2SO4& 126& 2& 0.39& 0.39& no info\\
-\hline
-  Cl2O2& 565& 2& 0.29& 0.29& no info\\
-\end{longtable}
+The partition function data for BrO were provided by Agnes
+Perrin, Orsay, France.
 
 
 
@@ -2399,7 +2183,7 @@ lineshape_per_tgDefine{
 % --------------------- every page end of table ------------------------
  K & K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K \kill 
@@ -2689,7 +2473,7 @@ early version of MPM81 \citep{liebe:81}.
 % --------------------- every page end of table ------------------------
  K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K \kill 
@@ -2852,7 +2636,7 @@ $\bsk$ in the case of MPM89 whereas in MPM87 a single parameter
 % --------------------- every page end of table ------------------------
  K & K & K & K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K & K & K \kill
@@ -3014,7 +2798,7 @@ concerning the water vapor line absorption is the updated line catalog.
 % --------------------- every page end of table ------------------------
  K & K & K & K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K & K & K \kill
@@ -3454,7 +3238,7 @@ tabulated in Table \ref{tab:pwr02line}.
 % --------------------- every page end of table ------------------------
  K & K & K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K & K \kill
@@ -3632,7 +3416,7 @@ is remarkably higher than in the R93 model.
 % --------------------- every page end of table ------------------------
  K &  K & K & K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K &  K & K & K & K & K & K & K \kill
@@ -4120,7 +3904,7 @@ cont_descriptionAppend{
 % --------------------- every page end of table ------------------------
  K & K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K \kill 
@@ -4721,7 +4505,7 @@ saturation over ice is taken.
 % --------------------- every page end of table ------------------------
  K & K & K & K & K & K \kill
  \hline
- \caption[]{(continued)}\\
+ \caption[]{(continued on next page)}\\
  \endfoot
 % --------------------- only end of table ------------------------------
  K & K & K & K & K & K \kill 
