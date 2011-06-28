@@ -3,11 +3,14 @@
 
 
 \starthistory
-  2002-06-04 & Restarted for ARTS-1-1 by Stefan Buehler.\\
-  2003-03-10 & Lookup tables added by Stefan Buehler.\\
+  2011-06-28 & Added intro and sections on abs in RT and abs
+               calculation. First attempt of a complete absorption
+               chapter for ARTS2. \\
   2003-03-28 & Documentation for WSM abs\_fieldCalc
                extended by Stefan Buehler after comment from Sreerekha
-               T.\ R..
+               T.\ R.. \\
+  2003-03-10 & Lookup tables added by Stefan Buehler.\\
+  2002-06-04 & Restarted for ARTS-1-1 by Stefan Buehler.
 \stophistory
 
 \startsymbolswithunits
@@ -21,6 +24,122 @@
   \AbsCoefTot  & m$^{-1}$          &                         & Total gas absorption coefficient
  \label{symtable:absorption}     
 \stopsymbolswithunits
+
+\section{Introduction}
+
+The absorption coefficient describes how strongly the atmosphere is
+absorbing (and emitting).  Its unit (in ARTS) is m$^{-1}$.  For a
+definition, see for example Equation \ref{eq:lookup:beer}.  Both gases
+and particles in the atmosphere absorb, and the total absorption is
+the sum of these two contributions. But this chapter is only about the
+gas absorption.
+
+When calculating radiative transfer, the local absorption coefficient
+at each point in the atmosphere has to be known.  Furthermore, if one
+also wants to calculate Jacobians, then the partial absorption
+coefficients for different atmospheric components (different
+absorption species) also have to be known.   
+
+This chapter discusses different practical aspects of absorption in
+ARTS. Section \ref{sec:absorption:abs-rt} explains how absorption is
+handled inside radiative transfer calculations.  Section
+\ref{sec:absorption:calculating} discusses how absorption is actually
+calculated, and how the calculation is set up.  Finally, Section
+\ref{sec:absorption:lookup} describes how absorption is stored in a
+lookup table, and how it is extracted again.
+
+Here in the User Guide we focus on practical aspects of absorption in
+ARTS.  But absorption calculations also have a deep theoretical
+background, particularly the line-by-line calculations and the
+continuum models.  Some of this background is discussed in \theory,
+Section \ref{T-sec:abs_theory}. 
+
+\section{Gas absorption in radiative transfer simulations}
+\label{sec:absorption:abs-rt}
+
+The interface between the radiative transfer (RT) part of ARTS and the
+absorption part of ARTS is very simple, so this will be a short
+section.
+
+The interface consists in the agenda
+\wsaindex{abs\_scalar\_gas\_agenda}.  RT functions execute this agenda
+whenever they need local absorption coefficients.  See the built-in
+documentation for the exact input and output arguments of the agenda.
+The idea is that input arguments are the local atmospheric conditions
+(temperature, pressure, trace gas volume mixing ratios, etc.).  These
+are all scalars.
+
+The output of the agenda is a single variable,
+\wsvindex{abs\_scalar\_gas}, a matrix with dimensions of frequency
+times absorption species.  In a typical ARTS run, this agenda will be
+executed many times over, for different points in the atmosphere.
+
+Typical contents of this agenda are as follows:
+
+\subsection{Absorption from lookup table}
+
+\begin{lstlisting}
+AgendaSet( abs_scalar_gas_agenda )
+{
+  Ignore(rte_doppler)
+  abs_scalar_gasExtractFromLookup
+}
+\end{lstlisting}
+
+This will extract absorption coefficients from a pre-calculated lookup
+table.  More information on the lookup table and how to generate it
+can be found in Section \ref{sec:absorption:lookup}.  See Section
+\ref{sec:absorption:doppler} for an explanation of the
+\artsstyle{rte\_doppler} variable, that is ignored here.
+ 
+\subsection{On-the-fly absorption}
+
+\begin{lstlisting}
+AgendaSet( abs_scalar_gas_agenda )
+{
+  Ignore(rte_doppler)
+  abs_scalar_gasCalcLBL
+}
+\end{lstlisting}
+
+This will calculate absorption coefficients for the exact local
+conditions that are given.  The setup for the calculation (which
+absorption species and many other details of the calculation) has to
+be done before, outside the agenda.  More information on how to set up
+the absorption calculation can be found in Section
+\ref{sec:absorption:calculating}.  
+
+\subsection{On-the-fly absorption with Doppler shift}
+\label{sec:absorption:doppler}
+
+\begin{lstlisting}
+AgendaSet( abs_scalar_gas_agenda )
+{
+  NumericScale( rte_doppler, rte_doppler, -1 )
+  VectorAddScalar( f_grid, f_grid, rte_doppler )
+  abs_scalar_gasCalcLBL
+}
+\end{lstlisting}
+
+This agenda variant has to be used for RT simulations with Doppler
+shift.  It makes use of the input variable \wsvindex{rte\_doppler},
+which is ignored in the first two examples.  Doppler calculations
+currently work only with on-the-fly absorption, not with lookup table
+absorption. (The latter would be easy to implement upon request.) Note
+that \artsstyle{rte\_doppler} and \wsvindex{f\_grid} here are local
+copies of their global counterparts (this is just how agendas
+work). They are manipulated here locally, but in the next call of the
+agenda they will be initialized again with their original global
+contents. 
+
+\section{Calculating gas absorption}
+\label{sec:absorption:calculating}
+
+Absorption is additive, so the total absorption is simply the sum of
+all partial absorptions.  And the partial absorption for gases that
+have spectral lines can be calculated as a sum over the absorption of
+each spectral line, plus some more or less empirical continuum terms.
+
 
 \section{The gas absorption lookup table}
 \label{sec:absorption:lookup}

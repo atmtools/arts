@@ -1,3 +1,16 @@
+2011-06-28  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-39
+
+	* doc/uguide/absorption.tex: Started on rewriting this. Work in
+	progress!
+
+	* doc/uguide/absorption_theory.tex: Minor \label changes.
+
+	* doc/uguide/: Emptied the SVN ignore list. Since we are now
+	building in a separate directory, there should be no LaTeX output
+	files here, so no reason to ignore anything.
+
 2011-06-23  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-38
