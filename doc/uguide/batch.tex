@@ -74,7 +74,7 @@ have been put into the three first loaded files, and a random vector
 of zenith angles is found in the last file. The batch calculations
 are then performed as:
 
-\begin{lstlisting}
+\begin{code}
 ReadXML( tensor4_1, "batch_t_field.xml" )
 ReadXML( tensor4_2, "batch_z_field.xml" )
 ReadXML( tensor5_1, "batch_vmr_field.xml" )
@@ -94,13 +94,13 @@ AgendaSet ( ybatch_calc_agenda ){
 ybatchCalc
 
 WriteXML( "ascii", ybatch )
-\end{lstlisting}
+\end{code}
 
 If you then want to repeat the calculations, for example with another
 propagation path step length (e.g. 25\,km), it is sufficient to add
 the lines:
 
-\begin{lstlisting}
+\begin{code}
 AgendaSet( ppath_step_agenda ){
    ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid,
                         lat_grid, lon_grid,
@@ -111,7 +111,7 @@ AgendaSet( ppath_step_agenda ){
 ybatchCalc
 
 WriteXML( "ascii", ybatch, "ybatch_run2.xml" )
-\end{lstlisting}
+\end{code}
 
 %%% Local Variables: 
 %%% mode: latex 

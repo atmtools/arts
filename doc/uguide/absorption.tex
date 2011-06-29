@@ -78,13 +78,13 @@ Typical contents of this agenda are as follows:
 
 \subsection{Absorption from lookup table}
 
-\begin{lstlisting}
+\begin{code}
 AgendaSet( abs_scalar_gas_agenda )
 {
   Ignore(rte_doppler)
   abs_scalar_gasExtractFromLookup
 }
-\end{lstlisting}
+\end{code}
 
 This will extract absorption coefficients from a pre-calculated lookup
 table.  More information on the lookup table and how to generate it
@@ -94,13 +94,13 @@ can be found in Section \ref{sec:absorption:lookup}.  See Section
  
 \subsection{On-the-fly absorption}
 
-\begin{lstlisting}
+\begin{code}
 AgendaSet( abs_scalar_gas_agenda )
 {
   Ignore(rte_doppler)
   abs_scalar_gasCalcLBL
 }
-\end{lstlisting}
+\end{code}
 
 This will calculate absorption coefficients for the exact local
 conditions that are given.  The setup for the calculation (which
@@ -112,14 +112,14 @@ the absorption calculation can be found in Section
 \subsection{On-the-fly absorption with Doppler shift}
 \label{sec:absorption:doppler}
 
-\begin{lstlisting}
+\begin{code}
 AgendaSet( abs_scalar_gas_agenda )
 {
   NumericScale( rte_doppler, rte_doppler, -1 )
   VectorAddScalar( f_grid, f_grid, rte_doppler )
   abs_scalar_gasCalcLBL
 }
-\end{lstlisting}
+\end{code}
 
 This agenda variant has to be used for RT simulations with Doppler
 shift.  It makes use of the input variable \wsvindex{rte\_doppler},
@@ -248,7 +248,7 @@ The gas absorption lookup table is implemented by the class
 Below you find the actual declaration of the class GasAbsLookup with
 extensive comments.
 
-\begin{lstlisting}
+\begin{code}
 //! An absorption lookup table.
 /*! This class holds an absorption lookup table, as well as all
     information that is necessary to use the table to extract
@@ -385,7 +385,7 @@ private:
   */
   Tensor4 xsec;
 };
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Workspace variables and methods}
 
@@ -446,7 +446,7 @@ not a complete controlfile. \FIXME{Eventually there should be a good
   complete example in doc/examples. For the moment you can look at the
 examples in sbuehler/arts\_calc/abs\_lookup\_2/.}
 
-\begin{lstlisting}
+\begin{code}
 # Read lookup table:
 ReadXML( abs_lookup, "some_table.xml" )
 
@@ -469,7 +469,7 @@ abs_fieldCalc
 
 # Write out the field:
 WriteXML( "ascii", abs_field, "" )
-\end{lstlisting}
+\end{code}
 
 Use the online documentation for the methods and variables mentioned
 to learn more.

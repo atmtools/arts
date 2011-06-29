@@ -1,8 +1,22 @@
 2011-06-29  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-15-41
+
+	* doc/uguide/common.tex:
+
+	New environment 'code' for multiline verbatim code and controlfile
+	examples.
+
+	* doc/uguide/*.tex:
+
+	lstlistings is out, fancyvrb is in. The former has a bug that squishes
+	the spacing between sections under some cirumstances.
+
+2011-06-29  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-15-40
 
-	* src/docservers.cc:
+	* src/docserver.cc:
 	
 	(ds_insert_index, ds_insert_doc): Add support for "/all/".
 

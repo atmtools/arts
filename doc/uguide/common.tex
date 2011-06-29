@@ -14,8 +14,7 @@
 \usepackage{ifthen}
 \usepackage{ifpdf}
 \usepackage{xr-hyper}
-\usepackage{listings}
-
+\usepackage{fancyvrb}
 
 
 %--- Margins
@@ -171,8 +170,8 @@
 \newcommand{\developer}{\emph{ARTS Developer Guide}}
 \newcommand{\theory}{\emph{ARTS Theory}}
 
-% Use same font family for listings as for verbatim
-\lstset{basicstyle = \ttfamily\small}
+% Define verbatim environment for arts code examples:
+\DefineVerbatimEnvironment{code}{Verbatim}{fontsize=\small}
 
 
 %------------------------------------------------------------------------------

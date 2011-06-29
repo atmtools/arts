@@ -373,9 +373,9 @@ means for instance setting \SnsMtr\ to be an identity matrix. This
 method also affects several other workspace variables, to get a
 complete list use the online help for \artsstyle{sensor\_off}. The
 syntax to disable the sensor in the simulation is simply;
-\begin{lstlisting}
+\begin{code}
 sensorOff{}
-\end{lstlisting}
+\end{code}
 
 \subsection{Initialisation}
 When there is a sensor system present in the simulation the sensor
@@ -607,11 +607,11 @@ grid and the second column the weights. There are no special WSV
 dedicated for the sideband filter, so it needs to be loaded into the
 arbitrary matrix variable \artsstyle{matrix\_1} before being passed as
 a generic input to the calculating routine. This could look like
-\begin{lstlisting}
+\begin{code}
 ReadXML( lo ) { "lo.xml" }
 ReadXML( matrix_1 ) { "sbfilter.xml" }
 sensor_responseMixer( matrix_1 ) {}
-\end{lstlisting}
+\end{code}
 The method \artsstyle{sensor\_responseMixer} changes the sensor
 response grid for frequencies to be in IF, this grid is also stored in
 \artsstyle{f\_mixer}. Depending on the RF grid configuration, the
@@ -701,7 +701,7 @@ XML-files or by calling the function \artsstyle{ArrayOfMatrixSet}, see
 the online help for instructions.  After applying the sensor response
 for the backend spectrometer the sensor response frequency grid is
 updated to be equal the \aFrq{\mathrm{ch}} grid.
-% \begin{lstlisting}
+% \begin{code}
 % ReadXML( matrix_1 ) {
 %   "../xml/ac_channel.xml"
 % }
@@ -711,7 +711,7 @@ updated to be equal the \aFrq{\mathrm{ch}} grid.
 % }
 % 
 % sensor_responseBackend( arrayofmatrix_1 ) {}
-% \end{lstlisting}
+% \end{code}
 
 
 %------------------------
@@ -1071,7 +1071,7 @@ updated to be equal the \aFrq{\mathrm{ch}} grid.
 % The following sequence of ARTS functions can be used to store the
 % spectra in both brightness temperature units:
 
-% \begin{lstlisting}
+% \begin{code}
 %VectorCopy( y0, y ) {
 %}
 %yTRJ{
@@ -1086,15 +1086,15 @@ updated to be equal the \aFrq{\mathrm{ch}} grid.
 %VectorWriteAscii( y ) {
 %   "ytb_planck.aa"
 %}
-% \end{lstlisting}
+% \end{code}
 % \noindent
 % A weighting function matrix is converted to Rayleigh-Jean temperature
 % as:
 
-% \begin{lstlisting}
+% \begin{code}
 %MatrixTRJ( kx, kx ) {
 %}
-% \end{lstlisting}
+% \end{code}
  
 
 

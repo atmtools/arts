@@ -129,11 +129,11 @@ The function  \artsstyle{AngIntegrate\_trapezoid} takes as input the integrand a
 the integration has to be done. For example in this case it can be the
 zenith and azimuth angle
 grid.
-\begin{lstlisting}  
+\begin{code}  
 Numeric AngIntegrate_trapezoid(MatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid)
-\end{lstlisting}
+\end{code}
 The integrand has the same number of rows as zenith angle grid
 and columns as azimuth angle grid.  The inner loop does trapezoidal
 integration of the integrand over all azimuth angles and the result is

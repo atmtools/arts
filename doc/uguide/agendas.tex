@@ -115,7 +115,7 @@ all WSVs are unset.
 WSVs are defined in the file \fileindex{workspace.cc}. A typical
 definition looks like this:
 
-\begin{lstlisting}
+\begin{code}
 wsv_data.push_back
   (WsvRecord
    ( NAME( "f_grid" ),
@@ -129,7 +129,7 @@ wsv_data.push_back
       "Unit:       Hz"
       ),
      GROUP( "Vector" )));
-\end{lstlisting}
+\end{code}
 
 \noindent
 All WSV definitions have the same three elements:
@@ -166,7 +166,7 @@ information on the available WSMs is stored. This place is the file
 \fileindex{methods.cc}. It contains a record for each WSM. Here is an
 example:
 
-\begin{lstlisting}
+\begin{code}
 md_data_raw.push_back
   ( MdRecord
     ( NAME( "r_geoidSpherical" ),
@@ -187,7 +187,7 @@ md_data_raw.push_back
       GIN_DEFAULT( NODEF     ),
       GIN_DESC( "Radius of the geoid sphere."),
       ));
-\end{lstlisting}
+\end{code}
 
 \noindent
 All WSM definitions have the same elements:
@@ -219,7 +219,7 @@ to set it in the control file.
 \subsection{Specific WSMs}
 %---------------------
 
-\begin{lstlisting}
+\begin{code}
 md_data_raw.push_back     
   ( MdRecord
     ( NAME( "p_gridFromGasAbsLookup" ),
@@ -238,7 +238,7 @@ md_data_raw.push_back
       GIN_DEFAULT(),
       GIN_DESC()
       ));
-\end{lstlisting}
+\end{code}
 
 For this type of WSM the output and input is fixed. Fields
 \artsstyle{GIN} and \artsstyle{GOUT} are empty. The example
@@ -254,7 +254,7 @@ To call this method in the controlfile, you just have to write
 This class of WSMs is more powerful, because it can be applied to any
 WSV that belongs to the right group. A good example is:
 
-\begin{lstlisting}
+\begin{code}
 md_data_raw.push_back
   ( MdRecord
     ( NAME( "VectorSetConstant" ),
@@ -275,17 +275,17 @@ md_data_raw.push_back
       GIN_DEFAULT( NODEF     ),
       GIN_DESC(    "Vector value." )
       ));
-\end{lstlisting}
+\end{code}
 
 \noindent
 As you probably have guessed, this WSM resizes the output vector to have \artsstyle{nelem} elements and sets all elements to the given \artsstyle{value}.
 You would use it as follows:
 
-\begin{lstlisting}
+\begin{code}
 IndexSet(nelem, 10)
 VectorCreate(myvector)
 VectorSetConstant(myvector, nelem, 0)
-\end{lstlisting}
+\end{code}
 
 \noindent
 This would create the WSV \artsstyle{myvector} and then fill it with
@@ -299,10 +299,10 @@ documentation.)
 For basic types it is allowed to pass values instead of variables directly to
 the WSM. In that case, the above example would look like this:
 
-\begin{lstlisting}
+\begin{code}
 VectorCreate(myvector)
 VectorSetConstant(myvector, 10, 0)
-\end{lstlisting}
+\end{code}
 
 \subsection{Agenda WSMs}
 %---------------------------------
@@ -337,11 +337,11 @@ calculation. By the use of an agenda the user can choose between different
 methods to calculate the emission and plug them into the emission agenda in
 the control file:
 
-\begin{lstlisting}
+\begin{code}
 AgendaSet( emission_agenda ){
   emissionPlanck
 }
-\end{lstlisting}
+\end{code}
 
 
 %\section{ARTS online documentation}

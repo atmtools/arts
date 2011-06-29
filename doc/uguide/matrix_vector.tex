@@ -93,7 +93,7 @@ vector. (Surprise, surprise.) This means that:
 %-------------------------------------------------------------------------
 You can construct an object of class Vector in any of these ways:
 
-\begin{lstlisting}
+\begin{code}
 Vector a;         // Create empty Vector.
 Vector b(3);      // Create Vector of length 3, if
                   // created like this it will contain
@@ -106,7 +106,7 @@ Vector d=c;       // Make d a copy of c.
 Vector e(1,5,1);  // 1, 2, 3, 4, 5
 Vector f(1,5,.5); // 1, 1.5, 2, 2.5, 3
 Vector g(5,5,-1); // 5, 4, 3, 2, 1
-\end{lstlisting}
+\end{code}
 
 The last three examples all use the same constructor, which takes
 the three arguments `start', `extent', and `stride'. It will create a
@@ -117,11 +117,11 @@ There also exists a special sub-class of Vector that can be initialized
 explicitly. This must be a special class in order to avoid ambiguities
 with the standard constructors. Usage:
 
-\begin{lstlisting}
+\begin{code}
 MakeVector a(1.0,2.0,3.0);  // Creates a vector of length 3 
                             // containing the values 
                             // 1.0, 2.0, and 3.0.
-\end{lstlisting}
+\end{code}
 
 You can use MakeVectors just like Vectors, except that the
 constructors are different. Otherwise you can mix them freely with
@@ -139,7 +139,7 @@ referring to. You can create VectorViews from Vectors using the index
 operator `[]', the class \typeindex{Range}, and the special \artsstyle{joker}
 object. Examples:
 
-\begin{lstlisting}
+\begin{code}
 MakeVector x(1,2,3,4,5,6,7); 
 VectorView a = x;                 // Now a refers to the 
                                   // whole of x;
@@ -150,7 +150,7 @@ VectorView c = x[Range(0,2)];     // Take 2 elements of x,
                                   // in this case: 1,2.
 VectorView d = x[Range(0,3,2)];   // In this case: 1,3,5.
 VectorView e = x[Range(3,joker)]; // In this case: 4,5,6,7.
-\end{lstlisting}
+\end{code}
 
 As you can see, most useful ways to create VectorViews involve the
 Range class. The general constructor to this class takes three
@@ -165,17 +165,17 @@ argument \artsstyle{joker} means `all elements'.
 Usually, you will not have to use VectorView explicitly, because you
 can use expressions like:
 
-\begin{lstlisting}
+\begin{code}
 Vector a(1,5,1);                // a = 1,2,3,4,5
 Vector b = a[Range(1,3)];       // b = 2,3,4
-\end{lstlisting}
+\end{code}
 
 However, \artsstyle{VectorView} and the related class
 \typeindex{ConstVectorView} are extremely useful as the argument types of
 functions operating on Vectors. You should define your functions like
 this:
 
-\begin{lstlisting}
+\begin{code}
 void silly_function(VectorView a,      // Output argument
                     ConstVectorView b  // Input argument
                                        // (read only)
@@ -183,7 +183,7 @@ void silly_function(VectorView a,      // Output argument
 {
    // Do some silly stuff with a and b.
 }
-\end{lstlisting}
+\end{code}
 
 Note that there must not be any `\&' after VectorView or
 ConstVectorView. In other words they have to be passed by value, not
@@ -195,12 +195,12 @@ You should use these kind of arguments for all input Vectors, and also
 for the output if you have a function that does not resize the output
 Vector. This has the great advantage that you can call the function
 with Vector sub-ranges, e.g., 
-\begin{lstlisting}
+\begin{code}
 Vector a(1,5,1);                  // a = 1,2,3,4,5
 Vector b(3);                      // Set size of b.
 silly_function(b,a[Range(0,3)]);  // Call fuction with
                                   // sub-range of a.
-\end{lstlisting}
+\end{code}
 
 An exception to this rule are workspace methods, which use
 conventional argument types \artsstyle{const Vector\&} for input and
@@ -213,44 +213,44 @@ All examples below (except for the first) assume that \artsstyle{a} is a
 Vector, MakeVector, or VectorView.
 
 \subsubsection{Resize (only for Vector, not for VectorView!):}
-\begin{lstlisting}
+\begin{code}
 a.resize(5);
-\end{lstlisting}
+\end{code}
 This makes \artsstyle{a} a 5 element vector. The new Vector is not
 initialized (i.e., the contents will be unpredictable). Also, note
 that the previous content will be completely lost. Appending to a
 Vector is not possible.
 
 \subsubsection{Get the number of elements:}
-\begin{lstlisting}
+\begin{code}
 cout << a.nelem();
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Sum up all elements:}
-\begin{lstlisting}
+\begin{code}
 cout << a.sum();
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Element access:}
-\begin{lstlisting}
+\begin{code}
 cout << a[3];   // Print 4th element.
 a[0] = 3.5;     // Assign 3.5 to first element.
-\end{lstlisting}
+\end{code}
 
 Note that we use 0-based indexing! Furthermore note that the operator
 `[]' can be also used with \artsstyle{Range}, as explained above.
 
 \subsubsection{Copying Vectors:}
-\begin{lstlisting}
+\begin{code}
 Vector b;
 b = a;
-\end{lstlisting}
+\end{code}
 In this case the size of b will be adjusted to that of a
 automatically. Maybe you have noticed that there is a way to formulate the 
 example above in even shorter fashion:
-\begin{lstlisting}
+\begin{code}
 Vector b = a;
-\end{lstlisting}
+\end{code}
 The result is exactly the same. Note, though, that in this case b is
 \emph{constructed} from a, not copied (see section about constructing
 Vectors above). 
@@ -263,21 +263,21 @@ object. The `=' operator in this case copies the
 must match. VectorView internally uses assertions to make sure of
 this. So, if you get an assertion failure one reason could be that you
 forgot to make the target the correct size. Here is an example:
-\begin{lstlisting}
+\begin{code}
 b[Range(5,5,-1)] = a[Range(3,5)];  // Copy 5 elements from 
                                    // a to b, reversing 
                                    // the order and starting
                                    // with index 3 in a.
-\end{lstlisting}
+\end{code}
 Great, isn't it?
 
 \subsubsection{Assigning a scalar:}
-\begin{lstlisting}
+\begin{code}
 a = 1.0;                        // Assign 1 to all elements.
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Mathematical operators:}
-\begin{lstlisting}
+\begin{code}
 Vector a(1,3,1), b(3,1); // a = 1,2,3; b = 1,1,1
 a *= 2;                  // a = 2,4,6
                          // Similarly, /=, +=, -=
@@ -285,7 +285,7 @@ a += b;                  // a = 3,5,7
                          // Similarly, -=, *=, /=
 a += a;                  // a = 6,10,14
                          // So a can appear on both sides.
-\end{lstlisting}
+\end{code}
 
 All these operate element-wise.  Note, that there are no return
 versions of these operators (i.e., expressions like \artsstyle{b = a+1} are
@@ -295,27 +295,27 @@ kind of expression efficient. None of the available solutions works,
 so ARTS has to live without it.
 
 \subsubsection{Maximum and minimum:}
-\begin{lstlisting}
+\begin{code}
 cout << max(a);
 cout << min(a);
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Scalar product:}
-\begin{lstlisting}
+\begin{code}
 cout << a*a;
-\end{lstlisting}
+\end{code}
 
 This is an exception to the rule not to have return versions of
 operators. The reason is quite obvious: The return value is only a
 scalar. 
 
 \subsubsection{Arbitrary single-argument math functions:}
-\begin{lstlisting}
+\begin{code}
 Vector b(a.nelem());
 transform(b,sin,a);  // b = sin(a)
 transform(b,cos,b);  // b = sin(b)
                      // So b can appear on both sides.
-\end{lstlisting}
+\end{code}
 
 The transform function operates on each element of \artsstyle{a} with the
 function you specify and puts the result in \artsstyle{b}. Note that the
@@ -347,7 +347,7 @@ matrix. (Who would have guessed this?) This means that:
 %-------------------------------------------------------------------------
 You can construct an object of class Matrix in any of these ways:
 
-\begin{lstlisting}
+\begin{code}
 Matrix a;          // Create empty Matrix.
 Matrix b(3,4);     // Create Matrix with 3 rows
                    // and 4 columns. When
@@ -357,7 +357,7 @@ Matrix c(3,4,0.0); // Similar, but
                    // fill it with 0.
 
 Matrix d=c;        // Make d a copy of c.
-\end{lstlisting}
+\end{code}
 
 That is all. More fancy constructors, like for Vector, do not exist
 for Matrix. There is also no equivalent to the \artsstyle{MakeVector}
@@ -371,7 +371,7 @@ as a \artsstyle{VectorView} is a view on an existing Vector. Like a
 VectorView, a MatrixView cannot be resized and does not contain the
 actual data. A view is generated by using Ranges:
 
-\begin{lstlisting}
+\begin{code}
 Matrix x(10,20);                  // Create 10x20 matrix.
 MatrixView a = x;                 // Now a refers to the
                                   // whole of x;
@@ -379,7 +379,7 @@ MatrixView b = x(Range(joker),Range(joker));
                                   // Same effect.
 MatrixView c = x[Range(0,2),Range(0,2)];
                                   // 2x2 sub-matrix.
-\end{lstlisting}
+\end{code}
 
 You probably get the idea. Note that the second argument of Range gives
 the number of elements to take, not the index of the last element. See
@@ -403,24 +403,24 @@ All examples below (except for the first) assume that \artsstyle{a} is a
 Matrix or MatrixView.
 
 \subsubsection{Resize (only for Matrix, not for MatrixView!):}
-\begin{lstlisting}
+\begin{code}
 a.resize(5,10);
-\end{lstlisting}
+\end{code}
 This makes \artsstyle{a} a 5x10 Matrix (5 rows, 10 columns). The new Matrix
 is not initialized (i.e., the contents will be unpredictable). Also,
 note that the previous content will be completely lost.
 
 \subsubsection{Get the number of rows or columns:}
-\begin{lstlisting}
+\begin{code}
 cout << a.nrows();
 cout << a.ncols();
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Refer to a row or column:}
-\begin{lstlisting}
+\begin{code}
 Vector x = a(0,Range(joker));           // First row.
 Vector y = a(Range(joker),a.ncols()-1); // Last column.
-\end{lstlisting}
+\end{code}
 Of course, you can use more complicated Range expressions to refer to
 only parts of a row or column. However, the case that you want all
 elements of a given dimension is so
@@ -428,30 +428,30 @@ much more common than the more sophisticated uses of the
 \artsstyle{Range} class, that it is worth to introduce a simplified
 notation for this case. Therefore, you are allowed to
 omit the \artsstyle{Range} and just write:
-\begin{lstlisting}
+\begin{code}
 Vector x = a(0,joker);           // First row.
 Vector y = a(joker,a.ncols()-1); // Last column.
-\end{lstlisting}
+\end{code}
 
 Technically, expressions of this kind return the type
 \artsstyle{VectorView}. This means, they can be used in all cases
 where an object of that type is expected, for example with the
 function defined in Section \ref{sec:vector_views}:
 
-\begin{lstlisting}
+\begin{code}
 silly_function(a(0,Range(joker)),
                a(1,Range(joker))); // Call silly_function
                                    // with first and
                                    // second row of a.
-\end{lstlisting}
+\end{code}
 
 
 
 \subsubsection{Element access:}
-\begin{lstlisting}
+\begin{code}
 cout << a(3,4); // Print that element.
 a(0,0) = 3.5;   // Assign 3.5 to the top-left element
-\end{lstlisting}
+\end{code}
 
 Note that we use 0-based indexing! Furthermore note that the operator
 `()' can be also used with one or two \artsstyle{Range} arguments, as
@@ -472,10 +472,10 @@ Vector element access seemed not a good idea, since that would break
 with the established use of `[]' for element access in C and C++.
 
 \subsubsection{Copying Matrices:}
-\begin{lstlisting}
+\begin{code}
 Matrix b;
 b = a;
-\end{lstlisting}
+\end{code}
 
 As in the case of Vectors, the `=' operator adjusts the size of the
 target automatically.
@@ -488,14 +488,14 @@ this behavior has been made above in the Section about Vector. As for
 Vector, you can use `=' with complicated expressions. Here is a more
 elaborate example:
 
-\begin{lstlisting}
+\begin{code}
 b(Range(0,3),Range(0,4)) =
    a(Range(10,3),Range(3,4,-1)); // Copy a row 10-12,
                                  // column 0-3
                                  // to b row 0-2,
                                  // column 0-3, reversing
                                  // the order of columns.
-\end{lstlisting}
+\end{code}
 Note that in this case the dimensions must match exactly, as explained
 in the Section about Vector.
 
@@ -503,9 +503,9 @@ If you do not understand the use of Range here, refer to Section
 \ref{sec:vector_views}. 
 
 \subsubsection{Assigning a scalar:}
-\begin{lstlisting}
+\begin{code}
 a = 1.0;                        // Assign 1 to all elements.
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Mathematical operators:}
 
@@ -513,19 +513,19 @@ You can use the operators `+=', `-=', `*=', and `/=', which operate
 element-vise, just as for Vector.
 
 \subsubsection{Maximum and minimum:}
-\begin{lstlisting}
+\begin{code}
 cout << max(a);
 cout << min(a);
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Arbitrary single-argument math functions:}
 
 The function \funcindex{transform} works just like for Vector.
 
 \subsubsection{Transpose:}
-\begin{lstlisting}
+\begin{code}
 Matrix b = transpose(a); // Make b the transpose of a.
-\end{lstlisting}
+\end{code}
 
 The function \funcindex{transpose} creates a MatrixView, for which rows and
 columns are interchanged. Note, that only the way the data is accessed
@@ -537,7 +537,7 @@ true, after all, the view has to be generated and passed. But that
 cost should be negligible except for very small matrices.)
 
 \subsubsection{Matrix multiplication:}
-\begin{lstlisting}
+\begin{code}
 // Matrix-Vector:
 Vector b(a.nrows()), c(a.ncols());
 mult(b,a,c);                           // b = a * c
@@ -545,7 +545,7 @@ mult(b,a,c);                           // b = a * c
 // Matrix-Matrix:
 Matrix d(a.nrows(),5), e(a.ncols(),5);
 mult(d,a,e);                           // d = a * e
-\end{lstlisting}
+\end{code}
 
 Note, that the result is put in the first argument, consistent with
 the general ARTS policy, but different from the old MTL based
@@ -556,9 +556,9 @@ Matrix.
 \textbf{Important: The matrices or vectors that you give for the three
 arguments must not overlap, or you will get garbage.} In particular,
 this means that
-\begin{lstlisting}
+\begin{code}
 mult(x,y,x);            // x = y * x FORBIDDEN!!!
-\end{lstlisting}
+\end{code}
 does not work. No, even worse: It works, but it gives the wrong
 result.  The reason for this behavior is that the result is
 constructed in the first argument variable. If that is also an input
@@ -571,13 +571,13 @@ this would be much less efficient.
 Another thing: You can use transpose, of course. These two examples
 should obviously give the same result:
 
-\begin{lstlisting}
+\begin{code}
 // Define b and c as in first example above.
 mult(c,transpose(a),b);                      // c = a' * b
 
 // Vector-Matrix:
 mult(transpose(c),transpose(b),a);           // c' = b' * a
-\end{lstlisting}
+\end{code}
 
 
 \section{Tensors}
@@ -620,24 +620,24 @@ order tensor, except that it has some additional features.)
 %-------------------------------------------------------------------------
 You can construct an object of a tensor class like this:
 
-\begin{lstlisting}
+\begin{code}
 Tensor7 a;            // Create empty tensor of rank 7
 Tensor3 b(2,4,3);     // 2 pages, 4 rows, 3 columns
 Tensor3 c(2,4,3,0.0); // Similar, but
                       // fill it with 0.
 
 Tensor3 d=c;          // Make d a copy of c.
-\end{lstlisting}
+\end{code}
 
 
 \subsection{Tensor views}
 %-------------------------------------------------------------------------
 
 Tensor views work exactly like matrix and vector views. Example:
-\begin{lstlisting}
+\begin{code}
 Tensor4 a(10,20,5,4);
 Tensor3View b = a(3,Range(1,3),joker,joker);
-\end{lstlisting}
+\end{code}
 If you have read the previous sections carefully, it should be clear
 what this expression does.
 
@@ -660,15 +660,15 @@ All examples below (except for the first) assume that \artsstyle{a} is a
 Tensor7 or Tensor7View.
 
 \subsubsection{Resize (only for tensors, not for views):}
-\begin{lstlisting}
+\begin{code}
 a.resize(5, 10, 4, 5, 3, 6, 8);
-\end{lstlisting}
+\end{code}
 This makes \artsstyle{a} the requested size. The new tensor is not
 initialized (i.e., the contents will be unpredictable). Also, note
 that the previous content will be completely lost.
 
 \subsubsection{Get the extent of the various dimensions:}
-\begin{lstlisting}
+\begin{code}
 Index nl = a.nlibraries();
 Index nv = a.nvitrines();
 Index ns = a.nshelves();
@@ -676,7 +676,7 @@ Index nb = a.nbooks();
 Index np = a.npages();
 Index nr = a.nrows();
 Index nc = a.ncols();
-\end{lstlisting}
+\end{code}
 
 Which of these functions are available depends on the dimension of
 your tensor. For example, \artsstyle{nlibraries()} is only available for
@@ -685,7 +685,7 @@ dimension names are unique, which is very convenient if you prefer short
 names for your variables that refer so some dimension of a tensor.
 
 \subsubsection{Slicing:}
-\begin{lstlisting}
+\begin{code}
 Vector x = a(0,2,1,8,3,4,joker);
 // Select row 4
 // on page 3 
@@ -694,16 +694,16 @@ Vector x = a(0,2,1,8,3,4,joker);
 // in vitrine 2 
 // in library 0
 // and copy it to the Vector x.
-\end{lstlisting}
+\end{code}
 
 Any \artsstyle{Range} or \artsstyle{Index} expression is allowed in any of the
 arguments, of course.
 
 \subsubsection{Element access:}
-\begin{lstlisting}
+\begin{code}
 cout << a(3,4,0,0,0,0,0); // Print that element.
 a(0,0,0,0,0,0,0) = 3.5;   // Assign 3.5 to this element.
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Copying tensors:}
 
@@ -712,9 +712,9 @@ adjusted for Tensors, but must already have the correct size for
 TensorViews.
 
 \subsubsection{Assigning a scalar:}
-\begin{lstlisting}
+\begin{code}
 a = 1.0;                        // Assign 1 to all elements.
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Mathematical operators:}
 
@@ -722,10 +722,10 @@ You can use the operators `+=', `-=', `*/', and `/=', which operate
 element-vise, just as for Vector.
 
 \subsubsection{Maximum and minimum:}
-\begin{lstlisting}
+\begin{code}
 cout << max(a);
 cout << min(a);
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Arbitrary single-argument math functions:}
 
@@ -735,17 +735,17 @@ The function \funcindex{transform} works just like for Vector.
 
 Assume that you have written a function that performs some calculation
 for a \artsstyle{Tensor5}:
-\begin{lstlisting}
+\begin{code}
 void my_function(Tensor5View x);
-\end{lstlisting}
+\end{code}
 
 \noindent Can you call this function with a \artsstyle{Tensor4}? Yes, you can:
-\begin{lstlisting}
+\begin{code}
 Tensor4 a;                      
 Tensor5View b = a;              // The extent of the first
                                 // dimension of b will be 1.
 my_function(b);                 // Call the function.
-\end{lstlisting}
+\end{code}
 
 In general, you can always create a view that is one dimension bigger
 than what you have. The leading dimension then has extent 1. There is
@@ -756,7 +756,7 @@ column vector, so that matrix-vector products work in the normal way.
 Of course you can use telescoping to blow up anything to
 \artsstyle{Tensor7}: 
 
-\begin{lstlisting}
+\begin{code}
 Numeric b = 3.1415;             // Just any number here.
 Tensor7View bt7 =
   Tensor6View(
@@ -770,13 +770,13 @@ Tensor7View bt7 =
         )
      )
   );                 // All dimensions of bt7 will be 1!
-\end{lstlisting}
+\end{code}
 
 This kind of conversion works also implicitly. So, instead of the
 first example, you could have simply written:
-\begin{lstlisting}
+\begin{code}
 my_function(a);
-\end{lstlisting}
+\end{code}
 
 The purpose of this feature is to avoid having to make special
 versions of auxiliary functions for all different tensor
@@ -827,7 +827,7 @@ this part. A short summary of important differences:
 %-------------------------------------------------------------------------
 You can construct an object of an Array class like this:
 
-\begin{lstlisting}
+\begin{code}
 Array<Index>  a;        // Empty Array of class Index.
 
 Array<String> b(5);     // String Array with 5
@@ -836,7 +836,7 @@ Array<String> b(5);     // String Array with 5
 Array<String> c(5,"x"); // The same, but fill with "x".
 
 Array<Index>  d=a;      // Make d a copy of a;
-\end{lstlisting}
+\end{code}
 
 There are already a lot of predefined Array classes. The naming
 convention for them is: \typeindex{ArrayOfIndex}, \typeindex{ArrayOfString},
@@ -847,12 +847,12 @@ as in the above examples.
 As for Vector, there is a special sub-class of Array that can be
 initialized explicitly. Usage:
 
-\begin{lstlisting}
+\begin{code}
 MakeArray<String> a("ARTS",
                     "is",
                     "great"); // Creates an array of String
                               // with these 3 elements.
-\end{lstlisting}
+\end{code}
 
 \subsection{What you can do with an Array}
 %-------------------------------------------------------------------------
@@ -860,17 +860,17 @@ MakeArray<String> a("ARTS",
 All examples below assume that \artsstyle{a} is an ArrayOfString.
 
 \subsubsection{Resize:}
-\begin{lstlisting}
+\begin{code}
 a.resize(5);
-\end{lstlisting}
+\end{code}
 
 This adjusts the size of \artsstyle{a} to 5. Resizing is more efficiently
 implemented than for Vector, but still expensive.
 
 \subsubsection{Get the number of elements:}
-\begin{lstlisting}
+\begin{code}
 cout << a.nelem();  // Just as for Vector.
-\end{lstlisting}
+\end{code}
 
 In particular, note that the return type of this method is
 \artsstyle{Index}, just as for Vector. This is an extension compared to
@@ -878,10 +878,10 @@ std::vector, which just has a method \artsstyle{size()} that returns the
 positive integer type \artsstyle{size\_t}.
 
 \subsubsection{Element access:}
-\begin{lstlisting}
+\begin{code}
 cout << a[3];   // Print 4th element.
 a[0] = "Hello"; // Assign string "Hello" to first element.
-\end{lstlisting}
+\end{code}
 
 In other words, this works just like for Vector.
 
@@ -892,15 +892,15 @@ match! In this respect, I have modified the behavior with respect to
 the underlying std::vector, which has different copy semantics.
 
 \subsubsection{Assigning a scalar of the base type:}
-\begin{lstlisting}
+\begin{code}
 a = "Hello";    // Assign string "Hello" to all elements.
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Append to the end:}
-\begin{lstlisting}
+\begin{code}
 a.push_back("Hello"); // Adds this new element at the
                       // end of a.
-\end{lstlisting}
+\end{code}
 
 This can be an expensive operation, especially for large Arrays.
 Therefore, use it with care. Actually, the \funcindex{push\_back} method
@@ -937,7 +937,7 @@ number of columns plus one and then divide by two,
 %-------------------------------------------------------------------------
 You can construct an object of class Sparse in any of these ways:
 
-\begin{lstlisting}
+\begin{code}
 Sparse a;          // Create empty Sparse.
 Sparse b(3,4);     // Create Sparse with 3 rows
                    // and 4 columns. When
@@ -946,7 +946,7 @@ Sparse b(3,4);     // Create Sparse with 3 rows
                    // be an empty Sparse.
 
 Sparse d=c;        // Make d a copy of c.
-\end{lstlisting}
+\end{code}
 
 That is all. As for Matrix there exist no more fancy constructors, like an
 equivalent to the \artsstyle{MakeVector} class.
@@ -956,9 +956,9 @@ equivalent to the \artsstyle{MakeVector} class.
 All examples below assume that \artsstyle{a} is a Sparse.
 
 \subsubsection{Identity matrix:}
-\begin{lstlisting}
+\begin{code}
 a.make_I(10,10);
-\end{lstlisting}
+\end{code}
 This sets \artsstyle{a} to be the identity matrix of size 10x10 (10 rows 
 and 10 columns). Using this function is much faster than setting the 
 diagonal elements to one by yourself. The number of rows and columns 
@@ -968,33 +968,33 @@ is applied. That is, in the case there are more rows than columns, the last
 rows will be empty.
 
 \subsubsection{Resize:}
-\begin{lstlisting}
+\begin{code}
 a.resize(5,10);
-\end{lstlisting}
+\end{code}
 This makes \artsstyle{a} a 5x10 Sparse (5 rows, 10 columns). Note that the
 previous content will be completely lost. The new Sparse will be empty.
 
 \subsubsection{Get the number of rows, columns or non-zero elements:}
-\begin{lstlisting}
+\begin{code}
 cout << a.nrows();
 cout << a.ncols();
 cout << a.nnz();
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Element access:}
 There are two different ways to access individual elements. One used for
 read only and one for read and write. The distinction is necessary since
 the read and write method creates elements if they don't already exist.
 Note that we use 0-based indexing. For reading only use:
-\begin{lstlisting}
+\begin{code}
 cout << a.ro(3,4);  // Print that element. If it
                     // it doen't exist a zero will
                     // be printed.
 cout << a(0,0);     // Short version of the above.
-\end{lstlisting}
+\end{code}
 
 For reading and writing, such as assigning values to elements, use:
-\begin{lstlisting}
+\begin{code}
 a.rw(0,0) = 1.5;    // Assigns the value 1.5 to the
                     // first row and first column.
 cout << a.rw(0,0);  // Also returns the value of the
@@ -1002,13 +1002,13 @@ cout << a.rw(0,0);  // Also returns the value of the
                     // if the element doesn't exist
                     // it will be created and set
                     // to zero.
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Copying Matrices:}
-\begin{lstlisting}
+\begin{code}
 Sparse b;
 b = a;
-\end{lstlisting}
+\end{code}
 
 As in the case of Vectors, the `=' operator adjusts the size of the
 target automatically.
@@ -1023,14 +1023,14 @@ the original Matrix.
 
 The target variable for the transposed Sparse has to have the right
 dimensions before the function is called.
-\begin{lstlisting}
+\begin{code}
 Sparse b(a.ncols(),a.nrows());
 transpose(b,a);     // Make b the transpose of a.
                     // Note the argument order!
-\end{lstlisting}
+\end{code}
 
 \subsubsection{Matrix multiplication:}
-\begin{lstlisting}
+\begin{code}
 // Sparse-Vector
 Vector b(a.nrows()), c(a.ncols());
 mult(b,a,c);        // b = a * c
@@ -1042,7 +1042,7 @@ mult(d,a,e);        // d = a * e
 // Sparse-Sparse
 Sparse f(a.nrows(),5), g(a.ncols(),5);
 mult(f,a,g);        // f = a * g
-\end{lstlisting}
+\end{code}
 The result is put in the first argument, consistent with the Matrix class.
 Note that for the Sparse -- Matrix multiplication the output is a Matrix.
 \textbf{Important: As for Matrix, the matrices or vectors
