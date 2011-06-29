@@ -500,8 +500,7 @@ void ds_doc_method (ostream &os, const string& mname)
   // described.
   
   // Find method id:
-  map<String, Index>::const_iterator it =
-  MdRawMap.find(mname);
+  map<String, Index>::const_iterator it = MdRawMap.find(mname);
   if ( it != MdRawMap.end() )
   {
     // If we are here, then the given name matches a method.
@@ -776,8 +775,7 @@ void ds_doc_method (ostream &os, const string& mname)
 void ds_doc_variable_methods(ostream& os, const string& vname)
 {
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi =
-  Workspace::WsvMap.find(vname);
+  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(vname);
   extern const Array<MdRecord>  md_data_raw;
   if ( mi != Workspace::WsvMap.end() )
   {
@@ -1383,6 +1381,7 @@ void ds_insert_breadcrumb_token (ostream& os, const vector<string>& tokens,
   else if (tokens[token_id] == "variables") os << "Variables";
   else if (tokens[token_id] == "agendas") os << "Agendas";
   else if (tokens[token_id] == "groups") os << "Groups";
+  else if (tokens[token_id] == "all") os << "All";
   else os << tokens[token_id];
   
   if (link) os << "</a>";
@@ -1469,7 +1468,7 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
   void(*index_method)(ostream&);
   string title;
   
-  if (tokens.size() == 0)
+  if (tokens.size() == 0 || tokens[0] == "all")
   {
     ds_begin_page(os, "");
     ds_insert_breadcrumbs (os, tokens);
@@ -1523,22 +1522,78 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
   ds_end_content(os);
 }
 
+
+//! Find token type.
+/** 
+ If the first element of tokens is "all", look at the second token and try to
+ determine whether it's a methods, variable, agenda or group. Then changes the
+ first element of tokens accordingly.
+ 
+ \param[in,out]    tokens   Tokens with the current position in the docserver
+ hierarchy.
+ 
+ \author Oliver Lemke
+ */
+void find_token_type (vector<string>& tokens)
+{
+  if (tokens.size() < 1 || tokens[0] != "all") return;
+  
+  // Make global data visible:
+  extern const map<String, Index> MdRawMap;
+  
+  // Find method id:
+  map<String, Index>::const_iterator it = MdRawMap.find(tokens[1]);
+  if ( it != MdRawMap.end() )
+  {
+    tokens[0] = "methods";
+  }
+  else
+  {
+    // Check if the user gave the name of a specific variable.
+    map<String, Index>::const_iterator mi = Workspace::WsvMap.find(tokens[1]);
+    if ( mi != Workspace::WsvMap.end() )
+    {
+      tokens[0] = "variables";
+    }
+    else
+    {
+      extern const map<String, Index> AgendaMap;
+      map<String, Index>::const_iterator ait = AgendaMap.find(tokens[1]);
+      if ( it != Workspace::WsvMap.end() && ait != AgendaMap.end() )
+      {
+        tokens[0] = "agendas";
+      }
+      else
+      {
+        Index gid = get_wsv_group_id (tokens[1]);
+        if ( gid != -1 )
+        {
+          tokens[0] = "groups";
+        }
+      }
+    }
+  }
+}
+
+
 //! Output HTML documentation of a workspace member.
 /** 
  Output depending on the tokens the documentation of a workspace method,
  variable, agenda or group.
  
  \param[in,out]  os       Output stream.
- \param[in]      tokens   Tokens with the current position in the docserver
+ \param[in,out]  tokens   Tokens with the current position in the docserver
                           hierarchy.
  
  \author Oliver Lemke
  */
-void ds_insert_doc (ostream& os, const vector<string>& tokens)
+void ds_insert_doc (ostream& os, vector<string>& tokens)
 {
   void(*doc_method)(ostream&, const string&);
   string title;
-  
+
+  find_token_type (tokens);
+
   if (tokens[0] == "methods")
   {
     title = "Workspace Method " + tokens[1];
