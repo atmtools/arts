@@ -182,6 +182,66 @@ combination makes sense, so the user should know what she or he is
 doing, or follow one of the many examples in the ARTS
 \fileindex{includes} directory.
 
+\subsection{Explicit line-by-line calculations}
+
+For absorption species with explicit line-by-line calculation the
+calculation involves the steps summarized in Table \ref{tab:absorption:lbl}.
+
+\begin{table}
+\footnotesize
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\hsize}{l>{\raggedright\arraybackslash\hsize=0.5\hsize}X
+                          >{\raggedright\arraybackslash\hsize=1.5\hsize}X}
+\hline
+\# & Step & Variables and Methods \\
+\hline
+%---------------------------------------------------------------------
+1 & 
+Define line shape function(s) to use. &
+Variables:
+\wsvindex{abs\_lineshape}. \newline
+Methods:
+\wsmindex{abs\_lineshapeDefine} (same shape for all species),
+\wsmindex{abs\_lineshape\_per\_tgDefine} (different shapes for different
+species). \\
+%---------------------------------------------------------------------
+2 &
+Read spectral line data (the order of the first two steps does not
+matter). &
+Variables: \wsvindex{abs\_lines}. \newline
+Methods: 
+\wsmindex{abs\_linesReadFromArts},
+\wsmindex{abs\_linesReadFromHitran},
+\wsmindex{abs\_linesReadFromHitran2004},
+\wsmindex{abs\_linesReadFromJpl},
+\wsmindex{abs\_linesReadFromMytran2} (different methods are for
+different catalogue formats). For the ARTS internal format, the
+standard method \wsmindex{ReadXML} works also, but does not allow to
+select a frequency range, as the others do. \\
+%---------------------------------------------------------------------
+3 &
+Split line data for different absorption species. &
+Variables: \wsvindex{abs\_lines\_per\_species}. \newline
+Methods:
+\wsmindex{abs\_lines\_per\_speciesCreateFromLines}. Alternatively, read
+lines from different catalogues for different species directly with
+\wsmindex{abs\_lines\_per\_speciesReadFromCatalogues}. \\
+%---------------------------------------------------------------------
+4 &
+Optimize line data. &
+Variables: \wsvindex{abs\_lines\_per\_species}. \newline
+Methods: Add mirror lines for VVW line shape with
+\wsmindex{abs\_lines\_per\_speciesAddMirrorLines} (see FIXME Chapter
+in theory). FIXME: Compact\\
+
+%---------------------------------------------------------------------
+\hline
+\end{tabularx}
+\caption{Steps for line-by-line absorption calculation, and associated
+    ARTS workspace variables and methods.}
+\label{tab:absorption:lbl}
+\end{table}
+
 
 \section{The gas absorption lookup table}
 \label{sec:absorption:lookup}

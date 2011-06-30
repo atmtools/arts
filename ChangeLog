@@ -1,3 +1,9 @@
+2011-06-30  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-44
+
+	* doc/uguide/absorption.tex: Still work in progress.
+
 2011-06-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-15-43
@@ -37,7 +43,7 @@
 	* arts-1-15-40
 
 	* src/docserver.cc:
-	
+
 	(ds_insert_index, ds_insert_doc): Add support for "/all/".
 
 	(find_token_type): Add method to determine token type.
@@ -10160,7 +10166,7 @@
 	* src/m_abs.cc:
 
 	Rename old abs_linesReadFromArts function to
-	abs_linesReadFromArtsObsoleteObsolete and change abs_linesReadFromArts
+	abs_linesReadFromArtsObsolete and change abs_linesReadFromArts
 	to read XML catalogue files.
 
 	* src/methods.cc: Add WSM abs_linesReadFromArtsObsolete.
