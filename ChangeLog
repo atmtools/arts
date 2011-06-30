@@ -1,3 +1,17 @@
+2011-06-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-15-43
+
+	* src/docserver.cc:
+
+	(ds_find_token_type): Add ds_ prefix to function name. Optimize
+	implementation.
+
+	(ds_doc_description_add_links): Apply same optimizations as in
+	ds_find_token_type.
+
+	* src/workspace.cc: Change iy_fos_agenda -> fos_y_agenda in fos_y docs.
+
 2011-06-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-42

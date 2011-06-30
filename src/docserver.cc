@@ -426,13 +426,9 @@ String ds_doc_description_add_links (const String& desc)
   bool inside_link = false;
   string::const_iterator it = desc.begin();
   
-  extern const ArrayOfString wsv_group_names;
-  extern const Array<MdRecord>  md_data_raw;
+  extern const map<String, Index> MdRawMap;
+  extern const map<String, Index> AgendaMap;
 
-  map<String, Index> WsmMap;
-  for ( Index i=0 ; i<md_data_raw.nelem() ; ++i )
-    WsmMap[md_data_raw[i].Name()] = i;
-  
   while (it != desc.end()) {
     if (!inside_link)
     {
@@ -446,12 +442,14 @@ String ds_doc_description_add_links (const String& desc)
       if (*it == '*')
       {
         inside_link = false;
-        if (Workspace::WsvMap.find(link) != Workspace::WsvMap.end())
-          ret += ds_insert_wsv_link(link);
-        else if (find(wsv_group_names.begin(), wsv_group_names.end(), link) != wsv_group_names.end())
-          ret += ds_insert_group_link(link);
-        else if (WsmMap.find(link) != WsmMap.end())
+        if (MdRawMap.find(link) != MdRawMap.end())
           ret += ds_insert_wsm_link(link);
+        else if (AgendaMap.find(link) != AgendaMap.end())
+          ret += ds_insert_agenda_link(link);
+        else if (Workspace::WsvMap.find(link) != Workspace::WsvMap.end())
+          ret += ds_insert_wsv_link(link);
+        else if (get_wsv_group_id (link) != -1)
+          ret += ds_insert_group_link(link);
         else
           ret += "*" + link + "*";
         
@@ -1349,6 +1347,38 @@ void ds_doc_group (ostream &os, const string& gname)
   }
 }
 
+
+//! Find token type.
+/** 
+ If the first element of tokens is "all", look at the second token and try to
+ determine whether it's a methods, variable, agenda or group. Then changes the
+ first element of tokens accordingly.
+ 
+ \param[in,out]    tokens   Tokens with the current position in the docserver
+ hierarchy.
+ 
+ \author Oliver Lemke
+ */
+void ds_find_token_type (vector<string>& tokens)
+{
+  if (tokens.size() < 1 || tokens[0] != "all") return;
+  
+  // Make global data visible:
+  extern const map<String, Index> MdRawMap;
+  extern const map<String, Index> AgendaMap;
+  
+  // Find method id:
+  if (MdRawMap.find(tokens[1]) != MdRawMap.end())
+    tokens[0] = "methods";
+  else if (AgendaMap.find(tokens[1]) != AgendaMap.end())
+    tokens[0] = "agendas";
+  else if (Workspace::WsvMap.find(tokens[1]) != Workspace::WsvMap.end())
+    tokens[0] = "variables";
+  else if (get_wsv_group_id (tokens[1]) != -1)
+    tokens[0] = "groups";
+}
+
+
 //! Output HTML code for a breadcrumb token.
 /** 
  Output the HTML code for the token with the given id. Used for the
@@ -1523,59 +1553,6 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
 }
 
 
-//! Find token type.
-/** 
- If the first element of tokens is "all", look at the second token and try to
- determine whether it's a methods, variable, agenda or group. Then changes the
- first element of tokens accordingly.
- 
- \param[in,out]    tokens   Tokens with the current position in the docserver
- hierarchy.
- 
- \author Oliver Lemke
- */
-void find_token_type (vector<string>& tokens)
-{
-  if (tokens.size() < 1 || tokens[0] != "all") return;
-  
-  // Make global data visible:
-  extern const map<String, Index> MdRawMap;
-  
-  // Find method id:
-  map<String, Index>::const_iterator it = MdRawMap.find(tokens[1]);
-  if ( it != MdRawMap.end() )
-  {
-    tokens[0] = "methods";
-  }
-  else
-  {
-    // Check if the user gave the name of a specific variable.
-    map<String, Index>::const_iterator mi = Workspace::WsvMap.find(tokens[1]);
-    if ( mi != Workspace::WsvMap.end() )
-    {
-      tokens[0] = "variables";
-    }
-    else
-    {
-      extern const map<String, Index> AgendaMap;
-      map<String, Index>::const_iterator ait = AgendaMap.find(tokens[1]);
-      if ( it != Workspace::WsvMap.end() && ait != AgendaMap.end() )
-      {
-        tokens[0] = "agendas";
-      }
-      else
-      {
-        Index gid = get_wsv_group_id (tokens[1]);
-        if ( gid != -1 )
-        {
-          tokens[0] = "groups";
-        }
-      }
-    }
-  }
-}
-
-
 //! Output HTML documentation of a workspace member.
 /** 
  Output depending on the tokens the documentation of a workspace method,
@@ -1592,7 +1569,7 @@ void ds_insert_doc (ostream& os, vector<string>& tokens)
   void(*doc_method)(ostream&, const string&);
   string title;
 
-  find_token_type (tokens);
+  ds_find_token_type (tokens);
 
   if (tokens[0] == "methods")
   {

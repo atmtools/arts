@@ -1516,7 +1516,7 @@ void Workspace::define_wsv_data()
       (
        "Incoming radiation, for estimating the scattering integral.\n"
        "\n"
-       "Output of *iy_fos_agenda*. See further that agenda.\n"
+       "Output of *fos_y_agenda*. See further that agenda.\n"
        "\n"
        "Dimensions: [fos_angles, f_grid, stokes_dim]\n" ),
       GROUP( "Tensor3" )));
