@@ -52,7 +52,7 @@ Here in the User Guide we focus on practical aspects of absorption in
 ARTS.  But absorption calculations also have a deep theoretical
 background, particularly the line-by-line calculations and the
 continuum models.  Some of this background is discussed in \theory,
-Section \ref{T-sec:abs_theory}. 
+Chapter \ref{T-sec:abs_theory}. 
 
 \section{Gas absorption in radiative transfer simulations}
 \label{sec:absorption:abs-rt}
@@ -185,7 +185,13 @@ doing, or follow one of the many examples in the ARTS
 \subsection{Explicit line-by-line calculations}
 
 For absorption species with explicit line-by-line calculation the
-calculation involves the steps summarized in Table \ref{tab:absorption:lbl}.
+calculation involves the steps summarized in Table
+\ref{tab:absorption:lbl}. The list of variables and methods in the
+table is not complete, the idea is to give an overview over the
+important ones and show how they work together. Missing are
+particularly the input variables that describe the atmospheric
+conditions, and continuum description variables, which normally do not
+have to be set by the user anyway.
 
 \begin{table}
 \footnotesize
@@ -198,7 +204,7 @@ calculation involves the steps summarized in Table \ref{tab:absorption:lbl}.
 %---------------------------------------------------------------------
 1 & 
 Define line shape function(s) to use. &
-Variables:
+Variable:
 \wsvindex{abs\_lineshape}. \newline
 Methods:
 \wsmindex{abs\_lineshapeDefine} (same shape for all species),
@@ -208,7 +214,7 @@ species). \\
 2 &
 Read spectral line data (the order of the first two steps does not
 matter). &
-Variables: \wsvindex{abs\_lines}. \newline
+Variable: \wsvindex{abs\_lines}. \newline
 Methods: 
 \wsmindex{abs\_linesReadFromArts},
 \wsmindex{abs\_linesReadFromHitran},
@@ -221,7 +227,7 @@ select a frequency range, as the others do. \\
 %---------------------------------------------------------------------
 3 &
 Split line data for different absorption species. &
-Variables: \wsvindex{abs\_lines\_per\_species}. \newline
+Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods:
 \wsmindex{abs\_lines\_per\_speciesCreateFromLines}. Alternatively, read
 lines from different catalogues for different species directly with
@@ -229,11 +235,45 @@ lines from different catalogues for different species directly with
 %---------------------------------------------------------------------
 4 &
 Optimize line data. &
-Variables: \wsvindex{abs\_lines\_per\_species}. \newline
+Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods: Add mirror lines for VVW line shape with
-\wsmindex{abs\_lines\_per\_speciesAddMirrorLines} (see FIXME Chapter
-in theory). FIXME: Compact\\
-
+\wsmindex{abs\_lines\_per\_speciesAddMirrorLines} (see \theory,
+Chapter \ref{T-sec:abs_theory}). Remove lines that are outside the
+line shape cutoff with \wsmindex{abs\_lines\_per\_speciesCompact}. \\
+%---------------------------------------------------------------------
+\multicolumn{3}{>{\raggedright\arraybackslash\hsize=2\hsize}X}{The
+  first four steps are preparation, and typically 
+  have to be done only once per ARTS run. The fifth step is the actual
+  absorption calculation, which can occur in different contexts.} \\
+%---------------------------------------------------------------------
+5a &
+Calculate absorption on-the-fly. &
+Agenda: \wsaindex{abs\_scalar\_gas\_agenda}. \newline
+Variable: \wsvindex{abs\_scalar\_gas}. \newline
+Methods: \wsmindex{abs\_scalar\_gasCalcLBL}. Alternative:
+\wsmindex{abs\_scalar\_gasExtractFromLookup} (extract absorption from
+pre-calculated lookup table). \\
+%---------------------------------------------------------------------
+5b &
+Calculate absorption lookup table. &
+Variable: \wsvindex{abs\_lookup}. \newline
+Methods: \wsvindex{abs\_lookupCreate}. Alternative: Load lookup table
+from file with \wsmindex{ReadXML}, it then has to be adapted to the
+current calculation (and checked) with \wsmindex{abs\_lookupAdapt}. \\ 
+%---------------------------------------------------------------------
+5c &
+Just calculate absorption (not for RT purposes). &
+Variable: \wsvindex{abs\_coef}. \newline
+Methods, high level: \wsvindex{abs\_coefCalc},
+\wsmindex{abs\_coefCalcSaveMemory}. \newline
+Methods, low level: \newline
+\wsmindex{abs\_xsec\_per\_speciesInit}, \newline
+\wsmindex{abs\_xsec\_per\_speciesAddLines} (the core method for the
+actual line-by-line calculation, used internally by all higher level methods),\newline
+\wsmindex{abs\_xsec\_per\_speciesAddConts} (add continua or complete absorption
+models, see Section \ref{sec:absorption:continua}),\newline
+\wsmindex{abs\_coefCalcFromXsec} (calculate absorption coefficients
+from absorption cross-sections). \\
 %---------------------------------------------------------------------
 \hline
 \end{tabularx}
@@ -241,6 +281,139 @@ in theory). FIXME: Compact\\
     ARTS workspace variables and methods.}
 \label{tab:absorption:lbl}
 \end{table}
+
+Chapter \ref{T-sec:abs_theory} of \theory contains more information on
+the internal format of the spectral line data.  It also contains
+theoretical background for the calculation itself.  
+
+See the built-in documentation of the various variables and methods
+for more information.  It is on purpose not repeated here, for better
+maintainability.  If you are viewing this pdf file on a computer, just
+click on a variable or method name to get to the corresponding
+built-in documentation [FIXME: Not yet implemented]. 
+
+\subsection{Continua and complete absorption models}
+\label{sec:absorption:continua}
+
+ARTS includes many absorption continua and complete absorption models,
+which are described in \theory, Chapter \ref{T-sec:abs_theory}.  The
+common property of all of these is that they do not use the standard
+ARTS line-by-line calculation mechanism.  They may include spectral
+lines, but then these lines are hardwired into the absorption model
+itself.  Consequently, the first four steps in Table
+\ref{tab:absorption:lbl} are not needed for these models.  
+
+The pure continua are intended to be used together with an explicit ARTS
+line-by-line calculation, the complete models are intended to be used alone.
+To select a continuum or complete absorption model, simply use the
+corresponding tag with \wsmindex{SpeciesSet}.  Currently available
+models are listed in Table \ref{tab:absorption:continua}.
+
+\begin{table}
+\centering
+\footnotesize
+\begin{tabular}{ll}
+\hline  
+Class & Tag name \\
+\hline  
+%---------------------------------------------------------------------
+
+Water vapor continua & H2O-SelfContStandardType \\
+& H2O-ForeignContStandardType \\
+& H2O-ForeignContMaTippingType \\
+& H2O-ContMPM93 \\
+& H2O-SelfContCKDMT100 \\
+& H2O-ForeignContCKDMT100 \\
+& H2O-SelfContCKD222 \\
+& H2O-ForeignContCKD222 \\
+& H2O-SelfContCKD242 \\
+& H2O-ForeignContCKD242 \\
+& H2O-SelfContCKD24 \\
+& H2O-ForeignContCKD24 \\
+& H2O-ForeignContATM01 \\[1ex]
+
+Complete water vapor models & H2O-CP98 \\
+& H2O-MPM87 \\
+& H2O-MPM89 \\
+& H2O-MPM93 \\
+& H2O-PWR98 \\[1ex]
+
+Carbon dioxide continua & CO2-CKD241 \\
+& CO2-CKDMT100 \\
+& CO2-SelfContPWR93 \\
+& CO2-ForeignContPWR93 \\[1ex]
+
+Oxygen continua & O2-CIAfunCKDMT100 \\
+& O2-v0v0CKDMT100 \\
+& O2-v1v0CKDMT100 \\
+& O2-SelfContStandardType \\
+& O2-SelfContMPM93 \\
+& O2-SelfContPWR93 \\[1ex]
+
+Complete oxygen models & O2-PWR98 \\
+& O2-PWR93 \\
+& O2-PWR88 \\
+& O2-MPM93 \\
+& O2-MPM92 \\
+& O2-MPM89 \\
+& O2-MPM87 \\
+& O2-MPM85 \\[1ex]
+
+Nitrogen continua & N2-SelfContMPM93 \\
+& N2-SelfContPWR93 \\
+& N2-SelfContStandardType \\
+& N2-SelfContBorysow \\
+& N2-CIArotCKDMT100 \\
+& N2-CIAfunCKDMT100 \\
+& N2-DryContATM01 \\[1ex]
+
+Condensate absorption models & liquidcloud-MPM93 \\
+& icecloud-MPM93 \\
+& rain-MPM93 \\
+
+%---------------------------------------------------------------------
+\hline  
+\end{tabular}
+\caption{ARTS continua and complete absorption models. The molecular
+  species can be inferred from the start of the tag name.  See
+  \theory, Chapter \ref{T-sec:abs_theory} for more information on the
+  various models.}
+\label{tab:absorption:continua}
+\end{table}
+
+The names should be fairly self-explanatory and can be used to find
+background information on the various models in \theory.  The
+condensate absorption models are a bit special and perhaps need some
+extra explanation. They are absorption parameterizations by Liebe, and
+allow the inclusion of condensate in the (rare) cases where scattering
+is not important. Their general applicability is therefore fairly limited.
+
+The behavior of the continua and complete absorption models can be
+modified by passing them some additional parameters, stored in the
+variables \wsvindex{abs\_cont\_names}, \wsvindex{abs\_cont\_models},
+and \wsvindex{abs\_cont\_parameters}. Basically,
+\artsstyle{abs\_cont\_names} identifies the model,
+\artsstyle{abs\_cont\_models} contains switches that select different
+behavior (for example taking only the lines, or only the continuum
+part of a complete model), and \artsstyle{abs\_cont\_parameters} can
+contain numerical parameters. 
+
+Yes, the nomenclature for these additional continuum parameters,
+particularly \artsstyle{abs\_cont\_models}, is confusing. However,
+most users will never have to deal with these variables
+explicitly. They are set to default values in the include file
+\fileindex{continua.arts}. Users should therefore always include this file  at
+the start of their controlfiles with
+\begin{code}
+  INCLUDE "continua.arts"
+\end{code}
+Unless you work on continuum model development of verification, you
+should never have to modify these default settings.
+
+The core method to calculate continua and complete absorption models
+is \wsmindex{abs\_xsec\_per\_speciesAddConts}.  Users normally do not
+have to call this method explicitly, since it is used implicitly by
+higher level methods, such as \wsmindex{abs\_coefCalc}.
 
 
 \section{The gas absorption lookup table}

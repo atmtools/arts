@@ -1,3 +1,10 @@
+2011-07-01  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-45
+
+	* doc/uguide/absorption.tex: All planned text there now, but old
+	lookup table section still needs check/cleanup.
+
 2011-06-30  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-44
