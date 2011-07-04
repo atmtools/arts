@@ -83,7 +83,7 @@ only the first Stokes component is considered.
 
 The structure of the part handling complete radiative transfer calculations is
 fixed, where the main workspace method is denoted as \wsmindex{yCalc}. That is,
-most ARTS control files include a call of \artsstyle{yCalc} and this section
+most ARTS control files include a call of \builtindoc{yCalc} and this section
 outlines this method and the associated main variables.
 
 The calculation approach fits with the formalism presented in Sections
@@ -116,7 +116,7 @@ effects shall be noted especially, and a similar nomenclature is used here:
   \FORALL{sensor positions}
    \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
                                     {pencil beam directions of the block}
-    \STATE{call \artsstyle{iy\_clearsky\_agenda}, giving \aMpiVct{y}}
+    \STATE{call \builtindoc{iy\_clearsky\_agenda}, giving \aMpiVct{y}}
     \COMMENT{Algorithm \ref{alg:fm_defs:iyCSagenda}}
     \STATE{unit conversion of \aMpiVct{y} following \wsvindex{y\_unit}}
     \COMMENT{Section \ref{sec:fm_defs:unit}}
@@ -127,12 +127,12 @@ effects shall be noted especially, and a similar nomenclature is used here:
   \ENDFOR
  \end{algorithmic}
  \caption{Outline of the overall clear sky radiative transfer calculations
-   (\artsstyle{yCalc}).}
+   (\builtindoc{yCalc}).}
  \label{alg:fm_defs:yCalc}
 \end{algorithm}
 \begin{algorithm}[t]
  \begin{algorithmic}
-   \STATE{determine the propagation path by \artsstyle{ppath\_calc}}
+   \STATE{determine the propagation path by \builtindoc{ppath\_calc}}
    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
    \STATE{determine the radiation at the start of the propagation path}
    \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
@@ -144,28 +144,28 @@ effects shall be noted especially, and a similar nomenclature is used here:
    \wsvindex{iy\_clearsky\_basic\_agenda}.}
  \label{alg:fm_defs:iyCSagenda}
 \end{algorithm}
-The \artsstyle{yCalc} method is outlined in Algorithm~\ref{alg:fm_defs:yCalc}.
+The \builtindoc{yCalc} method is outlined in Algorithm~\ref{alg:fm_defs:yCalc}.
 For further details of each calculation step, see the indicated equation or
-section. In summary, \artsstyle{yCalc} appends data from different pencil beam
+section. In summary, \builtindoc{yCalc} appends data from different pencil beam
 calculations and applies the sensor response matrix (\aSnsMtr{b}). The actual
-radiative transfer calculations are not part of \artsstyle{yCalc}.
+radiative transfer calculations are not part of \builtindoc{yCalc}.
 
 Atmospheric radiative transfer is solved for each pencil beam direction
 (line-of-sight) separately. It is the task of \wsvindex{iy\_clearsky\_agenda}
 (Algorithm~\ref{alg:fm_defs:iyCSagenda}) to perform a single such clear sky
 radiative transfer calculation. This agenda, in its turn, makes us of other
-agendas, such as \artsstyle{ppath\_step\_agenda}. All methods developed for
-\artsstyle{iy\_clearsky\_agenda} adapt automatically to the value of
+agendas, such as \builtindoc{ppath\_step\_agenda}. All methods developed for
+\builtindoc{iy\_clearsky\_agenda} adapt automatically to the value of
 \wsvindex{stokes\_dim}.
 
-That is, \artsstyle{yCalc} is a common method, independent of the details of
-the radiative transfer. For exemple, \artsstyle{yCalc} is used both if emission
+That is, \builtindoc{yCalc} is a common method, independent of the details of
+the radiative transfer. For exemple, \builtindoc{yCalc} is used both if emission
 measurements or pure transmission data are simulated, that choice is made
-inside \artsstyle{iy\_clearsky\_agenda} (see further Section
+inside \builtindoc{iy\_clearsky\_agenda} (see further Section
 \ref{sec:fm_defs:rte}). 
 
 The three following sections describes the main calculation steps of 
-\artsstyle{iy\_clearsky\_agenda}, in the order they are exucuted.
+\builtindoc{iy\_clearsky\_agenda}, in the order they are exucuted.
 
 
 \section{Propagation paths}
@@ -178,13 +178,13 @@ are described by a set of points on the path, and the distance along the path
 between the points. These quantities, and a number of auxiliary variables, are
 stored together in a structure described in Section~\ref{sec:ppath:Ppath}. The
 path points are primarily placed at the crossings of the path with the
-atmospheric grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
-\artsstyle{lon\_grid}). A path point is also placed at the sensor if it is
+atmospheric grids (\builtindoc{p\_grid}, \builtindoc{lat\_grid} and
+\builtindoc{lon\_grid}). A path point is also placed at the sensor if it is
 placed inside the atmosphere. Points of surface reflections and tangent points
 are also included if such exist. More points can also be added to the
 propagation path, for example, by setting an upper limit for the distance along
 the path between the points. This is achieved by the variable
-\artsstyle{ppath\_lmax}, see further Sections \ref{sec:fm_defs:accuracy} and
+\builtindoc{ppath\_lmax}, see further Sections \ref{sec:fm_defs:accuracy} and
 \ref{sec:ppath:usage}.
 
 \begin{figure}
@@ -264,10 +264,10 @@ and longitude limits of the model atmosphere.
 
 Propagation paths can be calculated seperately by the method
 \wsmindex{ppathCalc}. However, for standard calculations the propagation paths
-are calculated internally by \artsstyle{yCalc}. The calculation of the path
+are calculated internally by \builtindoc{yCalc}. The calculation of the path
 from one crossing of the grids to next crossing is defined by
 \wsaindex{ppath\_step\_agenda}. Depending on which function that is selected
-for \artsstyle{ppath\_step\_agenda}, refraction will be considered etc.
+for \builtindoc{ppath\_step\_agenda}, refraction will be considered etc.
 Available workspace methods are presented in Section~\ref{sec:ppath:usage}.
 
 
@@ -294,7 +294,7 @@ exist:
   propagation path is totally outside the model atmosphere, the
   observed monochromatic pencil beam intensity (\aMpiVct{y}\ in
   Algorithm~\ref{alg:fm_defs:yCalc}) equals the output of
-  \artsstyle{iy\_space\_agenda}.
+  \builtindoc{iy\_space\_agenda}.
 \item[The surface] The sum of surface emission and radiation reflected by the
   surface is the radiative background when the propagation path intersects with
   the surface. The calculation of the up-welling radiation from the surface is
@@ -308,15 +308,15 @@ exist:
   background, and also the final spectrum, equals the internal
   intensity field of the cloud box at the position of the sensor, in
   the direction of the sensor line-of-sight. This case is also handled
-  by \artsstyle{iy\_cloudbox\_agenda}.
+  by \builtindoc{iy\_cloudbox\_agenda}.
 \end{description}
 It should be noted that except for the first case above, the determination of
 the radiative background involves further radiative transfer calculations. For
 example, in the case of surface reflection, the down-welling radiation is
-determined by a new call of \artsstyle{iy\_clearsky\_agenda} and the radiative
+determined by a new call of \builtindoc{iy\_clearsky\_agenda} and the radiative
 background for that calculation is then space or the cloud box. The intensity
 field entering the cloud box is calculated by calls of
-\artsstyle{iy\_clearsky\_basic\_agenda} (with cloud box deactivated) and the
+\builtindoc{iy\_clearsky\_basic\_agenda} (with cloud box deactivated) and the
 radiative background is then space or the surface. This results in that space
 is normally the ultimate radiative background for the calculations. The
 exception is for propagation paths that intersects with the surface, and the
@@ -368,7 +368,7 @@ practically in ARTS. Focus is put on emission measurements as ARTS is
 intended primarily for such observations. However, simulations of transmission
 measurements are also possible.
 
-Beside the actual radiances, \artsstyle{iy\_clearsky\_agenda} can provide
+Beside the actual radiances, \builtindoc{iy\_clearsky\_agenda} can provide
 weighting functions and auxiliary data. These later variables are not supported
 by all parts of ARTS, and for efficiency reasons there exists a simpler version
 of the agenda. This version is denoted as
@@ -426,7 +426,7 @@ The third and forth Stokes component are handled likewise.
 
 The expressions above are implemented in the workspace method
 \wsmindex{iyEmissionStandardClearsky}, intended to be part of
-\artsstyle{iy\_clearsky\_agenda}. 
+\builtindoc{iy\_clearsky\_agenda}. 
 
 An alternative way to perform the calculations for the first Stokes elemnt
 would be
@@ -439,11 +439,11 @@ between the sensor and point $i$. This calculation aproach is not used as it
 fits poorer with the calculation of weighting functions (Section~[FIXME]).
 However, the the calculation of weighting functions is simplified if
 $\mathcal{T}_i$ is at hand, and this quantity is also tracked by
-\artsstyle{iyEmissionStandardClearsky}. The value of $\mathcal{T}$ at the
+\builtindoc{iyEmissionStandardClearsky}. The value of $\mathcal{T}$ at the
 radiative background can also be outputted as auxilary data
 (\wsvindex{iy\_aux}). See further the built-in documentation.
 
-For inclusion in \artsstyle{iy\_clearsky\_basic\_agenda}, there is a version
+For inclusion in \builtindoc{iy\_clearsky\_basic\_agenda}, there is a version
 denoted as \wsmindex{iyEmissionStandardClearskyBasic}. This version is not
 calculating $\mathcal{T}_i$, or provides any auxilary data.
 
@@ -493,9 +493,9 @@ beam radiation is of interest, the positions and directions for which
 the radiation shall be calculated are given by specifying an imaginary
 sensor with infinite frequency and angular resolution. The workspace
 variables for the sensor that always must be specified are
-\artsstyle{sensor\_response}, \artsstyle{sensor\_pos},
-\artsstyle{sensor\_los}, \artsstyle{antenna\_dim},
-\artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid}. These
+\builtindoc{sensor\_response}, \builtindoc{sensor\_pos},
+\builtindoc{sensor\_los}, \builtindoc{antenna\_dim},
+\builtindoc{mblock\_za\_grid} and \builtindoc{mblock\_aa\_grid}. These
 variables are presented separately
 below. 
 
@@ -509,10 +509,10 @@ The observation positions of the sensor are stored in
 a sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
 matrix (from first to last) are radius, latitude and longitude.
-Accordingly, row $i$ of \artsstyle{sensor\_pos} for a 3D case is
+Accordingly, row $i$ of \builtindoc{sensor\_pos} for a 3D case is
 $(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
-\artsstyle{sensor\_los}) must be valid with respect to the model
+\builtindoc{sensor\_los}) must be valid with respect to the model
 atmosphere (see Section~\ref{sec:fm_defs:ppaths}). An obviously
 incorrect choice is to place the senor below the surface altitude. If
 the sensor is placed inside the model atmosphere, any sensor
@@ -521,8 +521,8 @@ placed on the surface looking down, and that the sensor is placed
 inside the cloud box.
 
 The fact that the sensor position can be given any value implies that
-the radius must be used in \artsstyle{sensor\_pos}, in contrast to
-\artsstyle{z\_surface} and \artsstyle{z\_field} where the altitude
+the radius must be used in \builtindoc{sensor\_pos}, in contrast to
+\builtindoc{z\_surface} and \builtindoc{z\_field} where the altitude
 above the geoid is applied. This is the case as, for 2D and 3D, the
 sensor can be placed outside the covered latitude and longitude
 ranges, thus outside the defined geoid, and the geometrical altitude is
@@ -607,8 +607,8 @@ workspace variable is a matrix, where the first column holds zenith
 angles and the second column is azimuth angles. For 1D and 2D there is
 only one column in the matrix, while for 3D a row $i$ of the matrix is
 $(\aZntAng{i},\aAzmAng{i})$. The number of rows for
-\artsstyle{sensor\_los} must be the same as for
-\artsstyle{sensor\_pos}.
+\builtindoc{sensor\_los} must be the same as for
+\builtindoc{sensor\_pos}.
 
 
 \subsection{Sensor characteristics and data reduction}
@@ -642,22 +642,22 @@ variables associated with this transfer matrix where
 \wsvindex{antenna\_dim}, \wsvindex{mblock\_za\_grid} and
 \wsvindex{mblock\_aa\_grid} are the compulsory ones.
 
-The variable \artsstyle{antenna\_dim} gives the dimensionality of the
+The variable \builtindoc{antenna\_dim} gives the dimensionality of the
 antenna pattern\index{antenna pattern dimensionality}, where the
 options are 1 and 2, standing for 1D and 2D, respectively. A 1D
 antenna dimensionality means that the azimuth extension of the
 antenna pattern is neglected, there is only a zenith angle variation
 of the response. A 2D antenna pattern is converted to a 1D pattern by
 integrating the azimuth response for each zenith angle. For cases
-with 1D antenna patterns, \artsstyle{mblock\_aa\_grid} must be set to
+with 1D antenna patterns, \builtindoc{mblock\_aa\_grid} must be set to
 be an empty vector.
 
 For each sensor position, a number of monochromatic pencil beam
 spectra are calculated. The monochromatic frequencies are given by
-\artsstyle{f\_grid}. The pencil
+\builtindoc{f\_grid}. The pencil
 beam directions are obtained by summing the sensor line-of-sight
-angles (\artsstyle{sensor\_los}) for the position and the values of
-\artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid}. For
+angles (\builtindoc{sensor\_los}) for the position and the values of
+\builtindoc{mblock\_za\_grid} and \builtindoc{mblock\_aa\_grid}. For
 example, pencil beam zenith angle $i$ is calculated as
 \begin{equation}
   \aZntAng{i} = \aZntAng{0} + \Delta\aZntAng{i}
@@ -665,8 +665,8 @@ example, pencil beam zenith angle $i$ is calculated as
 \end{equation}
 where \aZntAng{0} is the sensor line-of-sight for the position of
 concern and $\Delta\aZntAng{i}$ is value $i$ of
-\artsstyle{mblock\_za\_grid}.  With other words,
-\artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid} give
+\builtindoc{mblock\_za\_grid}.  With other words,
+\builtindoc{mblock\_za\_grid} and \builtindoc{mblock\_aa\_grid} give
 the grid (relative to the sensor line-of-sight) for the calculation of
 the intensity field that will be weighted with the antenna response.
 
@@ -717,7 +717,7 @@ and the spatial resolution, in the direction of the movement, that is
 hoped to be achieved. If this intermediate solution shall be an
 option, the difference in zenith and azimuth angles between the
 spectra must be the same for all blocks, otherwise
-\artsstyle{sensor\_response} cannot be applied for all blocks as done
+\builtindoc{sensor\_response} cannot be applied for all blocks as done
 below in Equation~\ref{eq:fm_defs:measseq}.
 
 For each block, pencil beam spectra are calculated for the
@@ -727,7 +727,7 @@ line-of-sights obtained when summing \wsvindex{sensor\_los} and
 Section~\ref{sec:fm_defs:sensorchar}. The pencil beam spectra for each
 line-of-sight are appended vertically to form a common vector,
 \aMpiVct{b}. Values are put in following the order in
-\artsstyle{f\_grid}. Hence, the frequencies for this vector are
+\builtindoc{f\_grid}. Hence, the frequencies for this vector are
 \begin{equation}
   \aMpiVct{b} = 
   \left[ \begin{array}{c} 
@@ -741,17 +741,17 @@ line-of-sight are appended vertically to form a common vector,
      \end{array} \right]
   \label{eq:fm_defs:freqs_of_ib}
 \end{equation}
-where \aFrq{i} is element $i$ of \artsstyle{f\_grid} and $n$ the length of
-the same vector. The order of the angles inside \artsstyle{mblock\_za\_grid}
-and \artsstyle{mblock\_aa\_grid} is followed when looping the pencil beam
+where \aFrq{i} is element $i$ of \builtindoc{f\_grid} and $n$ the length of
+the same vector. The order of the angles inside \builtindoc{mblock\_za\_grid}
+and \builtindoc{mblock\_aa\_grid} is followed when looping the pencil beam
 directions, where the azimuth angle direction is the innermost loop.
 That is, for 2D antenna patterns all azimuth angles are looped for the
 first zenith angle etc. 
 
-The workspace variable \artsstyle{sensor\_response} is here denoted as
+The workspace variable \builtindoc{sensor\_response} is here denoted as
 \aSnsMtr{b}. It is applied on each \aMpiVct{b} and the results are
 appended vertically, following the order of the positions in
-\artsstyle{sensor\_pos}
+\builtindoc{sensor\_pos}
 \begin{equation}
   \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
                                     \aSnsMtr{b}\aMpiVct{{b,2}} \\
@@ -762,7 +762,7 @@ appended vertically, following the order of the positions in
 \end{equation}
 where $1$ indicates the first sensor position etc. This equation shows
 that \wsvindex{sensor\_response} shall contain at least a description
-of the antenna response. The matrix \artsstyle{Hb} can also cover
+of the antenna response. The matrix \shortcode{Hb} can also cover
 other sensor characteristics and data reduction if the features of
 concern are common for all measurement blocks. 
 
@@ -773,16 +773,16 @@ corrected accordingly. For example, if the simulations deal with limb
 sounding and a 1D atmosphere, where normally a single block should be
 used despite a number of spectra are recorded, it could be practical
 to set the line-of-sight to the viewing direction of the uppermost or
-lowermost spectrum, and the zenith angles in \artsstyle{mblock\_za\_grid}
+lowermost spectrum, and the zenith angles in \builtindoc{mblock\_za\_grid}
 will not be centred around zero which is the case when the ``true''
 line-of-sight is used.
 
 It should be noted that the compulsory sensor variables give no
 information about the content of the obtained \MsrVct, as it is not
 clear which parts and features the block transfer matrix covers. If
-\artsstyle{Hb} only incorporates the antenna pattern, the result is a set
+\shortcode{Hb} only incorporates the antenna pattern, the result is a set
 of hypothetical spectra corresponding to a point inside the sensor. On
-the other hand, if \artsstyle{Hb} includes the whole of the sensor and an
+the other hand, if \shortcode{Hb} includes the whole of the sensor and an
 eigenvector data reduction, the result is not even a spectrum in
 traditional way, it is just a column of coefficients with a vague
 physical meaning.
@@ -803,8 +803,8 @@ category of accuracy factors. It could be worth discussing the
 selection of atmospheric grids and the path step length as there can
 be some confusion about how that affects the accuracy.
 
-The main purpose of the atmospheric grids (\artsstyle{p\_grid},
-\artsstyle{lat\_grid} and \artsstyle{lon\_grid}) is to build up the
+The main purpose of the atmospheric grids (\builtindoc{p\_grid},
+\builtindoc{lat\_grid} and \builtindoc{lon\_grid}) is to build up the
 mesh on which the atmospheric fields are defined. This means that the
 spacing of these grids shall be selected having the representation of
 the atmospheric fields in mind. That is, the spacing shall be fine
@@ -823,7 +823,7 @@ linearly along the propagation path step. These assumptions are of course less
 violated if the path step length is made small. An upper limit of the path step
 length is set by \wsvindex{ppath\_lmax}. In many cases it should suffice to
 just include path points at the crossings of the atmospheric grids
-(\artsstyle{ppath\_lmax}$\leq0$). An exception can be limb sounding where the
+(\builtindoc{ppath\_lmax}$\leq0$). An exception can be limb sounding where the
 path step length can be very long around the tangent point, but a limit of
 about 25~km should suffice normally.
 

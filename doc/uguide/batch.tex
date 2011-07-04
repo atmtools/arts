@@ -9,7 +9,7 @@
 %  \stophistory
 
 \starthistory
-  090330 & Description of \artsstyle{ybatch\_start} added by Stefan Buehler.\\
+  090330 & Description of \builtindoc{ybatch\_start} added by Stefan Buehler.\\
   070726 & Copy-edited by Stefan Buehler.\\
   070618 & Updated by Oliver Lemke.\\
   040916 & Created by Patrick Eriksson.\\
@@ -33,37 +33,37 @@ Batch calculations of measurement vectors are done by the WSM
 \wsvindex{ybatch\_start} and \wsvindex{ybatch\_n}, and the agenda
 \wsaindex{ybatch\_calc\_agenda}.
 
-The method \artsstyle{ybatchCalc} will do \artsstyle{ybatch\_n}
-calculations, starting at index \artsstyle{ybatch\_start}. It will run
-the agenda \artsstyle{ybatch\_calc\_agenda} for each case
+The method \builtindoc{ybatchCalc} will do \builtindoc{ybatch\_n}
+calculations, starting at index \builtindoc{ybatch\_start}. It will run
+the agenda \builtindoc{ybatch\_calc\_agenda} for each case
 individually. The agenda gets an input \wsvindex{ybatch\_index}, which
 it should use to extract the right input data from one or more arrays
-or matrices of input. Execution of \artsstyle{ybatch\_calc\_agenda}
-must result in a new spectrum vector, \artsstyle{y}, most likely by a
-call of \artsstyle{yCalc}.
+or matrices of input. Execution of \builtindoc{ybatch\_calc\_agenda}
+must result in a new spectrum vector, \builtindoc{y}, most likely by a
+call of \builtindoc{yCalc}.
 
-The WSV \artsstyle{ybatch\_start} is set to a default of 0 in
-\artsstyle{general.arts}, so you do not have to set this variable
+The WSV \builtindoc{ybatch\_start} is set to a default of 0 in
+\shortcode{general.arts}, so you do not have to set this variable
 unless you want to start somewhere in the middle of your batch input
 data. 
 
 The next section gives some examples of what could be put inside
-the \artsstyle{ybatch\_calc\_agenda}.
+the \builtindoc{ybatch\_calc\_agenda}.
 
 \section{Control file examples}
 %
 The WSV \wsmindex{Extract} can be used to extract an element from an
-\artsstyle{Array}, a row from a \artsstyle{Matrix}, a
-\artsstyle{Matrix} from a \artsstyle{Tensor3}, and so on. The
+\builtindoc{Array}, a row from a \builtindoc{Matrix}, a
+\builtindoc{Matrix} from a \builtindoc{Tensor3}, and so on. The
 selection is always done on the first dimension. So, for a
-\artsstyle{Tensor3} as input, it copies the page with the given index
-from the input \artsstyle{Tensor3} variable to the output
-\artsstyle{Matrix}.
+\builtindoc{Tensor3} as input, it copies the page with the given index
+from the input \builtindoc{Tensor3} variable to the output
+\builtindoc{Matrix}.
 
 The idea here is to store the batch cases in tensors or arrays with
 one dimension extra compared to corresponding workspace variables. For
-example, a set of \artsstyle{t\_field} (which is of type
-\artsstyle{Tensor3}) is stored as \artsstyle{Tensor4}.
+example, a set of \builtindoc{t\_field} (which is of type
+\builtindoc{Tensor3}) is stored as \builtindoc{Tensor4}.
 
 If the dimension is the same for all batch cases, tensors are
 appropriate. If the dimensions vary (for example you have a different

@@ -41,7 +41,7 @@ arbitrary type can be constructed and used.
 %-------------------------------------------------------------------------
 \label{sec:matpack:files}
 
-The \artsstyle{Matrix} and \artsstyle{Vector} classes described below reside in the files:
+The \builtindoc{Matrix} and \builtindoc{Vector} classes described below reside in the files:
 \begin{itemize}
 \item \fileindex{matpackI.h}
 \item \fileindex{make\_vector.h}
@@ -58,14 +58,14 @@ Tensors of order 3 to 7 reside in the files:
 \item \fileindex{matpackVII.h}
 \end{itemize}
 
-The template class \artsstyle{Array} (also described below) is implemented 
+The template class \shortcode{Array} (also described below) is implemented 
 in the files:
 \begin{itemize}
 \item \fileindex{array.h}
 \item \fileindex{make\_array.h}
 \end{itemize}
 
-The \artsstyle{Sparse} class is described in the file:
+The \builtindoc{Sparse} class is described in the file:
 \begin{itemize}
 \item \fileindex{matpackII.h}
 \end{itemize}
@@ -136,7 +136,7 @@ another view on an existing Vector. It does not have its own
 data. This has the important consequence that it cannot be resized,
 since that would mess up the original Vector that the view is
 referring to. You can create VectorViews from Vectors using the index
-operator `[]', the class \typeindex{Range}, and the special \artsstyle{joker}
+operator `[]', the class \typeindex{Range}, and the special \shortcode{joker}
 object. Examples:
 
 \begin{code}
@@ -159,8 +159,8 @@ select `extent' elements from the Vector, starting with index `start',
 with a step-width of stride. Note that indices are 0-based, so 0
 refers to the first element. The last argument, `stride', can be
 omitted, in that case the default of 1 is assumed. As a special case,
-`extent'==\artsstyle{joker} means `to the end', and calling Range with only one
-argument \artsstyle{joker} means `all elements'.
+`extent'==\shortcode{joker} means `to the end', and calling Range with only one
+argument \shortcode{joker} means `all elements'.
 
 Usually, you will not have to use VectorView explicitly, because you
 can use expressions like:
@@ -170,7 +170,7 @@ Vector a(1,5,1);                // a = 1,2,3,4,5
 Vector b = a[Range(1,3)];       // b = 2,3,4
 \end{code}
 
-However, \artsstyle{VectorView} and the related class
+However, \shortcode{VectorView} and the related class
 \typeindex{ConstVectorView} are extremely useful as the argument types of
 functions operating on Vectors. You should define your functions like
 this:
@@ -203,20 +203,20 @@ silly_function(b,a[Range(0,3)]);  // Call fuction with
 \end{code}
 
 An exception to this rule are workspace methods, which use
-conventional argument types \artsstyle{const Vector\&} for input and
-\artsstyle{Vector\&} for output.
+conventional argument types \shortcode{const Vector\&} for input and
+\shortcode{Vector\&} for output.
 
 \subsection{What you can do with a Vector (or VectorView)}
 %-------------------------------------------------------------------------
 
-All examples below (except for the first) assume that \artsstyle{a} is a
+All examples below (except for the first) assume that \shortcode{a} is a
 Vector, MakeVector, or VectorView.
 
 \subsubsection{Resize (only for Vector, not for VectorView!):}
 \begin{code}
 a.resize(5);
 \end{code}
-This makes \artsstyle{a} a 5 element vector. The new Vector is not
+This makes \shortcode{a} a 5 element vector. The new Vector is not
 initialized (i.e., the contents will be unpredictable). Also, note
 that the previous content will be completely lost. Appending to a
 Vector is not possible.
@@ -238,7 +238,7 @@ a[0] = 3.5;     // Assign 3.5 to first element.
 \end{code}
 
 Note that we use 0-based indexing! Furthermore note that the operator
-`[]' can be also used with \artsstyle{Range}, as explained above.
+`[]' can be also used with \shortcode{Range}, as explained above.
 
 \subsubsection{Copying Vectors:}
 \begin{code}
@@ -288,7 +288,7 @@ a += a;                  // a = 6,10,14
 \end{code}
 
 All these operate element-wise.  Note, that there are no return
-versions of these operators (i.e., expressions like \artsstyle{b = a+1} are
+versions of these operators (i.e., expressions like \shortcode{b = a+1} are
 not possible). This is again for efficiency reasons. It is currently
 an active area of research in programming techniques how to make this
 kind of expression efficient. None of the available solutions works,
@@ -317,10 +317,10 @@ transform(b,cos,b);  // b = sin(b)
                      // So b can appear on both sides.
 \end{code}
 
-The transform function operates on each element of \artsstyle{a} with the
-function you specify and puts the result in \artsstyle{b}. Note that the
+The transform function operates on each element of \shortcode{a} with the
+function you specify and puts the result in \shortcode{b}. Note that the
 order of the arguments is swapped compared to the old function
-\artsstyle{trans} that we had in the pre-Matpack era.
+\shortcode{trans} that we had in the pre-Matpack era.
 
 
 \section{Matrices}
@@ -330,7 +330,7 @@ order of the arguments is swapped compared to the old function
 The class \typeindex{Matrix} implements the mathematical concept of a
 matrix. (Who would have guessed this?) This means that:
 \begin{itemize}
-\item A Matrix contains floating point values of type \artsstyle{Numeric}.
+\item A Matrix contains floating point values of type \builtindoc{Numeric}.
 \item The values are arranged in rows and columns and can be accessed
   by indices. The first index is the row, the second the column. In
   other words, we use \emph{row-major} order, similar to C, Matlab,
@@ -360,14 +360,14 @@ Matrix d=c;        // Make d a copy of c.
 \end{code}
 
 That is all. More fancy constructors, like for Vector, do not exist
-for Matrix. There is also no equivalent to the \artsstyle{MakeVector}
+for Matrix. There is also no equivalent to the \shortcode{MakeVector}
 class.
 
 \subsection{MatrixViews}
 %-------------------------------------------------------------------------
 
 A \typeindex{MatrixView} is a view on an existing Matrix, in the same way
-as a \artsstyle{VectorView} is a view on an existing Vector. Like a
+as a \shortcode{VectorView} is a view on an existing Vector. Like a
 VectorView, a MatrixView cannot be resized and does not contain the
 actual data. A view is generated by using Ranges:
 
@@ -384,29 +384,29 @@ MatrixView c = x[Range(0,2),Range(0,2)];
 You probably get the idea. Note that the second argument of Range gives
 the number of elements to take, not the index of the last element. See
 the section about Vectors for more examples how to use Range. You can
-use \artsstyle{joker}, and also the third argument of Range to select only
+use \shortcode{joker}, and also the third argument of Range to select only
 every nth row, or column, or reverse the order of the rows or columns.
 
 In analogy to the Vector case, you should use the two classes
-\artsstyle{MatrixView} and \typeindex{ConstMatrixView} as function arguments.
+\shortcode{MatrixView} and \typeindex{ConstMatrixView} as function arguments.
 Please refer to the discussion in the Vector section for details. As
 in the case of VectorViews, all arguments of these types should be
 passed by value, not by reference. Also, similar to the Vector case,
 workspace methods are the exception, because they have to use the
-conventional \artsstyle{const Matrix\&} or \artsstyle{Matrix\&} as input/output
+conventional \shortcode{const Matrix\&} or \shortcode{Matrix\&} as input/output
 arguments.
 
 \subsection{What you can do with a Matrix (or MatrixView)}
 %-------------------------------------------------------------------------
 
-All examples below (except for the first) assume that \artsstyle{a} is a
+All examples below (except for the first) assume that \shortcode{a} is a
 Matrix or MatrixView.
 
 \subsubsection{Resize (only for Matrix, not for MatrixView!):}
 \begin{code}
 a.resize(5,10);
 \end{code}
-This makes \artsstyle{a} a 5x10 Matrix (5 rows, 10 columns). The new Matrix
+This makes \shortcode{a} a 5x10 Matrix (5 rows, 10 columns). The new Matrix
 is not initialized (i.e., the contents will be unpredictable). Also,
 note that the previous content will be completely lost.
 
@@ -425,16 +425,16 @@ Of course, you can use more complicated Range expressions to refer to
 only parts of a row or column. However, the case that you want all
 elements of a given dimension is so
 much more common than the more sophisticated uses of the
-\artsstyle{Range} class, that it is worth to introduce a simplified
+\shortcode{Range} class, that it is worth to introduce a simplified
 notation for this case. Therefore, you are allowed to
-omit the \artsstyle{Range} and just write:
+omit the \shortcode{Range} and just write:
 \begin{code}
 Vector x = a(0,joker);           // First row.
 Vector y = a(joker,a.ncols()-1); // Last column.
 \end{code}
 
 Technically, expressions of this kind return the type
-\artsstyle{VectorView}. This means, they can be used in all cases
+\shortcode{VectorView}. This means, they can be used in all cases
 where an object of that type is expected, for example with the
 function defined in Section \ref{sec:vector_views}:
 
@@ -454,14 +454,14 @@ a(0,0) = 3.5;   // Assign 3.5 to the top-left element
 \end{code}
 
 Note that we use 0-based indexing! Furthermore note that the operator
-`()' can be also used with one or two \artsstyle{Range} arguments, as
+`()' can be also used with one or two \shortcode{Range} arguments, as
 explained above. To summarize:
 
 \begin{itemize}
-\item (\artsstyle{Index},\artsstyle{Index}) returns \artsstyle{Numeric} (element access).
-\item (\artsstyle{Index},\artsstyle{Range}) or (\artsstyle{Range},\artsstyle{Index}) returns
-  \artsstyle{VectorView} (row or column access).
-\item (\artsstyle{Range},\artsstyle{Range}) returns \artsstyle{MatrixView}
+\item (\shortcode{Index},\shortcode{Index}) returns \shortcode{Numeric} (element access).
+\item (\shortcode{Index},\shortcode{Range}) or (\shortcode{Range},\shortcode{Index}) returns
+  \shortcode{VectorView} (row or column access).
+\item (\shortcode{Range},\shortcode{Range}) returns \shortcode{MatrixView}
   (sub-matrix access).
 \end{itemize}
 
@@ -529,9 +529,9 @@ Matrix b = transpose(a); // Make b the transpose of a.
 
 The function \funcindex{transpose} creates a MatrixView, for which rows and
 columns are interchanged. Note, that only the way the data is accessed
-is changed, not the data itself. So Matrix \artsstyle{a} in the example
+is changed, not the data itself. So Matrix \shortcode{a} in the example
 above is not changed. For this reason, transposing is very efficient.
-You can use \artsstyle{transpose(a)} instead of \artsstyle{a} in any matrix
+You can use \shortcode{transpose(a)} instead of \shortcode{a} in any matrix
 expression practically without additional cost. (This is not strictly
 true, after all, the view has to be generated and passed. But that
 cost should be negligible except for very small matrices.)
@@ -589,9 +589,9 @@ ARTS has tensors with rank 3 to 7. They are called
 \typeindex{Tensor6}, \typeindex{Tensor7}, and work very much like
 matrices, just with more dimensions. Some properties:
 \begin{itemize}
-\item A Tensor contains floating point values of type \artsstyle{Numeric}.
+\item A Tensor contains floating point values of type \builtindoc{Numeric}.
 \item The \emph{rank} of a tensor means the number of dimensions, so a
-  \artsstyle{Tensor4} has 4 dimensions. Tensors of different rank are
+  \builtindoc{Tensor4} has 4 dimensions. Tensors of different rank are
   different classes. That means, the rank is fixed at compile time and
   cannot be changed at runtime. We will use rank and dimension as
   synonyms. 
@@ -605,9 +605,9 @@ matrices, just with more dimensions. Some properties:
 \item Row
 \item Column
 \end{itemize}
-For example, \artsstyle{Tensor3 b(2,4,3)} defines a third order tensor with 2
+For example, \shortcode{Tensor3 b(2,4,3)} defines a third order tensor with 2
 pages, 4 rows, and 3 columns. Note that the column dimension is always
-last. (Incidentally, a \artsstyle{Matrix} behaves exactly like a second
+last. (Incidentally, a \builtindoc{Matrix} behaves exactly like a second
 order tensor, except that it has some additional features.) 
 \item A sub-range of a tensor in all dimensions (sub tensor) can
   easily be accessed, and used as if it was just a normal tensor.
@@ -643,9 +643,9 @@ what this expression does.
 
 This is what is meant by slicing: You can easily create a view of a
 tensor that picks out an object of lower dimension. Note that you can
-use either an \artsstyle{Index} or a \artsstyle{Range}
-argument\footnote{Using just \artsstyle{joker} is equivalent to using
-  \artsstyle{Range(joker)}, as explained in Section
+use either an \builtindoc{Index} or a \shortcode{Range}
+argument\footnote{Using just \shortcode{joker} is equivalent to using
+  \shortcode{Range(joker)}, as explained in Section
   \ref{sec:matpack:matrices}.} for any of the dimensions. The
 dimensionality of the result will adjust accordingly, as in the
 example above.
@@ -656,14 +656,14 @@ here. In particular, please always use views as function arguments.
 \subsection{What you can do with a tensor (or tensor view)}
 %-------------------------------------------------------------------------
 
-All examples below (except for the first) assume that \artsstyle{a} is a
+All examples below (except for the first) assume that \shortcode{a} is a
 Tensor7 or Tensor7View.
 
 \subsubsection{Resize (only for tensors, not for views):}
 \begin{code}
 a.resize(5, 10, 4, 5, 3, 6, 8);
 \end{code}
-This makes \artsstyle{a} the requested size. The new tensor is not
+This makes \shortcode{a} the requested size. The new tensor is not
 initialized (i.e., the contents will be unpredictable). Also, note
 that the previous content will be completely lost.
 
@@ -679,8 +679,8 @@ Index nc = a.ncols();
 \end{code}
 
 Which of these functions are available depends on the dimension of
-your tensor. For example, \artsstyle{nlibraries()} is only available for
-\artsstyle{Tensor7}. Note, that I took care that the first letters of the
+your tensor. For example, \shortcode{nlibraries()} is only available for
+\builtindoc{Tensor7}. Note, that I took care that the first letters of the
 dimension names are unique, which is very convenient if you prefer short
 names for your variables that refer so some dimension of a tensor.
 
@@ -696,7 +696,7 @@ Vector x = a(0,2,1,8,3,4,joker);
 // and copy it to the Vector x.
 \end{code}
 
-Any \artsstyle{Range} or \artsstyle{Index} expression is allowed in any of the
+Any \shortcode{Range} or \builtindoc{Index} expression is allowed in any of the
 arguments, of course.
 
 \subsubsection{Element access:}
@@ -734,12 +734,12 @@ The function \funcindex{transform} works just like for Vector.
 \subsection{Making things appear larger than they are}
 
 Assume that you have written a function that performs some calculation
-for a \artsstyle{Tensor5}:
+for a \builtindoc{Tensor5}:
 \begin{code}
 void my_function(Tensor5View x);
 \end{code}
 
-\noindent Can you call this function with a \artsstyle{Tensor4}? Yes, you can:
+\noindent Can you call this function with a \builtindoc{Tensor4}? Yes, you can:
 \begin{code}
 Tensor4 a;                      
 Tensor5View b = a;              // The extent of the first
@@ -749,12 +749,12 @@ my_function(b);                 // Call the function.
 
 In general, you can always create a view that is one dimension bigger
 than what you have. The leading dimension then has extent 1. There is
-one important exception: If you interpret a \artsstyle{Vector} as a
-\artsstyle{Matrix}, the trailing dimension will be 1, not the leading
+one important exception: If you interpret a \builtindoc{Vector} as a
+\builtindoc{Matrix}, the trailing dimension will be 1, not the leading
 dimension. This is necessary, because the vector has to act like a
 column vector, so that matrix-vector products work in the normal way.
 Of course you can use telescoping to blow up anything to
-\artsstyle{Tensor7}: 
+\builtindoc{Tensor7}: 
 
 \begin{code}
 Numeric b = 3.1415;             // Just any number here.
@@ -803,11 +803,11 @@ is familiar with the concept. Of course, it is rather similar to the
 concept of a Vector, just missing all the mathematical functionality
 like Matrix-Vector multiplication and sub-range access.
 
-The implementation of our \artsstyle{Array} class is based on the STL class
-\artsstyle{std::vector}, whereas the implementation of our \artsstyle{Vector}
+The implementation of our \shortcode{Array} class is based on the STL class
+\shortcode{std::vector}, whereas the implementation of our \builtindoc{Vector}
 class is done from scratch. So the two implementations are completely
-independent. Nevertheless, I tried to make \artsstyle{Array} behave
-consistently with \artsstyle{Vector}, as much as possible. There are a number
+independent. Nevertheless, I tried to make \shortcode{Array} behave
+consistently with \builtindoc{Vector}, as much as possible. There are a number
 of important differences, though, hopefully sufficiently explained in
 this part. A short summary of important differences:
 
@@ -816,10 +816,10 @@ this part. A short summary of important differences:
   always contains elements of type Numeric.
 \item No mathematical functionality for Array (no sub-ranges (nothing
   like VectorView); no +=, -=, *=, /=; no scalar product; no
-  \artsstyle{transform} function; no \artsstyle{mult} function; no
-  \artsstyle{transpose} function).
+  \shortcode{transform} function; no \shortcode{mult} function; no
+  \shortcode{transpose} function).
 \item On the other hand, resizing (for example adding to the end) of
-  an Array is ok. (See the \artsstyle{push\_back} method below.) It is still
+  an Array is ok. (See the \shortcode{push\_back} method below.) It is still
   rather expensive, though, at least for large Arrays. 
 \end{itemize}
 
@@ -857,14 +857,14 @@ MakeArray<String> a("ARTS",
 \subsection{What you can do with an Array}
 %-------------------------------------------------------------------------
 
-All examples below assume that \artsstyle{a} is an ArrayOfString.
+All examples below assume that \shortcode{a} is an ArrayOfString.
 
 \subsubsection{Resize:}
 \begin{code}
 a.resize(5);
 \end{code}
 
-This adjusts the size of \artsstyle{a} to 5. Resizing is more efficiently
+This adjusts the size of \shortcode{a} to 5. Resizing is more efficiently
 implemented than for Vector, but still expensive.
 
 \subsubsection{Get the number of elements:}
@@ -873,9 +873,9 @@ cout << a.nelem();  // Just as for Vector.
 \end{code}
 
 In particular, note that the return type of this method is
-\artsstyle{Index}, just as for Vector. This is an extension compared to
-std::vector, which just has a method \artsstyle{size()} that returns the
-positive integer type \artsstyle{size\_t}.
+\builtindoc{Index}, just as for Vector. This is an extension compared to
+std::vector, which just has a method \shortcode{size()} that returns the
+positive integer type \shortcode{size\_t}.
 
 \subsubsection{Element access:}
 \begin{code}
@@ -904,9 +904,9 @@ a.push_back("Hello"); // Adds this new element at the
 
 This can be an expensive operation, especially for large Arrays.
 Therefore, use it with care. Actually, the \funcindex{push\_back} method
-comes from the \artsstyle{std::vector} class that Array is based on. You
-can do a lot more with \artsstyle{std::vector}, all of which also works
-with \artsstyle{Array}. However, to explain the Standard Template Library
+comes from the \shortcode{std::vector} class that Array is based on. You
+can do a lot more with \shortcode{std::vector}, all of which also works
+with \shortcode{Array}. However, to explain the Standard Template Library
 is beyond the scope of this text. You can read about it in C++ or even
 dedicated STL textbooks.
 
@@ -919,7 +919,7 @@ matrix, same as Matrix does, but the data is stored in a
 different manner. Sparse offers a memory saving storage when
 most of the matrix is filled with zeros. This means that:
 \begin{itemize}
-\item A Sparse contains floating point values of type \artsstyle{Numeric}.
+\item A Sparse contains floating point values of type \builtindoc{Numeric}.
 \item The values are arranged in rows and columns in the same ways as for
   ordinary matrices, in \emph{row-major} order.
 \item A Sparse can be multiplied with a Vector, a Matrix or with another
@@ -949,17 +949,17 @@ Sparse d=c;        // Make d a copy of c.
 \end{code}
 
 That is all. As for Matrix there exist no more fancy constructors, like an
-equivalent to the \artsstyle{MakeVector} class.
+equivalent to the \shortcode{MakeVector} class.
 
 \subsection{What you can do with a Sparse}
 %-------------------------------------------------------------------------
-All examples below assume that \artsstyle{a} is a Sparse.
+All examples below assume that \shortcode{a} is a Sparse.
 
 \subsubsection{Identity matrix:}
 \begin{code}
 a.make_I(10,10);
 \end{code}
-This sets \artsstyle{a} to be the identity matrix of size 10x10 (10 rows 
+This sets \shortcode{a} to be the identity matrix of size 10x10 (10 rows 
 and 10 columns). Using this function is much faster than setting the 
 diagonal elements to one by yourself. The number of rows and columns 
 doesn't have to match each other. In the case that they don't, the rule 
@@ -971,7 +971,7 @@ rows will be empty.
 \begin{code}
 a.resize(5,10);
 \end{code}
-This makes \artsstyle{a} a 5x10 Sparse (5 rows, 10 columns). Note that the
+This makes \shortcode{a} a 5x10 Sparse (5 rows, 10 columns). Note that the
 previous content will be completely lost. The new Sparse will be empty.
 
 \subsubsection{Get the number of rows, columns or non-zero elements:}
@@ -1013,12 +1013,12 @@ b = a;
 As in the case of Vectors, the `=' operator adjusts the size of the
 target automatically.
 
-\subsubsection{Transpose:} The function \artsstyle{transpose} works a bit
+\subsubsection{Transpose:} The function \shortcode{transpose} works a bit
 differently for Sparse than for Vector and Matrix. This is due to the
 fact that we don't have any views for Sparse. Thus,
-\artsstyle{transpose} for a Sparse creates a new Sparse variable that
+\shortcode{transpose} for a Sparse creates a new Sparse variable that
 contains the transpose of the original Sparse, whereas
-\artsstyle{transpose} for a Matrix just creates a transposed view of
+\shortcode{transpose} for a Matrix just creates a transposed view of
 the original Matrix.
 
 The target variable for the transposed Sparse has to have the right

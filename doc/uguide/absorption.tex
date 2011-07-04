@@ -90,7 +90,7 @@ This will extract absorption coefficients from a pre-calculated lookup
 table.  More information on the lookup table and how to generate it
 can be found in Section \ref{sec:absorption:lookup}.  See Section
 \ref{sec:absorption:doppler} for an explanation of the
-\artsstyle{rte\_doppler} variable, that is ignored here.
+\builtindoc{rte\_doppler} variable, that is ignored here.
  
 \subsection{On-the-fly absorption}
 
@@ -126,7 +126,7 @@ shift.  It makes use of the input variable \wsvindex{rte\_doppler},
 which is ignored in the first two examples.  Doppler calculations
 currently work only with on-the-fly absorption, not with lookup table
 absorption. (The latter would be easy to implement upon request.) Note
-that \artsstyle{rte\_doppler} and \wsvindex{f\_grid} here are local
+that \builtindoc{rte\_doppler} and \wsvindex{f\_grid} here are local
 copies of their global counterparts (this is just how agendas
 work). They are manipulated here locally, but in the next call of the
 agenda they will be initialized again with their original global
@@ -392,14 +392,14 @@ The behavior of the continua and complete absorption models can be
 modified by passing them some additional parameters, stored in the
 variables \wsvindex{abs\_cont\_names}, \wsvindex{abs\_cont\_models},
 and \wsvindex{abs\_cont\_parameters}. Basically,
-\artsstyle{abs\_cont\_names} identifies the model,
-\artsstyle{abs\_cont\_models} contains switches that select different
+\builtindoc{abs\_cont\_names} identifies the model,
+\builtindoc{abs\_cont\_models} contains switches that select different
 behavior (for example taking only the lines, or only the continuum
-part of a complete model), and \artsstyle{abs\_cont\_parameters} can
+part of a complete model), and \builtindoc{abs\_cont\_parameters} can
 contain numerical parameters. 
 
 Yes, the nomenclature for these additional continuum parameters,
-particularly \artsstyle{abs\_cont\_models}, is confusing. However,
+particularly \builtindoc{abs\_cont\_models}, is confusing. However,
 most users will never have to deal with these variables
 explicitly. They are set to default values in the include file
 \fileindex{continua.arts}. Users should therefore always include this file  at
@@ -665,7 +665,7 @@ private:
 \subsubsection{Workspace variables and methods}
 
 The lookup table itself is stored in the WSV
-\wsvindex{abs\_lookup}. After loading (with \artsstyle{ReadXML}),
+\wsvindex{abs\_lookup}. After loading (with \builtindoc{ReadXML}),
 it is important that one calls the WSM
 \wsmindex{abs\_lookupAdapt}. This will make sure that the lookup
 table agrees exactly with your calculation. For example, it has to
@@ -687,7 +687,7 @@ table are not only interpolated to the desired atmospheric conditions,
 but are also multiplied with the partial number density of the present
 absorbers. 
 
-The \artsstyle{abs\_scalar\_gasExtractFromLookup} method is meant to
+The \builtindoc{abs\_scalar\_gasExtractFromLookup} method is meant to
 be used inside the agenda \wsaindex{abs\_scalar\_gas\_agenda},
 which is used in several places where absorption coefficients are
 needed, both inside the scattering box and outside. 
@@ -710,13 +710,13 @@ different contexts:
 \end{enumerate}
 
 Because of the different usage contexts, the method
-\artsstyle{abs\_fieldCalc} can calculate absorption
+\builtindoc{abs\_fieldCalc} can calculate absorption
 either for all frequencies in the frequency grid (input variable
 \wsvindex{f\_index}$<$0), or just for the frequency indicated by the
-input variable \artsstyle{f\_index} (\artsstyle{f\_index}$>=$0).
+input variable \builtindoc{f\_index} (\builtindoc{f\_index}$>=$0).
 
 The following controlfile section illustrates the use of the lookup
-table together with \artsstyle{abs\_fieldCalc}. This is
+table together with \builtindoc{abs\_fieldCalc}. This is
 not a complete controlfile. \FIXME{Eventually there should be a good
   complete example in doc/examples. For the moment you can look at the
 examples in sbuehler/arts\_calc/abs\_lookup\_2/.}

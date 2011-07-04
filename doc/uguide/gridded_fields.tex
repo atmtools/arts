@@ -33,9 +33,9 @@
 This section describes how gridded fields are implemented in ARTS and
 how they are used. Gridded fields consist of a data object like a
 Vector, Matrix, or Tensor and a grid for each dimension of its data.
-For example, a \artsstyle{GriddedField1} consists of one grid and a
-\artsstyle{Vector}, whereas a \artsstyle{GriddedField3} contains three grids
-and a \artsstyle{Tensor3}. Grids can be either numeric, like a pressure grid,
+For example, a \builtindoc{GriddedField1} consists of one grid and a
+\builtindoc{Vector}, whereas a \builtindoc{GriddedField3} contains three grids
+and a \builtindoc{Tensor3}. Grids can be either numeric, like a pressure grid,
 or strings, like channel names.
 
 
@@ -43,9 +43,9 @@ or strings, like channel names.
 %-------------------------------------------------------------------------
 \label{sec:griddedfields:files}
 
-The \artsstyle{GriddedField1}, \artsstyle{GriddedField2},
-\artsstyle{GriddedField3}, \artsstyle{GriddedField4} classes and their common
-base class \artsstyle{GriddedField} described below reside in the files:
+The \builtindoc{GriddedField1}, \builtindoc{GriddedField2},
+\builtindoc{GriddedField3}, \builtindoc{GriddedField4} classes and their common
+base class \shortcode{GriddedField} described below reside in the files:
 
 \begin{itemize}
 \item \fileindex{gridded\_fields.h}
@@ -58,19 +58,19 @@ base class \artsstyle{GriddedField} described below reside in the files:
 
 
 
-\subsection{The abstract base class \artsstyle{GriddedField}}
+\subsection{The abstract base class \shortcode{GriddedField}}
 %-------------------------------------------------------------------------
 
-The abstract base class \artsstyle{GriddedField} implements the properties
+The abstract base class \shortcode{GriddedField} implements the properties
 all gridded fields have in common. These are mostly the methods to create,
-set, and access the grids. A \artsstyle{GriddedField} is never instantiated
+set, and access the grids. A \shortcode{GriddedField} is never instantiated
 directly.
 
 
 \subsection{Inheritance}
 %-------------------------------------------------------------------------
 
-The \artsstyle{GriddedFieldX} classes use indirect inheritance to combine a
+The \shortcode{GriddedFieldX} classes use indirect inheritance to combine a
 data object with the grids, see Figure \ref{fig:griddedfields:uml}.
 
 \begin{figure}[ht!]
@@ -91,7 +91,7 @@ data object with the grids, see Figure \ref{fig:griddedfields:uml}.
 %-------------------------------------------------------------------------
 \label{sec:griddedfields:create}
 
-Each \artsstyle{GriddedFieldX} offers two constructors. One default
+Each \shortcode{GriddedFieldX} offers two constructors. One default
 constructor that creates an unnamed gridded field and a second constructor
 that takes a string with the name of the gridded field as an argument.
 
@@ -110,7 +110,7 @@ gftwo.set_name ("I'm a GriddedField2");
 Once a gridded field has been created, we can start setting up the
 grids. There are two different types of grids, a numeric grid and a
 string grid. In the following example we set up two gridded fields: A
-\artsstyle{GriddedField1} with a numeric grid and a \artsstyle{GriddedField2}
+\builtindoc{GriddedField1} with a numeric grid and a \builtindoc{GriddedField2}
 with a numeric grid for the rows and a string grid for the columns. Each grid
 can be assigned a name to describe its contents or unit.
 
@@ -134,8 +134,8 @@ gftwo.set_grid_name (1, "Channel");
 %-------------------------------------------------------------------------
 \label{sec:griddedfields:initdata}
 
-The data of a \artsstyle{GriddedFieldX} can be accessed through its \artsstyle{data} member.
-For a \artsstyle{GriddedField1} \artsstyle{data} is a \artsstyle{Vector}, for a \artsstyle{GriddedField2} a \artsstyle{Matrix}, for a \artsstyle{GriddedField3} a \artsstyle{Tensor3}, and so on.
+The data of a \shortcode{GriddedFieldX} can be accessed through its \shortcode{data} member.
+For a \builtindoc{GriddedField1} \shortcode{data} is a \builtindoc{Vector}, for a \builtindoc{GriddedField2} a \builtindoc{Matrix}, for a \builtindoc{GriddedField3} a \builtindoc{Tensor3}, and so on.
 
 The following code shows how to fill the gridded fields from the previous example with data:
 
@@ -170,7 +170,7 @@ if (!gftwo.checksize())
 \end{code}
 
 The complete source code of the examples from this chapter can be found in
-\artsstyle{src/test\_gridded\_fields.cc}.
+\shortcode{src/test\_gridded\_fields.cc}.
 
 %%% Local Variables:
 %%% mode: latex

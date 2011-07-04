@@ -1,3 +1,31 @@
+2011-07-04  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-46
+
+        * doc/uguide/absorption.tex, doc/uguide/development.tex,
+	doc/uguide/integration.tex, doc/uguide/matrix_vector.tex,
+	doc/uguide/common.tex, doc/uguide/surface.tex,
+	doc/uguide/concept.tex, doc/uguide/scattering.tex,
+	doc/uguide/batch.tex, doc/uguide/winds.tex,
+	doc/uguide/interpolation.tex, doc/uguide/gridded_fields.tex,
+	doc/uguide/clouds.tex, doc/uguide/rte.tex, doc/uguide/agendas.tex,
+	doc/uguide/lin_alg.tex, doc/uguide/atmosphere.tex,
+	doc/uguide/sensor.tex, doc/uguide/ppath.tex:
+	New feature! Names of workspace variables, methods, and agendas in
+	the guide documents now link to the corresponding built-in
+	documentation. For this, command \artsstyle was replaced by two
+	new commands: \builtindoc and \shortcode. The former should be
+	used for everything that has a built-in documentation, the latter
+	for everything else. Commands \wsvindex, \wsmindex, etc. also now
+	implicitly use \builtindoc, so they will generate the correct
+	links.
+	I hope this feature will at some point in the future also allow an
+	automatic check whether all the names of workspace variables and
+	methods in the user guide are correct, simply by automatically
+	looking for broken links.
+	Credit for the new feature is largely due to Oliver! The LaTeX
+	part was very easy, all the work is done by the built-in docserver.
+
 2011-07-01  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-45

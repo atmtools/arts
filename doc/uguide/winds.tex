@@ -28,7 +28,7 @@ The workspace variables to specify winds are \wsvindex{wind\_u\_field},
 three variables. It is allowed for all three wind components to set the
 variable to be empty, which is shorthand for saying that the wind is zero
 throughout the atmosphere. Otherwise, the size of the variable is required to
-match the atmospheric grids. The variable \artsstyle{wind\_u\_field} is not
+match the atmospheric grids. The variable \builtindoc{wind\_u\_field} is not
 considered for 1D and 2D.
 
 No further input is required, a Doppler shift is
@@ -53,7 +53,7 @@ The definition of the winds should be the standard one for 3D atmospheres:
 %
 As these atmospheric dimensionalities do not have an azimuthal dimensions, it
 only makes sense to operate with a single horizontal wind component and
-\artsstyle{wind\_v\_field} is used for this purpose, \artsstyle{wind\_u\_field}
+\builtindoc{wind\_v\_field} is used for this purpose, \builtindoc{wind\_u\_field}
 is ignored. The \WindSN-component is assumed to be totally aligned azimuthally
 with the line-of-sight. That is, the horizontal wind is radial, centred around
 the sensor. For 1D a positive wind signifies air moving away from the sensor.
@@ -115,7 +115,7 @@ be calculated as
   \label{eq:winds:aa}
 \end{equation}
 where \aFrq{0}\ is the rest frequency and \speedoflight\ is the speed of light.
-In practice, \aFrq{0}\ is taken as the median value of \artsstyle{f\_grid}.
+In practice, \aFrq{0}\ is taken as the median value of \builtindoc{f\_grid}.
 The sign of the expression can be understood by the fact that if the wind and
 line-of-sight are aligned and going in the same direction, the air movement is
 directly away from the sensor, that gives a shift towards lower frequencies. As

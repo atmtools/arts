@@ -98,7 +98,7 @@ following
 fields (compare also Table \ref{tab:scattering:datastructure}):
 
 \begin{itemize}
-\item  {\sl enum} \artsstyle{ptype}: An attribute which contains
+\item  {\sl enum} \shortcode{ptype}: An attribute which contains
   information about the 
   data type, which is the classification of the kind of hydrometeor
   species (randomly oriented, general case~...). This attribute is
@@ -108,13 +108,13 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
   
   Possible values of ptype are:
   
-  \artsstyle{PARTICLE\_TYPE\_GENERAL} = 10 \\
-  \artsstyle{PARTICLE\_TYPE\_MACROS\_ISO} = 20\\
-  \artsstyle{PARTICLE\_TYPE\_HORIZ\_AL} = 30\\
+  \shortcode{PARTICLE\_TYPE\_GENERAL} = 10 \\
+  \shortcode{PARTICLE\_TYPE\_MACROS\_ISO} = 20\\
+  \shortcode{PARTICLE\_TYPE\_HORIZ\_AL} = 30\\
   
   A more detailed description of the different cases is given below.
 
-\item {\sl String} \artsstyle{description}: Here the particle type
+\item {\sl String} \shortcode{description}: Here the particle type
   should be specified 
   explicitly. We can have the case randomly oriented particles, but
   furthermore we also have to specify the exact particle properties
@@ -122,22 +122,22 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
   describing how the scattering properties were generated. It should
   be formatted for direct printout to screen or file.
   
-\item {\sl Vector} \artsstyle{f\_grid}: Frequency grid [Unit: Hz].
+\item {\sl Vector} \shortcode{f\_grid}: Frequency grid [Unit: Hz].
   
-\item {\sl Vector} \artsstyle{T\_grid}: Temperature grid [Unit: K].
+\item {\sl Vector} \shortcode{T\_grid}: Temperature grid [Unit: K].
   
-\item {\sl Vector} \artsstyle{za\_grid}:
+\item {\sl Vector} \shortcode{za\_grid}:
   \begin{enumerate}
-  \item \artsstyle{p10, p30}: Zenith angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
-  \item \artsstyle{p20}: Scattering angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
+  \item \shortcode{p10, p30}: Zenith angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
+  \item \shortcode{p20}: Scattering angle grid (Range: 0.0\degree $\le$ za $\le$ 180.0\degree).
   \end{enumerate}
   
-\item {\sl Vector} \artsstyle{aa\_grid}: Azimuth angle grid.
+\item {\sl Vector} \shortcode{aa\_grid}: Azimuth angle grid.
   \begin{enumerate}
-  \item \artsstyle{p10}: Range: -180.0\degree $\le$ aa $\le$ 180.0\degree
-  \item \artsstyle{p20}: Not needed, since optical properties depend only on
+  \item \shortcode{p10}: Range: -180.0\degree $\le$ aa $\le$ 180.0\degree
+  \item \shortcode{p20}: Not needed, since optical properties depend only on
     scattering angle (dummy grid).
-  \item \artsstyle{p30}: Only half of the grid is required (Range: 0.0\degree $\le$ aa $\le$ 180.0\degree)
+  \item \shortcode{p30}: Only half of the grid is required (Range: 0.0\degree $\le$ aa $\le$ 180.0\degree)
   \end{enumerate}
   
   The angular grids have to satisfy the following conditions:
@@ -147,27 +147,27 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
     last grid-point. This condition is required for the integration
     routine.
   \item If we only have to store a part of the grid, for example
-    \artsstyle{za\_grid} only from 0\degree to 90\degree, these two values (0\degree, 90\degree) must be
+    \shortcode{za\_grid} only from 0\degree to 90\degree, these two values (0\degree, 90\degree) must be
     grid-points. 
   \end{itemize}
   
-\item {\sl Tensor7} \artsstyle{pha\_mat\_data}: Phase matrix data
+\item {\sl Tensor7} \shortcode{pha\_mat\_data}: Phase matrix data
   \EnsAvr\PhaMat\ [Unit: m$^2$]. The dimensions of the data array are:  
   
-  \artsstyle{[frequency temperature za\_sca aa\_sca za\_inc aa\_inc matrix\_element]}
+  \shortcode{[frequency temperature za\_sca aa\_sca za\_inc aa\_inc matrix\_element]}
   
   The order of matrix elements depends on the chosen case. For most
   cases we do not need all matrix elements (see description of cases
   below).
 
-\item {\sl Tensor5} \artsstyle{ext\_mat\_data}: Extinction matrix data
+\item {\sl Tensor5} \shortcode{ext\_mat\_data}: Extinction matrix data
   \EnsAvr\ExtMat\ [Unit: m$^2$]. The dimensions are: 
 
-  \artsstyle{[frequency temperature za\_inc aa\_inc matrix\_element]}
+  \shortcode{[frequency temperature za\_inc aa\_inc matrix\_element]}
   
   Again, the order of matrix elements depends on the chosen case.
 
-\item {\sl Tensor5} \artsstyle{abs\_vec\_data}: Absorption vector data
+\item {\sl Tensor5} \shortcode{abs\_vec\_data}: Absorption vector data
   \EnsAvr\AbsVec\ [Unit: m$^2$]. 
   
   The absorption vector is also precalculated. It could be calculated
@@ -177,7 +177,7 @@ fields (compare also Table \ref{tab:scattering:datastructure}):
   orientation) the data files will not become too large even if we
   store additionally the absorption vector. The dimensions are: 
   
- \artsstyle{[frequency temperature za\_inc aa\_inc vector\_element]}
+ \shortcode{[frequency temperature za\_inc aa\_inc vector\_element]}
 \end{itemize}
 
 \begin{table}
@@ -228,22 +228,22 @@ in the appendix of \citet{emde05:_phdthesis}.
 
 Only six elements of the transformed phase matrix, which is commonly
 called scattering matrix \ScaMat, are different. Therefore the size of
-\artsstyle{pha\_mat\_data} is: 
+\shortcode{pha\_mat\_data} is: 
 
-\artsstyle{[N\_f N\_T N\_za\_sca 1 1 1 6]}\\
+\shortcode{[N\_f N\_T N\_za\_sca 1 1 1 6]}\\
 The order of the matrix elements is as follows: {\sl F11, F12, F22,
   F33, F34, F44}\\
 The extinction matrix is in this case diagonal and independent of
 direction and polarization. That means that we need to store only one
 element for each frequency. Hence the size of
-\artsstyle{ext\_mat\_data} is
+\shortcode{ext\_mat\_data} is
  
-\artsstyle{[N\_f N\_T 1 1 1]}\\
+\shortcode{[N\_f N\_T 1 1 1]}\\
 The absorption vector is also direction and polarization
-independent. Therefore the size of \artsstyle{abs\_vec\_data} for this
-case is the same as \artsstyle{ext\_mat\_data}: 
+independent. Therefore the size of \shortcode{abs\_vec\_data} for this
+case is the same as \shortcode{ext\_mat\_data}: 
 
-\artsstyle{[N\_f N\_T 1 1 1]}
+\shortcode{[N\_f N\_T 1 1 1]}
 
 \paragraph{Horizontally aligned plates and columns (p30)}
 
@@ -259,24 +259,24 @@ become independent of the incident azimuth angle in this
 frame. Furthermore, regarding the symmetry of this case, it can be
 shown that for the scattered directions we need only half of the
 angular grids, as the two halves must contain the same
-data. \artsstyle{pha\_mat\_data} therefore has the following size:
+data. \shortcode{pha\_mat\_data} therefore has the following size:
 
-\artsstyle{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_inc/2+1 1 16]}\\
-We store \artsstyle{za\_sca} for all grid points from 0\degree to 180\degree,
-\artsstyle{aa\_sca} from 0\degree to 
-180\degree, and \artsstyle{za\_inc} from 0\degree to 90\degree. This means that the
+\shortcode{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_inc/2+1 1 16]}\\
+We store \shortcode{za\_sca} for all grid points from 0\degree to 180\degree,
+\shortcode{aa\_sca} from 0\degree to 
+180\degree, and \shortcode{za\_inc} from 0\degree to 90\degree. This means that the
 zenith angle grid 
 has to include 90\degree as grid-point. The order of the matrix elements is
 the same as in the general case. For this case it can be shown that the extinction matrix has only
 three elements {\sl Kjj}, {\sl K12(=K21)}, and {\sl K34(=-K43)}. 
 Because of azimuthal symmetry, it can not depend on the azimuth
-angle. Hence the size of \artsstyle{ext\_mat\_data} is 
+angle. Hence the size of \shortcode{ext\_mat\_data} is 
 
-\artsstyle{[N\_f N\_T N\_za/2+1 1 3]}\\
+\shortcode{[N\_f N\_T N\_za/2+1 1 3]}\\
 The absorption coefficient vector has only two elements {\sl a1} and
-{\sl a2}. This means that the size of \artsstyle{abs\_vec\_data} is 
+{\sl a2}. This means that the size of \shortcode{abs\_vec\_data} is 
 
-\artsstyle{[N\_f N\_T N\_za/2+1 1 2]}
+\shortcode{[N\_f N\_T N\_za/2+1 1 2]}
 
 \paragraph{General case (p10)}
 
@@ -287,9 +287,9 @@ outside ARTS. The individual phase matrices are calculated using
 Mishchenko's T-matrix code for single particles in fixed orientation
 \citep{Mishchenko:00}. 
 We have to store all elements for all angles in the grids. The size of
-\artsstyle{pha\_mat\_data} is therefore: 
+\shortcode{pha\_mat\_data} is therefore: 
 
-\artsstyle{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_inc N\_aa\_inc 16]}\\
+\shortcode{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_inc N\_aa\_inc 16]}\\
 The matrix elements have to be stored in the following order: {\sl Z11,
   Z12, Z13, Z14, Z21, Z22,~...} Seven extinction matrix elements are
 independent (cp. \citet{Mishchenko:02}, p.55). The elements being equal for
@@ -297,12 +297,12 @@ single particles should still be the equal for a distribution as we
 get the total extinction just by adding. Here we need only the
 incoming grids, so the size of ext\_mat\_data is: 
 
-\artsstyle{[N\_f N\_T N\_za\_inc N\_aa\_inc 7]}\\
+\shortcode{[N\_f N\_T N\_za\_inc N\_aa\_inc 7]}\\
 The absorption vector in general has four components (cp. Equation
 (2.186) in \citet{Mishchenko:02}). The size of abs\_vec\_data is
 accordingly: 
 
-\artsstyle{[N\_f N\_T N\_za\_inc N\_aa\_inc 4]}
+\shortcode{[N\_f N\_T N\_za\_inc N\_aa\_inc 4]}
 
 \paragraph{Generating single scattering properties}
 It is very convenient to use the Python module PyARTS, which has been
@@ -511,10 +511,10 @@ ParticleTypeAdd( scat_data_raw, pnd_field_raw,
 \end{code}
 In the workspace method \wsmindex{ParticleTypeAdd} the single
 scattering properties for one particle type are read. The
-generic input \artsstyle{filename\_scat\_data} must be set to
+generic input \shortcode{filename\_scat\_data} must be set to
 the filename of a datafile including scattering data (class
 \typeindex{SingleScatteringData}) in xml-format. The generic input
-\artsstyle{filename\_pnd\_field} must contain the filename of the
+\shortcode{filename\_pnd\_field} must contain the filename of the
 corresponding particle number density field in xml-format (class
 \typeindex{GField3}). If the cloud is composed of several
 different particle types \wsmindex{ParticleTypeAdd} can be used

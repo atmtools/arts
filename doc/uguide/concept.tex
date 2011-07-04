@@ -142,6 +142,11 @@ or
 \end{code}
 and then point your browser to \url{http://localhost:9000/}.
 
+This user guide also contains links to the built-in
+documentation.  If you are reading the pdf file on a computer, then
+names of ARTS objects, such as \builtindoc{f\_grid}, will be links to
+the corresponding entries in the built-in documentation. 
+
 \subsection{Test and include controlfiles}
 
 ARTS calculations are governed by controlfiles (see below).  The ARTS
@@ -189,13 +194,13 @@ manner. As a result, ARTS behaves like a \textindex{scripting
   language}. An ARTS \textindex{controlfile} contains a sequence of
 instructions. When ARTS is executed, the controlfile is parsed, and
 then the instructions are executed sequentially. Controlfile
-\artsstyle{somefile.arts} is executed by running
+\shortcode{somefile.arts} is executed by running
 \begin{code}
   arts somefile.arts
 \end{code}
 
 A minimal ARTS controlfile example (the well-known `Hello World' program) is
-given in Figure \ref{fig:hello}. In this example, the variable \artsstyle{s} is
+given in Figure \ref{fig:hello}. In this example, the variable \shortcode{s} is
 called a \emph{\textindex{workspace variable}}. We use this name to distinguish it from the
 variables that appear internally in the ARTS source code.
 
@@ -250,12 +255,14 @@ fit together.
 
 ARTS has built-in documentation for all workspace methods and
 variables, which can be accessed as described in Section
-\ref{sec:built-in_doc}.  Below, we will discuss workspace variables
-and methods in some more detail and give more examples.
+\ref{sec:built-in_doc}.  In this user guide, just clicking on the name
+of a variable or method will take you directly to the built-in
+documentation for that object.  Below, we will discuss workspace
+variables and methods in some more detail and give more examples.
 
 \subsection{Workspace variables}
 
-Workspace variables (such as the variable \artsstyle{s} in Figure
+Workspace variables (such as the variable \shortcode{s} in Figure
 \ref{fig:hello}) are the variables that are manipulated by the
 workspace methods during the execution of an ARTS
 controlfile. Workspace variables belong to different \emph{groups}
@@ -265,7 +272,7 @@ approximately 60 of them.
 
 As the example in Figure \ref{fig:hello} shows, \textindex{workspace
   variables} can be freely created by the user with methods like
-\artsstyle{StringCreate}, \artsstyle{VectorCreate}, and so on.
+\builtindoc{StringCreate}, \builtindoc{VectorCreate}, and so on.
 Each group has its own create method.
 
 However, in most cases it is not necessary to create new variables in
@@ -275,8 +282,8 @@ built-in documentation describes all \textindex{predefined
 description for the variable \wsvindex{f\_grid}, which stores the
 frequency grid and is used as input by many workspace methods, for
 example those that calculate absorption coefficients. The built-in
-documentation also lists all methods that take \artsstyle{f\_grid} as
-input and all methods that produce \artsstyle{f\_grid} as output.
+documentation also lists all methods that take \builtindoc{f\_grid} as
+input and all methods that produce \builtindoc{f\_grid} as output.
 
 \begin{figure}
 \begin{code}
@@ -293,8 +300,8 @@ Unit:  Hz
 Group = Vector
 *-------------------------------------------------------*
 \end{code}
-\caption{Built-in documentation for variable \artsstyle{f\_grid}, obtained by
-  command `\artsstyle{arts -d f\_grid}', or on page
+\caption{Built-in documentation for variable \builtindoc{f\_grid}, obtained by
+  command `\shortcode{arts -d f\_grid}', or on page
   \url{http://www.sat.ltu.se/arts/docserver/variables/f_grid}.} 
 \label{fig:f_grid}
 \end{figure}
@@ -303,8 +310,8 @@ Group = Vector
 %
 As shown in Figure \ref{fig:hello}, names of \textindex{workspace methods} in an ARTS
 controlfile are followed by their output and input arguments (workspace
-variables) in parentheses. (`\artsstyle{Print(s)}' prints the content of variable
-\artsstyle{s}.)
+variables) in parentheses. (`\shortcode{Print(s)}' prints the content of variable
+\shortcode{s}.)
 
 From the methods point of view, arguments can be \emph{output},
 \emph{input}, or both, and additionally they can be either
@@ -315,7 +322,7 @@ built-in documentation for method \wsmindex{WriteXML}, the most
 common method to write ARTS variables to a file. The list at the
 bottom of the documentation shows that
 \wsvindex{output\_file\_format} is a specific input argument, and
-that \artsstyle{v} and \artsstyle{filename} are generic input
+that \shortcode{v} and \shortcode{filename} are generic input
 arguments.
 
 \begin{figure}
@@ -344,40 +351,40 @@ GIN   v (Any): Variable to be saved.
 GIN   filename (String, Default: ""): Name of the XML file.
 *---------------------------------------------------------*
 \end{code}
-\caption{Built-in documentation for method \artsstyle{WriteXML}, obtained by
-  command `\artsstyle{arts -d WriteXML}', or on page
+\caption{Built-in documentation for method \builtindoc{WriteXML}, obtained by
+  command `\shortcode{arts -d WriteXML}', or on page
   \url{http://www.sat.ltu.se/arts/docserver/methods/WriteXML}.}
 \label{fig:WriteXML}
 \end{figure}
 
-What this means is that \artsstyle{output\_file\_format} already automatically
-exists as a variable, whereas \artsstyle{v} and \artsstyle{filename}
+What this means is that \builtindoc{output\_file\_format} already automatically
+exists as a variable, whereas \shortcode{v} and \shortcode{filename}
 do not. The built-in documentation provides descriptions also of these generic
 arguments and lists the allowed values.
 
 The predefined variables, combined with specific method arguments, are meant to
 help in combining methods into meaningful calculations. Predefined variables
 are typically relevant for more than one method. For example, variable
-\artsstyle{output\_file\_format} can be used to change the format of all produced
+\builtindoc{output\_file\_format} can be used to change the format of all produced
 files at the same time. However, the use of a specific variable in the
-controlfile is not mandatory, so `\artsstyle{WriteXML( output\_file\_format, v,
-  "test.xml")}', `\artsstyle{WriteXML( "ascii", v, "test.xml" )}', and
-`\artsstyle{WriteXML( my\_format, v, "test.xml" )}' are all allowed. (But in the
-last example the variable \artsstyle{my\_format} must have been defined before.)
+controlfile is not mandatory, so `\shortcode{WriteXML( output\_file\_format, v,
+  "test.xml")}', `\shortcode{WriteXML( "ascii", v, "test.xml" )}', and
+`\shortcode{WriteXML( my\_format, v, "test.xml" )}' are all allowed. (But in the
+last example the variable \shortcode{my\_format} must have been defined before.)
 
 Besides the variable names, the built-in documentation also lists the allowed
 variable \textindex{groups} (or types). In the example, the groups for workspace variable
-\artsstyle{v} are `Any', which means that \artsstyle{v} can belong to any of the
-known groups. The group for \artsstyle{filename} is `String', which means that a
+\shortcode{v} are `Any', which means that \shortcode{v} can belong to any of the
+known groups. The group for \shortcode{filename} is `String', which means that a
 string is expected here. Method arguments can be a literal, as in
-`\artsstyle{WriteXML( "ascii", v, "test.xml" )}', or a variable, as in
-`\artsstyle{WriteXML( "ascii", v, s )}', where in the latter case variable
-\artsstyle{s} must be already defined.
+`\shortcode{WriteXML( "ascii", v, "test.xml" )}', or a variable, as in
+`\shortcode{WriteXML( "ascii", v, s )}', where in the latter case variable
+\shortcode{s} must be already defined.
 
 The built-in documentation further states that argument
-\artsstyle{filename} has a \textindex{default value} (in this case the
+\shortcode{filename} has a \textindex{default value} (in this case the
 empty string). Because of this, the argument can actually be omitted,
-so `\artsstyle{WriteXML( "ascii", v )}' will also work.
+so `\shortcode{WriteXML( "ascii", v )}' will also work.
 
 One additional rule has to be mentioned here. If all arguments to a
 method are specific, and the user wants to use all the predefined
@@ -450,8 +457,8 @@ AgendaSet(abs_scalar_gas_agenda)
 \end{code}
 \end{minipage}
 \caption{Top: Built-in documentation for variable
-  \artsstyle{abs\_scalar\_gas\_agenda}, obtained by command
-  `\artsstyle{arts -d abs\_scalar\_gas\_agenda}', or on page
+  \builtindoc{abs\_scalar\_gas\_agenda}, obtained by command
+  `\shortcode{arts -d abs\_scalar\_gas\_agenda}', or on page
   \url{http://www.sat.ltu.se/arts/docserver/agendas/abs_scalar_gas_agenda}. Bottom
   left: Controlfile agenda definition for line-by-line absorption
   calculation. Bottom right: Controlfile agenda definition to extract
@@ -468,16 +475,16 @@ coefficients are extracted from a pre-calculated lookup table.
 On invocation, an agenda executes its methods one after the
 other. The inputs and outputs defined for the agenda must be satisfied
 by the invoked workspace methods. E.g., if an agenda has
-\artsstyle{abs\_scalar\_gas} in its list of output workspace
+\builtindoc{abs\_scalar\_gas} in its list of output workspace
 variables, at least one workspace method which generates
-\artsstyle{abs\_scalar\_gas} must be added to the agenda in the
+\builtindoc{abs\_scalar\_gas} must be added to the agenda in the
 controlfile.
 
 \section{Include controlfiles}
 
 ARTS controlfiles can \emph{\textindex{include}} other ARTS
 controlfiles, which is achieved by statements such as
-\artsstyle{INCLUDE "general.arts"}.  This mechanism is used to
+\shortcode{INCLUDE "general.arts"}.  This mechanism is used to
 predefine general default settings, settings for typical applications,
 and/or settings for the simulation of well-known instruments.  A
 variety of include controlfiles are collected in directory
@@ -487,9 +494,9 @@ You should normally at least include the file
 \fileindex{general.arts}, which contains general default
 settings. Because giving the full path for every include file is
 inconvenient, ARTS will look for include files in a special
-directory.  This can be set by the command line option \artsstyle{-I
+directory.  This can be set by the command line option \shortcode{-I
   <includepath>}, or by the environment variable
-\artsstyle{\textindex{ARTS\_INCLUDE\_PATH}}.  If none of these are set, ARTS will
+\shortcode{\textindex{ARTS\_INCLUDE\_PATH}}.  If none of these are set, ARTS will
 assume the include path to point to the includes directory in the ARTS
 distribution.
 
@@ -502,7 +509,7 @@ the program works. You can run these controlfiles like this:
   arts TestAbs.arts
 \end{code}
 This assumes that you are in the directory where the control
-file resides, and that the \artsstyle{arts} executable is in
+file resides, and that the \shortcode{arts} executable is in
 your path. 
 
 Alternatively, you can run a standard set of the test controlfiles by
@@ -513,7 +520,7 @@ going to the \fileindex{tests} directory under your build directory
 \end{code}
 This standard set of test is run by us on every automatic build, that
 means every time a new ARTS version is submitted to the subversion
-repository. If your ARTS installation is healthy, \artsstyle{make
+repository. If your ARTS installation is healthy, \shortcode{make
   check} should run through without any errors. (See file
 \fileindex{README} in the ARTS distribution for detailed instructions
 on how to build ARTS.)

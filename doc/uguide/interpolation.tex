@@ -116,12 +116,12 @@ a scalar. What the function does is check if old and new grid for an
 interpolation are ok. If not, it throws a detailed runtime error
 message. 
 
-The parameter \artsstyle{extpolfac} determines how much extrapolation
+The parameter \shortcode{extpolfac} determines how much extrapolation
 is tolerated. Its default value is 0.5, which means that we allow
 extrapolation as far out as half the spacing of the last two grid
 points on that edge of the grid.
 
-The \artsstyle{chk\_interpolation\_grids} function is quite thorough.
+The \shortcode{chk\_interpolation\_grids} function is quite thorough.
 It checks not only the grid range, but also the proper sorting,
 whether there are duplicate values, etc.. It is not completely cheap
 computationally. Its intended use is at the beginning of workspace
@@ -135,10 +135,10 @@ quite a lot of detail what is actually wrong with the grids.
 \label{sec:interpolation:gridpos}
 
 A grid position specifies where an interpolation point is, relative
-to the original grid. It consists of three parts, an \artsstyle{Index} giving the
-original grid index below the interpolation point, a \artsstyle{Numeric}
+to the original grid. It consists of three parts, an \builtindoc{Index} giving the
+original grid index below the interpolation point, a \builtindoc{Numeric}
 giving the fractional distance to the next original grid point, and a
-\artsstyle{Numeric} giving 1 minus this number. Of course, the last element is
+\builtindoc{Numeric} giving 1 minus this number. Of course, the last element is
 redundant. However, it is efficient to store this, since it is used
 many times over. We store the two numerics in a plain C array of
 dimension 2. (No need to use a fancy Array or Vector for this, since
@@ -153,7 +153,7 @@ struct GridPos  {
 };
 \end{code}
 
-For example, \artsstyle{idx}=3 and \artsstyle{fd}=0.5 means that this interpolation point is
+For example, \shortcode{idx}=3 and \shortcode{fd}=0.5 means that this interpolation point is
 half-way between index 3 and 4 of the original grid.  Note, that
 `below' in the first paragraph means `with a lower index'. If the
 original grid is sorted in descending order, the value at the grid
@@ -174,12 +174,12 @@ idx      = 0
 fd[0]    = 0.75
 \end{code}
 
-Note that \artsstyle{fd[0]} is different in the second case, because the old grid
-is sorted in descending order. Note also that \artsstyle{idx} is the same in
+Note that \shortcode{fd[0]} is different in the second case, because the old grid
+is sorted in descending order. Note also that \shortcode{idx} is the same in
 both cases.
 
-Grid positions for a whole new grid are stored in an \artsstyle{Array<GridPos>}
-(called \artsstyle{ArrayOfGridPos}). 
+Grid positions for a whole new grid are stored in an \shortcode{Array<GridPos>}
+(called \shortcode{ArrayOfGridPos}). 
 
 \section{Setting up grid position arrays}
 %----------------------------------------------------------------------
@@ -196,7 +196,7 @@ void gridpos( ArrayOfGridPos& gp,
 
 \hspace{-\parindent}Some points to remember:
 \begin{itemize}
-\item As usual, the output \artsstyle{gp} has to have the right dimension. 
+\item As usual, the output \shortcode{gp} has to have the right dimension. 
   
 \item The old grid has to be strictly sorted. It can be in ascending
   or descending order. But there must not be any duplicate values.
@@ -226,7 +226,7 @@ void gridpos( ArrayOfGridPos& gp,
    old_grid[tgp.idx]>=tng || tgp.idx==0
    \end{code}
 
-\item   Finally, note that parameter \artsstyle{extpolfac} plays the
+\item   Finally, note that parameter \shortcode{extpolfac} plays the
   same role as explained above in Section
   \ref{sec:interpolation:gridchecking}. 
 \end{itemize}
@@ -321,7 +321,7 @@ void interpweights( MatrixView itw,
                     const ArrayOfGridPos& cgp );
 \end{code}
 
-In all cases, the dimension of \artsstyle{itw} must be consistent with the
+In all cases, the dimension of \shortcode{itw} must be consistent with the
 given grid position arrays and the dimension of the interpolation
 (last dimension $2^n$). Because the grid position arrays are
 interpreted as defining a sequence of positions they must all have
@@ -361,7 +361,7 @@ void interpweights( Tensor7View itw,
 
 In this case the grid position arrays are interpreted as defining the
 grids for the interpolated field, therefore they can have different
-lengths. Of course, \artsstyle{itw} must be consistent with the length of
+lengths. Of course, \shortcode{itw} must be consistent with the length of
 all the grid position arrays, and with the dimension of the
 interpolation (last dimension $2^n$).
 
@@ -539,7 +539,7 @@ while retaining others? --- You have to make a loop yourself, but it
 is very easy. Below is an explicit example for a more complicated
 interpolation case. (Green type interpolation of all pages of a
 Tensor3.) This example is also contained in file
-\artsstyle{test\_interpolation.cc}.
+\fileindex{test\_interpolation.cc}.
 
 \begin{code}
 void test04()
@@ -658,8 +658,8 @@ case. But ARTS has also a framework for higher order polynomial
 interpolation. It is defined in the two files
 
 \begin{itemize}
-\item \artsstyle{interpolation\_poly.h}
-\item \artsstyle{interpolation\_poly.cc}
+\item \fileindex{interpolation\_poly.h}
+\item \fileindex{interpolation\_poly.cc}
 \end{itemize}
 
 We define interpolation order $O$ as the order of the polynomial that
@@ -677,8 +677,8 @@ basic higher order polynomial interpolation, instead of $O=2$.
 Overall, higher order interpolation works rather similarly to the
 linear case.  The main difference is that grid positions for higher
 order interpolation are stored in an object of type
-\artsstyle{GridPosPoly}, instead of \artsstyle{GridPos}. A
-\artsstyle{GridPosPoly} object contains grid indices and interpolation
+\shortcode{GridPosPoly}, instead of \shortcode{GridPos}. A
+\shortcode{GridPosPoly} object contains grid indices and interpolation
 weights for all interpolation points. For each point in the new grid,
 there are $O+1$ indices and $O+1$ weights.
 
@@ -691,8 +691,8 @@ angle. If the angle goes from 0 to 360$^\circ$, then points just below
 indices to use are not contiguous in memory. Functions to handle this
 are not yet implemented, but this should be a relatively simple matter.
 
-In contrast to \artsstyle{GridPos}, \artsstyle{GridPosPoly} stores
-weights \artsstyle{w} rather than fractional distances \artsstyle{fd}.
+In contrast to \shortcode{GridPos}, \shortcode{GridPosPoly} stores
+weights \shortcode{w} rather than fractional distances \shortcode{fd}.
 For the linear case:
 \begin{code}
   w[0] = fd[1]
@@ -709,18 +709,18 @@ for the 1D case. For 2D and higher dimensional cases, the weights of
 the individual dimensions have to be multiplied, just as in the linear
 interpolation case.
 
-Instead of \artsstyle{gridpos}, you have to use the function
-\artsstyle{gridpos\_poly} for higher order interpolation. It works
-exactly like \artsstyle{gridpos}, but has an additional argument that
+Instead of \shortcode{gridpos}, you have to use the function
+\shortcode{gridpos\_poly} for higher order interpolation. It works
+exactly like \shortcode{gridpos}, but has an additional argument that
 gives the interpolation order $O$. 
 
-After setting up the \artsstyle{GridPosPoly} object with
-\artsstyle{gridpos\_poly}, you have to call \artsstyle{interpweights}
-and \artsstyle{interp}, exactly as in the linear case. (The actual
+After setting up the \shortcode{GridPosPoly} object with
+\shortcode{gridpos\_poly}, you have to call \shortcode{interpweights}
+and \shortcode{interp}, exactly as in the linear case. (The actual
 functions used are not the same, since the name is overloaded. The
-\artsstyle{interpweights} and \artsstyle{interp} functions for use
-with \artsstyle{GridPosPoly} are implemented in
-\artsstyle{interpolation\_poly.cc}.) So, a complete interpolation chain
+\shortcode{interpweights} and \shortcode{interp} functions for use
+with \shortcode{GridPosPoly} are implemented in
+\shortcode{interpolation\_poly.cc}.) So, a complete interpolation chain
 involves:
 
 \begin{code}
@@ -732,7 +732,7 @@ interp
 For $O=1$ the result of the
 interpolation chain will be the same as for the linear interpolation
 routines. Below is a simple complete example, taken from
-the file \artsstyle{test\_interpolation.cc} in the arts source directory: 
+the file \fileindex{test\_interpolation.cc} in the arts source directory: 
 
 \begin{code}
 void test08()
@@ -798,12 +798,12 @@ Now you probably understand better what was written at the very
 beginning of this chapter, namely that doing an interpolation always
 requires the chain of function calls:
 \begin{enumerate}
-\item \artsstyle{gridpos} or \artsstyle{gridpos\_poly} (one for each interpolation dimension)
-\item \artsstyle{interpweights}
-\item \artsstyle{interp}
+\item \shortcode{gridpos} or \shortcode{gridpos\_poly} (one for each interpolation dimension)
+\item \shortcode{interpweights}
+\item \shortcode{interp}
 \end{enumerate}
 If you are interested in how the functions really work, look in file
-\artsstyle{interpolation.cc} or \artsstyle{interpolation\_poly.cc}.
+\fileindex{interpolation.cc} or \fileindex{interpolation\_poly.cc}.
 The documentation there is quite detailed.  When you are using
 interpolation, you should always give some thought to whether you can
 re-use grid positions or even interpolation weights. This can really

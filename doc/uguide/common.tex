@@ -129,50 +129,65 @@
 \newcommand{\stopsymbolswithunits} {\stopsymbols}
 
 
+%- Command to create link to ARTS built-in documentation. (Consider
+% using \wsmindex, \wsvindex, etc., instead. They use this command
+% implicitly.  But direct use may be useful if you use the same term
+% several times in a short section, and don't want all of these
+% occurrences to be in the index.)
+% Underscores must be escaped by leading backslash!
+\newcommand{\builtindoc}[1]{\href{http://www.sat.ltu.se/arts/docserver/all/#1}{#1}}
 
-%- Command to write a ARTS variable or function with special style
+%- Command to write an internal ARTS variable, internal function, or
+% file name with special style. Anything that does not have built-in
+% documentation. Also for other things that are code,
+% but inside the text. Use the "code" environment for longer pieces of
+% code.
+% Underscores must be escaped by leading backslash!
+\newcommand{\shortcode}[1]{\texttt{#1}}
+
+%- Define verbatim environment for arts code examples.
+% (For longer pieces of code, for in-text use "\shortcode".)
+% This is the only code command where you do not have to escape
+% underscores. 
+\DefineVerbatimEnvironment{code}{Verbatim}{fontsize=\small}
+
+
+%- Commands for easy indexing of terms
 %
-\newcommand{\artsstyle}[1]      {\texttt{#1}}
-
-
-%- Commands for easy indexing of term
+% Underscores must be escaped by leading backslash!
 %
 % Index command to use when text and index reference are equal. Otherwise
 % the normal \index command must be used.
-\newcommand{\textindex}[1]   {#1\index{#1}}  
+\newcommand{\textindex}[1]{#1\index{#1}} 
 %
 % Index command to make index for a workspace method. It writes out the
 % function name in verbatim style and makes an index reference.
-\newcommand{\wsmindex}[1]    {\artsstyle{#1}\index{workspace methods!#1}}  
+\newcommand{\wsmindex}[1]{\builtindoc{#1}\index{workspace methods!#1}} 
 %
 % Index command to make index for workspace variable. Works as \wsmindex.
-\newcommand{\wsvindex}[1]    {\artsstyle{#1}\index{workspace variables!#1}}
+\newcommand{\wsvindex}[1]{\builtindoc{#1}\index{workspace variables!#1}}
 %
 % Index command to make index for workspace agenda. Works as \wsmindex.
-\newcommand{\wsaindex}[1]    {\artsstyle{#1}\index{workspace agendas!#1}}  
+\newcommand{\wsaindex}[1]{\builtindoc{#1}\index{workspace agendas!#1}} 
 %
 % Index command to make index for a ARTS file. Works as \wsmindex.
-\newcommand{\fileindex}[1]   {\artsstyle{#1}\index{ARTS files!#1}}
+\newcommand{\fileindex}[1]{\shortcode{#1}\index{ARTS files!#1}}
 %
 % Index command to make index for an internal function. Works as \wsmindex.
-\newcommand{\funcindex}[1]   {\artsstyle{#1}\index{internal ARTS functions!#1}}
+\newcommand{\funcindex}[1]{\shortcode{#1}\index{internal ARTS functions!#1}}
 %
 % Index command to make index for a ARTS data structure. Works as \wsmindex.
-\newcommand{\typeindex}[1] {\artsstyle{#1}\index{data types!#1}}
+\newcommand{\typeindex}[1]{\shortcode{#1}\index{data types!#1}}
 
 
 %- For FIXMEs:
 \newcommand{\FIXME}[1]{{\bfseries FIXME: #1}}
 
 
-% Names of the different documentation documents:
+%- Names of the different documentation documents:
 \newcommand{\user}{\emph{ARTS User Guide}}
 \newcommand{\developer}{\emph{ARTS Developer Guide}}
 \newcommand{\theory}{\emph{ARTS Theory}}
-
-% Define verbatim environment for arts code examples:
-\DefineVerbatimEnvironment{code}{Verbatim}{fontsize=\small}
-
 
 %------------------------------------------------------------------------------
 

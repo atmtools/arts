@@ -28,10 +28,10 @@ implemented in ARTS is the trapezoidal integration method.
 
 The integration functions can be found in the files:
 \begin{itemize}
-\item \artsstyle{math\_funcs.h}
-\item \artsstyle{math\_funcs.cc}
+\item \fileindex{math\_funcs.h}
+\item \fileindex{math\_funcs.cc}
 \end{itemize}
-The implementation function \artsstyle {AngIntegrate\_trapezoid}is
+The implementation function \shortcode {AngIntegrate\_trapezoid}is
 discussed in the second file. 
 
 \section{Trapezoidal Integration}
@@ -125,7 +125,7 @@ where $h(\theta) = \sin\theta\cdot f(\theta)$.
 
 
 
-The function  \artsstyle{AngIntegrate\_trapezoid} takes as input the integrand and the angles over which
+The function  \shortcode{AngIntegrate\_trapezoid} takes as input the integrand and the angles over which
 the integration has to be done. For example in this case it can be the
 zenith and azimuth angle
 grid.
@@ -138,7 +138,7 @@ The integrand has the same number of rows as zenith angle grid
 and columns as azimuth angle grid.  The inner loop does trapezoidal
 integration of the integrand over all azimuth angles and the result is
 stored in a Vector  res1[i]. Note that the integrand at every point
-has to be multiplied with \artsstyle {sin (za\_grid[i] * DEG2RAD)}
+has to be multiplied with \shortcode {sin (za\_grid[i] * DEG2RAD)}
 since we are integrating over solid angles.  The outer loop 
 does an integration of res1[i] over all zentih angles.  The result of
 this is returned back to the calling function.  

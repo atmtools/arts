@@ -25,8 +25,8 @@
 %
 % Symbol table, format:
 %  \startsymbols
-%    ... & \artsstyle{...} & text ... \\
-%    ... & \artsstyle{...} & text ... \\
+%    ... & \shortcode{...} & text ... \\
+%    ... & \shortcode{...} & text ... \\
 %    ....
 %  \stopsymbols
 %
@@ -50,11 +50,11 @@ want to use ARTS, you should not need to read it. \textbf{But if you
 ARTS is written in C++ and uses the cross-platform, open-source build system
 CMake (\url{http://www.cmake.org/}). It is organized in a similar
 manner as most GNU packages. The top-level ARTS directory is either called
-\artsstyle{arts} or \artsstyle{arts-x.y}, where x.y is the release number. It
-contains various sub-directories, notably \artsstyle{doc} for documentation,
-\artsstyle{src} for the C++ source code, and \artsstyle{aii} for the IDL
+\shortcode{arts} or \shortcode{arts-x.y}, where x.y is the release number. It
+contains various sub-directories, notably \shortcode{doc} for documentation,
+\shortcode{src} for the C++ source code, and \shortcode{aii} for the IDL
 interface. The document that you are reading right now, the ARTS Developer
-Guide, is located in \artsstyle{doc/uguide}.
+Guide, is located in \shortcode{doc/uguide}.
 
 There are two different versions of the ARTS package: The development
 version and the end-user version. Both contain the complete source
@@ -105,18 +105,18 @@ should.
 Here are some interesting options for CMake:
 
 \begin{description}
-\item[\artsstyle{-DCMAKE\_BUILD\_TYPE=Release}:] Removes '-g' from
-the compiler flags and includes \artsstyle{\#define NDEBUG 1} in
+\item[\shortcode{-DCMAKE\_BUILD\_TYPE=Release}:] Removes '-g' from
+the compiler flags and includes \shortcode{\#define NDEBUG 1} in
 \fileindex{config.h}. The central switch to turn off all debugging
 features (index range checking for vectors, the trace facility,
-assertions,...). The default configuration \artsstyle{RelWithDebInfo}
+assertions,...). The default configuration \shortcode{RelWithDebInfo}
 turns on some optimizations and provides debugging information.
 
-\item[\artsstyle{-DCMAKE\_BUILD\_TYPE=Debug}:] This switch turns off all
+\item[\shortcode{-DCMAKE\_BUILD\_TYPE=Debug}:] This switch turns off all
 optimizations. This should only be used if the default configuration
 makes debugging a certain problem difficult.
 
-\item[\artsstyle{-DNO\_OPENMP=1}:] 
+\item[\shortcode{-DNO\_OPENMP=1}:] 
 Disables the generation of multi-threaded code. CMake tries to detect if the compiler supports OpenMP and enables it by default.
 
 \end{description}
@@ -139,13 +139,13 @@ Disables the generation of multi-threaded code. CMake tries to detect if the com
 
 Here are some general rules for ARTS programming:
 
-\subsection{Numeric types} Never use \artsstyle{float} or
-\artsstyle{double} explicitly, use the type \typeindex{Numeric} instead.
-This is set by CMake (to \artsstyle{double} by default).
+\subsection{Numeric types} Never use \shortcode{float} or
+\shortcode{double} explicitly, use the type \typeindex{Numeric} instead.
+This is set by CMake (to \shortcode{double} by default).
 In the same way, use \typeindex{Index} for all integers. It can take on
-positive or negative values and defaults to \artsstyle{long}.
-To change the default types, run \artsstyle{cmake} with the options
-\artsstyle{-DINDEX=long} or \artsstyle{-DNUMERIC=double}:
+positive or negative values and defaults to \shortcode{long}.
+To change the default types, run \shortcode{cmake} with the options
+\shortcode{-DINDEX=long} or \shortcode{-DNUMERIC=double}:
 
 \begin{code}
 cmake -DINDEX=int --DNUMERIC=float ..
@@ -158,12 +158,12 @@ make it impossible to handle larger Vectors, Matrices or Tensors. The
 maximum range of the index type determines the maximum number of
 elements the container types can handle.
 
-\subsection{Container types} Use \artsstyle{Vector} and
-\artsstyle{Matrix} for mathematical vectors and matrices (with elements
-of type \artsstyle{Numeric}). Use \artsstyle{Array<something>} to
-create an array of \artsstyle{something}s.
+\subsection{Container types} Use \builtindoc{Vector} and
+\builtindoc{Matrix} for mathematical vectors and matrices (with elements
+of type \builtindoc{Numeric}). Use \shortcode{Array<something>} to
+create an array of \shortcode{something}s.
 Commonly used Arrays have been predefined, they have names like
-\artsstyle{ArrayOfString}, \artsstyle{ArrayOfMatrix}, and so forth.
+\builtindoc{ArrayOfString}, \builtindoc{ArrayOfMatrix}, and so forth.
 
 \subsection{Terminology}
 Calculations are carried out in the so called workspace (WS), on
@@ -177,32 +177,32 @@ executed.
    Are not visible by default. To use them you have to declare them
    like this:
    \begin{quote}
-   \artsstyle{extern const Numeric PI;}
+   \shortcode{extern const Numeric PI;}
    \end{quote}
    which will make the global constant PI=3.14... available. Other important globals are:
 
    \begin{quote}
    \begin{tabular}{ll}
-   \artsstyle{full\_name}&         Full name of the program, including version.\\
-   \artsstyle{parameters}&        All command line parameters.\\
-   \artsstyle{basename}&          Used to construct output file names.\\
-   \artsstyle{out\_path}&          Output path.\\
-   \artsstyle{messages}&          Controls the verbosity level.\\
-   \artsstyle{wsv\_data}&          WSV lookup data.\\
-   \artsstyle{wsv\_group\_names}&   Lookup table for the names of \emph{types} of WSVs.\\
-   \artsstyle{WsvMap}&            The map associated with \artsstyle{wsv\_data}. \\
-   \artsstyle{md\_data}&           WSM lookup data.\\
-   \artsstyle{MdMap}&             The map associated with \artsstyle{md\_data}. \\
-   \artsstyle{workspace}&         The workspace itself.\\
-   \artsstyle{species\_data}&      Lookup information for spectroscopic species.\\
-   \artsstyle{SpeciesMap}&        The map associated with \artsstyle{species\_data}.
+   \shortcode{full\_name}&         Full name of the program, including version.\\
+   \shortcode{parameters}&        All command line parameters.\\
+   \shortcode{basename}&          Used to construct output file names.\\
+   \shortcode{out\_path}&          Output path.\\
+   \shortcode{messages}&          Controls the verbosity level.\\
+   \shortcode{wsv\_data}&          WSV lookup data.\\
+   \shortcode{wsv\_group\_names}&   Lookup table for the names of \emph{types} of WSVs.\\
+   \shortcode{WsvMap}&            The map associated with \shortcode{wsv\_data}. \\
+   \shortcode{md\_data}&           WSM lookup data.\\
+   \shortcode{MdMap}&             The map associated with \shortcode{md\_data}. \\
+   \shortcode{workspace}&         The workspace itself.\\
+   \shortcode{species\_data}&      Lookup information for spectroscopic species.\\
+   \shortcode{SpeciesMap}&        The map associated with \shortcode{species\_data}.
    \end{tabular}
    \end{quote}
-   The only exception from this rule are the output streams \artsstyle{out0} to
-   \artsstyle{out3}, which are visible by default.
+   The only exception from this rule are the output streams \shortcode{out0} to
+   \shortcode{out3}, which are visible by default.
 
 \subsection{Files}
-Always use the \artsstyle{open\_output\_file} and \artsstyle{open\_input\_file}
+Always use the \shortcode{open\_output\_file} and \shortcode{open\_input\_file}
 functions to open files. This switches on exceptions, so that any
 error occurring later on with this file will result in an
 exception. (Currently not really implemented in the GNU compiler,
@@ -242,9 +242,9 @@ should add Doxygen headers to the following:
 
 The documentation headers are comment blocks that look like the
 examples below. They should be put above the \emph{definition} of a
-function, i.e., in the \artsstyle{.cc} file.  Some functions are defined in
-the \artsstyle{.h} file (e.g., inline member functions). In that case the
-comment can be put in the \artsstyle{.h} file.
+function, i.e., in the \shortcode{.cc} file.  Some functions are defined in
+the \shortcode{.h} file (e.g., inline member functions). In that case the
+comment can be put in the \shortcode{.h} file.
 
 There is an Emacs package (Doxymacs) that makes the insertion of
 documentation headers particularly easy. You can find documentation of
@@ -288,11 +288,11 @@ standard key-bindings are:
 \texttt{C-c d @} & insert grouping comments around the current region.\\
 \end{tabularx}
 \end{quote}
-You can call the macros also by name, e.g., \artsstyle{doxymacs-insert-file-comment}.
+You can call the macros also by name, e.g., \shortcode{doxymacs-insert-file-comment}.
 
 \subsubsection{File comment}
 
-Generated by \artsstyle{doxymacs-insert-file-comment}.
+Generated by \shortcode{doxymacs-insert-file-comment}.
 
 \begin{code}
 /*!
@@ -309,10 +309,10 @@ Generated by \artsstyle{doxymacs-insert-file-comment}.
 
 \subsubsection{Function comment}
 
-Generated by \artsstyle{doxymacs-insert-function-comment}. If
+Generated by \shortcode{doxymacs-insert-function-comment}. If
 arguments are modified by the function you should add `[out]' after
-the \artsstyle{\char`\\ param} command, just like for the parameter
-\artsstyle{a} in the example below. If a parameter is both input and
+the \shortcode{\char`\\ param} command, just like for the parameter
+\shortcode{a} in the example below. If a parameter is both input and
 output, you should say `[in,out]'. Parameters that are passed by
 value or not modified inside the function should carry an `[in]'. The
 documentation for each parameter should start with a capital letter and
@@ -340,7 +340,7 @@ int dummy(int& a, int& b, int c);
 
 \subsubsection{Generic multi-line comment}
 
-Generated by \artsstyle{doxymacs-insert-blank-multiline-comment}.
+Generated by \shortcode{doxymacs-insert-blank-multiline-comment}.
 
 \begin{code}
 //! A dummy comment.
@@ -352,7 +352,7 @@ Generated by \artsstyle{doxymacs-insert-blank-multiline-comment}.
 
 \subsubsection{Generic single-line comment}
 
-Generated by \artsstyle{doxymacs-insert-blank-singleline-comment}.
+Generated by \shortcode{doxymacs-insert-blank-singleline-comment}.
 
 \begin{code}
 //! Short comment here.
@@ -372,7 +372,7 @@ variable can be added.
 
 \begin{enumerate}
 \item Create a record entry in file \fileindex{workspace.cc}. (Just add
-  another one of the \artsstyle{wsv\_data.push\_back} blocks.) Take the
+  another one of the \shortcode{wsv\_data.push\_back} blocks.) Take the
   already existing entries as templates. The ARTS concept works best
   if WSVs are only of a rather limited number of different types, so
   that generic WSMs can be used extensively, for example for IO.
@@ -385,7 +385,7 @@ variable can be added.
     dimensions (in the case of matrices) and the units!} This string
   is used for the online documentation. Please take some time to write
   it carefully. Use the template at the beginning of function
-  \artsstyle{define\_wsv\_data()} in file \artsstyle{workspace.cc} as a
+  \shortcode{define\_wsv\_data()} in file \shortcode{workspace.cc} as a
   guideline. 
 
 \item That's it!
@@ -400,29 +400,29 @@ variable groups are. Here is just the practical description how a new
 group can be added.
 
 \begin{enumerate}
-\item Add a \artsstyle{wsv\_group\_names.push\_back("your\_type")} function to
-  the function \artsstyle{define\_wsv\_group\_names()} in \fileindex{groups.cc}.
+\item Add a \shortcode{wsv\_group\_names.push\_back("your\_type")} function to
+  the function \shortcode{define\_wsv\_group\_names()} in \fileindex{groups.cc}.
   The name must be \emph{exactly} like you use it in the source code,
   because this is used to generate interface functions.
 \item XML reading/writing routines are mandatory for each workspace variable
   group. Two steps are necessary to add xml support for the new group:
   \begin{enumerate}
-  \item Implement an \artsstyle{xml\_read\_from\_stream}
-    and \artsstyle{xml\_write\_to\_stream} function. Depending
+  \item Implement an \shortcode{xml\_read\_from\_stream}
+    and \shortcode{xml\_write\_to\_stream} function. Depending
     on the type of the group the implementation goes into one
     of the three files \fileindex{xml\_io\_basic\_types.cc},
     \fileindex{xml\_io\_compound\_types.cc}, or
     \fileindex{xml\_io\_array\_types.cc}. Basic types are for example Index
     or Numeric. Compound types are structures and classes. And array types are
     arrays of basic or compound types. Also add the function declaration in the
-    corresponding \artsstyle{.h} file.
+    corresponding \shortcode{.h} file.
   \item Add an explicit instantiation for
-    \artsstyle{xml\_read\_from\_file<GROUP>} and
-    \artsstyle{xml\_write\_to\_file<GROUP>} to \fileindex{xml\_io\_instantiation.h}.
+    \shortcode{xml\_read\_from\_file<GROUP>} and
+    \shortcode{xml\_write\_to\_file<GROUP>} to \fileindex{xml\_io\_instantiation.h}.
   \end{enumerate}
 \item If your new group does not implement the output operator
-  (\artsstyle{operator<<}), you have to add an explicit implementation
-  of the \artsstyle{Print} function in \fileindex{m\_general.h} and
+  (\shortcode{operator<<}), you have to add an explicit implementation
+  of the \builtindoc{Print} function in \fileindex{m\_general.h} and
   \fileindex{m\_general.cc}.
 \item That's it! (But as stated above, use this feature wisely)
 \end{enumerate}
@@ -439,22 +439,22 @@ method can be added.
 \begin{enumerate}
 \item Create an entry in the function \funcindex{define\_md\_data} in file
   \fileindex{methods.cc}.  (Make a copy of an existing entry (one of the
-  \artsstyle{md\_data.push\_back(...)} blocks) and edit it to fit your new
+  \shortcode{md\_data.push\_back(...)} blocks) and edit it to fit your new
   method.) Don't forget the documentation string! Please refer to the
   example at the beginning of the file to see how to format it.
 \item Run:
-  \artsstyle{make}.
+  \shortcode{make}.
 \item Look in \fileindex{auto\_md.h}. There is a new function prototype
   \begin{quote}
-    \artsstyle{void <YourNewMethod>(...)}
+    \shortcode{void <YourNewMethod>(...)}
   \end{quote}
-\item Add your function to one of the \artsstyle{.cc} files which contain method
-  functions. Such files must have names starting with \artsstyle{m\_}. (See
+\item Add your function to one of the \shortcode{.cc} files which contain method
+  functions. Such files must have names starting with \shortcode{m\_}. (See
   separate HowTo if you want to create a new source file.) The header
-  of your function must be compatible with the prototype in \artsstyle{auto\_md.h}.
+  of your function must be compatible with the prototype in \shortcode{auto\_md.h}.
 \item Check that everything looks nice by running 
   \begin{quote}
-    \artsstyle{arts -d YourNewMethod}
+    \shortcode{arts -d YourNewMethod}
   \end{quote}
   If necessary, change the documentation string.
 
@@ -466,13 +466,13 @@ method can be added.
 %---------------------------------------
 \begin{enumerate}
 \item Create your file. Names of files containing workspace methods should
-  start with \artsstyle{m\_}.
+  start with \shortcode{m\_}.
 \item You have to register your file in the file
   \fileindex{src/CMakeLists.txt}. This file states which source files
   are needed for arts. In the usual case, you just have to add your
-  \artsstyle{.cc} file to the list of source files of the artscore
+  \shortcode{.cc} file to the list of source files of the artscore
   library. Header files are not added to this list.
-\item Go to \artsstyle{src} and run: \artsstyle{svn add <my\_file>} to
+\item Go to \shortcode{src} and run: \shortcode{svn add <my\_file>} to
   make your file known to SVN.
 \end{enumerate}
 
@@ -513,15 +513,15 @@ documentation:
 %-----------------------------
 \begin{enumerate}
 \item Go to a temporary directory.
-\item Run: \artsstyle{svn co https://www.sat.ltu.se/svn/rt/arts/trunk arts}
+\item Run: \shortcode{svn co https://www.sat.ltu.se/svn/rt/arts/trunk arts}
 \end{enumerate}
 
 
 \subsection{How to update (if you already have a copy)}
 %--------------------------------------------------
 \begin{enumerate}
-\item Go to the top ARTS directory (called simply \artsstyle{arts}).
-\item Run: \artsstyle{svn update}
+\item Go to the top ARTS directory (called simply \shortcode{arts}).
+\item Run: \shortcode{svn update}
    
   \textbf{IMPORTANT!} Always update, before you start to make changes
   to the program, especially after a longer pause. If you edit an
@@ -536,24 +536,24 @@ documentation:
 \item You should make sure that the program compiles and runs without
   obvious errors before you commit.
 \item If you have created a new source file, make it known to SVN by
-  running the command \artsstyle{svn add <my\_file>} in the directory where
+  running the command \shortcode{svn add <my\_file>} in the directory where
   the file resides.
   
-  In general, when you run \artsstyle{svn update}, it will warn you about
-  any files it doesn't know by marking them with a \artsstyle{?}. Files
+  In general, when you run \shortcode{svn update}, it will warn you about
+  any files it doesn't know by marking them with a \shortcode{?}. Files
   that are created during the compilation process, but should not be
   part of the package are ignored by SVN. You can view the list of ignored
-  files for the current directory with \artsstyle{svn propget svn:ignore .}.
-  The list can be edited with \artsstyle{svn propedit svn:ignore .}.
+  files for the current directory with \shortcode{svn propget svn:ignore .}.
+  The list can be edited with \shortcode{svn propedit svn:ignore .}.
 \item Have you added the documentation for your new features?
 \item Open the file \fileindex{ChangeLog} in the top level ARTS directory
   with your favorite editor.
   
   With Emacs, you can very easily add an entry by typing either
   \begin{quote}
-    \artsstyle{M-x add-change-log-entry}
+    \shortcode{M-x add-change-log-entry}
   \end{quote}
-  or \artsstyle{C-x 4 a}.
+  or \shortcode{C-x 4 a}.
   
   Specify the new version number and describe your changes.
 
@@ -562,7 +562,7 @@ documentation:
     already while you work on a file}. Whenever you make a change to a
   file, there should be a ChangeLog Entry!
 \item Make sure that you have saved all your files. Go to the top
-  level ARTS directory and run: \artsstyle{svn commit}.
+  level ARTS directory and run: \shortcode{svn commit}.
 \item This will pop up an editor. Use the mouse to cut and paste the
   ChangeLog message also to this editor window. Safe the file and exit
   the editor. If you made changes in different directories, another
@@ -570,7 +570,7 @@ documentation:
   exit. Do this until no more editors come up. (Note: This works well
   if you set
   \begin{quote}
-    \artsstyle{export EDITOR=xedit}
+    \shortcode{export EDITOR=xedit}
   \end{quote}
   in your shell startup file.
  
@@ -578,7 +578,7 @@ documentation:
   refuse to safe your file if you haven't made changes to it. With
   xedit you just have to push the save button twice to override.
 \item Tell the other developers about it. The best way to do this is
-  to send an email to \artsstyle{arts-dev@www.sat.ltu.se}.
+  to send an email to \shortcode{arts-dev@www.sat.ltu.se}.
 \end{enumerate}
 
 
@@ -589,10 +589,10 @@ documentation:
 %\begin{enumerate}
 %\item Change the release number in the file \fileindex{configure.in} in the
 %  top-level ARTS directory. (The line that you have to change is the
-%  one with \artsstyle{AM\_INIT\_AUTOMAKE}.) Omit the subversion number (last digit).
+%  one with \shortcode{AM\_INIT\_AUTOMAKE}.) Omit the subversion number (last digit).
 %\item Commit your changes (see other howto). 
-%\item In the top-level ARTS directory, run \artsstyle{autogen.sh}.
-%\item In the top-level ARTS directory, run \artsstyle{make distcheck}. This
+%\item In the top-level ARTS directory, run \shortcode{autogen.sh}.
+%\item In the top-level ARTS directory, run \shortcode{make distcheck}. This
 %  will not only cut the release, but also immediately try to build
 %  it, to see if it works. Unless you are on a very fast machine, this
 %  may take a while. Maybe you should go and have a cup of coffee.
@@ -609,7 +609,7 @@ documentation:
 
 In general it is no problem to move your working directory. Only when you are
 using a build directory that is located outside the ARTS source tree, you
-have rerun \artsstyle{cmake PATHTOARTS} in that directory.
+have rerun \shortcode{cmake PATHTOARTS} in that directory.
 
 \section{Debugging (use of assert)}
 %================================
@@ -621,59 +621,59 @@ is a precondition that must be satisfied in order for the subsequent
 code to execute correctly, you must assert it with a statement like
 this:
 \begin{quote}
-\artsstyle{assert(var1 == var2);}
+\shortcode{assert(var1 == var2);}
 \end{quote}
 
 In general assert takes as argument a boolean expression. If the
 boolean expression is true, execution continues. Otherwise the
-\artsstyle{abort} system call is invoked and the program execution is
+\shortcode{abort} system call is invoked and the program execution is
 stopped. If a bug prevents the precondition from being true, then you
 can trace the bug at the point where the precondition breaks down
-instead of further down in execution or not at all.  The \artsstyle{assert} call
+instead of further down in execution or not at all.  The \shortcode{assert} call
 is implemented as a C preprocessor macro, so it can be enabled or
 disabled at will. 
 
 In ARTS, you don't have to do this manually, as long as your source file
-includes \artsstyle{arts.h} either directly or indirectly. Instead, assertions
+includes \shortcode{arts.h} either directly or indirectly. Instead, assertions
 are turned on and off with the global NDEBUG preprocessor macro, which is
-set or unset automatically by the \artsstyle{cmake} build configuration.
-Assertions are enabled in the default \artsstyle{cmake} build configuration
-(\artsstyle{-DCMAKE\_BUILD\_TYPE=RelWithDebInfo}). They are turned off in the
-release configuration (\artsstyle{-DCMAKE\_BUILD\_TYPE=Release}).
+set or unset automatically by the \shortcode{cmake} build configuration.
+Assertions are enabled in the default \shortcode{cmake} build configuration
+(\shortcode{-DCMAKE\_BUILD\_TYPE=RelWithDebInfo}). They are turned off in the
+release configuration (\shortcode{-DCMAKE\_BUILD\_TYPE=Release}).
 
 If your program is stopped by an assertion failure, then the first
 thing you should do is to find out where the error happens. To do
 this, run the program under the GDB debugger. First invoke
 the debugger:
 \begin{quote}
-\artsstyle{gdb arts}
+\shortcode{gdb arts}
 \end{quote}
 You have to give the full path to the ARTS executable.  Then set a
 breakpoint at the assertion failure:
 \begin{quote}
-  \artsstyle{(gdb) break \_\_assert\_fail}
+  \shortcode{(gdb) break \_\_assert\_fail}
 \end{quote}
 (Note the two leading underscores!) Now run the program: 
 \begin{quote}
-  \artsstyle{(gdb) run}
+  \shortcode{(gdb) run}
 \end{quote}
 
 Instead of just exiting, under the debugger the program will be paused
 when the assertion fails, and you will get back the debugger prompt.
 Now type:
 \begin{quote}
-  \artsstyle{(gdb) where} 
+  \shortcode{(gdb) where} 
 \end{quote}  
 to see where the assertion failure happened. You can use the
-\artsstyle{print} command to look at the contents of variables and you
-can use the \artsstyle{up} and \artsstyle{down} commands to navigate
+\shortcode{print} command to look at the contents of variables and you
+can use the \shortcode{up} and \shortcode{down} commands to navigate
 the stack.  For more information, see the GDB documentation or type
-\artsstyle{help} at the prompt of GDB.
+\shortcode{help} at the prompt of GDB.
 
 For ARTS, the assertion failures mostly happen inside the Tensor /
 Matrix / Vector package (usually because you triggered a range check
 error, i.e., you tried to read or write beyond array bounds). In this
-case the \artsstyle{up} command of GDB is particularly useful. If you
+case the \shortcode{up} command of GDB is particularly useful. If you
 give this a couple of times you will finally end up in the part of
 your code that caused the error.
 

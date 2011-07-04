@@ -245,8 +245,8 @@ background.
 %
 If the surface can be assumed to act as a blackbody, the workspace method
 \wsmindex{surfaceBlackbody} can be used. This method sets
-\artsstyle{surface\_emission} to $[B,0,0,0]^T$, and \artsstyle{surface\_los}
-and \artsstyle{surface\_rmatrix} to be empty.
+\builtindoc{surface\_emission} to $[B,0,0,0]^T$, and \builtindoc{surface\_los}
+and \builtindoc{surface\_rmatrix} to be empty.
 
 
 
@@ -259,16 +259,16 @@ Several methods to incorporate a flat surface exist, including
 properties of the surface are given, and if these are constant or not with
 frequency.
 
-In the case of specular reflections, \artsstyle{surface\_los} has the length 1.
+In the case of specular reflections, \builtindoc{surface\_los} has the length 1.
 The specular direction is calculated by the internal function
 \funcindex{surface\_specular\_los}\footnote{Any tilt of the surface is
   neglected when determining the specular direction. If there would be any need
   to consider surface tilt, almost complete code for this task existed in
-  \artsstyle{surface\_specular\_los} but was removed in version 1-1-876. The
+  \builtindoc{surface\_specular\_los} but was removed in version 1-1-876. The
   code can be obtained by e.g.\ checking out version 1-1-875.}. Equations
 \ref{T-eq:surface:specular_matrix}-\ref{T-eq:surface:specular_emission}
-in \theory give the values of \artsstyle{surface\_rmatrix} and
-\artsstyle{surface\_emission}.
+in \theory give the values of \builtindoc{surface\_rmatrix} and
+\builtindoc{surface\_emission}.
 
 
 
@@ -277,12 +277,12 @@ in \theory give the values of \artsstyle{surface\_rmatrix} and
 A basic treatment of Lambertian surfaces is provided by the method
 \wsmindex{surfaceLambertianSimple}. This method assumes that the down-welling
 radiation has no azimuthal dependency, which fits the assumptions for 1D
-atmospheres. The number of angles to apply in \artsstyle{surface\_los} is
+atmospheres. The number of angles to apply in \builtindoc{surface\_los} is
 selected by the user. 
 
 For a Lambertian surface the reflected radiation is unpolarised (thus
 independent of the polarisation of the down-welling radiation). That is,
-each \artsstyle{surface\_rmatrix} has the structure:
+each \builtindoc{surface\_rmatrix} has the structure:
 \begin{equation}
   \MtrStl{R} =
      \left[\begin{array}{cccc}
@@ -311,7 +311,7 @@ Thus, this value is a combination of the surface reflectivity and an solid
 angle weight.
 
 
-The emission (\artsstyle{surface\_emission}) becomes:
+The emission (\builtindoc{surface\_emission}) becomes:
 \begin{equation}
   \label{eq:surface:blambertian} 
   \VctStl{b} =  \left[\begin{array}{c} r_dB \\ 0 \\0\\0 \end{array}\right].

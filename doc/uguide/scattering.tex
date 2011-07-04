@@ -684,9 +684,9 @@ in the files \fileindex{m\_scatrte.cc}, \fileindex{m\_cloudbox.cc} and
 This example demonstrates how to set up a 1D DOIT calculation. A full
 running controlfile example for a DOIT calculation can be found in the
 ARTS package in the tests/DOIT directory. The file is called
-\artsstyle{TestDOIT.arts}. For detailed descriptions of the
+\shortcode{TestDOIT.arts}. For detailed descriptions of the
 workspace methods and variables please refer also to the online help
-(\artsstyle{arts -d ...}).
+(\shortcode{arts -d ...}).
  
 \subsection{DOIT frame}
 \label{sec:scattering:frame}
@@ -714,9 +714,9 @@ DoitAngularGridsSet( doit_za_grid_size,
 \end{code}
 For down-looking geometries it is sufficient to define the generic inputs:
 \begin{tabular}{ll}
-  \artsstyle{N\_za\_grid}& Number of grid points in zenith angle grid,
+  \shortcode{N\_za\_grid}& Number of grid points in zenith angle grid,
   recommended value: 19\\
-  \artsstyle{N\_aa\_grid}& Number of grid points in azimuth angle grid,
+  \shortcode{N\_aa\_grid}& Number of grid points in azimuth angle grid,
   recommended value: 37\\ 
 \end{tabular}
 From these numbers equally spaced grids are created and stored in the
@@ -733,7 +733,7 @@ as a generic input. If a filename is given, the equidistant grid is
 taken for the calculation of the scattering integrals and the
 optimized grid is taken for the radiative transfer part.
 Otherwise, if no filename is specified
-(\artsstyle{za\_grid\_opt\_file = ""}) the equidistant grid is
+(\shortcode{za\_grid\_opt\_file = ""}) the equidistant grid is
 taken for the calculation of the scattering integrals and for
 the radiative transfer calculations. This option makes sense for
 down-looking cases to speed up the calculation.
@@ -847,8 +847,8 @@ method has to be used if a zenith angle grid file is given in
 scattering integral can be calculated on a coarser grid resolution, hence
 in \wsmindex{doit\_scat\_fieldCalcLimb}, the radiation field is
 interpolated on the equidistant angular grids specified in
-\wsmindex{DoitAngularGridsSet} by the generic inputs \artsstyle{Nza} and
-\artsstyle{Naa}. Alternatively, one can use 
+\wsmindex{DoitAngularGridsSet} by the generic inputs \shortcode{Nza} and
+\shortcode{Naa}. Alternatively, one can use 
 \wsmindex{doit\_scat\_fieldCalc}, where this interpolation is not 
 performed. This function is efficient for simulations in up- or
 down-looking geometry, where the we do not need the fine zenith angle
@@ -917,7 +917,7 @@ options. The workspace methods \wsmindex{doit\_conv\_flagAbsBT} and
 \wsmindex{doit\_conv\_flagAbs} compare the absolute differences of the
 radiation field element-wise as described in
 Equation \ref{eq:scattering:conv_test}. The convergence limits are specified by the
-generic input \artsstyle{epsilon} which specifies the convergence limit. A limit
+generic input \shortcode{epsilon} which specifies the convergence limit. A limit
 must be given for each Stokes component. In
 \wsmindex{doit\_conv\_flagAbsBT} the limits must be specified in
 Rayleigh Jeans brightness temperatures whereas in

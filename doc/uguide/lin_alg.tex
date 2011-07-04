@@ -22,24 +22,24 @@ for other purposes than the radiative transfer calculations.
 
 All the functions described below can be found in the files:
 \begin{itemize}
-\item \artsstyle{lin\_alg.h}
-\item \artsstyle{lin\_alg.cc}
+\item \fileindex{lin\_alg.h}
+\item \fileindex{lin\_alg.cc}
 \end{itemize}
-The template class \artsstyle{Array} and the classes \artsstyle{Matrix} and
-\artsstyle{Vector} are used, therefore the linear algebra functions require
+The template class \shortcode{Array} and the classes \builtindoc{Matrix} and
+\builtindoc{Vector} are used, therefore the linear algebra functions require
 the files:
 \begin{itemize}
-\item \artsstyle{matpackI.h}
-\item \artsstyle{make\_vector.h}
-\item \artsstyle{array.h}
-\item \artsstyle{matpackI.cc}
-\item \artsstyle{make\_vector.cc}
-\item \artsstyle{array.cc}
+\item \fileindex{matpackI.h}
+\item \fileindex{make\_vector.h}
+\item \fileindex{array.h}
+\item \fileindex{matpackI.cc}
+\item \fileindex{make\_vector.cc}
+\item \fileindex{array.cc}
 \end{itemize}
 Furthermore logical functions contained in
 \begin{itemize}
-\item \artsstyle{logic.h}
-\item \artsstyle{logic.cc}
+\item \fileindex{logic.h}
+\item \fileindex{logic.cc}
 \end{itemize}
 are used to check the dimensions of input matrices for various functions.
 
@@ -60,7 +60,7 @@ of the algorithm described in
 is the Gauss-Jordan elimination, but this method is three times
 slower than the LU decomposition method
 [\cite{numerical_recipes_C:97}, p.36]. The LU decomposition method
-reqires two functions, \artsstyle{ludcmp} and \artsstyle{lubacksub},
+reqires two functions, \shortcode{ludcmp} and \shortcode{lubacksub},
 which will be decribed below.
 \vspace{0.5cm}\\
 The following example for a three dimensional equation sytem 
@@ -69,24 +69,24 @@ equation sytem of the type
 (\ref{eq:lin_equ_sys}):
 \begin{itemize}
 \item Create matrix A, vector b: \\
-  \artsstyle{A = Matrix(3,3);} \\
-  \artsstyle{A(1,1) = 4;}\\
-  \artsstyle{A(2,1) = 3;}\\
+  \shortcode{A = Matrix(3,3);} \\
+  \shortcode{A(1,1) = 4;}\\
+  \shortcode{A(2,1) = 3;}\\
   $\cdots$\\
-  \artsstyle{b = Vector(3);}\\
-  \artsstyle{b(1) = 7;}\\
+  \shortcode{b = Vector(3);}\\
+  \shortcode{b(1) = 7;}\\
   $\cdots$
 \item Initialize solution vector x and two other variables needed for
   storing intermediate results:\\
-  \artsstyle{x = Vector(3);}\\
-  \artsstyle{LU = Matrix(3,3);}\\
-  \artsstyle{indx = ArrayOfIndex(3);}
+  \shortcode{x = Vector(3);}\\
+  \shortcode{LU = Matrix(3,3);}\\
+  \shortcode{indx = ArrayOfIndex(3);}
 \item Call LU decomposition function (see Section \ref{sec:lin_alg:lu_decomp}): \\
-  \artsstyle{ludcmp(LU, indx, A);}
+  \shortcode{ludcmp(LU, indx, A);}
 \item Call LU backsubstitution function (see Section \ref{sec:lin_alg:backsub}): \\
-  \artsstyle{lubacksub(x, LU, b, indx);}
+  \shortcode{lubacksub(x, LU, b, indx);}
 \item Print the solution vector:\\
-  \artsstyle{cout << x;}
+  \shortcode{cout << x;}
 \end{itemize}
 
 \subsection{LU Decomposition}
@@ -144,7 +144,7 @@ is solved again by backsubstitution.
 The advantage in breaking up one linear set into two successive ones
 is that the solution of a triangular set of equations is quite trivial.
 
-The function \artsstyle{ludcmp} requires a square matrix of arbitrary
+The function \shortcode{ludcmp} requires a square matrix of arbitrary
 dimension $n$ as input and performs the LU decomposition. It returns one
 matrix which contains both matrices, ${\bf L}$ and ${\bf U}$. 
 For the lower triangular matrix  ${\bf L}$ the diagonal elements 
@@ -165,7 +165,7 @@ Crout's algorithm} and a matrix arranged in this form is named {\sl
 Crout matrix} in this context.
   
 
-Another output variable of the function \artsstyle{ludcmp} is an index
+Another output variable of the function \shortcode{ludcmp} is an index
 vector which contains information about pivoting which is absolutely
 essential for the stability of
 Crout's algorithm. Here partial pivoting,
@@ -209,10 +209,10 @@ is called backsubtitution. The same
 method  applied for an equation system including a
 lower triangular matrix is named forward substitution.   
 
-The function \artsstyle{lubacksub} does forward and backward
+The function \shortcode{lubacksub} does forward and backward
 substitution to solve the equation system described in
 \ref{sec:lin_alg:lu_decomp}. As input it requires the output variables of
-\artsstyle{ludcmp} which are the {\sl Crout matrix} and the index
+\shortcode{ludcmp} which are the {\sl Crout matrix} and the index
 vector. Output of the function is the solution vector ${\bf x}$ to the
 equation system.
 
@@ -309,24 +309,24 @@ q & $\epsilon$(q,q) \\ \hline
 \hline
 \end{tabular}
 \vspace{0.5cm}\\
-The algorithm is implemented in the function \artsstyle{matrix\_exp}. Input
+The algorithm is implemented in the function \shortcode{matrix\_exp}. Input
 to this function is the matrix ${\bf A}$ and the parameter $q$. As output
 it gives the matrix ${\bf F}$ which is defined above.\\
-The following example shows how to use the \artsstyle{matrix\_exp} function:
+The following example shows how to use the \shortcode{matrix\_exp} function:
 \begin{itemize}
 \item Initialize {\bf A} and assign values:\\
-  \artsstyle{Matrix A(3,3);}\\
-  \artsstyle{A(1,1) = 45;}\\
-  \artsstyle{A(1,2) = 3;}\\
+  \shortcode{Matrix A(3,3);}\\
+  \shortcode{A(1,1) = 45;}\\
+  \shortcode{A(1,2) = 3;}\\
 $\cdots$ 
 \item Initialize {\bf F}:\\
-  \artsstyle{Matrix F(3,3);}
+  \shortcode{Matrix F(3,3);}
 \item Give a paramater for the accuracy:\\
-  \artsstyle{Index q=6;}
+  \shortcode{Index q=6;}
 \item Call the matrix exponential function:\\
-  \artsstyle{matrix\_exp(F,A,q);}
+  \shortcode{matrix\_exp(F,A,q);}
 \item Print the result: \\
-  \artsstyle{cout << "exp(A) = " << F;}
+  \shortcode{cout << "exp(A) = " << F;}
 \end{itemize}
 
 

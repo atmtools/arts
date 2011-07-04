@@ -16,7 +16,7 @@ and atmospheric quantities are defined as a function of pressure
 (Section~\ref{sec:fm_defs:grids}), but the effective vertical coordinate from a
 geometrical perspective (such as the determination of propagation paths) is the
 radius (Section~\ref{sec:fm_defs:atmdim}). Pressures and radii are linked by
-specifying the geometrical altitudes (\artsstyle{z\_field}).
+specifying the geometrical altitudes (\builtindoc{z\_field}).
 
 
 \section{Altitude coordinates}
@@ -244,14 +244,14 @@ This representation is denoted as the field\index{atmospheric field}
 of the quantity. The field must, at least, be specified for the
 geometric altitude of the pressure levels (\wsvindex{z\_field}), the
 temperature (\wsvindex{t\_field}) and considered atmospheric species
-(\artsstyle{vmr\_field}).  The fields are assumed to be piece-wise
+(\builtindoc{vmr\_field}).  The fields are assumed to be piece-wise
 linear functions vertically (with pressure altitude as the vertical
 coordinate, Section \ref{sec:fm_defs:altitudes}), and along the
 latitude and longitude edges of 2D and 3D grid boxes. For points
 inside 2D and 3D grid boxes, multidimensional linear interpolation is
 applied (that is, bi-linear interpolation for 2D etc.). Note especially
 that this is also valid for the field of geometrical altitudes
-(\artsstyle{z\_field}). Fields are rank-3 tensors. For example, the
+(\builtindoc{z\_field}). Fields are rank-3 tensors. For example, the
 temperature field is $T=T(\Prs,\Lat,\Lon)$. That means each field is
 like a book, with one page for each pressure grid point, one row for
 each latitude grid point, and one column for each longitude grid
@@ -273,7 +273,7 @@ See further Section \ref{sec:fm_defs:geoid}.
 The lower boundary of the atmosphere is denoted as the surface. The surface is
 specified by its geometrical altitude on the latitude and longitude grids.
 The workspace variable holding these data is called \wsvindex{z\_surface}, and
-is a matrix of same size as \artsstyle{r\_geoid}.
+is a matrix of same size as \builtindoc{r\_geoid}.
 
 It is not allowed that there is an altitude gap between the surface and
 the lowermost pressure level.  That is, the surface pressure must be
