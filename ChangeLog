@@ -1,3 +1,25 @@
+2011-07-04  Daniel Kreyling  <daniel.kreyling(at)physik.uni-muenchen.de>
+
+	* arts-1-15-47
+
+	* src/cloudbox.cc: 
+	(IWCtopnd_MH97)
+	Corrected a quite fundamental conception error. The two modes of
+	this distribution are cumulative. So far the code was just
+	calculating rather the first mode or the second mode and returning
+	the individual values.
+
+	(chk_pndsum)
+	After correcting the error in the size distribution, the
+	deviations of summed up particle number densities to input IWC are
+	reduced. If the deviation is more than 10%, ARTS will give a
+	warning to "out1". Additionally the pnd values will always get
+	rescaled with the ratios of initial IWC to summed up pnds.
+	The ratios are written to "out2".
+
+	* src/methods.cc:
+	updated doku for pnd_fieldSetup.
+
 2011-07-04  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-46

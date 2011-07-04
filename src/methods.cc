@@ -6314,7 +6314,7 @@ void define_md_data_raw()
 	 "Currently there are two particle size distribution parametisations implemented:\n"
 	 "\t1. MH97 for ice particles. Using a first-order gamma distribution for particles\n"
 	 "\t smaller than 100 microns (melted diameter) and a lognormal distribution for\n"
-	 "\t particles bigger 100 microns.\n"
+	 "\t particles bigger 100 microns. Values from both modes are cumulative.\n"
 	 "\t See subfunction *IWCtopnd_MH97* for implementation/units/output.\n"
 	 "\t (src.: McFarquhar G.M., Heymsfield A.J., 1997)"
 	 "\n"

@@ -1273,7 +1273,7 @@ void pnd_fieldSetup ( //WS Output:
         dm[i] = pow ( 
                  ( (6*scat_data_meta_array[intarr[i]+scat_data_start].V) /PI ),
                  ( 1./3. ) );
-	// get density from meta data [g/m^3]
+	// get density fro5m meta data [g/m^3]
         rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
 
         //check for correct particle type
@@ -1302,16 +1302,16 @@ void pnd_fieldSetup ( //WS Output:
                                       t_field ( p, lat, lon ), rho[i] );
 	      //dN2[i] = dN[i] * vol[i] * rho[i];
             }
-            //out0<<dN<<"\n";
+            //out0<<"level: "<<p<<"\n"<<dN<<"\n";
             
             // scale pnds by bin width
             scale_pnd( pnd, dm, dN );
-	    //scale_pnd( pnd2, dm, dN2 );
 	    
+	    //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
             // calculate error of pnd sum and real XWC
-            chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho );
+            chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho, p, lat, lon );
             //chk_pndsum2 (pnd2, IWC_field ( p,lat,lon ));
-
+	    
             // writing pnd vector to wsv pnd_field
             for ( Index i = 0; i< scat_data_nelem[k]; i++ )
             {
@@ -1364,7 +1364,6 @@ void pnd_fieldSetup ( //WS Output:
         }
       }
       //cout<<"\nr:\t"<<r<<endl;
-
       // itertation over all atm. levels
       for ( Index p=p_cbstart; p<p_cbend; p++ )
       {
@@ -1391,7 +1390,7 @@ void pnd_fieldSetup ( //WS Output:
             //out0<<"\n"<<"HIER!"<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
 	    
             // calculate error of pnd sum and real XWC
-            chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho );
+            chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho, p, lat, lon  );
 	    //chk_pndsum2 (pnd2, LWC_field ( p,lat,lon ));
             //chk_pndsum (pnd, testiwc[p], vol, rho);
 

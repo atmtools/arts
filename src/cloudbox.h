@@ -111,7 +111,11 @@ void scale_pnd (Vector& w,
 void chk_pndsum (Vector& pnd,
                  const Numeric xwc,
                  const Vector& density,
-                 const Vector& vol);
+                 const Vector& vol,
+		 const Index& p,
+		 const Index& lat,
+		 const Index& lon
+		 );
 
 // ONLY FOR TESTING PURPOSES
 void chk_pndsum2 (Vector& pnd,

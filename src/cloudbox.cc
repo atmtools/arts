@@ -827,61 +827,66 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 			const Numeric t,
 			const Numeric density)
 {
-	      Numeric dN;
-	      // convert m to microns
-	      Numeric Dm = dm * 1e6;
-	      //convert T from Kelvin to Celsius
-	      Numeric T = t-273.15;
-	      //split IWC in IWCs100 and IWCl100
-	      Numeric a=0.252; //g/m^3
-	      Numeric b1=0.837;
-	      Numeric IWC0=1; //g/m^3
-	      Numeric IWCs100=min(iwc,a*pow(iwc/IWC0,b1));
-	      Numeric IWCl100=iwc-IWCs100;
-	      
-	      if ( Dm <= 100) 
-		  {
-		    //Gamma distribution component
+  // skip calculation if IWC is 0.0
+  if ( iwc == 0.0 )
+  {
+    return 0.0;
+  }
+  Numeric dN1;
+  Numeric dN2;
+  Numeric dN;
+  // convert m to microns
+  Numeric Dm = dm * 1e6;
+  //convert T from Kelvin to Celsius
+  Numeric T = t-273.15;
+  //split IWC in IWCs100 and IWCl100
+  Numeric a=0.252; //g/m^3
+  Numeric b1=0.837;
+  Numeric IWC0=1; //g/m^3
+  Numeric IWCs100=min ( iwc,a*pow ( iwc/IWC0,b1 ) );
+  Numeric IWCl100=iwc-IWCs100;
 
-		    Numeric b2=-4.99*1e-3; //micron^-1
-		    Numeric m=0.0494; //micron^-1
-		    Numeric alfas100=b2-m*log10(IWCs100/IWC0); //miron^-1
-		    Numeric Ns100=6*IWCs100*pow(alfas100,5.)/(PI*density*gamma_func(5.));//micron^-5
-		    Numeric Nm1=Ns100*Dm*exp(-alfas100*Dm); //micron^-4
-		    dN = Nm1*1e18; // m^-3 micron^-1
-		     
-		    
-		   }
-	      else {
-		    //Log normal distribution component
 
-		    Numeric aamu=5.20;
-		    Numeric bamu=0.0013;
-		    Numeric abmu=0.026;
-		    Numeric bbmu=-1.2*1e-3;
-		    Numeric amu=aamu+bamu*T; 
-		    Numeric bmu=abmu+bbmu*T;
-		    Numeric mul100=amu+bmu*log10(IWCl100/IWC0);
-		    
-		    Numeric aasigma=0.47;
-		    Numeric basigma=2.1*1e-3;
-		    Numeric absigma=0.018;
-		    Numeric bbsigma=-2.1*1e-4;
-		    Numeric asigma=aasigma+basigma*T;
-		    Numeric bsigma=absigma+bbsigma*T;
-		    Numeric sigmal100=asigma+bsigma*log10(IWCl100/IWC0);
-		    
-		    Numeric D0=1.0; //micron
-		    Numeric a1=6*IWCl100; //g/m^3
-		    Numeric a2=pow(PI,3./2.)*density*sqrt(2)*exp(3*mul100+9./2.*pow(sigmal100,2))*sigmal100*pow(D0,3)*Dm; //g/m^3/micron^4
-		    Numeric Nm2=a1/a2*exp(-0.5*pow((log(Dm/D0)-mul100)/sigmal100,2)); //micron^-4
-		    dN = Nm2*1e18; // m^-3 micron^-1
-		     
-		       
-		  }
-	      if (isnan(dN)) dN = 0.0;
-	      dN *= 1e6; // m^-3 m^-1
-	      return dN;
+  //Gamma distribution component
+
+  Numeric b2=-4.99*1e-3; //micron^-1
+  Numeric m=0.0494; //micron^-1
+  Numeric alfas100=b2-m*log10 ( IWCs100/IWC0 ); //miron^-1
+  Numeric Ns100=6*IWCs100*pow ( alfas100,5. ) / ( PI*density*gamma_func ( 5. ) );//micron^-5
+  Numeric Nm1=Ns100*Dm*exp ( -alfas100*Dm ); //micron^-4
+  dN1 = Nm1*1e18; // m^-3 micron^-1
+
+
+
+  //Log normal distribution component
+
+  Numeric aamu=5.20;
+  Numeric bamu=0.0013;
+  Numeric abmu=0.026;
+  Numeric bbmu=-1.2*1e-3;
+  Numeric amu=aamu+bamu*T;
+  Numeric bmu=abmu+bbmu*T;
+  Numeric mul100=amu+bmu*log10 ( IWCl100/IWC0 );
+
+  Numeric aasigma=0.47;
+  Numeric basigma=2.1*1e-3;
+  Numeric absigma=0.018;
+  Numeric bbsigma=-2.1*1e-4;
+  Numeric asigma=aasigma+basigma*T;
+  Numeric bsigma=absigma+bbsigma*T;
+  Numeric sigmal100=asigma+bsigma*log10 ( IWCl100/IWC0 );
+
+  Numeric D0=1.0; //micron
+  Numeric a1=6*IWCl100; //g/m^3
+  Numeric a2=pow ( PI,3./2. ) *density*sqrt ( 2 ) *exp ( 3*mul100+9./2.*pow ( sigmal100,2 ) ) *sigmal100*pow ( D0,3 ) *Dm; //g/m^3/micron^4
+  Numeric Nm2=a1/a2*exp ( -0.5*pow ( ( log ( Dm/D0 )-mul100 ) /sigmal100,2 ) ); //micron^-4
+  dN2 = Nm2*1e18; // m^-3 micron^-1
+
+
+
+  dN = ( dN1+dN2 ) *1e6; // m^-3 m^-1
+  if (isnan(dN)) dN = 0.0;
+  return dN;
 }
 
 
@@ -902,7 +907,12 @@ Numeric LWCtopnd (const Numeric lwc, //[g/m^3]
 		  //const Numeric density,
 		  const Numeric r // [m]
 		  )
-{ 	
+{ 
+  // skip calculation if LWC is 0.0
+  if ( lwc == 0.0 )
+  {
+    return 0.0;
+  }
 	Numeric rc = 4.7; //[micron]
 	Numeric alpha = 5.0;
 	Numeric gam = 1.05;
@@ -978,8 +988,8 @@ void scale_pnd  (  Vector& w,
 
 }
 
-/*! Check sum of pnd  vector against total massdensity value.
- *  Relative error is calculated and used to adjust the output of vector pnd.
+/*! Check sum of pnd vector against total mass density value.
+ *  Deviation is calculated and used to adjust the output of vector pnd.
          
 	\param pnd particle number density [g/m3]
 	\param xwc atmospheric massdensity [g/m3]
@@ -993,7 +1003,11 @@ void scale_pnd  (  Vector& w,
 void chk_pndsum (Vector& pnd,
 		 const Numeric xwc,
 		 const Vector& density,
-		 const Vector& vol)
+		 const Vector& vol,
+		 const Index& p,
+		 const Index& lat,
+		 const Index& lon
+		)
 
 {
   // set vector x to pnd size
@@ -1007,7 +1021,7 @@ void chk_pndsum (Vector& pnd,
     //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
   }
 
-  if ( xwc == 0.0 )
+  if ( x.sum() == 0.0 )
   {
     // set error and all pnd values to zero, IF there is 
     // no scattering particles at this atmospheric level.
@@ -1017,15 +1031,21 @@ void chk_pndsum (Vector& pnd,
   else
   {
     error = xwc/x.sum();
-
-    // correct all pnd values with error
-    if ( error > 1.05 || error < 0.95 )
+  // correct all pnd values with error
+    pnd *= error;
+  // give warning if deviations are more than 10%
+    if ( error > 1.10 || error < 0.90 )
     {
-      pnd *= error
-             ;
+      //ostringstream os;
+      out1<< "WARNING: in WSM chk_pndsum in pnd_fieldSetup!\n" 
+         << "The deviation of the sum of nodes in the particle size distribution\n"
+	 << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
+	 << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
+      //cerr<<os;
     }
-
   }
+
+  out2 << "PND scaling factor in atm. level (p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
     //cout<<"\npnd_scaled\t"<<pnd<<endl;
     //cout<<"\nPND\t"<<pnd.sum()<<"\nXWC\t"<<xwc<<"\nerror\t"<<error<<endl;
     //cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;

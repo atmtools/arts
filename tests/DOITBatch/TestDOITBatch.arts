@@ -167,12 +167,14 @@ ScatteringParticlesSelect
 # Check the include files to see the setting of Agendas and if needed,
 # overwrite them by re-setting the agendas here.------------------------
 
+
+# This agenda is already specified in general.arts
 # This should be sufficiently small to assume single scattering in 
 # one propagation path step---------------------------------------------
-AgendaSet( ppath_step_agenda ){
-  ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                       z_field, r_geoid, z_surface, 0)
-}
+#AgendaSet( ppath_step_agenda ){
+#  ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid, lon_grid,
+#                       z_field, r_geoid, z_surface, 0)
+#}
 
 AgendaSet( iy_clearsky_agenda ){
 #  radiative transfer calculations with emission
