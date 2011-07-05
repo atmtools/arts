@@ -3,8 +3,9 @@
 
 
 \starthistory
-  2011-06-28 & Added intro and sections on abs in RT and abs
-               calculation. First attempt of a complete absorption
+  2011-07-05 & Added intro and sections on abs in RT and abs
+               calculation. Also revised lookup table section. First 
+               attempt of a complete absorption
                chapter for ARTS2. \\
   2003-03-28 & Documentation for WSM abs\_fieldCalc
                extended by Stefan Buehler after comment from Sreerekha
@@ -439,6 +440,10 @@ The basic idea of the lookup table is to pre-calculate absorption for
 discrete combinations of these variables, and then use interpolation
 to extract absorption for the actual atmospheric state.
 
+The lookup table concept and implementation is described only very
+briefly here in the user guide. Much more details and validation
+results can be found in \citet{buehler:absor:11}.
+
 \subsection{Lookup table concept}
 
 The fundamental law of Beer\footnote{According to C.\ Melsheimer,
@@ -487,8 +492,8 @@ Instead, they are stored for a reference temperature and set of
 temperature perturbations for each pressure level. E.g., if the set of
 perturbations is $[-10,\, 0,\, +10]$, then the \aAbsXsec{i} would be stored
 for three different temperatures for each pressure level:
-$[T_R(p)-10\,\mbox{K},\, T_R(p),\, T_R(p)+10\,\mbox{K}]$, where
-$T_R(p)$ is the reference temperature for each pressure level.
+$[T_\mathrm{R}(p)-10\,\mbox{K},\, T_\mathrm{R}(p),\, T_\mathrm{R}(p)+10\,\mbox{K}]$, where
+$T_\mathrm{R}(p)$ is the reference temperature for each pressure level.
 
 \subsubsection{Trace gas concentration dependence}
 
@@ -501,191 +506,71 @@ normally so low that this can be safely neglected. An important
 exception is water vapor in the lower troposphere, which can reach
 quite high volume mixing ratios. Therefore, the effect of water vapor
 mixing ratio on water vapor absorption (self broadening), as well as
-on oxygen absorption (according to a parameterization by
+on oxygen absorption (for example according to the parameterization by
 \citet{pwr:93}) may not be negligible.
 
-This is handled by storing perturbations, similar to the temperature
-case. The user can select for which species perturbations should be
-stored. (The so called `nonlinear species'.)
+This is handled by storing water vapor perturbations.  In contrast to
+the temperature case, the water vapor perturbations are
+multiplicative, not additive.  Hence, if the set of perturbations is
+$[0,\, 1,\, 10]$, then the \aAbsXsec{i} would be stored for three
+different H$_2$O VMRs for each pressure/temperature grid point: $[0,\,
+\mathrm{VMR_R}(p,T),\, 10*\mathrm{VMR_R}(p,T)]$, where
+$\mathrm{VMR_R}(p,T)$ is the reference water vapor VMR for each
+pressure/temperature grid point.
 
-\textbf{This feature is not yet used.}
-\FIXME{Update this when it works.}
+\subsubsection{Interpolation}
 
+The interpolation scheme is quite important for the accuracy of the
+lookup table.  In particular, higher order interpolation gives
+considerably better accuracy for the same table grid spacing.  The
+interpolation orders in the ARTS implementation of the lookup table
+can be chosen by the user.  The settings that are recommended, and set
+as defaults in file \fileindex{general.arts}, are quite high
+interpolation orders of 5, 7, and 5 for pressure, temperature, and
+water vapor, respectively.  Such high orders are only appropriate
+because the function to be interpolated (the \aAbsXsec{i}) is very smooth.
 
-\subsection{Implementation}
-%-------------------------------------------------------------------------
+\subsection{Workspace variables and methods}
+
 The gas absorption lookup table is implemented by the class
 \typeindex{GasAbsLookup}, which resides in the files
 \fileindex{gas\_abs\_lookup.cc} and \fileindex{gas\_abs\_lookup.h}.
 
-\subsubsection{Lookup table structure}
+The lookup table itself is stored in the workspace variable
+\wsvindex{abs\_lookup}.  It can be generated with the method
+\wsmindex{abs\_lookupCreate}.  ARTS also includes some methods that
+automatically set input parameters for \builtindoc{abs\_lookupCreate},
+such as grid ranges and reference profiles of pressure, temperature,
+and trace gas concentrations.  These methods are
+\wsmindex{abs\_lookupSetup}, \wsmindex{abs\_lookupSetupBatch}, and
+\wsmindex{abs\_lookupSetupWide}.  The first two will take into account
+the actual atmospheric state, or set of atmospheric states, for the
+calculation. The third alternative simply sets up a table that should
+cover most reasonable atmospheric conditions.
+\citet{buehler:absor:11} contains more information on these setup
+methods.
 
-Below you find the actual declaration of the class GasAbsLookup with
-extensive comments.
-
-\begin{code}
-//! An absorption lookup table.
-/*! This class holds an absorption lookup table, as well as all
-    information that is necessary to use the table to extract
-    absorption. Extraction routines are implemented as member
-    functions. */
-struct GasAbsLookup {
-public:
-  // Documentation is with the implementation!
-  void Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
-              ConstVectorView current_f_grid );
-
-  // Documentation is with the implementation!
-  void Extract( Matrix&         sga,
-                            const Index&    f_index,
-                            const Numeric&  p,
-                            const Numeric&  T,
-                ConstVectorView abs\_vmrs ) const;
-
-    // Obsolete try for a function to extract for the entire field:
-    //   void Extract( Tensor5View      sga,
-    //                 const Index&     f_index,
-    //                 ConstVectorView  p,
-    //                 ConstTensor3View T,
-    //                 ConstTensor4View abs\_vmrs ) const;
-
-  // IO functions must be friends:
-  friend void xml_read_from_stream( istream& is_xml,
-                                    GasAbsLookup& gal,
-                                    bifstream *pbifs );
-  friend void xml_write_to_stream ( ostream& os_xml,
-                                    const GasAbsLookup& gal,
-                                    bofstream *pbofs );
-
-
-private:
-
-  //! The species tags for which the table is valid.
-  ArrayOfArrayOfSpeciesTag species; 
-
-  //! The species tags with non-linear treatment.
-  /*! This must be inside the range of species. If nonlinear_species
-    is an empty vector, it means that all species should be treated
-    linearly. (No absorption for perturbed species profiles is 
-    stored.) */
-  ArrayOfIndex nonlinear_species; 
-
-  //! The frequency grid [Hz].
-  /*! Must be sorted in ascending order. */
-  Vector    f_grid;
-
-  //! The pressure grid for the table [Pa].
-  /*! Must be sorted in decreasing order. */
-  Vector    p_grid;  
-
-  //! The reference VMR profiles.
-  /*! The VMRs for all species, associated with p_grid. Dimension:
-    [n_species, n_p_grid]. These VMRs are needed to scale the
-    absorption coefficient to other VMRs. We are never working with
-    "absorption cross-sections", always with real absorption 
-    coefficients, so we have to remember the associated VMR values. 
-
-    Physical unit: Absolute value. */
-  Matrix    vmrs_ref;
-
-  //! The reference temperature profile [K].
-  /*! This is a temperature profile. The dimension must be the same as
-    p_grid. */
-  Vector    t_ref;
-
-  //! The vector of temperature perturbations [K].
-  /*! This can have any number of elements. Example:
-    [-20,-10,0,10,20]. The actual temperatures for which absorption is
-    stored are t_ref + t_pert for each level. The reference
-    temperature itself should normally also be included, hence 
-    t_pert should always include 0. Must be sorted in ascending order!
-
-    The vector t_pert may be an empty vector (nelem()=0), which marks
-    the special case that no interpolation in temperature should be
-    done. If t_pert is not empty, you will get an error message if you
-    try to extract absorption for temperatures outside the range of
-    t_pert. */
-  Vector    t_pert;
-
-  //! The vector of perturbations for the VMRs of the nonlinear species.
-  /*!
-    These apply to all the species that have been set as
-    nonlinear_species.
-
-    Fractional units are used! Example: [0,.5,1,10,100],
-    meaning from VMR 0 to 100 times the profile given in
-    abs\_vmrs. The reference value should normally be included, hence
-    nls_pert should always include the value 1.
-
-    If nonlinear_species is an empty vector, it means that there are
-    no nonlinear species. Then nls_pert must also be an empty vector.
-  */
-  Vector    nls_pert;
-
-  //! Absorption cross sections.
-  /*!
-    Physical unit: m^2
-
-    \attention We want to interpolate these beasts in pressure. To
-    keep interpolation errors small it is better to store
-    cross-sections, not coefficients. The absorption coefficient alpha
-    is given by alpha = xsec * n, where n is the number density.
-
-    Dimension: [ a, b, c, d ]
-
-    Simplest case (no temperature perturbations, 
-    no vmr perturbations): <br>
-    a = 1 <br>
-    b = n_species <br>
-    c = n_f_grid <br>
-    d = n_p_grid <br>
-
-    Standard case (temperature perturbations, 
-    but no vmr perturbations): <br>
-    a = n_t_pert <br>
-    b = n_species <br>
-    c = n_f_grid <br>
-    d = n_p_grid <br>
-
-    Full case (with temperature perturbations 
-    and vmr perturbations): <br>
-    a = n_t_pert <br>
-    b = n_species + n_nonlinear_species * ( n_nls_pert - 1 ) <br>
-    c = n_f_grid <br>
-    d = n_p_grid <br>
-
-    Note that the last three dimensions are identical to the
-    dimensions of abs_per_tg in ARTS-1-0. This should simplify
-    computation of the lookup table with this old ARTS version.
-  */
-  Tensor4 xsec;
-};
-\end{code}
-
-\subsubsection{Workspace variables and methods}
-
-The lookup table itself is stored in the WSV
-\wsvindex{abs\_lookup}. After loading (with \builtindoc{ReadXML}),
-it is important that one calls the WSM
-\wsmindex{abs\_lookupAdapt}. This will make sure that the lookup
-table agrees exactly with your calculation. For example, it has to
-check that the frequencies that you want to use are included in the
-set of frequencies for which the table has been calculated.
-\textbf{There is no interpolation in frequency!} This is on purpose,
-because the gas absorption spectrum is the quantity that changes most
-rapidly as a function of frequency. Frequency interpolation here would
-be stupid and dangerous. The method also sorts the species in exactly
-the same way that they occur in your calculation. It sets the WSV
-\wsvindex{abs\_lookup\_is\_adapted} to flag that the table is now
-ok.
+Alternatively, the table can be loaded from a file with
+\builtindoc{ReadXML}.  After loading, the method
+\wsmindex{abs\_lookupAdapt} has to be called. It will make sure that
+the lookup table agrees exactly with your calculation. For example, it
+has to check that the frequencies that you want to use are included in
+the set of frequencies for which the table has been calculated.  There
+is no interpolation in frequency. This is on purpose, because the gas
+absorption spectrum is the quantity that changes most rapidly as a
+function of frequency. Frequency interpolation here could be quite
+dangerous. The \builtindoc{abs\_lookupAdapt} method also sorts the
+species in exactly the same way that they occur in your
+calculation. It sets the variable \wsvindex{abs\_lookup\_is\_adapted}
+to flag that the table is now ok. 
 
 When the table has been successfully adapted, one can extract
-absorption coefficients with the WSM
+absorption coefficients with the method
 \wsmindex{abs\_scalar\_gasExtractFromLookup}. This will extract
 \emph{absorption coefficients}, i.e., the cross sections stored in the
 table are not only interpolated to the desired atmospheric conditions,
 but are also multiplied with the partial number density of the present
-absorbers. 
+absorbers.
 
 The \builtindoc{abs\_scalar\_gasExtractFromLookup} method is meant to
 be used inside the agenda \wsaindex{abs\_scalar\_gas\_agenda},
@@ -693,61 +578,19 @@ which is used in several places where absorption coefficients are
 needed, both inside the scattering box and outside. 
 
 It is also possible to calculate absorption for the entire atmospheric
-field.  This is done by the method
-\wsmindex{abs\_fieldCalc}, which is useful in two
-different contexts:
-
-\begin{enumerate}
-\item For testing and plotting gas absorption. (For RT
-  calculations, gas absorption is calculated or extracted locally,
-  therefore there is no need to calculate a global field. But this
-  method is handy for easy plotting of absorption vs. pressure, for
-  example.)
-\item Inside the scattering region, monochromatic absorption is
-  pre-calculated for the entire atmospheric field.
-  \FIXME{At least that's the plan, isn't it Claudia? Please remove
-    this FIXME when that works.}
-\end{enumerate}
+field.  This is done by the method \wsmindex{abs\_fieldCalc}, and is
+useful for testing and plotting gas absorption. (For RT calculations,
+gas absorption is calculated or extracted locally, therefore there is
+no need to calculate a global field. But the
+\builtindoc{abs\_fieldCalc} method is handy for easy plotting of
+absorption vs. pressure, for example.)
 
 Because of the different usage contexts, the method
-\builtindoc{abs\_fieldCalc} can calculate absorption
+\builtindoc{abs\_scalar\_gasExtractFromLookup} can calculate absorption
 either for all frequencies in the frequency grid (input variable
 \wsvindex{f\_index}$<$0), or just for the frequency indicated by the
 input variable \builtindoc{f\_index} (\builtindoc{f\_index}$>=$0).
 
-The following controlfile section illustrates the use of the lookup
-table together with \builtindoc{abs\_fieldCalc}. This is
-not a complete controlfile. \FIXME{Eventually there should be a good
-  complete example in doc/examples. For the moment you can look at the
-examples in sbuehler/arts\_calc/abs\_lookup\_2/.}
-
-\begin{code}
-# Read lookup table:
-ReadXML( abs_lookup, "some_table.xml" )
-
-# Adapt lookup table:
-abs_lookupAdapt
-
-# Set agenda for extracting absorption
-AgendaSet( abs_scalar_gas_agenda ){
-  abs_scalar_gasExtractFromLookup
-}
-
-# Input to abs_scalar_gasExtractFromLookup{}, 
-# means to calculate all frequencies.
-IndexSet( f_index, -1 )
-
-# Calculate scalar gas absorption field. (This assumes that 
-# also the WSVs f_grid, atmosphere_dim, p_grid, lat_grid, 
-# lon_grid, t_field, and vmr_field have been defined.)
-abs_fieldCalc
-
-# Write out the field:
-WriteXML( "ascii", abs_field, "" )
-\end{code}
-
-Use the online documentation for the methods and variables mentioned
-to learn more.
 
 %%% Local Variables: 
 %%% mode: latex 
