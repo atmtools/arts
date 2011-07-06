@@ -351,7 +351,8 @@ AtmFieldsCalc
 
 Extract( z_surface, z_field, 0 )
 
-atm_checkedCalc
+basics_checkedCalc
+cloudbox_checkedCalc
 
 abs_lines_per_speciesCreateFromLines
 

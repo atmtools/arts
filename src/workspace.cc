@@ -801,21 +801,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "atm_checked" ),
-      DESCRIPTION
-      (
-       "OK flag for atmospheric and surface fields and the cloudbox.\n"
-       "\n"
-       "This variable flags that the atmosphere is defined in a formally\n"
-       "correct way. For example, that the sizes of atmospheric fields match\n"
-       "the atmospheric grids.\n"
-       "\n"
-       "Relavant checks are performed by *atm_checkedCalc.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "atm_fields_compact" ),
       DESCRIPTION
       (
@@ -920,6 +905,25 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "basics_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for basic variables and grids.\n"
+       "\n"
+       "For example, this variable flags that the (clear-sky) atmosphere\n"
+       "and the surface are defined in a formally correct way, e.g. that\n"
+       "the sizes of atmospheric fields match the atmospheric grids.\n"
+       "\n"
+       "The following WSVs are treated: f_grid, stokes_dim, p_grid, lat_grid,\n"
+       "lon_grid, t_field, z_field, vmr_field, wind_u/v/w_field, r_geoid and\n"
+       "z_surface. The cloudbox is covered by *cloudbox_checked*.\n"
+       "\n"
+       "Shall be set by *basics_checkedCalc*.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "batch_atm_fields_compact" ),
       DESCRIPTION
       (
@@ -965,6 +969,22 @@ void Workspace::define_wsv_data()
        "calculations. \n"
        ),
       GROUP( "ArrayOfTensor4" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "cloudbox_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for variables associated with the cloudbox.\n"
+       "\n"
+       "This variable flags that cloudbox variables are defined in a formally\n"
+       "and practically correct way. For example, that there is sufficient\n"
+       "space between the cloudbox and edges of the model atmosphere (for\n"
+       "2D and 3D). Pure clear-sky variables are covered by *basics_checked*.\n"
+       "\n"
+       "Relevant checks are performed by *cloudbox_checkedCalc.\n"
+       ),
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4034,10 +4054,10 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "wind_x_field" ),
+    ( NAME( "wind_u_field" ),
       DESCRIPTION
       (
-       "Second horisontal wind component field for 3D.\n"
+       "Meridional (second horizontal wind) component field for 3D.\n"
        "\n"
        "The east-west wind component. Air moving towards higher\n"
        "longitudes is a positive wind.\n"
@@ -4047,23 +4067,23 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       m/s\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
        ),
       GROUP( "Tensor3" ))); 
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "wind_y_field" ),
+    ( NAME( "wind_v_field" ),
       DESCRIPTION
       (
-       "Horisontal 1D, 2D or 3D wind components.\n"
+       "Horizontal 1D, 2D or 3D wind components.\n"
        "\n"
        "This wind component is defined differently for the atmospheric\n"
        "dimensionalities.\n"
        "\n"       
        " 1D: Complete vertical wind. The wind is treated to always be aligned\n"
        "azimuthally with the observation direction. That is, the vertical\n"
-       "winds converge/start at geographicalposition of the sensor. A wind\n"
+       "winds converge/start at geographical position of the sensor. A wind\n"
        "going away from the sensor is treated as positive.\n"
        "\n"       
        " 2D: Complete vertical wind. The wind is treated to be aligned with\n"
@@ -4078,25 +4098,25 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       m/s\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"
        ),
       GROUP( "Tensor3" ))); 
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "wind_z_field" ),
+    ( NAME( "wind_w_field" ),
       DESCRIPTION
       (
        "Vertical wind component field.\n"
        "\n"
-       "Upward moving air correspoinds to a positive wind speed.\n"
+       "Upward moving air corresponds to a positive wind speed.\n"
        "\n"       
        "Can be set to be empty, which is interpreted as zero wind speed\n"
        "everywhere.\n"
        "\n"
        "Unit:       m/s\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"
        ),
       GROUP( "Tensor3" ))); 
 

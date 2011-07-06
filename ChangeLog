@@ -1,3 +1,38 @@
+2011-07-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-16-1
+
+	* New sub-version as this commit requires some small changes of
+	most control files:
+	1. atm_checkedCalc renamed to basics_checkedCalc.
+	2. If you are calling yCalc or MCGeneral, a call of
+	   cloudbox_checkedCalc must be added. 
+	3. If you are not using include.arts, you also need to set the 
+	   wind fields (to be empty).
+	
+	* tests/*/Test*.arts: Added call of cloudbox_checkedCalc. 
+
+	* src/m_rte.cc (yCalc): Now using cloudbox_checked.
+
+	* src/m_cloudbox.cc (cloudbox_checkedCalc): New WSM. Extended
+	version of chk_cloudbox (winds are demanded to be zero.).
+	(pnd_fieldExpand1D): Now using cloudbox_checked.
+
+	* src/check_input.cc (chk_cloudbox): Removed. 
+
+	* src/m_atmosphere.cc (atm_checkedCalc): Removed.
+	(basics_checkedCalc): Extended version of atm_checkedCalc.
+	Now also considering the winds, stokes_dim and f_grid.
+	(z_fieldFromHSE): atm_checked -> basics_checked.
+	
+	* includes/general.arts: Wind fields are now defined, all set to
+	be empty (i.e. no winds).
+
+	* src/workspace.cc: Wind fields now named as u, v and w (following
+	nomenclature established in AUG). Renamed at_checked to
+	basics_checked, and extended its scope (in the description).
+	Introduced cloudbox_checked.
+
 2011-07-06  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-50

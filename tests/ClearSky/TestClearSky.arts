@@ -82,7 +82,8 @@ StringSet( y_unit, "RJBT" )
 
 # Perform RT calculations
 # ---
-atm_checkedCalc
+basics_checkedCalc
+cloudbox_checkedCalc
 yCalc
 
 # Write the result for the python test script

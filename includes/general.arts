@@ -95,6 +95,15 @@ IndexSet( abs_nls_interp_order, 5 )
 # geoid: 
 r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
+
+# 
+# Winds (all set to be empty, shorthand for no winds)
+#
+Tensor3SetConstant( wind_u_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( wind_v_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
+
+
 # Surface emissivity
 # 
 # The default model is a blackbody surface. This is a good choice only

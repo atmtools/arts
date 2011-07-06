@@ -71,11 +71,6 @@ Matrix1RowFromVector( sensor_los, rte_los )
 Print( sensor_los, 1 )
 
 
-#### Check atmosphere ##################################################
-
-atm_checkedCalc
-
-
 #### Set some Monte Carlo parameters ###################################
 
 IndexSet( stokes_dim, 4 )
@@ -87,6 +82,12 @@ MCSetSeedFromTime
 Print( mc_seed, 1 )
 
 mc_antennaSetPencilBeam
+
+#### Check atmosphere ##################################################
+
+basics_checkedCalc
+cloudbox_checkedCalc
+
 
 #### Perform Monte Carlo RT Calculation #################################
 

@@ -129,75 +129,6 @@ void atm_fields_compactExpand(GriddedField4& af,
   ===========================================================================*/
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void atm_checkedCalc(
-         Index&          atm_checked,
-   const Index&          atmosphere_dim,
-   const Vector&         p_grid,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Tensor3&        z_field,
-   const Tensor3&        t_field,
-   const Tensor4&        vmr_field,
-   const Matrix&         r_geoid,
-   const Matrix&         z_surface )
-{
-  atm_checked = 1;
-
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-
-  // Consistency between dim, grids and atmospheric fields/surfaces
-  //
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  chk_atm_field( "z_field", z_field, atmosphere_dim, 
-                                                  p_grid, lat_grid, lon_grid );
-  chk_atm_field( "t_field", t_field, atmosphere_dim, 
-                                                  p_grid, lat_grid, lon_grid );
-  // Ignore vmr_field if abs_species is empty
-  if( abs_species.nelem() )
-    chk_atm_field( "vmr_field", vmr_field, atmosphere_dim, abs_species.nelem(),
-                                                  p_grid, lat_grid, lon_grid );
-  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
-  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
-
-  // Check that z_field has strictly increasing pages.
-  for( Index row=0; row<z_field.nrows(); row++ )
-    {
-      for( Index col=0; col<z_field.ncols(); col++ )
-        {
-          ostringstream os;
-          os << "z_field (for latitude nr " << row << " and longitude nr " 
-             << col << ")";
-          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
-        }
-    }
-
-  // Check that there is no gap between the surface and lowest pressure 
-  // level
-  for( Index row=0; row<z_surface.nrows(); row++ )
-    {
-      for( Index col=0; col<z_surface.ncols(); col++ )
-        {
-          if( z_surface(row,col)<z_field(0,row,col) ||
-                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
-            {
-              ostringstream os;
-              os << "The surface altitude (*z_surface*) cannot be outside "
-                 << "of the altitudes in *z_field*.";
-              if( atmosphere_dim > 1 )
-                os << "\nThis was found to be the case for:\n"
-                   << "latitude " << lat_grid[row];
-              if( atmosphere_dim > 2 )
-                os << "\nlongitude " << lon_grid[col];
-              throw runtime_error( os.str() );
-            }
-        }
-    }
-}
-
-
-
 // Workspace method, doxygen header will be auto-generated.
 // 2007-07-25 Stefan Buehler
 void atm_fields_compactFromMatrix(// WS Output:
@@ -470,6 +401,105 @@ void atm_fields_compactAddSpecies(// WS Output:
   }
 
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void basics_checkedCalc(
+         Index&          basics_checked,
+   const Index&          atmosphere_dim,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Tensor3&        z_field,
+   const Tensor3&        t_field,
+   const Tensor4&        vmr_field,
+   const Tensor3&        wind_u_field,
+   const Tensor3&        wind_v_field,
+   const Tensor3&        wind_w_field,
+   const Matrix&         r_geoid,
+   const Matrix&         z_surface,
+   const Index&          stokes_dim,
+   const Vector&         f_grid )
+{
+  // Consistency between dim, grids and atmospheric fields/surfaces
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "z_field", z_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+  // Ignore vmr_field if abs_species is empty
+  if( abs_species.nelem() )
+    chk_atm_field( "vmr_field", vmr_field, atmosphere_dim, abs_species.nelem(),
+                                                  p_grid, lat_grid, lon_grid );
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
+
+  // Check that z_field has strictly increasing pages.
+  for( Index row=0; row<z_field.nrows(); row++ )
+    {
+      for( Index col=0; col<z_field.ncols(); col++ )
+        {
+          ostringstream os;
+          os << "z_field (for latitude nr " << row << " and longitude nr " 
+             << col << ")";
+          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
+        }
+    }
+
+  // Check that there is no gap between the surface and lowest pressure 
+  // level
+  for( Index row=0; row<z_surface.nrows(); row++ )
+    {
+      for( Index col=0; col<z_surface.ncols(); col++ )
+        {
+          if( z_surface(row,col)<z_field(0,row,col) ||
+                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
+            {
+              ostringstream os;
+              os << "The surface altitude (*z_surface*) cannot be outside "
+                 << "of the altitudes in *z_field*.";
+              if( atmosphere_dim > 1 )
+                os << "\nThis was found to be the case for:\n"
+                   << "latitude " << lat_grid[row];
+              if( atmosphere_dim > 2 )
+                os << "\nlongitude " << lon_grid[col];
+              throw runtime_error( os.str() );
+            }
+        }
+    }
+
+  // Winds
+  if( wind_w_field.npages() > 0 )
+    { 
+      chk_atm_field( "wind_w_field", wind_w_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+    }
+  if( wind_v_field.npages() > 0 )
+    { 
+      chk_atm_field( "wind_v_field", wind_v_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+    }
+  if( atmosphere_dim > 2  &&  wind_u_field.npages() > 0 )
+    { 
+      chk_atm_field( "wind_u_field", wind_u_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+    }
+
+  // Stokes and frequency grid
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  if ( f_grid.nelem() == 0 )
+    { throw runtime_error ( "The frequency grid is empty." ); }
+  chk_if_increasing ( "f_grid", f_grid );
+
+  // If here, all OK
+  basics_checked = 1;
+}
+
+
+
 
 // Workspace method, doxygen header is auto-generated
 // 2011-05-11 Gerrit Holl
@@ -1711,7 +1741,7 @@ void z_fieldFromHSE(
    const Tensor3&        t_field,
    const Tensor4&        vmr_field,
    const Matrix&         r_geoid,
-   const Index&          atm_checked,
+   const Index&          basics_checked,
    const Numeric&        p_hse,
    const Numeric&        z_hse_accuracy )
 {
@@ -1725,9 +1755,9 @@ void z_fieldFromHSE(
 
   // Input checks
   //
-  if( !atm_checked )
+  if( !basics_checked )
     throw runtime_error( "The atmosphere must be flagged to have passed a "
-                         "consistency check (atm_checked=1)." );
+                         "consistency check (basics_checked=1)." );
   //
   if( atmosphere_dim == 1  &&  lat_grid.nelem() != 1 )
     { throw runtime_error(

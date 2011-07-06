@@ -1947,36 +1947,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "atm_checkedCalc" ),
-        DESCRIPTION
-        (
-         "Performs a consistency check of the (clear sky) atmosphere.\n"
-         "\n"
-         "The tests include:\n"
-         " 1. If atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
-         "    *atmosphere_dim*.\n"
-         " 2. If atmospheric fields, *r_geoid* and *z_surface* have sizes\n"
-         "    consistent with the atmospheric grids.\n"
-         " 3. There is no gap between *z_surface* and *z_field*.\n"
-         "\n"
-         "If any test fails, there is an error. Otherwise, *atm_checked* is\n"
-         "set to 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "atm_checked" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
-            "z_field", "t_field", "vmr_field", "r_geoid", "z_surface" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "AtmFieldsCalc" ),
         DESCRIPTION
         (
@@ -2551,6 +2521,40 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "basics_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks consistency of the (clear sky) atmosphere.\n"
+         "\n"
+         "The tests include:\n"
+         " 1. That basic control variables *stokes_dim* and *atmosphere_dim*\n"
+         "    are inside defined ranges.\n"
+         " 2. That *f_grid* is sorted and increasing.\n"
+         " 3. If atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
+         "    *atmosphere_dim*.\n"
+         " 4. If atmospheric fields, *r_geoid* and *z_surface* have sizes\n"
+         "    consistent with the atmospheric grids.\n"
+         " 5. There is no gap between *z_surface* and *z_field*.\n"
+         "\n"
+         "If any test fails, there is an error. Otherwise, *basics_checked*\n"
+         "is set to 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "basics_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
+            "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field",
+            "wind_w_field", "r_geoid", "z_surface", "stokes_dim", "f_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "batch_atm_fields_compactFromArrayOfMatrix" ),
         DESCRIPTION
         (
@@ -2895,6 +2899,33 @@ void define_md_data_raw()
                   "Upper latitude point.",
                   "Lower longitude point.",
                   "Upper longitude point." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "cloudbox_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks consistency between the cloudbox and other variables.\n"
+         "\n"
+         "The main check is if the cloudbox limits are OK with respect to\n"
+         "the atmospheric dimensionality and the limits of the atmosphere.\n"
+         "\n"
+         "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
+         "is set to 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "cloudbox_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "basics_checked", "atmosphere_dim", "p_grid", "lat_grid", 
+            "lon_grid", "wind_u_field", "wind_v_field", "wind_w_field", 
+            "cloudbox_on", "cloudbox_limits" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -4523,10 +4554,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_agenda_call1", "atm_checked", "rte_pos", "rte_los", "iy_aux_do",
-            "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-            "z_field", "t_field", "vmr_field", "r_geoid", "z_surface", 
-            "cloudbox_on", "cloudbox_limits", 
+        IN( "iy_agenda_call1", "basics_checked", "rte_pos", "rte_los", 
+            "iy_aux_do", "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", 
+            "z_surface", "cloudbox_on", "cloudbox_limits", "cloudbox_checked",
             "stokes_dim", "f_grid", "scat_data_raw", 
             "iy_space_agenda", "surface_prop_agenda", "abs_scalar_gas_agenda", 
             "opt_prop_gas_agenda", "pnd_field", "iy_transmission", "y_unit",
@@ -5558,7 +5589,8 @@ void define_md_data_raw()
             "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
-            "pnd_field", "scat_data_mono", "atm_checked", "mc_seed", "y_unit", 
+            "pnd_field", "scat_data_mono", "basics_checked", "cloudbox_checked",
+            "mc_seed", "y_unit", 
             "mc_std_err", "mc_max_time", "mc_max_iter"),//, "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
@@ -6292,8 +6324,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pnd_field", "p_grid", "lat_grid", "lon_grid", "atmosphere_dim",
-            "cloudbox_on", "cloudbox_limits" ),
+        IN( "pnd_field", "atmosphere_dim", "cloudbox_checked", "cloudbox_on", 
+            "cloudbox_limits" ),
         GIN( "nzero" ),
         GIN_TYPE( "Index"),
         GIN_DEFAULT( "1" ),
@@ -9119,10 +9151,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atm_checked", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
-            "t_field", "z_field", "vmr_field", "cloudbox_on", "cloudbox_limits",
-            "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+        IN( "basics_checked", "atmosphere_dim", "p_grid", "lat_grid", 
+            "lon_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_checked", "stokes_dim", "f_grid", "sensor_pos", 
+            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_clearsky_agenda", "iy_aux_do", "y_unit", 
@@ -9200,7 +9232,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "abs_species", "t_field", 
-            "z_field", "vmr_field", "r_geoid", "atm_checked", 
+            "z_field", "vmr_field", "r_geoid", "basics_checked", 
             "p_hse", "z_hse_accuracy" ),
         GIN(),
         GIN_TYPE(),

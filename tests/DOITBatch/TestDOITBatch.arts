@@ -259,8 +259,9 @@ AgendaSet( ybatch_calc_agenda ){
   # Executes doit_mono_agenda for all frequencies
   ScatteringDoit
 
-  # Consistency check of (clear-sky) atmossphere
-  atm_checkedCalc
+  # Consistency checks
+  basics_checkedCalc
+  cloudbox_checkedCalc  
 
   # Calculate complete measurement vector 
   yCalc

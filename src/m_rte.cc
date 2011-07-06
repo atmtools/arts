@@ -1818,7 +1818,7 @@ void iyMC(
         Tensor3&                    iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
-  const Index&                      atm_checked,
+  const Index&                      basics_checked,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
   const Index&                      iy_aux_do,
@@ -1834,6 +1834,7 @@ void iyMC(
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
   const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      cloudbox_checked,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
   const ArrayOfSingleScatteringData&   scat_data_raw,
@@ -1912,7 +1913,8 @@ void iyMC(
                  abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
                  r_geoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
-                 pnd_field, scat_data_mono, atm_checked, mc_seed, y_unit, 
+                 pnd_field, scat_data_mono, basics_checked, cloudbox_checked,
+                 mc_seed, y_unit, 
                  mc_std_err, mc_max_time, mc_max_iter); // GH 2011-06-17, mc_z_field_is_1D);
 
       assert( y.nelem() == stokes_dim );
@@ -1943,7 +1945,7 @@ void yCalc(
         Vector&                     y_error,
         Matrix&                     y_aux,
         Matrix&                     jacobian,
-  const Index&                      atm_checked,
+  const Index&                      basics_checked,
   const Index&                      atmosphere_dim,
   const Vector&                     p_grid,
   const Vector&                     lat_grid,
@@ -1952,7 +1954,7 @@ void yCalc(
   const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
   const Index&                      cloudbox_on,
-  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      cloudbox_checked,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
   const Matrix&                     sensor_pos,
@@ -1988,21 +1990,14 @@ void yCalc(
   // Input checks
   //---------------------------------------------------------------------------
 
-  // Atmosphere OK?
+  // Basics and cloudbox OK?
   //
-  if( !atm_checked )
-    throw runtime_error( "The atmosphere must be flagged to have passed a "
-                         "consistency check (atm_checked=1)." );
-
-  // Basic dimensionalities
-  //
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
-
-  // Cloud box
-  //  
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
-                                                cloudbox_on, cloudbox_limits );
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control varaibles must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( !cloudbox_checked )
+    throw runtime_error( "The cloudbox must be flagged to have passed a "
+                         "consistency check (cloudbox_checked=1)." );
 
   // Sensor position and LOS.
   //
@@ -2041,6 +2036,8 @@ void yCalc(
     "Second column of *sensor_los* is not allowed to have values above 180." );
 
   // Antenna
+  //
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
   //
   if( nza == 0 )
     throw runtime_error( "The measurement block zenith angle grid is empty." );

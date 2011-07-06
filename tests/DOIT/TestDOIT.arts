@@ -257,7 +257,8 @@ AgendaSet( iy_cloudbox_agenda ){
 AgendaSet( iy_clearsky_agenda ){
   iyEmissionStandardClearsky
 }
-atm_checkedCalc
+basics_checkedCalc
+cloudbox_checkedCalc
 CloudboxGetIncoming
 
 # Initialize Doit variables

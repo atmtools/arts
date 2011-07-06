@@ -47,8 +47,8 @@ MatrixSetConstant( sensor_los, 1, 1, za )
 
 #--- Other stuff -------------------------------------------------------------
 
-atm_checkedCalc
-
+basics_checkedCalc
+cloudbox_checkedCalc
 StringSet( y_unit, "RJBT" )
 
 

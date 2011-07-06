@@ -65,6 +65,7 @@
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
 extern const Index GFIELD3_LON_GRID;
+extern const Numeric DEG2RAD;
 extern const Numeric PI;
 
 
@@ -84,6 +85,8 @@ void cloudboxOff (
   iy_cloudbox_agenda = Agenda();
   iy_cloudbox_agenda.set_name ( "iy_cloudbox_agenda" );
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetAutomatically (
@@ -541,6 +544,152 @@ void cloudboxSetManuallyAltitude(
                 lon_grid[cloudbox_limits[5]-1]>=lon2; cloudbox_limits[5]-- ) {}
     }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void cloudbox_checkedCalc(
+         Index&          cloudbox_checked,
+   const Index&          basics_checked,
+   const Index&          atmosphere_dim,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        wind_u_field,
+   const Tensor3&        wind_v_field,
+   const Tensor3&        wind_w_field,
+   const Index&          cloudbox_on,    
+   const ArrayOfIndex&   cloudbox_limits )
+{
+  // Demanded space between cloudbox and lat and lon edges [degrees]
+  const Numeric llmin = 20;
+
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control varaibles must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  
+  chk_if_bool(  "cloudbox_on", cloudbox_on );
+
+  if( cloudbox_on )
+    {
+      // Winds, must be empty variables (i.e. no winds allowed)
+      {
+        ostringstream ow;
+        ow << "The scattering methods are not (yet?) handling winds. For this\n"
+           << "reason, the WSVs for wind fields must all be empty with an\n."
+           << "active cloudbox.";
+        if( wind_w_field.npages() > 0 )
+          { throw runtime_error( ow.str() ); }
+        if( wind_v_field.npages() > 0 )
+          { throw runtime_error( ow.str() ); }
+        if( atmosphere_dim > 2  &&  wind_u_field.npages() > 0 )
+          { throw runtime_error( ow.str() ); }
+      }
+
+      // Cloudbox limits
+      if( cloudbox_limits.nelem() != atmosphere_dim*2 )
+        {
+          ostringstream os;
+          os << "The array *cloudbox_limits* has incorrect length.\n"
+             << "For atmospheric dim. = " << atmosphere_dim 
+             << " the length shall be " << atmosphere_dim*2
+             << " but it is " << cloudbox_limits.nelem() << ".";
+          throw runtime_error( os.str() );
+        }
+       if( cloudbox_limits[1]<=cloudbox_limits[0] || cloudbox_limits[0]<0 ||
+                                           cloudbox_limits[1]>=p_grid.nelem() )
+        {
+          ostringstream os;
+          os << "Incorrect value(s) for cloud box pressure limit(s) found."
+             << "\nValues are either out of range or upper limit is not "
+             << "greater than lower limit.\nWith present length of "
+             << "*p_grid*, OK values are 0 - " << p_grid.nelem()-1
+             << ".\nThe pressure index limits are set to " 
+             << cloudbox_limits[0] << " - " << cloudbox_limits[1] << ".";
+          throw runtime_error( os.str() );
+        }
+      if( atmosphere_dim >= 2 )
+        {
+          const Index n = lat_grid.nelem();
+          if( cloudbox_limits[3]<=cloudbox_limits[2] || cloudbox_limits[2]<1 ||
+                                                      cloudbox_limits[3]>=n-1 )
+            {
+              ostringstream os;
+              os << "Incorrect value(s) for cloud box latitude limit(s) found."
+                 << "\nValues are either out of range or upper limit is not "
+                 << "greater than lower limit.\nWith present length of "
+                 << "*lat_grid*, OK values are 1 - " << n-2
+                 << ".\nThe latitude index limits are set to " 
+                 << cloudbox_limits[2] << " - " << cloudbox_limits[3] << ".";
+              throw runtime_error( os.str() );
+            }
+          if( ( lat_grid[cloudbox_limits[2]] - lat_grid[0] < llmin )  &&
+              ( atmosphere_dim==2  ||  
+              ( atmosphere_dim==3 && lat_grid[0]>-90) ) )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and lower end of\n"
+                 << "latitude grid. This distance must be " << llmin 
+                 << " degrees. Cloudbox ends at " << lat_grid[cloudbox_limits[2]]
+                 << " and latitude grid starts at " << lat_grid[0] << ".";
+              throw runtime_error( os.str() );
+            }
+          if( ( lat_grid[n-1] - lat_grid[cloudbox_limits[3]] < llmin )  &&
+              ( atmosphere_dim==2  ||  
+              (atmosphere_dim==3 && lat_grid[n-1]<90) ) )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and upper end of\n"
+                 << "latitude grid. This distance must be " << llmin 
+                 << "degrees. Cloudbox ends at " << lat_grid[cloudbox_limits[3]]
+                 << " and latitude grid ends at " << lat_grid[n-1] << ".";
+              throw runtime_error( os.str() );
+            }
+        }
+      if( atmosphere_dim >= 3 )
+        {
+          const Index n = lon_grid.nelem();
+          if( cloudbox_limits[5]<=cloudbox_limits[4] || cloudbox_limits[4]<1 ||
+                                                      cloudbox_limits[5]>=n-1 )
+            {
+              ostringstream os;
+              os << "Incorrect value(s) for cloud box longitude limit(s) found"
+                 << ".\nValues are either out of range or upper limit is not "
+                 << "greater than lower limit.\nWith present length of "
+                 << "*lon_grid*, OK values are 1 - " << n-2
+                 << ".\nThe longitude limits are set to " 
+                 << cloudbox_limits[4] << " - " << cloudbox_limits[5] << ".";
+              throw runtime_error( os.str() );
+            }
+          if( lon_grid[n-1] - lon_grid[0] < 360 )
+            {
+              const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
+                                          abs(lat_grid[cloudbox_limits[3]]) );
+              const Numeric lfac = 1 / cos( DEG2RAD*latmax );
+              if( lon_grid[cloudbox_limits[4]]-lon_grid[0] < llmin/lfac )
+                {
+                  ostringstream os;
+                  os << "Too small distance between cloudbox and lower end of\n"
+                     << "longitude grid. This distance must here be " 
+                     << llmin/lfac << " degrees.";
+                  throw runtime_error( os.str() );
+                }
+              if( lon_grid[n-1] - lon_grid[cloudbox_limits[5]] < llmin/lfac )
+                {
+                  ostringstream os;
+                  os << "Too small distance between cloudbox and upper end of\n"
+                     << "longitude grid. This distance must here be " 
+                     << llmin/lfac << " degrees.";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
+    }
+
+  // If here, all OK
+  cloudbox_checked = 1;
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1046,17 +1195,15 @@ void pnd_fieldCalc(//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldExpand1D(
             Tensor4&        pnd_field,
-      const Vector&         p_grid,
-      const Vector&         lat_grid,
-      const Vector&         lon_grid,
       const Index&          atmosphere_dim,
+      const Index&          cloudbox_checked,    
       const Index&          cloudbox_on,    
       const ArrayOfIndex&   cloudbox_limits,
       const Index&          nzero )
 {
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
-                                                cloudbox_on, cloudbox_limits );
+  if( !cloudbox_checked )
+    throw runtime_error( "The cloudbox must be flagged to have passed a "
+                         "consistency check (cloudbox_checked=1)." );
 
   if( atmosphere_dim == 1 )
     { throw runtime_error( "No use in calling this method for 1D." ); }

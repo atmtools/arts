@@ -118,7 +118,8 @@ MatrixSetConstant( sensor_los, 1, 1, za )
 
 # ---- Finalise atmosphere ---------------------------------------------------
 
-atm_checkedCalc
+basics_checkedCalc
+cloudbox_checkedCalc
 
 # Important to run HSE before yCalc if temperature jacobians with HSE 
 # will be used 

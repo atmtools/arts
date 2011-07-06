@@ -219,7 +219,8 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Perform RT calculations
   # ---
-  atm_checkedCalc
+  basics_checkedCalc
+  cloudbox_checkedCalc
   yCalc
 
   # Optionally write out jacobian:

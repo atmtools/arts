@@ -67,11 +67,6 @@ Matrix1RowFromVector( sensor_pos, rte_pos )
 Matrix1RowFromVector( sensor_los, rte_los )
 
 
-#### Check atmosphere ##################################################
-
-atm_checkedCalc
-
-
 #### Set some Monte Carlo parameters ###################################
 
 IndexSet( stokes_dim, 4 )
@@ -83,6 +78,12 @@ MCSetSeedFromTime
 Print( mc_seed, 1 )
 
 mc_antennaSetGaussianByFWHM( mc_antenna, 0.1137, 0.239 )
+
+
+#### Check atmosphere ##################################################
+
+basics_checkedCalc
+cloudbox_checkedCalc
 
 
 #### Perform Monte Carlo RT Calculation #################################

@@ -155,14 +155,6 @@ void chk_atm_surface(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid );
 
-void chk_cloudbox(
-        const Index&          dim,
-        ConstVectorView       p_grid,
-        ConstVectorView       lat_grid,
-        ConstVectorView       lon_grid,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits );
-
 void chk_not_empty( 
         const String&      x_name,
         const Agenda&      x );

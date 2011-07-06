@@ -80,7 +80,7 @@ MatrixSetConstant( surface_emissivity_field){
     value = 1
 }
 
-atm_checkedCalc
+basics_checkedCalc
 
 
 
@@ -136,6 +136,7 @@ AgendaSet( rte_agenda ){
 # Special DISORT function, because cloudbox needs to be extended over the 
 # ehole atmosphere
 cloudboxSetDisort
+cloudbox_checkedCalc
 
 ParticleTypeInit
 

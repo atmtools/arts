@@ -42,7 +42,8 @@ ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
 
 ReadXML( scat_data_raw, "TestMonteCarloDataPrepare.scat_data_raw.xml" )
 
-atm_checkedCalc
+basics_checkedCalc
+cloudbox_checkedCalc
 
 
 #### Define Agendas #################################################
