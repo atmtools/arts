@@ -1,9 +1,9 @@
 
-\chapter{Gas Absorption}
+\chapter{Gas absorption}
  \label{sec:abs_theory}
 
 \starthistory
-  2011-06-22 & Revised for ARTS2 by Stefan Buehler.\\
+  2011-07-05 & Revised for ARTS2 by Stefan Buehler.\\
   2001-11-21 & Continuum absorption part written, Thomas Kuhn.\\
   2001-10-05 & Line absorption part written, Nikolay Koulev.\\
 \stophistory
@@ -133,66 +133,74 @@
 %
 % ============================================================================
 
+This chapter contains theoretical background and scientific details
+for gas absorption calculations in ARTS. A more practical overview,
+with focus on how to set up calculations, is given in \user, Chapter
+\ref{U-sec:absorption}.
 
+Gas absorption generally consists of a superposition of spectral lines
+and continua.  Depending on the gas species, the continua either have
+a real physical meaning, or they are more or less empirical
+corrections for deficits in the explicit line-by-line calculation.  In
+the latter case the magnitude of the continuum term will depend
+strongly on the exact setup of the line-by-line calculation.
+Combining continua and line-by-line calculation therefore requires
+expertise.
+
+This chapter is structured in three main parts: Line absorption,
+continuum absorption, and complete absorption models. It should be
+noted that the three topics are tightly related. In particular,
+complete absorption models will normally include a line part and a
+continuum part. Some absorption models, notably those by Rosenkranz
+and Liebe will show up under both continua and complete absorption
+models. The continuum section then treats specifically the continuum
+parameterization of these model, the complete absorption model section
+puts more focus on the line part and the model as a whole.
                                           
 
-In general there are three types of absorption/emission spectra:
-\begin{itemize}
-\item sharp lines of finite width
-\item aggregations (series) of lines called bands
-\item continua extending over a broad range of wavelengths, with
-      no single lines in it.
-\end{itemize}
-This section is therefore firstly devised to give a short theoretical
-overview of the absorption quantities which are used in ARTS. The
-presentation of the calculation methods within ARTS of these
-quantities is the second goal. There are two major subsections which
-deal separately with the respective types of spectra regarded by ARTS,
-lines and continua.  The second one extends beyond the scope of mere
-treatment of the continua and thus gives an integrated view of
-continua and spectral lines.
-
 % ================================================================================
-% The following section is written by Nikolay Koulev, iup Bremen, nkoulev@uni-bremen.de
+% The following section was originally written by Nikolay Koulev, iup
+% Bremen, nkoulev@uni-bremen.de
+% Edit in 2011 by Stefan Buehler
 % ================================================================================
 
-\section{Line Absorption}
+\section{Line absorption}
 %-----------------------
 \label{sec:abs_theory:line_absorption}
 
-\subsection{Theory}
+\subsection{Background}
  
-We will introduce here the main concepts concerning
-line absorption. The approach, however, does not aim  at the
-derivation, but rather at the presentation the following expressions.
+We will introduce here the main concepts concerning line
+absorption. The aim is to give some overview and show some key
+equations, not to give a full treatment of the theory. To really
+understand line absorption, you should refer to one of the cited
+books, or some other book on spectroscopy.
 
-Any line is presented by the corresponding profile of the
-absorption/emission coefficient as a function of the frequency, in our
-case that of the absorption - given by the quantity $\alpha(\nu)$. The
-latter dependency is related to other quantities, which express the
-three characteristics of a single line uniquely describing it -
-position, strength and shape.  The strength, or better the line
-intensity, is given by the quantity $S(T)$, where $T$ is absolute
-temperature. The shape and the position are expressed through the
-line-shape function $F(\nu)$. Thus we have the relation
-\begin{equation}\label{abs_coeff}
+\subsubsection{Basic expressions} 
+ 
+An absorption line is described by the corresponding 
+absorption coefficient as a function of frequency $\alpha(\nu)$, which
+can be written as \citep{goodyandyung:89}:
+\begin{equation}\label{eq:abs_coeff}
   \alpha(\nu)=nS(T)F(\nu)
 \end{equation} 
-where $n$ is the number density of the absorber \citep{goodyandyung:89}. The line-shape
-function is normalized as follows
-
-\begin{equation}\label{line_shape_norm}
+where $S(T)$ is called the line strength, $T$ is the temperature,
+$F(\nu)$ is called the line shape function, and
+$n$ is the number density of the absorber. The line shape
+function is normalized as:
+\begin{equation}\label{eq:abs_theory:line_shape_norm}
   \int F(\nu)d\nu=1
 \end{equation}
+
 The values of $S(T)$ at reference temperature $T_0$ are contained in
-spectroscopic databases. The conversion to different temperatures is
-done by
-\begin{equation}\label{line_intensity}
+spectroscopic databases (more on this below). The conversion to
+different temperatures is done by
+\begin{equation}\label{eq:abs_theory:line_intensity}
   S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/(kT)}
     - e^{-E_i/(kT)}}{e^{-E_f/(kT_0)} - e^{-E_i/(kT_0)}}
 \end{equation}
 given the energies $E_f$ and $E_i$ of the two levels between which the
-transition occurs as well as the partition function~~$Q(T)$ \citep{rothman:98}. The
+transition occurs as well as the partition function  $Q(T)$ \citep{rothman:98}. The
 databases contain the lower state energy $E_l$ tabulated along with
 the $S$ and the transition frequency $\nu$, so that the upper state
 energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
@@ -202,28 +210,31 @@ temperatures, or in the form of FORTRAN routines. One can obtain the
 total absorption coefficient by adding the absorption of all spectral
 lines of all molecular species.
 
-The problem of determining the explicit kind of the line-shape
-functions is treated in the following subsection. Another one is
-dedicated to the partition functions and their calculation..
+The problem of describing the line shape
+function is discussed in the following subsection. Then another
+subsection discusses partition functions and their calculation.
 
 
-\subsubsection{Line Shape Functions} So far, there is no way to calculate
-the line-shape functions analytically just from the theoretical
-expressions of quantum dynamics, statistical physics, and theoretical
-mechanics. Certain approximations have to be made to account for
-different physical phenomena related to the absorption/emission
-process or to suit better the calculation of different parts of the
-spectral line.
+\subsubsection{Line shape functions} 
+\label{sec:abs_theory:shape}
 
-There are three phenomena which contribute to the line-shape. These
+So far, there exists no complete analytical function that accurately
+describes the line shape in all atmospheric conditions and for all
+frequencies. But for most cases very accurate approximations are
+available. Which approximation is appropriate depends mostly on the
+atmospheric pressure, and on whether the frequencies of interest are
+close to the line center, or far out in the line wing.
+
+There are three phenomena which contribute to the line shape. These
 are, in increasing order of importance, the finite lifetime of an
 excited state in an isolated molecule, the thermal movement of the gas
 molecules, and their collisions with each other. They result in
-corresponding effects to the line-shape: natural broadening, Doppler,
+corresponding effects to the line shape: natural broadening, Doppler,
 and pressure broadening. Of these, the first one is completely
-negligible compared to the other two. Nevertheless, we will pay a
-special attention to the natural broadening because its implications
-are of a conceptual importance for the broadening processes.
+negligible compared to the other two for typical atmospheric
+conditions. Nevertheless, we will pay a special attention to the
+natural broadening because its implications are of a conceptual
+importance for the broadening processes.
 
 The spectral line shape can be derived in the case of natural
 broadening from basic physical considerations and a well-known Fourier
@@ -231,28 +242,28 @@ transform theorem from the time to the frequency domain \citep{thorne:99}. If we
 consider classically the spontaneous decay of the excited state of a
 two-level system in the absence of external radiation, then the population
 $n$ of the upper level decreases according to
-\begin{equation}\label{spon_decay_diff}
+\begin{equation}\label{eq:abs_theory:spon_decay_diff}
   \frac{dn(t)}{dt} = -A\,n(t)
 \end{equation}
-where $A$ is Einstein A coefficient, which equation can also be
+where $A$ is Einstein A coefficient. This equation can also be
 interpreted as the rate of the spontaneously emitted photons because
 of decay. The integral form of this relation is 
-\begin{equation}\label{spon_decay_exp}
+\begin{equation}\label{eq:abs_theory:spon_decay_exp}
   n(t)=n(0)~e^{-At}=n(0)e^{-t/\tau}
 \end{equation}
 where $ \tau$ is the mean lifetime of the excited state. Thus, the
 number of spontaneously emitted photons and in this way the flux of
 the emitted radiation then will be proportional to $n$. Therefore we
 can write for the flux $L$ that
-\begin{equation}\label{flux}
+\begin{equation}\label{eq:abs_theory:flux}
   L(t)=L(0)~e^{-t/ \tau}=L(0)~e^{-\gamma t}
 \end{equation}
 By the afore mentioned theorem, multiplying in the time domain by
 $e^{-\gamma t}$ is equivalent to convolving in the frequency domain
 with a function $1/[\nu^2 - (\gamma/4\pi)^2]$. Accordingly, the line
 profile of a spectral line at frequency $ \nu_0$ as a normalized
-line-shape function will be, as defined in \citet{thorne:99},
-\begin{equation}\label{natural_lorentz}
+line shape function will be, as defined in \citet{thorne:99},
+\begin{equation}\label{eq:abs_theory:natural_lorentz}
   F(\nu)=\frac{1}{\pi}\frac{\gamma/4\pi}{(\nu - \nu_0)^2 + (\gamma/4\pi)^2}
 \end{equation}
 This gives a bell-shaped profile and the function itself is called
@@ -260,25 +271,25 @@ Lorentzian. The dependence on the position of the line is apparent
 through $\nu_0$, that is why some authors prefer to denote the
 function by $F(\nu,\nu_0)$.  The result is important because of two
 major reasons.  Firstly, without the natural broadening the line would
-be the delta function~$\delta (\nu - \nu_o)$, as pointed out in
+be the delta function $\delta (\nu - \nu_o)$, as pointed out in
 \citet{bernath:95}. So the spontaneous decay of the excited state is
 responsible for the finite width and the certain shape of the
-line-shape function. Secondly, the Lorentzian type of function comes
+line shape function. Secondly, the Lorentzian type of function comes
 significantly into play when explaining some of the other broadening
 effects or the complete picture of the broadened line \citep{thorne:99}.
 
 The second effect, Doppler broadening, is important for the upper
-stratosphere and mesosphere for microwave frequencies. The line-shape
+stratosphere and mesosphere for microwave frequencies. The line shape
 follows the velocity distribution of the particles. Under the conditions
 of thermodynamic equilibrium, we have  a probability distribution for
 the relative velocity $u$ between the gas molecule and the observer 
 of Maxwell type 
-\begin{equation}\label{maxwell_distribution}
+\begin{equation}\label{eq:abs_theory:maxwell_distribution1}
   p(u)=\sqrt{\frac{m}{2\pi kT}}~~exp~\left[-\frac{mu^2}{2kT}\right]
 \end{equation}
 where $m$ is the mass of the molecule. Using then the formula for the
-Doppler shift for the non-relativistic region~~  $\nu$- $\nu_0$ =
-$\nu_0$$u$ / $c$ , one can easily derive the line-shape function \citep{bernath:95}, 
+Doppler shift for the non-relativistic region    $\nu$- $\nu_0$ =
+$\nu_0$$u$ / $c$ , one can easily derive the line shape function \citep{bernath:95}, 
 \begin{equation}
  F_D(\nu)=\frac{1}{\gamma_D\sqrt{\pi}}~~exp~\left[-\left(\frac{\nu - \nu_0}{\gamma_D}\right)^2\right]
 \end{equation}
@@ -286,32 +297,35 @@ where the quantity $\gamma_D$ is called Doppler line width and equals
 \begin{equation}
  \gamma_D=\frac{\nu}{c}\sqrt{\frac{2kT}{m}}
 \end{equation}
-In contrast to the afore mentioned line-shape function for the natural
-broadening the Doppler broadening is expressed by a Gaussian
-line-shape function $F(\nu)$. The Doppler line width $\gamma_D$ is so
+In contrast to the line shape function for the natural
+broadening, the Doppler broadening leads to a Gaussian
+line shape function $F(\nu)$. The Doppler line width $\gamma_D$ is so
 defined that it is equal to the half width at half of the maximum
-(HWWM) of the line-shape function. A similar notation is used
+(HWWM) of the line shape function. A similar notation is used
 for all other width parameters $\gamma_{xy}$ below.
 
-It can be said without any exaggeration that the pressure broadening
-effect is the most complicated one among the others and still
-represents a complex theoretical task to be tackled, and is at the
-same time of major experimental importance. So far, there is no way to
-calculate analytically from the basics the profile of a pressure, or
-collisional, line through a single approach near the line center as
-well as in the far wing region. The various approximations, which are
+The third broadening mechanism is pressure broadening.  It is the most
+complicated broadening mechanism, and still subject to theoretical and
+experimental research. So far, there is no way to derive the exact
+shape of a pressure-broadened line from first principles, at least not
+for the far wing region. The various approximations, which are
 therefore used, are immanently limited to the certain line regions
 they deal with.  The most popular among these approximations is the
-{\it{impact~approximation}} which postulates that the duration of the
+{\it{impact approximation}} which postulates that the duration of the
 collisions of the gas particles is very small compared to the average
-time between the collisions. Lorentz was the first to achieve a result
-exploiting this approach, the Lorentz line-shape function:
-\begin{equation}\label{pressure_lorentz}
+time between the collisions.  Due to the Fourier-pair relationship
+between time and frequency, the line shape that follows from the
+impact approximation can only be expected to be accurate near the line
+center, not in the far wings of the line.
+
+Lorentz was the first to achieve a result exploiting the impact
+approximation, the Lorentz line shape function:
+\begin{equation}\label{eq:abs_theory:pressure_lorentz}
  F_L(\nu)=\frac{\gamma_L}{\pi}\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}
 \end{equation}
 where $\gamma_L$ is the Lorentz line width \citep{thorne:99}. As one
-can see, the result Eq.\,\ref{pressure_lorentz} is pretty similar to
-Eq.\,\ref{natural_lorentz} but the specific line parameters $\gamma$
+can see, the result Eq.\,\ref{eq:abs_theory:pressure_lorentz} is pretty similar to
+Eq.\,\ref{eq:abs_theory:natural_lorentz} but the specific line parameters $\gamma$
 and $\gamma_L$ make them differ significantly in the corresponding
 frequency regions of interest. For atmospheric pressures $\gamma_L$ is
 much greater and because of that, of experimental
@@ -319,76 +333,78 @@ significance in contrast to $\gamma$.\\
 Elaborating the model of Lorentz, van Vleck and Weisskopf made a
 correction to it \citep{vanvleck:45},particularly for the microwave
 region:
-\begin{equation}\label{eq:vvw}
+\begin{equation}\label{eq:abs_theory:vvw}
  F_{VVW} (\nu)=\left(\frac{\nu}{\nu_0}\right)^2\frac{\gamma_L}{\pi}
  \left[\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}+\frac{1}{(\nu+\nu_0)^2+\gamma_L^2}\right]
 \end{equation}
 which can be reduced to a Lorentzian for $(\nu-\nu_0) << \nu_0$ and $0
 << \nu_0$. Except for the additional factor $(\nu/\nu_0)^2$ ,
-$F_{VVW}$ can be regarded as the sum of two $F_L$, or respectively
+$F_{VVW}$ can be regarded as the sum of two $F_L$
 lines, one with its center frequency at $\nu_0$, the other at
 $-\nu_o$.
 
 The van Vleck and Huber lineshape \citep{vanvleckhuber:77} is similar
-to Eq.\,\ref{eq:vvw}, except for the factor $(\nu/\nu_0)^2$ which is
+to Eq.\,\ref{eq:abs_theory:vvw}, except for the factor $(\nu/\nu_0)^2$ which is
 replaced by $(\nu * \tanh(h*\nu/(2kT)))/(\nu_0 *
 \tanh(h*\nu_0/(2kT)))$, with $k$ the Boltzmann constant, $h$ the Planck
 constant, and $T$ the atmospheric temperature (the denominator is
 actually a consequence of the line strength definition in the
-spectroscopic catalogs). The lineshape Eq.\,\ref{eq:vvw} with this
+spectroscopic catalogs). The lineshape Eq.\,\ref{eq:abs_theory:vvw} with this
 factor can be used for the entire frequency range, since
 the microwave approximation: $\tanh(x) = x$, that leads to the factor
 $(\nu/\nu_0)^2$, is not made.
 
 The combined picture of a simultaneously Doppler and pressure
 broadened line is the next step of the approximations development. The
-line-shape function has to approximated in this case by the Voigt line-shape
+line shape function has to approximated in this case by the Voigt line shape
 function 
-\begin{equation}\label{voigt}
+\begin{equation}\label{eq:abs_theory:voigt}
  F_{Voigt}(\nu,\nu_0)= \int F_L(\nu,\nu')~F_D(\nu',\nu_0)~d\nu'
 \end{equation}
 though there's no strict justification for its use - the two processes
 are assumed to act independently, which in reality is not the
 fact. Regardless of this flaw, it is the only way up to now to model
-the combination of the broadening processes. The integral in Eq.\,\ref{voigt}
+the combination of the broadening processes. The integral in Eq.\,\ref{eq:abs_theory:voigt}
 can not be computed analytically, so certain approximation algorithms
 must be used.
 
 
 Another possibility would be the combination of the last two equations
-Eq.\,\ref{eq:vvw} and Eq.\,\ref{voigt}. The respective result then will be 
-\begin{equation}\label{voigt_mirror}
+Eq.\,\ref{eq:abs_theory:vvw} and Eq.\,\ref{eq:abs_theory:voigt}. The respective result then will be 
+\begin{equation}\label{eq:abs_theory:voigt_mirror}
  F_S=\left(\frac{\nu}{\nu_0}\right)^2~[F_{Voigt}(\nu,\nu_0)+F_{Voigt}(\nu,-\nu_0)]
 \end{equation}
 The advantage of such a model is that it behaves like a van
-Vleck-Weisskopf line-shape function in the high pressure limit and
+Vleck-Weisskopf line shape function in the high pressure limit and
 like a Voigt one in the low pressure limit. There is one important
-caveat to the equation Eq.\,\ref{voigt_mirror}: it has to be made sure that the
-algorithm that is used to compute the Voigt function really produces a
-Lorentz line in the high pressure limit. Another point of significance
-is the demand that the model yields meaningful results far from the
-line center, since the line center from the ``mirror'' line at
--$\nu_0$ is situated approximately 2$\nu_0$ away from the frequency
-$\nu_0$ of computation. The algorithms of \citet{Drayson:76} and
-\citet{Oliveiro:77} were explicitly checked to satisfy both
-requirements, while this was found to be not true for some other
-algorithms, commonly used for Voigt-shape computation. In particular,
-it is not true for the Hui-Armstrong-Wray Formula, as defined in
-\citet{hui:78} and in Equation 2.60 of \citet{pwr:93}. So, provided
-the stated above is fulfilled, the $F_S$ line shape gives a smooth
-transition from high tropospheric pressures to low stratospheric ones,
-and should be valid near the line centers throughout the microwave region.
+caveat to the equation Eq.\,\ref{eq:abs_theory:voigt_mirror}: it has to be made sure
+that the algorithm that is used to compute the Voigt function really
+produces a Lorentz line in the high pressure limit. Another point of
+significance is the demand that the model yields meaningful results
+far from the line center, since the line center from the ``mirror''
+line at -$\nu_0$ is situated approximately 2$\nu_0$ away from the
+frequency $\nu_0$ of computation. We explicitly verified that the
+algorithms of \citet{Drayson:76}, \citet{Oliveiro:77}, and
+\citet{kuntz:99} satisfy both requirements, while this was found to be
+not true for some other algorithms commonly used for Voigt-shape
+computation. In particular, it is not true for the Hui-Armstrong-Wray
+Formula, as defined in \citet{hui:78} and in Equation 2.60 of
+\citet{pwr:93}. Provided the condition above is fulfilled, the $F_S$
+line shape gives a smooth transition from high tropospheric pressures
+to low stratospheric ones, and should be valid near the line centers
+throughout the microwave region. With a Van Vleck / Huber forefactor
+instead of the Van Vleck / Weisskopf forefactor, it should be valid
+throughout the thermal infrared spectral range, but there the mirror
+line at negative frequency is negligible anyway, because it is so far
+away.
 
+\subsubsection{Partition functions}
 
-
-
-
-
-\subsubsection{Partition Functions}
-
-The treatment of the partition functions is directly related to the molecular
-energy states and their statistical distribution during the
-radiation process. 
+Partition functions are needed to compute the temperature dependence
+of line intensities (Equation \ref{eq:abs_theory:line_intensity} on
+page \pageref{eq:abs_theory:line_intensity}).  They are related to the
+molecular energy states and their statistical distribution during the
+radiation process.
 
 In any case of spectroscopic interest the free molecules of a gas are
 not optically thick at all frequencies, so the radiation energy is not
@@ -404,18 +420,18 @@ an excited state must have a higher probability of de-excitation by
 collision than by spontaneous radiation. This is the important
 factor which makes natural broadening differ quantitatively so much
 from the pressure (collisional) one, though both are described
-qualitatively almost identically by Lorentzian line-shape
+qualitatively almost identically by Lorentzian line shape
 functions.
 
 According to the Maxwell-Boltzmann distribution law, in $LTE$ the total number
 of gas particles $N_n$  in a state $E_n$ is given by 
-\begin{equation}\label{maxwell_distribution}
+\begin{equation}\label{eq:abs_theory:maxwell_distribution2}
  N_n=N_0\frac{g_n}{g_0}e^{-E_n/kT}
 \end{equation}
 where $N_0$ is particle number in the ground state, and $g_n$, $g_o$
 are the statistical weights (degeneracies) of the $n-$state and the
 ground state \citep{gordyandcook:70}. Thus the total particle number $N$ is given by
-\begin{equation}\label{total_part_number}
+\begin{equation}\label{eq:abs_theory:total_part_number}
  N=\frac{N_0}{g_0}\sum_{n=0}^\infty g_n~e^{-E_n/kT}=\frac{N_0}{g_0}~Q(T)
 \end{equation}
 The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the
@@ -425,7 +441,7 @@ of the gas particles.
 The partition function for a perfect gas molecule can be represented
 by the product of the {\it{translational}\nocorr} and the
 {\it{internal}\nocorr} partition functions, as defined in \citet{herzberg:45},
-\begin{equation}\label{partition_f_general}
+\begin{equation}\label{eq:abs_theory:partition_f_general}
  Q  =  Q_{tr}~Q_{int}
 \end{equation}
 bearing in mind that the respective energies, translational and
@@ -445,8 +461,8 @@ The internal partition function for free gaseous molecules is a
 function of the electronic, the vibrational, the rotational, and the
 nuclear spin states. An approximation is used in
 \citet{gordyandcook:70} in order to display the individual
-contribution explicitly
-\begin{equation}\label{int_partition}
+contributions explicitly
+\begin{equation}\label{eq:abs_theory:int_partition}
  Q_{int}=Q_e~Q_v~Q_r~Q_n
 \end{equation}
 and thus the interaction between these various states is neglected.
@@ -458,7 +474,7 @@ electronic contribution has to be considered.\\
 If we neglect the anharmonicities, the vibrational partition function,
 with vibrational energy levels measured with respect to the ground
 state for the {\it harmonic oscillator}, is according to \citet{herzberg:45}
-\begin{equation}\label{vib_partition}
+\begin{equation}\label{eq:abs_theory:vib_partition}
  Q_v=\left(\sum_{\nu_1}e^{-\nu_1 h\omega_1/kT}\right)\left(\sum_{\nu_2}e^{-\nu_2 h\omega_2/kT}\right)...
 \end{equation}
 where $\nu_1$, $\nu_2$,..., the vibrational quantum numbers, can each
@@ -467,12 +483,12 @@ frequencies of the fundamental modes of vibration. The summation is
 taken over all values of $\nu_1$, $\nu_2$,..., and each fundamental
 mode is counted separately. This result is valid for non-degenerate
 vibrations. If we use the simple expression for geometric progression
-\begin{equation}\label{geom_progression}
+\begin{equation}\label{eq:abs_theory:geom_progression}
  \sum_{\nu_i}e^{-\nu_i h\omega_i/kT}=\frac{1}{1-e^{h\omega_i/kT}}
 \end{equation}
 and the degeneracies $d_1$, $d_2$,... of the fundamental modes, we get
 finally for the vibrational partition function
-\begin{equation}\label{vib_partition_fin}
+\begin{equation}\label{eq:abs_theory:vib_partition_fin}
 Q_v=\left(1-e^{h\omega_1/kT}\right)^{-d_1}\left(1-e^{h\omega_2/kT}\right)^{-d_2}...
 \end{equation}
 
@@ -480,7 +496,7 @@ The rotational partition function looks differently for the different
 symmetry types of molecules.
 For diatomic and linear  polyatomic molecules with no center of
 symmetry the corresponding expression is, as defined in \citet{gordyandcook:70}
-\begin{eqnarray}\label{rot_partition}
+\begin{eqnarray}\label{eq:abs_theory:rot_partition}
 Q_r & = & \sum_{J=0}^\infty (2J+1)e^{-hBJ(J+1)/kT}\nonumber\\
    & = & \frac{kT}{hB}+\frac{1}{3}+\frac{1}{15}\frac{hB}{kT}+\frac{4}{315}\left(\frac{hB}{kT}\right)^2+...\nonumber\\
    & \cong & \frac{kT}{hB}
@@ -491,33 +507,33 @@ spatial structure of the molecules, nuclear spin, inversion and
 internal rotation. The general expression in the case of a 
 {\it{ rigid symmetric-}} top molecule according to \citet{herzberg:45}
 is
-\begin{equation}\label{rot_partition_symtop}
+\begin{equation}\label{eq:abs_theory:rot_partition_symtop}
 Q_r  =  \frac{1}{\sigma}\sum_{J=0}^\infty \sum_{K=-J}^{J}(2J+1)~e^{-h[BJ(J+1)+(A-B)K^2]/kT}
 \end{equation}
 where $\sigma$ is a measure of the degree of symmetry. The usual
 symmetric top has $C_3$ or $C_{3\nu}$ symmetry, therefore $\sigma$ = 3. To a good
 approximation, the summation above can expressed as in \citet{gordyandcook:70}
-\begin{equation}\label{rot_partition_top_appro}
+\begin{equation}\label{eq:abs_theory:rot_partition_top_appro}
 Q_r  = 
 \frac{1}{\sigma}\left[\left(\frac{\pi}{B^2A}\right)\left(\frac{kT}{h}\right)^3\right]^{1/2}=
 \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{B^{2}A}\right)^{1/2}
 \end{equation}
 For an  {\it{asymmetric}} top the formula would then be 
-\begin{equation}\label{rot_partition_asymtop}
+\begin{equation}\label{eq:abs_theory:rot_partition_asymtop}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{ABC}\right)^{1/2}
 \end{equation}
 and for a {\it{spherical}} top, using the current notation of
 \citet{gordyandcook:70} in the respective expression in \citet{herzberg:45},
-\begin{equation}\label{rot_partition_sphetop}
+\begin{equation}\label{eq:abs_theory:rot_partition_sphetop}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 \end{equation}
 
 
-\subsection{Spectral-Line-Specific Data in ARTS} 
+\subsection{Spectral-line-specific data and line catalogues} 
 
 ARTS has an internal representation of spectral line data that maps
 naturally to a native catalogue format, which we will discuss
-below. But it can read also several other catalogue formats, in
+below. But ARTS can read also several other catalogue formats, in
 particular HITRAN and JPL format. If these other catalogues are used,
 line data are converted to the internal representation during
 reading. In other words, all unit conversions are done by the reading
@@ -569,7 +585,7 @@ Col  Variable                     Label    Unit
 \end{code}
 The parameters 0-12 must be present, the others can be missing, since
 they are not needed for the calculation. For the error fields (15-21),
-a~$-1$ means that no value exists.\\
+a $-1$ means that no value exists.
 
 Some species may need special parameters that are not needed by other
 species (for example overlap coefficients for $O_2$). In the case of
@@ -578,530 +594,34 @@ other species, e.g., methane, may need more coefficients. The default
 for \texttt{N\_AUX} is zero. In that case, no further \texttt{AUX}
 fields are present.
 
+\subsection{Species-specific data}
 
-\subsection{Species-Specific Data in ARTS}
+A line absorption species in ARTS is a particular isotopologue of a
+particular molecule.  Quantities such as the molecular mass and the
+isotopic ratio are specific and constant for each species.  Here is a
+list of all species-specific information that is needed:
+\begin{itemize}
+\item Molecule name
+\item Isotope name
+\item Isotopic ratio
+\item Molecular mass
+\item Corresponding tag in different catalogues (MYTRAN, HITRAN, JPL)
+\item Partition function data
+\end{itemize}
 
-This section treats the species-related data in ARTS --- all
-currently implemented species with the respective molecular masses,
-isotopic ratios, partition functions, and the sources for this
-information. 
+These data are currently stored in two source code files,
+\fileindex{species\_data.cc} and \fileindex{partition\_function\_data.cc}. 
+It is planned to change this in the not too far future, at least for
+the isotopic ratios, in order to allow calculations for other
+planets. The data will then be read from include files instead.
 
-Table \ref{table:impl_secies} lists the molecular species that are
-currently implemented in ARTS.
-The first column gives the ARTS molecule name, the second the ARTS
-isotope name (these two identify the species within ARTS). The third
-column gives the number of this species in the MYTRAN catalog, the fourth
-the one used in HITRAN96, and the fifth the corresponding tag numbers
-of the JPL00 catalog.
+\citet{buehler:artst:05} contains an explicit list of species that
+were implemented at the time of writing and their data.  We do not
+have such a list here, because it is too hard to maintain.  Currently,
+the best is to look directly in file \shortcode{species\_data.cc}.
+The different data sources are also documented there.
 
-
-\begin{longtable}{lllll}
- K & K & K & K & K \kill
-%
-% --------------------- only begin of table ------------------------------
-
- \hline
- {\it ARTS }& {\it ARTS }& {\it MYTRAN}& {\it HITRAN}& {\it JPL00}\\
- {\it Name}& {\it Isotope}& {\it Tag}& {\it Tag}& {\it Tag}\\ 
- \hline
- \endfirsthead
-% --------------------- every page begin of table ------------------------
- \hline
- {\it ARTS }& {\it ARTS }& {\it MYTRAN}& {\it HITRAN}& {\it JPL00}\\
- {\it Name}& {\it Isotope}& {\it Tag}& {\it Tag}& {\it Tag}\\ 
- \hline
- \endhead
-% --------------------- every page end of table ------------------------
- K & K & K & K & K \kill
- \hline
- \caption[]{(continued on next page)}\\
- \endfoot
-% --------------------- only end of table ------------------------------
- K & K & K & K & K \kill
- \hline
- \caption[ARTS implemented molecular species.]{ARTS implemented
-   molecular species. Those entries for which the isotope is not just
-   a number refer to continuum models, which are discussed in detail
-   in Section \ref{levelb:ContAbs}.}
- \label{table:impl_secies}
- \endlastfoot
-% --------------------- body of table ---------------------------------- 
-
- 
-
-  H2O& 161&  11&    11&  18003, 18005\\
-     & 181&  12&    12&  20003\\
-     & 171&  13&    13&  19003\\
-     & 162&  14&    14&  19002\\
-     & 182&  -1&    15&  21001\\
-     & 172&  -1&    16&       \\
-     & 262&  -1&    -1&  20001\\
-     &SelfContStandardType&             -1&  -1 & \\      
-     &ForeignContStandardType&          -1&  -1 & \\  
-     &ForeignContMaTippingType&         -1&  -1 & \\      
-     &ContMPM93&                        -1&  -1 & \\      
-     &SelfContCKD24&                    -1&  -1 & \\      
-     &ForeignContCKD24&                 -1&  -1 & \\ 
-     &ForeignContATM01&                 -1&  -1 & \\         
-     &CP98&                             -1&  -1 & \\      
-     &MPM87&                            -1&  -1 & \\      
-     &MPM89&                            -1&  -1 & \\      
-     &MPM93&                            -1&  -1 & \\      
-     &PWR98&                            -1&  -1 & \\  
-
-
-\hline                  
-  CO2& 626&  21&    21&\\
-     & 636&  22&    22&\\
-     & 628&  23&    23&  46013\\
-     & 627&  24&    24&  45012\\
-     & 638&  25&    25&\\
-     & 637&  26&    26&\\
-     & 828&  27&    27&\\
-     & 728&  28&    28&\\
-     &SelfContPWR93&    -1&-1&\\
-     &ForeignContPWR93& -1&-1&\\
-\hline                  
-  O3& 666&  31&    31&  48004, 48005,\\
-    &    &    &      &  48006, 48007,\\
-    &    &    &      &  48008\\
-    & 668&  32&    32&  50004, 50006\\
-    & 686&  33&    33&  50003, 50005\\
-    & 667&  34&    34&  49002\\
-    & 676&  35&    35&  49001\\
-\hline                  
-  N2O& 446&  41&    41&  44004, 44009,\\
-     &    &    &      &  44012\\
-     & 456&  42&    42&  45007\\
-     & 546&  43&    43&  45008\\
-     & 448&  44&    44&  46007\\
-     & 447&  -1&    45&\\
-\hline                   
-  CO&   26&  51&    51&  28001\\
-    & 36&  52&    52&  29001\\
-    & 28&  53&    53&  30001\\
-    & 27&  -1&    54&  29006\\
-    & 38&  -1&    55&\\
-    & 37&  -1&    56&\\
-\hline                  
-  CH4& 211&  -1&    61&\\
-     & 311&  -1&    62&\\
-     & 212&  -1&    63&  17003\\
-\hline                  
-  O2& 66&  71&    71&  32001, 32002\\
-    & 68&  72&    72&  34001\\
-    & 67&  73&    73&  33002\\
-    &SelfContStandardType&   -1        &-1&     \\
-    &SelfContMPM93&          -1        &-1&     \\
-    &SelfContPWR93&          -1        &-1&     \\
-    &PWR98&                  -1        &-1&     \\ 
-    &PWR93&                  -1        &-1&     \\
-    &PWR88&                  -1        &-1&     \\  
-    &MPM93&                  -1        &-1&     \\
-    &MPM92&                  -1        &-1&     \\
-    &MPM89&                  -1        &-1&     \\
-    &MPM85&                  -1        &-1&     \\
-\hline                  
-  NO& 46&  81&    81&  30008\\
-    & 56&  -1&    82&\\
-    & 48&  -1&    83&\\
-\hline                  
-  SO2& 626&  91&    91&  64002, 64005\\
-     & 646&  92&    92&  66002\\
-     & 636&  93&    -1&  65001\\
-     & 628&  94&    -1&  66004\\
-\hline                  
-  NO2& 646&  101&   101&  46006\\
-\hline                  
-  NH3& 4111&  111&   111&  17002, 17004\\
-     & 5111&  112&   112&  18002\\
-     & 4112&  -1&    -1&  18004\\
-\hline                  
-  HNO3& 146&  121&   121&  63001, 63002,\\
-      &    &     &      &  63003, 63004,\\
-      &    &     &      &  63005, 63006\\
-\hline                  
-  OH& 61&  131&   131&  17001\\
-    & 81&  132&   132&  19001\\
-    & 62&  133&   133&  18001\\
-\hline                  
-  HF& 19&  141&   141&  20002\\
-    & 29&  -1&    -1&  21002\\
-\hline                  
-  HCl&15&  151&   151&  36001\\
-     &17&  152&   152&  38001\\
-     &25&  -1&    -1&  37001\\
-     &27&  -1&    -1&  39004\\
-\hline                  
-  HBr& 19&  161&   161&  80001\\
-     & 11&  162&   162&  82001\\
-\hline                  
-  HI& 17&  -1&   171&\\
-\hline                  
-  ClO& 56&  181&   181&  51002, 51003\\
-     & 76&  182&   182&  53002, 53006\\
-\hline                  
-  OCS& 622&  191&   191&  60001\\
-     & 624&  192&   192&  62001\\
-     & 632&  193&   193&  61001\\
-     & 822&  194&   194&  62002\\
-     & 623&  195&   195&       \\
-\hline                  
-  H2CO& 1126&  201&   201&  30004\\
-      & 1136&  202&   202&  31002\\
-      & 1128&  203&   203&  32004\\
-      & 1226&  -1&    -1&  31003\\
-      & 2226&  -1&    -1&  32006\\
-\hline                  
-  HOCl& 165&  211&   211&  52006\\
-      & 167&  212&   212&  54005\\
-\hline                  
-  N2& 44&  -1&   221&\\
-    &SelfContMPM93&             -1      &-1     \\
-    &SelfContPWR93&             -1      &-1     \\
-    &SelfContStandardType&      -1      &-1     \\
-    &SelfContBorysow&           -1      &-1     \\
-    &DryContATM01&              -1      &-1     \\
-
-
-\hline                  
-  HCN& 124&  231&   231&  27001, 27003\\
-     & 134&  232&   232&  28002\\
-     & 125&  233&   233&  28003\\
-     & 224&  -1&    -1&  28004\\
-\hline                  
-  CH3Cl& 215&  241&   241&  50007\\
-       & 217&  242&   242&  52009\\
-\hline                  
-  H2O2& 1661&  251&   251&  34004\\
-\hline                  
-  C2H2& 1221&  -1&   261&\\
-      & 1231&  -1&   262&\\
-\hline                  
-  C2H6& 1221&  -1&   271&\\
-\hline
-  PH3& 1111&  281&   281&  34003\\
-\hline                  
-  COF2&  269&  291&   291&  66001\\
-\hline                  
-  SF6& 29&  -1&   301&\\
-\hline                  
-  H2S& 121&  311&   311&  34002\\
-     & 141&  -1&   312&\\
-     & 131&  -1&   313&\\
-     & 122&  -1&    -1&  35001\\
-\hline                  
-  HCOOH& 1261&  321&   321&  46005\\
-       & 1361&  -1&    -1&  47002\\
-       & 2261&  -1&    -1&  47003\\
-       & 1262&  -1&    -1&  47004\\
-\hline                  
-  HO2& 166&  331&   331&  33001\\
-\hline                  
-  O& 6&  341&   341&  16001\\
-\hline                  
-  ClONO2& 5646&  351&   351&  97002\\
-        & 7646&  352&   352&  99001\\
-\hline                  
-  NO+& 46&  -1&   361&  30011\\
-\hline                  
-  OClO& 656&  431&    -1&  67001\\
-      & 676&  432&    -1&  69001\\
-\hline                  
-  BrO& 96&  401&    -1&  95001\\
-     & 16&  402&    -1&  97001\\
-\hline                  
-  H2SO4& 126&  481&    -1&  98001\\
-\hline                  
-  Cl2O2& 565&  491&    -1&  102001\\
-       & 765&  492&    -1&  104001\\
-\hline                  
-  HOBr & 169&  371&    371&  96001\\
-       & 161&  372&    372&  98002\\
-\hline                  
-  C2H4 & 221&  381&    381&       \\
-       & 231&  382&    382&       \\
-\hline                  
-CH3CN & 211124&-1 & -1    & 41001 \\
-      & 311124&-1 & -1    & 42006 \\
-      & 211134&-1 & -1    & 42007 \\
-      & 211125&-1 & -1    & 42001 \\
-      & 211224&-1 & -1    & 42008 \\
-\hline                  
-  HNC & 142&  -1 & -1     & 27002 \\
-  HNC & 143&  -1 & -1     & 28005 \\
-  HNC & 152&  -1 & -1     & 28006 \\
-  HNC & 242&  -1 & -1     & 28007 \\
-\hline                  
-liquidcloud& MPM93&-1 &  -1   &       \\
-\hline                  
-icecloud& MPM9&    -1 &  -1   &       \\
-\hline                  
-rain     & MPM93 & -1 &  -1   &       \\
-\end{longtable}
- 
-ARTS has an internal data structure that closely matches Table
-\ref{table:impl_secies}, and that can be found in file
-\fileindex{species\_data.cc}.  That file also contains a lot of
-additional information, such as the source of the different
-parameters.
-
-The next table, Table \ref{table:isoratio}, gives an overview of the
-isotopic ratios and their sources, and the molecular mass of the
-species used in used in ARTS.  The isotopic ratio of the species was
-in general taken from HITRAN00, even for species where JPL00 and
-HITRAN00 give isotopic ratios.  Species not present in HITRAN00 were
-extracted from JPL00.  JPL00 isotopic ratios are normalized to 1 for
-some molecules, for these cases, the HITRAN00 isotopic ratio of the
-major isotope was used to scale the JPL00 isotopic ratio to a relative
-number.
-
-As in \ref{table:impl_secies} the first two columns give the ARTS
-molecule name and the ARTS isotope name. The next two ones give the
-isotopic ratio and the source it is taken from respectively. An entry
-of 1 corresponds to HITRAN00, 2 to JPL00, 3 to JPL00 multiplied with
-the maximum abundance of this molecule in HITRAN. The last column
-contains the molecular masses of the isotopes. An entry of -1 is marks
-continuum tags, which are discussed later.
-
-
-
-\begin{longtable}{lllll}
- K & K & K & K & K   \kill
-%
-% --------------------- only begin of table ------------------------------
- \hline
- {\it ARTS }& {\it ARTS }& {\it Isotopic }& {\it Isotopic Ratio }&{\it Mass}\\
- {\it Name }& {\it Isotope }& {\it Ratio }& {\it Source }         &      \\ 
- \hline
- \endfirsthead
-% --------------------- every page begin of table ------------------------
- \hline
- {\it ARTS }& {\it ARTS }& {\it Isotopic }& {\it Isotopic Ratio }&{\it Mass}\\
- {\it Name }& {\it Isotope }& {\it Ratio }& {\it Source }         &      \\  
- \hline
- \endhead
-% --------------------- every page end of table ------------------------
- K & K & K & K & K   \kill
- \hline
- \caption[]{(continued on next page)}
- \endfoot
-% --------------------- only end of table ------------------------------
- K & K & K & K & K   \kill
- \hline
- \caption{Isotopic ratios within ARTS, source of the ratios and molecular mass.}
- \label{table:isoratio}
- \endlastfoot
-% --------------------- body of table ---------------------------------- 
-  
-
-  H2O& 161&  0.99731702&  1&18\\
-     & 181&  0.00199983&  1&20\\
-     & 171&  0.00037200&  1&19\\
-     & 162&  0.00031069&  1&19\\
-     & 182&  6.23003E-07& 1&21\\
-     & 172&  1.15853E-07& 1& 20\\
-     & 262&  2.2430204E-08&  3&20\\
-     &SelfContStandardType&     -1    &-1    &-1     \\
-     &ForeignContStandardType&  -1    &-1    &-1     \\
-     &ForeignContMaTippingType& -1    &-1    &-1     \\
-     &ContMPM93&                -1    &-1    &-1     \\
-     &SelfContCKD24&            -1    &-1    &-1     \\
-     &ForeignContCKD24&         -1    &-1    &-1     \\
-     &ForeignContATM01&         -1    &-1    &-1     \\
-     &CP98&                     -1    &-1    &-1     \\
-     &MPM87&                    -1    &-1    &-1     \\
-     &MPM89&                    -1    &-1    &-1     \\
-     &MPM93&                    -1    &-1    &-1     \\
-     &PWR98&                    -1    &-1    &-1     \\
-
-\hline                  
-  CO2& 626&  0.98420&  1&44\\
-     & 636&  0.0110574&  1&45\\
-     & 628&  0.00394707&  1&46\\
-     & 627&  0.000733989&  1&45\\
-     & 638&  0.000044346&  1&47\\
-     & 637&  0.0000082462&  1&46\\
-     & 828&  0.00000395734&  1&48\\
-     & 728&  0.0000014718&  1&47\\
-     &SelfContPWR93&        -1  &-1     &-1     \\
-     &ForeignContPWR93&     -1  &-1     &-1     \\
-\hline                  
-  O3& 666&   0.992901&  1&48\\
-    & 668&   0.00398194&  1&50\\
-    & 686&   0.00199097&  1&50\\
-    & 667&   0.000740&  1&49\\
-    & 676&   0.000370&  1&49\\
-\hline                  
-  N2O& 446&  0.990333&  1&44\\
-     & 456&  0.00364093&  1&45\\
-     & 546&  0.00364093&  1&45\\
-     & 448&  0.00198582&  1&46\\
-     & 447&  0.000369&  1&46\\
-\hline                   
-  CO& 26&  0.986544&  1&28\\
-    & 36&  0.0110836&  1&29\\
-    & 28&  0.00197822&  1&30\\
-    & 27&  0.00036867&  1&29\\
-    & 38&  0.000022225&  1&31\\
-    & 37&  0.0000041329&  1&30\\
-\hline                  
-  CH4& 211&  0.988274&  1&16\\
-     & 311&  0.0111031&  1&17\\
-     & 212&  0.000615751&  1&17\\
-\hline                  
-  O2& 66&  0.995262&  1&32\\
-    & 68&  0.00399141&  1&34\\
-    & 67&  0.00074235&  1&33\\
-    &SelfContStandardType&      -1      &-1     &-1     \\
-    &SelfContMPM93&             -1      &-1     &-1     \\
-    &SelfContPWR93&             -1      &-1     &-1     \\
-    &PWR98&                     -1      &-1     &-1     \\
-    &PWR93&                     -1      &-1     &-1     \\
-    &PMR88&                     -1      &-1     &-1     \\
-    &MPM93&                     -1      &-1     &-1     \\
-    &MPM92&                     -1      &-1     &-1     \\
-    &MPM89&                     -1      &-1     &-1     \\
-    &MPM87&                     -1      &-1     &-1     \\
-    &MPM85&                     -1      &-1     &-1     \\
-\hline                  
-  NO& 46&  0.993974&  1&30\\
-    & 56&  0.00365431&  1&31\\
-    & 48&  0.00199312&  1&32\\
-\hline                  
-  SO2& 626&  0.945678&  1&64\\
-     & 646&  0.0419503&  1&66\\
-     & 636&  0.0074989421&  2&65\\
-     & 628&  0.0020417379&  2&66\\
-
-\hline                  
-  NO2& 646&  0.991616&  1&46\\
-\hline                  
-  NH3& 4111& 0.9958715&  1&17\\
-     & 5111& 0.00366129&  1&18\\
-     & 4112& 0.00044792294&  3&18\\
-\hline                  
-  HNO3& 146& 0.989110&  1&63\\
-\hline                  
-  OH& 61&  0.997473&  1&17\\
-    & 81&  0.00200014&  1&19\\
-    & 62&  0.000155371&  1&18\\
-\hline                  
-  HF& 19&  0.99984425&  1&20\\
-    & 29&  0.00014994513&  3&21\\
-\hline                  
-  HCl& 15&  0.757587&  1&36\\
-     & 17&  0.242257&  1&38\\
-     & 25&  0.00011324004&  2&37\\
-     & 27&  3.6728230E-05&  2&39\\
-\hline                  
-  HBr& 19&  0.50678&  1&80\\
-     & 11&  0.49306&  1&82\\
-\hline                  
-  HI& 17&  ,0.99984425& 2&128\\
-\hline                  
-  ClO& 56&  0.755908&  1&51\\
-     & 76&  0.24172&  1&53\\
-\hline                  
-  OCS& 622&  0.937395&  1&60\\
-     & 624&  0.0415828&  1&62\\
-     & 632&  0.0105315&  1&61\\
-     & 623&  0.00739908 &1&61\\
-     & 822&  0.0018797&1&61\\
-\hline                  
-  H2CO& 1126&  0.986237&  1&30\\
-      & 1136&  0.0110802&  1&31\\
-      & 1128&  0.00197761& 1&32\\
-      & 1226&  0.00029578940&  3&31\\
-      & 2226&  2.2181076E-08&  3&32\\
-\hline                  
-  HOCl& 165&  0.75579&  1&52\\
-      & 167&  0.241683&  1&54\\
-\hline                  
-  N2& 44&  0.9926874&  1&28\\
-    &SelfContMPM93&             -1      &-1     &-1\\
-    &SelfContPWR93&             -1      &-1     &-1\\
-    &SelfContStandardType&      -1      &-1     &-1\\
-    &SelfContBorysow&           -1      &-1     &-1\\
-    &DryContATM01&              -1      &-1     &-1\\
-\hline                  
-  HCN& 124&  0.985114&  1&27\\
-     & 134&  0.011076&  1&28\\
-     & 125&  0.00362174&  1&28\\
-     & 224&  0.00014773545&  3&28\\
-\hline                  
-  CH3Cl& 215&  0.748937&  1&50\\
-       & 217&  0.239491&  1&52\\
-\hline                  
-  H2O2& 1661&  0.994952&  1&34\\
-\hline                  
-  C2H2& 1221&  0.977599&  1&26\\
-      & 1231&  0.021966&  1&27\\
-\hline                  
-  C2H6& 1221&  0.97699&  1&30\\
-\hline
-  PH3& 1111&  0.99953283&  1&34\\
-\hline                  
-  COF2& 269&  0.986544&  1&66\\
-\hline                  
-  SF6& 29&  0.95018&  1&146\\
-\hline                  
-  H2S& 121&  0.949884&  1&34\\
-     & 141&  0.0421369&  1&36\\
-     & 131&  0.00749766&  1&35\\
-     & 122&  0.00029991625&  2&35\\
-\hline                  
-  HCOOH& 1261&  0.983898&  1&46\\
-       & 1361&  0.010913149&  3&47\\
-       & 2261&  0.00014755369&  3&47\\
-       & 1262&  0.00014755369&  3&47\\
-\hline                  
-  HO2& 166&  0.995107&  1&33\\
-\hline                  
-  O& 6&  0.997628&  1&16\\
-\hline                  
-  ClONO2& 5646&  0.74957&  1&97\\
-        & 7646&  0.239694&  1&99\\
-\hline                  
-  NO+& 46&  0.993974&  1&30\\
-\hline                  
-  OClO& 656&  0.75509223&  2&67\\
-      & 676&  0.24490632&  2&69\\
-\hline                  
-  BrO& 96&  0.50582466&  2&95\\
-     & 16&  0.49431069&  2&97\\
-\hline                  
-  H2SO4& 126&  0.95060479&  2&98\\
-\hline                  
-  Cl2O2& 565&  0.57016427&  2&102\\
-       & 765&  0.36982818&  2&104\\
-\hline                  
-  HOBr& 169&   0.505579  &  1&102\\
-      & 161&   0.491894  &  1&104\\
-\hline                  
-  C2H4& 221&   0.977294  &  1&28\\
-      & 231&   0.0219595 &  1&29\\
-\hline                  
-CH3CN &211124& 0.97366840&  3&41\\
-CH3CN &311124& 0.011091748& 3&42\\
-CH3CN &211134& 0.011091748& 3&42\\
-CH3CN &211125& 0.0036982817&3&42\\
-CH3CN &211224& 0.00044977985&3&42\\
-\hline                  
-  HNC & 142&   0.98505998  &3 &27\\
-  HNC & 143&   0.011091748 &3 &28\\
-  HNC & 152&   0.0036982817&3 &28\\
-  HNC & 242&   0.00014996849&3&28\\
-\hline
-liquidcloud&          -1 & -1& -1\\
-\hline
-icecloud&             -1 & -1& -1\\
-\hline
-rain&                 -1 & -1& -1\\
-\end{longtable}
-
-
-\subsubsection{Partition Function Data}
+\subsubsection{Partition function data}
 
 ARTS uses third order polynomials to approximate partition functions,
 so four polynomial coefficients have to be stored for each isotopic
@@ -1141,291 +661,12 @@ The partition function data for BrO were provided by Agnes
 Perrin, Orsay, France.
 
 
-
-\subsection{ARTS Workspace Variables and Methods}
-
-Both expressions (3.1) and (3.3) are used for the line by line
-calculations of the absorption. In order to calculate it certain 
-{\it workspace variables} and {\it methods} are used. It has to be
-remembered that the certain values given in the following examples are
-arbitrarily chosen and given only for a better illustration. 
-
-There are two alternative ways to calculate the absorption
-coefficients in ARTS.The first one is through the workspace method 
-\begin{code}
-absCalc{}
-\end{code}
-This method actually works through calling internally in ARTS two other workspace
-methods:
-\begin{code}
-xsec_per_tgCalc{}
-absCalcFromXsec{}
-\end{code}
-The first one calculates the cross section {\it x} per tag group, the
-second one - the absorption coefficients $\alpha$ from the cross
-sections and the volume mixing ratios {\it VMR} at altitude $i$
-through the expression $\alpha_i~=~x_i\times {\it VMR_i}$. The second
-alternative way of computing the absorption coefficients is by using
-the afore mentioned methods explicitly in the control file in
-combination with one another
-\begin{code}
-xsec_per_tgCalc{}
-absCalcFromXsec{}
-\end{code}
-Therefore we will pay special attention to the functioning, the input
-and output workspace variables of {\verb absCalc }. This method
-calculates the total absorption coefficient as well as the ones per
-defined tag group. Thus the two output workspace variables are 
-{\verb abs } and {\verb abs_per_tag }. The input workspace variables are~: 
-
-\begin{description}
-\item{{\verb tgs }~:} defining the available tag groups for the 
-  calculation of the absorption coefficients;
-\item{{\verb f_mono }~:} the monochromatic frequency grid [Hz];
-\item{{\verb p_abs }~:} the pressure grid for the absorption coefficients [Pa]; 
-\item{{\verb t_abs }~:} temperature associated with the pressures
-  in {\verb p_abs } [K]; 
-\item{{\verb n2_abs }~:} the total nitrogen profile associated with
-  the pressures in {\verb p_abs } [-];
-\item{{\verb h2o_abs }~:} the total water profile associated with the
-  pressures in {\verb p_abs } [-];
-\item{{\verb vmrs }~:} the VMRs (unit: absolute number) on the 
-{\verb p_abs } grid; 
-\item{{\verb lines_per_tg }~:} a list of spectral line data for each tag;
-\item{{\verb lineshape  }~:} lineshape specification: function, norm, cutoff;
-\item{{\verb cont_description_names }~:} a list of
-names of continuum models;  
-\item{{\verb cont_description_parameters }~:} continuum model parameters. 
-\end{description}
-All these input workspace variables have to be defined and set by the
-respective workspace methods for the proper functioning of 
-{\verb absCalc }. Any exception of this will lead to an error message.\\
-First, the species of interest should be determined. This is done by the
-workspace method:
-\begin{code}
-tgsDefine { 
-     [ "O3",
-       "ClO",
-       "N2",
-       "H2O" ]
-}
-\end{code}
-which produces as output {\verb tgs }. In our case case this will
-create  a list of four tag groups. For each of them the absorption
-coefficients will be calculated later on. The monochromatic grid is created through the method
-\begin{code}
-VectorNLinSpace(f_mono){
-        start = 1e9
-        stop  = 200e9
-        n     = 200    
-}
-\end{code}
-thus producing {\verb f_mono } . The grid can be optionally saved into
-a file through {\verb VectorWriteAscii } {\verb (f_mono) }
- {\verb {""} } . The  pressure grid  is created through the method 
-\begin{code}
-VectorNLogSpace(p_abs){
-        start = 100000
-        stop  = 10
-        n     = 140
-}
-\end{code}
-with output {\verb p_abs }. Again, it can be optionally written into
-a file with
-\begin{code}
-VectorWriteAscii(p_abs){""} 
-\end{code}
-The corresponding temperatures to the pressure as well as the VMRs is
-realized through loading the respective input profiles, defined by the
-workspace variables {\verb raw_ptz } and {\verb raw_vmrs }. The
-corresponding methods are
-\begin{code}
-MatrixReadAscii (raw_ptz) 
-{"/arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
-\end{code}
-and
-\begin{code}
-raw_vmrsReadFromScenario
-{"/arts-data/atmosphere/fascod/midlatitude-summer"}
-\end{code}
-where the profiles are read from the atmospheric
-scenarios, in this case the one { \verb midlatitude-summer }.
-Both physical profiles of ${\it H_2O}$  and ${\it N_2}$ are
-loaded through similar workspace methods
-\begin{code}
-h2o_absSet{}
-n2_absSet{}
-\end{code}
-needed for the input variables {\verb h2o_abs } and {\verb n2_abs }.
-Though they are at the bottom of the above given list of input
-workspace variables, it is better to treat the continuum variables at
-this place. In our case of line by line calculations we are not
-interested in the continuum description, that's why we should just
-call a workspace method to assign empty arrays to the variables:
-\begin{code}
-cont_descriptionInit{}
-\end{code}
-The next variable to be set is {\verb lines_per_tg } , done by the
-method
-\begin{code}
-lines_per_tgReadFromCatalogues{
-  filenames = ["/arts-data/spectroscopy/jpl00/jpl00.cat",
-    "/arts-dat/spectroscopy/hitran96/hitran96_lowfreq.par"]
-   formats = [ "JPL", "HITRAN96" ]
-   fmin    = [ 0,         0      ]       
-   fmax    = [ 200e9,     200e9  ]   
- }
-\end{code}
-where lines from individual catalogs (here JPL and HITRAN96) are
-assigned to the different defined tag groups. Another possibility of
-doing this is to call two other methods one after another:
-{\small
-\begin{code}
-linesReadFromHitran {
-filename = "/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
-fmin     = 1e9
-fmax     = 200e9
-}
-\end{code}
-}
-and thus creating the variable {\verb lines } , used afterward as
-input in 
-\begin{code}
-lines_per_tgCreateFromLines{}
-\end{code}
-in order to get finally {\verb lines_per_tg } defined. Here is the
-proper place to give the individual methods for reading the available
-spectroscopic catalogs in ARTS, i.e. creating the variable
-{\verb lines } from them. The ARTS own catalog format is read by
-\begin{code}
-linesReadfromArts {
-   filename = "ozone.al"
-   fmin     = 0
-   fmax     = 1e12
-}
-\end{code}     
-A similar procedure is done for the other catalogs:
-\begin{code}
-linesReadfromHitran {
-   filename = "hitran96_lowfreq.par"
-   fmin     = 0
-   fmax     = 1e12
-}
- \end{code}
-for HITRAN96--01,
-\begin{code}
-linesReadfromHitran2004 {
-   filename = "hitran04.par"
-   fmin     = 0
-   fmax     = 1e12
-}
- \end{code}
-for HITRAN04,
-\begin{code}
-linesReadfromJpl {
-   filename = "jpl100.cat"
-   fmin     = 0
-   fmax     = 1e12
-}
-\end{code}     
-for JPL, and 
-\begin{code}
-linesReadfromMytran {
-   filename = "mytran98.my"
-   fmin     = 0
-   fmax     = 1e12
-}
-\end{code} 
-for MYTRAN.\\
-The last input variable for {\verb absCalc } to be discussed is 
-{\verb lineshape } . It is created either generally for all tag groups
-through 
-\begin{code}
-lineshapeDefine{
-  shape = "Voigt_Kuntz6" 
-  normalizationfactor = "linear"
-  cutoff = -1
-}
-\end{code}
-or to set it individually for each tag group
-\begin{code}
-lineshape_per_tgDefine{
-  shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6",]
-  normalizationfactor = ["quadratic","no_norm","linear",]
-  cutoff = [-1,-1,-1]
-}
-\end{code}
-More elucidation on the three parameters {\verb shape } ,
-{\verb normalizationfactor } and {\verb cutoff }  is needed. The first
-one accounts for the different lineshape models now available in
-ARTS. It's done by setting {\verb shape } to a given model name
-:
-\begin{description} 
-\item{{\verb Lorenz }~:} Lorenz line shape;
-\item{{\verb Doppler }~:} Doppler line shape
-\item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
-  shape with relative accuracy better than $ 2 \times 10^{-6} $;
-\item{{\verb Voigt_Kuntz4 }~:} Kuntz approximation to the Voigt line
-  shape with relative accuracy better than $ 2 \times 10^{-4} $;
-\item{{\verb Voigt_Kuntz3 }~:} Kuntz approximation to the Voigt line
-  shape with relative accuracy better than $ 2 \times 10^{-3} $;
-\item{{\verb Voigt_Drayson }~:} Drayson approximation to the Voigt
-  profile;
-\item{{\verb Rosenkranz_Voigt_Kuntz6 }~:} Rosenkranz oxygen
-  absorption including overlap correction, at high altitudes Kuntz
-  routine, requires the ARTS catalog with auxiliary overlap
-  parameters;
-  profile;
-\item{{\verb Rosenkranz_Voigt_Drayson }~:} Rosenkranz oxygen
-  absorption including overlap correction, at high altitudes Drayson
-  routine, requires the ARTS catalog with auxiliary overlap
-  parameters
-\end{description}
-The {\verb normalizationfactor } sets the different normalization
-factors of the line shape:
-\begin{description} 
-\item{{\verb no_norm }~:} 1 (unity);
-\item{{\verb linear }~:} $(\nu / \nu_0)$;
-\item{{\verb quadratic }~:} $(\nu / \nu_0)^2$;
-\item{{\verb VVH }~:} $(\nu * \tanh(h*\nu/(2kT)))/(\nu_0 * \tanh(h*\nu_0/(2kT)))$
-\end{description}
-The {\verb cutoff } can be set to -1 for
-no cutoff or to a positive number for a cutoff at a given frequency
-in~ [Hz], e.g. 650e9.
-
-Thus we have generated all input workspace variables for 
-{\verb absCalc }. Therefore this part of the subsection is a little bit short
-of being able to serve as a control file in ARTS for absorption,
-provided that just one method is used where more alternatives are
-available and superfluous methods are skipped. The only addition to make
-it complete is to use after all input variable generating methods the 
-\begin{code}
-absCalc{}
-\end{code}
-method, the result of which can be saved into files through
-\begin{code}
-MatrixWriteAscii (abs) {""}
-\end{code}
-or
-\begin{code}
-ArrayOfMatrixWriteAscii (abs_per_tg) {""}
-\end{code}
-
-There is also an alternative version of {\verb absCalc }: 
-{\verb absCalcSaveMemory }, which does not calculate 
-{\verb abs_per_tg } (only {\verb abs } is calculated), 
-thus is not suited for the calculation of weighting functions. 
-But {\verb absCalcSaveMemory } is able to handle larger absorption jobs than
-{\verb absCalc } if the jobs is close to the machine specific
-memory limitations.
-
-
 % ================================================================================
 % The following section is written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de
 % ================================================================================
 
-\section{Continuum Absorption}
-\label{levelb:ContAbs}
+\section{Continuum absorption}
+\label{sec:abs_theory:ContAbs}
 % ===========================
 
 As pointed out above, some molecules show beside the resonant line
@@ -1473,19 +714,19 @@ absorption is the dependency on the square of the molecular density.
 
 
 
-\subsection{Water Vapor Continuum Models}
+\subsection{Water vapor continuum models}
 \label{leveld:h2o_Cont}
 %------------------------------------
 As shown by \citet{liebeandlayton:87}, \citet{pwr:98}, and \citet{ma:90},
 the water vapor continuum absorption can be well described by 
 \begin{equation} 
-  \label{eq:abs_cont}
+  \label{eq:abs_theory:abs_cont}
   \alphac = \nu^2 \cdot \Theta^{3} \cdot 
             (\cso \cdot \phzo^2 \cdot \Theta^{\xs} + 
              \cdo \cdot \phzo \cdot \pda \cdot \Theta^{\xf})
 \end{equation}
 where the microwave approximation ($h\nu\ll k_BT$ ) of the radiation field term 
-is already applied. The adjustment of Eq. \ref{eq:abs_cont} to the data 
+is already applied. The adjustment of Eq. \ref{eq:abs_theory:abs_cont} to the data 
 is performed through the parameter set $\cso$, $\xs$, $\cdo$, and $\xf$. 
 Table \ref{tab:wvcontparam} gives some commonly used continuum parameter sets.
 \begin{table}[!hbt]
@@ -1516,11 +757,11 @@ Table \ref{tab:wvcontparam} gives some commonly used continuum parameter sets.
 \end{center}
  \caption[Liebe-type continuum model parameters.]{Values of commonly used continuum parameter sets. The last line (MPM93$^*$)
    represents an approximation of the pseudo-line continuum of MPM93
-   in the form of Eq. \ref{eq:abs_cont}.}
+   in the form of Eq. \ref{eq:abs_theory:abs_cont}.}
  \label{tab:wvcontparam}
 \end{table}
 
-\subsubsection{The MPM93 Continuum Parameterization}
+\subsubsection{The MPM93 continuum parameterization}
 \label{leveld:mpm93:contabs}
 %-----------------------------------------------
 In the MPM93 model \citep{liebeetal:93}, the water 
@@ -1530,23 +771,23 @@ parameters, the pseudo-line center frequency ($\nu^*$) and the six
 pseudo-line parameters ($\beks$,$\cdots$,$\bsks$):
 %
 \begin{eqnarray}
-  \label{eq:mpm93:contabs}
+  \label{eq:abs_theory:mpm93:contabs}
   \alphampmnc & = & 0.1820 \cdot \frac{\beks}{\nu^*} \cdot \phzo \cdot 
                 \Theta^{3.5} \cdot \exp{\left(\bzks\cdot(1-\Theta)\right)} \cdot 
                 \nu^2 \cdot \shapec\\
 %
-  \label{eq:mpm93:contabs1}
+  \label{eq:abs_theory:mpm93:contabs1}
    \shapec & = & \left[\frac{\gamc}{(\nu^*+\nu)^2+\gamc^2} + 
                        \frac{\gamc}{(\nu^*-\nu)^2+\gamc^2}\right]\\
 %
-  \label{eq:mpm93:contabs2}
+  \label{eq:abs_theory:mpm93:contabs2}
   \gamc & = &  \bdks \cdot 
         \left(\bvks \cdot \phzo \cdot \Theta^{\bsks}~~+~~ 
                           \pda  \cdot \Theta^{\bfks}\right)\\
   \nonumber
 \end{eqnarray}
 %
-Table~\ref{tab:mpm93_cont_param} lists the values of this continuum 
+Table \ref{tab:mpm93_cont_param} lists the values of this continuum 
 parameter set. It is remarkable that all these parameters are much 
 larger compared to the physical water vapor line parameters of the 
 same model. The only exception is $\bzks$, the parameter 
@@ -1590,20 +831,20 @@ $\gamc$(300\,K) &  5.4\,GHz & 23.0\,GHz &  28.4\,GHz\\
 \end{table} 
 
 This change of continuum parameterization makes it difficult 
-to compare MPM93 with the models which use Eq. (\ref{eq:abs_cont}). 
+to compare MPM93 with the models which use Eq. (\ref{eq:abs_theory:abs_cont}). 
 However, with respect to microwave frequencies, the 
 line shape function, $F_c(\nu)$, can be approximated since 
 the magnitude of the pseudo-line width is much smaller compared to the 
 distance between microwave frequencies and $\nu^*$, as 
 shown for four different cases in Table\,\ref{tab:mpm_psl_broad}:
 \begin{equation}
- \label{eq:mpm93:contfapp1}
+ \label{eq:abs_theory:mpm93:contfapp1}
  \shapec \approx 2 \cdot \frac{\gamc}{\nucc^2}
 \end{equation}
-Inserting Eq. (\ref{eq:mpm93:contfapp1}) into Eq. (\ref{eq:mpm93:contabs})
+Inserting Eq. (\ref{eq:abs_theory:mpm93:contfapp1}) into Eq. (\ref{eq:abs_theory:mpm93:contabs})
 gives a quadratic frequency dependence of the MPM93 continuum,
 similar to the continuum parameterization expressed in 
-Eq. (\ref{eq:abs_cont}). By additionally approximating 
+Eq. (\ref{eq:abs_theory:abs_cont}). By additionally approximating 
 the temperature dependence to the simple form
 \begin{eqnarray}
   \xs\cdot\ln{(\Theta)} & = & 
@@ -1617,7 +858,7 @@ the temperature dependence to the simple form
 \nonumber
 \end{eqnarray}
 %
-one can rearrange the pseudo-line continuum to fit Eq. (\ref{eq:abs_cont})
+one can rearrange the pseudo-line continuum to fit Eq. (\ref{eq:abs_theory:abs_cont})
 (denoted by MPM93$^*$). The so deduced continuum parameter set is given in 
 Table \ref{tab:wvcontparam}.\\
 The MPM93$^*$ continuum parameters $\cso$ and $\cdo$ are 20\,\% and 
@@ -1634,7 +875,7 @@ by a single laboratory measurement at 138\,GHz.
 
 
 
-\subsection{Oxygen Continuum Absorption}
+\subsection{Oxygen continuum absorption}
 \label{levelc:o2cont}
 %-----------------------------------
 As pointed out by \citet{vv:87}, the standard theory for
@@ -1646,13 +887,13 @@ Debye theory for their models. The only difference is the formulation
 of the line broadening, where the influence of water vapor is treated 
 slightly different: 
 \begin{eqnarray}
-  \label{eq:abs_cont_pwr_o2}
+  \label{eq:abs_theory:abs_cont_pwr_o2}
   \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
              \frac{\nu^2 \cdot \gamma}{\nu^2+\gamma^2}\\
-  \label{eq:abs_cont_pwr_o2_1}
+  \label{eq:abs_theory:abs_cont_pwr_o2_1}
   \gamma &=&  w \cdot (\pda\cdot \Theta^{0.8} + 1.1 \cdot \phzo \cdot
   \Theta)\hspace*{5mm}:~\mbox{Rosenkranz}\\
-  \label{eq:abs_cont_pwr_o2_2}
+  \label{eq:abs_theory:abs_cont_pwr_o2_2}
   \gamma &=&  w \cdot \ptot \cdot \Theta^{0.8}\hspace*{34mm}:~\mbox{MPM93}\\
 \nonumber
 \end{eqnarray}
@@ -1667,18 +908,18 @@ both models incorporate the oxygen $VMR$ ($\vmroz$) in the
 constant $C$. In the arts model the separation between the oxygen
 $VMR$ and the constant $C$ is explicitely done. In this case follows:
 \begin{eqnarray} 
- \label{eq:o2cont_const_vmr_1}
+ \label{eq:abs_theory:o2cont_const_vmr_1}
  C &=& 0.20946 \cdot \widehat{C}\\
- \label{eq:o2cont_const_vmr_2}
+ \label{eq:abs_theory:o2cont_const_vmr_2}
  \widehat{C} &=& 1.22\cdot 10^{-19}~\mbox{[1/(m\,Hz\,Pa)]\hspace{10mm}:~Rosenkranz} \\
- \label{eq:o2cont_const_vmr_3}
+ \label{eq:abs_theory:o2cont_const_vmr_3}
  \widehat{C} &=& 1.23\cdot 10^{-19}~\mbox{[1/(m\,Hz\,Pa)]\hspace{10mm}:~MPM93} 
 \end{eqnarray} 
 The width parameter $w$ is in both models the same, 
 $w =$\,5.6$\cdot$10$^{3}$\,Hz/Pa. If we define the width $\gamma$ in a more 
 general way like
 \begin{equation} 
- \label{eq:o2_cont_gamma_general}
+ \label{eq:abs_theory:o2_cont_gamma_general}
  \gamma = w \cdot \left( A \cdot \pda  \cdot \Theta^{n_d} + 
                    B \cdot \phzo \cdot \Theta^{n_w} \right) 
 \end{equation}
@@ -1696,7 +937,7 @@ and thus proportional to the dry air pressure\footnote{The absorption
 
 
 
-\subsection{Nitrogen Continuum Absorption}
+\subsection{Nitrogen continuum absorption}
 \label{levelc:n2cont}
 %-------------------------------------
 Since molecular nitrogen has in its unperturbed state no electric or 
@@ -1714,9 +955,9 @@ models is the quadratic dependency on $\nz$ partial pressure which is
 a direct consequence of the underlying CIA processes involved.
 The simplest model is given by \citet{pwr:93}, which uses 
 the same parameterization as for the water vapor continuum, described 
-in Equation \ref{eq:abs_cont}:
+in Equation \ref{eq:abs_theory:abs_cont}:
 \begin{equation}
-  \label{eq:abs_cont_pwr_n2}
+  \label{eq:abs_theory:abs_cont_pwr_n2}
     \alphac =  C \cdot \nu^{n_{\nu}} \cdot \Theta^{n_T} \cdot \pnz^{n_p}
 \end{equation}
 with $C = 4.56\cdot 10^{-13}$ dB/(km\,hPa$^2$\,GHz$^2$), $n_{\nu}=$\,2, 
@@ -1724,16 +965,16 @@ $n_T=$\,3.55, and $n_p=$\,2, respectively. The laboratory data set
 for the determination of $C$ is manly from \citet{dagg:75,dagg:78} 
 around 70 and 140\,GHz, respectively.
 
-The MPM models has compared with Equation \ref{eq:abs_cont_pwr_n2} 
+The MPM models has compared with Equation \ref{eq:abs_theory:abs_cont_pwr_n2} 
 an additional frequency dependent term which leads to the 
 following expression
 \begin{eqnarray}
-  \label{eq:abs_cont_MPM89_n2}
+  \label{eq:abs_theory:abs_cont_MPM89_n2}
     \alphac &=& \widehat{C} \cdot (1.0-1.2\cdot10^{-5}\cdot
                \nu^{1.5}) \cdot \nu^2 \cdot \Theta^{3.5} \cdot \pda^2
                \hspace*{10mm}:~\mbox{MPM89}\\
 %
-  \label{eq:abs_cont_MPM93_n2}
+  \label{eq:abs_theory:abs_cont_MPM93_n2}
     \alphac &=& \widehat{C} \cdot \frac{\nu^2}{(1.0+a\cdot \nu^{n_{\nu}})} 
                 \cdot \Theta^{3.5} \cdot \pda^2
                 \hspace*{16mm}:~\mbox{MPM93}\\
@@ -1745,7 +986,7 @@ $a=$1.9$\cdot$10$^{-5}$\,GHz$^{-n_{\nu}}$, and $n_{\nu}=$\,1.5.
 based on data from \citet{stankevich:74} and \citet{stonenw:84}. 
 With respect to the 22\,GHz water vapor line, 
 the additional frequency terms in brackets in 
-Equations \ref{eq:abs_cont_MPM89_n2} and \ref{eq:abs_cont_MPM93_n2}
+Equations \ref{eq:abs_theory:abs_cont_MPM89_n2} and \ref{eq:abs_theory:abs_cont_MPM93_n2}
 are nearly unity and therefore not essential. Therefore all
 three parameterizations have the same frequency and temperature
 relationship, but the absolute magnitude is in the case of Rosenkranz
@@ -1765,13 +1006,13 @@ extended with measurements in the far--infrared.
 
 
 
-\subsection{Carbon dioxide Continuum Absorption}
+\subsection{Carbon dioxide continuum absorption}
 \label{levelc:co2cont}
 %--------------------------------------------
 \citet{pwr:93} gives a similar parameterization for the $\coz$-continuum 
 absorption term as for the nitrogen continuum, with 
 \begin{equation}
-  \label{eq:abs_cont_pwr_co2}
+  \label{eq:abs_theory:abs_cont_pwr_co2}
     \alphac =   \cdot \nu^2 \cdot  
                 \left[ C_s \cdot \pcoz^2           \cdot \Theta^{n_s} +
                        C_f \cdot \pcoz  \cdot \pnz \cdot \Theta^{n_f} \right]
@@ -1783,7 +1024,7 @@ are determined from laboratory measurements of \citet{ho:66,dagg:75}.
 Since the foreign term
 includes only nitrogen as perturber, one can get an estimate for dry
 air by replacing $\pnz$ by the dry air partial pressure in
-Equation \ref{eq:abs_cont_pwr_co2}. Because nitrogen is usually a more
+Equation \ref{eq:abs_theory:abs_cont_pwr_co2}. Because nitrogen is usually a more
 efficient perturber than oxygen, this estimation can be regarded as an
 upper limit. Concerning the Earth's atmosphere, the foreign broadening
 term is more interesting since the carbon dioxide partial pressure is
@@ -1793,7 +1034,7 @@ only approximately 0.04\,\% of the nitrogen partial pressure up to
 
 
 
-\subsection{ARTS Workspace Variables and Methods}
+\subsection{ARTS workspace variables and methods}
 \label{levelc:ArtsImplementationContinuum}
 % -------------------------------------------
 % This section explains how the above described continua are represented 
@@ -1811,7 +1052,7 @@ in the structure of the arts source code and how one can invoke them in
 the arts control file.
 
 The continuum tags need more input specification than normal trace gas
-tags. Why this is so can be seen from Eq. \ref{eq:abs_cont} and 
+tags. Why this is so can be seen from Eq. \ref{eq:abs_theory:abs_cont} and 
 Table \ref{tab:wvcontparam}. For a single function for the water vapor 
 continuum we find several different function parameters in the literature. 
 To solve this ambiguity arts has two methods implemented which helps 
@@ -1856,7 +1097,7 @@ can find correct examples for all the continuum tags.
  
 \begin{itemize}
 \item[$\bullet$] The general water vapor continuum function
-as described in Eq. (\ref{eq:abs_cont}) is divided up into 
+as described in Eq. (\ref{eq:abs_theory:abs_cont}) is divided up into 
 two separate tags in arts. The term proportional 
 to $\phzo^2$ has the tag name {\tt "H2O-SelfContStandardType"}. 
 This tag can be used for eider the referenced models 
@@ -1918,7 +1159,7 @@ cont_descriptionAppend{
 
 
 \item[$\bullet$] The general water vapor continuum function
-as described in Equation~(\ref{eq:abs_cont}) is divided up into 
+as described in Equation (\ref{eq:abs_theory:abs_cont}) is divided up into 
 two separate tags in arts. The term proportional 
 to $\phzo^2$ was explained above while the term proportional 
 to $\phzo \cdot \pda$ is named {\tt "H2O-ForeignContStandardType"}
@@ -1983,7 +1224,7 @@ cont_descriptionAppend{
 
 \item[$\bullet$] The MPM version 1993 ("MPM93") \citep{liebeetal:93} 
 has a special treatment of the water vapor continuum. The simple 
-function of Eq. \ref{eq:abs_cont} is therefore not valid. In MPM93 
+function of Eq. \ref{eq:abs_theory:abs_cont} is therefore not valid. In MPM93 
 the $\hzo$-continuum is described by a pseudo water vapor line in the 
 far-infrared (FIR) region. This means that seven parameters are 
 needed, one central frequency and six line parameters. The original 
@@ -2018,18 +1259,18 @@ cont_descriptionAppend{
 
 \item[$\bullet$] The oxygen continuum models of Rosenkranz
   \citep{pwr:93} and MPM93 \citep{liebeetal:93}, as described in
-  Section~\ref{levelc:o2cont}, are only slightly dif\-ferent in some
+  Section \ref{levelc:o2cont}, are only slightly dif\-ferent in some
   respect so that
   both can be described with a single arts tag named {\tt
     "O2-SelfContStandardType"}. The only discrepancy is in the
   formulation of the width $\gamma$. If the user model is selected,
   then the following parameter set has to be given: ($\widehat{C}$,
   $w$, $A$, $B$, $n_d$, $n_w$) which are explained in Eqs.
-  (\ref{eq:abs_cont_pwr_o2}) and (\ref{eq:o2_cont_gamma_general}).
+  (\ref{eq:abs_theory:abs_cont_pwr_o2}) and (\ref{eq:abs_theory:o2_cont_gamma_general}).
   The units of these parameters are: $[$1/(m$\cdot$Pa$\cdot$Hz)$]$,
   $[$Hz/Pa$]$, $[$1$]$, $[$1$]$, $[$1$]$, $[$1$]$. For a description
-  of these parameters see Eqs. (\ref{eq:abs_cont_pwr_o2}),
-  (\ref{eq:o2cont_const_vmr_1}), and (\ref{eq:o2_cont_gamma_general}).
+  of these parameters see Eqs. (\ref{eq:abs_theory:abs_cont_pwr_o2}),
+  (\ref{eq:abs_theory:o2cont_const_vmr_1}), and (\ref{eq:abs_theory:o2_cont_gamma_general}).
   
   The following list describes all the valid combinations of
   parameters for the tag {\tt "O2-SelfContStandardType"} are listed
@@ -2076,7 +1317,7 @@ cont_descriptionAppend{
 
 \item[$\bullet$] The MPM93 model \citep{liebeetal:93} has a different approach 
 for the $\nz$-$\nz$ continuum than \citet{pwr:93}, as shown by 
-Eq. \ref{eq:abs_cont_MPM89_n2}. To be able to use this referenced model, one 
+Eq. \ref{eq:abs_theory:abs_cont_MPM89_n2}. To be able to use this referenced model, one 
 has to use the tag called {\tt "N2-SelfContMPM93"}. Similarly to the 
 $\nz$-continuum tag described before, two allowed models are implemented: 
 "MPM93" and "user" (see the examples below).  In the case of the user model the 
@@ -2098,8 +1339,8 @@ cont_descriptionAppend{
 
 
 \item[$\bullet$] The \citet{pwr:93} $\coz$-$\coz$ continuum term is
-  according to Equation~(\ref{eq:abs_cont_pwr_co2}) of
-  Section~\ref{levelc:co2cont} proportional to $\pcoz^2$. This
+  according to Equation (\ref{eq:abs_theory:abs_cont_pwr_co2}) of
+  Section \ref{levelc:co2cont} proportional to $\pcoz^2$. This
   absorption feature has the arts tag name {\tt "CO2-SelfContPWR93"}.
   For this tag two possible models are implemented: the referenced
   model of Rosenkranz and the user model. In case of the user model
@@ -2121,7 +1362,7 @@ cont_descriptionAppend{
 
   
 \item[$\bullet$] The \citet{pwr:93} $\coz$-$\nz$ continuum term is
-  according to as explained in Equation~(\ref{eq:abs_cont_pwr_co2}) of
+  according to as explained in Equation (\ref{eq:abs_theory:abs_cont_pwr_co2}) of
   Section \ref{levelc:co2cont} proportional to $\pcoz \cdot \pnz$.
   This absorption feature has the arts tag name 
   {\tt"CO2-ForeignContPWR93"}. For this tag two possible models are
@@ -2301,7 +1542,7 @@ $\coz-\nz$  & model &=& "Rosenkranz" &  {\small Sec. \ref{levelc:co2cont}}  &  \
 
 
 
-\subsubsection{ARTS Example Control File for the Continuum Tags}
+\subsubsection{ARTS example control file for the continuum tags}
 \label{leveld:ArtsContExampleControlFile}
 % -------------------------------------------
 Below you will find an example of a control file for all 
@@ -2331,8 +1572,8 @@ properly. You can find this example in the arts directory
 
 
 
-\section{Complete Absorption Models}
-\label{levelb:CompAbsMod}
+\section{Complete absorption models}
+\label{sec:abs_theory:CompAbsMod}
 % =================================
 The MPM absorption model of Liebe and coworkers consists of modules for 
 water vapor and oxygen absorption. The Rosenkranz (PWR98) absorption 
@@ -2359,7 +1600,7 @@ $\oz$  & MPM93, PWR98 \\
 
 
 
-\subsection{Complete Water Vapor Models}
+\subsection{Complete water vapor models}
 \label{levelc:CompWatVapMod}
 % ==================================
 In ARTS several complete water vapor absorption models are implemented and 
@@ -2367,7 +1608,7 @@ can easily be used. Implemented models are the versions
 MPM87 \citep{liebeandlayton:87}, MPM89 \citep{liebe:89}, and 
 MPM93 \citep{liebeetal:93} of the Liebe Millimeter-wave Propagation Model 
 and additionally the models of Cruz-Pol et al. (CP98) \citep{cruzpol:98} 
-and P.~W. Rosenkranz (PWR98) \citep{pwr:98}. 
+and P. W. Rosenkranz (PWR98) \citep{pwr:98}. 
 MPM and PWR98 are especially desigend for fast absorption calculations in 
 the frequency range of 1-1000\,GHz while the CP98 model is a reduced model 
 for a narrow frequency band around the 22\,GHz $\hzo$-line (especially used 
@@ -2377,7 +1618,7 @@ The total water vapor absorption ($\alphatot$) is in all the stated models
 described by a line absorption ($\alphal$) term and a continuum absorption 
 ($\alphac$) term: 
 \begin{equation}
-  \label{eq:h2o:totabs}
+  \label{eq:abs_theory:h2o:totabs}
   \alphatot = \alphal + \alphac
 \end{equation}
 The main differences between the different models is the line shape used for 
@@ -2388,7 +1629,7 @@ models are not necessarily compatible and should therefore not be
 interchanged between different models.
 
 
-\subsubsection{MPM87 Water Vapor Absorption Model}
+\subsubsection{MPM87 water vapor absorption model}
 \label{leveld:mpm87}
 %------------------------------------------
 This version, which is described in \citet{liebeandlayton:87} and 
@@ -2397,13 +1638,13 @@ water vapor absorption, $\alphampmotot$, into a spectral line
 term, $\alphampmol$, and a continuum term not attributed to 
 spectral lines, $\alphampmoc$:
 \begin{equation}
-  \label{eq:mpm87_abs}
+  \label{eq:abs_theory:mpm87_abs}
   \alphampmotot = \alphampmol + \alphampmoc\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 
 
 
-\paragraph{Water Vapor Line Absorption:}
+\paragraph{Water vapor line absorption:}
 \label{levele:mpm87_h2olines}
 %-----------------------------------
 The MPM87 \citep{liebeandlayton:87} water vapor line catalog consists 
@@ -2421,23 +1662,23 @@ individual line absorption coefficients\footnote{The factor
   The factor $10^{6}$ is incorporated into the line strength and 
   does therefore not appear in the pre-factor.}:
 \begin{equation}
-  \label{eq:mpm87:absline}
+  \label{eq:abs_theory:mpm87:absline}
   \alphampmol = 0.1820 \cdot \nuk \cdot \phzo \cdot 
   \sum_{k}{\inten \cdot \shape}\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 where $\inten$ is the line intensity described by the parameterization
 \begin{equation}
-  \label{eq:mpm87:strength}
+  \label{eq:abs_theory:mpm87:strength}
   \inten = \bek \cdot \phzo \cdot \Theta^{3.5} 
            \cdot \exp{(\bzk \cdot [1-\Theta])}\hspace*{10mm}\mbox{kHz}
 \end{equation}
 with $\nuk$ as the line center frequency, $\phzo$ the water
 vapor partial pressure and $\Theta = 300\,\mbox{K}/T$.\\
-The line shape function, $\shape$, in Eq.~(\ref{eq:mpm87:absline}) 
-is the standard Van~Vleck-Weisskopf (VVW) function, given by:
+The line shape function, $\shape$, in Eq. (\ref{eq:abs_theory:mpm87:absline}) 
+is the standard Van Vleck-Weisskopf (VVW) function, given by:
 \begin{eqnarray}
 % Van Vleck-Weisskopf function
-  \label{eq:mpm87:VVW}
+  \label{eq:abs_theory:mpm87:VVW}
   \shape & = & \left(\frac{\nu}{\nuk}\right) \cdot 
                \left[\frac{\gamk}{(\nu - \nuk)^2 + \gamk^2} + 
                      \frac{\gamk}{(\nu + \nuk)^2 + \gamk^2}\right]\\
@@ -2445,7 +1686,7 @@ is the standard Van~Vleck-Weisskopf (VVW) function, given by:
 The pressure broadened line width, $\gamk$, is calculated with the 
 single parameter $\bdk$ in the following way:
 \begin{equation}
-  \label{eq:mpm87:gamma}
+  \label{eq:abs_theory:mpm87:gamma}
   \gamk = \bdk \cdot 
           (4.80 \cdot \phzo \cdot \Theta^{1.1} + \pda \cdot
           \Theta^{0.6})\hspace*{10mm}\mbox{GHz}
@@ -2522,7 +1763,7 @@ early version of MPM81 \citep{liebe:81}.
 \end{longtable}
 
 
-\paragraph{Water Vapor Continuum Absorption:}
+\paragraph{Water vapor continuum absorption:}
 \label{levele:mpm87_h2ocont}
 %----------------------------------------
 The water vapor continuum absorption coefficient in MPM87, $\alphampmoc$, 
@@ -2536,7 +1777,7 @@ dry air pressure     & 0 - 160\,kPa\\
 The mathematical expression of $\alphampmoc$ is derived from the far wing 
 approximation of the line absorption and is expressed as follows
 \begin{equation} 
-  \label{eq:mpm87:cont}
+  \label{eq:abs_theory:mpm87:cont}
   \alphampmoc = \nu^2 \cdot \phzo \cdot 
                 (\cso \cdot \phzo \cdot \Theta^{\xs} + 
                  \cdo \cdot \pda  \cdot \Theta^{\xf}),
@@ -2554,7 +1795,7 @@ The determined values of the continuum parameters are:
 
 
 
-\subsubsection{MPM89 Water Vapor Absorption Model}
+\subsubsection{MPM89 water vapor absorption model}
 \label{leveld:mpm89}
 %------------------------------------------
 %
@@ -2563,13 +1804,13 @@ of the MPM model to devide the total water vapor absorption,
 $\alphampmmtot$, into a spectral line term, $\alphampmml$, and a continuum 
 term not attributed to spectral lines, $\alphampmmc$:
 \begin{equation}
-  \label{eq:mpm89_abs}
+  \label{eq:abs_theory:mpm89_abs}
   \alphampmmtot = \alphampmml + \alphampmmc\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 All the absorption coefficients are calculated in units of \mbox{dB/km}.
 
 
-\paragraph{Water Vapor Line Absorption:}
+\paragraph{Water vapor line absorption:}
 \label{levele:mpm89_h2olines}
 %-----------------------------------
 The MPM89 water vapor line catalog consists of the same 30 lines 
@@ -2581,30 +1822,30 @@ absorption coefficient (in units of dB/km) is the sum over all
 individual line absorption coefficients\footnote{see footnote for
   MPM97 line absorption}:
 \begin{equation}
-  \label{eq:mpm89:absline}
+  \label{eq:abs_theory:mpm89:absline}
   \alphampmml = 0.1820 \cdot \nuk \cdot \phzo \cdot 
   \sum_{k}{\inten \cdot \shape}\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 where $\inten$ is the line intensity described by the parameterization
 \begin{equation}
-  \label{eq:mpm89:strength}
+  \label{eq:abs_theory:mpm89:strength}
   \inten = \bek \cdot \phzo \cdot \Theta^{3.5} 
            \cdot \exp{(\bzk \cdot [1-\Theta])}\hspace*{10mm}\mbox{kHz}
 \end{equation}
 whit $\nuk$ as the line center frequency, $\phzo$ the water
 vapor partial pressure and $\Theta = 300\,\mbox{K}/T$.\\
-The line shape function, $\shape$, in Eq.~(\ref{eq:mpm89:absline}) 
+The line shape function, $\shape$, in Eq. (\ref{eq:abs_theory:mpm89:absline}) 
 is the standard Van Vleck-Weisskopf (VVW) function, given by 
 \begin{eqnarray}
 % Van Vleck-Weisskopf function
-  \label{eq:mpm89:VVW}
+  \label{eq:abs_theory:mpm89:VVW}
   \shape & = & \left(\frac{\nu}{\nuk}\right) \cdot 
                \left[\frac{\gamk}{(\nu - \nuk)^2 + \gamk^2} + 
                      \frac{\gamk}{(\nu + \nuk)^2 + \gamk^2}\right]
 \end{eqnarray}
 where the pressure broadened line width, $\gamk$, is calculated as
 \begin{equation}
-  \label{eq:mpm89:gamma}
+  \label{eq:abs_theory:mpm89:gamma}
   \gamk = \bdk \cdot 
          (\bfk \cdot \phzo \cdot \Theta^{\bsk} + 
                      \pda  \cdot \Theta^{\bvk})
@@ -2615,7 +1856,7 @@ The only difference between MPM87 and MPM89 with respect to the line
 absorption is the parameterization of the pressure broadened line
 width, $\gamk$, which is calculated with the four parameters $\bdk$ to
 $\bsk$ in the case of MPM89 whereas in MPM87 a single parameter
-($\bdk$) is used (see Eq.~(\ref{eq:mpm87:gamma})).
+($\bdk$) is used (see Eq. (\ref{eq:abs_theory:mpm87:gamma})).
 %
 \begin{longtable}{rrrrrrrr}
  K & K & K & K & K & K & K & K \kill
@@ -2685,14 +1926,14 @@ $\bsk$ in the case of MPM89 whereas in MPM87 a single parameter
 \end{longtable}
 
 
-\paragraph{Water Vapor Continuum Absorption:}
+\paragraph{Water vapor continuum absorption:}
 \label{levele:mpm89_h2ocont}
 %----------------------------------------
 The MPM89 continuum absorption coefficients in, $\alphampmmc$, 
 are identical as those in MPM87 (see Sec. \ref{levele:mpm87_h2ocont} for 
 details):
 \begin{equation} 
-  \label{eq:mpm89:cont}
+  \label{eq:abs_theory:mpm89:cont}
   \alphampmmc = \nu^2 \cdot \phzo \cdot 
                 (\cso \cdot \phzo \cdot \Theta^{\xs} + 
                  \cdo \cdot \pda  \cdot \Theta^{\xf}),
@@ -2709,7 +1950,7 @@ with
 
 
 
-\subsubsection{MPM93 Water Vapor Absorption Model}
+\subsubsection{MPM93 water vapor absorption model}
 \label{leveld:mpm93}
 %----------------------------------------------
 This version, which is described in \citet{liebeetal:93} and 
@@ -2718,7 +1959,7 @@ water vapor absorption, $\alphampmntot$, into a spectral line
 term, $\alphampmnl$, and a continuum term not attributed to 
 spectral lines, $\alphampmnc$:
 \begin{equation}
-  \label{eq:mpm93_abs}
+  \label{eq:abs_theory:mpm93_abs}
   \alphampmntot = \alphampmnl + \alphampmnc\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 The continuum absorption is parameterized like a
@@ -2730,7 +1971,7 @@ distinguish a self- and foreign broadening term in the continuum.
 
 
 
-\paragraph{Water Vapor Line Absorption:}
+\paragraph{Water vapor line absorption:}
 \label{levele:mpm93_h2olines}
 %-----------------------------------
 The water vapor line spectrum of MPM93 \citep{liebeetal:93} 
@@ -2741,23 +1982,23 @@ four for the line width. The total line absorption coefficient
 (in units of dB/km) is the sum over all individual line absorption 
 coefficients\footnote{see footnote for MPM97 line absorption}:
 \begin{equation}
-  \label{eq:mpm93:absline}
+  \label{eq:abs_theory:mpm93:absline}
   \alphampmnl = 0.1820 \cdot \nuk \cdot \phzo \cdot 
   \sum_{k}{\inten \cdot \shape}\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 where $\inten$ is the line intensity described by the parameterization
 \begin{equation}
-  \label{eq:mpm93:strength}
+  \label{eq:abs_theory:mpm93:strength}
   \inten = \bek \cdot \phzo \cdot \Theta^{3.5} 
            \cdot \exp{(\bzk \cdot [1-\Theta])}\hspace*{10mm}\mbox{kHz}
 \end{equation}
 with $\nuk$ as the line center frequency, $\phzo$ the water
 vapor partial pressure and $\Theta = 300\,\mbox{K}/T$.\\
-The line shape function, $\shape$, in Eq.~(\ref{eq:mpm87:absline}) 
-is the standard Van~Vleck-Weisskopf (VVW) function, given by:
+The line shape function, $\shape$, in Eq. (\ref{eq:abs_theory:mpm87:absline}) 
+is the standard Van Vleck-Weisskopf (VVW) function, given by:
 \begin{eqnarray}
 % Van Vleck-Weisskopf function
-  \label{eq:mpm93:VVW}
+  \label{eq:abs_theory:mpm93:VVW}
   \shape & = & \left(\frac{\nu}{\nuk}\right) \cdot 
                \left[\frac{\gamk}{(\nu - \nuk)^2 + \gamk^2} + 
                      \frac{\gamk}{(\nu + \nuk)^2 + \gamk^2}\right]\\
@@ -2765,7 +2006,7 @@ is the standard Van~Vleck-Weisskopf (VVW) function, given by:
 The pressure broadened line width, $\gamk$, is calculated with the 
 single parameter $\bdk$ in the following way:
 \begin{equation}
-  \label{eq:mpm93:gamma}
+  \label{eq:abs_theory:mpm93:gamma}
   \gamk = \bdk \cdot 
           (4.80 \cdot \phzo \cdot \Theta^{1.1} + \pda \cdot
           \Theta^{0.6})\hspace*{10mm}\mbox{GHz}
@@ -2858,12 +2099,12 @@ concerning the water vapor line absorption is the updated line catalog.
 
 
 
-\paragraph{The MPM93 Continuum Parameterization:}
+\paragraph{The MPM93 continuum parameterization:}
 \label{levele:mpm93:h2ocont}
 %-----------------------------------------------
 In the MPM93 version the water vapor continuum is parameterized as an
-ordinary spectral line (Eqs. (\ref{eq:mpm93:strength}, 
-\ref{eq:mpm93:VVW})). The parameters of this continuum "pseudo-line" 
+ordinary spectral line (Eqs. (\ref{eq:abs_theory:mpm93:strength}, 
+\ref{eq:abs_theory:mpm93:VVW})). The parameters of this continuum "pseudo-line" 
 ($\nu^*$, $\beks$, $\bzks$, $\bdks$, $\bvks$, $\bfks$, $\bsks$) 
 are given in Table \ref{tab:mpm93linelist}. More details about 
 this continuum parameterization and its microwave approximation can be 
@@ -2872,11 +2113,11 @@ found in Section \ref{leveld:h2o_Cont} of this guide.
 
 
 
-\subsubsection{CP98 Water Vapor Absorption Model}
+\subsubsection{CP98 water vapor absorption model}
 \label{leveld:cp98}
 %---------------------------------------------
 
-\paragraph{Line Absorption}
+\paragraph{Line absorption}
 \label{levele:cp98_h2oline}
 %--------------------------
 component \citep{cruzpol:98} for the water vapor line absorption 
@@ -2886,14 +2127,14 @@ The contributions from the other lines is put into the water vapor
 continuum module. The line absorption is therefore very quickly 
 calculated (in units of Np/km) according to the formula
 \begin{eqnarray}
-  \label{eq:cp98:lineabs}
+  \label{eq:abs_theory:cp98:lineabs}
   \alphacpl &=& 0.0419 \cdot \intencp \cdot \shape \\
   \mbox{with} & & \nonumber\\
-  \label{eq:cp98:inten}
+  \label{eq:abs_theory:cp98:inten}
   \intencp    &=& 0.0109 \cdot C_L \cdot \phzo \cdot \nuo \cdot \Theta^{3.5} 
              \cdot \exp{(2.143\cdot[1-\Theta])}\nonumber\\
 %
-  \label{eq:cp98:width}
+  \label{eq:abs_theory:cp98:width}
   \gamma &=& 0.002784 \cdot C_W \cdot (\pda \cdot \Theta^{0.6}+ 
              4.8 \cdot \phzo \cdot \Theta^{1.1}) \nonumber\\
 \end{eqnarray}
@@ -2946,14 +2187,14 @@ California (11. December 1991) and West Palm Beach, Florida
 (8.-21. March 1992)} in the USA.
 
 
-\paragraph{Water Vapor Continuum Absorption:}
+\paragraph{Water vapor continuum absorption:}
 \label{levele:cp98_h2ocont}
 %-----------------------------------------
 The CP98 model uses the same water vapor continuum 
 parameterization as MPM87, just scaled with an empirical 
 factor, $CC$, determined from the above mentioned data:
 \begin{equation}
- \label{eq:cp98_cont_scaling}
+ \label{eq:abs_theory:cp98_cont_scaling}
  \alphacpc = C_C \cdot \alphampmoc 
 \end{equation}
 The scaling factor $C_C$, as given in Table \ref{tab:cp_orr}, 
@@ -2970,7 +2211,7 @@ and is not so reliable than $C_L$ and $C_W$.
 
 
 
-\subsubsection{PWR98 Water Vapor Absorption Model}
+\subsubsection{PWR98 water vapor absorption model}
 \label{leveld:pwr98_h2o}
 %------------------------------------------
 The water vapor continuum formulation of \citet{pwr:98} is a re-investigation 
@@ -2984,17 +2225,17 @@ Rosenkranz adopted the structure of MPM89 for his improved model (R98).
 However, some important differences exist compared with MPM89:
 \begin{itemize}
 \item the water vapor line catalogs are different 
-\item the R98 uses the Van~Vleck--Weisskopf line shape function with 
+\item the R98 uses the Van Vleck--Weisskopf line shape function with 
       cutoff and MPM89 without cutoff
 \end{itemize}
 
 
-\paragraph{Water Vapor Line Absorption:}
+\paragraph{Water vapor line absorption:}
 \label{levele:pwr98_h2oline}
 %------------------------------------
 The local line absorption is defined as 
 \begin{eqnarray} 
- \label{eq:pwr98absline}
+ \label{eq:abs_theory:pwr98absline}
  \alphapwrl &=& N_{H_2O} \cdot \sum_k \inten \cdot \shapec \nonumber\\
             &=& N_{H_2O} \cdot \sum_k \inten \cdot 
                 \left (\displaystyle{\frac{\nu}{\nuk}}\right )^2  \cdot 
@@ -3011,7 +2252,7 @@ and a baseline subtraction similar to the CKD model \citep{clough:89}.
 The introduction of a cutoff frequency has two advantages: (1) the
 cutoff avoids applying the line shape to distant frequencies where the 
 line form is theoretically not well understood and (2) the cutoff also
-establishes a limit to the summation in Eq.~(\ref{eq:pwr98absline}) where lines
+establishes a limit to the summation in Eq. (\ref{eq:abs_theory:pwr98absline}) where lines
 far away from the cutoff limit do not contribute to the sum.  
 The Rosenkranz formulation uses the same value for
 the cutoff frequency as the CKD model:
@@ -3022,10 +2263,10 @@ the cutoff frequency as the CKD model:
 %
 The explicit mathematical form of the line shape function is defined 
 in such a way that in the limit $\nucut \rightarrow \infty$ the 
-combination of Eq.~(\ref{eq:pwr98absline}) with the line shape function would 
+combination of Eq. (\ref{eq:abs_theory:pwr98absline}) with the line shape function would 
 be equivalent to a Van Vleck--Weisskopf \citep{vanvleck:45} line shape: 
 \begin{equation}
- \label{eq:pwr98lineshape}
+ \label{eq:abs_theory:pwr98lineshape}
  \hspace*{-8mm}\shapefpm = 
    \left \{ \begin{array}{r@{\quad:\quad}l} 
    \displaystyle{\frac{\gamk}{\pi}} 
@@ -3038,7 +2279,7 @@ be equivalent to a Van Vleck--Weisskopf \citep{vanvleck:45} line shape:
 $\nuk$ is the line center frequency and $\gamk$ the line
 half width, which is calculated according to 
 \begin{equation}
- \label{eq:pwr98gamma}
+ \label{eq:abs_theory:pwr98gamma}
  \gamk = \ws \cdot \phzo \cdot \Theta^{\xs} + 
          \wf \cdot \pda  \cdot \Theta^{\xf}\hspace*{10mm}\mbox{GHz}
 \end{equation}
@@ -3084,14 +2325,14 @@ are significantly different).
 
 
 
-\paragraph{Water Vapor Continuum Absorption:}
+\paragraph{Water vapor continuum absorption:}
 \label{levele:pwr98_h2ocont}
 %-----------------------------------------
 The continuum absorption in R98 has the same functional dependence on frequency,
 pressure, and temperature like in MPM87/MPM89 (see Sec. \ref{levele:mpm87_h2ocont}
 for details):
 \begin{equation} 
-  \label{eq:pwr98:abscont}
+  \label{eq:abs_theory:pwr98:abscont}
   \alphapwrc = \nu^2 \cdot \phzo \cdot 
                (\cso \cdot \phzo \cdot \Theta^{\xs} + 
                 \cdo \cdot \pda  \cdot \Theta^{\xf})
@@ -3115,7 +2356,7 @@ temperature dependence and therefore on $\xs$ and $\xd$.
 
 
 
-\subsection{Complete Oxygen Models}
+\subsection{Complete oxygen models}
 \label{levelc:02_models}
 %==============================
 %
@@ -3136,7 +2377,7 @@ For oxygen -- like for water vapor -- the total absorption
 ($\alphatot$) is modelled as the line absorption ($\alphal$) plus a  
 continuum absorption ($\alphac$):
 \begin{equation}
-  \label{eq:o2:totabs}
+  \label{eq:abs_theory:o2:totabs}
   \alphatot = \alphal + \alphac
 \end{equation}
 It has to be emphasized that, $\alphal$ and $\alphac$ of different
@@ -3145,12 +2386,12 @@ models are not necessarily compatible and should therefore not be interchanged.
 
 
 
-\subsubsection{PWR93 Oxygen Absorption Model}
+\subsubsection{PWR93 oxygen absorption model}
 \label{leveld:O2_pwr98}
 %-------------------------------------
 
 
-\paragraph{Resonant Oxygen Absorption}
+\paragraph{Resonant oxygen absorption}
 %\label{levele:02_pwr98_line}
 \label{levele:pwr93_o2lines}
 %----------------------------------
@@ -3172,7 +2413,7 @@ $\alphapwrl$, is:
 %
 % line intensity:
  & & \mbox{line intensity:} \nonumber\\
-      \label{eq:PWR93:O2_abs_inten}
+      \label{eq:abs_theory:PWR93:O2_abs_inten}
       S_k(T) & = & S_k(300\,{\rm K})~~/~~\exp{(b_k \cdot \Theta)}\\
 % line shape:
  & & \mbox{line shape function:} \nonumber\\
@@ -3183,12 +2424,12 @@ $\alphapwrl$, is:
                               {(\nu+\nu_k)^2+\Gamma_k^2}\right] \nonumber\\
 % line width:
  & & \mbox{line width:} \nonumber\\
-    \label{eq:PWR93:O2_gamma}
+    \label{eq:abs_theory:PWR93:O2_gamma}
     \Gamma_k & = & w_k \cdot \left(          \pda  \cdot \Theta^{0.8} + 
                                    1.1 \cdot \phzo \cdot \Theta \right)\\
 % line coupling:
  & & \mbox{line coupling:} \nonumber\\
-         \label{eq:PWR93:O2_coupling}
+         \label{eq:abs_theory:PWR93:O2_coupling}
          Y_k & = & \pdair \cdot \Theta^{0.8} \cdot 
                    \left[ y_k + (\Theta-1) \cdot v_k \right]\nonumber\\
 % O2 number density:
@@ -3291,20 +2532,20 @@ tabulated in Table \ref{tab:pwr02line}.
 \end{longtable}
 %\setlength{\LTcapwidth}{0.8\textwidth}
 
-\paragraph{Oxygen Continuum Absorption:}
+\paragraph{Oxygen continuum absorption:}
 \label{levele:pwr98_o2cont}
 %-----------------------------------
-As pointed out by Van~Vleck \citep{vv:87}, the standard theory for
+As pointed out by Van Vleck \citep{vv:87}, the standard theory for
 non-resonant absorption is that of Debye (see also Ref. \citet{townes:55}). 
 The Debye line shape is obtained from the VVW line shape function by
 the limiting case $\nuk \rightarrow 0$.
 Rosenkranz \citet{pwr:93} adopt the Debye theory for his models: 
 \begin{eqnarray}
-  \label{eq:pwr_o2cont}
+  \label{eq:abs_theory:pwr_o2cont}
   \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
              \frac{\nu^2 \cdot \gamma}{\nu^2+\gamma^2}\\
 %
-  \label{eq:pwr_o2cont_1}
+  \label{eq:abs_theory:pwr_o2cont_1}
   \gamma &=&  w \cdot (\pda \cdot \Theta^{0.8} + 1.1 \cdot \phzo \cdot
   \Theta)
 \end{eqnarray}
@@ -3321,11 +2562,11 @@ and thus proportional to the dry air pressure\footnote{The absorption
 
 
 
-\subsubsection{MPM93 Oxygen Absorption Model}
-\label{levelb:O2_mpm93}
+\subsubsection{MPM93 oxygen absorption model}
+\label{sec:abs_theory:O2_mpm93}
 %-------------------------------------
 
-\paragraph{Oxygen Line Absorption:}
+\paragraph{Oxygen line absorption:}
 \label{levele:mpm93_o2lines}
 %-------------------------------
 The oxygen line catalog has 44 lines from which 37 lines build the 
@@ -3340,7 +2581,7 @@ of the line absorption, $\alphampml$, is (in units of dB/km):
 %
 % line intensity:
  & & \mbox{line intensity:} \nonumber\\
-      \label{eq:MPM93:O2_inten}
+      \label{eq:abs_theory:MPM93:O2_inten}
       S_k(T) & = & \frac{a_{1,k}}{\nuk} \cdot \pda \cdot \Theta^3 \cdot 
                    \exp{[a_{2,k} \cdot (1-\Theta)]}\\
 % line shape:
@@ -3351,13 +2592,13 @@ of the line absorption, $\alphampml$, is (in units of dB/km):
                                {(\nu+\nu_k)^2+\gamma_k^2}\right] \nonumber\\
 % line width:
  & & \mbox{line width:}  \nonumber\\
-     \label{eq:MPM93:O2_gamma}
+     \label{eq:abs_theory:MPM93:O2_gamma}
      \gamma_k & = & a_{3,k} \cdot 10^{-3} \cdot 
                  \left( \pda  \cdot \Theta^{a_{4,k}} + 
                         1.10 \cdot \phzo \cdot \Theta \right)\\
 % line coupling:
 & &  \mbox{line coupling:}  \nonumber\\
-     \label{eq:MPM93:O2_coupling}
+     \label{eq:abs_theory:MPM93:O2_coupling}
      \delta_k & = & \pdair \cdot \Theta^{0.8} \cdot 
                    \left[ a_{5,k} + \Theta \cdot a_{6,k} \right]\nonumber
 \nonumber
@@ -3368,7 +2609,7 @@ where $a_{1-5,k}$ are the fitted parameters due to laboratory measurements
 Table \ref{tab:mpm9302line}. One has to note that in the MPM93 code is a 
 threshold value for $\alphampml$ implemented:
 \begin{equation}
- \label{eq:mpm93O2limit}
+ \label{eq:abs_theory:mpm93O2limit}
   \alphampml = 
    \left \{ \begin{array}{r@{\quad:\quad}l} 
     \alphampml & \alphampml > 0\\
@@ -3476,20 +2717,20 @@ is remarkably higher than in the R93 model.
 \end{longtable}
 %\setlength{\LTcapwidth}{0.8\textwidth}
 
-\paragraph{Oxygen Continuum Absorption:}
+\paragraph{Oxygen continuum absorption:}
 \label{levele:mpm93_o2cont}
 %-----------------------------------
-As pointed out by Van~Vleck \citep{vv:87}, the standard theory for
+As pointed out by Van Vleck \citep{vv:87}, the standard theory for
 non-resonant absorption is that of Debye (see also Ref. \citet{townes:55}). 
 The Debye line shape is obtained from the VVW line shape function 
 by the limiting case $\nuk \rightarrow 0$.
 \citet{liebeetal:93} adopt the Debye theory for his model:
 \begin{eqnarray}
-  \label{eq:mpm93_o2cont}
+  \label{eq:abs_theory:mpm93_o2cont}
   \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
                \frac{\nu^2 \cdot \gamma}{\nu^2+\gamma^2}\\
 %
-  \label{eq:mpm93_o2cont_1}
+  \label{eq:abs_theory:mpm93_o2cont_1}
   \gamma  &=&  w \cdot \ptot \cdot \Theta^{0.8}\nonumber\\
 \nonumber
 \end{eqnarray}
@@ -3504,7 +2745,7 @@ and thus proportional to the dry air pressure\footnote{The absorption
 
 
 
-\subsection{ARTS Workspace Variables and Methods}
+\subsection{ARTS workspace variables and methods}
 \label{levelc:ArtsImplementationCompleteModels}
 % ---------------------------------------------
 
@@ -3513,7 +2754,7 @@ are represented in the structure of the arts source code and how
 one can invoke them in the arts control file.
 
 The full model tags need more input specification than normal trace gas
-tags. Why this is so can be seen from Eq. \ref{eq:abs_cont} and 
+tags. Why this is so can be seen from Eq. \ref{eq:abs_theory:abs_cont} and 
 Table \ref{tab:wvcontparam}. For a single function for the water vapor 
 continuum we find several different function parameters in the literature. 
 To solve this ambiguity arts has two methods implemented which helps 
@@ -3572,11 +2813,11 @@ can find correct examples for all the continuum tags.
      In this case the user has to provide three scaling factors,  
      $CC$, $CL$, and $CW$, with the input variable {\it userparameters}, 
      {\it userparameters}\,=\,$[$$CC$, $CL$, $CW$$]$. 
-     Each line intensity $\inten$ (see Eq. (\ref{eq:mpm87:strength})) 
+     Each line intensity $\inten$ (see Eq. (\ref{eq:abs_theory:mpm87:strength})) 
      is multiplied with the scaling factor $CL$, while $CW$ scales 
-     each line width, $\gamk$, (see Eq. (\ref{eq:mpm87:gamma})). 
+     each line width, $\gamk$, (see Eq. (\ref{eq:abs_theory:mpm87:gamma})). 
      The continuum absorption, $\alphampmoc$, 
-     (see Eq. (\ref{eq:mpm87:cont})) also scales with $CC$.\\
+     (see Eq. (\ref{eq:abs_theory:mpm87:cont})) also scales with $CC$.\\
      In the following all the valid possibilities for the
      tag {\tt "H2O-MPM87"} are listed (the values for the 
      model user are just example values): 
@@ -3619,11 +2860,11 @@ cont_descriptionAppend{
      In this case the user has to provide three scaling factors,  
      $CC$, $CL$, and $CW$, with the input variable {\it userparameters}, 
      {\it userparameters}\,=\,$[$$CC$, $CL$, $CW$$]$. 
-     Each line intensity $\inten$ (see Eq. (\ref{eq:mpm89:strength})) 
+     Each line intensity $\inten$ (see Eq. (\ref{eq:abs_theory:mpm89:strength})) 
      is multiplied with the scaling factor $CL$, while $CW$ scales 
-     each line width, $\gamk$, (see Eq. (\ref{eq:mpm89:gamma})). 
+     each line width, $\gamk$, (see Eq. (\ref{eq:abs_theory:mpm89:gamma})). 
      The continuum absorption, $\alphampmmc$, 
-     (see Eq. (\ref{eq:mpm89:cont})) also scales with $CC$.\\
+     (see Eq. (\ref{eq:abs_theory:mpm89:cont})) also scales with $CC$.\\
      In the following all the valid possibilities for the
      tag {\tt "H2O-MPM89"} are listed (the values for the 
      model user are just example values): 
@@ -3664,11 +2905,11 @@ cont_descriptionAppend{
      In this case the user has to provide three scaling factors,  
      $CC$, $CL$, and $CW$, with the input variable {\it userparameters}, 
      {\it userparameters}\,=\,$[$$CC$, $CL$, $CW$$]$. 
-     Each line intensity $\inten$ (see Eq. (\ref{eq:mpm93:strength})) 
+     Each line intensity $\inten$ (see Eq. (\ref{eq:abs_theory:mpm93:strength})) 
      is multiplied with the scaling factor $CL$, while $CW$ scales 
-     each line width, $\gamk$, (see Eq. (\ref{eq:mpm93:gamma})). 
+     each line width, $\gamk$, (see Eq. (\ref{eq:abs_theory:mpm93:gamma})). 
      The continuum absorption, $\alphampmnc$, 
-     (see Eq. (\ref{eq:mpm93:strength})) also scales with $CC$.\\
+     (see Eq. (\ref{eq:abs_theory:mpm93:strength})) also scales with $CC$.\\
      In the following all the valid possibilities for the
      tag {\tt "H2O-MPM93"} are listed (the values for the 
      model user are just example values): 
@@ -3710,11 +2951,11 @@ cont_descriptionAppend{
      In this case the user has to provide three scaling factors,  
      $CC$, $CL$, and $CW$, with the input variable {\it userparameters}, 
      {\it userparameters}\,=\,$[$$CC$, $CL$, $CW$$]$. 
-     Each line intensity $\inten$ (see Eq. (\ref{eq:cp98:inten})) 
+     Each line intensity $\inten$ (see Eq. (\ref{eq:abs_theory:cp98:inten})) 
      is multiplied with the scaling factor $CL$, while $CW$ scales 
-     each line width, $\gamk$, (see Eq. (\ref{eq:cp98:width})). 
+     each line width, $\gamk$, (see Eq. (\ref{eq:abs_theory:cp98:width})). 
      The continuum absorption, $\alphacpc$, 
-     (see Eq. (\ref{eq:cp98_cont_scaling})) also scales with $CC$.\\
+     (see Eq. (\ref{eq:abs_theory:cp98_cont_scaling})) also scales with $CC$.\\
      In the following all the valid possibilities for the
      tag {\tt "H2O-CP98"} are listed (the values for the 
      model user are just example values): 
@@ -3756,11 +2997,11 @@ cont_descriptionAppend{
      In this case the user has to provide three scaling factors,  
      $CC$, $CL$, and $CW$, with the input variable {\it userparameters}, 
      {\it userparameters}\,=\,$[$$CC$, $CL$, $CW$$]$. 
-     Each line intensity $\inten$ (see Eq. (\ref{eq:pwr98absline})) 
+     Each line intensity $\inten$ (see Eq. (\ref{eq:abs_theory:pwr98absline})) 
      is multiplied with the scaling factor $CL$, while $CW$ scales 
-     each line width, $\gamk$, (see Eq. (\ref{eq:pwr98gamma})). 
+     each line width, $\gamk$, (see Eq. (\ref{eq:abs_theory:pwr98gamma})). 
      The continuum absorption, $\alphapwrc$, 
-     (see Eq. (\ref{eq:pwr98:abscont})) also scales with $CC$.\\
+     (see Eq. (\ref{eq:abs_theory:pwr98:abscont})) also scales with $CC$.\\
      In the following all the valid possibilities for the
      tag {\tt "H2O-PWR98"} are listed (the values for the 
      model user are just example values):
@@ -3789,7 +3030,7 @@ cont_descriptionAppend{
 
 \item[$\bullet$] The MPM93 full absorption model for oxygen \citep{liebeetal:93}
      has the arts tag name {\tt "O2-MPM93"}. The details about this 
-     oxygen absorption model are described in Section \ref{levelb:O2_mpm93}. 
+     oxygen absorption model are described in Section \ref{sec:abs_theory:O2_mpm93}. 
      The standard way to use the full (=continuum+lines) MPM93 oxygen 
      absorption model is to set the input variable {\it model} 
      to "MPM93" and leaving the input parameter {\it userparameters} empty. 
@@ -3802,11 +3043,11 @@ cont_descriptionAppend{
      In this case the user has to provide four scaling factors,  
      $CC$, $CL$, $CW$, and $CO$, with the input variable {\it userparameters}, 
      e. g. {\it userparameters}\,=\,$[$$CC$, $CL$, $CW$, $CO$$]$. 
-     Each line intensity $\inten$ (see Eq. (\ref{eq:MPM93:O2_inten})) 
+     Each line intensity $\inten$ (see Eq. (\ref{eq:abs_theory:MPM93:O2_inten})) 
      is multiplied with the scaling factor $CL$, while $CW$ scales 
-     each line width, $\gamk$, (see Eq. (\ref{eq:MPM93:O2_gamma})) and 
-     $CO$ the line coupling parameter (see Eq. (\ref{eq:MPM93:O2_coupling})). 
-     The continuum absorption, (see Eq. (\ref{eq:mpm93_o2cont})) 
+     each line width, $\gamk$, (see Eq. (\ref{eq:abs_theory:MPM93:O2_gamma})) and 
+     $CO$ the line coupling parameter (see Eq. (\ref{eq:abs_theory:MPM93:O2_coupling})). 
+     The continuum absorption, (see Eq. (\ref{eq:abs_theory:mpm93_o2cont})) 
      also scales with $CC$.\\
      In the following all the valid possibilities for the
      tag {\tt "O2-MPM93"} are listed (the values for the 
@@ -3849,11 +3090,11 @@ cont_descriptionAppend{
      In this case the user has to provide four scaling factors,  
      $CC$, $CL$, $CW$, and $CO$, with the input variable {\it userparameters}, 
      e. g. {\it userparameters}\,=\,$[$$CC$, $CL$, $CW$, $CO$$]$. 
-     Each line intensity $\inten$ (see Eq. (\ref{eq:PWR93:O2_abs_inten})) 
+     Each line intensity $\inten$ (see Eq. (\ref{eq:abs_theory:PWR93:O2_abs_inten})) 
      is multiplied with the scaling factor $CL$, while $CW$ scales 
-     each line width, $\gamk$, (see Eq. (\ref{eq:PWR93:O2_gamma})) and 
-     $CO$ the line coupling parameter (see Eq. \ref{eq:PWR93:O2_coupling})). 
-     The continuum absorption, (see Eq. (\ref{eq:pwr_o2cont})) 
+     each line width, $\gamk$, (see Eq. (\ref{eq:abs_theory:PWR93:O2_gamma})) and 
+     $CO$ the line coupling parameter (see Eq. \ref{eq:abs_theory:PWR93:O2_coupling})). 
+     The continuum absorption, (see Eq. (\ref{eq:abs_theory:pwr_o2cont})) 
      also scales with $CC$.\\
      In the following all the valid possibilities for the
      tag {\tt "O2-PWR93"} are listed (the values for the 
@@ -3961,7 +3202,7 @@ cont_descriptionAppend{
 
 
 
-\subsubsection{ARTS Example Control File for the Full Model Tags}
+\subsubsection{ARTS example control file for the full model tags}
 \label{leveld:ArtsFullModelExampleControlFile}
 % --------------------------------------------------------
 Below you will find an example of a control file for all 
@@ -3994,12 +3235,12 @@ You can find this example in the arts directory
 % The following section is written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de
 % ================================================================================
 
-\chapter{Cloud Absorption}
+\chapter{Cloud absorption}
 \label{labela:cloudabsorption}
 %=============================
 
 \section{Liquid water and ice particle absorption}
-\label{levelb:lipartabs}
+\label{sec:abs_theory:lipartabs}
 %*************************************************
 So far only absorption due to air was described. However 
 hydrometeors\footnote{We denote liquid water and ice particles, either
@@ -4026,7 +3267,7 @@ With respect to the imaginary part of the complex refractivity, a
 unified parameterization of liquid and ice particle absorption 
 is formulated in MPM93:
 \begin{eqnarray}
-  \label{eq:abs_cloud}
+  \label{eq:abs_theory:abs_cloud}
   \alpha & = & 0.1820 \cdot \nu \cdot\imn\hspace*{20mm}
                \mbox{dB/km}\\
     \imn & = & \frac{3}{2} \cdot \frac{w}{m} \cdot 
@@ -4045,7 +3286,7 @@ and temperature.
 
 \noindent$\bullet$ Complex permittivity for suspended liquid water droplets:
 \begin{eqnarray}
-  \label{eq:comp_perm_lwc}
+  \label{eq:abs_theory:comp_perm_lwc}
   \ree       & = & \epsilon_o~-~\nu^2\cdot
                    \left[\frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
                    \frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_2^2}\right]\nonumber\\
@@ -4054,12 +3295,12 @@ and temperature.
                    \frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
                    \gamma_2\cdot\frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_2^2}\right]\nonumber\\
 %
-  \label{eq:comp_perm_lwc_epsilon_0}
+  \label{eq:abs_theory:comp_perm_lwc_epsilon_0}
   \epsilon_o & = & 77.66 + 103.3\cdot(\Theta-1)\\
   \epsilon_1 & = & 0.0671\cdot\epsilon_o\nonumber\\
   \epsilon_2 & = & 3.52\nonumber\\
 %
-  \label{eq:comp_perm_lwc_gamma_1}
+  \label{eq:abs_theory:comp_perm_lwc_gamma_1}
   \gamma_1   & = & 20.20 - 146\cdot(\Theta-1) + 316\cdot(\Theta-1)^2\,\mbox{GHz}\\
   \gamma_2   & = & 39.8\cdot\gamma_1\,\mbox{GHz}\nonumber\\
 %
@@ -4073,14 +3314,14 @@ and temperature.
 \end{eqnarray}
 $\bullet$ Complex permittivity for ice crystals:
 \begin{eqnarray}
-  \label{eq:comp_perm_iwc}
+  \label{eq:abs_theory:comp_perm_iwc}
   \ree    & = & 3.15\nonumber\\
 %
   \ime    & = & \frac{a}{\nu}~+~b\cdot\nu\nonumber\\
 %
-  \label{eq:comp_perm_iwc_a}
+  \label{eq:abs_theory:comp_perm_iwc_a}
   a       & = & (\Theta-0.1871)\cdot\exp{(17.0-22.1\cdot\Theta)}\\
-  \label{eq:comp_perm_iwc_b}
+  \label{eq:abs_theory:comp_perm_iwc_b}
   b       & = & \left[\left(\frac{0.233}{1-0.993/\Theta}\right)^2 + 
                 \frac{6.33}{\Theta} - 1.31\right]\cdot10^{-5}\\
 %
@@ -4107,9 +3348,9 @@ fitted to measurements which were mostly performed above $0^\circ$C,
 the extrapolated values for $T<$0$^{\rm o}$C for super-cooled
 clouds are not well established. For example in \citet{liebeetal:91} 
 itself two different parameterizations for the so called primary 
-relaxation frequency ($\gamma_1$ in Equation \ref{eq:comp_perm_lwc}) 
+relaxation frequency ($\gamma_1$ in Equation \ref{eq:abs_theory:comp_perm_lwc}) 
 are given, one polynomial in $\Theta$ as presented in 
-Equation \ref{eq:comp_perm_lwc}) and an exponential function derived
+Equation \ref{eq:abs_theory:comp_perm_lwc}) and an exponential function derived
 from theory. Although the polynomial describes the selected 
 data better than the exponential function, this might not be true for
 temperatures well below 0$^{\rm o}$C.
@@ -4119,7 +3360,7 @@ The resulting consequences from this discrepancy for the absorption
 calculation at three microwave frequencies are shown in 
 Figure \ref{fig:refrac_water_comp}. A more detailed
 discussion about this source of uncertainty is given in Section
-\ref{levelb:ref_uncert_clouds}.
+\ref{sec:abs_theory:ref_uncert_clouds}.
 %
 \begin{table}[!htb]
 \begin{center}
@@ -4173,8 +3414,8 @@ cirrostratus  & Cs    & 0.2                           & \citet{salby:96}\\
 
 
 
-\section{Variability and Uncertainty in Cloud Absorption}
-\label{levelb:ref_uncert_clouds}
+\section{Variability and uncertainty in cloud absorption}
+\label{sec:abs_theory:ref_uncert_clouds}
 %--------------------------------------------------------
 In the case of clouds three sources of uncertainties can be considered
 at first sight: (1) validity of the Rayleigh approximation (2) the 
@@ -4182,7 +3423,7 @@ parameterization of the relative dielectric constants ($\er$) of water
 and ice in the microwave region, and (3) the statistical and
 climatological variability of the cloud liquid water and ice content.
 
-As it was stated above (Section \ref{levelb:lipartabs}) the Rayleigh 
+As it was stated above (Section \ref{sec:abs_theory:lipartabs}) the Rayleigh 
 approximation is valid for particle sizes $<$~500\,$\mu$m. Figure 
 \ref{fig:cloud_part_dist} shows a particle size distribution for water
 clouds and ice clouds (cirrus) from the OPAC model \citep{hess:98}. 
@@ -4193,7 +3434,7 @@ conditions some cloud types (most probable is the cumulonimbus)
 a non-negligible large particle concentration can occur.
 
 The uncertainty in the relative dielectric constant of water 
-(see e.~g. \citet{liptonetal:99}) is largest below the freezing 
+(see e. g. \citet{liptonetal:99}) is largest below the freezing 
 temperature, since only a few measurements at -4$^{\rm o}$C 
 contributed to the parameterization of $\er$ in \citet{liebeetal:91}, 
 which in turn is used in the cloud liquid water absorption model of MPM93. 
@@ -4207,9 +3448,9 @@ Figure \ref{fig:refrac_water_comp} shows a comparison of
 for the temperature dependence of the expression
 $\Im{[(\er-1)/(\er+2)]}$, which is in the Rayleigh approximation 
 one of the relevant terms in the absorption calculation (see 
-Equation \ref{eq:abs_cloud}). Additionally the same calculations with 
+Equation \ref{eq:abs_theory:abs_cloud}). Additionally the same calculations with 
 the alternative expression of the first  relaxation frequency, 
-$\gamma_1$, as stated in Equation~2b of \citet{liebeetal:91} is shown. 
+$\gamma_1$, as stated in Equation 2b of \citet{liebeetal:91} is shown. 
 The three versions give comparable results for temperatures warmer 
 than 260\,K but show significant  differences for temperatures below 
 240\,K. However, an uncertainty estimation of $\Im{[(\er-1)/(\er+2)]}$ 
@@ -4226,8 +3467,8 @@ of \citet{costaetal:00}.
 
 
 
-\section{Water Vapor Saturation Adjustment in the Cloud}
-\label{levelb:WV_sat_in_cloud}
+\section{Water vapor saturation adjustment in the cloud}
+\label{sec:abs_theory:WV_sat_in_cloud}
 %--------------------------------------------------------
 
 The arts method {\tt WaterVaporSaturationInClouds{}} assures that 
@@ -4293,7 +3534,7 @@ with
 % ------------------------------------------------------
   \end{center}
   \caption[Cloud particle size distributions.]{Cloud particle size distributions according to 
-    Equations~3a and 3c and the microphysical properties are from the 
+    Equations 3a and 3c and the microphysical properties are from the 
     Tables 1a and 1b of the OPAC model \citep{hess:98}. 
     For the liquid water clouds (upper plot) a modified gamma 
     distribution is assumed whereas for the ice clouds (lower plot) 
@@ -4330,8 +3571,8 @@ with
 
 
 
-\section{ARTS Workspace Variables and Methods}
-\label{levelb:ArtsImplementationCloudAbsorption}
+\section{ARTS workspace variables and methods}
+\label{sec:abs_theory:ArtsImplementationCloudAbsorption}
 % ----------------------------------------------
 
 This section explains how the above described cloud absorption models
@@ -4397,10 +3638,10 @@ can find correct examples for all the cloud tags.
      has to provide three input parameters via {\it userparameters}, 
      e. g. {\it userparameters}\,=\,$[CC$, $CG$, $CE]$. The first 
      input parameter ($CC$) scales the total liquid water cloud absorption 
-     (see Eq. \ref{eq:abs_cloud}) while $CG$ scales the first 
+     (see Eq. \ref{eq:abs_theory:abs_cloud}) while $CG$ scales the first 
      relaxation frequency, $\gamma_1$, (see Eq. 
-     (\ref{eq:comp_perm_lwc_gamma_1})) and  $CE$ scales $\epsilon_o$ 
-     (see Eq. \ref{eq:comp_perm_lwc_epsilon_0})
+     (\ref{eq:abs_theory:comp_perm_lwc_gamma_1})) and  $CE$ scales $\epsilon_o$ 
+     (see Eq. \ref{eq:abs_theory:comp_perm_lwc_epsilon_0})
 \begin{code}
 cont_descriptionAppend{
     tagname        = "liquidcloud-MPM93"
@@ -4426,9 +3667,9 @@ cont_descriptionAppend{
      has to provide three input parameters via {\it userparameters}, 
      e. g. {\it userparameters}\,=\,$[CC$, $CA$, $CB]$. The first 
      input parameter ($CC$) scales the total ice water cloud absorption 
-     (see Eq. \ref{eq:abs_cloud}) while $CA$ scales $a$, (see Eq. 
-     (\ref{eq:comp_perm_iwc_a})) and $CB$ scales $b$ 
-     (see Eq. \ref{eq:comp_perm_iwc_b})
+     (see Eq. \ref{eq:abs_theory:abs_cloud}) while $CA$ scales $a$, (see Eq. 
+     (\ref{eq:abs_theory:comp_perm_iwc_a})) and $CB$ scales $b$ 
+     (see Eq. \ref{eq:abs_theory:comp_perm_iwc_b})
 \begin{code}
 # MPM93 model for ice water particle absorption:
 cont_descriptionAppend{
@@ -4542,7 +3783,7 @@ saturation over ice is taken.
 
 
 
-\subsubsection{ARTS Example Control File for the Full Model Tags}
+\subsubsection{ARTS example control file for the full model tags}
 \label{leveld:ArtsCloudModelExampleControlFile}
 % --------------------------------------------------------
 Below you will find an example of a control file for all 

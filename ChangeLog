@@ -1,3 +1,16 @@
+2011-07-06  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-15-50
+
+	* doc/uguide/absorption_theory.tex (Line absorption): Finished
+	revising this section. Continuum section next.
+
+	* doc/uguide/references.bib (kuntz:99): Added.
+
+	* doc/uguide/montecarlo.tex: Bugfix: Some references used \label
+	instead of \ref, resulting in "multiply defined label" TeX
+	warnings.
+
 2011-07-05  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-15-49
