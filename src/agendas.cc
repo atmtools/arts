@@ -196,9 +196,6 @@ void define_agenda_data()
         "the propagation path. The source term equals the Planck function as\n"
         "long as thermodynamic equilibrium (LTE) can be assumed, while for\n"
         "non-LTE conditions much more complex calculations are required.\n"
-        "\n"
-        "The transmission through the atmosphere can be obtained by setting\n"
-        "*emission* to zeros and *iy_space* to ones.\n"
         ),
        OUTPUT( "emission" ),
        INPUT( "rte_temperature" )));

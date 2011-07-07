@@ -77,6 +77,41 @@ void get_ptvmr_for_ppath(
   ConstTensor3View   t_field,
   ConstTensor4View   vmr_field );
 
+void get_ppath_atmvars( 
+        Vector&      ppath_p, 
+        Vector&      ppath_t, 
+        Matrix&      ppath_vmr, 
+        Vector&      ppath_wind_u, 
+        Vector&      ppath_wind_v, 
+        Vector&      ppath_wind_w, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim,
+  ConstVectorView    p_grid,
+  ConstTensor3View   t_field,
+  ConstTensor4View   vmr_field,
+  ConstTensor3View   wind_u_field,
+  ConstTensor3View   wind_v_field,
+  ConstTensor3View   wind_w_field );
+
+void get_ppath_rtvars( 
+        Workspace&   ws,
+        Tensor3&     ppath_abs_scalar, 
+        Matrix&      ppath_tau,
+        Vector&      total_tau,
+        Matrix&      ppath_emission, 
+  const Agenda&      abs_scalar_agenda,
+  const Agenda&      emission_agenda,
+  const Ppath&       ppath,
+  ConstVectorView    ppath_p, 
+  ConstVectorView    ppath_t, 
+  ConstMatrixView    ppath_vmr, 
+  ConstVectorView    ppath_wind_u, 
+  ConstVectorView    ppath_wind_v, 
+  ConstVectorView    ppath_wind_w, 
+  ConstVectorView    f_grid, 
+  const Index&       atmosphere_dim,
+  const Index&       emission_do );
+
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 
   const Index&    imblock );

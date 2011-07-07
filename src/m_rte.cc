@@ -1370,6 +1370,9 @@ void iyEmissionStandardClearsky(
   const Tensor3&                    z_field,
   const Tensor3&                    t_field,
   const Tensor4&                    vmr_field,
+  const Tensor3&                    wind_u_field,
+  const Tensor3&                    wind_v_field,
+  const Tensor3&                    wind_w_field,
   const Matrix&                     r_geoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
@@ -1452,24 +1455,31 @@ void iyEmissionStandardClearsky(
   const Index   i_background = ppath_what_background( ppath );
   assert( i_background > 0 );
 
-  // Get quantities required for each ppath point
+  // Get atmospheric and RT quantities for each ppath point/step
+  //
+  // "atmvars"
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Matrix    ppath_vmr;
+  // "rtvars"
+  Vector    total_tau;
+  Matrix    ppath_emission, ppath_tau;
+  Tensor3   ppath_abs_scalar, iy_trans_new;
   //
   const Index     np  = ppath.np;
-        Vector    ppath_p, ppath_t, ppath_doppler, total_tau;
-        Matrix    ppath_vmr, ppath_winds, ppath_emission, ppath_tau;
-        Tensor3   ppath_abs_scalar, iy_trans_new;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, t_field, vmr_field );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_u_field, wind_v_field, wind_w_field );
 
       // Get emission, absorption and optical thickness for each step
-      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
-                                    ppath_tau, total_tau, 
-                                    abs_scalar_agenda, emission_agenda,
-                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
+      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                        ppath_emission,  abs_scalar_agenda, emission_agenda, 
+                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 1 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     { 

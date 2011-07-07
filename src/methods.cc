@@ -2526,6 +2526,12 @@ void define_md_data_raw()
         (
          "Checks consistency of the (clear sky) atmosphere.\n"
          "\n"
+         "The following WSVs are treated: f_grid, stokes_dim, p_grid,\n"
+         "lat_grid, lon_grid, t_field, z_field, vmr_field, wind_u/v/w_field,\n"
+         "r_geoid and z_surface.\n"
+         "If any of these variables are changed, then this method shall be\n"
+         "called again (no automatic check that this is fulfilled!).\n"
+         "\n"
          "The tests include:\n"
          " 1. That basic control variables *stokes_dim* and *atmosphere_dim*\n"
          "    are inside defined ranges.\n"
@@ -2538,6 +2544,8 @@ void define_md_data_raw()
          "\n"
          "If any test fails, there is an error. Otherwise, *basics_checked*\n"
          "is set to 1.\n"
+         "\n"
+         "The cloudbox is covered by *cloudbox_checked*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "basics_checked" ),
@@ -2907,6 +2915,11 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Checks consistency between the cloudbox and other variables.\n"
+         "\n"
+         "The following WSVs are treated: cloudbox_on, cloudbox_limits and\n"
+         "wind_u/v/w_field.\n"
+         "If any of these variables are changed, then this method shall be\n"
+         "called again (no automatic check that this is fulfilled!).\n"
          "\n"
          "The main check is if the cloudbox limits are OK with respect to\n"
          "the atmospheric dimensionality and the limits of the atmosphere.\n"
@@ -4432,7 +4445,8 @@ void define_md_data_raw()
         IN( "iy_error", "iy_error_type",
             "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-            "t_field", "vmr_field", "r_geoid", "z_surface",
+            "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
+            "wind_w_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "abs_species", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
@@ -5033,10 +5047,11 @@ void define_md_data_raw()
         IN( "jacobian",
             "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "t_field", "z_field", "vmr_field", "abs_species",
-            "r_geoid", "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", 
-            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "iy_clearsky_agenda", "y_unit", "p_hse",
-            "z_hse_accuracy", "jacobian_quantities", "jacobian_indices" ),
+            "r_geoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid", 
+            "sensor_pos", "sensor_los", "mblock_za_grid", "mblock_aa_grid", 
+            "antenna_dim", "sensor_response", "iy_clearsky_agenda", "y_unit", 
+            "p_hse", "z_hse_accuracy", 
+            "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9225,15 +9240,18 @@ void define_md_data_raw()
          "\n"
          "The values in *lat_grid* must be \"geophysical\" latitudes. For 1D,\n"
          "this method requires that the length of *lat_grid* is 1.\n"
+         "\n"
+         "As a last step, it is checked that no gap between *z_surface* and\n"
+         "*z_field* has been genereted.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "z_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "abs_species", "t_field", 
-            "z_field", "vmr_field", "r_geoid", "basics_checked", 
-            "p_hse", "z_hse_accuracy" ),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species", 
+            "t_field", "z_field", "vmr_field", "r_geoid", "z_surface",
+            "basics_checked", "p_hse", "z_hse_accuracy" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

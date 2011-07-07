@@ -52,6 +52,9 @@
 extern const Numeric BOLTZMAN_CONST;
 extern const Numeric PLANCK_CONST;
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric PI;
+extern const Numeric DEG2RAD;
+extern const Numeric RAD2DEG;
 
 
 
@@ -277,6 +280,246 @@ void apply_y_unit2(
 
 
 
+//! get_ppath_atmvars
+/*!
+    Determines pressure, temperature, VMR and winds for each propgataion path
+    point.
+
+    The output variables are sized inside the function. For VMR the
+    dimensions are [ species, propagation path point ].
+
+    \param   ppath_p           Out: Pressure for each ppath point.
+    \param   ppath_t           Out: Temperature for each ppath point.
+    \param   ppath_vmr         Out: VMR values for each ppath point.
+    \param   ppath_wind_u      Out: U-wind for each ppath point.
+    \param   ppath_wind_v      Out: V-wind for each ppath point.
+    \param   ppath_wind_w      Out: W-wind for each ppath point.
+    \param   ppath             As the WSV.
+    \param   atmosphere_dim    As the WSV.
+    \param   p_grid            As the WSV.
+    \param   lat_grid          As the WSV.
+    \param   lon_grid          As the WSV.
+    \param   t_field           As the WSV.
+    \param   vmr_field         As the WSV.
+    \param   wind_u_field      As the WSV.
+    \param   wind_v_field      As the WSV.
+    \param   wind_w_field      As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2009-10-05
+*/
+void get_ppath_atmvars( 
+        Vector&      ppath_p, 
+        Vector&      ppath_t, 
+        Matrix&      ppath_vmr, 
+        Vector&      ppath_wind_u, 
+        Vector&      ppath_wind_v, 
+        Vector&      ppath_wind_w, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim,
+  ConstVectorView    p_grid,
+  ConstTensor3View   t_field,
+  ConstTensor4View   vmr_field,
+  ConstTensor3View   wind_u_field,
+  ConstTensor3View   wind_v_field,
+  ConstTensor3View   wind_w_field )
+{
+  const Index   np  = ppath.np;
+
+  // Pressure:
+  ppath_p.resize(np);
+  Matrix itw_p(np,2);
+  interpweights( itw_p, ppath.gp_p );      
+  itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
+  
+  // Temperature:
+  ppath_t.resize(np);
+  Matrix   itw_field;
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, t_field, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+
+  // VMR fields:
+  const Index ns = vmr_field.nbooks();
+  ppath_vmr.resize(ns,np);
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
+                              vmr_field( is, joker, joker,  joker ), 
+                              ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
+                              itw_field );
+    }
+
+  // Winds:
+  //
+  ppath_wind_w.resize(np);
+  if( wind_w_field.npages() > 0 ) 
+    { 
+      interp_atmfield_by_itw( ppath_wind_w,  atmosphere_dim, wind_w_field, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
+  else
+    { ppath_wind_w = 0; }
+  //
+  ppath_wind_v.resize(np);
+  if( wind_v_field.npages() > 0 ) 
+    { 
+      interp_atmfield_by_itw( ppath_wind_v,  atmosphere_dim, wind_v_field, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
+  else
+    { ppath_wind_v = 0; }
+  //
+  ppath_wind_u.resize(np);
+  if( atmosphere_dim > 2 )
+    {
+      if( wind_u_field.npages() > 0 ) 
+        { 
+          interp_atmfield_by_itw( ppath_wind_u,  atmosphere_dim, wind_u_field, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+        }
+      else
+        { ppath_wind_u = 0; }
+    }
+  else
+    { ppath_wind_u = 0; }
+}
+
+
+
+//! get_step_vars_for_standardRT
+/*!
+    Determines variables for each step of "standard" RT integration
+
+    The output variables are sized inside the function. The dimension order is 
+       [ frequency, absorption species, ppath point ]
+
+    \param   ws                Out: The workspace
+    \param   ppath_abs_sclar   Out: Absorption coefficients at each ppath point 
+    \param   ppath_tau         Out: Optical thickness of each ppath step 
+    \param   total_tau         Out: Total optical thickness of path
+    \param   ppath_emission    Out: Emission source term at each ppath point 
+    \param   abs_scalar_agenda As the WSV.    
+    \param   emission_agenda   As the WSV.    
+    \param   ppath_p           Pressure for each ppath point.
+    \param   ppath_t           Temperature for each ppath point.
+    \param   ppath_vmr         VMR values for each ppath point.
+    \param   ppath_wind_u      U-wind for each ppath point.
+    \param   ppath_wind_v      V-wind for each ppath point.
+    \param   ppath_wind_w      W-wind for each ppath point.
+    \param   f_grid            As the WSV.    
+    \param   atmosphere_dim    As the WSV.    
+    \param   emission_do       Flag for calculation of emission. Should be
+                               set to 0 for pure transmission calculations.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void get_ppath_rtvars( 
+        Workspace&   ws,
+        Tensor3&     ppath_abs_scalar, 
+        Matrix&      ppath_tau,
+        Vector&      total_tau,
+        Matrix&      ppath_emission, 
+  const Agenda&      abs_scalar_agenda,
+  const Agenda&      emission_agenda,
+  const Ppath&       ppath,
+  ConstVectorView    ppath_p, 
+  ConstVectorView    ppath_t, 
+  ConstMatrixView    ppath_vmr, 
+  ConstVectorView    ppath_wind_u, 
+  ConstVectorView    ppath_wind_v, 
+  ConstVectorView    ppath_wind_w, 
+  ConstVectorView    f_grid, 
+  const Index&       atmosphere_dim,
+  const Index&       emission_do )
+{
+  // Sizes
+  const Index   np   = ppath.np;
+  const Index   nabs = ppath_vmr.nrows();
+  const Index   nf   = f_grid.nelem();
+
+  // Init variables
+  ppath_abs_scalar.resize( nf, nabs, np );
+  ppath_tau.resize( nf, np-1 );
+  total_tau.resize( nf );
+  total_tau = 0;
+  if( emission_do )
+    { ppath_emission.resize( nf, np ); }
+  else
+    { ppath_emission.resize( 0, 0 ); }
+
+  // Frequency to apply for Doppler shift
+  const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
+
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Doppler shift
+      //
+      Numeric rte_doppler = 0;
+      //
+      if( ppath_wind_v[ip]!=0 || ppath_wind_u[ip]!=0 || ppath_wind_w[ip]!=0 )
+        {
+          // za nd aa of winds and LOS
+          const Numeric v = sqrt( pow(ppath_wind_u[ip],2) + 
+                           pow(ppath_wind_v[ip],2) + pow(ppath_wind_w[ip],2) );
+          Numeric aa_w = 0, aa_p = 0;
+          if( atmosphere_dim < 3 )
+            {
+              if( ppath_wind_v[ip]<0 ) 
+                { aa_w = PI; }  // Negative v-winds for 1 and 2D
+              if( atmosphere_dim == 2  &&  ppath.los(ip,0) < 0 )
+                { aa_p = PI; }  // Negative sensor za for 2D
+            }
+          else //3D 
+            { 
+              aa_w = atan2( ppath_wind_u[ip], ppath_wind_v[ip] ); 
+              aa_p = DEG2RAD * ppath.los(ip,1);
+            }
+          const Numeric za_w = acos( ppath_wind_w[ip] / v );
+          const Numeric za_p = DEG2RAD * fabs( ppath.los(ip,0) );
+          //
+          // Actual shift
+          const Numeric costerm = cos(za_w) * cos(za_p) + 
+                                  sin(za_w) * sin(za_p)*cos(aa_w-aa_p); 
+
+          rte_doppler = -v * f0 * costerm / SPEED_OF_LIGHT;
+        }
+
+      // We must use temporary variables as the agenda input must be
+      // free to be resized
+      Vector   evector;
+      Matrix   sgmatrix;
+      //
+      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, rte_doppler, ppath_p[ip], 
+                                    ppath_t[ip], ppath_vmr(joker,ip), 
+                                    abs_scalar_agenda );
+      ppath_abs_scalar(joker,joker,ip) = sgmatrix;
+      //
+      if( emission_do )
+        {
+          emission_agendaExecute( ws, evector, ppath_t[ip], emission_agenda );
+          ppath_emission(joker,ip) = evector;
+        }
+
+      // Partial and total tau
+      //
+      if( ip > 0 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              ppath_tau(iv,ip-1) = 0.5 * ppath.l_step[ip-1] * (
+                                         ppath_abs_scalar(iv,joker,ip-1).sum() +
+                                         ppath_abs_scalar(iv,joker,ip).sum() );
+              total_tau[iv] += ppath_tau(iv,ip-1);
+            }
+        }
+    }
+}
+
+
+
 //! get_ptvmr_for_ppath
 /*!
     Determines pressure, temperature and VMR for each propgataion path point.
@@ -294,7 +537,6 @@ void apply_y_unit2(
     \param   lon_grid          As the WSV.
     \param   t_field           As the WSV.
     \param   vmr_field         As the WSV.
-    \param   f_grid            As the WSV.
 
     \author Patrick Eriksson 
     \date   2009-10-05

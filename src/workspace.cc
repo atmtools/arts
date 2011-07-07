@@ -914,11 +914,7 @@ void Workspace::define_wsv_data()
        "and the surface are defined in a formally correct way, e.g. that\n"
        "the sizes of atmospheric fields match the atmospheric grids.\n"
        "\n"
-       "The following WSVs are treated: f_grid, stokes_dim, p_grid, lat_grid,\n"
-       "lon_grid, t_field, z_field, vmr_field, wind_u/v/w_field, r_geoid and\n"
-       "z_surface. The cloudbox is covered by *cloudbox_checked*.\n"
-       "\n"
-       "Shall be set by *basics_checkedCalc*.\n"
+       "Shall be set by *basics_checkedCalc*. See that WSM for treated WSVs.\n"
        ),
       GROUP( "Index" )));
 

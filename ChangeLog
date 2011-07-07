@@ -1,3 +1,39 @@
+2011-07-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-16-2
+
+	* Winds now fully implemented in iyEmissionStandardClearsky, but
+	no testing at all. (Checks work, so all should be OK for zero winds.)
+	
+	* tests/GroundBased/TestWinds.arts: Started.
+
+	* src/rte.cc (get_ppath_atmvars): Modified version of existing
+	function, but also handling wind fields.
+	(get_ppath_rtvars): Modified version of existing
+	function, but also calculating Doppler wind shifts.
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): Now using.
+	get_ppath_atmvars and get_ppath_atmvars. Wind fields added as input.
+
+	* src/m_jacobian.cc (jacobianCalcTemperature): Added z_surface as
+	input, to call new version of z_fieldFromHSE.
+
+	* src/m_atmosphere.cc (z_fieldFromHSE): It is now checked that no
+	 gap between *z_surface* and "*z_field* has been genereted. 
+
+	* src/montecarlo.cc (opt_propCalc2): Commented out this function.
+	Not called by any function. A copy of opt_propCalc, except of some
+	missing asserts! 
+
+	* doc/uguide/winds.tex: Fixed some spelling mistakes. Added
+	definition of frequency to select (v0).
+
+	* src/agendas.cc: Removed comment on "transmission calculations",
+	as this now can be achieved without involving this agenda. 
+
+	* src/methods.cc: Improved description for basics_checkedCalc and 
+	cloudbox_checkedCalc.
+
 2011-07-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-16-1

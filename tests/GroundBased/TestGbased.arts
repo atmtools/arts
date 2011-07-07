@@ -2,7 +2,7 @@
 # Simple simulations of ground-based measurements of ozone at 110.8 GHz,
 # mainly to test different sensor response methods.
 # User defined variables are also used heavily, to set up consistent 
-# frequency grids inside the control file (instead of laoding files).
+# frequency grids inside the control file (instead of loading files).
 # This includes the generation of a compact, non-uniform, f_grid.
 #
 # Author: Patrick Eriksson
@@ -126,6 +126,7 @@ cloudbox_checkedCalc
 Extract( p_hse, p_grid, 0 )
 NumericSet( z_hse_accuracy, 0.1 )
 z_fieldFromHSE
+
 
 
 

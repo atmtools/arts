@@ -1217,6 +1217,7 @@ void jacobianCalcTemperature(
   const Tensor4&                    vmr_field,
   const ArrayOfArrayOfSpeciesTag&   abs_species,
   const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
@@ -1365,7 +1366,8 @@ void jacobianCalcTemperature(
               if( rq.Subtag() == "HSE on" )
                 {
                   z_fieldFromHSE( z, atmosphere_dim, p_grid, lat_grid, 
-                                  abs_species, t_p, vmr_field, r_geoid, 1,
+                                  lon_grid, abs_species, t_p, vmr_field, 
+                                  r_geoid, z_surface, 1,
                                   p_hse, z_hse_accuracy );
                 }
        

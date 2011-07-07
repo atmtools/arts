@@ -451,6 +451,8 @@ void basics_checkedCalc(
 
   // Check that there is no gap between the surface and lowest pressure 
   // level
+  // (A copy of this code piece is found in z_fieldFromHSE. Make this to an 
+  // internal function if used in more places.)
   for( Index row=0; row<z_surface.nrows(); row++ )
     {
       for( Index col=0; col<z_surface.ncols(); col++ )
@@ -1737,10 +1739,12 @@ void z_fieldFromHSE(
    const Index&          atmosphere_dim,
    const Vector&         p_grid,
    const Vector&         lat_grid,
+   const Vector&         lon_grid,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const Tensor3&        t_field,
    const Tensor4&        vmr_field,
    const Matrix&         r_geoid,
+   const Matrix&         z_surface,
    const Index&          basics_checked,
    const Numeric&        p_hse,
    const Numeric&        z_hse_accuracy )
@@ -1762,10 +1766,6 @@ void z_fieldFromHSE(
   if( atmosphere_dim == 1  &&  lat_grid.nelem() != 1 )
     { throw runtime_error(
                 "The method requires that, for 1D, *lat_grid* has length 1." );
-    }
-  if( min(lat_grid) < -90  ||  max(lat_grid) > 90 )
-    { throw runtime_error(
-                       "Values of *lat_grid* must be in the range [-90,90]." );
     }
   //
   if( firstH2O < 0 )
@@ -1858,6 +1858,31 @@ void z_fieldFromHSE(
             }
         }
     }
+
+  // Check that there is no gap between the surface and lowest pressure 
+  // level
+  // (This code is copied from *basics_checkedCalc*. Make this to an internal
+  // function if used in more places.)
+  for( Index row=0; row<z_surface.nrows(); row++ )
+    {
+      for( Index col=0; col<z_surface.ncols(); col++ )
+        {
+          if( z_surface(row,col)<z_field(0,row,col) ||
+                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
+            {
+              ostringstream os;
+              os << "The surface altitude (*z_surface*) cannot be outside "
+                 << "of the altitudes in *z_field*.";
+              if( atmosphere_dim > 1 )
+                os << "\nThis was found to be the case for:\n"
+                   << "latitude " << lat_grid[row];
+              if( atmosphere_dim > 2 )
+                os << "\nlongitude " << lon_grid[col];
+              throw runtime_error( os.str() );
+            }
+        }
+    }
+
 }
 
 

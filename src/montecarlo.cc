@@ -1203,6 +1203,7 @@ void opt_propCalc(
     }
 }
 
+/* PE 2011-07-07
 void opt_propCalc2(
                   MatrixView      ext_mat_mono,
                   VectorView      abs_vec_mono,
@@ -1240,7 +1241,7 @@ void opt_propCalc2(
         }
     }
 }
-
+*/
 //! Extract ext_mat_mono and abs_vec_mono from a monochromatic SingleScatteringData object
 /*!
   Given a monochromatic SingleScatteringData object, propagation directions, 

@@ -77,7 +77,7 @@ Doppler shift, i.e.\ the winds are ignored.
 \label{sec:winds:eqs}
 
 The main equations for deriving the Doppler shift from the winds are given in
-theis section. The total wind, \Wind, is
+this section. The total wind, \Wind, is
 \begin{equation}
   \Wind = \sqrt{\WindWE^2+\WindSN^2+\WindVe^2}.
   \label{eq:winds:total}
@@ -115,12 +115,13 @@ be calculated as
   \label{eq:winds:aa}
 \end{equation}
 where \aFrq{0}\ is the rest frequency and \speedoflight\ is the speed of light.
-In practice, \aFrq{0}\ is taken as the median value of \builtindoc{f\_grid}.
-The sign of the expression can be understood by the fact that if the wind and
-line-of-sight are aligned and going in the same direction, the air movement is
-directly away from the sensor, that gives a shift towards lower frequencies. As
-workspace variable $\Delta\Frq$ is denoted as \wsvindex{doppler\_shift}, and is
-applied on \wsvindex{f\_grid} when extracting the (non-polirised) absorption
-(where a single $\Delta\Frq$ is applied on the complete \wsvindex{f\_grid}, as
-also mentioned in Section~\ref{sec:winds:limitations}).
+In practise, \aFrq{0}\ is taken as the mean of the end values of
+\builtindoc{f\_grid}. The sign of the expression can be understood by the fact
+that if the wind and line-of-sight are aligned and going in the same direction,
+the air movement is directly away from the sensor, that gives a shift towards
+lower frequencies. As workspace variable $\Delta\Frq$ is denoted as
+\wsvindex{doppler\_shift}, and is applied on \wsvindex{f\_grid} when extracting
+the (non-polarised) absorption (where a single $\Delta\Frq$ is applied on the
+complete \wsvindex{f\_grid}, as also mentioned in
+Section~\ref{sec:winds:limitations}).
 
