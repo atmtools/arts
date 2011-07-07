@@ -157,31 +157,56 @@ each spectral line, plus some more or less empirical continuum terms.
 
 An absorption species in ARTS is an abstract entity that has a partial
 absorption coefficient associated with it, and that usually can be
-associated with a volume mixing ratio of a corresponding gas. Total
-absorption is the sum of the partial absorptions of all absorption
-species. Absorption species are defined in the ARTS controlfile by
-special `tags', which are stored in the variable
-\wsvindex{abs\_species}, and set by the method \wsmindex{SpeciesSet}.
+associated with a volume mixing ratio of a corresponding gas (the VMRs
+are stored in variable \wsvindex{vmr\_field}). Total absorption is the
+sum of the partial absorptions of all absorption species. Absorption
+species are defined in the ARTS controlfile by special `tags', which
+are stored in the variable \wsvindex{abs\_species}, and set by the
+method \wsmindex{SpeciesSet}.
 
 The absorption species tags describe not only the different absorbers,
 but also the model that should be used to calculate the absorption.
 There are two types of tags, those for explicit line-by-line
 calculations, and those for continua and complete absorption models.
 An example of the first kind is `H2O-18', which identifies a
-particular isotope of water vapor.  An example of the second kind is
+particular isotopologue of water vapor.  An example of the second kind is
 `H2O-ForeignContCKDMT100', which identifies a particular continuum
 model.  Tags can be combined, if they refer to the same molecule
-(different isotopes are allowed). 
+(different isotopologues are allowed). Even continuum tags can be combined
+with explicit line-by-line tags, if they refer to the same molecule.
 
-This mechanism allows quite complex
+It should be noted that isotopic ratios are taken into account
+implicitly when line strengths are calculated, so even if you make
+calculations for individual isotopologues, the VMR numbers in the
+variable \wsvindex{vmr\_field} should not be adjusted for the isotopic
+ratio. As an example, to make a line-by-line calculation for all ozone
+isotopologues, you could represent them in different ways by
+\wsmindex{SpeciesSet}.
+\begin{code}
+a) SpeciesSet(abs_species, 
+              ["O3"])
+b) SpeciesSet(abs_species, 
+              ["O3-666, O3-668, O3-686, O3-667, O3-676"])
+c) SpeciesSet(abs_species, 
+              ["O3-666", "O3-668", "O3-686", "O3-667", "O3-676"])
+\end{code}
+Options (a) and (b) are equivalent, you will have one ozone species
+that represents are isotopologues, and that will be associated with a
+single VMR field in \wsvindex{vmr\_field}.  With option (c) you have
+five different ozone species, so you have to supply five different VMR
+fields. If those five fields are identical (exactly same numerical
+values), you will get the same total absorption as with options (a)
+and (b).
+
+Overall, the tag mechanism allows quite complex
 absorption setups. The built-in documentation for
 \wsmindex{SpeciesSet} gives a detailed explanation of the tag syntax
 and some examples.  
 
-There is no `intelligence' in ARTS that checks that the chosen tag
-combination makes sense, so the user should know what she or he is
-doing, or follow one of the many examples in the ARTS
-\fileindex{includes} directory.
+It is important to note that there is no `intelligence' in ARTS that
+checks that the chosen tag combination makes sense, so the user should
+know what she or he is doing, or follow one of the many examples in
+the ARTS \fileindex{includes} directory.
 
 \subsection{Explicit line-by-line calculations}
 

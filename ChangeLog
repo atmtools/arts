@@ -1,3 +1,17 @@
+2011-07-07  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-16-4
+
+	* doc/uguide/absorption.tex: Implemented Patrick comments. (Ok,
+	some of them, at least.)
+
+	* doc/uguide/absorption_theory.tex: First complete draft of
+	this. Finished for now, from my point of view.
+
+	* doc/uguide/Figs/abs_theory/: Added this directory, which
+	contains three figures used by the hydrometeor absorption chapter
+	(which is part of the file absorption_theory).
+
 2011-07-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-16-3
