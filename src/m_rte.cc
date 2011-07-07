@@ -804,6 +804,9 @@ void iyBeerLambertStandardClearsky(
   const Tensor3&                    z_field,
   const Tensor3&                    t_field,
   const Tensor4&                    vmr_field,
+  const Tensor3&                    wind_u_field,
+  const Tensor3&                    wind_v_field,
+  const Tensor3&                    wind_w_field,
   const Matrix&                     r_geoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
@@ -821,18 +824,15 @@ void iyBeerLambertStandardClearsky(
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
-  // A minimal amount of checks, for efficiency reasons
-  assert( rte_pos.nelem() == atmosphere_dim );
-  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
-          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
-
   // Jacobian code exists, but has not been tested at all
   if( jacobian_do )
     throw runtime_error( "Method not yet tested with jacobians." );      
 
-  // Some sizes
+  // Assume used as part of yCalc. Checks made in yCalc.
+
+  // Sizes
   //
-  const Index   nf  = f_grid.nelem();
+  const Index nf = f_grid.nelem();
 
   // Determine if there are any analytical jacobians to handle
   //
@@ -864,7 +864,6 @@ void iyBeerLambertStandardClearsky(
       else { diy_dx.resize( 0 ); }
     }
 
-
   //- Determine propagation path
   //
   Ppath  ppath;
@@ -874,28 +873,35 @@ void iyBeerLambertStandardClearsky(
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
   //
   const Index   i_background = ppath_what_background( ppath );
-  assert( i_background > 0 );
 
-  // Get quantities required for each ppath point
+  // Get atmospheric and RT quantities for each ppath point/step
   //
-  const Index     np  = ppath.np;
-        Vector    ppath_p, ppath_t, total_tau;
-        Matrix    ppath_vmr, mdummy, ppath_tau;
-        Tensor3   ppath_abs_scalar, iy_trans_new;
-        Agenda    adummy;
+  // If np = 1, we only need to determine the radiative background
+  //
+  // "atmvars"
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Matrix    ppath_vmr;
+  // "rtvars"
+  Vector    total_tau;
+  Matrix    no_emission, ppath_tau;
+  Tensor3   ppath_abs_scalar, iy_trans_new;
+  Agenda    empty_agenda;
+  //
+  const Index np  = ppath.np;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      //
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, t_field, vmr_field );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_u_field, wind_v_field, wind_w_field );
 
       // Get emission, absorption and optical thickness for each step
-      //
-      get_step_vars_for_standardRT( ws, ppath_abs_scalar, mdummy, ppath_tau, 
-                                    total_tau, abs_scalar_agenda, adummy,
-                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 0 );
+      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                        no_emission,  abs_scalar_agenda, empty_agenda, 
+                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 0 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     {
@@ -954,12 +960,14 @@ void iyBeerLambertStandardClearsky(
             { if( is_t[iq] ) { do_t = 1; } }
           if( do_t )
             {
-              Matrix mdummy1, mdummy2; 
+              Matrix mdummy; 
               Vector vdummy, t2 = ppath_t;
               t2 += dt;
-              get_step_vars_for_standardRT( ws, ppath_as2, mdummy1, mdummy2, 
-                                   vdummy, abs_scalar_agenda, adummy,
-                                   ppath, ppath_p, t2, ppath_vmr, nf, 0 );
+              get_ppath_rtvars( ws, ppath_as2, mdummy, vdummy, no_emission,  
+                                abs_scalar_agenda, empty_agenda, ppath, 
+                                ppath_p, t2, ppath_vmr, ppath_wind_u, 
+                                ppath_wind_v, ppath_wind_w, f_grid, 
+                                atmosphere_dim, 0 );
             }
         }
 
@@ -1078,6 +1086,8 @@ void iyBeerLambertStandardClearsky(
         { iy_aux( 1, joker, joker ) = 1.0; }
     }    
 }
+
+
 
 
 
@@ -1350,6 +1360,8 @@ void iyBeerLambertStandardCloudbox(
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardClearsky(
         Workspace&                  ws,
@@ -1405,14 +1417,11 @@ void iyEmissionStandardClearsky(
   // The WSV *iy_transmission* shall hold the transmission between the sensor
   // and the end of the propagation path.
 
-  // A minimal amount of checks, for efficiency reasons
-  assert( rte_pos.nelem() == atmosphere_dim );
-  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
-          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+  // Assume used as part of yCalc. Checks made in yCalc.
 
-  // Some sizes
+  // Sizes
   //
-  const Index   nf  = f_grid.nelem();
+  const Index nf = f_grid.nelem();
 
   // Determine if there are any analytical jacobians to handle
   //
@@ -1453,9 +1462,10 @@ void iyEmissionStandardClearsky(
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
   //
   const Index   i_background = ppath_what_background( ppath );
-  assert( i_background > 0 );
 
   // Get atmospheric and RT quantities for each ppath point/step
+  //
+  // If np = 1, we only need to determine the radiative background
   //
   // "atmvars"
   Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
@@ -1465,7 +1475,7 @@ void iyEmissionStandardClearsky(
   Matrix    ppath_emission, ppath_tau;
   Tensor3   ppath_abs_scalar, iy_trans_new;
   //
-  const Index     np  = ppath.np;
+  const Index np  = ppath.np;
   //
   if( np > 1 )
     {
@@ -1534,7 +1544,7 @@ void iyEmissionStandardClearsky(
           //
           // Determine if temperature is among the analytical jac. quantities.
           // If yes, get emission and absorption for disturbed temperature
-          Index do_t=0;
+          Index do_t = 0;
           for( Index iq=0; iq<is_t.nelem() && do_t==0; iq++ )
             { if( is_t[iq] ) { do_t = 1; } }
           if( do_t )
@@ -1542,9 +1552,11 @@ void iyEmissionStandardClearsky(
               Matrix mdummy; 
               Vector vdummy, t2 = ppath_t;
               t2 += dt;
-              get_step_vars_for_standardRT( ws, ppath_as2, ppath_e2, mdummy, 
-                                   vdummy, abs_scalar_agenda, emission_agenda,
-                                   ppath, ppath_p, t2, ppath_vmr, nf, 1 );
+              get_ppath_rtvars( ws, ppath_as2, mdummy, vdummy, ppath_e2,  
+                                abs_scalar_agenda, emission_agenda, ppath, 
+                                ppath_p, t2, ppath_vmr, ppath_wind_u, 
+                                ppath_wind_v, ppath_wind_w, f_grid, 
+                                atmosphere_dim, 1 );
             }
         }
 
@@ -1712,6 +1724,8 @@ void iyEmissionStandardClearsky(
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardClearskyBasic(
         Workspace&                  ws,
@@ -1725,6 +1739,9 @@ void iyEmissionStandardClearskyBasic(
   const Tensor3&                    z_field,
   const Tensor3&                    t_field,
   const Tensor4&                    vmr_field,
+  const Tensor3&                    wind_u_field,
+  const Tensor3&                    wind_v_field,
+  const Tensor3&                    wind_w_field,
   const Matrix&                     r_geoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
@@ -1739,11 +1756,11 @@ void iyEmissionStandardClearskyBasic(
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda )
 {
-  // A minimal amount of checks, for efficiency reasons
-  assert( rte_pos.nelem() == atmosphere_dim );
-  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
-          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+  // Assume used as part of yCalc. Checks made in yCalc.
 
+  // Sizes
+  //
+  const Index nf = f_grid.nelem();
 
   //- Determine propagation path
   //
@@ -1753,30 +1770,33 @@ void iyEmissionStandardClearskyBasic(
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
 
-
   // Get quantities required for each ppath point
   //
   // If np = 1, we only need to determine the radiative background
+  // "atmvars"
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Matrix    ppath_vmr;
+  // "rtvars"
+  Vector    total_tau;
+  Matrix    ppath_emission, ppath_tau;
+  Tensor3   ppath_abs_scalar, iy_trans_new;
   //
-  const Index     nf  = f_grid.nelem();
-  const Index     np  = ppath.np;
-        Vector    ppath_p, ppath_t, total_tau;
-        Matrix    ppath_vmr, ppath_emission, ppath_tau;
-        Tensor3   ppath_abs_scalar;
+  const Index np  = ppath.np;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, t_field, vmr_field );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_u_field, wind_v_field, wind_w_field );
 
       // Get emission, absorption and optical thickness for each step
-      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
-                                    ppath_tau, total_tau, 
-                                    abs_scalar_agenda, emission_agenda,
-                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
+      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                        ppath_emission,  abs_scalar_agenda, emission_agenda, 
+                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 1 );
     }
-
 
   // Radiative background
   //
@@ -1802,11 +1822,10 @@ void iyEmissionStandardClearskyBasic(
           // Loop frequencies
           for( Index iv=0; iv<nf; iv++ )
             { 
-
               const Numeric step_tr = exp( -ppath_tau(iv,ip) );
               //
-              iy(iv,0)  = iy(iv,0) * step_tr + 0.5 * ( ppath_emission(iv,ip) + 
-                                       ppath_emission(iv,ip+1) ) * (1-step_tr); 
+              iy(iv,0) = iy(iv,0) * step_tr + 0.5 * (1-step_tr) * 
+                           ( ppath_emission(iv,ip) + ppath_emission(iv,ip+1) ); 
               //
               for( Index is=1; is<stokes_dim; is++ )
                 { iy(iv,is) *= step_tr; }
@@ -1941,6 +1960,8 @@ void iyMC(
       iy_error(f_index,joker) = mc_error;
     }
 }
+
+
 
 
 
