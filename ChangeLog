@@ -1,5 +1,13 @@
 2011-07-07  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-16-5
+
+	* doc/uguide/arts_theory.tex: Added Thomas Kuhn and Nikolay Koulev
+	as contributing authors, for their contribution to the absorption
+	part.
+
+2011-07-07  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-16-4
 
 	* doc/uguide/absorption.tex: Implemented Patrick comments. (Ok,
