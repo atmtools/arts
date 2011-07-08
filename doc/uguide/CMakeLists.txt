@@ -27,10 +27,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/batch.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/clouds.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/scattering.tex"
-                      "${CMAKE_CURRENT_SOURCE_DIR}/reduction.tex"
-                      "${CMAKE_CURRENT_SOURCE_DIR}/wfuns_atm.tex"
-                      "${CMAKE_CURRENT_SOURCE_DIR}/measerr.tex"
-                      "${CMAKE_CURRENT_SOURCE_DIR}/wfuns_sensor.tex")
+                      "${CMAKE_CURRENT_SOURCE_DIR}/wfuns.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_user" "${TEXFILES}" "${FIGFILES}")
   

@@ -1,0 +1,62 @@
+\chapter{Weighting functions}
+ \label{sec:wfuns}
+
+ \starthistory
+ 11xxyy & First complete version by Patrick Eriksson.\\
+ \stophistory
+
+\graphicspath{{Figs/wfuns/}}
+
+
+Inversions of both OEM and Tikhonov type require that the ``weighting
+functions'' can be provided by the forward model \citep[see
+e.g.][]{eriksson:analy:00}. A retrieval characterisation following
+\citet{rodgers:90} raises the same demand. A weighting function is defined as 
+\begin{equation}
+  \frac{\partial \MsrVct}{\partial x_i}
+  \label{eq:wfuns:ki}
+\end{equation}
+where \MsrVct\ is the vector of measurement data and $x_i$ is one forward model
+(scalar) variable. 
+
+A few words about the nomenclature, a weighting function forms a column of the
+complete weighting function matrix, \aWfnMtr (see \theory,
+Sec.~\ref{T-sec:formalism:wfuns}). A probably more commonly used name for
+\aWfnMtr\ is the Jacobian, and in the documentation of ARTS you find both
+terms. Also the term ``the Jacobians'' is used, which shall be interpreted as
+``the weighting functions''. These names refer normally to the partial
+derivates with respect to the variables to be retrieved, the state vector
+\SttVct. However, in the context of retrieval characterisation, the same matrix
+for the remaining model paramaters is of equally high interest, denoted as
+\aWfnMtr{\FrwMdlVct}\ in Sec.~\ref{T-sec:formalism:wfuns} of \theory. In the
+same manner, the terms inversion and retrieval are used interchangeably.
+
+The main task of the user is to select which quantities that shall be
+retrieved, and to define the associated retrieval grids. These aspects must be
+considered for successful inversions, but are out of scope for this document.
+Beside for the most simple retrievals, it is further important to understand
+how the different weighting functions are calculated. A practical point is the
+calculation speed, primarily determined if perturbations or analytical
+expressions are used (Sec.~\ref{sec:wfuns:overw}). The derivation of the
+weighting functions involves also some approximations (due to theoretical or
+practical considerations). Such approximations can (and must) be accepted, but
+will result in a slower convergence (the inversion will require more
+iterations). Due to these later aspects, and to meet the needs of more
+experienced users, this section is relatively detailed and contains a (high?)
+number of equations.
+
+
+
+\section{Overwiev}
+%==============================================================================
+\label{sec:wfuns:overw}
+
+There are two main approaches for calculation the weighting functions, by
+analytical expressions and by perturbations. We start with the conceptually
+simplest one, but also the more inefficient aprroach.
+
+
+\subsection{Perturbations}
+%==============================================================================
+\label{sec:wfuns:pert}
+

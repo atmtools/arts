@@ -3651,7 +3651,9 @@ void define_md_data_raw()
          "Emission source term for LTE.\n"
          "\n"
          "Sets *emission* for cases when emission is considered and local\n"
-         "thermodynamic equilibrium is valid.\n"
+         "thermodynamic equilibrium is valid. The standard definition, in\n"
+         "ARTS, of the Planck function is followed and the unit of the\n"
+         "returned data is W/(m3*Hz*sr).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "emission" ),
@@ -5186,8 +5188,10 @@ void define_md_data_raw()
          "The cosmic radiation is modelled as blackbody radiation for the\n"
          "temperature given by the global constant COSMIC_BG_TEMP, set in\n"
          "the file constants.cc. The frequencies are taken from the generic\n"
-         "input vector. The standard usage should be:\n"
-         "   MatrixCBR( iy, stokes_dim, f_grid )\n"
+         "input vector.\n"
+         "\n"
+         "The standard definition, in ARTS, of the Planck function is\n"
+         "followed and the unit of the returned data is W/(m3*Hz*sr).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
@@ -5232,11 +5236,15 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets a matrix to hold blackbody radiation.\n"
+         "\n"
          "The radiation is assumed to be un-polarized and Stokes components\n"
          "2-4 are zero. Number of Stokes components, that equals the number\n"
          "of columns in the created matrix, is determined by *stokes_dim*.\n"
          "The number of rows in the created matrix equals the length of the\n"
          "given frequency vector.\n"
+         "\n"
+         "The standard definition, in ARTS, of the Planck function is\n"
+         "followed and the unit of the returned data is W/(m3*Hz*sr).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),

@@ -11,14 +11,15 @@ calculations}
 \graphicspath{{Figs/rte/}}
 
 This section gives an overview of the variables and the approach used to handle
-radiative transfer calculations. This includes an overview of how effects
-caused by the sensor and surface are incorporated. The default assumption is
-that there is no particle scattering and the (atmospheric) absorption/emission
-is unpolarised. This is for simplicity denoted as clear-sky calculations. Cases
-involving scattering or polarised absorption are handled by the ``cloud box''
-(Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more demanding calculations
-are restricted to a smaller domain of the model atmosphere, and the radiative
-transfer in this domain is treated by dedicated workspace methods.
+the actual radiative transfer calculations. This includes an overview of how
+effects caused by the sensor and surface are incorporated. The default
+assumption is that there is no particle scattering and the (atmospheric)
+absorption/emission is unpolarised. This is for simplicity denoted as clear-sky
+calculations. Cases involving scattering or polarised absorption are handled by
+the ``cloud box'' (Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more
+demanding calculations are restricted to a smaller domain of the model
+atmosphere, and the radiative transfer in this domain is treated by dedicated
+workspace methods.
 
 The section deals with general aspects of radiative transfer and the
 algorithms applied outside the cloud box. Even though the atmospheric absorption
@@ -159,13 +160,13 @@ agendas, such as \builtindoc{ppath\_step\_agenda}. All methods developed for
 \wsvindex{stokes\_dim}.
 
 That is, \builtindoc{yCalc} is a common method, independent of the details of
-the radiative transfer. For exemple, \builtindoc{yCalc} is used both if emission
+the radiative transfer. For example, \builtindoc{yCalc} is used both if emission
 measurements or pure transmission data are simulated, that choice is made
 inside \builtindoc{iy\_clearsky\_agenda} (see further Section
 \ref{sec:fm_defs:rte}). 
 
 The three following sections describes the main calculation steps of 
-\builtindoc{iy\_clearsky\_agenda}, in the order they are exucuted.
+\builtindoc{iy\_clearsky\_agenda}, in the order they are executed.
 
 
 \section{Propagation paths}
@@ -193,7 +194,7 @@ the path between the points. This is achieved by the variable
   \caption{Examples on allowed propagation paths for a 2D atmosphere. 
     The atmosphere is plotted as in Figure~\ref{fig:fm_defs:2d} beside
     that the points for the atmospheric fields are not emphasised.
-    The position of the sensor is indicated by an asterix $(\ast)$,
+    The position of the sensor is indicated by an asterisk $(\ast)$,
     the points defining the paths are plotted as circles $(\circ)$,
     joined by a solid line. The part of the path outside the
     atmosphere, not included in the path structure, is shown by a
@@ -262,7 +263,7 @@ atmosphere, as long as the viewing direction is downward and the
 lowest point of the path, the tangent point, is inside the latitude
 and longitude limits of the model atmosphere.
 
-Propagation paths can be calculated seperately by the method
+Propagation paths can be calculated separately by the method
 \wsmindex{ppathCalc}. However, for standard calculations the propagation paths
 are calculated internally by \builtindoc{yCalc}. The calculation of the path
 from one crossing of the grids to next crossing is defined by
@@ -396,8 +397,9 @@ elements equal, and only the first of the elements of \AbsVec\ is non-zero.
 
 The radiative transfer equation above can be solved in many ways, and with
 different level of refinement. The standard approach in ARTS is to solve the
-radiative transfer from one point of the propagation path to next for the first
-Stokes element as (compare \theory, Equation~\ref{T-eq:rtetheory:layer})
+radiative transfer from one point of the propagation path to next. For the
+first Stokes element the following expression is applied (compare \theory,
+Equation~\ref{T-eq:rtetheory:layer})
 \begin{equation}
   \label{eq:fm_defs:rte_step}
   I_{i+1} = I_ie^{-\aOth{i}} + \bar{B}_i(1-e^{-\aOth{i}}),
@@ -424,28 +426,49 @@ the expression for the second Stokes component is
 \end{equation}
 The third and forth Stokes component are handled likewise.
 
-The expressions above are implemented in the workspace method
-\wsmindex{iyEmissionStandardClearsky}, intended to be part of
-\builtindoc{iy\_clearsky\_agenda}. 
-
-An alternative way to perform the calculations for the first Stokes elemnt
+An alternative way to perform the calculations for the first Stokes element
 would be
 \begin{equation}
   \label{eq:fm_defs:rte_alt}
   I = \sum_i \mathcal{T}_{i+1} \bar{B}_i(1-e^{-\aOth{i}}),
 \end{equation}
 where $I$ is the final intensity and $\mathcal{T}_i$ is the transmission
-between the sensor and point $i$. This calculation aproach is not used as it
-fits poorer with the calculation of weighting functions (Section~[FIXME]).
-However, the the calculation of weighting functions is simplified if
-$\mathcal{T}_i$ is at hand, and this quantity is also tracked by
+between the sensor and point $i$. This calculation approach is not used as it
+fits poorer with the calculation of weighting functions
+(Section~\ref{sec:wfuns}). However, the calculation of weighting functions is
+simplified if $\mathcal{T}_i$ is at hand, and this quantity is also tracked by
 \builtindoc{iyEmissionStandardClearsky}. The value of $\mathcal{T}$ at the
-radiative background can also be outputted as auxilary data
-(\wsvindex{iy\_aux}). See further the built-in documentation.
+radiative background can also be outputted as auxiliary data
+(\wsvindex{iy\_aux}).
 
-For inclusion in \builtindoc{iy\_clearsky\_basic\_agenda}, there is a version
-denoted as \wsmindex{iyEmissionStandardClearskyBasic}. This version is not
-calculating $\mathcal{T}_i$, or provides any auxilary data.
+The expressions above are implemented in the workspace method
+\wsmindex{iyEmissionStandardClearsky}, intended to be part of
+\builtindoc{iy\_clearsky\_agenda}. For inclusion in
+\builtindoc{iy\_clearsky\_basic\_agenda}, there is a version denoted as
+\wsmindex{iyEmissionStandardClearskyBasic}. This version is not calculating
+$\mathcal{T}_i$, or provides any auxiliary data. 
+
+The term $B$ is set by \wsvindex{emission\_agenda}. The setting of this agenda
+basically determines the unit of the final outcome of
+Eq.~\ref{eq:fm_defs:rte_step}, see further Sec.~\ref{sec:fm_defs:unit}.
+For radiance calculations, the standard workspace method to use inside 
+\builtindoc{emission\_agenda} is \wsmindex{emissionPlanck}. The Planck function
+is in this method, and in ARTS generally, defined as
+\begin{equation}
+  \label{eq:planck}
+  B(T) = \frac{2h\Frq^3}{c^2(exp(h\Frq/k_BT)-1)},
+\end{equation}
+where $h$ is the Planck constant, $c$ the speed of light and $k_B$ the
+Boltzmann constant. This expression gives the total power, per unit frequency
+per unit area per solid angle. (The Planck function can also be defined as a
+function of wavelength.)
+
+As long as cosmic background radiation is the only type of non-telluric
+radiation that has to be considered, the standard method for inclusion in
+\wsvindex{iy\_space\_agenda} is \wsmindex{MatrixCBR} (together with some calls
+of \builtindoc{Ignore}). Please, note that \builtindoc{emission\_agenda} and 
+\builtindoc{iy\_space\_agenda} must be defined in a consistent manner, that
+they use the same unit for $B$.
 
 
 \subsection{Pure transmission calculations}
@@ -455,8 +478,11 @@ calculating $\mathcal{T}_i$, or provides any auxilary data.
 If only the attenuation of a signal is of concern (i.e.\ atmospheric and
 surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
 applied for all Stokes elements. The initiation of the Stokes vector by the
-radiative background must also be adopted. Otherwise the calculations are
-performed exactly as for cases with emission.
+radiative background must also be adopted. The standard choice for
+\wsvindex{iy\_space\_agenda} should here be \wsmindex{MatrixUnitIntensity}
+(instead of \builtindoc{MatrixCBR}). Otherwise the calculations are performed
+exactly as for cases with emission (\builtindoc{emission\_agenda} can be left
+undefined).
 
 Calculations of pure transmission type are performed by the method denoted as
 \wsmindex{iyBeerLambertStandardClearsky}. This method is complemented by
@@ -471,14 +497,13 @@ There is no fixed unit for calculated spectra (\wsvindex{y}), it depends on the
 calculation set-up. For example, if emission is considered, or if just
 transmissions are calculated. 
 
-The primary unit for emission data (radiances) is [W/(Hz$\cdot$m$^2\cdot$sr)].
+The primary unit for emission data (radiances) is [W/(Hz$\cdot$m$^2\cdot$sr)],
 The emission intensity corresponds directly with the definition of the Planck
-function in \theory, Equation~\ref{T-eq:rtetheory:planck}. This radiance can be
-converted to other emission units by the workspace variable \wsvindex{y\_unit}.
-See further the built-in documentation for this workspace variable.
-
-Expressions for the unit conversion and further details are found in
-\citet{eriksson:arts2:11}.
+function (Eq.~\ref{eq:planck}). This radiance can be converted to other
+emission units by the workspace variable \wsvindex{y\_unit}. For comments on
+the practical aspects, see the built-in documentation of \builtindoc{y\_unit}.
+Otherwise, considerations and expressions for the unit conversion are mainly
+discussed in ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
 
 
 
@@ -795,7 +820,7 @@ physical meaning.
 
 The accuracy of the calculations depends on many factors. For many
 factors, such as spectroscopic parameters, there is nothing else to do
-than using best avaliable data. On the other hand, for other factors
+than using best available data. On the other hand, for other factors
 there is a trade-off between accuracy and speed. More accurate
 calculations requires normally also more computer memory. All
 different grids and the propagation path step length fall into this
@@ -829,7 +854,7 @@ about 25~km should suffice normally.
 
 As points are always included in the propagation paths at the
 crossings of the atmospheric grids, finer grids will give shorter path
-steps. However, it is neither good practice or efficient to use the
+steps. However, it is neither good practise or efficient to use the
 atmospheric grids to control the accuracy of the radiative transfer
 calculations. An upper limit on the path step length shall be applied
 for this purpose.\footnote{Further discussion can be found in message
