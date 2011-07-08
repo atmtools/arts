@@ -77,29 +77,12 @@ executed many times over, for different points in the atmosphere.
 
 Typical contents of this agenda are as follows:
 
-\subsection{Absorption from lookup table}
-
-\begin{code}
-AgendaSet( abs_scalar_gas_agenda )
-{
-  Ignore(rte_doppler)
-  abs_scalar_gasExtractFromLookup
-}
-\end{code}
-
-This will extract absorption coefficients from a pre-calculated lookup
-table.  More information on the lookup table and how to generate it
-can be found in Section \ref{sec:absorption:lookup}.  See Section
-\ref{sec:absorption:doppler} for an explanation of the
-\builtindoc{rte\_doppler} variable, that is ignored here.
- 
 \subsection{On-the-fly absorption}
 
 \begin{code}
 AgendaSet( abs_scalar_gas_agenda )
 {
-  Ignore(rte_doppler)
-  abs_scalar_gasCalcLBL
+ abs_scalar_gasCalcLBL
 }
 \end{code}
 
@@ -110,28 +93,32 @@ be done before, outside the agenda.  More information on how to set up
 the absorption calculation can be found in Section
 \ref{sec:absorption:calculating}.  
 
-\subsection{On-the-fly absorption with Doppler shift}
-\label{sec:absorption:doppler}
+\subsection{Absorption from lookup table}
 
 \begin{code}
 AgendaSet( abs_scalar_gas_agenda )
 {
-  NumericScale( rte_doppler, rte_doppler, -1 )
-  VectorAddScalar( f_grid, f_grid, rte_doppler )
-  abs_scalar_gasCalcLBL
+ abs_scalar_gasExtractFromLookup
 }
 \end{code}
 
-This agenda variant has to be used for RT simulations with Doppler
-shift.  It makes use of the input variable \wsvindex{rte\_doppler},
-which is ignored in the first two examples.  Doppler calculations
-currently work only with on-the-fly absorption, not with lookup table
-absorption. (The latter would be easy to implement upon request.) Note
-that \builtindoc{rte\_doppler} and \wsvindex{f\_grid} here are local
-copies of their global counterparts (this is just how agendas
-work). They are manipulated here locally, but in the next call of the
-agenda they will be initialized again with their original global
-contents. 
+This will extract absorption coefficients from a pre-calculated lookup
+table.  More information on the lookup table and how to generate it
+can be found in Section \ref{sec:absorption:lookup}.  
+
+\subsection{Doppler shift}
+\label{sec:absorption:doppler}
+
+Both \wsmindex{abs\_scalar\_gasCalcLBL} and
+\wsmindex{abs\_scalar\_gasExtractFromLookup} take into account a
+possible Doppler shift. However, there is an important difference in
+the implementation: For \wsmindex{abs\_scalar\_gasCalcLBL} the shift
+is implemented by simply making the line-by-line calculation on a
+shifted frequency grid, so the treatment is exact. For
+\wsmindex{abs\_scalar\_gasExtractFromLookup}, on the other hand, the
+shift is implemented numerically, by shifting the frequency grid and
+then linearly interpolating the pre-calculated absorption data.
+
 
 \section{Calculating gas absorption}
 \label{sec:absorption:calculating}

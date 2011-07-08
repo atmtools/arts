@@ -1,3 +1,41 @@
+2011-07-08  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-16-8
+
+	* src/m_abs.cc (abs_scalar_gasCalcLBL): Implemented Doppler shift.
+	Is now handled internally, instead of on the agenda level.
+
+	* src/m_abs_lookup.cc (abs_scalar_gasExtractFromLookup):
+	Implemented Doppler shift. Also, removed input variable f_grid,
+	since it was only used for an error check. While the check itself
+	makes sense, I believe this method is not the right place for
+	it. Also, performance reasons anyway prevent a thorough check
+	here.
+	(f_gridFromGasAbsLookup): Adapted to modified GetFgrid function.
+	(p_gridFromGasAbsLookup): Adapted to modified GetPgrid function.
+	(calc_lookup_error): Adapted to new abs_scalar_gasCalcLBL.
+
+	* src/methods.cc (abs_scalar_gasCalcLBL): Added input variable
+	rte_doppler, updated documentation.
+	(abs_scalar_gasExtractFromLookup): Added input variables
+	rte_doppler and extpolfac, updated documentation.
+
+	* src/gas_abs_lookup.h (GetFgrid, GetPgrid): Reimplemented, now
+	returns const reference to internal data member, instead of making
+	a copy.
+
+	* src/gas_abs_lookup.cc (GetFgrid, GetPgrid): See above.
+
+	* includes/general.arts, tests/DOITBatch/TestDOITBatch.arts,
+	tests/MonteCarlo/TestMonteCarloGeneral.arts,
+	tests/DISORT/TestDISORT.arts, tests/HIRS/TestHIRS.arts,
+	tests/Abs/TestAbsDoppler.arts, tests/AMSU/TestAMSU_generic.arts,
+	tests/OdinSMR/TestOdinSMR.arts, tests/OdinSMR/TestOdinSMR_1D.arts:
+	Updated abs_scalar_gas_agenda.
+
+	* doc/uguide/absorption.tex (Gas absorption in radiative transfer
+	simulations): Updated stuff related to Doppler.
+
 2011-07-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-16-7

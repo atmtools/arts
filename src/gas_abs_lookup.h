@@ -67,9 +67,9 @@ public:
                 const Numeric&  T,
                 ConstVectorView abs_vmrs ) const;
 
-  void GetFgrid( Vector& f ) const;
+  const Vector& GetFgrid() const;
 
-  void GetPgrid( Vector& p ) const;
+  const Vector& GetPgrid() const;
 
   // IO functions must be friends:
   friend void xml_read_from_stream( istream& is_xml,

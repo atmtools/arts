@@ -45,7 +45,7 @@ AtmFieldsCalc
 AbsInputFromAtmFields
 
 # Create the frequency grid `f_grid':
-VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
+VectorNLinSpace( f_grid, 500, 50e9, 150e9 )
 
 # Negative f_index means calculate for all frequencies.
 IndexSet( f_index, -1 )
@@ -59,21 +59,31 @@ Copy(abs_field_nodoppler, abs_field)
 WriteXML( output_file_format, abs_field_nodoppler )
 
 
-# Now with Doppler!
+# Now with Doppler (still LBL)!
 
 # Create vector of Doppler shift values
 VectorCreate(doppler)
 
 # Make ramp with same dimension as p_grid
 nelemGet( nelem, p_grid )
-VectorNLinSpace( doppler, nelem, 0, 10e9 )
+VectorNLinSpace( doppler, nelem, 0, 1e9 )
 
-# Redefine absorption agenda to include Doppler:
+# Calculate field of absorption coefficients:
+abs_fieldCalc( abs_field, abs_scalar_gas_agenda, f_index, f_grid, 
+               atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
+               vmr_field, doppler )
+
+# Write out:
+Tensor5Create(abs_field_doppler)
+Copy(abs_field_doppler, abs_field)
+WriteXML( output_file_format, abs_field_doppler )
+
+
+# Now with Doppler and lookup table!
+abs_lookupSetup
+abs_lookupCreate
 AgendaSet( abs_scalar_gas_agenda ){
-  # Positive Doppler shift means negative shift of f_grid!
-  NumericScale( rte_doppler, rte_doppler, -1 )
-  VectorAddScalar( f_grid, f_grid, rte_doppler )
-  abs_scalar_gasCalcLBL
+  abs_scalar_gasExtractFromLookup
 }
 
 # Calculate field of absorption coefficients:
@@ -81,11 +91,12 @@ abs_fieldCalc( abs_field, abs_scalar_gas_agenda, f_index, f_grid,
                atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                vmr_field, doppler )
 
-
 # Write out:
-Tensor5Create(abs_field_doppler)
-Copy(abs_field_doppler, abs_field)
-WriteXML( output_file_format, abs_field_doppler )
+Tensor5Create(abs_field_doppler_lookup)
+Copy(abs_field_doppler_lookup, abs_field)
+WriteXML( output_file_format, abs_field_doppler_lookup )
+
+
 
 # Write out aux variables for plotting:
 WriteXML( output_file_format, p_grid )

@@ -1055,17 +1055,15 @@ void GasAbsLookup::Extract( Matrix&         sga,
 }
 
 
-void GasAbsLookup::GetFgrid( Vector& f ) const
+const Vector&  GasAbsLookup::GetFgrid() const
 {
-  f.resize( f_grid.nelem() );
-  f = f_grid;
+  return f_grid;
 }
 
 
-void GasAbsLookup::GetPgrid( Vector& p ) const
+const Vector&  GasAbsLookup::GetPgrid() const
 {
-  p.resize( p_grid.nelem() );
-  p = p_grid;
+  return p_grid;
 }
 
 

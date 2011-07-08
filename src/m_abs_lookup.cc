@@ -1946,47 +1946,13 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
                                       const Vector&       a_vmr_list,
-                                      const Vector&       f_grid)
+                                      const Numeric&      a_doppler,
+                                      const Numeric&      extpolfac)
 {
   // Check if the table has been adapted:
   if ( 1!=abs_lookup_is_adapted )
     throw runtime_error("Gas absorption lookup table must be adapted,\n"
                         "use method abs_lookupAdapt.");
-
-  // Check f_grid nicelyhood
-  //
-  // GH: enabled and then disabled this check again.
-  // In theory, this check should happen here, so that the user cannot
-  // trigger an assertion. However, this method is very deep inside and
-  // thus a check here is very expensive. Alternatives would be:
-  // - When abs_lookup_is_adapted is set to 1 (by abs_lookupAdapt), set
-  //   all the appropiate variables read-only. This is not currently
-  //   (2011-05-26) possible in ARTS. Ideally, only abs_lookupAdapt should
-  //   be able to set abs_lookup_is_adapted.
-  // - When any of the relevant variables is changed, set
-  //   abs_lookup_is_adapted to 0. That is probably not easy to implement
-  //
-  // Instead, check just the lengths of the vectors.
-
-  Vector gas_abs_f_grid;
-  abs_lookup.GetFgrid(gas_abs_f_grid);
-  if (f_grid.nelem() != gas_abs_f_grid.nelem())
-    {
-      ostringstream os;
-      os << "f_grid must equal the abs_lookup frequency grid. "
-         << "However, f_grid has "
-         << f_grid.nelem()
-         << " elements, whereas the abs_lookup frequency grid has "
-         << gas_abs_f_grid.nelem() << " elements. They cannot possibly be "
-         << " equal. Maybe you changed f_grid after creating or "
-         << " adapting the lookup table? In that case, call "
-         << " *abs_lookupAdapt* again.\n";
-      throw runtime_error(os.str());
-    }
-  /*
-  chk_if_equal("f_grid", "lookup table f_grid", f_grid, gas_abs_f_grid, 0);
-  */
-  
 
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument
@@ -1999,6 +1965,81 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                       a_pressure,
                       a_temperature,
                       a_vmr_list );
+
+  // Apply Doppler shift, if necessary.
+  if (0==a_doppler)
+    {
+      out3 << "  Doppler shift: None\n";
+    }
+  else
+    {
+      ostringstream os;
+      os << "  Doppler shift: " << a_doppler << " Hz\n";
+      out3 << os.str();
+
+      // Get original lookup table frequency grid.
+      const Vector& f_grid_original = abs_lookup.GetFgrid();      
+      const Index n_f_grid = f_grid_original.nelem();
+
+      // Apply f_index, if necessary.
+      Index f_start, f_extent;
+      if ( f_index < 0 )
+        {
+          // This means we have extracted for all frequencies.
+
+          f_start  = 0;
+          f_extent = n_f_grid;
+        }
+      else
+        {
+          // This means we have extracted only for one frequency.
+
+          // Check that f_index is inside f_grid: 
+          // (Only an assert here, since abs_lookup.Extract(), which
+          // we have called above, does exactly the same but gives a
+          // runtime error.)
+          assert ( f_index < n_f_grid );
+      
+          f_start  = f_index;
+          f_extent = 1;
+        }
+      const Range f_range(f_start,f_extent);
+      ConstVectorView f_grid_original_view = f_grid_original[f_range];
+
+      // Get shifted frequency grid.
+      Vector f_shifted = f_grid_original_view;
+      f_shifted -= a_doppler;
+
+      // Check that the shifted grid is within extpolfac of the original grid.
+      chk_interpolation_grids("Absorption from original frequency grid "
+                              "to Doppler-shifted frequency grid",
+                              f_grid_original_view,
+                              f_shifted,
+                              1,
+                              extpolfac );
+    
+      // Grid positions.
+      ArrayOfGridPos gp(f_shifted.nelem());
+      gridpos(gp,f_grid_original_view,f_shifted,extpolfac);
+
+      // Weights.
+      Matrix itw(gp.nelem(),2);
+      interpweights(itw,gp);
+
+      // Do interpolation.
+      Vector abs_interpolated(abs_scalar_gas.nrows()); 
+      // The vector temporarily holds interpolated absorption for each gas species.
+      for (Index i=0; i<abs_scalar_gas.ncols(); ++i)
+        {
+          interp(abs_interpolated, 
+                 itw, 
+                 abs_scalar_gas(Range(joker),i), 
+                 gp);
+          // Copy interpolated absorption to abs_scalar_gas.
+          abs_scalar_gas(Range(joker),i) = abs_interpolated;
+        }
+
+    }
 }
 
 
@@ -2213,7 +2254,9 @@ void f_gridFromGasAbsLookup(
              Vector&         f_grid,
        const GasAbsLookup&   abs_lookup )
 {
-  abs_lookup.GetFgrid( f_grid );
+  const Vector& lookup_f_grid = abs_lookup.GetFgrid();
+  f_grid.resize(lookup_f_grid.nelem());
+  f_grid = lookup_f_grid;
 }
 
 
@@ -2222,7 +2265,9 @@ void p_gridFromGasAbsLookup(
              Vector&         p_grid,
        const GasAbsLookup&   abs_lookup )
 {
-  abs_lookup.GetPgrid( p_grid );
+  const Vector& lookup_p_grid = abs_lookup.GetPgrid();
+  p_grid.resize(lookup_p_grid.nelem());
+  p_grid = lookup_p_grid;
 }
 
 
@@ -2271,7 +2316,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // vectors below) outside, but there was no significant speed
   // advantage. (I guess the LBL calculation is expensive enough to
   // make the extra time of allocation here insignificant.)
-  Matrix sga_tab;	// Absorption, dimension [n_f_grid,n_species]:
+  Matrix sga_tab;       // Absorption, dimension [n_f_grid,n_species]:
   Matrix sga_lbl;
 
   // Do lookup table first:
@@ -2329,7 +2374,10 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                          -1,
                          local_p,
                          local_t,
-                         local_vmrs );
+                         local_vmrs,
+                         0);
+  // Last argument above is the Doppler shift (usually
+  // rte_doppler). Should be zero in this case.
 
   // Sum up for all species, to get total absorption:          
   for (Index i=0; i<n_f; ++i)
@@ -2460,7 +2508,7 @@ void abs_lookupTestAccuracy(// WS Input:
                             abs_p_interp_order,  
                             abs_t_interp_order,  
                             abs_nls_interp_order,
-                            true, 			// ignore errors
+                            true,                       // ignore errors
                             // Parameters for LBL:
                             abs_n2,
                             abs_lines_per_species,
@@ -2535,7 +2583,7 @@ void abs_lookupTestAccuracy(// WS Input:
                             abs_p_interp_order,  
                             abs_t_interp_order,  
                             abs_nls_interp_order,
-                            true, 			// ignore errors
+                            true,                       // ignore errors
                             // Parameters for LBL:
                             abs_n2,
                             abs_lines_per_species,
@@ -2619,7 +2667,7 @@ void abs_lookupTestAccuracy(// WS Input:
                           abs_p_interp_order,  
                           abs_t_interp_order,  
                           abs_nls_interp_order,
-                          true, 			// ignore errors
+                          true,                         // ignore errors
                           // Parameters for LBL:
                           abs_n2,
                           abs_lines_per_species,
@@ -2684,7 +2732,7 @@ void abs_lookupTestAccuracy(// WS Input:
                           abs_p_interp_order,  
                           abs_t_interp_order,  
                           abs_nls_interp_order,
-                          true, 			// ignore errors
+                          true,                         // ignore errors
                           // Parameters for LBL:
                           abs_n2,
                           abs_lines_per_species,
@@ -2893,7 +2941,7 @@ void abs_lookupTestAccMC(// WS Input:
                                                     abs_p_interp_order,  
                                                     abs_t_interp_order,  
                                                     abs_nls_interp_order,
-                                                    true, 			// ignore errors
+                                                    true,                       // ignore errors
                                                     // Parameters for LBL:
                                                     abs_n2,
                                                     abs_lines_per_species,
