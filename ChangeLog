@@ -1,18 +1,24 @@
 2011-07-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-16-7
+
+	* doc/uguide/wfuns.tex: Continued writing. Far from complete.
+
+2011-07-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-16-6
 
 	* doc/uguide/references.bib: Added Eriksson 2000, and final data
-	for ARTS-2 article. 
+	for ARTS-2 article.
 
 	* doc/uguide/CMakeLists.txt: Included wfuns.tex. Removed some
 	arts-1 section files that probably never will be activated.
 
 	* doc/uguide/arts_user.tex: Included wfuns.tex.
 
-	* doc/uguide/wfuns.tex: Started. 
+	* doc/uguide/wfuns.tex: Started.
 
-	* src/workspace.cc: Small change for y_unit. 
+	* src/workspace.cc: Small change for y_unit.
 
 	* doc/uguide/rte.tex: Spell checking. Extended. Added information
 	around emission_agenda, iy_space_Agenda and units.

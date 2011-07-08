@@ -13,33 +13,33 @@ functions'' can be provided by the forward model \citep[see
 e.g.][]{eriksson:analy:00}. A retrieval characterisation following
 \citet{rodgers:90} raises the same demand. A weighting function is defined as 
 \begin{equation}
-  \frac{\partial \MsrVct}{\partial x_i}
+  \frac{\partial \MsrVct}{\partial x_p}
   \label{eq:wfuns:ki}
 \end{equation}
-where \MsrVct\ is the vector of measurement data and $x_i$ is one forward model
-(scalar) variable. 
+where \MsrVct\ is the vector of measurement data and $x_p$ is one forward model
+(scalar) variable. See further Sec.~\ref{T-sec:formalism:wfuns} of \theory,
+which nomenclature is also used here.
 
-A few words about the nomenclature, a weighting function forms a column of the
-complete weighting function matrix, \aWfnMtr (see \theory,
-Sec.~\ref{T-sec:formalism:wfuns}). A probably more commonly used name for
-\aWfnMtr\ is the Jacobian, and in the documentation of ARTS you find both
-terms. Also the term ``the Jacobians'' is used, which shall be interpreted as
-``the weighting functions''. These names refer normally to the partial
-derivates with respect to the variables to be retrieved, the state vector
+A weighting function forms a column of the complete weighting function matrix,
+\aWfnMtr{\SttVct}. A probably more common name for \aWfnMtr{\SttVct}\ is the
+Jacobian, and in the documentation of ARTS you find both terms. Also the term
+``the Jacobians'' is used, which shall be interpreted as ``the weighting
+functions''. These names refer normally to the partial derivates with respect
+to the variables to be retrieved (i.e.\ \aWfnMtr{\SttVct}), the state vector
 \SttVct. However, in the context of retrieval characterisation, the same matrix
 for the remaining model paramaters is of equally high interest, denoted as
-\aWfnMtr{\FrwMdlVct}\ in Sec.~\ref{T-sec:formalism:wfuns} of \theory. In the
-same manner, the terms inversion and retrieval are used interchangeably.
+\aWfnMtr{\FrwMdlVct}. In the same manner, the terms inversion and retrieval are
+used interchangeably. ``Weighting function'' is below shortened as WF.
 
 The main task of the user is to select which quantities that shall be
 retrieved, and to define the associated retrieval grids. These aspects must be
 considered for successful inversions, but are out of scope for this document.
 Beside for the most simple retrievals, it is further important to understand
-how the different weighting functions are calculated. A practical point is the
+how the different WFs are calculated. A practical point is the
 calculation speed, primarily determined if perturbations or analytical
 expressions are used (Sec.~\ref{sec:wfuns:overw}). The derivation of the
-weighting functions involves also some approximations (due to theoretical or
-practical considerations). Such approximations can (and must) be accepted, but
+WFs involves also some approximations (due to theoretical or
+practical considerations). Such approximations can be accepted, but
 will result in a slower convergence (the inversion will require more
 iterations). Due to these later aspects, and to meet the needs of more
 experienced users, this section is relatively detailed and contains a (high?)
@@ -50,13 +50,108 @@ number of equations.
 \section{Overwiev}
 %==============================================================================
 \label{sec:wfuns:overw}
+%
+There are two main approaches for calculation the WFs, by analytical
+expressions and by perturbations. We start with the conceptually simplest one,
+but also the more inefficient approach.
 
-There are two main approaches for calculation the weighting functions, by
-analytical expressions and by perturbations. We start with the conceptually
-simplest one, but also the more inefficient aprroach.
 
 
 \subsection{Perturbations}
 %==============================================================================
 \label{sec:wfuns:pert}
+%
+The most straightforward method to determine the WFs is by perturbing
+one parameter at a time. For example, the WF for the state variable
+$p$ can always be calculated as 
+\begin{equation}
+  \aWfnMtr{\SttVct}^p = \frac{\FrwMdl(\SttVct+\Delta x\VctStl{e}^p,\FrwMdlVct)-
+                              \FrwMdl(\SttVct,\FrwMdlVct)}{\Delta x}
+ \label{eq:wfuns:perturb}
+\end{equation}
+where $(\SttVct,\FrwMdlVct)$ is the linearization state, $\VctStl{e}^p$ is a
+vector of zeros except for the component $p$ that is unity, and
+$\Delta\SttVct^p$ is a small disturbance (but sufficiently large to avoid
+numerical instabilities).
 
+However, it is normally not needed to make a recalculation using the total
+forward model as the variables are in general either part of the atmospheric or
+the sensor state, but not both. In addition, in many cases there it is possibly
+to find short-cuts. For example, the perturbed state can be approximated by an
+interpolation of existing data (such as for a perturbed zenith angle). Such
+short-cuts are discussed seperately for each retrieval quantity.
+
+
+\subsection{Analytical expressions}
+%==============================================================================
+\label{sec:wfuns:anal}
+%
+For most atmospheric variables, such as species abundance, it is possible to
+derive an analytical expression for the WFs. This is advantageous because it
+results in faster and more accurate calculations. Such expressions are derived
+below. Some of the terms involved are calculated as a perturbation. This is
+partly a consequence of the flexibility of ARTS. The high-level radiative
+transfer methods (e.g.\ \builtindoc{iyEmissionStandardClearsky}) do not know
+how the more level methods are defining the quantities, and a fixed analytical
+expression can not be used (see e.g.\ Sec.~FIXME). So, in practice the
+calculations are ``semi-analytical''.
+
+To understand the analytical expressions, it is important to remember that ARTS
+covers the sensor by a response matrix:
+\begin{equation}
+  \MsrVct = \SnsMtr\MpiVct.
+\end{equation}
+This equation covers a single measurement block (cf.\
+Eq.~\ref{eq:fm_defs:measseq}).
+
+
+\subsection{Workspace variables and methods}
+%==============================================================================
+\label{sec:wfuns:wsm}
+%
+As a workspace variable, the WF matrix is denoted as \wsvindex{jacobian}.
+Auxilary information is provided by \wsvindex{jacobian\_quantities} and
+\wsvindex{jacobian\_indices}. The actual calculations are made as part of
+\builtindoc{yCalc}. 
+
+The retrieval quantities are defined seperately, before calling
+\builtindoc{yCalc}. This process is started by calling \wsmindex{jacobianInit}.
+The retrieval quantities are then introduced through dedicated by specific
+workspace methods, named as ``jacobianAddSomething''. For atmospheric
+temperature the method is \builtindoc{jacobianAddTemperature}. See
+Sec.~\ref{sec:wfuns:aval} for other retrieval quantities. The order in
+which these ``add methods'' are called does not matter. 
+
+Finalise the definition of retrieval quantities by calling
+\wsmindex{jacobianClose}. To disable the calculation of WFs, skip all above,
+and just use \wsmindex{jacobianOff}.
+
+The input to the ``add methods'' differs. In some cases you can select between
+analytical and perturbation. For all perturbation calculations you must specify
+the size of the perturbation. For atmospheric gases you can use different
+units. For atmospheroic fields, and some other quantities, you must define the
+retrieval grid(s) to use.
+
+
+
+ 
+\section{Basis functions}
+%==============================================================================
+\label{sec:wfuns:basis}
+
+x
+
+
+
+\section{Avaliable weighting functions}
+%==============================================================================
+\label{sec:wfuns:aval}
+
+\subsection{Absorption species}
+%==============================================================================
+\label{sec:wfuns:absspecies}
+
+\subsubsection{Analytical}
+
+
+\subsubsection{Perturbation}
