@@ -1,5 +1,18 @@
 2011-07-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-16-10
+
+	* doc/uguide/Figs/wfuns: New folder. ASdded some figures from AUG-1. 
+
+	* doc/uguide/references.bib: Added Read et al 2006.
+
+	* doc/uguide/wfuns.tex: Continued writing.
+
+	* doc/uguide/atmosphere.tex: Added two senstences about basis
+	functions.
+
+2011-07-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-16-9
 
 	* tests: Removed 'Ignore(rte_doppler)' in 6 files. Now not needed. 

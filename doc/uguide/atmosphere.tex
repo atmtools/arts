@@ -236,27 +236,29 @@ dimensionality, then the longitude grid (for 1D and 2D) and the latitude grid
 (for 1D) can normally be set to be empty, but some methods require a scalar
 latitude and longitude. 
 
-The basic atmospheric quantities are represented by their values at
-each crossing of the involved grids (indicated by thick dots in
-Figures \ref{fig:fm_defs:1d}--\ref{fig:fm_defs:3dcross}), or for 1D
-at each pressure level (thick dots in Figure \ref{fig:fm_defs:1d}).
-This representation is denoted as the field\index{atmospheric field}
-of the quantity. The field must, at least, be specified for the
-geometric altitude of the pressure levels (\wsvindex{z\_field}), the
-temperature (\wsvindex{t\_field}) and considered atmospheric species
-(\builtindoc{vmr\_field}).  The fields are assumed to be piece-wise
-linear functions vertically (with pressure altitude as the vertical
-coordinate, Section \ref{sec:fm_defs:altitudes}), and along the
-latitude and longitude edges of 2D and 3D grid boxes. For points
-inside 2D and 3D grid boxes, multidimensional linear interpolation is
-applied (that is, bi-linear interpolation for 2D etc.). Note especially
-that this is also valid for the field of geometrical altitudes
-(\builtindoc{z\_field}). Fields are rank-3 tensors. For example, the
-temperature field is $T=T(\Prs,\Lat,\Lon)$. That means each field is
-like a book, with one page for each pressure grid point, one row for
-each latitude grid point, and one column for each longitude grid
-point. In the 1-D case there is just one row and one column on each
-page.
+The basic atmospheric quantities are represented by their values at each
+crossing of the involved grids (indicated by thick dots in Figures
+\ref{fig:fm_defs:1d}--\ref{fig:fm_defs:3dcross}), or for 1D at each pressure
+level (thick dots in Figure \ref{fig:fm_defs:1d}). This representation is
+denoted as the field\index{atmospheric field} of the quantity. The field must,
+at least, be specified for the geometric altitude of the pressure levels
+(\wsvindex{z\_field}), the temperature (\wsvindex{t\_field}) and considered
+atmospheric species (\builtindoc{vmr\_field}). The fields are assumed to be
+piece-wise linear functions vertically (with pressure altitude as the vertical
+coordinate, Section \ref{sec:fm_defs:altitudes}), and along the latitude and
+longitude edges of 2D and 3D grid boxes. For points inside 2D and 3D grid
+boxes, multidimensional linear interpolation is applied (that is, bi-linear
+interpolation for 2D etc.). Note especially that this is also valid for the
+field of geometrical altitudes (\builtindoc{z\_field}). Fields are rank-3
+tensors. For example, the temperature field is $T=T(\Prs,\Lat,\Lon)$. That
+means each field is like a book, with one page for each pressure grid point,
+one row for each latitude grid point, and one column for each longitude grid
+point. In the 1D case there is just one row and one column on each page. The
+representation of atmospheric fields, and other quantities, is discussed
+further in Sec.~\ref{sec:wfuns:basis}, where the concept of basis
+functions\index{basis function} is introduced. In short, the basis functions
+give the mapping from the set of discrete values to the continous
+representation of the quantity.
 
 
 

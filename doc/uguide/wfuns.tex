@@ -17,41 +17,40 @@ e.g.][]{eriksson:analy:00}. A retrieval characterisation following
   \label{eq:wfuns:ki}
 \end{equation}
 where \MsrVct\ is the vector of measurement data and $x_p$ is one forward model
-(scalar) variable. See further Sec.~\ref{T-sec:formalism:wfuns} of \theory,
-which nomenclature is also used here.
+(scalar) variable. See further Sec.~\ref{T-sec:formalism:wfuns} of \theory.
+The nomenclature of that section is also used here.
 
 A weighting function forms a column of the complete weighting function matrix,
 \aWfnMtr{\SttVct}. A probably more common name for \aWfnMtr{\SttVct}\ is the
 Jacobian, and in the documentation of ARTS you find both terms. Also the term
 ``the Jacobians'' is used, which shall be interpreted as ``the weighting
-functions''. These names refer normally to the partial derivates with respect
-to the variables to be retrieved (i.e.\ \aWfnMtr{\SttVct}), the state vector
-\SttVct. However, in the context of retrieval characterisation, the same matrix
-for the remaining model paramaters is of equally high interest, denoted as
-\aWfnMtr{\FrwMdlVct}. In the same manner, the terms inversion and retrieval are
-used interchangeably. ``Weighting function'' is below shortened as WF.
+functions''. These names refer normally to \aWfnMtr{\SttVct}, the partial
+derivatives with respect to the variables to be retrieved, forming the state
+vector \SttVct. However, in the context of retrieval characterisation, the same
+matrix for the remaining model parameters is of equally high interest, denoted
+as \aWfnMtr{\FrwMdlVct}. In the same manner, the terms inversion and retrieval
+are used interchangeably. ``Weighting function'' is below shortened as WF.
 
 The main task of the user is to select which quantities that shall be
 retrieved, and to define the associated retrieval grids. These aspects must be
 considered for successful inversions, but are out of scope for this document.
 Beside for the most simple retrievals, it is further important to understand
-how the different WFs are calculated. A practical point is the
-calculation speed, primarily determined if perturbations or analytical
-expressions are used (Sec.~\ref{sec:wfuns:overw}). The derivation of the
-WFs involves also some approximations (due to theoretical or
-practical considerations). Such approximations can be accepted, but
-will result in a slower convergence (the inversion will require more
-iterations). Due to these later aspects, and to meet the needs of more
-experienced users, this section is relatively detailed and contains a (high?)
-number of equations.
+how the different WFs are calculated. A practical point is the calculation
+speed, primarily determined if perturbations or analytical expressions are used
+(Sec.~\ref{sec:wfuns:intro}). The derivation of the WFs involves some
+approximations due to theoretical or practical considerations. Such
+approximations can be accepted, if of low or moderate size, but will result in
+a slower convergence (the inversion will require more iterations). Due to these
+later aspects, and to meet the needs of more experienced users, this section is
+relatively detailed and contains a (high?) number of equations.
 
 
 
-\section{Overwiev}
+\section{Introduction}
 %==============================================================================
-\label{sec:wfuns:overw}
+\label{sec:wfuns:intro}
 %
-There are two main approaches for calculation the WFs, by analytical
+There are two main approaches for calculating the WFs, by analytical
 expressions and by perturbations. We start with the conceptually simplest one,
 but also the more inefficient approach.
 
@@ -71,15 +70,15 @@ $p$ can always be calculated as
 \end{equation}
 where $(\SttVct,\FrwMdlVct)$ is the linearization state, $\VctStl{e}^p$ is a
 vector of zeros except for the component $p$ that is unity, and
-$\Delta\SttVct^p$ is a small disturbance (but sufficiently large to avoid
+$\Delta x$ is a small disturbance (but sufficiently large to avoid
 numerical instabilities).
 
 However, it is normally not needed to make a recalculation using the total
-forward model as the variables are in general either part of the atmospheric or
-the sensor state, but not both. In addition, in many cases there it is possibly
-to find short-cuts. For example, the perturbed state can be approximated by an
+forward model as the variables are either part of the atmospheric or the sensor
+state, but not both. In addition, in many cases it is possibly to find
+short-cuts. For example, the perturbed state can be approximated by an
 interpolation of existing data (such as for a perturbed zenith angle). Such
-short-cuts are discussed seperately for each retrieval quantity.
+short-cuts are discussed separately for each retrieval quantity.
 
 
 \subsection{Analytical expressions}
@@ -92,7 +91,7 @@ results in faster and more accurate calculations. Such expressions are derived
 below. Some of the terms involved are calculated as a perturbation. This is
 partly a consequence of the flexibility of ARTS. The high-level radiative
 transfer methods (e.g.\ \builtindoc{iyEmissionStandardClearsky}) do not know
-how the more level methods are defining the quantities, and a fixed analytical
+how the low-level methods are defining all quantities, and a fixed analytical
 expression can not be used (see e.g.\ Sec.~FIXME). So, in practice the
 calculations are ``semi-analytical''.
 
@@ -110,17 +109,17 @@ Eq.~\ref{eq:fm_defs:measseq}).
 \label{sec:wfuns:wsm}
 %
 As a workspace variable, the WF matrix is denoted as \wsvindex{jacobian}.
-Auxilary information is provided by \wsvindex{jacobian\_quantities} and
+Auxiliary information is provided by \wsvindex{jacobian\_quantities} and
 \wsvindex{jacobian\_indices}. The actual calculations are made as part of
 \builtindoc{yCalc}. 
 
-The retrieval quantities are defined seperately, before calling
+The retrieval quantities are defined separately, before calling
 \builtindoc{yCalc}. This process is started by calling \wsmindex{jacobianInit}.
 The retrieval quantities are then introduced through dedicated by specific
-workspace methods, named as ``jacobianAddSomething''. For atmospheric
-temperature the method is \builtindoc{jacobianAddTemperature}. See
-Sec.~\ref{sec:wfuns:aval} for other retrieval quantities. The order in
-which these ``add methods'' are called does not matter. 
+workspace methods, named as jacobianAdd{\it Something}. For example, for
+atmospheric temperature the method is \builtindoc{jacobianAddTemperature}. See
+Sec.~\ref{sec:wfuns:aval} for other retrieval quantities. The order in which
+these ``add methods'' is called does not matter.
 
 Finalise the definition of retrieval quantities by calling
 \wsmindex{jacobianClose}. To disable the calculation of WFs, skip all above,
@@ -129,7 +128,7 @@ and just use \wsmindex{jacobianOff}.
 The input to the ``add methods'' differs. In some cases you can select between
 analytical and perturbation. For all perturbation calculations you must specify
 the size of the perturbation. For atmospheric gases you can use different
-units. For atmospheroic fields, and some other quantities, you must define the
+units. For atmospheric fields, and some other quantities, you must define the
 retrieval grid(s) to use.
 
 
@@ -139,13 +138,94 @@ retrieval grid(s) to use.
 %==============================================================================
 \label{sec:wfuns:basis}
 
-x
+A forward model describes each quantity with one or several variables. This is
+unproblematic for quantities that are of discrete nature (including, and
+primarily, scalar variables). However, for atmospheric fields and other
+continuous model quantities, the discrete representation inside the forward
+model require consideration. To avoid inconsistencies between model input and
+output it is important that the mapping from the discrete variables to the
+``continuous view'' of the quantity is well defined, and applied consistently
+through the forward model . This mapping is given by the basis
+functions\index{basis function}. Similar arguments and nomenclature are found
+in \citet{read:thecl:06}.
+
+The basis functions are discussed explicitly in a few places in this user
+guide, but it shall be noted that all interpolations imply an underlying set
+of basis functions. On the other hand, an understanding of both the derivation
+and the obtained WFs require direct consideration of the basis functions. ARTS
+operates with two types of basis functions.
 
 
 
-\section{Avaliable weighting functions}
+
+\subsection{Basis functions for piece-wise linear quantities}
+\label{sec:wfuns:basis1}
+%
+To treat an one-dimensional quantity to be piece-wise linear, or to say that a
+linear interpolation shall be applied, are identical definitions. The basis
+functions matching this definition have triangular shape, here denoted as
+``tenth functions''. Such functions are exemplified in
+Fig.~\ref{fig:wfuns:zbasis}, see also \citet{buehler:artst:05}. 
+
+\begin{figure}[t]
+ \begin{center}
+  \includegraphics*[width=0.7\hsize]{fig_absbasis_z}
+  \caption{Examples on 1d basis functions for a vertical grid with a 1 km
+           spacing: \lsolid~30~km, \ldashed~31~km and \ldashdot~32~km.}
+  \label{fig:wfuns:zbasis}  
+ \end{center}
+\end{figure}
+
+In most cases, the quantity is considered undefined outside the end points of
+the grid. The basis function for a grid end point is then just ``one side of
+the tenth''. The exception to this rule is retrieval grids corresponding to
+basis functions of this type. To avoid that retrieval grids must cover the
+complete atmosphere, the end point values of are assumed to be valid to the end
+of the atmosphere. That is, the basis function for an end point value is 1, all
+the way between the atmosphere and grid end points.
+
+The basis functions are defined likewise for higher dimensions, but the
+tenth functions are then 2D or 3D.
+
+
+
+
+\subsection{Polynomial basis functions}
+\label{sec:wfuns:basis2}
+%
+Some retrieval quantities are expressed using a polynomial basis. Zenith angle
+pointing off-set is one such quantity. The off-set is then treated to have a
+polynomial variation as a function of time. If the offset is assumed to be
+constant in time, a zero order polynomial shall be selected. If there is also a
+linear drift with time, use a first order polynomial, etc.
+
+For these basis functions, the explanatory variable (time in the example above)
+is normalised to cover the range [-1,1], here denoted as $z$, and the
+continuous representation ($f$) of the variable of concern can be written as
+\begin{equation}
+  f(z) = x_0 + x_1(z-b_1) + x_2(z^2-b_2) + x_3(z^3-b_3) + x_4(z^3-b_4) + \dots  
+\end{equation}
+where $x_0, x_1, \dots$ are the coefficients to be retrieved (elements of
+\SttVct). The interpretation of a retrieval is simplified if the average of $f$
+equals $x_0$, and the scalars $b_1, b_2, \dots$ are selected, schematically, as
+\begin{equation}
+  0 = \int_{-1}^1 \!\left(z^n-b_n\right) \, \DiffD z, \quad n>0.
+\end{equation}
+According to this expression, $b_n$ is zero for odd $n$. However, $z$ is in
+practise a discrete variable ($z_i$, not necessarily symmetric around 0), and
+$b_n$ is taken as the average of $z_i^n$: all $b_n$ can be non-zero. The
+normalisation of $z$ is not only made for interpretation reasons, it can be
+required for pure numerical reasons, such as when $z$ represent frequency (in
+Hz).
+
+
+
+\section{Available weighting functions}
 %==============================================================================
 \label{sec:wfuns:aval}
+
+Only clear-sky.
+
 
 \subsection{Absorption species}
 %==============================================================================
@@ -153,5 +233,169 @@ x
 
 \subsubsection{Analytical}
 
+The final radiance obtained through Eq.~\ref{eq:fm_defs:rte_step} can be
+expressed as
+\begin{equation}
+  \label{eq:I4J}
+  I = I'+ e^{-\Oth'}\left[ \bar{B}_i(1-e^{-\aOth{i}})+I_ie^{-\aOth{i}}\right]
+\end{equation}
+where $\Oth'$ is the optical thickness between the sensor and point $i+1$
+and $I'$ is all emission generated along the same distance.
+
+As example, let $x$ be one element of $\SttVct$, representing the amount of
+some gas at some point in the atmosphere. The contribution to the weighting
+function for $x$, originating from the radiative transfer step covered by
+Eq.~\ref{eq:CSRT:I}, is calculated by applying the chain rule:
+\begin{equation}
+  \label{eq:chainrule}
+  \frac{\PartD \MsrVct}{\PartD x} =  
+  \frac{\PartD \MsrVct}{\PartD \MpiVct}
+  \frac{\PartD \MpiVct}{\PartD I} \frac{\PartD I}{\PartD \aOth{i}}
+  \left[\frac{\PartD \aOth{i}}{\PartD k_i}\frac{\PartD k_i}{\PartD x_i} 
+        \frac{\PartD x_i}{\PartD x} +
+        \frac{\PartD \aOth{i}}{\PartD k_{i+1}}\frac{\PartD k_{i+1}}{\PartD x_{i+1}}
+        \frac{\PartD x_{i+1}}{\PartD x} \right],
+\end{equation}
+where $x_i$ and $x_{i+1}$ is the amount of the gas at point $i$ and $i+1$,
+respectively. Some of these terms can be expressed explicitly:
+\begin{eqnarray}
+  \frac{\PartD \MsrVct}{\PartD \MpiVct} &=& \SnsMtr, \\
+  \frac{\PartD I}{\PartD \aOth{i}} 
+      &=& e^{-\Oth'}\left( \bar{B}_i-I_i\right)e^{-\aOth{i}}, \\
+  \frac{\PartD \aOth{i}}{\PartD k_i}=\frac{\PartD \aOth{i}}{\PartD k_{i+1}} 
+      &=& \Delta s_i/2, \\
+  \frac{\PartD k_i}{\PartD x_i}
+      &=& \sigma_i, \\
+\end{eqnarray}
+where $\sigma_i$ is the absorption cross-section for the species (at point $i$
+and in a unit matching the unit of $x$). The term $\PartD \MpiVct/\PartD I$
+gives the position in \MpiVct\ where the $I$ of concern is stored.
+
+The term $\PartD x_i/\PartD x$ appears due to the fact that $x_i$ and $x$ are
+placed at different positions, and the representation of the atmospheric fields
+must be considered here. The fields are treated to vary linearly between grid
+points, giving triangular shaped `basis functions' for 1D, pyramid shaped ones
+for 2D etc. In practise, the term is calculated as the value of the basis
+function for $x$ at the location of $x_i$, see \cite{buehler:artst:05}. This is
+a slight approximation with respect to the goal of fully incorporating the
+piece-wise linear representation in the weighting functions
+\cite{buehler:artst:05}. A low value of $\Delta s_i$ decreases the degree of
+approximation.
+
+It can be noted that $\PartD x_i/\PartD x$ is normally non-zero for more than
+one element of \SttVct. The exception is if the positions of $x_i$ and $x$ are
+identical. Reversely, the weighting function for element $x$ can have
+contributions from several propagation path points ($x_i$), as well as from
+several radiance spectra.
+
+In practise, all Stokes components are treated in parallel, to simply
+incorporate surface scattering (and in the future possibly also cloud
+scattering). Transmission $e^{-\Oth'}$ must then be expressed as a matrix,
+$\MtrStl{T}'$. For scattered down-welling radiation ($\StoVec^d_i$) the
+effective transmission matrix is
+\begin{equation}
+  \MtrStl{T}' = \MtrStl{T}_2\MtrStl{R}_i\MtrStl{T}_1,
+\end{equation}
+where $\MtrStl{T}_2$ is the transmission between the surface and the sensor,
+$\MtrStl{R}_i$ is defined in Eq.~\ref{eq:surface} and $\MtrStl{T}_1$ is the
+transmission between the point $i+1$ and the surface.
+
+The case of gas species retrieval is used above as example. This chain rule
+approach (Eq. \ref{eq:chainrule}) can be used for any variable affecting
+atmospheric absorption and emission, or surface reflectance and emission.
+Expressions for scalar radiative transfer are found in \cite{buehler:artst:05}.
+
+Some terms are best calculated in a numerical manner. For atmospheric
+temperature the terms $\PartD k_i/\PartD T$ and $\PartD B/\PartD T$ are found.
+The first term can in principle be expressed analytically, but this would
+require hard links to the absorption module. Such links are avoided in ARTS
+and the term is instead calculated with a second call of
+\texttt{abs\_scalar\_gas\_agenda} (Sec.~\ref{sec:agendas}), with a slightly
+perturbed temperature. The same applies to the second term, even though an
+analytical derivation here is straightforward \cite{eriksson:studi:02}. This, like the emission source term, is handled by an agenda, and the user can choose to set $B=T$ (can be a valid approximation for low frequency
+observations), instead of $B$ being the Planck function.
+
+A constraint for the analytical expressions above is that the effect of the
+variable must only be local. Atmospheric temperature is again the most important
+example, that has non-local impacts if hydrostatic equilibrium applies and if
+refraction affects the propagation path significantly.
+
+
+\subsubsection{Perturbation}
+
+
+
+
+\subsection{Atmospheric temperatures}
+%==============================================================================
+\label{sec:wfuns:atmtemp}
+
+\subsubsection{Analytical}
+
+A changed temperature has several non-local effects, originating from
+refraction and hydrostatic equilibrium. These non-local effects make the
+calculations more difficult for, at least, limb sounding. For example, even
+changes at altitudes below the tangent point will have an influence as the
+geometrical altitudes of all higher layers is changed through hydrostatic
+equilibrium. However, the non-local effects can be neglected for observations
+around zenith and nadir and the temperature weighting function can
+then be written as:
+\begin{equation}
+  \frac{\PartD \MsrVct}{\PartD T} =  
+  \frac{\PartD \MsrVct}{\PartD \MpiVct} \frac{\PartD \MpiVct}{\PartD I} 
+  \left[
+  \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD T} + 
+  \frac{\PartD I}{\PartD \bar{B}_i}\frac{\PartD \bar{B}_i}{\PartD T}
+  \right].
+\end{equation}
+The partial derivative of $\aOth{i}$ must now also consider the term $\Delta
+s_i$ due to the constrain of hydrostatic equilibrium:
+\begin{equation}
+  \frac{\PartD \aOth{i}}{\PartD T} =
+  \frac{\PartD \aOth{i}}{\PartD k_i}\frac{\PartD k_i}{\PartD T_i} 
+  \frac{\PartD T_i}{\PartD T} +
+  \frac{\PartD \aOth{i}}{\PartD k_{i+1}}\frac{\PartD k_{i+1}}{\PartD T_{i+1}}
+  \frac{\PartD T_{i+1}}{\PartD T} +
+  \frac{\PartD \aOth{i}}{\PartD \Delta s_i}
+  \left[
+    \frac{\PartD \Delta s_i}{\PartD T_i} \frac{\PartD T_i}{\PartD T} +
+    \frac{\PartD \Delta s_i}{\PartD T_{i+1}} \frac{\PartD T_{i+1}}{\PartD T} +
+  \right].
+\end{equation}
+The temperature derivative of the absorption ($\PartD k_i/\PartD T_i$) must be
+calculated numercially. This derivative depends on if gas species
+concentrations are given as volume mixing ratio (VMR) or number density. As
+ARTS uses VMR, the term above will be calculated with the constrain of fixed
+VMR. A consequence of this is that it is not possible to mix retrieval of
+temperature and number densities.
+
+Eq.~\ref{eq:taustep} gives
+\begin{equation}
+  \frac{\PartD \aOth{i}}{\PartD \Delta s_i} = \frac{k_i+k_{i+1}}{2}. 
+\end{equation}
+The path length ($\Delta s_i$), for a given pressure, is linearly proportional
+to the temperature, and if $\bar{T}$ is the average temperature along the path
+step:
+\begin{equation}
+  \frac{\PartD \Delta s_i}{\PartD \bar{T}} =   \frac{\Delta s_i}{\bar{T}} 
+\end{equation}
+Following the other variables, we set $\bar{T}=(T_i+T_{i+1})/2$, and
+\begin{equation}
+  \frac{\PartD \Delta s_i}{\PartD T_i} = \frac{\Delta s_i}{2T_i}.
+\end{equation}
+The terms involving $\bar{B}_i$ are
+\begin{eqnarray}
+   \frac{\PartD I}{\PartD \bar{B}_i} &=&
+   e^{-\Oth'}\left(1-e^{-\aOth{i}}\right), \\
+   \frac{\PartD \bar{B}_i}{\PartD T_i} &=& \frac{1}{2}
+   \frac{\PartD B(T)}{\PartD T}. 
+\end{eqnarray}
+The term $\PartD B(T)/\PartD T$ can be expressed analytically, but as $B$ is
+provided by an agenda this term must anyhow be determined in a pure numerical
+manner; it is likely the derivative of the Planck function, but if the
+Rayleigh-Jeans approximation is for some reason selected ($B=T$) the term 
+is just 1.
+
+Determine expression for BL and higher Stokes, and put into ARTS!
 
 \subsubsection{Perturbation}
