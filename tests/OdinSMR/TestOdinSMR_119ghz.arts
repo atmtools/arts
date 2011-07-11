@@ -106,7 +106,6 @@ abs_cont_descriptionInit
 # absorption look-up table
 # 
 AgendaSet( abs_scalar_gas_agenda ){
-  Ignore(rte_doppler)
   abs_scalar_gasCalcLBL
 }
 

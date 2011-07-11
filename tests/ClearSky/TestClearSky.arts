@@ -97,7 +97,6 @@ WriteXML( output_file_format, y, "TestClearSky.y1.xml" )
 # Redefine abs_scalar_gas_agenda to use the lookup table
 # ---
 AgendaSet( abs_scalar_gas_agenda ){
-   Ignore(rte_doppler)
    abs_scalar_gasExtractFromLookup
 }
 

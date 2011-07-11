@@ -1,3 +1,9 @@
+2011-07-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-16-9
+
+	* tests: Removed 'Ignore(rte_doppler)' in 6 files. Now not needed. 
+
 2011-07-08  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-16-8

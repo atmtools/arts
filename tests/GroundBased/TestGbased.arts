@@ -94,7 +94,6 @@ VectorSet( abs_t_pert, [] )
 abs_lookupCreate
 
 AgendaSet( abs_scalar_gas_agenda ){
-  Ignore(rte_doppler)
   abs_scalar_gasExtractFromLookup
 }
 
