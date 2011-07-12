@@ -272,9 +272,9 @@ void define_agenda_data()
         "propagation path intersects with the surface or the cloudbox.\n"
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
-       INPUT( "iy_error", "iy_error_type",
-              "iy_agenda_call1", "rte_pos", "rte_los", "iy_transmission", 
-              "cloudbox_on", "jacobian_do", "iy_aux_do", "f_grid", 
+       INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+              "iy_agenda_call1", "iy_aux_do", "iy_transmission",
+              "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", 
               "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", 
               "vmr_field" )));
 
@@ -313,9 +313,10 @@ void define_agenda_data()
         "*rte_gp* variables to the position and line-of-sight for which the\n"
         "scattered radiation shall be determined.\n"
         ),
-       OUTPUT( "iy" ),
-       INPUT( "ppath", "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", 
-              "rte_gp_lon" )));
+       OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+       INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+              "iy_aux_do", "iy_transmission",
+              "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" )));
 
   agenda_data.push_back
     (AgRecord

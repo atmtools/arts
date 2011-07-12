@@ -107,13 +107,23 @@ void from_dpath_to_dx(
         { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
     }
 }
-// A quick fix, while sorting out definition of extrapolation
-void fix_extrap( ArrayOfGridPos&   gp )
+// Kept as a local function as long as just used here.
+// We trust here gridpos, and "extrapolation points" are identified simply
+// by a fd outside [0,1].
+void add_extrap( ArrayOfGridPos&   gp )
 {
   for( Index i=0; i<gp.nelem(); i++ )
     { 
-      if( gp[i].fd[0] < 0 ) {  gp[i].fd[0] = 0; gp[i].fd[1] = 1; }
-      else if( gp[i].fd[0] > 1 ) {  gp[i].fd[0] = 1; gp[i].fd[1] = 0; }
+      if( gp[i].fd[0] < 0 ) 
+        {  
+          gp[i].fd[0] = 0; 
+          gp[i].fd[1] = 1; 
+        }
+      else if( gp[i].fd[0] > 1 ) 
+        {  
+          gp[i].fd[0] = 1; 
+          gp[i].fd[1] = 0; 
+        }
     }
 }
 //
@@ -139,7 +149,7 @@ void diy_from_path_to_rgrids(
       Index            nr1 = r_grid.nelem();
       ArrayOfGridPos   gp_p(ppath.np);
       p2gridpos( gp_p, r_grid, ppath_p, extpolfac );
-      fix_extrap( gp_p );
+      add_extrap( gp_p );
 
       // Latitude
       Index            nr2 = 1;
@@ -150,7 +160,7 @@ void diy_from_path_to_rgrids(
           r_grid = jacobian_quantity.Grids()[1];
           nr2    = r_grid.nelem();
           gridpos( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
-          fix_extrap( gp_lat );
+          add_extrap( gp_lat );
         }
 
       // Longitude
@@ -162,7 +172,7 @@ void diy_from_path_to_rgrids(
           r_grid = jacobian_quantity.Grids()[2];
           nr3    = r_grid.nelem();
           gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
-          fix_extrap( gp_lon );
+          add_extrap( gp_lon );
         }
       
       //- 1D
@@ -527,10 +537,10 @@ void get_iy_of_background(
                 else
                   {
                     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                            iy_aux, diy_dx, 0, rte_pos, los,
-                            iy_trans_new, cloudbox_on, jacobian_do, iy_aux_do, 
-                            f_grid, p_grid, lat_grid, lon_grid, t_field, 
-                            z_field, vmr_field, iy_clearsky_agenda );
+                                  iy_aux, diy_dx, 0, iy_aux_do, iy_trans_new, 
+                                  rte_pos, los, cloudbox_on, jacobian_do, 
+                                  p_grid, lat_grid, lon_grid, t_field, 
+                                  z_field, vmr_field, iy_clearsky_agenda );
                   }
 
                 I(ilos,joker,joker) = iy;
@@ -546,17 +556,10 @@ void get_iy_of_background(
     case 3:   //--- Cloudbox boundary or interior ------------------------------
     case 4:
       {
-        // Pass a local copy of ppath to the cloudbox agenda
-        Ppath   ppath_local;
-        ppath_init_structure( ppath_local, atmosphere_dim, ppath.np );
-        ppath_copy( ppath_local, ppath );
-
-        // The cloudbox agenda is not yet handling iy_aux and iy_transmission.
-        //
-        iy_cloudbox_agendaExecute( ws, iy, ppath_local,
-                                   rte_pos, rte_los, rte_gp_p,
-                                   rte_gp_lat, rte_gp_lon,
-                                   iy_cloudbox_agenda );
+        iy_cloudbox_agendaExecute( ws, iy, iy_error, iy_error_type,
+                                   iy_aux, diy_dx, iy_aux_do, iy_transmission,
+                                   rte_pos, rte_los, rte_gp_p, rte_gp_lat, 
+                                   rte_gp_lon, iy_cloudbox_agenda );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -706,9 +709,9 @@ void iyb_calc(
               ArrayOfTensor3 diy_dx; 
               //
               iy_clearsky_agendaExecute( l_ws, iy, iy_error, iy_error_type, 
-                           iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
-                           iy_transmission, cloudbox_on, j_analytical_do, 
-                           iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
+                           iy_aux, diy_dx, 1, iy_aux_do, iy_transmission, 
+                           sensor_pos(imblock,joker), los, cloudbox_on, 
+                           j_analytical_do, p_grid, lat_grid, lon_grid, 
                            t_field, z_field, vmr_field, l_iy_clearsky_agenda );
 
               // Start row in iyb etc. for present LOS
@@ -793,9 +796,10 @@ void iyBeerLambertStandardClearsky(
         Tensor3&                    iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
+  const Index&                      iy_aux_do,
+  const Tensor3&                    iy_transmission,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
-  const Index&                      iy_aux_do,
   const Index&                      jacobian_do,
   const Index&                      atmosphere_dim,
   const Vector&                     p_grid,
@@ -820,7 +824,6 @@ void iyBeerLambertStandardClearsky(
   const Agenda&                     iy_space_agenda,
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda,
-  const Tensor3&                    iy_transmission,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
@@ -1159,9 +1162,9 @@ void iyBeerLambertStandardCloudbox(
     rte_los2 = ppath.los(ppath.np-1,joker);
     //
     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                               iy_aux, diy_dx, 0, rte_pos2, rte_los2,
-                               dummy, 0, jacobian_do, iy_aux_do, 
-                               f_grid, p_grid, lat_grid, lon_grid, t_field, 
+                               iy_aux, diy_dx, 0, iy_aux_do, dummy,
+                               rte_pos2, rte_los2, 0, jacobian_do, 
+                               p_grid, lat_grid, lon_grid, t_field, 
                                z_field, vmr_field, iy_clearsky_agenda );
   }
 
@@ -1371,9 +1374,10 @@ void iyEmissionStandardClearsky(
         Tensor3&                    iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
+  const Index&                      iy_aux_do,
+  const Tensor3&                    iy_transmission,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
-  const Index&                      iy_aux_do,
   const Index&                      jacobian_do,
   const Index&                      atmosphere_dim,
   const Vector&                     p_grid,
@@ -1399,7 +1403,6 @@ void iyEmissionStandardClearsky(
   const Agenda&                     iy_space_agenda,
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda,
-  const Tensor3&                    iy_transmission,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
@@ -1847,10 +1850,10 @@ void iyMC(
         Tensor3&                    iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
-  const Index&                      basics_checked,
+  const Index&                      iy_aux_do,
+  const Tensor3&                    iy_transmission,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
-  const Index&                      iy_aux_do,
   const Index&                      jacobian_do,
   const Index&                      atmosphere_dim,
   const Vector&                     p_grid,
@@ -1872,7 +1875,6 @@ void iyMC(
   const Agenda&                     abs_scalar_gas_agenda, 
   const Agenda&                     opt_prop_gas_agenda,
   const Tensor4&                    pnd_field,
-  const Tensor3&                    iy_transmission,
   const String&                     y_unit,
   const Numeric&                    mc_std_err,
   const Index&                      mc_max_time,
@@ -1936,13 +1938,13 @@ void iyMC(
 
       Vector y, mc_error;
                   
-      MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, 
-                 mc_antenna, f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
+      MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna, 
+                 f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
                  iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda,
                  abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
                  r_geoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
-                 pnd_field, scat_data_mono, basics_checked, cloudbox_checked,
+                 pnd_field, scat_data_mono, 1, cloudbox_checked,
                  mc_seed, y_unit, 
                  mc_std_err, mc_max_time, mc_max_iter); // GH 2011-06-17, mc_z_field_is_1D);
 

@@ -2968,6 +2968,12 @@ void CloudboxGetIncoming1DAtm(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(
             Matrix&         iy,
+            Matrix&         iy_error,
+            Index&          iy_error_type,
+            Tensor3&        iy_aux,
+            ArrayOfTensor3& diy_dx,
+      const Index&          iy_aux_do,
+      const Tensor3&        iy_transmission,
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
       const Tensor7&        scat_i_lon,
@@ -2976,6 +2982,7 @@ void iyInterpCloudboxField(
       const GridPos&        rte_gp_lat,
       const GridPos&        rte_gp_lon,
       const Vector&         rte_los,
+      const Index&          jacobian_do,
       const Index&          cloudbox_on,
       const ArrayOfIndex&   cloudbox_limits,
       const Index&          atmosphere_dim,
@@ -2984,6 +2991,13 @@ void iyInterpCloudboxField(
       const Vector&         scat_aa_grid,
       const Vector&         f_grid)
 {
+  // Retrieval varaibles
+  if( jacobian_do )
+    throw runtime_error( 
+        "This method does not provide any jacobians (jacobian_do must be 0)" );
+  diy_dx.resize(0);
+
+
   iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
                             doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
@@ -2995,6 +3009,12 @@ void iyInterpCloudboxField(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpPolyCloudboxField(
             Matrix&         iy,
+            Matrix&         iy_error,
+            Index&          iy_error_type,
+            Tensor3&        iy_aux,
+            ArrayOfTensor3& diy_dx,
+      const Index&          iy_aux_do,
+      const Tensor3&        iy_transmission,
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
       const Tensor7&        scat_i_lon,
@@ -3003,6 +3023,7 @@ void iyInterpPolyCloudboxField(
       const GridPos&        rte_gp_lat,
       const GridPos&        rte_gp_lon,
       const Vector&         rte_los,
+      const Index&          jacobian_do,
       const Index&          cloudbox_on,
       const ArrayOfIndex&   cloudbox_limits,
       const Index&          atmosphere_dim,
@@ -3011,6 +3032,12 @@ void iyInterpPolyCloudboxField(
       const Vector&         scat_aa_grid,
       const Vector&         f_grid )
 {
+  // Retrieval varaibles
+  if( jacobian_do )
+    throw runtime_error( 
+        "This method does not provide any jacobians (jacobian_do must be 0)" );
+  diy_dx.resize(0);
+
   iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
                             doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 

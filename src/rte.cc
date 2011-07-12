@@ -658,6 +658,8 @@ void iy_transmission_mult_scalar_tau(
 {
   const Index nf = iy_transmission.npages();
 
+  cout << nf << "    " << tau.nelem() << "\n"; 
+
   assert( iy_transmission.ncols() == iy_transmission.nrows() );
   assert( nf == tau.nelem() );
 

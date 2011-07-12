@@ -1,8 +1,48 @@
+2011-07-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-1
+
+	* Yet a new sub-version. Forgot that I planned to clean-up (and
+	extend) the handling of iy_aux and iy_error, needing changes of
+	iy_clearsky_agenda and iy_cloudbox_agenda. Hopefully few control
+	file changes needed. So far, just that Ignore(ppath) shall be removed
+	from definition of iy_cloudbox_agenda. There should be no effects
+	on iy and y.
+	(Work in  progress. Compiles with warnings. Checks OK.)
+
+	* tests/DOIT/TestDOIT.arts: Removed call of Ignore(ppath) in
+	definition of iy_cloudbox_agenda.
+
+	* includes/agendasDOIT.arts: As above.
+	
+	* src/m_doit.cc (iyInterpPolyCloudboxField): As below.
+
+	* src/m_doit.cc (iyInterpCloudboxField): Adopted with respect to
+	in/out variables, but no calculations added yet.
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): Adopted to changes of
+	iy_clearsky_agenda.
+	(iyBeerLambertStandardClearsky): Adopted to changes of
+	iy_clearsky_agenda.
+	(iyMC): Adopted to changes of iy_clearsky_agenda.
+
+	* src/agendas.cc (iy_clearsky_agenda): All of iy_error,
+	iy_error_type, iy_aux and diy_dx are npw both in and out vars.
+	Improved the sorting of in-variables.
+	(iy_cloudbox_agenda): Added iy_error, iy_error_type, iy_aux and
+	diy_dx is in/out-variables. Removed ppath as in-var.
+	
+	* src/make_array.h: Added definition of array with length 36 (to
+	handle iyEmissionStandardClearsky). 
+
+	* src/m_rte.cc (add_extrap): Renamed the "fix" fix_extrap to
+	add_extrap (but kept so far as a local help function). 
+
 2011-07-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-16-10
 
-	* doc/uguide/Figs/wfuns: New folder. ASdded some figures from AUG-1. 
+	* doc/uguide/Figs/wfuns: New folder. Added some figures from AUG-1. 
 
 	* doc/uguide/references.bib: Added Read et al 2006.
 

@@ -131,10 +131,10 @@ void fos_yStandard(
               else
                 {
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, 
+                                             iy_aux, diy_dx, 0, iy_aux_do, 
+                                             iy_transmission,
                                              rte_pos, fos_angles(ia,Range(0,1)),
-                                             iy_transmission, 0, jacobian_do, 
-                                             iy_aux_do, f_grid, p_grid, 
+                                             0, jacobian_do, p_grid, 
                                              lat_grid, lon_grid, t_field, 
                                              z_field, vmr_field, 
                                              iy_clearsky_agenda );
@@ -196,10 +196,10 @@ void fos_yStandard(
                     { lat_stretched = lat_grid; }
                   
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, 
+                                             iy_aux, diy_dx, 0, iy_aux_do, 
+                                             iy_transmission, 
                                              rte_pos, rte_los,
-                                             iy_transmission, 0, jacobian_do, 
-                                             iy_aux_do, f_grid, p_grid, 
+                                             0, jacobian_do, p_grid, 
                                              lat_stretched, lon_grid, t_field, 
                                              z_field, vmr_field, 
                                              iy_clearsky_agenda );
@@ -213,10 +213,10 @@ void fos_yStandard(
           for( Index ia=0; ia<nfosa; ia++ )
             { 
               iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                         iy_aux, diy_dx, 0, 
+                                         iy_aux, diy_dx, 0, iy_aux_do, 
+                                         iy_transmission, 
                                          rte_pos, fos_angles(ia,Range(0,2)),
-                                         iy_transmission, 0, jacobian_do, 
-                                         iy_aux_do, f_grid, p_grid, 
+                                         0, jacobian_do, p_grid, 
                                          lat_grid, lon_grid, t_field, 
                                          z_field, vmr_field, 
                                          iy_clearsky_agenda );
@@ -294,6 +294,9 @@ void iyFOS(
   const Index&                         fos_i )
 {
   // Input checks
+  if( jacobian_do )
+    throw runtime_error( 
+     "This method does not yet provide any jacobians (jacobian_do must be 0)" );
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
   if( fos_angles.ncols() != 3 )
@@ -341,9 +344,9 @@ void iyFOS(
   rte_los2 = ppath.los(ppath.np-1,joker);
   //
   iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                             iy_aux, diy_dx, 0, rte_pos2, rte_los2,
-                             iy_transmission, 0, jacobian_do, iy_aux_do, 
-                             f_grid, p_grid, lat_grid, lon_grid, t_field, 
+                             iy_aux, diy_dx, 0, iy_aux_do, iy_transmission, 
+                             rte_pos2, rte_los2, 0, jacobian_do, 
+                             p_grid, lat_grid, lon_grid, t_field, 
                              z_field, vmr_field, iy_clearsky_agenda );
 
   // RT for part inside cloudbox
