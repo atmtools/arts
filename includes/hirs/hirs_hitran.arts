@@ -1,0 +1,19 @@
+# Included by hirs_fast.arts and hirs_reference.arts
+Arts2{
+# Read HITRAN catalog:
+#abs_linesReadFromHitran2004( abs_lines,
+#                             hitran_file,
+#                             2.0022234e+12,
+#                             2.01e+12 )
+abs_linesReadFromHitran2004( abs_lines,
+                             hitran_file,
+                             2.0022234e+12,
+                             7.9855733e+14 )
+
+abs_lines_per_speciesCreateFromLines
+
+
+# WARNING: If you redefine abs_species, and want to do a line-by-line
+# calculation, you also have to call
+# abs_lines_per_speciesCreateFromLines again.
+}

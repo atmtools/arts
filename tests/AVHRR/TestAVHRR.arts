@@ -1,0 +1,126 @@
+# --------------------------------------------------------------------
+# Test batch calculations for AVHRR. See also TestHIRS.arts.
+# Gerrit Holl, July 2011
+# Based on TestHIRS.arts
+# --------------------------------------------------------------------
+
+Arts2 {
+
+INCLUDE "general.arts"
+INCLUDE "continua.arts"
+
+StringCreate(satellite)
+ArrayOfIndexCreate(channels)
+ArrayOfIndexCreate(views)
+StringCreate(hitran_file)
+NumericCreate(f_grid_spacing)
+
+
+# Select here which satellite you want
+# ---
+StringSet(satellite, "NOAA19")
+
+
+# Select here which channels you want
+# ---
+#
+# ARTS 0 --> AVHRR 3B
+# ARTS 1 --> AVHRR 4
+# ARTS 2 --> AVHRR 5
+ArrayOfIndexSet(channels, [1,2])
+
+# Select here which views you want.
+# AVHRR LAC/FRAC has 1024 views
+# ---
+ArrayOfIndexSet(views, [0, 256, 512, 768, 1023])
+
+StringSet(hitran_file,"/storage3/data/catalogue/hitran/hitran2004/HITRAN04.par")
+
+
+# Set frequency grid spacing
+# (See comments in hirs_reference.arts concerning useful values here)
+# ---
+NumericSet(f_grid_spacing, 5e8)
+
+INCLUDE "avhrr/avhrr_reference.arts"
+
+
+# Set up absorption
+# =================
+
+ArrayOfMatrixCreate( arrayofmatrix_1 )
+
+ReadXML( arrayofmatrix_1, "../HIRS/garand_profiles.xml" )
+
+# Convert to batch_atm_fields_compact
+# ---
+# The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
+batch_atm_fields_compactFromArrayOfMatrix(
+   batch_atm_fields_compact,
+   atmosphere_dim,
+   arrayofmatrix_1,
+   ["T", "z", "H2O", "O3", "CO2", "N2O", "CO", "CH4"],
+   ["O2", "N2"],
+   [0.2095, 0.7808]
+)
+
+# Delete original data array to conserve memory:
+# ---
+Delete( arrayofmatrix_1 )
+
+# Setup lookup table
+# ---
+abs_lookupSetupBatch
+abs_lookupCreate
+
+# Set abs_scalar_gas_agenda to use lookup table
+# ---
+AgendaSet( abs_scalar_gas_agenda ){
+  abs_scalar_gasExtractFromLookup
+}
+
+# Set up RT calculation
+# =====================
+
+# Set the agenda for batch calculations:
+# ---
+#
+AgendaSet( ybatch_calc_agenda ){
+  
+  # Extract the atmospheric profiles for this case:
+  Extract(
+    atm_fields_compact, 
+    batch_atm_fields_compact, 
+    ybatch_index
+  )
+
+  AtmFieldsFromCompact
+
+  # get some surface properties from corresponding atmospheric fields
+  Extract( z_surface, z_field, 0 )
+  Extract( t_surface, t_field, 0 )
+
+  # Perform RT calculations
+  # ---
+  basics_checkedCalc
+  cloudbox_checkedCalc
+  yCalc
+
+  # Convert the measurement from radiance units to Planck Tb:
+  StringSet( y_unit, "PlanckBT" )
+  y_unitApply
+}
+
+# Set number of batch cases:
+nelemGet( ybatch_n, batch_atm_fields_compact )
+
+# Execute the batch calculations:
+# ---
+ybatchCalc
+
+# Store result matrix:
+# ---
+WriteXML( "ascii", ybatch )
+
+
+}

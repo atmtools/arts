@@ -1,6 +1,72 @@
-2011-07-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+2011-07-13  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-17-1
+
+	* Split HIRS includes and added AVHRR setup
+
+	* includes/hirs/hirs_fast.arts, includes/hirs/hirs_reference.arts:
+	  - Split those in various subfiles that can (if wanted) be included
+	    separately. The overall include-file remains for ease of use and
+		backward compatibility. Now it is possible to use HIRS with your
+		own lookup table. For example, rather than including
+		hirs/hirs_reference.arts, one would do:
+
+		INCLUDE "hirs/hirs_general.arts"
+		INCLUDE "hirs/hirs_spectroscopy.arts"
+		INCLUDE "hirs/hirs_sensor_common.arts"
+		INCLUDE "hirs/hirs_sensor_reference.arts"
+
+	* includes/hirs/hirs_general.arts,
+	  includes/hirs/hirs_spectroscopy.arts,
+	  includes/hirs/hirs_sensor_common.arts,
+	  includes/hirs/hirs_hitran.arts: Added
+	  - Those are the same for the reference and the fast setup. They are
+	    actually also largely the same for AVHRR (see below).
+
+	* includes/hirs/hirs_sensor_fast.arts,
+	  includes/hirs/hirs_sensor_reference.arts: Added
+	  - Here is the core functionality that differs between the fast and
+	    the reference setup. This is the only part one probably always
+		wants to include when using HIRS.
+
+	* includes/avhrr/get_avhrr_srf.py: Added
+	  - Script used to extract SRF from NOAA KLM User's Guide.
+
+	* includes/avhrr/NOAA15_AVHRR.f_backend.xml,
+	  includes/avhrr/NOAA15_AVHRR.backend_channel_response.xml,
+	  includes/avhrr/NOAA16_AVHRR.f_backend.xml,
+	  includes/avhrr/NOAA16_AVHRR.backend_channel_response.xml,
+	  includes/avhrr/NOAA17_AVHRR.f_backend.xml,
+	  includes/avhrr/NOAA17_AVHRR.backend_channel_response.xml,
+	  includes/avhrr/NOAA18_AVHRR.f_backend.xml,
+	  includes/avhrr/NOAA18_AVHRR.backend_channel_response.xml,
+	  includes/avhrr/NOAA19_AVHRR.f_backend.xml,
+	  includes/avhrr/NOAA19_AVHRR.backend_channel_response.xml,
+	  includes/avhrr/METOPA_AVHRR.f_backend.xml,
+	  includes/avhrr/METOPA_AVHRR.backend_channel_response.xml: Added
+	  - Added SRF for AVHRR on KLM from NOAA KLM User's Guide.
+
+	* includes/avhrr/get_sensor_los.py: Added
+	  - Small script to calculate sensor LOS (1D).
+
+	* includes/avhrr/avhrr.sensor_los.xml: Added
+	  - Sensor line of sights, for AVHRR LAC/FRAC.
+
+	* includes/avhrr/avhrr_reference.arts,
+	  includes/avhrr/avhrr_sensor_common.arts,
+	  includes/avhrr/avhrr_sensor_reference.arts,
+	  includes/avhrr/README: Added
+	  - Added setup for AVHRR. So far only the reference case.
+
+	* tests/AVHRR/TestAVHRR.arts, tests/AVHRR/TestAVHRR.ybatch.xml: Added
+	  - Added test case, based on TestHIRS.arts. Warning! slow:
+		  This run took 5832.06s (37804.05s CPU time)
+		For the Garand cases.
+
+
+2011-07-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-0
 
 	* Yet a new sub-version. Forgot that I planned to clean-up (and
 	extend) the handling of iy_aux and iy_error, needing changes of
