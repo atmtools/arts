@@ -485,15 +485,14 @@ void jacobianCalcAbsSpecies(
               // Calculate the perturbed spectrum  
               //
               Index         dummy2 = 0;
-              Vector        iybp, dummy1;
-              Matrix        dummy3;
+              Vector        iybp, dummy1, dummy3;
               ArrayOfMatrix dummy4;      
               //
               iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
                         atmosphere_dim, p_grid, lat_grid, lon_grid, 
                         t_field, z_field, vmr_p, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
-                        mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 0, 
+                        mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex() );
               //
@@ -856,8 +855,8 @@ void jacobianCalcPointingZaIybrecalc(
         Vector   dy( n1y );
   {
         Index         iyet;
-        Vector        iyb2, iye;
-        Matrix        iyb_aux, los = sensor_los;
+        Vector        iyb2, iye, iyb_aux;
+        Matrix        los = sensor_los;
         ArrayOfMatrix diyb_dx;      
 
     los(joker,0) += rq.Perturbation();
@@ -866,7 +865,7 @@ void jacobianCalcPointingZaIybrecalc(
               atmosphere_dim, p_grid, lat_grid, lon_grid, 
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
-              antenna_dim, iy_clearsky_agenda, 0, y_unit, 
+              antenna_dim, iy_clearsky_agenda, y_unit, 
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex() );
 
     mult( dy, sensor_response, iyb2 );
@@ -1373,15 +1372,14 @@ void jacobianCalcTemperature(
        
               // Calculate the perturbed spectrum  
               Index         dummy2 = 0;
-              Vector        iybp, dummy1;
-              Matrix        dummy3;
+              Vector        iybp, dummy1, dummy3;
               ArrayOfMatrix dummy4;      
               //
               iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
                         atmosphere_dim, p_grid, lat_grid, lon_grid, 
                         t_p, z, vmr_field, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
-                        mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 0, 
+                        mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex() );
               //

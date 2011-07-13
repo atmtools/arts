@@ -1632,35 +1632,19 @@ void Workspace::define_wsv_data()
        "Data auxilary to *iy*.\n"
        "\n"
        "This variable makes it possible to provide auxilary information for\n"
-       "each value in *iy*. Each page of the tensor corresponds to a\n"
-       "variable. The number of auxilary variables is hard-coded to three.\n"
-       "Examples on quantities that could be of interest here are\n"
-       "transmission and cloud interference flags.\n"
+       "each value in *iy*. The standard usage is to provide transmission,\n"
+       "then to complement radiance data. See the relevant WSMs for details.\n"
+       "\n"
+       "The data are not used for any calculations. The data are just passed\n"
+       "on to create *y_aux*. A possibility here is to set *iy_aux* to e.g.\n"
+       "-1000 inside *iy_cloudbox_agenda*, to obtain a way to catch\n"
+       "interceptions with the cloudbox.\n"
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
-       "Unit:       Any, can be mixed.\n"
-       "\n"
-       "Dimensions: [ number_of_aux_vars, f_grid, stokes_dim ]\n"
+       "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
-      GROUP( "Tensor3" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iy_aux_do" ),
-      DESCRIPTION
-      (
-       "Flag to control calculation of *iy_aux*.\n"
-       "\n"
-       "This is a flag for methods part of *iy_clearsky_agenda*. If the flag\n"
-       "is set to 0 the methods are told that is OK to skip the calculation of\n"
-       "*iy_aux*. The result should then be that *iy_aux* is empty.\n"
-       "\n"
-       "Note that setting *iy_aux_do* to 1 does not necessarily create any\n"
-       "auxilary data, also the agenda must also include a method that\n"
-       "fill *iy_aux* in some way.\n"
-       ),
-      GROUP( "Index" )));
+      GROUP( "Matrix" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -1696,8 +1680,8 @@ void Workspace::define_wsv_data()
       (
        "Estimation of calculation errors in *iy*.\n"
        "\n"
-       "As *y_error*, but treats *iy* and can be left empty if *iy_error_type*\n"
-       "is 0.\n"
+       "As *y_error*, but treats *iy* and can be left empty if\n"
+       "*iy_error_type* is 0.\n"
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
@@ -4173,14 +4157,19 @@ void Workspace::define_wsv_data()
       (
        "Data auxilary to *y*\n"
        "\n"
-       "A general variable to provide auxilary y-data. The rows of this\n"
-       "matrix correpond to the elements of y. Each column of the matrix\n"
-       "holds an auxilary variable. The number of columns is three.\n"
-       "Variables of different types can be mixed. Some columns can be empty.\n"
+       "A general variable to provide data auxilary to *y*. The content of\n"
+       "this variable depends on method selected for *iy_clearsky_agenda*\n"
+       "and *iy_cloudbox_agenda*. For methods dealing with radiance data,\n"
+       "this variable is used to report the transmission of the atmosphere.\n"
+       "This transmission can be calculated in a simplified manner, or be\n"
+       "set to special values to indicate e.g. an interception with the\n"
+       "cloudbox. See the relevant WSMs for details, and also *iy_aux*. \n"
+       "\n"
        "If created through *yCalc*, the weighting with *sensor_response*\n"
-       "is included.\n"
+       "is included. A value of 999 indicates that no data have been\n"
+       "provided by the agenda methods.\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4194,7 +4183,7 @@ void Workspace::define_wsv_data()
        "in spectroscopic data or representation errors due to coarse grids\n"
        "are not considered. This means that the error should normally be\n"
        "zero for clear-sky cases where calculations are performed for the\n"
-       "complete propgation path.\n"
+       "complete propagation path.\n"
        ),
       GROUP( "Vector" )));
 

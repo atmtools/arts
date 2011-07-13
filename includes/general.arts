@@ -176,11 +176,6 @@ StringSet( y_unit, "1" )
 
 
 #
-# Select that data auxilary to iy are not calculated
-#
-FlagOff( iy_aux_do )
-
-#
 # No scattering
 #
 cloudboxOff

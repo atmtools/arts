@@ -65,33 +65,4 @@ void Touch(// WS Generic Output:
 {
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void DoNothing(Workspace& ws _U_,
-            // WS Generic Output:
-                  Agenda& out,
-            // WS Generic Input:
-                  Agenda& in)
-{
-  out1 << "WARNING: DoNothing is deprecated. Please use Touch/Ignore instead.\n";
-
-  if( &out != &in )
-    throw runtime_error(
-                   "*DoNothing* requires that input and output is same WSV." );
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-template< class T >
-void DoNothing(
-            // WS Generic Output:
-                  T&      out,
-            // WS Generic Input:
-                  T&      in)
-{
-  out1 << "WARNING: DoNothing is deprecated. Please use Touch/Ignore instead.\n";
-
-  if( &out != &in )
-    throw runtime_error(
-                   "*DoNothing* requires that input and output is same WSV." );
-}
-
 #endif // m_ignore_h

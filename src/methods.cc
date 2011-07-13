@@ -3623,40 +3623,6 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "DoNothing" ),
-        DESCRIPTION
-        (
-         "DEPRECATED!!! Use Touch and Ignore instead!\n"
-         "\n"
-         "As *Ignore* but for agenda output.\n"
-         "\n"
-         "This method is handy for use in agendas in order to suppress\n"
-         "warnings about unused output workspace variables. What it does is:\n"
-         "Nothing!\n"
-         "\n"
-         "To ensure that the variable is already set, the variable must be\n"
-         "given is both global input and output. An example:\n"
-         "   DoNothing(emission,emission)\n"
-         "\n"
-         "Input and output MUST be identical.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT(),
-        GOUT(      "gout1"    ),
-        GOUT_TYPE( "Any" ),
-        GOUT_DESC( "Variable to do nothing with." ),
-        IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE(    "Any" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Variable to do nothing with." ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "emissionPlanck" ),
         DESCRIPTION
         (
@@ -3960,7 +3926,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "iy_aux_do", "atmosphere_dim", "p_grid", "lat_grid",
+        IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
             "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
             "f_grid", "ppath_step_agenda", "emission_agenda",
@@ -4353,14 +4319,7 @@ void define_md_data_raw()
          "*surface_emission* should probably be set to 0. Multiple-beams\n"
          "will be followed if *surface_los* has length > 1.\n"
          "\n"
-         "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
-         " 1. Radiative background index, for primary propagation path\n"
-         "    branch, where 1 is TOA, 2 the surface, 3 cloudbox boundary and\n"
-         "    4 cloudbox interior.\n"
-         " 2. Intersection with cloudbox flag, with 1 for interestion and 0\n"
-         "    for other propagation paths. Also intersection after surface\n"
-         "    reflections are flagged.\n"
-         " 3. Empty.\n"
+         "*iy_aux* is not set.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
@@ -4368,7 +4327,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_agenda_call1", "iy_aux_do", "iy_transmission", 
+            "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
@@ -4407,7 +4366,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "rte_los", "iy_aux_do", "jacobian_do","atmosphere_dim", 
+        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
+            "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
             "vmr_field", "r_geoid", "z_surface", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
@@ -4435,23 +4395,13 @@ void define_md_data_raw()
          "the propagation path. See further the user guide. *iy_error*\n"
          "is considered to be 0. \n" 
          "\n"
-         "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
-         " 1. The scalar transmission between the observation point and the top\n"
-         "    of the atmosphere (TOA) or to the surface, depending on which\n"
-         "    of the two \"backgrounds\" that is closest. With the cloud box\n"
-         "    activated, the transmission returned depends on scattering\n"
-         "    method used. For DOIT and MC, only the transmission to the\n"
-         "    cloud box is calculated. For FOS the transmission is valid for\n"
-         "    the total unscattered path through the atmosphere, with\n" 
-         "    attenuation due particle scattering is included.\n"
-         "    Note that this is the scalar transmission, set to be the same\n"
-         "    for all Stokes components.\n"
-         " 2. Radiative background index, for primary propagation path\n"
-         "    branch, where 1 is TOA, 2 the surface, 3 cloudbox boundary and\n"
-         "    4 cloudbox interior.\n"
-         " 3. Intersection with cloudbox flag, with 1 for interestion and 0\n"
-         "    for other propagation paths. Also intersection after surface\n"
-         "    reflections are flagged.\n"
+         "The WSV *iy_aux* is set to hold the transmission, if the radiative\n"
+         "background is space or the surface. That is, as long as there is no\n"
+         "intersection with a cloudbox, the method sets *iy_aux*  to the\n"
+         "transmission through the atmosphere either down to the surface, or\n"
+         "to the top of the atmosphere. The treatment of *iy_aux* if there\n"
+         "is an interesection with the cloudbox depends on the scattering\n"
+         "method selected.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
@@ -4459,7 +4409,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_agenda_call1", "iy_aux_do", "iy_transmission", 
+            "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
@@ -4491,9 +4441,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "rte_los", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "z_field", "t_field", "vmr_field", "wind_u_field", 
-            "wind_v_field", "wind_w_field", "r_geoid", 
+        IN( "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
+            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "r_geoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim", 
             "f_grid", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
@@ -4538,7 +4488,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "rte_los", "iy_aux_do", "jacobian_do","atmosphere_dim", 
+        IN( "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
             "vmr_field", "r_geoid", "z_surface", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
@@ -4559,8 +4509,8 @@ void define_md_data_raw()
         (
          "Interface to Monte Carlo part for *iy_clearsky_agenda*.\n"
          "\n"
-         "Basically an interface to *MCGeneral* for doing monochromatic pencil\n"
-         "beam calculations. This functions allows Monte Carlo (MC)\n"
+         "Basically an interface to *MCGeneral* for doing monochromatic\n"
+         "pencil beam calculations. This functions allows Monte Carlo (MC)\n"
          "calculations for sets of frequencies and sensor pos/los in a single\n"
          "run. Sensor responses can be included in the standard manner\n" 
          "(through *yCalc*).\n"
@@ -4580,6 +4530,8 @@ void define_md_data_raw()
          "MC control arguments (mc_std_err, mc_max_time, mc_max_iter and\n"
          "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
+         "\n"
+         "*iy_aux* is not set.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
@@ -4587,7 +4539,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_agenda_call1", "iy_aux_do", "iy_transmission", 
+            "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", 
             "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", 
@@ -4621,6 +4573,12 @@ void define_md_data_raw()
          "given position is at any boundary.\n"
          "\n"
          "Interpolation of the internal field is not yet possible.\n"
+         "\n"
+         "Further, *iy_aux* is set to the transmission to the boundary of the\n"
+         "cloudbox. *iy_error* is so far set to a constant value of\n"
+         "[0.5 0.1 0.1 0.1] K (the RJBT for each Stokes element). These\n"
+         "values are valid at the cloudbox boundary, and weighted with the\n"
+         "transmission to the sensor. *iy_error_type* is set to 2.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
@@ -4628,7 +4586,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_aux_do", "iy_transmission", 
+            "iy_transmission", 
             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
             "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los", "jacobian_do",
             "cloudbox_on", "cloudbox_limits", "atmosphere_dim", "stokes_dim", 
@@ -4648,6 +4606,9 @@ void define_md_data_raw()
          "\n"
          "Works so far only for 1D cases, and accordingly a cubic\n"
          "interpolation along *scat_za_grid* is performed.\n"
+         "\n"
+         "*iy_aux*, *iy_error* and *iy_error_type* treated as by|n"
+         "*iyInterpPolyCloudboxField*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
@@ -4655,7 +4616,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_aux_do", "iy_transmission", 
+            "iy_transmission", 
             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
             "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los", "jacobian_do",
             "cloudbox_on", "cloudbox_limits",
@@ -8299,9 +8260,9 @@ void define_md_data_raw()
          "Use *timerStop* to output the consumed cpu time since *timerStart*.\n"
          "\n"
          "Usage example:\n"
-         "   timerStart()\n"
+         "   timerStart\n"
          "   ReadXML(f_grid,\"frequencies.xml\")\n"
-         "   timerStop()\n"
+         "   timerStop\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "timer" ),
@@ -9202,7 +9163,7 @@ void define_md_data_raw()
             "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "iy_clearsky_agenda", "iy_aux_do", "y_unit", 
+            "iy_clearsky_agenda", "y_unit", 
             "jacobian_agenda", "jacobian_do", "jacobian_quantities",
             "jacobian_indices" ),
         GIN(),

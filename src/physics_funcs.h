@@ -76,5 +76,8 @@ Numeric planck(
         const Numeric&   f, 
         const Numeric&   t );
 
+Numeric rayjean(
+        const Numeric&  f,
+        const Numeric&  t );
 
 #endif // physics_h

@@ -1,25 +1,11 @@
 # Right now used more for notes, than TODO
 
-2009-10-02, Patrick
-jacobian now sized in yCalc. Change jacobianClose.
-AUG: New and old sparse features: insert_row, + and - 
-
-2009-10-05, Patrick
-Remove rte_step_std_clearsky ?
-
-2009-10-08, Patrick
-How to comment out for-blocks of assert commands
-
-2009-10-11, Patrick 
-Confirm which t-jacobian implementation that works with perturbation 
-calculations.
-
-2009-10-19, Patrick
-On-line doc of abs_speciesAdd2
-
-2009-10-20, Patrick
-Revise:
-jacobianAddAbsSpecies (update perturbation part and add a comparison test)
-jacobianAddFreqShiftAndStretch  
-jacobianAddTemperature (update perturbation part and add a comparison test)
-jacobianAddPointingZa (add interp option)
+2011-07-13, Patrick
+Make a WSV out of the epsilon that is GIN for doit_conv_flagAbs. And use this
+in the iyInterpCloudboxField-methods to set a correct error. Note that epsilon
+can be defined both in radiance and Tb. Probably best to remove
+doit_conv_flagAbsTb and instead making a WSM to convert epsilon from Tb to
+radiance (using the newly added rayjean function). 
+As far as I understand, DOIT assumes that emission is always given
+as W/m3/Hz/sr. The question is then if DOIT shall use emission_agenda, as there
+is no flexibility in selecting the source term.

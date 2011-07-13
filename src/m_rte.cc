@@ -59,11 +59,8 @@
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 
-// Number of auxilary variables, in y_aux
-const Index N_AUX = 3;
 
-
-// A maqcro to loop analytical jacobian quantities
+// A macro to loop analytical jacobian quantities
 #define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) \
     { \
@@ -342,7 +339,6 @@ void get_pointers_for_analytical_jacobians(
     \param   iy_aux                Out: As the WSV.
     \param   diy_aux               Out: As the WSV.
     \param   iy_transmission       As the WSV.
-    \param   iy_aux_do             As the WSV.
     \param   jacobian_do           As the WSV.
     \param   ppath                 As the WSV.
     \param   atmosphere_dim        As the WSV.
@@ -368,10 +364,9 @@ void get_iy_of_background(
         Matrix&           iy,
         Matrix&           iy_error,
         Index&            iy_error_type,
-        Tensor3&          iy_aux,
+        Matrix&           iy_aux,
         ArrayOfTensor3&   diy_dx,
   ConstTensor3View        iy_transmission,
-  const Index&            iy_aux_do,
   const Index&            jacobian_do,
   const Ppath&            ppath,
   const Index&            atmosphere_dim,
@@ -537,7 +532,7 @@ void get_iy_of_background(
                 else
                   {
                     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                                  iy_aux, diy_dx, 0, iy_aux_do, iy_trans_new, 
+                                  iy_aux, diy_dx, 0, iy_trans_new, 
                                   rte_pos, los, cloudbox_on, jacobian_do, 
                                   p_grid, lat_grid, lon_grid, t_field, 
                                   z_field, vmr_field, iy_clearsky_agenda );
@@ -557,7 +552,7 @@ void get_iy_of_background(
     case 4:
       {
         iy_cloudbox_agendaExecute( ws, iy, iy_error, iy_error_type,
-                                   iy_aux, diy_dx, iy_aux_do, iy_transmission,
+                                   iy_aux, diy_dx, iy_transmission,
                                    rte_pos, rte_los, rte_gp_p, rte_gp_lat, 
                                    rte_gp_lon, iy_cloudbox_agenda );
 
@@ -593,7 +588,7 @@ void iyb_calc(
         Vector&                     iyb,
         Vector&                     iyb_error,
         Index&                      iy_error_type,
-        Matrix&                     iyb_aux,
+        Vector&                     iyb_aux,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,
@@ -612,7 +607,6 @@ void iyb_calc(
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
   const Agenda&                     iy_clearsky_agenda,
-  const Index&                      iy_aux_do,
   const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -627,17 +621,13 @@ void iyb_calc(
   const Index   niyb    = nf * nza * naa * stokes_dim;
 
   // Set up size of containers for data of 1 measurement block.
-  //
-  // We do not know the number of aux variables. The parallelisation makes it
-  // unsafe to do the allocation of iyb_aux inside the for-loops. We must use 
-  // a hard-coded maximum number.
-  //
+  // (can not be made below due to parallalisation)
   iyb.resize( niyb );
   iyb_error.resize( niyb );
-  if( iy_aux_do )
-    iyb_aux.resize( niyb, N_AUX );
-  else
-    iyb_aux.resize( 0, 0 );
+  iyb_aux.resize( niyb );
+  Index aux_set = 0;
+  //
+  iyb_error = 0;
   //
   if( j_analytical_do )
     {
@@ -650,7 +640,7 @@ void iyb_calc(
   else
     { diyb_dx.resize( 0 ); }
 
-  // Polarisation idex variable
+  // Polarisation index variable
   // If some kind of modified Stokes vector will be introduced, this must be
   // made to a WSV
   ArrayOfIndex i_pol(stokes_dim);
@@ -704,12 +694,14 @@ void iyb_calc(
 
               // Calculate iy and associated variables
               //
-              Matrix         iy, iy_error;
-              Tensor3        iy_aux, iy_transmission;
-              ArrayOfTensor3 diy_dx; 
+              Matrix         iy(0,0), iy_error(0,0), iy_aux(0,0);
+              Tensor3        iy_transmission(0,0,0);
+              ArrayOfTensor3 diy_dx(0);
+              //
+              iy_error_type = 0;
               //
               iy_clearsky_agendaExecute( l_ws, iy, iy_error, iy_error_type, 
-                           iy_aux, diy_dx, 1, iy_aux_do, iy_transmission, 
+                           iy_aux, diy_dx, 1, iy_transmission, 
                            sensor_pos(imblock,joker), los, cloudbox_on, 
                            j_analytical_do, p_grid, lat_grid, lon_grid, 
                            t_field, z_field, vmr_field, l_iy_clearsky_agenda );
@@ -740,7 +732,7 @@ void iyb_calc(
 
               // iy       : unit conversion and copy to iyb
               // iy_error : unit conversion and copy to iyb_error
-              // iy_aux   : copy to iyb_aux
+              // iy_aux   : copy to iyb_aux (if iy_aux filled)
               //
               if( iy_error_type > 0 )
                 { apply_y_unit2( iy_error, iy, y_unit, f_grid, i_pol ); }
@@ -750,18 +742,17 @@ void iyb_calc(
               for( Index is=0; is<stokes_dim; is++ )
                 { 
                   iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
+                  //
                   if( iy_error_type > 0 )
-                    { iyb_error[Range(row0+is,nf,stokes_dim)] = 
+                    { 
+                      iyb_error[Range(row0+is,nf,stokes_dim)] = 
                                                             iy_error(joker,is); 
                     }
                   //
-                  if( iy_aux_do )
+                  if( iy_aux.nrows() )
                     {
-                      for( Index iaux=0; iaux<N_AUX; iaux++ )
-                        { 
-                          iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                         iy_aux(iaux,joker,is);
-                        }
+                      iyb_aux[Range(row0+is,nf,stokes_dim)] = iy_aux(joker,is);
+                      aux_set = 1;
                     }
                 }
             }  // End aa loop
@@ -772,8 +763,11 @@ void iyb_calc(
           exit_or_rethrow(e.what());
         }
     }  // End za loop
-}
 
+  // If no aux, set to size 0 to flag this
+  if( !aux_set )
+    { iyb_aux.resize(0); }
+}
 
 
 
@@ -793,10 +787,9 @@ void iyBeerLambertStandardClearsky(
         Matrix&                     iy,
         Matrix&                     iy_error,
         Index&                      iy_error_type,
-        Tensor3&                    iy_aux,
+        Matrix&                     iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
-  const Index&                      iy_aux_do,
   const Tensor3&                    iy_transmission,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
@@ -827,44 +820,32 @@ void iyBeerLambertStandardClearsky(
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
+  // See initial comments of iyEmissionStandardClearsky
+
   // Jacobian code exists, but has not been tested at all
   if( jacobian_do )
     throw runtime_error( "Method not yet tested with jacobians." );      
-
-  // Assume used as part of yCalc. Checks made in yCalc.
 
   // Sizes
   //
   const Index nf = f_grid.nelem();
 
-  // Determine if there are any analytical jacobians to handle
+  // Determine if there are any analytical jacobians to handle, and if primary
+  // call, resize diy_dx.
   //
   Index j_analytical_do = 0;
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-
-  // If primary call, initilise iy_aux and diy_dx
   //
-  if( iy_agenda_call1 )
+  if( iy_agenda_call1 && j_analytical_do )
     {
-      // iy_error
-      iy_error.resize( 0, 0 );
-      iy_error_type = 0;
-      // iy_aux
-      if( iy_aux_do ) { iy_aux.resize( N_AUX, nf, stokes_dim ); iy_aux = -999; }
-      else            { iy_aux.resize( 0, 0, 0 ); }
-      // diy_dx
-      if( j_analytical_do ) 
-        {
-          diy_dx.resize( jacobian_indices.nelem() ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[iq].resize( jacobian_indices[iq][1] - 
-                               jacobian_indices[iq][0] + 1, nf, stokes_dim ); 
-            diy_dx[iq] = 0.0;
-          ) 
-        }
-      else { diy_dx.resize( 0 ); }
+      diy_dx.resize( jacobian_indices.nelem() ); 
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        diy_dx[iq].resize( jacobian_indices[iq][1] - jacobian_indices[iq][0] + 
+                           1, nf, stokes_dim ); 
+        diy_dx[iq] = 0.0;
+      ) 
     }
 
   //- Determine propagation path
@@ -874,8 +855,6 @@ void iyBeerLambertStandardClearsky(
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
-  //
-  const Index   i_background = ppath_what_background( ppath );
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
@@ -924,7 +903,7 @@ void iyBeerLambertStandardClearsky(
   //
   get_iy_of_background( 
                 ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
+                jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
                 lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
                 cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
@@ -1075,19 +1054,6 @@ void iyBeerLambertStandardClearsky(
           )
         }
     }
-
-  // Set iy_aux 
-  //
-  if( iy_aux_do ) 
-    {
-      // Set background if primary call
-      if( iy_agenda_call1 )
-        { iy_aux( 0, joker, joker ) = (Numeric)i_background; }
-      // 
-      // Flag intersection with cloudbox
-      if( i_background >= 3 )
-        { iy_aux( 1, joker, joker ) = 1.0; }
-    }    
 }
 
 
@@ -1100,11 +1066,11 @@ void iyBeerLambertStandardCloudbox(
         Matrix&                        iy,
         Matrix&                        iy_error,
         Index&                         iy_error_type,
-        Tensor3&                       iy_aux,
+        Matrix&                        iy_aux,
         ArrayOfTensor3&                diy_dx,
+  const Tensor3&                       iy_transmission,
   const Vector&                        rte_pos,
   const Vector&                        rte_los,
-  const Index&                         iy_aux_do,
   const Index&                         jacobian_do,
   const Index&                         atmosphere_dim,
   const Vector&                        p_grid,
@@ -1129,10 +1095,9 @@ void iyBeerLambertStandardCloudbox(
   // Input checks
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
-
-  // Error are considered to be zero
-  iy_error.resize( 0, 0 );
-  iy_error_type = 0;
+  if( jacobian_do )
+    throw runtime_error( 
+        "This method does not provide any jacobians (jacobian_do must be 0)" );
 
   // Determine ppath through the cloudbox
   //
@@ -1162,7 +1127,7 @@ void iyBeerLambertStandardCloudbox(
     rte_los2 = ppath.los(ppath.np-1,joker);
     //
     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                               iy_aux, diy_dx, 0, iy_aux_do, dummy,
+                               iy_aux, diy_dx, 0, dummy,
                                rte_pos2, rte_los2, 0, jacobian_do, 
                                p_grid, lat_grid, lon_grid, t_field, 
                                z_field, vmr_field, iy_clearsky_agenda );
@@ -1371,10 +1336,9 @@ void iyEmissionStandardClearsky(
         Matrix&                     iy,
         Matrix&                     iy_error,
         Index&                      iy_error_type,
-        Tensor3&                    iy_aux,
+        Matrix&                     iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
-  const Index&                      iy_aux_do,
   const Tensor3&                    iy_transmission,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
@@ -1406,54 +1370,39 @@ void iyEmissionStandardClearsky(
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
-  // All variables associated with iy_error, iy_aux and diy_dx are set up 
-  // when iy_agenda_call1 is true. 
-  //
-  // The error is set to type 0. Accordingly, if any radiative background wants
+  // The method can in principle be used "stand-alone", but for efficiency
+  // reasons we skip all checks needed to handle such usage. Those checks are
+  // done by yCalc.
+
+  // iy_error, iy_error_type, iy_aux and diy_dx are initiated by iyb_calc
+  // to be empty/zero. Accordingly, if any radiative background wants
   // to flag an error, iy_error must be resized. No subsequent scaling of the
   // error is made. Thus the iy_transmission should be considered when adding
-  // a term to the error.
-  // 
-  // Some parts of iy_aux are set at first call, others by radiative background.
-  // See on-line doc for the content of this variable.
+  // a term to the error. A setting of iy_aux must also include a resizing. 
 
-  // The WSV *iy_transmission* shall hold the transmission between the sensor
+  // The WSV *iy_transmission* holds the transmission between the sensor
   // and the end of the propagation path.
-
-  // Assume used as part of yCalc. Checks made in yCalc.
 
   // Sizes
   //
   const Index nf = f_grid.nelem();
 
-  // Determine if there are any analytical jacobians to handle
+  // Determine if there are any analytical jacobians to handle, and if primary
+  // call, resize diy_dx.
   //
   Index j_analytical_do = 0;
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-
-  // If primary call, initilise iy_error, iy_aux and diy_dx
   //
-  if( iy_agenda_call1 )
+  if( iy_agenda_call1 && j_analytical_do )
     {
-      // iy_error
-      iy_error.resize( 0, 0 );
-      iy_error_type = 0;
-      // iy_aux
-      if( iy_aux_do ) { iy_aux.resize( N_AUX, nf, stokes_dim ); iy_aux = 0.0; }
-      else            { iy_aux.resize( 0, 0, 0 ); }
-      // diy_dx
-      if( j_analytical_do ) 
-        {
-          diy_dx.resize( jacobian_indices.nelem() ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[iq].resize( jacobian_indices[iq][1] - 
-                               jacobian_indices[iq][0] + 1, nf, stokes_dim ); 
-            diy_dx[iq] = 0.0;
-          ) 
-        }
-      else { diy_dx.resize( 0 ); }
+      diy_dx.resize( jacobian_indices.nelem() ); 
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        diy_dx[iq].resize( jacobian_indices[iq][1] - jacobian_indices[iq][0] +
+                           1, nf, stokes_dim ); 
+        diy_dx[iq] = 0.0;
+      )
     }
 
   //- Determine propagation path
@@ -1463,8 +1412,6 @@ void iyEmissionStandardClearsky(
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
-  //
-  const Index   i_background = ppath_what_background( ppath );
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
@@ -1512,7 +1459,7 @@ void iyEmissionStandardClearsky(
   //
   get_iy_of_background( 
                ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-               iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
+               jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
                lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
                cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
                iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
@@ -1701,28 +1648,20 @@ void iyEmissionStandardClearsky(
         }
     }
 
-  // Set iy_aux 
+  // Set iy_aux, if background is TOA or surface
   //
-  if( iy_aux_do ) 
+  if( ppath_what_background( ppath ) <= 2 )
     {
-      // Fill transmission if background is TOA or surface
-      if( i_background <= 2 )
-        {
-          for( Index iv=0; iv<nf; iv++ )
+      iy_aux.resize( nf, stokes_dim ); 
+      //
+      for( Index iv=0; iv<nf; iv++ )
+        { 
+          for( Index is=0; is<stokes_dim; is++ )
             { 
-              for( Index is=0; is<stokes_dim; is++ )
-                { iy_aux( 0, iv, is ) = iy_trans_new( iv, is, is ); }
+              iy_aux( iv, is ) = iy_trans_new( iv, is, is ); 
             }
         }
-
-      // Set background if primary call
-      if( iy_agenda_call1 )
-        { iy_aux( 1, joker, joker ) = (Numeric)i_background; }
-      // 
-      // Flag intersection with cloudbox
-      if( i_background >= 3 )
-        { iy_aux( 2, joker, joker ) = 1.0; }
-    }    
+    }
 }
 
 
@@ -1735,6 +1674,7 @@ void iyEmissionStandardClearskyBasic(
         Matrix&                     iy,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
+  const Index&                      jacobian_do,
   const Index&                      atmosphere_dim,
   const Vector&                     p_grid,
   const Vector&                     lat_grid,
@@ -1759,7 +1699,11 @@ void iyEmissionStandardClearskyBasic(
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda )
 {
-  // Assume used as part of yCalc. Checks made in yCalc.
+  // See initial comments of iyEmissionStandardClearsky
+
+  if( jacobian_do )
+    throw runtime_error( 
+        "This method does not provide any jacobians (jacobian_do must be 0)" );
 
   // Sizes
   //
@@ -1803,17 +1747,16 @@ void iyEmissionStandardClearskyBasic(
 
   // Radiative background
   //
-  Matrix          dummy1;
+  Matrix          dummy1, dummy3;
   Index           dummy2;
-  Tensor3         dummy3, dummy5;
   ArrayOfTensor3  dummy4;
+  Tensor3         dummy5;
   //  
   get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
-                  0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                  0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
                   t_field, z_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
                   stokes_dim, f_grid, iy_clearsky_basic_agenda, 
                   iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
-
 
   // Do RT calculations
   //
@@ -1847,10 +1790,9 @@ void iyMC(
         Matrix&                     iy,
         Matrix&                     iy_error,
         Index&                      iy_error_type,
-        Tensor3&                    iy_aux,
+        Matrix&                     iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
-  const Index&                      iy_aux_do,
   const Tensor3&                    iy_transmission,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
@@ -1879,8 +1821,6 @@ void iyMC(
   const Numeric&                    mc_std_err,
   const Index&                      mc_max_time,
   const Index&                      mc_max_iter)
-  // GH 2011-06-17 commented out, unused
-  // const Index&                      mc_z_field_is_1D )
 {
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 3 )
@@ -1889,9 +1829,6 @@ void iyMC(
   if( !cloudbox_on )
     throw runtime_error( 
                     "The cloudbox must be activated (cloudbox_on must be 1)" );
-  if( iy_aux_do )
-    throw runtime_error( 
-      "This method does not provide any auxilary data (iy_aux_do must be 0)" );
   if( jacobian_do )
     throw runtime_error( 
         "This method does not provide any jacobians (jacobian_do must be 0)" );
@@ -1901,6 +1838,8 @@ void iyMC(
   if( iy_transmission.ncols() )
     throw runtime_error( "*iy_transmission* must be empty" );
 
+  // See initial comments of iyEmissionStandardClearsky
+
   // Size output variables
   //
   const Index   nf  = f_grid.nelem();
@@ -1908,8 +1847,9 @@ void iyMC(
   iy.resize( nf, stokes_dim );
   iy_error.resize( nf, stokes_dim );
   iy_error_type = 1;
-  //
-  iy_aux.resize( 0, 0, 0 );
+
+  // To avoid warning about unused variables
+  iy_aux.resize(0,0);
   diy_dx.resize(0);
 
   // Some MC variables are only local here
@@ -1945,8 +1885,8 @@ void iyMC(
                  r_geoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
                  pnd_field, scat_data_mono, 1, cloudbox_checked,
-                 mc_seed, y_unit, 
-                 mc_std_err, mc_max_time, mc_max_iter); // GH 2011-06-17, mc_z_field_is_1D);
+                 mc_seed, y_unit, mc_std_err, mc_max_time, mc_max_iter); 
+                 // GH 2011-06-17, mc_z_field_is_1D);
 
       assert( y.nelem() == stokes_dim );
 
@@ -1976,7 +1916,7 @@ void yCalc(
         Matrix&                     y_pos,
         Matrix&                     y_los,
         Vector&                     y_error,
-        Matrix&                     y_aux,
+        Vector&                     y_aux,
         Matrix&                     jacobian,
   const Index&                      basics_checked,
   const Index&                      atmosphere_dim,
@@ -2001,7 +1941,6 @@ void yCalc(
   const Vector&                     sensor_response_za,
   const Vector&                     sensor_response_aa,
   const Agenda&                     iy_clearsky_agenda,
-  const Index&                      iy_aux_do,
   const String&                     y_unit,
   const Agenda&                     jacobian_agenda,
   const Index&                      jacobian_do,
@@ -2135,10 +2074,10 @@ void yCalc(
   y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
   y_error.resize( nmblock*n1y );
-  if( iy_aux_do )
-    y_aux.resize( nmblock*n1y, N_AUX );
-  else 
-    y_aux.resize( 0, 0 );
+  y_aux.resize( nmblock*n1y );
+  //
+  y_error = 0;
+  y_aux = 999;
 
   // Jacobian variables
   //
@@ -2147,7 +2086,7 @@ void yCalc(
   if( jacobian_do )
     {
       jacobian.resize( nmblock*n1y, 
-                           jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
+                       jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
       jacobian = 0;
       //
       FOR_ANALYTICAL_JACOBIANS_DO(
@@ -2155,9 +2094,7 @@ void yCalc(
       )
     }
   else
-  {
-    jacobian.resize(0, 0);
-  }
+    { jacobian.resize(0, 0); }
 
 
   //---------------------------------------------------------------------------
@@ -2184,8 +2121,7 @@ void yCalc(
     {
       // Calculate monochromatic pencil beam data for 1 measurement block
       //
-      Vector          iyb, iyb_error, yb(n1y);
-      Matrix          iyb_aux;
+      Vector          iyb, iyb_aux, iyb_error, yb(n1y);
       Index           iy_error_type;
       ArrayOfMatrix   diyb_dx;      
       //
@@ -2193,7 +2129,7 @@ void yCalc(
                 imblock, atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                 z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
-                l_iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
+                l_iy_clearsky_agenda, y_unit, j_analytical_do, 
                 jacobian_quantities, jacobian_indices );
 
 
@@ -2207,10 +2143,8 @@ void yCalc(
       y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
 
       // Apply sensor response matrix on iyb_error, and put into y_error
-      //
-      if( iy_error_type == 0 )
-        { y_error[rowind] = 0; }
-      else if( iy_error_type == 1 )
+      // (nothing to do if type is 0).
+      if( iy_error_type == 1 )
         { 
           for( Index i=0; i<n1y; i++ )
             {
@@ -2225,14 +2159,12 @@ void yCalc(
             }
         }
       else if( iy_error_type == 2 )
-        { mult( y_error[rowind], sensor_response, iyb ); }
-      else
-        { assert( 0 ); }
+        { mult( y_error[rowind], sensor_response, iyb_error ); }
 
       // Apply sensor response matrix on iyb_aux, and put into y_aux
-      //
-      if( iy_aux_do )
-        { mult( y_aux(rowind,joker), sensor_response, iyb_aux ); }
+      // (if filled)
+      if( iyb_aux.nelem() )
+        { mult( y_aux[rowind], sensor_response, iyb_aux ); }
 
       // Fill information variables
       //

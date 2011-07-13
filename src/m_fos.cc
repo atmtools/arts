@@ -66,10 +66,9 @@ void fos_yStandard(
         Tensor3&                       fos_y,
         Matrix&                        iy_error,
         Index&                         iy_error_type,
-        Tensor3&                       iy_aux,
+        Matrix&                        iy_aux,
         ArrayOfTensor3&                diy_dx,
   const Vector&                        rte_pos,
-  const Index&                         iy_aux_do,
   const Index&                         atmosphere_dim,
   const Vector&                        p_grid,
   const Vector&                        lat_grid,
@@ -131,7 +130,7 @@ void fos_yStandard(
               else
                 {
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, iy_aux_do, 
+                                             iy_aux, diy_dx, 0, 
                                              iy_transmission,
                                              rte_pos, fos_angles(ia,Range(0,1)),
                                              0, jacobian_do, p_grid, 
@@ -196,7 +195,7 @@ void fos_yStandard(
                     { lat_stretched = lat_grid; }
                   
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, iy_aux_do, 
+                                             iy_aux, diy_dx, 0, 
                                              iy_transmission, 
                                              rte_pos, rte_los,
                                              0, jacobian_do, p_grid, 
@@ -213,7 +212,7 @@ void fos_yStandard(
           for( Index ia=0; ia<nfosa; ia++ )
             { 
               iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                         iy_aux, diy_dx, 0, iy_aux_do, 
+                                         iy_aux, diy_dx, 0, 
                                          iy_transmission, 
                                          rte_pos, fos_angles(ia,Range(0,2)),
                                          0, jacobian_do, p_grid, 
@@ -238,7 +237,7 @@ void fos_yStandard(
       for( Index ia=0; ia<nfosa; ia++ )
         { 
           iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
-                 rte_pos, fos_angles(ia,Range(0,nlos)), iy_aux_do, jacobian_do,
+                 rte_pos, fos_angles(ia,Range(0,nlos)), jacobian_do,
                  atmosphere_dim, p_grid, lat_grid, lon_grid, 
                  z_field, t_field, vmr_field, r_geoid, z_surface, 
                  cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
@@ -260,11 +259,10 @@ void iyFOS(
         Matrix&                        iy,
         Matrix&                        iy_error,
         Index&                         iy_error_type,
-        Tensor3&                       iy_aux,
+        Matrix&                        iy_aux,
         ArrayOfTensor3&                diy_dx,
   const Vector&                        rte_pos,
   const Vector&                        rte_los,
-  const Index&                         iy_aux_do,
   const Index&                         jacobian_do,
   const Index&                         atmosphere_dim,
   const Vector&                        p_grid,
@@ -344,7 +342,7 @@ void iyFOS(
   rte_los2 = ppath.los(ppath.np-1,joker);
   //
   iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                             iy_aux, diy_dx, 0, iy_aux_do, iy_transmission, 
+                             iy_aux, diy_dx, 0, iy_transmission, 
                              rte_pos2, rte_los2, 0, jacobian_do, 
                              p_grid, lat_grid, lon_grid, t_field, 
                              z_field, vmr_field, iy_clearsky_agenda );

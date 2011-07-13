@@ -1,3 +1,47 @@
+2011-07-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-2
+	
+	* Needed control file changes: Any setting of iy_aux_do shall be
+	removed. DoNothing shall be replaced with Ignore or Touch.
+
+	* Status: Beer-Lambert with cloudbox and FOS not yet revised.
+	Other RT methods revised. DOIT can now provide an error, but so far
+	just set to a hard-coded value.
+	
+	* src/m_ignore.h: Removed DoNothing. Has been flagged as
+	DEPRECATED for years!
+
+	* src/methods.cc: Updated text for affected methods. 
+
+	* tests/OdinSMR/TestOdinSMR.arts: Added calls (not active) showing
+	how to instead do transmission calculations.
+
+	* src/m_rte.cc: Changes related to iy_aux and iy_error throughout
+	the file.
+
+	* tests/DOIT/TestDOIT.arts: Added saving of y_aux and y_error, to
+	remind/show about that these WSV now are filled when using DOIT
+	(but yet no proper error estimate (but attenuation between
+	cloudbox and sensor is considered)).
+
+	* TODO: Restarted this file (just old stuff). Wrote down a few
+	lines about things to fix/consider for DOIT.
+
+	* src/m_doit.cc (iyInterpCloudboxField): Added handling of iy_aux
+	and iy_error. However, the later only with a hard-coded and fixed
+	error. 
+	(iyInterpPolyCloudboxField): As above.
+
+	* src/physics_funcs.cc (rayjean): New function.
+
+	* src/m_jacobian.cc: Adopted call of iyb_calc.
+
+	* src/workspace.cc: Changed the content of iy_aux and y_aux. These
+	variables hold now just one quantity (with transmission as main
+	case). Removed iy_aux_do (just made things complicated, with little
+	efficiency gain).
+
 2011-07-13  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-17-1
@@ -62,7 +106,6 @@
 	  - Added test case, based on TestHIRS.arts. Warning! slow:
 		  This run took 5832.06s (37804.05s CPU time)
 		For the Garand cases.
-
 
 2011-07-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

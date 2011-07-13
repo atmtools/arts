@@ -92,6 +92,19 @@ VectorZtanToZa1D( za, sensor_pos, r_geoid, atmosphere_dim, z_tan )
 Matrix1ColFromVector( sensor_los, za )
 
 
+# ---- Active these lines to instead calculate transmission
+#
+#AgendaSet( iy_space_agenda ){
+#  Ignore( rte_pos )
+#  Ignore( rte_los )
+#  MatrixUnitIntensity( iy, stokes_dim, f_grid )
+#}
+#AgendaSet( iy_clearsky_agenda ){
+#  iyBeerLambertStandardClearsky
+#}
+#StringSet( y_unit, "1" )
+
+
 
 # ---- Calculate spectra and save
 
@@ -108,5 +121,7 @@ WriteXML( output_file_format, y_f )
 WriteXML( output_file_format, y_pol )
 WriteXML( output_file_format, y_pos )
 WriteXML( output_file_format, y_los )
+WriteXML( output_file_format, y_error )
+WriteXML( output_file_format, y_aux )
 
 }

@@ -2970,9 +2970,8 @@ void iyInterpCloudboxField(
             Matrix&         iy,
             Matrix&         iy_error,
             Index&          iy_error_type,
-            Tensor3&        iy_aux,
+            Matrix&         iy_aux,
             ArrayOfTensor3& diy_dx,
-      const Index&          iy_aux_do,
       const Tensor3&        iy_transmission,
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
@@ -2991,18 +2990,42 @@ void iyInterpCloudboxField(
       const Vector&         scat_aa_grid,
       const Vector&         f_grid)
 {
-  // Retrieval varaibles
+  // Retrieval variables
   if( jacobian_do )
     throw runtime_error( 
         "This method does not provide any jacobians (jacobian_do must be 0)" );
   diy_dx.resize(0);
 
+  const Index nf = f_grid.nelem();
 
+  // iy
   iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
                             doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "linear" );
+
+  // As a temporary solution, create an "epsilon vector" matching
+  // [0.5,0.1,0.1,0.1] K. This shall be replaced with the epsilion vector
+  // inputted to doit_conv_flag (then must be made to a WSV).
+  const Numeric e = rayjean( (f_grid[0]+f_grid[nf-1])/2.0, 1 );
+  Vector eps(4,e/10);
+  eps[0] = e/2;
+
+  // iy_aux and iy_error
+  //
+  iy_aux.resize( nf, stokes_dim ); 
+  iy_error.resize( nf, stokes_dim ); 
+  iy_error_type = 2;
+  //
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      for( Index is=0; is<stokes_dim; is++ )
+        { 
+          iy_aux( iv, is ) = iy_transmission( iv, is, is ); 
+          iy_error( iv, is ) = iy_aux( iv, is ) * eps[is];
+        }
+    }
 }
 
 
@@ -3011,9 +3034,8 @@ void iyInterpPolyCloudboxField(
             Matrix&         iy,
             Matrix&         iy_error,
             Index&          iy_error_type,
-            Tensor3&        iy_aux,
+            Matrix&         iy_aux,
             ArrayOfTensor3& diy_dx,
-      const Index&          iy_aux_do,
       const Tensor3&        iy_transmission,
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
@@ -3038,11 +3060,36 @@ void iyInterpPolyCloudboxField(
         "This method does not provide any jacobians (jacobian_do must be 0)" );
   diy_dx.resize(0);
 
+  const Index nf = f_grid.nelem();
+
+  // iy
   iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
                             doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial" );
+
+  // As a temporary solution, create an "epsilon vector" matching
+  // [0.5,0.1,0.1,0.1] K. This shall be replaced with the epsilion vector
+  // inputted to doit_conv_flag (then must be made to a WSV).
+  const Numeric e = rayjean( (f_grid[0]+f_grid[nf-1])/2.0, 1 );
+  Vector eps(4,e/10);
+  eps[0] = e/2;
+
+  // iy_aux and iy_error
+  //
+  iy_aux.resize( nf, stokes_dim ); 
+  iy_error.resize( nf, stokes_dim ); 
+  iy_error_type = 2;
+  //
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      for( Index is=0; is<stokes_dim; is++ )
+        { 
+          iy_aux( iv, is ) = iy_transmission( iv, is, is ); 
+          iy_error( iv, is ) = iy_aux( iv, is ) * eps[is];
+        }
+    }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

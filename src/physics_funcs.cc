@@ -238,4 +238,30 @@ Numeric planck(
 
 
 
+//! rayjean
+/*! 
+    Converts a Rayleigh-Jean brightness temperature to radiance
+
+    \return     radiance
+    \param  tb  RJ brightness temperature
+    \param  f   frequency
+
+    \author Patrick Eriksson 
+    \date   2011-07-13 
+*/
+Numeric rayjean(
+        const Numeric&  f,
+        const Numeric&  t )
+{
+  assert( f > 0 );
+
+  // Double must be used here (if not, the result can be NaN when using float)
+  
+  static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+
+  return  ( (double)f * (double)f ) / ( a * (double)t );
+}
+
+
+
 
