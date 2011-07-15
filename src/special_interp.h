@@ -70,9 +70,12 @@ Numeric interp_atmfield_by_gp(
 
 void interp_cloudfield_gp2itw( 
               Matrix&           itw, 
-              ArrayOfGridPos&   gp_p,
-              ArrayOfGridPos&   gp_lat,
-              ArrayOfGridPos&   gp_lon,
+              ArrayOfGridPos&   gp_p_out,
+              ArrayOfGridPos&   gp_lat_out,
+              ArrayOfGridPos&   gp_lon_out,
+        const ArrayOfGridPos&   gp_p,
+        const ArrayOfGridPos&   gp_lat,
+        const ArrayOfGridPos&   gp_lon,
         const Index&            atmosphere_dim,
         const ArrayOfIndex&     cloudbox_limits );
 

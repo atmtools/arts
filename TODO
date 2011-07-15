@@ -9,3 +9,7 @@ radiance (using the newly added rayjean function).
 As far as I understand, DOIT assumes that emission is always given
 as W/m3/Hz/sr. The question is then if DOIT shall use emission_agenda, as there
 is no flexibility in selecting the source term.
+
+2011-07-15, Patrick
+Maybe MC and DOIT could use some of the more general functions developed for
+FOS and BL-scat. For example, mirror_los should be of general interest.

@@ -92,7 +92,7 @@ void fos_yStandard(
   const Agenda&                        opt_prop_gas_agenda,
   const Agenda&                        fos_y_agenda,
   const Matrix&                        fos_angles,
-  const Index&                         fos_use_mean_scat_data,
+  const Index&                         use_mean_scat_data,
   const Index&                         fos_n,
   const Index&                         fos_i )
 {
@@ -237,14 +237,14 @@ void fos_yStandard(
       for( Index ia=0; ia<nfosa; ia++ )
         { 
           iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
-                 rte_pos, fos_angles(ia,Range(0,nlos)), jacobian_do,
-                 atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                 iy_transmission, rte_pos, fos_angles(ia,Range(0,nlos)), 
+                 jacobian_do, atmosphere_dim, p_grid, lat_grid, lon_grid, 
                  z_field, t_field, vmr_field, r_geoid, z_surface, 
                  cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
                  ppath_step_agenda, emission_agenda, 
-                 abs_scalar_gas_agenda, iy_clearsky_agenda, iy_transmission, 
+                 abs_scalar_gas_agenda, iy_clearsky_agenda, 
                  pnd_field, scat_data_raw, opt_prop_gas_agenda, fos_y_agenda, 
-                 fos_angles, fos_use_mean_scat_data, fos_n, fos_i+1 );
+                 fos_angles, use_mean_scat_data, fos_n, fos_i+1 );
 
           fos_y(ia,joker,joker) = tmp;
         }
@@ -261,6 +261,7 @@ void iyFOS(
         Index&                         iy_error_type,
         Matrix&                        iy_aux,
         ArrayOfTensor3&                diy_dx,
+  const Tensor3&                       iy_transmission,
   const Vector&                        rte_pos,
   const Vector&                        rte_los,
   const Index&                         jacobian_do,
@@ -281,13 +282,12 @@ void iyFOS(
   const Agenda&                        emission_agenda,
   const Agenda&                        abs_scalar_gas_agenda,
   const Agenda&                        iy_clearsky_agenda,
-  const Tensor3&                       iy_transmission,
   const Tensor4&                       pnd_field,
   const ArrayOfSingleScatteringData&   scat_data_raw,
   const Agenda&                        opt_prop_gas_agenda,
   const Agenda&                        fos_y_agenda,
   const Matrix&                        fos_angles,
-  const Index&                         fos_use_mean_scat_data,
+  const Index&                         use_mean_scat_data,
   const Index&                         fos_n,
   const Index&                         fos_i )
 {
@@ -328,8 +328,53 @@ void iyFOS(
   const Index bkgr = ppath_what_background( ppath );
   if( bkgr == 2 )
     throw runtime_error( "Observations where (unscattered) propagation path "
-                         "hits the surface are not yet handled by FOS." );
+                         "hits the surface inside the cloudbox are not yet "
+                         "handled by this method." );
   assert( bkgr == 3 );
+
+  // Get atmospheric and RT quantities for each ppath point/step (inside box)
+  // 
+  // If np = 1, we only need to determine the radiative background
+  //
+  // "atmvars"
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Matrix    ppath_vmr, ppath_pnd;
+  // "rtvars"
+  Matrix    ppath_emission, ppath_tau;
+  Tensor3   wind_field_dummy(0,0,0), iy_trans_new;
+  Tensor3   ppath_asp_abs_vec, ppath_pnd_abs_vec, total_transmission;
+  Tensor4   ppath_asp_ext_mat, ppath_pnd_ext_mat, ppath_transmission;
+  Array<ArrayOfSingleScatteringData>  scat_data;
+  //
+  const Index np  = ppath.np;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_field_dummy, wind_field_dummy, wind_field_dummy );
+
+      // Particle number densities
+      get_ppath_pnd( ppath_pnd, 
+                     ppath, atmosphere_dim, cloudbox_limits, pnd_field );
+
+      // Absorption and optical thickness for each step
+      get_ppath_cloudrtvars( ws, ppath_asp_abs_vec, ppath_asp_ext_mat,
+                   ppath_pnd_abs_vec, ppath_pnd_ext_mat, ppath_transmission, 
+                   total_transmission, ppath_emission, scat_data,
+                   abs_scalar_gas_agenda, emission_agenda, opt_prop_gas_agenda,
+                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
+                   ppath_wind_v, ppath_wind_w, ppath_pnd, use_mean_scat_data,
+                   scat_data_raw, stokes_dim, f_grid, atmosphere_dim, 1 );
+    }
+  else // Just in case, should not happen
+    { assert( 0 ); }
+
+  // iy_transmission
+  //
+  iy_transmission_mult( iy_trans_new, iy_transmission, total_transmission );
 
   // Get iy for unscattered direction
   //
@@ -337,190 +382,61 @@ void iyFOS(
   // than expected by most functions. Only the first atmosphere_dim values
   // shall be copied.
   //
-  Vector rte_pos2, rte_los2;
-  rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
-  rte_los2 = ppath.los(ppath.np-1,joker);
-  //
-  iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                             iy_aux, diy_dx, 0, iy_transmission, 
-                             rte_pos2, rte_los2, 0, jacobian_do, 
-                             p_grid, lat_grid, lon_grid, t_field, 
-                             z_field, vmr_field, iy_clearsky_agenda );
+  Vector  rte_pos2;
+  {
+    Vector  rte_los2;
+    rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
+    rte_los2 = ppath.los(ppath.np-1,joker);
+    //
+    iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+                               iy_aux, diy_dx, 0, iy_trans_new,
+                               rte_pos2, rte_los2, 0, jacobian_do, 
+                               p_grid, lat_grid, lon_grid, t_field, 
+                               z_field, vmr_field, iy_clearsky_agenda );
+  }
 
   // RT for part inside cloudbox
   //
-  const Index   np  = ppath.np;
-  //
   if( np > 1 )
     {
-      // Some sizes
-      const Index   nf   = f_grid.nelem();
-      const Index   nabs = vmr_field.nbooks();
-      const Index   npar = pnd_field.nbooks();
-
-      // Containers for atmospheric data along the LOS
-      Vector   ppath_t(np), ppath_p(np);
-      Matrix   ppath_vmr(nabs,np);
-      Matrix   ppath_pnd(npar,np);
-
-      // Pressure:
-      {
-        Matrix   itw_p(np,2);
-        interpweights( itw_p, ppath.gp_p );
-        itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
-      }
-      
-      // Temperature and VMR
-      {
-        Matrix   itw_field;
-        //
-        interp_atmfield_gp2itw( itw_field, atmosphere_dim, 
-                                ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-        interp_atmfield_by_itw( ppath_t,  atmosphere_dim, t_field, ppath.gp_p, 
-                                ppath.gp_lat, ppath.gp_lon, itw_field );
-        for( Index is=0; is<nabs; is++ )
-          {
-            interp_atmfield_by_itw( ppath_vmr(is,joker), atmosphere_dim, 
-                                    vmr_field(is,joker,joker,joker), 
-                                    ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
-                                    itw_field );
-          }
-      }
-
-      // PND
-      {
-        Matrix   itw_field;
-        //
-        interp_cloudfield_gp2itw( itw_field, ppath.gp_p, ppath.gp_lat, 
-                               ppath.gp_lon, atmosphere_dim, cloudbox_limits );
-        for( Index ip=0; ip<npar; ip++ )
-          {
-            interp_atmfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
-                                   pnd_field(ip,joker,joker,joker), ppath.gp_p, 
-                                   ppath.gp_lat, ppath.gp_lon, itw_field );
-          }
-      }
-
-      // Scattering properties
-      Array<ArrayOfSingleScatteringData>   scat_data;
-      Index   nfs, ivf;
-      //
-      if( fos_use_mean_scat_data )
-        {
-          nfs = 1;  ivf = 0;
-          scat_data.resize( 1 );
-          Vector f_dummy( 1, (f_grid[0]+f_grid[nf-1])/2.0 );
-          scat_data_monoCalc( scat_data[0], scat_data_raw, f_dummy, 0 );
-        }
-      else
-        {
-          nfs = nf; ivf = 1;
-          scat_data.resize( nf );
-          for( Index iv=0; iv<nf; iv++ )
-            { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv ); }
-        }
-
-      // Number of FOS angles
-      const Index   nfosa = fos_angles.nrows();
-
-      // Data for end points of path step
-      // (1 first in propagation direction. Variable 2 for quantities not
-      // always calculated must be initiated to 0 (i.e. clear-sky).)
-      Matrix asg1(nf,nabs), asg2(nf, nabs);       // Absorption scalar gas
-      Vector b1(nf), b2(nf);                      // Emission source function
-      bool   cs1, cs2=true;                       // True if no particles 
-      Tensor3 emg1(nf,stokes_dim,stokes_dim);     // Extinction matrix
-      Tensor3 emg2(nf,stokes_dim,stokes_dim,0.0);
-      Matrix  avg1(nf,stokes_dim,0.0);            // Gas absorption vector
-      Matrix  avg2(nf,stokes_dim,0.0);
-      Tensor3 emp1(nfs,stokes_dim,stokes_dim);    // Particle exinction matrix
-      Tensor3 emp2(nfs,stokes_dim,stokes_dim,0.0);
-      Matrix  avp1(nfs,stokes_dim);               // Particle absorption vector
-      Matrix  avp2(nfs,stokes_dim,0.0); 
+      // General variables
+      const Index   nf    = f_grid.nelem();
+      const Index   nfosa = fos_angles.nrows();   // Number of FOS angles
       Matrix  s1(nf,stokes_dim);                  // Scattering source term
       Matrix  s2(nf,stokes_dim,0.0);
 
+      // Help variables for handling of *use_mean_scat_data*
+      Index   nfs, ivf;
+      //
+      if( use_mean_scat_data )
+        { nfs = 1;  ivf = 0; }
+      else
+        { nfs = nf; ivf = 1; }
+
       // Loop ppath steps
       for( Index ip=np-1; ip>=0; ip-- )
-        {
-          // Move data one step (new 1 is old 2)
-          asg1 = asg2;    
-          b1   = b2;
-          cs1  = cs2;
-          emg1 = emg2;
-          avg1 = avg2;
-          emp1 = emp2;
-          avp1 = avp2;
-          s1   = s2;
+        {              
+          // Update scattering source term (new 1 is old 2)
+          s1 = s2;
 
-          // Gas absorption and blackbody radiation
-          abs_scalar_gas_agendaExecute( ws, asg2, -1, 0, ppath_p[ip], ppath_t[ip], 
-                                  ppath_vmr(joker,ip), abs_scalar_gas_agenda );
-          emission_agendaExecute( ws, b2, ppath_t[ip], emission_agenda );
-
-          // Extinction matrix and absorption vector for gases
-          // (Not needed for clear-sky, but must anyhow be calculated to get
-          // the shifting from point 2 to point 1 correct.
-          opt_prop_gas_agendaExecute( ws, emg2, avg2, -1, asg2, 
-                                                         opt_prop_gas_agenda );
-              
-          // Any particles?
-          if( max(ppath_pnd(joker,ip)) < 1e-3 ) { cs2 = true; }
-          else                                  { cs2 = false; }
-
-          // If clear-sky, set all scattering quantities to zero. 
-          // Otherwise make calculations.
-          if( cs2 )
+          // Scattering source term (is zero if no particles)
+          if( max(ppath_pnd(joker,ip)) < 1e-3 )
             {
-              emp2 = 0.0;
-              avp2 = 0.0;
-              s2   = 0;
+              s2 = 0.0;
             }
           else
             {
-              // Direction of outgoing scattered radiation (which is 
-              // reversed to LOS).
-              // A viewing direction of aa=0 is assumed for 1D. This
-              // corresponds to positive za for 2D. Note that rte_los2 is 
-              // only used for extracting scattering properties. 
-              //
-              rte_los2.resize(2);
-              //
-              Numeric za = ppath.los(ip,0);
-              //
-              if( atmosphere_dim == 1 )
-                { 
-                  rte_los2[0] = 180 - za; 
-                  rte_los2[1] = 180; 
-                }
-              else if( atmosphere_dim == 2 )
-                {
-                  rte_los2[0] = 180 - fabs( za ); 
-                  if( za >= 0 )
-                    { rte_los2[1] = 180; }
-                  else
-                    { rte_los2[1] = 0; }
-                }
-              else if( atmosphere_dim == 3 )
-                { 
-                  rte_los2[0] = 180 - za; 
-                  rte_los2[1] = ppath.los(ip,1) + 180; 
-                  if( rte_los2[1] > 180 )
-                    { rte_los2[1] -= 360; }
-                }
-
-              // Particle properties
-              for( Index iv=0; iv<nfs; iv++ )
-                { 
-                  opt_propCalc( emp2(iv,joker,joker), avp2(iv,joker), 
-                                rte_los2[0], rte_los2[1], scat_data[iv], 
-                                stokes_dim, ppath_pnd(joker,ip), ppath_t[ip] );
-                }
-
-              // Determine incoming radiation (here Y, WSV is fos_y)
+              // Determine incoming radiation (here Y, WSV equals fos_y)
               Tensor3  Y;
               fos_y_agendaExecute( ws, Y, rte_pos2, fos_angles, fos_n, fos_i, 
                                                                 fos_y_agenda );
+
+
+              // Direction of outgoing scattered radiation (which is reversed
+              // to LOS). Note that this rte_los2 is only used for extracting
+              // scattering properties.
+              Vector rte_los2;
+              mirror_los( rte_los2, ppath.los(ip,joker), atmosphere_dim );
 
               // Determine phase matrix for fov_angles
               Tensor4  P( nfosa, nfs, stokes_dim, stokes_dim );
@@ -555,54 +471,38 @@ void iyFOS(
           // RT of ppath step (nothing to do when at upper point)
           if( ip < np-1 )
             {
-              // Clearsky step
-              if( ( cs1 && cs2 )  ||  fos_n == 0 )
+              // Loop frequencies
+              for( Index iv=0; iv<nf; iv++ )
                 {
-                  // Loop frequencies
-                  for( Index iv=0; iv<nf; iv++ )
+                  // Calculate average of absorption, extinction etc.
+                  Matrix  ext_mat( stokes_dim, stokes_dim,0 );
+                  Vector  abs_vec(stokes_dim,0.0);
+                  Vector  s(stokes_dim,0.0);
+                  Numeric b = 0.5 * ( ppath_emission(iv,ip) + 
+                                      ppath_emission(iv,ip+1) );
+                  for( Index is1=0; is1<stokes_dim; is1++ )
                     { 
-                      const Numeric step_tr = exp( -ppath.l_step[ip] * 0.5 *
-                             ( asg1(iv,joker).sum() + asg2(iv,joker).sum() ) );
-                      //
-                      iy(iv,0)  = iy(iv,0) * step_tr + (1-step_tr) * 0.5 *
-                                                  (b1[iv] + b2[iv]);
-                      //
-                      for( Index is=1; is<stokes_dim; is++ )
-                        { iy(iv,is) *= step_tr; }
-                    }
-                }
-          
-              // RT step with scattering
-              else
-                {
-                  // Loop frequencies
-                  for( Index iv=0; iv<nf; iv++ )
-                    {
-                      // Calculate average of absorption, extinction etc.
-                      Matrix ext_mat(stokes_dim,stokes_dim,0.0);
-                      Vector abs_vec(stokes_dim,0.0), s(stokes_dim,0.0);
-                      Numeric b = 0.5 * ( b1[iv] + b2[iv] );
-                      //
-                      for( Index i1=0; i1<stokes_dim; i1++ )
+                      s[is1]  = 0.5 * ( s1(iv,is1) + s2(iv,is1) );
+                      abs_vec[is1] = 0.5 * ( 
+                                          ppath_asp_abs_vec(iv,is1,ip+1) +
+                                          ppath_asp_abs_vec(iv,is1,ip)   +
+                                          ppath_pnd_abs_vec(iv,is1,ip+1) +
+                                          ppath_pnd_abs_vec(iv,is1,ip) );
+                      for( Index is2=0; is2<stokes_dim; is2++ )
                         {
-                          abs_vec[i1] = 0.5 * ( avg1(iv,i1) + avg2(iv,i1) +
-                                        avp1(iv*ivf,i1) + avp2(iv*ivf,i1) ); 
-                          s[i1]  = 0.5 * ( s1(iv,i1) + s2(iv,i1) );
-                          //
-                          for( Index i2=0; i2<stokes_dim; i2++ )
-                            {
-                              ext_mat(i1,i2) = 0.5 * ( 
-                                     emg1(iv,    i1,i2) + emg2(iv,    i1,i2) + 
-                                     emp1(iv*ivf,i1,i2) + emp2(iv*ivf,i1,i2) );
-                            }
+                          ext_mat(is1,is2) = 0.5 * (
+                                          ppath_asp_ext_mat(iv,is1,is2,ip+1) +
+                                          ppath_asp_ext_mat(iv,is1,is2,ip)   +
+                                          ppath_pnd_ext_mat(iv,is1,is2,ip+1) +
+                                          ppath_pnd_ext_mat(iv,is1,is2,ip) );
                         }
-
-                      // RT for step
-                      Matrix trans_mat(stokes_dim,stokes_dim); 
-                      //
-                      rte_step_std( iy(iv,joker), trans_mat, ext_mat, abs_vec,
-                                                     s, ppath.l_step[ip], b );
                     }
+
+                  // RT for step
+                  Matrix trans_mat(stokes_dim,stokes_dim); 
+                  //
+                  rte_step_std( iy(iv,joker), trans_mat, ext_mat, abs_vec,
+                                                     s, ppath.l_step[ip], b );
                 }
             }
         } 

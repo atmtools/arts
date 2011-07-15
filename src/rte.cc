@@ -43,6 +43,7 @@
 #include "check_input.h"
 #include "logic.h"
 #include "math_funcs.h"
+#include "montecarlo.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rte.h"
@@ -280,6 +281,77 @@ void apply_y_unit2(
 
 
 
+//! ext2trans
+/*!
+    Converts an extinction matrix to a transmission matrix
+
+    The function performs the calculations differently depending on the
+    conditions to improve the speed. There are three cases: <br>
+       1. Scalar absorption. <br>
+       2. The matrix ext_mat_av is diagonal. <br>
+       3. The total general case.
+
+    \param   trans_mat          Input/Output: Transmission matrix of slab.
+    \param   ext_mat            Input: Averaged extinction matrix.
+    \param   l_step             Input: The length of the RTE step.
+
+    \author Claudia Emde and Patrick Eriksson, 
+    \date   2010-10-15
+*/
+void ext2trans(//Output and Input:
+              MatrixView trans_mat,
+              //Input
+              ConstMatrixView ext_mat_av,
+              const Numeric& l_step )
+{
+  //Stokes dimension:
+  Index stokes_dim = ext_mat_av.nrows();
+
+  //Check inputs:
+  assert( is_size(trans_mat, stokes_dim, stokes_dim) );
+  assert( is_size(ext_mat_av, stokes_dim, stokes_dim) );
+  assert( l_step >= 0 );
+  assert( !is_singular( ext_mat_av ) );
+
+  // Any changes here should also be implemented in rte_step_std.
+
+  //--- Scalar case: ---------------------------------------------------------
+  if( stokes_dim == 1 )
+    {
+      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
+    }
+
+
+  //--- Vector case: ---------------------------------------------------------
+
+  //- Unpolarised
+  else if( is_diagonal(ext_mat_av) )
+    {
+      const Numeric tv = exp(-ext_mat_av(0,0) * l_step);
+
+      trans_mat = 0;
+
+      for( Index i=0; i<stokes_dim; i++ )
+        {
+          trans_mat(i,i)  = tv;
+        }
+    }
+
+
+  //- General case
+  else
+    {
+      Matrix ext_mat_ds = ext_mat_av;
+      ext_mat_ds *= -l_step; 
+
+      Index q = 10;  // index for the precision of the matrix exp function
+
+      matrix_exp( trans_mat, ext_mat_ds, q );
+    }
+}
+
+
+
 //! get_ppath_atmvars
 /*!
     Determines pressure, temperature, VMR and winds for each propgataion path
@@ -388,7 +460,47 @@ void get_ppath_atmvars(
 
 
 
-//! get_step_vars_for_standardRT
+//! get_ppath_pnd
+/*!
+    Determines particle number densities for each propgataion path
+    point.
+
+    The output variable is sized inside the function as
+    [ particle type, propagation path point ].
+
+    \param   ppath_pnd         Out: PND for each ppath point.
+    \param   ppath             As the WSV.
+    \param   atmosphere_dim    As the WSV.
+    \param   pnd_field         As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2011-07-14
+*/
+void get_ppath_pnd( 
+        Matrix&         ppath_pnd, 
+  const Ppath&          ppath,
+  const Index&          atmosphere_dim,
+  const ArrayOfIndex&   cloudbox_limits,
+  ConstTensor4View      pnd_field )
+{
+  ppath_pnd.resize( pnd_field.nbooks(), ppath.np );
+
+  Matrix   itw_field;
+  ArrayOfGridPos   gpc_p, gpc_lat, gpc_lon;
+  //
+  interp_cloudfield_gp2itw( itw_field, gpc_p, gpc_lat, gpc_lon, 
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
+                            atmosphere_dim, cloudbox_limits );
+  for( Index ip=0; ip<pnd_field.nbooks(); ip++ )
+    {
+      interp_atmfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
+                              pnd_field(ip,joker,joker,joker), 
+                              gpc_p, gpc_lat, gpc_lon, itw_field );
+    }
+}
+
+
+//! get_ppath_rtvars
 /*!
     Determines variables for each step of "standard" RT integration
 
@@ -400,7 +512,7 @@ void get_ppath_atmvars(
     \param   ppath_tau         Out: Optical thickness of each ppath step 
     \param   total_tau         Out: Total optical thickness of path
     \param   ppath_emission    Out: Emission source term at each ppath point 
-    \param   abs_scalar_agenda As the WSV.    
+    \param   abs_scalar_gas_agenda As the WSV.    
     \param   emission_agenda   As the WSV.    
     \param   ppath_p           Pressure for each ppath point.
     \param   ppath_t           Temperature for each ppath point.
@@ -422,7 +534,7 @@ void get_ppath_rtvars(
         Matrix&      ppath_tau,
         Vector&      total_tau,
         Matrix&      ppath_emission, 
-  const Agenda&      abs_scalar_agenda,
+  const Agenda&      abs_scalar_gas_agenda,
   const Agenda&      emission_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_p, 
@@ -450,7 +562,7 @@ void get_ppath_rtvars(
   else
     { ppath_emission.resize( 0, 0 ); }
 
-  // Frequency to apply for Doppler shift
+  // Mean of extreme frequencies
   const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
 
   for( Index ip=0; ip<np; ip++ )
@@ -494,7 +606,7 @@ void get_ppath_rtvars(
       //
       abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, rte_doppler, ppath_p[ip], 
                                     ppath_t[ip], ppath_vmr(joker,ip), 
-                                    abs_scalar_agenda );
+                                    abs_scalar_gas_agenda );
       ppath_abs_scalar(joker,joker,ip) = sgmatrix;
       //
       if( emission_do )
@@ -513,6 +625,218 @@ void get_ppath_rtvars(
                                          ppath_abs_scalar(iv,joker,ip-1).sum() +
                                          ppath_abs_scalar(iv,joker,ip).sum() );
               total_tau[iv] += ppath_tau(iv,ip-1);
+            }
+        }
+    }
+}
+
+
+
+//! get_ppath_cloudrtvars
+/*!
+    Determines variables for each step of "standard" RT integration
+
+    See code for details about dimensions etc.
+
+    \param   ws                  Out: The workspace
+    \param   ppath_asp_abs_vec   Out: Absorption vectors for absorption species
+    \param   ppath_asp_ext_vec   Out: Extinction matrices for absorption species
+    \param   ppath_pnd_abs_vec   Out: Absorption vectors for particles
+    \param   ppath_pnd_ext_vec   Out: Extinction matrices for particles
+    \param   ppath_transmission  Out: Transmissions of each ppath step 
+    \param   total_transmission  Out: Total transmission of path
+    \param   ppath_emission      Out: Emission source term at each ppath point 
+    \param   scat_data           Out: Extracted scattering data. Length of
+                                      array affected by *use_mean_scat_data*.
+    \param   abs_scalar_gas_agenda As the WSV.    
+    \param   emission_agenda     As the WSV.    
+    \param   opt_prop_gas_agenda As the WSV.    
+    \param   ppath_p             Pressure for each ppath point.
+    \param   ppath_t             Temperature for each ppath point.
+    \param   ppath_vmr           VMR values for each ppath point.
+    \param   ppath_wind_u        U-wind for each ppath point.
+    \param   ppath_wind_v        V-wind for each ppath point.
+    \param   ppath_wind_w        W-wind for each ppath point.
+    \param   ppath_pnd           Particle number densities for each ppath point.
+    \param   use_mean_scat_data  As the WSV.    
+    \param   scat_data_raw       As the WSV.    
+    \param   stokes_dim          As the WSV.    
+    \param   f_grid              As the WSV.    
+    \param   atmosphere_dim      As the WSV.    
+    \param   emission_do         Flag for calculation of emission. Should be
+                                 set to 0 for pure transmission calculations.
+
+    \author Patrick Eriksson 
+    \date   2011-07-14
+*/
+void get_ppath_cloudrtvars( 
+        Workspace&                     ws,
+        Tensor3&                       ppath_asp_abs_vec, 
+        Tensor4&                       ppath_asp_ext_mat, 
+        Tensor3&                       ppath_pnd_abs_vec, 
+        Tensor4&                       ppath_pnd_ext_mat, 
+        Tensor4&                       ppath_transmission,
+        Tensor3&                       total_transmission,
+        Matrix&                        ppath_emission, 
+  Array<ArrayOfSingleScatteringData>&  scat_data,
+  const Agenda&                        abs_scalar_gas_agenda,
+  const Agenda&                        emission_agenda,
+  const Agenda&                        opt_prop_gas_agenda,
+  const Ppath&                         ppath,
+  ConstVectorView                      ppath_p, 
+  ConstVectorView                      ppath_t, 
+  ConstMatrixView                      ppath_vmr, 
+  ConstVectorView                      ppath_wind_u, 
+  ConstVectorView                      ppath_wind_v, 
+  ConstVectorView                      ppath_wind_w, 
+  ConstMatrixView                      ppath_pnd, 
+  const Index&                         use_mean_scat_data,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Index&                         stokes_dim,
+  ConstVectorView                      f_grid, 
+  const Index&                         atmosphere_dim,
+  const Index&                         emission_do )
+{
+  // Sizes
+  const Index   np   = ppath.np;
+  const Index   nf   = f_grid.nelem();
+
+  // Init variables
+  ppath_asp_abs_vec.resize( nf, stokes_dim, np );
+  ppath_asp_ext_mat.resize( nf, stokes_dim, stokes_dim, np );
+  ppath_pnd_abs_vec.resize( nf, stokes_dim, np );
+  ppath_pnd_ext_mat.resize( nf, stokes_dim, stokes_dim, np );
+  ppath_transmission.resize( nf, stokes_dim, stokes_dim, np-1 );
+  total_transmission.resize( nf, stokes_dim, stokes_dim );
+  //
+  if( emission_do )
+    { ppath_emission.resize( nf, np ); }
+  else
+    { ppath_emission.resize( 0, 0 ); }
+
+  // Mean of extreme frequencies
+  const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
+
+
+  // Particle single scattering properties (are independent of position)
+  //
+  if( use_mean_scat_data )
+    {
+      scat_data.resize( 1 );
+      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f0), 0 );
+    }
+  else
+    {
+      scat_data.resize( nf );
+      for( Index iv=0; iv<nf; iv++ )
+        { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv ); }
+    }
+
+
+  // Loop ppath points
+  //
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Doppler shift 
+      // 
+      assert( ppath_wind_u[ip] == 0 );
+      assert( ppath_wind_v[ip] == 0 );
+      assert( ppath_wind_w[ip] == 0 );
+      //
+      const Numeric rte_doppler = 0;
+
+      // Emission source term
+      //
+      if( emission_do )
+        {
+          Vector   evector;   // Agenda must be free to resize
+          emission_agendaExecute( ws, evector, ppath_t[ip], emission_agenda );
+          ppath_emission(joker,ip) = evector;
+        }
+
+      // Absorption species properties 
+        {
+          Matrix   asgmatrix;   // Agendas must be free to resize
+          Matrix   abs_vec( nf, stokes_dim, 0 );
+          Tensor3  ext_mat( nf, stokes_dim, stokes_dim, 0 );
+          //
+          abs_scalar_gas_agendaExecute( ws, asgmatrix, -1, rte_doppler, 
+                                        ppath_p[ip], ppath_t[ip], 
+                                        ppath_vmr(joker,ip), 
+                                        abs_scalar_gas_agenda );
+          opt_prop_gas_agendaExecute( ws, ext_mat, abs_vec, -1, asgmatrix, 
+                                      opt_prop_gas_agenda );
+          ppath_asp_ext_mat(joker,joker,joker,ip) = ext_mat;
+          ppath_asp_abs_vec(joker,joker,ip)       = abs_vec;
+        }
+
+      // Particle properties 
+        {
+          // Direction of outgoing scattered radiation (which is reversed to
+          // LOS). Note that rte_los2 is only used for extracting scattering
+          // properties.
+          Vector rte_los2;
+          mirror_los( rte_los2, ppath.los(ip,joker), atmosphere_dim );
+
+          // Extinction and absorption
+          if( use_mean_scat_data )
+            {
+              Vector   abs_vec( stokes_dim, 0 );
+              Matrix   ext_mat( stokes_dim, stokes_dim, 0 );
+              opt_propCalc( ext_mat, abs_vec,
+                            rte_los2[0], rte_los2[1], scat_data[0], 
+                            stokes_dim, ppath_pnd(joker,ip), ppath_t[ip] );
+              for( Index iv=0; iv<nf; iv++ )
+                { 
+                  ppath_pnd_ext_mat(iv,joker,joker,ip) = ext_mat;
+                  ppath_pnd_abs_vec(iv,joker,ip)       = abs_vec;
+                }
+            }
+          else
+            {
+              for( Index iv=0; iv<nf; iv++ )
+                { 
+                  Vector   abs_vec( stokes_dim, 0 );
+                  Matrix   ext_mat( stokes_dim, stokes_dim, 0 );
+                  opt_propCalc( ext_mat, abs_vec,
+                                rte_los2[0], rte_los2[1], scat_data[iv], 
+                                stokes_dim, ppath_pnd(joker,ip), ppath_t[ip] );
+                  ppath_pnd_ext_mat(iv,joker,joker,ip) = ext_mat;
+                  ppath_pnd_abs_vec(iv,joker,ip)       = abs_vec;
+                }
+            }
+        }
+       
+      // Transmission
+      //
+      if( ip == 0 )   // Set total_transmission to identity matrices
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { id_mat( total_transmission(iv,joker,joker) ); } 
+        }
+      else
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              // Average extinction matrix
+              Matrix  ext_mat_av( stokes_dim, stokes_dim,0 );
+              for( Index is1=0; is1<stokes_dim; is1++ )
+                { 
+                  for( Index is2=0; is2<stokes_dim; is2++ )
+                    {
+                      ext_mat_av(is1,is2) = 0.5 * (
+                                          ppath_asp_ext_mat(iv,is1,is2,ip-1) +
+                                          ppath_asp_ext_mat(iv,is1,is2,ip)   +
+                                          ppath_pnd_ext_mat(iv,is1,is2,ip-1) +
+                                          ppath_pnd_ext_mat(iv,is1,is2,ip) );
+                    }
+                }
+              // Transmission
+              ext2trans( ppath_transmission(iv,joker,joker,ip-1),
+                         ext_mat_av, ppath.l_step[ip-1] );  
+              const Matrix tmp = total_transmission(iv,joker,joker);
+              mult( total_transmission(iv,joker,joker), tmp,
+                    ppath_transmission(iv,joker,joker,ip-1) );
             }
         }
     }
@@ -658,8 +982,6 @@ void iy_transmission_mult_scalar_tau(
 {
   const Index nf = iy_transmission.npages();
 
-  cout << nf << "    " << tau.nelem() << "\n"; 
-
   assert( iy_transmission.ncols() == iy_transmission.nrows() );
   assert( nf == tau.nelem() );
 
@@ -668,6 +990,54 @@ void iy_transmission_mult_scalar_tau(
   for( Index iv=0; iv<nf; iv++ )
     { iy_trans_new(iv,joker,joker) *= exp( -tau[iv] ); } 
 }
+
+
+
+//! mirror_los
+/*!
+    Determines the backward direction for a given line-of-sight.
+
+    This function can be used to get the LOS to apply for extracting single
+    scattering properties, if the propagation path LOS is given.
+
+    A viewing direction of aa=0 is assumed for 1D. This corresponds to 
+    positive za for 2D.
+
+    \param   los_mirrored      Out: The line-of-sight for reversed direction.
+    \param   los               A line-of-sight
+    \param   atmosphere_dim    As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2011-07-15
+*/
+void mirror_los(
+        Vector&     los_mirrored,
+  ConstVectorView   los, 
+  const Index&      atmosphere_dim )
+{
+  los_mirrored.resize(2);
+  //
+  if( atmosphere_dim == 1 )
+    { 
+      los_mirrored[0] = 180 - los[0]; 
+      los_mirrored[1] = 180; 
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      los_mirrored[0] = 180 - fabs( los[0] ); 
+      if( los[0] >= 0 )
+        { los_mirrored[1] = 180; }
+      else
+        { los_mirrored[1] = 0; }
+    }
+  else if( atmosphere_dim == 3 )
+    { 
+      los_mirrored[0] = 180 - los[0]; 
+      los_mirrored[1] = los[1] + 180; 
+      if( los_mirrored[1] > 180 )
+        { los_mirrored[1] -= 360; }
+    }
+}    
 
 
 
@@ -738,6 +1108,8 @@ void rte_step_std(//Output and Input:
   assert( l_step >= 0 );
   assert (!is_singular( ext_mat_av ));
 
+  // Any changes here associated with the extinction matrix should also be
+  // implemented in ext2mat.
 
   // Check, if only the first component of abs_vec is non-zero:
   bool unpol_abs_vec = true;
@@ -912,11 +1284,7 @@ void surface_calc(
     vector, then containing the outgoing radiation on the other side of the 
     layer.
 
-    The function performs the calculations differently depending on the
-    conditions to improve the speed. There are three cases: <br>
-       1. Scalar absorption (stokes_dim = 1). <br>
-       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
-       3. The total general case.
+    Transmission calculated by *ext2trans*.
 
     \param   stokes_vec         Input/Output: A Stokes vector.
     \param   trans_mat          Input/Output: Transmission matrix of slab.
@@ -933,53 +1301,11 @@ void trans_step_std(//Output and Input:
               ConstMatrixView ext_mat_av,
               const Numeric& l_step )
 {
-  //Stokes dimension:
-  Index stokes_dim = stokes_vec.nelem();
+  // Checks made in *ext2trans*.
+  ext2trans( trans_mat, ext_mat_av, l_step );  
 
-  //Check inputs:
-  assert(is_size(trans_mat, stokes_dim, stokes_dim));
-  assert(is_size(ext_mat_av, stokes_dim, stokes_dim));
-  assert( l_step >= 0 );
-  assert (!is_singular( ext_mat_av ));
+  Vector tmp = stokes_vec;
 
-  //--- Scalar case: ---------------------------------------------------------
-  if( stokes_dim == 1 )
-    {
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
-      stokes_vec[0]  *= trans_mat(0,0);
-    }
-
-
-  //--- Vector case: ---------------------------------------------------------
-
-  //- Unpolarised
-  else if( is_diagonal(ext_mat_av) )
-    {
-      const Numeric tv = exp(-ext_mat_av(0,0) * l_step);
-
-      trans_mat      = 0;
-
-      for( Index i=0; i<stokes_dim; i++ )
-        {
-          trans_mat(i,i)  = tv;
-          stokes_vec[i]  *= tv;
-        }
-    }
-
-
-  //- General case
-  else
-    {
-      Matrix ext_mat_ds = ext_mat_av;
-      ext_mat_ds *= -l_step; 
-
-      Index q = 10;  // index for the precision of the matrix exp function
-
-      matrix_exp( trans_mat, ext_mat_ds, q );
-
-      Vector tmp = stokes_vec;
-
-      mult( stokes_vec, trans_mat, tmp );
-    }
+  mult( stokes_vec, trans_mat, tmp );
 }
 

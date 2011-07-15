@@ -61,6 +61,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include "auto_md.h"
 #include "check_input.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -279,13 +280,17 @@ Numeric interp_atmfield_by_gp(
     positions already refer to grid parts inside the cloudbox, you can use 
     interp_atmfield_gp2itw.
 
-    The grid positions are modified by the function, to match the cloudbox
-    field, and can be used for later calls of e.g. interp_atmfield_by_itw
+    The output grid positions are created by the function, to match the
+    cloudbox field, and can be used for later calls of e.g.
+    interp_atmfield_by_itw
 
     \param   itw                Output: Interpolation weights.
-    \param   gp_p               In/out: Pressure grid positions.
-    \param   gp_lat             In/out: Latitude grid positions.
-    \param   gp_lon             In/out: Longitude grid positions.
+    \param   gp_p_out           Output: Pressure cloudbox grid positions.
+    \param   gp_lat_out         Output: Latitude cloudbox grid positions.
+    \param   gp_lon_out         Output: Longitude cloudbox grid positions.
+    \param   gp_p_in            Pressure grid positions.
+    \param   gp_lat_in          Latitude grid positions.
+    \param   gp_lon_in          Longitude grid positions.
     \param   atmosphere_dim     As the WSV with the same name.
     \param   cloudbiox_limits   As the WSV with the same name.
 
@@ -294,62 +299,74 @@ Numeric interp_atmfield_by_gp(
 */
 void interp_cloudfield_gp2itw( 
               Matrix&           itw, 
-              ArrayOfGridPos&   gp_p,
-              ArrayOfGridPos&   gp_lat,
-              ArrayOfGridPos&   gp_lon,
+              ArrayOfGridPos&   gp_p_out,
+              ArrayOfGridPos&   gp_lat_out,
+              ArrayOfGridPos&   gp_lon_out,
+        const ArrayOfGridPos&   gp_p_in,
+        const ArrayOfGridPos&   gp_lat_in,
+        const ArrayOfGridPos&   gp_lon_in,
         const Index&            atmosphere_dim,
         const ArrayOfIndex&     cloudbox_limits )
 {
-  const Index n = gp_p.nelem();
+  const Index n = gp_p_in.nelem();
 
   // Shift grid positions to cloud box grids
   if( atmosphere_dim == 1 )
     {
+      gp_p_out.resize(n);
       for (Index i = 0; i < n; i++ ) 
         { 
-          gp_p[i].idx -= cloudbox_limits[0]; 
+          gridpos_copy( gp_p_out[i], gp_p_in[i] ); 
+          gp_p_out[i].idx -= cloudbox_limits[0]; 
         }
       const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
-      gridpos_upperend_check( gp_p, n1 );
+      gridpos_upperend_check( gp_p_out, n1 );
       //
       itw.resize(n,2);
-      interpweights( itw, gp_p );
+      interpweights( itw, gp_p_out );
     }
   else if( atmosphere_dim == 2 )
     {
+      gp_p_out.resize(n);
+      gp_lat_out.resize(n);
       for (Index i = 0; i < n; i++ ) 
         { 
-          gp_p[i].idx -= cloudbox_limits[0]; 
-          gp_lat[i].idx -= cloudbox_limits[2]; 
+          gridpos_copy( gp_p_out[i], gp_p_in[i] ); 
+          gridpos_copy( gp_lat_out[i], gp_lat_in[i] ); 
+          gp_p_out[i].idx   -= cloudbox_limits[0]; 
+          gp_lat_out[i].idx -= cloudbox_limits[2]; 
         }
       const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
       const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
-      gridpos_upperend_check( gp_p,   n1 );
-      gridpos_upperend_check( gp_lat, n2 );
+      gridpos_upperend_check( gp_p_out,   n1 );
+      gridpos_upperend_check( gp_lat_out, n2 );
       //
-      assert( gp_lat.nelem() == n );
       itw.resize(n,4);
-      interpweights( itw, gp_p, gp_lat );
+      interpweights( itw, gp_p_out, gp_lat_out );
     }
   else 
     {
+      gp_p_out.resize(n);
+      gp_lat_out.resize(n);
+      gp_lon_out.resize(n);
       for (Index i = 0; i < n; i++ ) 
         { 
-          gp_p[i].idx -= cloudbox_limits[0]; 
-          gp_lat[i].idx -= cloudbox_limits[2]; 
-          gp_lon[i].idx -= cloudbox_limits[4];
+          gridpos_copy( gp_p_out[i], gp_p_in[i] ); 
+          gridpos_copy( gp_lat_out[i], gp_lat_in[i] ); 
+          gridpos_copy( gp_lon_out[i], gp_lon_in[i] ); 
+          gp_p_out[i].idx   -= cloudbox_limits[0]; 
+          gp_lat_out[i].idx -= cloudbox_limits[2]; 
+          gp_lon_out[i].idx -= cloudbox_limits[4];
         }
       const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
       const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
       const Index n3 = cloudbox_limits[5] - cloudbox_limits[4];
-      gridpos_upperend_check( gp_p,   n1 );
-      gridpos_upperend_check( gp_lat, n2 );
-      gridpos_upperend_check( gp_lon, n3 );
+      gridpos_upperend_check( gp_p_out,   n1 );
+      gridpos_upperend_check( gp_lat_out, n2 );
+      gridpos_upperend_check( gp_lon_out, n3 );
       //
-      assert( gp_lat.nelem() == n );
-      assert( gp_lon.nelem() == n );
       itw.resize(n,8);
-      interpweights( itw, gp_p, gp_lat, gp_lon );
+      interpweights( itw, gp_p_out, gp_lat_out, gp_lon_out );
     }
 }
 

@@ -48,6 +48,7 @@
 #include "matpackI.h"
 #include "matpackII.h"
 #include "matpackIII.h"
+#include "optproperties.h"
 
 
 /*===========================================================================
@@ -67,6 +68,11 @@ void apply_y_unit2(
    ConstVectorView       f_grid,
    const ArrayOfIndex&   i_pol );
 
+void ext2trans(
+         MatrixView   trans_mat,
+   ConstMatrixView    ext_mat_av,
+   const Numeric&     l_step );
+
 void get_ppath_atmvars( 
         Vector&      ppath_p, 
         Vector&      ppath_t, 
@@ -82,6 +88,41 @@ void get_ppath_atmvars(
   ConstTensor3View   wind_u_field,
   ConstTensor3View   wind_v_field,
   ConstTensor3View   wind_w_field );
+
+void get_ppath_cloudrtvars( 
+        Workspace&                     ws,
+        Tensor3&                       ppath_asp_abs_vec, 
+        Tensor4&                       ppath_asp_ext_mat, 
+        Tensor3&                       ppath_pnd_abs_vec, 
+        Tensor4&                       ppath_pnd_ext_mat, 
+        Tensor4&                       ppath_transmission,
+        Tensor3&                       total_transmission,
+        Matrix&                        ppath_emission, 
+  Array<ArrayOfSingleScatteringData>&  scat_data,
+  const Agenda&                        abs_scalar_gas_agenda,
+  const Agenda&                        emission_agenda,
+  const Agenda&                        opt_prop_gas_agenda,
+  const Ppath&                         ppath,
+  ConstVectorView                      ppath_p, 
+  ConstVectorView                      ppath_t, 
+  ConstMatrixView                      ppath_vmr, 
+  ConstVectorView                      ppath_wind_u, 
+  ConstVectorView                      ppath_wind_v, 
+  ConstVectorView                      ppath_wind_w, 
+  ConstMatrixView                      ppath_pnd, 
+  const Index&                         use_mean_scat_data,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Index&                         stokes_dim,
+  ConstVectorView                      f_grid, 
+  const Index&                         atmosphere_dim,
+  const Index&                         emission_do );
+
+void get_ppath_pnd( 
+        Matrix&         ppath_pnd, 
+  const Ppath&          ppath,
+  const Index&          atmosphere_dim,
+  const ArrayOfIndex&   cloudbox_limits,
+  ConstTensor4View      pnd_field );
 
 void get_ppath_rtvars( 
         Workspace&   ws,
@@ -149,6 +190,11 @@ void iyb_calc(
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices );
+
+void mirror_los(
+        Vector&     los_mirrored,
+  ConstVectorView   los, 
+  const Index&      atmosphere_dim );
 
 void rte_step_std(
          //Output and Input:

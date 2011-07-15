@@ -1,3 +1,37 @@
+2011-07-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-3
+
+	* FOS and BLcloudbox are now using common code as far as possible.
+	This revision also provide the basis to extend the methods to also
+	handle the (jacobians later left for future work).
+	This should also close the revision of the iyEmission, iyBL, iyMC
+	and iyFOS methods on interface level.
+	
+	* src/m_fos.cc (iyFOS): Restructured, in the same way as
+	iyBeerLambertStandardCloudbox.
+	
+	* src/workspace.cc: The scope of fos_use_mean_scat_data extended
+	and renamed to use_mean_scat_data (now a general variable used of
+	both FOS and BL).
+
+	* src/m_rte.cc (iyBeerLambertStandardCloudbox): Restructured. Now
+	using get_ppath_cloudrtvars. iy_transmission now handled, and the
+	function is then prepared to also handle jacobians.
+
+	* src/rte.cc (get_ppath_pnd): New function, to complement
+	get_ppath_atmvars inside the cloudbox.
+	(ext2trans): Created this function (based on trans_step_std). This
+	for improved modularity.
+	(trans_step_std): Now using ext2trans.
+	(get_ppath_cloudrtvars): New function covering core parts for
+	iyBeerLambertStandardCloudbox and iyFOS.
+	(mirror_los): New function. Determined the backward direction.
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Now
+	distinction between in and out gridpos. This to make it clear that
+	the gridpos-es are changed by the function.
+
 2011-07-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-17-2
