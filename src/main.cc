@@ -1078,6 +1078,13 @@ int main (int argc, char **argv)
 #endif
       out2 << "\n";
 
+      time_t rawtime;
+      struct tm * timeinfo;
+
+      time ( &rawtime );
+      timeinfo = localtime ( &rawtime );
+      out2 << "Run started: " << asctime(timeinfo) << "\n";
+
 
       {
         // Output verbosity settings. This is not too interesting, it
