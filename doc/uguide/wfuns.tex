@@ -1,4 +1,4 @@
-\chapter{Weighting functions}
+\chapter{Clear-sky weighting functions}
  \label{sec:wfuns}
 
  \starthistory
@@ -22,10 +22,11 @@ where \MsrVct\ is the vector of measurement data and $x_p$ is one forward model
 The nomenclature of that section is also used here.
 
 A weighting function forms a column of the complete weighting function matrix,
-\aWfnMtr{\SttVct}. The usage of the name weighting function is quite restricted
-and the Jacobian is a more commonly encountered name for \aWfnMtr{\SttVct}. In
-the documentation of ARTS you find both terms. Also the term ``the Jacobians''
-is used, which shall be interpreted as ``the weighting functions''. These names
+\aWfnMtr{\SttVct}. The usage of the name weighting function is maybe restricted
+just to atmospheric sounding and the Jacobian is a more commonly encountered
+name for \aWfnMtr{\SttVct}, in the general scientific literature. In the
+documentation of ARTS you find both terms. Also the term ``the Jacobians'' is
+used, which shall be interpreted as ``the weighting functions''. These names
 refer normally to \aWfnMtr{\SttVct}, the partial derivatives with respect to
 the variables to be retrieved, forming the state vector \SttVct. However, in
 the context of retrieval characterisation, the same matrix for the remaining
@@ -46,6 +47,12 @@ a slower convergence (the inversion will require more iterations). Due to these
 later aspects, and to meet the needs of more experienced users, this section is
 relatively detailed and contains a (high?) number of equations.
 
+This section is restricted to WFs for clear-sky conditions, i.e.\ to be applied
+outside the cloudbox. As the basic radiative transfer expressions, the complete
+Stokes vector is considered, to correctly handle polarisation signatures
+created by the surface. So far none of the scattering methods provide WFs.
+
+
 
 
 \section{Introduction}
@@ -62,9 +69,9 @@ but also the more inefficient approach.
 %==============================================================================
 \label{sec:wfuns:pert}
 %
-The most straightforward method to determine a WF is by perturbing
-the model parameter. For example, the WF for the state variable
-$p$ can always be calculated as 
+The most straightforward method to determine a WF is by perturbing the model
+parameter of concern. For example, the WF for the state variable $p$ can always
+be calculated as
 \begin{equation}
   \aWfnMtr{\SttVct}^p = \frac{\FrwMdl(\SttVct+\Delta x\VctStl{e}^p,\FrwMdlVct)-
                               \FrwMdl(\SttVct,\FrwMdlVct)}{\Delta x}
@@ -88,14 +95,14 @@ short-cuts are discussed separately for each retrieval quantity.
 \label{sec:wfuns:anal}
 %
 For most atmospheric variables, such as species abundance, it is possible to
-derive an analytical expression for the WFs. This is advantageous because it
-results in faster and more accurate calculations. Such expressions are derived
+derive an analytical expression for the WFs. This is advantageous because they
+result in faster and more accurate calculations. Such expressions are derived
 below. Some of the terms involved are calculated as a perturbation. This is
 partly a consequence of the flexibility of ARTS. The high-level radiative
 transfer methods (e.g.\ \builtindoc{iyEmissionStandardClearsky}) do not know
 how the low-level methods are defining all quantities, and a fixed analytical
-expression can not be used (see e.g.\ Sec.~FIXME). So, in practise the
-calculations are ``semi-analytical''.
+expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp2}). So, in
+practise, the calculations are ``semi-analytical''.
 
 To understand the analytical expressions, it is important to remember that ARTS
 covers the sensor by a response matrix:
@@ -117,21 +124,23 @@ Auxiliary information is provided by \wsvindex{jacobian\_quantities} and
 
 The retrieval quantities are defined separately, before calling
 \builtindoc{yCalc}. This process is started by calling \wsmindex{jacobianInit}.
-The retrieval quantities are then introduced through dedicated by specific
-workspace methods, named as jacobianAdd{\it Something}. For example, for
-atmospheric temperature the method is \builtindoc{jacobianAddTemperature}. See
-Sec.~\ref{sec:wfuns:aval} for other retrieval quantities. The order in which
-these ``add methods'' is called does not matter.
+The retrieval quantities are then introduced through workspace methods named as
+jacobianAdd{\it Something}. For example, for atmospheric temperature the method
+is \builtindoc{jacobianAddTemperature}. See Sec.~\ref{sec:wfuns:aval} for other
+retrieval quantities. The order in which these ``add methods'' is called does
+not matter.
 
 Finalise the definition of retrieval quantities by calling
 \wsmindex{jacobianClose}. To disable the calculation of WFs, skip all above,
-and just use \wsmindex{jacobianOff}.
+and just use \wsmindex{jacobianOff}. The methods named jacobianCalc{\it
+  Something} shall never be used directly. Neither needs the user to consider
+\wsvindex{jacobian\_agenda}.
 
 The input to the ``add methods'' differs. In some cases you can select between
-analytical and perturbation. For all perturbation calculations you must specify
-the size of the perturbation. For atmospheric gases you can use different
-units. For atmospheric fields, and some other quantities, you must define the
-retrieval grid(s) to use.
+the analytical and perturbation options. For all perturbation calculations you
+must specify the size of the perturbation. For atmospheric gases you can use
+different units. For atmospheric fields, and some other quantities, you must
+define the retrieval grid(s) to use.
 
 
 
@@ -165,9 +174,9 @@ operates with two types of basis functions.
 %
 To treat an one-dimensional quantity to be piece-wise linear, or to say that a
 linear interpolation shall be applied, are identical definitions. The basis
-functions matching this definition have triangular shape, here denoted as
+functions matching this definition have triangular shape, sometimes denoted as
 ``tenth functions''. Such functions are exemplified in
-Fig.~\ref{fig:wfuns:zbasis}, see also \citet{buehler:artst:05}. 
+Fig.~\ref{fig:wfuns:zbasis}, see also \citet{buehler:artst:05}.
 
 \begin{figure}[t]
  \begin{center}
@@ -183,10 +192,10 @@ points of the grid. Hence, the basis function for a grid end point is then just
 ``half a tenth''. The exception to this rule is retrieval grids of piece-wise
 linear variables. To avoid that retrieval grids must cover the complete
 atmosphere, end point values are assumed to be valid to the end of the
-atmosphere. That is, the basis functions for end points of retrieval grids
-follow the tenth shape inside the grid range, and have a constant value of 1
-outside (to the end of the atmosphere). In terms of interpolation, this matches
-to allow extrapolation, the applying a ``nearest'' interpolation for positions
+atmosphere (or data range of concern). That is, the basis functions for end
+points of retrieval grids follow the tenth shape inside the grid range, and
+have a constant value of 1 outside. In terms of interpolation, this matches to
+allow extrapolation, the applying a ``nearest'' interpolation for positions
 outside the covered range (the end values are valid all the way to
 $\pm$infinity).
 
@@ -199,11 +208,11 @@ tenth functions are then 2D or 3D ``tenths''.
 \subsection{Polynomial basis functions}
 \label{sec:wfuns:basis2}
 %
-Some retrieval quantities are expressed using a polynomial basis. Zenith angle
-pointing off-set is one such quantity. The off-set is then treated to have a
-polynomial variation as a function of time. If the offset is assumed to be
-constant in time, a zero order polynomial shall be selected. If there is also a
-linear drift with time, use a first order polynomial, etc.
+Some retrieval quantities are expressed using a polynomial basis. Sensor zenith
+angle pointing off-set is one such quantity. The off-set is then treated to
+have a polynomial variation as a function of time. If the offset is assumed to
+be constant in time, a zero order polynomial shall be selected. If there is
+also a linear drift with time, use a first order polynomial, etc.
 
 For these basis functions, the explanatory variable (time in the example above)
 is normalised to cover the range [-1,1], here denoted as $z$, and the
@@ -230,7 +239,12 @@ Hz).
 %==============================================================================
 \label{sec:wfuns:aval}
 
-Only clear-sky.
+As mentioned, this section deals only with WFs for clear-sky calculations. In
+principle, perturbation calculations can be applied also with scattering, but
+the high calculation burden (of both perturbations and scattering) causes that
+the option can only be used for a few test calculations.
+
+\FIXME{The part below is so far just notes, to be revised}
 
 
 \subsection{Absorption species}
@@ -337,6 +351,7 @@ refraction affects the propagation path significantly.
 \label{sec:wfuns:atmtemp}
 
 \subsubsection{Analytical}
+\label{sec:wfuns:atmtemp2}
 
 A changed temperature has several non-local effects, originating from
 refraction and hydrostatic equilibrium. These non-local effects make the
