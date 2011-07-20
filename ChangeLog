@@ -1,3 +1,16 @@
+2011-07-20  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-17-7
+
+	* includes/avhrr/*.backend_channel_response.xml:
+	  - Cleaned this up; removed all frequencies before and after
+	    response values start to be negative, all those values are very
+		small and hovering around zero. This reduces the number of
+		frequencies by around 2/3rd.
+	
+	* includes/avhrr/get_avhrr_srf.py:
+	  - Code to clean up the frequencies; some more HTML fixes as well.
+
 2011-07-18  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-17-6

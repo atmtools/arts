@@ -36,6 +36,15 @@ channels = "3B 4 5".split()
 cmd = "lynx -dump -nolist %s"
 out = "AVHRR_SRF_%(sat)s_%(channel)s.xml"
 
+# HTML bugs...
+repl_table = {"< /TR>": "",
+              " e": " ",
+              "R-": "E-",
+              "4X": "4",
+              "9090E-01": "9.90E-1",
+              "1.00E+01": "1.00E-00",
+              "3025E-04": "3.25E-04"}
+
 def html2srf(s):
     """Gets AVHRR 3B, 4, 5 SRF from KLM User's Guide HTML
 
@@ -49,14 +58,8 @@ def html2srf(s):
     for line in s[start:].split('\n'):
         if line.strip() and line.strip()[0].isdigit():
             # bugs in html-code necessisates:
-            if "< /TR>" in line:
-                line = line.replace("< /TR>", "")
-            if " e" in line:
-                line = line.replace(" e", " ")
-            if "R-" in line:
-                line = line.replace("R-", "E-")
-            if "4X" in line:
-                line = line.replace("4X", "4")
+            for k, v in repl_table.items():
+                line = line.replace(k, v)
             started = True
             L = line.strip().split()
             for i in range(3):
@@ -78,6 +81,19 @@ def html2srf(s):
     return tuple(GF(array(ch[i][0]),
                     array(ch[i][1]))
                  for i in xrange(3))
+
+def cleanup(srf):
+    """Cleans up srf (GF1), removing everything beyond the negatives
+    """
+    data = srf.data
+    middle = data.size//2
+    if (data<0).any():
+        first = (data[:middle]<0).nonzero()[0][-1]
+        last = (data[middle:]<0).nonzero()[0][0]+middle+1
+        return GF(srf.axes[0][first:last], srf.data[first:last])
+    else:
+        print data
+        return srf
 
 def centres(s):
     """Gets centre frequencies for channels 3B, 4, 5 from HTML
@@ -101,7 +117,7 @@ def ch2gf(sat):
         # sort according to relative frequency
         relfreq = gf.axes[0] - c[i]
         ii = relfreq.argsort()
-        newgf = GF(relfreq[ii], gf.data[ii])
+        newgf = cleanup(GF(relfreq[ii], gf.data[ii]))
         #integral = scipy.integrate.trapz(newgf.axes[0], newgf.data)
         #newgf.data /= integral
         #newgf.data[newgf.data<0]=0
