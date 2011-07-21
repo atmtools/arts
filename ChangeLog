@@ -1,3 +1,11 @@
+2011-07-21  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-17-8
+
+	* tests/AVHRR/TestAVHRR.ybatch.xml: Updated
+	  - Updated after cleaning up yesterdays code (millikelvins
+	  difference).
+
 2011-07-20  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-17-7
