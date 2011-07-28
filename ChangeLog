@@ -1,3 +1,30 @@
+2011-07-22  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-17-9
+
+	* includes/avhrr/{NOAA19_AVHRR.f_grid_fast.xml,
+					  avhrr_sensor_fast.arts,
+					  avhrr_fast.arts,
+					  NOAA19_AVHRR.W_fast.xml}:
+	  - Added fast setup for AVHRR. So far only NOAA-19, channel 5.
+	
+	* src/m_sensor.cc:
+	  
+	  (f_gridFromSensorHIRS): Bugfix
+	  - Check that spacing is positive (avoid assertion)
+
+	  (WMRFSelectChannels): Bugfix
+	  - Verify some frequencies are left
+
+	  (sensor_responseWMRF):
+	  - Check non-empty sensor_response
+	
+	* src/methods.cc: Cosmetics
+
+	* src/matpackII.cc(transpose):
+	  - Was segfaulting on empty matrix. Now returns new empty matrix.
+
+
 2011-07-21  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-17-8

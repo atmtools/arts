@@ -8823,7 +8823,7 @@ void define_md_data_raw()
          "\n"
          "The HIRS fast setup consists of a precalculated frequency grid\n"
          "covering all HIRS channels, and associated weights for each channel,\n"
-         "stored in a weight matrix. (A sensor_response matrix.)\n"
+         "stored in a weight matrix. (A *sensor_response* matrix.)\n"
          "\n"
          "If not all channels are requested for\n"
          "simulation, then this method can be used to remove the unwanted\n"

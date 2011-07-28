@@ -25,7 +25,7 @@
 
 /*!
   \file   m_sensor.cc
-  \author Mattias Ekström/Patrick Eriksson <patrick.eriksson@chalmers.se>
+  \author Mattias EkstrÃ¶m/Patrick Eriksson <patrick.eriksson@chalmers.se>
   \date   2003-02-13
 
   \brief  Workspace functions related to sensor modelling variables.
@@ -461,6 +461,13 @@ void f_gridFromSensorHIRS(// WS Output:
                           // Control Parameters:
                           const Numeric& spacing)
 {
+  // Check input
+  if (spacing <= 0) {
+    ostringstream os;
+    os << "Expected positive spacing. Found spacing to be: "
+       << spacing << "\n";
+    throw runtime_error(os.str());
+  }
   // Call subfunction to get channel boundaries. Also does input
   // consistency checking for us.
   Vector fmin, fmax;
@@ -2245,6 +2252,10 @@ void WMRFSelectChannels(// WS Output:
       // No frequencies were removed, I can return the original grid.
       out2 << "  No unnecessary frequencies, leaving f_grid untouched.\n";
     }
+  else if (selection.nelem() == 0)
+    {
+      throw runtime_error("No frequencies found for any selected channels.\n");
+    }
   else
     {
       out2 << "  Reducing number of frequency grid points from "
@@ -2312,20 +2323,29 @@ void sensor_responseWMRF(// WS Output:
     error_found = true;
   }
 
-  // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
-  if( min(f_backend) < min(sensor_response_f_grid) )
+  if (nin == 0)
     {
-      os << "At least one value in *f_backend* (" << min(f_backend) 
-         << ") below range\ncovered by *sensor_response_f_grid* ("
-         << min(sensor_response_f_grid) << ").\n";
+      os << "One of f_grid, pol_grid, za_grid are empty. Sizes are: ("
+         << nf << ", " << npol << ", " << nza << ")" << "\n";
       error_found = true;
     }
-  if( max(f_backend) > max(sensor_response_f_grid) )
-    {
-      os << "At least one value in *f_backend* (" << max(f_backend) 
-         << ") above range\ncovered by *sensor_response_f_grid* ("
-         << max(sensor_response_f_grid) << ").\n";
-      error_found = true;
+  else // Finding the minimum or maximum will result in assertion if empty
+    { 
+      // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
+      if( min(f_backend) < min(sensor_response_f_grid) )
+        {
+          os << "At least one value in *f_backend* (" << min(f_backend) 
+             << ") below range\ncovered by *sensor_response_f_grid* ("
+             << min(sensor_response_f_grid) << ").\n";
+          error_found = true;
+        }
+      if( max(f_backend) > max(sensor_response_f_grid) )
+        {
+          os << "At least one value in *f_backend* (" << max(f_backend) 
+             << ") above range\ncovered by *sensor_response_f_grid* ("
+             << max(sensor_response_f_grid) << ").\n";
+          error_found = true;
+        }
     }
 
   // Check number of rows in WMRF weight matrix

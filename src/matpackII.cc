@@ -291,7 +291,7 @@ Sparse::~Sparse()
   \param r Where to insert the row
   \param v Vector to be inserted.
 
-  \author Mattias Ekström <ekstrom@rss.chalmers.se>
+  \author Mattias Ekstr?m <ekstrom@rss.chalmers.se>
   \date   2003-08-11
 */
 void Sparse::insert_row(Index r, Vector v)
@@ -462,7 +462,7 @@ void Sparse::insert_row(Index r, Vector v)
   \param r New row dimension.
   \param c New column dimension.
 
-  \author Mattias Ekström
+  \author Mattias Ekstr?m
   \date   2003-12-05
 */
 void Sparse::make_I( Index r, Index c)
@@ -789,6 +789,7 @@ void transpose( Sparse& A,
   // Check dimensions
   assert( A.nrows() == B.ncols() );
   assert( A.ncols() == B.nrows() );
+  if ( B.mdata->size() == 0) return;
 
   // Here we allocate memory for the A.mdata and A.mrowind vectors so that
   // it matches the input matrix. (NB: that mdata and mrowind already has
