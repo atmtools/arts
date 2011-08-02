@@ -197,10 +197,12 @@ void Agenda::execute(Workspace& ws) const
   extern void (*getaways[])(Workspace&, const MRecord&);
 
   {
-    ostringstream os;
-    os << "Executing " << name() << "\n"
-       << "{\n";
-    out1 << os.str();
+//    ostringstream os;  // disabled for performance reasons
+//    os << "Executing " << name() << "\n"
+//       << "{\n";
+//    out1 << os.str();
+    out1 << "Executing " << name() << "\n"
+    << "{\n";
   }
 
   for (Index i=0; i<mml.nelem(); ++i)
@@ -220,15 +222,17 @@ void Agenda::execute(Workspace& ws) const
                 && Workspace::wsv_data[mrr.In()[0]].Name().substr(0, 5)
                    == "auto_"))
               {
-                ostringstream os;
-                os << "- " << mdd.Name() << "\n";
-                out3 << os.str();
+//                ostringstream os;  // disabled for performance reasons
+//                os << "- " << mdd.Name() << "\n";
+//                out3 << os.str();
+                out3 << "- " << mdd.Name() << "\n";
               }
             else
               {
-                ostringstream os;
-                os << "- " << mdd.Name() << "\n";
-                out1 << os.str();
+//                ostringstream os;  // disabled for performance reasons
+//                os << "- " << mdd.Name() << "\n";
+//                out1 << os.str();
+                out1 << "- " << mdd.Name() << "\n";
               }
           }
         

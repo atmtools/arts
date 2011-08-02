@@ -1,5 +1,34 @@
 2011-08-02  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-17-11
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Don't use ostringstreams here. They have a significant impact on
+	performance:
+
+	arts -r010 TestDOITBatch.arts:
+
+	ubuntu5: with ostringstream 39s, without 32s. 1.22x faster
+	MacBook Pro: with ostringstream 75s, without 43s. 1.73x faster
+
+	make -j4 check:
+
+	ubuntu5: with ostringstream 44s, without 41s. 1.07x faster
+	MacBook Pro: with ostringstream 104s, without 61s. 1.71x faster
+
+	ubuntu5: Xeon CPU, 8 physical cores
+	MacBook Pro: i7 CPU, 4 physical cores, 4 logical cores
+
+	The problem lies in the C library. ostringstream references a locale
+	object that is protected by a global mutex. The more threads are used,
+	the more they block each other.
+
+	Even running arts with -r000 to skip all output, the problem persists
+	as the ostringstreams are created anyway.
+
+2011-08-02  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-17-10
 
 	* src/docserver.cc, src/xml_io.cc, src/montecarlo.cc,
