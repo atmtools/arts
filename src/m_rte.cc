@@ -161,13 +161,11 @@ void diy_from_path_to_rgrids(
         }
 
       // Longitude
-      Index            nr3 = 1;
       ArrayOfGridPos   gp_lon;
       if( atmosphere_dim > 2 )
         {
           gp_lon.resize(ppath.np);
           r_grid = jacobian_quantity.Grids()[2];
-          nr3    = r_grid.nelem();
           gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
           add_extrap( gp_lon );
         }

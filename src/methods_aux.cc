@@ -734,7 +734,6 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   //     << "Description =\n" << mdr.Description() << "\n\n";
 
   // Out:
-  first = true;
   indent = String(6);
   String desc;
   for ( Index i=0; i<mdr.Out().nelem(); ++i )

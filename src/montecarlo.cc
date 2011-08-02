@@ -1267,7 +1267,7 @@ void opt_propExtract(
                      VectorView     abs_vec_mono_spt,
                      const SingleScatteringData& scat_data,
                      const Numeric  za,
-                     const Numeric  aa,
+                     const Numeric  aa _U_, // avoid warning until we use ptype=10
                      const Numeric  rte_temperature,
                      const Index    stokes_dim
                      )
@@ -1279,8 +1279,6 @@ void opt_propExtract(
     {
       gridpos(t_gp, scat_data.T_grid, rte_temperature);
     }
-  Numeric x=aa;//just to avoid warnings until we use ptype=10
-  x+=1;        //
   switch (scat_data.ptype){
 
   case PARTICLE_TYPE_GENERAL:

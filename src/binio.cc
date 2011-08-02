@@ -62,7 +62,7 @@ binio::Flags binio::detect_system_flags()
   if(endian_test.byte != 1) f |= BigEndian;
 
   // IEEE-754 floating-point test
-  float fl = 6.5;
+  float fl = 6.5f;
   Byte	*dat = (Byte *)&fl;
 
   if(sizeof(float) == 4 && sizeof(double) == 8)

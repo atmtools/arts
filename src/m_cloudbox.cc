@@ -110,10 +110,12 @@ void cloudboxSetAutomatically (
   //const Index np = massdensity_field.npages(); 
   Index p1 = massdensity_field.npages()-1;
   Index p2 = 0;
-  Index lat1 = massdensity_field.nrows()-1;
-  Index lat2 = 0;
-  Index lon1 = massdensity_field.ncols()-1;
-  Index lon2 = 0;
+  DEBUG_ONLY(
+             Index lat1 = massdensity_field.nrows()-1;
+             Index lat2 = 0;
+             Index lon1 = massdensity_field.ncols()-1;
+             Index lon2 = 0;
+  )
   Index p_margin1;
 
   Index type_flag=0, i=0, j=0, k=0, l=0;

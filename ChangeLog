@@ -1,3 +1,21 @@
+2011-08-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-17-10
+
+	* src/docserver.cc, src/xml_io.cc, src/montecarlo.cc,
+	src/methods_aux.cc, src/m_rte.cc, src/nc_io.cc:
+
+	Remove unused variables.
+
+	* src/m_cloudbox.cc:
+
+	Put lat1,2 and lon1,2 into DEBUG() to avoid unused variable warnings
+	in release mode.
+
+	* src/arts_getopt.c: Make sure to never deference null pointer.
+
+	* src/binio.cc: Add f to float number.
+
 2011-07-22  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-1-17-9

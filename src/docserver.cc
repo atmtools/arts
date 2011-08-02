@@ -1780,7 +1780,6 @@ ahc_echo (void *cls _U_,
           void **ptr)
 {
   static int aptr;
-  const char *val;
   string surl(url);
   struct MHD_Response *response;
   int ret;
@@ -1797,7 +1796,7 @@ ahc_echo (void *cls _U_,
     return MHD_YES;
   }
   *ptr = NULL;                  /* reset when done */
-  val = MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "q");
+  MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "q");
   
   ostringstream hout;
   

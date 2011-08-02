@@ -385,9 +385,6 @@ filename_xml_with_index (
               const Index&   file_index,
               const String&  varname )
 {
-  Index dummy = file_index;
-  dummy += 1;
-
   if ("" == filename)
     {
       extern const String out_basename;
