@@ -69,19 +69,19 @@ extern const Index GFIELD4_AA_GRID;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AntennaConstantGaussian1D(
-           Index&   antenna_dim,
-          Vector&   mblock_za_grid,
-          Vector&   mblock_aa_grid,
-   GriddedField4&   r,
-          Matrix&   antenna_los,
-   const Index&     n_za_grid,
-   const Numeric&   fwhm,
-   const Numeric&   xwidth_si,
-   const Numeric&   dx_si )
+void AntennaConstantGaussian1D(Index&           antenna_dim,
+                               Vector&          mblock_za_grid,
+                               Vector&          mblock_aa_grid,
+                               GriddedField4&   r,
+                               Matrix&          antenna_los,
+                               const Index&     n_za_grid,
+                               const Numeric&   fwhm,
+                               const Numeric&   xwidth_si,
+                               const Numeric&   dx_si,
+                               const Verbosity& verbosity)
 {
-  AntennaSet1D( antenna_dim, mblock_aa_grid );
-  antenna_responseGaussian( r, fwhm, xwidth_si, dx_si );
+  AntennaSet1D( antenna_dim, mblock_aa_grid, verbosity );
+  antenna_responseGaussian( r, fwhm, xwidth_si, dx_si, verbosity );
 
   antenna_los.resize(1,1);
   antenna_los(0,0) = 0.0;
@@ -112,14 +112,14 @@ void AntennaConstantGaussian1D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AntennaMultiBeamsToPencilBeams(
-       Matrix&   sensor_pos,
-       Matrix&   sensor_los,
-       Matrix&   antenna_los,
-        Index&   antenna_dim,
-       Vector&   mblock_za_grid,
-       Vector&   mblock_aa_grid,
-  const Index&   atmosphere_dim )
+void AntennaMultiBeamsToPencilBeams(Matrix&          sensor_pos,
+                                    Matrix&          sensor_los,
+                                    Matrix&          antenna_los,
+                                    Index&           antenna_dim,
+                                    Vector&          mblock_za_grid,
+                                    Vector&          mblock_aa_grid,
+                                    const Index&     atmosphere_dim,
+                                    const Verbosity& verbosity)
 {
   // Sizes
   const Index nmblock = sensor_pos.nrows();
@@ -179,7 +179,7 @@ void AntennaMultiBeamsToPencilBeams(
     }
 
   // Set other variables
-  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid );
+  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid, verbosity );
   //
   antenna_los.resize( 1, 1 );
   antenna_los = 0;
@@ -188,12 +188,14 @@ void AntennaMultiBeamsToPencilBeams(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AntennaOff(
-   // WS Output:
-    Index&   antenna_dim,
-   Vector&   mblock_za_grid,
-   Vector&   mblock_aa_grid )
+void AntennaOff(// WS Output:
+                Index&  antenna_dim,
+                Vector& mblock_za_grid,
+                Vector& mblock_aa_grid,
+                const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   out2 << "  Sets the antenna dimensionality to 1.\n";
   antenna_dim = 1;
 
@@ -208,11 +210,14 @@ void AntennaOff(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AntennaSet1D(
-   // WS Output:
-    Index&   antenna_dim,
-   Vector&   mblock_aa_grid )
+void AntennaSet1D(// WS Output:
+                  Index&   antenna_dim,
+                  Vector&  mblock_aa_grid,
+                  const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   out2 << "  Sets the antenna dimensionality to 1.\n";
   out3 << "    antenna_dim = 1\n";
   out3 << "    mblock_aa_grid is set to be an empty vector\n";
@@ -223,12 +228,15 @@ void AntennaSet1D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AntennaSet2D(
-   // WS Output:
-         Index&   antenna_dim,
-   // WS Input:
-   const Index&   atmosphere_dim )
+void AntennaSet2D(// WS Output:
+                  Index&   antenna_dim,
+                  // WS Input:
+                  const Index&   atmosphere_dim,
+                  const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   if( atmosphere_dim != 3 )
     throw runtime_error("Antenna dimensionality 2 is only allowed when the "
                                           "atmospheric dimensionality is 3." );
@@ -240,11 +248,11 @@ void AntennaSet2D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseGaussian(
-          GriddedField4&   r,
-    const Numeric&   fwhm,
-    const Numeric&   xwidth_si,
-    const Numeric&   dx_si )
+void antenna_responseGaussian(GriddedField4&   r,
+                              const Numeric&   fwhm,
+                              const Numeric&   xwidth_si,
+                              const Numeric&   dx_si,
+                              const Verbosity&)
 {
   Vector x, y;
   gaussian_response( x, y, 0, fwhm, xwidth_si, dx_si );
@@ -271,9 +279,9 @@ void antenna_responseGaussian(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void backend_channel_responseFlat(
-   ArrayOfGriddedField1&   r,
-    const Numeric&   resolution )
+void backend_channel_responseFlat(ArrayOfGriddedField1& r,
+                                  const Numeric&        resolution,
+                                  const Verbosity&)
 {
   r.resize( 1 );
   r[0].set_name( "Backend channel response function" );
@@ -293,11 +301,11 @@ void backend_channel_responseFlat(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void backend_channel_responseGaussian(
-   ArrayOfGriddedField1&   r,
-    const Numeric&   fwhm,
-    const Numeric&   xwidth_si,
-    const Numeric&   dx_si )
+void backend_channel_responseGaussian(ArrayOfGriddedField1&   r,
+                                      const Numeric&   fwhm,
+                                      const Numeric&   xwidth_si,
+                                      const Numeric&   dx_si,
+                                      const Verbosity&)
 {
   r.resize( 1 );
   Vector x, y;
@@ -319,14 +327,18 @@ void backend_channel_responseGaussian(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorAMSU(// WS Output:
-                      Vector& f_grid,
-                      // WS Input:
-                      const Vector& lo,
-                      const ArrayOfVector& f_backend,
-                      const ArrayOfArrayOfGriddedField1& backend_channel_response,
-                      // Control Parameters:
-                      const Numeric& spacing)
+                          Vector& f_grid,
+                          // WS Input:
+                          const Vector& lo,
+                          const ArrayOfVector& f_backend,
+                          const ArrayOfArrayOfGriddedField1& backend_channel_response,
+                          // Control Parameters:
+                          const Numeric& spacing,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // Find out how many channels we have in total:
   // f_backend is an array of vectors, containing the band frequencies for each Mixer.
   Index n_chan = 0;
@@ -413,7 +425,7 @@ void f_gridFromSensorAMSU(// WS Output:
                                     fmax,
                                     f_backend_flat,
                                     backend_channel_response_flat,
-                                    delta);
+                                    delta, verbosity);
   
   // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
@@ -459,8 +471,12 @@ void f_gridFromSensorHIRS(// WS Output:
                           const Vector& f_backend,
                           const ArrayOfGriddedField1& backend_channel_response,
                           // Control Parameters:
-                          const Numeric& spacing)
+                          const Numeric& spacing,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // Check input
   if (spacing <= 0) {
     ostringstream os;
@@ -481,7 +497,7 @@ void f_gridFromSensorHIRS(// WS Output:
                                     fmax,
                                     f_backend,
                                     backend_channel_response,
-                                    delta);
+                                    delta, verbosity);
 
   // Ok, now we just have to create a frequency grid for each of the
   // fmin/fmax ranges.
@@ -525,24 +541,26 @@ void f_gridFromSensorHIRS(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseAntenna(
-   // WS Output:
-               Sparse&   sensor_response,
-               Vector&   sensor_response_f,
-         ArrayOfIndex&   sensor_response_pol,
-               Vector&   sensor_response_za,
-               Vector&   sensor_response_aa,
-               Vector&   sensor_response_za_grid,
-               Vector&   sensor_response_aa_grid,
-   // WS Input:
-         const Vector&   sensor_response_f_grid,
-   const ArrayOfIndex&   sensor_response_pol_grid,
-          const Index&   atmosphere_dim,
-          const Index&   antenna_dim,
-         const Matrix&   antenna_los,
-  const GriddedField4&   antenna_response,
-          const Index&   sensor_norm )
+void sensor_responseAntenna(// WS Output:
+                            Sparse&       sensor_response,
+                            Vector&       sensor_response_f,
+                            ArrayOfIndex& sensor_response_pol,
+                            Vector&       sensor_response_za,
+                            Vector&       sensor_response_aa,
+                            Vector&       sensor_response_za_grid,
+                            Vector&       sensor_response_aa_grid,
+                            // WS Input:
+                            const Vector&         sensor_response_f_grid,
+                            const ArrayOfIndex&   sensor_response_pol_grid,
+                            const Index&          atmosphere_dim,
+                            const Index&          antenna_dim,
+                            const Matrix&         antenna_los,
+                            const GriddedField4&  antenna_response,
+                            const Index&   sensor_norm,
+                            const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Basic checks
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "antenna_dim",    antenna_dim,    1, 2 );
@@ -790,22 +808,24 @@ void sensor_responseAntenna(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseBackend(
-     // WS Output:
-                 Sparse&   sensor_response,
-                 Vector&   sensor_response_f,
-           ArrayOfIndex&   sensor_response_pol,
-                 Vector&   sensor_response_za,
-                 Vector&   sensor_response_aa,
-                 Vector&   sensor_response_f_grid,
-     // WS Input:
-     const ArrayOfIndex&   sensor_response_pol_grid,
-           const Vector&   sensor_response_za_grid,
-           const Vector&   sensor_response_aa_grid,
-           const Vector&   f_backend,
-   const ArrayOfGriddedField1&   backend_channel_response,
-            const Index&   sensor_norm )
+void sensor_responseBackend(// WS Output:
+                            Sparse&   sensor_response,
+                            Vector&   sensor_response_f,
+                            ArrayOfIndex&   sensor_response_pol,
+                            Vector&   sensor_response_za,
+                            Vector&   sensor_response_aa,
+                            Vector&   sensor_response_f_grid,
+                            // WS Input:
+                            const ArrayOfIndex&   sensor_response_pol_grid,
+                            const Vector&   sensor_response_za_grid,
+                            const Vector&   sensor_response_aa_grid,
+                            const Vector&   f_backend,
+                            const ArrayOfGriddedField1&   backend_channel_response,
+                            const Index&   sensor_norm,
+                            const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
@@ -957,21 +977,21 @@ void sensor_responseBackend(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseBackendFrequencySwitching(
-                 Sparse&   sensor_response,
-                 Vector&   sensor_response_f,
-           ArrayOfIndex&   sensor_response_pol,
-                 Vector&   sensor_response_za,
-                 Vector&   sensor_response_aa,
-                 Vector&   sensor_response_f_grid,
-     const ArrayOfIndex&   sensor_response_pol_grid,
-           const Vector&   sensor_response_za_grid,
-           const Vector&   sensor_response_aa_grid,
-           const Vector&   f_backend,
-   const ArrayOfGriddedField1&   backend_channel_response,
-            const Index&   sensor_norm,
-          const Numeric&   df1,
-          const Numeric&   df2 )
+void sensor_responseBackendFrequencySwitching(Sparse&         sensor_response,
+                                              Vector&         sensor_response_f,
+                                              ArrayOfIndex&   sensor_response_pol,
+                                              Vector&         sensor_response_za,
+                                              Vector&         sensor_response_aa,
+                                              Vector&         sensor_response_f_grid,
+                                              const ArrayOfIndex&   sensor_response_pol_grid,
+                                              const Vector&   sensor_response_za_grid,
+                                              const Vector&   sensor_response_aa_grid,
+                                              const Vector&   f_backend,
+                                              const ArrayOfGriddedField1&   backend_channel_response,
+                                              const Index&    sensor_norm,
+                                              const Numeric&  df1,
+                                              const Numeric&  df2,
+                                              const Verbosity& verbosity)
 {
   // All needed checks are done in sensor_responseBackend
 
@@ -985,22 +1005,22 @@ void sensor_responseBackendFrequencySwitching(
   f_backend_shifted  = f_backend;
   f_backend_shifted += df1;
   //
-  sensor_responseBackend( H1, fdummy, sensor_response_pol, 
-                          sensor_response_za, sensor_response_aa, 
-                          fdummy_grid, sensor_response_pol_grid, 
-                          sensor_response_za_grid, sensor_response_aa_grid, 
-                          f_backend_shifted, backend_channel_response, 
-                          sensor_norm );
+  sensor_responseBackend(H1, fdummy, sensor_response_pol, 
+                         sensor_response_za, sensor_response_aa, 
+                         fdummy_grid, sensor_response_pol_grid, 
+                         sensor_response_za_grid, sensor_response_aa_grid, 
+                         f_backend_shifted, backend_channel_response, 
+                         sensor_norm, verbosity);
   // Cycle 2
   f_backend_shifted  = f_backend;
   f_backend_shifted += df2;
   //
-  sensor_responseBackend( H2, sensor_response_f, sensor_response_pol, 
-                          sensor_response_za, sensor_response_aa, 
-                          sensor_response_f_grid, sensor_response_pol_grid, 
-                          sensor_response_za_grid, sensor_response_aa_grid, 
-                          f_backend_shifted, backend_channel_response, 
-                          sensor_norm );
+  sensor_responseBackend(H2, sensor_response_f, sensor_response_pol, 
+                         sensor_response_za, sensor_response_aa, 
+                         sensor_response_f_grid, sensor_response_pol_grid, 
+                         sensor_response_za_grid, sensor_response_aa_grid, 
+                         f_backend_shifted, backend_channel_response, 
+                         sensor_norm, verbosity);
 
   // Total response
   sub( sensor_response, H2, H1 );
@@ -1018,21 +1038,23 @@ void sensor_responseBackendFrequencySwitching(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseBeamSwitching(
-   // WS Output:
-               Sparse&   sensor_response,
-               Vector&   sensor_response_f,
-         ArrayOfIndex&   sensor_response_pol,
-               Vector&   sensor_response_za,
-               Vector&   sensor_response_aa,
-               Vector&   sensor_response_za_grid,
-               Vector&   sensor_response_aa_grid,
-   // WS Input:
-         const Vector&   sensor_response_f_grid,
-   const ArrayOfIndex&   sensor_response_pol_grid,
-        const Numeric&   w1,
-        const Numeric&   w2 )
+void sensor_responseBeamSwitching(// WS Output:
+                                  Sparse&         sensor_response,
+                                  Vector&         sensor_response_f,
+                                  ArrayOfIndex&   sensor_response_pol,
+                                  Vector&         sensor_response_za,
+                                  Vector&         sensor_response_aa,
+                                  Vector&         sensor_response_za_grid,
+                                  Vector&         sensor_response_aa_grid,
+                                  // WS Input:
+                                  const Vector&   sensor_response_f_grid,
+                                  const ArrayOfIndex&   sensor_response_pol_grid,
+                                  const Numeric&   w1,
+                                  const Numeric&   w2,
+                                  const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   if( sensor_response_za_grid.nelem() != 2 )
     throw runtime_error( 
        "This method requires that the number of observation directions is 2." );
@@ -1091,19 +1113,21 @@ void sensor_responseBeamSwitching(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseFrequencySwitching(
-   // WS Output:
-               Sparse&   sensor_response,
-               Vector&   sensor_response_f,
-         ArrayOfIndex&   sensor_response_pol,
-               Vector&   sensor_response_za,
-               Vector&   sensor_response_aa,
-               Vector&   sensor_response_f_grid,
-   // WS Input:
-   const ArrayOfIndex&   sensor_response_pol_grid,
-         const Vector&   sensor_response_za_grid,
-         const Vector&   sensor_response_aa_grid )
+void sensor_responseFrequencySwitching(// WS Output:
+                                       Sparse&         sensor_response,
+                                       Vector&         sensor_response_f,
+                                       ArrayOfIndex&   sensor_response_pol,
+                                       Vector&         sensor_response_za,
+                                       Vector&         sensor_response_aa,
+                                       Vector&         sensor_response_f_grid,
+                                       // WS Input:
+                                       const ArrayOfIndex&   sensor_response_pol_grid,
+                                       const Vector&   sensor_response_za_grid,
+                                       const Vector&   sensor_response_aa_grid,
+                                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   if( sensor_response_za_grid.nelem() != 1 )
     throw runtime_error( 
        "This method requires that the number of observation directions is 1." );
@@ -1166,13 +1190,13 @@ void sensor_responseFrequencySwitching(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseIF2RF(
-        // WS Output:
-              Vector&         sensor_response_f,
-              Vector&         sensor_response_f_grid,
-        // WS Input:
-        const Numeric&        lo,
-        const String&         sideband_mode )
+void sensor_responseIF2RF(// WS Output:
+                          Vector&         sensor_response_f,
+                          Vector&         sensor_response_f_grid,
+                          // WS Input:
+                          const Numeric&  lo,
+                          const String&   sideband_mode,
+                          const Verbosity&)
 {
   // Check that frequencies are not too high. This might be a floating limit.
   // For this we use the variable f_lim, given in Hz.
@@ -1208,21 +1232,23 @@ void sensor_responseIF2RF(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseFillFgrid(
-     // WS Output:
-                 Sparse&   sensor_response,
-                 Vector&   sensor_response_f,
-           ArrayOfIndex&   sensor_response_pol,
-                 Vector&   sensor_response_za,
-                 Vector&   sensor_response_aa,
-                 Vector&   sensor_response_f_grid,
-     // WS Input:
-     const ArrayOfIndex&   sensor_response_pol_grid,
-           const Vector&   sensor_response_za_grid,
-           const Vector&   sensor_response_aa_grid,
-            const Index&   polyorder,
-            const Index&   nfill )
+void sensor_responseFillFgrid(// WS Output:
+                              Sparse&         sensor_response,
+                              Vector&         sensor_response_f,
+                              ArrayOfIndex&   sensor_response_pol,
+                              Vector&         sensor_response_za,
+                              Vector&         sensor_response_aa,
+                              Vector&         sensor_response_f_grid,
+                              // WS Input:
+                              const ArrayOfIndex&   sensor_response_pol_grid,
+                              const Vector&   sensor_response_za_grid,
+                              const Vector&   sensor_response_aa_grid,
+                              const Index&    polyorder,
+                              const Index&    nfill,
+                              const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
@@ -1346,26 +1372,29 @@ void sensor_responseFillFgrid(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseInit(
-   // WS Output:
-         Sparse&   sensor_response,
-         Vector&   sensor_response_f,
-   ArrayOfIndex&   sensor_response_pol,
-         Vector&   sensor_response_za,
-         Vector&   sensor_response_aa,
-         Vector&   sensor_response_f_grid,
-   ArrayOfIndex&   sensor_response_pol_grid,
-         Vector&   sensor_response_za_grid,
-         Vector&   sensor_response_aa_grid,
-   // WS Input:
-   const Vector&   f_grid,
-   const Vector&   mblock_za_grid,
-   const Vector&   mblock_aa_grid,
-    const Index&   antenna_dim,
-    const Index&   atmosphere_dim,
-    const Index&   stokes_dim,
-    const Index&   sensor_norm )
+void sensor_responseInit(// WS Output:
+                         Sparse&         sensor_response,
+                         Vector&         sensor_response_f,
+                         ArrayOfIndex&   sensor_response_pol,
+                         Vector&         sensor_response_za,
+                         Vector&         sensor_response_aa,
+                         Vector&         sensor_response_f_grid,
+                         ArrayOfIndex&   sensor_response_pol_grid,
+                         Vector&         sensor_response_za_grid,
+                         Vector&         sensor_response_aa_grid,
+                         // WS Input:
+                         const Vector&   f_grid,
+                         const Vector&   mblock_za_grid,
+                         const Vector&   mblock_aa_grid,
+                         const Index&    antenna_dim,
+                         const Index&    atmosphere_dim,
+                         const Index&    stokes_dim,
+                         const Index&    sensor_norm,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // Check input
 
   // Basic variables
@@ -1440,27 +1469,27 @@ void sensor_responseInit(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensorOff(
-   // WS Output:
-         Sparse&   sensor_response,
-         Vector&   sensor_response_f,
-   ArrayOfIndex&   sensor_response_pol,
-         Vector&   sensor_response_za,
-         Vector&   sensor_response_aa,
-         Vector&   sensor_response_f_grid,
-   ArrayOfIndex&   sensor_response_pol_grid,
-         Vector&   sensor_response_za_grid,
-         Vector&   sensor_response_aa_grid,
-          Index&   antenna_dim,
-         Vector&   mblock_za_grid,
-         Vector&   mblock_aa_grid,
-    const Index&   atmosphere_dim,
-    const Index&   stokes_dim,
-   const Vector&   f_grid )
+void sensorOff(// WS Output:
+               Sparse&         sensor_response,
+               Vector&         sensor_response_f,
+               ArrayOfIndex&   sensor_response_pol,
+               Vector&         sensor_response_za,
+               Vector&         sensor_response_aa,
+               Vector&         sensor_response_f_grid,
+               ArrayOfIndex&   sensor_response_pol_grid,
+               Vector&         sensor_response_za_grid,
+               Vector&         sensor_response_aa_grid,
+               Index&          antenna_dim,
+               Vector&         mblock_za_grid,
+               Vector&         mblock_aa_grid,
+               const Index&    atmosphere_dim,
+               const Index&    stokes_dim,
+               const Vector&   f_grid,
+               const Verbosity& verbosity)
 {
   // Checks are done in sensor_responseInit.
 
-  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid );
+  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid, verbosity );
 
   // Dummy variables
   Index         sensor_norm = 1;
@@ -1470,28 +1499,30 @@ void sensorOff(
                   sensor_response_f_grid, sensor_response_pol_grid, 
                   sensor_response_za_grid, sensor_response_aa_grid, f_grid, 
                   mblock_za_grid, mblock_aa_grid, antenna_dim, atmosphere_dim, 
-                  stokes_dim, sensor_norm );
+                  stokes_dim, sensor_norm, verbosity );
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseMixer(
-    // WS Output:
-                Sparse&   sensor_response,
-                Vector&   sensor_response_f,
-          ArrayOfIndex&   sensor_response_pol,
-                Vector&   sensor_response_za,
-                Vector&   sensor_response_aa,
-                Vector&   sensor_response_f_grid,
-    // WS Input:
-    const ArrayOfIndex&   sensor_response_pol_grid,
-          const Vector&   sensor_response_za_grid,
-          const Vector&   sensor_response_aa_grid,
-         const Numeric&   lo,
-         const GriddedField1&   sideband_response,
-           const Index&   sensor_norm )
+void sensor_responseMixer(// WS Output:
+                          Sparse&         sensor_response,
+                          Vector&         sensor_response_f,
+                          ArrayOfIndex&   sensor_response_pol,
+                          Vector&         sensor_response_za,
+                          Vector&         sensor_response_aa,
+                          Vector&         sensor_response_f_grid,
+                          // WS Input:
+                          const ArrayOfIndex&   sensor_response_pol_grid,
+                          const Vector&   sensor_response_za_grid,
+                          const Vector&   sensor_response_aa_grid,
+                          const Numeric&  lo,
+                          const GriddedField1&   sideband_response,
+                          const Index&    sensor_norm,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
@@ -1628,24 +1659,24 @@ void sensor_responseMixer(
 
 
 
-void sensor_responseMultiMixerBackend(
-   // WS Output:
-                        Sparse&   sensor_response,
-                        Vector&   sensor_response_f,
-                  ArrayOfIndex&   sensor_response_pol,
-                        Vector&   sensor_response_za,
-                        Vector&   sensor_response_aa,
-                        Vector&   sensor_response_f_grid,
-   // WS Input:
-            const ArrayOfIndex&   sensor_response_pol_grid,
-                  const Vector&   sensor_response_za_grid,
-                  const Vector&   sensor_response_aa_grid,
-                  const Vector&   lo_multi,
-          const ArrayOfGriddedField1&   sideband_response_multi,
-           const ArrayOfString&   sideband_mode_multi,
-           const ArrayOfVector&   f_backend_multi,
-   const ArrayOfArrayOfGriddedField1&   backend_channel_response_multi,
-                   const Index&   sensor_norm )
+void sensor_responseMultiMixerBackend(// WS Output:
+                                      Sparse&         sensor_response,
+                                      Vector&         sensor_response_f,
+                                      ArrayOfIndex&   sensor_response_pol,
+                                      Vector&         sensor_response_za,
+                                      Vector&         sensor_response_aa,
+                                      Vector&         sensor_response_f_grid,
+                                      // WS Input:
+                                      const ArrayOfIndex&   sensor_response_pol_grid,
+                                      const Vector&   sensor_response_za_grid,
+                                      const Vector&   sensor_response_aa_grid,
+                                      const Vector&   lo_multi,
+                                      const ArrayOfGriddedField1&   sideband_response_multi,
+                                      const ArrayOfString&   sideband_mode_multi,
+                                      const ArrayOfVector&   f_backend_multi,
+                                      const ArrayOfArrayOfGriddedField1&   backend_channel_response_multi,
+                                      const Index&   sensor_norm,
+                                      const Verbosity& verbosity)
 {
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
@@ -1732,25 +1763,27 @@ void sensor_responseMultiMixerBackend(
       // Call single reciever methods. Try/catch for improved error message.
       try
         {
-          sensor_responseMixer( sr1, srf1, srpol1, srza1, sraa1, srfgrid1,
-                                sensor_response_pol_grid,
-                                sensor_response_za_grid, 
-                                sensor_response_aa_grid,
-                                lo_multi[ilo], 
-                                sideband_response_multi[ilo], 
-                                sensor_norm );
+          sensor_responseMixer(sr1, srf1, srpol1, srza1, sraa1, srfgrid1,
+                               sensor_response_pol_grid,
+                               sensor_response_za_grid, 
+                               sensor_response_aa_grid,
+                               lo_multi[ilo], 
+                               sideband_response_multi[ilo], 
+                               sensor_norm,
+                               verbosity);
 
-          sensor_responseIF2RF( srf1, srfgrid1,
-                                lo_multi[ilo], 
-                                sideband_mode_multi[ilo] );
+          sensor_responseIF2RF(srf1, srfgrid1,
+                               lo_multi[ilo], 
+                               sideband_mode_multi[ilo],
+                               verbosity);
 
-          sensor_responseBackend( sr1, srf1, srpol1, srza1, sraa1, srfgrid1,
-                                  sensor_response_pol_grid,
-                                  sensor_response_za_grid, 
-                                  sensor_response_aa_grid,
-                                  f_backend_multi[ilo],
-                                  backend_channel_response_multi[ilo],
-                                  sensor_norm );
+          sensor_responseBackend(sr1, srf1, srpol1, srza1, sraa1, srfgrid1,
+                                 sensor_response_pol_grid,
+                                 sensor_response_za_grid, 
+                                 sensor_response_aa_grid,
+                                 f_backend_multi[ilo],
+                                 backend_channel_response_multi[ilo],
+                                 sensor_norm, verbosity);
         } 
       catch( runtime_error e ) 
         {
@@ -1821,21 +1854,21 @@ void sensor_responseMultiMixerBackend(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responsePolarisation(
-     // WS Output:
-                 Sparse&   sensor_response,
-                 Vector&   sensor_response_f,
-           ArrayOfIndex&   sensor_response_pol,
-                 Vector&   sensor_response_za,
-                 Vector&   sensor_response_aa,
-           ArrayOfIndex&   sensor_response_pol_grid,
-     // WS Input:
-           const Vector&   sensor_response_f_grid,
-           const Vector&   sensor_response_za_grid,
-           const Vector&   sensor_response_aa_grid,
-            const Index&   stokes_dim,
-           const String&   y_unit,
-     const ArrayOfIndex&   sensor_pol )
+void sensor_responsePolarisation(// WS Output:
+                                 Sparse&         sensor_response,
+                                 Vector&         sensor_response_f,
+                                 ArrayOfIndex&   sensor_response_pol,
+                                 Vector&         sensor_response_za,
+                                 Vector&         sensor_response_aa,
+                                 ArrayOfIndex&   sensor_response_pol_grid,
+                                 // WS Input:
+                                 const Vector&   sensor_response_f_grid,
+                                 const Vector&   sensor_response_za_grid,
+                                 const Vector&   sensor_response_aa_grid,
+                                 const Index&    stokes_dim,
+                                 const String&   y_unit,
+                                 const ArrayOfIndex&   sensor_pol,
+                                 const Verbosity&)
 {
   // Vectors for extracting polarisation components
   //
@@ -2017,7 +2050,8 @@ void sensor_responseSimpleAMSU(// WS Output:
                                const Index& stokes_dim,
                                const Matrix& sensor_description_amsu,
                                // WS Generic Input:
-                               const Numeric& spacing)
+                               const Numeric& spacing,
+                               const Verbosity& verbosity)
 {
   // Check that sensor_description_amsu has the right dimension:
   if ( 3 != sensor_description_amsu.ncols() )
@@ -2096,9 +2130,9 @@ void sensor_responseSimpleAMSU(// WS Output:
 
   f_gridFromSensorAMSU(f_grid, lo_multi, 
                        f_backend_multi, backend_channel_response_multi, 
-                       spacing);
+                       spacing, verbosity);
   
-  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid );
+  AntennaOff(antenna_dim, mblock_za_grid, mblock_aa_grid, verbosity);
   
   sensor_responseInit(sensor_response, 
                       sensor_response_f, sensor_response_pol, 
@@ -2108,7 +2142,8 @@ void sensor_responseSimpleAMSU(// WS Output:
                       sensor_response_za_grid, 
                       sensor_response_aa_grid, f_grid, mblock_za_grid, 
                       mblock_aa_grid, antenna_dim, atmosphere_dim, 
-                      stokes_dim, sensor_norm );  
+                      stokes_dim, sensor_norm,
+                      verbosity);  
   
   sensor_responseMultiMixerBackend(sensor_response, sensor_response_f, 
                                    sensor_response_pol, 
@@ -2122,7 +2157,8 @@ void sensor_responseSimpleAMSU(// WS Output:
                                    sideband_mode_multi, 
                                    f_backend_multi, 
                                    backend_channel_response_multi, 
-                                   sensor_norm );
+                                   sensor_norm,
+                                   verbosity);
   
 }
 
@@ -2132,20 +2168,23 @@ void Select(// WS Generic Output:
             Vector& needles,
             // WS Generic Input:
             const Vector& haystack,
-            const ArrayOfIndex& needleind);
+            const ArrayOfIndex& needleind,
+            const Verbosity& verbosity);
 
 template< class T >
 void Select(// WS Generic Output:
             Array<T>& needles,
             // WS Generic Input:
             const Array<T>& haystack,
-            const ArrayOfIndex& needleind);
+            const ArrayOfIndex& needleind,
+            const Verbosity& verbosity);
 
 void Select(// WS Generic Output:
             Sparse& needles,
             // WS Generic Input:
             const Sparse& haystack,
-            const ArrayOfIndex& needleind);
+            const ArrayOfIndex& needleind,
+            const Verbosity& verbosity);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void WMRFSelectChannels(// WS Output:
@@ -2153,8 +2192,12 @@ void WMRFSelectChannels(// WS Output:
                         Sparse& wmrf_weights,
                         Vector& f_backend,
                         // WS Input:
-                        const ArrayOfIndex& wmrf_channels)
+                        const ArrayOfIndex& wmrf_channels,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // For error messages:
   ostringstream os;
 
@@ -2207,12 +2250,12 @@ void WMRFSelectChannels(// WS Output:
   // Now the real work starts:
 
   //  1. Remove unwanted channels from f_backend:  
-  Select(f_backend, f_backend, wmrf_channels);
+  Select(f_backend, f_backend, wmrf_channels, verbosity);
 
   // 2. Remove unwanted channels from wmrf_weights. (We also have to
   // do something about the frequency dimension of wmrf_weights, but
   // we'll do that later.)
-  Select( wmrf_weights, wmrf_weights, wmrf_channels );
+  Select(wmrf_weights, wmrf_weights, wmrf_channels, verbosity);
 
   // 3. Identify, which frequencies are still needed, and which are
   // now obsolete. We store the still needed frequencies in an
@@ -2263,14 +2306,14 @@ void WMRFSelectChannels(// WS Output:
     }
 
   // 4. Select the right frequencies in f_grid:
-  Select(f_grid, f_grid, selection);
+  Select(f_grid, f_grid, selection, verbosity);
 
   // 5. Select the right frequencies in wmrf_weights. This is a bit
   // tricky, since Select works on the row dimension. So we have to
   // take the transpose.
   Sparse wt(wmrf_weights.ncols(), wmrf_weights.nrows());
   transpose(wt, wmrf_weights);
-  Select(wt, wt, selection);
+  Select(wt, wt, selection, verbosity);
   wmrf_weights.resize(wt.ncols(), wt.nrows());
   transpose(wmrf_weights, wt);
 }
@@ -2289,8 +2332,11 @@ void sensor_responseWMRF(// WS Output:
                          const Vector& sensor_response_za_grid,
                          const Vector& sensor_response_aa_grid,
                          const Sparse& wmrf_weights,
-                         const Vector& f_backend)
+                         const Vector& f_backend,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
@@ -2417,8 +2463,12 @@ void sensor_responsePolarisation(// WS Output:
                                  const Vector&    sensor_response_za,
                                  const Vector&    sensor_response_aa,
                                  const Vector&    sensor_response_f,
-                                 const Index&     stokes_dim )
+                                 const Index&     stokes_dim,
+                                 const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+ 
   Index n_aa;
   if( sensor_response_aa.nelem()==0 )
     n_aa = 1;
@@ -2516,8 +2566,12 @@ void sensor_responseRotation(// WS Output:
                              const Index&   antenna_dim,
                              const Index&   stokes_dim,
                              const Vector&  sensor_response_f,
-                             const Vector&  sensor_response_za)
+                             const Vector&  sensor_response_za,
+                             const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+ 
   // Check that at least 3 stokes components are simulated. This since no 2
   // and 3 are weighted together.
   if( stokes_dim<3 ) {

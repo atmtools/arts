@@ -53,9 +53,9 @@
 #include "xml_io_private.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what) \
-  void xml_read_from_stream (istream&, what&, bifstream * = NULL); \
-  void xml_write_to_stream (ostream&, const what&, bofstream * = NULL, \
-                            const String& = "");
+  void xml_read_from_stream (istream&, what&, bifstream *, const Verbosity&); \
+  void xml_write_to_stream (ostream&, const what&, bofstream *, \
+                            const String&, const Verbosity&);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -139,13 +139,14 @@ TMPL_XML_READ_WRITE_STREAM( ArrayOfVector )
 #undef TMPL_XML_READ_WRITE_STREAM
 
 void
-xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&);
+xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&, const Verbosity& verbosity);
 
 void
 xml_read_from_stream (istream&, ArrayOfLineRecord&,
-                      const Numeric, const Numeric, bifstream * = NULL);
+                      const Numeric, const Numeric, bifstream *,
+                      const Verbosity&);
 
 void
-xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);
+xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&, const Verbosity&);
 
 #endif  /* xml_io_types_h */

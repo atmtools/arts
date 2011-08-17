@@ -69,7 +69,7 @@ Rng::~Rng()
  Every seed is only used once. The provided seed is increased by 1 until an
  unused seed is found.
 */
-void Rng::seed(unsigned long int n)
+void Rng::seed(unsigned long int n, const Verbosity& verbosity)
 {
   // Static pool of previously used seeds.
   static vector<unsigned long int> seeds;
@@ -89,6 +89,7 @@ void Rng::seed(unsigned long int n)
       // start over.
       if (n == n_orig)
       {
+        CREATE_OUT0
         out0 << "Rng Warning: Couldn't find an unused seed. Clearing seed pool.\n";
         seeds.empty();
         break;

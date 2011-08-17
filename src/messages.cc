@@ -28,28 +28,10 @@
 #include "arts.h"
 #include "mystring.h"
 #include "array.h"
-
-/** A thread private flag that says whether we are in the main agenda,
-    or not. If we are not, then agenda output is suppressed or
-    enabled, according to the verbosity setting.
-
-    I also tried to implement this functionality by making the flag an
-    array over the number of threads. However, that approach does not
-    work, since the thread number is only valid inside the same
-    parallel region. Outside it will always be zero, even if we are
-    not in the main thread.
-
-    Threadprivate variables are not initialized, so we have to
-    explicitly initialize this in main for all threads. */
-bool in_main_agenda=true;
-#ifdef THREADPRIVATE_SUPPORTED
-#pragma omp threadprivate(in_main_agenda)
-#endif
-
 #include "messages.h"
 
 // The global message verbosity settings:
-Messages arts_messages;
+Verbosity verbosity_at_launch;
 
 /** The output path. For example for the report file. */
 String out_path;
@@ -62,65 +44,8 @@ String out_basename;
 /** The report file. */
 ofstream report_file;
 
-/**
-   Check if artsmessages contains valid message levels.
 
-   \return True if ok. */
-bool Messages::valid() const
-{
-  if (va<0 || va>3) return false;
-  if (vs<0 || vs>3) return false;
-  if (vf<0 || vf>3) return false;
-
-  return true;
-}
-
-
-//! Does the current message have sufficient priority for agenda?
-/*! 
-  \param priority Priority of current message.
-
-  \return true if priority is sufficient, otherwise false. */
-bool Messages::sufficient_priority_agenda(Index priority) const
-{
-  return va >= priority;
-}
-
-
-//! Does the current message have sufficient priority for screen?
-/*! 
-  \param priority Priority of current message.
-
-  \return true if priority is sufficient, otherwise false. */
-bool Messages::sufficient_priority_screen(Index priority) const
-{
-  return vs >= priority;
-}
-
-
-//! Does the current message have sufficient priority for file?
-/*! 
-  \param priority Priority of current message.
-
-  \return true if priority is sufficient, otherwise false. */
-bool Messages::sufficient_priority_file(Index priority) const
-{
-  return vf >= priority;
-}
-
-//--------------------< The different output streams >--------------------
-
-/** Level 0 output stream. @see OutStream */
-Out0 out0;
-/** Level 1 output stream. @see OutStream */
-Out1 out1;
-/** Level 2 output stream. @see OutStream */
-Out2 out2;
-/** Level 3 output stream. @see OutStream */
-Out3 out3;
-
-
-ostream& operator<<(ostream& os, Verbosity v)
+ostream& operator<<(ostream& os, const Verbosity& v)
 {
   os << "Agenda Verbosity: " << v.get_agenda_verbosity() << "\n";
   os << "Screen Verbosity: " << v.get_screen_verbosity() << "\n";

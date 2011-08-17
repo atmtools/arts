@@ -33,6 +33,7 @@
 #include "array.h"
 #include "mystring.h"
 #include "make_array.h"
+#include "messages.h"
 
 /** The type that is used to store pointers to lineshape
     functions.  */
@@ -725,7 +726,7 @@ public:
     \return false=ok (data returned), true=eof (no data returned)
 
     \author Stefan Buehler */
-  bool ReadFromHitranStream(istream& is);
+  bool ReadFromHitranStream(istream& is, const Verbosity& verbosity);
 
 
 
@@ -798,7 +799,7 @@ public:
     \return false=ok (data returned), true=eof (no data returned)
 
     \author Stefan Buehler, Hermann Berg */
-  bool ReadFromHitran2004Stream(istream& is);
+  bool ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity);
 
 
 
@@ -871,7 +872,7 @@ public:
     \date 31.10.00
     \author Axel von Engeln 
   */
-  bool ReadFromMytran2Stream(istream& is);
+  bool ReadFromMytran2Stream(istream& is, const Verbosity& verbosity);
 
 
   /** Read one line from a stream associated with a JPL file. The JPL
@@ -926,7 +927,7 @@ public:
 
     \date 01.11.00
     \author Axel von Engeln */
-  bool ReadFromJplStream(istream& is);
+  bool ReadFromJplStream(istream& is, const Verbosity& verbosity);
 
   /** Read one line from a stream associated with an Arts file.
 
@@ -949,7 +950,7 @@ public:
       \date   2001-06-20
       \author Stefan Buehler
 */
-  bool ReadFromArtsStream(istream& is);
+  bool ReadFromArtsStream(istream& is, const Verbosity& verbosity);
 
 
 private:

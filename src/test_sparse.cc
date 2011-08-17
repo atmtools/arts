@@ -311,9 +311,9 @@ void test45()
 
   try {
     cout << "  Reading " << a << "...";
-    xml_read_from_file (a, A);
+    xml_read_from_file (a, A, Verbosity());
     cout << "done.\n  Reading " << b << "...";
-    xml_read_from_file (b, B);
+    xml_read_from_file (b, B, Verbosity());
     cout << "done.\n";
   } catch (runtime_error e) {
     cerr << e.what () << endl;
@@ -327,7 +327,7 @@ void test45()
   //cout << "C=A*B:\n" << A << "\n";
   try {
     cout << "  Writing product to file: test45.xml...";
-    xml_write_to_file ("test45.xml", C);
+    xml_write_to_file ("test45.xml", C, FILE_TYPE_ASCII, Verbosity());
     cout << "done.\n";
   } catch (runtime_error e) {
     cerr << e.what () << endl;
@@ -343,7 +343,7 @@ void test46()
 
   try {
     cout << "  Reading " << a << "...";
-    xml_read_from_file (a, A);
+    xml_read_from_file (a, A, Verbosity());
     cout << "done.\n";
   } catch (runtime_error e) {
     cerr << e.what () << endl;
@@ -356,7 +356,7 @@ void test46()
 
   try {
     cout << "  Writing transpose(A) to file test46.xml" << endl;
-    xml_write_to_file ("test46.xml", B);
+    xml_write_to_file ("test46.xml", B, FILE_TYPE_ASCII, Verbosity());
   } catch (runtime_error e) {
     cerr << e.what () << endl;
   }

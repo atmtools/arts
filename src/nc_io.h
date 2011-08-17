@@ -59,13 +59,15 @@ filename_nc_with_index (       String&  filename,
 ////////////////////////////////////////////////////////////////////////////
 
 template<typename T> void
-nc_read_from_file (const String& filename _U_,
-                         T&      type _U_);
+nc_read_from_file (const String& filename,
+                   T& type,
+                   const Verbosity& verbosity);
 
 
 template<typename T> void
 nc_write_to_file (const String&  filename,
-                  const      T&  type);
+                  const T&  type,
+                  const Verbosity& verbosity);
 
 
 /*void nc_read_var (const int ncf, const int **ncvar,

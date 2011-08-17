@@ -132,11 +132,10 @@ void chk_massdensity_field( bool& empty_flag,
   \author Claudia Emde
   \date   2005-05-09
 */ 
-void chk_if_pnd_zero_p(
-                       const Index& i_p,
+void chk_if_pnd_zero_p(const Index& i_p,
                        const GriddedField3& pnd_field_raw,
-                       const String& pnd_field_file
-                       )
+                       const String& pnd_field_file,
+                       const Verbosity& verbosity)
   
 {
   const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
@@ -149,6 +148,7 @@ void chk_if_pnd_zero_p(
         {
           if ( pnd_field_raw.data(i_p, i, j) != 0. )
             {
+              CREATE_OUT1
               ostringstream os;
               os << "Warning: \n"
                  << "The particle number density field contained in the file '"
@@ -178,11 +178,10 @@ void chk_if_pnd_zero_p(
   \author Claudia Emde
   \date   2005-05-09
 */           
-void chk_if_pnd_zero_lat(
-                       const Index& i_lat,
-                       const GriddedField3& pnd_field_raw,
-                       const String& pnd_field_file
-                       )
+void chk_if_pnd_zero_lat(const Index& i_lat,
+                         const GriddedField3& pnd_field_raw,
+                         const String& pnd_field_file,
+                         const Verbosity& verbosity)
   
 {
   const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
@@ -195,6 +194,7 @@ void chk_if_pnd_zero_lat(
         {
           if ( pnd_field_raw.data(i, i_lat, j) != 0. )
             {
+              CREATE_OUT1
               ostringstream os;
               os << "Warning: \n" 
                  << "The particle number density field contained in the file '"
@@ -224,11 +224,10 @@ void chk_if_pnd_zero_lat(
   \author Claudia Emde
   \date   2005-05-09
 */           
-void chk_if_pnd_zero_lon(
-                       const Index& i_lon,
-                       const GriddedField3& pnd_field_raw,
-                       const String& pnd_field_file
-                       )
+void chk_if_pnd_zero_lon(const Index& i_lon,
+                         const GriddedField3& pnd_field_raw,
+                         const String& pnd_field_file,
+                         const Verbosity& verbosity)
   
 {
   const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
@@ -241,6 +240,7 @@ void chk_if_pnd_zero_lon(
         {
           if ( pnd_field_raw.data(i, j, i_lon) != 0. )
             {
+              CREATE_OUT1
               ostringstream os;
               os << "Warning: \n" 
                  << "The particle number density field contained in the file '"
@@ -287,9 +287,11 @@ void chk_pnd_data(
                   ConstVectorView p_grid,
                   ConstVectorView lat_grid,
                   ConstVectorView lon_grid,
-                  const ArrayOfIndex& cloudbox_limits
-                  )
+                  const ArrayOfIndex& cloudbox_limits,
+                  const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
@@ -305,14 +307,14 @@ void chk_pnd_data(
  
   // Lower pressure limit
   for (i_p = 0; pfr_p_grid[i_p] > p_grid[cloudbox_limits[0]]; i_p++)
-    { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
+    { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file, verbosity); }
   // The first point inside the cloudbox also needs to be zero !!
   //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
   //Upper pressure limit 
   for (i_p = pfr_p_grid.nelem()-1;
        pfr_p_grid[i_p] < p_grid[cloudbox_limits[1]]; i_p--)
-    { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
+    { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file, verbosity); }
   //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
   if (atmosphere_dim == 1 && (pfr_lat_grid.nelem() != 1 
@@ -344,7 +346,7 @@ void chk_pnd_data(
       // Lower latitude limit
       for (i_lat = 0; pfr_lat_grid[i_lat] > 
                       lat_grid[cloudbox_limits[2]]; i_lat++)
-        { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file); }
+        { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file, verbosity); }
 
       // The first point inside the cloudbox also needs to be zero !!
       // chk_if_pnd_zero_lat(i_lat+1, pnd_field_raw, pnd_field_file);
@@ -353,22 +355,22 @@ void chk_pnd_data(
       for (i_lat = pfr_lat_grid.nelem()-1;
            pfr_lat_grid[i_lat] < lat_grid[cloudbox_limits[3]]; 
            i_lat--)
-        { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file); }
-      //chk_if_pnd_zero_lat(i_lat-1, pnd_field_raw, pnd_field_file);
+        { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file, verbosity); }
+      //chk_if_pnd_zero_lat(i_lat-1, pnd_field_raw, pnd_field_file, verbosity);
       
       // Lower longitude limit
       for (i_lon = 0; pfr_lon_grid[i_lon] > 
            lon_grid[cloudbox_limits[4]]; i_lon++)
-        { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file); }
+        { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file, verbosity); }
       // The first point inside the cloudbox also needs to be zero !!
-      // chk_if_pnd_zero_lon(i_lon+1, pnd_field_raw, pnd_field_file);
+      // chk_if_pnd_zero_lon(i_lon+1, pnd_field_raw, pnd_field_file, verbosity);
       
       //Upper longitude limit 
       for (i_lon = pfr_lon_grid.nelem()-1;
            pfr_lon_grid[i_lon] < lon_grid[cloudbox_limits[5]]; 
            i_lon--)
-        { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file); }
-      //chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file);
+        { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file, verbosity); }
+      //chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file, verbosity);
     } 
   
   out3 << "Particle number density data is o.k. \n";
@@ -396,15 +398,18 @@ void chk_pnd_raw_data(
                       ConstVectorView p_grid,
                       ConstVectorView lat_grid,
                       ConstVectorView lon_grid,
-                      const ArrayOfIndex& cloudbox_limits
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Verbosity& verbosity
                       )
 {
+  CREATE_OUT3
+  
   for( Index i = 0; i < pnd_field_raw.nelem(); i++)
     {
       out3 << "Element in pnd_field_raw_file:" << i << "\n";
       chk_pnd_data(pnd_field_raw[i],
                    pnd_field_file, atmosphere_dim,
-                   p_grid, lat_grid, lon_grid, cloudbox_limits);
+                   p_grid, lat_grid, lon_grid, cloudbox_limits, verbosity);
     }
 }
 
@@ -419,20 +424,19 @@ void chk_pnd_raw_data(
   \date 2010-12-02
 */
 
-void chk_scattering_data(
-			 const ArrayOfSingleScatteringData& scat_data_raw,
-			 const ArrayOfScatteringMetaData& scat_data_meta_array
-			 )
+void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data_raw,
+                         const ArrayOfScatteringMetaData& scat_data_meta_array,
+                         const Verbosity&)
 {
   if (scat_data_raw.nelem() != scat_data_meta_array.nelem())
-    {
-      ostringstream os;
-      os << "The number of elments in *scat_data_raw*\n"
-	 << "and *scat_data_meta_array* do not match.\n"
-	 << "Each SingleScattering file must correspond\n"
-	 << "to one ScatteringMeta data file.";
-	throw runtime_error( os.str());
-    }
+  {
+    ostringstream os;
+    os << "The number of elments in *scat_data_raw*\n"
+    << "and *scat_data_meta_array* do not match.\n"
+    << "Each SingleScattering file must correspond\n"
+    << "to one ScatteringMeta data file.";
+    throw runtime_error( os.str());
+  }
 
 }
 
@@ -447,21 +451,20 @@ void chk_scattering_data(
   \date 2010-12-02
 */
 
-void chk_scattering_meta_data(
-			      const ScatteringMetaData& scat_data_meta,
-			      const String& scat_data_meta_file
-			      )
+void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta,
+                              const String& scat_data_meta_file,
+                              const Verbosity& verbosity)
 {
-  out2 << "  Check scattering meta properties file "<< scat_data_meta_file 
-       << "\n";
+  CREATE_OUT2
+  out2 << "  Check scattering meta properties file "<< scat_data_meta_file << "\n";
   
-       if  (scat_data_meta.type != "Ice" && scat_data_meta.type != "Water" && scat_data_meta.type != "Aerosol")
-       {
+  if  (scat_data_meta.type != "Ice" && scat_data_meta.type != "Water" && scat_data_meta.type != "Aerosol")
+  {
 	  ostringstream os; 
 	  os << "Type in " << scat_data_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
 	  throw runtime_error( os.str() );
 	}
-    //(more) checks need to be included
+  //(more) checks need to be included
 }
 
 
@@ -480,12 +483,12 @@ void chk_scattering_meta_data(
   \author Claudia Emde
   \date   2005-04-04
 */
-void chk_single_scattering_data(
-                                const SingleScatteringData& scat_data_raw,
+void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
                                 const String& scat_data_file,
-                                ConstVectorView f_grid
-                                )
+                                ConstVectorView f_grid,
+                                const Verbosity& verbosity)
 {
+  CREATE_OUT2
   out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
 
@@ -1001,15 +1004,17 @@ void scale_pnd  (  Vector& w,
 
 */
 void chk_pndsum (Vector& pnd,
-		 const Numeric xwc,
-		 const Vector& density,
-		 const Vector& vol,
-		 const Index& p,
-		 const Index& lat,
-		 const Index& lon
-		)
+                 const Numeric xwc,
+                 const Vector& density,
+                 const Vector& vol,
+                 const Index& p,
+                 const Index& lat,
+                 const Index& lon,
+                 const Verbosity& verbosity)
 
 {
+  CREATE_OUT2
+  
   // set vector x to pnd size
   Vector x ( pnd.nelem(), 0.0 );
   Numeric error;
@@ -1036,11 +1041,12 @@ void chk_pndsum (Vector& pnd,
   // give warning if deviations are more than 10%
     if ( error > 1.10 || error < 0.90 )
     {
+      CREATE_OUT1
       //ostringstream os;
       out1<< "WARNING: in WSM chk_pndsum in pnd_fieldSetup!\n" 
-         << "The deviation of the sum of nodes in the particle size distribution\n"
-	 << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
-	 << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
+      << "The deviation of the sum of nodes in the particle size distribution\n"
+      << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
+      << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
       //cerr<<os;
     }
   }
@@ -1054,7 +1060,7 @@ void chk_pndsum (Vector& pnd,
 
 // ONLY FOR TESTING PURPOSES
 void chk_pndsum2 (Vector& pnd,
-		 const Numeric xwc)
+                  const Numeric xwc)
 
 {
   // set vector x to pnd size
@@ -1093,10 +1099,10 @@ void chk_pndsum2 (Vector& pnd,
   \date 2011-02-21
 
 */
-void parse_part_type ( //WS Output:
-  String& part_type,
-  // WS Input:
-  const String& part_string )
+void parse_part_type (//WS Output:
+                      String& part_type,
+                      // WS Input:
+                      const String& part_string)
 {
 
   ArrayOfString strarr;
@@ -1128,12 +1134,11 @@ void parse_part_type ( //WS Output:
   \date 2011-02-21
 
 */
-void parse_psd_param ( //WS Output:
-  String& psd_param,
-  // WS Input:
-  const String& part_string )
+void parse_psd_param (//WS Output:
+                      String& psd_param,
+                      // WS Input:
+                      const String& part_string)
 {
-
   ArrayOfString strarr;
 
   // split part_species string at "-" and write to ArrayOfString
@@ -1159,13 +1164,12 @@ void parse_psd_param ( //WS Output:
   \date 2011-02-21
 
 */
-void parse_part_size ( //WS Output:
-  Numeric& sizemin,
-  Numeric& sizemax,
-  // WS Input:
-  const String& part_string )
+void parse_part_size (//WS Output:
+                      Numeric& sizemin,
+                      Numeric& sizemax,
+                      // WS Input:
+                      const String& part_string)
 {
-
   ArrayOfString strarr;
 
   // split part_species string at "-" and write to ArrayOfString

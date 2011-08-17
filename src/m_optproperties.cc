@@ -83,9 +83,12 @@ void pha_mat_sptFromData( // Output:
                          const Tensor4& pnd_field, 
                          const Index& scat_p_index,
                          const Index& scat_lat_index,
-                         const Index& scat_lon_index
+                         const Index& scat_lon_index,
+                         const Verbosity& verbosity
                          )
 {
+  CREATE_OUT3
+  
   out3 << "Calculate *pha_mat_spt* from database\n";
 
   const Index N_pt = scat_data_raw.nelem();
@@ -173,7 +176,8 @@ void pha_mat_sptFromData( // Output:
                                    za_datagrid, aa_datagrid,
                                    part_type, scat_za_index, scat_aa_index,
                                    za_inc_idx, 
-                                   aa_inc_idx, scat_za_grid, scat_aa_grid);
+                                   aa_inc_idx, scat_za_grid, scat_aa_grid,
+                                   verbosity);
                 }
             }
         }
@@ -182,21 +186,21 @@ void pha_mat_sptFromData( // Output:
   
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pha_mat_sptFromDataDOITOpt( // Output:
-                         Tensor5& pha_mat_spt,
-                         // Input:
-                         const ArrayOfTensor7& pha_mat_sptDOITOpt,
-                         const ArrayOfSingleScatteringData& scat_data_mono,
-                         const Index& doit_za_grid_size,
-                         const Vector& scat_aa_grid,
-                         const Index& scat_za_index, // propagation directions
-                         const Index& scat_aa_index,
-                         const Numeric& rte_temperature,
-                         const Tensor4&  pnd_field, 
-                         const Index& scat_p_index,
-                         const Index&  scat_lat_index,
-                         const Index& scat_lon_index
-                         )
+void pha_mat_sptFromDataDOITOpt(// Output:
+                                Tensor5& pha_mat_spt,
+                                // Input:
+                                const ArrayOfTensor7& pha_mat_sptDOITOpt,
+                                const ArrayOfSingleScatteringData& scat_data_mono,
+                                const Index& doit_za_grid_size,
+                                const Vector& scat_aa_grid,
+                                const Index& scat_za_index, // propagation directions
+                                const Index& scat_aa_index,
+                                const Numeric& rte_temperature,
+                                const Tensor4&  pnd_field, 
+                                const Index& scat_p_index,
+                                const Index&  scat_lat_index,
+                                const Index& scat_lon_index,
+                                const Verbosity&)
 {
   // atmosphere_dim = 3
   if (pnd_field.ncols() > 1)
@@ -310,23 +314,23 @@ void pha_mat_sptFromDataDOITOpt( // Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void opt_prop_sptFromData( // Output and Input:
-                         Tensor3& ext_mat_spt,
-                         Matrix& abs_vec_spt,
-                         // Input:
-                         const ArrayOfSingleScatteringData& scat_data_raw,
-                         const Vector& scat_za_grid,
-                         const Vector& scat_aa_grid,
-                         const Index& scat_za_index, // propagation directions
-                         const Index& scat_aa_index,
-                         const Index& f_index,
-                         const Vector& f_grid,
-                         const Numeric& rte_temperature, 
-                         const Tensor4& pnd_field, 
-                         const Index& scat_p_index,
-                         const Index& scat_lat_index,
-                         const Index& scat_lon_index
-                         )
+void opt_prop_sptFromData(// Output and Input:
+                          Tensor3& ext_mat_spt,
+                          Matrix& abs_vec_spt,
+                          // Input:
+                          const ArrayOfSingleScatteringData& scat_data_raw,
+                          const Vector& scat_za_grid,
+                          const Vector& scat_aa_grid,
+                          const Index& scat_za_index, // propagation directions
+                          const Index& scat_aa_index,
+                          const Index& f_index,
+                          const Vector& f_grid,
+                          const Numeric& rte_temperature, 
+                          const Tensor4& pnd_field, 
+                          const Index& scat_p_index,
+                          const Index& scat_lat_index,
+                          const Index& scat_lon_index,
+                          const Verbosity& verbosity)
 {
   
   const Index N_pt = scat_data_raw.nelem();
@@ -493,14 +497,15 @@ void opt_prop_sptFromData( // Output and Input:
           ext_matTransform(ext_mat_spt(i_pt, joker, joker),
                            ext_mat_data_int,
                            za_datagrid, aa_datagrid, part_type,
-                           za_sca, aa_sca);
+                           za_sca, aa_sca,
+                           verbosity);
           // 
           // Absorption vector:
           //
           abs_vecTransform(abs_vec_spt(i_pt, joker),
                            abs_vec_data_int,
                            za_datagrid, aa_datagrid, part_type,
-                           za_sca, aa_sca);                
+                           za_sca, aa_sca, verbosity);                
         }
 
     }
@@ -508,14 +513,14 @@ void opt_prop_sptFromData( // Output and Input:
                           
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matAddPart(
-                    Tensor3& ext_mat,
+void ext_matAddPart(Tensor3& ext_mat,
                     const Tensor3& ext_mat_spt,
                     const Tensor4& pnd_field,
                     const Index& atmosphere_dim,
                     const Index& scat_p_index,
                     const Index& scat_lat_index,
-                    const Index& scat_lon_index) 
+                    const Index& scat_lon_index,
+                    const Verbosity&)
                      
 {
   Index N_pt = ext_mat_spt.npages();
@@ -586,14 +591,14 @@ void ext_matAddPart(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecAddPart(
-                      Matrix& abs_vec,
-                      const Matrix& abs_vec_spt,
-                      const Tensor4& pnd_field,
-                      const Index& atmosphere_dim,
-                      const Index& scat_p_index,
-                      const Index& scat_lat_index,
-                      const Index& scat_lon_index) 
+void abs_vecAddPart(Matrix& abs_vec,
+                    const Matrix& abs_vec_spt,
+                    const Tensor4& pnd_field,
+                    const Index& atmosphere_dim,
+                    const Index& scat_p_index,
+                    const Index& scat_lat_index,
+                    const Index& scat_lon_index,
+                    const Verbosity&)
                     
 {
   Index N_pt = abs_vec_spt.nrows();
@@ -647,11 +652,14 @@ void abs_vecAddPart(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matInit( Tensor3&      ext_mat,
-                  const Vector& f_grid,
-                  const Index&  stokes_dim,
-                  const Index&   f_index)
+void ext_matInit(Tensor3&         ext_mat,
+                 const Vector&    f_grid,
+                 const Index&     stokes_dim,
+                 const Index&     f_index,
+                 const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   Index freq_dim;
 
   if( f_index < 0 )
@@ -672,8 +680,9 @@ void ext_matInit( Tensor3&      ext_mat,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matAddGas( Tensor3&      ext_mat,
-                    const Matrix& abs_scalar_gas )
+void ext_matAddGas(Tensor3&      ext_mat,
+                   const Matrix& abs_scalar_gas,
+                   const Verbosity&)
 {
   // Number of Stokes parameters:
   const Index stokes_dim = ext_mat.ncols();
@@ -712,11 +721,14 @@ void ext_matAddGas( Tensor3&      ext_mat,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecInit( Matrix&       abs_vec,
-                  const Vector& f_grid,
-                  const Index&  stokes_dim,
-                  const Index&  f_index)
+void abs_vecInit(Matrix&       abs_vec,
+                 const Vector& f_grid,
+                 const Index&  stokes_dim,
+                 const Index&  f_index,
+                 const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   Index freq_dim;
 
   if( f_index < 0 )
@@ -735,8 +747,9 @@ void abs_vecInit( Matrix&       abs_vec,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecAddGas( Matrix&       abs_vec,
-                    const Matrix& abs_scalar_gas )
+void abs_vecAddGas(Matrix&       abs_vec,
+                   const Matrix& abs_scalar_gas,
+                   const Verbosity&)
 {
   // Number of frequencies:
   const Index f_dim = abs_vec.nrows();
@@ -764,7 +777,8 @@ void abs_vecAddGas( Matrix&       abs_vec,
 /* Workspace method: Doxygen documentation will be auto-generated */
 /*
 void ext_matAddGasZeeman( Tensor3&      ext_mat,
-                          const Tensor3&  ext_mat_zee )
+                          const Tensor3&  ext_mat_zee,
+                          const Verbosity&)
 {
   // Number of Stokes parameters:
   const Index stokes_dim = ext_mat.ncols();
@@ -791,7 +805,8 @@ void ext_matAddGasZeeman( Tensor3&      ext_mat,
 /* Workspace method: Doxygen documentation will be auto-generated */
 /*
 void abs_vecAddGasZeeman( Matrix&      abs_vec,
-                          const Matrix& abs_vec_zee )
+                          const Matrix& abs_vec_zee,
+                          const Verbosity&)
 {
   // Number of Stokes parameters:
   const Index stokes_dim = abs_vec_zee.ncols();
@@ -805,15 +820,14 @@ void abs_vecAddGasZeeman( Matrix&      abs_vec,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pha_matCalc(
-                 Tensor4& pha_mat,
+void pha_matCalc(Tensor4& pha_mat,
                  const Tensor5& pha_mat_spt,
                  const Tensor4& pnd_field,
                  const Index& atmosphere_dim,
                  const Index& scat_p_index,
                  const Index& scat_lat_index,
-                 const Index& scat_lon_index) 
-                      
+                 const Index& scat_lon_index,
+                 const Verbosity&)
 {
 
   Index N_pt = pha_mat_spt.nshelves();
@@ -894,11 +908,13 @@ void pha_matCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_rawCheck(//Input:
-                         const ArrayOfSingleScatteringData& scat_data_raw
-                         )
+                        const ArrayOfSingleScatteringData& scat_data_raw,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT1
 
-  xml_write_to_file("SingleScatteringData", scat_data_raw);
+  xml_write_to_file("SingleScatteringData", scat_data_raw, FILE_TYPE_ASCII,
+                    verbosity);
   
   const Index N_pt = scat_data_raw.nelem();
   
@@ -927,7 +943,7 @@ void scat_data_rawCheck(//Input:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitScatteringDataPrepare( //Output:
+void DoitScatteringDataPrepare(//Output:
                                ArrayOfTensor7& pha_mat_sptDOITOpt,
                                ArrayOfSingleScatteringData& scat_data_mono,
                                //Input:
@@ -938,12 +954,12 @@ void DoitScatteringDataPrepare( //Output:
                                const Vector& f_grid,
                                const Index& f_index,
                                const Index& atmosphere_dim,
-                               const Index& stokes_dim
-                                  )
+                               const Index& stokes_dim,
+                               const Verbosity& verbosity)
 {
   
   // Interpolate all the data in frequency
-  scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
+  scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index, verbosity);
   
   // For 1D calculation the scat_aa dimension is not required:
   Index N_aa_sca;
@@ -1004,7 +1020,8 @@ void DoitScatteringDataPrepare( //Output:
                                            za_inc_idx,
                                            aa_inc_idx,
                                            za_grid,
-                                           scat_aa_grid);
+                                           scat_aa_grid,
+                                           verbosity);
                         }
                     }
                 }
@@ -1015,12 +1032,11 @@ void DoitScatteringDataPrepare( //Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void scat_data_monoCalc(
-                        ArrayOfSingleScatteringData& scat_data_mono,
+void scat_data_monoCalc(ArrayOfSingleScatteringData& scat_data_mono,
                         const ArrayOfSingleScatteringData& scat_data_raw,
                         const Vector& f_grid,
-                        const Index& f_index
-                       )
+                        const Index& f_index,
+                        const Verbosity&)
 {
   //Extrapolation factor:
   //const Numeric extpolfac = 0.5;
@@ -1171,21 +1187,21 @@ void scat_data_monoCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void opt_prop_sptFromMonoData( // Output and Input:
-                         Tensor3& ext_mat_spt,
-                         Matrix& abs_vec_spt,
-                         // Input:
-                         const ArrayOfSingleScatteringData& scat_data_mono,
-                         const Vector& scat_za_grid,
-                         const Vector& scat_aa_grid,
-                         const Index& scat_za_index, // propagation directions
-                         const Index& scat_aa_index,
-                         const Numeric& rte_temperature,
-                         const Tensor4& pnd_field, 
-                         const Index& scat_p_index,
-                         const Index& scat_lat_index,
-                         const Index& scat_lon_index
-                         )
+void opt_prop_sptFromMonoData(// Output and Input:
+                              Tensor3& ext_mat_spt,
+                              Matrix& abs_vec_spt,
+                              // Input:
+                              const ArrayOfSingleScatteringData& scat_data_mono,
+                              const Vector& scat_za_grid,
+                              const Vector& scat_aa_grid,
+                              const Index& scat_za_index, // propagation directions
+                              const Index& scat_aa_index,
+                              const Numeric& rte_temperature,
+                              const Tensor4& pnd_field, 
+                              const Index& scat_p_index,
+                              const Index& scat_lat_index,
+                              const Index& scat_lon_index,
+                              const Verbosity& verbosity)
 {
   const Index N_pt = scat_data_mono.nelem();
   const Index stokes_dim = ext_mat_spt.ncols();
@@ -1270,7 +1286,8 @@ void opt_prop_sptFromMonoData( // Output and Input:
                            scat_data_mono[i_pt].za_grid, 
                            scat_data_mono[i_pt].aa_grid, 
                            scat_data_mono[i_pt].ptype,
-                           za_sca, aa_sca);
+                           za_sca, aa_sca,
+                           verbosity);
           // 
           // Absorption vector:
           //
@@ -1301,7 +1318,8 @@ void opt_prop_sptFromMonoData( // Output and Input:
                            scat_data_mono[i_pt].za_grid, 
                            scat_data_mono[i_pt].aa_grid, 
                            scat_data_mono[i_pt].ptype,
-                           za_sca, aa_sca);                
+                           za_sca, aa_sca,
+                           verbosity);                
         }
 
     }
@@ -1309,7 +1327,7 @@ void opt_prop_sptFromMonoData( // Output and Input:
  
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pha_mat_sptFromMonoData( // Output:
+void pha_mat_sptFromMonoData(// Output:
                              Tensor5& pha_mat_spt,
                              // Input:
                              const ArrayOfSingleScatteringData& scat_data_mono,
@@ -1321,9 +1339,11 @@ void pha_mat_sptFromMonoData( // Output:
                              const Tensor4& pnd_field, 
                              const Index& scat_p_index,
                              const Index& scat_lat_index,
-                             const Index& scat_lon_index
-                             )
+                             const Index& scat_lon_index,
+                             const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   out3 << "Calculate *pha_mat_spt* from scat_data_mono. \n";
   
   Vector za_grid;
@@ -1396,7 +1416,8 @@ void pha_mat_sptFromMonoData( // Output:
                                         scat_data_mono[i_pt].ptype,
                                         scat_za_index, scat_aa_index, 
                                         za_inc_idx, 
-                                        aa_inc_idx, za_grid, scat_aa_grid);
+                                        aa_inc_idx, za_grid, scat_aa_grid,
+                                        verbosity );
                     }
                   // Temperature interpolation
                   if( scat_data_mono[i_pt].T_grid.nelem() > 1)

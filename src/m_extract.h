@@ -43,7 +43,8 @@ void Extract(
       // WS Input:
       // WS Generic Input:
       const Array<T>&  arr,
-      const Index&     index)
+      const Index&     index,
+      const Verbosity&)
 {
   if( index >= arr.nelem() )
     {
@@ -65,7 +66,8 @@ void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
       // WS Input:
       // WS Generic Input:
       const ArrayOfArrayOfIndex&   aoaoi,
-      const Index&     index)
+      const Index&     index,
+      const Verbosity&)
 {
   if( index >= aoaoi.nelem() )
     {
@@ -88,7 +90,8 @@ void Extract(
       // WS Input:
       // WS Generic Input:
       const Vector&    v,
-      const Index&     index)
+      const Index&     index,
+      const Verbosity&)
 {
   if( index >= v.nelem() )
     {
@@ -110,7 +113,8 @@ void Extract(
       // WS Input:
       // WS Generic Input:
       const Tensor3&  t3,
-      const Index&    index)
+      const Index&    index,
+      const Verbosity&)
 {
   if( index >= t3.npages() )
     {
@@ -132,7 +136,8 @@ void Extract(
       // WS Input:
       // WS Generic Input:
       const Tensor4&   t4,
-      const Index&     index)
+      const Index&     index,
+      const Verbosity&)
 {
   if( index >= t4.nbooks() )
     {
@@ -155,7 +160,8 @@ void Extract(
       // WS Input:
       // WS Generic Input:
       const Tensor5&   t5,
-      const Index&     index)
+      const Index&     index,
+      const Verbosity&)
 {
   if( index >= t5.nshelves() )
     {
@@ -182,7 +188,8 @@ void Extract(
       // WS Input:
       // WS Generic Input:
       const ArrayOfArrayOfGriddedField3&   aagf,
-      const Index&     index)
+      const Index&     index,
+      const Verbosity&)
 {
   if( index >= aagf.nelem() )
     {
@@ -209,7 +216,8 @@ void Extract(
       // WS Input:
       // WS Generic Input:
       const ArrayOfGriddedField4&   agf4,
-      const Index&     index)
+      const Index&     index,
+      const Verbosity&)
 {
   if( index >= agf4.nelem() )
     {

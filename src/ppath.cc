@@ -5161,21 +5161,24 @@ void ppath_step_refr_3d(
    \author Patrick Eriksson
    \date   2002-05-17
 */
-void ppath_start_stepping(
-              Ppath&          ppath,
-        const Index&          atmosphere_dim,
-        ConstVectorView       p_grid,
-        ConstVectorView       lat_grid,
-        ConstVectorView       lon_grid,
-        ConstTensor3View      z_field,
-        ConstMatrixView       r_geoid,
-        ConstMatrixView       z_surface,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits,
-        const bool&           outside_cloudbox,
-        ConstVectorView       rte_pos,
-        ConstVectorView       rte_los )
+void ppath_start_stepping(Ppath&                ppath,
+                          const Index&          atmosphere_dim,
+                          ConstVectorView       p_grid,
+                          ConstVectorView       lat_grid,
+                          ConstVectorView       lon_grid,
+                          ConstTensor3View      z_field,
+                          ConstMatrixView       r_geoid,
+                          ConstMatrixView       z_surface,
+                          const Index&          cloudbox_on, 
+                          const ArrayOfIndex&   cloudbox_limits,
+                          const bool&           outside_cloudbox,
+                          ConstVectorView       rte_pos,
+                          ConstVectorView       rte_los,
+                          const Verbosity&      verbosity)
 {
+  CREATE_OUT1
+  CREATE_OUT2
+  
   // This function contains no checks or asserts as it is only a sub-function
   // to ppathCalc where the input is checked carefully.
 
@@ -6131,25 +6134,27 @@ void ppath_start_stepping(
    \author Patrick Eriksson
    \date   2003-01-08
 */
-void ppath_calc(
-              Workspace&      ws,
-        // WS Output:
-              Ppath&          ppath,
-        // WS Input:
-        const Agenda&         ppath_step_agenda,
-        const Index&          atmosphere_dim,
-        const Vector&         p_grid,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Matrix&         r_geoid,
-        const Matrix&         z_surface,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         rte_pos,
-        const Vector&         rte_los,
-        const bool&           outside_cloudbox )
+void ppath_calc(Workspace&            ws,
+                // WS Output:
+                Ppath&                ppath,
+                // WS Input:
+                const Agenda&         ppath_step_agenda,
+                const Index&          atmosphere_dim,
+                const Vector&         p_grid,
+                const Vector&         lat_grid,
+                const Vector&         lon_grid,
+                const Tensor3&        z_field,
+                const Matrix&         r_geoid,
+                const Matrix&         z_surface,
+                const Index&          cloudbox_on, 
+                const ArrayOfIndex&   cloudbox_limits,
+                const Vector&         rte_pos,
+                const Vector&         rte_los,
+                const bool&           outside_cloudbox,
+                const Verbosity&      verbosity)
 {
+  CREATE_OUT2
+  
   // This function is a WSM but it is normally only called from RteCalc. 
   // For that reason, this function does not repeat input checks that are
   // performed in RteCalc, it only performs checks regarding the sensor 
@@ -6207,8 +6212,9 @@ void ppath_calc(
   Ppath   ppath_step;
   //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-            lon_grid, z_field, r_geoid, z_surface,
-            cloudbox_on, cloudbox_limits, outside_cloudbox, rte_pos, rte_los );
+                        lon_grid, z_field, r_geoid, z_surface,
+                        cloudbox_on, cloudbox_limits, outside_cloudbox, rte_pos, rte_los,
+                        verbosity );
 
   out2 << "  -------------------------------------\n";
 

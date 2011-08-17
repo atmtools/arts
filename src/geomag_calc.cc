@@ -36,18 +36,19 @@ extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric EARTH_RADIUS;
 
-void magfield_nk(  // Output
-                   Numeric& B_r, // radial component of the geomagnetic field in [nT].
-                   Numeric& B_th, // latitudinal component of the geomagnetic field in [nT].
-                   Numeric& B_ph, // longitudinal component of the geomagnetic field in [nT].
-
-                   // Input
-                   const Numeric r, // radial distance to the point in [km]
-                   const Numeric theta, // geocentric colatitude of the point in [deg]
-                   const Numeric phi, // longitude of the point in [deg].
-                   // All coordinates - geocentric!
-
-                   const Index Ny // number of elapsed years after an epoch year, J - [0,4]
+void magfield_nk(// Output
+                 Numeric& B_r, // radial component of the geomagnetic field in [nT].
+                 Numeric& B_th, // latitudinal component of the geomagnetic field in [nT].
+                 Numeric& B_ph, // longitudinal component of the geomagnetic field in [nT].
+                 
+                 // Input
+                 const Numeric r, // radial distance to the point in [km]
+                 const Numeric theta, // geocentric colatitude of the point in [deg]
+                 const Numeric phi, // longitude of the point in [deg].
+                 // All coordinates - geocentric!
+                 
+                 const Index Ny, // number of elapsed years after an epoch year, J - [0,4]
+                 const Verbosity& verbosity
                 )
   
 {
@@ -62,7 +63,7 @@ void magfield_nk(  // Output
 
   Matrix M;
   
-  xml_read_from_file ("geomag_coefficients.xml", M);
+  xml_read_from_file ("geomag_coefficients.xml", M, verbosity);
   
   // M(i,0) and M(i,1) - the vectors with the values of the first and second coefficients 
   // of the IGRF model.

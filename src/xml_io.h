@@ -66,17 +66,20 @@ filename_xml_with_index (
 
 template<typename T> void
 xml_read_from_file (const String& filename,
-                          T&      type);
+                          T&      type,
+                    const Verbosity& verbosity);
 
 void
 xml_read_arts_catalogue_from_file (const String&      filename,
                                    ArrayOfLineRecord& type,
                                    const Numeric&     fmin,
-                                   const Numeric&     fmax);
+                                   const Numeric&     fmax,
+                                   const Verbosity&   verbosity);
 
 template<typename T> void
-xml_write_to_file (const String&  filename,
-                   const      T&  type,
-                   const FileType ftype = FILE_TYPE_ASCII);
+xml_write_to_file (const String& filename,
+                   const T&  type,
+                   const FileType ftype,
+                   const Verbosity& verbosity);
 
 #endif

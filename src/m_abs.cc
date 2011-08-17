@@ -62,7 +62,8 @@ void AbsInputFromRteScalars(// WS Output:
                             // WS Input:
                             const Numeric& rte_pressure,
                             const Numeric& rte_temperature,
-                            const Vector&  rte_vmr_list)
+                            const Vector&  rte_vmr_list,
+                            const Verbosity&)
 {
   // Prepare abs_p:
   abs_p.resize(1);
@@ -80,9 +81,10 @@ void AbsInputFromRteScalars(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetEmpty(// WS Output:
-                          ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                          // WS Input:
-                          const ArrayOfArrayOfSpeciesTag& tgs)
+                                   ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                   // WS Input:
+                                   const ArrayOfArrayOfSpeciesTag& tgs,
+                                   const Verbosity&)
 {
   // Make abs_lines_per_species the right size:
   abs_lines_per_species.resize( tgs.nelem() );
@@ -96,12 +98,15 @@ void abs_lines_per_speciesSetEmpty(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromHitran(// WS Output:
-                         ArrayOfLineRecord& abs_lines,
-                          // Control Parameters:
-                         const String& filename,
-                         const Numeric& fmin,
-                         const Numeric& fmax)
+                             ArrayOfLineRecord& abs_lines,
+                             // Control Parameters:
+                             const String& filename,
+                             const Numeric& fmin,
+                             const Numeric& fmax,
+                             const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   ifstream is;
 
   // Reset lines in case it already existed:
@@ -114,7 +119,7 @@ void abs_linesReadFromHitran(// WS Output:
   while ( go_on )
     {
       LineRecord lr;
-      if ( lr.ReadFromHitranStream(is) )
+      if ( lr.ReadFromHitranStream(is, verbosity) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.
@@ -137,12 +142,15 @@ void abs_linesReadFromHitran(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromHitran2004(// WS Output:
-                             ArrayOfLineRecord& abs_lines,
-                             // Control Parameters:
-                             const String& filename,
-                             const Numeric& fmin,
-                             const Numeric& fmax)
+                                 ArrayOfLineRecord& abs_lines,
+                                 // Control Parameters:
+                                 const String& filename,
+                                 const Numeric& fmin,
+                                 const Numeric& fmax,
+                                 const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   ifstream is;
 
   // Reset lines in case it already existed:
@@ -155,7 +163,7 @@ void abs_linesReadFromHitran2004(// WS Output:
   while ( go_on )
     {
       LineRecord lr;
-      if ( lr.ReadFromHitran2004Stream(is) )
+      if ( lr.ReadFromHitran2004Stream(is, verbosity) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.
@@ -178,12 +186,15 @@ void abs_linesReadFromHitran2004(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromMytran2(// WS Output:
-                          ArrayOfLineRecord& abs_lines,
-                          // Control Parameters:
-                          const String& filename,
-                          const Numeric& fmin,
-                          const Numeric& fmax)
+                              ArrayOfLineRecord& abs_lines,
+                              // Control Parameters:
+                              const String& filename,
+                              const Numeric& fmin,
+                              const Numeric& fmax,
+                              const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   ifstream is;
 
   // Reset lines in case it already existed:
@@ -196,7 +207,7 @@ void abs_linesReadFromMytran2(// WS Output:
   while ( go_on )
     {
       LineRecord lr;
-      if ( lr.ReadFromMytran2Stream(is) )
+      if ( lr.ReadFromMytran2Stream(is, verbosity) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.
@@ -216,12 +227,15 @@ void abs_linesReadFromMytran2(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromJpl(// WS Output:
-                      ArrayOfLineRecord& abs_lines,
-                      // Control Parameters:
-                      const String& filename,
-                      const Numeric& fmin,
-                      const Numeric& fmax)
+                          ArrayOfLineRecord& abs_lines,
+                          // Control Parameters:
+                          const String& filename,
+                          const Numeric& fmin,
+                          const Numeric& fmax,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   ifstream is;
 
   // Reset lines in case it already existed:
@@ -234,7 +248,7 @@ void abs_linesReadFromJpl(// WS Output:
   while ( go_on )
     {
       LineRecord lr;
-      if ( lr.ReadFromJplStream(is) )
+      if ( lr.ReadFromJplStream(is, verbosity) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.
@@ -258,13 +272,16 @@ void abs_linesReadFromJpl(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromArts(// WS Output:
-                       ArrayOfLineRecord& abs_lines,
-                       // Control Parameters:
-                       const String& filename,
-                       const Numeric& fmin,
-                       const Numeric& fmax)
+                           ArrayOfLineRecord& abs_lines,
+                           // Control Parameters:
+                           const String& filename,
+                           const Numeric& fmin,
+                           const Numeric& fmax,
+                           const Verbosity& verbosity)
 {
-  xml_read_arts_catalogue_from_file (filename, abs_lines, fmin, fmax);
+  CREATE_OUT2
+  
+  xml_read_arts_catalogue_from_file (filename, abs_lines, fmin, fmax, verbosity);
 
   out2 << "  Read " << abs_lines.nelem() << " lines.\n";
 }
@@ -282,12 +299,15 @@ void abs_linesReadFromArts(// WS Output:
   \param fmin Minimum frequency.
   \param fmax Maximum frequency. */
 void abs_linesReadFromArtsObsolete(// WS Output:
-                       ArrayOfLineRecord& abs_lines,
-                       // Control Parameters:
-                       const String& filename,
-                       const Numeric& fmin,
-                       const Numeric& fmax)
+                                   ArrayOfLineRecord& abs_lines,
+                                   // Control Parameters:
+                                   const String& filename,
+                                   const Numeric& fmin,
+                                   const Numeric& fmax,
+                                   const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   // The input stream:
   ifstream is;
 
@@ -331,7 +351,7 @@ void abs_linesReadFromArtsObsolete(// WS Output:
   bool go_on = true;
   while ( go_on )
     {
-      if ( lr.ReadFromArtsStream(is) )
+      if ( lr.ReadFromArtsStream(is, verbosity) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.
@@ -361,15 +381,18 @@ void linesElowToJoule(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesReadFromCatalogues(// WS Output:
-                                    ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                    // WS Input:
-                                    const ArrayOfArrayOfSpeciesTag& tgs,
-                                    // Control Parameters:
-                                    const ArrayOfString& filenames,
-                                    const ArrayOfString& formats,
-                                    const Vector& fmin,
-                                    const Vector& fmax)
+                                             ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                             // WS Input:
+                                             const ArrayOfArrayOfSpeciesTag& tgs,
+                                             // Control Parameters:
+                                             const ArrayOfString& filenames,
+                                             const ArrayOfString& formats,
+                                             const Vector& fmin,
+                                             const Vector& fmax,
+                                             const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   const Index n_tg   = tgs.nelem();     // # tag groups
   const Index n_cat = filenames.nelem();        // # tag Catalogues
 
@@ -518,23 +541,23 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
 
       if ( "HITRAN96"==real_formats[i] )
         {
-          abs_linesReadFromHitran( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+          abs_linesReadFromHitran( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
         }
       else if ( "HITRAN04"==real_formats[i] )
         {
-          abs_linesReadFromHitran2004( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+          abs_linesReadFromHitran2004( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
         }
       else if ( "MYTRAN2"==real_formats[i] )
         {
-          abs_linesReadFromMytran2( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+          abs_linesReadFromMytran2( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
         }
       else if ( "JPL"==real_formats[i] )
         {
-          abs_linesReadFromJpl( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+          abs_linesReadFromJpl( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
         }
       else if ( "ARTS"==real_formats[i] )
         {
-          abs_linesReadFromArts( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+          abs_linesReadFromArts( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
         }
       else
         {
@@ -555,7 +578,7 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
 
       // Create these_abs_lines_per_species:
       ArrayOfArrayOfLineRecord these_abs_lines_per_species;
-      abs_lines_per_speciesCreateFromLines( these_abs_lines_per_species, abs_lines, these_tgs );
+      abs_lines_per_speciesCreateFromLines( these_abs_lines_per_species, abs_lines, these_tgs, verbosity );
 
       // Put these lines in the right place in abs_lines_per_species:
       for ( Index s=0; s<real_tgs[i].nelem(); ++s )
@@ -568,11 +591,14 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesCreateFromLines(// WS Output:
-                                  ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                  // WS Input:
-                                  const ArrayOfLineRecord&   abs_lines,
-                                  const ArrayOfArrayOfSpeciesTag&           tgs)
+                                          ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                          // WS Input:
+                                          const ArrayOfLineRecord& abs_lines,
+                                          const ArrayOfArrayOfSpeciesTag& tgs,
+                                          const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
 
@@ -680,6 +706,7 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
           // species are only partly covered by tags.
           if ( species_used[this_line.Species()] )
             {
+              CREATE_OUT2
               out2 << "  Your tags include other lines of species "
                    << this_line.SpeciesData().Name()
                    << ",\n"
@@ -708,7 +735,8 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesAddMirrorLines(// WS Output:
-                                ArrayOfArrayOfLineRecord& abs_lines_per_species)
+                                         ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                         const Verbosity&)
 {
   // We will simply append the mirror lines after the original
   // lines. This way we don't have to make a backup copy of the
@@ -744,10 +772,11 @@ void abs_lines_per_speciesAddMirrorLines(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesCompact(// WS Output:
-                         ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                         // WS Input:
-                         const ArrayOfLineshapeSpec& abs_lineshape,
-                         const Vector& f_grid)
+                                  ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                  // WS Input:
+                                  const ArrayOfLineshapeSpec& abs_lineshape,
+                                  const Vector& f_grid,
+                                  const Verbosity&)
 {
   // Make sure abs_lines_per_species and abs_lineshape have the same
   // dimension. As a special case, abs_lineshape can have length 1, in
@@ -839,8 +868,11 @@ void abs_lines_per_speciesCompact(// WS Output:
 void abs_speciesDefineAllInScenario(// WS Output:
                                     ArrayOfArrayOfSpeciesTag& tgs,
                                     // Control Parameters:
-                                    const String& basename)
+                                    const String& basename,
+                                    const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
 
@@ -900,8 +932,11 @@ void abs_lineshapeDefine(// WS Output:
                          // WS Input:
                          const String&            shape,
                          const String&            normalizationfactor,
-                         const Numeric&           cutoff)
+                         const Numeric&           cutoff,
+                         const Verbosity&         verbosity)
 {
+  CREATE_OUT2
+  
   // Make lineshape and normalization factor data visible:
   extern const Array<LineshapeRecord> lineshape_data;
   extern const Array<LineshapeNormRecord> lineshape_norm_data;
@@ -962,13 +997,16 @@ void abs_lineshapeDefine(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lineshape_per_tgDefine(// WS Output:
-                            ArrayOfLineshapeSpec& abs_lineshape,
-                            // WS Input:
-                            const ArrayOfArrayOfSpeciesTag&      tgs,
-                            const ArrayOfString&  shape,
-                            const ArrayOfString&  normalizationfactor,
-                            const Vector&         cutoff )
+                                ArrayOfLineshapeSpec& abs_lineshape,
+                                // WS Input:
+                                const ArrayOfArrayOfSpeciesTag&      tgs,
+                                const ArrayOfString&  shape,
+                                const ArrayOfString&  normalizationfactor,
+                                const Vector&         cutoff,
+                                const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   // Make lineshape and normalization factor data visible:
   extern const Array<LineshapeRecord> lineshape_data;
   extern const Array<LineshapeNormRecord> lineshape_norm_data;
@@ -1049,7 +1087,8 @@ void abs_lineshape_per_tgDefine(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_h2oSet(Vector&          abs_h2o,
                 const ArrayOfArrayOfSpeciesTag& abs_species,
-                const Matrix&    abs_vmrs)
+                const Matrix&    abs_vmrs,
+                const Verbosity&)
 {
   const Index h2o_index 
     = find_first_species_tg( abs_species,
@@ -1065,8 +1104,9 @@ void abs_h2oSet(Vector&          abs_h2o,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_n2Set(Vector&            abs_n2,
-               const   ArrayOfArrayOfSpeciesTag& abs_species,
-               const   Matrix&    abs_vmrs)
+               const ArrayOfArrayOfSpeciesTag& abs_species,
+               const Matrix&    abs_vmrs,
+               const Verbosity&)
 {
   const Index n2_index 
     = find_first_species_tg( abs_species,
@@ -1089,7 +1129,8 @@ void AbsInputFromAtmFields (// WS Output:
                             const Index& atmosphere_dim,
                             const Vector&  p_grid,
                             const Tensor3& t_field,
-                            const Tensor4& vmr_field
+                            const Tensor4& vmr_field,
+                            const Verbosity&
                            )
 {
   // First, make sure that we really have a 1D atmosphere:
@@ -1123,43 +1164,47 @@ void abs_coefCalc(// WS Output:
                   const ArrayOfLineshapeSpec&     abs_lineshape,
                   const ArrayOfString&            abs_cont_names,
                   const ArrayOfString&            abs_cont_models,
-                  const ArrayOfVector&            abs_cont_parameters)
+                  const ArrayOfVector&            abs_cont_parameters,
+                  const Verbosity&                verbosity)
 {
   // Dimension checks are performed in the executed functions
 
   // allocate local variable to hold the cross sections per tag group
   ArrayOfMatrix abs_xsec_per_species;
   
-  abs_xsec_per_speciesInit( abs_xsec_per_species, tgs, f_grid, abs_p );
+  abs_xsec_per_speciesInit(abs_xsec_per_species, tgs, f_grid, abs_p, verbosity);
 
-  abs_xsec_per_speciesAddLines( abs_xsec_per_species,
-                       tgs,
-                       f_grid,
-                       abs_p,
-                       abs_t,
-                       abs_h2o,
-                       abs_vmrs,
-                       abs_lines_per_species,
-                       abs_lineshape );
+  abs_xsec_per_speciesAddLines(abs_xsec_per_species,
+                               tgs,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               abs_h2o,
+                               abs_vmrs,
+                               abs_lines_per_species,
+                               abs_lineshape,
+                               verbosity);
 
-  abs_xsec_per_speciesAddConts( abs_xsec_per_species,
-                       tgs,
-                       f_grid,
-                       abs_p,
-                       abs_t,
-                       abs_n2,
-                       abs_h2o,
-                       abs_vmrs,
-                       abs_cont_names,
-                       abs_cont_parameters,
-                       abs_cont_models);
+  abs_xsec_per_speciesAddConts(abs_xsec_per_species,
+                               tgs,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               abs_n2,
+                               abs_h2o,
+                               abs_vmrs,
+                               abs_cont_names,
+                               abs_cont_parameters,
+                               abs_cont_models,
+                               verbosity);
 
   abs_coefCalcFromXsec(abs_coef,
                        abs_coef_per_species,
                        abs_xsec_per_species,
                        abs_vmrs,
                        abs_p,
-                       abs_t);
+                       abs_t,
+                       verbosity);
 
 }
 
@@ -1179,8 +1224,11 @@ void abs_coefCalcSaveMemory(// WS Output:
                             const ArrayOfLineshapeSpec&     abs_lineshape,
                             const ArrayOfString&   abs_cont_names,
                             const ArrayOfString&   abs_cont_models,
-                            const ArrayOfVector&   abs_cont_parameters)
+                            const ArrayOfVector&   abs_cont_parameters,
+                            const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Dimension checks are performed in the executed functions
 
   // Allocate local variable to hold the cross sections per tag group:
@@ -1231,36 +1279,39 @@ void abs_coefCalcSaveMemory(// WS Output:
       // List of lineshapes:
       this_lineshape[0] = abs_lineshape[i];
 
-      abs_xsec_per_speciesInit( abs_xsec_per_species, this_tg, f_grid, abs_p );
+      abs_xsec_per_speciesInit(abs_xsec_per_species, this_tg, f_grid, abs_p, verbosity);
 
-      abs_xsec_per_speciesAddLines( abs_xsec_per_species,
-                           this_tg,
-                           f_grid,
-                           abs_p,
-                           abs_t,
-                           abs_h2o,
-                           this_vmr,
-                           these_lines,
-                           this_lineshape );
+      abs_xsec_per_speciesAddLines(abs_xsec_per_species,
+                                   this_tg,
+                                   f_grid,
+                                   abs_p,
+                                   abs_t,
+                                   abs_h2o,
+                                   this_vmr,
+                                   these_lines,
+                                   this_lineshape,
+                                   verbosity);
 
-      abs_xsec_per_speciesAddConts( abs_xsec_per_species,
-                           this_tg,
-                           f_grid,
-                           abs_p,
-                           abs_t,
-                           abs_n2,
-                           abs_h2o,
-                           this_vmr,
-                           abs_cont_names,
-                           abs_cont_parameters,
-                           abs_cont_models);
+      abs_xsec_per_speciesAddConts(abs_xsec_per_species,
+                                   this_tg,
+                                   f_grid,
+                                   abs_p,
+                                   abs_t,
+                                   abs_n2,
+                                   abs_h2o,
+                                   this_vmr,
+                                   abs_cont_names,
+                                   abs_cont_parameters,
+                                   abs_cont_models,
+                                   verbosity);
 
       abs_coefCalcFromXsec(this_abs,
                            this_abs_coef_per_species,
                            abs_xsec_per_species,
                            this_vmr,
                            abs_p,
-                           abs_t);
+                           abs_t,
+                           verbosity);
 
       // Add absorption of this species to total absorption:
       assert(abs_coef.nrows()==this_abs.nrows());
@@ -1278,8 +1329,11 @@ void abs_coefCalcFromXsec(// WS Output:
                           const ArrayOfMatrix& abs_xsec_per_species,
                           const Matrix&        abs_vmrs,
                           const Vector&        abs_p,
-                          const Vector&        abs_t)
+                          const Vector&        abs_t,
+                          const Verbosity&     verbosity)
 {
+  CREATE_OUT3
+  
   // Check that abs_vmrs and abs_xsec_per_species really have compatible
   // dimensions. In abs_vmrs there should be one row for each tg:
   if ( abs_vmrs.nrows() != abs_xsec_per_species.nelem() )
@@ -1349,13 +1403,16 @@ void abs_coefCalcFromXsec(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesInit(// WS Output:
-                     ArrayOfMatrix&   abs_xsec_per_species,
-                     // WS Input:
-                     const ArrayOfArrayOfSpeciesTag& tgs,
-                     const Vector&    f_grid,
-                     const Vector&    abs_p
-                     )
+                              ArrayOfMatrix&   abs_xsec_per_species,
+                              // WS Input:
+                              const ArrayOfArrayOfSpeciesTag& tgs,
+                              const Vector&    f_grid,
+                              const Vector&    abs_p,
+                              const Verbosity& verbosity
+                              )
 {
+  CREATE_OUT3
+  
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
   abs_xsec_per_species.resize( tgs.nelem() );
@@ -1379,17 +1436,20 @@ void abs_xsec_per_speciesInit(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLines(// WS Output:
-                         ArrayOfMatrix&                   abs_xsec_per_species,
-                         // WS Input:             
-                         const ArrayOfArrayOfSpeciesTag&  tgs,
-                         const Vector&                    f_grid,
-                         const Vector&                    abs_p,
-                         const Vector&                    abs_t,
-                         const Vector&                    abs_h2o,
-                         const Matrix&                    abs_vmrs,
-                         const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
-                         const ArrayOfLineshapeSpec&      abs_lineshape)
+                                  ArrayOfMatrix&                   abs_xsec_per_species,
+                                  // WS Input:             
+                                  const ArrayOfArrayOfSpeciesTag&  tgs,
+                                  const Vector&                    f_grid,
+                                  const Vector&                    abs_p,
+                                  const Vector&                    abs_t,
+                                  const Vector&                    abs_h2o,
+                                  const Matrix&                    abs_vmrs,
+                                  const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
+                                  const ArrayOfLineshapeSpec&      abs_lineshape,
+                                  const Verbosity&                 verbosity)
 {
+  CREATE_OUT3
+  
   // Check that all temperatures are at least 0 K. (Negative Kelvin
   // temperatures are unphysical.)  
   if ( min(abs_t) < 0 )
@@ -1606,19 +1666,22 @@ void abs_xsec_per_speciesAddLines(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddConts(// WS Output:
-                         ArrayOfMatrix&                   abs_xsec_per_species,
-                         // WS Input:             
-                         const ArrayOfArrayOfSpeciesTag&                 tgs,
-                         const Vector&                    f_grid,
-                         const Vector&                    abs_p,
-                         const Vector&                    abs_t,
-                         const Vector&                    abs_n2,
-                         const Vector&                    abs_h2o,
-                         const Matrix&                    abs_vmrs,
-                         const ArrayOfString&             abs_cont_names,
-                         const ArrayOfVector&             abs_cont_parameters,
-                         const ArrayOfString&             abs_cont_models )
+                                  ArrayOfMatrix&                   abs_xsec_per_species,
+                                  // WS Input:             
+                                  const ArrayOfArrayOfSpeciesTag&  tgs,
+                                  const Vector&                    f_grid,
+                                  const Vector&                    abs_p,
+                                  const Vector&                    abs_t,
+                                  const Vector&                    abs_n2,
+                                  const Vector&                    abs_h2o,
+                                  const Matrix&                    abs_vmrs,
+                                  const ArrayOfString&             abs_cont_names,
+                                  const ArrayOfVector&             abs_cont_parameters,
+                                  const ArrayOfString&             abs_cont_models,
+                                  const Verbosity&                 verbosity)
 {
+  CREATE_OUT3
+  
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
   {
@@ -1867,7 +1930,8 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                       abs_t,
                                       n2_prof,
                                       abs_h2o,
-                                      abs_vmrs(i,Range(joker)) );
+                                      abs_vmrs(i,Range(joker)),
+                                      verbosity );
                   // Calling this function with a row of Matrix abs_vmrs
                   // is possible because it uses Views.
                 }
@@ -1885,10 +1949,13 @@ void abs_xsec_per_speciesAddConts(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cont_descriptionInit(// WS Output:
-                          ArrayOfString& names,
-                          ArrayOfString& options, 
-                          ArrayOfVector& parameters)
+                              ArrayOfString& names,
+                              ArrayOfString& options, 
+                              ArrayOfVector& parameters,
+                              const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   names.resize(0);
   options.resize(0);
   parameters.resize(0);
@@ -1900,13 +1967,14 @@ void abs_cont_descriptionInit(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cont_descriptionAppend(// WS Output:
-                       ArrayOfString& abs_cont_names,
-                       ArrayOfString& abs_cont_models,
-                       ArrayOfVector& abs_cont_parameters,
-                       // Control Parameters:
-                       const String& tagname,
-                       const String& model,
-                       const Vector& userparameters)
+                                ArrayOfString& abs_cont_names,
+                                ArrayOfString& abs_cont_models,
+                                ArrayOfVector& abs_cont_parameters,
+                                // Control Parameters:
+                                const String& tagname,
+                                const String& model,
+                                const Vector& userparameters,
+                                const Verbosity&)
 {
   // First we have to check that name matches a continuum species tag.
   check_continuum_model(tagname);
@@ -1926,7 +1994,8 @@ void abs_cont_descriptionAppend(// WS Output:
 void abs_scalar_gasFromAbsCoef(// WS Output:
                                Matrix&       abs_scalar_gas,
                                // WS Input:
-                               const ArrayOfMatrix& abs_coef_per_species)
+                               const ArrayOfMatrix& abs_coef_per_species,
+                               const Verbosity&)
 {
   // abs_scalar_gas has format [f_grid, abs_species].
   // abs_coef_per_species has format ArrayOfMatrix (over species),
@@ -1976,8 +2045,11 @@ void abs_scalar_gasCalcLBL(// WS Output:
                            const Numeric& rte_pressure,
                            const Numeric& rte_temperature,
                            const Vector& rte_vmr_list,
-                           const Numeric& rte_doppler)
+                           const Numeric& rte_doppler,
+                           const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Output of AbsInputFromRteScalars:
   Vector        abs_p;
   Vector        abs_t;
@@ -2002,7 +2074,7 @@ void abs_scalar_gasCalcLBL(// WS Output:
       local_f_grid = f_grid;          
 
       // Select the right frequency:
-      f_gridSelectFIndex(local_f_grid, f_index);
+      f_gridSelectFIndex(local_f_grid, f_index, verbosity);
 
       // Make pointer point to copy:
       f_grid_pointer = &local_f_grid; 
@@ -2032,44 +2104,45 @@ void abs_scalar_gasCalcLBL(// WS Output:
       out3 << os.str();
       
       Numeric local_doppler;
-      NumericScale( local_doppler, rte_doppler, -1 );
+      NumericScale( local_doppler, rte_doppler, -1, verbosity );
       // I could just have multiplied by -1 directly, but I like using
       // the WSM here.
 
-      VectorAddScalar( local_doppler_f_grid,  *f_grid_pointer, local_doppler );
+      VectorAddScalar( local_doppler_f_grid,  *f_grid_pointer, local_doppler, verbosity );
 
       // Make pointer point to the doppler shifted frequency grid.
       f_grid_pointer = &local_doppler_f_grid;
     }
 
-  AbsInputFromRteScalars( abs_p, 
-                          abs_t, 
-                          abs_vmrs, 
-                          rte_pressure, 
-                          rte_temperature, 
-                          rte_vmr_list );
+  AbsInputFromRteScalars(abs_p, 
+                         abs_t, 
+                         abs_vmrs, 
+                         rte_pressure, 
+                         rte_temperature, 
+                         rte_vmr_list,
+                         verbosity);
 
-  abs_h2oSet( abs_h2o,
-              abs_species,
-              abs_vmrs );
+  abs_h2oSet(abs_h2o, abs_species, abs_vmrs, verbosity);
 
-  abs_coefCalc( abs_coef, 
-                abs_coef_per_species, 
-                abs_species, 
-                *f_grid_pointer, 
-                abs_p, 
-                abs_t, 
-                abs_n2, 
-                abs_h2o, 
-                abs_vmrs, 
-                abs_lines_per_species, 
-                abs_lineshape, 
-                abs_cont_names, 
-                abs_cont_models, 
-                abs_cont_parameters );
+  abs_coefCalc(abs_coef, 
+               abs_coef_per_species, 
+               abs_species, 
+               *f_grid_pointer, 
+               abs_p, 
+               abs_t, 
+               abs_n2, 
+               abs_h2o, 
+               abs_vmrs, 
+               abs_lines_per_species, 
+               abs_lineshape, 
+               abs_cont_names, 
+               abs_cont_models, 
+               abs_cont_parameters,
+               verbosity);
 
-  abs_scalar_gasFromAbsCoef( abs_scalar_gas,
-                             abs_coef_per_species );
+  abs_scalar_gasFromAbsCoef(abs_scalar_gas,
+                            abs_coef_per_species,
+                            verbosity);
 }
 
 
@@ -2077,7 +2150,8 @@ void abs_scalar_gasCalcLBL(// WS Output:
 void f_gridSelectFIndex(// WS Output:
                         Vector& f_grid,
                         // WS Input:
-                        const Index& f_index)
+                        const Index& f_index,
+                        const Verbosity&)
 {
   // Prepare f_grid. f_index < 0 means retain all frequencies, but
   // f_index >= 0 means to retain only that frequency. 
@@ -2097,9 +2171,8 @@ void f_gridSelectFIndex(// WS Output:
       f_grid.resize(1);
       f_grid = this_f;
     }
-
-
 }
+
 
 #ifdef ENABLE_NETCDF
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2110,7 +2183,8 @@ void WriteMolTau(//WS Input
                  const Tensor5& abs_field,
                  const Index& atmosphere_dim,
                  //Keyword
-                 const String& filename)
+                 const String& filename,
+                 const Verbosity&)
 {
 
   int retval, ncid;
@@ -2237,7 +2311,8 @@ void WriteMolTau(//WS Input
                  const Tensor5& abs_field _U_,
                  const Index& atmosphere_dim _U_,
                  //Keyword
-                 const String& filename _U_)
+                 const String& filename _U_,
+                 const Verbosity&)
 {
   throw runtime_error("The workspace method WriteMolTau is not available"
                       "because ARTS was compiled without NetCDF support.");

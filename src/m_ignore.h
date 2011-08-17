@@ -36,9 +36,10 @@
 #include "agenda_class.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Ignore(Workspace& ws _U_,
+void Ignore(Workspace&,
             // WS Generic Input:
-            const Agenda& in _U_)
+            const Agenda&,
+            const Verbosity&)
 {
 }
 
@@ -46,22 +47,25 @@ void Ignore(Workspace& ws _U_,
 /* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Ignore(// WS Generic Input:
-            const T& in _U_)
+            const T&,
+            const Verbosity&)
 {
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Touch(Workspace& ws _U_,
+void Touch(Workspace&,
            // WS Generic Output:
-           Agenda& out _U_)
+           Agenda&,
+           const Verbosity&)
 {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Touch(// WS Generic Output:
-           T&      out _U_)
+           T&,
+           const Verbosity&)
 {
 }
 

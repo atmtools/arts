@@ -1939,11 +1939,36 @@ void define_md_data_raw()
       ( NAME( "Arts" ),
         DESCRIPTION
         ( 
-         "Run the agenda that is specified inside the curly braces. ARTS\n"
+         "Runs the agenda that is specified inside the curly braces. ARTS\n"
          "controlfiles must define this method. It is executed automatically\n"
-         "when ARTS is run on the controlfile.\n" 
+         "when ARTS is run on the controlfile and cannot be called by the user.\n"
+         "This methods was used for Arts 1 controlfiles and is now obsolete.\n"
+         "See *Arts2*\n"
           ),
         AUTHORS( "Stefan Buehler" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC(),
+        SETMETHOD(    false ),
+        AGENDAMETHOD( true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Arts2" ),
+        DESCRIPTION
+        ( 
+         "Runs the agenda that is specified inside the curly braces. ARTS\n"
+         "controlfiles must define this method. It is executed automatically\n"
+         "when ARTS is run on the controlfile and cannot be called by the user.\n"
+          ),
+        AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
@@ -8807,7 +8832,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(),
+        IN("verbosity"),
         GIN("string"),
         GIN_TYPE("String"),
         GIN_DEFAULT(""),

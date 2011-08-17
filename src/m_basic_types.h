@@ -58,7 +58,8 @@
 #define TMPL_NGET_GENERIC(what) \
   template <typename T> \
   void what##Get( Index&, \
-                  const T&) \
+                  const T&, \
+                  const Verbosity&) \
   { \
     ostringstream os; \
     os << "The variable has no such attribute.\n"; \
@@ -80,7 +81,8 @@ TMPL_NGET_GENERIC (nlibraries)
 #define TMPL_NGET_AGENDA(what) \
   void what##Get( Workspace& ws _U_, \
                   Index&, \
-                  const Agenda&) \
+                  const Agenda&, \
+                  const Verbosity&) \
   { \
     ostringstream os; \
     os << "The variable has no such attribute.\n"; \
@@ -107,7 +109,8 @@ TMPL_NGET_AGENDA (nlibraries)
 
 #define NGET_GENERIC(what, type) \
   void what##Get(Index&    what, \
-                 const type&   x) \
+                 const type&   x, \
+                 const Verbosity&) \
   { \
     what = x.what (); \
   }

@@ -40,7 +40,8 @@ template< class T >
 void Copy(// WS Generic Output:
           T& out,
           // WS Generic Input:
-          const T& in)
+          const T& in,
+          const Verbosity&)
 {
   // The use of CloneSize should not be necessary anymore, thanks to
   // the new copy semantics.  
@@ -53,7 +54,8 @@ void Copy(Workspace& ws _U_,
           // WS Generic Output:
           Agenda& out,
           // WS Generic Input:
-          const Agenda& in)
+          const Agenda& in,
+          const Verbosity&)
 {
   // The use of CloneSize should not be necessary anymore, thanks to
   // the new copy semantics.  

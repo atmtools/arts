@@ -46,8 +46,11 @@
 */
 void find_new_grid_in_old_grid( ArrayOfIndex& pos,
                                 ConstVectorView old_grid,
-                                ConstVectorView new_grid )
+                                ConstVectorView new_grid,
+                                const Verbosity& verbosity )
 {
+  CREATE_OUT3
+  
   const Index n_new_grid = new_grid.nelem();
   const Index n_old_grid = old_grid.nelem();
 
@@ -115,8 +118,12 @@ void find_new_grid_in_old_grid( ArrayOfIndex& pos,
   \date 2002-12-12
 */
 void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
-                          ConstVectorView current_f_grid )
+                          ConstVectorView current_f_grid,
+                          const Verbosity& verbosity )
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // Some constants we will need:
   const Index n_current_species = current_species.nelem();
   const Index n_current_f_grid  = current_f_grid.nelem();
@@ -353,7 +360,8 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   // is not found, or if the grids are not ok.
   find_new_grid_in_old_grid( i_current_f_grid,
                              f_grid,
-                             current_f_grid );
+                             current_f_grid,
+                             verbosity );
 
 
   // 3. Use the species and frequency index lists to build the new lookup

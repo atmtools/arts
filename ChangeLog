@@ -1,3 +1,94 @@
+2011-08-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-17-12
+
+	* New implementation to control verbosity (out0-out3).
+
+	The verbosity is now no longer controlled by a global variables.
+
+	The WSV Verbosity holds that information and is automatically passed
+	to every workspace method.
+
+	If you want to use out0-out3 your WSM has to create the appropriate
+	streams as a local variable. There are four convenience macros defined
+	to ease that process. You can just call CREATE_OUT0, CREATE_OUT1,
+	CREATE_OUT2 and/or CREATE_OUT3 at the beginning of your function and
+	use out0-out3 as usual.
+
+	If you have non-workspace methods that need access to out0-out3, you
+	have to pass the Verbosity WSV as a function parameter and use the
+	CREATE_OUTX macros in the subfunction to create the local streams.
+
+	All existing functions have been adapted to use the new Verbosity
+	implementation.
+
+	In the controlfile, you can use verbositySet, verbositySetAgenda,
+	verbositySetScreen and/or verbositySetFile to change the verbosity
+	on-the-fly. This gives the possibility to activate, e.g. level 3
+	debugging output for only one function or a small block of functions
+	even inside an agenda.
+
+	* src/messages.{cc,h}:
+
+	Remove old Messages implementation. Replaced by new Verbosity class.
+
+	Remove global threadprivate variable in_main_agenda. Also handled by
+	Verbosity object.
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Utilize the new verbosity.
+
+	Reinitialize the OUT1 and OUT3 streams when iterating over the methods
+	of this agenda.
+
+	* src/m_agenda.cc, src/methods.cc:
+
+	Add proper Arts2 WSM. Leave old Arts WSM there with a note that it's
+	obsolete.
+
+	* src/make_auto_md_h.cc, src/make_auto_md_cc.cc:
+
+	Pass verbosity argument to all WSMs.
+
+	* src/parser.{cc,h}: Add verbosity member to parser class.
+	
+	* src/m_optproperties.cc, src/xml_io_instantiation.h,
+	src/m_conversion.h, src/cloudbox.h, src/optproperties.h,
+	src/continua.h, src/m_atmosphere.cc, src/m_copy.h, src/m_extract.h,
+	src/gas_abs_lookup.h, src/m_agenda.cc, src/docserver.cc,
+	src/abs_species_tags.cc, src/xml_io_array_types.cc, src/m_delete.h,
+	src/geomag_calc.cc, src/m_abs.cc, src/m_basic_types.cc, src/xml_io.cc,
+	src/m_general.cc, src/rte.cc, src/disort.h, src/nc_io_types.h,
+	src/m_montecarlo.cc, src/m_disort.cc, src/absorption.cc,
+	src/token.cc, src/m_sensor.cc, src/nc_io.h, src/rte.h, src/doit.h,
+	src/montecarlo.cc, src/methods.cc, src/disort.cc, src/montecarlo.h,
+	src/methods.h, src/agenda_class.h, src/sensor.cc, src/ppath.h,
+	src/m_xml.h, src/xml_io_private.h, src/m_basic_types.h,
+	src/m_cloudbox.cc, src/m_general.h, src/agenda_class.cc,
+	src/m_refraction.cc, src/m_abs_lookup.cc, src/ppath.cc,
+	src/m_nc.h, src/xml_io_compound_types.cc, src/optproperties.cc,
+	src/cloudbox.cc, src/m_jacobian.cc, src/main.cc, src/rng.h,
+	src/nc_io_instantiation.h, src/m_physics.cc, src/m_ignore.h,
+	src/m_rte.cc, src/arts.cc, src/sensor.h, src/xml_io_types.h,
+	src/continua.cc, src/absorption.h, src/gas_abs_lookup.cc, src/xml_io.h,
+	src/m_select.h, src/m_batch.cc, src/agendas.cc, src/m_surface.cc,
+	src/m_doit.cc, src/xml_io_basic_types.cc, src/m_append.h,
+	src/nc_io.cc, src/workspace.cc, src/doit.cc, src/m_fos.cc, src/rng.cc,
+	src/m_ppath.cc:
+
+	Add verbosity argument to all WSMs and functions that use outX. Also
+	create the output streams by calling the appropriate CREATE_OUT0-3
+	macro depending on which streams the functions need.
+
+	* src/test_xml.cc, src/test_binaryio.cc, src/test_sparse.cc:
+
+	Add verbosity argument to xml_write_to_file and xml_read_from_file.
+
+	* CMakeLists.txt: Remove threadprivate check.
+
+	* cmake/modules/CheckOpenMPThreadprivate.cmake: Removed.
+
 2011-08-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-17-11

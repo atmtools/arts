@@ -127,6 +127,7 @@ void find_effective_channel_boundaries(// Output:
                                        // Input:
                                        const Vector& f_backend,
                                        const ArrayOfGriddedField1& backend_channel_response,
-                                       const Numeric& delta=0);
+                                       const Numeric& delta,
+                                       const Verbosity& verbosity);
 
 #endif  // sensor_h

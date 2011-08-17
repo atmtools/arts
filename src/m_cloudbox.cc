@@ -74,11 +74,11 @@ extern const Numeric PI;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxOff (
-  // WS Output:
-  Index&           cloudbox_on,
-  ArrayOfIndex&    cloudbox_limits,
-  Agenda&          iy_cloudbox_agenda )
+void cloudboxOff (// WS Output:
+                  Index&        cloudbox_on,
+                  ArrayOfIndex& cloudbox_limits,
+                  Agenda&       iy_cloudbox_agenda,
+                  const Verbosity&)
 {
   cloudbox_on = 0;
   cloudbox_limits.resize ( 0 );
@@ -89,22 +89,21 @@ void cloudboxOff (
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxSetAutomatically (
-  // WS Output:
-  //Workspace& /* ws */,
-  Index&          cloudbox_on,
-  ArrayOfIndex&   cloudbox_limits,
-  //Agenda&  iy_cloudbox_agenda,
-  // WS Input:
-  const Index&    atmosphere_dim,
-  const ArrayOfString&  part_species,
-  const Vector&   p_grid,
-  const Vector&   lat_grid,
-  const Vector&   lon_grid,
-  const Tensor4&  massdensity_field,
-  // Control Parameters
-  const Numeric&  cloudbox_margin
-)
+void cloudboxSetAutomatically (// WS Output:
+                               //Workspace& /* ws */,
+                               Index&          cloudbox_on,
+                               ArrayOfIndex&   cloudbox_limits,
+                               //Agenda&  iy_cloudbox_agenda,
+                               // WS Input:
+                               const Index&    atmosphere_dim,
+                               const ArrayOfString&  part_species,
+                               const Vector&   p_grid,
+                               const Vector&   lat_grid,
+                               const Vector&   lon_grid,
+                               const Tensor4&  massdensity_field,
+                               // Control Parameters
+                               const Numeric&  cloudbox_margin,
+                               const Verbosity& verbosity)
 {
   // Variables
   //const Index np = massdensity_field.npages(); 
@@ -296,6 +295,7 @@ void cloudboxSetAutomatically (
   // if cloudbox reaches to the upper most pressure level
   if ( p2 >= massdensity_field.npages()-1)
   {
+    CREATE_OUT2
     out2<<"The cloud reaches to TOA!\n"
     <<"Check massdensity_field data, if realistic!\n";
   }
@@ -307,6 +307,7 @@ void cloudboxSetAutomatically (
   // than switch cloudbox off, skipping scattering calculations
   if ( !x )
   {
+    CREATE_OUT0
     //cloudboxOff ( cloudbox_on, cloudbox_limits, iy_cloudbox_agenda );
     cloudbox_on = 0;
     out0<<"Cloudbox is switched off!\n";
@@ -345,22 +346,22 @@ void cloudboxSetAutomatically (
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxSetManually(
-        // WS Output:
-        Index&          cloudbox_on,
-        ArrayOfIndex&   cloudbox_limits,
-        // WS Input:
-        const Index&    atmosphere_dim,
-        const Vector&   p_grid,
-        const Vector&   lat_grid,
-        const Vector&   lon_grid,
-        // Control Parameters:
-        const Numeric& p1,
-        const Numeric& p2,
-        const Numeric& lat1,
-        const Numeric& lat2,
-        const Numeric& lon1,
-        const Numeric& lon2 )
+void cloudboxSetManually(// WS Output:
+                         Index&         cloudbox_on,
+                         ArrayOfIndex&  cloudbox_limits,
+                         // WS Input:
+                         const Index&   atmosphere_dim,
+                         const Vector&  p_grid,
+                         const Vector&  lat_grid,
+                         const Vector&  lon_grid,
+                         // Control Parameters:
+                         const Numeric& p1,
+                         const Numeric& p2,
+                         const Numeric& lat1,
+                         const Numeric& lat2,
+                         const Numeric& lon1,
+                         const Numeric& lon2,
+                         const Verbosity&)
 {
   // Check existing WSV
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -448,22 +449,22 @@ void cloudboxSetManually(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxSetManuallyAltitude(
-        // WS Output:
-        Index&          cloudbox_on,
-        ArrayOfIndex&   cloudbox_limits,
-        // WS Input:
-        const Index&    atmosphere_dim,
-        const Tensor3&  z_field,
-        const Vector&   lat_grid,
-        const Vector&   lon_grid,
-        // Control Parameters:
-        const Numeric& z1,
-        const Numeric& z2,
-        const Numeric& lat1,
-        const Numeric& lat2,
-        const Numeric& lon1,
-        const Numeric& lon2 )
+void cloudboxSetManuallyAltitude(// WS Output:
+                                 Index&         cloudbox_on,
+                                 ArrayOfIndex&  cloudbox_limits,
+                                 // WS Input:
+                                 const Index&   atmosphere_dim,
+                                 const Tensor3& z_field,
+                                 const Vector&  lat_grid,
+                                 const Vector&  lon_grid,
+                                 // Control Parameters:
+                                 const Numeric& z1,
+                                 const Numeric& z2,
+                                 const Numeric& lat1,
+                                 const Numeric& lat2,
+                                 const Numeric& lon1,
+                                 const Numeric& lon2,
+                                 const Verbosity&)
 {
   // Check existing WSV
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -550,18 +551,18 @@ void cloudboxSetManuallyAltitude(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudbox_checkedCalc(
-         Index&          cloudbox_checked,
-   const Index&          basics_checked,
-   const Index&          atmosphere_dim,
-   const Vector&         p_grid,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const Tensor3&        wind_u_field,
-   const Tensor3&        wind_v_field,
-   const Tensor3&        wind_w_field,
-   const Index&          cloudbox_on,    
-   const ArrayOfIndex&   cloudbox_limits )
+void cloudbox_checkedCalc(Index&          cloudbox_checked,
+                          const Index&    basics_checked,
+                          const Index&    atmosphere_dim,
+                          const Vector&   p_grid,
+                          const Vector&   lat_grid,
+                          const Vector&   lon_grid,
+                          const Tensor3&  wind_u_field,
+                          const Tensor3&  wind_v_field,
+                          const Tensor3&  wind_w_field,
+                          const Index&    cloudbox_on,    
+                          const ArrayOfIndex&   cloudbox_limits,
+                          const Verbosity&)
 {
   // Demanded space between cloudbox and lat and lon edges [degrees]
   const Numeric llmin = 20;
@@ -695,11 +696,11 @@ void cloudbox_checkedCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Massdensity_cleanup ( //WS Output:
-  Tensor4& massdensity_field,
-  //WS Input:
-  const Numeric& massdensity_threshold
-)
+void Massdensity_cleanup (//WS Output:
+                          Tensor4& massdensity_field,
+                          //WS Input:
+                          const Numeric& massdensity_threshold,
+                          const Verbosity&)
 {
   // Check that massdensity_fields contain realistic values
   //(values smaller than massdensity_threshold will be set to 0)
@@ -723,19 +724,22 @@ void Massdensity_cleanup ( //WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleSpeciesInit ( ArrayOfString&  part_species )
+void ParticleSpeciesInit (ArrayOfString&  part_species,
+                          const Verbosity&)
 {
   part_species.resize ( 0 );
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleSpeciesSet ( // WS Generic Output:
-  ArrayOfString&  part_species,
-  // Control Parameters:
-  const ArrayOfString& names
-)
+void ParticleSpeciesSet (// WS Generic Output:
+                         ArrayOfString&  part_species,
+                         // Control Parameters:
+                         const ArrayOfString& names,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   part_species.resize ( names.nelem() );
   //assign input strings to part_species
   part_species = names;
@@ -751,10 +755,10 @@ void ParticleSpeciesSet ( // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleTypeInit ( //WS Output:
-  ArrayOfSingleScatteringData& scat_data_raw,
-  ArrayOfGriddedField3& pnd_field_raw
-)
+void ParticleTypeInit (//WS Output:
+                       ArrayOfSingleScatteringData& scat_data_raw,
+                       ArrayOfGriddedField3& pnd_field_raw,
+                       const Verbosity&)
 {
   scat_data_raw.reserve ( 20 );
   pnd_field_raw.reserve ( 20 );
@@ -762,20 +766,23 @@ void ParticleTypeInit ( //WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleTypeAddAll ( //WS Output:
-  ArrayOfSingleScatteringData& scat_data_raw,
-  ArrayOfGriddedField3&  pnd_field_raw,
-  // WS Input(needed for checking the datafiles):
-  const Index& atmosphere_dim,
-  const Vector& f_grid,
-  const Vector& p_grid,
-  const Vector& lat_grid,
-  const Vector& lon_grid,
-  const ArrayOfIndex& cloudbox_limits,
-  // Keywords:
-  const String& filename_scat_data,
-  const String& pnd_field_file )
+void ParticleTypeAddAll (//WS Output:
+                         ArrayOfSingleScatteringData& scat_data_raw,
+                         ArrayOfGriddedField3&  pnd_field_raw,
+                         // WS Input(needed for checking the datafiles):
+                         const Index& atmosphere_dim,
+                         const Vector& f_grid,
+                         const Vector& p_grid,
+                         const Vector& lat_grid,
+                         const Vector& lon_grid,
+                         const ArrayOfIndex& cloudbox_limits,
+                         // Keywords:
+                         const String& filename_scat_data,
+                         const String& pnd_field_file,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   //--- Check input ---------------------------------------------------------
 
   // Atmosphere
@@ -797,87 +804,90 @@ void ParticleTypeAddAll ( //WS Output:
 
   //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
-  xml_read_from_file ( filename_scat_data, data_files );
+  xml_read_from_file ( filename_scat_data, data_files, verbosity );
   scat_data_raw.resize ( data_files.nelem() );
 
   for ( Index i = 0; i<data_files.nelem(); i++ )
   {
 
     out2 << "  Read single scattering data\n";
-    xml_read_from_file ( data_files[i],
-                         scat_data_raw[i] );
+    xml_read_from_file ( data_files[i], scat_data_raw[i], verbosity );
 
     chk_single_scattering_data ( scat_data_raw[i],
-                                 data_files[i], f_grid );
+                                 data_files[i], f_grid,
+                                 verbosity );
 
   }
 
   out2 << "  Read particle number density data \n";
-  xml_read_from_file ( pnd_field_file, pnd_field_raw );
+  xml_read_from_file ( pnd_field_file, pnd_field_raw, verbosity );
 
   chk_pnd_raw_data ( pnd_field_raw,
                      pnd_field_file, atmosphere_dim, p_grid, lat_grid,
-                     lon_grid, cloudbox_limits );
+                     lon_grid, cloudbox_limits, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringParticleTypeAndMetaRead ( //WS Output:
-  ArrayOfSingleScatteringData& scat_data_raw,
-  ArrayOfScatteringMetaData& scat_data_meta_array,
-  const Vector& f_grid,
-  // Keywords:
-  const String& filename_scat_data,
-  const String& filename_scat_meta_data )
+void ScatteringParticleTypeAndMetaRead (//WS Output:
+                                        ArrayOfSingleScatteringData& scat_data_raw,
+                                        ArrayOfScatteringMetaData& scat_data_meta_array,
+                                        const Vector& f_grid,
+                                        // Keywords:
+                                        const String& filename_scat_data,
+                                        const String& filename_scat_meta_data,
+                                        const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
   ArrayOfString meta_data_files;
   
   // single scattering data read to temporary ArrayOfSingleScatteringData
-  xml_read_from_file ( filename_scat_data, data_files );
+  xml_read_from_file ( filename_scat_data, data_files, verbosity );
   scat_data_raw.resize ( data_files.nelem() );
 
   for ( Index i = 0; i<data_files.nelem(); i++ )
   {
     out3 << "  Read single scattering data\n";
-    xml_read_from_file ( data_files[i],
-                         scat_data_raw[i] );
+    xml_read_from_file ( data_files[i], scat_data_raw[i], verbosity );
 
     chk_single_scattering_data ( scat_data_raw[i],
-                                 data_files[i], f_grid );
+                                 data_files[i], f_grid,
+                                 verbosity );
 
   }
 
   // scattering meta data read to temporary ArrayOfScatteringMetaData
-  xml_read_from_file ( filename_scat_meta_data, meta_data_files );
+  xml_read_from_file ( filename_scat_meta_data, meta_data_files, verbosity );
   scat_data_meta_array.resize ( meta_data_files.nelem() );
 
   for ( Index i = 0; i<meta_data_files.nelem(); i++ )
   {
 
     out3 << "  Read scattering meta data\n";
-    xml_read_from_file ( meta_data_files[i],
-                         scat_data_meta_array[i] );
+    xml_read_from_file ( meta_data_files[i], scat_data_meta_array[i], verbosity );
 
     chk_scattering_meta_data ( scat_data_meta_array[i],
-                               meta_data_files[i] );
+                               meta_data_files[i], verbosity );
 
   }
   
   // check if arrays have same size
   chk_scattering_data ( scat_data_raw,
-                        scat_data_meta_array );
+                        scat_data_meta_array, verbosity );
   
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ScatteringParticlesSelect (//WS Output:
-  ArrayOfSingleScatteringData& scat_data_raw,
-  ArrayOfScatteringMetaData& scat_data_meta_array,
-  ArrayOfIndex& scat_data_nelem,
-  // WS Input:
-  const ArrayOfString& part_species)
+                                ArrayOfSingleScatteringData& scat_data_raw,
+                                ArrayOfScatteringMetaData& scat_data_meta_array,
+                                ArrayOfIndex& scat_data_nelem,
+                                // WS Input:
+                                const ArrayOfString& part_species,
+                                const Verbosity&)
 { 
   //--- Adjusting data to user specified input (part_species)-------------------
   
@@ -965,20 +975,22 @@ void ScatteringParticlesSelect (//WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAdd( //WS Output:
-                 ArrayOfSingleScatteringData& scat_data_raw,
-                 ArrayOfGriddedField3&  pnd_field_raw,
-                 // WS Input (needed for checking the datafiles):
-                 const Index& atmosphere_dim,
-                 const Vector& f_grid,
-                 const Vector& p_grid,
-                 const Vector& lat_grid,
-                 const Vector& lon_grid,
-                 const ArrayOfIndex& cloudbox_limits,
-                 // Keywords:
-                 const String& scat_data_file,
-                 const String& pnd_field_file
-          )
+                     ArrayOfSingleScatteringData& scat_data_raw,
+                     ArrayOfGriddedField3&  pnd_field_raw,
+                     // WS Input (needed for checking the datafiles):
+                     const Index& atmosphere_dim,
+                     const Vector& f_grid,
+                     const Vector& p_grid,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     const ArrayOfIndex& cloudbox_limits,
+                     // Keywords:
+                     const String& scat_data_file,
+                     const String& pnd_field_file,
+                     const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   //--- Check input ---------------------------------------------------------
   
   // Atmosphere
@@ -1008,22 +1020,26 @@ void ParticleTypeAdd( //WS Output:
   pnd_field_raw.push_back(pnd_field_data);
   
   out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
+  xml_read_from_file(scat_data_file, scat_data_raw[scat_data_raw.nelem()-1],
+                     verbosity);
 
   chk_single_scattering_data(scat_data_raw[scat_data_raw.nelem()-1],
-                             scat_data_file, f_grid);       
+                             scat_data_file, f_grid, verbosity);       
   
   out2 << "  Read particle number density field\n";
   if (pnd_field_file.nelem() < 1)
+  {
+    CREATE_OUT1
     out1 << "Warning: No pnd_field_file specified. Ignored. \n";
+  }
   else
     {
-      xml_read_from_file(pnd_field_file,
-                         pnd_field_raw[pnd_field_raw.nelem()-1]);
+      xml_read_from_file(pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1],
+                         verbosity);
       
       chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
                    pnd_field_file, atmosphere_dim, p_grid, lat_grid,
-                   lon_grid, cloudbox_limits);
+                   lon_grid, cloudbox_limits, verbosity);
     }
 }
 
@@ -1037,8 +1053,8 @@ void pnd_fieldCalc(//WS Output:
                    const Vector& lon_grid,
                    const ArrayOfGriddedField3& pnd_field_raw,
                    const Index& atmosphere_dim,
-                   const ArrayOfIndex& cloudbox_limits
-                   )
+                   const ArrayOfIndex& cloudbox_limits,
+                   const Verbosity&)
 {
   // Basic checks of input variables
   //
@@ -1195,13 +1211,13 @@ void pnd_fieldCalc(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pnd_fieldExpand1D(
-            Tensor4&        pnd_field,
-      const Index&          atmosphere_dim,
-      const Index&          cloudbox_checked,    
-      const Index&          cloudbox_on,    
-      const ArrayOfIndex&   cloudbox_limits,
-      const Index&          nzero )
+void pnd_fieldExpand1D(Tensor4&        pnd_field,
+                       const Index&    atmosphere_dim,
+                       const Index&    cloudbox_checked,    
+                       const Index&    cloudbox_on,    
+                       const ArrayOfIndex&   cloudbox_limits,
+                       const Index&    nzero,
+                       const Verbosity&)
 {
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
@@ -1252,12 +1268,13 @@ void pnd_fieldExpand1D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldZero(//WS Output:
-                      Tensor4& pnd_field,
-                      ArrayOfSingleScatteringData& scat_data_raw,
-                      //WS Input:
-                      const Vector& p_grid,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid)
+                   Tensor4& pnd_field,
+                   ArrayOfSingleScatteringData& scat_data_raw,
+                   //WS Input:
+                   const Vector& p_grid,
+                   const Vector& lat_grid,
+                   const Vector& lon_grid,
+                   const Verbosity&)
 {
   // 3D  atmosphere
   if (lat_grid.nelem()>1)
@@ -1294,18 +1311,18 @@ void pnd_fieldZero(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pnd_fieldSetup ( //WS Output:
-  Tensor4& pnd_field,
-  //WS Input:
-  const Index& atmosphere_dim,
-  const Index& cloudbox_on,
-  const ArrayOfIndex& cloudbox_limits,
-  const Tensor4& massdensity_field,
-  const Tensor3& t_field,
-  const ArrayOfScatteringMetaData& scat_data_meta_array,
-  const ArrayOfString& part_species,
-  const ArrayOfIndex& scat_data_nelem
-)
+void pnd_fieldSetup (//WS Output:
+                     Tensor4& pnd_field,
+                     //WS Input:
+                     const Index& atmosphere_dim,
+                     const Index& cloudbox_on,
+                     const ArrayOfIndex& cloudbox_limits,
+                     const Tensor4& massdensity_field,
+                     const Tensor3& t_field,
+                     const ArrayOfScatteringMetaData& scat_data_meta_array,
+                     const ArrayOfString& part_species,
+                     const ArrayOfIndex& scat_data_nelem,
+                     const Verbosity& verbosity)
 {
   // Cloudbox on/off?
   if ( !cloudbox_on )
@@ -1458,7 +1475,7 @@ void pnd_fieldSetup ( //WS Output:
 	    
 	    //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
             // calculate error of pnd sum and real XWC
-            chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho, p, lat, lon );
+            chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho, p, lat, lon, verbosity );
             //chk_pndsum2 (pnd2, IWC_field ( p,lat,lon ));
 	    
             // writing pnd vector to wsv pnd_field
@@ -1539,7 +1556,7 @@ void pnd_fieldSetup ( //WS Output:
             //out0<<"\n"<<"HIER!"<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
 	    
             // calculate error of pnd sum and real XWC
-            chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho, p, lat, lon  );
+            chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho, p, lat, lon, verbosity );
 	    //chk_pndsum2 (pnd2, LWC_field ( p,lat,lon ));
             //chk_pndsum (pnd, testiwc[p], vol, rho);
 

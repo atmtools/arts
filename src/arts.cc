@@ -67,7 +67,7 @@ void arts_exit_with_error_message(const String& m)
     os << m << "\n"
        << "Stopping ARTS execution.\n"
        << "Goodbye.\n";
-    out0 << os.str();
+    cerr << os.str();
 
     arts_exit();              // No argument means failure.
   }

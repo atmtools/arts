@@ -55,13 +55,13 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexIR(
-        // WS Output
-              Numeric&                  refr_index,
-        // WS Input
-        const Numeric&                  a_pressure,
-        const Numeric&                  a_temperature,
-        const Vector&                   a_vmr_list )
+void refr_indexIR(// WS Output
+                  Numeric&       refr_index,
+                  // WS Input
+                  const Numeric& a_pressure,
+                  const Numeric& a_temperature,
+                  const Vector&  a_vmr_list,
+                  const Verbosity&)
 {
   //To suppress warning about unused parameter
   a_vmr_list.nelem();
@@ -71,12 +71,12 @@ void refr_indexIR(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexThayer(
-             Numeric&                    refr_index,
-       const Numeric&                    a_pressure,
-       const Numeric&                    a_temperature,
-       const Vector&                     a_vmr_list,
-       const ArrayOfArrayOfSpeciesTag&   abs_species )
+void refr_indexThayer(Numeric&        refr_index,
+                      const Numeric&  a_pressure,
+                      const Numeric&  a_temperature,
+                      const Vector&   a_vmr_list,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                      const Verbosity&)
 {
   if( abs_species.nelem() != a_vmr_list.nelem() )
     throw runtime_error( "The number of tag groups differ between "
@@ -87,7 +87,7 @@ void refr_indexThayer(
 
   if( firstH2O < 0 )
     throw runtime_error(
-       "Water vapour is a requiered (must be a tag group in *abs_species*)." );
+       "Water vapour is a required (must be a tag group in *abs_species*)." );
 
   refr_index_thayer_1974( refr_index, a_pressure, a_temperature,
                                                         a_vmr_list[firstH2O] );
@@ -95,8 +95,8 @@ void refr_indexThayer(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexUnit(
-         Numeric&                    refr_index )
+void refr_indexUnit(Numeric& refr_index,
+                    const Verbosity&)
 {
   refr_index = 1;
 }

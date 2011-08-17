@@ -33,8 +33,8 @@
 
     \author Oliver Lemke
 */
-ArtsParser::ArtsParser(Agenda& tasklist, String controlfile)
-  : mtasklist (tasklist), mcfile (controlfile), mcfile_version (1)
+ArtsParser::ArtsParser(Agenda& tasklist, String controlfile, const Verbosity& rverbosity)
+  : mtasklist (tasklist), mcfile (controlfile), mcfile_version (1), verbosity (rverbosity)
 {
   msource.AppendFile (mcfile);
 }
@@ -57,6 +57,9 @@ void ArtsParser::parse_tasklist ()
 */
 void ArtsParser::parse_main()
 {
+  CREATE_OUT0
+  CREATE_OUT3
+  
   try 
     {
       extern const Array<MdRecord> md_data;
@@ -211,6 +214,9 @@ void ArtsParser::parse_main()
 */
 void ArtsParser::parse_agenda( Agenda& tasklist )
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   extern const Array<MdRecord> md_data;
 
   // For method ids:
@@ -254,7 +260,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
 
           out2 << "- Including control file " << include_file << "\n";
 
-          ArtsParser include_parser (tasks, include_file);
+          ArtsParser include_parser (tasks, include_file, verbosity);
           include_parser.parse_tasklist();
 
           for (Index i = 0; i < tasks.nelem(); i++)
@@ -352,6 +358,8 @@ void ArtsParser::parse_method(Index&         id,
                               String&        include_file,
                               bool           no_eot)
 {
+  CREATE_OUT3
+  
   String methodname;            // We need this out here, since it is
                                 // set once and later modified.
 
@@ -385,7 +393,6 @@ void ArtsParser::parse_method(Index&         id,
       if (methodname == "Arts2")
         {
           mcfile_version = 2;
-          methodname = "Arts";
         }
       else if (methodname == "Arts")
         {

@@ -1079,8 +1079,11 @@ void find_effective_channel_boundaries(// Output:
                                        // Input:
                                        const Vector& f_backend,
                                        const ArrayOfGriddedField1& backend_channel_response,
-                                       const Numeric& delta)
+                                       const Numeric& delta,
+                                       const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   // How many channels in total:
   const Index n_chan = f_backend.nelem();
 

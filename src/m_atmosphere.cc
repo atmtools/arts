@@ -88,7 +88,8 @@ extern const Numeric DEG2RAD;
 
 void atm_fields_compactExpand(GriddedField4& af,
                               Index& nf,
-                              const String& name)
+                              const String& name,
+                              const Verbosity&)
 {
   // Number of fields already present:
   nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
@@ -138,7 +139,8 @@ void atm_fields_compactFromMatrix(// WS Output:
                                   // WS Generic Input:
                                   const Matrix& im,
                                   // Control Parameters:
-                                  const ArrayOfString& field_names )
+                                  const ArrayOfString& field_names,
+                                  const Verbosity&)
 {
   if (1!=atmosphere_dim)
     {
@@ -195,16 +197,15 @@ void atm_fields_compactFromMatrix(// WS Output:
 // Workspace method, doxygen header will be auto-generated.
 // 2011-01-24 Daniel Kreyling
 void atm_fields_compactFromMatrixChevalAll(// WS Output:
-                                  GriddedField4& af_all, // atm_fields_compact_all
-				  GriddedField4& af_vmr, // atm_fields_compact
-				  // WS Input:
-                                  const Index& atmosphere_dim,
-                                  // WS Generic Input:
-                                  const Matrix& im,
-                                  // Control Parameters:
-                                  const ArrayOfString& field_names
-
- 				    )
+                                           GriddedField4& af_all, // atm_fields_compact_all
+                                           GriddedField4& af_vmr, // atm_fields_compact
+                                           // WS Input:
+                                           const Index& atmosphere_dim,
+                                           // WS Generic Input:
+                                           const Matrix& im,
+                                           // Control Parameters:
+                                           const ArrayOfString& field_names,
+                                           const Verbosity&)
 {
   // NOTE: follwoing section is HARD WIRED 
   // This method can only be applied to matrix data sets with a specific order of columns
@@ -312,12 +313,13 @@ void atm_fields_compactAddConstant(// WS Output:
                                    GriddedField4& af,
                                    // Control Parameters:
                                    const String& name,
-                                   const Numeric& value)
+                                   const Numeric& value,
+                                   const Verbosity& verbosity)
 {
   Index nf; // Will hold new size
 
   // Add book
-  atm_fields_compactExpand(af, nf, name);
+  atm_fields_compactExpand(af, nf, name, verbosity);
   
   // Add the constant value:
   af.data( nf-1, Range(joker), Range(joker), Range(joker) ) = value;
@@ -326,10 +328,11 @@ void atm_fields_compactAddConstant(// WS Output:
 // Workspace method, doxygen header is auto-generated
 // 2011-05-02 Gerrit Holl
 void atm_fields_compactAddSpecies(// WS Output:
-                                GriddedField4& atm_fields_compact,
-                                // WS Generic Input:
-                                const String& name,
-                                const GriddedField3& species)
+                                  GriddedField4& atm_fields_compact,
+                                  // WS Generic Input:
+                                  const String& name,
+                                  const GriddedField3& species,
+                                  const Verbosity& verbosity)
 {
 
   assert(atm_fields_compact.checksize());
@@ -343,7 +346,7 @@ void atm_fields_compactAddSpecies(// WS Output:
   ConstVectorView sp_lon_grid = species.get_numeric_grid(GFIELD3_LON_GRID);
 
   Index new_n_fields; // To be set in next line
-  atm_fields_compactExpand(atm_fields_compact, new_n_fields, name);
+  atm_fields_compactExpand(atm_fields_compact, new_n_fields, name, verbosity);
 
 
   // Interpolate species to atm_fields_compact
@@ -406,22 +409,23 @@ void atm_fields_compactAddSpecies(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void basics_checkedCalc(
-         Index&          basics_checked,
-   const Index&          atmosphere_dim,
-   const Vector&         p_grid,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Tensor3&        z_field,
-   const Tensor3&        t_field,
-   const Tensor4&        vmr_field,
-   const Tensor3&        wind_u_field,
-   const Tensor3&        wind_v_field,
-   const Tensor3&        wind_w_field,
-   const Matrix&         r_geoid,
-   const Matrix&         z_surface,
-   const Index&          stokes_dim,
-   const Vector&         f_grid )
+                        Index&          basics_checked,
+                        const Index&    atmosphere_dim,
+                        const Vector&   p_grid,
+                        const Vector&   lat_grid,
+                        const Vector&   lon_grid,
+                        const ArrayOfArrayOfSpeciesTag&   abs_species,
+                        const Tensor3&   z_field,
+                        const Tensor3&   t_field,
+                        const Tensor4&   vmr_field,
+                        const Tensor3&   wind_u_field,
+                        const Tensor3&   wind_v_field,
+                        const Tensor3&   wind_w_field,
+                        const Matrix&    r_geoid,
+                        const Matrix&    z_surface,
+                        const Index&     stokes_dim,
+                        const Vector&    f_grid,
+                        const Verbosity&)
 {
   // Consistency between dim, grids and atmospheric fields/surfaces
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -509,11 +513,12 @@ void batch_atm_fields_compactAddConstant(// WS Output:
                                          ArrayOfGriddedField4& batch_atm_fields_compact,
                                          // WS Generic Input:
                                          const String& name,
-                                         const Numeric& value)
+                                         const Numeric& value,
+                                         const Verbosity& verbosity)
 {
     for (Index i=0; i<batch_atm_fields_compact.nelem(); i++)
     {
-        atm_fields_compactAddConstant(batch_atm_fields_compact[i], name, value);
+        atm_fields_compactAddConstant(batch_atm_fields_compact[i], name, value, verbosity);
     }
 
 }
@@ -524,7 +529,8 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
                                         ArrayOfGriddedField4& batch_atm_fields_compact,
                                         // WS Generic Input:
                                         const String& name,
-                                        const GriddedField3& species)
+                                        const GriddedField3& species,
+                                        const Verbosity& verbosity)
 {
     const Index nelem = batch_atm_fields_compact.nelem();
 
@@ -533,7 +539,7 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
 #pragma omp parallel for if(!arts_omp_in_parallel())
     for (Index i=0; i<nelem; i++)
     {
-        atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species);
+        atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species, verbosity);
     }
 }
 
@@ -547,7 +553,8 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
                                                // Control Parameters:
                                                const ArrayOfString& field_names,
                                                const ArrayOfString& extra_field_names,
-                                               const Vector& extra_field_values)
+                                               const Vector& extra_field_values,
+                                               const Verbosity& verbosity)
 {
   const Index amnelem = am.nelem();
 
@@ -589,12 +596,14 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
           atm_fields_compactFromMatrix(batch_atm_fields_compact[i],
                                        atmosphere_dim,
                                        am[i],
-                                       field_names);
+                                       field_names,
+                                       verbosity);
 
           for (Index j=0; j<extra_field_names.nelem(); ++j)
             atm_fields_compactAddConstant(batch_atm_fields_compact[i],
                                           extra_field_names[j],
-                                          extra_field_values[j]);
+                                          extra_field_values[j],
+                                          verbosity);
         }
       catch (runtime_error e)
         {
@@ -607,16 +616,17 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
 // Workspace method, doxygen header is auto-generated.
 // 2011-01-24 Daniel Kreyling
 void batch_atm_fields_compactFromArrayOfMatrixChevalAll(// WS Output:
-                                               ArrayOfGriddedField4& batch_atm_fields_compact,
-					       ArrayOfGriddedField4& batch_atm_fields_compact_all,
-                                               // WS Input:
-                                               const Index& atmosphere_dim,
-                                               // WS Generic Input:
-                                               const ArrayOfMatrix& am,
-                                               // Control Parameters:
-                                               const ArrayOfString& field_names,
-					       const ArrayOfString& extra_field_names,
-                                               const Vector& extra_field_values)
+                                                        ArrayOfGriddedField4& batch_atm_fields_compact,
+                                                        ArrayOfGriddedField4& batch_atm_fields_compact_all,
+                                                        // WS Input:
+                                                        const Index& atmosphere_dim,
+                                                        // WS Generic Input:
+                                                        const ArrayOfMatrix& am,
+                                                        // Control Parameters:
+                                                        const ArrayOfString& field_names,
+                                                        const ArrayOfString& extra_field_names,
+                                                        const Vector& extra_field_values,
+                                                        const Verbosity& verbosity)
 {
   const Index amnelem = am.nelem();
 
@@ -654,45 +664,50 @@ void batch_atm_fields_compactFromArrayOfMatrixChevalAll(// WS Output:
       // The try block here is necessary to correctly handle
       // exceptions inside the parallel region. 
       try
-        {
-          atm_fields_compactFromMatrixChevalAll( batch_atm_fields_compact_all[i],
-					      batch_atm_fields_compact[i],
-					      atmosphere_dim,
-					      am[i],
-					      field_names);
-
-
-          for (Index j=0; j<extra_field_names.nelem(); ++j){
-            atm_fields_compactAddConstant( batch_atm_fields_compact_all[i],
-                                          extra_field_names[j],
-                                          extra_field_values[j]);
-	    
-	    atm_fields_compactAddConstant(batch_atm_fields_compact[i],
-                                          extra_field_names[j],
-                                          extra_field_values[j]);}
+      {
+        atm_fields_compactFromMatrixChevalAll(batch_atm_fields_compact_all[i],
+                                              batch_atm_fields_compact[i],
+                                              atmosphere_dim,
+                                              am[i],
+                                              field_names,
+                                              verbosity);
+        
+        
+        for (Index j=0; j<extra_field_names.nelem(); ++j){
+          atm_fields_compactAddConstant(batch_atm_fields_compact_all[i],
+                                        extra_field_names[j],
+                                        extra_field_values[j],
+                                        verbosity);
+          
+          atm_fields_compactAddConstant(batch_atm_fields_compact[i],
+                                        extra_field_names[j],
+                                        extra_field_values[j],
+                                        verbosity);
         }
+      }
       catch (runtime_error e)
-        {
-          exit_or_rethrow(e.what());
-        }
+      {
+        exit_or_rethrow(e.what());
+      }
     }    
 }
 
 // Workspace method, doxygen header will be auto-generated.
 // 2010-11-29 Daniel Kreyling
 void AtmFieldsFromCompactChevalAll(// WS Output:
-                          Vector& p_grid,
-                          Vector& lat_grid,
-                          Vector& lon_grid,
-                          Tensor3& t_field,
-                          Tensor3& z_field,
-			  Tensor4& massdensity_field,
-                          Tensor4& vmr_field,
-		          // WS Input:
-                          const ArrayOfArrayOfSpeciesTag& abs_species,
-			  // const ArrayOfArrayOfSpeciesTag& 
-                          const GriddedField4& atm_fields_compact_all,
-                          const Index&  atmosphere_dim )
+                                   Vector& p_grid,
+                                   Vector& lat_grid,
+                                   Vector& lon_grid,
+                                   Tensor3& t_field,
+                                   Tensor3& z_field,
+                                   Tensor4& massdensity_field,
+                                   Tensor4& vmr_field,
+                                   // WS Input:
+                                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                                   // const ArrayOfArrayOfSpeciesTag& 
+                                   const GriddedField4& atm_fields_compact_all,
+                                   const Index&  atmosphere_dim,
+                                   const Verbosity&)
 {
   // Make a handle on atm_fields_compact to save typing:
   const GriddedField4& c = atm_fields_compact_all;
@@ -836,7 +851,8 @@ void AtmFieldsFromCompact(// WS Output:
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const GriddedField4& atm_fields_compact,
-                          const Index&  atmosphere_dim )
+                          const Index&  atmosphere_dim,
+                          const Verbosity&)
 {
   // Make a handle on atm_fields_compact to save typing:
   const GriddedField4& c = atm_fields_compact;
@@ -927,16 +943,20 @@ void AtmFieldsFromCompact(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AtmosphereSet1D(
-        // WS Output:
-              Index&    atmosphere_dim,
-              Vector&   lat_grid,
-              Vector&   lon_grid )
+void AtmosphereSet1D(// WS Output:
+                     Index&    atmosphere_dim,
+                     Vector&   lat_grid,
+                     Vector&   lon_grid,
+                     const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   out2 << "  Sets the atmospheric dimensionality to 1.\n";
   out3 << "    atmosphere_dim = 1\n";
   out3 << "    lat_grid is set to be an empty vector\n";
   out3 << "    lon_grid is set to be an empty vector\n";
+  
   atmosphere_dim = 1;
   lat_grid.resize(0);
   lon_grid.resize(0);
@@ -945,26 +965,34 @@ void AtmosphereSet1D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AtmosphereSet2D(
-        // WS Output:
-              Index&    atmosphere_dim,
-              Vector&   lon_grid )
+void AtmosphereSet2D(// WS Output:
+                     Index&    atmosphere_dim,
+                     Vector&   lon_grid,
+                     const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   out2 << "  Sets the atmospheric dimensionality to 2.\n";
   out3 << "    atmosphere_dim = 2\n";
   out3 << "    lon_grid is set to be an empty vector\n";
+  
   atmosphere_dim = 2;
   lon_grid.resize(0);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AtmosphereSet3D(
-        // WS Output:
-              Index&    atmosphere_dim )
+void AtmosphereSet3D(// WS Output:
+                     Index&    atmosphere_dim,
+                     const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   out2 << "  Sets the atmospheric dimensionality to 3.\n";
   out3 << "    atmosphere_dim = 3\n";
+  
   atmosphere_dim = 3;
 }
 
@@ -984,9 +1012,11 @@ void AtmFieldsCalc(//WS Output:
                    const ArrayOfGriddedField3& vmr_field_raw,
                    const Index&          atmosphere_dim,
                    // WS Generic Input:
-                   const Index& interp_order
-                   )
+                   const Index& interp_order,
+                   const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   const ConstVectorView tfr_p_grid   = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const ConstVectorView tfr_lat_grid = t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const ConstVectorView tfr_lon_grid = t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
@@ -1376,18 +1406,18 @@ void AtmFieldsCalc(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AtmFieldsCalcExpand1D(
-            Tensor3&              t_field,
-            Tensor3&              z_field,
-            Tensor4&              vmr_field,
-      const Vector&               p_grid,
-      const Vector&               lat_grid,
-      const Vector&               lon_grid,
-      const GriddedField3&        t_field_raw,
-      const GriddedField3&        z_field_raw,
-      const ArrayOfGriddedField3& vmr_field_raw,
-      const Index&                atmosphere_dim,
-      const Index&                interp_order )
+void AtmFieldsCalcExpand1D(Tensor3&              t_field,
+                           Tensor3&              z_field,
+                           Tensor4&              vmr_field,
+                           const Vector&         p_grid,
+                           const Vector&         lat_grid,
+                           const Vector&         lon_grid,
+                           const GriddedField3&  t_field_raw,
+                           const GriddedField3&  z_field_raw,
+                           const ArrayOfGriddedField3& vmr_field_raw,
+                           const Index&          atmosphere_dim,
+                           const Index&          interp_order,
+                           const Verbosity&      verbosity)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -1400,8 +1430,9 @@ void AtmFieldsCalcExpand1D(
   Vector    vempty(0);
   Tensor3   t_temp, z_temp;
   Tensor4   vmr_temp;
-  AtmFieldsCalc( t_temp, z_temp, vmr_temp, p_grid, vempty, vempty, 
-                 t_field_raw, z_field_raw, vmr_field_raw, 1, interp_order );
+  AtmFieldsCalc(t_temp, z_temp, vmr_temp, p_grid, vempty, vempty, 
+                t_field_raw, z_field_raw, vmr_field_raw, 1, interp_order,
+                verbosity);
 
   // Move values from the temporary tensors to the return arguments
   const Index   np = p_grid.nelem();
@@ -1434,14 +1465,14 @@ void AtmFieldsCalcExpand1D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AtmFieldsExpand1D(
-            Tensor3&              t_field,
-            Tensor3&              z_field,
-            Tensor4&              vmr_field,
-      const Vector&               p_grid,
-      const Vector&               lat_grid,
-      const Vector&               lon_grid,
-      const Index&                atmosphere_dim )
+void AtmFieldsExpand1D(Tensor3&         t_field,
+                       Tensor3&         z_field,
+                       Tensor4&         vmr_field,
+                       const Vector&    p_grid,
+                       const Vector&    lat_grid,
+                       const Vector&    lon_grid,
+                       const Index&     atmosphere_dim,
+                       const Verbosity&)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -1497,7 +1528,8 @@ void AtmFieldsRefinePgrid(// WS Output:
                           const Vector& lon_grid,
                           const Index& atmosphere_dim,
                           // Control Parameters:
-                          const Numeric& p_step)
+                          const Numeric& p_step,
+                          const Verbosity&)
 {
   // Checks on input parameters:
   
@@ -1647,17 +1679,20 @@ void AtmRawRead(//WS Output:
                 //WS Input:
                 const ArrayOfArrayOfSpeciesTag& abs_species,
                 //Keyword:
-                const String&   basename)
+                const String&    basename,
+                const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Read the temperature field:
   String file_name = basename + ".t.xml";
-  xml_read_from_file( file_name, t_field_raw);
+  xml_read_from_file( file_name, t_field_raw, verbosity);
   
   out3 << "Temperature field read from file: " << file_name << "\n";  
 
   // Read geometrical altitude field:
   file_name = basename + ".z.xml";
-  xml_read_from_file( file_name, z_field_raw);
+  xml_read_from_file( file_name, z_field_raw, verbosity);
 
   out3 << "Altitude field read from file: " << file_name << "\n";  
 
@@ -1679,7 +1714,7 @@ void AtmRawRead(//WS Output:
       vmr_field_raw.push_back(vmr_field_data);
       
       // Read the VMR:
-      xml_read_from_file( file_name, vmr_field_raw[vmr_field_raw.nelem()-1]);
+      xml_read_from_file( file_name, vmr_field_raw[vmr_field_raw.nelem()-1], verbosity);
       
       // state the source of profile.
       out3 << "  " << species_data[abs_species[i][0].Species()].Name()
@@ -1690,14 +1725,16 @@ void AtmRawRead(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpAtmFieldToRteGps(
-                 Numeric&   outvalue,
-           const Index&     atmosphere_dim,
-           const GridPos&   rte_gp_p,
-           const GridPos&   rte_gp_lat,
-           const GridPos&   rte_gp_lon,
-           const Tensor3&   field )
+void InterpAtmFieldToRteGps(Numeric&   outvalue,
+                            const Index&     atmosphere_dim,
+                            const GridPos&   rte_gp_p,
+                            const GridPos&   rte_gp_lat,
+                            const GridPos&   rte_gp_lon,
+                            const Tensor3&   field,
+                            const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Interpolate
   outvalue = interp_atmfield_by_gp( atmosphere_dim, field, 
                                     rte_gp_p, rte_gp_lat, rte_gp_lon );
@@ -1709,8 +1746,8 @@ void InterpAtmFieldToRteGps(
 void p_gridFromAtmRaw(//WS Output
                       Vector& p_grid,
                       //WS Input
-                      const GriddedField3& z_field_raw
-                      )
+                      const GriddedField3& z_field_raw,
+                      const Verbosity&)
 {
   
   Index i=0; 
@@ -1734,20 +1771,20 @@ void z2g(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void z_fieldFromHSE(
-         Tensor3&        z_field,
-   const Index&          atmosphere_dim,
-   const Vector&         p_grid,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Tensor3&        t_field,
-   const Tensor4&        vmr_field,
-   const Matrix&         r_geoid,
-   const Matrix&         z_surface,
-   const Index&          basics_checked,
-   const Numeric&        p_hse,
-   const Numeric&        z_hse_accuracy )
+void z_fieldFromHSE(Tensor3&        z_field,
+                    const Index&    atmosphere_dim,
+                    const Vector&   p_grid,
+                    const Vector&   lat_grid,
+                    const Vector&   lon_grid,
+                    const ArrayOfArrayOfSpeciesTag&   abs_species,
+                    const Tensor3&  t_field,
+                    const Tensor4&  vmr_field,
+                    const Matrix&   r_geoid,
+                    const Matrix&   z_surface,
+                    const Index&    basics_checked,
+                    const Numeric&  p_hse,
+                    const Numeric&  z_hse_accuracy,
+                    const Verbosity&)
 {
   // Some general variables
   const Index np   = p_grid.nelem();

@@ -71,17 +71,18 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfIndexSet(      ArrayOfIndex& aoi, 
-                     const ArrayOfIndex& values )
+void ArrayOfIndexSet(ArrayOfIndex& aoi, 
+                     const ArrayOfIndex& values,
+                     const Verbosity&)
 {
   aoi = values;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfStringSet(
-              ArrayOfString&  sa,
-        const ArrayOfString&  sa2 )
+void ArrayOfStringSet(ArrayOfString&  sa,
+                      const ArrayOfString&  sa2,
+                      const Verbosity&)
 {
   sa.resize(sa2.nelem());
   sa = sa2;
@@ -89,32 +90,31 @@ void ArrayOfStringSet(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FlagOff(    
-            Index&    x)
+void FlagOff(Index& x, const Verbosity&)
 {
   x = 0;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FlagOn(      
-             Index&    x)
+void FlagOn(Index& x, const Verbosity&)
 {
   x = 1;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexSet(    Index&    x,
-            const Index&    value )
+void IndexSet(Index& x,
+              const Index& value,
+              const Verbosity&)
 {
   x = value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexStep(    
-            Index&     xout,       
-      const Index&     xin)
+void IndexStep(Index& xout,       
+               const Index& xin,
+               const Verbosity&)
 {
   xout = xin + 1;
 }
@@ -125,7 +125,8 @@ void MatrixMatrixMultiply(// WS Generic Output:
                           Matrix& Y,
                           // WS Generic Input:
                           const Matrix& M,
-                          const Matrix& X)
+                          const Matrix& X,
+                          const Verbosity&)
 {
   // Check that dimensions are right, M.ncols() must match X.nrows():
   if (M.ncols()!=X.nrows())
@@ -150,11 +151,11 @@ void MatrixMatrixMultiply(// WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Matrix1ColFromVector(
-        // WS Generic Output:
-              Matrix&   m,
-        // WS Generic Input:
-        const Vector&   v)
+void Matrix1ColFromVector(// WS Generic Output:
+                          Matrix&   m,
+                          // WS Generic Input:
+                          const Vector&   v,
+                          const Verbosity&)
 {
   const Index nv = v.nelem();
 
@@ -164,12 +165,12 @@ void Matrix1ColFromVector(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Matrix2ColFromVectors(
-        // WS Generic Output:
-              Matrix&   m,
-        // WS Generic Input:
-        const Vector&   v1,
-        const Vector&   v2)
+void Matrix2ColFromVectors(// WS Generic Output:
+                           Matrix&   m,
+                           // WS Generic Input:
+                           const Vector&   v1,
+                           const Vector&   v2,
+                           const Verbosity&)
 {
   const Index nv = v1.nelem();
 
@@ -184,13 +185,13 @@ void Matrix2ColFromVectors(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Matrix3ColFromVectors(
-        // WS Generic Output:
-              Matrix&   m,
-        // WS Generic Input:
-        const Vector&   v1,
-        const Vector&   v2,
-        const Vector&   v3)
+void Matrix3ColFromVectors(// WS Generic Output:
+                           Matrix&   m,
+                           // WS Generic Input:
+                           const Vector&   v1,
+                           const Vector&   v2,
+                           const Vector&   v3,
+                           const Verbosity&)
 {
   const Index nv = v1.nelem();
 
@@ -205,11 +206,11 @@ void Matrix3ColFromVectors(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Matrix1RowFromVector(
-        // WS Generic Output:
-              Matrix&   m,
-        // WS Generic Input:
-        const Vector&   v)
+void Matrix1RowFromVector(// WS Generic Output:
+                          Matrix&   m,
+                          // WS Generic Input:
+                          const Vector&   v,
+                          const Verbosity&)
 {
   const Index nv = v.nelem();
 
@@ -219,12 +220,12 @@ void Matrix1RowFromVector(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Matrix2RowFromVectors(
-        // WS Generic Output:
-              Matrix&   m,
-        // WS Generic Input:
-        const Vector&   v1,
-        const Vector&   v2)
+void Matrix2RowFromVectors(// WS Generic Output:
+                           Matrix&   m,
+                           // WS Generic Input:
+                           const Vector&   v1,
+                           const Vector&   v2,
+                           const Verbosity&)
 {
   const Index nv = v1.nelem();
 
@@ -239,13 +240,13 @@ void Matrix2RowFromVectors(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Matrix3RowFromVectors(
-        // WS Generic Output:
-              Matrix&   m,
-        // WS Generic Input:
-        const Vector&   v1,
-        const Vector&   v2,
-        const Vector&   v3)
+void Matrix3RowFromVectors(// WS Generic Output:
+                           Matrix&   m,
+                           // WS Generic Input:
+                           const Vector&   v1,
+                           const Vector&   v2,
+                           const Vector&   v3,
+                           const Verbosity&)
 {
   const Index nv = v1.nelem();
 
@@ -261,10 +262,10 @@ void Matrix3RowFromVectors(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixScale(
-                    Matrix&   out,
-              const Matrix&   in,
-              const Numeric&  value )
+void MatrixScale(Matrix&   out,
+                 const Matrix&   in,
+                 const Numeric&  value,
+                 const Verbosity&)
 {
   // Note that in and out can be the same matrix
   if (&out==&in)
@@ -284,18 +285,20 @@ void MatrixScale(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixSet(      Matrix& x, 
-               const Matrix& values )
+void MatrixSet(Matrix& x, 
+               const Matrix& values,
+               const Verbosity&)
 {
   x = values;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixSetConstant(      Matrix&    x, 
+void MatrixSetConstant(Matrix&    x, 
                        const Index&     nrows,
                        const Index&     ncols,
-                       const Numeric&   value )
+                       const Numeric&   value,
+                       const Verbosity&)
 {
   x.resize( nrows, ncols );
   x = value;
@@ -303,28 +306,29 @@ void MatrixSetConstant(      Matrix&    x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericAdd(
-                    Numeric&   out,
-              const Numeric&   in,
-              const Numeric&   value )
+void NumericAdd(Numeric&   out,
+                const Numeric&   in,
+                const Numeric&   value,
+                const Verbosity&)
 {
   out = value + in;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericScale(
-                    Numeric&   out,
-              const Numeric&   in,
-              const Numeric&   value )
+void NumericScale(Numeric&   out,
+                  const Numeric&   in,
+                  const Numeric&   value,
+                  const Verbosity&)
 {
   out = value * in;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericSet(      Numeric&   x,
-                const Numeric&   value )
+void NumericSet(Numeric&   x,
+                const Numeric&   value,
+                const Verbosity&)
 {
   x = value;
 }
@@ -335,7 +339,8 @@ void SparseSparseMultiply(// WS Generic Output:
                           Sparse& Y,
                           // WS Generic Input:
                           const Sparse& M,
-                          const Sparse& X)
+                          const Sparse& X,
+                          const Verbosity&)
 {
   // Check that dimensions are right, M.ncols() must match X.nrows():
   if (M.ncols()!=X.nrows())
@@ -358,17 +363,19 @@ void SparseSparseMultiply(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void StringSet(           String&  s, 
-                    const String&  s2 )
+void StringSet(String&  s, 
+               const String&  s2,
+               const Verbosity&)
 {
   s = s2;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3AddScalar(        Tensor3&  out,
-                    const Tensor3&  in,
-                    const Numeric&  value )
+void Tensor3AddScalar(Tensor3&  out,
+                      const Tensor3&  in,
+                      const Numeric&  value,
+                      const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in) {
@@ -385,9 +392,10 @@ void Tensor3AddScalar(        Tensor3&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3Scale(        Tensor3&  out,
-                    const Tensor3&  in,
-                    const Numeric&  value )
+void Tensor3Scale(Tensor3&  out,
+                  const Tensor3&  in,
+                  const Numeric&  value,
+                  const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in) {
@@ -404,14 +412,19 @@ void Tensor3Scale(        Tensor3&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3SetConstant(          Tensor3&   x, 
+void Tensor3SetConstant(Tensor3&   x, 
                         const Index&     npages,
                         const Index&     nrows,
                         const Index&     ncols,
-                        const Numeric&   value )
+                        const Numeric&   value,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   x.resize( npages, nrows, ncols );
   x = value;
+  
   out2 << "  Tensor3 = " << value  << "\n";
   out3 << "            npages : " << npages << "\n";
   out3 << "             nrows : " << nrows  << "\n";
@@ -420,9 +433,10 @@ void Tensor3SetConstant(          Tensor3&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4Scale(        Tensor4&  out,
-                    const Tensor4&  in,
-                    const Numeric&  value )
+void Tensor4Scale(Tensor4&  out,
+                  const Tensor4&  in,
+                  const Numeric&  value,
+                  const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in) {
@@ -439,15 +453,20 @@ void Tensor4Scale(        Tensor4&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4SetConstant(          Tensor4&   x, 
+void Tensor4SetConstant(Tensor4&   x, 
                         const Index&     nbooks,      
                         const Index&     npages,
                         const Index&     nrows,
                         const Index&     ncols,
-                        const Numeric&   value )
+                        const Numeric&   value,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   x.resize( nbooks, npages, nrows, ncols );
   x = value;
+  
   out2 << "  Tensor4 = " << value  << "\n";
   out3 << "            nbooks : " << nbooks << "\n";
   out3 << "            npages : " << npages << "\n";
@@ -457,9 +476,10 @@ void Tensor4SetConstant(          Tensor4&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor5Scale(        Tensor5&  out,
-                    const Tensor5&  in,
-                    const Numeric&  value )
+void Tensor5Scale(Tensor5&  out,
+                  const Tensor5&  in,
+                  const Numeric&  value,
+                  const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in) {
@@ -477,16 +497,21 @@ void Tensor5Scale(        Tensor5&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor5SetConstant(          Tensor5&   x, 
+void Tensor5SetConstant(Tensor5&   x, 
                         const Index&     nshelves,     
                         const Index&     nbooks,      
                         const Index&     npages,
                         const Index&     nrows,
                         const Index&     ncols,
-                        const Numeric&   value )
+                        const Numeric&   value,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   x.resize( nshelves, nbooks, npages, nrows, ncols );
   x = value;
+  
   out2 << "  Tensor5 = " << value    << "\n";
   out3 << "          nshelves : " << nshelves << "\n";
   out3 << "            nbooks : " << nbooks   << "\n";
@@ -497,9 +522,10 @@ void Tensor5SetConstant(          Tensor5&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor6Scale(        Tensor6&  out,
-                    const Tensor6&  in,
-                    const Numeric&  value )
+void Tensor6Scale(Tensor6&  out,
+                  const Tensor6&  in,
+                  const Numeric&  value,
+                  const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in) {
@@ -517,17 +543,22 @@ void Tensor6Scale(        Tensor6&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor6SetConstant(          Tensor6&   x, 
+void Tensor6SetConstant(Tensor6&   x, 
                         const Index&     nvitrines,   
                         const Index&     nshelves,     
                         const Index&     nbooks,      
                         const Index&     npages,
                         const Index&     nrows,
                         const Index&     ncols,
-                        const Numeric&   value )
+                        const Numeric&   value,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   x.resize( nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
+  
   out2 << "  Tensor6 = " << value     << "\n";
   out3 << "         nvitrines : " << nvitrines << "\n";    
   out3 << "          nshelves : " << nshelves  << "\n";
@@ -539,9 +570,10 @@ void Tensor6SetConstant(          Tensor6&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor7Scale(        Tensor7&  out,
-                    const Tensor7&  in,
-                    const Numeric&  value )
+void Tensor7Scale(Tensor7&  out,
+                  const Tensor7&  in,
+                  const Numeric&  value,
+                  const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in) {
@@ -559,7 +591,7 @@ void Tensor7Scale(        Tensor7&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor7SetConstant(          Tensor7&   x, 
+void Tensor7SetConstant(Tensor7&   x, 
                         const Index&     nlibraries,          
                         const Index&     nvitrines,   
                         const Index&     nshelves,     
@@ -567,10 +599,15 @@ void Tensor7SetConstant(          Tensor7&   x,
                         const Index&     npages,
                         const Index&     nrows,
                         const Index&     ncols,
-                        const Numeric&   value )
+                        const Numeric&   value,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   x.resize( nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
+  
   out2 << "  Tensor7 = " << value      << "\n";
   out3 << "        nlibraries : " << nlibraries << "\n";
   out3 << "         nvitrines : " << nvitrines  << "\n";
@@ -583,10 +620,10 @@ void Tensor7SetConstant(          Tensor7&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorAddScalar(
-                    Vector&   out,
-              const Vector&   in,
-              const Numeric&  value )
+void VectorAddScalar(Vector&   out,
+                     const Vector&   in,
+                     const Numeric&  value,
+                     const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in)
@@ -606,9 +643,9 @@ void VectorAddScalar(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorFlip(
-                    Vector&   out,
-              const Vector&   in )
+void VectorFlip(Vector&   out,
+                const Vector&   in,
+                const Verbosity&)
 {
   const Index n = in.nelem();
 
@@ -634,9 +671,12 @@ void VectorInsertGridPoints(// WS Generic Output:
                             Vector& og,                  // Output grid
                             // WS Generic Input:
                             const Vector& ingrid,        // Input grid 
-                            const Vector& points         // Points to insert
-                           )
+                            const Vector& points,        // Points to insert
+                            const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // First make duplikates of the input vectors, in case one of them
   // happens to be identical to the output vector. Also, we can fool
   // around with these, if we want.
@@ -755,15 +795,21 @@ void VectorInsertGridPoints(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorLinSpace(      Vector&    x, 
+void VectorLinSpace(Vector&    x, 
                     const Numeric&   start,
                     const Numeric&   stop,
-                    const Numeric&   step )
+                    const Numeric&   step,
+                    const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   linspace(x,start,stop,step);
+  
   out2 << "  Creating a linearly spaced vector.\n";
   out3 << "        length : " << x.nelem() << "\n";
   out3 << "   first value : " << x[0] << "\n";
+  
   if ( x.nelem() > 1 )
   {
     out3 << "          step size : " << x[1]-x[0] << "\n";
@@ -772,16 +818,22 @@ void VectorLinSpace(      Vector&    x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorLogSpace(      Vector&    x, 
+void VectorLogSpace(Vector&    x, 
                     const Numeric&   start,
                     const Numeric&   stop,
-                    const Numeric&   step )
+                    const Numeric&   step,
+                    const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   linspace(x,log(start),log(stop),step);
   transform(x,exp,x);
+  
   out2 << "  Creating a logarithmically spaced vector.\n";
   out3 << "        length : " << x.nelem() << "\n";
   out3 << "   first value : " << x[0] << "\n";
+  
   if ( x.nelem() > 1 )
   {
     out3 << "          step size : " << x[1]-x[0] << "\n";
@@ -794,7 +846,8 @@ void VectorMatrixMultiply(// WS Generic Output:
                           Vector& y,
                           // WS Generic Input:
                           const Matrix& M,
-                          const Vector& x)
+                          const Vector& x,
+                          const Verbosity&)
 {
   // Check that dimensions are right, x must match columns of M:
   if (M.ncols()!=x.nelem())
@@ -817,17 +870,23 @@ void VectorMatrixMultiply(// WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorNLinSpace(     Vector&    x, 
-                    const Index&     n,
-                    const Numeric&   start,
-                    const Numeric&   stop )
+void VectorNLinSpace(Vector&    x, 
+                     const Index&     n,
+                     const Numeric&   start,
+                     const Numeric&   stop,
+                     const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   if ( n<2 ) 
     throw runtime_error("The number of points must be > 1."); 
   nlinspace(x,start,stop,n);
+  
   out2 << "  Creating a linearly spaced vector.\n";
   out3 << "            length : " << n << "\n";
   out3 << "       first value : " << x[0] << "\n";
+  
   if ( x.nelem() > 1 )
     {
       out3 << "         step size : " << x[1]-x[0] << "\n";
@@ -837,30 +896,36 @@ void VectorNLinSpace(     Vector&    x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorNLogSpace(       Vector&    x, 
-                      const Index&     n,
-                      const Numeric&   start,
-                      const Numeric&   stop )
+void VectorNLogSpace(Vector&    x, 
+                     const Index&     n,
+                     const Numeric&   start,
+                     const Numeric&   stop,
+                     const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   if ( n<2 )
     throw runtime_error("The number of points must be > 1."); 
   if ( (start<=0) || (stop<=0) )
     throw runtime_error("Only positive numbers are allowed."); 
 
   nlogspace(x,start,stop,n);
+  
   out2 << "  Creating a logarithmically spaced vector.\n";
   out3 << "            length : " << n << "\n";
   out3 << "       first value : " << x[0] << "\n";
+  
   if ( x.nelem() > 1 )
     out3 << "        last value : " << x[x.nelem()-1] << "\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorScale(
-                    Vector&   out,
-              const Vector&   in,
-              const Numeric&  value )
+void VectorScale(Vector&   out,
+                 const Vector&   in,
+                 const Numeric&  value,
+                 const Verbosity&)
 {
   // Note that in and out can be the same vector
   if (&out==&in)
@@ -880,12 +945,17 @@ void VectorScale(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSetConstant(      Vector&    x, 
+void VectorSetConstant(Vector&    x, 
                        const Index&     n,
-                       const Numeric&   value )
+                       const Numeric&   value,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   x.resize(n);
   x = value;            
+  
   out2 << "  Creating a constant vector.\n"; 
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";
@@ -893,8 +963,9 @@ void VectorSetConstant(      Vector&    x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSet(      Vector&       x, 
-               const Vector& values )
+void VectorSet(Vector&       x, 
+               const Vector& values,
+               const Verbosity&)
 {
   x = values;
 }

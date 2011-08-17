@@ -41,7 +41,8 @@
 
 class Workspace;
 
-#define SWITCH_OUTPUT(x,y) switch (x) { \
+#define SWITCH_OUTPUT(x,y) \
+switch (x) { \
 case 0: out0 << y << "\n";break; \
 case 1: out1 << y << "\n";break; \
 case 2: out2 << y << "\n";break; \
@@ -61,11 +62,13 @@ struct Timer {
 template<typename T> void
 Print(
       // WS Generic Input:
-      const T&        x,
+      const T&         x,
       // Keywords:
-      const Index&   level )
+      const Index&     level,
+      const Verbosity& verbosity)
 {
-  SWITCH_OUTPUT (level, x);
+  CREATE_OUTS
+  SWITCH_OUTPUT (level, x)
 }
 
 
@@ -75,68 +78,69 @@ Print(Workspace& ws,
       // WS Generic Input:
       const Agenda&   x,
       // Keywords:
-      const Index&    level );
+      const Index&    level,
+      const Verbosity& verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-Print(
-      // WS Generic Input:
-      const ArrayOfGridPos&   x,
+Print(// WS Generic Input:
+      const ArrayOfGridPos&  x,
       // Keywords:
-      const Index&             level );
+      const Index&           level,
+      const Verbosity&       verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-Print(
-        // WS Generic Input:
-        const ArrayOfIndex&   x,
-        // Keywords:
-        const Index&          level );
+Print(// WS Generic Input:
+      const ArrayOfIndex& x,
+      // Keywords:
+      const Index&        level,
+      const Verbosity&    verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-Print(
-        // WS Generic Input:
-        const ArrayOfString&   x,
-        // Keywords:
-        const Index&           level );
+Print(// WS Generic Input:
+      const ArrayOfString& x,
+      // Keywords:
+      const Index&         level,
+      const Verbosity&     verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-Print(
-        // WS Generic Input:
-        const Ppath&    ppath,
-        // Keywords:
-        const Index&    level );
+Print(// WS Generic Input:
+      const Ppath&     ppath,
+      // Keywords:
+      const Index&     level,
+      const Verbosity& verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        // WS Generic Input:
-        const ArrayOfPpath&   x,
-        // Keywords:
-        const Index&            level );
+void Print(// WS Generic Input:
+           const ArrayOfPpath& x,
+           // Keywords:
+           const Index&        level,
+           const Verbosity&    verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        // WS Generic Input:
-        const Timer&   x,
-        // Keywords:
-        const Index&   level);
+void Print(// WS Generic Input:
+           const Timer&     x,
+           // Keywords:
+           const Index&     level,
+           const Verbosity& verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void PrintWorkspace(
-        // Workspace reference
-        Workspace& ws,
-        // Keywords:
-        const Index&   only_allocated,
-        const Index&   level);
+void PrintWorkspace(// Workspace reference
+                    Workspace& ws,
+                    // Keywords:
+                    const Index&     only_allocated,
+                    const Index&     level,
+                    const Verbosity& verbosity);
 
 #endif /* m_general_h */
 

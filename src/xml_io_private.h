@@ -55,7 +55,7 @@ void
 xml_open_output_file (ostream& file, const String& name);
 
 void
-xml_open_input_file (ifstream& file, const String& name);
+xml_open_input_file (ifstream& file, const String& name, const Verbosity& verbosity);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -82,6 +82,7 @@ public:
 class ArtsXMLTag
 {
 public:
+  ArtsXMLTag(const Verbosity& rverbosity) : verbosity(rverbosity) {};
 
   String&
   get_name () { return (name); }
@@ -116,6 +117,7 @@ public:
 private:
   String name;                  /*!< Tag name */
   Array<XMLAttribute> attribs;  /*!< List of attributes */
+  const Verbosity& verbosity;
 };
 
 
@@ -131,16 +133,17 @@ xml_data_parse_error (ArtsXMLTag& tag, String str_error);
 
 void
 xml_read_header_from_stream (istream& is, FileType& ftype,
-                             NumericType& ntype, EndianType& etype);
+                             NumericType& ntype, EndianType& etype,
+                             const Verbosity& verbosity);
 
 void
-xml_read_footer_from_stream (istream& is);
+xml_read_footer_from_stream (istream& is, const Verbosity& verbosity);
 
 void
-xml_write_header_to_stream (ostream& os, FileType ftype);
+xml_write_header_to_stream (ostream& os, FileType ftype, const Verbosity& verbosity);
 
 void
-xml_write_footer_to_stream (ostream& os);
+xml_write_footer_to_stream (ostream& os, const Verbosity& verbosity);
 
 void
 xml_set_stream_precision (ostream& os);

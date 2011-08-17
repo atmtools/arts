@@ -69,13 +69,14 @@ extern const Numeric RAD2DEG;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitAngularGridsSet(// WS Output:
-                  Index& doit_za_grid_size,
-                  Vector& scat_aa_grid,
-                  Vector& scat_za_grid,
-                  // Keywords:
-                  const Index& N_za_grid,
-                  const Index& N_aa_grid,
-                  const String& za_grid_opt_file)
+                         Index& doit_za_grid_size,
+                         Vector& scat_aa_grid,
+                         Vector& scat_za_grid,
+                         // Keywords:
+                         const Index& N_za_grid,
+                         const Index& N_aa_grid,
+                         const String& za_grid_opt_file,
+                         const Verbosity& verbosity)
 {
   // Check input
   //
@@ -85,14 +86,20 @@ void DoitAngularGridsSet(// WS Output:
   if (N_za_grid < 16)
     throw runtime_error("N_za_grid must be greater than 15 for accurate results");
   else if (N_za_grid > 100)
+  {
+    CREATE_OUT1
     out1 << "Warning: N_za_grid is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 19.\n";
+  }
   
   if (N_aa_grid < 6)
     throw runtime_error("N_aa_grid must be greater than 5 for accurate results");
   else if (N_aa_grid > 100)
+  {
+    CREATE_OUT1
     out1 << "Warning: N_aa_grid is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 10.\n";
+  }
   
   // Azimuth angle grid (the same is used for the scattering integral and
   // for the radiative transfer.
@@ -105,21 +112,25 @@ void DoitAngularGridsSet(// WS Output:
   if( za_grid_opt_file == "" ) 
     nlinspace(scat_za_grid, 0, 180, N_za_grid);
   else
-    xml_read_from_file(za_grid_opt_file, scat_za_grid);
+    xml_read_from_file(za_grid_opt_file, scat_za_grid, verbosity);
 
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_conv_flagAbs(//WS Input and Output:
-                      Index& doit_conv_flag,
-                      Index& doit_iteration_counter,
-                      // WS Input:
-                      const Tensor6& doit_i_field,
-                      const Tensor6& doit_i_field_old,
-                      // Keyword:
-                      const Vector& epsilon)
+                       Index& doit_conv_flag,
+                       Index& doit_iteration_counter,
+                       // WS Input:
+                       const Tensor6& doit_i_field,
+                       const Tensor6& doit_i_field_old,
+                       // Keyword:
+                       const Vector& epsilon,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT1
+  CREATE_OUT2
+  
   //------------Check the input---------------------------------------
   if( doit_conv_flag != 0 )
     throw runtime_error("Convergence flag is non-zero, which means that this\n"
@@ -228,8 +239,12 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                          const Vector& f_grid,
                          const Index& f_index, 
                          // Keyword:
-                         const Vector& epsilon)
+                         const Vector& epsilon,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT1
+  CREATE_OUT2
+  
    //------------Check the input---------------------------------------
   
   if( doit_conv_flag != 0 )
@@ -338,16 +353,20 @@ void doit_conv_flagAbsBT(//WS Input and Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_conv_flagLsq(//WS Output:
-                      Index& doit_conv_flag,
-                      Index& doit_iteration_counter,
-                      // WS Input:
-                      const Tensor6& doit_i_field,
-                      const Tensor6& doit_i_field_old,
-                      const Vector& f_grid,
-                      const Index& f_index,
-                      // Keyword:
-                      const Vector& epsilon)
+                       Index& doit_conv_flag,
+                       Index& doit_iteration_counter,
+                       // WS Input:
+                       const Tensor6& doit_i_field,
+                       const Tensor6& doit_i_field_old,
+                       const Vector& f_grid,
+                       const Index& f_index,
+                       // Keyword:
+                       const Vector& epsilon,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT1
+  CREATE_OUT2
+  
   //------------Check the input---------------------------------------
   
   if( doit_conv_flag != 0 )
@@ -460,16 +479,17 @@ void doit_conv_flagLsq(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldIterate(
-               Workspace& ws,
-               // WS Input and Output:
-               Tensor6& doit_i_field,
-               // WS Input:  
-               const Agenda& doit_scat_field_agenda,
-               const Agenda& doit_rte_agenda,
-               const Agenda& doit_conv_test_agenda
-               )
+void doit_i_fieldIterate(Workspace& ws,
+                         // WS Input and Output:
+                         Tensor6& doit_i_field,
+                         // WS Input:  
+                         const Agenda& doit_scat_field_agenda,
+                         const Agenda& doit_rte_agenda,
+                         const Agenda& doit_conv_test_agenda,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   //---------------Check input---------------------------------
   chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
   chk_not_empty( "doit_rte_agenda", doit_rte_agenda);
@@ -525,38 +545,40 @@ void doit_i_fieldIterate(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_i_fieldUpdate1D(
-                   Workspace& ws,
-                   // WS Input and Output:
-                   Tensor6& doit_i_field,
-                   // WS Input:
-                   const Tensor6& doit_i_field_old,
-                   const Tensor6& doit_scat_field,
-                   const ArrayOfIndex& cloudbox_limits,
-                   // Calculate scalar gas absorption:
-                   const Agenda& abs_scalar_gas_agenda,
-                   const Tensor4& vmr_field,
-                   // Optical properties for single particle type:
-                   const Agenda& spt_calc_agenda,
-                   const Vector& scat_za_grid,
-                   const Tensor4& pnd_field,
-                   // Optical properties for gases and particles:
-                   const Agenda& opt_prop_part_agenda,
-                   const Agenda& opt_prop_gas_agenda,
-                   // Propagation path calculation:
-                   const Agenda& ppath_step_agenda,
-                   const Vector& p_grid,
-                   const Tensor3& z_field,
-                   const Matrix& r_geoid,
-                   const Matrix& z_surface,
-                   // Calculate thermal emission:
-                   const Tensor3& t_field,
-                   const Vector& f_grid,
-                   const Index& f_index,
-                   const Agenda& surface_prop_agenda,
-                   const Index& doit_za_interp
+doit_i_fieldUpdate1D(Workspace& ws,
+                     // WS Input and Output:
+                     Tensor6& doit_i_field,
+                     // WS Input:
+                     const Tensor6& doit_i_field_old,
+                     const Tensor6& doit_scat_field,
+                     const ArrayOfIndex& cloudbox_limits,
+                     // Calculate scalar gas absorption:
+                     const Agenda& abs_scalar_gas_agenda,
+                     const Tensor4& vmr_field,
+                     // Optical properties for single particle type:
+                     const Agenda& spt_calc_agenda,
+                     const Vector& scat_za_grid,
+                     const Tensor4& pnd_field,
+                     // Optical properties for gases and particles:
+                     const Agenda& opt_prop_part_agenda,
+                     const Agenda& opt_prop_gas_agenda,
+                     // Propagation path calculation:
+                     const Agenda& ppath_step_agenda,
+                     const Vector& p_grid,
+                     const Tensor3& z_field,
+                     const Matrix& r_geoid,
+                     const Matrix& z_surface,
+                     // Calculate thermal emission:
+                     const Tensor3& t_field,
+                     const Vector& f_grid,
+                     const Index& f_index,
+                     const Agenda& surface_prop_agenda,
+                     const Index& doit_za_interp,
+                     const Verbosity& verbosity
                    )
 {
+  CREATE_OUT2
+  CREATE_OUT3
   
   out2 << "  doit_i_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
@@ -664,7 +686,7 @@ doit_i_fieldUpdate1D(
                        spt_calc_agenda, 
                        opt_prop_part_agenda, scat_za_index_local, 
                        scat_aa_index_local,
-                       cloudbox_limits, t_field, pnd_field);
+                       cloudbox_limits, t_field, pnd_field, verbosity);
       
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -676,16 +698,17 @@ doit_i_fieldUpdate1D(
           if ( (p_index!=0) || (scat_za_grid[scat_za_index_local] <= 90.))
             {
               cloud_ppath_update1D_noseq(ws, doit_i_field, 
-                                     p_index, scat_za_index_local, 
-                                     scat_za_grid,
-                                     cloudbox_limits, doit_i_field_old, 
-                                     doit_scat_field,
-                                     abs_scalar_gas_agenda, vmr_field,
-                                     opt_prop_gas_agenda, ppath_step_agenda,
-                                     p_grid,  z_field, r_geoid, z_surface,
-                                     t_field, f_grid, f_index, ext_mat_field, 
-                                     abs_vec_field,
-                                     surface_prop_agenda, doit_za_interp);
+                                         p_index, scat_za_index_local, 
+                                         scat_za_grid,
+                                         cloudbox_limits, doit_i_field_old, 
+                                         doit_scat_field,
+                                         abs_scalar_gas_agenda, vmr_field,
+                                         opt_prop_gas_agenda, ppath_step_agenda,
+                                         p_grid,  z_field, r_geoid, z_surface,
+                                         t_field, f_grid, f_index, ext_mat_field, 
+                                         abs_vec_field,
+                                         surface_prop_agenda, doit_za_interp,
+                                         verbosity);
             }
         }
     }// Closes loop over scat_za_grid.
@@ -694,37 +717,38 @@ doit_i_fieldUpdate1D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_i_fieldUpdateSeq1D(
-                   Workspace& ws,
-                   // WS Input and Output:
-                   Tensor6& doit_i_field,
-                   // WS Input:
-                   const Tensor6& doit_scat_field,
-                   const ArrayOfIndex& cloudbox_limits,
-                   // Calculate scalar gas absorption:
-                   const Agenda& abs_scalar_gas_agenda,
-                   const Tensor4& vmr_field,
-                   // Optical properties for single particle type:
-                   const Agenda& spt_calc_agenda,
-                   const Vector& scat_za_grid,
-                   const Tensor4& pnd_field, 
-                   // Optical properties for gases and particles:
-                   const Agenda& opt_prop_part_agenda,
-                   const Agenda& opt_prop_gas_agenda,
-                   // Propagation path calculation:
-                   const Agenda& ppath_step_agenda,
-                   const Vector& p_grid,
-                   const Tensor3& z_field,
-                   const Matrix& r_geoid,
-                   const Matrix& z_surface,
-                   // Calculate thermal emission:
-                   const Tensor3& t_field,
-                   const Vector& f_grid,
-                   const Index& f_index,
-                   const Agenda& surface_prop_agenda, //STR
-                   const Index& doit_za_interp
-                   )
+doit_i_fieldUpdateSeq1D(Workspace& ws,
+                        // WS Input and Output:
+                        Tensor6& doit_i_field,
+                        // WS Input:
+                        const Tensor6& doit_scat_field,
+                        const ArrayOfIndex& cloudbox_limits,
+                        // Calculate scalar gas absorption:
+                        const Agenda& abs_scalar_gas_agenda,
+                        const Tensor4& vmr_field,
+                        // Optical properties for single particle type:
+                        const Agenda& spt_calc_agenda,
+                        const Vector& scat_za_grid,
+                        const Tensor4& pnd_field, 
+                        // Optical properties for gases and particles:
+                        const Agenda& opt_prop_part_agenda,
+                        const Agenda& opt_prop_gas_agenda,
+                        // Propagation path calculation:
+                        const Agenda& ppath_step_agenda,
+                        const Vector& p_grid,
+                        const Tensor3& z_field,
+                        const Matrix& r_geoid,
+                        const Matrix& z_surface,
+                        // Calculate thermal emission:
+                        const Tensor3& t_field,
+                        const Vector& f_grid,
+                        const Index& f_index,
+                        const Agenda& surface_prop_agenda, //STR
+                        const Index& doit_za_interp,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
   
   out2<<"  doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
@@ -835,7 +859,7 @@ doit_i_fieldUpdateSeq1D(
       cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
                        spt_calc_agenda, opt_prop_part_agenda, 
                        scat_za_index_local, scat_aa_index_local, 
-                       cloudbox_limits, t_field, pnd_field);
+                       cloudbox_limits, t_field, pnd_field, verbosity);
   
       
      
@@ -866,7 +890,8 @@ doit_i_fieldUpdateSeq1D(
                                    p_grid,  z_field, r_geoid, z_surface,
                                    t_field, f_grid, f_index, ext_mat_field,
                                    abs_vec_field, 
-                                   surface_prop_agenda, doit_za_interp); 
+                                   surface_prop_agenda, doit_za_interp,
+                                   verbosity); 
             }
         }
       else if ( scat_za_grid[scat_za_index_local] >= theta_lim) 
@@ -885,7 +910,8 @@ doit_i_fieldUpdateSeq1D(
                                    p_grid,  z_field, r_geoid, z_surface,
                                    t_field, f_grid, f_index, ext_mat_field, 
                                    abs_vec_field, 
-                                   surface_prop_agenda, doit_za_interp); 
+                                   surface_prop_agenda, doit_za_interp,
+                                   verbosity); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       
@@ -917,7 +943,8 @@ doit_i_fieldUpdateSeq1D(
                                        p_grid,  z_field, r_geoid, z_surface,
                                        t_field, f_grid, f_index, ext_mat_field, 
                                        abs_vec_field,
-                                       surface_prop_agenda, doit_za_interp);
+                                       surface_prop_agenda, doit_za_interp,
+                                       verbosity);
                 }
             }
         } 
@@ -956,9 +983,12 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                         const Tensor3& t_field,
                         const Vector& f_grid,
                         const Index& f_index,
-                        const Index& doit_za_interp
-                     )
+                        const Index& doit_za_interp,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   out2<<"  doit_i_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "  ------------------------------------------------------------- \n";
   
@@ -1088,7 +1118,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                            spt_calc_agenda, 
                            opt_prop_part_agenda, scat_za_index, 
                            scat_aa_index, cloudbox_limits, t_field, 
-                           pnd_field);
+                           pnd_field, verbosity);
           
 
           Vector stokes_vec(stokes_dim,0.);
@@ -1127,7 +1157,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                r_geoid, z_surface, t_field,
                                                f_grid, f_index,
                                                ext_mat_field, abs_vec_field,
-                                               doit_za_interp);
+                                               doit_za_interp,
+                                               verbosity);
                         }
                     }
                 }
@@ -1159,7 +1190,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                r_geoid, z_surface, t_field,
                                                f_grid, f_index,
                                                ext_mat_field, abs_vec_field,
-                                               doit_za_interp);
+                                               doit_za_interp,
+                                               verbosity);
                         }
                     }
                 }
@@ -1209,7 +1241,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                    f_index,
                                                    ext_mat_field,
                                                    abs_vec_field,
-                                                   doit_za_interp); 
+                                                   doit_za_interp,
+                                                   verbosity); 
                             }
                         }
                     }
@@ -1226,36 +1259,37 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_i_fieldUpdateSeq1DPP(
-                Workspace& ws,
-                // WS Output:
-                Tensor6& doit_i_field,
-                // spt_calc_agenda:
-                Index& scat_za_index ,
-                // WS Input:
-                const Tensor6& doit_scat_field,
-                const ArrayOfIndex& cloudbox_limits,
-                // Calculate scalar gas absorption:
-                const Agenda& abs_scalar_gas_agenda,
-                const Tensor4& vmr_field,
-                // Optical properties for single particle type:
-                const Agenda& spt_calc_agenda,
-                const Vector& scat_za_grid,
-                const Tensor4& pnd_field,
-                // Optical properties for gases and particles:
-                const Agenda& opt_prop_part_agenda,
-                const Agenda& opt_prop_gas_agenda,
-                // Propagation path calculation:
-                const Agenda& ppath_step_agenda,
-                const Vector& p_grid,
-                const Tensor3& z_field,
-                const Matrix& r_geoid,
-                 // Calculate thermal emission:
-                const Tensor3& t_field,
-                const Vector& f_grid,
-                const Index& f_index
-                )
+doit_i_fieldUpdateSeq1DPP(Workspace& ws,
+                          // WS Output:
+                          Tensor6& doit_i_field,
+                          // spt_calc_agenda:
+                          Index& scat_za_index ,
+                          // WS Input:
+                          const Tensor6& doit_scat_field,
+                          const ArrayOfIndex& cloudbox_limits,
+                          // Calculate scalar gas absorption:
+                          const Agenda& abs_scalar_gas_agenda,
+                          const Tensor4& vmr_field,
+                          // Optical properties for single particle type:
+                          const Agenda& spt_calc_agenda,
+                          const Vector& scat_za_grid,
+                          const Tensor4& pnd_field,
+                          // Optical properties for gases and particles:
+                          const Agenda& opt_prop_part_agenda,
+                          const Agenda& opt_prop_gas_agenda,
+                          // Propagation path calculation:
+                          const Agenda& ppath_step_agenda,
+                          const Vector& p_grid,
+                          const Tensor3& z_field,
+                          const Matrix& r_geoid,
+                          // Calculate thermal emission:
+                          const Tensor3& t_field,
+                          const Vector& f_grid,
+                          const Index& f_index,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
 
   out2 << "  doit_i_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
   out2 << "  --------------------------------------------------------------------- \n";
@@ -1328,7 +1362,7 @@ doit_i_fieldUpdateSeq1DPP(
                        spt_calc_agenda, 
                        opt_prop_part_agenda, scat_za_index, scat_aa_index, 
                        cloudbox_limits, t_field, 
-                       pnd_field);
+                       pnd_field, verbosity);
 
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -1362,7 +1396,8 @@ doit_i_fieldUpdateSeq1DPP(
                                                  t_field, 
                                                  f_grid, f_index,
                                                  ext_mat_field,
-                                                 abs_vec_field); 
+                                                 abs_vec_field,
+                                                 verbosity); 
             }   
         }
       else if ( scat_za_grid[scat_za_index] > 90) 
@@ -1386,7 +1421,8 @@ doit_i_fieldUpdateSeq1DPP(
                                                  t_field, 
                                                  f_grid, f_index,
                                                  ext_mat_field, 
-                                                 abs_vec_field);  
+                                                 abs_vec_field,
+                                                 verbosity);  
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       
@@ -1395,8 +1431,7 @@ doit_i_fieldUpdateSeq1DPP(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitInit(
-              //WS Output
+void DoitInit(//WS Output
               Index& scat_p_index,
               Index& scat_lat_index,
               Index& scat_lon_index,
@@ -1413,11 +1448,12 @@ void DoitInit(
               const Index& doit_za_grid_size,
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
-              const ArrayOfSingleScatteringData& scat_data_raw
-              )
+              const ArrayOfSingleScatteringData& scat_data_raw,
+              const Verbosity& verbosity)
 {
   if (!cloudbox_on)
   {
+    CREATE_OUT0
     doit_is_initialized = 0;
     out0 << "  Cloudbox is off, DOIT calculation will be skipped.\n";
     return;
@@ -1448,8 +1484,11 @@ void DoitInit(
     throw runtime_error(
      "*doit_za_grid_size* must be greater than 15 for accurate results");
   else if (doit_za_grid_size > 100)
+  {
+    CREATE_OUT1
     out1 << "Warning: doit_za_grid_size is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 19.\n";
+  }
   
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
@@ -1528,10 +1567,11 @@ void DoitInit(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitWriteIterationFields(//WS input 
-                           const Index& doit_iteration_counter,
-                           const Tensor6& doit_i_field,
-                           //Keyword:
-                           const ArrayOfIndex& iterations)
+                              const Index& doit_iteration_counter,
+                              const Tensor6& doit_i_field,
+                              //Keyword:
+                              const ArrayOfIndex& iterations,
+                              const Verbosity& verbosity)
 {
   // Checks of doit_i_field have been done elsewhere, e.g. in
   // scat_fieldCalc(Limb).
@@ -1545,8 +1585,8 @@ void DoitWriteIterationFields(//WS input
   // All iterations are written to files
   if( iterations[0] == 0 )
     {
-      xml_write_to_file("doit_iteration_" + os.str() + ".xml", 
-                        doit_i_field);  
+      xml_write_to_file("doit_iteration_" + os.str() + ".xml",
+                        doit_i_field, FILE_TYPE_ASCII, verbosity);
     }
   
   // Only the iterations given by the keyword are written to a file
@@ -1556,7 +1596,7 @@ void DoitWriteIterationFields(//WS input
         {
           if (doit_iteration_counter == iterations[i])
             xml_write_to_file("doit_iteration_" + os.str() + ".xml", 
-                              doit_i_field);
+                              doit_i_field, FILE_TYPE_ASCII, verbosity);
         }
     }
 }
@@ -1576,10 +1616,13 @@ doit_scat_fieldCalc(Workspace& ws,
                     const ArrayOfIndex& cloudbox_limits,
                     const Vector& scat_za_grid,
                     const Vector& scat_aa_grid,
-                    const Index& doit_za_grid_size
-                    )
+                    const Index& doit_za_grid_size,
+                    const Verbosity& verbosity)
   
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // ------------ Check the input -------------------------------
 
   // Agenda for calculation of phase matrix
@@ -1709,7 +1752,7 @@ doit_scat_fieldCalc(Workspace& ws,
               // Sum over all particle types
               pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
                           atmosphere_dim, p_index, 0, 
-                          0);
+                          0, verbosity);
 
               out3 << "Multiplication of phase matrix with incoming" << 
                 " intensities \n";
@@ -1799,7 +1842,8 @@ doit_scat_fieldCalc(Workspace& ws,
                                       atmosphere_dim, 
                                       p_index, 
                                       lat_index, 
-                                      lon_index);
+                                      lon_index,
+                                      verbosity);
                           
                           product_field = 0;
                           
@@ -1873,9 +1917,12 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                         const Vector& scat_za_grid,
                         const Vector& scat_aa_grid,
                         const Index& doit_za_grid_size,
-                        const Index& doit_za_interp
-                        )
+                        const Index& doit_za_interp,
+                        const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // ------------ Check the input -------------------------------
    
   // Agenda for calculation of phase matrix
@@ -1953,8 +2000,11 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                         "*doit_za_grid_size* must be greater than 15 for"
                         "accurate results");
   else if (doit_za_grid_size > 100)
+  {
+    CREATE_OUT1
     out1 << "Warning: doit_za_grid_size is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 19.\n";
+  }
   
   // ------ end of checks -----------------------------------------------
   
@@ -2058,7 +2108,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
               // Sum over all particle types
               pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
                           atmosphere_dim, p_index, 0, 
-                          0);
+                          0, verbosity);
 
               out3 << "Multiplication of phase matrix with incoming" << 
                 " intensities \n";
@@ -2181,7 +2231,8 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                                     atmosphere_dim, 
                                     p_index, 
                                     lat_index, 
-                                    lon_index);
+                                    lon_index,
+                                    verbosity);
                         
                         product_field = 0;
                         
@@ -2256,8 +2307,8 @@ void doit_za_grid_optCalc(//WS Output
                           const Vector& scat_za_grid,
                           const Index& doit_za_interp,
                           //Keywords:
-                          const Numeric& acc
-                          )
+                          const Numeric& acc,
+                          const Verbosity&)
 {
   //-------- Check the input ---------------------------------
   
@@ -2297,13 +2348,11 @@ void doit_za_grid_optCalc(//WS Output
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_za_interpSet(
-                       Index& doit_za_interp,
+void doit_za_interpSet(Index& doit_za_interp,
                        const Index& atmosphere_dim,
                        //Keyword
-                       const String& method
-                       
-                       )
+                       const String& method,
+                       const Verbosity&)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
 
@@ -2335,10 +2384,12 @@ void ScatteringDoit(Workspace& ws,
                     const Index&  cloudbox_on,
                     const Vector& f_grid,
                     const Agenda& doit_mono_agenda,
-                    const Index& doit_is_initialized
-                    )
+                    const Index& doit_is_initialized,
+                    const Verbosity& verbosity)
                   
 {
+  CREATE_OUT2
+  
   //-------- Check input -------------------------------------------
  
   // Don't do anything if there's no cloudbox defined.
@@ -2394,25 +2445,25 @@ void ScatteringDoit(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitCloudboxFieldPut(//WS Output:
-               Tensor7&  scat_i_p,
-               Tensor7& scat_i_lat,
-               Tensor7& scat_i_lon,
-               Tensor4& doit_i_field1D_spectrum,
-               //WS Input:
-               const Tensor6& doit_i_field,
-               const Vector& f_grid,
-               const Index& f_index,
-               const Vector& p_grid,
-               const Vector& lat_grid,
-               const Vector& lon_grid,
-               const Vector& scat_za_grid,
-               const Vector& scat_aa_grid,
-               const Index& stokes_dim,
-               const Index& atmosphere_dim,
-               const ArrayOfIndex& cloudbox_limits,
-               const Matrix& sensor_pos,
-               const Tensor3& z_field
-               )
+                          Tensor7&  scat_i_p,
+                          Tensor7& scat_i_lat,
+                          Tensor7& scat_i_lon,
+                          Tensor4& doit_i_field1D_spectrum,
+                          //WS Input:
+                          const Tensor6& doit_i_field,
+                          const Vector& f_grid,
+                          const Index& f_index,
+                          const Vector& p_grid,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid,
+                          const Vector& scat_za_grid,
+                          const Vector& scat_aa_grid,
+                          const Index& stokes_dim,
+                          const Index& atmosphere_dim,
+                          const ArrayOfIndex& cloudbox_limits,
+                          const Matrix& sensor_pos,
+                          const Tensor3& z_field,
+                          const Verbosity& verbosity)
 {
   // Some sizes:
   Index N_f = f_grid.nelem();
@@ -2460,6 +2511,7 @@ void DoitCloudboxFieldPut(//WS Output:
           if(sensor_pos(i, 0) >= z_field(cloudbox_limits[0], 0, 0) &&
              sensor_pos(i, 0) <= z_field(cloudbox_limits[1], 0, 0) )
             {
+              CREATE_OUT2
               in_cloudbox = true;
               out2 << "  Sensor position in cloudbox, store radiation field\n"
                    << "  in cloudbox for all frequencies. \n"; 
@@ -2593,23 +2645,23 @@ void DoitCloudboxFieldPut(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void CloudboxGetIncoming(
-              Workspace&      ws,
-              Tensor7&        scat_i_p,
-              Tensor7&        scat_i_lat,
-              Tensor7&        scat_i_lon,
-        const Agenda&         iy_clearsky_basic_agenda,
-        const Index&          atmosphere_dim,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Matrix&         r_geoid,
-        const Index&          cloudbox_on,
-        const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         f_grid,
-        const Index&          stokes_dim,
-        const Vector&         scat_za_grid,
-        const Vector&         scat_aa_grid )
+void CloudboxGetIncoming(Workspace&      ws,
+                         Tensor7&        scat_i_p,
+                         Tensor7&        scat_i_lat,
+                         Tensor7&        scat_i_lon,
+                         const Agenda&   iy_clearsky_basic_agenda,
+                         const Index&    atmosphere_dim,
+                         const Vector&   lat_grid,
+                         const Vector&   lon_grid,
+                         const Tensor3&  z_field,
+                         const Matrix&   r_geoid,
+                         const Index&    cloudbox_on,
+                         const ArrayOfIndex&   cloudbox_limits,
+                         const Vector&   f_grid,
+                         const Index&    stokes_dim,
+                         const Vector&   scat_za_grid,
+                         const Vector&   scat_aa_grid,
+                         const Verbosity&)
 {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
@@ -2822,23 +2874,23 @@ void CloudboxGetIncoming(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void CloudboxGetIncoming1DAtm(
-              Workspace&      ws,
-              Tensor7&        scat_i_p,
-              Tensor7&        scat_i_lat,
-              Tensor7&        scat_i_lon,
-              Index&          cloudbox_on,
-        const Agenda&         iy_clearsky_basic_agenda,
-        const Index&          atmosphere_dim,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Matrix&         r_geoid,
-        const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         f_grid,
-        const Index&          stokes_dim,
-        const Vector&         scat_za_grid,
-        const Vector&         scat_aa_grid )
+void CloudboxGetIncoming1DAtm(Workspace&      ws,
+                              Tensor7&        scat_i_p,
+                              Tensor7&        scat_i_lat,
+                              Tensor7&        scat_i_lon,
+                              Index&          cloudbox_on,
+                              const Agenda&   iy_clearsky_basic_agenda,
+                              const Index&    atmosphere_dim,
+                              const Vector&   lat_grid,
+                              const Vector&   lon_grid,
+                              const Tensor3&  z_field,
+                              const Matrix&   r_geoid,
+                              const ArrayOfIndex&   cloudbox_limits,
+                              const Vector&   f_grid,
+                              const Index&    stokes_dim,
+                              const Vector&   scat_za_grid,
+                              const Vector&   scat_aa_grid,
+                              const Verbosity&)
 {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
@@ -2966,29 +3018,29 @@ void CloudboxGetIncoming1DAtm(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyInterpCloudboxField(
-            Matrix&         iy,
-            Matrix&         iy_error,
-            Index&          iy_error_type,
-            Matrix&         iy_aux,
-            ArrayOfTensor3& diy_dx,
-      const Tensor3&        iy_transmission,
-      const Tensor7&        scat_i_p,
-      const Tensor7&        scat_i_lat,
-      const Tensor7&        scat_i_lon,
-      const Tensor4&        doit_i_field1D_spectrum,
-      const GridPos&        rte_gp_p,
-      const GridPos&        rte_gp_lat,
-      const GridPos&        rte_gp_lon,
-      const Vector&         rte_los,
-      const Index&          jacobian_do,
-      const Index&          cloudbox_on,
-      const ArrayOfIndex&   cloudbox_limits,
-      const Index&          atmosphere_dim,
-      const Index&          stokes_dim,
-      const Vector&         scat_za_grid,
-      const Vector&         scat_aa_grid,
-      const Vector&         f_grid)
+void iyInterpCloudboxField(Matrix&         iy,
+                           Matrix&         iy_error,
+                           Index&          iy_error_type,
+                           Matrix&         iy_aux,
+                           ArrayOfTensor3& diy_dx,
+                           const Tensor3&  iy_transmission,
+                           const Tensor7&  scat_i_p,
+                           const Tensor7&  scat_i_lat,
+                           const Tensor7&  scat_i_lon,
+                           const Tensor4&  doit_i_field1D_spectrum,
+                           const GridPos&  rte_gp_p,
+                           const GridPos&  rte_gp_lat,
+                           const GridPos&  rte_gp_lon,
+                           const Vector&   rte_los,
+                           const Index&    jacobian_do,
+                           const Index&    cloudbox_on,
+                           const ArrayOfIndex&   cloudbox_limits,
+                           const Index&    atmosphere_dim,
+                           const Index&    stokes_dim,
+                           const Vector&   scat_za_grid,
+                           const Vector&   scat_aa_grid,
+                           const Vector&   f_grid,
+                           const Verbosity& verbosity)
 {
   // Retrieval variables
   if( jacobian_do )
@@ -3003,7 +3055,8 @@ void iyInterpCloudboxField(
                             doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
-                            scat_za_grid, scat_aa_grid, f_grid, "linear" );
+                            scat_za_grid, scat_aa_grid, f_grid, "linear",
+                            verbosity );
 
   // As a temporary solution, create an "epsilon vector" matching
   // [0.5,0.1,0.1,0.1] K. This shall be replaced with the epsilion vector
@@ -3030,29 +3083,29 @@ void iyInterpCloudboxField(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyInterpPolyCloudboxField(
-            Matrix&         iy,
-            Matrix&         iy_error,
-            Index&          iy_error_type,
-            Matrix&         iy_aux,
-            ArrayOfTensor3& diy_dx,
-      const Tensor3&        iy_transmission,
-      const Tensor7&        scat_i_p,
-      const Tensor7&        scat_i_lat,
-      const Tensor7&        scat_i_lon,
-      const Tensor4&        doit_i_field1D_spectrum,      
-      const GridPos&        rte_gp_p,
-      const GridPos&        rte_gp_lat,
-      const GridPos&        rte_gp_lon,
-      const Vector&         rte_los,
-      const Index&          jacobian_do,
-      const Index&          cloudbox_on,
-      const ArrayOfIndex&   cloudbox_limits,
-      const Index&          atmosphere_dim,
-      const Index&          stokes_dim,
-      const Vector&         scat_za_grid,
-      const Vector&         scat_aa_grid,
-      const Vector&         f_grid )
+void iyInterpPolyCloudboxField(Matrix&         iy,
+                               Matrix&         iy_error,
+                               Index&          iy_error_type,
+                               Matrix&         iy_aux,
+                               ArrayOfTensor3& diy_dx,
+                               const Tensor3&  iy_transmission,
+                               const Tensor7&  scat_i_p,
+                               const Tensor7&  scat_i_lat,
+                               const Tensor7&  scat_i_lon,
+                               const Tensor4&  doit_i_field1D_spectrum,      
+                               const GridPos&  rte_gp_p,
+                               const GridPos&  rte_gp_lat,
+                               const GridPos&  rte_gp_lon,
+                               const Vector&   rte_los,
+                               const Index&    jacobian_do,
+                               const Index&    cloudbox_on,
+                               const ArrayOfIndex&   cloudbox_limits,
+                               const Index&    atmosphere_dim,
+                               const Index&    stokes_dim,
+                               const Vector&   scat_za_grid,
+                               const Vector&   scat_aa_grid,
+                               const Vector&   f_grid,
+                               const Verbosity& verbosity)
 {
   // Retrieval varaibles
   if( jacobian_do )
@@ -3067,7 +3120,8 @@ void iyInterpPolyCloudboxField(
                             doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
-                            scat_za_grid, scat_aa_grid, f_grid, "polynomial" );
+                            scat_za_grid, scat_aa_grid, f_grid, "polynomial",
+                            verbosity );
 
   // As a temporary solution, create an "epsilon vector" matching
   // [0.5,0.1,0.1,0.1] K. This shall be replaced with the epsilion vector
@@ -3105,9 +3159,10 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                              const ArrayOfIndex& cloudbox_limits,
                              const Index& atmosphere_dim,
                              //Keyword:
-                             const Index& all_frequencies
-                             )
+                             const Index& all_frequencies,
+                             const Verbosity& verbosity)
 {
+  CREATE_OUT2
   
   out2 << "  Interpolate boundary clearsky field to obtain the initial field.\n";
   
@@ -3448,20 +3503,24 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetConst(//WS Output:
-                        Tensor6& doit_i_field,
-                        //WS Input:
-                        const Tensor7& scat_i_p,
-                        const Tensor7& scat_i_lat,
-                        const Tensor7& scat_i_lon,
-                        const Vector& p_grid,
-                        const Vector& lat_grid,
-                        const Vector& lon_grid,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const Index& atmosphere_dim,
-                        const Index& stokes_dim,
-                        // Keyword       
-                        const Vector& doit_i_field_values)
+                          Tensor6& doit_i_field,
+                          //WS Input:
+                          const Tensor7& scat_i_p,
+                          const Tensor7& scat_i_lat,
+                          const Tensor7& scat_i_lon,
+                          const Vector& p_grid,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid,
+                          const ArrayOfIndex& cloudbox_limits,
+                          const Index& atmosphere_dim,
+                          const Index& stokes_dim,
+                          // Keyword       
+                          const Vector& doit_i_field_values,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   out2 << "  Set initial field to constant values: " << doit_i_field_values << "\n"; 
 
   // In the 1D case the atmospheric layers are defined by p_grid and the

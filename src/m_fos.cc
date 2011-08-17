@@ -61,40 +61,40 @@ extern const Numeric PI;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void fos_yStandard(
-        Workspace&                     ws,
-        Tensor3&                       fos_y,
-        Matrix&                        iy_error,
-        Index&                         iy_error_type,
-        Matrix&                        iy_aux,
-        ArrayOfTensor3&                diy_dx,
-  const Vector&                        rte_pos,
-  const Index&                         atmosphere_dim,
-  const Vector&                        p_grid,
-  const Vector&                        lat_grid,
-  const Vector&                        lon_grid,
-  const Tensor3&                       z_field,
-  const Tensor3&                       t_field,
-  const Tensor4&                       vmr_field,
-  const Matrix&                        r_geoid,
-  const Matrix&                        z_surface,
-  const Index&                         cloudbox_on,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Index&                         stokes_dim,
-  const Vector&                        f_grid,
-  const Agenda&                        ppath_step_agenda,
-  const Agenda&                        emission_agenda,
-  const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        iy_clearsky_agenda,
-  const Tensor3&                       iy_transmission,
-  const Tensor4&                       pnd_field,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                        opt_prop_gas_agenda,
-  const Agenda&                        fos_y_agenda,
-  const Matrix&                        fos_angles,
-  const Index&                         use_mean_scat_data,
-  const Index&                         fos_n,
-  const Index&                         fos_i )
+void fos_yStandard(Workspace&          ws,
+                   Tensor3&            fos_y,
+                   Matrix&             iy_error,
+                   Index&              iy_error_type,
+                   Matrix&             iy_aux,
+                   ArrayOfTensor3&     diy_dx,
+                   const Vector&       rte_pos,
+                   const Index&        atmosphere_dim,
+                   const Vector&       p_grid,
+                   const Vector&       lat_grid,
+                   const Vector&       lon_grid,
+                   const Tensor3&      z_field,
+                   const Tensor3&      t_field,
+                   const Tensor4&      vmr_field,
+                   const Matrix&       r_geoid,
+                   const Matrix&       z_surface,
+                   const Index&        cloudbox_on,
+                   const ArrayOfIndex& cloudbox_limits,
+                   const Index&        stokes_dim,
+                   const Vector&       f_grid,
+                   const Agenda&       ppath_step_agenda,
+                   const Agenda&       emission_agenda,
+                   const Agenda&       abs_scalar_gas_agenda,
+                   const Agenda&       iy_clearsky_agenda,
+                   const Tensor3&      iy_transmission,
+                   const Tensor4&      pnd_field,
+                   const ArrayOfSingleScatteringData&   scat_data_raw,
+                   const Agenda&       opt_prop_gas_agenda,
+                   const Agenda&       fos_y_agenda,
+                   const Matrix&       fos_angles,
+                   const Index&        use_mean_scat_data,
+                   const Index&        fos_n,
+                   const Index&        fos_i,
+                   const Verbosity&    verbosity)
 {
   // Angles inside these ranges are considered to be equal for 1D and 2D
   const Numeric dza = 0.01;
@@ -244,7 +244,7 @@ void fos_yStandard(
                  ppath_step_agenda, emission_agenda, 
                  abs_scalar_gas_agenda, iy_clearsky_agenda, 
                  pnd_field, scat_data_raw, opt_prop_gas_agenda, fos_y_agenda, 
-                 fos_angles, use_mean_scat_data, fos_n, fos_i+1 );
+                 fos_angles, use_mean_scat_data, fos_n, fos_i+1, verbosity);
 
           fos_y(ia,joker,joker) = tmp;
         }
@@ -254,42 +254,42 @@ void fos_yStandard(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyFOS(
-        Workspace&                     ws,
-        Matrix&                        iy,
-        Matrix&                        iy_error,
-        Index&                         iy_error_type,
-        Matrix&                        iy_aux,
-        ArrayOfTensor3&                diy_dx,
-  const Tensor3&                       iy_transmission,
-  const Vector&                        rte_pos,
-  const Vector&                        rte_los,
-  const Index&                         jacobian_do,
-  const Index&                         atmosphere_dim,
-  const Vector&                        p_grid,
-  const Vector&                        lat_grid,
-  const Vector&                        lon_grid,
-  const Tensor3&                       z_field,
-  const Tensor3&                       t_field,
-  const Tensor4&                       vmr_field,
-  const Matrix&                        r_geoid,
-  const Matrix&                        z_surface,
-  const Index&                         cloudbox_on,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Index&                         stokes_dim,
-  const Vector&                        f_grid,
-  const Agenda&                        ppath_step_agenda,
-  const Agenda&                        emission_agenda,
-  const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        iy_clearsky_agenda,
-  const Tensor4&                       pnd_field,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                        opt_prop_gas_agenda,
-  const Agenda&                        fos_y_agenda,
-  const Matrix&                        fos_angles,
-  const Index&                         use_mean_scat_data,
-  const Index&                         fos_n,
-  const Index&                         fos_i )
+void iyFOS(Workspace&          ws,
+           Matrix&             iy,
+           Matrix&             iy_error,
+           Index&              iy_error_type,
+           Matrix&             iy_aux,
+           ArrayOfTensor3&     diy_dx,
+           const Tensor3&      iy_transmission,
+           const Vector&       rte_pos,
+           const Vector&       rte_los,
+           const Index&        jacobian_do,
+           const Index&        atmosphere_dim,
+           const Vector&       p_grid,
+           const Vector&       lat_grid,
+           const Vector&       lon_grid,
+           const Tensor3&      z_field,
+           const Tensor3&      t_field,
+           const Tensor4&      vmr_field,
+           const Matrix&       r_geoid,
+           const Matrix&       z_surface,
+           const Index&        cloudbox_on,
+           const ArrayOfIndex& cloudbox_limits,
+           const Index&        stokes_dim,
+           const Vector&       f_grid,
+           const Agenda&       ppath_step_agenda,
+           const Agenda&       emission_agenda,
+           const Agenda&       abs_scalar_gas_agenda,
+           const Agenda&       iy_clearsky_agenda,
+           const Tensor4&      pnd_field,
+           const ArrayOfSingleScatteringData&   scat_data_raw,
+           const Agenda&       opt_prop_gas_agenda,
+           const Agenda&       fos_y_agenda,
+           const Matrix&       fos_angles,
+           const Index&        use_mean_scat_data,
+           const Index&        fos_n,
+           const Index&        fos_i,
+           const Verbosity&    verbosity)
 {
   // Input checks
   if( jacobian_do )
@@ -322,7 +322,8 @@ void iyFOS(
   //
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0 );
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0,
+              verbosity );
 
   // Check radiative background
   const Index bkgr = ppath_what_background( ppath );
@@ -362,12 +363,13 @@ void iyFOS(
 
       // Absorption and optical thickness for each step
       get_ppath_cloudrtvars( ws, ppath_asp_abs_vec, ppath_asp_ext_mat,
-                   ppath_pnd_abs_vec, ppath_pnd_ext_mat, ppath_transmission, 
-                   total_transmission, ppath_emission, scat_data,
-                   abs_scalar_gas_agenda, emission_agenda, opt_prop_gas_agenda,
-                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
-                   ppath_wind_v, ppath_wind_w, ppath_pnd, use_mean_scat_data,
-                   scat_data_raw, stokes_dim, f_grid, atmosphere_dim, 1 );
+                            ppath_pnd_abs_vec, ppath_pnd_ext_mat, ppath_transmission, 
+                            total_transmission, ppath_emission, scat_data,
+                            abs_scalar_gas_agenda, emission_agenda, opt_prop_gas_agenda,
+                            ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
+                            ppath_wind_v, ppath_wind_w, ppath_pnd, use_mean_scat_data,
+                            scat_data_raw, stokes_dim, f_grid, atmosphere_dim, 1,
+                            verbosity);
     }
   else // Just in case, should not happen
     { assert( 0 ); }
@@ -449,7 +451,8 @@ void iyFOS(
                       pha_mat_singleCalc( P1, rte_los2[0], rte_los2[1],
                                           fos_angles(ia,0), fos_angles(ia,1),
                                           scat_data[iv], stokes_dim, 
-                                          ppath_pnd(joker,ip), ppath_t[ip] );
+                                          ppath_pnd(joker,ip), ppath_t[ip],
+                                          verbosity );
                       P(ia,iv,joker,joker) = P1;
                     }
                 }

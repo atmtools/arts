@@ -182,8 +182,8 @@ void ppath_copy(
            Ppath&      ppath1,
      const Ppath&      ppath2 );
 
-void ppath_start_stepping(Ppath&          ppath,
-                          const Index&    atmosphere_dim,
+void ppath_start_stepping(Ppath&                  ppath,
+                          const Index&            atmosphere_dim,
                           ConstVectorView         p_grid,
                           ConstVectorView         lat_grid,
                           ConstVectorView         lon_grid,
@@ -194,8 +194,8 @@ void ppath_start_stepping(Ppath&          ppath,
                           const ArrayOfIndex &    cloudbox_limits,
                           const bool &            outside_cloudbox,
                           ConstVectorView         rte_pos,
-                          ConstVectorView         rte_los
-                          );
+                          ConstVectorView         rte_los,
+                          const Verbosity&        verbosity);
 
 
 void ppath_step_geom_1d(
@@ -297,6 +297,7 @@ void ppath_calc(
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         rte_pos,
         const Vector&         rte_los,
-        const bool&           outside_cloudbox );
+        const bool&           outside_cloudbox,
+        const Verbosity&      verbosity);
 
 #endif  // ppath_h

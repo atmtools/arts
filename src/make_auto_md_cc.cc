@@ -137,10 +137,10 @@ int main()
               // Use parameter name only if it is used inside the function
               // to avoid warnings
               ws = " ws";
-              if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
-              {
-                ws = "";
-              }
+//              if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
+//              {
+//                ws = "";
+//              }
 
               // Find out if the WSM gets an agenda as input. If so, pass
               // the current workspace to this method
@@ -358,8 +358,29 @@ int main()
               ofs << "mr.Tasks()";
             }
 
-          // FIXME OLE: Pass verbosity.
-          if ( mdd.Name() == "TestVerbosity" )
+          // Flag that is set to false if the WSM has verbosity as an input or
+          // output already. Otherwise it's passed as the last parameter.
+          bool pass_verbosity = true;
+          
+          // Find out if the WSM has the verbosity as input.
+          for (Index j = 0; pass_verbosity && j < mdd.In().nelem(); j++)
+          {
+            if (wsv_data[mdd.In()[j]].Name() == "verbosity")
+            {
+              pass_verbosity = false;
+            }
+          }
+          
+          // Find out if the WSM has the verbosity as output.
+          for (Index j = 0; pass_verbosity && j < mdd.Out().nelem(); j++)
+          {
+            if (wsv_data[mdd.Out()[j]].Name() == "verbosity")
+            {
+              pass_verbosity = false;
+            }
+          }
+          
+          if (pass_verbosity)
           {
             static Index verbosity_wsv_id = get_wsv_id("verbosity");
             static Index verbosity_group_id = get_wsv_group_id("Verbosity");
@@ -368,7 +389,6 @@ int main()
             << " *)ws[" << verbosity_wsv_id
             << "])";
           }
-          
           
           ofs << ");\n";
           ofs << "}\n\n";
@@ -536,7 +556,7 @@ int main()
         {
           ofs
           << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
-          << "void " << *it << "Create(" << *it << "& var)\n"
+          << "void " << *it << "Create(" << *it << "& var, const Verbosity&)\n"
           << "{ ";
           
           // Treat atomic types separately.

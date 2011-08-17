@@ -41,14 +41,15 @@ ReadXML (// WS Generic Output:
          // WS Generic Input:
          const String& f,
          // WS Generic Input Names:
-         const String& f_name _U_)
+         const String& f_name _U_,
+         const Verbosity& verbosity)
 {
   String filename = f;
 
   // Create default filename if empty
   filename_xml (filename, v_name);
 
-  xml_read_from_file (filename, v);
+  xml_read_from_file (filename, v, verbosity);
 }
 
 
@@ -62,9 +63,10 @@ ReadXML (Workspace&    ws _U_,
          // WS Generic Input:
          const String& f,
          // WS Generic Input Names:
-         const String& f_name)
+         const String& f_name,
+         const Verbosity& verbosity)
 {
-  ReadXML (v, v_name, f, f_name);
+  ReadXML (v, v_name, f, f_name, verbosity);
 }
 
 
@@ -77,7 +79,8 @@ WriteXML (//WS Input:
           const String& f,
           // WS Generic Input Names:
           const String& v_name,
-          const String& f_name _U_)
+          const String& f_name _U_,
+          const Verbosity& verbosity)
 
 {
   String filename = f;
@@ -99,7 +102,7 @@ WriteXML (//WS Input:
                          "  zascii: Zipped XML output\n"
                          "  binary: XML + binary output");
 
-  xml_write_to_file (filename, v, ftype);
+  xml_write_to_file (filename, v, ftype, verbosity);
 }
 
 
@@ -113,9 +116,10 @@ WriteXML (Workspace& ws _U_,
           const String& f,
           // WS Generic Input Names:
           const String& v_name,
-          const String& f_name)
+          const String& f_name,
+          const Verbosity& verbosity)
 {
-  WriteXML (file_format, v, f, v_name, f_name);
+  WriteXML (file_format, v, f, v_name, f_name, verbosity);
 }
 
 
@@ -129,14 +133,15 @@ WriteXMLIndexed (//WS Input:
                  const String& f,
                  // WS Generic Input Names:
                  const String& v_name,
-                 const String& f_name _U_)
+                 const String& f_name _U_,
+                 const Verbosity& verbosity)
 {
   String filename = f;
 
   // Create default filename if empty
   filename_xml_with_index( filename, file_index, v_name );
 
-  WriteXML( file_format, v, filename, v_name, f_name );
+  WriteXML( file_format, v, filename, v_name, f_name, verbosity );
 }
 
 
@@ -151,16 +156,18 @@ WriteXMLIndexed (Workspace& ws _U_,
                  const String& f,
                  // WS Generic Input Names:
                  const String& v_name,
-                 const String& f_name)
+                 const String& f_name,
+                 const Verbosity& verbosity)
 {
-  WriteXMLIndexed (file_format, file_index, v, f, v_name, f_name);
+  WriteXMLIndexed (file_format, file_index, v, f, v_name, f_name, verbosity);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetAscii (// WS Output:
-                            String& file_format)
+                            String& file_format,
+                            const Verbosity&)
 {
   file_format = "ascii";
 }
@@ -169,7 +176,8 @@ output_file_formatSetAscii (// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetZippedAscii (// WS Output:
-                                  String& file_format)
+                                  String& file_format,
+                                  const Verbosity&)
 {
   file_format = "zascii";
 }
@@ -178,7 +186,8 @@ output_file_formatSetZippedAscii (// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetBinary (// WS Output:
-                             String& file_format)
+                             String& file_format,
+                             const Verbosity&)
 {
   file_format = "binary";
 }

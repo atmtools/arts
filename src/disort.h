@@ -34,39 +34,35 @@
 #include "optproperties.h"
 
 
-void dtauc_ssalbCalc(
-                    Workspace &ws,
-                    VectorView dtauc,
-                    VectorView ssalb,
-                    const Agenda& opt_prop_part_agenda,
-                    const Agenda& abs_scalar_gas_agenda,
-                    const Agenda& spt_calc_agenda,
-                    ConstTensor4View pnd_field,
-                    ConstTensor3View t_field,
-                    ConstTensor3View z_field, 
-                    ConstVectorView p_grid,
-                    ConstTensor4View vmr_field,
-                    const Index& f_index
-                    );
+void dtauc_ssalbCalc(Workspace &ws,
+                     VectorView dtauc,
+                     VectorView ssalb,
+                     const Agenda& opt_prop_part_agenda,
+                     const Agenda& abs_scalar_gas_agenda,
+                     const Agenda& spt_calc_agenda,
+                     ConstTensor4View pnd_field,
+                     ConstTensor3View t_field,
+                     ConstTensor3View z_field, 
+                     ConstVectorView p_grid,
+                     ConstTensor4View vmr_field,
+                     const Index& f_index);
 
 void phase_functionCalc(//Output
-                       MatrixView phase_function,
-                       //Input
-                       const ArrayOfSingleScatteringData& scat_data_mono, 
-                       ConstTensor4View pnd_field
-                       );
+                        MatrixView phase_function,
+                        //Input
+                        const ArrayOfSingleScatteringData& scat_data_mono, 
+                        ConstTensor4View pnd_field);
 
 void pmomCalc(//Output
               MatrixView pmom,
               //Input
               ConstMatrixView phase_function, 
               ConstVectorView scat_angle_grid,
-              const Index n_legendre
-              );
+              const Index n_legendre,
+              const Verbosity& verbosity);
 
-Numeric planck2( 
-                const Numeric&   f, 
-                const Numeric&   t );
+Numeric planck2(const Numeric&   f, 
+                const Numeric&   t);
 
 #endif /* disort_h */
 

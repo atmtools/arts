@@ -3855,7 +3855,16 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
- wsv_data.push_back
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "test_agenda" ),
+     DESCRIPTION
+     (
+      "See agendas.cc.\n"
+     ),
+     GROUP( "Agenda" )));
+  
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "timer" ),
       DESCRIPTION

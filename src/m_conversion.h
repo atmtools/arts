@@ -33,8 +33,8 @@ extern const Numeric SPEED_OF_LIGHT;
 void FrequencyFromWavelength(// WS Generic Output
                              Numeric& frequency,
                              // WS Generic Input
-                             const Numeric& wavelength
-                        )
+                             const Numeric& wavelength,
+                             const Verbosity&)
 {
  
   // Convert from wavelength to frequency
@@ -47,14 +47,13 @@ void FrequencyFromWavelength(// WS Generic Output
 void FrequencyFromWavelength(// WS Generic Output
                              Vector& frequency,
                              // WS Generic Input
-                             const Vector& wavelength
-                             )
+                             const Vector& wavelength,
+                             const Verbosity&)
 {
   frequency.resize(wavelength.nelem());
   // Convert from wavelength to frequency
   for (Index i=0; i<wavelength.nelem(); i++)
     frequency[i]=SPEED_OF_LIGHT/wavelength[i];
-  
 }
 
 #endif /* m_conversion_h */

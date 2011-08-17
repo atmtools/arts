@@ -144,7 +144,8 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                           const Tensor4&       pnd_field,
                           const ArrayOfSingleScatteringData& scat_data_mono,
                           const ArrayOfIndex&  cloudbox_limits,
-                          const Vector&        rte_los
+                          const Vector&        rte_los,
+                          const Verbosity&     verbosity
                           )
 
 {
@@ -195,7 +196,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
   pnd_vec=pnd_ppath(joker, 0);
   opt_propCalc(ext_mat_part,abs_vec_part,scat_za,scat_aa,scat_data_mono,
-               stokes_dim, pnd_vec, temperature);
+               stokes_dim, pnd_vec, temperature,verbosity);
   
   ext_mat_mono += ext_mat_part;
   abs_vec_mono += abs_vec_part;
@@ -431,8 +432,8 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                             const ArrayOfIndex&   cloudbox_limits, 
                             const Tensor4&        pnd_field,
                             const ArrayOfSingleScatteringData& scat_data_mono,
-                            const Vector&          particle_masses
-                            )
+                            const Vector&         particle_masses,
+                            const Verbosity&      verbosity)
 {
   //internal declarations
   Ppath ppath;
@@ -443,7 +444,8 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
   //calculate ppath to cloudbox boundary
   ppath_calc( ws, ppath, ppath_step_agenda, 3, 
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
-              1, cloudbox_limits, local_rte_pos, local_rte_los, 1 );
+              1, cloudbox_limits, local_rte_pos, local_rte_los, 1,
+              verbosity );
   //if this ppath hit a cloud, now take ppath inside cloud
   if (ppath_what_background(ppath)>2)
     {
@@ -461,7 +463,8 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
 
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
-                  1, cloudbox_limits, local_rte_pos, local_rte_los, 0 );
+                  1, cloudbox_limits, local_rte_pos, local_rte_los, 0,
+                  verbosity );
 
       Matrix  pnd_ppath(particle_masses.nelem(),ppath.np);
       Vector t_ppath(ppath.np);
@@ -482,7 +485,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
       for (Index i = 0; i < ppath.np ; ++i)
         {
           opt_propCalc(ext_mat_part,abs_vec_part,ppath.los(i,0),ppath.los(i,1),scat_data_mono,
-                       1, pnd_ppath(joker, i), t_ppath[i]);
+                       1, pnd_ppath(joker, i), t_ppath[i], verbosity);
           k_vec[i]=ext_mat_part(0,0);
           Vector pnd_vec=pnd_ppath(joker, i);
           assert(pnd_vec.nelem()==particle_masses.nelem());
@@ -580,7 +583,8 @@ void mcPathTraceGeneral(Workspace&            ws,
                         const Tensor4&        vmr_field,
                         const ArrayOfIndex&   cloudbox_limits,
                         const Tensor4&        pnd_field,
-                        const ArrayOfSingleScatteringData& scat_data_mono)
+                        const ArrayOfSingleScatteringData& scat_data_mono,
+                        const Verbosity& verbosity)
                         // 2011-06-17 GH commented out, unused?
                         // const Index           z_field_is_1D)
 
@@ -606,7 +610,7 @@ void mcPathTraceGeneral(Workspace&            ws,
   ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_surface,
                         0, cloudbox_limits, false, 
-                        rte_pos, rte_los );
+                        rte_pos, rte_los, verbosity );
   //Use cloudbox_ppath_start_stepping to avoid unnecessary z_at_latlon calls.
   //cloudbox_ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
   //                               lon_grid, z_field, r_geoid, z_surface, rte_pos,
@@ -624,12 +628,13 @@ void mcPathTraceGeneral(Workspace&            ws,
   if (inside_cloud)
     {
       cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                  opt_prop_gas_agenda,abs_scalar_gas_agenda,
-                  stokes_dim, f_index, ppath_step.gp_p[0], ppath_step.gp_lat[0],
-                  ppath_step.gp_lon[0],p_grid[p_range], 
-                  t_field(p_range,lat_range,lon_range), 
-                  vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
-                  scat_data_mono, cloudbox_limits,ppath_step.los(0,joker));
+                           opt_prop_gas_agenda,abs_scalar_gas_agenda,
+                           stokes_dim, f_index, ppath_step.gp_p[0], ppath_step.gp_lat[0],
+                           ppath_step.gp_lon[0],p_grid[p_range], 
+                           t_field(p_range,lat_range,lon_range), 
+                           vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
+                           scat_data_mono, cloudbox_limits,ppath_step.los(0,joker),
+                           verbosity);
     }
   else
     {
@@ -672,12 +677,13 @@ void mcPathTraceGeneral(Workspace&            ws,
       if (inside_cloud)
         {
           cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-               opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
-               ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
-               ppath_step.gp_lon[np-1],p_grid[p_range], 
-               t_field(p_range,lat_range,lon_range), 
-               vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
-               scat_data_mono, cloudbox_limits,ppath_step.los(np-1,joker));
+                               opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
+                               ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
+                               ppath_step.gp_lon[np-1],p_grid[p_range], 
+                               t_field(p_range,lat_range,lon_range), 
+                               vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
+                               scat_data_mono, cloudbox_limits,ppath_step.los(np-1,joker),
+                               verbosity);
         }
       else
         {
@@ -835,8 +841,8 @@ void mcPathTraceIPA(Workspace&            ws,
                     const Tensor4&        pnd_field,
                     const ArrayOfSingleScatteringData& scat_data_mono,
                     const Index           z_field_is_1D,
-                    const Ppath&          ppath)
-
+                    const Ppath&          ppath,
+                    const Verbosity&      verbosity)
 { 
 
   //Internal declarations
@@ -885,7 +891,7 @@ void mcPathTraceIPA(Workspace&            ws,
   ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_surface,
                         0, cloudbox_limits, false, 
-                        rte_pos, rte_los );
+                        rte_pos, rte_los, verbosity );
 
   gp_p=ppath_step.gp_p[0];
   gp_lat=ppath_step.gp_lat[0];
@@ -906,11 +912,12 @@ void mcPathTraceIPA(Workspace&            ws,
   if (inside_cloud)
     {
       cloudy_rt_vars_at_gp(ws, ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-              opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
-              gp_p, gp_lat, gp_lon,p_grid[p_range], 
-              t_field(p_range,lat_range,lon_range), 
-              vmr_field(joker,p_range,lat_range,lon_range),
-              pnd_field,scat_data_mono, cloudbox_limits,rte_los );
+                           opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
+                           gp_p, gp_lat, gp_lon,p_grid[p_range], 
+                           t_field(p_range,lat_range,lon_range), 
+                           vmr_field(joker,p_range,lat_range,lon_range),
+                           pnd_field,scat_data_mono, cloudbox_limits,rte_los,
+                           verbosity);
     }
   else
     {
@@ -1046,12 +1053,13 @@ void mcPathTraceIPA(Workspace&            ws,
       if (inside_cloud)
         {
           cloudy_rt_vars_at_gp(ws,
-                   ext_mat_mono, abs_vec_mono, pnd_vec, temperature,
-                   opt_prop_gas_agenda, abs_scalar_gas_agenda, stokes_dim, 
-                   f_index, gp_p,gp_lat, gp_lon, p_grid[p_range], 
-                   t_field(p_range,lat_range,lon_range), 
-                   vmr_field(joker,p_range,lat_range,lon_range),
-                   pnd_field, scat_data_mono, cloudbox_limits,rte_los);
+                               ext_mat_mono, abs_vec_mono, pnd_vec, temperature,
+                               opt_prop_gas_agenda, abs_scalar_gas_agenda, stokes_dim, 
+                               f_index, gp_p,gp_lat, gp_lon, p_grid[p_range], 
+                               t_field(p_range,lat_range,lon_range), 
+                               vmr_field(joker,p_range,lat_range,lon_range),
+                               pnd_field, scat_data_mono, cloudbox_limits,rte_los,
+                               verbosity);
         }
       else
         {
@@ -1172,7 +1180,8 @@ void opt_propCalc(
                   const ArrayOfSingleScatteringData& scat_data_mono,
                   const Index     stokes_dim,
                   ConstVectorView pnd_vec,
-                  const Numeric   rte_temperature
+                  const Numeric   rte_temperature,
+                  const Verbosity& verbosity
                   )
 {
   assert( stokes_dim>=1  &&  stokes_dim<=4 );
@@ -1194,7 +1203,7 @@ void opt_propCalc(
       if (pnd_vec[i_pt]>0)
         {
           opt_propExtract(ext_mat_mono_spt,abs_vec_mono_spt,scat_data_mono[i_pt],za,aa,
-                          rte_temperature,stokes_dim);
+                          rte_temperature,stokes_dim, verbosity);
           ext_mat_mono_spt*=pnd_vec[i_pt];
           abs_vec_mono_spt*=pnd_vec[i_pt];
           ext_mat_mono+=ext_mat_mono_spt;
@@ -1269,7 +1278,8 @@ void opt_propExtract(
                      const Numeric  za,
                      const Numeric  aa _U_, // avoid warning until we use ptype=10
                      const Numeric  rte_temperature,
-                     const Index    stokes_dim
+                     const Index    stokes_dim,
+                     const Verbosity& verbosity
                      )
 {
 
@@ -1282,12 +1292,13 @@ void opt_propExtract(
   switch (scat_data.ptype){
 
   case PARTICLE_TYPE_GENERAL:
-    // This is only included to remove warnings about unused variables 
-    // during compilation
-
-    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
-    break;
-    
+    {
+      // This is only included to remove warnings about unused variables 
+      // during compilation
+      CREATE_OUT0
+      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      break;
+    }
   case PARTICLE_TYPE_MACROS_ISO:
     {
       assert (scat_data.ext_mat_data.ncols() == 1);
@@ -1408,7 +1419,10 @@ void opt_propExtract(
 
     }
   default:
-    out0 << "Not all particle type cases are implemented\n";
+    {
+      CREATE_OUT0
+      out0 << "Not all particle type cases are implemented\n";
+    }
     
   }
 
@@ -1443,7 +1457,8 @@ void pha_mat_singleCalc(
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index      stokes_dim,
                         ConstVectorView  pnd_vec,
-                        const Numeric    rte_temperature
+                        const Numeric    rte_temperature,
+                        const Verbosity& verbosity
                         )
 {
   Index N_pt=pnd_vec.nelem();
@@ -1459,7 +1474,7 @@ void pha_mat_singleCalc(
       if (pnd_vec[i_pt]>0)
         {
           pha_mat_singleExtract(Z_spt,scat_data_mono[i_pt],za_sca,aa_sca,za_inc,
-                                aa_inc,rte_temperature,stokes_dim);
+                                aa_inc,rte_temperature,stokes_dim,verbosity);
           Z_spt*=pnd_vec[i_pt];
           Z+=Z_spt;
         }
@@ -1492,16 +1507,19 @@ void pha_mat_singleExtract(
                            const Numeric za_inc,
                            const Numeric aa_inc,
                            const Numeric rte_temperature,
-                           const Index   stokes_dim
+                           const Index   stokes_dim,
+                           const Verbosity& verbosity
                            )                       
 {
   switch (scat_data.ptype){
 
-  case PARTICLE_TYPE_GENERAL:
-    // to remove warnings during compilation. 
-    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
-    break;
-    
+    case PARTICLE_TYPE_GENERAL:
+    {
+      // to remove warnings during compilation.
+      CREATE_OUT0
+      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      break;
+    }
   case PARTICLE_TYPE_MACROS_ISO:
     {
       // Calculate the scattering and interpolate the data on the scattering
@@ -1655,7 +1673,8 @@ void pha_mat_singleExtract(
       
     }  
   default:
-    out0 << "Not all particle type cases are implemented\n";
+      CREATE_OUT0
+      out0 << "Not all particle type cases are implemented\n";
     
   }
 }
@@ -1697,7 +1716,8 @@ void Sample_los (
                  const bool       anyptype30,
                  ConstVectorView  Z11maxvector,
                  const Numeric    Csca,
-                 const Numeric    rte_temperature
+                 const Numeric    rte_temperature,
+                 const Verbosity& verbosity
                  )
 {
   Numeric Z11max=0;
@@ -1720,7 +1740,8 @@ void Sample_los (
       //The following is based on the assumption that the maximum value of the 
       //phase matrix for a given scattered direction is for forward scattering
       pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rte_temperature);
+                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rte_temperature,
+                         verbosity);
       Z11max=dummyZ(0,0);
     }  
   ///////////////////////////////////////////////////////////////////////  
@@ -1733,7 +1754,8 @@ void Sample_los (
         -180+new_rte_los[1]:180+new_rte_los[1];
       
       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rte_temperature);
+                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rte_temperature,
+                         verbosity);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted
         {

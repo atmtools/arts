@@ -70,35 +70,34 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mc_IWP_cloud_opt_pathCalc(
-                         Workspace& ws,
-                         //output
-                         Numeric& mc_IWP,
-                         Numeric& mc_cloud_opt_path,
-                         Numeric& mc_IWP_error,
-                         Numeric& mc_cloud_opt_path_error,
-                         Index&                mc_iteration_count,
-                         //input
-                         const MCAntenna&      mc_antenna,
-                         const Matrix&         sensor_pos,
-                         const Matrix&         sensor_los,
-                         const Agenda&         ppath_step_agenda,
-                         const Vector&         p_grid,
-                         const Vector&         lat_grid, 
-                         const Vector&         lon_grid, 
-                         const Matrix&         r_geoid, 
-                         const Matrix&         z_surface,
-                         const Tensor3&        z_field, 
-                         const Tensor3&        t_field, 
-                         const Tensor4&        vmr_field, 
-                         const ArrayOfIndex&   cloudbox_limits, 
-                         const Tensor4&        pnd_field,
-                         const ArrayOfSingleScatteringData& scat_data_mono,
-                         const Vector& particle_masses,
-                         const Index&          mc_seed,
-                         //Keyword params
-                         const Index&          max_iter
-                         )
+void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
+                               //output
+                               Numeric& mc_IWP,
+                               Numeric& mc_cloud_opt_path,
+                               Numeric& mc_IWP_error,
+                               Numeric& mc_cloud_opt_path_error,
+                               Index&   mc_iteration_count,
+                               //input
+                               const MCAntenna&      mc_antenna,
+                               const Matrix&         sensor_pos,
+                               const Matrix&         sensor_los,
+                               const Agenda&         ppath_step_agenda,
+                               const Vector&         p_grid,
+                               const Vector&         lat_grid, 
+                               const Vector&         lon_grid, 
+                               const Matrix&         r_geoid, 
+                               const Matrix&         z_surface,
+                               const Tensor3&        z_field, 
+                               const Tensor3&        t_field, 
+                               const Tensor4&        vmr_field, 
+                               const ArrayOfIndex&   cloudbox_limits, 
+                               const Tensor4&        pnd_field,
+                               const ArrayOfSingleScatteringData& scat_data_mono,
+                               const Vector&         particle_masses,
+                               const Index&          mc_seed,
+                               //Keyword params
+                               const Index&          max_iter,
+                               const Verbosity&      verbosity)
 {
   //if antenna is pencil beam jsut need a single path integral, otherwise
   //for now do monte carlo integration
@@ -108,7 +107,8 @@ void mc_IWP_cloud_opt_pathCalc(
                              sensor_los(0,joker),
                              ppath_step_agenda,p_grid,lat_grid,lon_grid,
                              r_geoid,z_surface,z_field,t_field,vmr_field,cloudbox_limits,
-                             pnd_field,scat_data_mono,particle_masses);
+                             pnd_field,scat_data_mono,particle_masses,
+                             verbosity);
     }
   else
     {
@@ -120,7 +120,7 @@ void mc_IWP_cloud_opt_pathCalc(
       mc_cloud_opt_path=0;
       Vector local_rte_los(2);
       Rng rng;
-      rng.seed(mc_seed);
+      rng.seed(mc_seed, verbosity);
       //Begin Main Loop
       while (mc_iteration_count<max_iter)
         {
@@ -131,7 +131,8 @@ void mc_IWP_cloud_opt_pathCalc(
                                  ppath_step_agenda,p_grid,lat_grid,lon_grid,
                                  r_geoid,z_surface,z_field,t_field,vmr_field,
                                  cloudbox_limits,
-                                 pnd_field,scat_data_mono,particle_masses);
+                                 pnd_field,scat_data_mono,particle_masses,
+                                 verbosity);
           mc_IWP+=iwp;
           iwp_squared+=iwp*iwp;
           mc_cloud_opt_path+=cloud_opt_path;
@@ -151,33 +152,30 @@ void mc_IWP_cloud_opt_pathCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mc_antennaSetGaussian(
-                           MCAntenna& mc_antenna,
+void mc_antennaSetGaussian(MCAntenna& mc_antenna,
                            //keyword arguments
                            const Numeric& za_sigma,
-                           const Numeric& aa_sigma
-                           )
+                           const Numeric& aa_sigma,
+                           const Verbosity&)
 {
   mc_antenna.set_gaussian(za_sigma,aa_sigma);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mc_antennaSetGaussianByFWHM(
-                           MCAntenna& mc_antenna,
-                           //keyword arguments
-                           const Numeric& za_fwhm,
-                           const Numeric& aa_fwhm
-                           )
+void mc_antennaSetGaussianByFWHM(MCAntenna& mc_antenna,
+                                 //keyword arguments
+                                 const Numeric& za_fwhm,
+                                 const Numeric& aa_fwhm,
+                                 const Verbosity&)
 {
   mc_antenna.set_gaussian_fwhm(za_fwhm,aa_fwhm);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mc_antennaSetPencilBeam(
-                            MCAntenna& mc_antenna
-                            )
+void mc_antennaSetPencilBeam(MCAntenna& mc_antenna,
+                             const Verbosity&)
 {
   mc_antenna.set_pencil_beam();
 }
@@ -218,10 +216,10 @@ void MCGeneral(Workspace&            ws,
                const String&         y_unit,
                const Numeric&        std_err,
                const Index&          max_time,
-               const Index&          max_iter
+               const Index&          max_iter,
                // GH commented out 2011-06-17 unused
-               // const Index&          z_field_is_1D
-               )
+               // const Index&          z_field_is_1D,
+               const Verbosity&      verbosity)
 {
   // Basic checks
   if( !cloudbox_on )
@@ -293,7 +291,7 @@ void MCGeneral(Workspace&            ws,
     {
       findZ11max(Z11maxvector,scat_data_mono);
     }
-  rng.seed(mc_seed);
+  rng.seed(mc_seed, verbosity);
   bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
   Numeric g,temperature,albedo,g_los_csc_theta;
   Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
@@ -360,7 +358,7 @@ void MCGeneral(Workspace&            ws,
                       abs_scalar_gas_agenda, stokes_dim, f_index, p_grid, 
                       lat_grid, lon_grid, z_field, r_geoid, z_surface,
                       t_field, vmr_field, cloudbox_limits, pnd_field,
-                      scat_data_mono); //, z_field_is_1D ); // Unused?
+                      scat_data_mono, verbosity); //, z_field_is_1D ); // Unused?
            
           np=ppath_step.np;
           mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
@@ -453,7 +451,8 @@ void MCGeneral(Workspace&            ws,
                   
                   Sample_los (new_rte_los,g_los_csc_theta,Z,rng,local_rte_los,
                               scat_data_mono,stokes_dim,
-                              pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature);
+                              pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature,
+                              verbosity);
                                            
                   Z/=g*g_los_csc_theta*albedo;
                   
@@ -543,8 +542,8 @@ void MCIPA(Workspace&            ws,
            const Numeric&        std_err,
            const Index&          max_time,
            const Index&          max_iter,
-           const Index&          z_field_is_1D
-           )
+           const Index&          z_field_is_1D,
+           const Verbosity&      verbosity)
 {
   //Check keyword input
   if (max_time<0 && max_iter<0 && std_err<0){
@@ -568,7 +567,7 @@ void MCIPA(Workspace&            ws,
     {
       findZ11max(Z11maxvector,scat_data_mono);
     }
-  rng.seed(mc_seed);
+  rng.seed(mc_seed, verbosity);
   bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
   Numeric g,temperature,albedo,g_los_csc_theta;
   Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
@@ -628,20 +627,22 @@ void MCIPA(Workspace&            ws,
       Ppath ppath;
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
-                  0, cloudbox_limits, local_rte_pos, local_rte_los, 1 );
+                  0, cloudbox_limits, local_rte_pos, local_rte_los, 1,
+                  verbosity );
       
       while (keepgoing)
         {
           //modified path tracing routine for independent pixel approximation
           mcPathTraceIPA( ws,
-                     evol_op, abs_vec_mono, temperature, ext_mat_mono, rng,
-                     local_rte_pos, local_rte_los, pnd_vec, g,
-                     termination_flag, inside_cloud, 
-                     opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                     stokes_dim, f_index, p_grid, 
-                     lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                     t_field, vmr_field, cloudbox_limits, pnd_field,
-                     scat_data_mono, z_field_is_1D, ppath );
+                         evol_op, abs_vec_mono, temperature, ext_mat_mono, rng,
+                         local_rte_pos, local_rte_los, pnd_vec, g,
+                         termination_flag, inside_cloud, 
+                         opt_prop_gas_agenda,abs_scalar_gas_agenda, 
+                         stokes_dim, f_index, p_grid, 
+                         lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                         t_field, vmr_field, cloudbox_limits, pnd_field,
+                         scat_data_mono, z_field_is_1D, ppath,
+                         verbosity );
             
           np=ppath.np;
           mc_points(ppath.gp_p[np-1].idx,ppath.gp_lat[np-1].idx,
@@ -741,7 +742,8 @@ void MCIPA(Workspace&            ws,
                   
                   Sample_los (new_rte_los,g_los_csc_theta,Z,rng,local_rte_los,
                               scat_data_mono,stokes_dim,
-                              pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature);
+                              pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature,
+                              verbosity);
                                            
                   Z/=g*g_los_csc_theta*albedo;
                   
@@ -797,17 +799,15 @@ void MCIPA(Workspace&            ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MCSetSeedFromTime(
-                       Index&    mc_seed
-                       )
+void MCSetSeedFromTime(Index& mc_seed,
+                       const  Verbosity&)
 {
   mc_seed=(Index)time(NULL);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void pha_matExtractManually(
-                            Matrix&         pha_mat,
+void pha_matExtractManually(Matrix&         pha_mat,
                             const Vector&   f_grid,
                             const Index&    f_index,
                             const Index&    stokes_dim,
@@ -816,19 +816,21 @@ void pha_matExtractManually(
                             const Numeric&  za_out, 
                             const Numeric&  aa_out, 
                             const Numeric&  za_in, 
-                            const Numeric&  aa_in ) 
+                            const Numeric&  aa_in,
+                            const Verbosity& verbosity) 
 {
   if( scat_data_raw.nelem() > 1 )
     throw runtime_error( "Only one element in *scat_data_raw* is allowed." );
   
   ArrayOfSingleScatteringData   scat_data;
-  scat_data_monoCalc( scat_data, scat_data_raw, f_grid, f_index );
+  scat_data_monoCalc( scat_data, scat_data_raw, f_grid, f_index, verbosity);
   
   Vector pnd( 1, 1.0 );
   
   pha_mat.resize( stokes_dim, stokes_dim );
   
   pha_mat_singleCalc( pha_mat, za_out, aa_out, za_in, aa_in,
-                     scat_data, stokes_dim, pnd, rte_temperature );
+                      scat_data, stokes_dim, pnd, rte_temperature,
+                      verbosity );
 }
 

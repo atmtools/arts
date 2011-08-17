@@ -1786,7 +1786,7 @@ ahc_echo (void *cls _U_,
   
   if (0 != strcmp (method, "GET"))
   {
-    out0 << "Docserver error: Unexpected method " << method << "\n";
+    cerr << "Docserver error: Unexpected method " << method << "\n";
     return MHD_NO;              /* unexpected method */
   }
   if (&aptr != *ptr)
@@ -1847,7 +1847,7 @@ ahc_echo (void *cls _U_,
                                             MHD_NO, MHD_YES);
   
   if (response == NULL) {
-    out0 << "Docserver error: response = 0\n";
+    cerr << "Docserver error: response = 0\n";
     return MHD_NO;
   }
 
@@ -1882,15 +1882,15 @@ int docserver_start(Index port, bool daemon, const string& baseurl)
   
   if (d == NULL)
   {
-    out0 << "Error: Cannot start server. Maybe port " << port << " is already in use?\n"; 
+    cerr << "Error: Cannot start server. Maybe port " << port << " is already in use?\n"; 
     return 1;
   }
   else
   {
     if (daemon)
-      out0 << "ARTS docserver listening at http://localhost:" << port << "\n";
+      cerr << "ARTS docserver listening at http://localhost:" << port << "\n";
     else
-      out0 << "\n"
+      cerr << "\n"
       << "===========================================================\n"
       << "Now point your web browser to http://localhost:" << port << "\n"
       << "===========================================================\n\n"
@@ -1904,9 +1904,9 @@ int docserver_start(Index port, bool daemon, const string& baseurl)
   else
   {
     (void) getc (stdin);
-    out0 << "Stopping docserver.\n";
+    cout << "Stopping docserver.\n";
     MHD_stop_daemon (d);
-    out0 << "Goodbye.\n";
+    cout << "Goodbye.\n";
   }
   return 0;
 }

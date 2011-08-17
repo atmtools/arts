@@ -140,14 +140,14 @@ TMPL_NC_READ_WRITE_FILE( ArrayOfVector )
 #undef TMPL_NC_READ_WRITE_FILE
 
 /*void
-xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&);
+xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&, const Verbosity&);
 
 void
 xml_read_from_stream (istream&, ArrayOfLineRecord&,
-                      const Numeric, const Numeric, bifstream * = NULL);
+                      const Numeric, const Numeric, bifstream * = NULL, const Verbosity&);
 
 void
-xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);*/
+xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&, const Verbosity&);*/
 
 #endif  /* nc_io_types_h */
 

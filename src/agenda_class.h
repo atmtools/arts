@@ -28,6 +28,7 @@
 
 #include <set>
 #include "token.h"
+#include "messages.h"
 
 class MRecord;
 
@@ -60,7 +61,7 @@ public:
 
 
   void append(const String& methodname, const TokVal& keywordvalue);
-  void check(Workspace& ws);
+  void check(Workspace& ws, const Verbosity& verbosity);
   void push_back(MRecord n);
   void execute(Workspace& ws) const;
   inline void resize(Index n);
@@ -68,7 +69,7 @@ public:
   inline Agenda& operator=(const Agenda& x);
   const Array<MRecord>& Methods () const { return mml; }
   void set_methods (const Array<MRecord>& ml) { mml = ml; mchecked = false; }
-  void set_outputs_to_push_and_dup ();
+  void set_outputs_to_push_and_dup (const Verbosity& verbosity);
   bool is_input(Workspace& ws, Index var) const;
   bool is_output(Index var) const;
   void set_name(const String& nname);

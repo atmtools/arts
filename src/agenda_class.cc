@@ -40,8 +40,9 @@
 
 
 /** Print the error message and exit. */
-void give_up(const String& message)
+void give_up(const String& message, const Verbosity& verbosity)
 {
+  CREATE_OUT0
   out0 << message << '\n';
   arts_exit();
 }
@@ -88,7 +89,7 @@ void Agenda::append(const String& methodname,
   Checks that the input used by the agenda and the output produced by the
   actual methods corresponds to what is desired in the lookup data.
 */
-void Agenda::check(Workspace& ws)
+void Agenda::check(Workspace& ws, const Verbosity& verbosity)
 {
     // Make external data visible
   extern const Array<AgRecord>  agenda_data;
@@ -150,7 +151,7 @@ void Agenda::check(Workspace& ws)
         }
     }
 
-  set_outputs_to_push_and_dup ();
+  set_outputs_to_push_and_dup (verbosity);
 
   mchecked = true;
 }
@@ -180,13 +181,6 @@ void Agenda::execute(Workspace& ws) const
       throw runtime_error(os.str());
     }
 
-  // If (and only if) this agenda is the main agenda, then we set the
-  // thread local global variable in_main_agenda to true, otherwise to
-  // false. The variable in_main_agenda is declared in messages.h,
-  // defined in messages.cc, and initialized in main.cc.
-  bool original_in_main_agenda = in_main_agenda;
-  in_main_agenda = is_main_agenda();
-
   // An empty Agenda name indicates that something going wrong here
   assert (mname != "");
 
@@ -196,17 +190,29 @@ void Agenda::execute(Workspace& ws) const
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
 
+  const Index wsv_id_verbosity = get_wsv_id("verbosity");
+  ws.duplicate (wsv_id_verbosity);
+  
+  Verbosity& averbosity = *((Verbosity *)ws[wsv_id_verbosity]);
+
+  averbosity.set_main_agenda(is_main_agenda());
+  
+  ArtsOut1 aout1(averbosity);
   {
 //    ostringstream os;  // disabled for performance reasons
 //    os << "Executing " << name() << "\n"
 //       << "{\n";
-//    out1 << os.str();
-    out1 << "Executing " << name() << "\n"
+//    aout1 << os.str();
+    aout1 << "Executing " << name() << "\n"
     << "{\n";
   }
 
   for (Index i=0; i<mml.nelem(); ++i)
     {
+      const Verbosity& verbosity = *((Verbosity *)ws[wsv_id_verbosity]);
+      CREATE_OUT1
+      CREATE_OUT3
+      
       // Runtime method data for this method:
       const MRecord&  mrr = mml[i];
       // Method data for this method:
@@ -242,7 +248,7 @@ void Agenda::execute(Workspace& ws) const
               if ((s != v.nelem()-1 || !mdd.SetMethod())
                   && !ws.is_initialized(v[s])  )
                 give_up("Method "+mdd.Name()+" needs input variable: "+
-                        Workspace::wsv_data[v[s]].Name());
+                        Workspace::wsv_data[v[s]].Name(), verbosity);
           }
 
           { // Check if all output variables which are also used as input
@@ -251,7 +257,7 @@ void Agenda::execute(Workspace& ws) const
             for (Index s=0; s<v.nelem(); ++s)
               if (!ws.is_initialized(mrr.Out()[v[s]]) )
                 give_up("Method "+mdd.Name()+" needs input variable: "+
-                        Workspace::wsv_data[mrr.Out()[v[s]]].Name());
+                        Workspace::wsv_data[mrr.Out()[v[s]]].Name(), verbosity);
           }
 
           // Call the getaway function:
@@ -260,13 +266,7 @@ void Agenda::execute(Workspace& ws) const
         }
       catch (runtime_error x)
         {
-          out1 << "}\n";
-
-          // We have to restore the original content of
-          // in_main_agenda, otherwise no output will be visible in
-          // case the exception is caught higher up and execution
-          // continues.
-          in_main_agenda = original_in_main_agenda;
+          aout1 << "}\n";
 
           ostringstream os;
           os << "Run-time error in method: " << mdd.Name() << '\n'
@@ -276,10 +276,9 @@ void Agenda::execute(Workspace& ws) const
         }
     }
 
-  out1 << "}\n";
+  aout1 << "}\n";
 
-  // Restore the original content of in_main_agenda:
-  in_main_agenda = original_in_main_agenda;
+  ws.pop_free (wsv_id_verbosity);
 }
 
 
@@ -289,7 +288,7 @@ void Agenda::execute(Workspace& ws) const
   duplicated or pushed on the WSV stack before the agenda
   is executed.
 */
-void Agenda::set_outputs_to_push_and_dup ()
+void Agenda::set_outputs_to_push_and_dup (const Verbosity& verbosity)
 {
   extern const Array<MdRecord>  md_data;
 
@@ -431,6 +430,8 @@ void Agenda::set_outputs_to_push_and_dup ()
                     insert_iterator<ArrayOfIndex>(agenda_only_in_wsm_out,
                                                   agenda_only_in_wsm_out.begin ()));
 
+  CREATE_OUT3
+  
   out3 << "  [Agenda::pushpop]                 : " << name() << "\n";
   out3 << "  [Agenda::pushpop] - # Funcs in Ag : " << mml.nelem () << "\n";
   out3 << "  [Agenda::pushpop] - AgOut         : ";

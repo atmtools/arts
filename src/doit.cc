@@ -94,9 +94,11 @@ void cloud_fieldsCalc(Workspace& ws,
                       const Index& scat_aa_index,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field, 
-                      ConstTensor4View pnd_field
-                     )
+                      ConstTensor4View pnd_field,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
   
@@ -271,7 +273,8 @@ void cloud_ppath_update1D(Workspace& ws,
                           ConstTensor4View abs_vec_field,
                           const Agenda& surface_prop_agenda,
                           //const Agenda& surface_prop_agenda, 
-                          const Index& scat_za_interp)
+                          const Index& scat_za_interp,
+                          const Verbosity& verbosity)
 {
   Matrix iy;
   Matrix surface_emission;
@@ -342,7 +345,7 @@ void cloud_ppath_update1D(Workspace& ws,
                            ext_mat_field, abs_vec_field, doit_scat_field, 
                            doit_i_field, t_field, vmr_field, p_grid, 
                            ppath_step, cloudbox_limits, scat_za_grid, 
-                           scat_za_interp);
+                           scat_za_interp, verbosity);
      
           
       // ppath_what_background(ppath_step) tells the 
@@ -362,7 +365,7 @@ void cloud_ppath_update1D(Workspace& ws,
                                  doit_i_field_int,
                              p_int, cloudbox_limits, 
                                  f_grid, f_index, p_index, 0, 0,
-                             scat_za_index, 0);
+                             scat_za_index, 0, verbosity);
       
       // bkgr=2 indicates that the background is the surface
       if (bkgr == 2)
@@ -386,39 +389,38 @@ void cloud_ppath_update1D(Workspace& ws,
   \author Claudia Emde
   \date 2005-05-04
 */
-void cloud_ppath_update1D_noseq(
-                          Workspace& ws,
-                          // Output
-                          Tensor6View doit_i_field,
-                          // ppath_step_agenda:
-                          const Index& p_index,
-                          const Index& scat_za_index,
-                          ConstVectorView scat_za_grid,
-                          const ArrayOfIndex& cloudbox_limits,
-                          ConstTensor6View doit_i_field_old,
-                          ConstTensor6View doit_scat_field,
-                          // Calculate scalar gas absorption:
-                          const Agenda& abs_scalar_gas_agenda,
-                          ConstTensor4View vmr_field,
-                          // Gas absorption: 
-                          const Agenda& opt_prop_gas_agenda,
-                          // Propagation path calculation:
-                          const Agenda& ppath_step_agenda,
-                          ConstVectorView  p_grid,
-                          ConstTensor3View z_field,
-                          ConstMatrixView r_geoid,
-                          ConstMatrixView z_surface,
-                          // Calculate thermal emission:
-                          ConstTensor3View t_field,
-                          ConstVectorView f_grid,
-                          // used for surface ?
-                          const Index& f_index,
-                          //particle optical properties
-                          ConstTensor5View ext_mat_field,
-                          ConstTensor4View abs_vec_field,
-                          const Agenda& surface_prop_agenda,
-                          const Index& scat_za_interp
-                         )
+void cloud_ppath_update1D_noseq(Workspace& ws,
+                                // Output
+                                Tensor6View doit_i_field,
+                                // ppath_step_agenda:
+                                const Index& p_index,
+                                const Index& scat_za_index,
+                                ConstVectorView scat_za_grid,
+                                const ArrayOfIndex& cloudbox_limits,
+                                ConstTensor6View doit_i_field_old,
+                                ConstTensor6View doit_scat_field,
+                                // Calculate scalar gas absorption:
+                                const Agenda& abs_scalar_gas_agenda,
+                                ConstTensor4View vmr_field,
+                                // Gas absorption: 
+                                const Agenda& opt_prop_gas_agenda,
+                                // Propagation path calculation:
+                                const Agenda& ppath_step_agenda,
+                                ConstVectorView  p_grid,
+                                ConstTensor3View z_field,
+                                ConstMatrixView r_geoid,
+                                ConstMatrixView z_surface,
+                                // Calculate thermal emission:
+                                ConstTensor3View t_field,
+                                ConstVectorView f_grid,
+                                // used for surface ?
+                                const Index& f_index,
+                                //particle optical properties
+                                ConstTensor5View ext_mat_field,
+                                ConstTensor4View abs_vec_field,
+                                const Agenda& surface_prop_agenda,
+                                const Index& scat_za_interp,
+                                const Verbosity& verbosity)
 {
   Matrix iy;
   Matrix surface_emission;
@@ -489,7 +491,7 @@ void cloud_ppath_update1D_noseq(
                            ext_mat_field, abs_vec_field, doit_scat_field, 
                            doit_i_field_old, t_field, vmr_field, p_grid, 
                            ppath_step, cloudbox_limits, scat_za_grid, 
-                           scat_za_interp);
+                           scat_za_interp, verbosity);
       
       // ppath_what_background(ppath_step) tells the 
       // radiative background.  More information in the 
@@ -512,7 +514,7 @@ void cloud_ppath_update1D_noseq(
                              doit_i_field_int,
                              p_int, cloudbox_limits, 
                              f_grid, f_index, p_index, 0, 0, 
-                             scat_za_index, 0);
+                             scat_za_index, 0, verbosity);
 
       if (bkgr == 2)
         {
@@ -608,9 +610,12 @@ void cloud_ppath_update3D(Workspace& ws,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Index& //scat_za_interp
+                          const Index&, //scat_za_interp
+                          const Verbosity& verbosity
                           )
 {
+  CREATE_OUT3
+  
   Ppath ppath_step;
   const Index stokes_dim = doit_i_field.ncols();
   
@@ -819,7 +824,7 @@ void cloud_ppath_update3D(Workspace& ws,
                              doit_i_field_int,
                              p_int, cloudbox_limits, 
                              f_grid, f_index, p_index, lat_index, lon_index, 
-                             scat_za_index, scat_aa_index);
+                             scat_za_index, scat_aa_index, verbosity);
     }//end if inside cloudbox
 }
 
@@ -876,8 +881,11 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& lat_index,
                             const Index& lon_index, 
                             const Index& scat_za_index,
-                            const Index& scat_aa_index)
+                            const Index& scat_aa_index,
+                            const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   const Index N_species = vmr_list_int.nrows();
   const Index stokes_dim = doit_i_field.ncols();
   const Index atmosphere_dim = cloudbox_limits.nelem()/2;
@@ -1195,8 +1203,11 @@ void interp_cloud_coeff1D(//Output
                           const Ppath& ppath_step,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstVectorView scat_za_grid,
-                          const Index& scat_za_interp)
+                          const Index& scat_za_interp,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Stokes dimension
   const Index stokes_dim = doit_i_field.ncols();
   
@@ -1391,9 +1402,11 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         const Index& f_index,
                                         //particle opticla properties
                                         ConstTensor5View ext_mat_field,
-                                        ConstTensor4View abs_vec_field
-                                        )
+                                        ConstTensor4View abs_vec_field,
+                                        const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = doit_i_field.ncols();
   const Index atmosphere_dim = 1;   
@@ -2017,8 +2030,7 @@ void za_gridOpt(//Output:
    \author Claudia Emde and Patrick Eriksson
    \date 2004-09-29
 */
-void iy_interp_cloudbox_field(
-                              Matrix&               iy,
+void iy_interp_cloudbox_field(Matrix&               iy,
                               const Tensor7&        scat_i_p,
                               const Tensor7&        scat_i_lat,
                               const Tensor7&        scat_i_lon,
@@ -2034,8 +2046,11 @@ void iy_interp_cloudbox_field(
                               const Vector&         scat_za_grid,
                               const Vector&         scat_aa_grid,
                               const Vector&         f_grid,
-                              const String&         interpmeth )
+                              const String&         interpmeth,
+                              const Verbosity&      verbosity)
 {
+  CREATE_OUT3
+  
   //--- Check input -----------------------------------------------------------
   if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
     throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");

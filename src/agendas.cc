@@ -618,8 +618,16 @@ void define_agenda_data()
        OUTPUT( "y", "jacobian" ),
        INPUT( "ybatch_index" )));
 
-
-
+  agenda_data.push_back
+  (AgRecord
+   ( NAME( "test_agenda" ),
+     DESCRIPTION
+     (
+      "Dummy agenda for testing purposes.\n"
+     ),
+     OUTPUT(),
+     INPUT()));
+  
 
 //  agenda_data.push_back
 //     (AgRecord

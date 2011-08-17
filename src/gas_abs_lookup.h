@@ -29,6 +29,7 @@
 #include "matpackIV.h"
 #include "absorption.h"
 #include "abs_species_tags.h"
+#include "messages.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -55,7 +56,8 @@ public:
 
   // Documentation is with the implementation!
   void Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
-              ConstVectorView current_f_grid );
+              ConstVectorView current_f_grid,
+              const Verbosity& verbosity );
 
   // Documentation is with the implementation!
   void Extract( Matrix&         sga,
@@ -74,11 +76,13 @@ public:
   // IO functions must be friends:
   friend void xml_read_from_stream( istream& is_xml,
                                     GasAbsLookup& gal,
-                                    bifstream *pbifs );
+                                    bifstream *pbifs,
+                                    const Verbosity& verbosity);
   friend void xml_write_to_stream ( ostream& os_xml,
                                     const GasAbsLookup& gal,
                                     bofstream *pbofs,
-                                    const String& name);
+                                    const String& name,
+                                    const Verbosity& verbosity);
 
   friend void abs_lookupCreate(// WS Output:
                       GasAbsLookup& abs_lookup,
@@ -97,52 +101,57 @@ public:
                       const Vector&                   abs_n2,            
                       const ArrayOfString&            abs_cont_names,    
                       const ArrayOfString&            abs_cont_models,   
-                      const ArrayOfVector&            abs_cont_parameters );
+                      const ArrayOfVector&            abs_cont_parameters,
+                      const Verbosity&                verbosity);
 
   friend Numeric calc_lookup_error(// Parameters for lookup table:
-                          const GasAbsLookup& al,
-                          const Index&        abs_p_interp_order,  
-                          const Index&        abs_t_interp_order,  
-                          const Index&        abs_nls_interp_order,
-                          const bool          ignore_errors,
-                          // Parameters for LBL:
-                          const Vector&                   abs_n2,
-                          const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                          const ArrayOfLineshapeSpec&     abs_lineshape,
-                          const ArrayOfString&            abs_cont_names,
-                          const ArrayOfString&            abs_cont_models,
-                          const ArrayOfVector&            abs_cont_parameters,
-                          // Parameters for both:
-                          const Numeric&      local_p,
-                          const Numeric&      local_t,
-                          const Vector&       local_vmrs);
+                      const GasAbsLookup& al,
+                      const Index&        abs_p_interp_order,  
+                      const Index&        abs_t_interp_order,  
+                      const Index&        abs_nls_interp_order,
+                      const bool          ignore_errors,
+                      // Parameters for LBL:
+                      const Vector&                   abs_n2,
+                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                      const ArrayOfLineshapeSpec&     abs_lineshape,
+                      const ArrayOfString&            abs_cont_names,
+                      const ArrayOfString&            abs_cont_models,
+                      const ArrayOfVector&            abs_cont_parameters,
+                      // Parameters for both:
+                      const Numeric&      local_p,
+                      const Numeric&      local_t,
+                      const Vector&       local_vmrs,
+                      const Verbosity&    verbosity);
 
   friend void abs_lookupTestAccuracy(// WS Input:
-                            const GasAbsLookup&             abs_lookup,
-                            const Index&                    abs_lookup_is_adapted, 
-                            const Index&                    abs_p_interp_order,
-                            const Index&                    abs_t_interp_order,
-                            const Index&                    abs_nls_interp_order,
-                            const Vector&                   abs_n2,
-                            const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                            const ArrayOfLineshapeSpec&     abs_lineshape,
-                            const ArrayOfString&            abs_cont_names,
-                            const ArrayOfString&            abs_cont_models,
-                            const ArrayOfVector&            abs_cont_parameters );
+                      const GasAbsLookup&             abs_lookup,
+                      const Index&                    abs_lookup_is_adapted, 
+                      const Index&                    abs_p_interp_order,
+                      const Index&                    abs_t_interp_order,
+                      const Index&                    abs_nls_interp_order,
+                      const Vector&                   abs_n2,
+                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                      const ArrayOfLineshapeSpec&     abs_lineshape,
+                      const ArrayOfString&            abs_cont_names,
+                      const ArrayOfString&            abs_cont_models,
+                      const ArrayOfVector&            abs_cont_parameters,
+                      const Verbosity&                verbosity);
 
     friend void abs_lookupTestAccMC(// WS Input:
-                                       const GasAbsLookup&             abs_lookup,
-                                       const Index&                    abs_lookup_is_adapted, 
-                                       const Index&                    abs_p_interp_order,
-                                       const Index&                    abs_t_interp_order,
-                                       const Index&                    abs_nls_interp_order,
-                                       const Vector&                   abs_n2,
-                                       const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                       const ArrayOfLineshapeSpec&     abs_lineshape,
-                                       const ArrayOfString&            abs_cont_names,
-                                       const ArrayOfString&            abs_cont_models,
-                                       const ArrayOfVector&            abs_cont_parameters,
-                                       const Index&                    mc_seed);
+                      const GasAbsLookup&             abs_lookup,
+                      const Index&                    abs_lookup_is_adapted, 
+                      const Index&                    abs_p_interp_order,
+                      const Index&                    abs_t_interp_order,
+                      const Index&                    abs_nls_interp_order,
+                      const Vector&                   abs_n2,
+                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                      const ArrayOfLineshapeSpec&     abs_lineshape,
+                      const ArrayOfString&            abs_cont_names,
+                      const ArrayOfString&            abs_cont_models,
+                      const ArrayOfVector&            abs_cont_parameters,
+                      const Index&                    mc_seed,
+                      const Verbosity&                verbosity);
+
 private:
 
   //! The species tags for which the table is valid.

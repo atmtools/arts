@@ -90,34 +90,36 @@ void abs_vecTransform(//Output and Input
                       ConstVectorView aa_datagrid _U_,
                       const ParticleType& ptype,
                       const Numeric& za_sca _U_,
-                      const Numeric& aa_sca _U_)
+                      const Numeric& aa_sca _U_,
+                      const Verbosity& verbosity)
 {
- const Index stokes_dim = abs_vec_lab.nelem();
-    
+  const Index stokes_dim = abs_vec_lab.nelem();
+  
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
-                         "must be 1,2,3 or 4");
+                        "must be 1,2,3 or 4");
   }
-
+  
   switch (ptype){
-
-  case PARTICLE_TYPE_GENERAL:
-
-    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
-    break;
-    
-  case PARTICLE_TYPE_MACROS_ISO:
+      
+    case PARTICLE_TYPE_GENERAL:
+    {
+      CREATE_OUT0
+      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      break;
+    }
+    case PARTICLE_TYPE_MACROS_ISO:
     {
       // The first element of the vector corresponds to the absorption 
       // coefficient which is stored in the database, the others are 0.
       
       abs_vec_lab = 0;
-
+      
       abs_vec_lab[0] = abs_vec_data(0,0,0);
       break;
     }
-
-case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+      
+    case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
       assert (abs_vec_data.ncols() == 2);
       
@@ -126,40 +128,40 @@ case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
       // These values are dependent on the zenith angle of propagation. The 
       // data storage format also makes use of the fact that in this case
       //K_abs(za_sca)=K_abs(180-za_sca). 
-
+      
       // 1st interpolate data by za_sca
       GridPos gp;
       Vector itw(2);
-
+      
       // JM 2010-11-05: reduce za_datagrid to abs_vec_data range,
       // then gridpos correctly recognizes last grid point and
       // returns correct index (follows SAB 2010-04-28)
       ConstVectorView this_za_datagrid = za_datagrid[Range(0,abs_vec_data.npages())];
-
+      
       if (za_sca>90)
-        {
-          gridpos(gp,this_za_datagrid,180-za_sca);
-        }
+      {
+        gridpos(gp,this_za_datagrid,180-za_sca);
+      }
       else
-        {
-          gridpos(gp,this_za_datagrid,za_sca);
-        }
+      {
+        gridpos(gp,this_za_datagrid,za_sca);
+      }
       interpweights(itw,gp);
       abs_vec_lab = 0;
       abs_vec_lab[0] = interp(itw,abs_vec_data(Range(joker),0,0),gp);
-
+      
       if( stokes_dim == 1 ){
         break;
       }
       abs_vec_lab[1] = interp(itw,abs_vec_data(Range(joker),0,1),gp);
       break;
     }
-
-   default:
-    out0 << "Not all particle type cases are implemented\n";
-    
+    default:
+    {
+      CREATE_OUT0
+      out0 << "Not all particle type cases are implemented\n";
+    }
   }  
-    
 }
 
 
@@ -193,30 +195,32 @@ void ext_matTransform(//Output and Input
                       ConstVectorView aa_datagrid _U_,
                       const ParticleType& ptype,
                       const Numeric& za_sca,
-                      const Numeric& aa_sca _U_)
+                      const Numeric& aa_sca _U_,
+                      const Verbosity& verbosity)
 {
- const Index stokes_dim = ext_mat_lab.ncols();
-    
+  const Index stokes_dim = ext_mat_lab.ncols();
+  
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
-                         "must be 1,2,3 or 4");
+                        "must be 1,2,3 or 4");
   }
-
+  
   switch (ptype){
-
-  case PARTICLE_TYPE_GENERAL:
-
-    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
-    break;
-    
-  case PARTICLE_TYPE_MACROS_ISO:
+      
+    case PARTICLE_TYPE_GENERAL:
+    {
+      CREATE_OUT0
+      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      break;
+    }
+    case PARTICLE_TYPE_MACROS_ISO:
     {
       assert (ext_mat_data.ncols() == 1);
       
       // In the case of randomly oriented particles the extinction matrix is 
       // diagonal. The value of each element of the diagonal is the
       // extinction cross section, which is stored in the database.
-     
+      
       ext_mat_lab = 0.;
       
       ext_mat_lab(0,0) = ext_mat_data(0,0,0);
@@ -241,8 +245,8 @@ void ext_matTransform(//Output and Input
       ext_mat_lab(3,3) = ext_mat_data(0,0,0);
       break;
     }
-
-  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+      
+    case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
       assert (ext_mat_data.ncols() == 3);
       
@@ -251,7 +255,7 @@ void ext_matTransform(//Output and Input
       // These values are dependent on the zenith angle of propagation. The 
       // data storage format also makes use of the fact that in this case
       //K(za_sca)=K(180-za_sca). 
-
+      
       // 1st interpolate data by za_sca
       GridPos gp;
       Vector itw(2);
@@ -263,22 +267,22 @@ void ext_matTransform(//Output and Input
       // then gridpos correctly recognizes last grid point and
       // returns correct index (follows SAB 2010-04-28)
       ConstVectorView this_za_datagrid = za_datagrid[Range(0,ext_mat_data.npages())];
-
+      
       if (za_sca>90)
-        {
-          gridpos(gp,this_za_datagrid,180-za_sca);
-        }
+      {
+        gridpos(gp,this_za_datagrid,180-za_sca);
+      }
       else
-        {
-          gridpos(gp,this_za_datagrid,za_sca);
-        }
-
+      {
+        gridpos(gp,this_za_datagrid,za_sca);
+      }
+      
       interpweights(itw,gp);
       
       ext_mat_lab=0.0;
       Kjj=interp(itw,ext_mat_data(Range(joker),0,0),gp);
       ext_mat_lab(0,0)=Kjj;
-
+      
       if( stokes_dim == 1 ){
         break;
       }
@@ -287,7 +291,7 @@ void ext_matTransform(//Output and Input
       ext_mat_lab(1,1)=Kjj;
       ext_mat_lab(0,1)=K12;
       ext_mat_lab(1,0)=K12;
-
+      
       if( stokes_dim == 2 ){
         break;
       }
@@ -303,11 +307,13 @@ void ext_matTransform(//Output and Input
       ext_mat_lab(3,2)=-K34;
       ext_mat_lab(3,3)=Kjj;
       break;
-
+      
     }
-  default:
-    out0 << "Not all particle type cases are implemented\n";
-    
+    default:
+    {
+      CREATE_OUT0
+      out0 << "Not all particle type cases are implemented\n";
+    }
   }
 }  
  
@@ -348,38 +354,37 @@ void pha_matTransform(//Output
                       const Index& za_inc_idx,
                       const Index& aa_inc_idx,
                       ConstVectorView scat_za_grid,
-                      ConstVectorView scat_aa_grid
-                      )
+                      ConstVectorView scat_aa_grid,
+                      const Verbosity& verbosity)
 {
-
-  
   const Index stokes_dim = pha_mat_lab.ncols();
   
   Numeric za_sca = scat_za_grid[za_sca_idx]; 
   Numeric aa_sca = scat_aa_grid[aa_sca_idx];
   Numeric za_inc = scat_za_grid[za_inc_idx]; 
   Numeric aa_inc = scat_aa_grid[aa_inc_idx];
-               
+  
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
-                         "must be 1,2,3 or 4");
+                        "must be 1,2,3 or 4");
   }
-
+  
   switch (ptype){
-
-  case PARTICLE_TYPE_GENERAL:
-
-    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
-    break;
-    
-  case PARTICLE_TYPE_MACROS_ISO:
+      
+    case PARTICLE_TYPE_GENERAL:
+    {
+      CREATE_OUT0
+      out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
+      break;
+    }
+    case PARTICLE_TYPE_MACROS_ISO:
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
       
       Vector pha_mat_int(6);
       Numeric theta_rad;
-            
+      
       // Interpolation of the data on the scattering angle:
       interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
                              za_datagrid, za_sca, aa_sca,
@@ -391,10 +396,10 @@ void pha_matTransform(//Output
       
       break;
     }
-
-  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis
-    //Data is already stored in the laboratory frame, but it is compressed
-    //a little.  Details elsewhere
+      
+    case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis
+                                //Data is already stored in the laboratory frame, but it is compressed
+                                //a little.  Details elsewhere
     {
       // SAB 2010-04-28: For the incoming angle, not the whole of za_datagrid 
       // is used in this case, only the range [0,90] degrees. 
@@ -404,27 +409,27 @@ void pha_matTransform(//Output
       
       assert (pha_mat_data.ncols()==16);
       Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
-        (aa_sca-aa_inc>180)*360;//delta_aa corresponds to the "books" 
-                                //dimension of pha_mat_data
+      (aa_sca-aa_inc>180)*360;//delta_aa corresponds to the "books" 
+                              //dimension of pha_mat_data
       GridPos za_sca_gp;
       GridPos delta_aa_gp;
       GridPos za_inc_gp;
       Vector itw(8);
-
+      
       gridpos(delta_aa_gp,aa_datagrid,abs(delta_aa));
       if (za_inc>90)
-        {
-          gridpos(za_inc_gp,this_za_datagrid,180-za_inc);
-          gridpos(za_sca_gp,za_datagrid,180-za_sca);
-        }
+      {
+        gridpos(za_inc_gp,this_za_datagrid,180-za_inc);
+        gridpos(za_sca_gp,za_datagrid,180-za_sca);
+      }
       else
-        {
-          gridpos(za_inc_gp,this_za_datagrid,za_inc);
-          gridpos(za_sca_gp,za_datagrid,za_sca);
-        }
-
+      {
+        gridpos(za_inc_gp,this_za_datagrid,za_inc);
+        gridpos(za_sca_gp,za_datagrid,za_sca);
+      }
+      
       interpweights(itw,za_sca_gp,delta_aa_gp,za_inc_gp);
-
+      
       pha_mat_lab(0,0)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                Range(joker),0,0),
                               za_sca_gp,delta_aa_gp,za_inc_gp);
@@ -444,71 +449,71 @@ void pha_matTransform(//Output
         break;
       }
       if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
-        {
-          pha_mat_lab(0,2)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,2),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(1,2)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,6),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(2,0)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,8),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(2,1)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,9),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-        }
+      {
+        pha_mat_lab(0,2)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,2),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(1,2)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,6),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(2,0)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,8),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(2,1)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,9),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+      }
       else
-        {
-          pha_mat_lab(0,2)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,2),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(1,2)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,6),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(2,0)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,8),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(2,1)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,9),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-        }                             
+      {
+        pha_mat_lab(0,2)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,2),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(1,2)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,6),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(2,0)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,8),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(2,1)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,9),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+      }                             
       pha_mat_lab(2,2)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                Range(joker),0,10),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
+                              za_sca_gp,delta_aa_gp,za_inc_gp);
       if( stokes_dim == 3 ){
         break;
       }
       if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
-        {
-          pha_mat_lab(0,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,3),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(1,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,7),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(3,0)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,12),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(3,1)=interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,13),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-        }
+      {
+        pha_mat_lab(0,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,3),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(1,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,7),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(3,0)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,12),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(3,1)=interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                 Range(joker),0,13),
+                                za_sca_gp,delta_aa_gp,za_inc_gp);
+      }
       else
-        {
-          pha_mat_lab(0,3)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,3),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(1,3)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,7),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(3,0)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,12),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-          pha_mat_lab(3,1)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
-                                                   Range(joker),0,13),
-                                  za_sca_gp,delta_aa_gp,za_inc_gp);
-        }
+      {
+        pha_mat_lab(0,3)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,3),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(1,3)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,7),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(3,0)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,12),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+        pha_mat_lab(3,1)=-interp(itw,pha_mat_data(Range(joker),Range(joker),
+                                                  Range(joker),0,13),
+                                 za_sca_gp,delta_aa_gp,za_inc_gp);
+      }
       pha_mat_lab(2,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                Range(joker),0,11),
                               za_sca_gp,delta_aa_gp,za_inc_gp);
@@ -521,9 +526,11 @@ void pha_matTransform(//Output
       break;
       
     }  
-  default:
-    out0 << "Not all particle type cases are implemented\n";
-    
+    default:
+    {
+      CREATE_OUT0
+      out0 << "Not all particle type cases are implemented\n";
+    }
   }
 }
 

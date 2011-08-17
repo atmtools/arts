@@ -62,44 +62,45 @@ extern const Numeric EARTH_GRAV_CONST;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathCalc(
-              Workspace&      ws,
-        // WS Output:
-              Ppath&          ppath,
-        // WS Input:
-        const Agenda&         ppath_step_agenda,
-        const Index&          atmosphere_dim,
-        const Vector&         p_grid,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Matrix&         r_geoid,
-        const Matrix&         z_surface,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         rte_pos,
-        const Vector&         rte_los )
+void ppathCalc(Workspace&            ws,
+               // WS Output:
+               Ppath&                ppath,
+               // WS Input:
+               const Agenda&         ppath_step_agenda,
+               const Index&          atmosphere_dim,
+               const Vector&         p_grid,
+               const Vector&         lat_grid,
+               const Vector&         lon_grid,
+               const Tensor3&        z_field,
+               const Matrix&         r_geoid,
+               const Matrix&         z_surface,
+               const Index&          cloudbox_on, 
+               const ArrayOfIndex&   cloudbox_limits,
+               const Vector&         rte_pos,
+               const Vector&         rte_los,
+               const Verbosity&      verbosity)
 {
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, 
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1,
+              verbosity );
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_stepGeometric(
-        // WS Output:
-              Ppath&     ppath_step,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    p_grid,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Tensor3&   z_field,
-        const Matrix&    r_geoid,
-        const Matrix&    z_surface,
-        const Numeric&   ppath_lmax )
+void ppath_stepGeometric(// WS Output:
+                         Ppath&           ppath_step,
+                         // WS Input:
+                         const Index&     atmosphere_dim,
+                         const Vector&    p_grid,
+                         const Vector&    lat_grid,
+                         const Vector&    lon_grid,
+                         const Tensor3&   z_field,
+                         const Matrix&    r_geoid,
+                         const Matrix&    z_surface,
+                         const Numeric&   ppath_lmax,
+                         const Verbosity&)
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we perform asserts in the sub-functions, but no checks 
@@ -126,27 +127,27 @@ void ppath_stepGeometric(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_stepRefractionEuler(
-              Workspace&  ws,
-        // WS Output:
-              Ppath&      ppath_step,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        // WS Input:
-        const Agenda&     refr_index_agenda,
-        const Index&      atmosphere_dim,
-        const Vector&     p_grid,
-        const Vector&     lat_grid,
-        const Vector&     lon_grid,
-        const Tensor3&    z_field,
-        const Tensor3&    t_field,
-        const Tensor4&    vmr_field,
-        const Matrix&     r_geoid,
-        const Matrix&     z_surface,
-        const Numeric&    ppath_lmax,
-        const Numeric&    ppath_lraytrace )
+void ppath_stepRefractionEuler(Workspace&  ws,
+                               // WS Output:
+                               Ppath&      ppath_step,
+                               Numeric&    rte_pressure,
+                               Numeric&    rte_temperature,
+                               Vector&     rte_vmr_list,
+                               Numeric&    refr_index,
+                               // WS Input:
+                               const Agenda&     refr_index_agenda,
+                               const Index&      atmosphere_dim,
+                               const Vector&     p_grid,
+                               const Vector&     lat_grid,
+                               const Vector&     lon_grid,
+                               const Tensor3&    z_field,
+                               const Tensor3&    t_field,
+                               const Tensor4&    vmr_field,
+                               const Matrix&     r_geoid,
+                               const Matrix&     z_surface,
+                               const Numeric&    ppath_lmax,
+                               const Numeric&    ppath_lraytrace,
+                               const Verbosity&)
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we do only asserts. The keywords are checked here,
@@ -183,14 +184,14 @@ void ppath_stepRefractionEuler(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posAddRgeoid(
-        // WS Output:
-              Vector&    rte_pos,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Matrix&    r_geoid )
+void rte_posAddRgeoid(// WS Output:
+                      Vector&          rte_pos,
+                      // WS Input:
+                      const Index&     atmosphere_dim,
+                      const Vector&    lat_grid,
+                      const Vector&    lon_grid,
+                      const Matrix&    r_geoid,
+                      const Verbosity& verbosity)
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -199,21 +200,21 @@ void rte_posAddRgeoid(
   // Use *sensor_posAddRgeoid* to perform the calculations.
   Matrix m(1,rte_pos.nelem());
   m(0,joker) = rte_pos;
-  sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid );
+  sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid, verbosity );
   rte_pos[0] = m(0,0);
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losSet(
-        // WS Output:
-              Vector&    rte_los,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        // Control Parameters:
-        const Numeric&   za,
-        const Numeric&   aa )
+void rte_losSet(// WS Output:
+                Vector&          rte_los,
+                // WS Input:
+                const Index&     atmosphere_dim,
+                // Control Parameters:
+                const Numeric&   za,
+                const Numeric&   aa,
+                const Verbosity&)
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -231,15 +232,15 @@ void rte_losSet(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posSet(
-        // WS Output:
-              Vector&    rte_pos,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        // Control Parameters:
-        const Numeric&   r_or_z,
-        const Numeric&   lat,
-        const Numeric&   lon )
+void rte_posSet(// WS Output:
+                Vector&          rte_pos,
+                // WS Input:
+                const Index&     atmosphere_dim,
+                // Control Parameters:
+                const Numeric&   r_or_z,
+                const Numeric&   lat,
+                const Numeric&   lon,
+                const Verbosity&)
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -255,14 +256,14 @@ void rte_posSet(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_posAddRgeoid(
-        // WS Output:
-              Matrix&    sensor_pos,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Matrix&    r_geoid )
+void sensor_posAddRgeoid(// WS Output:
+                         Matrix&          sensor_pos,
+                         // WS Input:
+                         const Index&     atmosphere_dim,
+                         const Vector&    lat_grid,
+                         const Vector&    lon_grid,
+                         const Matrix&    r_geoid,
+                         const Verbosity&)
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -321,21 +322,21 @@ void sensor_posAddRgeoid(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZaRefr1D(
-                        Workspace&          ws,
-                        // WS Generic Output:
-                        Vector&             za_vector,
-                        // WS Input:
-                        const Agenda&       refr_index_agenda,
-                        const Matrix&       sensor_pos,
-                        const Vector&       p_grid,
-                        const Tensor3&      t_field,
-                        const Tensor3&      z_field,
-                        const Tensor4&      vmr_field,
-                        const Matrix&       r_geoid,
-                        const Index&        atmosphere_dim,
-                        // WS Generic Input:
-                        const Vector&       ztan_vector)
+void VectorZtanToZaRefr1D(Workspace&          ws,
+                          // WS Generic Output:
+                          Vector&             za_vector,
+                          // WS Input:
+                          const Agenda&       refr_index_agenda,
+                          const Matrix&       sensor_pos,
+                          const Vector&       p_grid,
+                          const Tensor3&      t_field,
+                          const Tensor3&      z_field,
+                          const Tensor4&      vmr_field,
+                          const Matrix&       r_geoid,
+                          const Index&        atmosphere_dim,
+                          // WS Generic Input:
+                          const Vector&       ztan_vector,
+                          const Verbosity&)
 {
   if( atmosphere_dim != 1 ) {
     throw runtime_error( "The function can only be used for 1D atmospheres." );
@@ -371,15 +372,15 @@ void VectorZtanToZaRefr1D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZa1D(
-                        // WS Generic Output:
-                        Vector&             za_vector,
-                        // WS Input:
-                        const Matrix&       sensor_pos,
-                        const Matrix&       r_geoid,
-                        const Index&        atmosphere_dim,
-                        // WS Generic Input:
-                        const Vector&       ztan_vector)
+void VectorZtanToZa1D(// WS Generic Output:
+                      Vector&             za_vector,
+                      // WS Input:
+                      const Matrix&       sensor_pos,
+                      const Matrix&       r_geoid,
+                      const Index&        atmosphere_dim,
+                      // WS Generic Input:
+                      const Vector&       ztan_vector,
+                      const Verbosity&)
 {
   if( atmosphere_dim != 1 ) {
     throw runtime_error( "The function can only be used for 1D atmospheres." );

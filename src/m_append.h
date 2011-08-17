@@ -41,7 +41,8 @@ template< class T >
 void Append(// WS Generic Output:
             Array<T>& out,
             // WS Generic Input:
-            const Array<T>& in)
+            const Array<T>& in,
+            const Verbosity&)
 {
   // Reserve memory in advance to avoid reallocations:
   out.reserve(out.nelem()+in.nelem());
@@ -54,7 +55,8 @@ void Append(// WS Generic Output:
 void Append(// WS Generic Output:
             Vector& out,
             // WS Generic Input:
-            const Vector& in)
+            const Vector& in,
+            const Verbosity&)
 {
   // Get backup of out:
   Vector dummy = out;
@@ -73,7 +75,8 @@ void Append(// WS Generic Output:
 void Append(// WS Generic Output:
             String& out,
             // WS Generic Input:
-            const String& in)
+            const String& in,
+            const Verbosity&)
 {
   // String stream for easy string operations:
   ostringstream os;

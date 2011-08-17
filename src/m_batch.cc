@@ -72,8 +72,11 @@ void ForLoop(Workspace& ws,
              // Control Parameters:
              const Index& start,
              const Index& stop,
-             const Index& step)
+             const Index& step,
+             const Verbosity& verbosity)
 {
+  CREATE_OUT1
+  
   for (Index i=start; i<=stop; i+=step)
     {
       out1 << "  Executing for loop body, index: " << i << "\n";
@@ -97,7 +100,8 @@ void VectorExtractFromMatrix(
       const Matrix&    m,
       const Index&     index,
       // Control Parameters:
-      const String& direction )
+      const String& direction,
+      const Verbosity&)
 {
   if (direction=="row")
     {
@@ -147,17 +151,11 @@ void ybatchCalc(Workspace&      ws,
                 const Index&    ybatch_n,
                 const Agenda&   ybatch_calc_agenda,
                 // Control Parameters:
-                const Index& robust)
+                const Index& robust,
+                const Verbosity& verbosity)
 {
-  if (0==robust)
-    out2 << "  Robust option is off.\n";
-  else if (1==robust)
-    out2 << "  Robust option is on,\n"
-         << "  batch calc will continue, even if one job fails.\n";
-  else
-    throw runtime_error("Keyword *robust* must be either 0 or 1.");
-
-
+  CREATE_OUTS
+  
   Vector y;
   Matrix jacobian;
   bool is_first = true;
@@ -364,7 +362,8 @@ void ybatchMetProfiles(
                //Keyword
                const Index& nelem_p_grid,
                const String& met_profile_path,
-               const String& met_profile_pnd_path)
+               const String& met_profile_pnd_path,
+               const Verbosity& verbosity)
 {
   GriddedField3        t_field_raw;
   GriddedField3        z_field_raw;
@@ -441,22 +440,23 @@ void ybatchMetProfiles(
       
       //Reads the t_field_raw from file
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".t.xml",
-             t_field_raw);
+                         t_field_raw, verbosity);
       
       //Reads the z_field_raw from file
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()  + ".z.xml",
-             z_field_raw);
+                         z_field_raw, verbosity);
       
       //Reads the humidity from file - it is only an ArrayofTensor3
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
-                 vmr_field_raw[0]);
+                         vmr_field_raw[0], verbosity);
       
       //Reads the pnd_field_raw for one particle
       //xml_read_from_file("/rinax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
      
       //xml_read_from_file(met_profile_pnd_path +"reff100_newformat/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
   
-      xml_read_from_file(met_profile_pnd_path +"lwc_reff15/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd15.xml",  pnd_field_raw[0]);
+      xml_read_from_file(met_profile_pnd_path +"lwc_reff15/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd15.xml",
+                         pnd_field_raw[0], verbosity);
       //Write the profile number into a file.
       // xml_write_to_file("profile_number.xml", i);
       
@@ -495,7 +495,8 @@ void ybatchMetProfiles(
       VectorNLogSpace(p_grid, 
               nelem_p_grid,
               tfr_p_grid[0], 
-              tfr_p_grid[N_p -1]);
+              tfr_p_grid[N_p -1],
+              verbosity);
       
       /*To set the cloudbox limits, the lower and upper cloudbox limits
     are to be set.  The lower cloudbox limit is set to the lowest
@@ -547,7 +548,8 @@ void ybatchMetProfiles(
               lon_grid,
               cl_grid_min,
               cl_grid_max,
-              0,0,0,0);
+              0,0,0,0,
+              verbosity);
       
       /*executing the met_profile_calc_agenda
     Agenda communication variables are
@@ -584,7 +586,8 @@ void ybatchMetProfilesClear(
                 const Matrix& r_geoid,
                 //Keyword
                 const Index& nelem_p_grid,
-                const String& met_profile_path)
+                const String& met_profile_path,
+                const Verbosity& verbosity)
 {
   GriddedField3        t_field_raw;
   GriddedField3        z_field_raw;
@@ -661,22 +664,23 @@ void ybatchMetProfilesClear(
       //Reads the t_field_raw from file
       
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".t.xml",
-             t_field_raw);
+                         t_field_raw, verbosity);
       //Reads the z_field_raw from file
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()  + ".z.xml",
-             z_field_raw);
+                         z_field_raw, verbosity);
       
       //Reads the humidity from file - it is only an ArrayofTensor3
       // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
       // array is for species
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
-             vmr_field_raw_h2o);
-      //xml_read_from_file("/home/home01/rekha/uk/profiles/sat_vmr/profile.lat_"+lat_os.str()//+".lon_"+lon_os.str() + ".H2O_es.xml", vmr_field_raw_h2o);
+                         vmr_field_raw_h2o, verbosity);
+      //xml_read_from_file("/home/home01/rekha/uk/profiles/sat_vmr/profile.lat_"+lat_os.str()//+".lon_"+lon_os.str() + ".H2O_es.xml",
+      //                   vmr_field_raw_h2o, verbosity);
       
       cout << "--------------------------------------------------------------------------"<<endl;
       cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
       cout << "--------------------------------------------------------------------------"<<endl; 
-      xml_write_to_file("profile_number.xml",  i);
+      xml_write_to_file("profile_number.xml",  i, FILE_TYPE_ASCII, verbosity);
       // the first element of the species is water vapour. 
       
       // N_p is the number of elements in the pressure grid
@@ -713,10 +717,11 @@ void ybatchMetProfilesClear(
       VectorNLogSpace(p_grid, 
               nelem_p_grid,
               tfr_p_grid[0], 
-              tfr_p_grid[N_p -1]);
+              tfr_p_grid[N_p -1],
+              verbosity);
       cout<<"t_field_raw[0](0,0,0)"<<tfr_p_grid[0]<<endl;
       cout<<"t_field_raw[0](N_p -1,0,0)"<<tfr_p_grid[N_p -1] <<endl;
-      xml_write_to_file("p_grid.xml", p_grid);
+      xml_write_to_file("p_grid.xml", p_grid, FILE_TYPE_ASCII, verbosity);
 
       // executing the met_profile_calc_agenda
       met_profile_calc_agendaExecute (ws, y, t_field_raw, vmr_field_raw,

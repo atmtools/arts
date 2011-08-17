@@ -46,8 +46,9 @@ extern const Index GFIELD4_P_GRID;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupInit(GasAbsLookup& /* x */)
+void abs_lookupInit(GasAbsLookup& /* x */, const Verbosity& verbosity)
 {
+  ArtsOut2 out2(verbosity);
   // Nothing to do here.
   // That means, we rely on the default constructor.
 
@@ -73,8 +74,12 @@ void abs_lookupCreate(// WS Output:
                       const Vector&                   abs_n2,            
                       const ArrayOfString&            abs_cont_names,    
                       const ArrayOfString&            abs_cont_models,   
-                      const ArrayOfVector&            abs_cont_parameters )
+                      const ArrayOfVector&            abs_cont_parameters,
+                      const Verbosity&                verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // We need this to restore the original setting of omp_nested at the
   // end.
   int omp_nested_original = arts_omp_get_nested();
@@ -420,7 +425,7 @@ void abs_lookupCreate(// WS Output:
                   // abs_coefCalcSaveMemory. 
 
                   abs_xsec_per_speciesInit( abs_xsec_per_species, this_species,
-                                            f_grid, abs_p );
+                                            f_grid, abs_p, verbosity );
 
                   abs_xsec_per_speciesAddLines( abs_xsec_per_species,
                                                 this_species,
@@ -430,7 +435,8 @@ void abs_lookupCreate(// WS Output:
                                                 abs_h2o,
                                                 this_vmr,
                                                 these_lines,
-                                                this_lineshape );
+                                                this_lineshape,
+                                                verbosity);
 
                   abs_xsec_per_speciesAddConts( abs_xsec_per_species,
                                                 this_species,
@@ -442,7 +448,8 @@ void abs_lookupCreate(// WS Output:
                                                 this_vmr,
                                                 abs_cont_names,
                                                 abs_cont_parameters,
-                                                abs_cont_models);
+                                                abs_cont_models,
+                                                verbosity);
 
                   // Store in the right place:
                   // Loop through all altitudes
@@ -507,8 +514,11 @@ void abs_lookupCreate(// WS Output:
   \date   2007-11-16
 */
 void find_nonlinear_continua(ArrayOfIndex& cont,
-                             const ArrayOfArrayOfSpeciesTag& abs_species)
+                             const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   cont.resize(0);
   
   // This is quite complicated, unfortunately. The approach here
@@ -592,8 +602,11 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
   \param[in]  abs_species Absorption species.
 */
 void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
-                    const ArrayOfArrayOfSpeciesTag& abs_species)
+                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                    const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   abs_nls.resize(0);
 
   // Add all H2O species as non-linear:
@@ -610,7 +623,7 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
   // Certain continuum models also depend on abs_h2o. There is a
   // helper function that contains a list of these.
   ArrayOfIndex cont;
-  find_nonlinear_continua(cont, abs_species);
+  find_nonlinear_continua(cont, abs_species, verbosity);
 
   // Add these to abs_nls:
   for (Index i=0; i<cont.nelem(); ++i)
@@ -652,8 +665,12 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
                        ConstVectorView tmax,
                        const Numeric&  step,
                        const Index&    p_interp_order,
-                       const Index&    t_interp_order)
+                       const Index&    t_interp_order,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // The code to find out the range for perturbation is a bit
   // complicated. The problem is that, since we use higher order
   // interpolation for p, we may require temperatures well outside the
@@ -728,8 +745,12 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
                          ConstVectorView maxprof,
                          const Numeric&  step,
                          const Index&    p_interp_order,
-                         const Index&    nls_interp_order)
+                         const Index&    nls_interp_order,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // The code to find out the range for perturbation is a bit
   // complicated. The problem is that, since we use higher order
   // interpolation for p, we may require humidities well outside the
@@ -810,7 +831,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
   // is that 0 is a turning point.
   if (allownegative)
     {
-      VectorInsertGridPoints(abs_nls_pert, abs_nls_pert, MakeVector(0));
+      VectorInsertGridPoints(abs_nls_pert, abs_nls_pert, MakeVector(0), verbosity);
       out2 << "  I am including also 0 in the abs_nls_pert, because it is a turning \n"
            << "  point. Consider to use a higher abs_nls_interp_order, for example 4.\n";
     }
@@ -844,7 +865,8 @@ void abs_lookupSetup(// WS Output:
                      // Control Parameters:
                      const Numeric& p_step10,
                      const Numeric& t_step,
-                     const Numeric& h2o_step)
+                     const Numeric& h2o_step,
+                     const Verbosity& verbosity)
 {
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
@@ -993,7 +1015,7 @@ void abs_lookupSetup(// WS Output:
       // 2D or 3D case. We have to set up T and nonlinear species variations.
 
       // Make an intelligent choice for the nonlinear species.
-      choose_abs_nls(abs_nls, abs_species);
+      choose_abs_nls(abs_nls, abs_species, verbosity);
 
       // Now comes a part where we analyse the atmospheric fields.
       // We need to find the max, min, and mean profile for
@@ -1075,7 +1097,9 @@ void abs_lookupSetup(// WS Output:
              gp);
 
       // Temperature perturbations:
-      choose_abs_t_pert(abs_t_pert, tmean, tmin, tmax, t_step, abs_p_interp_order, abs_t_interp_order);
+      choose_abs_t_pert(abs_t_pert, tmean, tmin, tmax, t_step,
+                        abs_p_interp_order, abs_t_interp_order,
+                        verbosity);
 //       cout << "abs_t_pert: " << abs_t_pert << "\n";
 
       // Reference VMR profiles,
@@ -1096,7 +1120,8 @@ void abs_lookupSetup(// WS Output:
                               h2omax,
                               h2o_step,
                               abs_p_interp_order,
-                              abs_nls_interp_order);
+                              abs_nls_interp_order,
+                              verbosity);
         }
       else
         {
@@ -1127,8 +1152,12 @@ void abs_lookupSetupBatch(// WS Output:
                           const Numeric& p_step10,
                           const Numeric& t_step,
                           const Numeric& h2o_step,
-                          const Vector&  extremes)
+                          const Vector&  extremes,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
   // convert it here to the natural log:
@@ -1251,7 +1280,7 @@ void abs_lookupSetupBatch(// WS Output:
   // FIXME: Adjustment of min/max values for Jacobian perturbations is still missing. 
 
   // Make an intelligent choice for the nonlinear species.
-  choose_abs_nls(abs_nls, abs_species);
+  choose_abs_nls(abs_nls, abs_species, verbosity);
 
   // Find out maximum and minimum pressure.
   Numeric maxp=batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[0];
@@ -1583,7 +1612,8 @@ void abs_lookupSetupBatch(// WS Output:
   // Construct abs_t_pert:
   ConstVectorView tmin = datamin(0,joker);
   ConstVectorView tmax = datamax(0,joker);
-  choose_abs_t_pert(abs_t_pert, abs_t, tmin, tmax, t_step, abs_p_interp_order, abs_t_interp_order);
+  choose_abs_t_pert(abs_t_pert, abs_t, tmin, tmax, t_step, abs_p_interp_order, abs_t_interp_order,
+                    verbosity);
   //  cout << "abs_t_pert: " << abs_t_pert << "\n";
 
   // Construct abs_nls_pert:
@@ -1591,7 +1621,8 @@ void abs_lookupSetupBatch(// WS Output:
   ConstVectorView h2omax = datamax(h2o_index+2,joker);
   choose_abs_nls_pert(abs_nls_pert, abs_vmrs(h2o_index,joker),
                       h2omin, h2omax, h2o_step,
-                      abs_p_interp_order, abs_nls_interp_order);
+                      abs_p_interp_order, abs_nls_interp_order,
+                      verbosity);
   //  cout << "abs_nls_pert: " << abs_nls_pert << "\n";
 
   // Append the explicitly given user extreme values, if necessary:
@@ -1672,15 +1703,18 @@ void abs_lookupSetupWide(// WS Output:
                          const Numeric& t_min,
                          const Numeric& t_max,
                          const Numeric& h2o_min,
-                         const Numeric& h2o_max)
+                         const Numeric& h2o_max,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
   // convert it here to the natural log:
   const Numeric p_step = log(pow(10.0, p_step10));
 
   // Make an intelligent choice for the nonlinear species.
-  choose_abs_nls(abs_nls, abs_species);
+  choose_abs_nls(abs_nls, abs_species, verbosity);
 
   // 1. Fix pressure grid abs_p
   // --------------------------
@@ -1725,7 +1759,8 @@ void abs_lookupSetupWide(// WS Output:
   // Chose temperature perturbations:
   choose_abs_t_pert(abs_t_pert,
                     abs_t, min_prof, max_prof, 20,
-                    abs_p_interp_order, abs_t_interp_order);
+                    abs_p_interp_order, abs_t_interp_order,
+                    verbosity);
 
 
   // 3. Fix reference H2O profile and abs_nls_pert
@@ -1796,10 +1831,12 @@ void abs_lookupSetupWide(// WS Output:
                           max_prof,
                           1e99,
                           abs_p_interp_order,
-                          abs_nls_interp_order);     
+                          abs_nls_interp_order,
+                          verbosity);     
     }
   else
     {
+      CREATE_OUT1
       out1 << "  WARNING:\n"
            << "  You have no species that require H2O variations.\n"
            << "  This case might work, but it has never been tested.\n"
@@ -1812,8 +1849,11 @@ void abs_lookupSetupWide(// WS Output:
 void abs_speciesAdd(// WS Output:
                     ArrayOfArrayOfSpeciesTag& abs_species,
                     // Control Parameters:
-                    const ArrayOfString& names)
+                    const ArrayOfString& names,
+                    const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Size of initial array
   Index n_gs = abs_species.nelem();
   
@@ -1844,25 +1884,28 @@ void abs_speciesAdd(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesAdd2(// WS Output:
-                    Workspace&                ws,
-                    ArrayOfArrayOfSpeciesTag& abs_species,
-                    ArrayOfRetrievalQuantity& jq,
-                    Agenda&                   jacobian_agenda,
-                    // WS Input:
-                    const Index&              atmosphere_dim,
-                    const Vector&             p_grid,
-                    const Vector&             lat_grid,
-                    const Vector&             lon_grid,
-                    // WS Generic Input:
-                    const Vector&             rq_p_grid,
-                    const Vector&             rq_lat_grid,
-                    const Vector&             rq_lon_grid,
-                    // Control Parameters:
-                    const String&             species,
-                    const String&             method,
-                    const String&             mode,
-                    const Numeric&            dx)
+                     Workspace&                ws,
+                     ArrayOfArrayOfSpeciesTag& abs_species,
+                     ArrayOfRetrievalQuantity& jq,
+                     Agenda&                   jacobian_agenda,
+                     // WS Input:
+                     const Index&              atmosphere_dim,
+                     const Vector&             p_grid,
+                     const Vector&             lat_grid,
+                     const Vector&             lon_grid,
+                     // WS Generic Input:
+                     const Vector&             rq_p_grid,
+                     const Vector&             rq_lat_grid,
+                     const Vector&             rq_lon_grid,
+                     // Control Parameters:
+                     const String&             species,
+                     const String&             method,
+                     const String&             mode,
+                     const Numeric&            dx,
+                     const Verbosity&          verbosity)
 {
+  CREATE_OUT3
+  
   // Add species to *abs_species*
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
@@ -1880,12 +1923,14 @@ void abs_speciesAdd2(// WS Output:
   // Do retrieval part
   jacobianAddAbsSpecies( ws, jq, jacobian_agenda, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, rq_p_grid, rq_lat_grid, 
-                         rq_lon_grid, species, method, mode, dx);
+                         rq_lon_grid, species, method, mode, dx,
+                         verbosity);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesInit( ArrayOfArrayOfSpeciesTag& abs_species )
+void abs_speciesInit(ArrayOfArrayOfSpeciesTag& abs_species,
+                     const Verbosity&)
 {
   abs_species.resize(0);
 }
@@ -1895,8 +1940,11 @@ void abs_speciesInit( ArrayOfArrayOfSpeciesTag& abs_species )
 void SpeciesSet(// WS Generic Output:
                 ArrayOfArrayOfSpeciesTag& abs_species,
                 // Control Parameters:
-                const ArrayOfString& names)
+                const ArrayOfString& names,
+                const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   abs_species.resize(names.nelem());
 
   //cout << "Names: " << names << "\n";
@@ -1926,11 +1974,12 @@ void SpeciesSet(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
-                          Index&                          abs_lookup_is_adapted,
-                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const Vector&                   f_grid)
+                      Index&                          abs_lookup_is_adapted,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                      const Vector&                   f_grid,
+                      const Verbosity&                verbosity)
 {
-  abs_lookup.Adapt( abs_species, f_grid );
+  abs_lookup.Adapt( abs_species, f_grid, verbosity );
   abs_lookup_is_adapted = 1;
 }
 
@@ -1947,8 +1996,11 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                                       const Numeric&      a_temperature,
                                       const Vector&       a_vmr_list,
                                       const Numeric&      a_doppler,
-                                      const Numeric&      extpolfac)
+                                      const Numeric&      extpolfac,
+                                      const Verbosity&    verbosity)
 {
+  CREATE_OUT3
+  
   // Check if the table has been adapted:
   if ( 1!=abs_lookup_is_adapted )
     throw runtime_error("Gas absorption lookup table must be adapted,\n"
@@ -2058,8 +2110,12 @@ void abs_fieldCalc(Workspace& ws,
                    const Tensor3& t_field,
                    const Tensor4& vmr_field,
                    // WS Generic Input:
-                   const Vector&  doppler )
+                   const Vector&  doppler,
+                   const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   Matrix  asg;
   Vector  a_vmr_list;
 
@@ -2251,8 +2307,9 @@ void abs_fieldCalc(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromGasAbsLookup(
-             Vector&         f_grid,
-       const GasAbsLookup&   abs_lookup )
+                            Vector&             f_grid,
+                            const GasAbsLookup& abs_lookup,
+                            const Verbosity&)
 {
   const Vector& lookup_f_grid = abs_lookup.GetFgrid();
   f_grid.resize(lookup_f_grid.nelem());
@@ -2261,9 +2318,9 @@ void f_gridFromGasAbsLookup(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void p_gridFromGasAbsLookup(
-             Vector&         p_grid,
-       const GasAbsLookup&   abs_lookup )
+void p_gridFromGasAbsLookup(Vector&             p_grid,
+                            const GasAbsLookup& abs_lookup,
+                            const Verbosity&)
 {
   const Vector& lookup_p_grid = abs_lookup.GetPgrid();
   p_grid.resize(lookup_p_grid.nelem());
@@ -2310,7 +2367,8 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                           // Parameters for both:
                           const Numeric&      local_p,
                           const Numeric&      local_t,
-                          const Vector&       local_vmrs)
+                          const Vector&       local_vmrs,
+                          const Verbosity&    verbosity)
 {
   // Allocate some matrices. I also tried allocating these (and the
   // vectors below) outside, but there was no significant speed
@@ -2375,7 +2433,8 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                          local_p,
                          local_t,
                          local_vmrs,
-                         0);
+                         0,
+                         verbosity);
   // Last argument above is the Doppler shift (usually
   // rte_doppler). Should be zero in this case.
 
@@ -2417,8 +2476,11 @@ void abs_lookupTestAccuracy(// WS Input:
                             const ArrayOfLineshapeSpec&     abs_lineshape,
                             const ArrayOfString&            abs_cont_names,
                             const ArrayOfString&            abs_cont_models,
-                            const ArrayOfVector&            abs_cont_parameters )
+                            const ArrayOfVector&            abs_cont_parameters,
+                            const Verbosity&                verbosity)
 {
+  CREATE_OUT2
+  
   const GasAbsLookup& al = abs_lookup;
 
   // Check if the table has been adapted:
@@ -2519,7 +2581,8 @@ void abs_lookupTestAccuracy(// WS Input:
                             // Parameters for both:
                             local_p,
                             local_t,
-                            local_vmrs );
+                            local_vmrs,
+                            verbosity);
 
         //          cout << "ma " << max_abs_rel_diff << "\n";
 
@@ -2594,7 +2657,8 @@ void abs_lookupTestAccuracy(// WS Input:
                             // Parameters for both:
                             local_p,
                             local_t,
-                            local_vmrs );
+                            local_vmrs,
+                            verbosity);
 
         //Critical directive here is necessary, because all threads
         //access the same variable.
@@ -2678,7 +2742,8 @@ void abs_lookupTestAccuracy(// WS Input:
                           // Parameters for both:
                           local_p,
                           local_t,
-                          local_vmrs );
+                          local_vmrs,
+                          verbosity);
 
       //Critical directive here is necessary, because all threads
       //access the same variable.
@@ -2743,7 +2808,8 @@ void abs_lookupTestAccuracy(// WS Input:
                           // Parameters for both:
                           local_p,
                           local_t,
-                          local_vmrs );
+                          local_vmrs,
+                          verbosity);
 
       //Critical directive here is necessary, because all threads
       //access the same variable.
@@ -2797,244 +2863,249 @@ void abs_lookupTestAccMC(// WS Input:
                          const ArrayOfString&            abs_cont_names,
                          const ArrayOfString&            abs_cont_models,
                          const ArrayOfVector&            abs_cont_parameters,
-                         const Index&                    mc_seed)
+                         const Index&                    mc_seed,
+                         const Verbosity&                verbosity)
 {
-    const GasAbsLookup& al = abs_lookup;
-    
-    // Check if the table has been adapted:
-    if ( 1!=abs_lookup_is_adapted )
-        throw runtime_error("Gas absorption lookup table must be adapted,\n"
-                            "use method abs_lookupAdapt.");
-    
-    
-    // Some important sizes:
-    const Index n_nls     = al.nonlinear_species.nelem();
-    const Index n_species = al.species.nelem();
-    
-    if ( n_nls <= 0 )
-      {
-        ostringstream os;
-        os << "This function currently works only with lookup tables\n"
-        << "containing nonlinear species.";
-        throw runtime_error( os.str() );
-      }
-    
-    // If there are nonlinear species, then at least one species must be
-    // H2O. We will use that to perturb in the case of nonlinear
-    // species.
-    Index h2o_index = -1;
-    if (n_nls>0)
-      {
-        h2o_index = find_first_species_tg( al.species,
-                                          species_index_from_species_name("H2O") );
-        
-        // This is a runtime error, even though it would be more logical
-        // for it to be an assertion, since it is an internal check on
-        // the table. The reason is that it is somewhat awkward to check
-        // for this in other places.
-        if ( h2o_index == -1 )
-          {
-            ostringstream os;
-            os << "With nonlinear species, at least one species must be a H2O species.";
-            throw runtime_error( os.str() );
-          }
-      }
-
-    // How many MC cases to run between each convergence check. 
-    // (It is important for parallelization that this is not too small.)
-    const Index chunksize = 100;
-    
-    //Random Number generator:
-    Rng rng;
-    rng.seed(mc_seed);
-    // rng.draw() will draw a double from the uniform distribution [0,1).
-
-    // (Log) Pressure range:
-    const Numeric lp_max = al.log_p_grid[0];
-    const Numeric lp_min = al.log_p_grid[al.log_p_grid.nelem()-1];
-    
-    // T perturbation range (additive):
-    const Numeric dT_min = al.t_pert[0];
-    const Numeric dT_max = al.t_pert[al.t_pert.nelem()-1];
-    
-    // H2O perturbation range (scaling):
-    const Numeric dh2o_min = al.nls_pert[0];
-    const Numeric dh2o_max = al.nls_pert[al.nls_pert.nelem()-1];
-    
-    // We are creating all random numbers for the chunk beforehand, to avoid the 
-    // problem that random number generators in different threads would need 
-    // different seeds to produce independent random numbers.
-    // (I prefer this solution to the one of having the rng inside the threads, 
-    // because it ensures that the result does not depend on the the number of CPUs.)
-    Vector rand_lp(chunksize);
-    Vector rand_dT(chunksize);
-    Vector rand_dh2o(chunksize);
-
-    // Store the errors for one chunk:
-    Vector max_abs_rel_diff(chunksize);
-
-    // Flag to break our MC calculation loop eventually
-    bool keep_looping=true;
-    
-    // Total mean and standard deviation. (Is updated after each chunk.)
-    Numeric total_mean;
-    Numeric total_std;
-    Index N_chunk = 0;
-    while (keep_looping)
-      {
-        ++N_chunk;
-        
-        for (Index i=0; i<chunksize; ++i)
-          {
-            // A random pressure, temperature perturbation, and H2O perturbation, 
-            // all with flat PDF between min and max:
-            rand_lp[i]   = rng.draw()*(lp_max-lp_min) + lp_min;
-            rand_dT[i]   = rng.draw()*(dT_max-dT_min) + dT_min;
-            rand_dh2o[i] = rng.draw()*(dh2o_max-dh2o_min) + dh2o_min;
-          }
-        
-        for (Index i=0; i<chunksize; ++i)
-          {
-            // The pressure we work with here:
-            const Numeric this_lp = rand_lp[i];
-            
-            // Now we have to interpolate t_ref and vmrs_ref to this 
-            // pressure, so that we can apply the dT and dh2o perturbations. 
-            
-            // Pressure grid positions:
-            ArrayOfGridPosPoly pgp(1);
-            gridpos_poly(pgp,
-                         al.log_p_grid,
-                         this_lp,
-                         abs_p_interp_order );
-            
-            // Pressure interpolation weights:
-            Vector pitw;
-            pitw.resize(abs_p_interp_order+1);
-            interpweights(pitw,pgp[0]);
-            
-            // Interpolated temperature:
-            const Numeric this_t_ref = interp(pitw,
-                                              al.t_ref,    
-                                              pgp[0]);
-            
-            // Interpolated VMRs:
-            Vector these_vmrs(n_species);
-            for (Index j=0; j<n_species; ++j)
-              {
-                these_vmrs[j] = interp(pitw,
-                                       al.vmrs_ref(j,Range(joker)),    
-                                       pgp[0]);
-              }
-            
-            // Now get the actual p, T and H2O values:
-            const Numeric this_p   = exp(this_lp);
-            const Numeric this_t   = this_t_ref + rand_dT[i];
-            these_vmrs[h2o_index] *= rand_dh2o[i];
-            
-//            cout << "p, T, H2O: " << this_p << ", " << this_t << ", " << these_vmrs[h2o_index] << "\n";
-            
-            // Get error between table and LBL calculation for these conditions:
-            
-            max_abs_rel_diff[i] = calc_lookup_error(// Parameters for lookup table:
-                                                    al,
-                                                    abs_p_interp_order,  
-                                                    abs_t_interp_order,  
-                                                    abs_nls_interp_order,
-                                                    true,                       // ignore errors
-                                                    // Parameters for LBL:
-                                                    abs_n2,
-                                                    abs_lines_per_species,
-                                                    abs_lineshape,
-                                                    abs_cont_names,
-                                                    abs_cont_models,
-                                                    abs_cont_parameters,
-                                                    // Parameters for both:
-                                                    this_p,
-                                                    this_t,  
-                                                    these_vmrs );
-//            cout << "max_abs_rel_diff[" << i << "] = " << max_abs_rel_diff[i] << "\n";
-            
-          }
-        
-        // Calculate Mean of the last batch.
-
-        // Total number of valid points in the chunk (not counting negative values, 
-        // which result from failed calculations at the edges of the table.)
-        Index N=0; 
-        // Mean (initially sum of all values):
-        Numeric mean = 0;
-        for (Index i=0; i<chunksize; ++i)
-          {
-            const Numeric x = max_abs_rel_diff[i];
-            if (x > 0) 
-              {
-                ++N;
-                mean += x;
-              }
-//            else 
-//              {
-//                cout << "Negative value ignored.\n";
-//              }
-          }        
-        // Calculate mean by dividing sum by number of valid points:
-        mean = mean / N;
-        
-        // Now calculate standard deviation:
-
-        // Variance (initially sum of squared differences)
-        Numeric variance = 0;
-        for (Index i=0; i<chunksize; ++i)
-          {
-            const Numeric x = max_abs_rel_diff[i];
-            if (x > 0) 
-              {
-                variance += (x - mean) * (x - mean);
-              }
-          }        
-        // Divide by N to really calculate variance:
-        variance = variance/N;
-        
-//        cout << "Mean = " << mean << " Std = " << std_dev << "\n";
+  CREATE_OUT2
+  CREATE_OUT3
   
-        if (N_chunk==1)
-          {
-            total_mean = mean;
-            total_std  = sqrt(variance);
-          }
-        else 
-          {
-            const Numeric old_mean = total_mean;
-            
-            // This formula assimilates the new chunk mean into the total mean:
-            total_mean = (total_mean*(N_chunk-1) + mean)/N_chunk;
-            
-            // Do the same for the standard deviation.
-            // First get rid of the square root:
-            total_std = total_std * total_std;
-            // Now multiply with old normalisation:
-            total_std *= N_chunk-1;
-            // Now add the new sigma
-            total_std += variance;
-            // Divide by the new normalisation:
-            total_std /= N_chunk;
-            // And finally take the square root:
-            total_std = sqrt(total_std);
-            
-            // Stop the chunk loop if desired accuracy has been reached. 
-            // We take 1% here, no point in trying to be more accurate!
-            if (abs(total_mean-old_mean) < total_mean/100) keep_looping = false;
-          }
-
-//        cout << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean 
-//             << " Std estimate = " << total_std << "\n";
- 
-        out3 << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean 
-             << " Std estimate = " << total_std << "\n";
-        
-      } // End of "keep_looping" loop that runs over the chunks
-
-    out2 << "  Mean relative error: " << total_mean << "%\n"
-         << "  Standard deviation:  " << total_std << "%\n";
-
+  const GasAbsLookup& al = abs_lookup;
+  
+  // Check if the table has been adapted:
+  if ( 1!=abs_lookup_is_adapted )
+    throw runtime_error("Gas absorption lookup table must be adapted,\n"
+                        "use method abs_lookupAdapt.");
+  
+  
+  // Some important sizes:
+  const Index n_nls     = al.nonlinear_species.nelem();
+  const Index n_species = al.species.nelem();
+  
+  if ( n_nls <= 0 )
+  {
+    ostringstream os;
+    os << "This function currently works only with lookup tables\n"
+    << "containing nonlinear species.";
+    throw runtime_error( os.str() );
+  }
+  
+  // If there are nonlinear species, then at least one species must be
+  // H2O. We will use that to perturb in the case of nonlinear
+  // species.
+  Index h2o_index = -1;
+  if (n_nls>0)
+  {
+    h2o_index = find_first_species_tg( al.species,
+                                      species_index_from_species_name("H2O") );
+    
+    // This is a runtime error, even though it would be more logical
+    // for it to be an assertion, since it is an internal check on
+    // the table. The reason is that it is somewhat awkward to check
+    // for this in other places.
+    if ( h2o_index == -1 )
+    {
+      ostringstream os;
+      os << "With nonlinear species, at least one species must be a H2O species.";
+      throw runtime_error( os.str() );
+    }
+  }
+  
+  // How many MC cases to run between each convergence check. 
+  // (It is important for parallelization that this is not too small.)
+  const Index chunksize = 100;
+  
+  //Random Number generator:
+  Rng rng;
+  rng.seed(mc_seed, verbosity);
+  // rng.draw() will draw a double from the uniform distribution [0,1).
+  
+  // (Log) Pressure range:
+  const Numeric lp_max = al.log_p_grid[0];
+  const Numeric lp_min = al.log_p_grid[al.log_p_grid.nelem()-1];
+  
+  // T perturbation range (additive):
+  const Numeric dT_min = al.t_pert[0];
+  const Numeric dT_max = al.t_pert[al.t_pert.nelem()-1];
+  
+  // H2O perturbation range (scaling):
+  const Numeric dh2o_min = al.nls_pert[0];
+  const Numeric dh2o_max = al.nls_pert[al.nls_pert.nelem()-1];
+  
+  // We are creating all random numbers for the chunk beforehand, to avoid the 
+  // problem that random number generators in different threads would need 
+  // different seeds to produce independent random numbers.
+  // (I prefer this solution to the one of having the rng inside the threads, 
+  // because it ensures that the result does not depend on the the number of CPUs.)
+  Vector rand_lp(chunksize);
+  Vector rand_dT(chunksize);
+  Vector rand_dh2o(chunksize);
+  
+  // Store the errors for one chunk:
+  Vector max_abs_rel_diff(chunksize);
+  
+  // Flag to break our MC calculation loop eventually
+  bool keep_looping=true;
+  
+  // Total mean and standard deviation. (Is updated after each chunk.)
+  Numeric total_mean;
+  Numeric total_std;
+  Index N_chunk = 0;
+  while (keep_looping)
+  {
+    ++N_chunk;
+    
+    for (Index i=0; i<chunksize; ++i)
+    {
+      // A random pressure, temperature perturbation, and H2O perturbation, 
+      // all with flat PDF between min and max:
+      rand_lp[i]   = rng.draw()*(lp_max-lp_min) + lp_min;
+      rand_dT[i]   = rng.draw()*(dT_max-dT_min) + dT_min;
+      rand_dh2o[i] = rng.draw()*(dh2o_max-dh2o_min) + dh2o_min;
+    }
+    
+    for (Index i=0; i<chunksize; ++i)
+    {
+      // The pressure we work with here:
+      const Numeric this_lp = rand_lp[i];
+      
+      // Now we have to interpolate t_ref and vmrs_ref to this 
+      // pressure, so that we can apply the dT and dh2o perturbations. 
+      
+      // Pressure grid positions:
+      ArrayOfGridPosPoly pgp(1);
+      gridpos_poly(pgp,
+                   al.log_p_grid,
+                   this_lp,
+                   abs_p_interp_order );
+      
+      // Pressure interpolation weights:
+      Vector pitw;
+      pitw.resize(abs_p_interp_order+1);
+      interpweights(pitw,pgp[0]);
+      
+      // Interpolated temperature:
+      const Numeric this_t_ref = interp(pitw,
+                                        al.t_ref,    
+                                        pgp[0]);
+      
+      // Interpolated VMRs:
+      Vector these_vmrs(n_species);
+      for (Index j=0; j<n_species; ++j)
+      {
+        these_vmrs[j] = interp(pitw,
+                               al.vmrs_ref(j,Range(joker)),    
+                               pgp[0]);
+      }
+      
+      // Now get the actual p, T and H2O values:
+      const Numeric this_p   = exp(this_lp);
+      const Numeric this_t   = this_t_ref + rand_dT[i];
+      these_vmrs[h2o_index] *= rand_dh2o[i];
+      
+      //            cout << "p, T, H2O: " << this_p << ", " << this_t << ", " << these_vmrs[h2o_index] << "\n";
+      
+      // Get error between table and LBL calculation for these conditions:
+      
+      max_abs_rel_diff[i] = calc_lookup_error(// Parameters for lookup table:
+                                              al,
+                                              abs_p_interp_order,  
+                                              abs_t_interp_order,  
+                                              abs_nls_interp_order,
+                                              true,                       // ignore errors
+                                              // Parameters for LBL:
+                                              abs_n2,
+                                              abs_lines_per_species,
+                                              abs_lineshape,
+                                              abs_cont_names,
+                                              abs_cont_models,
+                                              abs_cont_parameters,
+                                              // Parameters for both:
+                                              this_p,
+                                              this_t,  
+                                              these_vmrs,
+                                              verbosity);
+      //            cout << "max_abs_rel_diff[" << i << "] = " << max_abs_rel_diff[i] << "\n";
+      
+    }
+    
+    // Calculate Mean of the last batch.
+    
+    // Total number of valid points in the chunk (not counting negative values, 
+    // which result from failed calculations at the edges of the table.)
+    Index N=0; 
+    // Mean (initially sum of all values):
+    Numeric mean = 0;
+    for (Index i=0; i<chunksize; ++i)
+    {
+      const Numeric x = max_abs_rel_diff[i];
+      if (x > 0) 
+      {
+        ++N;
+        mean += x;
+      }
+      //            else 
+      //              {
+      //                cout << "Negative value ignored.\n";
+      //              }
+    }        
+    // Calculate mean by dividing sum by number of valid points:
+    mean = mean / N;
+    
+    // Now calculate standard deviation:
+    
+    // Variance (initially sum of squared differences)
+    Numeric variance = 0;
+    for (Index i=0; i<chunksize; ++i)
+    {
+      const Numeric x = max_abs_rel_diff[i];
+      if (x > 0) 
+      {
+        variance += (x - mean) * (x - mean);
+      }
+    }        
+    // Divide by N to really calculate variance:
+    variance = variance/N;
+    
+    //        cout << "Mean = " << mean << " Std = " << std_dev << "\n";
+    
+    if (N_chunk==1)
+    {
+      total_mean = mean;
+      total_std  = sqrt(variance);
+    }
+    else 
+    {
+      const Numeric old_mean = total_mean;
+      
+      // This formula assimilates the new chunk mean into the total mean:
+      total_mean = (total_mean*(N_chunk-1) + mean)/N_chunk;
+      
+      // Do the same for the standard deviation.
+      // First get rid of the square root:
+      total_std = total_std * total_std;
+      // Now multiply with old normalisation:
+      total_std *= N_chunk-1;
+      // Now add the new sigma
+      total_std += variance;
+      // Divide by the new normalisation:
+      total_std /= N_chunk;
+      // And finally take the square root:
+      total_std = sqrt(total_std);
+      
+      // Stop the chunk loop if desired accuracy has been reached. 
+      // We take 1% here, no point in trying to be more accurate!
+      if (abs(total_mean-old_mean) < total_mean/100) keep_looping = false;
+    }
+    
+    //        cout << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean 
+    //             << " Std estimate = " << total_std << "\n";
+    
+    out3 << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean 
+    << " Std estimate = " << total_std << "\n";
+    
+  } // End of "keep_looping" loop that runs over the chunks
+  
+  out2 << "  Mean relative error: " << total_mean << "%\n"
+  << "  Standard deviation:  " << total_std << "%\n";
+  
 }

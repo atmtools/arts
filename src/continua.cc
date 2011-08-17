@@ -349,8 +349,8 @@
 #include "matpackI.h"
 #include "array.h"
 #include "absorption.h"
-#include "messages.h"
 #include "continua.h"
+
 
 // #################################################################################
 
@@ -438,16 +438,19 @@ const Numeric VMRCalcLimit = 1.000e-25;
    \date 2001-11-05
  */
 
-void MPM87H2OAbsModel( MatrixView        pxsec,
+void MPM87H2OAbsModel (MatrixView        pxsec,
                        const Numeric   CCin,       // continuum scale factor
-           const Numeric   CLin,       // line strength scale factor
-           const Numeric   CWin,       // line broadening scale factor
+                       const Numeric   CLin,       // line strength scale factor
+                       const Numeric   CWin,       // line broadening scale factor
                        const String&     model,
-           ConstVectorView   f_grid,
-           ConstVectorView   abs_p,
-           ConstVectorView   abs_t,
-           ConstVectorView   vmr )
+                       ConstVectorView   f_grid,
+                       ConstVectorView   abs_p,
+                       ConstVectorView   abs_t,
+                       ConstVectorView   vmr,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe, Radio Science, 20(5), 1985, 1069
   //         0           1        2       3
@@ -621,16 +624,19 @@ void MPM87H2OAbsModel( MatrixView        pxsec,
    \date 2001-11-05
  */
 
-void MPM89H2OAbsModel( MatrixView        pxsec,
+void MPM89H2OAbsModel (MatrixView        pxsec,
                        const Numeric   CCin,       // continuum scale factor
-           const Numeric   CLin,       // line strength scale factor
-           const Numeric   CWin,       // line broadening scale factor
-           const String&     model,     // model
-           ConstVectorView   f_grid,
-           ConstVectorView   abs_p,
-           ConstVectorView   abs_t,
-           ConstVectorView   vmr )
+                       const Numeric   CLin,       // line strength scale factor
+                       const Numeric   CWin,       // line broadening scale factor
+                       const String&     model,     // model
+                       ConstVectorView   f_grid,
+                       ConstVectorView   abs_p,
+                       ConstVectorView   abs_t,
+                       ConstVectorView   vmr,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
   //         0           1        2       3        4      5      6
@@ -822,16 +828,19 @@ void MPM89H2OAbsModel( MatrixView        pxsec,
    \date 2002-05-06
  */
 
-void MPM02H2OAbsModel( MatrixView        pxsec,
+void MPM02H2OAbsModel (MatrixView        pxsec,
                        const Numeric   CCin,       // continuum scale factor
-           const Numeric   CLin,       // line strength scale factor
-           const Numeric   CWin,       // line broadening scale factor
-           const String&     model,
-           ConstVectorView   f_grid,
-           ConstVectorView   abs_p,
-           ConstVectorView   abs_t,
-           ConstVectorView   vmr )
+                       const Numeric   CLin,       // line strength scale factor
+                       const Numeric   CWin,       // line broadening scale factor
+                       const String&     model,
+                       ConstVectorView   f_grid,
+                       ConstVectorView   abs_p,
+                       ConstVectorView   abs_t,
+                       ConstVectorView   vmr,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   /*
 CTKS  OTHER DATA USED IF NOT FROM THEORETICAL CALC. IN A. BAUER ET AL. 41(1989)49-54:
@@ -1079,16 +1088,19 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
    \date 2001-11-05
  */
 
-void MPM93H2OAbsModel( MatrixView        pxsec,
-                       const Numeric   CCin,       // continuum scale factor
-           const Numeric   CLin,       // line strength scale factor
-           const Numeric   CWin,       // line broadening scale factor
-           const String&     model,
-           ConstVectorView   f_grid,
-           ConstVectorView   abs_p,
-           ConstVectorView   abs_t,
-           ConstVectorView   vmr )
+void MPM93H2OAbsModel (MatrixView        pxsec,
+                       const Numeric     CCin,       // continuum scale factor
+                       const Numeric     CLin,       // line strength scale factor
+                       const Numeric     CWin,       // line broadening scale factor
+                       const String&     model,
+                       ConstVectorView   f_grid,
+                       ConstVectorView   abs_p,
+                       ConstVectorView   abs_t,
+                       ConstVectorView   vmr,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0           1        2       3        4      5      6
@@ -1302,16 +1314,19 @@ void MPM93H2OAbsModel( MatrixView        pxsec,
    \date 2001-11-05
  */
 
-void PWR98H2OAbsModel( MatrixView        pxsec,
-           const Numeric   CCin,       // continuum scale factor
-           const Numeric   CLin,       // line strength scale factor
-           const Numeric   CWin,       // line broadening scale factor
-           const String&     model,
-           ConstVectorView   f_grid,
-           ConstVectorView   abs_p,
-           ConstVectorView   abs_t,
-           ConstVectorView   vmr )
+void PWR98H2OAbsModel (MatrixView       pxsec,
+                      const Numeric     CCin,       // continuum scale factor
+                      const Numeric     CLin,       // line strength scale factor
+                      const Numeric     CWin,       // line broadening scale factor
+                      const String&     model,
+                      ConstVectorView   f_grid,
+                      ConstVectorView   abs_p,
+                      ConstVectorView   abs_t,
+                      ConstVectorView   vmr,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //   REFERENCES:
   //   LINE INTENSITIES FROM HITRAN92 (SELECTION THRESHOLD=
   //     HALF OF CONTINUUM ABSORPTION AT 1000 MB).
@@ -1509,16 +1524,18 @@ void PWR98H2OAbsModel( MatrixView        pxsec,
    \date 2001-11-05
  */
 
-void CP98H2OAbsModel( MatrixView        pxsec,
-                      const Numeric  CCin,       // continuum scale factor
-          const Numeric     CLin,       // line strength scale factor
-          const Numeric  CWin,       // line broadening scale factor
-          const String&     model,
-          ConstVectorView   f_grid,
-          ConstVectorView   abs_p,
-          ConstVectorView   abs_t,
-          ConstVectorView   vmr )
+void CP98H2OAbsModel (MatrixView        pxsec,
+                      const Numeric     CCin,       // continuum scale factor
+                      const Numeric     CLin,       // line strength scale factor
+                      const Numeric     CWin,       // line broadening scale factor
+                      const String&     model,
+                      ConstVectorView   f_grid,
+                      ConstVectorView   abs_p,
+                      ConstVectorView   abs_t,
+                      ConstVectorView   vmr,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the CP98 model (S. L. Cruz-Pol et al., Radio Science, 33(5), 1319, 1998):
@@ -1639,15 +1656,17 @@ void CP98H2OAbsModel( MatrixView        pxsec,
    \author Thomas Kuhn
    \date 2001-11-05
  */
-void Standard_H2O_self_continuum( MatrixView        pxsec,
-          const Numeric     Cin,
-          const Numeric     xin,
-          const String&     model,
-          ConstVectorView   f_grid,
-          ConstVectorView   abs_p,
-          ConstVectorView   abs_t,
-          ConstVectorView   vmr   )
+void Standard_H2O_self_continuum (MatrixView        pxsec,
+                                  const Numeric     Cin,
+                                  const Numeric     xin,
+                                  const String&     model,
+                                  ConstVectorView   f_grid,
+                                  ConstVectorView   abs_p,
+                                  ConstVectorView   abs_t,
+                                  ConstVectorView   vmr,
+                                  const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
@@ -1761,15 +1780,17 @@ void Standard_H2O_self_continuum( MatrixView        pxsec,
    \author Thomas Kuhn
    \date 2001-08-03
  */
-void Standard_H2O_foreign_continuum( MatrixView        pxsec,
-             const Numeric     Cin,
-             const Numeric     xin,
-             const String&     model,
-             ConstVectorView   f_grid,
-             ConstVectorView   abs_p,
-             ConstVectorView   abs_t,
-             ConstVectorView   vmr   )
+void Standard_H2O_foreign_continuum (MatrixView        pxsec,
+                                     const Numeric     Cin,
+                                     const Numeric     xin,
+                                     const String&     model,
+                                     ConstVectorView   f_grid,
+                                     ConstVectorView   abs_p,
+                                     ConstVectorView   abs_t,
+                                     ConstVectorView   vmr,
+                                     const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
@@ -1883,15 +1904,17 @@ void Standard_H2O_foreign_continuum( MatrixView        pxsec,
    \author Thomas Kuhn
    \date 2002-12-04
  */
-void MaTipping_H2O_foreign_continuum( MatrixView        pxsec,
-              const Numeric   Cin,
-              const Numeric   xin,
-              const String&     model,
-              ConstVectorView   f_grid,
-              ConstVectorView   abs_p,
-              ConstVectorView   abs_t,
-              ConstVectorView   vmr   )
+void MaTipping_H2O_foreign_continuum (MatrixView        pxsec,
+                                      const Numeric     Cin,
+                                      const Numeric     xin,
+                                      const String&     model,
+                                      ConstVectorView   f_grid,
+                                      ConstVectorView   abs_p,
+                                      ConstVectorView   abs_t,
+                                      ConstVectorView   vmr,
+                                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for Q. Ma and R. H. Tipping, J. Chem. Phys., 117(23), 10581, 2002:
@@ -2095,16 +2118,17 @@ Numeric RADFN_FUN (const Numeric VI,
    \author Thomas Kuhn
    \date 2002-31-10
 */
-void CKD_222_self_h2o( MatrixView          pxsec,
-           const Numeric       Cin,
-           const String&       model,
-           ConstVectorView     f_grid,
-           ConstVectorView     abs_p,
-           ConstVectorView     abs_t,
-           ConstVectorView     vmr,
-           ConstVectorView     abs_n2 _U_ )
+void CKD_222_self_h2o (MatrixView          pxsec,
+                       const Numeric       Cin,
+                       const String&       model,
+                       ConstVectorView     f_grid,
+                       ConstVectorView     abs_p,
+                       ConstVectorView     abs_t,
+                       ConstVectorView     vmr,
+                       ConstVectorView     abs_n2 _U_,
+                       const Verbosity& verbosity)
 {
-
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD222"))
@@ -2382,15 +2406,17 @@ void CKD_222_self_h2o( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
 */
-void CKD_222_foreign_h2o( MatrixView          pxsec,
-        const Numeric       Cin,
-        const String&       model,
-        ConstVectorView     f_grid,
-        ConstVectorView     abs_p,
-        ConstVectorView     abs_t,
-        ConstVectorView     vmr,
-        ConstVectorView     abs_n2 _U_ )
+void CKD_222_foreign_h2o (MatrixView          pxsec,
+                          const Numeric       Cin,
+                          const String&       model,
+                          ConstVectorView     f_grid,
+                          ConstVectorView     abs_p,
+                          ConstVectorView     abs_t,
+                          ConstVectorView     vmr,
+                          ConstVectorView     abs_n2 _U_,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD222"))
@@ -2606,16 +2632,17 @@ void CKD_222_foreign_h2o( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-30-10
 */
-void CKD_242_self_h2o( MatrixView          pxsec,
-           const Numeric       Cin,
-           const String&       model,
-           ConstVectorView     f_grid,
-           ConstVectorView     abs_p,
-           ConstVectorView     abs_t,
-           ConstVectorView     vmr,
-           ConstVectorView     abs_n2 _U_ )
+void CKD_242_self_h2o (MatrixView          pxsec,
+                       const Numeric       Cin,
+                       const String&       model,
+                       ConstVectorView     f_grid,
+                       ConstVectorView     abs_p,
+                       ConstVectorView     abs_t,
+                       ConstVectorView     vmr,
+                       ConstVectorView     abs_n2 _U_,
+                       const Verbosity& verbosity)
 {
-
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD242"))
@@ -2906,16 +2933,17 @@ void CKD_242_self_h2o( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
 */
-void CKD_242_foreign_h2o( MatrixView          pxsec,
-        const Numeric       Cin,
-        const String&       model,
-        ConstVectorView     f_grid,
-        ConstVectorView     abs_p,
-        ConstVectorView     abs_t,
-        ConstVectorView     vmr,
-        ConstVectorView     abs_n2 _U_ )
+void CKD_242_foreign_h2o (MatrixView          pxsec,
+                          const Numeric       Cin,
+                          const String&       model,
+                          ConstVectorView     f_grid,
+                          ConstVectorView     abs_p,
+                          ConstVectorView     abs_t,
+                          ConstVectorView     vmr,
+                          ConstVectorView     abs_n2 _U_,
+                          const Verbosity& verbosity)
 {
-
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD242"))
@@ -3150,15 +3178,17 @@ void CKD_242_foreign_h2o( MatrixView          pxsec,
    \author   Thomas Kuhn
    \date     2002-28-08
 */
-void CKD_mt_100_self_h2o( MatrixView          pxsec,
-        const Numeric       Cin,
-        const String&       model,
-        ConstVectorView     f_grid,
-        ConstVectorView     abs_p,
-        ConstVectorView     abs_t,
-        ConstVectorView     vmr,
-        ConstVectorView     abs_n2 _U_ )
+void CKD_mt_100_self_h2o (MatrixView          pxsec,
+                          const Numeric       Cin,
+                          const String&       model,
+                          ConstVectorView     f_grid,
+                          ConstVectorView     abs_p,
+                          ConstVectorView     abs_t,
+                          ConstVectorView     vmr,
+                          ConstVectorView     abs_n2 _U_,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -3407,16 +3437,17 @@ void CKD_mt_100_self_h2o( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
 */
-void CKD_mt_100_foreign_h2o( MatrixView          pxsec,
-           const Numeric       Cin,
-           const String&       model,
-           ConstVectorView     f_grid,
-           ConstVectorView     abs_p,
-           ConstVectorView     abs_t,
-           ConstVectorView     vmr,
-           ConstVectorView     abs_n2 _U_ )
+void CKD_mt_100_foreign_h2o (MatrixView          pxsec,
+                             const Numeric       Cin,
+                             const String&       model,
+                             ConstVectorView     f_grid,
+                             ConstVectorView     abs_p,
+                             ConstVectorView     abs_t,
+                             ConstVectorView     vmr,
+                             ConstVectorView     abs_n2 _U_,
+                             const Verbosity& verbosity)
 {
-
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -3607,14 +3638,16 @@ void CKD_mt_100_foreign_h2o( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */
-void CKD_241_co2( MatrixView         pxsec,
-     const Numeric       Cin,
-     const String&       model,
-     ConstVectorView     f_grid,
-     ConstVectorView     abs_p,
-     ConstVectorView     abs_t _U_,
-     ConstVectorView     vmr _U_)
+void CKD_241_co2 (MatrixView         pxsec,
+                  const Numeric       Cin,
+                  const String&       model,
+                  ConstVectorView     f_grid,
+                  ConstVectorView     abs_p,
+                  ConstVectorView     abs_t _U_,
+                  ConstVectorView     vmr _U_,
+                  const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD241"))
@@ -3803,15 +3836,16 @@ void CKD_241_co2( MatrixView         pxsec,
    \author   Thomas Kuhn
    \date     2002-28-08
  */
-void CKD_mt_co2( MatrixView          pxsec,
-     const Numeric       Cin,
-     const String&       model,
-     ConstVectorView     f_grid,
-     ConstVectorView     abs_p,
-     ConstVectorView     abs_t,
-     ConstVectorView     vmr _U_)
+void CKD_mt_co2 (MatrixView          pxsec,
+                 const Numeric       Cin,
+                 const String&       model,
+                 ConstVectorView     f_grid,
+                 ConstVectorView     abs_p,
+                 ConstVectorView     abs_t,
+                 ConstVectorView     vmr _U_,
+                 const Verbosity& verbosity)
 {
-
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4015,14 +4049,16 @@ void CKD_mt_co2( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */
-void CKD_mt_CIArot_n2( MatrixView         pxsec,
-          const Numeric       Cin,
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     vmr )
+void CKD_mt_CIArot_n2 (MatrixView         pxsec,
+                       const Numeric       Cin,
+                       const String&       model,
+                       ConstVectorView     f_grid,
+                       ConstVectorView     abs_p,
+                       ConstVectorView     abs_t,
+                       ConstVectorView     vmr,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4266,14 +4302,16 @@ void CKD_mt_CIArot_n2( MatrixView         pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */
-void CKD_mt_CIAfun_n2( MatrixView         pxsec,
-          const Numeric       Cin,
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     vmr )
+void CKD_mt_CIAfun_n2 (MatrixView          pxsec,
+                       const Numeric       Cin,
+                       const String&       model,
+                       ConstVectorView     f_grid,
+                       ConstVectorView     abs_p,
+                       ConstVectorView     abs_t,
+                       ConstVectorView     vmr,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4479,14 +4517,16 @@ void CKD_mt_CIAfun_n2( MatrixView         pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */
-void CKD_mt_CIAfun_o2( MatrixView         pxsec,
-          const Numeric       Cin,
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     vmr _U_ )
+void CKD_mt_CIAfun_o2 (MatrixView         pxsec,
+                       const Numeric       Cin,
+                       const String&       model,
+                       ConstVectorView     f_grid,
+                       ConstVectorView     abs_p,
+                       ConstVectorView     abs_t,
+                       ConstVectorView     vmr _U_,
+                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4700,16 +4740,17 @@ void CKD_mt_CIAfun_o2( MatrixView         pxsec,
    \author   Thomas Kuhn
    \date     2002-28-08
  */
-void CKD_mt_v0v0_o2( MatrixView          pxsec,
-         const Numeric       Cin,
-         const String&       model,
-         ConstVectorView     f_grid,
-         ConstVectorView     abs_p,
-         ConstVectorView     abs_t,
-         ConstVectorView     vmr,
-         ConstVectorView     abs_n2)
+void CKD_mt_v0v0_o2 (MatrixView          pxsec,
+                     const Numeric       Cin,
+                     const String&       model,
+                     ConstVectorView     f_grid,
+                     ConstVectorView     abs_p,
+                     ConstVectorView     abs_t,
+                     ConstVectorView     vmr,
+                     ConstVectorView     abs_n2,
+                     const Verbosity& verbosity)
 {
-
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4905,14 +4946,16 @@ void CKD_mt_v0v0_o2( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */
-void CKD_mt_v1v0_o2( MatrixView          pxsec,
-         const Numeric       Cin,
-         const String&       model,
-         ConstVectorView     f_grid,
-         ConstVectorView     abs_p,
-         ConstVectorView     abs_t,
-         ConstVectorView     vmr )
+void CKD_mt_v1v0_o2 (MatrixView          pxsec,
+                     const Numeric       Cin,
+                     const String&       model,
+                     ConstVectorView     f_grid,
+                     ConstVectorView     abs_p,
+                     ConstVectorView     abs_t,
+                     ConstVectorView     vmr,
+                     const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -5125,16 +5168,19 @@ void CKD_mt_v1v0_o2( MatrixView          pxsec,
    \author Thomas Kuhn
    \date 2002-03-06
  */
-void CKD24_H20( MatrixView          pxsec,
-    int                 isf,
-    const Numeric       Cin,
-    const String&       model,
-    ConstVectorView     f_grid,
-    ConstVectorView     abs_p,
-    ConstVectorView     abs_t,
-    ConstVectorView     vmr,
-                ConstVectorView     abs_n2 )
+void CKD24_H20 (MatrixView          pxsec,
+                int                 isf,
+                const Numeric       Cin,
+                const String&       model,
+                ConstVectorView     f_grid,
+                ConstVectorView     abs_p,
+                ConstVectorView     abs_t,
+                ConstVectorView     vmr,
+                ConstVectorView     abs_n2,
+                const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   //
   // external function to call (original F77 code translated with f2c)
@@ -5306,14 +5352,17 @@ void CKD24_H20( MatrixView          pxsec,
    \date 2001-04-10
  */
 
-void Pardo_ATM_H2O_ForeignContinuum( MatrixView          pxsec,
-             const Numeric       Cin,
-             const String&       model,
-             ConstVectorView     f_grid,
-             ConstVectorView     abs_p,
-             ConstVectorView     abs_t,
-             ConstVectorView     vmr)
+void Pardo_ATM_H2O_ForeignContinuum (MatrixView          pxsec,
+                                     const Numeric       Cin,
+                                     const String&       model,
+                                     ConstVectorView     f_grid,
+                                     ConstVectorView     abs_p,
+                                     ConstVectorView     abs_t,
+                                     ConstVectorView     vmr,
+                                     const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Pardo et al. model (IEEE, Trans. Ant. Prop.,
   // Vol 49, No 12, pp. 1683-1694, 2001)
@@ -5419,20 +5468,22 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void MPM93_H2O_continuum( MatrixView          pxsec,
-        const Numeric       fcenter,
-        const Numeric       b1,
-        const Numeric       b2,
-        const Numeric       b3,
-        const Numeric       b4,
-        const Numeric       b5,
-        const Numeric       b6,
-        const String&       model,
-        ConstVectorView     f_grid,
-        ConstVectorView     abs_p,
-        ConstVectorView     abs_t,
-        ConstVectorView     vmr   )
+void MPM93_H2O_continuum (MatrixView          pxsec,
+                          const Numeric       fcenter,
+                          const Numeric       b1,
+                          const Numeric       b2,
+                          const Numeric       b3,
+                          const Numeric       b4,
+                          const Numeric       b5,
+                          const Numeric       b6,
+                          const String&       model,
+                          ConstVectorView     f_grid,
+                          ConstVectorView     abs_p,
+                          ConstVectorView     abs_t,
+                          ConstVectorView     vmr,
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 H2O continuum model
@@ -5556,18 +5607,21 @@ void MPM93_H2O_continuum( MatrixView          pxsec,
    \date 2002-04-05
  */
 
-void MPM85O2AbsModel( MatrixView          pxsec,
-          const Numeric    CCin,       // continuum scale factor
-          const Numeric    CLin,       // line strength scale factor
-          const Numeric    CWin,       // line broadening scale factor
-          const Numeric    COin,       // line coupling scale factor
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     abs_h2o,
-          ConstVectorView     vmr )
+void MPM85O2AbsModel (MatrixView          pxsec,
+                      const Numeric       CCin,       // continuum scale factor
+                      const Numeric       CLin,       // line strength scale factor
+                      const Numeric       CWin,       // line broadening scale factor
+                      const Numeric       COin,       // line coupling scale factor
+                      const String&       model,
+                      ConstVectorView     f_grid,
+                      ConstVectorView     abs_p,
+                      ConstVectorView     abs_t,
+                      ConstVectorView     abs_h2o,
+                      ConstVectorView     vmr,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //      0             1           2         3          4      5         6
@@ -5838,18 +5892,21 @@ void MPM85O2AbsModel( MatrixView          pxsec,
    \date 2002-04-05
  */
 
-void MPM87O2AbsModel( MatrixView          pxsec,
-          const Numeric    CCin,       // continuum scale factor
-          const Numeric    CLin,       // line strength scale factor
-          const Numeric    CWin,       // line broadening scale factor
-          const Numeric    COin,       // line coupling scale factor
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     abs_h2o,
-          ConstVectorView     vmr )
+void MPM87O2AbsModel (MatrixView          pxsec,
+                      const Numeric       CCin,       // continuum scale factor
+                      const Numeric       CLin,       // line strength scale factor
+                      const Numeric       CWin,       // line broadening scale factor
+                      const Numeric       COin,       // line coupling scale factor
+                      const String&       model,
+                      ConstVectorView     f_grid,
+                      ConstVectorView     abs_p,
+                      ConstVectorView     abs_t,
+                      ConstVectorView     abs_h2o,
+                      ConstVectorView     vmr,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0            1           2        3          4        5        6
@@ -6112,18 +6169,21 @@ void MPM87O2AbsModel( MatrixView          pxsec,
    \date 2002-04-05
  */
 
-void MPM89O2AbsModel( MatrixView          pxsec,
-          const Numeric    CCin,       // continuum scale factor
-          const Numeric    CLin,       // line strength scale factor
-          const Numeric    CWin,       // line broadening scale factor
-          const Numeric    COin,       // line coupling scale factor
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     abs_h2o,
-          ConstVectorView     vmr )
+void MPM89O2AbsModel (MatrixView          pxsec,
+                      const Numeric       CCin,       // continuum scale factor
+                      const Numeric       CLin,       // line strength scale factor
+                      const Numeric       CWin,       // line broadening scale factor
+                      const Numeric       COin,       // line coupling scale factor
+                      const String&       model,
+                      ConstVectorView     f_grid,
+                      ConstVectorView     abs_p,
+                      ConstVectorView     abs_t,
+                      ConstVectorView     abs_h2o,
+                      ConstVectorView     vmr,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0            1           2        3          4        5        6
@@ -6381,18 +6441,21 @@ void MPM89O2AbsModel( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void MPM92O2AbsModel( MatrixView          pxsec,
-          const Numeric    CCin,       // continuum scale factor
-          const Numeric    CLin,       // line strength scale factor
-          const Numeric    CWin,       // line broadening scale factor
-          const Numeric    COin,       // line coupling scale factor
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     abs_h2o,
-          ConstVectorView     vmr )
+void MPM92O2AbsModel (MatrixView          pxsec,
+                      const Numeric       CCin,       // continuum scale factor
+                      const Numeric       CLin,       // line strength scale factor
+                      const Numeric       CWin,       // line broadening scale factor
+                      const Numeric       COin,       // line coupling scale factor
+                      const String&       model,
+                      ConstVectorView     f_grid,
+                      ConstVectorView     abs_p,
+                      ConstVectorView     abs_t,
+                      ConstVectorView     abs_h2o,
+                      ConstVectorView     vmr,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0           1            2       3        4      5      6
@@ -6649,18 +6712,21 @@ void MPM92O2AbsModel( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void MPM93O2AbsModel( MatrixView          pxsec,
-          const Numeric    CCin,       // continuum scale factor
-          const Numeric    CLin,       // line strength scale factor
-          const Numeric    CWin,       // line broadening scale factor
-          const Numeric    COin,       // line coupling scale factor
-          const String&       model,
-          ConstVectorView     f_grid,
-          ConstVectorView     abs_p,
-          ConstVectorView     abs_t,
-          ConstVectorView     abs_h2o,    // VMR 0f H2O
-          ConstVectorView     vmr )       // VMR of O2
+void MPM93O2AbsModel (MatrixView          pxsec,
+                      const Numeric       CCin,       // continuum scale factor
+                      const Numeric       CLin,       // line strength scale factor
+                      const Numeric       CWin,       // line broadening scale factor
+                      const Numeric       COin,       // line coupling scale factor
+                      const String&       model,
+                      ConstVectorView     f_grid,
+                      ConstVectorView     abs_p,
+                      ConstVectorView     abs_t,
+                      ConstVectorView     abs_h2o,    // VMR 0f H2O
+                      ConstVectorView     vmr,        // VMR of O2
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
   //         0             1           2         3         4      5        6
@@ -6944,19 +7010,22 @@ void MPM93O2AbsModel( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void PWR93O2AbsModel( MatrixView        pxsec,
-          const Numeric     CCin,      // model parameter
-          const Numeric     CLin,      // model parameter
-          const Numeric     CWin,      // model parameter
-          const Numeric     COin,      // model parameter
-          const String&     model,     // model selection string
-          const String&     version,   // PWR98, PWR93 or PWR88
-          ConstVectorView   f_grid,
-          ConstVectorView   abs_p,
-          ConstVectorView   abs_t,
-          ConstVectorView   vmrh2o,
-                      ConstVectorView   vmr )
+void PWR93O2AbsModel (MatrixView        pxsec,
+                      const Numeric     CCin,      // model parameter
+                      const Numeric     CLin,      // model parameter
+                      const Numeric     CWin,      // model parameter
+                      const Numeric     COin,      // model parameter
+                      const String&     model,     // model selection string
+                      const String&     version,   // PWR98, PWR93 or PWR88
+                      ConstVectorView   f_grid,
+                      ConstVectorView   abs_p,
+                      ConstVectorView   abs_t,
+                      ConstVectorView   vmrh2o,
+                      ConstVectorView   vmr,
+                      const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   const Index n_lines = 40; // all O2 lines in this model (range: 50-850 GHz)
   //
   // lines are arranged 1-,1+,3-,3+,etc. in spin-rotation spectrum
@@ -7310,18 +7379,20 @@ void PWR93O2AbsModel( MatrixView        pxsec,
    \date 2001-11-05
  */
 
-void MPM93_O2_continuum( MatrixView          pxsec,
-       const Numeric       S0in,         // model parameter
-       const Numeric       G0in,         // model parameter
-       const Numeric       XS0in,        // model parameter
-       const Numeric       XG0in,        // model parameter
-       const String&       model,
-       ConstVectorView     f_grid,
-       ConstVectorView     abs_p,
-       ConstVectorView     abs_t,
-       ConstVectorView     abs_h2o,
-       ConstVectorView     vmr   )
+void MPM93_O2_continuum (MatrixView          pxsec,
+                         const Numeric       S0in,         // model parameter
+                         const Numeric       G0in,         // model parameter
+                         const Numeric       XS0in,        // model parameter
+                         const Numeric       XG0in,        // model parameter
+                         const String&       model,
+                         ConstVectorView     f_grid,
+                         ConstVectorView     abs_p,
+                         ConstVectorView     abs_t,
+                         ConstVectorView     abs_h2o,
+                         ConstVectorView     vmr,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -7456,18 +7527,20 @@ void MPM93_O2_continuum( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void Rosenkranz_O2_continuum( MatrixView        pxsec,
-            const Numeric     S0in,         // model parameter
-            const Numeric     G0in,         // model parameter
-            const Numeric     XS0in,        // model parameter
-            const Numeric     XG0in,        // model parameter
-            const String&     model,
-            ConstVectorView    f_grid,
-            ConstVectorView    abs_p,        // total pressure [Pa]
-            ConstVectorView    abs_t,
-            ConstVectorView   abs_h2o,      // H2O VMR
-            ConstVectorView   vmr _U_ )    // O2 VMR
+void Rosenkranz_O2_continuum (MatrixView        pxsec,
+                              const Numeric     S0in,         // model parameter
+                              const Numeric     G0in,         // model parameter
+                              const Numeric     XS0in,        // model parameter
+                              const Numeric     XG0in,        // model parameter
+                              const String&     model,
+                              ConstVectorView   f_grid,
+                              ConstVectorView   abs_p,        // total pressure [Pa]
+                              ConstVectorView   abs_t,
+                              ConstVectorView   abs_h2o,      // H2O VMR
+                              ConstVectorView   vmr _U_,      // O2 VMR
+                              const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
@@ -7586,20 +7659,22 @@ void Rosenkranz_O2_continuum( MatrixView        pxsec,
    \date 2001-11-05
  */
 
-void Standard_O2_continuum( MatrixView        pxsec,         // cross section
-          const Numeric     Cin,          // model parameter
-          const Numeric     G0in,         // model parameter
-          const Numeric     G0Ain,        // model parameter
-          const Numeric     G0Bin,        // model parameter
-          const Numeric     XG0din,       // model parameter
-          const Numeric     XG0win,       // model parameter
-          const String&     model,        // model parameter
-          ConstVectorView   f_grid,       // frequency grid
-          ConstVectorView   abs_p,        // P_tot grid
-          ConstVectorView   abs_t,        // T grid
-          ConstVectorView   abs_h2o,      // VMR H2O profile
-          ConstVectorView   vmr _U_ )   // VMR O2  profile
+void Standard_O2_continuum (MatrixView        pxsec,        // cross section
+                            const Numeric     Cin,          // model parameter
+                            const Numeric     G0in,         // model parameter
+                            const Numeric     G0Ain,        // model parameter
+                            const Numeric     G0Bin,        // model parameter
+                            const Numeric     XG0din,       // model parameter
+                            const Numeric     XG0win,       // model parameter
+                            const String&     model,        // model parameter
+                            ConstVectorView   f_grid,       // frequency grid
+                            ConstVectorView   abs_p,        // P_tot grid
+                            ConstVectorView   abs_t,        // T grid
+                            ConstVectorView   abs_h2o,      // VMR H2O profile
+                            ConstVectorView   vmr _U_,      // VMR O2  profile
+                            const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
@@ -7749,14 +7824,17 @@ void Standard_O2_continuum( MatrixView        pxsec,         // cross section
    \author Thomas Kuhn
    \date 2002-03-05
 */
-void BF86_CIA_N2( MatrixView          pxsec,
-      const Numeric       Cin,
-      const String&       model,
-      ConstVectorView     f_grid,
-      ConstVectorView     abs_p,
-      ConstVectorView     abs_t,
-      ConstVectorView     vmr   )
+void BF86_CIA_N2 (MatrixView          pxsec,
+                  const Numeric       Cin,
+                  const String&       model,
+                  ConstVectorView     f_grid,
+                  ConstVectorView     abs_p,
+                  ConstVectorView     abs_t,
+                  ConstVectorView     vmr,
+                  const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   //
   //
   // external function to call (original F77 code translated with f2c)
@@ -7872,18 +7950,20 @@ void BF86_CIA_N2( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void MPM93_N2_continuum( MatrixView          pxsec,
-       const Numeric       Cin,
-       const Numeric       Gin,
-       const Numeric       xTin,
-       const Numeric       xfin,
-       const String&       model,
-       ConstVectorView     f_grid,
-       ConstVectorView     abs_p,
-       ConstVectorView     abs_t,
-       ConstVectorView     abs_h2o,
-       ConstVectorView     vmr   )
+void MPM93_N2_continuum (MatrixView          pxsec,
+                         const Numeric       Cin,
+                         const Numeric       Gin,
+                         const Numeric       xTin,
+                         const Numeric       xfin,
+                         const String&       model,
+                         ConstVectorView     f_grid,
+                         ConstVectorView     abs_p,
+                         ConstVectorView     abs_t,
+                         ConstVectorView     abs_h2o,
+                         ConstVectorView     vmr,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 H2O continuum model
@@ -8004,15 +8084,18 @@ void MPM93_N2_continuum( MatrixView          pxsec,
    \date 2001-04-10
  */
 
-void Pardo_ATM_N2_dry_continuum( MatrixView          pxsec,
-         const Numeric       Cin,
-         const String&       model,
-         ConstVectorView     f_grid,
-         ConstVectorView     abs_p,
-         ConstVectorView     abs_t,
-         ConstVectorView     vmr,
-         ConstVectorView     h2ovmr   )
+void Pardo_ATM_N2_dry_continuum (MatrixView          pxsec,
+                                 const Numeric       Cin,
+                                 const String&       model,
+                                 ConstVectorView     f_grid,
+                                 ConstVectorView     abs_p,
+                                 ConstVectorView     abs_t,
+                                 ConstVectorView     vmr,
+                                 ConstVectorView     h2ovmr,
+                                 const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Pardo et al. model (IEEE, Trans. Ant. Prop.,
   // Vol 49, No 12, pp. 1683-1694, 2001)
@@ -8106,15 +8189,18 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void Rosenkranz_N2_self_continuum( MatrixView          pxsec,
-           const Numeric       Cin,
-           const Numeric       xin,
-           const String&       model,
-           ConstVectorView     f_grid,
-           ConstVectorView     abs_p,
-           ConstVectorView     abs_t,
-           ConstVectorView     vmr   )
+void Rosenkranz_N2_self_continuum (MatrixView          pxsec,
+                                   const Numeric       Cin,
+                                   const Numeric       xin,
+                                   const String&       model,
+                                   ConstVectorView     f_grid,
+                                   ConstVectorView     abs_p,
+                                   ConstVectorView     abs_t,
+                                   ConstVectorView     vmr,
+                                   const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Chapter 2, pp 74, in M. A. Janssen,
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
@@ -8209,17 +8295,19 @@ void Rosenkranz_N2_self_continuum( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void Standard_N2_self_continuum( MatrixView          pxsec,
-         const Numeric       Cin,
-         const Numeric       xfin,
-         const Numeric       xtin,
-         const Numeric       xpin,
-         const String&       model,
-         ConstVectorView     f_grid,
-         ConstVectorView     abs_p,
-         ConstVectorView     abs_t,
-         ConstVectorView     vmr   )
+void Standard_N2_self_continuum (MatrixView          pxsec,
+                                 const Numeric       Cin,
+                                 const Numeric       xfin,
+                                 const Numeric       xtin,
+                                 const Numeric       xpin,
+                                 const String&       model,
+                                 ConstVectorView     f_grid,
+                                 ConstVectorView     abs_p,
+                                 ConstVectorView     abs_t,
+                                 ConstVectorView     vmr,
+                                 const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model, Chapter 2, pp 74, in M. A. Janssen,
@@ -8321,15 +8409,18 @@ void Standard_N2_self_continuum( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void Rosenkranz_CO2_self_continuum( MatrixView          pxsec,
-            const Numeric       Cin,
-            const Numeric       xin,
-            const String&       model,
-            ConstVectorView     f_grid,
-            ConstVectorView     abs_p,
-            ConstVectorView     abs_t,
-            ConstVectorView     vmr   )
+void Rosenkranz_CO2_self_continuum (MatrixView          pxsec,
+                                    const Numeric       Cin,
+                                    const Numeric       xin,
+                                    const String&       model,
+                                    ConstVectorView     f_grid,
+                                    ConstVectorView     abs_p,
+                                    ConstVectorView     abs_t,
+                                    ConstVectorView     vmr,
+                                    const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen,
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
@@ -8419,16 +8510,18 @@ void Rosenkranz_CO2_self_continuum( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void Rosenkranz_CO2_foreign_continuum( MatrixView          pxsec,
-               const Numeric       Cin,
-               const Numeric       xin,
-               const String&       model,
-               ConstVectorView     f_grid,
-               ConstVectorView     abs_p,
-               ConstVectorView     abs_t,
-               ConstVectorView     abs_n2,
-               ConstVectorView     vmr _U_ )
+void Rosenkranz_CO2_foreign_continuum (MatrixView          pxsec,
+                                       const Numeric       Cin,
+                                       const Numeric       xin,
+                                       const String&       model,
+                                       ConstVectorView     f_grid,
+                                       ConstVectorView     abs_p,
+                                       ConstVectorView     abs_t,
+                                       ConstVectorView     abs_n2,
+                                       ConstVectorView     vmr _U_,
+                                       const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
@@ -8523,16 +8616,18 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          pxsec,
    \date 2001-11-05
  */
 
-void MPM93WaterDropletAbs( MatrixView         pxsec,
-         const Numeric      CCin,   // input parameter
-         const Numeric      CGin,   // input parameter
-         const Numeric      CEin,   // input parameter
-         const String&      model, // model
-         ConstVectorView    f_grid, // frequency vector
-         ConstVectorView    abs_p,  // pressure vector
-         ConstVectorView    abs_t,  // temperature vector
-         ConstVectorView    vmr)    // suspended water droplet density vector
+void MPM93WaterDropletAbs (MatrixView         pxsec,
+                           const Numeric      CCin,   // input parameter
+                           const Numeric      CGin,   // input parameter
+                           const Numeric      CEin,   // input parameter
+                           const String&      model,  // model
+                           ConstVectorView    f_grid, // frequency vector
+                           ConstVectorView    abs_p,  // pressure vector
+                           ConstVectorView    abs_t,  // temperature vector
+                           ConstVectorView    vmr,    // suspended water droplet density vector
+                           const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -8698,17 +8793,19 @@ void MPM93WaterDropletAbs( MatrixView         pxsec,
    \date 2001-11-05
  */
 
-void MPM93IceCrystalAbs( MatrixView        pxsec,
-       const Numeric     CCin,   // input parameter
-       const Numeric     CAin,   // input parameter
-       const Numeric     CBin,   // input parameter
-       const String&     model, // model
-       ConstVectorView   f_grid, // frequency vector
-       ConstVectorView   abs_p,  // pressure vector
-       ConstVectorView   abs_t,  // temperature vector
-       ConstVectorView   vmr   ) // suspended ice particle density vector,
+void MPM93IceCrystalAbs (MatrixView        pxsec,
+                         const Numeric     CCin,   // input parameter
+                         const Numeric     CAin,   // input parameter
+                         const Numeric     CBin,   // input parameter
+                         const String&     model,  // model
+                         ConstVectorView   f_grid, // frequency vector
+                         ConstVectorView   abs_p,  // pressure vector
+                         ConstVectorView   abs_t,  // temperature vector
+                         ConstVectorView   vmr,    // suspended ice particle density vector,
                                                    // valid range: 0-10.0e-3 kg/m³
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -8859,16 +8956,18 @@ void MPM93IceCrystalAbs( MatrixView        pxsec,
    \date 2003-22-05
  */
 
-void MPM93RainExt( MatrixView         pxsec,
-       const Numeric      CEin,   // input parameter
-       const Numeric      CAin,   // input parameter
-       const Numeric      CBin,   // input parameter
-       const String&      model, // model
-       ConstVectorView    f_grid, // frequency vector
-       ConstVectorView    abs_p,  // pressure vector
-       ConstVectorView    abs_t _U_,  // temperature vector
-       ConstVectorView    vmr)    // rain rate profile [mm/h]
+void MPM93RainExt (MatrixView         pxsec,
+                   const Numeric      CEin,   // input parameter
+                   const Numeric      CAin,   // input parameter
+                   const Numeric      CBin,   // input parameter
+                   const String&      model,  // model
+                   ConstVectorView    f_grid, // frequency vector
+                   ConstVectorView    abs_p,  // pressure vector
+                   ConstVectorView    abs_t _U_,  // temperature vector
+                   ConstVectorView    vmr,    // rain rate profile [mm/h]
+                   const Verbosity& verbosity)
 {
+  CREATE_OUT3
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model based on Olsen, R.L.,
@@ -9382,7 +9481,7 @@ Numeric WVSatPressureIce(const Numeric t)
    \author Stefan Buehler, Thomas Kuhn
    \date 2001-11-05
  */
-void xsec_continuum_tag( MatrixView             xsec,
+void xsec_continuum_tag (MatrixView             xsec,
                          const String&          name,
                          ConstVectorView        parameters,
                          const String&          model,
@@ -9391,8 +9490,11 @@ void xsec_continuum_tag( MatrixView             xsec,
                          ConstVectorView        abs_t,
                          ConstVectorView        abs_n2,
                          ConstVectorView        abs_h2o,
-                         ConstVectorView        vmr )
+                         ConstVectorView        vmr,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   /* In the following all the possible tags are listed here and
      after a first consistency check about the input parameters the
      appropriate internal function is called,
@@ -9471,7 +9573,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                        f_grid,
                                        abs_p,
                                        abs_t,
-                                       vmr );
+                                       vmr,
+                                       verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9492,7 +9595,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                        f_grid,
                                        abs_p,
                                        abs_t,
-                                       vmr );
+                                       vmr,
+                                       verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9532,7 +9636,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                           f_grid,
                                           abs_p,
                                           abs_t,
-                                          vmr );
+                                          vmr,
+                                          verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9553,7 +9658,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                           f_grid,
                                           abs_p,
                                           abs_t,
-                                          vmr );
+                                          vmr,
+                                          verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9592,7 +9698,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                            f_grid,
                                            abs_p,
                                            abs_t,
-                                           vmr );
+                                           vmr,
+                                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9613,7 +9720,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                            f_grid,
                                            abs_p,
                                            abs_t,
-                                           vmr );
+                                           vmr,
+                                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9665,7 +9773,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                f_grid,
                                abs_p,
                                abs_t,
-                               vmr   );
+                               vmr,
+                               verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9691,7 +9800,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                f_grid,
                                abs_p,
                                abs_t,
-                               vmr   );
+                               vmr,
+                               verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9733,7 +9843,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                           f_grid,
                                           abs_p,
                                           abs_t,
-                                          vmr   );
+                                          vmr,
+                                          verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9753,7 +9864,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                           f_grid,
                                           abs_p,
                                           abs_t,
-                                          vmr   );
+                                          vmr,
+                                          verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9796,7 +9908,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2 );
+                            abs_n2,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9817,7 +9930,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2 );
+                            abs_n2,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9860,7 +9974,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2 );
+                               abs_n2,
+                               verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9881,7 +9996,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2 );
+                               abs_n2,
+                               verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9924,7 +10040,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2 );
+                            abs_n2,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -9945,7 +10062,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             abs_p,
                             abs_t,
                             vmr,
-                            abs_n2 );
+                            abs_n2,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -9988,7 +10106,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2 );
+                               abs_n2,
+                               verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10009,7 +10128,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2 );
+                               abs_n2,
+                               verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10052,7 +10172,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2 );
+                               abs_n2,
+                               verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10073,7 +10194,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                abs_p,
                                abs_t,
                                vmr,
-                               abs_n2 );
+                               abs_n2,
+                               verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10116,7 +10238,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                   abs_p,
                                   abs_t,
                                   vmr,
-                                  abs_n2 );
+                                  abs_n2,
+                                  verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10137,7 +10260,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                   abs_p,
                                   abs_t,
                                   vmr,
-                                  abs_n2 );
+                                  abs_n2,
+                                  verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10181,7 +10305,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                      abs_p,
                      abs_t,
                      vmr,
-                     abs_n2 );
+                     abs_n2,
+                     verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10203,7 +10328,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                      abs_p,
                      abs_t,
                      vmr,
-                     abs_n2 );
+                     abs_n2,
+                     verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10247,7 +10373,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                      abs_p,
                      abs_t,
                      vmr,
-                     abs_n2 );
+                     abs_n2,
+                     verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10269,7 +10396,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                      abs_p,
                      abs_t,
                      vmr,
-                     abs_n2 );
+                     abs_n2,
+                     verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10311,7 +10439,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            f_grid,
                            abs_p,
                            abs_t,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10333,7 +10462,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            f_grid,
                            abs_p,
                            abs_t,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10375,7 +10505,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10397,7 +10528,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10439,7 +10571,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10461,7 +10594,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10503,7 +10637,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10525,7 +10660,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10566,7 +10702,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10588,7 +10725,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10634,7 +10772,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10654,7 +10793,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10701,7 +10841,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                           abs_p,
                           abs_t,
                           vmr,
-                          abs_n2 );
+                          abs_n2,
+                          verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10722,7 +10863,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                           abs_p,
                           abs_t,
                           vmr,
-                          abs_n2 );
+                          abs_n2,
+                          verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10767,7 +10909,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                           f_grid,
                           abs_p,
                           abs_t,
-                          vmr );
+                          vmr,
+                          verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10787,7 +10930,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                           f_grid,
                           abs_p,
                           abs_t,
-                          vmr );
+                          vmr,
+                          verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10849,7 +10993,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                  abs_p,
                                  abs_t,
                                  abs_h2o,
-                                 vmr );
+                                 vmr,
+                                 verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10875,7 +11020,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                  abs_p,
                                  abs_t,
                                  abs_h2o,
-                                 vmr );
+                                 vmr,
+                                 verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10925,7 +11071,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                               abs_p,
                               abs_t,
                               abs_h2o,
-                              vmr );
+                              vmr,
+                              verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -10949,7 +11096,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                               abs_p,
                               abs_t,
                               abs_h2o,
-                              vmr );
+                              vmr,
+                              verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -10997,7 +11145,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                    abs_p,
                                    abs_t,
                                    abs_h2o,
-                                   vmr );
+                                   vmr,
+                                   verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11021,7 +11170,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                    abs_p,
                                    abs_t,
                                    abs_h2o,
-                                   vmr );
+                                   vmr,
+                                   verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11081,7 +11231,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11106,7 +11257,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11159,7 +11311,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11184,7 +11337,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11243,7 +11397,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11268,7 +11423,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11319,7 +11475,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11343,7 +11500,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11393,7 +11551,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11417,7 +11576,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11466,7 +11626,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11490,7 +11651,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11543,7 +11705,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11567,7 +11730,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11616,7 +11780,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11640,7 +11805,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                            abs_p,
                            abs_t,
                            abs_h2o,
-                           vmr );
+                           vmr,
+                           verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11691,7 +11857,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                               abs_p,
                               abs_t,
                               abs_h2o,
-                              vmr );
+                              vmr,
+                              verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11715,7 +11882,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                               abs_p,
                               abs_t,
                               abs_h2o,
-                              vmr );
+                              vmr,
+                              verbosity );
         }
       else if ( (model == "MPM93Scale") && (parameters.nelem() != 1) ) // --------------------
         {
@@ -11739,7 +11907,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                               abs_p,
                               abs_t,
                               abs_h2o,
-                              vmr );
+                              vmr,
+                              verbosity );
         }
       /* --------------------------------------------------------------------------
          else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11784,7 +11953,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                       abs_p,
                                       abs_t,
                                       vmr,
-                                      abs_h2o );
+                                      abs_h2o,
+                                      verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11805,7 +11975,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                       abs_p,
                                       abs_t,
                                       vmr,
-                                      abs_h2o );
+                                      abs_h2o,
+                                      verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11849,7 +12020,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                         f_grid,
                                         abs_p,
                                         abs_t,
-                                        vmr );
+                                        vmr,
+                                        verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11870,7 +12042,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                         f_grid,
                                         abs_p,
                                         abs_t,
-                                        vmr );
+                                        vmr,
+                                        verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11915,7 +12088,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                       f_grid,
                                       abs_p,
                                       abs_t,
-                                      vmr );
+                                      vmr,
+                                      verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11938,7 +12112,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                       f_grid,
                                       abs_p,
                                       abs_t,
-                                      vmr );
+                                      vmr,
+                                      verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -11968,7 +12143,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                        f_grid,
                        abs_p,
                        abs_t,
-                       vmr   );
+                       vmr,
+                       verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -11988,7 +12164,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                        f_grid,
                        abs_p,
                        abs_t,
-                       vmr   );
+                       vmr,
+                       verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12018,7 +12195,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12038,7 +12216,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12072,7 +12251,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12092,7 +12272,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                             f_grid,
                             abs_p,
                             abs_t,
-                            vmr );
+                            vmr,
+                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12136,7 +12317,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                        f_grid,
                        abs_p,
                        abs_t,
-                       vmr );
+                       vmr,
+                       verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12156,7 +12338,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                        f_grid,
                        abs_p,
                        abs_t,
-                       vmr );
+                       vmr,
+                       verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12200,7 +12383,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                       f_grid,
                       abs_p,
                       abs_t,
-                      vmr );
+                      vmr,
+                      verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12220,7 +12404,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                       f_grid,
                       abs_p,
                       abs_t,
-                      vmr );
+                      vmr,
+                      verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12264,7 +12449,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                          f_grid,
                                          abs_p,
                                          abs_t,
-                                         vmr );
+                                         vmr,
+                                         verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12285,7 +12471,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                          f_grid,
                                          abs_p,
                                          abs_t,
-                                         vmr );
+                                         vmr,
+                                         verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12331,7 +12518,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                             abs_p,
                                             abs_t,
                                             abs_n2,
-                                            vmr );
+                                            vmr,
+                                            verbosity );
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12353,7 +12541,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                             abs_p,
                                             abs_t,
                                             abs_n2,
-                                            vmr );
+                                            vmr,
+                                            verbosity );
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12410,7 +12599,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                f_grid,
                                abs_p,
                                abs_t,
-                               vmr );
+                               vmr,
+                               verbosity);
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12432,7 +12622,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                                f_grid,
                                abs_p,
                                abs_t,
-                               vmr );
+                               vmr,
+                               verbosity);
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12489,7 +12680,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                              f_grid,
                              abs_p,
                              abs_t,
-                             vmr );
+                             vmr,
+                             verbosity);
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12511,7 +12703,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                              f_grid,
                              abs_p,
                              abs_t,
-                             vmr );
+                             vmr,
+                             verbosity);
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {
@@ -12569,7 +12762,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                        f_grid,
                        abs_p,
                        abs_t,
-                       vmr );
+                       vmr,
+                       verbosity);
         }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
         {
@@ -12591,7 +12785,8 @@ void xsec_continuum_tag( MatrixView             xsec,
                        f_grid,
                        abs_p,
                        abs_t,
-                       vmr );
+                       vmr,
+                       verbosity);
         }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
         {

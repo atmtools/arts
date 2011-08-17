@@ -61,8 +61,8 @@ void cloudboxSetDisort(//WS Output
                        Index& cloudbox_on,
                        ArrayOfIndex& cloudbox_limits,
                        // WS Input
-                       const Vector& p_grid
-                       )
+                       const Vector& p_grid,
+                       const Verbosity&)
 {
   cloudbox_on = 1;
   cloudbox_limits.resize(2); 
@@ -95,7 +95,8 @@ void ScatteringDisort(Workspace& ws,
                       const ArrayOfSingleScatteringData& scat_data_raw,
                       const Vector& f_grid,
                       const Vector& scat_za_grid,
-                      const Matrix& surface_emissivity_field)
+                      const Matrix& surface_emissivity_field,
+                      const Verbosity& verbosity)
 {
 
   out1<< "Start DISORT calculation...\n";
@@ -350,7 +351,8 @@ void ScatteringDisort(Workspace&,
                       const ArrayOfSingleScatteringData&,
                       const Vector&,
                       const Vector&,
-                      const Matrix&)
+                      const Matrix&,
+                      const Verbosity&)
 {
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
 #endif /* ENABLE_DISORT */

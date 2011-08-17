@@ -66,142 +66,149 @@
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void INCLUDE()
+void INCLUDE(const Verbosity&)
 {
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        Workspace& ws _U_,
-        // WS Generic Input:
-        const Agenda&   x,
-        // Keywords:
-        const Index&            level )
+void Print(Workspace& ws _U_,
+           // WS Generic Input:
+           const Agenda&   x,
+           // Keywords:
+           const Index&    level,
+           const Verbosity& verbosity)
 {
   ostringstream os;
   os << "     " << x << "\n";
+  CREATE_OUTS
   SWITCH_OUTPUT (level, os.str ())
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        // WS Generic Input:
-        const ArrayOfGridPos&   x,
-        // Keywords:
-        const Index&            level )
+void Print(// WS Generic Input:
+           const ArrayOfGridPos& x,
+           // Keywords:
+           const Index&          level,
+           const Verbosity&      verbosity)
 {
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
     os << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1]
          << "\n";
+  CREATE_OUTS
   SWITCH_OUTPUT (level, os.str ())
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        // WS Generic Input:
-        const ArrayOfIndex&   x,
-        // Keywords:
-        const Index&          level )
+void Print(// WS Generic Input:
+           const ArrayOfIndex& x,
+           // Keywords:
+           const Index&        level,
+           const Verbosity&    verbosity)
 {
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i] << " ";
+  CREATE_OUTS
   SWITCH_OUTPUT (level, os.str () << '\n')
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        // WS Generic Input:
-        const ArrayOfString&   x,
-        // Keywords:
-        const Index&           level )
+void Print(// WS Generic Input:
+           const ArrayOfString& x,
+           // Keywords:
+           const Index&         level,
+           const Verbosity&     verbosity)
 {
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i] << '\n';
+  CREATE_OUTS
   SWITCH_OUTPUT (level, os.str ())
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-Print(
-      // WS Generic Input:
-      const Ppath&    x,
+Print(// WS Generic Input:
+      const Ppath&     x,
       // Keywords:
-      const Index&    level )
+      const Index&     level,
+      const Verbosity& verbosity)
 {
+  CREATE_OUTS
   SWITCH_OUTPUT (level, "dim: ")
-  Print( x.dim, level );
+  Print( x.dim, level, verbosity );
   SWITCH_OUTPUT (level, "np: ")
-  Print( x.np, level );
+  Print( x.np, level, verbosity );
   SWITCH_OUTPUT (level, "constant: ")
-  Print( x.constant, level );
+  Print( x.constant, level, verbosity );
   SWITCH_OUTPUT (level, "pos: ")
-  Print( x.pos, level );
+  Print( x.pos, level, verbosity );
   SWITCH_OUTPUT (level, "z: ")
-  Print( x.z, level );
+  Print( x.z, level, verbosity );
   SWITCH_OUTPUT (level, "l_step: ")
-  Print( x.l_step, level );
+  Print( x.l_step, level, verbosity );
   SWITCH_OUTPUT (level, "gp_p: ")
-  Print( x.gp_p, level );
+  Print( x.gp_p, level, verbosity );
   if( x.dim >= 2 )
     {
       SWITCH_OUTPUT (level, "gp_lat: ")
-      Print( x.gp_lat, level );
+      Print( x.gp_lat, level, verbosity );
     }
   if( x.dim == 3 )
     {
       SWITCH_OUTPUT (level, "gp_lon: ")
-      Print( x.gp_lon, level );
+      Print( x.gp_lon, level, verbosity );
     }
   SWITCH_OUTPUT (level, "los: ")
-  Print( x.los, level );
+  Print( x.los, level, verbosity );
   SWITCH_OUTPUT (level, "background: ")
-  Print( x.background, level );
+  Print( x.background, level, verbosity );
   if( x.tan_pos.nelem() )
     {
       SWITCH_OUTPUT (level, "tan_pos: ")
-      Print( x.tan_pos, level );
+      Print( x.tan_pos, level, verbosity );
     }
   if( x.geom_tan_pos.nelem() )
     {
       SWITCH_OUTPUT (level, "geom_tan_pos: ")
-      Print( x.geom_tan_pos, level );
+      Print( x.geom_tan_pos, level, verbosity );
     }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        // WS Generic Input:
-        const ArrayOfPpath&   x,
-        // Keywords:
-        const Index&            level )
+void Print(// WS Generic Input:
+           const ArrayOfPpath& x,
+           // Keywords:
+           const Index&        level,
+           const Verbosity&    verbosity)
 {
+  CREATE_OUTS
   for( Index i=0; i<x.nelem(); i++ )
     {
       ostringstream os;
       os << "Ppath element " << i << ": ";
       SWITCH_OUTPUT (level, os.str ())
-      Print( x[i], level );
+      Print( x[i], level, verbosity );
     }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Print(
-        // WS Generic Input:
-        const Timer&   /* x */,
-        // Keywords:
-        const Index&   /* level */ )
+void Print(// WS Generic Input:
+           const Timer&   /* x */,
+           // Keywords:
+           const Index&   /* level */,
+           const Verbosity&)
 {
 /*  ostringstream os;
+  CREATE_OUTS
   cout << "  *" << x_name <<"* =";
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
@@ -211,12 +218,12 @@ void Print(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void PrintWorkspace(
-        // Workspace reference
-        Workspace& ws,
-        // Keywords:
-        const Index&   only_allocated,
-        const Index&   level)
+void PrintWorkspace(// Workspace reference
+                    Workspace& ws,
+                    // Keywords:
+                    const Index&     only_allocated,
+                    const Index&     level,
+                    const Verbosity& verbosity)
 {
   ostringstream os;
 
@@ -240,6 +247,7 @@ void PrintWorkspace(
           os << "\n";
         }
     }
+  CREATE_OUTS
   SWITCH_OUTPUT (level, os.str ());
 }
 
@@ -248,7 +256,8 @@ void PrintWorkspace(
 #ifdef TIME_SUPPORT
 void
 timerStart (// WS Output
-            Timer& starttime)
+            Timer& starttime,
+            const Verbosity&)
 {
   if ((starttime.realtime = times (&starttime.cputime)) == (clock_t)-1)
     throw runtime_error ("Timer error: Unable to get current CPU time");
@@ -256,7 +265,8 @@ timerStart (// WS Output
 #else
 void
 timerStart (// WS Output
-            Timer& /*starttime*/)
+            Timer& /*starttime*/,
+            const Verbosity&)
 {
   throw runtime_error ("Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
 }
@@ -267,8 +277,11 @@ timerStart (// WS Output
 #ifdef TIME_SUPPORT
 void
 timerStop (// WS Input
-           const Timer& starttime)
+           const Timer& starttime,
+           const Verbosity& verbosity)
 {
+  CREATE_OUT1
+  
   Timer endtime;
   static long clktck = 0;
 
@@ -307,31 +320,33 @@ timerStop (// WS Input
 #else
 void
 timerStop (// WS Input
-           const Timer&)
+           const Timer&,
+           const Verbosity&)
 {
   throw runtime_error ("Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
 }
 #endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Error(
-           const String& msg )
+void Error(const String& msg, const Verbosity& verbosity)
 {
+  CREATE_OUT0
   out0 << msg << "\n";
   arts_exit();
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Exit()
+void Exit(const Verbosity& verbosity)
 {
+  CREATE_OUT1
   out1 << "  Forced exit.\n";
   arts_exit (EXIT_SUCCESS);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Test( )
+void Test(const Verbosity& verbosity)
 {
   // This function can be used to test stuff.
   
@@ -343,7 +358,7 @@ void Test( )
 
   gridpos( gp, x, y, 1 );
 
-  Print( gp, 0 );
+  Print( gp, 0, verbosity );
 }
 
 
@@ -351,11 +366,11 @@ void Test( )
 void verbosityInit(// WS Output:
                    Verbosity& verbosity)
 {
-  extern Messages arts_messages;
+  extern Verbosity verbosity_at_launch;
   
-  verbosity.set_agenda_verbosity(arts_messages.va);
-  verbosity.set_screen_verbosity(arts_messages.vs);
-  verbosity.set_file_verbosity(arts_messages.vf);
+  verbosity.set_screen_verbosity(verbosity_at_launch.get_screen_verbosity());
+  verbosity.set_agenda_verbosity(verbosity_at_launch.get_agenda_verbosity());
+  verbosity.set_file_verbosity(verbosity_at_launch.get_file_verbosity());
 }
 
 
@@ -402,9 +417,9 @@ void verbositySetScreen(// WS Output:
   verbosity.set_screen_verbosity(level);
 }
 
-void TestVerbosity (const String& s,const Verbosity& v)
+void TestVerbosity (const Verbosity& verbosity, const String& s)
 {
-  ArtsOut1 out_one(v);
+  CREATE_OUT1;
   
-  out_one << s << "\n";
+  out1 << s << "\n";
 }

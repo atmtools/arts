@@ -45,10 +45,11 @@ ReadNetCDF (// WS Generic Input:
             const String& v_name _U_,
             const String& f,
             // WS Generic Input Names:
-            const String& f_name _U_)
+            const String& f_name _U_,
+            const Verbosity& verbosity)
 
 {
-  nc_read_from_file (f, v);
+  nc_read_from_file (f, v, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -58,7 +59,8 @@ WriteNetCDF (// WS Generic Input:
              const String& f,
              // WS Generic Input Names:
              const String& v_name,
-             const String& f_name _U_)
+             const String& f_name _U_,
+             const Verbosity& verbosity)
 
 {
   String filename = f;
@@ -66,7 +68,7 @@ WriteNetCDF (// WS Generic Input:
   // Create default filename if empty
   filename_nc (filename, v_name);
 
-  nc_write_to_file (filename, v);
+  nc_write_to_file (filename, v, verbosity);
 }
 
 #else // NetCDF not enabled
@@ -74,11 +76,12 @@ WriteNetCDF (// WS Generic Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 ReadNetCDF (// WS Generic Input:
-            T&            v _U_,
-            const String& v_name _U_,
-            const String& f _U_,
+            T&,
+            const String&,
+            const String&,
             // WS Generic Input Names:
-            const String& f_name _U_)
+            const String&,
+            const Verbosity&)
 
 {
   throw runtime_error("This version of ARTS was compiled without NetCDF support.");
@@ -87,11 +90,12 @@ ReadNetCDF (// WS Generic Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 WriteNetCDF (// WS Generic Input:
-             const T&      v _U_,
-             const String& f _U_,
+             const T&,
+             const String&,
              // WS Generic Input Names:
-             const String& v_name _U_,
-             const String& f_name _U_)
+             const String&,
+             const String&,
+             const Verbosity&)
 
 {
   throw runtime_error("This version of ARTS was compiled without NetCDF support.");
@@ -107,10 +111,11 @@ ReadNetCDF (Workspace& ws _U_,
             const String& v_name,
             const String& f,
             // WS Generic Input Names:
-            const String& f_name)
+            const String& f_name,
+            const Verbosity& verbosity)
 
 {
-  ReadNetCDF (v, f, v_name, f_name);
+  ReadNetCDF (v, f, v_name, f_name, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -121,9 +126,10 @@ WriteNetCDF (Workspace& ws _U_,
              const String& f,
              // WS Generic Input Names:
              const String& v_name,
-             const String& f_name)
+             const String& f_name,
+             const Verbosity& verbosity)
 {
-  WriteNetCDF (v, f, v_name, f_name);
+  WriteNetCDF (v, f, v_name, f_name, verbosity);
 }
 
 #endif // m_nc_h

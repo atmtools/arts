@@ -31,8 +31,12 @@
 #include <iosfwd>
 #include "messages.h"
 #include "make_array.h"
+#include "matpackI.h"
 
 #define NODEF "@@THIS_KEYWORD_HAS_NO_DEFAULT_VALUE@@"
+
+class MdRecord;
+ostream& operator<<(ostream& os, const MdRecord& mdr);
 
 //! All information for one workspace method.
 class MdRecord {
@@ -56,7 +60,7 @@ public:
     magenda_method(false),
     msupergeneric(false),
     msuppress_header(false),
-    mpass_workspace(false),
+    mpass_workspace(true),
     mpass_wsv_names(false),
     mactual_groups("")
   {}
@@ -128,6 +132,8 @@ public:
   //! To override the default assignment operator.
   /*! MdRecords cannot be assigned! */
   MdRecord& operator=(const MdRecord& m){
+    Verbosity verbosity;
+    ArtsOut0 out0(verbosity);
     out0 << "MdRecord cannot be assigned!\n"
          << "You tried to assign: " << m << "\n";
     arts_exit ();
@@ -249,7 +255,5 @@ void expand_md_data_raw_to_md_data();
 void define_md_map();
 
 void define_md_raw_map();
-
-ostream& operator<<(ostream& os, const MdRecord& mdr);
 
 #endif  // methods_h

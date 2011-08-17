@@ -95,8 +95,11 @@ filename_nc_with_index (
 
 template<typename T> void
 nc_read_from_file (const String& filename,
-                         T&      type)
+                   T& type,
+                   const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   String efilename = expand_path(filename);
   
   out2 << "  Reading " << efilename << '\n';
@@ -116,9 +119,12 @@ nc_read_from_file (const String& filename,
 
 
 template<typename T> void
-nc_write_to_file (const String&  filename,
-                  const      T&  type)
+nc_write_to_file (const String& filename,
+                  const T& type,
+                  const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   String efilename = expand_path(filename);
   
   out2 << "  Writing " << efilename << '\n';

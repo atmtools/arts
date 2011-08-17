@@ -38,6 +38,7 @@
 
 #include "matpackVII.h"
 #include "mystring.h"
+#include "messages.h"
 
 
 //! An attribute to classify the particle type in a SingleScatteringData
@@ -124,7 +125,8 @@ void abs_vecTransform(//Output and Input
                       ConstVectorView aa_datagrid,
                       const ParticleType& ptype,
                       const Numeric& za_sca,
-                      const Numeric& aa_sca);
+                      const Numeric& aa_sca,
+                      const Verbosity& verbosity);
 
 
 void ext_matTransform(//Output and Input
@@ -135,7 +137,8 @@ void ext_matTransform(//Output and Input
                       ConstVectorView aa_datagrid,
                       const ParticleType& ptype,
                       const Numeric& za_sca,
-                      const Numeric& aa_sca);
+                      const Numeric& aa_sca,
+                      const Verbosity& verbosity);
  
 
 void pha_matTransform(//Output
@@ -150,8 +153,8 @@ void pha_matTransform(//Output
                       const Index& za_inc_idx,
                       const Index& aa_inc_idx,
                       ConstVectorView scat_za_grid,
-                      ConstVectorView scat_aa_grid
-                      );
+                      ConstVectorView scat_aa_grid,
+                      const Verbosity& verbosity);
 
 
 

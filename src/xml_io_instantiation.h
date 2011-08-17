@@ -37,8 +37,8 @@
 #include "xml_io_types.h"
 
 #define TMPL_XML_READ_WRITE(what) \
-  template void xml_read_from_file<what> (const String&, what&); \
-  template void xml_write_to_file<what> (const String&, const what&, FileType);
+  template void xml_read_from_file<what> (const String&, what&, const Verbosity& verbosity); \
+  template void xml_write_to_file<what> (const String&, const what&, FileType, const Verbosity& verbosity);
 
 
 ////////////////////////////////////////////////////////////////////////////

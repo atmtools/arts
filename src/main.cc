@@ -66,27 +66,28 @@ void polite_goodby()
 /**
    Set the reporting level.
 
-   Set the reporting level, either the default or based on
+   Set the global reporting level, either the default or based on
    reporting. If reporting was specified, check if the values make
    sense. The value -1 for reporting means that it was (probably)
    not given on the command line, since this is the initialization
    value.   
 
-   \param r Reporting level from Command line.
+   \param[in] r Reporting level from Command line.
+ 
    \author Stefan Buehler 
 */
 void set_reporting_level(Index r)
 {
-  extern Messages arts_messages;
-
+  extern Verbosity verbosity_at_launch;
+  
   if ( -1 == r )
     {
       // Reporting was not specified, set default. (No output from
       // agendas (except main of course), only the important stuff to
       // the screen, nothing to the file.)
-      arts_messages.va = 0;     // agendas
-      arts_messages.vs = 1;     // screen
-      arts_messages.vf = 0;     // file
+      verbosity_at_launch.set_agenda_verbosity(0);
+      verbosity_at_launch.set_screen_verbosity(1);
+      verbosity_at_launch.set_file_verbosity(0);
     }
   else
     {
@@ -94,18 +95,18 @@ void set_reporting_level(Index r)
       // level accordingly. 
         
       // Separate the three digits:
-      arts_messages.va = r/100;
-      arts_messages.vs = (r%100)/10;
-      arts_messages.vf = r%10;
+      verbosity_at_launch.set_agenda_verbosity(r/100);
+      verbosity_at_launch.set_screen_verbosity((r%100)/10);
+      verbosity_at_launch.set_file_verbosity(r%10);
 
-      if ( !arts_messages.valid() )
+      if ( !verbosity_at_launch.valid() )
         {
           cerr << "Illegal value specified for --reporting (-r).\n"
                << "The specified value is " << r << ", which would be\n"
                << "interpreted as:\n"
-               << "Verbosity for agendas:     " << arts_messages.va << "\n"
-               << "Verbosity for screen:      " << arts_messages.vs << "\n"
-               << "Verbosity for report file: " << arts_messages.vf << "\n"
+               << "Verbosity for agendas:     " << verbosity_at_launch.get_agenda_verbosity() << "\n"
+               << "Verbosity for screen:      " << verbosity_at_launch.get_screen_verbosity() << "\n"
+               << "Verbosity for report file: " << verbosity_at_launch.get_file_verbosity() << "\n"
                << "Only values of 0-3 are allowed for each verbosity.\n";
           arts_exit ();
         }
@@ -728,26 +729,6 @@ int main (int argc, char **argv)
 #endif
 
 
-  //---------------< 0. Initialize in_main_agenda flag >---------------
-
-  /* in_main_agenda is a threadprivate flag used to control agenda
-     output to screen and report file. We have to initialize it
-     explicitly for each thread, since it is not automatically
-     initialized. */
-    
-#ifdef THREADPRIVATE_SUPPORTED
-#pragma omp parallel \
- default(none) 
-#else
-#pragma omp parallel \
- default(none) \
- shared(in_main_agenda)
-#endif
-  {
-    in_main_agenda = true;
-  }
-
-
   //---------------< 1. Get command line parameters >---------------
   if ( get_parameters(argc, argv) )
     {
@@ -1011,10 +992,20 @@ int main (int argc, char **argv)
       out_basename = parameters.basename;
     }
 
-  // Set the reporting level, either from reporting command line
+  // Set the global reporting level, either from reporting command line
   // option or default.  
   set_reporting_level(parameters.reporting);
 
+  // Keep around a global copy of the verbosity levels at launch, so that
+  // verbosityInit() can be used to reset them in the control file
+  extern Verbosity verbosity_at_launch;
+  Verbosity verbosity;        
+  verbosity = verbosity_at_launch;
+  verbosity.set_main_agenda(true);
+  
+  CREATE_OUT1
+  CREATE_OUT2
+  CREATE_OUT3
 
   //--------------------< Open report file >--------------------
   // This one needs its own little try block, because we have to
@@ -1086,14 +1077,11 @@ int main (int argc, char **argv)
       out2 << "Run started: " << asctime(timeinfo) << "\n";
 
 
-      {
-        // Output verbosity settings. This is not too interesting, it
-        // goes only to out3.
-        extern Messages arts_messages;        
-        out3 << "Verbosity settings: Agendas:     " << arts_messages.va << "\n"
-             << "                    Screen:      " << arts_messages.vs << "\n"
-             << "                    Report file: " << arts_messages.vf << "\n";
-      }
+      // Output verbosity settings. This is not too interesting, it
+      // goes only to out3.
+      out3 << "Verbosity settings: Agendas:     " << verbosity.get_agenda_verbosity() << "\n"
+           << "                    Screen:      " << verbosity.get_screen_verbosity() << "\n"
+           << "                    Report file: " << verbosity.get_file_verbosity() << "\n";
 
       out3 << "\nReading control files:\n";
       for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
@@ -1107,7 +1095,7 @@ int main (int argc, char **argv)
           Workspace workspace;
 
           // Call the parser to parse the control text:
-          ArtsParser arts_parser(tasklist, parameters.controlfiles[i]);
+          ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
 
           arts_parser.parse_tasklist();
 
@@ -1120,7 +1108,7 @@ int main (int argc, char **argv)
           workspace.initialize ();
 
           // Execute main agenda:
-          Arts(workspace, tasklist);
+          Arts2(workspace, tasklist, verbosity);
         }
     }
   catch (runtime_error x)

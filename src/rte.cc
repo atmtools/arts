@@ -695,7 +695,8 @@ void get_ppath_cloudrtvars(
   const Index&                         stokes_dim,
   ConstVectorView                      f_grid, 
   const Index&                         atmosphere_dim,
-  const Index&                         emission_do )
+  const Index&                         emission_do,
+  const Verbosity&                     verbosity)
 {
   // Sizes
   const Index   np   = ppath.np;
@@ -723,13 +724,13 @@ void get_ppath_cloudrtvars(
   if( use_mean_scat_data )
     {
       scat_data.resize( 1 );
-      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f0), 0 );
+      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f0), 0, verbosity );
     }
   else
     {
       scat_data.resize( nf );
       for( Index iv=0; iv<nf; iv++ )
-        { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv ); }
+        { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv, verbosity ); }
     }
 
 
@@ -785,7 +786,8 @@ void get_ppath_cloudrtvars(
               Matrix   ext_mat( stokes_dim, stokes_dim, 0 );
               opt_propCalc( ext_mat, abs_vec,
                             rte_los2[0], rte_los2[1], scat_data[0], 
-                            stokes_dim, ppath_pnd(joker,ip), ppath_t[ip] );
+                            stokes_dim, ppath_pnd(joker,ip), ppath_t[ip],
+                            verbosity);
               for( Index iv=0; iv<nf; iv++ )
                 { 
                   ppath_pnd_ext_mat(iv,joker,joker,ip) = ext_mat;
@@ -800,7 +802,8 @@ void get_ppath_cloudrtvars(
                   Matrix   ext_mat( stokes_dim, stokes_dim, 0 );
                   opt_propCalc( ext_mat, abs_vec,
                                 rte_los2[0], rte_los2[1], scat_data[iv], 
-                                stokes_dim, ppath_pnd(joker,ip), ppath_t[ip] );
+                                stokes_dim, ppath_pnd(joker,ip), ppath_t[ip],
+                                verbosity );
                   ppath_pnd_ext_mat(iv,joker,joker,ip) = ext_mat;
                   ppath_pnd_abs_vec(iv,joker,ip)       = abs_vec;
                 }

@@ -63,11 +63,14 @@ extern const Numeric TEMP_0_C;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_nWaterLiebe93(
-              Matrix&   complex_n,
-        const Vector&   f_grid,
-              const Numeric&  t )
+void complex_nWaterLiebe93(Matrix&         complex_n,
+                           const Vector&   f_grid,
+                           const Numeric&  t,
+                           const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  CREATE_OUT3
+  
   chk_if_in_range( "t", t, TEMP_0_C, TEMP_0_C+100 );
   chk_if_in_range( "min of f_grid", min(f_grid), 10e9, 1000e9 );
   chk_if_in_range( "max of f_grid", max(f_grid), 10e9, 1000e9 );
@@ -104,10 +107,10 @@ void complex_nWaterLiebe93(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void emissionPlanck(
-              Vector&   emission,
-        const Vector&   f,
-        const Numeric&  t )
+void emissionPlanck(Vector&         emission,
+                    const Vector&   f,
+                    const Numeric&  t,
+                    const Verbosity&)
 {
   const Index   n = f.nelem();
 
@@ -119,13 +122,13 @@ void emissionPlanck(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixCBR(
-        // WS Output:
-              Matrix&   m,
-        // WS Input:
-        const Index&    stokes_dim,
-        // WS Generic Input:
-        const Vector&   f)
+void MatrixCBR(// WS Output:
+               Matrix&   m,
+               // WS Input:
+               const Index&    stokes_dim,
+               // WS Generic Input:
+               const Vector&   f,
+               const Verbosity&)
 {
   const Index n = f.nelem();
 
@@ -141,15 +144,17 @@ void MatrixCBR(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixPlanck(
-        // WS Output:
-              Matrix&   m,
-        // WS Input:
-        const Index&    stokes_dim,
-        // WS Generic Input:
-        const Vector&   f,
-        const Numeric&  t)
+void MatrixPlanck(// WS Output:
+                  Matrix&   m,
+                  // WS Input:
+                  const Index&    stokes_dim,
+                  // WS Generic Input:
+                  const Vector&   f,
+                  const Numeric&  t,
+                  const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   const Index n = f.nelem();
 
   if( n == 0 )
@@ -168,14 +173,16 @@ void MatrixPlanck(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixUnitIntensity(
-        // WS Output:
-              Matrix&   m,
-        // WS Input:
-        const Index&    stokes_dim,
-        // WS Generic Input:
-        const Vector&   f)
+void MatrixUnitIntensity(// WS Output:
+                         Matrix&   m,
+                         // WS Input:
+                         const Index&    stokes_dim,
+                         // WS Generic Input:
+                         const Vector&   f,
+                         const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   const Index n = f.nelem();
 
   if( n == 0 )

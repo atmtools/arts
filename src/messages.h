@@ -46,209 +46,40 @@
 #include "array.h"
 #include "arts_omp.h"
 
-extern bool in_main_agenda;
-#ifdef THREADPRIVATE_SUPPORTED
-#pragma omp threadprivate(in_main_agenda)
-#endif
-
-//! For global ARTS verbosity settings.
-/*! 
-  This class controls the ARTS verbosity.
-
-  There are four different output streams: out0, out1, out2, and
-  out3. They have different priority, out0 the highest, out3 the
-  lowest.
-
-  The verbosity level can be set separately for file and screen output. In
-  both cases the level can range from 0 to 3, where 0 = no output
-  (except error messages), 1 = only out1, 2 = out1+out2, and 3 = all
-  output.
-   
-  For agenda output, the verbosity level can also be between 0 and
-  3. The condition for agenda output is evaluated in addition to the
-  screen or file output condition. In other words, output from a
-  sub-agenda will only be shown on the screen, if its priority is high
-  enough for both the agenda verbosity setting, and the screen
-  verbosity setting.
-
-  \author Stefan Buehler 
-  \date   2008-07-29  */
-class Messages {
-public:
-  bool valid() const;
-  bool sufficient_priority_agenda(const Index priority) const;
-  bool sufficient_priority_screen(const Index priority) const;
-  bool sufficient_priority_file(const Index priority) const;
-
-/** Print a message to stream and report file. The message is printed
-    only if the priority is higher than specified in messages. (Low
-    number means high priority.)
-  
-    \param os       Stream to print to (cout or cerr).
-    \param priority Priority of this message (0-3, 0=highest).
-    \param t        The stuff to print (can be of any type).
-    \author Stefan Buehler 
-    \see Messages  */
-  template<class T> 
-  void Print(ostream& os, const Index priority, const T& t) const
-  {
-    extern ofstream report_file;
-    
-    // cout << "Printing object of type: " << typeid(t).name() << "\n";
-    
-    // If we are not in the main agenda, then the condition for agenda
-    // output must be fulfilled in addition to the condition for
-    // screen or file. 
-
-    if (in_main_agenda || sufficient_priority_agenda(priority))
-      {
-        // We are marking the actual output operations as omp
-        // critical, to somewhat reduce the mess when several threads
-        // output simultaneously. 
-
-        // This works well if the output operations themselves are
-        // atomic, that is if a string is prepared beforehand and then
-        // put to outx with a single << operation.
-        
-        if (sufficient_priority_screen(priority))
-          {
-#pragma omp critical
-            {
-              os << t;
-            }
-          }
-
-        if (sufficient_priority_file(priority))
-          {
-#pragma omp critical
-            {
-              //    if (report_file)              // Check if report file is good
-              report_file << t << flush;
-              // The flush here is necessary to make the output really
-              // appear in the report file. We are not producing a huge
-              // amount of output to the report file, so I think the
-              // performance penalty here is acceptable.
-            }
-          }
-      }
-  }
-  
-  //! Verbosity for agenda output. Can be 0-3.
-  Index va;
-  //! Verbosity for output to screen. Can be 0-3.
-  Index vs;
-  //! Verbosity for output to file. Can be 0-3.
-  Index vf;
-};
-
-
-
-
-/** Highest priority output stream. This stream is only used for error 
-    messages and can not be turned off. You should not use this
-    directly. Instead, throw an error with an appropriate message.
-    \see Out1 Out2 Out3 */
-class Out0 {
-};
-
-/** Engine output stream. Used  by the engine to report which methods it is 
-    calling. Do not use this inside your methods.
-    \see Out0 Out2 Out3 */
-class Out1 {
-};
-
-/** Medium priority output stream. Use this for normal informational
-    messages. 
-    \see Out0 Out1 Out3  */
-class Out2 {
-};
-
-/** Lowest priority output stream. This should be used for stuff that
-    you would not normally want to see. 
-    \see Out0 Out1 Out2  */
-class Out3 {
-};
-
-
-//--------------------< Output Operators >--------------------
-
-/** Output operator for Out0. */
-template<class T>
-Out0& operator<<(Out0& os, const T& t)
-{
-  extern Messages arts_messages;
-  arts_messages.Print(cerr,0,t);
-  return os;
-}
-
-/** Output operator For Out1. */
-template<class T>
-Out1& operator<<(Out1& os, const T& t)
-{
-  //  cout << "Outing Object Of Type: " << Typeid(T).Name() << Endl;
-  extern Messages arts_messages;
-  arts_messages.Print(cout,1,t);
-  return os;
-}
-
-/** Output operator For Out2. */
-template<class T>
-Out2& operator<<(Out2& os, const T& t)
-{
-  extern Messages arts_messages;
-  arts_messages.Print(cout,2,t);
-  return os;
-}
-
-/** Output operator For Out3. */
-template<class T>
-Out3& operator<<(Out3& os, const T& t)
-{
-  extern Messages arts_messages;
-  arts_messages.Print(cout,3,t);
-  return os;
-}
-
-//----------< Make output streams globally visible >----------
-
-extern Out0 out0;
-extern Out1 out1;
-extern Out2 out2;
-extern Out3 out3; 
-
-
-//----------< New ARTS Message implementation >----------
 
 class Verbosity {
 public:
-  Verbosity() : va(0), vs(1), vf(1)
-  {
-    // FIXME OLE: Buggy, only for testing
-    extern Messages arts_messages;
-    va = arts_messages.va;
-    vs = arts_messages.vs;
-    vf = arts_messages.vf;
-  }
+  Verbosity() : va(0), vs(1), vf(1), in_main_agenda(false) {}
   
   Verbosity(Index vagenda, Index vscreen, Index vfile)
-  : va(vagenda), vs(vscreen), vf(vfile) {}
+  : va(vagenda), vs(vscreen), vf(vfile), in_main_agenda(false) {}
 
+  /**
+   Check if artsmessages contains valid message levels.
+   
+   \return True if ok. */
+  bool valid() const
+  { return (va>=0 && va<=3) && (vs>=0 && vs<=3) && (vf>=0 || vf<=3); }
+  
   Index get_agenda_verbosity() const { return va; }
   Index get_screen_verbosity() const { return vs; }
   Index get_file_verbosity()   const { return vf; }
+  bool  is_main_agenda()       const { return in_main_agenda; }
   
   void set_agenda_verbosity(Index v) { va = v; }
   void set_screen_verbosity(Index v) { vs = v; }
   void set_file_verbosity(Index v)   { vf = v; }
+  void set_main_agenda(bool main_agenda) { in_main_agenda = main_agenda; }
 
-  friend ostream& operator<<(ostream& os, Verbosity v);
+  friend ostream& operator<<(ostream& os, const Verbosity& v);
 private:
   //! Verbosity for agenda output. Can be 0-3.
   Index va;
   //! Verbosity for output to screen. Can be 0-3.
   Index vs;
   //! Verbosity for output to file. Can be 0-3.
-  Index vf; 
+  Index vf;
+  bool in_main_agenda;
 };
 
 
@@ -290,6 +121,11 @@ public:
     return verbosity.get_file_verbosity() >= priority;
   }
   
+  bool in_main_agenda() const
+  {
+    return verbosity.is_main_agenda();
+  }
+  
 private:
   Verbosity verbosity;
   int priority;
@@ -328,7 +164,7 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
   // output must be fulfilled in addition to the condition for
   // screen or file. 
   
-  if (in_main_agenda || aos.sufficient_priority_agenda())
+  if (aos.in_main_agenda() || aos.sufficient_priority_agenda())
   {
     // We are marking the actual output operations as omp
     // critical, to somewhat reduce the mess when several threads
@@ -365,5 +201,16 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
 
   return aos;
 }
+
+#define CREATE_OUT0 ArtsOut0 out0(verbosity);
+#define CREATE_OUT1 ArtsOut1 out1(verbosity);
+#define CREATE_OUT2 ArtsOut2 out2(verbosity);
+#define CREATE_OUT3 ArtsOut3 out3(verbosity);
+
+#define CREATE_OUTS \
+ArtsOut0 out0(verbosity); \
+ArtsOut1 out1(verbosity); \
+ArtsOut2 out2(verbosity); \
+ArtsOut3 out3(verbosity);
 
 #endif // messages_h

@@ -193,6 +193,8 @@ ArtsXMLTag::get_attribute_value (const String& aname, Index& value)
 void
 ArtsXMLTag::read_from_stream (istream& is)
 {
+  CREATE_OUT3
+  
   String        token;
   stringbuf     tag;
   istringstream sstr ("");
@@ -515,8 +517,10 @@ xml_open_output_file (ogzstream& file, const String& name)
   \param name  Filename
 */
 void
-xml_open_input_file (ifstream& ifs, const String& name)
+xml_open_input_file (ifstream& ifs, const String& name, const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
@@ -561,8 +565,10 @@ xml_open_input_file (ifstream& ifs, const String& name)
   \param name  Filename
 */
 void
-xml_open_input_file (igzstream& ifs, const String& name)
+xml_open_input_file (igzstream& ifs, const String& name, const Verbosity& verbosity)
 {
+  CREATE_OUT3
+  
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
@@ -653,11 +659,11 @@ xml_data_parse_error (ArtsXMLTag& tag, String str_error)
 */
 void
 xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
-                             EndianType& etype)
+                             EndianType& etype, const Verbosity& verbosity)
 {
   char str[6];
   stringbuf strbuf;
-  ArtsXMLTag tag;
+  ArtsXMLTag tag(verbosity);
   String strtype;
 
   while (!is.fail () && isspace (is.peek())) is.get();
@@ -750,9 +756,9 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
   \param is  Input stream
 */
 void
-xml_read_footer_from_stream (istream& is)
+xml_read_footer_from_stream (istream& is, const Verbosity& verbosity)
 {
-  ArtsXMLTag tag;
+  ArtsXMLTag tag(verbosity);
 
   tag.read_from_stream (is);
   tag.check_name ("/arts");
@@ -765,9 +771,9 @@ xml_read_footer_from_stream (istream& is)
   \param ftype  File type
 */
 void
-xml_write_header_to_stream (ostream& os, FileType ftype)
+xml_write_header_to_stream (ostream& os, FileType ftype, const Verbosity& verbosity)
 {
-  ArtsXMLTag tag;
+  ArtsXMLTag tag(verbosity);
 
   os << "<?xml version=\"1.0\"?>"
      << '\n';
@@ -798,9 +804,9 @@ xml_write_header_to_stream (ostream& os, FileType ftype)
   \param os Output stream
 */
 void
-xml_write_footer_to_stream (ostream& os)
+xml_write_footer_to_stream (ostream& os, const Verbosity& verbosity)
 {
-  ArtsXMLTag tag;
+  ArtsXMLTag tag(verbosity);
 
   tag.set_name ("/arts");
   tag.write_to_stream (os);
@@ -842,8 +848,11 @@ xml_set_stream_precision (ostream& os)
 */
 template<typename T> void
 xml_read_from_file (const String& filename,
-                    T&            type)
+                    T&            type,
+                    const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   String efilename = expand_path(filename);
   
   istream* ifs;
@@ -862,7 +871,7 @@ xml_read_from_file (const String& filename,
 #ifdef ENABLE_ZLIB
     {
       ifs = new igzstream();
-      xml_open_input_file (*(igzstream *)ifs, xml_file);
+      xml_open_input_file (*(igzstream *)ifs, xml_file, verbosity);
     }
 #else
     {
@@ -874,7 +883,7 @@ xml_read_from_file (const String& filename,
   else
     {
       ifs = new ifstream();
-      xml_open_input_file (*(ifstream *)ifs, xml_file);
+      xml_open_input_file (*(ifstream *)ifs, xml_file, verbosity);
     }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -889,18 +898,18 @@ xml_read_from_file (const String& filename,
       NumericType ntype;
       EndianType etype;
 
-      xml_read_header_from_stream (*ifs, ftype, ntype, etype);
+      xml_read_header_from_stream (*ifs, ftype, ntype, etype, verbosity);
       if (ftype == FILE_TYPE_ASCII)
         {
-          xml_read_from_stream (*ifs, type);
+          xml_read_from_stream (*ifs, type, NULL, verbosity);
         }
       else
         {
           String bfilename = efilename + ".bin";
           bifstream bifs (bfilename.c_str ());
-          xml_read_from_stream (*ifs, type, &bifs);
+          xml_read_from_stream (*ifs, type, &bifs, verbosity);
         }
-      xml_read_footer_from_stream (*ifs);
+      xml_read_footer_from_stream (*ifs, verbosity);
     }
   catch (runtime_error e)
     {
@@ -919,8 +928,11 @@ void
 xml_read_arts_catalogue_from_file (const String&      filename,
                                    ArrayOfLineRecord& type,
                                    const Numeric&     fmin,
-                                   const Numeric&     fmax)
+                                   const Numeric&     fmax,
+                                   const Verbosity&   verbosity)
 {
+  CREATE_OUT2
+  
   String efilename = expand_path(filename);
   
   istream* ifs;
@@ -939,7 +951,7 @@ xml_read_arts_catalogue_from_file (const String&      filename,
 #ifdef ENABLE_ZLIB
     {
       ifs = new igzstream();
-      xml_open_input_file (*(igzstream *)ifs, xml_file);
+      xml_open_input_file (*(igzstream *)ifs, xml_file, verbosity);
     }
 #else
     {
@@ -951,7 +963,7 @@ xml_read_arts_catalogue_from_file (const String&      filename,
   else
     {
       ifs = new ifstream();
-      xml_open_input_file (*(ifstream *)ifs, xml_file);
+      xml_open_input_file (*(ifstream *)ifs, xml_file, verbosity);
     }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -966,18 +978,18 @@ xml_read_arts_catalogue_from_file (const String&      filename,
       NumericType ntype;
       EndianType etype;
 
-      xml_read_header_from_stream (*ifs, ftype, ntype, etype);
+      xml_read_header_from_stream (*ifs, ftype, ntype, etype, verbosity);
       if (ftype == FILE_TYPE_ASCII)
         {
-          xml_read_from_stream (*ifs, type, fmin, fmax);
+          xml_read_from_stream (*ifs, type, fmin, fmax, NULL, verbosity);
         }
       else
         {
           String bfilename = efilename + ".bin";
           bifstream bifs (bfilename.c_str ());
-          xml_read_from_stream (*ifs, type, fmin, fmax, &bifs);
+          xml_read_from_stream (*ifs, type, fmin, fmax, &bifs, verbosity);
         }
-      xml_read_footer_from_stream (*ifs);
+      xml_read_footer_from_stream (*ifs, verbosity);
     }
   catch (runtime_error e)
     {
@@ -1004,8 +1016,11 @@ xml_read_arts_catalogue_from_file (const String&      filename,
 template<typename T> void
 xml_write_to_file (const String&  filename,
                    const T&       type,
-                   const FileType ftype)
+                   const FileType ftype,
+                   const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   String efilename = expand_path(filename);
   
   ostream* ofs;
@@ -1033,19 +1048,19 @@ xml_write_to_file (const String&  filename,
 
   try
     {
-      xml_write_header_to_stream (*ofs, ftype);
+      xml_write_header_to_stream (*ofs, ftype, verbosity);
       if (ftype == FILE_TYPE_ASCII || ftype == FILE_TYPE_ZIPPED_ASCII)
         {
-          xml_write_to_stream (*ofs, type);
+          xml_write_to_stream (*ofs, type, NULL, "", verbosity);
         }
       else
         {
           String bfilename = efilename + ".bin";
           bofstream bofs (bfilename.c_str ());
-          xml_write_to_stream (*ofs, type, &bofs);
+          xml_write_to_stream (*ofs, type, &bofs, "", verbosity);
         }
 
-      xml_write_footer_to_stream (*ofs);
+      xml_write_footer_to_stream (*ofs, verbosity);
     }
   catch (runtime_error e)
     {

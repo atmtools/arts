@@ -59,6 +59,8 @@
  */
 #ifndef rng_h
 #define rng_h
+
+#include "messages.h"
 #ifndef __GSL_TYPES_H__
 #define __GSL_TYPES_H__
 
@@ -579,7 +581,7 @@ class Rng {
 
   //The default is to seed the Rng using the seconds elapsed since
   //1970.
-  void seed(unsigned long int n);
+  void seed(unsigned long int n, const Verbosity& verbosity);
     
   void force_seed(unsigned long int n);
   

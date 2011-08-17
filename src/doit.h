@@ -52,102 +52,99 @@ void cloud_fieldsCalc(Workspace& ws,
                       const Index& scat_aa_index,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field, 
-                      ConstTensor4View pnd_field
-                     );
+                      ConstTensor4View pnd_field,
+                      const Verbosity& verbosity);
 
-void cloud_ppath_update1D(
-                  Workspace& ws,
-                  Tensor6View i_field,
-                  // ppath_step_agenda:
-                  const Index& p_index,
-                  const Index& scat_za_index,
-                  ConstVectorView scat_za_grid,
-                  const ArrayOfIndex& cloudbox_limits,
-                  ConstTensor6View scat_field,
-                  // Calculate scalar gas absorption:
-                  const Agenda& abs_scalar_gas_agenda,
-                  ConstTensor4View vmr_field,
-                  // Gas absorption:
-                  const Agenda& opt_prop_gas_agenda,
-                  // Propagation path calculation:
-                  const Agenda& ppath_step_agenda,
-                  ConstVectorView p_grid,
-                  ConstTensor3View z_field,
-                  ConstMatrixView r_geoid,
-                  ConstMatrixView z_surface,
-                  // Calculate thermal emission:
-                  ConstTensor3View t_field,
-                  ConstVectorView f_grid,
-                  const Index& f_index,
-                  //particle opticla properties
-                  ConstTensor5View ext_mat_field,
-                  ConstTensor4View abs_vec_field,
-                  const Agenda& surface_prop_agenda,
-                  const Index& scat_za_interp
-                  );
-
-void cloud_ppath_update1D_noseq(
-                          Workspace& ws,
-                          // Input and output
-                          Tensor6View doit_i_field,
+void cloud_ppath_update1D(Workspace& ws,
+                          Tensor6View i_field,
                           // ppath_step_agenda:
                           const Index& p_index,
                           const Index& scat_za_index,
                           ConstVectorView scat_za_grid,
                           const ArrayOfIndex& cloudbox_limits,
-                          ConstTensor6View doit_i_field_old,
-                          ConstTensor6View doit_scat_field,
+                          ConstTensor6View scat_field,
                           // Calculate scalar gas absorption:
                           const Agenda& abs_scalar_gas_agenda,
                           ConstTensor4View vmr_field,
-                          // Gas absorption: 
+                          // Gas absorption:
                           const Agenda& opt_prop_gas_agenda,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
-                          ConstVectorView  p_grid,
+                          ConstVectorView p_grid,
                           ConstTensor3View z_field,
                           ConstMatrixView r_geoid,
                           ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
-                          // used for surface ?
                           const Index& f_index,
-                          //particle optical properties
+                          //particle opticla properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
                           const Agenda& surface_prop_agenda,
-                          const Index& scat_za_interp
-                          );
+                          const Index& scat_za_interp,
+                          const Verbosity& verbosity);
 
-void cloud_ppath_update1D_planeparallel(
-                  Workspace& ws,
-                  Tensor6View i_field,
-                  // ppath_step_agenda:
-                  const Index& p_index,
-                  const Index& scat_za_index,
-                  ConstVectorView scat_za_grid,
-                  const ArrayOfIndex& cloudbox_limits,
-                  ConstTensor6View scat_field,
-                  // Calculate scalar gas absorption:
-                  const Agenda& abs_scalar_gas_agenda,
-                  ConstTensor4View vmr_field,
-                  // Gas absorption:
-                  const Agenda& opt_prop_gas_agenda,
-                  // Propagation path calculation:
-                  const Agenda& ppath_step_agenda,
-                  ConstVectorView p_grid,
-                  ConstTensor3View z_field,
-                  ConstMatrixView r_geoid,
-                  // Calculate thermal emission:
-                  ConstTensor3View t_field,
-                  ConstVectorView f_grid,
-                  const Index& f_index,
-                  //particle opticla properties
-                  ConstTensor5View ext_mat_field,
-                  ConstTensor4View abs_vec_field
-                  // const Agenda& surface_agenda 
-                  );
+void cloud_ppath_update1D_noseq(Workspace& ws,
+                                // Input and output
+                                Tensor6View doit_i_field,
+                                // ppath_step_agenda:
+                                const Index& p_index,
+                                const Index& scat_za_index,
+                                ConstVectorView scat_za_grid,
+                                const ArrayOfIndex& cloudbox_limits,
+                                ConstTensor6View doit_i_field_old,
+                                ConstTensor6View doit_scat_field,
+                                // Calculate scalar gas absorption:
+                                const Agenda& abs_scalar_gas_agenda,
+                                ConstTensor4View vmr_field,
+                                // Gas absorption: 
+                                const Agenda& opt_prop_gas_agenda,
+                                // Propagation path calculation:
+                                const Agenda& ppath_step_agenda,
+                                ConstVectorView  p_grid,
+                                ConstTensor3View z_field,
+                                ConstMatrixView r_geoid,
+                                ConstMatrixView z_surface,
+                                // Calculate thermal emission:
+                                ConstTensor3View t_field,
+                                ConstVectorView f_grid,
+                                // used for surface ?
+                                const Index& f_index,
+                                //particle optical properties
+                                ConstTensor5View ext_mat_field,
+                                ConstTensor4View abs_vec_field,
+                                const Agenda& surface_prop_agenda,
+                                const Index& scat_za_interp,
+                                const Verbosity& verbosity);
+
+void cloud_ppath_update1D_planeparallel(Workspace& ws,
+                                        Tensor6View i_field,
+                                        // ppath_step_agenda:
+                                        const Index& p_index,
+                                        const Index& scat_za_index,
+                                        ConstVectorView scat_za_grid,
+                                        const ArrayOfIndex& cloudbox_limits,
+                                        ConstTensor6View scat_field,
+                                        // Calculate scalar gas absorption:
+                                        const Agenda& abs_scalar_gas_agenda,
+                                        ConstTensor4View vmr_field,
+                                        // Gas absorption:
+                                        const Agenda& opt_prop_gas_agenda,
+                                        // Propagation path calculation:
+                                        const Agenda& ppath_step_agenda,
+                                        ConstVectorView p_grid,
+                                        ConstTensor3View z_field,
+                                        ConstMatrixView r_geoid,
+                                        // Calculate thermal emission:
+                                        ConstTensor3View t_field,
+                                        ConstVectorView f_grid,
+                                        const Index& f_index,
+                                        //particle opticla properties
+                                        ConstTensor5View ext_mat_field,
+                                        ConstTensor4View abs_vec_field,
+                                        // const Agenda& surface_agenda,
+                                        const Verbosity& verbosity);
 
 void cloud_ppath_update3D(Workspace& ws,
                           Tensor6View doit_i_field,
@@ -181,7 +178,8 @@ void cloud_ppath_update3D(Workspace& ws,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Index& //scat_za_interp
+                          const Index&, //scat_za_interp
+                          const Verbosity& verbosity
                           );
 
 void cloud_RT_no_background(Workspace& ws,
@@ -205,7 +203,8 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& lat_index,
                             const Index& lon_index, 
                             const Index& scat_za_index,
-                            const Index& scat_aa_index);
+                            const Index& scat_aa_index,
+                            const Verbosity& verbosity);
 
 void cloud_RT_surface(Workspace& ws,
                       //Output
@@ -257,7 +256,8 @@ void interp_cloud_coeff1D(//Output
                           const Ppath& ppath_step,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstVectorView scat_za_grid,
-                          const Index& scat_za_interp);
+                          const Index& scat_za_interp,
+                          const Verbosity& verbosity);
 
 void za_gridOpt(//Output:
                 Vector& za_grid_opt,
@@ -269,24 +269,24 @@ void za_gridOpt(//Output:
                 const Index& scat_za_interp);
 
 
-void iy_interp_cloudbox_field(
-            Matrix&         iy,
-      const Tensor7&        scat_i_p,
-      const Tensor7&        scat_i_lat,
-      const Tensor7&        scat_i_lon,
-      const Tensor4&        doit_i_field1D_spectrum, 
-      const GridPos&        rte_gp_p,
-      const GridPos&        rte_gp_lat,
-      const GridPos&        rte_gp_lon,
-      const Vector&         rte_los,
-      const Index&          cloudbox_on,
-      const ArrayOfIndex&   cloudbox_limits,
-      const Index&          atmosphere_dim,
-      const Index&          stokes_dim,
-      const Vector&         scat_za_grid,
-      const Vector&         scat_aa_grid,
-      const Vector&         f_grid,
-      const String&         interpmeth );
+void iy_interp_cloudbox_field(Matrix&               iy,
+                              const Tensor7&        scat_i_p,
+                              const Tensor7&        scat_i_lat,
+                              const Tensor7&        scat_i_lon,
+                              const Tensor4&        doit_i_field1D_spectrum, 
+                              const GridPos&        rte_gp_p,
+                              const GridPos&        rte_gp_lat,
+                              const GridPos&        rte_gp_lon,
+                              const Vector&         rte_los,
+                              const Index&          cloudbox_on,
+                              const ArrayOfIndex&   cloudbox_limits,
+                              const Index&          atmosphere_dim,
+                              const Index&          stokes_dim,
+                              const Vector&         scat_za_grid,
+                              const Vector&         scat_aa_grid,
+                              const Vector&         f_grid,
+                              const String&         interpmeth,
+                              const Verbosity&      verbosity);
 
 
 

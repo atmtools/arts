@@ -38,8 +38,8 @@
 #include "nc_io_types.h"
 
 #define TMPL_NC_READ_WRITE_FILE(what) \
-  template void nc_write_to_file<what> (const String&, const what&); \
-  template void nc_read_from_file<what> (const String&, what&);
+  template void nc_write_to_file<what> (const String&, const what&, const Verbosity&); \
+  template void nc_read_from_file<what> (const String&, what&, const Verbosity&);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -120,13 +120,14 @@ TMPL_NC_READ_WRITE_FILE( ArrayOfVector )
 #undef TMPL_NC_READ_WRITE_FILE
 
 /*void
-xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&);
+xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&, const Verbosity&);
 
 void
 xml_read_from_stream (istream&, ArrayOfLineRecord&,
-                      const Numeric, const Numeric, bifstream * = NULL);
+                      const Numeric, const Numeric, bifstream * = NULL,
+                      const Verbosity&);
 
 void
-xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);*/
+xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&, const Verbosity&);*/
 
 #endif  /* nc_io_instantiation_h */

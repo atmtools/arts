@@ -106,9 +106,6 @@ include (FindNetCDF)
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
 endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
-if (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
-  include (CheckOpenMPThreadprivate)
-endif (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
 
 ########### Docserver support ##########
 

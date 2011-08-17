@@ -30,15 +30,15 @@ main (int /*argc*/, char * /*argv*/ [])
   define_species_data ();
   try
     {
-      xml_write_to_file ("sdata1.xml", species_data);
+      xml_write_to_file ("sdata1.xml", species_data, FILE_TYPE_ASCII, Verbosity());
       cout << "Wrote species_data: " << endl;
 
       species_data.clear ();
 
-      xml_read_from_file ("sdata1.xml", species_data);
+      xml_read_from_file ("sdata1.xml", species_data, Verbosity());
       cout << "Read species_data: " << endl;
 
-      xml_write_to_file ("sdata2.xml", species_data);
+      xml_write_to_file ("sdata2.xml", species_data, FILE_TYPE_ASCII, Verbosity());
       cout << "Wrote species_data: " << endl;
     }
   catch (runtime_error e)

@@ -575,7 +575,8 @@ void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
 void get_tagindex_for_Strings( 
                               ArrayOfIndex&   tags1_index, 
                               const ArrayOfArrayOfSpeciesTag&      tags1, 
-                              const ArrayOfString&  tags2_Strings )
+                              const ArrayOfString&  tags2_Strings,
+                              const Verbosity& verbosity)
 {
   const Index   n1 = tags1.nelem();
   const Index   n2 = tags2_Strings.nelem();
@@ -584,7 +585,7 @@ void get_tagindex_for_Strings(
 
   tags1_index.resize(n2);
   //  cout << "tags2_Strings: " << tags2_Strings << "\n";
-  SpeciesSet( tags2, tags2_Strings );
+  SpeciesSet( tags2, tags2_Strings, verbosity);
 
   for ( i2=0; i2<n2; i2++ )
   {

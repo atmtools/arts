@@ -41,7 +41,8 @@ Delete(// Workspace reference
        // WS Generic Input:
        const T&        x _U_,
        // WS Generic Input Names:
-       const String&   x_name )
+       const String&   x_name,
+       const Verbosity&)
 {
   ws.del (ws.WsvMap.find (x_name)->second);
 }
