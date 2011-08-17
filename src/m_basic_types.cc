@@ -206,6 +206,44 @@ void Matrix3ColFromVectors(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixCompare(const Matrix&              matrix1,
+                   const Matrix&              matrix2,
+                   const Numeric&             maxabsdiff,
+                   const Verbosity&           verbosity )
+{
+  const Index nrows = matrix1.nrows();
+  const Index ncols = matrix1.ncols();
+
+  if( matrix2.nrows() != nrows  ||  matrix2.ncols() != ncols )
+    throw runtime_error( "The two matrices do not have the same size." );
+
+  Numeric maxdiff = 0.0;
+
+  for( Index r=0; r<nrows; r++ )
+    { 
+      for( Index c=0; c<ncols; c++ )
+        {
+          Numeric diff = fabs( matrix1(r,c) - matrix2(r,c) );
+          if( diff > maxdiff )
+            { maxdiff = diff; }
+        }
+    }
+
+  if( maxdiff > maxabsdiff )
+    {
+      ostringstream os;
+      os << "A difference of " << maxdiff << " was found, which is larger "
+         << "than the specified threshold of " << maxabsdiff << ".";
+      throw runtime_error(os.str());
+    }
+
+  CREATE_OUT2
+  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix1RowFromVector(// WS Generic Output:
                           Matrix&   m,
                           // WS Generic Input:

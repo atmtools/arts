@@ -1,3 +1,14 @@
+2011-08-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-13
+
+	* doc/uguide/wfuns.tex: Some new text.
+
+	* src/m_basic_types.cc (MatrixCompare): Created.
+
+	* tests/Wfuns: Started on this test folder. For somewhat more
+	stringent tests of jacobian claculations.
+
 2011-08-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-17-12

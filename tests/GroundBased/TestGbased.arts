@@ -183,7 +183,7 @@ sensor_responseBackend
 
 # --- Define jacobian -------------------------------------------------------
 #
-# Jacobians are tested/demonstrated mainly in "Clearsky", but some jacobians 
+# Jacobians are tested/demonstrated mainly elsewhere, but some jacobians 
 # are better tested here 
 #
 jacobianInit

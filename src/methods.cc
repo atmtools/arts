@@ -5425,6 +5425,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "MatrixCompare" ),
+        DESCRIPTION
+        (
+         "Checks the deviation between two matrices.\n" 
+         "\n"
+         "The method was implemented having jacobian matrices in mind, but\n"
+         "can be applied on any matrices.\n"
+         "\n"
+         "It is checked if the maximum absolute difference is below the given\n"
+         "limit.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "matrix1", "matrix2", "maxabsdiff" ),
+        GIN_TYPE( "Matrix", "Matrix", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, "0.01" ),
+        GIN_DESC( "A first jacobian matrix", "A second jacobian matrix", 
+                  "Threshold for maximum absolute difference." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Matrix1RowFromVector" ),
         DESCRIPTION
         (
