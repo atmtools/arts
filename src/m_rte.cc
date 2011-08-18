@@ -2068,9 +2068,9 @@ void yCalc(
           )
         }
 
-      // Rest of *jacobian*: run jacobian_agenda (can be empty)
+      // Rest of *jacobian*
       //
-      if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
+      if( jacobian_do )
         { 
           jacobian_agendaExecute( l_ws, jacobian, imblock, iyb, yb, 
                                                             l_jacobian_agenda );

@@ -297,6 +297,7 @@ void jacobianCalcAbsSpeciesAnalytical(Matrix&        jacobian _U_,
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcAbsSpecies(Workspace&                  ws,
                             Matrix&                     jacobian,
@@ -1194,6 +1195,7 @@ void jacobianAddTemperature(Workspace&                ws _U_,
   if( analytical ) 
     {
       out3 << "  Calculations done by semi-analytical expression.\n"; 
+      jacobian_agenda.append( "jacobianCalcTemperatureAnalytical", TokVal() );
     }
   else
     { 
@@ -1202,6 +1204,20 @@ void jacobianAddTemperature(Workspace&                ws _U_,
       jacobian_agenda.append( "jacobianCalcTemperature", "" );
     }
 }                    
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcTemperatureAnalytical(Matrix&       jacobian _U_,
+                                      const Index&   imblock _U_,
+                                      const Vector&  iyb _U_,
+                                      const Vector&  yb _U_,
+                                      const Verbosity&)
+{
+  /* Nothing to do here for the analytical case, this function just exists
+   to satisfy the required inputs and outputs of the jacobian_agenda */
+}
+
 
 
 

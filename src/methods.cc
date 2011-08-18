@@ -4898,31 +4898,6 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddAbsSpecies and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian",
-            "imblock", "iyb", "yb" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "jacobianCalcAbsSpecies" ),
         DESCRIPTION
         (
@@ -4950,6 +4925,31 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Species of interest." ),
         SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddAbsSpecies and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "imblock", "iyb", "yb" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -5062,6 +5062,31 @@ void define_md_data_raw()
             "antenna_dim", "sensor_response", "iy_clearsky_agenda", "y_unit", 
             "p_hse", "z_hse_accuracy", 
             "jacobian_quantities", "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcTemperatureAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddTemperature and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "imblock", "iyb", "yb" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
