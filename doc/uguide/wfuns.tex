@@ -52,6 +52,9 @@ outside the cloudbox. As the basic radiative transfer expressions, the complete
 Stokes vector is considered, to correctly handle polarisation signatures
 created by the surface. So far none of the scattering methods provide WFs.
 
+Sections \ref{sec:wfuns:intro}\,-\,\ref{sec:wfuns:basis} contain information
+of general character, while the available quantities are discussed in the
+remaining sections (Section~\ref{sec:wfuns:absspecies} and foreward).
 
 
 
@@ -108,6 +111,7 @@ To understand the analytical expressions, it is important to remember that ARTS
 covers the sensor by a response matrix:
 \begin{equation}
   \MsrVct = \SnsMtr\MpiVct.
+  \label{eq:wfuns:Hi}
 \end{equation}
 This equation covers a single measurement block (cf.\
 Eq.~\ref{eq:fm_defs:measseq}).
@@ -126,9 +130,8 @@ The retrieval quantities are defined separately, before calling
 \builtindoc{yCalc}. This process is started by calling \wsmindex{jacobianInit}.
 The retrieval quantities are then introduced through workspace methods named as
 jacobianAdd{\it Something}. For example, for atmospheric temperature the method
-is \builtindoc{jacobianAddTemperature}. See Sec.~\ref{sec:wfuns:aval} for other
-retrieval quantities. The order in which these ``add methods'' is called does
-not matter.
+is \builtindoc{jacobianAddTemperature}. The order in which these ``add
+methods'' is called does not matter.
 
 Finalise the definition of retrieval quantities by calling
 \wsmindex{jacobianClose}. To disable the calculation of WFs, skip all above,
@@ -235,44 +238,56 @@ Hz).
 
 
 
-\section{Available weighting functions}
-%==============================================================================
-\label{sec:wfuns:aval}
 
-This section lists the workspace method to set-up the different weighting
-function calculations, discusses important considerations and give the
-analytical expressions applied.
-
-
-\FIXME{The part below is so far just notes, to be revised}
-
-
-\subsection{Absorption species}
+\section{Absorption species}
 %==============================================================================
 \label{sec:wfuns:absspecies}
 
-\subsubsection{Analytical}
+
+\subsection{Common practicalities}
 %
 To obtain WFs for absorption species, use \wsmindex{jacobianAddAbsSpecies}. The
 method handles one species at the time. For gases, the WFs can be provided for
 several units of the gas abundance:
 \begin{description}
-\item[vmr] Volume mixing ratio (a value between 0 and 1).
+\item[vmr] Volume mixing ratio (a value between 0 and 1). The WF divided by
+  $10^6$ corresponds to that 1 ppm of the gas is added to the atmospheric
+  volume of concern.
 \item[nd] Number density. The WF corresponds here to that one molecule is added.
-\item[rel] Relative/fractional change. In perfect linear case, the WF
+\item[rel] Relative/fractional change. In a perfectly linear case, the WF
   corresponds here to that the gas amount is doubled.
-\item[logrel] As above, but the natural logarithm of relative changes is
-  considered. In perfect linear case, the WF
-  corresponds here to that the gas amount is increased with a factor of $e$.
+\item[logrel] This option returns the same WFs as ``rel'', but is included to
+  flag that the natural logarithm of the ``rel'' unit is retrieved.
 \end{description}
-For analytical calculations, the only remaining consideration is to select
-retrieval grids.
+For the ``rel'' and ``logrel'' options it is important to note that ARTS
+calculate the WFs with respect to the given state, ARTS does not know anything
+about the actual reference state for which the ``rel'' unit is valid (where
+normally the a priori state is selected). For iterative inversions, a rescaling
+of the WFs provided by ARTS is likely needed, to make the WFs valid with
+respect to the (original) reference state. For the assumption made inside ARTS,
+the WFs for ``rel'' and ``logrel'' are identical.
 
+A second main consideration is to select the retrieval grids. For analytical
+calculations there are no other selections to be made. 
+
+
+
+\subsection{Perturbation calculations}
+%
+For these pure numerical calculations, also the size of the perturbation must
+be specified ($\Delta x$ in Eq.~\ref{eq:wfuns:perturb}). The perturbation shall
+given following the unit selected. The same value is applied for all WFs (which
+can cause practical problems \dots).
+
+
+
+\subsection{Analytical expressions}
+%
 The final radiance obtained through Eq.~\ref{eq:fm_defs:rte_step} can be
 expressed as
 \begin{equation}
   \label{eq:I4J}
-  I = I'+ e^{-\Oth'}\left[ \bar{B}_i(1-e^{-\aOth{i}})+I_ie^{-\aOth{i}}\right]
+  I = I'+ e^{-\Oth'}\!\left[ \bar{B}_i(1-e^{-\aOth{i}})+I_ie^{-\aOth{i}}\right]
 \end{equation}
 where $\Oth'$ is the optical thickness between the sensor and point $i+1$
 and $I'$ is all emission generated along the same distance.
@@ -294,13 +309,14 @@ Eq.~\ref{eq:I4J}, is calculated by applying the chain rule:
 where $x_i$ and $x_{i+1}$ is the amount of the gas at point $i$ and $i+1$,
 respectively. Some of these terms can be expressed explicitly:
 \begin{eqnarray}
-  \frac{\PartD \MsrVct}{\PartD \MpiVct} &=& \SnsMtr, \\
+  \frac{\PartD \MsrVct}{\PartD \MpiVct} &=& \SnsMtr,
+               \qquad \mathrm{(cf.\ Eq.\ \ref{eq:wfuns:Hi})} \\
   \frac{\PartD I}{\PartD \aOth{i}} 
-      &=& e^{-\Oth'}\left( \bar{B}_i-I_i\right)e^{-\aOth{i}}, \\
+      &=& e^{-\Oth'}\!\left( \bar{B}_i-I_i\right)e^{-\aOth{i}}, \\
   \frac{\PartD \aOth{i}}{\PartD k_i}=\frac{\PartD \aOth{i}}{\PartD k_{i+1}} 
-      &=& \Delta s_i/2, \\
+      &=& \Delta s_i/2, \qquad \mathrm{(cf.\ Eq.\ \ref{eq:taustep})} \\
   \frac{\PartD k_i}{\PartD x_i}
-      &=& \sigma_i, \\
+      &=& \sigma_i, 
 \end{eqnarray}
 where $\sigma_i$ is the absorption cross-section for the species (at point $i$
 and in a unit matching the unit of $x$). The term $\PartD \MpiVct/\PartD I$
@@ -309,8 +325,8 @@ gives the position in \MpiVct\ where the $I$ of concern is stored.
 The term $\PartD x_i/\PartD x$ appears due to the fact that $x_i$ and $x$ are
 placed at different positions, and the representation of the atmospheric fields
 must be considered here. In practise, the term is calculated as the value of
-the basis function for $x$ at the location of $x_i$, see
-\cite{buehler:artst:05}. This is a slight approximation with respect to the
+the basis function for $x$ at the location of $x_i$ (further discussed in
+\citet{buehler:artst:05}). This is a slight approximation with respect to the
 goal of fully incorporating the piece-wise linear representation in the
 weighting functions \citep{buehler:artst:05}. A low value of $\Delta s_i$
 decreases the degree of approximation.
@@ -320,6 +336,22 @@ one element of \SttVct. The exception is if the positions of $x_i$ and $x$ are
 identical. Reversely, the weighting function for element $x$ can have
 contributions from several propagation path points ($x_i$), as well as from
 several radiance spectra.
+The expressions above are implemented in \wsmindex{iyEmissionStandardClearsky}.
+
+For higher Stokes components, or if emission is ignored, the correspondance to
+Eq.~\ref{eq:I4J} is
+\begin{equation}
+  \label{eq:Q4J}
+  I = e^{-\Oth'}\!I_ie^{-\aOth{i}}.
+\end{equation}
+This affects only one of the chain rule terms:
+\begin{equation}
+  \frac{\PartD I}{\PartD \aOth{i}} 
+      = -e^{-\Oth'}\!I_i e^{-\aOth{i}}.
+\end{equation}
+This later form is used for Stokes elemnt 2 to 4 in
+\wsmindex{iyEmissionStandardClearsky} and for all components in
+\wsmindex{iyBeerLambertStandardClearsky}.
 
 In practise, all Stokes components are treated in parallel, to simply
 incorporate surface scattering (and in the future possibly also cloud
@@ -333,36 +365,34 @@ where $\MtrStl{T}_2$ is the transmission between the surface and the sensor,
 $\MtrStl{R}_i$ is defined in Eq.~\ref{eq:fm_defs:surfacerefl} and
 $\MtrStl{T}_1$ is the transmission between the point $i+1$ and the surface.
 
-Some terms are best calculated in a numerical manner. For atmospheric
-temperature the terms $\PartD k_i/\PartD T$ and $\PartD B/\PartD T$ are found.
-The first term can in principle be expressed analytically, but this would
-require hard links to the absorption module. Such links are avoided in ARTS and
-the term is instead calculated with a second call of
-\texttt{abs\_scalar\_gas\_agenda} (Sec.~\ref{sec:agendas}), with a slightly
-perturbed temperature. The same applies to the second term, even though an
-analytical derivation here is straightforward \citep{eriksson:studi:02}. This,
-like the emission source term, is handled by an agenda, and the user can choose
-to set e.g.\ $B=T$ (can be a valid approximation for low frequency
-observations), instead of $B$ being the Planck function.
-
 A constraint for the analytical expressions above is that the effect of the
-variable must only be local. Atmospheric temperature is again the most important
-example, that has non-local impacts if hydrostatic equilibrium applies and if
-refraction affects the propagation path significantly.
-
-
-\subsubsection{Perturbation}
-
+variable must only be local. Main examples on non-local effects should occur
+through hydrostatic equilibrium applies and refraction. Significant impact of a
+gas through these mechanisms should only be found for water vapour in the
+(lower?) troposphere.
 
 
 
-\subsection{Atmospheric temperatures}
+
+
+\section{Atmospheric temperatures}
 %==============================================================================
 \label{sec:wfuns:atmtemp}
 
-\subsubsection{Analytical}
+\subsection{Analytical}
 \label{sec:wfuns:atmtemp2}
 
+\subsection{Analytical}
+%
+\subsubsection{Practicalities}
+%
+
+
+
+
+
+\subsubsection{Theory}
+%
 A changed temperature has several non-local effects, originating from
 refraction and hydrostatic equilibrium. These non-local effects make the
 calculations more difficult for, at least, limb sounding. For example, even
@@ -427,6 +457,25 @@ manner; it is likely the derivative of the Planck function, but if the
 Rayleigh-Jeans approximation is for some reason selected ($B=T$) the term 
 is just 1.
 
+Some terms are best calculated in a numerical manner. For atmospheric
+temperature the terms $\PartD k_i/\PartD T$ and $\PartD B/\PartD T$ are found.
+The first term can in principle be expressed analytically, but this would
+require hard links to the absorption module. Such links are avoided in ARTS and
+the term is instead calculated with a second call of
+\texttt{abs\_scalar\_gas\_agenda} (Sec.~\ref{sec:agendas}), with a slightly
+perturbed temperature. The same applies to the second term, even though an
+analytical derivation here is straightforward \citep{eriksson:studi:02}. This,
+like the emission source term, is handled by an agenda, and the user can choose
+to set e.g.\ $B=T$ (can be a valid approximation for low frequency
+observations), instead of $B$ being the Planck function.
+
+
+
 Determine expression for BL and higher Stokes, and put into ARTS!
+
+A constraint for the analytical expressions above is that the effect of the
+variable must only be local. Atmospheric temperature is again the most important
+example, that has non-local impacts if hydrostatic equilibrium applies and if
+refraction affects the propagation path significantly.
 
 \subsubsection{Perturbation}
