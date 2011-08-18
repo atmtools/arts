@@ -67,6 +67,10 @@ set (PREPTARGETS ${PREPTARGETS} TestMHS_fast)
 arts_add_testcases (TARGETS "${PREPTARGETS}" MHS)
 set(TESTSLOWTARGETS ${TESTSLOWTARGETS} ${TARGETS})
 
+arts_add_prepare_testcases (PREPTARGETS Wfuns)
+arts_add_testcases (TARGETS "${PREPTARGETS}" Wfuns)
+set(TESTSLOWTARGETS ${TESTSLOWTARGETS} ${TARGETS})
+
 # GH 2011-05-05: comment out for now, as this depends on PyARTS
 # To be discussed (PyARTS makes making tests a lot easier, but would
 # create a depedency on Python+PyARTS+numpy+scipy)
@@ -79,7 +83,7 @@ if (NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
   get_directory_property (TESTCLEANFILES ADDITIONAL_MAKE_CLEAN_FILES)
   set (TESTCLEANFILES ${TESTCLEANFILES}
        artsXML.py artsXML.pyc testall.py atmosphere_data
-       AMSU Abs ClearSky DOIT DOITBatch GroundBased MHS MonteCarlo OdinSMR)
+       AMSU Abs ClearSky DOIT DOITBatch GroundBased MHS MonteCarlo OdinSMR Wfuns)
   set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
                             "${TESTCLEANFILES}")
 endif (NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")

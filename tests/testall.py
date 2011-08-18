@@ -381,6 +381,14 @@ class Testatm_fields_compactAddSpecies(unittest.TestCase):
                                 numpy.random.rand(1, ax.size, 1, 1))
         self.check_merge(gf4, gf3, p=0)
 
+class TestWfuns(unittest.TestCase):
+    """Testing weighting function calculations"""
+    TestWfunsrun=ArtsRun('Wfuns', 'TestWfuns.arts')
+    def test1(self):
+        """Wfuns test should run with no errors"""
+        self.TestWfunsrun.run()
+        assert self.TestWfunsrun.error=='','Error running TestWfuns.arts: '+self.TestWfunsrun.error
+
 if __name__=='__main__':
     unittest.main()
 
