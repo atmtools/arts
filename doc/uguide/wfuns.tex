@@ -1,4 +1,4 @@
-\chapter{Clear-sky weighting functions}
+\chapter{Weighting functions: clear-sky conditions}
  \label{sec:wfuns}
 
  \starthistory
@@ -243,12 +243,13 @@ Hz).
 %==============================================================================
 \label{sec:wfuns:absspecies}
 
-
 \subsection{Common practicalities}
 %
 To obtain WFs for absorption species, use \wsmindex{jacobianAddAbsSpecies}. The
-method handles one species at the time. For gases, the WFs can be provided for
-several units of the gas abundance:
+method handles one species at the time. The calculations can either be done in
+in ``analytical'' or ``perturbation'' manner.
+
+For gases, the WFs can be provided for several units of the gas abundance:
 \begin{description}
 \item[vmr] Volume mixing ratio (a value between 0 and 1). The WF divided by
   $10^6$ corresponds to that 1 ppm of the gas is added to the atmospheric
@@ -271,14 +272,12 @@ A second main consideration is to select the retrieval grids. For analytical
 calculations there are no other selections to be made. 
 
 
-
 \subsection{Perturbation calculations}
 %
 For these pure numerical calculations, also the size of the perturbation must
 be specified ($\Delta x$ in Eq.~\ref{eq:wfuns:perturb}). The perturbation shall
 given following the unit selected. The same value is applied for all WFs (which
 can cause practical problems \dots).
-
 
 
 \subsection{Analytical expressions}
@@ -379,19 +378,34 @@ gas through these mechanisms should only be found for water vapour in the
 %==============================================================================
 \label{sec:wfuns:atmtemp}
 
-\subsection{Analytical}
-\label{sec:wfuns:atmtemp2}
-
-\subsection{Analytical}
+\subsection{Common practicalities}
 %
-\subsubsection{Practicalities}
+To obtain WFs for absorption species, use \wsmindex{jacobianAddTemperature}.
+The calculations can either be done in ``analytical'' or ``perturbation''
+manner. Retrieval grids must be specified.
+
+A special consideration for temperature is hydrostatic equilibrium. If effects
+origination through hydrostatic equilibrium shall be included in the WFs or not
+is selected by an argument denoted as \verb|hse|. A full account of hydrostatic
+equilibrium is possibile for perturbation calculations, while the analytical
+approach only treats the local effect (see further below).
+
+
+\subsection{Perturbation calculations}
 %
+The size of the perturbation must be selected (in K).
+
+Complete radiative transfer calculations are done after perturbing the
+temperature field. Hence, all possible effects are included, such as changed
+propagation paths through the impact of temperature on the refractive index.
+Please, note that hydrostatic equilibrium comes in during the perturbation. If
+\verb|hse| is set to ``on'', also \builtindoc{z\_field} is recalculated as part
+of the temperature perturbation. If set to ``off'', there is no change
+of \builtindoc{z\_field}. That is, you must make an actibe choice regarding
+hydrostatic equilibrium, while others effects are included automatically.
 
 
-
-
-
-\subsubsection{Theory}
+\subsection{Analytical expressions}
 %
 A changed temperature has several non-local effects, originating from
 refraction and hydrostatic equilibrium. These non-local effects make the
@@ -478,4 +492,3 @@ variable must only be local. Atmospheric temperature is again the most important
 example, that has non-local impacts if hydrostatic equilibrium applies and if
 refraction affects the propagation path significantly.
 
-\subsubsection{Perturbation}
