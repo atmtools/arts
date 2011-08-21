@@ -1,3 +1,12 @@
+2011-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-18
+
+	* doc/uguide/wfuns.tex: More work on T wfuns. 
+
+	* doc/uguide/atmosphere.tex: Made a short section around
+	hydrostatic equilibrium.
+
 2011-08-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-17-17

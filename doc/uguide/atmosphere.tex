@@ -262,6 +262,25 @@ representation of the quantity.
 
 
 
+\section{Hydrostatic equilibrium}
+%===================
+\label{sec:fm_defs:hse}
+
+There is no general demand that the model atmosphere fulfils hydrostatic
+equilibrium. That is, \builtindoc{t\_field} and \builtindoc{z\_field} can be
+specified independently of each other. On the other hand, ARTS provides means
+for ensuring that a model atmosphere matches hydrostatic equilibrium by the
+method \wsmindex{z\_fieldFromHSE}. This method is presently valid only for the
+planet Earth, but considers that gravitation varies with latitude and altitude.
+
+Hydrostatic equilibrium gives only constrain for the distance between the
+pressure levels, not for the absolute geometrical altitudes. For this reason, a
+``reference point'' must be introduced. This is done by setting the pressure of
+this point by \wsvindex{p\_hse} (common for all latitude and longitudes). The
+geometrical altitudes matching \builtindoc{p\_hse} are taken from the original
+values in \wsvindex{z\_field}. 
+
+
 \section{The geoid and surface}
 %===================
 \label{sec:fm_defs:surf}
