@@ -104,7 +104,7 @@ below. Some of the terms involved are calculated as a perturbation. This is
 partly a consequence of the flexibility of ARTS. The high-level radiative
 transfer methods (e.g.\ \builtindoc{iyEmissionStandardClearsky}) do not know
 how the low-level methods are defining all quantities, and a fixed analytical
-expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp2}). So, in
+expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
 practise, the calculations are ``semi-analytical''.
 
 To understand the analytical expressions, it is important to remember that ARTS
@@ -319,8 +319,13 @@ respectively. Some of these terms can be expressed explicitly:
 \end{eqnarray}
 where $\sigma_i$ is the absorption cross-section for the species (at point $i$
 and in a unit matching the unit of $x$). The term $\PartD \MpiVct/\PartD I$
-gives the position in \MpiVct\ where the $I$ of concern is stored.
-
+gives the position in \MpiVct\ where the $I$ of concern is stored. For clarity
+and efficiency reasons, the following nomeclature is used in the source code:
+\begin{eqnarray}
+  X &=& \frac{\Delta s_i}{2} e^{-\Oth'} e^{-\aOth{i}}, \\
+  Y &=& \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD k_i}
+    \qquad \left( = X(\bar{B}_i-I_i) \right).
+\end{eqnarray}
 The term $\PartD x_i/\PartD x$ appears due to the fact that $x_i$ and $x$ are
 placed at different positions, and the representation of the atmospheric fields
 must be considered here. In practise, the term is calculated as the value of
@@ -346,7 +351,12 @@ Eq.~\ref{eq:I4J} is
 This affects only one of the chain rule terms:
 \begin{equation}
   \frac{\PartD I}{\PartD \aOth{i}} 
-      = -e^{-\Oth'}\!I_i e^{-\aOth{i}}.
+      = -e^{-\Oth'}\!I_i e^{-\aOth{i}},
+\end{equation}
+giving
+\begin{equation}
+  \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD k_i} =
+  -X I_i.
 \end{equation}
 This later form is used for Stokes elemnt 2 to 4 in
 \wsmindex{iyEmissionStandardClearsky} and for all components in
@@ -405,7 +415,7 @@ Please, note that hydrostatic equilibrium comes in during the perturbation. If
 \verb|hse| is set to ``on'', also \builtindoc{z\_field} is recalculated as part
 of the temperature perturbation (Section~\ref{sec:fm_defs:hse}). If set to
 ``off'', there is no change of \builtindoc{z\_field}. That is, you must make an
-actibe choice regarding hydrostatic equilibrium, while others effects are
+active choice regarding hydrostatic equilibrium, while others effects are
 included automatically.
 
 
@@ -476,7 +486,11 @@ anyhow be determined in a pure numerical manner; it is likely the derivative of
 the Planck function, but if the Rayleigh-Jeans approximation is for some reason
 selected ($B=T$) the term is just 1.
 
-Determine expression for BL and higher Stokes, and put into ARTS!
+For higher Stokes components, or if emission is ignored:
+\begin{eqnarray}
+   \frac{\PartD I}{\PartD \bar{B}_i} &=& 0 \quad \mathrm{and} \\
+   \frac{\PartD I}{\PartD \aOth{i}}  &=& -e^{-\Oth'}\!I_i e^{-\aOth{i}}.
+\end{eqnarray}
 
 
 
@@ -507,3 +521,11 @@ nadir, as long as the observations are of ``up'' or ``down-ward'' type. The
 same applies to measurements from inside the atmosphere, (e.g.\ aircraft ones),
 if the reference pressure for hydrostatic equilibrium (\builtindoc{p\_hse})
 is matched to the pressure of the observation point.
+
+
+
+
+
+\section{Sensor pointing}
+%==============================================================================
+\label{sec:wfuns:sensorpointing}

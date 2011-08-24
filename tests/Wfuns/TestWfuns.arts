@@ -86,35 +86,88 @@ Matrix1ColFromVector( sensor_los, za )
 
 ##############################################################################
 #
-# Compare where two different calculation versions exist
+# Absorption
 #
 ##############################################################################
 
-StringCreate( anal_or_pert )
-VectorCreate( retrieval_grid )
 MatrixCreate( Ja )
 MatrixCreate( Jp )
 
-# Analytical:
-StringSet( anal_or_pert, "analytical" )
-INCLUDE "common_wfuns_defs.arts"
+# Species (just O3)
+#
+# Retrieve for a grid rougly matching 16 to 64 km in 2 km steps.
+#
+VectorCreate( retrieval_grid )
+VectorNLogSpace( retrieval_grid, 25, 100e2, 10 )
+
+jacobianInit
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "O3", "analytical", "rel", 0.01 )
+jacobianClose
+yCalc
 Copy( Ja, jacobian )
 
-# Perurbations:
-StringSet( anal_or_pert, "perturbation" )
-INCLUDE "common_wfuns_defs.arts"
+
+# Same with perturbations
+jacobianInit
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "O3", "perturbation", "rel", 0.01 )
+jacobianClose
+yCalc
 Copy( Jp, jacobian )
 
 # Compare
-MatrixCompare( Ja, Jp, 0.01 )
-
+MatrixCompare( Ja, Jp, 0.005 )
 
 
 
 
 ##############################################################################
 #
-# Go though other weighting functions
+# Temperature, without HSE
+#
+##############################################################################
+
+# Dummy values
+NumericSet( p_hse, 1000e2 )
+NumericSet( z_hse_accuracy, 1 )
+
+jacobianInit
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "off", "analytical", 0.1 )
+jacobianClose
+yCalc
+Copy( Ja, jacobian )
+
+
+# Same with perturbations
+jacobianInit
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    retrieval_grid, lat_grid, lon_grid, 
+    "off", "perturbation", 0.1 )
+jacobianClose
+yCalc
+Copy( Jp, jacobian )
+
+WriteXML( "ascii", Ja, "Ja.xml" )
+WriteXML( "ascii", Jp, "Jp.xml" )
+
+# Compare
+MatrixCompare( Ja, Jp, 0.001 )
+
+
+
+
+##############################################################################
+#
+# Just check that other weighting functions don't cause any error
 #
 ##############################################################################
 
@@ -124,7 +177,7 @@ nrowsGet( nrows, sensor_pos )
 VectorNLinSpace( sensor_time, nrows, 0, 1 )
 
 jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
-                       sensor_pos, sensor_time, 0, "iybrecalc", 0.01 )
+                       sensor_pos, sensor_time, 0, "recalc", 0.01 )
 
 # Another test of jacobianAddFreqShiftAndStretch is found in Groundbased
 jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 

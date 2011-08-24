@@ -311,6 +311,7 @@ extern const String FREQUENCY_CALCMODE_A= "Interpolate iyb";
 extern const String POINTING_MAINTAG    = "Sensor pointing";
 extern const String POINTING_SUBTAG_A   = "Zenith angle off-set";
 extern const String POINTING_CALCMODE_A = "Recalculate iyb";
+extern const String POINTING_CALCMODE_B = "Interpolate iyb";
 
 extern const String POLYFIT_MAINTAG     = "Polynomial baseline fit";
 

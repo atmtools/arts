@@ -127,7 +127,7 @@ nrowsGet( nrows, sensor_pos )
 VectorNLinSpace( sensor_time, nrows, 0, 1 )
 
 jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
-                       sensor_pos, sensor_time, 0, "iybrecalc", 0.01 )
+                       sensor_pos, sensor_time, 0, "recalc", 0.01 )
 
 # Another test of jacobianAddFreqShiftAndStretch is found in Groundbased
 jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 

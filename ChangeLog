@@ -1,8 +1,36 @@
+2011-08-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-19
+
+	* If you are using pointing WFs, change "iybrecalc" to "recalc"
+	(iyb was reduntant information)
+
+	* tests/ClearSky/TestClearSky.arts: Adopted to change below.
+
+	* src/m_jacobian.cc (jacobianAddPointingZa): Added option
+	"interp". And renamed changed option "iybrecalc" to "recalc".
+
+	(jacobianCalcPointingZaRecalc): Renamed.
+
+	* src/constants.cc: Added POINTING_CALCMODE_B.
+
+	* tests/Wfuns/TestWfuns.arts: Modified and extended (now also
+	testing T-wfuns).
+
+	* tests/Wfuns/common_wfuns_defs.arts: Removed.
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): Code slightly
+	restructured (frequency loop broken up), to hopefully make things
+	clearer and avoid repeating operations.
+	(iyBeerLambertStandardClearsky): Changes as above.
+
+	* doc/uguide/wfuns.tex: Finished temperature section.
+
 2011-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-17-18
 
-	* doc/uguide/wfuns.tex: More work on T wfuns. 
+	* doc/uguide/wfuns.tex: More work on T wfuns.
 
 	* doc/uguide/atmosphere.tex: Made a short section around
 	hydrostatic equilibrium.
@@ -11,7 +39,7 @@
 
 	* arts-1-17-17
 
-	* doc/uguide/wfuns.tex: Some work on T-wfs section. 
+	* doc/uguide/wfuns.tex: Some work on T-wfs section.
 
 2011-08-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

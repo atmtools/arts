@@ -58,6 +58,7 @@ extern const String FREQUENCY_CALCMODE_A;
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
+extern const String POINTING_CALCMODE_B;
 extern const String POLYFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 
@@ -75,15 +76,16 @@ extern const String TEMPERATURE_MAINTAG;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianClose(Workspace&                 ws,
-                   Index&                     jacobian_do,
-                   Matrix&                    jacobian,
-                   ArrayOfArrayOfIndex&       jacobian_indices,
-                   Agenda&                    jacobian_agenda,
-                   const ArrayOfRetrievalQuantity&  jacobian_quantities,
-                   const Matrix&              sensor_pos,
-                   const Sparse&              sensor_response,
-                   const Verbosity&           verbosity)
+void jacobianClose(
+        Workspace&                 ws,
+        Index&                     jacobian_do,
+        Matrix&                    jacobian,
+        ArrayOfArrayOfIndex&       jacobian_indices,
+        Agenda&                    jacobian_agenda,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const Matrix&                    sensor_pos,
+  const Sparse&                    sensor_response,
+  const Verbosity&                 verbosity )
 {
   // Make sure that the array is not empty
   if( jacobian_quantities.nelem() == 0 )
@@ -141,9 +143,10 @@ void jacobianClose(Workspace&                 ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianInit(ArrayOfRetrievalQuantity&  jacobian_quantities,
-                  Agenda&                    jacobian_agenda,
-                  const Verbosity&)
+void jacobianInit(
+        ArrayOfRetrievalQuantity&  jacobian_quantities,
+        Agenda&                    jacobian_agenda,
+  const Verbosity& )
 {
   jacobian_quantities.resize(0);
   jacobian_agenda = Agenda();
@@ -153,11 +156,12 @@ void jacobianInit(ArrayOfRetrievalQuantity&  jacobian_quantities,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianOff(Index&                     jacobian_do,
-                 Agenda&                    jacobian_agenda,
-                 ArrayOfRetrievalQuantity&  jacobian_quantities,
-                 ArrayOfArrayOfIndex&       jacobian_indices,
-                 const Verbosity&           verbosity)
+void jacobianOff(
+        Index&                     jacobian_do,
+        Agenda&                    jacobian_agenda,
+        ArrayOfRetrievalQuantity&  jacobian_quantities, 
+        ArrayOfArrayOfIndex&       jacobian_indices,
+  const Verbosity&                 verbosity )
 {
   jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
   jacobian_do   = 0;
@@ -173,21 +177,22 @@ void jacobianOff(Index&                     jacobian_do,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddAbsSpecies(Workspace&                  ws _U_,
-                           ArrayOfRetrievalQuantity&   jq,
-                           Agenda&                     jacobian_agenda,
-                           const Index&                atmosphere_dim,
-                           const Vector&               p_grid,
-                           const Vector&               lat_grid,
-                           const Vector&               lon_grid,
-                           const Vector&               rq_p_grid,
-                           const Vector&               rq_lat_grid,
-                           const Vector&               rq_lon_grid,
-                           const String&               species,
-                           const String&               method,
-                           const String&               mode,
-                           const Numeric&              dx,
-                           const Verbosity&            verbosity)
+void jacobianAddAbsSpecies(
+        Workspace&                  ws _U_,
+        ArrayOfRetrievalQuantity&   jq,
+        Agenda&                     jacobian_agenda,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Vector&                     rq_p_grid,
+  const Vector&                     rq_lat_grid,
+  const Vector&                     rq_lon_grid,
+  const String&                     species,
+  const String&                     method,
+  const String&                     mode,
+  const Numeric&                    dx,
+  const Verbosity&                  verbosity )
 {
   CREATE_OUT2
   CREATE_OUT3
@@ -195,7 +200,8 @@ void jacobianAddAbsSpecies(Workspace&                  ws _U_,
   // Check that this species is not already included in the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )
     {
-      if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].Subtag() == species )
+      if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && 
+          jq[it].Subtag()  == species )
         {
           ostringstream os;
           os << "The gas species:\n" << species << "\nis already included in "
@@ -286,11 +292,12 @@ void jacobianAddAbsSpecies(Workspace&                  ws _U_,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcAbsSpeciesAnalytical(Matrix&        jacobian _U_,
-                                      const Index&   imblock _U_,
-                                      const Vector&  iyb _U_,
-                                      const Vector&  yb _U_,
-                                      const Verbosity&)
+void jacobianCalcAbsSpeciesAnalytical(
+        Matrix&     jacobian _U_,
+  const Index&      imblock _U_,
+  const Vector&     iyb _U_,
+  const Vector&     yb _U_,
+  const Verbosity& )
 {
   /* Nothing to do here for the analytical case, this function just exists
    to satisfy the required inputs and outputs of the jacobian_agenda */
@@ -299,34 +306,35 @@ void jacobianCalcAbsSpeciesAnalytical(Matrix&        jacobian _U_,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcAbsSpecies(Workspace&                  ws,
-                            Matrix&                     jacobian,
-                            const Index&                imblock,
-                            const Vector&               iyb _U_,
-                            const Vector&               yb,
-                            const Index&                atmosphere_dim,
-                            const Vector&               p_grid,
-                            const Vector&               lat_grid,
-                            const Vector&               lon_grid,
-                            const Tensor3&              t_field,
-                            const Tensor3&              z_field,
-                            const Tensor4&              vmr_field,
-                            const ArrayOfArrayOfSpeciesTag&   abs_species,
-                            const Index&                cloudbox_on,
-                            const Index&                stokes_dim,
-                            const Vector&               f_grid,
-                            const Matrix&               sensor_pos,
-                            const Matrix&               sensor_los,
-                            const Vector&               mblock_za_grid,
-                            const Vector&               mblock_aa_grid,
-                            const Index&                antenna_dim,
-                            const Sparse&               sensor_response,
-                            const Agenda&               iy_clearsky_agenda,
-                            const String&               y_unit,
-                            const ArrayOfRetrievalQuantity&   jacobian_quantities,
-                            const ArrayOfArrayOfIndex&  jacobian_indices,
-                            const String&               species,
-                            const Verbosity&)
+void jacobianCalcAbsSpecies(
+        Workspace&                  ws,
+        Matrix&                     jacobian,
+  const Index&                      imblock,
+  const Vector&                     iyb _U_,
+  const Vector&                     yb,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    t_field,
+  const Tensor3&                    z_field,
+  const Tensor4&                    vmr_field,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Sparse&                     sensor_response,
+  const Agenda&                     iy_clearsky_agenda,
+  const String&                     y_unit,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const String&                     species,
+  const Verbosity& )
 {
   // Set some useful variables. 
   RetrievalQuantity rq;
@@ -525,13 +533,14 @@ void jacobianCalcAbsSpecies(Workspace&                  ws,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddFreqShiftAndStretch(Workspace&                 ws _U_,
-                                    ArrayOfRetrievalQuantity&  jacobian_quantities,
-                                    Agenda&                    jacobian_agenda,
-                                    const String&              calcmode,
-                                    const Numeric&             df,
-                                    const Index&               do_stretch,
-                                    const Verbosity&)
+void jacobianAddFreqShiftAndStretch(
+        Workspace&                 ws _U_,
+        ArrayOfRetrievalQuantity&  jacobian_quantities,
+        Agenda&                    jacobian_agenda,
+  const String&                    calcmode,
+  const Numeric&                   df,
+  const Index&                     do_stretch,
+  const Verbosity& )
 {
   // Check that do_stretch is 0 or 1
   if( do_stretch!=0 && do_stretch!=1 )
@@ -579,22 +588,23 @@ void jacobianAddFreqShiftAndStretch(Workspace&                 ws _U_,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcFreqShiftAndStretchIybinterp(Matrix&                    jacobian,
-                                              const Index&               imblock,
-                                              const Vector&              iyb,
-                                              const Vector&              yb,
-                                              const Index&               stokes_dim,
-                                              const Vector&              f_grid,
-                                              const Vector&              mblock_za_grid,
-                                              const Vector&              mblock_aa_grid,
-                                              const Index&               antenna_dim,
-                                              const Sparse&              sensor_response,
-                                              const ArrayOfIndex&        sensor_response_pol_grid,
-                                              const Vector&              sensor_response_f_grid,
-                                              const Vector&              sensor_response_za_grid,
-                                              const ArrayOfRetrievalQuantity&  jacobian_quantities,
-                                              const ArrayOfArrayOfIndex& jacobian_indices,
-                                              const Verbosity&)
+void jacobianCalcFreqShiftAndStretchIybinterp(
+        Matrix&                    jacobian,
+  const Index&                     imblock,
+  const Vector&                    iyb,
+  const Vector&                    yb,
+  const Index&                     stokes_dim,
+  const Vector&                    f_grid,
+  const Vector&                    mblock_za_grid,
+  const Vector&                    mblock_aa_grid,
+  const Index&                     antenna_dim,
+  const Sparse&                    sensor_response,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_f_grid,
+  const Vector&                    sensor_response_za_grid,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Verbosity& )
 {
   // Set some useful (and needed) variables.  
   RetrievalQuantity rq;
@@ -719,20 +729,23 @@ void jacobianCalcFreqShiftAndStretchIybinterp(Matrix&                    jacobia
 
 
 
+
+
 //----------------------------------------------------------------------------
 // Pointing:
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPointingZa(Workspace&                 ws _U_,
-                           ArrayOfRetrievalQuantity&  jacobian_quantities,
-                           Agenda&                    jacobian_agenda,
-                           const Matrix&              sensor_pos,
-                           const Vector&              sensor_time,
-                           const Index&               poly_order,
-                           const String&              calcmode,
-                           const Numeric&             dza,
-                           const Verbosity&)
+void jacobianAddPointingZa(
+        Workspace&                 ws _U_,
+        ArrayOfRetrievalQuantity&  jacobian_quantities,
+        Agenda&                    jacobian_agenda,
+  const Matrix&                    sensor_pos,
+  const Vector&                    sensor_time,
+  const Index&                     poly_order,
+  const String&                    calcmode,
+  const Numeric&                   dza,
+  const Verbosity& )
 {
   // Check that poly_order is -1 or positive
   if( poly_order < -1 )
@@ -786,13 +799,21 @@ void jacobianAddPointingZa(Workspace&                 ws _U_,
   ArrayOfVector grids(1,grid);
   rq.Grids(grids);
 
-  if( calcmode == "iybrecalc" )
+  if( calcmode == "recalc" )
     { 
       rq.Mode( POINTING_CALCMODE_A );  
-      jacobian_agenda.append( "jacobianCalcPointingZaIybrecalc", "" );
+      jacobian_agenda.append( "jacobianCalcPointingZaRecalc", "" );
+   }
+  else if( calcmode == "interp" )
+    { 
+      throw runtime_error( 
+             "The interp option is under implementation (but not ready)." );
+      rq.Mode( POINTING_CALCMODE_B );  
+      jacobian_agenda.append( "jacobianCalcPointingZaInterp", "" );
    }
   else
-    throw runtime_error( "Possible choices for *calcmode* are \"iybrecalc\"." ); 
+    throw runtime_error( 
+            "Possible choices for *calcmode* are \"recalc\" and \"interp\"." );
 
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back( rq );
@@ -801,33 +822,34 @@ void jacobianAddPointingZa(Workspace&                 ws _U_,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcPointingZaIybrecalc(Workspace&                 ws,
-                                     Matrix&                    jacobian,
-                                     const Index&               imblock,
-                                     const Vector&              iyb _U_,
-                                     const Vector&              yb,
-                                     const Index&               atmosphere_dim,
-                                     const Vector&              p_grid,
-                                     const Vector&              lat_grid,
-                                     const Vector&              lon_grid,
-                                     const Tensor3&             t_field,
-                                     const Tensor3&             z_field,
-                                     const Tensor4&             vmr_field,
-                                     const Index&               cloudbox_on,
-                                     const Index&               stokes_dim,
-                                     const Vector&              f_grid,
-                                     const Matrix&              sensor_pos,
-                                     const Matrix&              sensor_los,
-                                     const Vector&              mblock_za_grid,
-                                     const Vector&              mblock_aa_grid,
-                                     const Index&               antenna_dim,
-                                     const Sparse&              sensor_response,
-                                     const Vector&              sensor_time,
-                                     const Agenda&              iy_clearsky_agenda,
-                                     const String&              y_unit,
-                                     const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                     const ArrayOfArrayOfIndex& jacobian_indices,
-                                     const Verbosity&)
+void jacobianCalcPointingZaRecalc(
+        Workspace&                 ws,
+        Matrix&                    jacobian,
+  const Index&                     imblock,
+  const Vector&                    iyb _U_,
+  const Vector&                    yb,
+  const Index&                     atmosphere_dim,
+  const Vector&                    p_grid,
+  const Vector&                    lat_grid,
+  const Vector&                    lon_grid,
+  const Tensor3&                   t_field,
+  const Tensor3&                   z_field,
+  const Tensor4&                   vmr_field,
+  const Index&                     cloudbox_on,
+  const Index&                     stokes_dim,
+  const Vector&                    f_grid,
+  const Matrix&                    sensor_pos,
+  const Matrix&                    sensor_los,
+  const Vector&                    mblock_za_grid,
+  const Vector&                    mblock_aa_grid,
+  const Index&                     antenna_dim,
+  const Sparse&                    sensor_response,
+  const Vector&                    sensor_time,
+  const Agenda&                    iy_clearsky_agenda,
+  const String&                    y_unit,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Verbosity& )
 {
   // Set some useful variables.  
   RetrievalQuantity rq;
@@ -912,23 +934,25 @@ void jacobianCalcPointingZaIybrecalc(Workspace&                 ws,
 
 
 
+
 //----------------------------------------------------------------------------
 // Polynomial baseline fits:
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPolyfit(Workspace&                 ws _U_,
-                        ArrayOfRetrievalQuantity&  jq,
-                        Agenda&                    jacobian_agenda,
-                        const ArrayOfIndex&        sensor_response_pol_grid,
-                        const Vector&              sensor_response_f_grid,
-                        const Vector&              sensor_response_za_grid,
-                        const Matrix&              sensor_pos,
-                        const Index&               poly_order,
-                        const Index&               no_pol_variation,
-                        const Index&               no_los_variation,
-                        const Index&               no_mblock_variation,
-                        const Verbosity&)
+void jacobianAddPolyfit(
+        Workspace&                 ws _U_,
+        ArrayOfRetrievalQuantity&  jq,
+        Agenda&                    jacobian_agenda,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_f_grid,
+  const Vector&                    sensor_response_za_grid,
+  const Matrix&                    sensor_pos,
+  const Index&                     poly_order,
+  const Index&                     no_pol_variation,
+  const Index&                     no_los_variation,
+  const Index&                     no_mblock_variation,
+  const Verbosity& )
 {
   // Check that poly_order is >= 0
   if( poly_order < 0 )
@@ -1009,18 +1033,19 @@ void jacobianAddPolyfit(Workspace&                 ws _U_,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcPolyfit(Matrix&                    jacobian,
-                         const Index&               imblock,
-                         const Vector&              iyb _U_,
-                         const Vector&              yb _U_,
-                         const Sparse&              sensor_response,
-                         const ArrayOfIndex&        sensor_response_pol_grid,
-                         const Vector&              sensor_response_f_grid,
-                         const Vector&              sensor_response_za_grid,
-                         const ArrayOfRetrievalQuantity& jacobian_quantities,
-                         const ArrayOfArrayOfIndex& jacobian_indices,
-                         const Index&               poly_coeff,
-                         const Verbosity&)
+void jacobianCalcPolyfit(
+        Matrix&                    jacobian,
+  const Index&                     imblock,
+  const Vector&                    iyb _U_,
+  const Vector&                    yb _U_,
+  const Sparse&                    sensor_response,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_f_grid,
+  const Vector&                    sensor_response_za_grid,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Index&                     poly_coeff,
+  const Verbosity& )
 {  
   // Find the retrieval quantity related to this method
   RetrievalQuantity rq;
@@ -1092,25 +1117,28 @@ void jacobianCalcPolyfit(Matrix&                    jacobian,
 
 
 
+
+
 //----------------------------------------------------------------------------
 // Temperatures (atmospheric):
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddTemperature(Workspace&                ws _U_,
-                            ArrayOfRetrievalQuantity& jq,
-                            Agenda&                   jacobian_agenda,
-                            const Index&              atmosphere_dim,
-                            const Vector&             p_grid,
-                            const Vector&             lat_grid,
-                            const Vector&             lon_grid,
-                            const Vector&             rq_p_grid,
-                            const Vector&             rq_lat_grid,
-                            const Vector&             rq_lon_grid,
-                            const String&             hse,
-                            const String&             method,
-                            const Numeric&            dx,
-                            const Verbosity&          verbosity)
+void jacobianAddTemperature(
+        Workspace&                ws _U_,
+        ArrayOfRetrievalQuantity& jq,
+        Agenda&                   jacobian_agenda,
+  const Index&                    atmosphere_dim,
+  const Vector&                   p_grid,
+  const Vector&                   lat_grid,
+  const Vector&                   lon_grid,
+  const Vector&                   rq_p_grid,
+  const Vector&                   rq_lat_grid,
+  const Vector&                   rq_lon_grid,
+  const String&                   hse,
+  const String&                   method,
+  const Numeric&                  dx,
+  const Verbosity&                verbosity )
 {
   CREATE_OUT3
   
@@ -1208,11 +1236,12 @@ void jacobianAddTemperature(Workspace&                ws _U_,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcTemperatureAnalytical(Matrix&       jacobian _U_,
-                                      const Index&   imblock _U_,
-                                      const Vector&  iyb _U_,
-                                      const Vector&  yb _U_,
-                                      const Verbosity&)
+void jacobianCalcTemperatureAnalytical(
+        Matrix&     jacobian _U_,
+  const Index&      imblock _U_,
+  const Vector&     iyb _U_,
+  const Vector&     yb _U_,
+  const Verbosity& )
 {
   /* Nothing to do here for the analytical case, this function just exists
    to satisfy the required inputs and outputs of the jacobian_agenda */
@@ -1222,37 +1251,38 @@ void jacobianCalcTemperatureAnalytical(Matrix&       jacobian _U_,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcTemperature(Workspace&                 ws,
-                             Matrix&                    jacobian,
-                             const Index&               imblock,
-                             const Vector&              iyb _U_,
-                             const Vector&              yb,
-                             const Index&               atmosphere_dim,
-                             const Vector&              p_grid,
-                             const Vector&              lat_grid,
-                             const Vector&              lon_grid,
-                             const Tensor3&             t_field,
-                             const Tensor3&             z_field,
-                             const Tensor4&             vmr_field,
-                             const ArrayOfArrayOfSpeciesTag&   abs_species,
-                             const Matrix&              r_geoid,
-                             const Matrix&              z_surface,
-                             const Index&               cloudbox_on,
-                             const Index&               stokes_dim,
-                             const Vector&              f_grid,
-                             const Matrix&              sensor_pos,
-                             const Matrix&              sensor_los,
-                             const Vector&              mblock_za_grid,
-                             const Vector&              mblock_aa_grid,
-                             const Index&               antenna_dim,
-                             const Sparse&              sensor_response,
-                             const Agenda&              iy_clearsky_agenda,
-                             const String&              y_unit,
-                             const Numeric&             p_hse,
-                             const Numeric&             z_hse_accuracy,
-                             const ArrayOfRetrievalQuantity&   jacobian_quantities,
-                             const ArrayOfArrayOfIndex& jacobian_indices,
-                             const Verbosity&           verbosity)
+void jacobianCalcTemperature(
+        Workspace&                 ws,
+        Matrix&                    jacobian,
+  const Index&                      imblock,
+  const Vector&                     iyb _U_,
+  const Vector&                     yb,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    t_field,
+  const Tensor3&                    z_field,
+  const Tensor4&                    vmr_field,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Sparse&                     sensor_response,
+  const Agenda&                     iy_clearsky_agenda,
+  const String&                     y_unit,
+  const Numeric&                    p_hse,
+  const Numeric&                    z_hse_accuracy,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const Verbosity&                  verbosity )
 {
   // Set some useful variables. 
   RetrievalQuantity rq;

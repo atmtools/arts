@@ -357,32 +357,33 @@ void get_pointers_for_analytical_jacobians(
     \author Patrick Eriksson 
     \date   2009-10-08
 */
-void get_iy_of_background(Workspace&        ws,
-                          Matrix&           iy,
-                          Matrix&           iy_error,
-                          Index&            iy_error_type,
-                          Matrix&           iy_aux,
-                          ArrayOfTensor3&   diy_dx,
-                          ConstTensor3View  iy_transmission,
-                          const Index&      jacobian_do,
-                          const Ppath&      ppath,
-                          const Index&      atmosphere_dim,
-                          ConstVectorView   p_grid,
-                          ConstVectorView   lat_grid,
-                          ConstVectorView   lon_grid,
-                          ConstTensor3View  t_field,
-                          ConstTensor3View  z_field,
-                          ConstTensor4View  vmr_field,
-                          const Matrix&     r_geoid,
-                          const Matrix&     z_surface,
-                          const Index&      cloudbox_on,
-                          const Index&      stokes_dim,
-                          ConstVectorView   f_grid,
-                          const Agenda&     iy_clearsky_agenda,
-                          const Agenda&     iy_space_agenda,
-                          const Agenda&     surface_prop_agenda,
-                          const Agenda&     iy_cloudbox_agenda,
-                          const Verbosity&  verbosity)
+void get_iy_of_background(
+        Workspace&        ws,
+        Matrix&           iy,
+        Matrix&           iy_error,
+        Index&            iy_error_type,
+        Matrix&           iy_aux,
+        ArrayOfTensor3&   diy_dx,
+  ConstTensor3View        iy_transmission,
+  const Index&            jacobian_do,
+  const Ppath&            ppath,
+  const Index&            atmosphere_dim,
+  ConstVectorView         p_grid,
+  ConstVectorView         lat_grid,
+  ConstVectorView         lon_grid,
+  ConstTensor3View        t_field,
+  ConstTensor3View        z_field,
+  ConstTensor4View        vmr_field,
+  const Matrix&           r_geoid,
+  const Matrix&           z_surface,
+  const Index&            cloudbox_on,
+  const Index&            stokes_dim,
+  ConstVectorView         f_grid,
+  const Agenda&           iy_clearsky_agenda,
+  const Agenda&           iy_space_agenda,
+  const Agenda&           surface_prop_agenda,
+  const Agenda&           iy_cloudbox_agenda,
+  const Verbosity&        verbosity)
 {
   CREATE_OUT3
   
@@ -783,53 +784,51 @@ void iyb_calc(
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyBeerLambertStandardClearsky(Workspace&                  ws,
-                                   Matrix&                     iy,
-                                   Matrix&                     iy_error,
-                                   Index&                      iy_error_type,
-                                   Matrix&                     iy_aux,
-                                   ArrayOfTensor3&             diy_dx,
-                                   const Index&                iy_agenda_call1,
-                                   const Tensor3&              iy_transmission,
-                                   const Vector&               rte_pos,      
-                                   const Vector&               rte_los,      
-                                   const Index&                jacobian_do,
-                                   const Index&                atmosphere_dim,
-                                   const Vector&               p_grid,
-                                   const Vector&               lat_grid,
-                                   const Vector&               lon_grid,
-                                   const Tensor3&              z_field,
-                                   const Tensor3&              t_field,
-                                   const Tensor4&              vmr_field,
-                                   const Tensor3&              wind_u_field,
-                                   const Tensor3&              wind_v_field,
-                                   const Tensor3&              wind_w_field,
-                                   const Matrix&               r_geoid,
-                                   const Matrix&               z_surface,
-                                   const Index&                cloudbox_on,
-                                   const ArrayOfIndex&         cloudbox_limits,
-                                   const Index&                stokes_dim,
-                                   const Vector&               f_grid,
-                                   const ArrayOfArrayOfSpeciesTag&   abs_species,
-                                   const Agenda&               ppath_step_agenda,
-                                   const Agenda&               abs_scalar_gas_agenda,
-                                   const Agenda&               iy_clearsky_agenda,
-                                   const Agenda&               iy_space_agenda,
-                                   const Agenda&               surface_prop_agenda,
-                                   const Agenda&               iy_cloudbox_agenda,
-                                   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-                                   const ArrayOfArrayOfIndex&  jacobian_indices,
-                                   const Verbosity&            verbosity)
+void iyBeerLambertStandardClearsky(
+        Workspace&            ws,
+        Matrix&               iy,
+        Matrix&               iy_error,
+        Index&                iy_error_type,
+        Matrix&               iy_aux,
+        ArrayOfTensor3&       diy_dx,
+  const Index&                iy_agenda_call1,
+  const Tensor3&              iy_transmission,
+  const Vector&               rte_pos,      
+  const Vector&               rte_los,      
+  const Index&                jacobian_do,
+  const Index&                atmosphere_dim,
+  const Vector&               p_grid,
+  const Vector&               lat_grid,
+  const Vector&               lon_grid,
+  const Tensor3&              z_field,
+  const Tensor3&              t_field,
+  const Tensor4&              vmr_field,
+  const Tensor3&              wind_u_field,
+  const Tensor3&              wind_v_field,
+  const Tensor3&              wind_w_field,
+  const Matrix&               r_geoid,
+  const Matrix&               z_surface,
+  const Index&                cloudbox_on,
+  const ArrayOfIndex&         cloudbox_limits,
+  const Index&                stokes_dim,
+  const Vector&               f_grid,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Agenda&               ppath_step_agenda,
+  const Agenda&               abs_scalar_gas_agenda,
+  const Agenda&               iy_clearsky_agenda,
+  const Agenda&               iy_space_agenda,
+  const Agenda&               surface_prop_agenda,
+  const Agenda&               iy_cloudbox_agenda,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&  jacobian_indices,
+  const Verbosity&            verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
-
-  // Jacobian code exists, but has not been tested at all
-  if( jacobian_do )
-    throw runtime_error( "Method not yet tested with jacobians." );      
 
   // Sizes
   //
   const Index nf = f_grid.nelem();
+  const Index nq = jacobian_quantities.nelem();
 
   // Determine if there are any analytical jacobians to handle, and if primary
   // call, resize diy_dx.
@@ -903,12 +902,12 @@ void iyBeerLambertStandardClearsky(Workspace&                  ws,
 
   // Radiative background
   //
-  get_iy_of_background(ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                       jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
-                       lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
-                       cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
-                       iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda,
-                       verbosity);
+  get_iy_of_background( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
+                        iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
+                        p_grid, lat_grid, lon_grid, t_field, z_field, 
+                        vmr_field, r_geoid, z_surface, cloudbox_on, stokes_dim,
+                        f_grid, iy_clearsky_agenda, iy_space_agenda, 
+                        surface_prop_agenda, iy_cloudbox_agenda, verbosity );
   
   // Do RT calculations
   //
@@ -926,9 +925,9 @@ void iyBeerLambertStandardClearsky(Workspace&                  ws,
       //
       if( j_analytical_do )
         { 
-          diy_dpath.resize( jacobian_indices.nelem() ); 
-          abs_species_i.resize( jacobian_indices.nelem() ); 
-          is_t.resize( jacobian_indices.nelem() ); 
+          diy_dpath.resize( nq ); 
+          abs_species_i.resize( nq ); 
+          is_t.resize( nq ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
             diy_dpath[iq].resize( np, nf, stokes_dim ); 
@@ -958,72 +957,102 @@ void iyBeerLambertStandardClearsky(Workspace&                  ws,
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
-          // Loop frequencies
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              // Jacobian quantities
-              if( j_analytical_do )
+
+          // Jacobian quantities
+          if( j_analytical_do )
+            {
+              // Common terms introduced for efficiency and clarity
+              Vector X(nf);   // See AUG
+              //
+              for( Index iv=0; iv<nf; iv++ )
                 {
-                  const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
-                  
-                  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
+                  X[iv] = 0.5 * ppath.l_step[ip] * exp( -total_tau[iv] );
+                }
+
+              // Loop quantities
+              // Loop quantities
+              for( Index iq=0; iq<nq; iq++ ) 
+                {
+                  if( jacobian_quantities[iq].Analytical() )
                     {
-                      if( jacobian_quantities[iq].Analytical() )
+                      // Absorbing species
+                      const Index isp = abs_species_i[iq]; 
+                      if( isp >= 0 )
                         {
-                          // Absorbing species
-                          const Index isp = abs_species_i[iq]; 
-                          if( isp >= 0 )
+                          // Scaling factors to handle retrieval unit
+                          // (gives the cross-section to apply)
+                          Numeric unitscf1, unitscf2;
+                          vmrunitscf( unitscf1, 
+                                      jacobian_quantities[iq].Mode(), 
+                                      ppath_vmr(isp,ip), ppath_p[ip], 
+                                      ppath_t[ip] );
+                          vmrunitscf( unitscf2, 
+                                      jacobian_quantities[iq].Mode(), 
+                                      ppath_vmr(isp,ip+1), ppath_p[ip+1], 
+                                      ppath_t[ip+1] );
+                          //
+                          for( Index iv=0; iv<nf; iv++ )
                             {
-                              // Scaling factors to handle retrieval unit
-                              Numeric unitscf1, unitscf2;
-                              vmrunitscf( unitscf1, 
-                                          jacobian_quantities[iq].Mode(), 
-                                          ppath_vmr(isp,ip), ppath_p[ip], 
-                                          ppath_t[ip] );
-                              vmrunitscf( unitscf2, 
-                                          jacobian_quantities[iq].Mode(), 
-                                          ppath_vmr(isp,ip+1), ppath_p[ip+1], 
-                                          ppath_t[ip+1] );
-                              //
                               // All Stokes components equal
                               for( Index is=0; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is);
-                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi *
+                                  const Numeric Z = -X[iv] * iy(iv,is);
+                                  diy_dpath[iq](ip  ,iv,is) += Z * unitscf1 *
                                                  ppath_abs_scalar(iv,isp,ip);
-                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi *
+                                  diy_dpath[iq](ip+1,iv,is) += Z * unitscf2 *
                                                  ppath_abs_scalar(iv,isp,ip+1);
                                 }
                             }
+                        }
 
-                          // Temperature
-                          else if( is_t[iq] )
+                      // Temperature
+                      else if( is_t[iq] )
+                        {
+                          for( Index iv=0; iv<nf; iv++ )
                             {
-      throw runtime_error("T-jacobian not ready for Beer-Lambert.");
+                              // The terms associated with Dtau/Dk:
+                              const Numeric k1 = 
+                                         ppath_abs_scalar(iv,joker,ip  ).sum();
+                              const Numeric k2 = 
+                                         ppath_abs_scalar(iv,joker,ip+1).sum();
                               const Numeric dkdt1 =
-                                ( ppath_as2(iv,joker,ip).sum()
-                                - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                                  ( ppath_as2(iv,joker,ip  ).sum() - k1 ) / dt;
                               const Numeric dkdt2 =
-                                ( ppath_as2(iv,joker,ip+1).sum()
-                                - ppath_abs_scalar(iv,joker,ip+1).sum() ) / dt;
-                              //
-                              // All Stokes components equal
+                                  ( ppath_as2(iv,joker,ip+1).sum() - k2 ) / dt;
                               for( Index is=0; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is);
-                                  diy_dpath[iq](ip  ,iv,is) += wi * dkdt1;
-                                  diy_dpath[iq](ip+1,iv,is) += wi * dkdt2;
+                                  const Numeric Z = -X[iv] * iy(iv,is);
+                                  diy_dpath[iq](ip  ,iv,is) += Z * dkdt1;
+                                  diy_dpath[iq](ip+1,iv,is) += Z * dkdt2;
                                 }
-                            }
-                        }
-                    }
-                  
-                  // Update total_tau (not used for spectrum calculation)
-                  total_tau[iv] -= ppath_tau(iv,ip);
-                }
+                              //
+                              // The terms associated with Delta-s:
+                              if( jacobian_quantities[iq].Subtag() == "HSE on" )
+                                {
+                                  const Numeric kbar = 0.5 * ( k1 + k2 );
+                                  for( Index is=0; is<stokes_dim; is++ )
+                                    { 
+                                      const Numeric Z = -X[iv] * iy(iv,is);
+                                      diy_dpath[iq](ip  ,iv,is) += Z * kbar /
+                                                                  ppath_t[ip];
+                                      diy_dpath[iq](ip+1,iv,is) += Z * kbar /
+                                                                 ppath_t[ip+1];
+                                    }
+                                } //hse
+                            }  // frequency
+                        }  // if is_t
+                    } // if analytical
+                } // for iq
+              
+              // Update total_tau (not used for spectrum calculation)
+              for( Index iv=0; iv<nf; iv++ )
+                { total_tau[iv] -= ppath_tau(iv,ip); }
+            }
 
-              // Spectrum
-              //
+          // Spectrum
+          //
+          for( Index iv=0; iv<nf; iv++ )
+            {
               const Numeric step_tr = exp( -ppath_tau(iv,ip) );
               //
               for( Index is=0; is<stokes_dim; is++ )
@@ -1032,6 +1061,7 @@ void iyBeerLambertStandardClearsky(Workspace&                  ws,
         } 
 
       // Map jacobians from ppath to retrieval grids
+      // (this operation corresponds to the term Dx_i/Dx)
       if( j_analytical_do )
         { 
           // Weight with iy_transmission
@@ -1143,24 +1173,25 @@ void iyBeerLambertStandardCloudbox(
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      get_ppath_atmvars(ppath_p, ppath_t, ppath_vmr, 
-                        ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                        ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                        wind_field_dummy, wind_field_dummy, wind_field_dummy );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_field_dummy, wind_field_dummy, wind_field_dummy );
 
       // Particle number densities
-      get_ppath_pnd(ppath_pnd, 
-                    ppath, atmosphere_dim, cloudbox_limits, pnd_field );
+      get_ppath_pnd( ppath_pnd, ppath, atmosphere_dim, cloudbox_limits, 
+                     pnd_field );
 
       // Absorption and optical thickness for each step
-      get_ppath_cloudrtvars(ws, ppath_asp_abs_vec, ppath_asp_ext_mat,  
-                            ppath_pnd_abs_vec, ppath_pnd_ext_mat, ppath_transmission, 
-                            total_transmission, emission_dummy, scat_data,
-                            abs_scalar_gas_agenda, agenda_dummy, opt_prop_gas_agenda,
-                            ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,  
-                            ppath_wind_v, ppath_wind_w, ppath_pnd, use_mean_scat_data,
-                            scat_data_raw, stokes_dim, f_grid, atmosphere_dim, 0,
-                            verbosity);
+      get_ppath_cloudrtvars( ws, ppath_asp_abs_vec, ppath_asp_ext_mat,  
+                             ppath_pnd_abs_vec, ppath_pnd_ext_mat, 
+                             ppath_transmission, total_transmission, 
+                             emission_dummy, scat_data, abs_scalar_gas_agenda, 
+                             agenda_dummy, opt_prop_gas_agenda,
+                             ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,  
+                             ppath_wind_v, ppath_wind_w, ppath_pnd, 
+                             use_mean_scat_data, scat_data_raw, stokes_dim, 
+                             f_grid, atmosphere_dim, 0, verbosity );
 
       // *scat_data* not used. Free the memory.
       scat_data.resize( 0 );
@@ -1204,44 +1235,45 @@ void iyBeerLambertStandardCloudbox(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandardClearsky(Workspace&           ws,
-                                Matrix&              iy,
-                                Matrix&              iy_error,
-                                Index&               iy_error_type,
-                                Matrix&              iy_aux,
-                                ArrayOfTensor3&      diy_dx,
-                                const Index&         iy_agenda_call1,
-                                const Tensor3&       iy_transmission,
-                                const Vector&        rte_pos,      
-                                const Vector&        rte_los,      
-                                const Index&         jacobian_do,
-                                const Index&         atmosphere_dim,
-                                const Vector&        p_grid,
-                                const Vector&        lat_grid,
-                                const Vector&        lon_grid,
-                                const Tensor3&       z_field,
-                                const Tensor3&       t_field,
-                                const Tensor4&       vmr_field,
-                                const Tensor3&       wind_u_field,
-                                const Tensor3&       wind_v_field,
-                                const Tensor3&       wind_w_field,
-                                const Matrix&        r_geoid,
-                                const Matrix&        z_surface,
-                                const Index&         cloudbox_on,
-                                const ArrayOfIndex&  cloudbox_limits,
-                                const Index&         stokes_dim,
-                                const Vector&        f_grid,
-                                const ArrayOfArrayOfSpeciesTag&   abs_species,
-                                const Agenda&        ppath_step_agenda,
-                                const Agenda&        emission_agenda,
-                                const Agenda&        abs_scalar_gas_agenda,
-                                const Agenda&        iy_clearsky_agenda,
-                                const Agenda&        iy_space_agenda,
-                                const Agenda&        surface_prop_agenda,
-                                const Agenda&        iy_cloudbox_agenda,
-                                const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                const ArrayOfArrayOfIndex&      jacobian_indices,
-                                const Verbosity&     verbosity)
+void iyEmissionStandardClearsky(
+        Workspace&                  ws,
+        Matrix&                     iy,
+        Matrix&                     iy_error,
+        Index&                      iy_error_type,
+        Matrix&                     iy_aux,
+        ArrayOfTensor3&             diy_dx,
+  const Index&                      iy_agenda_call1,
+  const Tensor3&                    iy_transmission,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      jacobian_do,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Tensor3&                    wind_u_field,
+  const Tensor3&                    wind_v_field,
+  const Tensor3&                    wind_w_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Agenda&                     ppath_step_agenda,
+  const Agenda&                     emission_agenda,
+  const Agenda&                     abs_scalar_gas_agenda,
+  const Agenda&                     iy_clearsky_agenda,
+  const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     iy_cloudbox_agenda,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const Verbosity&                  verbosity )
 {
   // The method can in principle be used "stand-alone", but for efficiency
   // reasons we skip all checks needed to handle such usage. Those checks are
@@ -1259,6 +1291,7 @@ void iyEmissionStandardClearsky(Workspace&           ws,
   // Sizes
   //
   const Index nf = f_grid.nelem();
+  const Index nq = jacobian_quantities.nelem();
 
   // Determine if there are any analytical jacobians to handle, and if primary
   // call, resize diy_dx.
@@ -1269,7 +1302,7 @@ void iyEmissionStandardClearsky(Workspace&           ws,
   //
   if( iy_agenda_call1 && j_analytical_do )
     {
-      diy_dx.resize( jacobian_indices.nelem() ); 
+      diy_dx.resize( nq ); 
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
         diy_dx[iq].resize( jacobian_indices[iq][1] - jacobian_indices[iq][0] +
@@ -1311,7 +1344,7 @@ void iyEmissionStandardClearsky(Workspace&           ws,
 
       // Get emission, absorption and optical thickness for each step
       get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                        ppath_emission,  abs_scalar_gas_agenda, emission_agenda, 
+                        ppath_emission, abs_scalar_gas_agenda, emission_agenda, 
                         ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
                         ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 1 );
     }
@@ -1331,12 +1364,12 @@ void iyEmissionStandardClearsky(Workspace&           ws,
 
   // Radiative background
   //
-  get_iy_of_background(ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                       jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
-                       lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
-                       cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
-                       iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda,
-                       verbosity);
+  get_iy_of_background( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
+                        iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
+                        p_grid, lat_grid, lon_grid, t_field, z_field, 
+                        vmr_field, r_geoid, z_surface, cloudbox_on, stokes_dim,
+                        f_grid, iy_clearsky_agenda, iy_space_agenda, 
+                        surface_prop_agenda, iy_cloudbox_agenda, verbosity);
   
   // Do RT calculations
   //
@@ -1355,9 +1388,9 @@ void iyEmissionStandardClearsky(Workspace&           ws,
       //
       if( j_analytical_do )
         { 
-          diy_dpath.resize( jacobian_indices.nelem() ); 
-          abs_species_i.resize( jacobian_indices.nelem() ); 
-          is_t.resize( jacobian_indices.nelem() ); 
+          diy_dpath.resize( nq ); 
+          abs_species_i.resize( nq ); 
+          is_t.resize( nq ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
             diy_dpath[iq].resize( np, nf, stokes_dim ); 
@@ -1377,8 +1410,8 @@ void iyEmissionStandardClearsky(Workspace&           ws,
               Vector total_tau_dummy, t2 = ppath_t;
               t2 += dt;
               get_ppath_rtvars( ws, ppath_as2, tau_dummy, total_tau_dummy, 
-                                ppath_e2, abs_scalar_gas_agenda, emission_agenda, 
-                                ppath, ppath_p, t2, ppath_vmr, 
+                                ppath_e2, abs_scalar_gas_agenda, 
+                                emission_agenda, ppath, ppath_p, t2, ppath_vmr, 
                                 ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                                 f_grid, atmosphere_dim, 1 );
             }
@@ -1387,61 +1420,83 @@ void iyEmissionStandardClearsky(Workspace&           ws,
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
-          // Loop frequencies
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              // Average of emission source term
-              Numeric esource = 0.5 * ( ppath_emission(iv,ip) + 
-                                        ppath_emission(iv,ip+1) );
+          Vector esource(nf);            // B-bar
+          Matrix iy_new(nf,stokes_dim);  // Intensity at end of step
 
-              // Jacobian quantities
-              if( j_analytical_do )
+          // Spectrum at end of ppath step 
+          // (iy updated to iy_new at end of ip-loop)
+          for( Index iv=0; iv<nf; iv++ )  
+            {
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+              //
+              // First Stokes element:
+              esource[iv] = 0.5 * ( ppath_emission(iv,ip) + 
+                                    ppath_emission(iv,ip+1) );    
+              iy_new(iv,0) = iy(iv,0) * step_tr + esource[iv] * (1-step_tr); 
+              //
+              // Higher Stokes:
+              for( Index is=1; is<stokes_dim; is++ )
+                { iy_new(iv,is) = step_tr * iy(iv,is); }
+            }
+
+          // Jacobian quantities
+          if( j_analytical_do )
+            {
+              // Common terms introduced for efficiency and clarity
+              Vector X(nf), Y(nf);   // See AUG
+              //
+              for( Index iv=0; iv<nf; iv++ )
                 {
-                  const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
-                  const Numeric B = 0.5 * A * (esource-iy(iv,0));
-                  
-                  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
+                  X[iv] = 0.5 * ppath.l_step[ip] * exp( -total_tau[iv] );
+                  Y[iv] = X[iv] * ( esource[iv] - iy(iv,0) );
+                }
+
+              // Loop quantities
+              for( Index iq=0; iq<nq; iq++ ) 
+                {
+                  if( jacobian_quantities[iq].Analytical() )
                     {
-                      if( jacobian_quantities[iq].Analytical() )
+                      // Absorbing species
+                      const Index isp = abs_species_i[iq]; 
+                      if( isp >= 0 )
                         {
-                          // Absorbing species
-                          const Index isp = abs_species_i[iq]; 
-                          if( isp >= 0 )
+                          // Scaling factors to handle retrieval unit
+                          // (gives the cross-section to apply)
+                          Numeric unitscf1, unitscf2;
+                          vmrunitscf( unitscf1, 
+                                      jacobian_quantities[iq].Mode(), 
+                                      ppath_vmr(isp,ip), ppath_p[ip], 
+                                      ppath_t[ip] );
+                          vmrunitscf( unitscf2, 
+                                      jacobian_quantities[iq].Mode(), 
+                                      ppath_vmr(isp,ip+1), ppath_p[ip+1], 
+                                      ppath_t[ip+1] );
+                          //
+                          for( Index iv=0; iv<nf; iv++ )
                             {
-                              // Scaling factors to handle retrieval unit
-                              Numeric unitscf1, unitscf2;
-                              vmrunitscf( unitscf1, 
-                                          jacobian_quantities[iq].Mode(), 
-                                          ppath_vmr(isp,ip), ppath_p[ip], 
-                                          ppath_t[ip] );
-                              vmrunitscf( unitscf2, 
-                                          jacobian_quantities[iq].Mode(), 
-                                          ppath_vmr(isp,ip+1), ppath_p[ip+1], 
-                                          ppath_t[ip+1] );
-                              //
                               // Stokes component 1
-                              diy_dpath[iq](ip  ,iv,0) += unitscf1 * B *
+                              diy_dpath[iq](ip  ,iv,0) += Y[iv] * unitscf1 *
                                                  ppath_abs_scalar(iv,isp,ip);
-                              diy_dpath[iq](ip+1,iv,0) += unitscf2 * B * 
+                              diy_dpath[iq](ip+1,iv,0) += Y[iv] * unitscf2 * 
                                                  ppath_abs_scalar(iv,isp,ip+1);
-                              //
                               // Higher stokes components
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is); 
-                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi *
+                                  const Numeric Z = -X[iv] * iy(iv,is); 
+                                  diy_dpath[iq](ip  ,iv,is) += Z * unitscf1 *
                                                  ppath_abs_scalar(iv,isp,ip);
-                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi *
+                                  diy_dpath[iq](ip+1,iv,is) += Z * unitscf2 *
                                                  ppath_abs_scalar(iv,isp,ip+1);
                                 }
                             }
+                        }
 
-                          // Temperature
-                          else if( is_t[iq] )
+                      // Temperature
+                      else if( is_t[iq] )
+                        {
+                          for( Index iv=0; iv<nf; iv++ )
                             {
-                              // Stokes component 1
-                              //
-                              // The terms associated with tau:
+                              // The terms associated with Dtau/Dk:
                               const Numeric k1 = 
                                          ppath_abs_scalar(iv,joker,ip  ).sum();
                               const Numeric k2 = 
@@ -1450,53 +1505,64 @@ void iyEmissionStandardClearsky(Workspace&           ws,
                                   ( ppath_as2(iv,joker,ip  ).sum() - k1 ) / dt;
                               const Numeric dkdt2 =
                                   ( ppath_as2(iv,joker,ip+1).sum() - k2 ) / dt;
-                              diy_dpath[iq](ip  ,iv,0) += B * dkdt1;
-                              diy_dpath[iq](ip+1,iv,0) += B * dkdt2;
-                              //
-                              // The terms associated with Delta-s:
-                              const Numeric kbar = 0.5* ( k1 + k2 );
-                              diy_dpath[iq](ip  ,iv,0) += B*kbar/ppath_t[ip];
-                              diy_dpath[iq](ip+1,iv,0) += B*kbar/ppath_t[ip+1];
-                              //
-                              // The terms associated with B-bar:
-                              const Numeric w0 = 0.5 * 
-                                      exp(-(total_tau[iv]-ppath_tau(iv,ip))) *
-                                              ( 1.0 - exp(-ppath_tau(iv,ip)) );
-                              diy_dpath[iq](ip  ,iv,0) += w0 *
-                                              ( ppath_e2(iv,ip) -
-                                                ppath_emission(iv,ip) ) / dt;
-                              diy_dpath[iq](ip+1,iv,0) += w0 * 
-                                              ( ppath_e2(iv,ip+1) -
-                                                ppath_emission(iv,ip+1) ) / dt;
-
-                              // Higher stokes components
+                              // Stokes 1:
+                              diy_dpath[iq](ip  ,iv,0) += Y[iv] * dkdt1;
+                              diy_dpath[iq](ip+1,iv,0) += Y[iv] * dkdt2;
+                              // Higher Stokes
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
-      throw runtime_error("T-jacobian not ready for higher Stokes components.");
-                                  const Numeric wi = -0.5 * A * iy(iv,is);
-                                  diy_dpath[iq](ip  ,iv,is) += wi * dkdt1;
-                                  diy_dpath[iq](ip+1,iv,is) += wi * dkdt2;
+                                  const Numeric Z = -X[iv] * iy(iv,is);
+                                  diy_dpath[iq](ip  ,iv,is) += Z * dkdt1;
+                                  diy_dpath[iq](ip+1,iv,is) += Z * dkdt2;
                                 }
-                            }
-                        }
-                    }
-                  
-                  // Update total_tau (not used for spectrum calculation)
-                  total_tau[iv] -= ppath_tau(iv,ip);
-                }
-
-              // Spectrum
-              //
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-              //
-              iy(iv,0)  = iy(iv,0) * step_tr + esource * (1-step_tr); 
-              //
-              for( Index is=1; is<stokes_dim; is++ )
-                { iy(iv,is) *= step_tr; }
+                              //
+                              // The terms associated with B-bar:
+                              const Numeric V = 0.5 * 
+                                      exp(-(total_tau[iv]-ppath_tau(iv,ip))) *
+                                              ( 1.0 - exp(-ppath_tau(iv,ip)) );
+                              diy_dpath[iq](ip  ,iv,0) += V *
+                                              ( ppath_e2(iv,ip) -
+                                                ppath_emission(iv,ip) ) / dt;
+                              diy_dpath[iq](ip+1,iv,0) += V * 
+                                              ( ppath_e2(iv,ip+1) -
+                                                ppath_emission(iv,ip+1) ) / dt;
+                              // Zero for higher Stokes
+                              //
+                              // The terms associated with Delta-s:
+                              if( jacobian_quantities[iq].Subtag() == "HSE on" )
+                                {
+                                  // Stokes 1:
+                                  const Numeric kbar = 0.5 * ( k1 + k2 );
+                                  diy_dpath[iq](ip  ,iv,0) += Y[iv] * kbar /
+                                                                  ppath_t[ip];
+                                  diy_dpath[iq](ip+1,iv,0) += Y[iv] * kbar /
+                                                                 ppath_t[ip+1];
+                                  // Higher Stokes
+                                  for( Index is=1; is<stokes_dim; is++ )
+                                    { 
+                                      const Numeric Z = -X[iv] * iy(iv,is);
+                                      diy_dpath[iq](ip  ,iv,is) += Z * kbar /
+                                                                  ppath_t[ip];
+                                      diy_dpath[iq](ip+1,iv,is) += Z * kbar /
+                                                                 ppath_t[ip+1];
+                                    }
+                                } //hse
+                            }  // frequency
+                        }  // if is_t
+                    } // if analytical
+                } // for iq
+              
+              // Update total_tau (not used for spectrum calculation)
+              for( Index iv=0; iv<nf; iv++ )
+                { total_tau[iv] -= ppath_tau(iv,ip); }
             }
+
+          // Update iy
+          iy = iy_new;
         } 
 
       // Map jacobians from ppath to retrieval grids
+      // (this operation corresponds to the term Dx_i/Dx)
       if( j_analytical_do )
         { 
           // Weight with iy_transmission
@@ -1520,7 +1586,7 @@ void iyEmissionStandardClearsky(Workspace&           ws,
                                diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
           )
         }
-    }
+    } // if np>1
 
   // Set iy_aux, if background is TOA or surface
   //
@@ -1539,36 +1605,38 @@ void iyEmissionStandardClearsky(Workspace&           ws,
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandardClearskyBasic(Workspace&           ws,
-                                     Matrix&              iy,
-                                     const Vector&        rte_pos,      
-                                     const Vector&        rte_los,      
-                                     const Index&         jacobian_do,
-                                     const Index&         atmosphere_dim,
-                                     const Vector&        p_grid,
-                                     const Vector&        lat_grid,
-                                     const Vector&        lon_grid,
-                                     const Tensor3&       z_field,
-                                     const Tensor3&       t_field,
-                                     const Tensor4&       vmr_field,
-                                     const Tensor3&       wind_u_field,
-                                     const Tensor3&       wind_v_field,
-                                     const Tensor3&       wind_w_field,
-                                     const Matrix&        r_geoid,
-                                     const Matrix&        z_surface,
-                                     const Index&         cloudbox_on,
-                                     const ArrayOfIndex&  cloudbox_limits,
-                                     const Index&         stokes_dim,
-                                     const Vector&        f_grid,
-                                     const Agenda&        ppath_step_agenda,
-                                     const Agenda&        emission_agenda,
-                                     const Agenda&        abs_scalar_gas_agenda,
-                                     const Agenda&        iy_clearsky_basic_agenda,
-                                     const Agenda&        iy_space_agenda,
-                                     const Agenda&        surface_prop_agenda,
-                                     const Agenda&        iy_cloudbox_agenda,
-                                     const Verbosity&     verbosity)
+void iyEmissionStandardClearskyBasic(
+        Workspace&     ws,
+        Matrix&        iy,
+  const Vector&        rte_pos,      
+  const Vector&        rte_los,      
+  const Index&         jacobian_do,
+  const Index&         atmosphere_dim,
+  const Vector&        p_grid,
+  const Vector&        lat_grid,
+  const Vector&        lon_grid,
+  const Tensor3&       z_field,
+  const Tensor3&       t_field,
+  const Tensor4&       vmr_field,
+  const Tensor3&       wind_u_field,
+  const Tensor3&       wind_v_field,
+  const Tensor3&       wind_w_field,
+  const Matrix&        r_geoid,
+  const Matrix&        z_surface,
+  const Index&         cloudbox_on,
+  const ArrayOfIndex&  cloudbox_limits,
+  const Index&         stokes_dim,
+  const Vector&        f_grid,
+  const Agenda&        ppath_step_agenda,
+  const Agenda&        emission_agenda,
+  const Agenda&        abs_scalar_gas_agenda,
+  const Agenda&        iy_clearsky_basic_agenda,
+  const Agenda&        iy_space_agenda,
+  const Agenda&        surface_prop_agenda,
+  const Agenda&        iy_cloudbox_agenda,
+  const Verbosity&     verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
 
@@ -1626,10 +1694,10 @@ void iyEmissionStandardClearskyBasic(Workspace&           ws,
   //  
   get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
                         0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                        t_field, z_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
-                        stokes_dim, f_grid, iy_clearsky_basic_agenda, 
-                        iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda,
-                        verbosity );
+                        t_field, z_field, vmr_field, r_geoid, z_surface, 
+                        cloudbox_on, stokes_dim, f_grid, 
+                        iy_clearsky_basic_agenda, iy_space_agenda, 
+                        surface_prop_agenda, iy_cloudbox_agenda, verbosity );
 
   // Do RT calculations
   //

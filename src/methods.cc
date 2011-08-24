@@ -4750,8 +4750,12 @@ void define_md_data_raw()
          "Retrieval of deviations between nominal and actual zenith angle of\n"
          "the sensor can be included by this method. The weighing functions\n"
          "can be calculated in several ways:\n"
-         "   calcmode = \"iybrecalc\": Recalculation of pencil beam spectra, \n"
+         "   calcmode = \"recalc\": Recalculation of pencil beam spectra,\n"
          "      shifted with *dza* from nominal values.\n"
+         "   calcmode = \"interp\": Inter/extrapolation of existing pencil\n"
+         "       beam spectra. For this option, allow some extra margins for\n"
+         "       zenith angle grids, to avoid artifacts when extrapolating\n"
+         "       the data (to shifted zenith angles).\n"
          "\n"
          "The pointing off-set can be modelled to be time varying. The time\n"
          "variation is then described by a polynomial (with standard base\n"
@@ -4983,7 +4987,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcPointingZaIybrecalc" ),
+      ( NAME( "jacobianCalcPointingZaRecalc" ),
         DESCRIPTION
         (
          "Calculates zenith angle pointing deviation jacobians by\n"
