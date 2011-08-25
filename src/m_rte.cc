@@ -615,12 +615,12 @@ void iyb_calc(
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
   // Sizes
-  const Index   nf      = f_grid.nelem();
-  const Index   nza     = mblock_za_grid.nelem();
-        Index   naa     = mblock_aa_grid.nelem();   
+  const Index   nf   = f_grid.nelem();
+  const Index   nza  = mblock_za_grid.nelem();
+        Index   naa  = mblock_aa_grid.nelem();   
   if( antenna_dim == 1 )  
     { naa = 1; }
-  const Index   niyb    = nf * nza * naa * stokes_dim;
+  const Index   niyb = nf * nza * naa * stokes_dim;
 
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)

@@ -4715,7 +4715,7 @@ void define_md_data_raw()
          "Retrieval of deviations between nominal and actual backend\n"
          "frequencies can be included by this method. The calculations can be\n"
          "performed in the following ways:\n"
-         "   calcmode = \"iybinterp\": Interpolation of monochromatic spectra,\n"
+         "   calcmode = \"interp\": Interpolation of monochromatic spectra,\n"
          "      shifted with *df* from nominal values.\n"
          "\n"
          "The frequencies can be fitted with 1 or 2 variables. The first one\n"
@@ -4733,7 +4733,7 @@ void define_md_data_raw()
         IN( "jacobian_quantities", "jacobian_agenda" ),
         GIN( "calcmode", "df", "do_stretch" ),
         GIN_TYPE( "String", "Numeric", "Index" ),
-        GIN_DEFAULT( "iybinterp", "100e3", "0" ),
+        GIN_DEFAULT( "interp", "100e3", "0" ),
         GIN_DESC( "Calculation method. See above",
                   "Size of perturbation to apply.", 
                   "Flag to also include frequency stretch."
@@ -4751,15 +4751,24 @@ void define_md_data_raw()
          "the sensor can be included by this method. The weighing functions\n"
          "can be calculated in several ways:\n"
          "   calcmode = \"recalc\": Recalculation of pencil beam spectra,\n"
-         "      shifted with *dza* from nominal values.\n"
+         "      shifted with *dza* from nominal values. A single-sided\n"
+         "      perturbation is applied (towards higher zenith angles).\n"
          "   calcmode = \"interp\": Inter/extrapolation of existing pencil\n"
          "       beam spectra. For this option, allow some extra margins for\n"
          "       zenith angle grids, to avoid artifacts when extrapolating\n"
-         "       the data (to shifted zenith angles).\n"
+         "       the data (to shifted zenith angles). The average of a\n"
+         "       negative and a positive shift is taken."
+         "\n"
+         "The interp option is recommended. It should in general be both\n"
+         "faster and more accurate (due to the double sided disturbance).\n"
+         "In addition, it is less sensitive to the choice of dza (as long\n"
+         "as a small value is applied).\n"
          "\n"
          "The pointing off-set can be modelled to be time varying. The time\n"
          "variation is then described by a polynomial (with standard base\n"
-         "functions).\n"
+         "functions). For example, a polynomial order of 0 means that the\n"
+         "off-set is constant in time. If the off-set is totally uncorrelated\n"
+         "between the spectra, set the order to -1.\n"
          ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -4770,7 +4779,7 @@ void define_md_data_raw()
             "sensor_time" ),
         GIN( "poly_order", "calcmode", "dza" ),
         GIN_TYPE( "Index", "String", "Numeric" ),
-        GIN_DEFAULT( "0", "iybrecalc", "0.01" ),
+        GIN_DEFAULT( "0", "recalc", "0.01" ),
         GIN_DESC( "Order of polynomial to describe the time variation of "
                   "pointing off-sets.",
                   "Calculation method. See above",
@@ -4902,7 +4911,32 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcAbsSpecies" ),
+      ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddAbsSpecies and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "imblock", "iyb", "yb" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcAbsSpeciesPerturbations" ),
         DESCRIPTION
         (
          "Calculates absorption species jacobians by perturbations.\n"
@@ -4933,32 +4967,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddAbsSpecies and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian",
-            "imblock", "iyb", "yb" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianCalcFreqShiftAndStretchIybinterp" ),
+      ( NAME( "jacobianCalcFreqShiftAndStretchInterp" ),
         DESCRIPTION
         (
          "Calculates frequency shift and stretch jacobians by interpolation\n"
@@ -4987,11 +4996,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianCalcPointingZaInterp" ),
+        DESCRIPTION
+        (
+         "Calculates zenith angle pointing deviation jacobians by\n"
+         "inter-extrapolation of *iyb*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddPointingZa and should normally not be\n"
+         "called by the user.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "imblock", "iyb", "yb", "stokes_dim", "f_grid", 
+            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_response", "sensor_time", 
+            "jacobian_quantities", "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianCalcPointingZaRecalc" ),
         DESCRIPTION
         (
          "Calculates zenith angle pointing deviation jacobians by\n"
-         "recalulation of *iy*.\n"
+         "recalulation of *iyb*.\n"
          "\n"
          "This function is added to *jacobian_agenda* by\n"
          "jacobianAddPointingZa and should normally not be\n"
@@ -5044,7 +5080,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcTemperature" ),
+      ( NAME( "jacobianCalcTemperatureAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddTemperature and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "imblock", "iyb", "yb" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcTemperaturePerturbations" ),
         DESCRIPTION
         (
          "Calculates atmospheric temperature jacobians by perturbations.\n"
@@ -5072,30 +5133,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianCalcTemperatureAnalytical" ),
-        DESCRIPTION
-        (
-         "This function doesn't do anything. It just exists to satisfy\n"
-         "the input and output requirement of the *jacobian_agenda*.\n"
-         "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddTemperature and should normally not be called\n"
-         "by the user.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian",
-            "imblock", "iyb", "yb" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
 
  /*        
            md_data_raw.push_back

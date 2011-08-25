@@ -188,7 +188,7 @@ sensor_responseBackend
 #
 jacobianInit
 jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
-                                "iybinterp", 50e3, 1 )
+                                "interp", 50e3, 1 )
 StringCreate( calcmethod )
 StringSet( calcmethod, "analytical" )
 #StringSet( calcmethod, "perturbation" )

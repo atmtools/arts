@@ -285,7 +285,7 @@ void jacobianAddAbsSpecies(
       out3 << "  Calculations done by perturbation, size " << dx 
            << " " << mode << ".\n"; 
 
-      jacobian_agenda.append( "jacobianCalcAbsSpecies", species );
+      jacobian_agenda.append( "jacobianCalcAbsSpeciesPerturbations", species );
     }
 }                    
 
@@ -306,7 +306,7 @@ void jacobianCalcAbsSpeciesAnalytical(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcAbsSpecies(
+void jacobianCalcAbsSpeciesPerturbations(
         Workspace&                  ws,
         Matrix&                     jacobian,
   const Index&                      imblock,
@@ -572,14 +572,14 @@ void jacobianAddFreqShiftAndStretch(
   rq.Grids(grids);
 
   // Add pointing method to the jacobian agenda
-  if( calcmode == "iybinterp" )
+  if( calcmode == "interp" )
     { 
       rq.Mode( FREQUENCY_CALCMODE_A );
-      jacobian_agenda.append( "jacobianCalcFreqShiftAndStretchIybinterp", 
+      jacobian_agenda.append( "jacobianCalcFreqShiftAndStretchInterp", 
                                                                            "" );
    }
   else
-    throw runtime_error( "Possible choices for *calcmode* are \"iybinterp\"." ); 
+    throw runtime_error( "Possible choices for *calcmode* are \"interp\"." ); 
 
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back( rq );
@@ -588,7 +588,7 @@ void jacobianAddFreqShiftAndStretch(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcFreqShiftAndStretchIybinterp(
+void jacobianCalcFreqShiftAndStretchInterp(
         Matrix&                    jacobian,
   const Index&                     imblock,
   const Vector&                    iyb,
@@ -806,8 +806,6 @@ void jacobianAddPointingZa(
    }
   else if( calcmode == "interp" )
     { 
-      throw runtime_error( 
-             "The interp option is under implementation (but not ready)." );
       rq.Mode( POINTING_CALCMODE_B );  
       jacobian_agenda.append( "jacobianCalcPointingZaInterp", "" );
    }
@@ -817,6 +815,133 @@ void jacobianAddPointingZa(
 
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back( rq );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcPointingZaInterp(
+        Matrix&                    jacobian,
+  const Index&                     imblock,
+  const Vector&                    iyb,
+  const Vector&                    yb _U_,
+  const Index&                     stokes_dim,
+  const Vector&                    f_grid,
+  const Matrix&                    sensor_los,
+  const Vector&                    mblock_za_grid,
+  const Vector&                    mblock_aa_grid,
+  const Index&                     antenna_dim,
+  const Sparse&                    sensor_response,
+  const Vector&                    sensor_time,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Verbosity& )
+{
+  // Set some useful variables.  
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+
+  // Find the retrieval quantity related to this method.
+  // This works since the combined MainTag and Subtag is individual.
+  bool found = false;
+  for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
+    {
+      if( jacobian_quantities[n].MainTag() == POINTING_MAINTAG    && 
+          jacobian_quantities[n].Subtag()  == POINTING_SUBTAG_A   &&
+          jacobian_quantities[n].Mode()    == POINTING_CALCMODE_B )
+        {
+          found = true;
+          rq = jacobian_quantities[n];
+          ji = jacobian_indices[n];
+        }
+    }
+  if( !found )
+    { throw runtime_error(
+                "There is no such pointing retrieval quantity defined.\n" );
+    }
+
+
+  // Get "dy", by inter/extra-polation of existing iyb
+  //
+  const Index    n1y = sensor_response.nrows();
+        Vector   dy( n1y );
+  {
+    // Sizes
+    const Index   nf  = f_grid.nelem();
+    const Index   nza = mblock_za_grid.nelem();
+          Index   naa = mblock_aa_grid.nelem();   
+    if( antenna_dim == 1 )  
+      { naa = 1; }
+
+    // Shifted zenith angles
+    Vector za1 = mblock_za_grid; za1 -= rq.Perturbation();
+    Vector za2 = mblock_za_grid; za2 += rq.Perturbation();
+
+    // Find interpolation weights
+    ArrayOfGridPos gp1(nza), gp2(nza);
+    gridpos( gp1, mblock_za_grid, za1, 1e6 );  // Note huge extrapolation!
+    gridpos( gp2, mblock_za_grid, za2, 1e6 );  // Note huge extrapolation!
+    Matrix itw1(nza,2), itw2(nza,2);
+    interpweights( itw1, gp1 );
+    interpweights( itw2, gp2 );
+
+    // Make interpolation (for all azimuth angles, frequencies and Stokes)
+    //
+    Vector  iyb1(iyb.nelem()), iyb2(iyb.nelem());
+    //
+    for( Index iaa=0; iaa<naa; iaa++ )
+      {
+        for( Index iv=0; iv<nf; iv++ )
+          {
+            for( Index is=0; is<stokes_dim; is++ )
+              {
+                const Range r( iaa*nza*nf*stokes_dim+iv*stokes_dim+is, 
+                               nza, nf*stokes_dim );
+                interp( iyb1[r], itw1, iyb[r], gp1 );
+                interp( iyb2[r], itw2, iyb[r], gp2 );
+              }
+          }
+      }
+
+    // Apply sensor and take difference
+    //
+    Vector y1(n1y), y2(n1y);
+    mult( y1, sensor_response, iyb1 );
+    mult( y2, sensor_response, iyb2 );
+    //
+    for( Index i=0; i<n1y; i++ )
+      { dy[i] = ( y2[i]- y1[i] ) / ( 2* rq.Perturbation() ); }
+  }
+
+  //--- Create jacobians ---
+
+  const Index lg = rq.Grids()[0].nelem();
+  const Index it = ji[0];
+  const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+  const Index row0 = rowind.get_start();
+
+  // Handle gitter seperately
+  if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
+    {                                           // but should already have been 
+      assert( lg == sensor_los.nrows() );       // set to 0
+      assert( rq.Grids()[0][imblock] == -1 );
+      jacobian(rowind,it+imblock) = dy;     
+    }                                
+
+  // Polynomial representation
+  else
+    {
+      Vector w;
+      for( Index c=0; c<lg; c++ )
+        {
+          assert( Numeric(c) == rq.Grids()[0][c] );
+          //
+          polynomial_basis_func( w, sensor_time, c );
+          //
+          for( Index i=0; i<n1y; i++ )
+            { jacobian(row0+i,it+c) = w[imblock] * dy[i]; }
+        }
+    }
 }
 
 
@@ -875,7 +1000,7 @@ void jacobianCalcPointingZaRecalc(
     }
 
 
-  // Get disturbed (part of) y
+  // Get "dy", by calling iyb_calc with shifted sensor_los.
   //
   const Index    n1y = sensor_response.nrows();
         Vector   dy( n1y );
@@ -894,8 +1019,10 @@ void jacobianCalcPointingZaRecalc(
               antenna_dim, iy_clearsky_agenda, y_unit, 
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex() );
 
+    // Apply sensor and take difference
+    //
     mult( dy, sensor_response, iyb2 );
-
+    //
     for( Index i=0; i<n1y; i++ )
       { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
   }
@@ -1229,7 +1356,7 @@ void jacobianAddTemperature(
     { 
       out3 << "  Calculations done by perturbations, of size " << dx << ".\n"; 
 
-      jacobian_agenda.append( "jacobianCalcTemperature", "" );
+      jacobian_agenda.append( "jacobianCalcTemperaturePerturbations", "" );
     }
 }                    
 
@@ -1251,7 +1378,7 @@ void jacobianCalcTemperatureAnalytical(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcTemperature(
+void jacobianCalcTemperaturePerturbations(
         Workspace&                 ws,
         Matrix&                    jacobian,
   const Index&                      imblock,

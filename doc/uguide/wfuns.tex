@@ -529,3 +529,33 @@ is matched to the pressure of the observation point.
 \section{Sensor pointing}
 %==============================================================================
 \label{sec:wfuns:sensorpointing}
+
+The term ``sensor pointing'' pointing refers to deviations between nominal and
+actual viewing direction of the sensor. So far, only deviations in zenith angle
+can be considered. The workspace method to initiate such WFs is
+\wsmindex{jacobianAddPointingZa}.
+
+The pointing deviation is treated as a time varying variable, then having a
+polynomial variation. hence, the basis functions described in
+Section~\ref{sec:wfuns:basis2} are applied. The time is taken from
+\wsvindex{sensor\_time}. If the pointing error is assumed to be constant with
+time, the polynomial order to select is 0, and so on. As a special case, the
+polynomial order -1 signifies here that the pointing off-set is totally
+uncorrelated between the spectra (sometime called ``pointing jitter'').
+
+The WFs can be calculated in two manners:
+\begin{description}
+\item[recalc] If this option is selected, radiative transfer calculations are
+  performed for a shift of \builtindoc{sensor\_los} (perturbation size selected
+  by \verb|dza|). Only a ``one-sided'' perturbation is applied.
+\item[interp] The WFs are derived from existing data, by an interpolation of
+  existing data. This achieved by interpolating pencil beam data to a shifted
+  zenith angle grid. This will involve some extrapolation of the data, and this
+  aspect should be considered when selecting \builtindoc{mblock\_za\_grid}. The
+  average of a positive and negative shift. The shift to apply (\verb|dza|)
+  should be smaller than the minimum spacing of \builtindoc{mblock\_za\_grid}
+  for accurate results. As interpolation is a relative fast operation and a
+  ``double-sided'' disturbance is used, this option should in general be
+  preferred.
+\end{description}
+

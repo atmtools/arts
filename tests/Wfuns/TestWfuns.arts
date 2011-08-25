@@ -126,6 +126,7 @@ MatrixCompare( Ja, Jp, 0.005 )
 
 
 
+
 ##############################################################################
 #
 # Temperature, without HSE
@@ -156,32 +157,59 @@ jacobianClose
 yCalc
 Copy( Jp, jacobian )
 
-WriteXML( "ascii", Ja, "Ja.xml" )
-WriteXML( "ascii", Jp, "Jp.xml" )
-
 # Compare
 MatrixCompare( Ja, Jp, 0.001 )
 
 
 
 
+
 ##############################################################################
 #
-# Just check that other weighting functions don't cause any error
+# Pointing
+#
+##############################################################################
+
+# Sensor time must be specified here
+nrowsGet( nrows, sensor_pos )
+VectorNLinSpace( sensor_time, nrows, 0, 1 )
+
+jacobianInit
+jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
+                       sensor_pos, sensor_time, 0, "recalc", 0.001 )
+jacobianClose
+yCalc
+Copy( Ja, jacobian )
+
+jacobianInit
+jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
+                       sensor_pos, sensor_time, 0, "interp", 0.001 )
+jacobianClose
+yCalc
+Copy( Jp, jacobian )
+
+#WriteXML( "ascii", Ja, "Ja.xml" )
+#WriteXML( "ascii", Jp, "Jp.xml" )
+
+# Compare (Note that the WF is for 1 deg change, corresponding to about
+# 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
+MatrixCompare( Ja, Jp, 10 )
+
+
+
+
+
+##############################################################################
+#
+# Just check that remaining weighting functions don't cause any error
 #
 ##############################################################################
 
 jacobianInit
 
-nrowsGet( nrows, sensor_pos )
-VectorNLinSpace( sensor_time, nrows, 0, 1 )
-
-jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
-                       sensor_pos, sensor_time, 0, "recalc", 0.01 )
-
 # Another test of jacobianAddFreqShiftAndStretch is found in Groundbased
 jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
-                                "iybinterp", 50e3, 1 )
+                                "interp", 50e3, 1 )
 
 jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
     sensor_response_pol_grid, sensor_response_f_grid, 
