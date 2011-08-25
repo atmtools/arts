@@ -6776,7 +6776,7 @@ void define_md_data_raw()
         IN(),
         GIN(         "filename" ),
         GIN_TYPE(    "String"   ),
-        GIN_DEFAULT( NODEF ),
+        GIN_DEFAULT( "" ),
         GIN_DESC(    "Name of the XML file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
