@@ -416,10 +416,3 @@ void verbositySetScreen(// WS Output:
 {
   verbosity.set_screen_verbosity(level);
 }
-
-void TestVerbosity (const Verbosity& verbosity, const String& s)
-{
-  CREATE_OUT1;
-  
-  out1 << s << "\n";
-}

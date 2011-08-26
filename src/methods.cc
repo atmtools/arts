@@ -1881,11 +1881,13 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "out"    ),
-        GOUT_TYPE( ARRAY_GROUPS + ", Vector" + ", String" ),
+        GOUT_TYPE( ARRAY_GROUPS + ", Vector" + ", String" +
+                   ", ArrayOfSingleScatteringData" + ", ArrayOfScatteringMetaData" ),
         GOUT_DESC( "The variable to append to." ),
         IN(),
         GIN(    "in"    ),
-        GIN_TYPE(  ARRAY_GROUPS + ", Vector" + ", String" ),
+        GIN_TYPE( ARRAY_GROUPS + ", Vector" + ", String" +
+                  ", SingleScatteringData" + ", ScatteringMetaData" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "The variable to append." ),
         SETMETHOD(      false ),
@@ -8809,8 +8811,6 @@ void define_md_data_raw()
          "Initializes the verbosity levels.\n"
          "\n"
          "Sets verbosity to defaults or the levels specified by -r on the command line.\n"
-         "\n"
-         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "verbosity" ),
@@ -8831,7 +8831,10 @@ void define_md_data_raw()
         (
          "Sets the verbosity levels.\n"
          "\n"
-         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         "Sets the reporting level for agenda calls, screen and file.\n"
+         "All reporting levels can reach from 0 (only error messages)\n"
+         "to 3 (everything). The agenda setting applies in addition\n"
+         "to both screen and file output.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "verbosity" ),
@@ -8854,7 +8857,7 @@ void define_md_data_raw()
         (
          "Sets the verbosity level for agenda output.\n"
          "\n"
-         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         "See *verbositySet*\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "verbosity" ),
@@ -8875,7 +8878,7 @@ void define_md_data_raw()
         (
          "Sets the verbosity level for report file output.\n"
          "\n"
-         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         "See *verbositySet*\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "verbosity" ),
@@ -8896,7 +8899,7 @@ void define_md_data_raw()
         (
          "Sets the verbosity level for screen output.\n"
          "\n"
-         "!!! UNDER CONSTRUCTION !!! Currently unused\n"
+         "See *verbositySet*\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "verbosity" ),
@@ -8908,27 +8911,6 @@ void define_md_data_raw()
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( NODEF),
         GIN_DESC(    "Screen verbosity level")
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "TestVerbosity" ),
-        DESCRIPTION
-        (
-         "Temporary WSM to test new verbosity.\n"
-         "\n"
-         "!!! UNDER CONSTRUCTION !!!\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN("verbosity"),
-        GIN("string"),
-        GIN_TYPE("String"),
-        GIN_DEFAULT(""),
-        GIN_DESC("Some string")
         ));
 
   md_data_raw.push_back     

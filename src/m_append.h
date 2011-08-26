@@ -51,6 +51,18 @@ void Append(// WS Generic Output:
     out.push_back(in[i]);
 }
 
+/* Implementation for array types to append single element */
+template< class T >
+void Append(// WS Generic Output:
+            Array<T>& out,
+            // WS Generic Input:
+            const T& in,
+            const Verbosity&)
+{
+  // Append in to end of out:
+  out.push_back(in);
+}
+
 /* Implementation for Vector */
 void Append(// WS Generic Output:
             Vector& out,
