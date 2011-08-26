@@ -2,7 +2,7 @@
  \label{sec:wfuns}
 
  \starthistory
- 11xxyy & First complete version by Patrick Eriksson.\\
+ 110826 & First complete version by Patrick Eriksson.\\
  \stophistory
 
 \graphicspath{{Figs/wfuns/}}
@@ -54,7 +54,7 @@ created by the surface. So far none of the scattering methods provide WFs.
 
 Sections \ref{sec:wfuns:intro}\,-\,\ref{sec:wfuns:basis} contain information
 of general character, while the available quantities are discussed in the
-remaining sections (Section~\ref{sec:wfuns:absspecies} and foreward).
+remaining sections (Section~\ref{sec:wfuns:absspecies} and forward).
 
 
 
@@ -236,6 +236,13 @@ normalisation of $z$ is not only made for interpretation reasons, it can be
 required for pure numerical reasons, such as when $z$ represent frequency (in
 Hz).
 
+In practise, the basis functions are vectors, denoted below as $\VctStl{z}_i$.
+Element $j$ of $\VctStl{z}_i$ is
+\begin{equation}
+  \VctStl{z}_i(j) = z(j)^i - b_i.
+\end{equation}
+
+
 
 
 
@@ -320,7 +327,7 @@ respectively. Some of these terms can be expressed explicitly:
 where $\sigma_i$ is the absorption cross-section for the species (at point $i$
 and in a unit matching the unit of $x$). The term $\PartD \MpiVct/\PartD I$
 gives the position in \MpiVct\ where the $I$ of concern is stored. For clarity
-and efficiency reasons, the following nomeclature is used in the source code:
+and efficiency reasons, the following nomenclature is used in the source code:
 \begin{eqnarray}
   X &=& \frac{\Delta s_i}{2} e^{-\Oth'} e^{-\aOth{i}}, \\
   Y &=& \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD k_i}
@@ -342,8 +349,8 @@ contributions from several propagation path points ($x_i$), as well as from
 several radiance spectra.
 The expressions above are implemented in \wsmindex{iyEmissionStandardClearsky}.
 
-For higher Stokes components, or if emission is ignored, the correspondance to
-Eq.~\ref{eq:I4J} is
+For higher Stokes components, or if emission is ignored, Eq.~\ref{eq:I4J} is
+simplified to
 \begin{equation}
   \label{eq:Q4J}
   I = e^{-\Oth'}\!I_ie^{-\aOth{i}}.
@@ -358,7 +365,7 @@ giving
   \frac{\PartD I}{\PartD \aOth{i}}\frac{\PartD \aOth{i}}{\PartD k_i} =
   -X I_i.
 \end{equation}
-This later form is used for Stokes elemnt 2 to 4 in
+This later form is used for Stokes element 2 to 4 in
 \wsmindex{iyEmissionStandardClearsky} and for all components in
 \wsmindex{iyBeerLambertStandardClearsky}.
 
@@ -400,7 +407,7 @@ manner. Retrieval grids must be specified.
 A special consideration for temperature is hydrostatic equilibrium. If effects
 origination through hydrostatic equilibrium shall be included in the WFs, or
 not, is selected by an argument denoted as \verb|hse|. A full account of
-hydrostatic equilibrium is possibile for perturbation calculations, while the
+hydrostatic equilibrium is possible for perturbation calculations, while the
 analytical approach only treats the local effect (see further below).
 
 
@@ -451,7 +458,7 @@ hydrostatic equilibrium:
 Several of these terms are already derived in
 Section~\ref{sec:wfuns:absspecies} (where $\PartD T_i/\PartD T$ and $\PartD
 x_i/\PartD x$ are identical terms). The temperature derivative of the
-absorption ($\PartD k_i/\PartD T_i$) must be calculated numercially. This
+absorption ($\PartD k_i/\PartD T_i$) must be calculated numerically. This
 derivative depends on if gas species concentrations are given as volume mixing
 ratio (VMR) or number density. As ARTS uses VMR, the term above will be
 calculated with the constrain of fixed VMR. A consequence of this is that it is
@@ -512,11 +519,11 @@ geometrical altitudes of all higher layers is changed through hydrostatic
 equilibrium. This coupling between temperature changes at altitudes below the
 tangent point originates from the geometrical calculations, mapping the sensor
 viewing angles to a propagation path through the atmosphere. If the sensor's
-viewing direction instead would have been specied as a tangent pressure, there
+viewing direction instead would have been specified as a tangent pressure, there
 would not be such a coupling. However, this effect vanishes for ground-based
 observations at zenith and satellite measurements at nadir, giving a full
 account of hydrostatic equilibrium even with the analytical expressions. In
-practice it should be possible to apply the expressions outside zenith and
+practise it should be possible to apply the expressions outside zenith and
 nadir, as long as the observations are of ``up'' or ``down-ward'' type. The
 same applies to measurements from inside the atmosphere, (e.g.\ aircraft ones),
 if the reference pressure for hydrostatic equilibrium (\builtindoc{p\_hse})
@@ -558,4 +565,62 @@ The WFs can be calculated in two manners:
   ``double-sided'' disturbance is used, this option should in general be
   preferred.
 \end{description}
+
+
+
+
+\section{Sensor frequencies}
+%==============================================================================
+\label{sec:wfuns:sensorfreq}
+
+This class of WFs treats deviations between nominal and actually recorded
+frequencies. Such differences can originate in several ways, but the exact
+origin can normally be ignored and the effect can be modelled as the backend
+(spectrometer, filter bank \dots) channels are shifted from their nominal
+position. The workspace method to define these WFs is
+\wsmindex{jacobianAddFreqShiftAndStretch}. The WFs can so far only be
+determined by applying an interpolation of existing monochromatic data
+(``interp''), then shifted \verb|df| from the nominal values.
+
+The method operates with two terms, ``shift'' and ``stretch''. This follows
+standard nomenclature. A ``shift'' is an off-set that is of the same size for
+all backend channels. That is, if only a shift is assumed, the nominal
+distances between the channels are assumed to be valid. The shift term is
+always included. The ``stretch'' term considers the distance between the
+channels. For a backend with all channels equally spaced, a stretch signifies
+that the spacing deviates from the nominal value (but all channels still
+equally spaced). More generally, a stretch means that the deviation from the
+nominal channel position increases linearly from the middle point of the
+backend. In terms of the basis functions Section~\ref{sec:wfuns:basis2}, shift
+and stretch correspond to polynomial order 0 and 1.
+
+
+
+
+\section{Polynomial baseline fit}
+%==============================================================================
+\label{sec:wfuns:polyfit}
+
+A ``baseline'' is microwave jargon for a disturbance of the spectrum that is
+not covered by the common sensor characteristics. The most common case is that
+the local oscillator signal leaks into the measurement by reflections occurring
+inside the sensor, causing a pattern in the spectrum of standing-wave type.
+Such effects are difficult to model in a physical manner, and a more general
+fitting procedure must be applied. A common option is then to model the
+baseline as a polynomial, of a specified order. That is, assuming a measurement
+giving a single spectrum, the measured spectrum \MsrVct\ is modelled as
+\begin{equation}
+  \label{eq:polyfit}
+  \MsrVct = \MsrVct' + \sum_{i=0}^n x_i\VctStl{z}_i,
+\end{equation}
+where $\MsrVct'$ is the ``baseline free'' spectrum.
+
+WFs for such baseline models are obtained by \wsmindex{jacobianAddPolyfit}. For
+single spectra measurements, the only consideration is the polynomial order to
+use. For measurements where several spectra are appended to form the measurement
+vector, the default option is that baseline can vary between all spectra. In
+some cases, it could be assumed that the baseline is common between data for
+different polarisations, viewing directions or measurement blocks, and flags
+can be set to mimic such assumptions.
+
 
