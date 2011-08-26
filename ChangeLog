@@ -1,3 +1,13 @@
+2011-08-26  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-1-17-25
+
+	* src/m_cloudbox.cc:
+
+	(ScatteringParticlesSelect): Be more verbose to out3
+	(pnd_fieldSetup): Bugfix if monodisperse (cannot scale by binwidth).
+	However, does this work at all?
+
 2011-08-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-17-24

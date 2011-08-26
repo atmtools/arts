@@ -887,8 +887,10 @@ void ScatteringParticlesSelect (//WS Output:
                                 ArrayOfIndex& scat_data_nelem,
                                 // WS Input:
                                 const ArrayOfString& part_species,
-                                const Verbosity&)
+                                const Verbosity& verbosity)
 { 
+  CREATE_OUT1
+  CREATE_OUT3
   //--- Adjusting data to user specified input (part_species)-------------------
   
   String type;
@@ -901,6 +903,9 @@ void ScatteringParticlesSelect (//WS Output:
   
   scat_data_nelem.resize( part_species.nelem() );
   
+  ArrayOfIndex selected;
+  selected.resize(scat_data_meta_array_tmp.nelem());
+  selected = 0;
   // loop over array of part_species--------------------------------------------
   for ( Index k=0; k<part_species.nelem(); k++ )
   {
@@ -939,6 +944,9 @@ void ScatteringParticlesSelect (//WS Output:
 	  // fill ArrayOfIndex with indices of selected scattering data
           intarr.push_back ( j );
         }
+      selected[j] = 1;
+      out3 << "Selecting particle " << j+1 << "/" << scat_data_meta_array_tmp.nelem()
+           << " (" << scat_data_meta_array_tmp[j].type << ")\n";
       }
     }
     // WSV scat_data_nelem gets the number of elements of scattering data
@@ -955,6 +963,14 @@ void ScatteringParticlesSelect (//WS Output:
         "--> Does the selection in *part_species* fit any of the "
         "Single Scattering Data input? \n";
     throw runtime_error ( os.str() );
+  }
+  // check if we ignored any smd
+  for ( Index j = 0; j<selected.nelem(); j++)
+  {
+    if (selected[j]==0)
+    {
+      out1 << "WARNING! Ignored SMD[" << j << "] (" << scat_data_meta_array_tmp[j].type << ")!\n";
+    }
   }
 
 
@@ -1471,7 +1487,10 @@ void pnd_fieldSetup (//WS Output:
             //out0<<"level: "<<p<<"\n"<<dN<<"\n";
             
             // scale pnds by bin width
-            scale_pnd( pnd, dm, dN );
+            if (dm.nelem() > 1)
+            {
+              scale_pnd( pnd, dm, dN );
+            }
 	    
 	    //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
             // calculate error of pnd sum and real XWC
@@ -1550,7 +1569,10 @@ void pnd_fieldSetup (//WS Output:
             //out0<<"\n"<<dN<<"\n"<<dN2<<"\n";
 
             // scale pnds by scale width
-            scale_pnd( pnd, r, dN ); //[# m^-3]
+            if (r.nelem() > 1)
+            {
+              scale_pnd( pnd, r, dN ); //[# m^-3]
+            }
 	    //scale_pnd( pnd2, r, dN2 );
             //trapezoid_integrate ( pnd2, r, dN2 );//[# m^-3]
             //out0<<"\n"<<"HIER!"<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
