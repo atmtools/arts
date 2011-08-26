@@ -47,7 +47,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/common.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/formalismn.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/absorption_theory.tex"
-                      "${CMAKE_CURRENT_SOURCE_DIR}/rte_theoryn.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/rte_theory.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/polarization.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/montecarlo.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")

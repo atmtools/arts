@@ -563,22 +563,24 @@ includes the Stokes vectors from all waves contributing to the
 electromagnetic radiation field.
 
 The vector radiative transfer equation (VRTE) is
-\begin{eqnarray}
-  \frac {\DiffD\StoVec(\PDir, \nu, T)}{\DiffD s} =
-    &{}-\EnsAvr{\ExtMat(\PDir, \nu, T)} \StoVec(\PDir, \nu, T) +
-    \EnsAvr{\AbsVec(\PDir, \nu, T)} \rlap{$B(\nu, T)$} \nonumber \\
-    &{}+ \int_{4\pi} \DiffD\PDir' \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} \StoVec(\PDir', \nu, T),
+ \begin{eqnarray}
   \label{eq:rtetheory:VRTE}
-  \end{eqnarray}
-where $\StoVec$ is the specific intensity vector, $\EnsAvr\ExtMat$ is the ensemble-averaged extinction matrix, $\EnsAvr\AbsVec$ is the ensemble-averaged absorption vector, $B$ is the
-Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged
-phase matrix.  Furthermore $\nu$ is the frequency of the radiation,
-$T$ is the temperature, $\DiffD s$ is a path-length-element of the
-propagation path and $\PDir$ the propagation direction.
-Equation \ref{eq:rtetheory:VRTE} is valid for monochromatic or quasi-monochromatic
-radiative transfer. We can use this equation for simulating microwave
-radiative transfer through the atmosphere, as the scattering events do
-not change the frequency of the radiation.
+  \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} =
+    &{}-\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
+    \AbsVec(\Frq,\PPos,\PDir) \rlap{$B(\Frq,\PPos)$} \\ \nonumber
+    &{}+ \int_{4\pi} \DiffD\PDir' \PhaMat(\Frq,\PPos,\PDir,\PDir')
+    \StoVec(\Frq,\PPos,\PDir'),
+\end{eqnarray}
+where $\StoVec$ is the specific intensity vector, $\ExtMat$ is the total
+extinction matrix, $\AbsVec$ is the total absorption vector, $B$ is the Planck
+function and $\PhaMat$ is the total phase matrix. Furthermore $\Frq$ is the
+frequency of the radiation, $\DiffD s$ is a
+path-length-element of the propagation path, \PPos\ represents the atmospheric
+position and $\PDir$ the propagation direction. Equation
+\ref{eq:rtetheory:VRTE} is valid for monochromatic or quasi-monochromatic
+radiative transfer. We can use this equation for simulating microwave radiative
+transfer through the atmosphere, as the scattering events do not change the
+frequency of the radiation.
 
 The four-component specific intensity vector $\StoVec = (I,Q,U,V)^T$
 fully describes the radiation and it can directly be associated with
@@ -590,33 +592,26 @@ components are described.
 The three terms on the right hand side of Equation \ref{eq:rtetheory:VRTE}
 describe physical processes in an atmosphere containing different particle
 types and different trace gases. The first term represents the extinction of
-radiation traveling through the scattering medium. It is determined by the
-ensemble averaged extinction coefficient matrix $\EnsAvr\ExtMat$. For microwave
+radiation traveling through the scattering medium, \ExtMat. For microwave
 radiation in cloudy atmospheres, extinction is caused by gaseous absorption,
-particle absorption and particle scattering. Therefore $\EnsAvr\ExtMat$ can be
-written as a sum of two matrices, the particle extinction matrix
-$\EnsAvr{\ExtMat^{p}}$ and the gaseous extinction matrix
-$\EnsAvr{\ExtMat^{g}}$:
+particle absorption and particle scattering. Therefore \ExtMat\ can be written
+as a sum of two matrices, the particle extinction matrix $\ExtMat^{p}$ and the
+gaseous extinction matrix $\ExtMat^{g}$:
 \begin{equation}
-  \EnsAvr{\ExtMat(\PDir, \nu, T)} =
-  \EnsAvr{\ExtMat^{p}(\PDir, \nu, T)}+
-  \EnsAvr{\ExtMat^{g}(\PDir, \nu, T)}.
+  \ExtMat(\Frq,\PPos,\PDir) = \ExtMat^{p}(\Frq,\PPos,\PDir)+
+  \ExtMat^{g}(\Frq,\PPos,\PDir).
 \end{equation}
 The particle extinction matrix is the sum over the individual specific
-extinction matrices $\EnsAvr{\ExtMat_i^p(\PDir, \nu, T)}$ of
-the $N$ different particles types contained in the scattering medium
-weighted by their particle number densities $n^p_i$:
+extinction matrices $\ExtMat_i^p$ of the $N$ different particles types
+contained in the scattering medium weighted by their particle number densities
+$n^p_i$:
 \begin{equation}
-  \EnsAvr{\ExtMat^{p}(\PDir, \nu, T)} =
-  \sum_{i=1}^N n^p_i \EnsAvr{\ExtMat_i^p (\PDir, \nu, T)}.
+  \ExtMat^{p}(\Frq,\PPos,\PDir) =
+  \sum_{i=1}^N n^p_i \ExtMat_i^p(\Frq,\PPos,\PDir).
 \label{eq:rtetheory:ext_mat_p}
 \end{equation}
-A particle distribution, which can include various particle sizes, shapes and
-orientations, can be represented by a single particle type, since it is
-possible to derive an ensemble averaged phase matrix \EnsAvr{\PhaMat_i}, an
-ensemble averaged extinction matrix \EnsAvr{\ExtMat_i} and an ensemble averaged
-absorption vector \EnsAvr{\AbsVec_i}. The gaseous extinction matrix can
-normnally be derived from the scalar gas absorption. This as there is no
+The gaseous extinction matrix can
+normally be derived from the scalar gas absorption. This as there is no
 polarization due to gas absorption at cloud altitudes, and the off-diagonal
 elements of the gaseous extinction matrix are zero. On the other hand, at very
 high altitudes above approximately 40\,km there is polarization due to the
@@ -625,65 +620,61 @@ and stratosphere molecular scattering can be neglected in the microwave
 frequency range. Hence the coefficients on the diagonal correspond to the gas
 absorption coefficient:
 \begin{eqnarray}
-\EnsAvr{\ExtMat^{g}_{l,m}(\nu, T)} =
-\EnsAvr{\alpha^g(\nu, T)} & \mathrm{if } l = m \nonumber \\
-0 & \mathrm{if } l \neq m.
+\ExtMat^{g}_{l,m}(\Frq,\PPos) = \alpha^g(\Frq,\PPos) & 
+    \mathrm{if }\ l = m \nonumber \\
+    0 & \mathrm{if }\ l \neq m.
 \label{eq:rtetheory:Kgas}
 \end{eqnarray}
-where $T$ is the temperature of the atmosphere and $\EnsAvr{ \alpha^g
-}$ is the total scalar gas absorption coefficient, which is
+where $\alpha^g$ is the total scalar gas absorption coefficient, which is
 calculated from the individual absorption coefficients of all $M$
-trace gases $\alpha_i^g(P, \nu, T)$ and their volume mixing ratios
+trace gases $\alpha_i^g$ and their volume mixing ratios
 $n^g_i$ as:
 \begin{equation}
-   \EnsAvr{ \alpha^g(\nu, T) } =  \sum_{i=1}^M  n^g_i \alpha_i^g(\nu, T).
+   \alpha^g(\Frq,\PPos) =  \sum_{i=1}^M  n^g_i \alpha_i^g(\Frq,\PPos).
 \end{equation}
 The second term in Equation \ref{eq:rtetheory:VRTE} is the thermal source term.
 It describes thermal emission by gases and particles in the atmosphere. The
-ensemble averaged absorption vector $\EnsAvr{\AbsVec}$ is
+absorption vector $\AbsVec$ is
 \begin{equation}
-  \EnsAvr{\AbsVec (\PDir, \nu, T)}  =
-  \EnsAvr{\AbsVec^{p} (\PDir, \nu, T)} +
-  \EnsAvr{ \AbsVec^{g} (\nu, T) },
+  \AbsVec(\Frq,\PPos,\PDir)  =
+  \AbsVec^{p}(\Frq,\PPos,\PDir) +
+  \AbsVec^{g}(\Frq,\PPos,\PDir),
 \end{equation}
-where $\EnsAvr{\AbsVec^{p}}$ and $\EnsAvr{ \AbsVec^{g} }$
+where $\AbsVec^{p}$ and $\AbsVec^{g}$
 are the particle absorption vector and the gas absorption vector,
 respectively.  The particle absorption vector is a sum over the
-individual absorption vectors $\EnsAvr{ \AbsVec_i^p } $, again
+individual absorption vectors $\AbsVec_i^p$, again
 weighted with $n^p_i$:
 \begin{equation}
-  \EnsAvr{\AbsVec^{p}(\PDir, \nu, T)} = \sum_{i=1}^N n^p_i \EnsAvr{\AbsVec_i^p (\PDir, \nu, T)}.
+  \AbsVec^{p}(\Frq,\PPos,\PDir) = \sum_{i=1}^N n^p_i \AbsVec_i^p(\Frq,\PPos,\PDir).
 \label{eq:rtetheory:abs_vec_p}
 \end{equation}
-The gas absorption vector is simply
+The gas absorption vector is simply (if no Zeeman splitting)
 \begin{equation}
- \EnsAvr{ \AbsVec^{g}(\nu, T) }  = (\EnsAvr{\alpha^p(\nu, T)}, 0, 0, 0)^T.
+ \AbsVec^{g}  = [\alpha^p, 0, 0, 0]^T.
 \end{equation}
-The last term in Equation \ref{eq:rtetheory:VRTE} is the scattering source term.
-It adds the amount of radiation which is scattered from all directions
-\PDir$'$ into the propagation direction \PDir.  The ensemble
-averaged phase matrix \EnsAvr\PhaMat\ is the sum of the individual
-phase matrices \EnsAvr{\PhaMat_i} weighted with $n^p_i$:
+The last term in Equation \ref{eq:rtetheory:VRTE} is the scattering source
+term. It adds the amount of radiation which is scattered from all directions
+$\PDir'$ into the propagation direction \PDir. The phase matrix \PhaMat\
+is the sum of the individual phase matrices $\PhaMat_i$ weighted with
+$n^p_i$:
 \begin{equation}
-  \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} = 
-  \sum_{i=1}^N {n^p_i\EnsAvr{\PhaMat_i(\PDir,
-    \PDir', \nu, T)}}.
+  \PhaMat(\Frq,\PPos,\PDir) = 
+  \sum_{i=1}^N n^p_i \PhaMat_i(\Frq,\PPos,\PDir).
   \label{eq:rtetheory:pha_mat}
 \end{equation}
 The scalar radiative transfer equation (SRTE)
 \begin{eqnarray}
   \label{eq:rtetheory:SRTE}
-  \frac{\DiffD I}{\DiffD s} (\PDir, \nu, T)& = 
-  -\EnsAvr{ K_{11}(\PDir, \nu, T)} I(\PDir, \nu, T) +
-  \EnsAvr{ a_1(\PDir, \nu, T)} B(\nu, T)   \nonumber\\
-  &+\int_{4\pi} \DiffD \PDir' \EnsAvr{ Z_{11}(\PDir,
-  \PDir', \nu, T) } I(\PDir', \nu, T)
+  \frac{\DiffD I(\Frq,\PPos,\PDir)}{\DiffD s}& = 
+  -K_{11}(\Frq,\PPos,\PDir) I(\Frq,\PPos,\PDir) +
+  a_1(\Frq,\PPos,\PDir) B(\Frq,\PPos)   \nonumber\\
+  &+\int_{4\pi} \DiffD \PDir' Z_{11}(\Frq,\PPos,\PDir,\PDir') I(\Frq,\PPos,\PDir')
 \end{eqnarray}
-can be used presuming that the radiation field is unpolarized.  This
-approximation is reasonable if the scattering medium consists of
-spherical or completely randomly oriented particles, where $\EnsAvr{
-\ExtMat^p }$ is diagonal and only the first element of $\EnsAvr{
-\AbsVec^p }$ is non-zero. 
+can be used presuming that the radiation field is unpolarized. This
+approximation is reasonable if the scattering medium consists of spherical or
+completely randomly oriented particles, where $\ExtMat^p$ is diagonal and only
+the first element of $\AbsVec^p$ is non-zero.
 
 
  

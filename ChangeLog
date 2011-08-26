@@ -1,3 +1,18 @@
+2011-08-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-17-24
+
+	* doc/uguide/sensor.tex: Wrote a first simple version of
+	this section. Tried to cover the general aspects. 
+
+	* doc/uguide/montecarlo.tex: Added comment refering to other
+	version of VRTE (in Sec 5.4).
+
+	* doc/uguide/rte_theory.tex: Changed last part of Sec 5.4, to
+	follow the nomenclature used in the article.
+
+	* doc/uguide/CMakeLists.txt: Fixed typo for rte_theory.tex.
+
 2011-08-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-17-23
