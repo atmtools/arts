@@ -1976,7 +1976,7 @@ void sensor_responsePolarisation(// WS Output:
     {
       if( pv[sensor_pol[i]-1].nelem() > stokes_dim )
         {
-          os << "You have slected an otput polarisation that is not covered "
+          os << "You have selected an output polarisation that is not covered "
              << "by present value of *stokes_dim* (the later has to be "
              << "increased).";
           error_found = true;

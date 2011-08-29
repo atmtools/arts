@@ -3328,7 +3328,7 @@ void Workspace::define_wsv_data()
        "If the sensor measures the vertical and horisontal componenets, this\n"
        "variable shall accordingly be set to [5,6].\n"
        "\n"
-       "The conversion to Planck-BT of components 2.4 requires that component\n"
+       "The conversion to Planck-BT of components 2-4 requires that component\n"
        "1 is kept, and is put as first element.\n"
        "\n"
        "The shift from the Stokes vector can be made at any stage when of the\n"
@@ -3336,8 +3336,6 @@ void Workspace::define_wsv_data()
        "correspondingly. Or reversed, if the antenna response is defined for\n"
        "Iv and Ih it could be useful to shift polarisation as first sensor\n"
        "operation.\n"
-       "\n"
-       "See *sensor_pol* for coding of polarisation states.\n"
        "\n"
        "Usage: Set by the user.\n"
        ),

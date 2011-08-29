@@ -7649,6 +7649,8 @@ void define_md_data_raw()
          "components. For example, I+45 requires that *stokes_dim* is at\n"
          "least 3. \n"
          "\n"
+         "See *sensor_pol* for coding of polarisation states.\n"
+         "\n"
          "Note that the state of *y_unit* is considered. This WSV must give\n"
          "the actual unit of the data. This as, the extraction of components\n"
          "is slightly different if data are radiances or brightness\n"
