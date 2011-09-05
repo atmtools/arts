@@ -38,12 +38,9 @@
 
     <h2>What is ARTS?</h2>
 
-    ARTS-1-1-x: 3D version for polarized radiative transfer calculations
-    including particle scattering.
-
-    The new version ARTS-1-1-x is currently being developed. It includes
-    almost all features of the first version and also a number of additional
-    functions.
+    ARTS-2: 3D version for polarized radiative transfer calculations
+    including particle scattering. It includes almost all features of the first
+    version and also a number of additional functions.
 
     One of the main new features is the implementation of particle
     scattering as for many applications, scattering of microwave radiation

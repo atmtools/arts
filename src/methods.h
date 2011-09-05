@@ -252,8 +252,13 @@ void define_md_data_raw();
 
 void expand_md_data_raw_to_md_data();
 
+bool format_paragraph (String &s, const String &indent, const size_t linelen,
+                       const size_t offset = 0);
+
 void define_md_map();
 
 void define_md_raw_map();
+
+void get_short_wsv_description(String &s, const String &desc);
 
 #endif  // methods_h

@@ -1,3 +1,15 @@
+2011-09-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-1
+
+	* src/arts.h: Change ARTS-1-1-x -> ARTS-2 in doc header.
+
+	* src/docserver.{cc,h}, src/main.cc: Refactor docserver into a class.
+
+	* src/methods.h, src/methods_aux.cc:
+
+	Add declarations for format_paragraph and get_short_wsv_description.
+
 2011-09-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-0

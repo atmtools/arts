@@ -492,7 +492,7 @@ void define_md_raw_map()
 
 
 bool format_paragraph (String &s, const String &indent, const size_t linelen,
-                       const size_t offset = 0)
+                       const size_t offset)
 {
   bool fit = true;
   String out;

@@ -937,7 +937,8 @@ int main (int argc, char **argv)
         int pid = fork();
         if (!pid)
         {
-          docserver_start(parameters.docserver, parameters.daemon, parameters.baseurl);
+          Docserver docserver(parameters.docserver, parameters.baseurl);
+          docserver.launch(parameters.daemon);
           arts_exit(0);
         }
         else
@@ -948,8 +949,9 @@ int main (int argc, char **argv)
       }
       else
       {
+        Docserver docserver(parameters.docserver, parameters.baseurl);
         cout << "Starting the arts documentation server." << endl;
-        docserver_start(parameters.docserver, parameters.daemon, parameters.baseurl);
+        docserver.launch(parameters.daemon);
         arts_exit(0);
       }
     }

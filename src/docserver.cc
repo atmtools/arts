@@ -44,42 +44,107 @@
 
 #define DS_ERROR_404 "Page not found"
 
-static string ds_baseurl;
 
-void limit_line_length (ostream& os,
-                        ostringstream& curline,
-                        ostringstream& token,
-                        const String& indent,
-                        size_t linelen);
-
-void get_short_wsv_description(String &s, const String &desc);
-
-bool format_paragraph (String &s, const String &indent, const size_t linelen,
-                       const size_t offset = 0);
-
-void ds_insert_error (ostream& os, const string& error);
+static int ahc_echo(void *cls, struct MHD_Connection *connection,
+                    const char *url, const char *method,
+                    const char *version, const char *upload_data _U_,
+                    size_t *upload_data_size, void **ptr);
 
 
-//! Split string.
+//! Limit length of output
+/*! Automatically inserts linebreaks at certain length.
+ 
+ \author Oliver Lemke
+ \date   2008-09-03
+ */
+void Docserver::limit_line_length(ostringstream& curline,
+                                  ostringstream& token,
+                                  const String& indent,
+                                  size_t linelen)
+{
+  if (indent.length() + curline.str().length() + token.str().length() > linelen)
+  {
+    get_os() << curline.str() << endl << indent;
+    curline.str("");
+  }
+  curline << token.str();
+  token.str("");
+}
+
+
+//! Intializes the docserver for a new page.
+/** 
+ Get the docserver ready for a new page.
+ 
+ \param[in]      url          URL of page.
+ \param[out]     String with content type of page.
+ 
+ \author Oliver Lemke
+ */
+string Docserver::new_page(const string &url)
+{
+  string surl = url;
+  
+  if (surl.find(get_baseurl()) == 0)
+  {
+    surl.erase(0, get_baseurl().size());
+  }
+  
+  split_tokens (surl);
+  
+  while (tokens.size() && tokens[tokens.size()-1] == "")
+    tokens.erase(tokens.end());
+  
+  while (tokens.size() && tokens[0] == "")
+    tokens.erase(tokens.begin());
+  
+  string content_type = "text/html; charset=utf-8";
+  if (tokens.size() && tokens[tokens.size()-1] == "styles.css")
+  {
+    insert_stylesheet();
+    content_type = "text/css; charset=utf-8";
+  }
+  else
+  {
+    switch (tokens.size())
+    {
+      case 0:
+      case 1:
+        insert_index();
+        break;
+      case 2:
+        insert_doc();
+        break;
+      default:
+        insert_error(DS_ERROR_404);
+    }
+  }
+  
+  return content_type;
+}
+
+
+//! Split url into tokens.
 /** 
  Splits the string based on the given delimiter. The splitted string are
  appended to the elems vector.
  
  \param[in]      s          String to split.
- \param[in]      delim      Delimiter character.
- \param[in,out]  elems      Vector of tokens.
  
  \author Oliver Lemke
  */
-void split(const string &s, char delim, vector<string> &elems)
+void Docserver::split_tokens(const string &s)
 {
+  tokens.clear();
+  
   stringstream ss(s);
   string item;
-  while(getline(ss, item, delim))
+  while (getline(ss, item, '/'))
   {
-    elems.push_back(item);
+    tokens.push_back(item);
   }
 }
+
 
 //! Convert character to HTML entity.
 /** 
@@ -92,7 +157,7 @@ void split(const string &s, char delim, vector<string> &elems)
  
  \author Oliver Lemke
  */
-string ds_html_escape_char (const char ch)
+string Docserver::html_escape_char(const char ch)
 {
   string ret;
   
@@ -106,6 +171,7 @@ string ds_html_escape_char (const char ch)
   return ret;
 }
 
+
 //! Convert special characters in string to HTML entity.
 /** 
  Returns a string with special characters replaced by their HTML entities.
@@ -116,85 +182,83 @@ string ds_html_escape_char (const char ch)
  
  \author Oliver Lemke
  */
-string ds_html_escape_string (const string& s)
+string Docserver::html_escape_string(const string& s)
 {
   string ret;
   
   for (string::const_iterator it = s.begin(); it != s.end(); it++)
   {
-    ret.append(ds_html_escape_char(*it));
+    ret.append(html_escape_char(*it));
   }
   
   return ret;
 }
 
+
 //! Open the content div.
 /** 
  Output the starting content div tag to stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_begin_content (ostream &os)
+void Docserver::begin_content()
 {
-  os << "<div class=\"content\">" << endl;
+  get_os() << "<div class=\"content\">" << endl;
 }
+
 
 //! Close the content div.
 /** 
  Output the ending content div tag to stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_end_content (ostream &os)
+void Docserver::end_content()
 {
-  os << "</div>" << endl;
+  get_os() << "</div>" << endl;
 }
+
 
 //! Output the docserver HTML page header to stream.
 /** 
  Output the HTML header and start of the body to the stream.
  
- \param[in,out]  os     Output stream.
  \param[in]      title  Page title.
  
  \author Oliver Lemke
  */
-void ds_begin_page (ostream &os, string title)
+void Docserver::begin_page (string title)
 {
   if (title.length())
     title += " - ";
 
   title += DOCSERVER_NAME;
   
-  os
+  get_os()
   << "<!DOCTYPE html>" << endl
   << "<html lang=\"en\">" << endl
   << "<head>" << endl
   << "<title>" << title << "</title>" << endl
   << "<meta charset=\"utf-8\">" << endl
   << "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />" << endl
-  << "<link rel=\"stylesheet\" href=\"" << ds_baseurl << "/styles.css\">" << endl
+  << "<link rel=\"stylesheet\" href=\"" << mbaseurl << "/styles.css\">" << endl
   << "</head>" << endl
   << "<body>" << endl;
 }
+
 
 //! Output the docserver HTML page footer to stream.
 /** 
  Output the HTML footer and end of the body to the stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_end_page (ostream &os)
+void Docserver::end_page ()
 {
-  os << "<div class=\"footer\">Page generated by " << ARTS_FULL_VERSION << "</div>\n" << endl;
-  os << "</body>" << endl << "</html>";
+  get_os() << "<div class=\"footer\">Page generated by " << ARTS_FULL_VERSION << "</div>\n" << endl;
+  get_os() << "</body>" << endl << "</html>";
 }
+
 
 //! Create HTML link to an agenda.
 /** 
@@ -206,12 +270,13 @@ void ds_end_page (ostream &os)
  
  \author Oliver Lemke
  */
-String ds_insert_agenda_link (const String &aname)
+String Docserver::insert_agenda_link (const String &aname)
 {
   ostringstream ret;
-  ret << "<a href=\"" << ds_baseurl << "/agendas/" << aname << "\">" << aname << "</a>";
+  ret << "<a href=\"" << mbaseurl << "/agendas/" << aname << "\">" << aname << "</a>";
   return ret.str();
 }
+
 
 //! Create HTML link to a workspace group.
 /** 
@@ -223,12 +288,13 @@ String ds_insert_agenda_link (const String &aname)
  
  \author Oliver Lemke
  */
-String ds_insert_group_link (const String &gname)
+String Docserver::insert_group_link (const String &gname)
 {
   ostringstream ret;
-  ret << "<a href=\"" << ds_baseurl << "/groups/" << gname << "\">" << gname << "</a>";
+  ret << "<a href=\"" << mbaseurl << "/groups/" << gname << "\">" << gname << "</a>";
   return ret.str();
 }
+
 
 //! Create HTML link to a workspace method.
 /** 
@@ -240,12 +306,13 @@ String ds_insert_group_link (const String &gname)
  
  \author Oliver Lemke
  */
-String ds_insert_wsm_link (const String &mname)
+String Docserver::insert_wsm_link (const String &mname)
 {
   ostringstream ret;
-  ret << "<a href=\"" << ds_baseurl << "/methods/" << mname << "\">" << mname << "</a>";
+  ret << "<a href=\"" << mbaseurl << "/methods/" << mname << "\">" << mname << "</a>";
   return ret.str();
 }
+
 
 //! Create HTML link to a workspace variable.
 /** 
@@ -257,7 +324,7 @@ String ds_insert_wsm_link (const String &mname)
  
  \author Oliver Lemke
  */
-String ds_insert_wsv_link (const String &vname)
+String Docserver::insert_wsv_link (const String &vname)
 {
   ostringstream ret;
   
@@ -266,29 +333,28 @@ String ds_insert_wsv_link (const String &vname)
   if ( it != Workspace::WsvMap.end() )
   {
     if (Workspace::wsv_data[it->second].Group() == get_wsv_group_id("Agenda"))
-      ret << "<a href=\"" << ds_baseurl << "/agendas/" << vname << "\">" << vname << "</a>";
+      ret << "<a href=\"" << mbaseurl << "/agendas/" << vname << "\">" << vname << "</a>";
     else
-      ret << "<a href=\"" << ds_baseurl << "/variables/" << vname << "\">" << vname << "</a>";
+      ret << "<a href=\"" << mbaseurl << "/variables/" << vname << "\">" << vname << "</a>";
   }
   
   return ret.str();
 }
 
+
 //! Output list of agendas to stream.
 /** 
  Output an HTML list of all agenda to the stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_list_agendas (ostream &os)
+void Docserver::list_agendas ()
 {
   Index i;
   
-  os << "<h2>Agendas</h2>" << endl;
+  get_os() << "<h2>Agendas</h2>" << endl;
   
-  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
+  get_os() << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   Index hitcount = 0;
   for ( i=0; i<Workspace::wsv_data.nelem(); ++i )
   {
@@ -301,89 +367,86 @@ void ds_list_agendas (ostream &os)
   {
     if (Workspace::wsv_data[i].Group() == get_wsv_group_id("Agenda"))
     {
-      os << "<li>" << ds_insert_agenda_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
+      get_os() << "<li>" << insert_agenda_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
       hitcount2++;
       
       if (hitcount2 == hitcount/2)
-        os << "</ul>" << endl << "</div>" << endl
+        get_os() << "</ul>" << endl << "</div>" << endl
         << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
     }
   }
   
-  os << "</ul>" << endl << "</div>" << endl;
+  get_os() << "</ul>" << endl << "</div>" << endl;
 }
+
 
 //! Output list of workspace groups to stream.
 /** 
  Output an HTML list of all workspace groups to the stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_list_groups (ostream &os)
+void Docserver::list_groups ()
 {
   extern const ArrayOfString wsv_group_names;
   Index i;
   
-  os << "<h2>Workspace Groups</h2>" << endl;
+  get_os() << "<h2>Workspace Groups</h2>" << endl;
 
-  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
+  get_os() << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   for ( i=0; i<wsv_group_names.nelem(); ++i )
   {
-    os << "<li>" << ds_insert_group_link(wsv_group_names[i]) << "</li>" << endl;
+    get_os() << "<li>" << insert_group_link(wsv_group_names[i]) << "</li>" << endl;
     
     if (i+1 == wsv_group_names.nelem()/2)
-      os << "</ul>" << endl << "</div>" << endl
+      get_os() << "</ul>" << endl << "</div>" << endl
       << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
   }
   
-  os << "</ul>" << endl << "</div>" << endl;
+  get_os() << "</ul>" << endl << "</div>" << endl;
 }
+
 
 //! Output list of workspace methods to stream.
 /** 
  Output an HTML list of all workspace methods to the stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_list_methods (ostream &os)
+void Docserver::list_methods ()
 {
   extern const Array<MdRecord> md_data_raw;
   Index i;
   
-  os << "<h2>Workspace Methods</h2>" << endl;
+  get_os() << "<h2>Workspace Methods</h2>" << endl;
   
-  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
+  get_os() << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   for ( i=0; i<md_data_raw.nelem(); ++i )
   {
-    os << "<li>" << ds_insert_wsm_link(md_data_raw[i].Name()) << "</li>" << endl;
+    get_os() << "<li>" << insert_wsm_link(md_data_raw[i].Name()) << "</li>" << endl;
     
     if (i+1 == md_data_raw.nelem()/2)
-      os << "</ul>" << endl << "</div>" << endl
+      get_os() << "</ul>" << endl << "</div>" << endl
       << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
   }
   
-  os << "</ul>" << endl << "</div>" << endl;
+  get_os() << "</ul>" << endl << "</div>" << endl;
 }
+
 
 //! Output list of workspace variables to stream.
 /** 
  Output an HTML list of all workspace variables to the stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_list_variables (ostream &os)
+void Docserver::list_variables ()
 {
   Index i;
   
-  os << "<h2>Workspace Variables</h2>" << endl;
+  get_os() << "<h2>Workspace Variables</h2>" << endl;
   
-  os << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
+  get_os() << "<div class=\"firstcol\">" << endl << "<ul>" << endl;
   Index hitcount = 0;
   for ( i=0; i<Workspace::wsv_data.nelem(); ++i )
   {
@@ -396,16 +459,16 @@ void ds_list_variables (ostream &os)
   {
     if (Workspace::wsv_data[i].Group() != get_wsv_group_id("Agenda"))
     {
-      os << "<li>" << ds_insert_wsv_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
+      get_os() << "<li>" << insert_wsv_link(Workspace::wsv_data[i].Name()) << "</li>" << endl;
       hitcount2++;
       
       if (hitcount2 == hitcount/2)
-        os << "</ul>" << endl << "</div>" << endl
+        get_os() << "</ul>" << endl << "</div>" << endl
         << "<div class=\"secondcol\">" << endl << "<ul>" << endl;
     }
   }
   
-  os << "</ul>" << endl << "</div>" << endl;
+  get_os() << "</ul>" << endl << "</div>" << endl;
 }
 
 
@@ -419,7 +482,7 @@ void ds_list_variables (ostream &os)
  
  \author Oliver Lemke
  */
-String ds_doc_description_add_links (const String& desc)
+String Docserver::description_add_links (const String& desc)
 {
   string ret;
   string link;
@@ -435,7 +498,7 @@ String ds_doc_description_add_links (const String& desc)
       if (*it == '*')
         inside_link = true;
       else
-        ret += ds_html_escape_char(*it);
+        ret += html_escape_char(*it);
     }
     else
     {
@@ -443,13 +506,13 @@ String ds_doc_description_add_links (const String& desc)
       {
         inside_link = false;
         if (MdRawMap.find(link) != MdRawMap.end())
-          ret += ds_insert_wsm_link(link);
+          ret += insert_wsm_link(link);
         else if (AgendaMap.find(link) != AgendaMap.end())
-          ret += ds_insert_agenda_link(link);
+          ret += insert_agenda_link(link);
         else if (Workspace::WsvMap.find(link) != Workspace::WsvMap.end())
-          ret += ds_insert_wsv_link(link);
+          ret += insert_wsv_link(link);
         else if (get_wsv_group_id (link) != -1)
-          ret += ds_insert_group_link(link);
+          ret += insert_group_link(link);
         else
           ret += "*" + link + "*";
         
@@ -464,7 +527,7 @@ String ds_doc_description_add_links (const String& desc)
           link = "";
         }
         else
-          link += ds_html_escape_char(*it);
+          link += html_escape_char(*it);
       }
     }
     
@@ -482,12 +545,11 @@ String ds_doc_description_add_links (const String& desc)
  Output the documentation for the given workspace method to the stream in
  HTML formatting.
  
- \param[in,out]  os     Output stream.
  \param[in]      mname  Method name.
  
  \author Oliver Lemke
  */
-void ds_doc_method (ostream &os, const string& mname)
+void Docserver::doc_method (const string& mname)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
@@ -505,31 +567,31 @@ void ds_doc_method (ostream &os, const string& mname)
     const MdRecord& mdr = md_data_raw[it->second];
     String indent = "";
     
-    os << "<h3>Description</h3>" << endl;
+    get_os() << "<h3>Description</h3>" << endl;
     
-    os << "<pre>" << endl;
-    os << ds_doc_description_add_links(mdr.Description());
-    os << endl << "</pre>" << endl << endl;
+    get_os() << "<pre>" << endl;
+    get_os() << description_add_links(mdr.Description());
+    get_os() << endl << "</pre>" << endl << endl;
     
     bool is_first_author = true;
     for (Index i = 0; i < mdr.Authors().nelem(); i++)
     {
       if (is_first_author)
       {
-        os << "<p><b>Authors: </b>";
+        get_os() << "<p><b>Authors: </b>";
         is_first_author = false;
       }
       else
-        os << ", ";
+        get_os() << ", ";
       
-      os << mdr.Authors()[i];
+      get_os() << mdr.Authors()[i];
     }
-    os << "\n";
+    get_os() << "\n";
     
     // Print the method's synopsis
     while (indent.length() < mdr.Name().length() + 2) indent += ' ';
     
-    os << "<h3>Synopsis</h3>" << endl;
+    get_os() << "<h3>Synopsis</h3>" << endl;
     
     ostringstream buf;
     ostringstream param;
@@ -540,9 +602,9 @@ void ds_doc_method (ostream &os, const string& mname)
     for ( Index i=0; i<mdr.Out().nelem(); ++i )
     {
       if (first) first=false; else buf << ", ";
-      param << ds_insert_wsv_link(Workspace::wsv_data[mdr.Out()[i]].Name());
+      param << insert_wsv_link(Workspace::wsv_data[mdr.Out()[i]].Name());
       
-      limit_line_length( os, buf, param, indent, linelen );
+      limit_line_length( buf, param, indent, linelen );
     }
     
     for ( Index i=0; i<mdr.GOutType().nelem(); ++i )
@@ -553,16 +615,16 @@ void ds_doc_method (ostream &os, const string& mname)
       else
         param << "gout" << i;
       
-      limit_line_length( os, buf, param, indent, linelen );
+      limit_line_length( buf, param, indent, linelen );
     }
     
     const ArrayOfIndex &inonly = mdr.InOnly();
     for ( Index i=0; i<inonly.nelem(); ++i )
     {
       if (first) first=false; else buf << ", ";
-      param << ds_insert_wsv_link(Workspace::wsv_data[inonly[i]].Name());
+      param << insert_wsv_link(Workspace::wsv_data[inonly[i]].Name());
       
-      limit_line_length( os, buf, param, indent, linelen );
+      limit_line_length( buf, param, indent, linelen );
     }
     
     for ( Index i=0; i<mdr.GInType().nelem(); ++i )
@@ -577,18 +639,18 @@ void ds_doc_method (ostream &os, const string& mname)
         param << "gin" << i;
       }
       
-      limit_line_length( os, buf, param, indent, linelen );
+      limit_line_length( buf, param, indent, linelen );
     }
-    if (buf.str().length()) os << buf.str();
+    if (buf.str().length()) get_os() << buf.str();
     
-    os << " )</td></tr></table>" << endl;
+    get_os() << " )</td></tr></table>" << endl;
     
-    os << "<h3>Variables</h3>" << endl;
+    get_os() << "<h3>Variables</h3>" << endl;
     
     // Out:
     indent = "";
     String desc;
-    os << "<table>" << endl;
+    get_os() << "<table>" << endl;
     for ( Index i=0; i<mdr.Out().nelem(); ++i )
     {
       buf.str("");
@@ -597,8 +659,8 @@ void ds_doc_method (ostream &os, const string& mname)
       
       {
         const String& vname = Workspace::wsv_data[mdr.Out()[i]].Name();
-        buf << "<td class=\"right\">" << ds_insert_wsv_link(vname) << "</td><td>(";
-        buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[mdr.Out()[i]].Group()]);
+        buf << "<td class=\"right\">" << insert_wsv_link(vname) << "</td><td>(";
+        buf << insert_group_link(wsv_group_names[Workspace::wsv_data[mdr.Out()[i]].Group()]);
         buf << ")</td><td>";
       }
       
@@ -607,14 +669,14 @@ void ds_doc_method (ostream &os, const string& mname)
       if (buf.str().length() + desc.length() > linelen)
       {
         format_paragraph (desc, indent, linelen);
-        buf << endl << indent << ds_doc_description_add_links(desc);
+        buf << endl << indent << description_add_links(desc);
       }
       else
       {
-        buf << ds_doc_description_add_links(desc);
+        buf << description_add_links(desc);
       }
       
-      os << buf.str() << "</td></tr>" << endl;
+      get_os() << buf.str() << "</td></tr>" << endl;
     }
     
     size_t lastlen;
@@ -631,12 +693,12 @@ void ds_doc_method (ostream &os, const string& mname)
         for (Index j = 0; j < mdr.GOutSpecType()[i].nelem(); j++)
         {
           if (!firstarg) buf << ", "; else firstarg = false;
-          buf << ds_insert_group_link(wsv_group_names[mdr.GOutSpecType()[i][j]]);
+          buf << insert_group_link(wsv_group_names[mdr.GOutSpecType()[i][j]]);
         }
       }
       else
       {
-        buf << ds_insert_group_link(wsv_group_names[mdr.GOutType()[i]]);
+        buf << insert_group_link(wsv_group_names[mdr.GOutType()[i]]);
       }
       
       buf << ")</td><td>";
@@ -644,25 +706,25 @@ void ds_doc_method (ostream &os, const string& mname)
       lastlen = desc.length();
       fit = format_paragraph (desc, indent, linelen);
       buf.str("");
-      os << desc;
+      get_os() << desc;
       
       desc = mdr.GOutDescription()[i];
       if (!fit)
       {
         format_paragraph (desc, indent, linelen);
-        buf << endl << indent << ds_doc_description_add_links(desc);
+        buf << endl << indent << description_add_links(desc);
       }
       else if (lastlen + desc.length() > linelen)
       {
         format_paragraph (desc, indent, linelen, lastlen);
-        buf << endl << ds_doc_description_add_links(desc);
+        buf << endl << description_add_links(desc);
       }
       else
       {
-        buf << ds_doc_description_add_links(desc);
+        buf << description_add_links(desc);
       }
       
-      os << buf.str() << "</td></tr>" << endl;
+      get_os() << buf.str() << "</td></tr>" << endl;
     }
     
     for ( Index i=0; i<mdr.In().nelem(); ++i )
@@ -672,25 +734,24 @@ void ds_doc_method (ostream &os, const string& mname)
       buf <<    "<td>IN</td>";
       
       const String& vname = Workspace::wsv_data[mdr.In()[i]].Name();
-      buf << "<td class=\"right\">" << ds_insert_wsv_link(vname);
+      buf << "<td class=\"right\">" << insert_wsv_link(vname);
       buf << "</td><td>(";
-      buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[mdr.In()[i]].Group()]);
+      buf << insert_group_link(wsv_group_names[Workspace::wsv_data[mdr.In()[i]].Group()]);
       buf << ")</td><td>";
       
-      get_short_wsv_description(
-                                desc, Workspace::wsv_data[mdr.In()[i]].Description());
+      get_short_wsv_description(desc, Workspace::wsv_data[mdr.In()[i]].Description());
       
       if (buf.str().length() + desc.length() > linelen)
       {
         format_paragraph (desc, indent, linelen, indent.length());
-        buf << endl << indent << ds_doc_description_add_links(desc);
+        buf << endl << indent << description_add_links(desc);
       }
       else
       {
-        buf << ds_doc_description_add_links(desc);
+        buf << description_add_links(desc);
       }
       
-      os << buf.str() << "</td></tr>" << endl;
+      get_os() << buf.str() << "</td></tr>" << endl;
     }
     
     for ( Index i=0; i<mdr.GIn().nelem(); ++i )
@@ -705,12 +766,12 @@ void ds_doc_method (ostream &os, const string& mname)
         for (Index j = 0; j < mdr.GInSpecType()[i].nelem(); j++)
         {
           if (!firstarg) buf << ", "; else firstarg = false;
-          buf << ds_insert_group_link(wsv_group_names[mdr.GInSpecType()[i][j]]);
+          buf << insert_group_link(wsv_group_names[mdr.GInSpecType()[i][j]]);
         }
       }
       else
       {
-        buf << ds_insert_group_link(wsv_group_names[mdr.GInType()[i]]);
+        buf << insert_group_link(wsv_group_names[mdr.GInType()[i]]);
       }
       
       if (mdr.GInDefault()[i] != NODEF)
@@ -730,47 +791,47 @@ void ds_doc_method (ostream &os, const string& mname)
       buf << ")</td><td>";
       desc = buf.str();
       lastlen = desc.length();
-      fit = format_paragraph (desc, indent, linelen);
+      fit = format_paragraph(desc, indent, linelen);
       buf.str("");
-      os << desc;
+      get_os() << desc;
       
       desc = mdr.GInDescription()[i];
       if (!fit)
       {
-        format_paragraph (desc, indent, linelen);
-        buf << indent << ds_doc_description_add_links(desc);
+        format_paragraph(desc, indent, linelen);
+        buf << indent << description_add_links(desc);
       }
       else if (lastlen + desc.length() > linelen)
       {
-        format_paragraph (desc, indent, linelen, indent.length());
-        buf << indent << ds_doc_description_add_links(desc);
+        format_paragraph(desc, indent, linelen, indent.length());
+        buf << indent << description_add_links(desc);
       }
       else
       {
-        buf << ds_doc_description_add_links(desc);
+        buf << description_add_links(desc);
       }
       
-      os << buf.str() << "</td></tr>" << endl;
+      get_os() << buf.str() << "</td></tr>" << endl;
     }
-    os << "</table>" << endl;
+    get_os() << "</table>" << endl;
   }
   else
   {
-    ds_insert_error (os, "There is no method by this name.");
+    insert_error_message("There is no method by this name.");
   }
 }
+
 
 //! Output a list of methods that can use or generate the given variable.
 /** 
  Output a list of all workspace methods and agendas that use, generate or
  require the given variable.
  
- \param[in,out]  os     Output stream.
  \param[in]      vname  Variable name.
  
  \author Oliver Lemke
  */
-void ds_doc_variable_methods(ostream& os, const string& vname)
+void Docserver::doc_variable_methods(const string& vname)
 {
   // Check if the user gave the name of a specific variable.
   map<String, Index>::const_iterator mi = Workspace::WsvMap.find(vname);
@@ -783,7 +844,7 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
     
     // List specific methods:
     hitcount = 0;
-    os 
+    get_os() 
     << "<h3>Specific methods that can generate " << vname << "</h3>" << endl
     << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
@@ -798,17 +859,17 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                  mdd.Out().end(),
                  wsv_key ) ) 
       {
-        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << "\n";
+        get_os() << "<li>" << insert_wsm_link(mdd.Name()) << "\n";
         ++hitcount;
       }
     }
-    if ( 0==hitcount ) os << "<li>none\n";
+    if ( 0==hitcount ) get_os() << "<li>none\n";
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
     
     // List generic methods:
-    os << "<h3>Generic and supergeneric methods that can generate " << vname << "</h3>" << endl;
-    os << "<ul>" << endl;
+    get_os() << "<h3>Generic and supergeneric methods that can generate " << vname << "</h3>" << endl;
+    get_os() << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
     {
       // Get handle on method record:
@@ -822,7 +883,7 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                  mdd.GOutType().end(),
                  Workspace::wsv_data[wsv_key].Group() ) )
       {
-        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+        get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
         ++hitcount;
       }
       else if  ( count( mdd.GOutType().begin(),
@@ -839,26 +900,26 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                         mdd.GOutSpecType()[j].end(),
                         Workspace::wsv_data[wsv_key].Group() ) )
               {
-                os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+                get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
                 ++hitcount;
               }
             }
             else
             {
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+              get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
               ++hitcount;
             }
           }
         }
       }
     }
-    if ( 0==hitcount ) os << "<li>none" << endl;
+    if ( 0==hitcount ) get_os() << "<li>none" << endl;
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
     
     // List specific methods:
     hitcount = 0;
-    os 
+    get_os() 
     << "<h3>Specific methods that require " << vname << "</h3>" << endl
     << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
@@ -873,18 +934,18 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                  mdd.In().end(),
                  wsv_key ) ) 
       {
-        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << "\n";
+        get_os() << "<li>" << insert_wsm_link(mdd.Name()) << "\n";
         ++hitcount;
       }
     }
-    if ( 0==hitcount ) os << "<li>none\n";
+    if ( 0==hitcount ) get_os() << "<li>none\n";
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
     
     // List generic methods:
     hitcount = 0;
-    os << "<h3>Generic and supergeneric methods that can use " << vname << "</h3>" << endl;
-    os << "<ul>" << endl;
+    get_os() << "<h3>Generic and supergeneric methods that can use " << vname << "</h3>" << endl;
+    get_os() << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
     {
       // Get handle on method record:
@@ -898,7 +959,7 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                  mdd.GInType().end(),
                  Workspace::wsv_data[wsv_key].Group() ) )
       {
-        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+        get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
         ++hitcount;
       }
       else if  ( count( mdd.GInType().begin(),
@@ -915,27 +976,27 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                         mdd.GInSpecType()[j].end(),
                         Workspace::wsv_data[wsv_key].Group() ) )
               {
-                os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+                get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
                 ++hitcount;
               }
             }
             else
             {
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+              get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
               ++hitcount;
             }
           }
         }
       }
     }
-    if ( 0==hitcount ) os << "<li>none" << endl;
+    if ( 0==hitcount ) get_os() << "<li>none" << endl;
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
     
     // List agendas with this variable as output:
     extern Array<AgRecord> agenda_data;
     hitcount = 0;
-    os 
+    get_os() 
     << "<h3>Agendas that can generate " << vname << "</h3>" << endl
     << "<ul>" << endl;
     for ( Index i=0; i<agenda_data.nelem(); ++i )
@@ -950,17 +1011,17 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                  ar.Out().end(),
                  wsv_key ) ) 
       {
-        os << "<li>" << ds_insert_agenda_link(ar.Name()) << "\n";
+        get_os() << "<li>" << insert_agenda_link(ar.Name()) << "\n";
         ++hitcount;
       }
     }
-    if ( 0==hitcount ) os << "<li>none\n";
+    if ( 0==hitcount ) get_os() << "<li>none\n";
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
     
     // List agendas with this variable as input:
     hitcount = 0;
-    os << "<h3>Agendas that require " << vname << "</h3>" << endl
+    get_os() << "<h3>Agendas that require " << vname << "</h3>" << endl
     << "<ul>" << endl;
     for ( Index i=0; i<agenda_data.nelem(); ++i )
     {
@@ -974,28 +1035,28 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
                  ar.In().end(),
                  wsv_key ) ) 
       {
-        os << "<li>" << ds_insert_agenda_link(ar.Name()) << "\n";
+        get_os() << "<li>" << insert_agenda_link(ar.Name()) << "\n";
         ++hitcount;
       }
     }
     
-    if ( 0==hitcount ) os << "<li>none\n";
+    if ( 0==hitcount ) get_os() << "<li>none\n";
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
   }
 }
+
 
 //! Output the workspace variable documentation to stream.
 /** 
  Output the documentation for the given workspace variable to the stream in
  HTML formatting.
  
- \param[in,out]  os     Output stream.
  \param[in]      vname  Variable name.
  
  \author Oliver Lemke
  */
-void ds_doc_variable (ostream &os, const string& vname)
+void Docserver::doc_variable (const string& vname)
 {
   extern const ArrayOfString wsv_group_names;
   
@@ -1005,32 +1066,32 @@ void ds_doc_variable (ostream &os, const string& vname)
   {
     // If we are here, then the given name matches a workspace
     // variable.
-    os << "<pre>" << endl;
-    os << ds_doc_description_add_links(Workspace::wsv_data[it->second].Description());
-    os << endl << "</pre>" << endl << endl;
+    get_os() << "<pre>" << endl;
+    get_os() << description_add_links(Workspace::wsv_data[it->second].Description());
+    get_os() << endl << "</pre>" << endl << endl;
     
-    os << "<p><b>Group: </b>"
-    << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[it->second].Group()]) << endl;
+    get_os() << "<p><b>Group: </b>"
+    << insert_group_link(wsv_group_names[Workspace::wsv_data[it->second].Group()]) << endl;
     
-    ds_doc_variable_methods(os, vname);
+    doc_variable_methods(vname);
   }
   else
   {
-    ds_insert_error (os, "There is no variable by this name.");
+    insert_error_message("There is no variable by this name.");
   }
 }
+
 
 //! Output the agenda documentation to stream.
 /** 
  Output the documentation for the given agenda to the stream in
  HTML formatting.
  
- \param[in,out]  os     Output stream.
  \param[in]      aname  Agenda name.
  
  \author Oliver Lemke
  */
-void ds_doc_agenda (ostream &os, const string& aname)
+void Docserver::doc_agenda (const string& aname)
 {
   extern const ArrayOfString wsv_group_names;
   
@@ -1044,14 +1105,14 @@ void ds_doc_agenda (ostream &os, const string& aname)
   {
     // If we are here, then the given name matches a workspace
     // variable.
-    os << "<pre>" << endl;
-    os << ds_doc_description_add_links(agenda_data[ait->second].Description());
-    os << endl << "</pre>" << endl << endl;
+    get_os() << "<pre>" << endl;
+    get_os() << description_add_links(agenda_data[ait->second].Description());
+    get_os() << endl << "</pre>" << endl << endl;
 
-    os << "<p><b>Group: </b>"
-    << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[it->second].Group()]) << endl;
+    get_os() << "<p><b>Group: </b>"
+    << insert_group_link(wsv_group_names[Workspace::wsv_data[it->second].Group()]) << endl;
     
-    os << "<h3>Variables</h3>" << endl;
+    get_os() << "<h3>Variables</h3>" << endl;
     
     // Out:
     if ( ait != AgendaMap.end() )
@@ -1062,7 +1123,7 @@ void ds_doc_agenda (ostream &os, const string& aname)
       String desc;
       ostringstream buf;
       size_t linelen = 80;
-      os << "<table>" << endl;
+      get_os() << "<table>" << endl;
       for ( Index i=0; i<agr.Out().nelem(); ++i )
       {
         buf.str("");
@@ -1071,8 +1132,8 @@ void ds_doc_agenda (ostream &os, const string& aname)
         
         {
           const String& vname = Workspace::wsv_data[agr.Out()[i]].Name();
-          buf << "<td class=\"right\">" << ds_insert_wsv_link(vname) << "</td><td>(";
-          buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[agr.Out()[i]].Group()]);
+          buf << "<td class=\"right\">" << insert_wsv_link(vname) << "</td><td>(";
+          buf << insert_group_link(wsv_group_names[Workspace::wsv_data[agr.Out()[i]].Group()]);
           buf << ")</td><td>";
         }
         
@@ -1081,14 +1142,14 @@ void ds_doc_agenda (ostream &os, const string& aname)
         if (buf.str().length() + desc.length() > linelen)
         {
           format_paragraph (desc, indent, linelen);
-          buf << endl << indent << ds_doc_description_add_links(desc);
+          buf << endl << indent << description_add_links(desc);
         }
         else
         {
-          buf << ds_doc_description_add_links(desc);
+          buf << description_add_links(desc);
         }
         
-        os << buf.str() << "</td></tr>" << endl;
+        get_os() << buf.str() << "</td></tr>" << endl;
         
       }
       
@@ -1099,49 +1160,48 @@ void ds_doc_agenda (ostream &os, const string& aname)
         buf <<    "<td>IN</td>";
         
         const String& vname = Workspace::wsv_data[agr.In()[i]].Name();
-        buf << "<td class=\"right\">" << ds_insert_wsv_link(vname);
+        buf << "<td class=\"right\">" << insert_wsv_link(vname);
         buf << "</td><td>(";
-        buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[agr.In()[i]].Group()]);
+        buf << insert_group_link(wsv_group_names[Workspace::wsv_data[agr.In()[i]].Group()]);
         buf << ")</td><td>";
         
-        get_short_wsv_description(
-                                  desc, Workspace::wsv_data[agr.In()[i]].Description());
+        get_short_wsv_description(desc, Workspace::wsv_data[agr.In()[i]].Description());
         
         if (buf.str().length() + desc.length() > linelen)
         {
           format_paragraph (desc, indent, linelen, indent.length());
-          buf << endl << indent << ds_doc_description_add_links(desc);
+          buf << endl << indent << description_add_links(desc);
         }
         else
         {
-          buf << ds_doc_description_add_links(desc);
+          buf << description_add_links(desc);
         }
         
-        os << buf.str() << "</td></tr>" << endl;
+        get_os() << buf.str() << "</td></tr>" << endl;
       }
       
-      os << "</table>" << endl;
+      get_os() << "</table>" << endl;
     }
     
-    ds_doc_variable_methods(os, aname);
+    doc_variable_methods(aname);
   }
   else
   {
-    ds_insert_error (os, "There is no agenda by this name.");
+    insert_error_message("There is no agenda by this name.");
   }
 }
+
 
 //! Output the workspace group documentation to stream.
 /** 
  Output the documentation for the given workspace group to the stream in
  HTML formatting.
  
- \param[in,out]  os     Output stream.
  \param[in]      gname  Group name.
  
  \author Oliver Lemke
  */
-void ds_doc_group (ostream &os, const string& gname)
+void Docserver::doc_group (const string& gname)
 {
   // Check if the user gave the name of a specific variable.
   Index gid = get_wsv_group_id (gname);
@@ -1155,8 +1215,8 @@ void ds_doc_group (ostream &os, const string& gname)
     {
       // List specific methods:
       hitcount = 0;
-      os << "<h3>Specific methods that can generate " << gname << "</h3>" << endl;
-      os << "<ul>" << endl;
+      get_os() << "<h3>Specific methods that can generate " << gname << "</h3>" << endl;
+      get_os() << "<ul>" << endl;
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
       {
         // Get handle on method record:
@@ -1172,25 +1232,25 @@ void ds_doc_group (ostream &os, const string& gname)
             if (first)
             {
               first = false;
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << " (";
+              get_os() << "<li>" << insert_wsm_link(mdd.Name()) << " (";
             }
             else
-              os << ", ";
-            os << ds_insert_wsv_link(Workspace::wsv_data[mdd.Out()[j]].Name());
+              get_os() << ", ";
+            get_os() << insert_wsv_link(Workspace::wsv_data[mdd.Out()[j]].Name());
             
             ++hitcount;
           }
         }
-        if (!first) os << ")" << endl;
+        if (!first) get_os() << ")" << endl;
       }
-      if ( 0==hitcount ) os << "<li>none" << endl;
+      if ( 0==hitcount ) get_os() << "<li>none" << endl;
       
-      os << endl << "</ul>" << endl;
+      get_os() << endl << "</ul>" << endl;
     }
     
     // List generic methods:
-    os << "<h3>Generic and supergeneric methods that can generate " << gname << "</h3>" << endl;
-    os << "<ul>" << endl;
+    get_os() << "<h3>Generic and supergeneric methods that can generate " << gname << "</h3>" << endl;
+    get_os() << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
     {
       // Get handle on method record:
@@ -1202,7 +1262,7 @@ void ds_doc_group (ostream &os, const string& gname)
       // The else clause picks up methods with supergeneric input.
       if ( count( mdd.GOutType().begin(), mdd.GOutType().end(), gid ) )
       {
-        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+        get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
         ++hitcount;
       }
       else if  ( count( mdd.GOutType().begin(),
@@ -1219,28 +1279,28 @@ void ds_doc_group (ostream &os, const string& gname)
                         mdd.GOutSpecType()[j].end(),
                         gid ) )
               {
-                os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+                get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
                 ++hitcount;
               }
             }
             else
             {
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+              get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
               ++hitcount;
             }
           }
         }
       }
     }
-    if ( 0==hitcount ) os << "<li>none" << endl;
+    if ( 0==hitcount ) get_os() << "<li>none" << endl;
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
 
     if (gname != "Any")
     {
       hitcount = 0;
-      os << "<h3>Specific methods that require variables of group " << gname << "</h3>" << endl;
-      os << "<ul>" << endl;
+      get_os() << "<h3>Specific methods that require variables of group " << gname << "</h3>" << endl;
+      get_os() << "<ul>" << endl;
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
       {
         // Get handle on method record:
@@ -1256,25 +1316,25 @@ void ds_doc_group (ostream &os, const string& gname)
             if (first)
             {
               first = false;
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << " (";
+              get_os() << "<li>" << insert_wsm_link(mdd.Name()) << " (";
             }
             else
-              os << ", ";
-            os << ds_insert_wsv_link(Workspace::wsv_data[mdd.In()[j]].Name());
+              get_os() << ", ";
+            get_os() << insert_wsv_link(Workspace::wsv_data[mdd.In()[j]].Name());
             
             ++hitcount;
           }
         }
-        if (!first) os << ")" << endl;
+        if (!first) get_os() << ")" << endl;
       }
-      if ( 0==hitcount ) os << "<li>none" << endl;
+      if ( 0==hitcount ) get_os() << "<li>none" << endl;
       
-      os << endl << "</ul>" << endl;
+      get_os() << endl << "</ul>" << endl;
     }
     
     hitcount = 0;
-    os << "<h3>Generic and supergeneric methods that can use " << gname << "</h3>" << endl;
-    os << "<ul>" << endl;
+    get_os() << "<h3>Generic and supergeneric methods that can use " << gname << "</h3>" << endl;
+    get_os() << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
     {
       // Get handle on method record:
@@ -1286,7 +1346,7 @@ void ds_doc_group (ostream &os, const string& gname)
       // The else clause picks up methods with supergeneric input.
       if ( count( mdd.GInType().begin(), mdd.GInType().end(), gid ) )
       {
-        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+        get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
         ++hitcount;
       }
       else if  ( count( mdd.GInType().begin(),
@@ -1303,28 +1363,28 @@ void ds_doc_group (ostream &os, const string& gname)
                         mdd.GInSpecType()[j].end(),
                         gid ) )
               {
-                os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+                get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
                 ++hitcount;
               }
             }
             else
             {
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << endl;
+              get_os() << "<li>" << insert_wsm_link(mdd.Name()) << endl;
               ++hitcount;
             }
           }
         }
       }
     }
-    if ( 0==hitcount ) os << "<li>none" << endl;
+    if ( 0==hitcount ) get_os() << "<li>none" << endl;
     
-    os << endl << "</ul>" << endl;
+    get_os() << endl << "</ul>" << endl;
 
     if (gname != "Any")
     {
       Index i;
       
-      os << "<h3>Workspace Variables of group " << gname << "</h3>" << endl
+      get_os() << "<h3>Workspace Variables of group " << gname << "</h3>" << endl
       << "<ul>" << endl;
       
       hitcount = 0;
@@ -1332,34 +1392,31 @@ void ds_doc_group (ostream &os, const string& gname)
       {
         if (Workspace::wsv_data[i].Group() == get_wsv_group_id(gname))
         {
-          os << "<li>" << ds_insert_wsv_link(Workspace::wsv_data[i].Name()) << endl;
+          get_os() << "<li>" << insert_wsv_link(Workspace::wsv_data[i].Name()) << endl;
           hitcount++;
         }
       }
-      if ( 0==hitcount ) os << "<li>none" << endl;
+      if ( 0==hitcount ) get_os() << "<li>none" << endl;
       
-      os << "</ul>" << endl;
+      get_os() << "</ul>" << endl;
     }
   }
   else
   {
-    ds_insert_error (os, "There is no group by this name.");
+    insert_error_message ("There is no group by this name.");
   }
 }
 
 
 //! Find token type.
 /** 
- If the first element of tokens is "all", look at the second token and try to
- determine whether it's a methods, variable, agenda or group. Then changes the
- first element of tokens accordingly.
- 
- \param[in,out]    tokens   Tokens with the current position in the docserver
- hierarchy.
+ If the first element of Docserver::tokens is "all", look at the second token
+ and try to determine whether it's a methods, variable, agenda or group. Then
+ changes the first element of tokens accordingly.
  
  \author Oliver Lemke
  */
-void ds_find_token_type (vector<string>& tokens)
+void Docserver::find_token_type ()
 {
   if (tokens.size() < 1 || tokens[0] != "all") return;
   
@@ -1384,172 +1441,195 @@ void ds_find_token_type (vector<string>& tokens)
  Output the HTML code for the token with the given id. Used for the
  navigation at the top of each docserver page.
  
- \param[in,out]  os         Output stream.
- \param[in]      tokens     List of tokens.
  \param[in]      token_id   Id of the desired token.
  
  \author Oliver Lemke
  */
-void ds_insert_breadcrumb_token (ostream& os, const vector<string>& tokens,
-                                 size_t token_id)
+void Docserver::insert_breadcrumb_token (size_t token_id)
 {
   bool link = (token_id < tokens.size()-1);
   
   if (link)
   {
-    os << "<a href=\"" << ds_baseurl;
+    get_os() << "<a href=\"" << mbaseurl;
     for (size_t t = 0; t <= token_id; t++)
     {
-      if (t != 1) os << "/";
-      os << tokens[t];
+      if (t != 1) get_os() << "/";
+      get_os() << tokens[t];
     }
-    os << "\">";
+    get_os() << "\">";
   }
 
-  if (!token_id) os << "Home";
-  else if (tokens[token_id] == "methods") os << "Methods";
-  else if (tokens[token_id] == "variables") os << "Variables";
-  else if (tokens[token_id] == "agendas") os << "Agendas";
-  else if (tokens[token_id] == "groups") os << "Groups";
-  else if (tokens[token_id] == "all") os << "All";
-  else os << tokens[token_id];
+  if (!token_id) get_os() << "Home";
+  else if (tokens[token_id] == "methods") get_os() << "Methods";
+  else if (tokens[token_id] == "variables") get_os() << "Variables";
+  else if (tokens[token_id] == "agendas") get_os() << "Agendas";
+  else if (tokens[token_id] == "groups") get_os() << "Groups";
+  else if (tokens[token_id] == "all") get_os() << "All";
+  else get_os() << tokens[token_id];
   
-  if (link) os << "</a>";
+  if (link) get_os() << "</a>";
 }
+
 
 //! Output HTML code for breadcrumbs.
 /** 
- Output the HTML code for breadcrumbs based on the give tokens. Used for the
+ Output the HTML code for breadcrumbs based on Docserver::tokens. Used for the
  navigation at the top of each docserver page.
- 
- \param[in,out]  os         Output stream.
- \param[in]      tokens     List of tokens.
  
  \author Oliver Lemke
  */
-void ds_insert_breadcrumbs (ostream& os, const vector<string>& tokens)
+void Docserver::insert_breadcrumbs ()
 {
   vector<string> ntokens = tokens;
   ntokens.insert(ntokens.begin(), "");
-  os << "<div id=\"navbar\"><div class=\"breadcrumbs\">";
+  get_os() << "<div id=\"navbar\"><div class=\"breadcrumbs\">";
   for (size_t t = 0; t < ntokens.size(); t++)
   {
-    if (t) os << "&nbsp;>>&nbsp;";
-    ds_insert_breadcrumb_token (os, ntokens, t);
+    if (t) get_os() << "&nbsp;>>&nbsp;";
+    insert_breadcrumb_token(t);
   }
-  os << "</div>" << endl;
+  get_os() << "</div>" << endl;
   
-os
-<< "<div class=\"goto\">Go to: "
-<< "<a href=\"" << ds_baseurl << "/groups/\">Groups</a>&nbsp;-&nbsp;"
-<< "<a href=\"" << ds_baseurl << "/variables/\">Variables</a>&nbsp;-&nbsp;"
-<< "<a href=\"" << ds_baseurl << "/methods/\">Methods</a>&nbsp;-&nbsp;"
-<< "<a href=\"" << ds_baseurl << "/agendas/\">Agendas</a>"
-<< "</div></div>" << endl;
-  
-
+  get_os()
+  << "<div class=\"goto\">Go to: "
+  << "<a href=\"" << mbaseurl << "/groups/\">Groups</a>&nbsp;-&nbsp;"
+  << "<a href=\"" << mbaseurl << "/variables/\">Variables</a>&nbsp;-&nbsp;"
+  << "<a href=\"" << mbaseurl << "/methods/\">Methods</a>&nbsp;-&nbsp;"
+  << "<a href=\"" << mbaseurl << "/agendas/\">Agendas</a>"
+  << "</div></div>" << endl;
 }
+
 
 //! Output error.
 /** 
- Formats the given string as an error message.
+ Outputs an error page.
  
- \param[in,out]  os     Output stream.
- \param[in]      title  Title string.
+ \param[in]      error   error string.
  
  \author Oliver Lemke
  */
-void ds_insert_error (ostream& os, const string& error = "")
+void Docserver::insert_error(const string& error)
+{
+  begin_page("");
+  insert_breadcrumbs();
+  begin_content();
+  insert_error_message(error);
+  end_content();
+  end_page();
+}
+
+
+//! Output error message.
+/** 
+ Formats the given string as an error message.
+ 
+ \param[in]      error  error string.
+ 
+ \author Oliver Lemke
+ */
+void Docserver::insert_error_message(const string& error)
 {
   if (error.length())
-    os << "<p class=\"error\">" << error << "</p>" << endl;
+    get_os() << "<p class=\"error\">" << error << "</p>" << endl;
 }
+
 
 //! Output H1 HTML tag.
 /** 
  Formats the title string as an H1 header.
  
- \param[in,out]  os     Output stream.
  \param[in]      title  Title string.
  
  \author Oliver Lemke
  */
-void ds_insert_title (ostream& os, const string& title = "")
+void Docserver::insert_title (const string& title)
 {
-  os << "<h1>"DOCSERVER_NAME;
+  get_os() << "<h1>"DOCSERVER_NAME;
   if (title.length())
-    os << " &mdash; " << title;
-  os << "</h1>" << endl;
+    get_os() << " &mdash; " << title;
+  get_os() << "</h1>" << endl;
 }
+
 
 //! Output an HTML index of the workspace members.
 /** 
  Output depending on the tokens either a list of workspace methods, variables,
  agendas or groups. Or if tokens is empty, a list of all of them.
  
- \param[in,out]  os       Output stream.
- \param[in]      tokens   Tokens with the current position in the docserver
-                          hierarchy.
- 
  \author Oliver Lemke
  */
-void ds_insert_index (ostream& os, const vector<string>& tokens)
+void Docserver::insert_index ()
 {
-  void(*index_method)(ostream&);
-  string title;
-  
   if (tokens.size() == 0 || tokens[0] == "all")
   {
-    ds_begin_page(os, "");
-    ds_insert_breadcrumbs (os, tokens);
-    ds_begin_content(os);
-    ds_insert_title (os, "Index");
+    begin_page("");
+    insert_breadcrumbs();
+    begin_content();
+    insert_title("Index");
     
-    ds_list_groups (os);
-    ds_list_variables (os);
-    ds_list_methods (os);
-    ds_list_agendas (os);
-    ds_end_content(os);
-    return;
-  }
-  else if (tokens[0] == "methods")
-  {
-    title = "Method Index";
-    index_method = ds_list_methods;
-  }
-  else if (tokens[0] == "variables")
-  {
-    title = "Variable Index";
-    index_method = ds_list_variables;
-  }
-  else if (tokens[0] == "groups")
-  {
-    title = "Group Index";
-    index_method = ds_list_groups;
-  }
-  else if (tokens[0] == "agendas")
-  {
-    title = "Agenda Index";
-    index_method = ds_list_agendas;
+    list_groups();
+    list_variables();
+    list_methods();
+    list_agendas();
+    end_content();
+    end_page();
   }
   else
   {
-    ds_begin_page(os, "");
-    ds_insert_breadcrumbs (os, tokens);
-    ds_begin_content(os);
-    ds_insert_error (os, DS_ERROR_404);
-    ds_end_content(os);
-    return;
+    if (tokens[0] == "methods")
+    {
+      begin_page("Method Index");
+      insert_breadcrumbs();
+      begin_content();
+      insert_title("Method Index");
+      get_os() << "<table class=\"list\">" << endl;
+      list_methods();
+      get_os() << "</table>" << endl;
+      end_content();
+      end_page();
+    }
+    else if (tokens[0] == "variables")
+    {
+      begin_page("Variable Index");
+      insert_breadcrumbs();
+      begin_content();
+      insert_title ("Variable Index");
+      get_os() << "<table class=\"list\">" << endl;
+      list_variables();
+      get_os() << "</table>" << endl;
+      end_content();
+      end_page ();
+    }
+    else if (tokens[0] == "groups")
+    {
+      begin_page("Group Index");
+      insert_breadcrumbs();
+      begin_content();
+      insert_title ("Group Index");
+      get_os() << "<table class=\"list\">" << endl;
+      list_groups();
+      get_os() << "</table>" << endl;
+      end_content();
+      end_page ();
+    }
+    else if (tokens[0] == "agendas")
+    {
+      begin_page("Agenda Index");
+      insert_breadcrumbs();
+      begin_content();
+      insert_title ("Agenda Index");
+      get_os() << "<table class=\"list\">" << endl;
+      list_agendas();
+      get_os() << "</table>" << endl;
+      end_content();
+      end_page ();
+    }
+    else
+    {
+      insert_error(DS_ERROR_404);
+    }
   }
-  
-  ds_begin_page(os, title);
-  ds_insert_breadcrumbs (os, tokens);
-  ds_begin_content(os);
-  ds_insert_title (os, title);
-  os << "<table class=\"list\">" << endl;
-  (*index_method)(os);
-  os << "</table>" << endl;
-  ds_end_content(os);
 }
 
 
@@ -1558,70 +1638,72 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
  Output depending on the tokens the documentation of a workspace method,
  variable, agenda or group.
  
- \param[in,out]  os       Output stream.
- \param[in,out]  tokens   Tokens with the current position in the docserver
-                          hierarchy.
- 
  \author Oliver Lemke
  */
-void ds_insert_doc (ostream& os, vector<string>& tokens)
+void Docserver::insert_doc ()
 {
-  void(*doc_method)(ostream&, const string&);
-  string title;
-
-  ds_find_token_type (tokens);
+  find_token_type ();
 
   if (tokens[0] == "methods")
   {
-    title = "Workspace Method " + tokens[1];
-    doc_method = ds_doc_method;
+    begin_page(tokens[1]);
+    insert_breadcrumbs();
+    begin_content();
+    insert_title ();
+    get_os() << "<h2>" << "Workspace Method " + tokens[1] << "</h2>" << endl;
+    doc_method(tokens[1]);
+    end_content();
+    end_page ();
   }
   else if (tokens[0] == "variables")
   {
-    title = "Workspace Variable " + tokens[1];
-    doc_method = ds_doc_variable;
+    begin_page(tokens[1]);
+    insert_breadcrumbs();
+    begin_content();
+    insert_title ();
+    get_os() << "<h2>" << "Workspace Variable " + tokens[1] << "</h2>" << endl;
+    doc_variable(tokens[1]);
+    end_content();
+    end_page ();
   }
   else if (tokens[0] == "groups")
   {
-    title = "Workspace Group " + tokens[1];
-    doc_method = ds_doc_group;
+    begin_page(tokens[1]);
+    insert_breadcrumbs();
+    begin_content();
+    insert_title ();
+    get_os() << "<h2>" << "Workspace Group " + tokens[1] << "</h2>" << endl;
+    doc_group(tokens[1]);
+    end_content();
+    end_page ();
   }
   else if (tokens[0] == "agendas")
   {
-    title = "Agenda " + tokens[1];
-    doc_method = ds_doc_agenda;
+    begin_page(tokens[1]);
+    insert_breadcrumbs();
+    begin_content();
+    insert_title ();
+    get_os() << "<h2>" << "Agenda " + tokens[1] << "</h2>" << endl;
+    doc_agenda(tokens[1]);
+    end_content();
+    end_page ();
   }
   else
   {
-    ds_begin_page(os, "");
-    ds_insert_breadcrumbs (os, tokens);
-    ds_begin_content(os);
-    ds_insert_error (os, DS_ERROR_404);
-    ds_end_content(os);
-    return;
+    insert_error(DS_ERROR_404);
   }
-  
-  ds_begin_page(os, tokens[1]);
-  ds_insert_breadcrumbs (os, tokens);
-  ds_begin_content(os);
-  ds_insert_title (os);
-  os << "<h2>" << title << "</h2>" << endl;
-  
-  (*doc_method)(os, tokens[1]);
-  ds_end_content(os);
 }
+
 
 //! Output docserver stylesheet.
 /** 
  Outpus the docserver stylesheet to the stream.
  
- \param[in,out]  os     Output stream.
- 
  \author Oliver Lemke
  */
-void ds_stylesheet (ostream& os)
+void Docserver::insert_stylesheet ()
 {
-  os
+  get_os()
   << "body { font-family: monospace; }" << endl
   << "a:link { color: #3465a4; text-decoration: none; }" << endl
   << "a:visited { color: #729fcf; text-decoration: none; }" << endl
@@ -1750,149 +1832,37 @@ void ds_stylesheet (ostream& os)
   << endl;
 }
 
-//! HTML request responder.
-/** 
- Callback function to serve the HTML pages. Based on an example from the
- libmicrohttpd library.
- 
- \param[in,out]   cls               Unused parameter.
- \param[in,out]   connection        Connection info.
- \param[in]       url               Requested URL.
- \param[in]       method            Request method, must be GET.
- \param[in]       version           Unused parameter.
- \param[in]       upload_data       Unused parameter.
- \param[in]       upload_data_size  Unused parameter.
- \param[in,out]  ptr                Call state.
- 
- \returns Status code.
- 
- \author Oliver Lemke
- \date   <#date#>
- */
-static int
-ahc_echo (void *cls _U_,
-          struct MHD_Connection *connection,
-          const char *url,
-          const char *method,
-          const char *version _U_,
-          const char *upload_data _U_,
-          size_t *upload_data_size _U_,
-          void **ptr)
-{
-  static int aptr;
-  string surl(url);
-  struct MHD_Response *response;
-  int ret;
-  
-  if (0 != strcmp (method, "GET"))
-  {
-    cerr << "Docserver error: Unexpected method " << method << "\n";
-    return MHD_NO;              /* unexpected method */
-  }
-  if (&aptr != *ptr)
-  {
-    /* do never respond on first call */
-    *ptr = &aptr;
-    return MHD_YES;
-  }
-  *ptr = NULL;                  /* reset when done */
-  MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "q");
-  
-  ostringstream hout;
-  
-  if (surl.find(ds_baseurl) == 0)
-  {
-    surl.erase(0, ds_baseurl.size());
-  }
-  
-  vector<string> tokens;
-  split (surl, '/', tokens);
- 
-  while (tokens.size() && tokens[tokens.size()-1] == "")
-    tokens.erase(tokens.end());
-      
-  while (tokens.size() && tokens[0] == "")
-    tokens.erase(tokens.begin());
-  
-  string content_type = "text/html; charset=utf-8";
-  if (tokens.size() && tokens[tokens.size()-1] == "styles.css")
-  {
-    ds_stylesheet(hout);
-    content_type = "text/css; charset=utf-8";
-  }
-  else
-  {
-    switch (tokens.size())
-    {
-      case 0:
-      case 1:
-        ds_insert_index (hout, tokens);
-        break;
-      case 2:
-        ds_insert_doc(hout, tokens);
-        break;
-      default:
-        ds_begin_page(hout, "");
-        ds_insert_breadcrumbs (hout, tokens);
-        ds_begin_content(hout);
-        ds_insert_error (hout, DS_ERROR_404);
-        ds_end_content(hout);
-    }
-    
-    ds_end_page (hout);
-  }
-  
-  response = MHD_create_response_from_data (hout.str().length(),
-                                            (void *)hout.str().c_str(),
-                                            MHD_NO, MHD_YES);
-  
-  if (response == NULL) {
-    cerr << "Docserver error: response = 0\n";
-    return MHD_NO;
-  }
-
-  MHD_add_response_header (response, "Content-type", content_type.c_str());
-  ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
-  MHD_destroy_response (response);
-  
-  return ret;
-}
 
 //! Starts docserver.
 /** 
  Starts the HTTP server daemon.
  
- \param[in]  port     Port to listen on.
  \param[in]  daemon   Flag to run as daemon or in the foreground.
- \param[in]  baseurl  URL to prepend to all links.
  
  \returns Status code.
  
  \author Oliver Lemke
  */
-int docserver_start(Index port, bool daemon, const string& baseurl)
+int Docserver::launch(bool daemon)
 {
   struct MHD_Daemon *d;
   
-  ds_baseurl = baseurl;
-  
-  if (port == -1) port=9000;
   d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION | MHD_USE_DEBUG,
-                        port, NULL, NULL, &ahc_echo, NULL, MHD_OPTION_END);
+                        mport, NULL, NULL, &ahc_echo, (void *)this, MHD_OPTION_END);
   
   if (d == NULL)
   {
-    cerr << "Error: Cannot start server. Maybe port " << port << " is already in use?\n"; 
+    cerr << "Error: Cannot start server. Maybe port " << mport << " is already in use?\n"; 
     return 1;
   }
   else
   {
     if (daemon)
-      cerr << "ARTS docserver listening at http://localhost:" << port << "\n";
+      cerr << "ARTS docserver listening at http://localhost:" << mport << "\n";
     else
       cerr << "\n"
       << "===========================================================\n"
-      << "Now point your web browser to http://localhost:" << port << "\n"
+      << "Now point your web browser to http://localhost:" << mport << "\n"
       << "===========================================================\n\n"
       << "Press enter to exit.\n";
   }
@@ -1910,6 +1880,101 @@ int docserver_start(Index port, bool daemon, const string& baseurl)
   }
   return 0;
 }
+
+
+//! Construct docserver.
+/** 
+ Constructs the HTTP server daemon object.
+ 
+ \param[in]  port     Port to listen on.
+ \param[in]  baseurl  URL to prepend to all links.
+ 
+ \author Oliver Lemke
+ */
+Docserver::Docserver(const Index port, const string& baseurl) : mos(NULL)
+{
+  mbaseurl = baseurl;
+  if (port == -1) mport=9000; else mport=port;
+}
+
+
+//! HTML request responder.
+/** 
+ Callback function to serve the HTML pages. Based on an example from the
+ libmicrohttpd library.
+ 
+ \param[in,out]   cls               Docserver object.
+ \param[in,out]   connection        Connection info.
+ \param[in]       url               Requested URL.
+ \param[in]       method            Request method, must be GET.
+ \param[in]       version           Unused parameter.
+ \param[in]       upload_data       Unused parameter.
+ \param[in]       upload_data_size  Unused parameter.
+ \param[in,out]  ptr                Call state.
+ 
+ \returns Status code.
+ 
+ \author Oliver Lemke
+ */
+static int ahc_echo (void *cls,
+                     struct MHD_Connection *connection,
+                     const char *url,
+                     const char *method,
+                     const char *version _U_,
+                     const char *upload_data _U_,
+                     size_t *upload_data_size _U_,
+                     void **ptr)
+{
+  static int aptr;
+  string surl(url);
+  struct MHD_Response *response;
+  int ret;
+  
+  if (!cls)
+  {
+    cerr << "Docserver error: Docserver object reference is NULL.\n";
+    return MHD_NO;              /* unexpected method */
+  }
+  
+  // Make a local copy of the docserver object for thread-safety
+  Docserver docserver = *((Docserver *)cls);
+  
+  if (0 != strcmp (method, "GET"))
+  {
+    cerr << "Docserver error: Unexpected method " << method << ".\n";
+    return MHD_NO;              /* unexpected method */
+  }
+  if (&aptr != *ptr)
+  {
+    /* do never respond on first call */
+    *ptr = &aptr;
+    return MHD_YES;
+  }
+  *ptr = NULL;                  /* reset when done */
+  MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "q");
+  
+  string content_type;
+  ostringstream hout;
+  docserver.set_ostream(hout);
+  content_type = docserver.new_page(surl);
+  docserver.clear_ostream();
+  
+  response = MHD_create_response_from_data (hout.str().length(),
+                                            (void *)hout.str().c_str(),
+                                            MHD_NO, MHD_YES);
+  
+  if (response == NULL) {
+    cerr << "Docserver error: response = 0\n";
+    return MHD_NO;
+  }
+  
+  MHD_add_response_header (response, "Content-type", content_type.c_str());
+  ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
+  MHD_destroy_response (response);
+  
+  return ret;
+}
+
 
 #endif /* ENABLE_DOCSERVER */
 
