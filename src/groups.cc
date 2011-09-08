@@ -154,7 +154,6 @@ bool is_valid_keyword_group(const Index group)
 void get_wsv_group_ids(ArrayOfIndex& ids, String name)
 {
   ids.resize(0);
-  map<String, Index>::const_iterator it = WsvGroupMap.find (name);
   
   Index pos = 0;
   while (pos < name.nelem())

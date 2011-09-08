@@ -334,7 +334,7 @@ void jacobianCalcAbsSpeciesPerturbations(
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
   const String&                     species,
-  const Verbosity& )
+  const Verbosity&                  verbosity)
 {
   // Set some useful variables. 
   RetrievalQuantity rq;
@@ -506,7 +506,7 @@ void jacobianCalcAbsSpeciesPerturbations(
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
-                        ArrayOfArrayOfIndex() );
+                        ArrayOfArrayOfIndex(), verbosity );
               //
               mult( dy, sensor_response, iybp );
 
@@ -974,7 +974,7 @@ void jacobianCalcPointingZaRecalc(
   const String&                    y_unit,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices,
-  const Verbosity& )
+  const Verbosity&                 verbosity )
 {
   // Set some useful variables.  
   RetrievalQuantity rq;
@@ -1017,7 +1017,8 @@ void jacobianCalcPointingZaRecalc(
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
               antenna_dim, iy_clearsky_agenda, y_unit, 
-              0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex() );
+              0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(),
+              verbosity );
 
     // Apply sensor and take difference
     //
@@ -1559,7 +1560,7 @@ void jacobianCalcTemperaturePerturbations(
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
-                        ArrayOfArrayOfIndex() );
+                        ArrayOfArrayOfIndex(), verbosity );
               //
               mult( dy, sensor_response, iybp );
 

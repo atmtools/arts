@@ -480,7 +480,8 @@ void abs_lookupCreate(// WS Output:
                 } // end of try block
               catch (runtime_error e)
                 {
-                  exit_or_rethrow(e.what());
+                  CREATE_OUT0
+                  exit_or_rethrow(e.what(), out0);
                 }
             } // end of parallel for loop
         }
@@ -2299,7 +2300,8 @@ void abs_fieldCalc(Workspace& ws,
         }
       catch (runtime_error e)
         {
-          exit_or_rethrow(e.what());
+          CREATE_OUT0
+          exit_or_rethrow(e.what(), out0);
         }
     }
 }

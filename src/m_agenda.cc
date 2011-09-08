@@ -96,9 +96,11 @@ void AgendaAppend(Workspace& ws,
 void Arts(Workspace&,
            // Agenda from controlfile:
            const Agenda&,
-           const Verbosity&)
+           const Verbosity& verbosity)
 {
-  arts_exit_with_error_message("The 'Arts' method is obsolete. Arts1 controlfiles are no longer supported.");
+  CREATE_OUT0
+  arts_exit_with_error_message("The 'Arts' method is obsolete. Arts1 controlfiles are no longer supported.",
+                               out0);
 }
 
 
@@ -115,7 +117,8 @@ void Arts2(Workspace& ws,
   // from inside a controlfile by the user. That is not permitted.
   if (v == &verbosity)
   {
-    arts_exit_with_error_message("The 'Arts2' method can't be called directly.");
+    CREATE_OUT0
+    arts_exit_with_error_message("The 'Arts2' method can't be called directly.", out0);
   }
   (*v) = verbosity;
   input_agenda.execute(ws);

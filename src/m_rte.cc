@@ -612,7 +612,8 @@ void iyb_calc(
   const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices )
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const Verbosity&                  verbosity )
 {
   // Sizes
   const Index   nf   = f_grid.nelem();
@@ -762,7 +763,8 @@ void iyb_calc(
 
       catch (runtime_error e)
         {
-          exit_or_rethrow(e.what());
+          CREATE_OUT0
+          exit_or_rethrow(e.what(), out0);
         }
     }  // End za loop
 
@@ -1889,7 +1891,7 @@ void yCalc(
   const Index&                      jacobian_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
-  const Verbosity&)
+  const Verbosity&                  verbosity )
 {
   // Some sizes
   const Index   nf      = f_grid.nelem();
@@ -2074,7 +2076,7 @@ void yCalc(
                 z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
                 l_iy_clearsky_agenda, y_unit, j_analytical_do, 
-                jacobian_quantities, jacobian_indices );
+                jacobian_quantities, jacobian_indices, verbosity );
 
 
       // Apply sensor response matrix on iyb, and put into y

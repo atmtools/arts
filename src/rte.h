@@ -189,7 +189,8 @@ void iyb_calc(
   const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices );
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const Verbosity&                  verbosity );
 
 void mirror_los(
         Vector&     los_mirrored,

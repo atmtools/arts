@@ -336,7 +336,7 @@ void ybatchCalc(Workspace&      ws,
             {
               // The user wants the batch job to fail if one of the
               // jobs goes wrong.
-              exit_or_rethrow(e.what());
+              exit_or_rethrow(e.what(), out0);
             }
         }
     }

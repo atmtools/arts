@@ -1647,7 +1647,8 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                         ll,
                         ls.Ind_ls(),
                         ls.Ind_lsn(),
-                        ls.Cutoff());
+                        ls.Cutoff(),
+                        verbosity );
           // Note that we call xsec_species with a row of abs_vmrs,
           // selected by the above Matpack expression. This is
           // possible, because xsec_species is using Views.

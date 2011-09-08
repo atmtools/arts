@@ -1053,16 +1053,17 @@ void write_lines_to_stream(ostream& os,
                            const ArrayOfLineRecord& abs_lines);
 
 
-void xsec_species( MatrixView              xsec,
-                   ConstVectorView         f_mono,
-                   ConstVectorView         abs_p,
-                   ConstVectorView         abs_t,           
-                   ConstVectorView         h2o_abs,           
-                   ConstVectorView            vmr,
+void xsec_species( MatrixView               xsec,
+                   ConstVectorView          f_mono,
+                   ConstVectorView          abs_p,
+                   ConstVectorView          abs_t,           
+                   ConstVectorView          h2o_abs,           
+                   ConstVectorView          vmr,
                    const ArrayOfLineRecord& abs_lines,
-                   const Index             ind_ls,
-                   const Index             ind_lsn,
-                   const Numeric            cutoff);
+                   const Index              ind_ls,
+                   const Index              ind_lsn,
+                   const Numeric            cutoff,
+                   const Verbosity&         verbosity );
 
 
 // A helper function for energy conversion:

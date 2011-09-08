@@ -1005,9 +1005,7 @@ int main (int argc, char **argv)
   verbosity = verbosity_at_launch;
   verbosity.set_main_agenda(true);
   
-  CREATE_OUT1
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUTS
 
   //--------------------< Open report file >--------------------
   // This one needs its own little try block, because we have to
@@ -1137,7 +1135,7 @@ int main (int argc, char **argv)
       }
 #endif
 
-      arts_exit_with_error_message(x.what());
+      arts_exit_with_error_message(x.what(), out0);
     }
 
 #ifdef TIME_SUPPORT

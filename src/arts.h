@@ -120,6 +120,8 @@
 //---------------< Global function declarations: >---------------
 // Documentations are with function definitions.
 // FIXME OLE: These should be moved to a separate header file.
+class ArtsOut;
+
 void define_wsv_group_names();  
 Index get_wsv_id(const String& name);
 Index get_wsv_id(const char *name);
@@ -129,8 +131,8 @@ void define_lineshape_data();
 void define_lineshape_norm_data();
 
 void arts_exit (int status = EXIT_FAILURE);
-void arts_exit_with_error_message(const String& m);
-void exit_or_rethrow(const String& m);
+void arts_exit_with_error_message(const String& m, ArtsOut &os);
+void exit_or_rethrow(const String& m, ArtsOut &out);
 
 //
 // Physical constants are now in constants.cc

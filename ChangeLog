@@ -1,5 +1,35 @@
 2011-09-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-0-2
+
+	* src/arts.{h,cc}:
+
+	Add ArtsOut parameter to arts_exit_with_error_message and
+	exit_or_rethrow. Fixes a bug reported by Gerrit where runtime error
+	output only ended up on stderr but was missing from the rep file.
+
+	* src/main.cc,
+	src/m_atmosphere.cc (batch_atm_fields_compactFromArrayOfMatrix),
+	src/m_agenda.cc (Arts, Arts2), src/absorption.{h,cc} (xsec_species),
+	src/m_abs_lookup.cc (abs_lookupCreate), src/m_batch.cc (ybatchCalc):
+
+	Pass out0 to arts_exit_with_error_message and exit_or_rethrow.
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddLines),
+	src/absorption.{h,cc} (xsec_species), 
+
+	Add verbosity argument to xsec_species.
+
+	* rte.{h,cc} (iyb_calc), src/m_jacobian.cc:
+
+	Add verbosity argument to iyb_calc.
+
+	* src/groups.cc (get_wsv_group_ids): Removed unused variable it.
+
+	* doc/arts-splash.gif: Remove 'pre2.0'.
+
+2011-09-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-0-1
 
 	* src/arts.h: Change ARTS-1-1-x -> ARTS-2 in doc header.

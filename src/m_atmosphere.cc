@@ -607,7 +607,8 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
         }
       catch (runtime_error e)
         {
-          exit_or_rethrow(e.what());
+          CREATE_OUT0
+          exit_or_rethrow(e.what(), out0);
         }
     }    
 }
@@ -687,7 +688,8 @@ void batch_atm_fields_compactFromArrayOfMatrixChevalAll(// WS Output:
       }
       catch (runtime_error e)
       {
-        exit_or_rethrow(e.what());
+        CREATE_OUT0
+        exit_or_rethrow(e.what(), out0);
       }
     }    
 }

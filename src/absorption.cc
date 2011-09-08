@@ -2014,7 +2014,8 @@ void xsec_species( MatrixView               xsec,
                    const ArrayOfLineRecord& abs_lines,
                    const Index              ind_ls,
                    const Index              ind_lsn,
-                   const Numeric            cutoff)
+                   const Numeric            cutoff,
+                   const Verbosity&         verbosity )
 {
   // Make lineshape and species lookup data visible:
   extern const Array<LineshapeRecord> lineshape_data;
@@ -2501,7 +2502,8 @@ void xsec_species( MatrixView               xsec,
             } // end of try block
           catch (runtime_error e)
             {
-              exit_or_rethrow(e.what());
+              CREATE_OUT0
+              exit_or_rethrow(e.what(), out0);
             }
 
         } // end of parallel LBL loop
