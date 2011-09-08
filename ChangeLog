@@ -1,3 +1,13 @@
+2011-09-08  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-2-0-4
+
+	* src/m_montecarlo.cc (MCGeneral): Bugfix
+	  
+	  - If the lowest layer has large extent and a thick cloud, g may be 0
+	  due to underflow, but then I_i should be 0 as well.  Don't turn it
+	  into nan for no reason!
+
 2011-09-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-0-3

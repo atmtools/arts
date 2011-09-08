@@ -409,7 +409,15 @@ void MCGeneral(Workspace&            ws,
                       //mult(vector1,oneminusR,local_surface_emission(0,joker));
                       mult(vector1,evol_op,local_surface_emission(f_index,joker));
                       mult(I_i,Q,vector1);
-                      I_i/=g*(1-R11);
+                      // GH 2011-09-08: if the lowest layer has large
+                      // extent and a thick cloud, g may be 0 due to
+                      // underflow, but then I_i should be 0 as well.
+                      // Don't turn it into nan for no reason.
+                      if (g==0) {
+                        assert(I_i[0]==0);
+                      } else {
+                        I_i/=g*(1-R11);
+                      }
                       keepgoing=false;
                     }
                   else
