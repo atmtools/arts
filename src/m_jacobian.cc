@@ -1193,8 +1193,8 @@ void jacobianCalcPolyfit(
     }
   if( !found )
     {
-      throw runtime_error( "There is no such polynomial baseline fit retrieval " 
-                           "quantity defined.\n");
+      throw runtime_error( "There is no Polyfit jacobian defined, in general " 
+                           "or for the selected polynomial coefficient.\n");
     }
 
   // Size and check of sensor_response

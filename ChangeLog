@@ -1,3 +1,9 @@
+2011-09-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-3
+
+	* src/m_jacobian.cc (jacobianCalcPolyfit): Improved error message.
+
 2011-09-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-2
@@ -56,7 +62,7 @@
 	* src/workspace.cc: Moved self-reference in description of
 	sensor_pol,
 
-	* src/methods.cc: to the description of sensor_responsePolarisation. 
+	* src/methods.cc: to the description of sensor_responsePolarisation.
 
 2011-08-26  Gerrit Holl  <gerrit.holl@ltu.se>
 
@@ -73,7 +79,7 @@
 	* arts-1-17-24
 
 	* doc/uguide/sensor.tex: Wrote a first simple version of
-	this section. Tried to cover the general aspects. 
+	this section. Tried to cover the general aspects.
 
 	* doc/uguide/montecarlo.tex: Added comment refering to other
 	version of VRTE (in Sec 5.4).
