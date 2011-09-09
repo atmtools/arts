@@ -253,13 +253,19 @@ Sparse::Sparse(Index r, Index c) :
   \date   Tue Jul 15 15:05:40 2003 
 */
 Sparse::Sparse(const Sparse& m) :
-  mdata(new vector<Numeric>(*m.mdata)),
-  mrowind(new vector<Index>(*m.mrowind)),
-  mcolptr(new vector<Index>(*m.mcolptr)),    
+//  mdata(new vector<Numeric>(*m.mdata)),
+//  mrowind(new vector<Index>(*m.mrowind)),
+//  mcolptr(new vector<Index>(*m.mcolptr)),    
+  mdata(NULL),
+  mrowind(NULL),
+  mcolptr(NULL),    
   mrr(m.mrr),
   mcr(m.mcr)
 {
-  // Nothing to do here. 
+  if (m.mdata)   mdata = new vector<Numeric>(*m.mdata);
+  if (m.mrowind) mrowind = new vector<Index>(*m.mrowind);
+  if (m.mcolptr) mcolptr = new vector<Index>(*m.mcolptr);
+
 //   cout << "Original:\n" << m << "\n";
 //   cout << "Copied:\n" << *this << "\n";
 }

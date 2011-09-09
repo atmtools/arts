@@ -50,6 +50,7 @@ typedef Array<Numeric> ArrayOfNumeric;
 // Declare the existance of Vector/Matrix/Tensor classes:
 class Vector;
 class Matrix;
+class Sparse;
 class Tensor3;
 class Tensor4;
 class Tensor5;
@@ -63,6 +64,9 @@ typedef Array<Vector> ArrayOfVector;
 typedef Array<Matrix> ArrayOfMatrix;
 
 typedef Array<ArrayOfMatrix> ArrayOfArrayOfMatrix;
+
+/** An array of sparse matrices. */
+typedef Array<Sparse> ArrayOfSparse;
 
 /** An array of Tensor3. */
 typedef Array<Tensor3> ArrayOfTensor3;
