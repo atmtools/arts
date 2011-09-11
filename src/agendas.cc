@@ -571,6 +571,20 @@ void define_agenda_data()
        OUTPUT( "refr_index" ),
        INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list" )));
 
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "sensor_response_agenda" ),
+       DESCRIPTION
+       (
+        "The sensor response data for present measurement block.\n"
+        "\n"
+        "THis agenda shall provide *sensor_response* and associated varaibles\n"
+        "for the present measurement block (*imblock*).\n"
+        ),
+       OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+               "sensor_response_za", "sensor_response_aa" ),
+       INPUT(  "imblock" )));
+
  agenda_data.push_back
     (AgRecord
      ( NAME( "spt_calc_agenda" ),
