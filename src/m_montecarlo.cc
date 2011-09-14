@@ -280,6 +280,7 @@ void MCGeneral(Workspace&            ws,
       throw runtime_error(os.str());
     }
 
+  CREATE_OUT2
   Ppath ppath_step;
   Rng rng;                      //Random Number generator
   time_t start_time=time(NULL);
@@ -363,7 +364,21 @@ void MCGeneral(Workspace&            ws,
           np=ppath_step.np;
           mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
                     ppath_step.gp_lon[np-1].idx)+=1;
-          if (termination_flag==1)
+          // GH 2011-09-08: if the lowest layer has large
+          // extent and a thick cloud, g may be 0 due to
+          // underflow, but then I_i should be 0 as well.
+          // Don't turn it into nan for no reason.
+          // If reaching underflow, no point in going on;
+          // hence new photon.
+          // GH 2011-09-14: moved this check to outside the different
+          // scenarios, as this goes wrong regardless of the scenario.
+          if (g==0)
+            {
+              out2 << "Warning: g=0. Very thick cloud near surface? Results still reliable or not?\n";
+              assert(I_i[0]==0);
+              keepgoing = false;
+            }
+          else if (termination_flag==1)
             {
               iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
                                      iy_space_agenda);
@@ -409,15 +424,7 @@ void MCGeneral(Workspace&            ws,
                       //mult(vector1,oneminusR,local_surface_emission(0,joker));
                       mult(vector1,evol_op,local_surface_emission(f_index,joker));
                       mult(I_i,Q,vector1);
-                      // GH 2011-09-08: if the lowest layer has large
-                      // extent and a thick cloud, g may be 0 due to
-                      // underflow, but then I_i should be 0 as well.
-                      // Don't turn it into nan for no reason.
-                      if (g==0) {
-                        assert(I_i[0]==0);
-                      } else {
-                        I_i/=g*(1-R11);
-                      }
+                      I_i/=g*(1-R11);
                       keepgoing=false;
                     }
                   else

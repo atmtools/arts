@@ -749,7 +749,11 @@ void mcPathTraceGeneral(Workspace&            ws,
     {
       //find position...and evol_op..and everything else required at the new
       //scattering/emission point
-      k=-log(incT(0,0))/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
+      // GH 2011-09-14: 
+      //   log(incT(0,0)) = log(exp(opt_depth_mat(0, 0))) = opt_depth_mat(0, 0)
+      //   Avoid loss of precision, use opt_depth_mat directly
+      //k=-log(incT(0,0))/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
+      k=-opt_depth_mat(0,0)/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
       ds=log(evol_opArray[0](0,0)/r)/k;
       g=k*r;
       Vector x(2,0.0);
@@ -798,6 +802,7 @@ void mcPathTraceGeneral(Workspace&            ws,
         }
       rte_pos[2] = interp(itw,ppath_step.pos(Range(joker),2),gp[0]);
     }
+  assert(isfinite(g));
 }
 
 //! mcPathTraceIPA

@@ -1,3 +1,16 @@
+2011-09-14  Gerrit Holl  <gerrit.holl@ltu.se>
+
+	* arts-2-0-7
+
+	* src/m_montecarlo.cc(MCGeneral): Bugfix
+	  - Move check for g==0 to outside if...else block checking for
+	    different scenarios; this is problematic in any case.
+
+	* src/montecarlo.cc(mcPathTraceGeneral): Bugfix
+	  - Don't calculate log(exp(very_negative_number)), result might
+	    become 0, causing problems later. Use the very_negative_number
+		directly instead.
+
 2011-09-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-0-6
