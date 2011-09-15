@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 2.6.3)
+set (CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 project (ARTS)
 
@@ -195,6 +196,9 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARN_FLAGS}")
 if (APPLE)
   set (OS_NAME "Mac OS")
   set (OSX 1)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "CYGWIN")
+  set (OS_NAME "Cygwin")
+  set (CYGWIN 1)
 elseif (UNIX)
   set (OS_NAME "Unix")
   set (LINUX 1)
@@ -202,7 +206,7 @@ elseif (WIN)
   set (OS_NAME "Windows")
   set (WINDOWS 1)
 endif (APPLE)
-  
+
 set (ARTS_DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes")
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
