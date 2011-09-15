@@ -1,3 +1,17 @@
+2011-09-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-8
+
+	* src/m_basic_types.cc (ArrayOfIndexSetConstant): Created.
+
+	* src/m_sensor.cc (sensor_responseFromArrayData): Created.
+	(sensor_response_arraySingle): Created.
+
+	* src/workspace.cc: Introduced sensor_response_array, 
+	sensor_response_index, sensor_response_f_array,
+	sensor_response_pol_array, sensor_response_za_array and
+	sensor_response_aa_array
+
 2011-09-14  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-2-0-7

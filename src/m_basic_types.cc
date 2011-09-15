@@ -80,6 +80,18 @@ void ArrayOfIndexSet(ArrayOfIndex& aoi,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfIndexSetConstant(ArrayOfIndex& aoi,
+                     const Index&   nelem,
+                     const Index&   value,
+                     const Verbosity&)
+{
+  aoi.resize(nelem);
+  for( Index i=0; i<nelem; i++ )
+    aoi[i] = value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfStringSet(ArrayOfString&  sa,
                       const ArrayOfString&  sa2,
                       const Verbosity&)

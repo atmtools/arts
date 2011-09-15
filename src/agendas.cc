@@ -578,7 +578,7 @@ void define_agenda_data()
        (
         "The sensor response data for present measurement block.\n"
         "\n"
-        "THis agenda shall provide *sensor_response* and associated varaibles\n"
+        "This agenda shall provide *sensor_response* and associated variables\n"
         "for the present measurement block (*imblock*).\n"
         ),
        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",

@@ -2010,21 +2010,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "mblock_sensor_index" ),
-      DESCRIPTION
-      (
-       "Identification of *sensor_response* for each measurement block.\n"
-       "\n"
-       "When used, this variable shall hold an index number for each\n"
-       "measurement block. Typically this index identifies which element of\n"
-       "*sensor_response_array* that shall be applied.\n"
-       "\n"
-       "Zero based indexing is applied.\n"
-       ),
-      GROUP( "ArrayOfIndex" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "mblock_za_grid" ),
       DESCRIPTION
       (
@@ -3429,6 +3414,15 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sensor_response_aa_array" ),
+      DESCRIPTION
+      (
+       "As *sensor_response_aa* refers to *sensor_response_array*.\n"
+       ),
+      GROUP( "ArrayOfVector" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sensor_response_aa_grid" ),
       DESCRIPTION
       (
@@ -3460,7 +3454,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
-  /*  
   wsv_data.push_back
    (WsvRecord
     ( NAME( "sensor_response_array" ),
@@ -3469,11 +3462,10 @@ void Workspace::define_wsv_data()
         "A set of *sensor_reponse* matrices.\n"
         "\n"
         "The main application of this variable should be to describe the\n"
-        "sensor characterstics for different measurement blocks (then.\n"
-        "together with *mblock_sensor_index*.)\n"
+        "sensor characterstics for different measurement blocks (then\n"
+        "together with *sensor_response_index*.)\n"
        ),
       GROUP( "ArrayOfSparse" )));
-  */
 
   wsv_data.push_back
    (WsvRecord
@@ -3499,6 +3491,15 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sensor_response_f_array" ),
+      DESCRIPTION
+      (
+       "As *sensor_response_f* refers to *sensor_response_array*.\n"
+       ),
+      GROUP( "ArrayOfVector" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sensor_response_f_grid" ),
       DESCRIPTION
       (
@@ -3514,6 +3515,21 @@ void Workspace::define_wsv_data()
        "Unit:  [ Hz ]\n"
        ),
       GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_index" ),
+      DESCRIPTION
+      (
+       "Identification of *sensor_response* for each measurement block.\n"
+       "\n"
+       "This variable shall hold an index number for each measurement block.\n"
+       "Typically this index identifies which element of\n"
+       "*sensor_response_array* that shall be applied.\n"
+       "\n"
+       "Zero based indexing is applied.\n"
+       ),
+      GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3535,6 +3551,15 @@ void Workspace::define_wsv_data()
        "Unit:  [ - ]\n"
        ),
       GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_pol_array" ),
+      DESCRIPTION
+      (
+       "As *sensor_response_pol* refers to *sensor_response_array*.\n"
+       ),
+      GROUP( "ArrayOfArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3574,6 +3599,15 @@ void Workspace::define_wsv_data()
        "Unit:  [ degrees ]\n"
        ),
       GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_za_array" ),
+      DESCRIPTION
+      (
+       "As *sensor_response_za* refers to *sensor_response_array*.\n"
+       ),
+      GROUP( "ArrayOfVector" )));
 
   wsv_data.push_back
    (WsvRecord

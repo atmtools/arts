@@ -1917,6 +1917,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfIndexSetConstant" ),
+        DESCRIPTION
+        (
+         "Creates an ArrayOfIndex of length *nelem*, with all values\n"
+         "identical.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "ai"       ),
+        GOUT_TYPE( "ArrayOfIndex" ),
+        GOUT_DESC( "Variable to initialize." ),
+        IN( "nelem" ),
+        GIN(         "value" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Array value.." ),
+        SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ArrayOfStringSet" ),
         DESCRIPTION
         (
@@ -7492,6 +7513,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_responseFromArrayData" ),
+        DESCRIPTION
+        (
+         "Sets up *sensor_response_array* from an existing *sensor_response*.\n"
+         "\n"
+         "Fills *sensor_response_array* and associated variables with\n"
+         "corresponding non-array data. Hence, the array variables get all a\n"
+         "length of 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol", 
+             "sensor_response_za", "sensor_response_aa" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "imblock", "sensor_response_array", "sensor_response_f_array", 
+            "sensor_response_pol_array", "sensor_response_za_array", 
+            "sensor_response_aa_array", "sensor_response_index" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensor_responseIF2RF" ),
         DESCRIPTION
         (
@@ -7801,6 +7848,32 @@ void define_md_data_raw()
             "sensor_response_za_grid", "sensor_response_aa_grid",
             "wmrf_weights",
             "f_backend" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_response_arraySingle" ),
+        DESCRIPTION
+        (
+         "Sets up *sensor_response_array* from an existing *sensor_response*.\n"
+         "\n"
+         "Fills *sensor_response_array* and associated variables with\n"
+         "corresponding non-array data. Hence, the array variables get all a\n"
+         "length of 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response_array", "sensor_response_f_array",
+             "sensor_response_pol_array", "sensor_response_za_array",
+             "sensor_response_aa_array" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9265,6 +9338,49 @@ void define_md_data_raw()
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_clearsky_agenda", "y_unit", 
+            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
+            "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yCalc2" ),
+        DESCRIPTION
+        (
+         "Calculation of complete measurement vectors (y).\n"
+         "\n"
+         "The method performs radiative transfer calculations from a sensor\n"
+         "perspective. Radiative transfer calculations are performed for\n"
+         "monochromatic pencil beams, following *iy_clearsky_agenda* and\n"
+         "associated agendas. Obtained radiances are weighted together by\n"
+         "*sensor_response*, to include the characteristics of the sensor.\n"
+         "The measurement vector obtained can contain anything from a single\n"
+         "frequency value to a series of measurement scans (each consisting\n"
+         "of a series of spectra), all depending on the settings. Spectra\n"
+         "and jacobians are calculated in parallel.\n"
+         "\n"
+         "The unit of output radiances and jacobians follow *y_unit*. The\n"
+         "conversion is applied on monochromatic pencil beam values. That\n"
+         "is, before any sensor responses have been included.\n"
+         "The frequency, polarisation etc. for each measurement value is\n" 
+         "given by *y_f*, *y_pol* etc. No unit conversion is applied for\n"
+         "*y_aux*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
+             "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "basics_checked", "atmosphere_dim", "p_grid", "lat_grid", 
+            "lon_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_checked", "stokes_dim", "f_grid", "sensor_pos", 
+            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_response_agenda", "iy_clearsky_agenda", "y_unit", 
             "jacobian_agenda", "jacobian_do", "jacobian_quantities",
             "jacobian_indices" ),
         GIN(),

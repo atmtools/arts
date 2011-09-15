@@ -2509,7 +2509,12 @@ void yCalc2(
                                      sensor_response_aa, 
                                      imblock, l_sensor_response_agenda );
       //
-      if( sensor_response.nrows() != niyb ) 
+      cout << iyb.nelem() << endl;
+      cout << niyb << endl;
+      cout << sensor_response.ncols() << endl;
+      cout << sensor_response.nrows() << endl;
+
+      if( sensor_response.ncols() != niyb ) 
         {
           ostringstream os;
           os << "The number of columns in *sensor_response* and the length\n"
