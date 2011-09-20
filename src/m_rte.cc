@@ -2445,7 +2445,6 @@ void yCalc2(
   ArrayOfVector ya(nmblock), yf(nmblock), yerror(nmblock), yaux(nmblock);
   ArrayOfMatrix ypos(nmblock), ylos(nmblock), ja(nmblock);
   ArrayOfArrayOfIndex ypol(nmblock);
-  ArrayOfIndex ylengths(nmblock);
 
   // Jacobian variables
   //
@@ -2508,11 +2507,6 @@ void yCalc2(
                                      sensor_response_pol, sensor_response_za,
                                      sensor_response_aa, 
                                      imblock, l_sensor_response_agenda );
-      //
-      cout << iyb.nelem() << endl;
-      cout << niyb << endl;
-      cout << sensor_response.ncols() << endl;
-      cout << sensor_response.nrows() << endl;
 
       if( sensor_response.ncols() != niyb ) 
         {
@@ -2540,8 +2534,6 @@ void yCalc2(
         }
 
       // Set sizes of ya and associated variables
-      //
-      ylengths[imblock] = sensor_response.nrows(); // Length of this part of y
       //
       ya[imblock].resize( yl );
       yf[imblock].resize( yl );
@@ -2623,8 +2615,8 @@ void yCalc2(
   //
   Index i0 =0 , n = 0;
   //
-  for( Index i=0; i<nmblock; i++ )
-    { n += ylengths[i]; }
+  for( Index m=0; m<nmblock; m++ )
+    { n += ya[m].nelem(); }
   // 
   y.resize( n );
   y_f.resize( n );
@@ -2638,7 +2630,7 @@ void yCalc2(
   //
   for( Index m=0; m<nmblock; m++ )
     {
-      for( Index i=0; i<ylengths[i]; i++ )
+      for( Index i=0; i<ya[m].nelem(); i++ )
         {
           const Index r = i0 + i;
           y[r]              = ya[m][i];
@@ -2648,8 +2640,9 @@ void yCalc2(
           y_los(r,joker)    = ylos[m](i,joker);
           y_error[r]        = yerror[m][i];
           y_aux[r]          = yaux[m][i];
-          jacobian(r,joker) = ja[m](i,joker);
+          if( jacobian_do )
+            { jacobian(r,joker) = ja[m](i,joker); }
         }
-      i0 += ylengths[m];
+      i0 += ya[m].nelem();
     }  
 }
