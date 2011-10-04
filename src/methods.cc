@@ -1867,7 +1867,7 @@ void define_md_data_raw()
       ( NAME( "Append" ),
         DESCRIPTION
         (
-         "Append a workspace variable to another workspace variable.\n"
+         "Append a workspace *out* variable to another workspace variable.\n"
          "\n"
          "This method can append a workspace variable\n"
          "to another workspace variable of the same group. (E.g., a *Matrix* to\n"
@@ -5286,7 +5286,7 @@ void define_md_data_raw()
          "input vector.\n"
          "\n"
          "The standard definition, in ARTS, of the Planck function is\n"
-         "followed and the unit of the returned data is W/(m3*Hz*sr).\n"
+         "followed and the unit of the returned data is W/(m3 * Hz * sr).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
@@ -5339,7 +5339,7 @@ void define_md_data_raw()
          "given frequency vector.\n"
          "\n"
          "The standard definition, in ARTS, of the Planck function is\n"
-         "followed and the unit of the returned data is W/(m3*Hz*sr).\n"
+         "followed and the unit of the returned data is W/(m3 * Hz * sr).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),

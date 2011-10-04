@@ -1,3 +1,25 @@
+2011-10-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-11
+
+	* src/docserver.{cc,h}:
+
+	Mark broken *LINKS* red.
+
+	Add a 'Doc check' page that lists all broken links. Add link to this
+	page in footer.
+
+	(insert_breadcrumb_token, insert_breadcrumbs): Fix broken breadcrumbs.
+
+	(description_add_links): Also search through GIn and GOut to determine
+	if *LINK* target exists.
+
+	* src/methods.cc:
+
+	Put space around * if used as multiplication operator in docs.
+
+	* src/agendas.cc: Minor doc fix.
+
 2011-09-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-0-10

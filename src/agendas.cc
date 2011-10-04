@@ -264,7 +264,7 @@ void define_agenda_data()
      ( NAME( "iy_clearsky_agenda" ),
        DESCRIPTION
        (
-        "Calculation of a single monochromatic pencil beam spectrum.\n"
+        "Calculation of a *single* monochromatic pencil beam spectrum.\n"
         "\n"
         "The task of the agenda is to calculate the monochromatic pencil beam\n"
         "spectrum for the position specified by *rte_pos* and the viewing\n"

@@ -53,6 +53,8 @@ private:
   void insert_error_message(const string& error = "");
   
   void insert_stylesheet();
+  void insert_broken_doc_links();
+  vector<string> find_broken_description_links(const String& desc, const String& mname = "");
   void insert_index();
   void insert_doc();
   void insert_error(const string& error);
@@ -62,7 +64,7 @@ private:
   void list_methods();
   void list_variables();
   
-  String description_add_links(const String& desc);
+  String description_add_links(const String& desc, const String& mname = "");
   
   void doc_method(const string& mname);
   void doc_variable_methods(const string& vname);
