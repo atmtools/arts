@@ -1,5 +1,11 @@
 2011-10-04  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-0-12
+
+	* src/agendas.cc: Ooops, don't fix it if it ain't broken.
+
+2011-10-04  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-0-11
 
 	* src/docserver.{cc,h}:
