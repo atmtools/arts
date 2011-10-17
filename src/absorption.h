@@ -373,28 +373,40 @@ private:
   Array<IsotopeRecord> misotope;
 };
 
-/** Spectral line catalog data. Here is a description of the ARTS
-    catalogue format:
+/** Spectral line catalog data. 
 
-    To keep track of changes in the catalog format, every catalogue
-    file must start with ARTSCAT-x. The current version is x=2. Files
-    with different or missing version will be rejected. The current
-    version is stored in the private member variable mversion. It can
-    be read with member function Version, which returns a String
-    `ARTSCAT-x'. 
+    Below is a description of the ARTS catalogue format.
+    The file starts with the usual XML header:
 
-    After the version tag (ARTSCAT-x), ARTS outputs the number of
-    lines when catalogue files are written. This number is not used by
-    reading routines, though.
+    \verbatim
+    <?xml version="1.0"?>
+    <arts format="ascii" version="1">
+    <ArrayOfLineRecord version="ARTSCAT-3" nelem="8073">
+    \endverbatim
 
-    The line catalogue should not have any fixed column widths because the
-    precision of the parameters should not be limited by the format.  The
-    catalogue can then be stored as binary or ASCII. In the ASCII version
-    the columns are separated by one or more blanks. The line format is
-    then specified by only the order and the units of the columns. As
-    the catalogue entry for each transition can be quite long, it can be
-    broken across lines in the ASCII file. Each new transition is marked
-    with a `@' character.
+    The ARTSCAT version number is there to keep track of catalogue format changes.
+    The "nelem" tag contains the total number of lines in the file.
+
+    The file ends with the usual XML closing tags:
+
+    \verbatim
+    </ArrayOfLineRecord>
+    </arts>
+    \endverbatim
+
+    In-between the header and the footer are the actual spectroscopic
+    data. Each new entry, corresponding to one spectral line, starts
+    with the `@' character.
+
+    The line catalogue should not have any fixed column widths because
+    the precision of the parameters should not be limited by the
+    format.  The catalogue can then be stored as binary or ASCII. In
+    the ASCII version the columns are separated by one or more
+    blanks. The line format is then specified by only the order and
+    the units of the columns. As the catalogue entry for each
+    transition can be quite long, it can be broken across lines in the
+    ASCII file. That is why each new transition is marked with a `@'
+    character.
 
     The first column will contain the species and isotope, following
     the naming scheme described below.  Scientific notation is
@@ -440,9 +452,15 @@ private:
 
     A valid ARTS line file would be:
     \verbatim
-    ARTSCAT-2 2
-    @ CH4-211 1011349857.063 0 2.96070344144819e-27 296 2183.6851 13314.2468393782 21302.7949430052 0.75 0.75 296 0
-    @ O3-666 1088246622.54 0 2.82913939200384e-22 296 522.5576 21361.9693734024 27723.2206411054 0.76 0.76 296 0
+    <?xml version="1.0"?>
+    <arts format="ascii" version="1">
+    <ArrayOfLineRecord version="ARTSCAT-3" nelem="2">
+    @ O3-676 80015326542.0992 0 3.70209114155527e-19 296 7.73661776567701e-21 21480.3182341969
+    28906.7092490501 0.76 0.76 296 0 300000 0.1 0.1 0.1 0.2 -1 -1.24976056865038e-11
+    @ O3-676 80015476438.3282 0 3.83245786810611e-19 296 7.73661577919822e-21 21480.3182341969
+    28906.7092490501 0.76 0.76 296 0 300000 0.1 0.1 0.1 0.2 -1 -1.24975822742335e-11
+    </ArrayOfLineRecord>
+    </arts>
     \endverbatim
 
     Some species need special parameters that are not needed by other
