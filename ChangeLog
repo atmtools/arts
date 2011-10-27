@@ -1,3 +1,13 @@
+2011-10-27  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-0-14
+
+	* src/methods.cc: fixed some doxygen doc (references to workspace
+	methods/variables)
+
+	* includes/smr: added sensor definitions for ciwsir, cloudice, iss-smr,
+	(jaxa-)smr
+
 2011-10-17  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-0-13
