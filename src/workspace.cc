@@ -315,10 +315,10 @@ void Workspace::define_wsv_data()
      (NAME( "abs_cont_parameters" ),
       DESCRIPTION
       (
-       "Continuum model parameters. See the WSV `abs_cont_names'\n"
+       "Continuum model parameters. See the WSV *abs_cont_names*\n"
        "for a detailed description of the allowed continuum models. There\n"
        "should be one parameter vector here for each entry in\n"
-       "`abs_cont_names'. See also the online documentation in\n"
+       "*abs_cont_names*. See also the online documentation in\n"
        "arts/doc/doxygen/html/continua_cc.html.\n"
       ),
       GROUP( "ArrayOfVector" )));
@@ -328,7 +328,7 @@ void Workspace::define_wsv_data()
      (NAME( "abs_h2o" ),
       DESCRIPTION
       (
-       "The total water profile associated with the pressures in abs_p [-]\n"
+       "The total water profile associated with the pressures in *abs_p* [-]\n"
       ),
       GROUP( "Vector" )));
 
@@ -396,7 +396,7 @@ void Workspace::define_wsv_data()
           "([\"H2O-PWR98\", \"O2-PWR93\"]).\n"
           "\n"
           "It only makes sense to put a species here if is either a water vapor\n"
-          "species, or some other species that uses *h2o_abs*, that is, for which\n"
+          "species, or some other species that uses *abs_h2o*, that is, for which\n"
           "the absorption coefficient depends directly on water vapor.\n"
           "\n"
           "See user guide and online documentation of *abs_pts* and *abs_lookupCreate*\n"
@@ -500,7 +500,7 @@ void Workspace::define_wsv_data()
      (NAME( "abs_n2" ),
       DESCRIPTION
       (
-       "The total nitrogen profile associated with the pressures in abs_p [-]\n"
+       "The total nitrogen profile associated with the pressures in *abs_p* [-]\n"
       ),
       GROUP( "Vector" )));
 
@@ -512,11 +512,11 @@ void Workspace::define_wsv_data()
        "List of pressures to be used for the calculation of absorption\n"
        "coefficients. \n"
        "\n"
-       "This can be copied from the global p_grid, but could also be\n"
+       "This can be copied from the global *p_grid*, but could also be\n"
        "different. \n"
        "\n"
        "Any absorption method should check that the length of this vector\n"
-       "is the same as that of abs_t\n"
+       "is the same as that of *abs_t*\n"
        "\n"
        "Dimension: [number of pressures]\n"
        "\n"
@@ -562,7 +562,7 @@ void Workspace::define_wsv_data()
        "Scalar gas absorption field.\n"
        "\n"
        "Contains the scalar gas absorption for all species as a function of\n"
-       "f_grid, p_grid, lat_grid, and lon_grid. \n"
+       "*f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
        "\n"
        "This is mainly for testing and plotting gas absorption. For RT\n"
        "calculations, gas absorption is calculated or extracted locally,\n"
@@ -597,9 +597,9 @@ void Workspace::define_wsv_data()
        "List of temperatures to be used for the calculation of absorption\n"
        "coefficients.\n"
        "\n"
-       "In contrast to the global t_field, this is just a vector. Any\n"
+       "In contrast to the global *t_field*, this is just a vector. Any\n"
        "absorption method should check that the length of this vector is the\n"
-       "same as that of abs_p\n"
+       "same as that of *abs_p*\n"
        "\n"
        "Dimension: [number of pressures]\n"
        "\n"
@@ -961,7 +961,7 @@ void Workspace::define_wsv_data()
       (
        "An array of compact pnd states.\n"
        "\n"
-       "This is used to hold a set of 1D *pnd_fields* for batch\n"
+       "This is used to hold a set of 1D *pnd_field* for batch\n"
        "calculations. \n"
        ),
       GROUP( "ArrayOfTensor4" )));
@@ -1098,7 +1098,7 @@ void Workspace::define_wsv_data()
        "Flag for the convergence test.\n"
        "\n"
        "This variable is initialized with 0 inside the method \n"
-       "*i_fieldIterate*.\n"
+       "*doit_i_fieldIterate*.\n"
        "If after an iteration the convergence test is fulfilled, 1 is \n"
        "assigned which means that the iteration is completed. \n"
        "\n"
@@ -1149,7 +1149,7 @@ void Workspace::define_wsv_data()
        "dimension. This variable is only used for 1D DOIT \n"
        "calculations.\n"
        "\n"
-       "Usage: Output of *CloudboxFieldPut*\n"
+       "Usage: Output of *DoitCloudboxFieldPut*\n"
        "\n"
        "Unit: W / (m^2 Hz sr)\n"
        "\n"
@@ -1244,7 +1244,7 @@ void Workspace::define_wsv_data()
        "This variable holds the value of the scattering integral for all\n"
        "points inside the cloudbox. For more information refer to AUG.\n"
        "\n"
-       "Usage: Input to *doit_i_fieldUpdateXXX*. \n"    
+       "Usage: Input to *doit_i_fieldUpdate...*. \n"    
        "\n"
        "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
@@ -1962,7 +1962,7 @@ void Workspace::define_wsv_data()
        "Possible future extension: In the future a *massdensity_field_raw* might be needed,\n"
        "which contains the not-interpolated mass concentrations of scattering particles.\n"
        "This is not needed in the moment, since *massdensity_field* is only used with \n"
-       "chevallier91l data (where all atmospheric variables are on the same grid).\n"
+       "batch profile data (where all atmospheric variables are on the same grid).\n"
        "\n"
        "Usage:\tmassdensity data is used to calculate pnd_fields\n"
        "\n"
@@ -2343,9 +2343,9 @@ void Workspace::define_wsv_data()
        "Each single String must contain:\n"
        "scattering particle type [*String*]:\t e.g. 'LWC', 'IWC', 'Rain'\n"
        "particle size distribution [*String*]:\t e.g. 'MH97', 'liquid'\n"
-       "sizerange-start [*numeric*]:\tthe first particle radius(liquid)/melted radius(ice)\n"
+       "sizerange-start [*Numeric*]:\tthe first particle radius(liquid)/melted radius(ice)\n"
        "                            \tthe calculations shall start with.\n"
-       "sizerange-end [*numeric*]:\tthe last particle radius(liquid)/melted radius(ice)\n"
+       "sizerange-end [*Numeric*]:\tthe last particle radius(liquid)/melted radius(ice)\n"
        "                          \tthe calculations shall end with.\n"
        "\n"
        "NOTE: the sizerange inputs must be given in MICRONS!\n"
@@ -3038,10 +3038,10 @@ void Workspace::define_wsv_data()
          "  SingleScatteringData \n"
          "  Enum[particle type attribute]\n"
          "  String[description] \n"
-         "  Vector[*f_grid*]\n"
-         "  Vector[*T_grid*]\n"
-         "  Vector[*za_grid*]\n"
-         "  Vector[*aa_grid*]\n"
+         "  Vector[f_grid]\n"
+         "  Vector[T_grid]\n"
+         "  Vector[za_grid]\n"
+         "  Vector[aa_grid]\n"
          "  Tensor7[pha_mat_data]\n"
          "      [f_grid, T_grid, za_grid, aa_grid, za_grid, aa_grid, matrix_element]\n"
          "                       ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^\n"
@@ -3073,7 +3073,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      In/Output from/to *ScatteringMain* \n"
+       "Usage:      In/Output from/to *ScatteringDoit* and *ScatteringDisort*\n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -3102,7 +3102,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Output from *ScatteringMain* \n"
+       "Usage:      Output from *ScatteringDoit* and *ScatteringDisort* \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -3130,7 +3130,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      In/Output from *ScatteringMain* \n"
+       "Usage:      In/Output from *ScatteringDoit* and *ScatteringDisort* \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -3147,7 +3147,7 @@ void Workspace::define_wsv_data()
        "Latitude index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like *ext_mat_partCalc* and *pha_matCalc*.\n"
+       "properties of particles like *opt_prop_sptFromData* and *pha_matCalc*.\n"
        "It holds the information about the position for which the \n"
        "scattering calculations are done. \n"
        "\n"
@@ -3164,7 +3164,7 @@ void Workspace::define_wsv_data()
        "Longitude index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like *ext_mat_partCalc* and *pha_matCalc*.\n"
+       "properties of particles like *opt_prop_sptFromData* and *pha_matCalc*.\n"
        "It holds the information about the position for which the \n"
        "scattering calculations are done.  \n"
        "\n"
@@ -3181,7 +3181,7 @@ void Workspace::define_wsv_data()
        "Pressure index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like *ext_mat_partCalc* and *pha_matCalc*.\n"
+       "properties of particles like *opt_prop_sptFromData* and *pha_matCalc*.\n"
        "It holds the information about the location for which the \n"
        "scattering calculations are done.\n"  
        "\n"
@@ -3459,7 +3459,7 @@ void Workspace::define_wsv_data()
     ( NAME( "sensor_response_array" ),
       DESCRIPTION
       (
-        "A set of *sensor_reponse* matrices.\n"
+        "A set of *sensor_response* matrices.\n"
         "\n"
         "The main application of this variable should be to describe the\n"
         "sensor characterstics for different measurement blocks (then\n"
@@ -3817,7 +3817,8 @@ void Workspace::define_wsv_data()
         DESCRIPTION
         ( "The emission from the surface.\n"
           "\n"
-          "See further *surfaceCalc* and the user guide.\n"
+          "See specific methods generating *surface_emission* and the user guide\n"
+          "for more information.\n"
           "\n"
           "Unit:       W / (m^2 Hz sr)\n"
           "\n"
@@ -3877,9 +3878,10 @@ void Workspace::define_wsv_data()
         "coefficients shall take into accound the angular weighting if the\n"
         "downwelling radiation.\n"
         "\n"
-        "See further *surfaceCalc* and the user guide.\n"
+        "See specific methods generating *surface_rmatrix* and the user guide\n"
+        "for more information.\n"
         "\n"
-        "Usage:      Input to methods for *iy_surface_agenda*."
+        "Usage:      Input to methods for *surface_prop_agenda*."
         "\n"
         "Units:      -\n"
         "\n"
@@ -3898,7 +3900,7 @@ void Workspace::define_wsv_data()
        "properties of the surface, and can differ from the \"bulk\"\n"
        "temperature.\n"
        "\n"
-       "Usage:   Input to methods for *iy_surface_agenda*.\n"
+       "Usage:   Input to methods for *surface_prop_agenda*.\n"
        ),
       GROUP( "Numeric" )));
 

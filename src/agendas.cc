@@ -72,7 +72,7 @@ void define_agenda_data()
         "   f_index. \n"
         "\n"
         "The methods inside this agenda may require a lot of additional\n"
-        "input variables, such as *f_grid*, *species*, etc.\n"
+        "input variables, such as *f_grid*, *abs_species*, etc.\n"
         ),
        OUTPUT( "abs_scalar_gas" ),
        INPUT(  "f_index", "rte_doppler", "rte_pressure", "rte_temperature", 
@@ -85,7 +85,7 @@ void define_agenda_data()
        (
         "Compute the convergence test.\n"
         "\n"
-        "The method *scat_i_fieldIterate* solves the VRTE iteratively."
+        "The method *doit_i_fieldIterate* solves the VRTE iteratively."
         "This method requires \n"
         "a convergence test. The user can choose different convergence tests\n"
         "which are to be defined in this agenda.\n"
@@ -93,7 +93,7 @@ void define_agenda_data()
         "Possible workspace methods are:\n"
         "*doit_conv_flagAbs*: Calculates the absolute differences \n"
         "  for each Stokes component separately.\n"
-        "*doit_conv_flagAbs_BT*: Same as above, but the convergence limit\n"
+        "*doit_conv_flagAbsBT*: Same as above, but the convergence limit\n"
         "  can be specified in Kelvin BT (Rayleigh Jeans).\n"
         "*doit_conv_flagLsq*: Least square convergence test. Not recommended\n"
         "  because result can be inaccurate.\n"
@@ -283,7 +283,7 @@ void define_agenda_data()
      ( NAME( "iy_clearsky_basic_agenda" ),
        DESCRIPTION
        (
-        "As *iy_clearky_agenda*, but lacks all support for jacobian and\n"
+        "As *iy_clearsky_agenda*, but lacks all support for jacobian and\n"
         "auxiliary variables.\n"
         "\n"
         "This agenda is used by scattering methods without support for the\n"
@@ -310,7 +310,7 @@ void define_agenda_data()
         "calculations from this point.\n"
         "\n"
         "A function calling this agenda shall set *rte_pos*, *rte_los* and\n"
-        "*rte_gp* variables to the position and line-of-sight for which the\n"
+        "*rte_gp_...* variables to the position and line-of-sight for which the\n"
         "scattered radiation shall be determined.\n"
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),

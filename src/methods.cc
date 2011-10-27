@@ -449,7 +449,7 @@ void define_md_data_raw()
          "forefactor:\n"
          "   no_norm:                  1\n"
          "   quadratic:                (f/f0)^2\n"
-         "   VVH:                      (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T)))\n"
+         "   VVH:                      (f*tanh(h*f/(2k*T))) / (f0*tanh(h*f0/(2k*T)))\n"
          "\n"
          "cutoff:\n"
          "    -1:                      no cutoff\n"
@@ -974,7 +974,7 @@ void define_md_data_raw()
          "*batch_atm_fields_compact*.\n"
          "\n"
          "The method checks *abs_species* to decide, which species depend on\n"
-         "*h2o_abs*, and hence require nonlinear treatment in the lookup table.\n"
+         "*abs_h2o*, and hence require nonlinear treatment in the lookup table.\n"
          "\n"
          "The method also checks which range of pressures, temperatures, and\n"
          "VMRs occurs, and sets *abs_p*, *abs_t*, *abs_t_pert*, and *abs_vmrs*\n"
@@ -1437,7 +1437,7 @@ void define_md_data_raw()
       ( NAME( "abs_speciesInit" ),
         DESCRIPTION
         (
-         "Sets  *abs_speciesSet* to be empty.\n"
+         "Sets  *abs_species* to be empty.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_species" ),
@@ -1733,16 +1733,16 @@ void define_md_data_raw()
       ( NAME( "AntennaMultiBeamsToPencilBeams" ),
         DESCRIPTION
         (
-         "Maps a muli-beam case to matching pencil beam case.\n"
+         "Maps a multi-beam case to a matching pencil beam case.\n"
          "\n"
          "Cases with overlapping beams are most efficiently handled by\n"
-         "by letting *antenna_los* have several rows. That is there are\n"
+         "letting *antenna_los* have several rows. That is, there are\n"
          "multiple beams for each measurement block. The drawback is that\n"
-         "may varibles must be adjusted if the corresponding pencil beam\n"
+         "many variables must be adjusted if the corresponding pencil beam\n"
          "spectra shall be calculated. This method makes this adjustment.\n"
          "That is, if you have a control file for a multiple beam case and\n"
          "for some reason want to avoid the antenna weighting, you add this\n"
-         "method before *sensorInit*, and remove the call of\n"
+         "method before *sensor_responseInit*, and remove the call of\n"
          "*sensor_responseAntenna* and you will get the matching pencil beam\n"
          "spectra.\n"
          ),
@@ -2080,7 +2080,7 @@ void define_md_data_raw()
          "This method takes a 1D atmospheric case and converts it to the\n"
          "corresponding case for 2D or 3D. The atmospheric fields (t_field,\n"
          "z_field and vmr_field) must be 1D and match *p_grid*. The size of\n"
-         "the new data is determined by *atmospheric_dim*, *lat_grid* and\n"
+         "the new data is determined by *atmosphere_dim*, *lat_grid* and\n"
          "*lon_grid*. That is, these later variables have been changed since\n"
          "the original fields were created.\n"
          "\n"
@@ -2351,7 +2351,7 @@ void define_md_data_raw()
          "See documentation of *atm_fields_compact* for a definition of the data.\n"
          "\n"
          "There are some safety checks on the names of the fields: The first\n"
-         "field must be called *T*, the second *z*. Remaining fields must be\n"
+         "field must be called \"T\", the second \"z\"*. Remaining fields must be\n"
          "trace gas species volume mixing ratios, named for example \"H2O\", \"O3\",\n"
          "and so on. The species names must fit the species in *abs_species*.\n"
          "(Same species in same order.) Only the species name must fit, not the\n"
@@ -2397,7 +2397,7 @@ void define_md_data_raw()
          "NOTE: HARD WIRED code!\n"
          "\n"
          "There are some safety checks on the names of the fields: The first\n"
-         "field must be called *T*, the second *z*.\n"
+         "field must be called \"T\", the second \"z\".\n"
          "The following 4 fields must be \"LWC\", \"IWC\", \"Rain\" and \"Snow\".\n"
          "Remaining fields must be trace gas species volume mixing ratios,\n"
          "named for example \"H2O\", \"O3\", and so on. The species names must fit \n"
@@ -2505,7 +2505,7 @@ void define_md_data_raw()
          "tropical.H2O.xml\n"
          "\n"
          "The files can be anywhere, but they must be all in the same\n"
-         "directory, selected by *Basename*. The files are chosen by the\n"
+         "directory, selected by 'basename'. The files are chosen by the\n"
          "species name. If you have more than one tag group for the same\n"
          "species, the same profile will be used.\n"
          ),
@@ -3538,7 +3538,7 @@ void define_md_data_raw()
          "90 degrees. Taking an optimized grid for the RT part and an equidistant\n"
          "grid for the scattering integral part saves very much CPU time.\n"
          "This method uses the equidistant za_grid defined in\n"
-         "*doit_angular_gridsSet* and it should always be used for limb\n"
+         "*DoitAngularGridsSet* and it should always be used for limb\n"
          "simulations.\n"
          "\n"
          "For more information please refer to AUG.\n"
@@ -3593,7 +3593,7 @@ void define_md_data_raw()
          "Writes DOIT iteration fields.\n"
          "\n"
          "This method writes intermediate iteration fields to xml-files. The\n"
-         "method can be used as a part of *convergence_test_agenda*.\n"
+         "method can be used as a part of *doit_conv_test_agenda*.\n"
          "\n"
          "The iterations to be stored are specified by *iterations*, e.g.:\n"
          "    iterations = [3, 6, 9]\n"
@@ -3679,7 +3679,7 @@ void define_md_data_raw()
          "Sets *emission* for cases when emission is considered and local\n"
          "thermodynamic equilibrium is valid. The standard definition, in\n"
          "ARTS, of the Planck function is followed and the unit of the\n"
-         "returned data is W/(m3*Hz*sr).\n"
+         "returned data is W/(m^2 Hz sr).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "emission" ),
@@ -4162,9 +4162,9 @@ void define_md_data_raw()
          "  elsLorentz\n"
          "}\n"
          "\n"
-         "Without Ignore you would get an error message, because els_agenda is\n"
-         "supposed to use the Doppler width *ls_sigma*, but the Lorentz lineshape\n"
-         "*elsLorentz* does not need it.\n"
+         "Without Ignore you would get an error message, because 'els_agenda' is\n"
+         "supposed to use the Doppler width 'ls_sigma', but the Lorentz lineshape\n"
+         "'elsLorentz' does not need it.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
@@ -4612,9 +4612,9 @@ void define_md_data_raw()
          "This is the standard method to put in *iy_cloudbox_agenda* if the\n"
          "the scattering inside the cloud box is handled by the DOIT method.\n"
          "\n"
-         "The intensity field is interpolated to the position and direction\n"
-         "given (specified by *rte_XXX*). A linear interpolation is used for\n"
-         "all dimensions.\n"
+         "The intensity field is interpolated to the position (specified by\n"
+         "*rte_gp_p/lat/lon*) and direction (specified by *scat_za/aa_grid*)\n"
+         "given. A linear interpolation is used for all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
          "*scat_i_p/lat/lon* and these variables are interpolated if the\n"
@@ -6489,15 +6489,15 @@ void define_md_data_raw()
          "will be skipped.\n"
          "The *cloudbox_limits* are used to determine the p, lat and lon size for\n"
          "the *pnd_field* tensor.\n"
-         "Currently there are two particle size distribution parametisations implemented:\n"
+         "Currently there are two particle size distribution parameterisations implemented:\n"
          "\t1. MH97 for ice particles. Using a first-order gamma distribution for particles\n"
          "\t smaller than 100 microns (melted diameter) and a lognormal distribution for\n"
          "\t particles bigger 100 microns. Values from both modes are cumulative.\n"
-         "\t See subfunction *IWCtopnd_MH97* for implementation/units/output.\n"
+         "\t See internal function 'IWCtopnd_MH97' for implementation/units/output.\n"
          "\t (src.: McFarquhar G.M., Heymsfield A.J., 1997)"
          "\n"
          "\t2. Gamma distribution for liquid cloud particles.\n"
-         "\t See subfunction *LWCtopnd* for implementation/units/output.\n"
+         "\t See internal function 'LWCtopnd' for implementation/units/output.\n"
          "\t (src.: Deirmendjian D., 1963 and Hess M., et al 1998)\n"
          "\n"
          "According to the selection criteria in *part_species*, the first specified\n" 
@@ -6510,7 +6510,7 @@ void define_md_data_raw()
          "\n"
          "Now the next selection criteria string in *part_species* is used to repeat\n"
          "the process.The new pnd values will be appended to the existing *pnd_field*.\n"
-         "And so on...\n."
+         "And so on...\n"
          "\n"
          "NOTE: the order of scattering particle profiles in *massdensity_field* is HARD WIRED!\n"
          ),
@@ -8080,7 +8080,7 @@ void define_md_data_raw()
          "does not vary with frequency. The emissivity can be defined with a\n"
          "a varying degree of complexity and there is no specific workspace\n"
          "variable defined to hold the emissivity. You have to define the\n"
-         "*sufrface_emissivity* to match your needs.\n"
+         "'surface_emissivity' to match your needs.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -8114,7 +8114,7 @@ void define_md_data_raw()
          "varies with frequency. The emissivity can be defined with a\n"
          "a varying degree of complexity and there is no specific workspace\n"
          "variable defined to hold the emissivity. You have to define the\n"
-         "*sufrface_emissivity* to match your needs.\n"
+         "'surface_emissivity' to match your needs.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -9027,7 +9027,7 @@ void define_md_data_raw()
       ( NAME( "WriteMolTau" ),
         DESCRIPTION
         (
-         "Writes a *molecular_tau_file* as required for libRadtran.\n"
+         "Writes a 'molecular_tau_file' as required for libRadtran.\n"
          "\n"
          "The libRadtran (www.libradtran.org) radiative transfer package is a \n"
          "comprehensive package for various applications, it can be used to \n"
