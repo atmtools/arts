@@ -1,3 +1,23 @@
+2011-11-02  Daniel Kreyling <daniel.kreyling@nict.go.jp>
+
+	* arts 2-0-15
+
+	* src/m_cloudbox.cc: (pnd_fieldSetup) Added new globally
+	applicable particle size distribution for ice and snow particles,
+	based on the work of A.J. Heymsfield (apparently not published
+	yet). In ARTS terms the new PSD is called 'H11' and can be used
+	for scattering calculations just like 'MH97'.
+
+	* src/cloudbox.cc (pnd_H11): new function to evaluate the
+	distribution at given scattering particle sizes
+	(scale_H11): scaling the 'H11' PND values to total ice or snow
+	massdensity.
+
+	*src/methods.cc: updated doku for 'H11'
+
+	*src/workspace.cc: updated doku for 'H11'
+
+
 2011-10-27  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-0-14

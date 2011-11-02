@@ -1417,6 +1417,7 @@ void pnd_fieldSetup (//WS Output:
 
     // initialize control parameters
     Vector vol_unsorted ( scat_data_nelem[k], 0.0 );
+    Vector d_max_unsorted (scat_data_nelem[k], 0.0);
     Vector vol ( scat_data_nelem[k], 0.0 );
     Vector dm ( scat_data_nelem[k], 0.0 );
     Vector r ( scat_data_nelem[k], 0.0 );
@@ -1455,14 +1456,14 @@ void pnd_fieldSetup (//WS Output:
         dm[i] = pow ( 
                  ( (6*scat_data_meta_array[intarr[i]+scat_data_start].V) /PI ),
                  ( 1./3. ) );
-	// get density fro5m meta data [g/m^3]
+	// get density from meta data [g/m^3]
         rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
 
-        //check for correct particle type
+        //check for correct particle phase
         if ( scat_data_meta_array[intarr[i]+scat_data_start].type != "Ice" )
         {
           throw runtime_error ( "The particle phase is unequal 'Ice'.\n"
-                                "MH97 can only be applied to ice paricles.\n"
+                                "MH97 can only be applied to ice particles.\n"
                                 "Check ScatteringMetaData!" );
         }
       }
@@ -1509,6 +1510,103 @@ void pnd_fieldSetup (//WS Output:
       }
 
     }
+
+    //---- start pnd_field calculations for H11 ----------------------------
+    else if ( psd_param == "H11" )
+    {
+      String part_type;
+      Tensor3 X_field;
+
+      for ( Index i=0; i < scat_data_nelem[k]; i++ )
+      {
+	//m
+        d_max_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].d_max );
+      }
+      get_sorted_indexes(intarr, d_max_unsorted);
+      
+      //get particle type to decide if H11 gets apllied on 'IWC' profile or 'Snow' profile
+      parse_part_type( part_type, part_species[k]);
+      
+      if (  part_type == "IWC" )
+      {
+	// NOTE: the order of scattering particle profiles in *massdensity_field*
+        // is HARD WIRED!
+	// extract IWC and convert from kg/m^3 to g/m^3
+	X_field = massdensity_field ( 1, joker, joker, joker );
+	X_field *= 1000; //IWC [g/m^3]
+      }
+      else if ( part_type == "Snow" )
+      {
+	// NOTE: the order of scattering particle profiles in *massdensity_field*
+	// is HARD WIRED!
+	// extract Snow rate and convert from kg/(m2*s) to g/(m2*s)
+	X_field = massdensity_field ( 3, joker, joker, joker );
+	X_field *= 1000; //Snow [g/(m2*s)]
+      } 
+      // extract scattering meta data
+      for ( Index i=0; i< scat_data_nelem[k]; i++ )
+      {
+        vol[i]= scat_data_meta_array[intarr[i]+scat_data_start].V; //[m^3]
+        
+	// get maximum diameter from meta data [m]
+        dm[i] = scat_data_meta_array[intarr[i]+scat_data_start].d_max;
+
+        // get density from meta data [g/m^3]
+        rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
+
+        //check for correct particle phase
+        if ( scat_data_meta_array[intarr[i]+scat_data_start].type != "Ice" )
+        {
+          throw runtime_error (
+			       "The particle phase is unequal 'Ice'.\n"
+			       "H11 can only be applied to ice/snow particles.\n"
+			       "Check ScatteringMetaData!" );
+        }
+      }
+      // itertation over all atm. levels
+      for ( Index p=p_cbstart; p<p_cbend; p++ )
+      {
+        for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
+        {
+          for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
+          {
+            // iteration over all given size bins
+            for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of particles
+            {
+              // calculate particle size distribution for H11
+              // [# m^-3 m^-1]
+              dN[i] = psd_H11 ( X_field ( p, lat, lon), dm[i], t_field ( p, lat, lon ) );
+            }
+            // scale pnds by scale width
+            if (dm.nelem() > 1)
+            {
+              scale_pnd( pnd, dm, dN ); //[# m^-3]
+            }
+
+	    //cout<<"\nlevel: "<<p<<"\n"<<"X: "<<X_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n"<< dN<<"\n"<<pnd<<"\n";
+            // scale H11 distribution (which is independent of Ice or 
+	    // Snow massdensity) to current massdensity.
+	    // Output pnd: still in [# m^-3]
+            scale_H11 ( pnd, X_field ( p,lat,lon ), vol, rho ); 
+
+            // calculate error of pnd sum and real XWC
+            chk_pndsum ( pnd, X_field ( p,lat,lon ), vol, rho, p, lat, lon, verbosity );
+
+	    //cout<<pnd<<"\n";
+
+            // writing pnd vector to wsv pnd_field
+            for ( Index i =0; i< scat_data_nelem[k]; i++ )
+            {
+              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
+                          lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
+              //dlwc[q] = pnd2[q]*vol[q]*rho[q];
+            }
+          }
+        }
+      }
+
+    }
+    
     // ---- start pnd_field calculations for liquid ----------------------------
     else if ( psd_param == "liquid" )
     {
@@ -1539,7 +1637,7 @@ void pnd_fieldSetup (//WS Output:
         // get density from meta data [g/m^3]
         rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
 
-        //check for correct particle type
+        //check for correct particle phase
         if ( scat_data_meta_array[intarr[i]+scat_data_start].type != "Water" )
         {
           throw runtime_error (

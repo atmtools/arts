@@ -101,6 +101,10 @@ Numeric IWCtopnd_MH97 (const Numeric iwc,
                        const Numeric t,
                        const Numeric density);
 
+Numeric psd_H11 (const Numeric xwc,
+		 const Numeric d,
+		 const Numeric t);
+
 Numeric LWCtopnd (const Numeric lwc,
                   //const Numeric density,
                   const Numeric r);
@@ -123,10 +127,10 @@ void chk_pndsum (Vector& pnd,
                  const Index& lon,
                  const Verbosity& verbosity);
 
-// ONLY FOR TESTING PURPOSES
-void chk_pndsum2 (Vector& pnd,
-                  const Numeric xwc);
-
+void scale_H11 (Vector& pnd,
+                 const Numeric xwc,
+                 const Vector& density,
+		const Vector& vol);
 
 void chk_massdensity_field(bool& x, 
                            const Index&  dim,	

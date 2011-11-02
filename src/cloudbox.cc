@@ -892,6 +892,61 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   return dN;
 }
 
+/*! Calculates particle size distribution using H11 parametrization.
+ *  Each diameter of the scattering particles is a node in the ditribution.
+ *  One call of this function, calculates one particle number density.  
+
+    \return dN particle number density per diameter interval [#/m3*m]
+          
+    \param d maximum diameter of scattering particle [m]
+    \param t atmospheric temperature [K]
+  
+  \author Daniel Kreyling
+  \date 2011-10-28
+
+*/
+Numeric psd_H11 (	const Numeric xwc,
+			const Numeric d,
+			const Numeric t)
+{  
+  // skip calculation if LWC is 0.0
+  if ( xwc == 0.0 )
+  {
+    return 0.0;
+  }
+
+  Numeric dN;
+  Numeric la;
+  Numeric mu;
+  // convert m to cm
+  Numeric D = d * 1e2;
+  //convert T from Kelvin to Celsius
+  Numeric T = t-273.15;
+  //choose parametrization depending on T
+  if ( T >= -56. )
+  {
+    la= 12.13 * exp( -0.055*T );
+  }
+  else
+  {
+    la= 0.83 * exp( -0.103*T );
+  }
+  if ( T >= -68. )
+  {
+    mu= -0.57 - 0.028*T;
+  }
+  else
+  {
+    mu= -30.93 - 0.472*T;
+  }
+ 
+  //Distribution function H11
+
+  dN = pow( D, mu ) * exp ( -la * D );
+
+  if (isnan(dN)) dN = 0.0;
+  return dN;
+}
 
 /*! Calculates particle size distribution for liquid particles using gamma parametrization.
  *  Each radius of the scattering particles is a node in the ditribution.
@@ -1054,40 +1109,56 @@ void chk_pndsum (Vector& pnd,
   out2 << "PND scaling factor in atm. level (p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
     //cout<<"\npnd_scaled\t"<<pnd<<endl;
     //cout<<"\nPND\t"<<pnd.sum()<<"\nXWC\t"<<xwc<<"\nerror\t"<<error<<endl;
-    //cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
+    //cout<<"\n"<<x.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
 }
 
+/*! The H11 PSD is scaled to the initial 'ice' or 'snow' massdensity, after
+ *  the distribution has been evaluated. This function applies the scaling.
+         
+      	\param xwc atmospheric massdensity [g/m3]
+	\param density scattering particle density [g/m3]
+	\param vol scattering particle volume [m3]
+  
+  \author Daniel Kreyling
+  \date 2011-10-31
 
-// ONLY FOR TESTING PURPOSES
-void chk_pndsum2 (Vector& pnd,
-                  const Numeric xwc)
+*/
+void scale_H11 (Vector& pnd,
+                 const Numeric xwc,
+                 const Vector& density,
+		 const Vector& vol)
+		// const Index& p,
+                // const Index& lat,
+                // const Index& lon,
+                // const Verbosity& verbosity)
 
 {
   // set vector x to pnd size
-  Vector x=pnd;
-  Numeric error;
+  Vector x (pnd.nelem(), 0.0);
+  Numeric ratio;
 
-  if ( xwc == 0.0 )
+  for ( Index i = 0; i<pnd.nelem(); i++ )
   {
-    // set error and all pnd values to zero
-    error = 0.0;
+    // convert from particles/m^3 to g/m^3
+    x[i] = pnd[i]*density[i]*vol[i];
+    //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
+  }
+
+  if ( x.sum() == 0.0 )
+  {
+    // set ratio and all pnd values to zero, IF there are 
+    // no scattering particles at this atmospheric level.
+    ratio = 0.0;
     pnd = 0.0;
   }
   else
   {
-    error = xwc/x.sum();
-
-    // correct all pnd values with error
-    if ( error > 1.05 || error < 0.95 )
-    {
-      pnd *= error
-             ;
-    }
-
+    // calculate the ratio of initial massdensity (xwc) to sum of pnds
+    ratio = xwc/x.sum();
+    // scale each pnd to represent the total massdensity
+    pnd *= ratio;
   }
-    //cout<<"\nPND2\t"<<pnd.sum()<<"\nXWC2\t"<<xwc<<"\nerror2\t"<<error<<endl;
-    //cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
-    //cout<<"\npnd_scaled2\t"<<pnd<<endl;
+
 }
 
 /*! Splitting part_species string and parse type of massdensity_field
@@ -1146,11 +1217,11 @@ void parse_psd_param (//WS Output:
   // second entry is particle size distribution parametrisation  ( e.g."MH97")
   psd_param = strarr[1];
 
-  if ( psd_param != "MH97" && psd_param != "liquid" )
+  if ( psd_param != "MH97" && psd_param != "liquid" && psd_param != "H11" )
   {
     ostringstream os;
     os <<"The chosen PSD parametrisation in " << part_string << " can not be handeled in the moment.\n"
-    <<"Choose either 'MH97' or 'liquid'!\n" ;
+    <<"Choose either 'MH97', 'H11' or 'liquid'!\n" ;
     throw runtime_error ( os.str() );
   }
 }
