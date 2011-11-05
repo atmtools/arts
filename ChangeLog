@@ -1,6 +1,24 @@
+2011-10-27  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-0-17
+
+	* src/cloudbox.cc:
+
+	(IWCtopnd_MH97): bugfix. cases with all ice in <100um mode (lowT &
+	small IWC) lead to NaN at >100um mode lead to all pnd set to 0. now
+	producing proper pnd_field (relevant more for IR than MW, I guess).
+
+	(chk_pndsum): bugfixed interface, where vol and density where swapped.
+	modified pnd scaling correction - don't let pnd==0 slip through, when
+	xwc!=0, so rather test for xwc==0 instead of x.sum()==0. potentially
+	caused huge deviations that went uncatched...
+
+	* src/cloudbox.cc: corresponding chk_pndsum interface adaption.
+
+
 2011-11-02  Daniel Kreyling <daniel.kreyling@nict.go.jp>
 
-	* arts 2-0-15
+	* arts 2-0-16
 
 	* src/m_cloudbox.cc: (pnd_fieldSetup) Added new globally
 	applicable particle size distribution for ice and snow particles,
@@ -17,6 +35,12 @@
 
 	*src/workspace.cc: updated doku for 'H11'
 
+
+2011-10-27  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-0-15
+
+	* src/methods.cc,agendas.cc,workspace.cc: more broken doc links fixed
 
 2011-10-27  Jana Mendrok <jana.mendrok@ltu.se>
 

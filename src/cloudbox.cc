@@ -863,27 +863,34 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 
   //Log normal distribution component
 
-  Numeric aamu=5.20;
-  Numeric bamu=0.0013;
-  Numeric abmu=0.026;
-  Numeric bbmu=-1.2*1e-3;
-  Numeric amu=aamu+bamu*T;
-  Numeric bmu=abmu+bbmu*T;
-  Numeric mul100=amu+bmu*log10 ( IWCl100/IWC0 );
+  if (IWCl100>0.)
+  {
+    Numeric aamu=5.20;
+    Numeric bamu=0.0013;
+    Numeric abmu=0.026;
+    Numeric bbmu=-1.2*1e-3;
+    Numeric amu=aamu+bamu*T;
+    Numeric bmu=abmu+bbmu*T;
+    Numeric mul100=amu+bmu*log10 ( IWCl100/IWC0 );
 
-  Numeric aasigma=0.47;
-  Numeric basigma=2.1*1e-3;
-  Numeric absigma=0.018;
-  Numeric bbsigma=-2.1*1e-4;
-  Numeric asigma=aasigma+basigma*T;
-  Numeric bsigma=absigma+bbsigma*T;
-  Numeric sigmal100=asigma+bsigma*log10 ( IWCl100/IWC0 );
+    Numeric aasigma=0.47;
+    Numeric basigma=2.1*1e-3;
+    Numeric absigma=0.018;
+    Numeric bbsigma=-2.1*1e-4;
+    Numeric asigma=aasigma+basigma*T;
+    Numeric bsigma=absigma+bbsigma*T;
+    Numeric sigmal100=asigma+bsigma*log10 ( IWCl100/IWC0 );
 
-  Numeric D0=1.0; //micron
-  Numeric a1=6*IWCl100; //g/m^3
-  Numeric a2=pow ( PI,3./2. ) *density*sqrt ( 2 ) *exp ( 3*mul100+9./2.*pow ( sigmal100,2 ) ) *sigmal100*pow ( D0,3 ) *Dm; //g/m^3/micron^4
-  Numeric Nm2=a1/a2*exp ( -0.5*pow ( ( log ( Dm/D0 )-mul100 ) /sigmal100,2 ) ); //micron^-4
-  dN2 = Nm2*1e18; // m^-3 micron^-1
+    Numeric D0=1.0; //micron
+    Numeric a1=6*IWCl100; //g/m^3
+    Numeric a2=pow ( PI,3./2. ) *density*sqrt ( 2 ) *exp ( 3*mul100+9./2.*pow ( sigmal100,2 ) ) *sigmal100*pow ( D0,3 ) *Dm; //g/m^3/micron^4
+    Numeric Nm2=a1/a2*exp ( -0.5*pow ( ( log ( Dm/D0 )-mul100 ) /sigmal100,2 ) ); //micron^-4
+    dN2 = Nm2*1e18; // m^-3 micron^-1
+  }
+  else
+  {
+    dN2 = 0.;
+  }
 
 
 
@@ -1060,8 +1067,8 @@ void scale_pnd  (  Vector& w,
 */
 void chk_pndsum (Vector& pnd,
                  const Numeric xwc,
-                 const Vector& density,
                  const Vector& vol,
+                 const Vector& density,
                  const Index& p,
                  const Index& lat,
                  const Index& lon,
@@ -1081,13 +1088,25 @@ void chk_pndsum (Vector& pnd,
     //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
   }
 
+  //cout<<"at p = "<<p<<", lat = "<<lat<<", lon = "<<lon
+  //<<" given mass density: "<<xwc<<", calc mass density: "<<x.sum();
   if ( x.sum() == 0.0 )
-  {
-    // set error and all pnd values to zero, IF there is 
-    // no scattering particles at this atmospheric level.
-    error = 0.0;
-    pnd = 0.0;
-  }
+    if ( xwc == 0.0 )
+    {
+      // set error and all pnd values to zero, IF there is 
+      // no scattering particles at this atmospheric level.
+      error = 0.0;
+      pnd = 0.0;
+    }
+    else
+    { // when x.sum()==0, but xwc!=0, obviously something went wrong in pnd calc
+      ostringstream os;
+      os<< "ERROR: in WSM chk_pndsum in pnd_fieldSetup!\n" 
+      << "Given mass density != 0, but calculated mass density == 0.\n"
+      << "Seems, something went wrong in pnd_fieldSetup. Check!\n"
+      << "The problem occured at: p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
+     throw runtime_error ( os.str() );
+    }
   else
   {
     error = xwc/x.sum();
@@ -1105,6 +1124,7 @@ void chk_pndsum (Vector& pnd,
       //cerr<<os;
     }
   }
+  //cout<<", corrected to: "<<x.sum()*error<<"\n";
 
   out2 << "PND scaling factor in atm. level (p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
     //cout<<"\npnd_scaled\t"<<pnd<<endl;
