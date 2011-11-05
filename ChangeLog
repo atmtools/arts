@@ -1,4 +1,16 @@
-2011-10-27  Jana Mendrok <jana.mendrok@ltu.se>
+2011-11-05  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-0-18
+
+	* src/cloudbox.cc:
+
+	(IWCtopnd_MH97): for large IWC (obviously outside the original
+	parameterization range) number densities in small particle mode got
+	negative. now, if so, explicitly set to 0. though not specified by MH97,
+	this should be fine, since even the small mode rather creates particles
+	with Dm>100um, which should be covered by the large mode.
+
+2011-11-05  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-0-17
 

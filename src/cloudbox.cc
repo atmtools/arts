@@ -797,7 +797,7 @@ Numeric barometric_heightformula ( //output is p1
  */
 
   
-  //barometirc height formula
+  //barometric height formula
   Numeric M = 0.02896; //mean molar mass of air [kg mol^-1]
   Numeric g = 9.807; //earth acceleration [kg m s^-1]
   Numeric R = 8.314; //universal gas constant [J K^−1 mol^−1]
@@ -854,15 +854,27 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 
   Numeric b2=-4.99*1e-3; //micron^-1
   Numeric m=0.0494; //micron^-1
-  Numeric alfas100=b2-m*log10 ( IWCs100/IWC0 ); //miron^-1
-  Numeric Ns100=6*IWCs100*pow ( alfas100,5. ) / ( PI*density*gamma_func ( 5. ) );//micron^-5
-  Numeric Nm1=Ns100*Dm*exp ( -alfas100*Dm ); //micron^-4
-  dN1 = Nm1*1e18; // m^-3 micron^-1
+  Numeric alphas100=b2-m*log10 ( IWCs100/IWC0 ); //micron^-1
+  // for large IWC alpha, hence dN1, goes negative. avoid that.
+  // towards this limit, particles anyway get larger 100um, i.e.,
+  // outside the size region gamma distrib is intended for
+  if (alphas100>0.)
+  {
+    Numeric Ns100=6*IWCs100*pow ( alphas100,5. ) / ( PI*density*gamma_func ( 5. ) );//micron^-5
+    Numeric Nm1=Ns100*Dm*exp ( -alphas100*Dm ); //micron^-4
+    dN1 = Nm1*1e18; // m^-3 micron^-1
+  }
+  else
+  {
+    dN1 = 0.;
+  }
 
 
 
   //Log normal distribution component
 
+  // for small IWC, IWCtotal==IWC<100 & IWC>100=0.
+  // this will give dN2=NaN. avoid that by explicitly setting to 0
   if (IWCl100>0.)
   {
     Numeric aamu=5.20;
@@ -1124,7 +1136,7 @@ void chk_pndsum (Vector& pnd,
       //cerr<<os;
     }
   }
-  //cout<<", corrected to: "<<x.sum()*error<<"\n";
+  //cout<<", error: "<<error<<"corrected to: "<<x.sum()*error<<"\n";
 
   out2 << "PND scaling factor in atm. level (p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
     //cout<<"\npnd_scaled\t"<<pnd<<endl;
