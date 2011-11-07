@@ -5270,41 +5270,45 @@ void ppath_start_stepping(Ppath&                ppath,
       // The sensor is outside the model atmosphere, 1D -----------------------
       else
         {
-          // Upward observations are not allowed here
+          // Upward:
           if( rte_los[0] <= 90 )
-              throw runtime_error("When the sensor is placed outside the model"
-                         " atmosphere, upward observations are not allowed." );
-
-          // We can here set the path constant, that equals the radius of the
-          // geometrical tangent point.
-          ppath.constant = geom_tan_pos[0];
- 
-          // Path is above the atmosphere
-          if( ppath.constant >= r_top )
             {
               ppath_set_background( ppath, 1 );
               out1 << "  --- WARNING ---, path is totally outside of the "
                    << "model atmosphere\n";
             }
-
-          // Path enters the atmosphere
+          // Downward:
           else
             {
-              ppath.z[0]     = z_field(np-1,0,0);
-              ppath.pos(0,0) = r_top;
-              ppath.los(0,0) = geompath_za_at_r( ppath.constant, rte_los[0], 
+              ppath.constant = geom_tan_pos[0];
+ 
+              // Path is above the atmosphere
+              if( ppath.constant >= r_top )
+                {
+                  ppath_set_background( ppath, 1 );
+                  out1 << "  --- WARNING ---, path is totally outside of the "
+                       << "model atmosphere\n";
+                }
+
+              // Path enters the atmosphere
+              else
+                {
+                  ppath.z[0]     = z_field(np-1,0,0);
+                  ppath.pos(0,0) = r_top;
+                  ppath.los(0,0) = geompath_za_at_r( ppath.constant, rte_los[0],
                                                                        r_top );
-              ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], 0, 
+                  ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], 0, 
                                                               ppath.los(0,0) );
+                }
             }
         }
 
       // Get grid position for the end point, if it is inside the atmosphere.
       if( ppath.z[0] <= z_field(np-1,0,0) )
-        { gridpos( ppath.gp_p, z_field(joker,0,0), ppath.z ); }
-
-      // Handle possible numerical problems for grid positions
-      gridpos_check_fd( ppath.gp_p[0] );
+        { 
+          gridpos( ppath.gp_p, z_field(joker,0,0), ppath.z );
+          gridpos_check_fd( ppath.gp_p[0] );
+        }
 
       // Set geometrical tangent point position
       if( geom_tan_pos.nelem() == 2 )
@@ -5447,24 +5451,15 @@ void ppath_start_stepping(Ppath&                ppath,
               if( is_los_downwards( ppath.los(0,0), atilt ) )
                 { ppath_set_background( ppath, 2 ); }
             }
+
+          // Handle possible numerical problems for grid positions
+          gridpos_check_fd( ppath.gp_p[0] );
+          gridpos_check_fd( ppath.gp_lat[0] );
         }
 
       // The sensor is outside the model atmosphere, 2D -----------------------
       else
         {
-          // Upward observations are not allowed here
-          if( abs(rte_los[0]) <= 90 )
-            {
-              ostringstream os;
-              os << "When the sensor is placed outside the model atmosphere,\n"
-                 << "upward observations are not allowed.";
-              throw runtime_error( os.str() );
-            }
-          
-          // We can here set the path constant, that equals the radius of the
-          // geometrical tangent point.
-          ppath.constant = geom_tan_pos[0];
-
           // Handle cases when the sensor appears to look the wrong way
           if( ( rte_pos[1] <= lat_grid[0]  &&  rte_los[0] <= 0 )  || 
                       ( rte_pos[1] >= lat_grid[nlat-1]  &&  rte_los[0] >= 0 ) )
@@ -5477,172 +5472,191 @@ void ppath_start_stepping(Ppath&                ppath,
               throw runtime_error( os.str() );
             }
 
-          // If the sensor is outside the latitude range, check that path is
-          // above the closest corner of the model atmosphere
-          if( rte_pos[1] < lat_grid[0]  ||  rte_pos[1] > lat_grid[nlat-1] )
-            {
-              Index   ic = 0;
-              String  sc = "lower";
-              if( rte_pos[1] > lat_grid[0] )
-                { ic = nlat - 1;   sc = "upper"; }
-              const double rv = geompath_r_at_lat( ppath.constant, rte_pos[1], 
-                                                    rte_los[0], lat_grid[ic] );
-              if( rv < ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
-                {
-                  ostringstream os;
-                  os << "The sensor is outside of the model atmosphere and "
-                     << "looks in the\n" << sc << " latitude end face.\n"
-                     << "The geometrical altitude of the corner point is "
-                     << z_field(np-1,ic,0)/1e3 << " km.\n"
-                     << "The geometrical altitude of the entrance point is "
-                     << (rv-r_geoid(ic,0))/1e3 << " km.";
-                  throw runtime_error( os.str() );
-                }
-            }
-
-          // If the tangent point is inside covered latitude range, everything
-          // is OK. If not, the path must be below the corner of the model
-          // atmosphere. 
-          if( ( geom_tan_pos[1] < lat_grid[0]  ||  
-                                         geom_tan_pos[1] > lat_grid[nlat-1] ) )
-            {
-              Index   ic = 0;
-              String  sc = "lower";
-              if( rte_los[0] >= 0 )
-                { ic = nlat - 1;   sc = "upper"; }
-              const double rv = geompath_r_at_lat( ppath.constant, rte_pos[1], 
-                                                    rte_los[0], lat_grid[ic] );
-              if( rv >= ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
-                {
-                  ostringstream os;
-                  os << "The combination of sensor position and line-of-sight "
-                     << "gives a\npropagation path that goes above the model "
-                     << "atmosphere, with\na tangent point outside the covered"
-                     << " latitude range.\nThe latitude of the tangent point "
-                     << "is " << geom_tan_pos[1] << " degrees.";
-                  throw runtime_error( os.str() );
-                }
-            }
-
-          // That should be all needed checks. We know now that the path is
-          // either totally outside the atmosphere, with a tangent point 
-          // inside lat_grid, or enters the atmosphere from the top 
-          // somewhere inside lat_grid. In the latter case we need to
-          // determine the latitude of the entrance point.
-          
-          // Path is above the atmosphere:
-          // Requieres that tangent point is inside lat_grid and above the
-          // top of the atmosphere.
-          if( geom_tan_pos[1] >= lat_grid[0]  &&  
-                           geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
-                                                geom_tan_z >= geom_tan_atmtop )
+          // Upward:
+          if( abs(rte_los[0]) <= 90 )
             {
               ppath_set_background( ppath, 1 );
               out1 << "  ------- WARNING -------: path is totally outside of "
                    << "the model atmosphere\n";
             }
 
-          // The path enters the atmosphere
+          // Downward:
           else
             {
-              // Find the latitude where the path passes top of the atmosphere.
+              // We can here set the path constant, that equals the radius of
+              // the geometrical tangent point.
+              ppath.constant = geom_tan_pos[0];
 
-              // We are handling this in a rather dumb way. A test is performed
-              // for each latitude range using plevel_crossing_2d.
-              // A bit smarter algorithm was considered but that made the code 
-              // more messy.
-              // The case when the sensor is placed inside lat_grid must be
-              // hanled seperetaly.
+              // If the sensor is outside the latitude range, check that path
+              // is above the closest corner of the model atmosphere
+              if( rte_pos[1] < lat_grid[0]  ||  rte_pos[1] > lat_grid[nlat-1] )
+                {
+                  Index   ic = 0;
+                  String  sc = "lower";
+                  if( rte_pos[1] > lat_grid[0] )
+                    { ic = nlat - 1;   sc = "upper"; }
+                  const double rv = geompath_r_at_lat( ppath.constant, 
+                                         rte_pos[1], rte_los[0], lat_grid[ic] );
+                  if( rv < ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
+                    {
+                      ostringstream os;
+                      os << "The sensor is outside of the model atmosphere and "
+                         << "looks in the\n" << sc << " latitude end face.\n"
+                         << "The geometrical altitude of the corner point is "
+                         << z_field(np-1,ic,0)/1e3 << " km.\n"
+                         << "The geometrical altitude of the entrance point is "
+                         << (rv-r_geoid(ic,0))/1e3 << " km.";
+                      throw runtime_error( os.str() );
+                    }
+                }
 
-              // Determine first latitude range of interest, search direction
-              // and first test latitude.
-              double lat0;
-              Index   ilat0, istep;
-              //
-              if( rte_pos[1] <= lat_grid[0] )
+              // If the tangent point is inside covered latitude range,
+              // everything is OK. If not, the path must be below the corner of
+              // the model atmosphere.
+              if( ( geom_tan_pos[1] < lat_grid[0]  ||  
+                                          geom_tan_pos[1] > lat_grid[nlat-1] ) )
                 {
-                  lat0  = lat_grid[0]; 
-                  ilat0 = 0;
-                  istep = 1;
+                  Index   ic = 0;
+                  String  sc = "lower";
+                  if( rte_los[0] >= 0 )
+                    { ic = nlat - 1;   sc = "upper"; }
+                  const double rv = geompath_r_at_lat( ppath.constant, 
+                                         rte_pos[1], rte_los[0], lat_grid[ic] );
+                  if( rv >= ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
+                    {
+                      ostringstream os;
+                      os << "The combination of sensor position and line-of-"
+                         << "sight gives a\npropagation path that goes above "
+                         << "the model atmosphere, with\na tangent point "
+                         << "outside the covered latitude range.\nThe latitude "
+                         << "of the tangent point is " << geom_tan_pos[1] 
+                         << " degrees.";
+                      throw runtime_error( os.str() );
+                    }
                 }
-              else if( rte_pos[1] >= lat_grid[nlat-1] )
+
+              // That should be all needed checks. We know now that the path is
+              // either totally outside the atmosphere, with a tangent point 
+              // inside lat_grid, or enters the atmosphere from the top 
+              // somewhere inside lat_grid. In the latter case we need to
+              // determine the latitude of the entrance point.
+              
+              // Path is above the atmosphere:
+              // Requieres that tangent point is inside lat_grid and above the
+              // top of the atmosphere.
+              if( geom_tan_pos[1] >= lat_grid[0]  &&  
+                               geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
+                                                 geom_tan_z >= geom_tan_atmtop )
                 {
-                  lat0  = lat_grid[nlat-1]; 
-                  ilat0 = nlat-1;
-                  istep = -1;
+                  ppath_set_background( ppath, 1 );
+                  out1 << "  ------- WARNING -------: "
+                       << "path is totally outside of the model atmosphere\n";
                 }
+
+              // The path enters the atmosphere
               else
                 {
-                  lat0  = rte_pos[1]; 
-                  if( rte_los[0] >= 0 )
-                    {  
-                      ilat0 = gridpos2gridrange( gp_lat, 1 );
+                  // Find the latitude where the path passes top of the
+                  // atmosphere.
+
+                  // We are handling this in a rather dumb way. A test is
+                  // performed for each latitude range using
+                  // plevel_crossing_2d. A bit smarter algorithm was considered
+                  // but that made the code more messy. The case when the
+                  // sensor is placed inside lat_grid must be hanled
+                  // seperetaly.
+
+                  // Determine first latitude range of interest, search
+                  // direction and first test latitude.
+                  double lat0;
+                  Index   ilat0, istep;
+                  //
+                  if( rte_pos[1] <= lat_grid[0] )
+                    {
+                      lat0  = lat_grid[0]; 
+                      ilat0 = 0;
                       istep = 1;
                     }
-                  else
-                    { 
-                      ilat0 = gridpos2gridrange( gp_lat, 0 ) + 1;
-                      istep = -1; 
-                    }
-                }
-
-
-              // Loop until entrance point is found
-              Index ready = 0;
-              while( !ready )
-                {
-                  // The slope c is here calculated for the viewing direction
-                  // and the zenith angle to apply shall then be positive.
-
-                  // Calculate radius and zenith angle of path at lat0
-                  double r0  = geompath_r_at_lat( ppath.constant, rte_pos[1], 
-                                                            rte_los[0], lat0 );
-                  double za0 = abs( geompath_za_at_r( ppath.constant, 
-                                                            rte_los[0], r0 ) );
-
-                  // Calculate radius and slope to use in plevel_crossing_2d
-                  double rv1 = r_geoid(ilat0,0) + z_field(np-1,ilat0,0);
-                  double rv2 = r_geoid(ilat0+istep,0) + 
-                                                   z_field(np-1,ilat0+istep,0);
-                  double latstep = abs( lat_grid[ilat0+istep] - 
-                                                             lat_grid[ilat0] );
-                  double c = ( rv2 - rv1 ) / latstep;
-
-                  if( lat0 != lat_grid[ilat0] )
-                    { rv1 = rv1 + c * abs( lat0 - lat_grid[ilat0] ); } 
-
-                  double dlat = plevel_crossing_2d( r0, za0, rv1, c );
-
-                  if( dlat <= latstep )
+                  else if( rte_pos[1] >= lat_grid[nlat-1] )
                     {
-                      ready = 1;
-                      ppath.pos(0,1) = lat0 + (double)istep*dlat;
-                      ppath.pos(0,0) = rv1 + c * dlat;
-                      ppath.los(0,0) = geompath_za_at_r( ppath.constant, 
-                                                  rte_los[0], ppath.pos(0,0) );
-                      // Re-use some variables from above
-                      rv1 = r_geoid(ilat0,0);
-                      rv2 = r_geoid(ilat0+istep,0);
-                      c   = ( rv2 - rv1 ) / latstep;
-                      ppath.z[0] = ppath.pos(0,0) - ( rv1 + c * 
-                                     abs( ppath.pos(0,1) - lat_grid[ilat0] ) );
-                      ppath.gp_p[0].idx = np - 2;
-                      ppath.gp_p[0].fd[0] = 1;
-                      ppath.gp_p[0].fd[1] = 0;
-                      gridpos( ppath.gp_lat[0], lat_grid, ppath.pos(0,1) );
+                      lat0  = lat_grid[nlat-1]; 
+                      ilat0 = nlat-1;
+                      istep = -1;
+                    }
+                  else
+                    {
+                      lat0  = rte_pos[1]; 
+                      if( rte_los[0] >= 0 )
+                        {  
+                          ilat0 = gridpos2gridrange( gp_lat, 1 );
+                          istep = 1;
+                        }
+                      else
+                        { 
+                          ilat0 = gridpos2gridrange( gp_lat, 0 ) + 1;
+                          istep = -1; 
+                        }
+                    }
+
+
+                  // Loop until entrance point is found
+                  Index ready = 0;
+                  while( !ready )
+                    {
+                      // The slope c is here calculated for the viewing
+                      // direction and the zenith angle to apply shall then be
+                      // positive.
+
+                      // Calculate radius and zenith angle of path at lat0
+                      double r0  = geompath_r_at_lat( ppath.constant, 
+                                                 rte_pos[1], rte_los[0], lat0 );
+                      double za0 = abs( geompath_za_at_r( ppath.constant, 
+                                                             rte_los[0], r0 ) );
+
+                      // Calculate radius and slope to use in plevel_crossing_2d
+                      double rv1 = r_geoid(ilat0,0) + z_field(np-1,ilat0,0);
+                      double rv2 = r_geoid(ilat0+istep,0) + 
+                                                    z_field(np-1,ilat0+istep,0);
+                      double latstep = abs( lat_grid[ilat0+istep] - 
+                                                              lat_grid[ilat0] );
+                      double c = ( rv2 - rv1 ) / latstep;
+
+                      if( lat0 != lat_grid[ilat0] )
+                        { rv1 = rv1 + c * abs( lat0 - lat_grid[ilat0] ); } 
+
+                      double dlat = plevel_crossing_2d( r0, za0, rv1, c );
+
+                      if( dlat <= latstep )
+                        {
+                          ready = 1;
+                          ppath.pos(0,1) = lat0 + (double)istep*dlat;
+                          ppath.pos(0,0) = rv1 + c * dlat;
+                          ppath.los(0,0) = geompath_za_at_r( ppath.constant, 
+                                                   rte_los[0], ppath.pos(0,0) );
+                          // Re-use some variables from above
+                          rv1 = r_geoid(ilat0,0);
+                          rv2 = r_geoid(ilat0+istep,0);
+                          c   = ( rv2 - rv1 ) / latstep;
+                          ppath.z[0] = ppath.pos(0,0) - ( rv1 + c * 
+                                      abs( ppath.pos(0,1) - lat_grid[ilat0] ) );
+                          ppath.gp_p[0].idx = np - 2;
+                          ppath.gp_p[0].fd[0] = 1;
+                          ppath.gp_p[0].fd[1] = 0;
+                          gridpos( ppath.gp_lat[0], lat_grid, ppath.pos(0,1) );
+                        } 
+                      else
+                        {
+                          ilat0 += istep;
+                          lat0   = lat_grid[ilat0];
+                        }
                     } 
-                  else
-                    {
-                      ilat0 += istep;
-                      lat0   = lat_grid[ilat0];
-                    }
-                } 
+
+                  // Handle possible numerical problems for grid positions
+                  gridpos_check_fd( ppath.gp_p[0] );
+                  gridpos_check_fd( ppath.gp_lat[0] );
+                }
             }
         }      
-
-      // Handle possible numerical problems for grid positions
-      gridpos_check_fd( ppath.gp_p[0] );
-      gridpos_check_fd( ppath.gp_lat[0] );
 
       // Set geometrical tangent point position
       if( geom_tan_pos.nelem() == 2 )
@@ -5650,7 +5664,6 @@ void ppath_start_stepping(Ppath&                ppath,
           ppath.geom_tan_pos.resize(2);
           ppath.geom_tan_pos = geom_tan_pos;
         }
-
     }  // End 2D
 
 
@@ -5845,24 +5858,16 @@ void ppath_start_stepping(Ppath&                ppath,
               else
                 { assert( outside_cloudbox ); }
             }
+
+          // Handle possible numerical problems for grid positions
+          gridpos_check_fd( ppath.gp_p[0] );
+          gridpos_check_fd( ppath.gp_lat[0] );
+          gridpos_check_fd( ppath.gp_lon[0] );
         }
 
       // The sensor is outside the model atmosphere, 3D -----------------------
       else
         {
-          // Upward observations are not allowed here
-          if( abs(rte_los[0]) <= 90 )
-            {
-              ostringstream os;
-              os << "When the sensor is placed outside the model atmosphere,\n"
-                 << "upward observations are not allowed.";
-              throw runtime_error( os.str() );
-            }
-          
-          // We can here set the path constant, that equals the radius of the
-          // geometrical tangent point.
-          ppath.constant = geom_tan_pos[0];
-
           // Handle cases when the sensor appears to look the wrong way in
           // the north-south direction
           if( ( rte_pos[1] <= lat_grid[0]  &&  abs( rte_los[1] ) >= 90 )  || 
@@ -5886,206 +5891,227 @@ void ppath_start_stepping(Ppath&                ppath,
               throw runtime_error( os.str() );
             }
 
-          // We either checks that:
-          // 1. the tangent point is above the atmosphere, inside covered 
-          //    lat and lon ranges
-          // 2. We try to determine the entrance point, and issues an error
-          //    if it is not at the top of the atmosphere.
-          
-          // Is tangent point above the model atmosphere
-          if( geom_tan_pos[1] >= lat_grid[0]  &&  
-                           geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
-                           geom_tan_pos[2] >= lon_grid[0]        &&  
-                           geom_tan_pos[2] <= lon_grid[nlon-1]   &&  
-                                                geom_tan_z >= geom_tan_atmtop )
+          // Upward:
+          if( abs(rte_los[0]) <= 90 )
             {
               ppath_set_background( ppath, 1 );
               out1 << "  ------- WARNING -------: path is totally outside of "
                    << "the model atmosphere\n";
             }
 
-          // The path: does it enter the atmosphere, and then where?
+          // Downward:
           else
             {
-              // Create a matrix for top of the atmosphere radii
-              Matrix r_atmtop(nlat,nlon);
-              //
-              for( Index ilat=0; ilat<nlat; ilat++ )
-                {
-                  for( Index ilon=0; ilon<nlon; ilon++ )
-                    { r_atmtop(ilat,ilon) = r_geoid(ilat,ilon) +
-                                                     z_field(np-1,ilat,ilon); }
-                }
+          
+              // We can here set the path constant, that equals the radius of
+              // the geometrical tangent point.
+              ppath.constant = geom_tan_pos[0];
 
-              // Handle the case when the sensor radius is obviously too low
-              double   rtopmin = min( r_atmtop );
-              if( rte_pos[0] <= rtopmin )
-                {
-                  ostringstream os;
-                  os << "The sensor radius is smaller than the minimum radius "
-                     << "of the top of\nthe atmosphere. This gives no possible"
-                     << " OK entrance point for the path.";
-                  throw runtime_error( os.str() );
-                }
 
-              // Handle the case when the path clearly passes above the 
-              // model atmosphere
-              double   rtopmax = max( r_atmtop );
-              if( geom_tan_pos[0] >= rtopmax )
-                {
-                  ostringstream os;
-                  os << "The combination of sensor position and line-of-sight "
-                     << "gives a\npropagation path that goes above the model "
-                     << "atmosphere, with\na tangent point outside the covered"
-                     << " latitude and longitude ranges.\nThe position of the "
-                     << "tangent point is:\n   lat : " << geom_tan_pos[1] 
-                     << "\n   lon : " << geom_tan_pos[2];
-                  throw runtime_error( os.str() );
-                }
-
-              // Sensor pos and LOS in cartesian coordinates
-              double   x, y, z, dx, dy, dz;
-              poslos2cart( x, y, z, dx, dy, dz, rte_pos[0], 
-                              rte_pos[1], rte_pos[2], rte_los[0], rte_los[1] );
-
-              // Boolean for that entrance point CANNOT be found
-              bool   failed = false;
-             
-              // Determine the entrance point for the minimum of *r_atmtop*
-              double   r_top, lat_top, lon_top, l_top;
-              plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                                  rtopmin, rte_pos[0], rte_pos[1], rte_pos[2], 
-                                  rte_los[0], x, y, z, dx, dy, dz );
-              resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
-
-              // If no crossing was found for min radius, or it is outside
-              // covered lat and lon ranges, try max radius and make the same
-              // check. If check not succesful, there is no OK entrance point.
-              if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
-                  lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
-                {
-                  plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                                   rtopmax, rte_pos[0], rte_pos[1], rte_pos[2],
-                                   rte_los[0], x, y, z, dx, dy, dz );
-                  resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
+              // We either checks that:
+              // 1. the tangent point is above the atmosphere, inside covered 
+              //    lat and lon ranges
+              // 2. We try to determine the entrance point, and issues an error
+              //    if it is not at the top of the atmosphere.
               
+              // Is tangent point above the model atmosphere
+              if( geom_tan_pos[1] >= lat_grid[0]  &&  
+                               geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
+                               geom_tan_pos[2] >= lon_grid[0]        &&  
+                               geom_tan_pos[2] <= lon_grid[nlon-1]   &&  
+                                                geom_tan_z >= geom_tan_atmtop )
+                {
+                  ppath_set_background( ppath, 1 );
+                  out1 << "  ------- WARNING -------: path is totally "
+                       << "outside of the model atmosphere\n";
+                }
+
+              // The path: does it enter the atmosphere, and then where?
+              else
+                {
+                  // Create a matrix for top of the atmosphere radii
+                  Matrix r_atmtop(nlat,nlon);
+                  //
+                  for( Index ilat=0; ilat<nlat; ilat++ )
+                    {
+                      for( Index ilon=0; ilon<nlon; ilon++ )
+                        { r_atmtop(ilat,ilon) = r_geoid(ilat,ilon) +
+                                                      z_field(np-1,ilat,ilon); }
+                    }
+
+                  // Handle the case when the sensor radius is obviously too low
+                  double   rtopmin = min( r_atmtop );
+                  if( rte_pos[0] <= rtopmin )
+                    {
+                      ostringstream os;
+                      os << "The sensor radius is smaller than the minimum "
+                         << "radius of the top of\nthe atmosphere. This gives "
+                         << "no possible OK entrance point for the path.";
+                      throw runtime_error( os.str() );
+                    }
+
+                  // Handle the case when the path clearly passes above the 
+                  // model atmosphere
+                  double   rtopmax = max( r_atmtop );
+                  if( geom_tan_pos[0] >= rtopmax )
+                    {
+                      ostringstream os;
+                      os << "The combination of sensor position and line-of-"
+                         << "sight gives a\npropagation path that goes above "
+                         << "the model atmosphere, with\na tangent point "
+                         << "outside the covered latitude and longitude "
+                         << "ranges.\nThe position of the "
+                         << "tangent point is:\n   lat : " << geom_tan_pos[1] 
+                         << "\n   lon : " << geom_tan_pos[2];
+                      throw runtime_error( os.str() );
+                    }
+
+                  // Sensor pos and LOS in cartesian coordinates
+                  double   x, y, z, dx, dy, dz;
+                  poslos2cart( x, y, z, dx, dy, dz, rte_pos[0], 
+                               rte_pos[1], rte_pos[2], rte_los[0], rte_los[1] );
+
+                  // Boolean for that entrance point CANNOT be found
+                  bool   failed = false;
+                 
+                  // Determine the entrance point for the minimum of *r_atmtop*
+                  double   r_top, lat_top, lon_top, l_top;
+                  plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
+                                   rtopmin, rte_pos[0], rte_pos[1], rte_pos[2], 
+                                      rte_los[0], x, y, z, dx, dy, dz );
+                  resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
+
+                  // If no crossing was found for min radius, or it is outside
+                  // covered lat and lon ranges, try max radius and make the
+                  // same check. If check not succesful, there is no OK
+                  // entrance point.
                   if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
                       lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
-                    { failed = true; }
-                }
-
-              // Search iteratively for the entrance point until convergence
-              // or moving out from covered lat and lon ranges
-              //
-              bool   ready = false;
-              //
-              while( !failed  &&  !ready )
-                {
-                  // Determine radius at found lat and lon
-                  GridPos   gp_lattop, gp_lontop;
-                  double   lat1, lat3, lon5, lon6, r15, r35, r36, r16;
-                  Index     ilat, ilon;
-                  gridpos( gp_lattop, lat_grid, lat_top );
-                  ilat = gridpos2gridrange( gp_lattop, abs(rte_los[1]) >= 90 );
-                  gridpos( gp_lontop, lon_grid, lon_top );
-                  ilon  = gridpos2gridrange( gp_lontop, rte_los[1] > 0 );   
-                  r15   = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
-                  r35   = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
-                  r36   = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
-                  r16   = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
-                  lat1  = lat_grid[ilat];
-                  lat3  = lat_grid[ilat+1];
-                  lon5  = lon_grid[ilon];
-                  lon6  = lon_grid[ilon+1];
-                  r_top = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                       r15, r35, r36, r16, lat_top, lon_top );
-
-                  // Determine new entrance position for latest estimated
-                  // entrance radius
-                  double   lat_top2, lon_top2;
-                  plevel_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
-                                    r_top, rte_pos[0], rte_pos[1], rte_pos[2], 
-                                    rte_los[0], x, y, z, dx, dy, dz );
-                  resolve_lon( lon_top2, lon_grid[0], lon_grid[nlon-1] ); 
+                    {
+                      plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
+                                    rtopmax, rte_pos[0], rte_pos[1], rte_pos[2],
+                                       rte_los[0], x, y, z, dx, dy, dz );
+                      resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
                   
-                  // Check if new position is sufficiently close to old
-                  if( abs( lat_top2 - lat_top ) < 1e-6  &&  
-                                             abs( lon_top2 - lon_top ) < 1e-6 )
-                    { ready = true; }
+                      if( lat_top < lat_grid[0] || lat_top > lat_grid[nlat-1] ||
+                          lon_top < lon_grid[0] || lon_top > lon_grid[nlon-1] )
+                        { failed = true; }
+                    }
 
-                  // Have we moved outside covered lat or lon range?
-                  else if( lat_top < lat_grid[0]  ||  
-                           lat_top > lat_grid[nlat-1] ||
-                           lon_top < lon_grid[0]  ||  
-                           lon_top > lon_grid[nlon-1] )
-                    { failed = true; }
-                  
-                  lat_top = lat_top2;   
-                  lon_top = lon_top2; 
+                  // Search iteratively for the entrance point until
+                  // convergence or moving out from covered lat and lon ranges
+                  //
+                  bool   ready = false;
+                  //
+                  while( !failed  &&  !ready )
+                    {
+                      // Determine radius at found lat and lon
+                      GridPos   gp_lattop, gp_lontop;
+                      double   lat1, lat3, lon5, lon6, r15, r35, r36, r16;
+                      Index     ilat, ilon;
+                      gridpos( gp_lattop, lat_grid, lat_top );
+                      ilat = gridpos2gridrange( gp_lattop, abs(rte_los[1])>=90);
+                      gridpos( gp_lontop, lon_grid, lon_top );
+                      ilon  = gridpos2gridrange( gp_lontop, rte_los[1] > 0 );   
+                      r15   = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
+                      r35   = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
+                      r36   = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
+                      r16   = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
+                      lat1  = lat_grid[ilat];
+                      lat3  = lat_grid[ilat+1];
+                      lon5  = lon_grid[ilon];
+                      lon6  = lon_grid[ilon+1];
+                      r_top = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                         r15, r35, r36, r16, lat_top, lon_top );
+
+                      // Determine new entrance position for latest estimated
+                      // entrance radius
+                      double   lat_top2, lon_top2;
+                      plevel_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
+                                     r_top, rte_pos[0], rte_pos[1], rte_pos[2], 
+                                     rte_los[0], x, y, z, dx, dy, dz );
+                      resolve_lon( lon_top2, lon_grid[0], lon_grid[nlon-1] ); 
+                      
+                      // Check if new position is sufficiently close to old
+                      if( abs( lat_top2 - lat_top ) < 1e-6  &&  
+                                              abs( lon_top2 - lon_top ) < 1e-6 )
+                        { ready = true; }
+
+                      // Have we moved outside covered lat or lon range?
+                      else if( lat_top < lat_grid[0]  ||  
+                               lat_top > lat_grid[nlat-1] ||
+                               lon_top < lon_grid[0]  ||  
+                               lon_top > lon_grid[nlon-1] )
+                        { failed = true; }
+                      
+                      lat_top = lat_top2;   
+                      lon_top = lon_top2; 
+                    }
+
+                  if( failed )
+                    {
+                      ostringstream os;
+                      os << "The path does not enter the model atmosphere at "
+                         << "the top.\nThe path reaches the top of the "
+                         << "atmosphere altitude\napproximately at the "
+                         << "position:\n   lat : " << lat_top << "\n   lon : " 
+                         << lon_top;
+                      throw runtime_error( os.str() );
+                    }
+
+                  // Correct found lat and lon for some special cases
+                  //
+                  if( rte_los[0] == 180 )
+                    {
+                      lat_top = rte_pos[1];
+                      lon_top = rte_pos[2];
+                    }
+                  else if( abs( rte_pos[1] ) < 90  && ( abs(rte_los[1]) < ANGTOL
+                                          ||  abs( rte_los[1] ) > 180-ANGTOL ) )
+                    { lon_top = rte_pos[2]; } 
+
+                  // Move found values to *ppath*
+                  //
+                  // Position
+                  ppath.pos(0,0) = r_top;
+                  ppath.pos(0,1) = lat_top;
+                  ppath.pos(0,2) = lon_top;
+                  //
+                  // Grid position
+                  ppath.gp_p[0].idx = np - 2;
+                  ppath.gp_p[0].fd[0] = 1;
+                  ppath.gp_p[0].fd[1] = 0;
+                  gridpos( ppath.gp_lat[0], lat_grid, lat_top ); 
+                  gridpos( ppath.gp_lon[0], lon_grid, lon_top ); 
+                  //
+                  // Geometrical altitude
+                  Vector   itw2(4);
+                  interpweights( itw2, ppath.gp_lat[0], ppath.gp_lon[0] );
+                  ppath.z[0] = ppath.pos(0,0) - interp(itw2,  r_geoid,
+                                             ppath.gp_lat[0], ppath.gp_lon[0] );
+                  //
+                  // LOS
+                  double   zatmp, aatmp;
+                  cart2poslos( r_top, lat_top, lon_top, zatmp, aatmp,
+                               x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
+                  ppath.los(0,0) = zatmp;
+                  ppath.los(0,1) = aatmp;
+                  //
+                  // Correct found LOS for some special cases
+                  if( rte_los[0] == 180 )
+                    { ppath.los(0,0) = 180; }
+                  if( abs( rte_pos[1] ) < 90  &&  ( abs( rte_los[1] ) < ANGTOL  
+                                          ||  abs( rte_los[1] ) > 180-ANGTOL ) )
+                    { ppath.los(0,1) = rte_los[1]; } 
                 }
 
-              if( failed )
-                {
-                  ostringstream os;
-                  os << "The path does not enter the model atmosphere at the "
-                     << "top.\nThe path reaches the top of the atmosphere "
-                     << "altitude\napproximately at the position:\n"
-                     << "   lat : " << lat_top << "\n   lon : " << lon_top;
-                  throw runtime_error( os.str() );
-                }
+              // Handle possible numerical problems for grid positions
+              gridpos_check_fd( ppath.gp_p[0] );
+              gridpos_check_fd( ppath.gp_lat[0] );
+              gridpos_check_fd( ppath.gp_lon[0] );
+            } // else
 
-              // Correct found lat and lon for some special cases
-              //
-              if( rte_los[0] == 180 )
-                {
-                  lat_top = rte_pos[1];
-                  lon_top = rte_pos[2];
-                }
-              else if( abs( rte_pos[1] ) < 90  && ( abs(rte_los[1]) < ANGTOL  
-                                       ||  abs( rte_los[1] ) > 180-ANGTOL ) )
-                { lon_top = rte_pos[2]; } 
-
-              // Move found values to *ppath*
-              //
-              // Position
-              ppath.pos(0,0) = r_top;
-              ppath.pos(0,1) = lat_top;
-              ppath.pos(0,2) = lon_top;
-              //
-              // Grid position
-              ppath.gp_p[0].idx = np - 2;
-              ppath.gp_p[0].fd[0] = 1;
-              ppath.gp_p[0].fd[1] = 0;
-              gridpos( ppath.gp_lat[0], lat_grid, lat_top ); 
-              gridpos( ppath.gp_lon[0], lon_grid, lon_top ); 
-              //
-              // Geometrical altitude
-              Vector   itw2(4);
-              interpweights( itw2, ppath.gp_lat[0], ppath.gp_lon[0] );
-              ppath.z[0] = ppath.pos(0,0) - interp(itw2,  r_geoid,
-                                            ppath.gp_lat[0], ppath.gp_lon[0] );
-              //
-              // LOS
-              double   zatmp, aatmp;
-              cart2poslos( r_top, lat_top, lon_top, zatmp, aatmp,
-                           x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
-              ppath.los(0,0) = zatmp;
-              ppath.los(0,1) = aatmp;
-              //
-              // Correct found LOS for some special cases
-              if( rte_los[0] == 180 )
-                { ppath.los(0,0) = 180; }
-              if( abs( rte_pos[1] ) < 90  &&  ( abs( rte_los[1] ) < ANGTOL  
-                                         ||  abs( rte_los[1] ) > 180-ANGTOL ) )
-                { ppath.los(0,1) = rte_los[1]; } 
-            }
-
-        } // else
-
-      // Handle possible numerical problems for grid positions
-      gridpos_check_fd( ppath.gp_p[0] );
-      gridpos_check_fd( ppath.gp_lat[0] );
-      gridpos_check_fd( ppath.gp_lon[0] );
+        }
 
       // Set geometrical tangent point position
       if( geom_tan_pos.nelem() == 3 )

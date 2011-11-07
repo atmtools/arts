@@ -1,3 +1,11 @@
+2011-11-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-19
+
+	* src/ppath.cc (ppath_start_stepping): Now also "upward"
+	observations are allowed when the sensor is above the model
+	atmosphere. The idea is to allow the cloudbox to include TOA.
+
 2011-11-05  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-0-18
