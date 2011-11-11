@@ -200,7 +200,9 @@ void abs_lookupCreate(// WS Output:
   if (abs_lines_per_species.nelem() != abs_species.nelem())
     {
       ostringstream os;
-      os << "Dimensions of *abs_species* and *abs_lines_per_species* must match.";
+      os << "Dimensions of *abs_species* and *abs_lines_per_species* must match. "
+         << "*abs_species*: " << abs_species.nelem() << " elements. "
+         << "*abs_lines_per_species*: " << abs_lines_per_species.nelem() << " elements.";
       throw runtime_error( os.str() );      
     }
 
