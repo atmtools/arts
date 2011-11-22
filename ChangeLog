@@ -1,3 +1,10 @@
+2011-11-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* doc/uguide/rte.tex: New symbol definitions used.
+
+	* doc/uguide/symbol_defs.tex: Added definitions for Stokes elements
+	I, Q, U and V, and speed.
+
 2011-11-11  Gerrit Holl <gerrit.holl@ltu.se>
 
 	* arts-2-0-20
