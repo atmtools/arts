@@ -456,12 +456,13 @@ For radiance calculations, the standard workspace method to use inside
 is in this method, and in ARTS generally, defined as
 \begin{equation}
   \label{eq:planck}
-  B(T) = \frac{2h\Frq^3}{c^2(exp(h\Frq/k_BT)-1)},
+  \Planck(\Tmp) = \frac{2\planckCns\Frq^3}
+                  {\speedoflight^2(exp(\planckCns\Frq/\boltzmannCns\Tmp)-1)}
 \end{equation}
-where $h$ is the Planck constant, $c$ the speed of light and $k_B$ the
-Boltzmann constant. This expression gives the total power, per unit frequency
-per unit area per solid angle. (The Planck function can also be defined as a
-function of wavelength.)
+where \planckCns\ is the Planck constant, \speedoflight\ the speed of light and
+\boltzmannCns\ the Boltzmann constant. This expression gives the total power,
+per unit frequency per unit area per solid angle. (The Planck function can also
+be defined as a function of wavelength.)
 
 As long as cosmic background radiation is the only type of non-telluric
 radiation that has to be considered, the standard method for inclusion in

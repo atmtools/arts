@@ -1,4 +1,16 @@
+2011-11-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-22
+
+	* doc/uguide/symbol_defs.tex: More definitions around refrcative
+	index. Some consistency changes.
+
+	* doc/uguide/rte.tex: Planck function equation now uses symbol
+	definitions throughout.
+
 2011-11-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-21
 
 	* doc/uguide/rte.tex: New symbol definitions used.
 
