@@ -1,3 +1,21 @@
+2011-11-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-23
+
+	* CMakeLists.txt:
+
+	Add an additional check right at the beginning to make sure that we
+	never allow cmake to be called inside the source directory.
+
+	NOTE: If you get an error after updating that you have to build
+	arts outside the source tree although you are actually in a separate
+	build directory, make sure that there is no file 'CMakeCache.txt' or
+	directory 'CMakeFiles' in your toplevel arts source(!!) directory.
+
+	* tests/testall.py: Fix path to arts for Xcode build.
+
+	* src/docserver.cc (insert_breadcrumbs): Fix type of t, int -> size_t.
+
 2011-11-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-0-22

@@ -1526,7 +1526,7 @@ void Docserver::insert_breadcrumb_token (size_t token_id)
 void Docserver::insert_breadcrumbs ()
 {
   get_os() << "<div id=\"navbar\"><div class=\"breadcrumbs\">";
-  for (int t = 0; t <= tokens.size(); t++)
+  for (size_t t = 0; t <= tokens.size(); t++)
   {
     if (t) get_os() << "&nbsp;>>&nbsp;";
     insert_breadcrumb_token(t);

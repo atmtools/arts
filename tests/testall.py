@@ -21,7 +21,7 @@ class ArtsRun:
         artsbin='../../src/arts'
         try:
             if os.environ['CMAKE_GENERATOR'] == 'Xcode':
-                artsbin='../../src/' + os.environ['BUILD_STYLE'] + '/arts'
+                artsbin='../../src/' + os.environ['CONFIGURATION'] + '/arts'
         except KeyError:
             pass
 

@@ -1,3 +1,23 @@
+if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+  message (FATAL_ERROR
+"In-source builds are not allowed. Please create a directory and run cmake "
+"from there, passing the path to this source directory as the last argument:"
+"
+"
+"cmake path_to_arts"
+"
+"
+"IMPORTANT: This process created the file 'CMakeCache.txt' and the directory "
+"'CMakeFiles'.  Please delete them."
+"
+"
+"If you get this error message although you are in a separate build directory, "
+"please check that there is no file 'CMakeCache.txt' and no directory "
+"'CMakeFiles' in the arts source directory (not the directory you're "
+"currently in).  Please delete them."
+)
+endif ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+
 cmake_minimum_required (VERSION 2.6.3)
 set (CMAKE_LEGACY_CYGWIN_WIN32 0)
 
