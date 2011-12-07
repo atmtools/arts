@@ -1,3 +1,11 @@
+2011-12-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-24
+
+	* src/arts_omp.cc (arts_omp_in_parallel):
+
+	No more special treatment needed for Intel Compiler.
+
 2011-11-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-23

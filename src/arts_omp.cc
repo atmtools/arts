@@ -67,11 +67,7 @@ bool arts_omp_in_parallel()
 {
 
 #ifdef _OPENMP
-#ifdef __ICC
-  return (omp_get_max_threads() > 1);
-#else
   return omp_in_parallel();
-#endif
 #else
   return false;
 #endif
