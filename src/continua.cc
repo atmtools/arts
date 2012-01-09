@@ -13859,7 +13859,7 @@ L999:
     */
 
     /* Local variables */
-    int list, jsum;
+    int list, jsum = 0;
     extern double bgama_(double *, double *, double *,
       double *, double *, double *, double *);
     int i__, j;

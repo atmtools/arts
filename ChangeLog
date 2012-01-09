@@ -1,3 +1,29 @@
+2012-01-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-25
+
+	* CMakeLists.txt: Add cmake option -DWITH_GUI=1.
+
+	* src/CMakeLists.txt:
+
+	Detect Qt libraries, link with artsgui lib and add gui subdirectory if
+	enabled.
+
+	* src/parameters.{cc,h}: Add -G (--gui) option to launch with GUI.
+
+	* src/main.cc: Add GUI launch code.
+
+	* src/gui/: Add subdirectory for arts GUI library code.
+
+	* src/gui/CMakeLists.txt, src/src/gui/ag_main.{cc,h},
+	src/gui/mainwindow_qobj.{cc,h}:
+
+	Simple main window with helloworld message.
+
+	* config.h.cmake: Add ENABLE_GUI preprocessor flag.
+
+	* src/continua.cc: Initialize jsum with 0 to avoid warning.
+
 2011-12-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-24

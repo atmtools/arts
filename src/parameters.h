@@ -61,7 +61,8 @@ public:
     plain(false),
     docserver(0),
     baseurl(""),
-    daemon(false)
+    daemon(false),
+    gui(false)
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
   String usage;
@@ -115,6 +116,8 @@ public:
   String baseurl;
   /** Flag to run the docserver in the background. */
   bool daemon;
+  /** Flag to run with graphical user interface. */
+  bool gui;
 };
 
 

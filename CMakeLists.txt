@@ -229,6 +229,13 @@ endif (APPLE)
 
 set (ARTS_DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes")
 
+if (WITH_GUI)
+  find_package (Qt4)
+  if (QT4_FOUND)
+    set (ENABLE_GUI true)
+  endif (QT4_FOUND)
+endif (WITH_GUI)
+
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
 
