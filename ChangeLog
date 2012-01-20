@@ -1,3 +1,16 @@
+2012-01-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-26
+
+	* src/m_optproperties.cc:
+
+	Make all preprocessor macros UPPERCASE. Otherwise the code gets
+	horribly unreadable. If they appear just as normal variables it's
+	very hard to guess that they're actually macros.
+
+	Macros changed: PART_TYPE F_DATAGRID T_DATAGRID ZA_DATAGRID AA_DATAGRID
+	PHA_MAT_DATA_RAW EXT_MAT_DATA_RAW ABS_VEC_DATA_RAW PND_LIMIT
+
 2012-01-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-25

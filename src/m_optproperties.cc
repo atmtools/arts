@@ -56,15 +56,15 @@ extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
-#define part_type scat_data_raw[i_pt].ptype
-#define f_datagrid scat_data_raw[i_pt].f_grid
-#define T_datagrid scat_data_raw[i_pt].T_grid
-#define za_datagrid scat_data_raw[i_pt].za_grid
-#define aa_datagrid scat_data_raw[i_pt].aa_grid
-#define pha_mat_data_raw scat_data_raw[i_pt].pha_mat_data  //CPD: changed from pha_mat_data
-#define ext_mat_data_raw scat_data_raw[i_pt].ext_mat_data  //which wouldn't let me play with
-#define abs_vec_data_raw scat_data_raw[i_pt].abs_vec_data  //scat_data_mono.
-#define pnd_limit 1e-12 // If particle number density is below this value, 
+#define PART_TYPE scat_data_raw[i_pt].ptype
+#define F_DATAGRID scat_data_raw[i_pt].f_grid
+#define T_DATAGRID scat_data_raw[i_pt].T_grid
+#define ZA_DATAGRID scat_data_raw[i_pt].za_grid
+#define AA_DATAGRID scat_data_raw[i_pt].aa_grid
+#define PHA_MAT_DATA_RAW scat_data_raw[i_pt].pha_mat_data  //CPD: changed from pha_mat_data
+#define EXT_MAT_DATA_RAW scat_data_raw[i_pt].ext_mat_data  //which wouldn't let me play with
+#define ABS_VEC_DATA_RAW scat_data_raw[i_pt].abs_vec_data  //scat_data_mono.
+#define PND_LIMIT 1e-12 // If particle number density is below this value, 
                         // no transformations will be performed
 
 
@@ -111,7 +111,7 @@ void pha_mat_sptFromData( // Output:
     {
       // If the particle number density at a specific point in the atmosphere for 
       // the i_pt particle type is zero, we don't need to do the transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > pnd_limit)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
         {
 
           // First we have to transform the data from the coordinate system 
@@ -121,39 +121,39 @@ void pha_mat_sptFromData( // Output:
           // Frequency interpolation:
      
           // The data is interpolated on one frequency. 
-          pha_mat_data_int.resize(pha_mat_data_raw.nshelves(), pha_mat_data_raw.nbooks(),
-                                  pha_mat_data_raw.npages(), pha_mat_data_raw.nrows(), 
-                                  pha_mat_data_raw.ncols());
+          pha_mat_data_int.resize(PHA_MAT_DATA_RAW.nshelves(), PHA_MAT_DATA_RAW.nbooks(),
+                                  PHA_MAT_DATA_RAW.npages(), PHA_MAT_DATA_RAW.nrows(), 
+                                  PHA_MAT_DATA_RAW.ncols());
 
       
           // Gridpositions:
           GridPos freq_gp;
-          gridpos(freq_gp, f_datagrid, f_grid[f_index]);
+          gridpos(freq_gp, F_DATAGRID, f_grid[f_index]);
 
           GridPos t_gp;
-          gridpos(t_gp, T_datagrid, rte_temperature);
+          gridpos(t_gp, T_DATAGRID, rte_temperature);
 
           // Interpolationweights:
           Vector itw(4);
           interpweights(itw, freq_gp, t_gp);
      
-          for (Index i_za_sca = 0; i_za_sca < pha_mat_data_raw.nshelves() ; i_za_sca++)
+          for (Index i_za_sca = 0; i_za_sca < PHA_MAT_DATA_RAW.nshelves() ; i_za_sca++)
             {
-              for (Index i_aa_sca = 0; i_aa_sca < pha_mat_data_raw.nbooks(); i_aa_sca++)
+              for (Index i_aa_sca = 0; i_aa_sca < PHA_MAT_DATA_RAW.nbooks(); i_aa_sca++)
                 {
-                  for (Index i_za_inc = 0; i_za_inc < pha_mat_data_raw.npages(); 
+                  for (Index i_za_inc = 0; i_za_inc < PHA_MAT_DATA_RAW.npages(); 
                        i_za_inc++)
                     {
-                      for (Index i_aa_inc = 0; i_aa_inc < pha_mat_data_raw.nrows(); 
+                      for (Index i_aa_inc = 0; i_aa_inc < PHA_MAT_DATA_RAW.nrows(); 
                            i_aa_inc++)
                         {  
-                          for (Index i = 0; i < pha_mat_data_raw.ncols(); i++)
+                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
                             {
                               pha_mat_data_int(i_za_sca, 
                                                i_aa_sca, i_za_inc, 
                                                i_aa_inc, i) =
                                 interp(itw,
-                                       pha_mat_data_raw(joker, joker, i_za_sca, 
+                                       PHA_MAT_DATA_RAW(joker, joker, i_za_sca, 
                                                         i_aa_sca, i_za_inc, 
                                                         i_aa_inc, i),
                                        freq_gp, t_gp);
@@ -173,8 +173,8 @@ void pha_mat_sptFromData( // Output:
                   pha_matTransform(pha_mat_spt
                                    (i_pt, za_inc_idx, aa_inc_idx, joker, joker),
                                    pha_mat_data_int, 
-                                   za_datagrid, aa_datagrid,
-                                   part_type, scat_za_index, scat_aa_index,
+                                   ZA_DATAGRID, AA_DATAGRID,
+                                   PART_TYPE, scat_za_index, scat_aa_index,
                                    za_inc_idx, 
                                    aa_inc_idx, scat_za_grid, scat_aa_grid,
                                    verbosity);
@@ -259,7 +259,7 @@ void pha_mat_sptFromDataDOITOpt(// Output:
       // If the particle number density at a specific point in the atmosphere  
       // for the i_pt particle type is zero, we don't need to do the 
       // transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > pnd_limit) //TRS
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT) //TRS
         {
           if( scat_data_mono[i_pt].T_grid.nelem() > 1)
             {
@@ -362,7 +362,7 @@ void opt_prop_sptFromData(// Output and Input:
       // If the particle number density at a specific point in the atmosphere for 
       // the i_pt particle type is zero, we don't need to do the transfromation
 
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > pnd_limit)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
         {
           // First we have to transform the data from the coordinate system 
           // used in the database (depending on the kind of particle type 
@@ -374,67 +374,67 @@ void opt_prop_sptFromData(// Output and Input:
           //
           // Resize the variables for the interpolated data:
           //
-          ext_mat_data_int.resize(ext_mat_data_raw.npages(),
-                                  ext_mat_data_raw.nrows(), 
-                                  ext_mat_data_raw.ncols());
+          ext_mat_data_int.resize(EXT_MAT_DATA_RAW.npages(),
+                                  EXT_MAT_DATA_RAW.nrows(), 
+                                  EXT_MAT_DATA_RAW.ncols());
           //
-          abs_vec_data_int.resize(abs_vec_data_raw.npages(),
-                                  abs_vec_data_raw.nrows(), 
-                                  abs_vec_data_raw.ncols());
+          abs_vec_data_int.resize(ABS_VEC_DATA_RAW.npages(),
+                                  ABS_VEC_DATA_RAW.nrows(), 
+                                  ABS_VEC_DATA_RAW.ncols());
       
       
           // Gridpositions:
           GridPos freq_gp;
-          gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
+          gridpos(freq_gp, F_DATAGRID, f_grid[f_index]); 
           GridPos t_gp;
           Vector itw;
           
-          if ( T_datagrid.nelem() > 1)
+          if ( T_DATAGRID.nelem() > 1)
             {
               ostringstream os;
               os << "The temperature grid of the scattering data does not cover the \n"
                     "atmospheric temperature at cloud location. The data should \n"
                     "include the value T="<< rte_temperature << " K. \n";
-              chk_interpolation_grids(os.str(),	T_datagrid, rte_temperature);
+              chk_interpolation_grids(os.str(),	T_DATAGRID, rte_temperature);
               
-              gridpos(t_gp, T_datagrid, rte_temperature);
+              gridpos(t_gp, T_DATAGRID, rte_temperature);
           
               // Interpolationweights:
               itw.resize(4);
               interpweights(itw, freq_gp, t_gp);
           
-              for (Index i_za_sca = 0; i_za_sca < ext_mat_data_raw.npages();
+              for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_RAW.npages();
                    i_za_sca++)
                 {
-                  for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data_raw.nrows(); 
+                  for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_RAW.nrows(); 
                       i_aa_sca++)
                     {
                       //
                       // Interpolation of extinction matrix:
                       //
-                      for (Index i = 0; i < ext_mat_data_raw.ncols(); i++)
+                      for (Index i = 0; i < EXT_MAT_DATA_RAW.ncols(); i++)
                         {
                           ext_mat_data_int(i_za_sca, i_aa_sca, i) =
-                            interp(itw, ext_mat_data_raw(joker, joker, 
+                            interp(itw, EXT_MAT_DATA_RAW(joker, joker, 
                                                          i_za_sca, i_aa_sca, i),
                                    freq_gp, t_gp);
                         }
                     }
                 }
 
-              for (Index i_za_sca = 0; i_za_sca < abs_vec_data_raw.npages();
+              for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_RAW.npages();
                    i_za_sca++)
                 {
-                  for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data_raw.nrows(); 
+                  for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_RAW.nrows(); 
                       i_aa_sca++)
                     {
                       //
                       // Interpolation of absorption vector:
                       //
-                      for (Index i = 0; i < abs_vec_data_raw.ncols(); i++)
+                      for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
                         {
                           abs_vec_data_int(i_za_sca, i_aa_sca, i) =
-                            interp(itw, abs_vec_data_raw(joker, joker, i_za_sca, 
+                            interp(itw, ABS_VEC_DATA_RAW(joker, joker, i_za_sca, 
                                                          i_aa_sca, i),
                                    freq_gp, t_gp);
                         }
@@ -447,38 +447,38 @@ void opt_prop_sptFromData(// Output and Input:
               itw.resize(2);
               interpweights(itw, freq_gp);
           
-              for (Index i_za_sca = 0; i_za_sca < ext_mat_data_raw.npages();
+              for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_RAW.npages();
                    i_za_sca++)
                 {
-                  for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data_raw.nrows(); 
+                  for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_RAW.nrows(); 
                       i_aa_sca++)
                     {
                       //
                       // Interpolation of extinction matrix:
                       //
-                      for (Index i = 0; i < ext_mat_data_raw.ncols(); i++)
+                      for (Index i = 0; i < EXT_MAT_DATA_RAW.ncols(); i++)
                         {
                           ext_mat_data_int(i_za_sca, i_aa_sca, i) =
-                            interp(itw, ext_mat_data_raw(joker, 0, 
+                            interp(itw, EXT_MAT_DATA_RAW(joker, 0, 
                                                          i_za_sca, i_aa_sca, i),
                                    freq_gp);
                         }
                     }
                 }
 
-              for (Index i_za_sca = 0; i_za_sca < abs_vec_data_raw.npages();
+              for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_RAW.npages();
                    i_za_sca++)
                 {
-                  for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data_raw.nrows(); 
+                  for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_RAW.nrows(); 
                       i_aa_sca++)
                     {
                       //
                       // Interpolation of absorption vector:
                       //
-                      for (Index i = 0; i < abs_vec_data_raw.ncols(); i++)
+                      for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
                         {
                           abs_vec_data_int(i_za_sca, i_aa_sca, i) =
-                            interp(itw, abs_vec_data_raw(joker, 0, i_za_sca, 
+                            interp(itw, ABS_VEC_DATA_RAW(joker, 0, i_za_sca, 
                                                          i_aa_sca, i),
                                    freq_gp);
                         }
@@ -496,7 +496,7 @@ void opt_prop_sptFromData(// Output and Input:
   
           ext_matTransform(ext_mat_spt(i_pt, joker, joker),
                            ext_mat_data_int,
-                           za_datagrid, aa_datagrid, part_type,
+                           ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
                            za_sca, aa_sca,
                            verbosity);
           // 
@@ -504,7 +504,7 @@ void opt_prop_sptFromData(// Output and Input:
           //
           abs_vecTransform(abs_vec_spt(i_pt, joker),
                            abs_vec_data_int,
-                           za_datagrid, aa_datagrid, part_type,
+                           ZA_DATAGRID, AA_DATAGRID, PART_TYPE,
                            za_sca, aa_sca, verbosity);                
         }
 
@@ -922,13 +922,13 @@ void scat_data_rawCheck(//Input:
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
       Numeric Csca = AngIntegrate_trapezoid
-        (pha_mat_data_raw(0, 0, joker, 0, 0, 0, 0), za_datagrid);
+        (PHA_MAT_DATA_RAW(0, 0, joker, 0, 0, 0, 0), ZA_DATAGRID);
 
-      Numeric Cext = ext_mat_data_raw(0,0,0,0,0);
+      Numeric Cext = EXT_MAT_DATA_RAW(0,0,0,0,0);
 
       Numeric Cabs = Cext - Csca;
 
-      Numeric Cabs_data = abs_vec_data_raw(0,0,0,0,0);
+      Numeric Cabs_data = ABS_VEC_DATA_RAW(0,0,0,0,0);
 
       Numeric Csca_data = Cext - Cabs_data;
 
@@ -1076,46 +1076,46 @@ void scat_data_monoCalc(ArrayOfSingleScatteringData& scat_data_mono,
     {
       // Gridpositions:
       GridPos freq_gp;
-      gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
+      gridpos(freq_gp, F_DATAGRID, f_grid[f_index]); 
       
       // Interpolationweights:
       Vector itw(2);
       interpweights(itw, freq_gp);
 
       //Stuff that doesn't need interpolating
-      scat_data_mono[i_pt].ptype=part_type;
+      scat_data_mono[i_pt].ptype=PART_TYPE;
       scat_data_mono[i_pt].f_grid.resize(1);
       scat_data_mono[i_pt].f_grid=f_grid[f_index];
       scat_data_mono[i_pt].T_grid=scat_data_raw[i_pt].T_grid;
-      scat_data_mono[i_pt].za_grid=za_datagrid;
-      scat_data_mono[i_pt].aa_grid=aa_datagrid;
+      scat_data_mono[i_pt].za_grid=ZA_DATAGRID;
+      scat_data_mono[i_pt].aa_grid=AA_DATAGRID;
           
       //Phase matrix data
       scat_data_mono[i_pt].pha_mat_data.resize(1,
-                                               pha_mat_data_raw.nvitrines(),
-                                               pha_mat_data_raw.nshelves(),
-                                               pha_mat_data_raw.nbooks(),
-                                               pha_mat_data_raw.npages(),
-                                               pha_mat_data_raw.nrows(),
-                                               pha_mat_data_raw.ncols());
+                                               PHA_MAT_DATA_RAW.nvitrines(),
+                                               PHA_MAT_DATA_RAW.nshelves(),
+                                               PHA_MAT_DATA_RAW.nbooks(),
+                                               PHA_MAT_DATA_RAW.npages(),
+                                               PHA_MAT_DATA_RAW.nrows(),
+                                               PHA_MAT_DATA_RAW.ncols());
       
-      for (Index t_index = 0; t_index < pha_mat_data_raw.nvitrines(); t_index ++)
+      for (Index t_index = 0; t_index < PHA_MAT_DATA_RAW.nvitrines(); t_index ++)
         {
-          for (Index i_za_sca = 0; i_za_sca < pha_mat_data_raw.nshelves();
+          for (Index i_za_sca = 0; i_za_sca < PHA_MAT_DATA_RAW.nshelves();
                i_za_sca++)
             {
-              for (Index i_aa_sca = 0; i_aa_sca < pha_mat_data_raw.nbooks();
+              for (Index i_aa_sca = 0; i_aa_sca < PHA_MAT_DATA_RAW.nbooks();
                    i_aa_sca++)
                 {
                   for (Index i_za_inc = 0; i_za_inc < 
-                         pha_mat_data_raw.npages(); 
+                         PHA_MAT_DATA_RAW.npages(); 
                        i_za_inc++)
                     {
                       for (Index i_aa_inc = 0; 
-                           i_aa_inc < pha_mat_data_raw.nrows(); 
+                           i_aa_inc < PHA_MAT_DATA_RAW.nrows(); 
                            i_aa_inc++)
                         {  
-                          for (Index i = 0; i < pha_mat_data_raw.ncols(); i++)
+                          for (Index i = 0; i < PHA_MAT_DATA_RAW.ncols(); i++)
                             {
                               scat_data_mono[i_pt].pha_mat_data(0, t_index, 
                                                                 i_za_sca, 
@@ -1123,7 +1123,7 @@ void scat_data_monoCalc(ArrayOfSingleScatteringData& scat_data_mono,
                                                                 i_za_inc, 
                                                                 i_aa_inc, i) =
                                 interp(itw,
-                                       pha_mat_data_raw(joker, t_index,
+                                       PHA_MAT_DATA_RAW(joker, t_index,
                                                         i_za_sca, 
                                                         i_aa_sca, i_za_inc, 
                                                         i_aa_inc, i),
@@ -1134,48 +1134,48 @@ void scat_data_monoCalc(ArrayOfSingleScatteringData& scat_data_mono,
                 }
             }
           //Extinction matrix data
-          scat_data_mono[i_pt].ext_mat_data.resize(1, T_datagrid.nelem(), 
-                                                   ext_mat_data_raw.npages(),
-                                                   ext_mat_data_raw.nrows(),
-                                                   ext_mat_data_raw.ncols());
-          for (Index i_za_sca = 0; i_za_sca < ext_mat_data_raw.npages();
+          scat_data_mono[i_pt].ext_mat_data.resize(1, T_DATAGRID.nelem(), 
+                                                   EXT_MAT_DATA_RAW.npages(),
+                                                   EXT_MAT_DATA_RAW.nrows(),
+                                                   EXT_MAT_DATA_RAW.ncols());
+          for (Index i_za_sca = 0; i_za_sca < EXT_MAT_DATA_RAW.npages();
                i_za_sca++)
             {
-              for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data_raw.nrows();
+              for(Index i_aa_sca = 0; i_aa_sca < EXT_MAT_DATA_RAW.nrows();
                   i_aa_sca++)
                 {
                   //
                   // Interpolation of extinction matrix:
                   //
-                  for (Index i = 0; i < ext_mat_data_raw.ncols(); i++)
+                  for (Index i = 0; i < EXT_MAT_DATA_RAW.ncols(); i++)
                     {
                       scat_data_mono[i_pt].ext_mat_data(0, t_index, 
                                                         i_za_sca, i_aa_sca, i)
-                        = interp(itw, ext_mat_data_raw(joker, t_index, i_za_sca,
+                        = interp(itw, EXT_MAT_DATA_RAW(joker, t_index, i_za_sca,
                                                        i_aa_sca, i),
                                  freq_gp);
                     }
                 }
             }
           //Absorption vector data
-          scat_data_mono[i_pt].abs_vec_data.resize(1, T_datagrid.nelem(),
-                                                   abs_vec_data_raw.npages(),
-                                                   abs_vec_data_raw.nrows(),
-                                                   abs_vec_data_raw.ncols());
-          for (Index i_za_sca = 0; i_za_sca < abs_vec_data_raw.npages() ;
+          scat_data_mono[i_pt].abs_vec_data.resize(1, T_DATAGRID.nelem(),
+                                                   ABS_VEC_DATA_RAW.npages(),
+                                                   ABS_VEC_DATA_RAW.nrows(),
+                                                   ABS_VEC_DATA_RAW.ncols());
+          for (Index i_za_sca = 0; i_za_sca < ABS_VEC_DATA_RAW.npages() ;
                i_za_sca++)
             {
-              for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data_raw.nrows();
+              for(Index i_aa_sca = 0; i_aa_sca < ABS_VEC_DATA_RAW.nrows();
                   i_aa_sca++)
                 {
                   //
                   // Interpolation of absorption vector:
                   //
-                  for (Index i = 0; i < abs_vec_data_raw.ncols(); i++)
+                  for (Index i = 0; i < ABS_VEC_DATA_RAW.ncols(); i++)
                     {
                       scat_data_mono[i_pt].abs_vec_data(0, t_index, i_za_sca,
                                                         i_aa_sca, i) =
-                        interp(itw, abs_vec_data_raw(joker, t_index, i_za_sca,
+                        interp(itw, ABS_VEC_DATA_RAW(joker, t_index, i_za_sca,
                                                      i_aa_sca, i),
                                freq_gp);
                     }
@@ -1229,7 +1229,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
     {
       // If the particle number density at a specific point in the atmosphere for 
       // the i_pt particle type is zero, we don't need to do the transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > pnd_limit)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > PND_LIMIT)
         {
  
           // First we have to transform the data from the coordinate system 
@@ -1373,7 +1373,7 @@ void pha_mat_sptFromMonoData(// Output:
       // for the i_pt particle type is zero, we don't need to do the 
       // transfromation!
       if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) >
-          pnd_limit)
+          PND_LIMIT)
         { 
           // Temporary phase matrix wich icludes the all temperatures.
           Tensor3 pha_mat_spt_tmp(scat_data_mono[i_pt].T_grid.nelem(), 
