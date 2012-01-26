@@ -9669,6 +9669,7 @@ void xsec_continuum_tag (MatrixView             xsec,
              << "but you specified " << parameters.nelem() << " parameters.\n"
              << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
+          throw runtime_error(os.str());
         }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -9731,6 +9732,7 @@ void xsec_continuum_tag (MatrixView             xsec,
              << "but you specified " << parameters.nelem() << " parameters.\n"
              << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
+          throw runtime_error(os.str());
         }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
