@@ -42,12 +42,12 @@
   === External declarations
   ===========================================================================*/
 
+#include "arts.h"
+
 #include <stdexcept>
 #ifdef TIME_SUPPORT
 #include <unistd.h>
 #endif
-
-#include "arts.h"
 
 #include "m_general.h"
 #include "array.h"

@@ -1,3 +1,18 @@
+2012-01-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-28
+
+	* Fix compilation against the new libc++ http://libcxx.llvm.org/
+
+	* src/xml_io.cc (xml_read_header_from_stream): Use ' ' as delimiter.
+
+	* src/m_general.cc: Include arts.h before using TIME_SUPPORT.
+
+	* src/src/file.cc:
+
+	Include arts.h first and include unistd.h (for 'unlink' function) if
+	available.
+
 2012-01-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-27

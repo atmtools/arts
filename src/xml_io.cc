@@ -668,7 +668,7 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
 
   while (!is.fail () && isspace (is.peek())) is.get();
 
-  is.get (str, 6);
+  is.get (str, 6, ' ');
 
   if (string(str) != "<?xml")
     {

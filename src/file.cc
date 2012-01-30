@@ -34,11 +34,17 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include "arts.h"
+
 #include <stdexcept>
 #include <cmath>
 #include <cfloat>
 #include <cstdio>
-#include "arts.h"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "matpackI.h"
 #include "array.h"
 #include "messages.h"
