@@ -5299,6 +5299,14 @@ void ppath_start_stepping(Ppath&                ppath,
                                                                        r_top );
                   ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], 0, 
                                                               ppath.los(0,0) );
+                  // Path directly enters at cloudbox (reaching up to top of atmosphere)
+                  if( cloudbox_on )
+                    {
+                      if( ppath.z[0] == z_field(cloudbox_limits[1],0,0) )
+                        {
+                          ppath_set_background( ppath, 3 );
+                        }
+                    }
                 }
             }
         }
