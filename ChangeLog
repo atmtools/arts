@@ -1,3 +1,25 @@
+2012-01-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-30
+
+	* Preparations for ARTSCAT-4.
+
+	* src/absorption.{cc,h}:
+
+	Rename LineRecord::Version to LineRecord::VersionString. Version() now
+	returns the version number as an Index.
+
+	Rename LineRecord::ReadFromArtsStream to
+	LineRecord::ReadFromArtscat3Stream and add
+	LineRecord::ReadFromArtscat4Stream (copy of LR:RFA3S for now).
+
+	* src/xml_io_array_types.cc (xml_read_from_stream):
+
+	Adapt ArrayOfLineRecord reading routine to detect ARTSCAT version and
+	call corresponding LR:ReadFromArtscatXStream function.
+
+	* src/m_abs.cc (abs_linesReadFromArtsObsolete): Adapt for name changes.
+
 2012-02-08  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-0-29

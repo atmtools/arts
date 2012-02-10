@@ -77,7 +77,7 @@ void define_species_map()
     }
 }
 
-ostream& operator << (ostream& os, const LineRecord& lr)
+ostream& operator<< (ostream& os, const LineRecord& lr)
 {
   // Determine the precision, depending on whether Numeric is double
   // or float:  
@@ -92,33 +92,47 @@ ostream& operator << (ostream& os, const LineRecord& lr)
 #endif
 #endif
 
-  os << "@"
-     << " " << lr.Name  ()
-     << " "
-     << setprecision(precision)
-     <<        lr.F     ()
-     << " " << lr.Psf   ()
-     << " " << lr.I0    ()
-     << " " << lr.Ti0   ()
-     << " " << lr.Elow  ()
-     << " " << lr.Agam  ()
-     << " " << lr.Sgam  ()
-     << " " << lr.Nair  ()
-     << " " << lr.Nself ()
-     << " " << lr.Tgam  ()
-     << " " << lr.Naux  ()
-     << " " << lr.dF    ()
-     << " " << lr.dI0   ()
-     << " " << lr.dAgam ()
-     << " " << lr.dSgam ()
-     << " " << lr.dNair ()
-     << " " << lr.dNself()
-     << " " << lr.dPsf  ();  
-  
-   // Added new lines for the spectroscopic parameters accuracies.
-  for ( Index i=0; i<lr.Naux(); ++i )
-    os << " " << lr.Aux()[i];
+  switch (lr.Version()) {
+    case 3:
+      os << "@"
+      << " " << lr.Name  ()
+      << " "
+      << setprecision(precision)
+      <<        lr.F     ()
+      << " " << lr.Psf   ()
+      << " " << lr.I0    ()
+      << " " << lr.Ti0   ()
+      << " " << lr.Elow  ()
+      << " " << lr.Agam  ()
+      << " " << lr.Sgam  ()
+      << " " << lr.Nair  ()
+      << " " << lr.Nself ()
+      << " " << lr.Tgam  ()
+      << " " << lr.Naux  ()
+      << " " << lr.dF    ()
+      << " " << lr.dI0   ()
+      << " " << lr.dAgam ()
+      << " " << lr.dSgam ()
+      << " " << lr.dNair ()
+      << " " << lr.dNself()
+      << " " << lr.dPsf  ();
 
+      // Added new lines for the spectroscopic parameters accuracies.
+      for ( Index i=0; i<lr.Naux(); ++i )
+        os << " " << lr.Aux()[i];
+      
+      break;
+      
+    case 4:
+      throw runtime_error ("ARTSCAT-4 not yet implemented");
+      
+      break;
+      
+    default:
+      os << "Unknown ARTSCAT version: " << lr.Version();
+      break;
+  }
+  
   return os;
 }
 
@@ -1778,8 +1792,205 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
 }
 
 
-bool LineRecord::ReadFromArtsStream(istream& is, const Verbosity& verbosity)
+bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
 {
+  CREATE_OUT3
+ 
+  // Global species lookup data:
+  extern const Array<SpeciesRecord> species_data;
+  
+  // We need a species index sorted by Arts identifier. Keep this in a
+  // static variable, so that we have to do this only once.  The ARTS
+  // species index is ArtsMap[<Arts String>]. 
+  static map<String, SpecIsoMap> ArtsMap;
+  
+  // Remeber if this stuff has already been initialized:
+  static bool hinit = false;
+  
+  mversion = 3;
+  
+  if ( !hinit )
+  {
+    
+    out3 << "  ARTS index table:\n";
+    
+    for ( Index i=0; i<species_data.nelem(); ++i )
+    {
+      const SpeciesRecord& sr = species_data[i];
+      
+      
+      for ( Index j=0; j<sr.Isotope().nelem(); ++j)
+      {
+        
+        SpecIsoMap indicies(i,j);
+        String buf = sr.Name()+"-"+sr.Isotope()[j].Name();
+        
+        ArtsMap[buf] = indicies;
+        
+        // Print the generated data structures (for debugging):
+        // The explicit conversion of Name to a c-String is
+        // necessary, because setw does not work correctly for
+        // stl Strings.
+        const Index& i1 = ArtsMap[buf].Speciesindex();
+        const Index& i2 = ArtsMap[buf].Isotopeindex();
+        
+        out3 << "  Arts Identifier = " << buf << "   Species = "
+        << setw(10) << setiosflags(ios::left)
+        << species_data[i1].Name().c_str()
+        << "iso = " 
+        << species_data[i1].Isotope()[i2].Name().c_str()
+        << "\n";
+        
+      }
+    }
+    hinit = true;
+  }
+  
+  
+  // This always contains the rest of the line to parse. At the
+  // beginning the entire line. Line gets shorter and shorter as we
+  // continue to extract stuff from the beginning.
+  String line;
+  
+  // Look for more comments?
+  bool comment = true;
+  
+  while (comment)
+  {
+    // Return true if eof is reached:
+    if (is.eof()) return true;
+    
+    // Throw runtime_error if stream is bad:
+    if (!is) throw runtime_error ("Stream bad.");
+    
+    // Read line from file into linebuffer:
+    getline(is,line);
+    
+    // It is possible that we were exactly at the end of the file before
+    // calling getline. In that case the previous eof() was still false
+    // because eof() evaluates only to true if one tries to read after the
+    // end of the file. The following check catches this.
+    if (line.nelem() == 0 && is.eof()) return true;
+    
+    // @ as first character marks catalogue entry
+    char c;
+    extract(c,line,1);
+    
+    // check for empty line
+    if (c == '@')
+    {
+      comment = false;
+    }
+  }
+  
+  
+  // read the arts identifier String
+  istringstream icecream(line);
+  
+  String artsid;
+  icecream >> artsid;
+  
+  if (artsid.length() != 0)
+  {
+    
+    // ok, now for the cool index map:
+    // is this arts identifier valid?
+    const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
+    if ( i == ArtsMap.end() )
+    {
+      ostringstream os;
+      os << "ARTS Tag: " << artsid << " is unknown.";
+      throw runtime_error(os.str());
+    }
+    
+    SpecIsoMap id = i->second;
+    
+    
+    // Set mspecies:
+    mspecies = id.Speciesindex();
+    
+    // Set misotope:
+    misotope = id.Isotopeindex();
+    
+    
+    // Extract center frequency:
+    icecream >> mf;
+    
+    
+    // Extract pressure shift:
+    icecream >> mpsf;
+    
+    // Extract intensity:
+    icecream >> mi0;
+    
+    
+    // Extract reference temperature for Intensity in K:
+    icecream >> mti0;
+    
+    
+    // Extract lower state energy:
+    icecream >> melow;
+    
+    
+    // Extract air broadening parameters:
+    icecream >> magam;
+    icecream >> msgam;
+    
+    // Extract temperature coefficient of broadening parameters:
+    icecream >> mnair;
+    icecream >> mnself;
+    
+    
+    // Extract reference temperature for broadening parameter in K:
+    icecream >> mtgam;
+    
+    // Extract the aux parameters:
+    Index naux;
+    icecream >> naux;
+    
+    // resize the aux array and read it
+    maux.resize(naux);
+    
+    for (Index j = 0; j<naux; j++)
+    {
+      icecream >> maux[j];
+      //cout << "maux" << j << " = " << maux[j] << "\n";
+    }
+    
+    // Extract accuracies:
+    try
+    {
+      icecream >> mdf;
+      icecream >> mdi0;
+      icecream >> mdagam;
+      icecream >> mdsgam;
+      icecream >> mdnair;
+      icecream >> mdnself;
+      icecream >> mdpsf;
+    }
+    catch (runtime_error)
+    {
+      // Nothing to do here, the accuracies are optional, so we
+      // just set them to -1 and continue reading the next line of
+      // the catalogue
+      mdf      = -1;
+      mdi0     = -1;
+      mdagam   = -1;
+      mdsgam   = -1;
+      mdnair   = -1;
+      mdnself  = -1;
+      mdpsf    = -1;            
+    }
+  }
+  
+  // That's it!
+  return false;
+}
+
+bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
+{
+  throw runtime_error ("ARTSCAT-4 not yet implemented");
+
   CREATE_OUT3
   
   // Global species lookup data:
@@ -1793,6 +2004,8 @@ bool LineRecord::ReadFromArtsStream(istream& is, const Verbosity& verbosity)
   // Remeber if this stuff has already been initialized:
   static bool hinit = false;
 
+  mversion = 4;
+  
   if ( !hinit )
     {
 

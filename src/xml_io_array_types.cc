@@ -2105,47 +2105,60 @@ xml_read_from_stream (istream& is_xml,
   String version;
   tag.get_attribute_value ("version", version);
 
-  if (version != dummy_line_record.Version())
-    {
-      ostringstream os;
+  Index artscat_version;
+  
+  if (version.substr (0,8) != "ARTSCAT-")
+  {
+    ostringstream os;
+    os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+    << "Probably it was created with an older version of ARTS that used different units.";
+    throw runtime_error (os.str());
+  }
+  else {
+    istringstream is(version.substr(8));
+    is >> artscat_version;
+  }
 
-      if (9 <= version.nelem())
-        {
-          if ("ARTSCAT" == version.substr (0,7))
-            {
-              os << "The ARTS line file you are trying contains a version tag\n"
-                << "different from the current version.\n"
-                << "Tag in file:     " << version << "\n"
-                << "Current version: " << dummy_line_record.Version();
-              throw runtime_error (os.str());
-            }
-        }
-
-      os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
-        << "Probably it was created with an older version of ARTS that used different units.";
-      throw runtime_error (os.str());
-    }
-
+  if (artscat_version < 3 or artscat_version > 4)
+  {
+    ostringstream os;
+    os << "Unknown ARTS line file version: " << version;
+    throw runtime_error (os.str());
+  }
+  
   alrecord.resize (0);
 
   Index n;
   try
+  {
+    for (n = 0; n < nelem; n++)
     {
-      for (n = 0; n < nelem; n++)
-        {
-          LineRecord lr;
-          if (lr.ReadFromArtsStream (is_xml, verbosity))
+      LineRecord lr;
+      switch (artscat_version)
+      {
+        case 3:
+          if (lr.ReadFromArtscat3Stream (is_xml, verbosity))
             throw runtime_error ("Cannot read line from file");
-
-          alrecord.push_back (lr);
-        }
-    } catch (runtime_error e) {
-      ostringstream os;
-      os << "Error reading ArrayOfLineRecord: "
-         << "\n Element: " << n
-         << "\n" << e.what();
-      throw runtime_error(os.str());
+          break;
+        case 4:
+          if (lr.ReadFromArtscat4Stream (is_xml, verbosity))
+            throw runtime_error ("Cannot read line from file");
+          break;
+        default:
+          throw runtime_error ("Programmer error. This should never be reached.\n"
+                               "Fix version number check above!");
+          break;
+      }
+      
+      alrecord.push_back (lr);
     }
+  } catch (runtime_error e) {
+    ostringstream os;
+    os << "Error reading ArrayOfLineRecord: "
+    << "\n Element: " << n
+    << "\n" << e.what();
+    throw runtime_error(os.str());
+  }
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/ArrayOfLineRecord");
@@ -2180,7 +2193,7 @@ xml_read_from_stream (istream& is_xml,
   String version;
   tag.get_attribute_value ("version", version);
 
-  if (version != dummy_line_record.Version())
+  if (version != dummy_line_record.VersionString())
     {
       ostringstream os;
 
@@ -2209,7 +2222,7 @@ xml_read_from_stream (istream& is_xml,
       for (n = 0; n < nelem; n++)
         {
           LineRecord lr;
-          if (lr.ReadFromArtsStream (is_xml, verbosity))
+          if (lr.ReadFromArtscat3Stream (is_xml, verbosity))
             throw runtime_error ("Cannot read line from file");
 
           if ( fmin <= lr.F() && lr.F() <= fmax )

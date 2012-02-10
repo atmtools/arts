@@ -325,7 +325,7 @@ void abs_linesReadFromArtsObsolete(// WS Output:
   {
     String v;
     is >> v;
-    if ( v!=lr.Version() )
+    if ( v!=lr.VersionString() )
       {
         ostringstream os;
         
@@ -351,7 +351,7 @@ void abs_linesReadFromArtsObsolete(// WS Output:
   bool go_on = true;
   while ( go_on )
     {
-      if ( lr.ReadFromArtsStream(is, verbosity) )
+      if ( lr.ReadFromArtscat3Stream(is, verbosity) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.

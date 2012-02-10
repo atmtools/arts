@@ -490,7 +490,8 @@ public:
       are initialized to large numbers, so that we at least get range
       errors when we try to used un-initialized data. */
   LineRecord()
-    : mspecies (1000000),
+    : mversion (3),
+      mspecies (1000000),
       misotope (1000000),
       mf       (0.     ),
       mpsf     (0.     ),
@@ -536,7 +537,8 @@ public:
               Numeric               /* dnair */,
               Numeric               /* dnself */,
               Numeric               /* dpsf */)
-    : mspecies (species    ),
+    : mversion (3),
+      mspecies (species    ),
       misotope (isotope    ),
       mf       (f          ),
       mpsf     (psf        ),
@@ -568,13 +570,16 @@ public:
   }
 
   /** Return the version String. */
-  String Version() const
+  String VersionString() const
   {
     ostringstream os;
     os << "ARTSCAT-" << mversion;
     return os.str();
   }
-
+  
+  /** Return the version number. */
+  Index Version() const { return mversion; }
+  
   /** The index of the molecular species that this line belongs
       to. The species data can be accessed by species_data[Species()]. */
   Index Species() const { return mspecies; }
@@ -947,7 +952,7 @@ public:
     \author Axel von Engeln */
   bool ReadFromJplStream(istream& is, const Verbosity& verbosity);
 
-  /** Read one line from a stream associated with an Arts file.
+  /** Read one line from a stream associated with an ARTSCAT-3 file.
 
       Format: see Documentation of class LineRecord
 
@@ -968,12 +973,31 @@ public:
       \date   2001-06-20
       \author Stefan Buehler
 */
-  bool ReadFromArtsStream(istream& is, const Verbosity& verbosity);
+  bool ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity);
 
+  /** Read one line from a stream associated with an ARTSCAT-4 file.
+   
+   Format: see Documentation of class LineRecord
+   
+   The function attempts to read a line of data from the
+   catalogue. It returns false if it succeeds. Otherwise, if eof is
+   reached, it returns true. If an error occurs, a runtime_error is
+   thrown. When the function looks for a data line, comment lines are
+   automatically skipped.
+   
+   \param is Stream from which to read
+   \exception runtime_error Some error occured during the read
+   \return false=ok (data returned), true=eof (no data returned)
+   
+   \date   2012-02-10
+   \author Oliver Lemke
+   */
+  bool ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity);
+  
 
 private:
-  // Versin number:
-  static const Index mversion = 3;
+  // Version number:
+  Index mversion;
   // Molecular species index: 
   Index mspecies;
   // Isotopic species index:
@@ -1056,7 +1080,7 @@ typedef Array< Array<LineRecord> > ArrayOfArrayOfLineRecord;
     catalogue line.
 
     \author Stefan Buehler */
-ostream& operator << (ostream& os, const LineRecord& lr);
+ostream& operator<< (ostream& os, const LineRecord& lr);
 
 
 
