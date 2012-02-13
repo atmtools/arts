@@ -686,10 +686,78 @@ public:
   /** Accuracy for SGAM temperature exponent in <b> relative value</b>: */
   Numeric dNself() const { return mdnself; }
 
- /** Accuracy for pressure shift in <b> relative value </b>: */
+  /** Accuracy for pressure shift in <b> relative value </b>: */
   Numeric dPsf() const { return mdpsf; }
 
-
+  /** Einstein A-coefficient in <b> 1/s </b>: */
+  Numeric A() const { return ma; }
+  
+  /** Upper state stat. weight: */
+  Numeric G_upper() const { return mgupper; }
+  
+  /** Lower state stat. weight: */
+  Numeric G_lower() const { return mglower; }
+  
+  /** Broadening parameter self in <b> Hz/Pa </b>: */
+  Numeric Gamma_self() const { return mgamma_self; }
+  
+  /** Broadening parameter N2 in <b> Hz/Pa </b>: */
+  Numeric Gamma_N2() const { return mgamma_n2; }
+  
+  /** Broadening parameter O2 in <b> Hz/Pa </b>: */
+  Numeric Gamma_O2() const { return mgamma_o2; }
+  
+  /** Broadening parameter H2O in <b> Hz/Pa </b>: */
+  Numeric Gamma_H2O() const { return mgamma_h2o; }
+  
+  /** Broadening parameter CO2 in <b> Hz/Pa </b>: */
+  Numeric Gamma_CO2() const { return mgamma_co2; }
+  
+  /** Broadening parameter H2 in <b> Hz/Pa </b>: */
+  Numeric Gamma_H2() const { return mgamma_h2; }
+  
+  /** Broadening parameter He in <b> Hz/Pa </b>: */
+  Numeric Gamma_He() const { return mgamma_he; }
+  
+  /** GAM temp. exponent N self: */
+  Numeric Gam_N_self() const { return mn_self; }
+  
+  /** GAM temp. exponent N N2: */
+  Numeric Gam_N_N2() const { return mn_n2; }
+  
+  /** GAM temp. exponent N O2: */
+  Numeric Gam_N_O2() const { return mn_o2; }
+  
+  /** GAM temp. exponent N H2O: */
+  Numeric Gam_N_H2O() const { return mn_h2o; }
+  
+  /** GAM temp. exponent N CO2: */
+  Numeric Gam_N_CO2() const { return mn_co2; }
+  
+  /** GAM temp. exponent N H2: */
+  Numeric Gam_N_H2() const { return mn_h2; }
+  
+  /** GAM temp. exponent N He: */
+  Numeric Gam_N_He() const { return mn_he; }
+  
+  /** F Pressure shift N2 in <b> Hz/Pa </b>: */
+  Numeric Delta_N2() const { return mdelta_n2; }
+  
+  /** F Pressure shift O2 in <b> Hz/Pa </b>: */
+  Numeric Delta_O2() const { return mdelta_o2; }
+  
+  /** F Pressure shift H2O in <b> Hz/Pa </b>: */
+  Numeric Delta_H2O() const { return mdelta_h2o; }
+  
+  /** F Pressure shift CO2 in <b> Hz/Pa </b>: */
+  Numeric Delta_CO2() const { return mdelta_co2; }
+  
+  /** F Pressure shift H2 in <b> Hz/Pa </b>: */
+  Numeric Delta_H2() const { return mdelta_h2; }
+  
+  /** F Pressure shift He in <b> Hz/Pa </b>: */
+  Numeric Delta_He() const { return mdelta_he; }
+  
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):
 
@@ -1041,6 +1109,59 @@ private:
   Numeric mdnself;
  //  Accuracy for pressure shift in %:
   Numeric mdpsf;
+  
+  //// New fields in ARTSCAT-4
+  
+  // Einstein A-coefficient in 1/s:
+  Numeric ma;
+  // Upper state stat. weight:
+  Numeric mgupper;
+  // Lower state stat. weight:
+  Numeric mglower;
+  
+  // Broadening parameter self in Hz/Pa:
+  Numeric mgamma_self;
+  // Broadening parameter N2 in Hz/Pa:
+  Numeric mgamma_n2;
+  // Broadening parameter O2 in Hz/Pa:
+  Numeric mgamma_o2;
+  // Broadening parameter H2O in Hz/Pa:
+  Numeric mgamma_h2o;
+  // Broadening parameter CO2 in Hz/Pa:
+  Numeric mgamma_co2;
+  // Broadening parameter H2 in Hz/Pa:
+  Numeric mgamma_h2;
+  // Broadening parameter He in Hz/Pa:
+  Numeric mgamma_he;
+
+  // GAM temp. exponent self:
+  Numeric mn_self;
+  // GAM temp. exponent N2:
+  Numeric mn_n2;
+  // GAM temp. exponent O2:
+  Numeric mn_o2;
+  // GAM temp. exponent H2O:
+  Numeric mn_h2o;
+  // GAM temp. exponent CO2:
+  Numeric mn_co2;
+  // GAM temp. exponent H2:
+  Numeric mn_h2;
+  // GAM temp. exponent He:
+  Numeric mn_he;
+  
+  // F Pressure shift N2 in Hz/Pa:
+  Numeric mdelta_n2;
+  // F Pressure shift O2 in Hz/Pa:
+  Numeric mdelta_o2;
+  // F Pressure shift H2O in Hz/Pa:
+  Numeric mdelta_h2o;
+  // F Pressure shift CO2 in Hz/Pa:
+  Numeric mdelta_co2;
+  // F Pressure shift H2 in Hz/Pa:
+  Numeric mdelta_h2;
+  // F Pressure shift He in Hz/Pa:
+  Numeric mdelta_he;
+  
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts

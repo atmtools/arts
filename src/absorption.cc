@@ -124,7 +124,37 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
       break;
       
     case 4:
-      throw runtime_error ("ARTSCAT-4 not yet implemented");
+      os << "@"
+      << " " << lr.Name  ()
+      << " "
+      << setprecision(precision)
+      <<        lr.F()
+      << " " << lr.I0()
+      << " " << lr.Ti0()
+      << " " << lr.Elow()
+      << " " << lr.A()
+      << " " << lr.G_upper()
+      << " " << lr.G_lower()
+      << " " << lr.Gamma_self()
+      << " " << lr.Gamma_N2()
+      << " " << lr.Gamma_O2()
+      << " " << lr.Gamma_H2O()
+      << " " << lr.Gamma_CO2()
+      << " " << lr.Gamma_H2()
+      << " " << lr.Gamma_He()
+      << " " << lr.Gam_N_self()
+      << " " << lr.Gam_N_N2()
+      << " " << lr.Gam_N_O2()
+      << " " << lr.Gam_N_H2O()
+      << " " << lr.Gam_N_CO2()
+      << " " << lr.Gam_N_H2()
+      << " " << lr.Gam_N_He()
+      << " " << lr.Delta_N2()
+      << " " << lr.Delta_O2()
+      << " " << lr.Delta_H2O()
+      << " " << lr.Delta_CO2()
+      << " " << lr.Delta_H2()
+      << " " << lr.Delta_He();
       
       break;
       
@@ -1989,8 +2019,6 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
 
 bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 {
-  throw runtime_error ("ARTSCAT-4 not yet implemented");
-
   CREATE_OUT3
   
   // Global species lookup data:
@@ -2114,70 +2142,61 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       icecream >> mf;
 
 
-      // Extract pressure shift:
-      icecream >> mpsf;
-  
       // Extract intensity:
       icecream >> mi0;
 
-
       // Extract reference temperature for Intensity in K:
       icecream >> mti0;
-
-
+      
       // Extract lower state energy:
       icecream >> melow;
 
+      // Extract Einstein A-coefficient:
+      icecream >> ma;
+      
+      // Extract upper state stat. weight:
+      icecream >> mgupper;
+      
+      // Extract lower state stat. weight:
+      icecream >> mglower;
 
-      // Extract air broadening parameters:
-      icecream >> magam;
-      icecream >> msgam;
+      // Extract broadening parameters:
+      icecream >> mgamma_self;
+      icecream >> mgamma_n2;
+      icecream >> mgamma_o2;
+      icecream >> mgamma_h2o;
+      icecream >> mgamma_co2;
+      icecream >> mgamma_h2;
+      icecream >> mgamma_he;
+      
+      // Extract GAM temp. exponents:
+      icecream >> mn_self;
+      icecream >> mn_n2;
+      icecream >> mn_o2;
+      icecream >> mn_h2o;
+      icecream >> mn_co2;
+      icecream >> mn_h2;
+      icecream >> mn_he;
+      
+      // Extract F pressure shifts:
+      icecream >> mdelta_n2;
+      icecream >> mdelta_o2;
+      icecream >> mdelta_h2o;
+      icecream >> mdelta_co2;
+      icecream >> mdelta_h2;
+      icecream >> mdelta_he;
+      
+      // Resize aux array to 0, not used in ARTSCAT-4
+      maux.resize(0);
 
-      // Extract temperature coefficient of broadening parameters:
-      icecream >> mnair;
-      icecream >> mnself;
-
-  
-      // Extract reference temperature for broadening parameter in K:
-      icecream >> mtgam;
-
-      // Extract the aux parameters:
-      Index naux;
-      icecream >> naux;
-
-      // resize the aux array and read it
-      maux.resize(naux);
-
-      for (Index j = 0; j<naux; j++)
-        {
-          icecream >> maux[j];
-          //cout << "maux" << j << " = " << maux[j] << "\n";
-        }
-
-      // Extract accuracies:
-      try
-        {
-          icecream >> mdf;
-          icecream >> mdi0;
-          icecream >> mdagam;
-          icecream >> mdsgam;
-          icecream >> mdnair;
-          icecream >> mdnself;
-          icecream >> mdpsf;
-        }
-      catch (runtime_error)
-        {
-          // Nothing to do here, the accuracies are optional, so we
-          // just set them to -1 and continue reading the next line of
-          // the catalogue
-          mdf      = -1;
-          mdi0     = -1;
-          mdagam   = -1;
-          mdsgam   = -1;
-          mdnair   = -1;
-          mdnself  = -1;
-          mdpsf    = -1;            
-        }
+      // Set values that are not used in ARTSCAT-4 to -1
+      mdf      = -1;
+      mdi0     = -1;
+      mdagam   = -1;
+      mdsgam   = -1;
+      mdnair   = -1;
+      mdnself  = -1;
+      mdpsf    = -1;            
     }
 
   // That's it!

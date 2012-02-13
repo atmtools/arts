@@ -1,3 +1,15 @@
+2012-02-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-31
+
+	* src/absorption.{cc,h}:
+
+	Add new ARTSCAT-4 fields to LineRecord.
+
+	Add support for ARTSCAT-4 in LineRecord output operator.
+
+	(LineRecord::ReadFromArtscat4Stream): Implemented.
+
 2012-01-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-30
