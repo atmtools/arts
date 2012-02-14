@@ -261,42 +261,42 @@ bool get_parameters(int argc, char **argv)
           break;
         case 'n':
         {
-              istringstream iss(optarg);
-              iss >> std::dec >> parameters.numthreads;
-              if (iss.fail())
-                {
-                  cerr << "Argument to --numthreads (-n) must be an integer!\n";
-                  arts_exit ();
-                }
-              break;
-            }
+          istringstream iss(optarg);
+          iss >> std::dec >> parameters.numthreads;
+          if ( iss.bad() || !iss.eof() )
+          {
+            cerr << "Argument to --numthreads (-n) must be an integer!\n";
+            arts_exit ();
+          }
+          break;
+        }
         case 'p':
           parameters.plain = true;
           break;
         case 'r':
+        {
+          //      cout << "optarg = " << optarg << endl;
+          istringstream iss(optarg);
+          iss >> parameters.reporting;
+          ws(iss);
+          // This if statement should cover all cases: If there is
+          // no integer at all, is becomes bad (first condition). If 
+          // there is something else behind the integer, ws does not 
+          // reach the end of is (second condition).
+          if ( iss.bad() || !iss.eof() )
           {
-            //      cout << "optarg = " << optarg << endl;
-            istringstream is(optarg);
-            is >> parameters.reporting;
-            ws(is);
-            // This if statement should cover all cases: If there is
-            // no integer at all, is becomes bad (first condition). If 
-            // there is something else behind the integer, ws does not 
-            // reach the end of is (second condition).
-            if ( !is || !is.eof() )
-              {
-                cerr << "Argument to --reporting (-r) must be an integer!\n";
-                arts_exit ();
-              }
-            break;
+            cerr << "Argument to --reporting (-r) must be an integer!\n";
+            arts_exit ();
           }
+          break;
+        }
         case 's':
           {
             if (optarg)
             {
               istringstream iss(optarg);
               iss >> std::dec >> parameters.docserver;
-              if (iss.fail())
+              if ( iss.bad() || !iss.eof() )
               {
                 cerr << "Argument to --docserver (-s) must be an integer!\n";
                 arts_exit ();
@@ -312,7 +312,7 @@ bool get_parameters(int argc, char **argv)
             {
               istringstream iss(optarg);
               iss >> std::dec >> parameters.docserver;
-              if (iss.fail())
+              if ( iss.bad() || !iss.eof() )
               {
                 cerr << "Argument to --docdaemon (-S) must be an integer!\n";
                 arts_exit ();

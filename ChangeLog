@@ -1,3 +1,18 @@
+2012-02-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-32
+
+	* src/xml_io_array_types.cc:
+
+	Combine the almost identical functions for reading an
+	ArrayOfLineRecord with and without frequency limits into one function.
+	Setting the limits fmin and/or fmax to NAN indicates to not filter by
+	frequency.
+
+	* src/parameters.cc (get_parameters):
+
+	Use consistent conversion error checking on isstringstreams.
+
 2012-02-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-31
