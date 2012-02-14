@@ -525,6 +525,31 @@ void define_md_data_raw()
         ));
 
   md_data_raw.push_back
+  ( MdRecord
+   ( NAME( "abs_linesReadFromSplitArtscat" ),
+    DESCRIPTION
+    (
+     "Read all the lines in the given frequency range from a split\n"
+     "Arts catalogue file.\n"
+     "\n"
+     "Please note that all lines must correspond\n"
+     "to legal species / isotope combinations\n"
+     ),
+    AUTHORS( "Oliver Lemke" ),
+    OUT( "abs_lines" ),
+    GOUT(),
+    GOUT_TYPE(),
+    GOUT_DESC(),
+    IN( "abs_species" ),
+    GIN(         "basename", "fmin",    "fmax" ),
+    GIN_TYPE(    "String",   "Numeric", "Numeric" ),
+    GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
+    GIN_DESC("Basename of the catalogue.",
+             "Minimum frequency for lines to read [Hz].",
+             "Maximum frequency for lines to read [Hz]." )
+    ));
+  
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_linesReadFromHitran" ),
         DESCRIPTION

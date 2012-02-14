@@ -1,5 +1,16 @@
 2012-02-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-0-33
+
+	* src/m_abs.cc (abs_linesReadFromSplitArtscat):
+
+	First implementation. For abs_species with an isotope that's not a
+	number or '*', no catalog is read.
+
+	* src/methods.cc: Add WSM abs_linesReadFromSplitArtscat.
+
+2012-02-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-0-32
 
 	* src/xml_io_array_types.cc:
