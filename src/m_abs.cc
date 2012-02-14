@@ -312,7 +312,7 @@ void abs_linesReadFromSplitArtscat(// WS Output:
       // Species relating to a full absorption model are ignored as they
       // don't need a catalog
       if (species_parts.nelem() >= 2 && species_parts[1].length()
-           && (species_parts[1][0] == '*' || isnumber(species_parts[1][0])))
+           && (species_parts[1][0] == '*' || isdigit(species_parts[1][0])))
           {
             unique_species.insert(species_parts[0]);
           }
