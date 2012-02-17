@@ -1,5 +1,12 @@
 2012-02-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-0-36
+
+	* CMakeLists.txt: Turn off -Wno-sign-conversion for now. It's not
+	supported by older GCCs.
+
+2012-02-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-0-35
 
 	* CMakeLists.txt: Turn on -Wconversion warning by default.
