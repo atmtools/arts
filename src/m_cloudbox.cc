@@ -1492,7 +1492,11 @@ void pnd_fieldSetup (//WS Output:
             if (dm.nelem() > 1)
             {
               scale_pnd( pnd, dm, dN );
+            } else
+            {
+              pnd = dN;
             }
+
 	    
 	    //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
             // calculate error of pnd sum and real XWC
@@ -1582,6 +1586,9 @@ void pnd_fieldSetup (//WS Output:
             if (dm.nelem() > 1)
             {
               scale_pnd( pnd, dm, dN ); //[# m^-3]
+            } else
+            {
+              pnd = dN;
             }
 
 	    //cout<<"\nlevel: "<<p<<"\n"<<"X: "<<X_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n"<< dN<<"\n"<<pnd<<"\n";
@@ -1671,6 +1678,9 @@ void pnd_fieldSetup (//WS Output:
             if (r.nelem() > 1)
             {
               scale_pnd( pnd, r, dN ); //[# m^-3]
+            } else
+            {
+              pnd = dN;
             }
 	    //scale_pnd( pnd2, r, dN2 );
             //trapezoid_integrate ( pnd2, r, dN2 );//[# m^-3]
