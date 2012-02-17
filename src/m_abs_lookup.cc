@@ -3053,7 +3053,7 @@ void abs_lookupTestAccMC(// WS Input:
       //              }
     }        
     // Calculate mean by dividing sum by number of valid points:
-    mean = mean / N;
+    mean = mean / (Numeric)N;
     
     // Now calculate standard deviation:
     
@@ -3068,7 +3068,7 @@ void abs_lookupTestAccMC(// WS Input:
       }
     }        
     // Divide by N to really calculate variance:
-    variance = variance/N;
+    variance = variance / (Numeric)N;
     
     //        cout << "Mean = " << mean << " Std = " << std_dev << "\n";
     
@@ -3082,17 +3082,17 @@ void abs_lookupTestAccMC(// WS Input:
       const Numeric old_mean = total_mean;
       
       // This formula assimilates the new chunk mean into the total mean:
-      total_mean = (total_mean*(N_chunk-1) + mean)/N_chunk;
+      total_mean = (total_mean*((Numeric)(N_chunk-1)) + mean) / (Numeric)N_chunk;
       
       // Do the same for the standard deviation.
       // First get rid of the square root:
       total_std = total_std * total_std;
       // Now multiply with old normalisation:
-      total_std *= N_chunk-1;
+      total_std *= (Numeric)(N_chunk-1);
       // Now add the new sigma
       total_std += variance;
       // Divide by the new normalisation:
-      total_std /= N_chunk;
+      total_std /= (Numeric)N_chunk;
       // And finally take the square root:
       total_std = sqrt(total_std);
       

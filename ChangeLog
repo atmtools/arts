@@ -1,3 +1,28 @@
+2012-02-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-35
+
+	* CMakeLists.txt: Turn on -Wconversion warning by default.
+
+	* src/m_cloudbox.cc:
+	(cloudboxSetAutomatically): Change type of p_margin1 from Index to
+	Numeric to avoid loss of precision in implicit cast.
+
+	(ScatteringParticlesSelect): Change type of intarr_total from Numeric
+	to Index.
+
+	* src/docserver.cc (Docserver::launch): Cast port to uint16_t.
+
+	* src/math_funcs.cc, src/m_abs_lookup.cc, src/m_surface.cc:
+
+	Add some explicit casts from Index to Numeric to suppress conversion
+	warning for cases where we know what we're doing.
+
+	* src/nc_io_array_types.cc: Remove unused variables.
+
+	* src/libmicrohttpd/daemon.c (send_param_adapter): Add explicit cast
+	to avoid conversion warning.
+
 2012-02-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-34

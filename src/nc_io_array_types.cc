@@ -46,9 +46,8 @@ void
 nc_read_from_file (const int ncid,
                    ArrayOfMatrix& aom)
 {
-  Index nelem, nelem_total;
+  Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
-  nelem_total = nc_get_dim (ncid, "nelem_total");
 
   long *vnrows = new long[nelem];
   long *vncols = new long[nelem];
@@ -139,9 +138,8 @@ void
 nc_read_from_file (const int ncid,
                    ArrayOfVector& aov)
 {
-  Index nelem, nelem_total;
+  Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
-  nelem_total = nc_get_dim (ncid, "nelem_total");
 
   long *vnelem = new long[nelem];
   aov.resize (nelem);

@@ -702,10 +702,10 @@ send_param_adapter (struct MHD_Connection *connection,
     {
       /* can use sendfile */
       offset = (off_t) connection->response_write_position;
-      ret = sendfile (connection->socket_fd, 
+      ret = (int)sendfile (connection->socket_fd, 
 		      fd,
 		      &offset,
-		      connection->response->total_size - offset);
+          (size_t)(connection->response->total_size - offset));
       if ( (ret == -1) &&
 	   (errno == EINTR) )
 	return 0;

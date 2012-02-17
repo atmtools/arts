@@ -702,7 +702,7 @@ void surfaceLambertianSimple(Matrix&          surface_los,
 
   // Help variables
   //
-  const Numeric dza = 90.0 / np;
+  const Numeric dza = 90.0 / (Numeric)np;
   const Vector za_lims( 0.0, np+1, dza );
 
   // surface_los

@@ -115,7 +115,6 @@ void cloudboxSetAutomatically (// WS Output:
              Index lon1 = massdensity_field.ncols()-1;
              Index lon2 = 0;
   )
-  Index p_margin1;
 
   Index type_flag=0, i=0, j=0, k=0, l=0;
   // initialize flag, telling if all selected *massdensity_fields* are
@@ -281,7 +280,9 @@ void cloudboxSetAutomatically (// WS Output:
   // particle number densities is possible.
   Index p0 = 0; //only for the use of function *max*
   p1 = max(p1-1, p0);
-  
+
+  Numeric p_margin1;
+
   // alter lower cloudbox_limit by cloudbox_margin, using barometric
   // height formula
   p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
@@ -894,7 +895,7 @@ void ScatteringParticlesSelect (//WS Output:
   //--- Adjusting data to user specified input (part_species)-------------------
   
   String type;
-  Numeric intarr_total = 0;
+  Index intarr_total = 0;
   ArrayOfIndex intarr;
   
   // make temporary copy

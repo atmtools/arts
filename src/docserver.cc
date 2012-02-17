@@ -27,6 +27,7 @@
 
 #ifdef ENABLE_DOCSERVER
 
+#include <stdint.h>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -2097,7 +2098,7 @@ int Docserver::launch(bool daemon)
   struct MHD_Daemon *d;
   
   d = MHD_start_daemon (MHD_USE_THREAD_PER_CONNECTION | MHD_USE_DEBUG,
-                        mport, NULL, NULL, &ahc_echo, (void *)this, MHD_OPTION_END);
+                        (uint16_t)mport, NULL, NULL, &ahc_echo, (void *)this, MHD_OPTION_END);
   
   if (d == NULL)
   {

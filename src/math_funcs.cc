@@ -506,7 +506,7 @@ Numeric gamma_func(Numeric xx)
     if (xx == (int)xx) {
       gam = 1.0;               // use factorial
       for (i=2;i<xx;i++) {
-        gam *= i;
+        gam *= (Numeric)i;
       }
     }    
     else {       
