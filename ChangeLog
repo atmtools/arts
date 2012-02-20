@@ -1,3 +1,13 @@
+2012-02-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-38
+
+	* src/m_abs.cc (abs_linesReadFromSplitArtscat):
+
+	Use species ids instead of strings.
+
+	* src/xml_io.cc: Comment out unused variable.
+
 2012-02-17  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-2-0-37

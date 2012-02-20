@@ -298,35 +298,33 @@ void abs_linesReadFromSplitArtscat(// WS Output:
                                    const Verbosity& verbosity)
 {
   CREATE_OUT2
+  extern const Array<SpeciesRecord> species_data;
  
-  // Build a set of species names. Duplicates are ignored.
-  set<String> unique_species;
+  // Build a set of species indices. Duplicates are ignored.
+  set<Index> unique_species;
   for (ArrayOfArrayOfSpeciesTag::const_iterator asp = abs_species.begin();
        asp != abs_species.end(); asp++)
     for (ArrayOfSpeciesTag::const_iterator sp = asp->begin();
          sp != asp->end(); sp++)
     {
-      ArrayOfString species_parts;
-      sp->Name().split(species_parts, "-");
-      
-      // Species relating to a full absorption model are ignored as they
-      // don't need a catalog
-      if (species_parts.nelem() >= 2 && species_parts[1].length()
-           && (species_parts[1][0] == '*' || isdigit(species_parts[1][0])))
+      // If the Isotope number is equal to the number of Isotopes for that species,
+      // it means 'all isotopes', in which case we have to read a catalog.
+      // Species with isotopic ratio -1 don't need a catalog.
+      if (sp->Isotope() == species_data[sp->Species()].Isotope().nelem()
+          || species_data[sp->Species()].Isotope()[sp->Isotope()].Abundance() != -1)
           {
-            unique_species.insert(species_parts[0]);
+            unique_species.insert(sp->Species());
           }
     }
-  
   
   // Read catalogs for each identified species and put them all into
   // abs_lines.
   abs_lines.resize(0);
-  for (set<String>::const_iterator it = unique_species.begin();
+  for (set<Index>::const_iterator it = unique_species.begin();
        it != unique_species.end(); it++)
   {
     ArrayOfLineRecord more_abs_lines;
-    abs_linesReadFromArts(more_abs_lines, basename + "." + (*it) + ".xml",
+    abs_linesReadFromArts(more_abs_lines, basename + "." + (species_data[*it].Name()) + ".xml",
                           fmin, fmax, verbosity);
     abs_lines.insert(abs_lines.end(), more_abs_lines.begin(), more_abs_lines.end());
   }
