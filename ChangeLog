@@ -1,5 +1,17 @@
 2012-02-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-2
+
+	* src/libmicrohttpd/:
+
+	Update to r19912 from https://gnunet.org/svn/libmicrohttpd.
+
+	* CMakeLists.txt, src/libmicrohttpd/CMakeLists.txt:
+
+	Tweak warning flags for Clang compiler, and libmicrohttpd.
+
+2012-02-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-1
 
 	* Merge arts-dev branch r7344 into trunk.

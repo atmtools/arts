@@ -3,8 +3,9 @@
 
 if (ENABLE_DOCSERVER)
   if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
-    set_source_files_properties (daemon.c PROPERTIES
-      COMPILE_FLAGS "-Wno-shadow")
+    file (GLOB MICROHTTPDSOURCES "*.c")
+    set_source_files_properties (${MICROHTTPDSOURCES} PROPERTIES
+      COMPILE_FLAGS "-Wno-shadow -Wno-conversion")
   endif (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
 
   add_library (microhttpd STATIC

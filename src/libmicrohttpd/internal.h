@@ -33,7 +33,11 @@
 #include <gnutls/gnutls.h>
 #endif
 
-#define EXTRA_CHECKS MHD_YES
+/**
+ * Should we perform additional sanity checks at runtime (on our internal
+ * invariants)?  This may lead to aborts, but can be useful for debugging.
+ */
+#define EXTRA_CHECKS MHD_NO
 
 #define MHD_MAX(a,b) ((a)<(b)) ? (b) : (a)
 #define MHD_MIN(a,b) ((a)<(b)) ? (a) : (b)
@@ -96,10 +100,12 @@ struct MHD_Pollfd
 
 
 /**
- * Maximum length of a nonce in digest authentication.
- * 32(MD5 Hex) + 8(Timestamp Hex) + 1(NULL)
+ * Maximum length of a nonce in digest authentication.  32(MD5 Hex) +
+ * 8(Timestamp Hex) + 1(NULL); hence 41 should suffice, but Opera
+ * (already) takes more (see Mantis #1633), so we've increased the
+ * value to support something longer...
  */
-#define MAX_NONCE_LENGTH 41
+#define MAX_NONCE_LENGTH 129
 
 
 /**
@@ -113,7 +119,7 @@ struct MHD_NonceNc
    * Nonce counter, a value that increases for each subsequent
    * request for the same nonce.
    */
-  unsigned int nc;
+  unsigned long int nc;
 
   /**
    * Nonce value: 
@@ -227,6 +233,11 @@ struct MHD_Response
    * beginning of data located?
    */
   uint64_t data_start;
+
+  /**
+   * Offset to start reading from when using 'fd'.
+   */
+  off_t fd_off;
 
   /**
    * Size of data.
@@ -368,10 +379,14 @@ enum MHD_CONNECTION_STATE
   MHD_CONNECTION_FOOTERS_SENT = MHD_CONNECTION_FOOTERS_SENDING + 1,
 
   /**
-   * 19: This connection is closed (no more activity
-   * allowed).
+   * 19: This connection is to be closed.
    */
   MHD_CONNECTION_CLOSED = MHD_CONNECTION_FOOTERS_SENT + 1,
+
+  /**
+   * 20: This connection is finished (only to be freed)
+   */
+  MHD_CONNECTION_IN_CLEANUP = MHD_CONNECTION_CLOSED + 1,
 
   /*
    *  SSL/TLS connection states
@@ -429,9 +444,14 @@ struct MHD_Connection
 {
 
   /**
-   * This is a linked list.
+   * This is a doubly-linked list.
    */
   struct MHD_Connection *next;
+
+  /**
+   * This is a doubly-linked list.
+   */
+  struct MHD_Connection *prev;
 
   /**
    * Reference to the MHD_Daemon struct.
@@ -519,7 +539,7 @@ struct MHD_Connection
    * Foreign address (of length addr_len).  MALLOCED (not
    * in pool!).
    */
-  struct sockaddr_in *addr;
+  struct sockaddr *addr;
 
   /**
    * Thread for this connection (if we are using
@@ -588,6 +608,12 @@ struct MHD_Connection
   time_t last_activity;
 
   /**
+   * After how many seconds of inactivity should
+   * this connection time out?  Zero for no timeout.
+   */
+  unsigned int connection_timeout;
+
+  /**
    * Did we ever call the "default_handler" on this connection?
    * (this flag will determine if we call the 'notify_completed'
    * handler when the connection closes down).
@@ -611,6 +637,11 @@ struct MHD_Connection
   int read_closed;
 
   /**
+   * Set to MHD_YES if the thread has been joined.
+   */
+  int thread_joined;
+
+  /**
    * State in the FSM for this connection.
    */
   enum MHD_CONNECTION_STATE state;
@@ -629,11 +660,6 @@ struct MHD_Connection
    * the CRC call succeeds.
    */
   int response_unready;
-
-  /**
-   * Are we sending with chunked encoding?
-   */
-  int have_chunked_response;
 
   /**
    * Are we receiving with chunked encoding?  This will be set to
@@ -698,6 +724,7 @@ struct MHD_Connection
    * Memory location to return for protocol session info.
    */
   int cipher;
+
 #endif
 };
 
@@ -740,9 +767,24 @@ struct MHD_Daemon
   void *default_handler_cls;
 
   /**
-   * Linked list of our current connections.
+   * Tail of doubly-linked list of our current, active connections.
    */
-  struct MHD_Connection *connections;
+  struct MHD_Connection *connections_head;
+
+  /**
+   * Tail of doubly-linked list of our current, active connections.
+   */
+  struct MHD_Connection *connections_tail;
+
+  /**
+   * Tail of doubly-linked list of connections to clean up.
+   */
+  struct MHD_Connection *cleanup_head;
+
+  /**
+   * Tail of doubly-linked list of connections to clean up.
+   */
+  struct MHD_Connection *cleanup_tail;
 
   /**
    * Function to call to check if we should
@@ -825,6 +867,11 @@ struct MHD_Daemon
   size_t pool_size;
 
   /**
+   * Size of threads created by MHD.
+   */
+  size_t thread_stack_size;
+
+  /**
    * Number of worker daemons
    */
   unsigned int worker_pool_size;
@@ -835,14 +882,26 @@ struct MHD_Daemon
   pthread_t pid;
 
   /**
-   * Mutex for per-IP connection counts
+   * Mutex for per-IP connection counts.
    */
   pthread_mutex_t per_ip_connection_mutex;
+
+  /**
+   * Mutex for (modifying) access to the "cleanup" connection DLL.
+   */
+  pthread_mutex_t cleanup_connection_mutex;
 
   /**
    * Listen socket.
    */
   int socket_fd;
+
+#ifndef HAVE_LISTEN_SHUTDOWN
+  /**
+   * Pipe we use to signal shutdown.
+   */
+  int wpipe[2];
+#endif
 
   /**
    * Are we shutting down?
@@ -908,6 +967,11 @@ struct MHD_Daemon
    */
   const char *https_mem_cert;
 
+  /**
+   * Pointer to our SSL/TLS certificate authority (in ASCII) in memory.
+   */
+  const char *https_mem_trust;
+
 #endif
 
 #ifdef DAUTH_SUPPORT
@@ -948,6 +1012,45 @@ struct MHD_Daemon
 #define EXTRA_CHECK(a)
 #endif
 
+
+/**
+ * Insert an element at the head of a DLL. Assumes that head, tail and
+ * element are structs with prev and next fields.
+ *
+ * @param head pointer to the head of the DLL
+ * @param tail pointer to the tail of the DLL
+ * @param element element to insert
+ */
+#define DLL_insert(head,tail,element) do { \
+  (element)->next = (head); \
+  (element)->prev = NULL; \
+  if ((tail) == NULL) \
+    (tail) = element; \
+  else \
+    (head)->prev = element; \
+  (head) = (element); } while (0)
+
+
+/**
+ * Remove an element from a DLL. Assumes
+ * that head, tail and element are structs
+ * with prev and next fields.
+ *
+ * @param head pointer to the head of the DLL
+ * @param tail pointer to the tail of the DLL
+ * @param element element to remove
+ */
+#define DLL_remove(head,tail,element) do { \
+  if ((element)->prev == NULL) \
+    (head) = (element)->next;  \
+  else \
+    (element)->prev->next = (element)->next; \
+  if ((element)->next == NULL) \
+    (tail) = (element)->prev;  \
+  else \
+    (element)->next->prev = (element)->prev; \
+  (element)->next = NULL; \
+  (element)->prev = NULL; } while (0)
 
 
 #endif

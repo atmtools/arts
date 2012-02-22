@@ -1,6 +1,6 @@
 /*
      This file is part of libmicrohttpd
-     (C) 2007 Lymba
+     (C) 2007, 2011 Christian Grothoff
 
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@
 
 #ifndef NULL
 #define NULL (void*)0
-#endif  // !NULL
+#endif
 
 static const char *invalid_hundred[] = { NULL };
 
@@ -80,12 +80,39 @@ static const char *four_hundred[] = {
   "Unsupported Media Type",
   "Requested Range Not Satisfiable",
   "Expectation Failed",
+  "Unknown",
+  "Unknown",
+  "Unknown", /* 420 */
+  "Unknown",
   "Unprocessable Entity",
   "Locked",
   "Failed Dependency",
   "Unordered Collection",
   "Upgrade Required",
-  "Retry With"
+  "Unknown",
+  "Unknown",
+  "Unknown",
+  "Unknown", /* 430 */
+  "Unknown",
+  "Unknown",
+  "Unknown",
+  "Unknown",
+  "Unknown", /* 435 */
+  "Unknown",
+  "Unknown",
+  "Unknown",
+  "Unknown",
+  "Unknown", /* 440 */
+  "Unknown",
+  "Unknown",
+  "Unknown",
+  "No Response",
+  "Unknown", /* 445 */
+  "Unknown",
+  "Unknown",
+  "Unknown",
+  "Retry With",
+  "Blocked by Windows Parental Controls" /* 450 */
 };
 
 static const char *five_hundred[] = {
@@ -97,6 +124,7 @@ static const char *five_hundred[] = {
   "HTTP Version not supported",
   "Variant Also Negotiates",
   "Insufficient Storage",
+  "Unknown",
   "Bandwidth Limit Exceeded",
   "Not Extended"
 };

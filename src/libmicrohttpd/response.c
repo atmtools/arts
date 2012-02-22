@@ -27,14 +27,21 @@
 #include "internal.h"
 #include "response.h"
 
+
 /**
- * Add a header line to the response.
+ * Add a header or footer line to the response.
  *
+ * @param response response to add a header to
+ * @param kind header or footer
+ * @param header the header to add
+ * @param content value to add
  * @return MHD_NO on error (i.e. invalid header or content format).
  */
-int
-MHD_add_response_header (struct MHD_Response *response,
-                         const char *header, const char *content)
+static int
+add_response_entry (struct MHD_Response *response,
+		    enum MHD_ValueKind kind,
+		    const char *header, 
+		    const char *content)
 {
   struct MHD_HTTP_Header *hdr;
 
@@ -65,15 +72,57 @@ MHD_add_response_header (struct MHD_Response *response,
       free (hdr);
       return MHD_NO;
     }
-  hdr->kind = MHD_HEADER_KIND;
+  hdr->kind = kind;
   hdr->next = response->first_header;
   response->first_header = hdr;
   return MHD_YES;
 }
 
+
+/**
+ * Add a header line to the response.
+ *
+ * @param response response to add a header to
+ * @param header the header to add
+ * @param content value to add
+ * @return MHD_NO on error (i.e. invalid header or content format).
+ */
+int
+MHD_add_response_header (struct MHD_Response *response,
+                         const char *header, const char *content)
+{
+  return add_response_entry (response,
+			     MHD_HEADER_KIND,
+			     header,
+			     content);
+}
+
+
+/**
+ * Add a footer line to the response.
+ *
+ * @param response response to remove a header from
+ * @param footer the footer to delete
+ * @param content value to delete
+ * @return MHD_NO on error (i.e. invalid footer or content format).
+ */
+int
+MHD_add_response_footer (struct MHD_Response *response,
+                         const char *footer, const char *content)
+{
+  return add_response_entry (response,
+			     MHD_FOOTER_KIND,
+			     footer,
+			     content);
+}
+
+
 /**
  * Delete a header line from the response.
  *
+ * @param response response to remove a header from
+ * @param header the header to delete
+ * @param content value to delete
  * @return MHD_NO on error (no such header known)
  */
 int
@@ -106,6 +155,7 @@ MHD_del_response_header (struct MHD_Response *response,
     }
   return MHD_NO;
 }
+
 
 /**
  * Get all of the headers added to a response.
@@ -220,13 +270,15 @@ static ssize_t
 file_reader (void *cls, uint64_t pos, char *buf, size_t max)
 {
   struct MHD_Response *response = cls;
-  ssize_t ret;
+  ssize_t n;
 
-  pthread_mutex_lock (&response->mutex);
-  (void) lseek (response->fd, pos, SEEK_SET);
-  ret = read (response->fd, buf, max);
-  pthread_mutex_unlock (&response->mutex);
-  return ret;
+  (void) lseek (response->fd, pos + response->fd_off, SEEK_SET);
+  n = read (response->fd, buf, max);
+  if (n == 0) 
+    return MHD_CONTENT_READER_END_OF_STREAM;
+  if (n < 0) 
+    return MHD_CONTENT_READER_END_WITH_ERROR;
+  return n;
 }
 
 
@@ -251,10 +303,12 @@ free_callback (void *cls)
  *
  * @param size size of the data portion of the response
  * @param fd file descriptor referring to a file on disk with the data
+ * @param off offset to start reading from in the file
  * @return NULL on error (i.e. invalid arguments, out of memory)
  */
-struct MHD_Response *MHD_create_response_from_fd (size_t size,
-						  int fd)
+struct MHD_Response *MHD_create_response_from_fd_at_offset (size_t size,
+							    int fd,
+							    off_t offset)
 {
   struct MHD_Response *ret;
 
@@ -266,8 +320,26 @@ struct MHD_Response *MHD_create_response_from_fd (size_t size,
   if (ret == NULL)
     return NULL;
   ret->fd = fd;
+  ret->fd_off = offset;
   ret->crc_cls = ret;
   return ret;
+}
+
+
+
+
+/**
+ * Create a response object.  The response object can be extended with
+ * header information and then be used any number of times.
+ *
+ * @param size size of the data portion of the response
+ * @param fd file descriptor referring to a file on disk with the data
+ * @return NULL on error (i.e. invalid arguments, out of memory)
+ */
+struct MHD_Response *MHD_create_response_from_fd (size_t size,
+						  int fd)
+{
+  return MHD_create_response_from_fd_at_offset (size, fd, 0);
 }
 
 
@@ -282,6 +354,7 @@ struct MHD_Response *MHD_create_response_from_fd (size_t size,
  *        right away, the data maybe released anytime after
  *        this call returns
  * @return NULL on error (i.e. invalid arguments, out of memory)
+ * @deprecated use MHD_create_response_from_buffer instead
  */
 struct MHD_Response *
 MHD_create_response_from_data (size_t size,
@@ -312,7 +385,7 @@ MHD_create_response_from_data (size_t size,
           return NULL;
         }
       memcpy (tmp, data, size);
-      must_free = 1;
+      must_free = MHD_YES;
       data = tmp;
     }
   retVal->crc = NULL;
@@ -324,6 +397,28 @@ MHD_create_response_from_data (size_t size,
   retVal->data_size = size;
   return retVal;
 }
+
+
+/**
+ * Create a response object.  The response object can be extended with
+ * header information and then be used any number of times.
+ *
+ * @param size size of the data portion of the response
+ * @param buffer size bytes containing the response's data portion
+ * @param mode flags for buffer management
+ * @return NULL on error (i.e. invalid arguments, out of memory)
+ */
+struct MHD_Response *
+MHD_create_response_from_buffer (size_t size,
+				 void *buffer,
+				 enum MHD_ResponseMemoryMode mode)
+{
+  return MHD_create_response_from_data (size,
+					buffer,
+					mode == MHD_RESPMEM_MUST_FREE,
+					mode == MHD_RESPMEM_MUST_COPY);
+}
+
 
 /**
  * Destroy a response object and associated resources.  Note that

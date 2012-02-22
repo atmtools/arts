@@ -163,7 +163,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wshadow")
 endif (CMAKE_COMPILER_IS_GNUCXX)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wshadow")
+  set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wno-sign-conversion -Wshadow")
 endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 if (WERROR)
