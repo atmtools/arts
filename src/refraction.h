@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2008 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+/* Copyright (C) 2003-2008 Patrick Eriksson <Patrick.Eriksson@chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   refraction.h
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2003-01-17
   
   \brief  Refraction functions.
@@ -48,7 +48,7 @@ void get_refr_index_1d(
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
-        const Numeric&    r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
@@ -63,7 +63,7 @@ void get_refr_index_2d(
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
@@ -80,7 +80,7 @@ void get_refr_index_3d(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
@@ -97,7 +97,7 @@ void refr_gradients_1d(
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
-        const Numeric&    r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
@@ -114,7 +114,7 @@ void refr_gradients_2d(
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
@@ -134,7 +134,7 @@ void refr_gradients_3d(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,

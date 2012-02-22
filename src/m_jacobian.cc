@@ -1393,7 +1393,7 @@ void jacobianCalcTemperaturePerturbations(
   const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
   const ArrayOfArrayOfSpeciesTag&   abs_species,
-  const Matrix&                     r_geoid,
+  const Vector&                     refellipsoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -1545,7 +1545,7 @@ void jacobianCalcTemperaturePerturbations(
                 {
                   z_fieldFromHSE( z, atmosphere_dim, p_grid, lat_grid, 
                                   lon_grid, abs_species, t_p, vmr_field, 
-                                  r_geoid, z_surface, 1,
+                                  refellipsoid, z_surface, 1,
                                   p_hse, z_hse_accuracy, verbosity);
                 }
        
@@ -1755,7 +1755,7 @@ void jacobianCalcTemperaturePerturbations(
 //      const Tensor3&                    z_field,
 //      const Tensor3&                    t_field,
 //      const Tensor4&                    vmr_field,
-//      const Matrix&                     r_geoid,
+//      const Vector&                     refellipsoid,
 //      const Matrix&                     z_surface,
 //      const Index&                      cloudbox_on,
 //      const ArrayOfIndex&               cloudbox_limits,
@@ -1942,7 +1942,7 @@ void jacobianCalcTemperaturePerturbations(
 //                              iy_space_agenda, surface_prop_agenda, 
 //                              iy_cloudbox_agenda, atmosphere_dim,
 //                              p_grid, lat_grid, lon_grid, z_field, t_field, 
-//                              vmr_field, r_geoid, z_surface, cloudbox_on, 
+//                              vmr_field, refellipsoid, z_surface, cloudbox_on, 
 //                              cloudbox_limits, sensor_response, sensor_pos, 
 //                              sensor_los, f_grid, stokes_dim, antenna_dim, 
 //                              mblock_za_grid, mblock_aa_grid);

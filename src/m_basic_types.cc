@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
                             
    This program is free software; you can redistribute it and/or modify it
@@ -25,7 +25,7 @@
 
 /*!
   \file   m_basic_types.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-05-08 
 
   \brief  Workspace functions for straightforward operations on variables 
@@ -123,8 +123,18 @@ void IndexSet(Index& x,
   x = value;
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexStep(Index& xout,       
+void IndexStepDown(Index& xout,       
+               const Index& xin,
+               const Verbosity&)
+{
+  xout = xin - 1;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void IndexStepUp(Index& xout,       
                const Index& xin,
                const Verbosity&)
 {

@@ -62,8 +62,6 @@ Extract( z_surface, z_field, 0 )
 # ---
 MatrixSetConstant( sensor_pos, 2, 1, 600e3 )
 #
-sensor_posAddRgeoid
-#
 VectorCreate( los )
 VectorNLinSpace( los, 2, 113, 113.5 )
 Matrix1ColFromVector( sensor_los, los )

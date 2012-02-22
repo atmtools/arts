@@ -76,7 +76,6 @@ VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
                                   "../atmosphere_data/tropical" )
-VectorSet( lat_grid, [ 10 ] )
 AtmFieldsCalc
 
 
@@ -111,7 +110,6 @@ NumericSet( za, 60 )
 
 MatrixSetConstant( sensor_pos, 1, 1, z_platform )
 Copy( z_surface, sensor_pos )
-sensor_posAddRgeoid
 MatrixSetConstant( sensor_los, 1, 1, za )
 
 
@@ -124,7 +122,13 @@ cloudbox_checkedCalc
 # will be used 
 Extract( p_hse, p_grid, 0 )
 NumericSet( z_hse_accuracy, 0.1 )
-z_fieldFromHSE
+# Use a dummy lat_grid as long as z_fieldFromHSE is not updated
+VectorCreate( lat_dummy )
+VectorSet( lat_dummy, [10] )
+z_fieldFromHSE( z_field, atmosphere_dim, p_grid, 
+                lat_dummy, lon_grid, abs_species, t_field, vmr_field, 
+                refellipsoid, z_surface, basics_checked, p_hse, 
+                z_hse_accuracy )
 
 
 

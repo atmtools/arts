@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2008 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+/* Copyright (C) 2002-2008 Patrick Eriksson <Patrick.Eriksson@chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   ppath.h
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-05-02
   
   \brief  Propagation path structure and functions.
@@ -60,18 +60,16 @@ struct Ppath {
   Index             dim;
   Index             np;
   Numeric           constant;
+  String            background;
   Matrix            pos;
-  Vector            z;
+  Matrix            los;
+  Vector            r;
   Vector            l_step;
+  Numeric           lspace;
+  Vector            nreal;
   ArrayOfGridPos    gp_p;
   ArrayOfGridPos    gp_lat;
   ArrayOfGridPos    gp_lon;
-  Matrix            los;
-  String            background;
-  Vector            tan_pos;
-  Vector            geom_tan_pos;
-  Vector            nreal;
-  ArrayOfIndex      next_parts;
 };
 
 
@@ -81,21 +79,58 @@ typedef Array<Ppath> ArrayOfPpath;
 
 
 /*===========================================================================
-  === Functions from ppath.cc
+  === Common precision variables
   ===========================================================================*/
 
-void cart2poslos(
-             double&   r,
-             double&   lat,
-             double&   lon,
-             double&   za,
-             double&   aa,
-       const double&   x,
-       const double&   y,
-       const double&   z,
-       const double&   dx,
-       const double&   dy,
-       const double&   dz );
+// This variable defines the maximum allowed error tolerance for radius.
+// The variable is, for example, used to check that a given a radius is
+// consistent with the specified grid cell.
+//
+#ifdef USE_DOUBLE
+const double   RTOL = 1e-2;
+#else
+const double   RTOL = 10;
+#endif
+
+
+// As RTOL but for latitudes and longitudes.
+//
+#ifdef USE_DOUBLE
+const double   LATLONTOL = 1e-11;
+#else
+const double   LATLONTOL = 1e-6;
+#endif
+
+
+// This variable defines how much zenith and azimuth angles can
+// deviate from 0, 90 and 180 degrees, but still be treated to be 0,
+// 90 or 180.  For example, an azimuth angle of 180-ANGTOL/2 will
+// be treated as a strictly southward observation.  However, the
+// angles are not allowed to go outside their defined range.  This
+// means, for example, that values above 180 are never allowed.
+//
+#ifdef USE_DOUBLE
+const double   ANGTOL = 1e-7; 
+#else
+const double   ANGTOL = 1e-4; 
+#endif
+
+
+// Latitudes with an absolute value > POLELAT are considered to be on
+// the south or north pole for 3D.
+//
+const double   POLELAT = 89.9999;
+
+
+// Maximum tilt of pressure levels, in degrees
+//
+const double    PTILTMAX = 5;
+
+
+
+/*===========================================================================
+  === Functions from ppath.cc
+  ===========================================================================*/
 
 void map_daa(
              double&   za,
@@ -122,7 +157,7 @@ bool is_los_downwards(
 
 double plevel_slope_2d(
         ConstVectorView   lat_grid,           
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
         const double&     za );
@@ -140,32 +175,18 @@ double plevel_slope_3d(
         const double&   lon,
         const double&   aa );
 
+double plevel_slope_3d(
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,  
+        ConstVectorView   refellipsoid,
+        ConstMatrixView   z_surf,
+        const GridPos&    gp_lat,
+        const GridPos&    gp_lon,
+        const double&     aa );
+
 double plevel_angletilt(
         const double&   r,
         const double&   c );
-
-double surfacetilt(
-        const Index&      atmosphere_dim,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,  
-        ConstMatrixView   r_geoid,
-        ConstMatrixView   z_surface,
-        const GridPos&    gp_lat,
-        const GridPos&    gp_lon,
-        ConstVectorView   los );
-
-void poslos2cart(
-             double&   x,
-             double&   y,
-             double&   z,
-             double&   dx,
-             double&   dy,
-             double&   dz,
-       const double&   r,
-       const double&   lat,
-       const double&   lon,
-       const double&   za,
-             const double&   aa );
 
 void ppath_init_structure( 
               Ppath&      ppath,
@@ -179,51 +200,49 @@ void ppath_set_background(
 Index ppath_what_background( const Ppath&   ppath );
 
 void ppath_copy(
-           Ppath&      ppath1,
-     const Ppath&      ppath2 );
+              Ppath&      ppath1,
+        const Ppath&      ppath2 );
 
-void ppath_start_stepping(Ppath&                  ppath,
-                          const Index&            atmosphere_dim,
-                          ConstVectorView         p_grid,
-                          ConstVectorView         lat_grid,
-                          ConstVectorView         lon_grid,
-                          ConstTensor3View        z_field,
-                          ConstMatrixView         r_geoid,
-                          ConstMatrixView         z_surface,
-                          const Index &           cloudbox_on,
-                          const ArrayOfIndex &    cloudbox_limits,
-                          const bool &            outside_cloudbox,
-                          ConstVectorView         rte_pos,
-                          ConstVectorView         rte_los,
-                          const Verbosity&        verbosity);
+void ppath_start_stepping(
+              Ppath&            ppath,
+        const Index&            atmosphere_dim,
+        ConstVectorView         p_grid,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+        ConstTensor3View        z_field,
+        ConstVectorView         refellipsoid,
+        ConstMatrixView         z_surface,
+        const Index &           cloudbox_on,
+        const ArrayOfIndex &    cloudbox_limits,
+        const bool &            outside_cloudbox,
+        ConstVectorView         rte_pos,
+        ConstVectorView         rte_los,
+        const Verbosity&        verbosity);
 
 
 void ppath_step_geom_1d(
               Ppath&      ppath,
-        ConstVectorView   p_grid,
         ConstVectorView   z_field,
-        const double&     r_geoid,
+        ConstVectorView   refellipsoid,
         const double&     z_surface,
         const double&     lmax );
 
 void ppath_step_geom_2d(
               Ppath&      ppath,
-        ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
         const double&     lmax );
 
 void ppath_step_geom_3d(
               Ppath&       ppath,
-        ConstVectorView    p_grid,
         ConstVectorView    lat_grid,
         ConstVectorView    lon_grid,
         ConstTensor3View   z_field,
-        ConstMatrixView    r_geoid,
+        ConstVectorView    refellipsoid,
         ConstMatrixView    z_surface,
-    const double&      lmax );
+        const double&      lmax );
 
 void ppath_step_refr_1d(
               Workspace&  ws,
@@ -237,7 +256,7 @@ void ppath_step_refr_1d(
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
-        const double&     r_geoid,
+        ConstVectorView   refellipsoid,
         const double&     z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
@@ -256,7 +275,7 @@ void ppath_step_refr_2d(
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
@@ -276,7 +295,7 @@ void ppath_step_refr_3d(
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
@@ -291,7 +310,7 @@ void ppath_calc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
-        const Matrix&         r_geoid,
+        const Vector&         refellipsoid,
         const Matrix&         z_surface,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,

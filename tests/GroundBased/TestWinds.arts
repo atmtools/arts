@@ -73,9 +73,8 @@ AgendaSet( abs_scalar_gas_agenda ){
 
 
 
-# ---- Geoid and surface -----------------------------------------------------
+# ---- The surface -----------------------------------------------------
 
-MatrixSetConstant( r_geoid, nrows, ncols, 6378e3 )
 MatrixSetConstant( z_surface, nrows, ncols, 0 )
 
 
@@ -83,7 +82,6 @@ MatrixSetConstant( z_surface, nrows, ncols, 0 )
 # ---- Observation position ---------------------------------------------------
 
 MatrixSetConstant( sensor_pos, 1, atmosphere_dim, 0 )
-sensor_posAddRgeoid
 
 
 

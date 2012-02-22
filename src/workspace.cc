@@ -2661,6 +2661,33 @@ void Workspace::define_wsv_data()
       GROUP( "Agenda" )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "refellipsoid" ),
+      DESCRIPTION
+      (
+       "Reference ellipsoid.\n"
+       "\n"
+       "This vector specifies the shape of the reference ellipsoid. The\n"
+       "vector must have length 2, where the two elements are:\n"
+       "  1: Equatorial radius.\n"
+       "  2: The eccentricity.\n"
+       "The eccentricity is sqrt(1-b*b/a*a) where a and b are equatorial and\n"
+       "polar radius, respectively. If the eccentricity is set to 0, an\n"
+       "average radius should be used instead of the equatorial one.\n"
+       "\n"
+       "The eccentricity must be 0 for 1D calculations, as a spherical Earth\n"
+       "is implied by setting *atmosphere_dim* to 1. For 2D, the selected\n"
+       "ellipsoid parameters should be selected according to cross-section\n"
+       "between the real ellipsoid and the 2D plane considered. For 3D,\n"
+       "models can be used, such as WGS84.\n"
+       "\n"
+       "Usage:  Set by the user.\n"
+       "\n"
+       "Size:   [ 2 ]\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
   (WsvRecord
    ( NAME( "rte_doppler" ),
     DESCRIPTION
@@ -2789,10 +2816,8 @@ void Workspace::define_wsv_data()
        "methods) from the workspace. \n"
         "\n"
        "This variable is a vector with a length equalling the atmospheric\n"
-       "dimensionality. The first element is the radius (from the coordinate\n"
-       "system centre) of the position. Element 2 is the latitude and \n"
-       "element 3 is the longitude. Please note that the vertical position \n"
-       "is given as the radius, not the altitude above the geoid.\n"
+       "dimensionality. The first element is the geomtrical altitude.\n"
+       "Element 2 is the latitude and element 3 is the longitude.\n"
        "\n"
        "Usage: See above. \n"
        "\n"
@@ -2855,39 +2880,6 @@ void Workspace::define_wsv_data()
        "Size:  Should match abs_species.nelem()\n"
        ),
       GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "r_geoid" ),
-      DESCRIPTION
-      (
-       "Geoid radius.\n"
-       "\n"
-       "Geometrical altitudes are defined as the vertical distance above the\n"
-       "geoid, and the geoid is the reference surface used when giving, for\n"
-       "example, *z_surface* and *z_field*. \n"
-       "\n"
-       "The geoid is defined by giving the radius from the coordinate centre\n"
-       "to the geoid surface for each crossing of the latitude and longitude\n"
-       "grids. The geoid should normally be selected to be an ellipsoid but\n"
-       "any shape is allowed. For 1D calculations, the geoid is by\n"
-       "definition a sphere.\n"
-       "\n"
-       "The radius for a point between the grid crossings is obtained by\n"
-       "linear (2D) or bi-linear (3D) interpolation of the *r_geoid*. For 1D\n"
-       "cases the geoid radius is constant.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Set by using a method for a geodetic datum.\n"
-       "\n"
-       "Unit:       m\n"
-       "\n"
-       "Dimensions: [ lat_grid, lon_grid ]\n"
-       ),
-      GROUP( "Matrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3350,7 +3342,7 @@ void Workspace::define_wsv_data()
        "\n"
        "The sensor positions are specified as a matrix, where the number of\n"
        "columns shall be equal to *atmosphere_dim*. Column 1 shall contain\n"
-       "the radius of observation posotion, column 2 the latitude and the \n"
+       "the altitude of observation posotion, column 2 the latitude and the \n"
        "last column the longitude. The number of rows corresponds to the\n"
        "number of measurement blocks.\n" 
        "\n"
@@ -4346,7 +4338,7 @@ void Workspace::define_wsv_data()
        "The sensor positions associated with *y*.\n"
        "\n"
        "Definition of positions matches *sensor_pos* (such as first column\n"
-       "holds the radius). Data are provided for each element of *y*,\n"
+       "holds the altitude). Data are provided for each element of *y*,\n"
        "following y_f, and the number of rows equals the length of *y*.\n"
        "\n"
        "Usage: Output from radiative transfer calculations considering\n"
@@ -4501,7 +4493,7 @@ void Workspace::define_wsv_data()
       (
        "The field of geometrical altitudes.\n"
        "\n"
-       "This variable gives the geometrical altitude, above the geoid, of\n"
+       "This variable gives the geometrical altitude, above the ellipsoid, of\n"
        "each crossing of the pressure, latitude and longitude grids. For 1D\n"
        "cases the altitudes give the geometrical position of the pressure\n"
        "levels.\n"
@@ -4514,7 +4506,7 @@ void Workspace::define_wsv_data()
        "\n"
        "The radius (from the coordinate centre) for a point between the grid\n"
        "crossings is obtained by a (multi-)linear interpolation of the sum\n"
-       "of *r_geoid* and *z_field*.\n" 
+       "of the ellipsoid radius and *z_field*.\n" 
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -4591,8 +4583,8 @@ void Workspace::define_wsv_data()
        "\n"
        "The radius (from the coordinate centre) for a point between the grid\n"
        "crossings is obtained by a linear (1D) or bi-linear (2D) \n"
-       "interpolation of the sum of *r_geoid* and *z_surface*. With other \n"
-       "words, the radius for the surface is assumed to vary linear along \n"
+       "interpolation of the sum of the ellipsoid radius and *z_surface*.\n"
+       "That is, the radius for the surface is assumed to vary linear along \n"
        "the latitudes and longitudes in *lat_grid* and *lon_grid*.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"

@@ -35,6 +35,13 @@
 */
 
 
+// Values to apply if some calculation does not provide a solution
+const double   R_NOT_FOUND   = -1;       // A value below zero
+const double   L_NOT_FOUND   = 99e99;    // Some very large value for l/lat/lon
+const double   LAT_NOT_FOUND = 99e99;
+const double   LON_NOT_FOUND = 99e99;
+
+
 
 /*===========================================================================
   === External declarations
@@ -47,6 +54,7 @@
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "geodetic.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "mystring.h"
@@ -58,56 +66,6 @@
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
-
-
-
-/*===========================================================================
-  === Common precision variables
-  ===========================================================================*/
-
-// This variable defines the maximum allowed error tolerance for radius.
-// The variable is, for example, used to check that a given a radius is
-// consistent with the specified grid cell.
-//
-#ifdef USE_DOUBLE
-const double   RTOL = 1e-2;
-#else
-const double   RTOL = 10;
-#endif
-
-
-// As RTOL but for latitudes and longitudes.
-//
-#ifdef USE_DOUBLE
-const double   LATLONTOL = 1e-11;
-#else
-const double   LATLONTOL = 1e-6;
-#endif
-
-
-// This variable defines how much zenith and azimuth angles can
-// deviate from 0, 90 and 180 degrees, but still be treated to be 0,
-// 90 or 180.  For example, an azimuth angle of 180-ANGTOL/2 will
-// be treated as a strictly southward observation.  However, the
-// angles are not allowed to go outside their defined range.  This
-// means, for example, that values above 180 are never allowed.
-//
-#ifdef USE_DOUBLE
-const double   ANGTOL = 1e-7; 
-#else
-const double   ANGTOL = 1e-4; 
-#endif
-
-
-// Latitudes with an absolute value > POLELAT are considered to be on
-// the south or north pole for 3D.
-//
-const double   POLELAT = 89.9999;
-
-
-// Maximum tilt of pressure levels, in degrees
-//
-const double    PTILTMAX = 5;
 
 
 
@@ -177,7 +135,10 @@ double geompath_za_at_r(
     }
   else
     {
-      return 90;
+      if( a_za > 0 )
+        { return 90; }
+      else
+        { return -90; }
     }
 }
 
@@ -466,245 +427,8 @@ double za_geom2other_point(
 
 
 /*===========================================================================
-  === Basic (true) 3D function
+  === Various functions
   ===========================================================================*/
-
-//! sph2cart
-/*! 
-   Conversion from spherical to cartesian coordinates.
-
-   The cartesian coordinate system is defined such as the x-axis goes along
-   lat=0 and lon=0, y-axis goes along lat=90, and the z-axis goes along lat=0
-   and lon=90. 
-
-   \param   x     Out: x position.
-   \param   y     Out: y position.
-   \param   z     Out: z position.
-   \param   r     Radius.
-   \param   lat   Latitude.
-   \param   lon   Longitude.
-
-   \author Patrick Eriksson
-   \date   2002-12-17
-*/
-void sph2cart(
-            double&   x,
-            double&   y,
-            double&   z,
-      const double&   r,
-      const double&   lat,
-      const double&   lon )
-{
-  assert( r > 0 );
-  assert( abs( lat ) <= 90 );
-  assert( abs( lon ) <= 360 );
-
-  const double   latrad = DEG2RAD * lat;
-  const double   lonrad = DEG2RAD * lon;
-
-  x = r * cos( latrad );   // Common term for x and z
-  z = x * sin( lonrad );
-  x = x * cos( lonrad );
-  y = r * sin( latrad );
-}
-
-
-
-//! cart2sph
-/*! 
-   The inverse of *sph2cart*.
-
-   \param   r     Out: Radius of observation position.
-   \param   lat   Out: Latitude of observation position.
-   \param   lon   Out: Longitude of observation position.
-   \param   x     x-coordinate of observation position.
-   \param   y     y-coordinate of observation position.
-   \param   z     z-coordinate of observation position.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void cart2sph(
-             double&    r,
-             double&    lat,
-             double&    lon,
-       const double&    x,
-       const double&    y,
-       const double&    z )
-{
-  r   = sqrt( x*x + y*y + z*z );
-  lat = RAD2DEG * asin( y / r );
-  lon = RAD2DEG * atan2( z, x ); 
-}
-
-
-
-//! poslos2cart
-/*! 
-   Conversion from position and LOS to cartesian coordinates
-
-   A position (in geographical coordinates) and LOS are converted to a
-   cartesian position and a viewing vector. The viewing direction is the
-   the vector [dx,dy,dz]. This vector is normalised (it has length 1).
-
-   See the user guide for definition on the zenith and azimuth angles.
-
-   \param   x     Out: x-coordinate of observation position.
-   \param   y     Out: y-coordinate of observation position.
-   \param   z     Out: z-coordinate of observation position.
-   \param   dx    Out: x-part of LOS unit vector.
-   \param   dy    Out: y-part of LOS unit vector.
-   \param   dz    Out: z-part of LOS unit vector.
-   \param   r     Radius of observation position.
-   \param   lat   Latitude of observation position.
-   \param   lon   Longitude of observation position.
-   \param   za    LOS zenith angle at observation position.
-   \param   aa    LOS azimuth angle at observation position.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void poslos2cart(
-             double&   x,
-             double&   y,
-             double&   z,
-             double&   dx,
-             double&   dy,
-             double&   dz,
-       const double&   r,
-       const double&   lat,
-       const double&   lon,
-       const double&   za,
-       const double&   aa )
-{
-  // lat = +-90 
-  // For lat = +- 90 the azimuth angle gives the longitude along which the
-  // LOS goes
-  if( abs( lat ) > POLELAT )
-    {
-      const double   s = sign( lat );
-
-      x = 0;
-      z = 0;
-      y = s * r;
-
-      dy = s * cos( DEG2RAD * za );
-      dx = sin( DEG2RAD * za );
-      dz = dx * sin( DEG2RAD * aa );
-      dx = dx * cos( DEG2RAD * aa );
-    }
-
-  else
-    {
-      const double   latrad = DEG2RAD * lat;
-      const double   lonrad = DEG2RAD * lon;
-      const double   zarad  = DEG2RAD * za;
-      const double   aarad  = DEG2RAD * aa;
-
-      sph2cart( x, y, z, r, lat, lon );
-
-      const double   coslat = cos( latrad );
-      const double   sinlat = sin( latrad );
-      const double   coslon = cos( lonrad );
-      const double   sinlon = sin( lonrad );
-      const double   cosza  = cos( zarad );
-      const double   sinza  = sin( zarad );
-      const double   cosaa  = cos( aarad );
-      const double   sinaa  = sin( aarad );
-
-      const double   dr   = cosza;
-      const double   dlat = sinza * cosaa;         // r-terms cancel out below
-      const double   dlon = sinza * sinaa / coslat; 
-
-      dx = coslat*coslon * dr - sinlat*coslon * dlat - coslat*sinlon * dlon;
-      dy =        sinlat * dr +        coslat * dlat;
-      dz = coslat*sinlon * dr - sinlat*sinlon * dlat + coslat*coslon * dlon;
-    }
-}
-
-
-
-//! cart2poslos
-/*! 
-   The inverse of *poslos2cart*.
-
-   The azimuth angle is set to: <br> 
-      0 when the zenith angle is 0 or 180.
-      atan2(dz,dx) at the poles (lat = +- 90).
-
-   The longitude is set to 0 at the poles (lat = +- 90).
-
-   \param   r     Out: Radius of observation position.
-   \param   lat   Out: Latitude of observation position.
-   \param   lon   Out: Longitude of observation position.
-   \param   za    Out: LOS zenith angle at observation position.
-   \param   aa    Out: LOS azimuth angle at observation position.
-   \param   x     x-coordinate of observation position.
-   \param   y     y-coordinate of observation position.
-   \param   z     z-coordinate of observation position.
-   \param   dx    x-part of LOS unit vector.
-   \param   dy    y-part of LOS unit vector.
-   \param   dz    z-part of LOS unit vector.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void cart2poslos(
-             double&   r,
-             double&   lat,
-             double&   lon,
-             double&   za,
-             double&   aa,
-       const double&   x,
-       const double&   y,
-       const double&   z,
-       const double&   dx,
-       const double&   dy,
-       const double&   dz )
-{
-  // Assert that LOS vector is normalised
-  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
-
-  // Spherical coordinates
-  cart2sph( r, lat, lon, x, y, z );
-
-  // Spherical derivatives
-  const double   coslat = cos( DEG2RAD * lat );
-  const double   sinlat = sin( DEG2RAD * lat );
-  const double   coslon = cos( DEG2RAD * lon );
-  const double   sinlon = sin( DEG2RAD * lon );
-  const double   dr   = coslat*coslon*dx + sinlat*dy + coslat*sinlon*dz;
-  const double   dlat = -sinlat*coslon/r*dx + coslat/r*dy -sinlat*sinlon/r*dz;
-  const double   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dz;
-
-  // LOS angles
-  za = RAD2DEG * acos( dr );
-  //
-  if( za < ANGTOL  ||  za > 180-ANGTOL  )
-    { aa = 0; }
-
-  else if( abs( lat ) <= POLELAT )
-    {
-      aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
-
-      if( isnan( aa ) )
-        {
-          if( dlat >= 0 )
-            { aa = 0; }
-          else
-            { aa = 180; }
-        }
-      else if( dlon < 0 )
-        { aa = -aa; }
-    }
-
-  // For lat = +- 90 the azimuth angle gives the longitude along which the
-  // LOS goes
-  else
-    { aa = RAD2DEG * atan2( dz, dx ); }
-}
-
-
 
 //! resolve_lon
 /*! 
@@ -761,135 +485,6 @@ void resolve_lon(
 
 
 
-//! geompath_tanpos_3d
-/*! 
-   Position of the tangent point for 3D cases.
-
-   The zenith angle must be >= 90.
-
-   \param   r_tan       Out: Radius of tangent point.
-   \param   lat_tan     Out: Latitude of tangent point.
-   \param   lon_tan     Out: Longitude of tangent point.
-   \param   l_tan       Out: Distance along path to the tangent point.
-   \param   r           Radius of observation position.
-   \param   lat         Latitude of observation position.
-   \param   lon         Longitude of observation position.
-   \param   za          LOS zenith angle at observation position.
-   \param   aa          LOS azimuth angle at observation position.
-   \param   ppc         FIXME: Add documentation.
-
-   \author Patrick Eriksson
-   \date   2002-12-31
-*/
-void geompath_tanpos_3d( 
-             double&    r_tan,
-             double&    lat_tan,
-             double&    lon_tan,
-             double&    l_tan,
-       const double&    r,
-       const double&    lat,
-       const double&    lon,
-       const double&    za,
-       const double&    aa,
-       const double&    ppc )
-{
-  assert( za >= 90 );
-  assert( r >= ppc );
-
-  double   x, y, z, dx, dy, dz; 
-
-  poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
-
-  l_tan = sqrt( r*r - ppc*ppc );
-
-  cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
-}
-
-
-
-//! zaaa2cart
-/*! 
-   Converts zenith and azimuth angles to a cartesian unit vector.
-
-   This function and the sister function cart2zaaa handles
-   transformation of line-of-sights. This in contrast to the sph/poslos
-   functions that handles positions, or combinations of positions and
-   line-of-sight.
-
-   The cartesian coordinate system used for these two functions can 
-   be defined as
-    z : za = 0
-    x : za=90, aa=0
-    y : za=90, aa=90
-
-   \param   dx    Out: x-part of LOS unit vector.
-   \param   dy    Out: y-part of LOS unit vector.
-   \param   dz    Out: z-part of LOS unit vector.
-   \param   za    LOS zenith angle at observation position.
-   \param   aa    LOS azimuth angle at observation position.
-
-   \author Patrick Eriksson
-   \date   2009-10-02
-*/
-void zaaa2cart(
-             double&   dx,
-             double&   dy,
-             double&   dz,
-       const double&   za,
-       const double&   aa )
-{
-  const double   zarad  = DEG2RAD * za;
-  const double   aarad  = DEG2RAD * aa;
-
-  dz = cos( zarad );
-  dx = sin( zarad );
-  dy = sin( aarad ) * dx;
-  dx = cos( aarad ) * dx;
-}
-
-
-
-//! cart2zaaa
-/*! 
-   Converts a cartesian directional vector to zenith and azimuth
-
-   This function and the sister function cart2zaaa handles
-   transformation of line-of-sights. This in contrast to the sph/poslos
-   functions that handles positions, or combinations of positions and
-   line-of-sight.
-
-   The cartesian coordinate system used for these two functions can 
-   be defined as
-    z : za = 0
-    x : za=90, aa=0
-    y : za=90, aa=90
-
-   \param   za    Out: LOS zenith angle at observation position.
-   \param   aa    Out: LOS azimuth angle at observation position.
-   \param   dx    x-part of LOS unit vector.
-   \param   dy    y-part of LOS unit vector.
-   \param   dz    z-part of LOS unit vector.
-
-   \author Patrick Eriksson
-   \date   2009-10-02
-*/
-void cart2zaaa(
-             double&   za,
-             double&   aa,
-       const double&   dx,
-       const double&   dy,
-       const double&   dz )
-{
-  const double r = sqrt( dx*dx + dy*dy + dz*dz );
-
-  assert( r > 0 );
-
-  za = RAD2DEG * acos( dz / r );
-  aa = RAD2DEG * atan2( dy, dx );
-}
-
-
-
 //! rotationmat3D
 /*! 
    Creates a 3D rotation matrix
@@ -940,6 +535,89 @@ void rotationmat3D(
   R(2,0) = u*w*(1-c) - v*s;
   R(2,1) = v*w*(1-c)+u*s;
   R(2,2) = w2 + (u2+v2)*c;
+}
+
+
+
+//! cart2zaaa
+/*! 
+   Converts a cartesian directional vector to zenith and azimuth
+
+   This function and the sister function cart2zaaa handles
+   transformation of line-of-sights. This in contrast to the sph/poslos
+   functions that handles positions, or combinations of positions and
+   line-of-sight.
+
+   The cartesian coordinate system used for these two functions can 
+   be defined as
+    z : za = 0
+    x : za=90, aa=0
+    y : za=90, aa=90
+
+   \param   za    Out: LOS zenith angle at observation position.
+   \param   aa    Out: LOS azimuth angle at observation position.
+   \param   dx    x-part of LOS unit vector.
+   \param   dy    y-part of LOS unit vector.
+   \param   dz    z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void cart2zaaa(
+             double&   za,
+             double&   aa,
+       const double&   dx,
+       const double&   dy,
+       const double&   dz )
+{
+  const double r = sqrt( dx*dx + dy*dy + dz*dz );
+
+  assert( r > 0 );
+
+  za = RAD2DEG * acos( dz / r );
+  aa = RAD2DEG * atan2( dy, dx );
+}
+
+
+
+//! zaaa2cart
+/*! 
+   Converts zenith and azimuth angles to a cartesian unit vector.
+
+   This function and the sister function cart2zaaa handles
+   transformation of line-of-sights. This in contrast to the sph/poslos
+   functions that handles positions, or combinations of positions and
+   line-of-sight.
+
+   The cartesian coordinate system used for these two functions can 
+   be defined as
+    z : za = 0
+    x : za=90, aa=0
+    y : za=90, aa=90
+
+   \param   dx    Out: x-part of LOS unit vector.
+   \param   dy    Out: y-part of LOS unit vector.
+   \param   dz    Out: z-part of LOS unit vector.
+   \param   za    LOS zenith angle at observation position.
+   \param   aa    LOS azimuth angle at observation position.
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void zaaa2cart(
+             double&   dx,
+             double&   dy,
+             double&   dz,
+       const double&   za,
+       const double&   aa )
+{
+  const double   zarad  = DEG2RAD * za;
+  const double   aarad  = DEG2RAD * aa;
+
+  dz = cos( zarad );
+  dx = sin( zarad );
+  dy = sin( aarad ) * dx;
+  dx = cos( aarad ) * dx;
 }
 
 
@@ -1029,27 +707,27 @@ void map_daa(
    only used to determine which grid range that is of interest when the
    position is exactly on top of a grid point. 
 
-   \return              The radial slope [m/degree]
-   \param   lat_grid    The latitude grid.
-   \param   r_geoid     Radius of the geoid for the latitude dimension.
-   \param   z_surf      Geometrical altitude of the surface, or the pressure
-                        level of interest, for the latitide dimension
-   \param   gp          Latitude grid position for the position of interest
-   \param   za          LOS zenith angle.
+   \return                 The radial slope [m/degree]
+   \param   lat_grid       The latitude grid.
+   \param   refellipsoid   As the WSV with the same name.
+   \param   z_surf         Geometrical altitude of the surface, or the pressure
+                           level of interest, for the latitide dimension
+   \param   gp             Latitude grid position for the position of interest
+   \param   za             LOS zenith angle.
 
    \author Patrick Eriksson
    \date   2002-06-03
 */
 double plevel_slope_2d(
         ConstVectorView   lat_grid,           
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
         const double&     za )
 {
   Index i1 = gridpos2gridrange( gp, abs( za ) >= 0 );
-  const double r1 = r_geoid[i1] + z_surf[i1];
-  const double r2 = r_geoid[i1+1] + z_surf[i1+1];
+  const double r1 = refell2r( refellipsoid, lat_grid[i1] ) + z_surf[i1];
+  const double r2 = refell2r( refellipsoid, lat_grid[i1+1] ) + z_surf[i1+1];
   return ( r2 - r1 ) / ( lat_grid[i1+1] - lat_grid[i1] );
 }
 
@@ -1251,15 +929,15 @@ double plevel_slope_3d(
    This function is in practice another way to call the non-vector version
    of the function above.
 
-   \return              The radial slope [m/degree]
-   \param   lat_grid    The latitude grid.
-   \param   lon_grid    The longitude grid.
-   \param   r_geoid     As the WSV with the same name.
-   \param   z_surf      Geometrical altitude of the surface, or the pressure
-                        level of interest.
-   \param   gp_lat      Latitude grid position for the position of interest.
-   \param   gp_lon      Longitude grid position for the position of interest.
-   \param   aa          Azimuth angle.
+   \return                 The radial slope [m/degree]
+   \param   lat_grid       The latitude grid.
+   \param   lon_grid       The longitude grid.
+   \param   refellipsoid   As the WSV with the same name.
+   \param   z_surf         Geometrical altitude of the surface, or the pressure
+                           level of interest.
+   \param   gp_lat         Latitude grid position for the position of interest.
+   \param   gp_lon         Longitude grid position for the position of interest.
+   \param   aa             Azimuth angle.
 
    \author Patrick Eriksson
    \date   2002-06-03
@@ -1267,11 +945,11 @@ double plevel_slope_3d(
 double plevel_slope_3d(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,  
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstMatrixView   z_surf,
         const GridPos&    gp_lat,
         const GridPos&    gp_lon,
-        const double&    aa )
+        const double&     aa )
 {
   Index ilat = gridpos2gridrange( gp_lat, abs( aa ) >= 0 );
   Index ilon = gridpos2gridrange( gp_lon, aa >= 0 );
@@ -1289,10 +967,12 @@ double plevel_slope_3d(
   const double   lat3 = lat_grid[ilat+1];
   const double   lon5 = lon_grid[ilon];
   const double   lon6 = lon_grid[ilon+1];
-  const double   r15  = r_geoid(ilat,ilon) + z_surf(ilat,ilon);
-  const double   r35  = r_geoid(ilat+1,ilon) + z_surf(ilat+1,ilon);
-  const double   r36  = r_geoid(ilat+1,ilon+1) + z_surf(ilat+1,ilon+1);
-  const double   r16  = r_geoid(ilat,ilon+1) + z_surf(ilat,ilon+1);
+  const double   re1  = refell2r( refellipsoid, lat1 );
+  const double   re3  = refell2r( refellipsoid, lat3 );
+  const double   r15  = re1 + z_surf(ilat,ilon);
+  const double   r35  = re3 + z_surf(ilat+1,ilon);
+  const double   r36  = re3 + z_surf(ilat+1,ilon+1);
+  const double   r16  = re1 + z_surf(ilat,ilon+1);
 
   return   plevel_slope_3d( lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
                                                                 lat, lon, aa );
@@ -1321,60 +1001,6 @@ double plevel_angletilt(
   // The tilt (in radians) is c/r if c is converted to m/radian. So we get
   // conversion RAD2DEG twice
   return   RAD2DEG * RAD2DEG * c / r;
-}
-
-
-
-//! surfacetilt
-/*!
-   Calculation fo the angular tilt of the surface
-
-   A combination of plevel_slope_xd and plevel_angletilt. To be used from
-   other parts (externally from ppath part).
-
-   \return              The angular tilt.
-   \param   lat_grid    The latitude grid.
-   \param   lon_grid    The longitude grid.
-   \param   r_geoid     As the WSV with the same name.
-   \param   z_surf      Geometrical altitude of the surface, or the pressure
-                        level of interest.
-   \param   gp_lat      Latitude grid position for the position of interest.
-   \param   gp_lon      Longitude grid position for the position of interest.
-   \param   los         Line-of-sight (either before or after reflection)
-
-   \author Patrick Eriksson
-   \date   2002-06-03
-*/
-double surfacetilt(
-        const Index&      atmosphere_dim,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,  
-        ConstMatrixView   r_geoid,
-        ConstMatrixView   z_surface,
-        const GridPos&    gp_lat,
-        const GridPos&    gp_lon,
-        ConstVectorView   los )
-{
-  if( atmosphere_dim == 1 )
-    { return 0.0; }
-  else if( atmosphere_dim == 2 )
-    {
-      const double rslope = plevel_slope_2d( lat_grid, r_geoid(joker,0), 
-                                          z_surface(joker,0), gp_lat, los[0] );
-      Vector itw(2); interpweights( itw, gp_lat );
-      const Numeric rv_surface = interp( itw, r_geoid(joker,0), gp_lat ) +
-                                 interp( itw, z_surface(joker,0), gp_lat );
-      return plevel_angletilt( rv_surface, rslope);
-    }
-  else
-    {
-      const double rslope = plevel_slope_3d( lat_grid, lon_grid, r_geoid, 
-                                          z_surface, gp_lat, gp_lon, los[1]  );
-      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
-      const Numeric rv_surface = interp( itw, r_geoid, gp_lat, gp_lon ) +
-                                 interp( itw, z_surface, gp_lat, gp_lon );
-      return plevel_angletilt( rv_surface, rslope);
-    }
 }
 
 
@@ -1414,6 +1040,172 @@ bool is_los_downwards(
 
 
 
+//! r_crossing_2d
+/*!
+   Calculates where a 2D LOS crosses the specied radius.
+
+   The function only looks for crossings in the forward direction of
+   the given zenith angle (neglecting all solutions giving *l* <= 0).
+
+   For cases with r_start <= r_hit and abs(za) > 90, the tangent point is
+   passed and the returned crossing is on the other side of the tangent point.
+ 
+   Both *lat* and *l* are set to a very high value if no crossing is found.
+
+   \param   r         Out: Radius of found crossing.
+   \param   lat       Out: Latitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   r_hit     Radius of the level
+   \param   r_start   Radius of start point.
+   \param   lat_start Latitude of start point.
+   \param   za_start  Zenith angle at start point.
+   \param   ppc       Propagation path constant
+
+   \author Patrick Eriksson
+   \date   2012-02-18
+*/
+void r_crossing_2d(
+             double&    lat,
+             double&    l,
+       const double&    r_hit,
+       const double&    r_start,      
+       const double&    lat_start,    
+       const double&    za_start,     
+       const double&    ppc )
+{
+  assert( abs( za_start ) <= 180 );
+  assert( r_start >= ppc ); 
+
+  const double absza = abs( za_start );
+
+  // If above and looking upwards or r_hit below tangent point,
+  // we have no crossing:
+  if( ( r_start >= r_hit  &&  absza <= 90 )  ||  ppc > r_hit )
+    { lat = LAT_NOT_FOUND;   l   = L_NOT_FOUND; }
+
+  // Handle the cases of za=0 and za=180. 
+  else if( absza < ANGTOL  ||  absza > 180-ANGTOL )
+    {
+      lat = lat_start;
+      l   = abs( r_hit - r_start );
+    }
+
+  else
+    {
+      // Passages of tangent point
+      if( absza > 90  &&  r_start <= r_hit )
+        {
+          double za  = geompath_za_at_r( ppc, sign(za_start)*89.99999, r_hit );
+          lat = geompath_lat_at_za( za_start, lat_start, za );
+          l = geompath_l_at_r( ppc, r_start ) + geompath_l_at_r( ppc, r_hit );
+        }
+      
+      else
+        {
+          double za  = geompath_za_at_r( ppc, za_start, r_hit );
+          lat = geompath_lat_at_za( za_start, lat_start, za );
+          l = abs( geompath_l_at_r( ppc, r_start ) -
+                   geompath_l_at_r( ppc, r_hit   ) );
+        }
+    }
+}
+
+
+
+//! r_crossing_3d
+/*!
+   Calculates where a 3D LOS crosses the specied radius
+
+   The solution algorith is described in AUG. See the
+   chapter on propagation paths.
+
+   The function only looks for crossings in the forward direction of
+   the given zenith angle (neglecting all solutions giving *l* <= 0).
+   Note that the tangent point can be passed.
+ 
+   The radius *r* is set to -1, lat and to 999 and *l* to avery high value if
+   no crossing is found.
+
+   \param   lat       Out: Latitude of found crossing.
+   \param   lon       Out: Longitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   r_hit     Traget radius.
+   \param   r_start   Radius of start point.
+   \param   lat_start Latitude of start point.
+   \param   lon_start Longitude of start point.
+   \param   za_start  Zenith angle at start point.
+   \param   ppc       Propagation path constant
+   \param   x         x-coordinate of start position.
+   \param   y         y-coordinate of start position.
+   \param   z         z-coordinate of start position.
+   \param   dx        x-part of LOS unit vector.
+   \param   dy        y-part of LOS unit vector.
+   \param   dz        z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void r_crossing_3d(
+             double&    lat,
+             double&    lon,
+             double&    l,
+       const double&    r_hit,
+       const double&    r_start,    
+       const double&    lat_start,  
+       const double&    lon_start,  
+       const double&    za_start,
+       const double&    ppc,
+       const double&    x,
+       const double&    y,
+       const double&    z,
+       const double&    dx,
+       const double&    dy,
+       const double&    dz )
+{
+  assert( za_start >=   0 );
+  assert( za_start <= 180 );
+
+  // If above and looking upwards or r_hit below tangent point,
+  // we have no crossing:
+  if( ( r_start >= r_hit  &&  za_start <= 90 )  ||  ppc > r_hit )
+    { lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND;   l   = L_NOT_FOUND; }
+
+  // Handle the cases of za=0 and za=180. 
+  else if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
+    {
+      lat = lat_start;
+      lon = lon_start;
+      l   = abs( r_hit - r_start );
+    }
+
+  else
+    {
+      const double   p  = x*dx + y*dy + z*dz;
+      const double   pp = p * p;
+      const double   q  = x*x + y*y + z*z - r_hit*r_hit;
+
+      const double   l1 = -p + sqrt( pp - q );
+      const double   l2 = -p - sqrt( pp - q );
+
+      if( l1 < 0  &&  l2 > 0 )
+        { l = l2; }
+      else if( l1 > 0  &&  l2 < 0 )
+        { l = l1; }
+      else if( l1 < l2 )
+        { l = l1; }
+      else
+        { l = l2; }
+
+      if( l > 0 )
+        {
+          lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
+          lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
+        }
+    }
+}
+
+
+
 //! plevel_crossing_2d
 /*!
    Calculates the angular distance to a crossing of a 2D pressure level
@@ -1435,14 +1227,14 @@ bool is_los_downwards(
    Both positive and negative zenith angles are handled. 
 
    The function only looks for crossings in the forward direction of
-   the given zenith angle. This means that if r>r0 and the absolute
+   the given zenith angle. This means that if rp>r0 and the absolute
    value of the zenith angle is < 90, no crossing will be found (if
    not the slope of the pressure level happen to be very strong).
 
    For downlooking cases, only the part down to the tangent point is
    considered.
    
-   If the given path point is on the pressure level (r=r0), the
+   If the given path point is on the pressure level (rp=r0), the
    solution 0 is rejected.
  
    The latitude difference is set to 999 if no crossing exists.
@@ -1451,9 +1243,9 @@ bool is_los_downwards(
 
    \return         The angular distance to the crossing.
    \param   rp     Radius of a point of the path inside the grid cell
-   \param   za     Zenith angle of the path at r.
+   \param   za     Zenith angle of the path at rp.
    \param   r0     Radius of the pressure level or the surface at the
-                   latitude of r.
+                   latitude of rp.
    \param   c      Linear slope term, as returned by plevel_slope_2d.
 
    \author Patrick Eriksson
@@ -1554,109 +1346,257 @@ double plevel_crossing_2d(
 }
 
 
-
-//! plevel_crossing_3d
+//! rslope_crossing
 /*!
-   Calculates the radius of a crossing of a 3D pressure level or the surface.
+   Calculates the angular distance to a crossing with a level having a 
+   radial slope.
 
-   The function solves the problem mentioned above for a pressure
-   level, or the surface, for 3D cases. The problem is solved by making
-   calculations for five radii, between the min and max values among
-   *r15*, *r35*, *r36* and *r16*. For each test radius, the latitude and 
-   longitude for the crossing of the path and the assumed radius are 
-   calculated. The test radius is then compared to the radius of the 
-   pressure level, or the surface, for the found latitude and longitude.
-   These two radii shall ideally be identical. A radius is selected by
-   an interpolation between the test radii.
+   The function solves the problem for a pressure level, or the planet's
+   surface, where the radius changes linearly as a function of angle. No
+   analytical solution to the original problem has been found. The problem
+   involves sine and cosine of the latitude difference and these functions are
+   replaced with their Taylor expansions where the two first terms are kept.
+   This should be OK for most practical situations (the accuracy should be
+   sufficient for values up to 1 degree?). 
 
-   The problem and its solution is further described in AUG. See the
-   chapter on propagation paths.
+   The problem and its solution is further described in AUG. See the chapter on
+   propagation paths. The variable names below are the same as in AUG.
+
+   Both positive and negative zenith angles are handled. 
 
    The function only looks for crossings in the forward direction of
-   the given zenith angle (neglecting all solutions giving *l* = 0).
- 
-   The radius *r* is set to -1 if no crossing is found.
+   the given zenith angle. This means that if rp>r0 and the absolute
+   value of the zenith angle is < 90, no crossing will be found (if
+   not the slope of the pressure level happen to be very strong).
 
-   \param   r         Out: Radius of found crossing.
-   \param   lat       Out: Latitude of found crossing.
-   \param   lon       Out: Longitude of found crossing.
-   \param   l         Out: Length along the path to the crossing.
-   \param   r_surf    Radius of the level
-   \param   r_start   Radius of observation point.
-   \param   lat_start Latitude of start point.
-   \param   lon_start Longitude of start point.
-   \param   za_start  Zenith angle at observation point.
-   \param   x         x-coordinate of observation position.
-   \param   y         y-coordinate of observation position.
-   \param   z         z-coordinate of observation position.
-   \param   dx        x-part of LOS unit vector.
-   \param   dy        y-part of LOS unit vector.
-   \param   dz        z-part of LOS unit vector.
+   If the given path point is on the pressure level (rp=r0), the solution 0 is
+   rejected. The latitude difference is set to 999 if no crossing exists.
+
+   No special action is taken for special cases such as c=0, za=0 and za=180,
+   and for efficieny these cases should be catched by the calling function.
+
+   \return         The angular distance to the crossing.
+   \param   rp     Radius of a point of the path inside the grid cell
+   \param   za     Zenith angle of the path at rp.
+   \param   r0     Radius of the pressure level or the surface at the
+                   latitude of rp.
+   \param   c      Linear slope term, as returned by plevel_slope_2d.
 
    \author Patrick Eriksson
-   \date   2002-12-30
+   \date   2002-06-07
 */
-void plevel_crossing_3d(
-             double&    r,
-             double&    lat,
-             double&    lon,
-             double&    l,
-       const double     r_surf,
-       const double     r_start,         // No & to avoid problems if these
-       const double     lat_start,       // variables are the same as the
-       const double     lon_start,       // output ones.
-       const double     za_start,
-       const double&    x,
-       const double&    y,
-       const double&    z,
-       const double&    dx,
-       const double&    dy,
-       const double&    dz )
+double rslope_crossing(
+        const double&   rp,
+        const double&   za,
+        const double&   r0,
+              double    c )
 {
-  assert( za_start >=   0 );
-  assert( za_start <= 180 );
+  // If r0=rp, numerical inaccuracy can give a false solution, very close
+  // to 0, that we must throw away.
+  double   dmin = 0;
+  if( r0 == rp )
+    { dmin = 1e-12; }
 
-  // Set values for no crossing found
-  r   = -1;
-  lat = 999;
-  lon = 999;
-  l   = -1;
+  // The nadir angle in radians, and cosine and sine of that angle
+  const double   beta = DEG2RAD * ( 180 - abs(za) );
+  const double   cv = cos( beta );
+  const double   sv = sin( beta );
 
-  // Handle the cases of za=0 and za=180. 
-  if( ( za_start < ANGTOL  &&  r_start < r_surf )  || 
-                              ( za_start > 180-ANGTOL  &&  r_start > r_surf ) )
+  // Convert slope to m/radian and consider viewing direction
+  c *= RAD2DEG;
+  if( za < 0 )
+    { c = -c; }
+
+  // The vector of polynomial coefficients
+  Vector p(5);
+  //
+  p[0] = ( r0 - rp ) * sv;
+  p[1] = r0 * cv + c * sv;
+  p[2] = -r0 * sv / 2 + c * cv;
+  p[3] = -r0 * cv / 6 - c * sv / 2;
+  p[4] = -c * cv / 6;
+
+  // Calculate roots of the polynomial
+  Matrix roots(4,2);
+  poly_root_solve( roots, p );
+  
+  // Find the smallest root with imaginary part = 0, and real part > 0.
+  //
+  double dlat = 999 / RAD2DEG;
+  //
+  for( Index i=0; i<4; i++ )
     {
-      r   = r_surf;
-      lat = lat_start;
-      lon = lon_start;
-      l   = abs( r_surf - r_start );
+      if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
+        { dlat = roots(i,0); }
+    }  
+  
+  // Convert back to degrees
+  // Change also sign if zenith angle is negative
+  if( dlat < 3.14  &&  za < 0 )
+    { dlat = -RAD2DEG * dlat; }
+  else
+    { dlat = RAD2DEG * dlat; }
+
+  return   dlat;
+}
+
+
+
+//! plevel_crossing_2d
+/*!
+   Handles the crossing with a geometric ppaths step and a atmospheric 
+   grid box level
+
+   That is, we have a part of a pressure level or the planet's surface,
+   extending between two latitudes (lat1 and lat3). The radius at each latitude
+   is given (r1 and r3). The function first of determines if the ppath crosses
+   the level/surface between the two latitudes. If yes, the radius and the
+   latitude of the crossing point are calculated. 
+
+   If the given path point is on the pressure level (rp=r0), the
+   solution of zero length is rejected.
+ 
+
+   \param   r           Out: Radius at crossing.
+   \param   lat         Out: Latitude at crossing.
+   \param   r_start0    In: Radius of start point.
+   \param   lat_start   In: Latitude of start point.
+   \param   za_start    In: LOS zenith angle at start point.
+   \param   ppc         In: Propagation path constant.
+   \param   lat1        In: Latitude of lower end.
+   \param   lat3        In: Latitude of upper end.
+   \param   r1          In: Radius at lat1.
+   \param   r3          In: Radius at lat3.
+   \param   above       In: True if ppath start point is above level. 
+                        In: Otherwise false.
+
+   \author Patrick Eriksson
+   \date   2012-02-19
+*/
+void plevel_crossing_2d(
+              double&   r,
+              double&   lat,
+        const double&   r_start0,
+        const double&   lat_start,
+        const double&   za_start,
+        const double&   ppc,
+        const double&   lat1,
+        const double&   lat3,
+        const double&   r1,
+        const double&   r3,
+        const bool&     above )
+{
+  const double absza = abs( za_start );
+
+  assert( absza <= 180 );
+  assert( lat_start >=lat1  &&  lat_start <= lat3 );
+
+  // The case of no slope
+  if( r1 == r3 )
+    {
+      // Set r_start, considering impact of numerical problems
+      double r_start = r_start0;
+      if( above )
+        { if( r_start < r1 ) { r_start = r1; } }
+      else
+        { if( r_start > r1 ) { r_start = r1; } }
+
+      double l;
+      r = r1;
+      r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
+
+      // Check if inside [lat1,lat3]
+      if( lat > lat3  ||  lat < lat1 )
+        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
     }
 
+  // With slope
   else
     {
-      const double   p  = x*dx + y*dy + z*dz;
-      const double   pp = p * p;
-      const double   q  = x*x + y*y + z*z - r_surf*r_surf;
+      const double rmin = min( r1, r3 );
+      const double rmax = max( r1, r3 );
 
-      const double   l1 = -p + sqrt( pp - q );
-      const double   l2 = -p - sqrt( pp - q );
-
-      if( l1 < 0  &&  l2 > 0 )
-        { l = l2; }
-      else if( l1 > 0  &&  l2 < 0 )
-        { l = l1; }
-      else if( l1 < l2 )
-        { l = l1; }
+      // Set r_start, considering impact of numerical problems
+      double r_start = r_start0;
+      if( above )
+        { if( r_start < rmax ) { r_start = rmax; } }
       else
-        { l = l2; }
+        { if( r_start > rmin ) { r_start = rmin; } }
+      
+      double l, za=999;
 
-      if( l > 0 )
+      // Calculate crossing with closest radius
+      if( r_start > rmax )
         {
-          r   = r_surf;
-          lat = RAD2DEG * asin( ( y+dy*l ) / r );
-          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
+          r = rmax;
+          r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
         }
+      else if( r_start < rmin )
+        {
+          r = rmin;      
+          r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
+        }
+      else
+        { r = r_start; lat = lat_start; l = 0; za = za_start; }
+  
+      // latt must be inside [lat1,lat3] if relevant to continue
+      if( lat < lat1  ||  lat > lat3 )
+        { r = R_NOT_FOUND; }   // lat already set by r_crossing_2d
 
+      // Otherwise continue from found point, considering the level slope 
+      else
+        {
+          // Radius and slope at lat
+          const double  cpl = plevel_slope_2d( lat1, lat3, r1, r3 );
+          const double  rpl = r1 + cpl*(lat-lat1);
+
+          // Make adjustment if numerical problems
+          if( above )
+            { if( r < rpl ) { r = rpl; } }
+          else
+            { if( r > rpl ) { r = rpl; } }
+
+          // za_start = 0
+          if( abs(za_start) < ANGTOL )
+            {
+              if( r >= rpl )
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+              else
+                { r = rpl; lat = lat_start; }
+            }
+
+          // za_start = 180
+          else if( abs(za_start) > 180-ANGTOL )
+            {
+              if( r <= rpl )
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+              else
+                { r = rpl; lat = lat_start; }
+            }
+          
+          // Not nadir or zenith
+          else
+            {
+              // Calculate zenith angle at (r,lat) (if <180, already set above)
+              if( za > 180 )  // lat+za preserved (also with negative za)
+                { za = lat_start + za_start -lat; };
+
+              // Latitude distance from present point to actual crossing
+              const double dlat = rslope_crossing( r, za, rpl, cpl );
+
+              // Update lat and check if still inside [lat1,lat3].
+              // If yes, determine r
+              lat += dlat;
+              if( lat < lat1  ||  lat > lat3 )
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+              else
+                { 
+                  // Check if the correction ever exceed 0.2 deg?
+                  assert( abs(dlat) < 0.2 );
+                  r = r1 + cpl*(lat-lat1); 
+                }
+            }  
+        }
     }
 }
 
@@ -1681,7 +1621,6 @@ void plevel_crossing_3d(
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
-   \param   tanpoint    Out: Set to 1 if end point is a tangent point.
    \param   r_start0    Radius of start point.
    \param   lat_start   Latitude of start point.
    \param   za_start    LOS zenith angle at start point.
@@ -1689,7 +1628,7 @@ void plevel_crossing_3d(
    \param   lmax        Maximum allowed length along the path. -1 = no limit.
    \param   ra          Radius of lower pressure level.
    \param   rb          Radius of upper pressure level (rb > ra);
-   \param   rsurface     Radius for the surface.
+   \param   rsurface    Radius for the surface.
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -1700,7 +1639,6 @@ void do_gridrange_1d(
               Vector&   za_v,
               double&   lstep,
               Index&    endface,
-              Index&    tanpoint,
         const double&   r_start0,
         const double&   lat_start,
         const double&   za_start,
@@ -1722,52 +1660,56 @@ void do_gridrange_1d(
   else if( r_start > rb )
     { r_start = rb; }
 
-  // Get end radius of the path step (r_end). If looking downwards, it must 
-  // be checked if:
-  //    a tangent point is passed
-  //    there is an intersection with the surface
-  //
-  double r_end;
-  //
-  endface  = 0;
-  tanpoint = 0;
-  //
+  endface = -1;
+
+  // If upward, end point radius is always rb
   if( za_start <= 90 )
     { 
-      r_end   = rb; 
       endface = 3;
+      // Calculate basic variables from r_start to rb:
+      geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, 
+                                               lat_start, za_start, rb, lmax );
     }
   else
     {
-      // The tangent radius equals here ppc.
-
-      if( ( ra > rsurface )  &&  ( ra > ppc ) )
+      // Path reaches ra:
+      if( ra > rsurface  &&  ra > ppc ) 
         {
-          r_end   = ra;
           endface = 1;
+          geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, 
+                                               lat_start, za_start, ra, lmax );
         }
-      else if( ppc >= rsurface )
+      // Path reaches the surface:
+      else if( rsurface > ppc )
         {
-          r_end    = ppc;
-          tanpoint = 1;
-          if( ppc != ra )
-            { endface = 0; }
+          endface = 7;
+          geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, 
+                                         lat_start, za_start, rsurface, lmax );
         }
+      // The tangent point is passed, on the way back to rb
       else
         {
-          r_end   = rsurface;
-          endface = 7;
+          endface = 1;
+          Vector rx, latx, zax, ry, laty, zay;
+          geompath_from_r1_to_r2( rx, latx, zax, lstep, ppc, r_start, 
+                                              lat_start, za_start, ppc, lmax );
+          const Index lx = rx.nelem()-1;
+          geompath_from_r1_to_r2( ry, laty, zay, lstep, ppc, rx[lx], 
+                                                 latx[lx], zax[lx], rb, lmax );
+          const Index ly = ry.nelem()-1, n  = lx + ly + 1;
+          //
+          r_v.resize(n); lat_v.resize(n); za_v.resize(n);
+          //
+          for( Index i=0; i<=lx; i++ )
+            { r_v[i] = rx[i];   lat_v[i] = latx[i];   za_v[i] = zax[i]; }
+          for( Index i=0; i<=ly; i++ )
+            { 
+              const Index iv = lx + i;
+              r_v[iv] = ry[i];   lat_v[iv] = laty[i];   za_v[iv] = zay[i]; 
+            }
         }
     }
-
-  // Calculate basic variables from r_start to r_end.
-  //
-  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                                                       za_start, r_end, lmax );
-
-  // Force end zenith angle to be exact when we know the correct value
-  if( tanpoint )
-    { za_v[za_v.nelem()-1] = 90; }
+  assert( endface > 0 );
 }
 
 
@@ -1804,7 +1746,6 @@ void do_gridrange_1d(
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
-   \param   tanpoint    Out: Set to 1 if end point is a tangent point.
    \param   r_start0    Radius of start point.
    \param   lat_start   Latitude of start point.
    \param   za_start    LOS zenith angle at start point.
@@ -1816,8 +1757,8 @@ void do_gridrange_1d(
    \param   r3a         Radius of lower-right corner of the grid cell.
    \param   r3b         Radius of upper-right corner of the grid cell (r3b>r3a)
    \param   r1b         Radius of upper-left corner of the grid cell (r1b>r1a).
-   \param   rsurface1    Radius for the surface at *lat1*.
-   \param   rsurface3    Radius for the surface at *lat3*.
+   \param   rsurface1   Radius for the surface at *lat1*.
+   \param   rsurface3   Radius for the surface at *lat3*.
 
    \author Patrick Eriksson
    \date   2002-11-28
@@ -1828,7 +1769,6 @@ void do_gridcell_2d(
               Vector&   za_v,
               double&   lstep,
               Index&    endface,
-              Index&    tanpoint,
         const double&   r_start0,
         const double&   lat_start,
         const double&   za_start,
@@ -1951,64 +1891,170 @@ void do_gridcell_2d(
       else
         { endface  = 1; }
     }
-
   assert( endface );
 
-  // Check there is a tangent point inside the grid cell
-  if( abs_za_start > 90  &&  ( abs_za_start - abs(dlat2end) ) <= 90 ) 
-    { 
-      tanpoint = 1;
-
-      // Check if the tangent point is closer than the end point
-      if( ( abs_za_start - 90 ) < abs( dlat2end ) )
+  // Check if there is a tangent point inside the grid cell. A tangent point
+  // requires special treatment
+  if( abs_za_start > 90  &&  ( abs_za_start - abs(dlat2end) ) < 90 ) 
+    {  
+      Vector rx, latx, zax, ry, laty, zay;
+      geompath_from_r1_to_r2( rx, latx, zax, lstep, ppc, r_start, 
+                                              lat_start, za_start, ppc, lmax );
+      const Index lx = rx.nelem()-1;
+      do_gridcell_2d( ry, laty, zay, lstep, endface, ppc, latx[lx], zax[lx], 
+                      ppc, lmax, lat1, lat3, r1a, r3a, r3b, r1b, 
+                      rsurface1, rsurface3 );
+      const Index ly = ry.nelem()-1, n  = lx + ly + 1;
+      //
+      r_v.resize(n); lat_v.resize(n); za_v.resize(n);
+      //
+      for( Index i=0; i<=lx; i++ )
+        { r_v[i] = rx[i];   lat_v[i] = latx[i];   za_v[i] = zax[i]; }
+      for( Index i=0; i<=ly; i++ )
         { 
-          endface  = 0; 
-          dlat2end = sign(za_start) * ( abs_za_start - 90 ); 
+          const Index iv = lx + i;
+          r_v[iv] = ry[i];   lat_v[iv] = laty[i];   za_v[iv] = zay[i]; 
         }
     }
+
+  // No tangent point
   else
-    { tanpoint = 0; }
+    {
+      // Calculate radius for end point.
+      // To obtain best possible accuracy it is calculated to match found,
+      // end face, and not based on dlat2end.
+      //
+      double   r_end = -1;
+      //
+      if( endface == 1 )
+        { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
+      else if( endface == 2 )
+        { r_end = r1a + c2 * ( dlat_left + dlat2end ); }
+      else if( endface == 3 )
+        { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat3 ); }
+      else if( endface == 4 )
+        { r_end = r1b + c4 * ( dlat_left + dlat2end ); }
+      else if( endface == 7 )
+        { r_end = rsurface1 + csurface * ( dlat_left + dlat2end ); }
 
-
-  // Calculate radius for end point.
-  // To obtain best possible accuracy it is calculated to match found end face,
-  // and not based on dlat2end.
-  //
-  double   r_end = -1;
-  //
-  if( tanpoint )
-    { r_end = geompath_r_at_za( ppc, sign(za_start) * 90 ); }
-  else if( endface == 1 )
-    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
-  else if( endface == 2 )
-    { r_end = r1a + c2 * ( dlat_left + dlat2end ); }
-  else if( endface == 3 )
-    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat3 ); }
-  else if( endface == 4 )
-    { r_end = r1b + c4 * ( dlat_left + dlat2end ); }
-  else if( endface == 7 )
-    { r_end = rsurface1 + csurface * ( dlat_left + dlat2end ); }
-
-  // Fill the return vectors
-  //
-  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+      // Fill the return vectors
+      geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
                                                        za_start, r_end, lmax );
 
-  // Force end latitude and zenith angle to be exact as possible
-  if( tanpoint )
-    {
-      if( za_start >= 0 )
-        { za_v[za_v.nelem()-1] = 90; }
+      // Force end latitude to be exact as possible
+      if( endface == 1 )
+        { lat_v[lat_v.nelem()-1] = lat1; }
+      else if( endface == 3 )
+        { lat_v[lat_v.nelem()-1] = lat3; }
       else
-        { za_v[za_v.nelem()-1] = -90; }
+        { lat_v[lat_v.nelem()-1] = lat_start + dlat2end; }
     }
-  //
-  if( endface == 1 )
-    { lat_v[lat_v.nelem()-1] = lat1; }
-  else if( endface == 3 )
-    { lat_v[lat_v.nelem()-1] = lat3; }
+}
+void do_gridcell_2dv2(
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   za_v,
+              double&   lstep,
+              Index&    endface,
+        const double&   r_start,
+        const double&   lat_start,
+        const double&   za_start,
+        const double&   ppc,
+        const double&   lmax,
+        const double&   lat1,
+        const double&   lat3,
+        const double&   r1a,
+        const double&   r3a,
+        const double&   r3b,
+        const double&   r1b,
+        const double&   rsurface1,
+        const double&   rsurface3 )
+{
+  // Assert latitudes
+  assert( lat_start >= lat1 );
+  assert( lat_start <= lat3 );
+
+  // Radius end latitude of end point
+  double r=-1, lat;
+
+  endface = 0;
+
+  // Check if crossing with lower pressure level
+  plevel_crossing_2d( r, lat, r_start, lat_start, za_start, ppc, lat1, lat3, 
+                                                              r1a, r3a, true );
+  if( r > 0 )
+    { endface = 2; }
+
+
+  // Check if crossing with surface
+  if( rsurface1 >= r1a  ||  rsurface3 >= r3a )
+    {
+      double rt, latt; 
+      plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
+                                            lat3, rsurface1, rsurface3, true );
+      if( rt > 0  &&  abs(latt-lat_start) <= abs(lat-lat_start) )
+        { endface = 7;   r = rt;   lat = latt; }
+    }
+
+  // If crossing found (r>0) we are ready!
+  
+  // Upper pressure level
+  if( r <= 0 )
+    {
+      double rt, latt ;
+      plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
+                                                       lat3, r1b, r3b, false );
+      if( latt < LAT_NOT_FOUND )
+        { endface = 4;   r = rt;   lat = latt; }
+    }
+  
+  // Latitude endfaces
+  if( r <= 0 )
+    {
+      if( za_start < 0 )
+        { endface = 1;  lat = lat1; }
+      else
+        { endface = 3;  lat = lat3; }
+      r = geompath_r_at_lat( ppc, lat_start, za_start, lat ); 
+    }
+
+  assert (endface );
+
+  // Check if there is a tangent point inside the grid cell. A tangent point
+  // requires special treatment
+  const double absza = abs( za_start );
+  if( absza > 90  &&  ( absza - abs(lat_start-lat) ) < 90 ) 
+    {  
+      Vector rx, latx, zax, ry, laty, zay;
+      geompath_from_r1_to_r2( rx, latx, zax, lstep, ppc, r_start, lat_start, 
+                                                         za_start, ppc, lmax );
+      const Index lx = rx.nelem()-1;
+      do_gridcell_2dv2( ry, laty, zay, lstep, endface, ppc, latx[lx], zax[lx], 
+                        ppc, lmax, lat1, lat3, r1a, r3a, r3b, r1b, 
+                        rsurface1, rsurface3 );
+      const Index ly = ry.nelem()-1, n  = lx + ly + 1;
+      //
+      r_v.resize(n); lat_v.resize(n); za_v.resize(n);
+      //
+      for( Index i=0; i<=lx; i++ )
+        { r_v[i] = rx[i];   lat_v[i] = latx[i];   za_v[i] = zax[i]; }
+      for( Index i=0; i<=ly; i++ )
+        { 
+          const Index iv = lx + i;
+          r_v[iv] = ry[i];   lat_v[iv] = laty[i];   za_v[iv] = zay[i]; 
+        }
+    }
+
+  // No tangent point
   else
-    { lat_v[lat_v.nelem()-1] = lat_start + dlat2end; }
+    {
+      // Fill the return vectors
+      geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+                                                           za_start, r, lmax );
+
+      // Re-set last latitude, for higher accuracy (possibly?)
+      lat_v[lat_v.nelem()-1] = lat;
+    }
 }
 
 
@@ -2038,7 +2084,6 @@ void do_gridcell_2d(
    \param   aa_v        FIXME: Add documentation.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
-   \param   tanpoint    Out: Set to 1 if end point is a tangent point.
    \param   r_start0    Radius of start point.
    \param   lat_start0  Latitude of start point.
    \param   lon_start0  Longitude of start point.
@@ -2074,7 +2119,6 @@ void do_gridcell_3d(
               Vector&   aa_v,
               double&   lstep,
               Index&    endface,
-              Index&    tanpoint,
         const double&   r_start0, 
         const double&   lat_start0,
         const double&   lon_start0,
@@ -2143,10 +2187,9 @@ void do_gridcell_3d(
   // Determine the position of the end point
   //
   endface  = 0;
-  tanpoint = 0;
+  bool tanpoint = false;
   //
   double   r_end, lat_end, lon_end, l_end;
-
 
   // Zenith and nadir looking are handled as special cases
 
@@ -2220,7 +2263,6 @@ void do_gridcell_3d(
       if( rsurface15+RTOL >= r15a  ||  rsurface35+RTOL >= r35a  ||  
           rsurface36+RTOL >= r36a  ||  rsurface16+RTOL >= r16a )
         { do_surface = true; }
-
 
       while( !ready )
         {
@@ -2339,21 +2381,14 @@ void do_gridcell_3d(
         { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15,  
                       rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
 
-      //--- Tangent point?
-      //
-      if( za_start > 90 )
+      // Check if there is a tangent point inside the grid cell. A tangent 
+      // point requires special treatment, which is done last in function
+      if( za_start > 90  &&  l_tan < l_end )
         {
-          if( l_tan < l_end )
-            {
-              geompath_tanpos_3d( r_end, lat_end, lon_end, l_end,
-                                  r_start, lat_start, lon_start, 
-                                  za_start, aa_start, ppc );
-              resolve_lon( lon_end, lon5, lon6 );              
-              endface  = 0;
-              tanpoint = 1;
-            }
-          else if( l_tan == l_end )
-            { tanpoint = 1; }
+          geompath_tanpos_3d( r_end, lat_end, lon_end, l_end, r_start, 
+                              lat_start, lon_start, za_start, aa_start, ppc );
+          resolve_lon( lon_end, lon5, lon6 );              
+          tanpoint = 1;
         }
     }
 
@@ -2405,7 +2440,6 @@ void do_gridcell_3d(
 #endif
    }
 
-
   //--- Set last point especially, which should improve the accuracy
   r_v[n]   = r_end; 
   lat_v[n] = lat_end;
@@ -2431,6 +2465,38 @@ void do_gridcell_3d(
   // Shall lon values be shifted (value 0 and n+1 are already OK)?
   for( Index j=1; j<n; j++ )
     { resolve_lon( lon_v[j], lon5, lon6 ); }
+
+  // Make second part if above ending at tangent point 
+  if( tanpoint )
+    {
+      Vector rx, latx, lonx, zax, aax, ry, laty, lony, zay, aay;
+      rx   = r_v;
+      latx = lat_v;
+      lonx = lon_v;
+      zax  = za_v;
+      aax  = aa_v;
+      const Index lx = rx.nelem()-1;
+      do_gridcell_3d( ry, laty, lony, zay, aay, lstep, endface, ppc, latx[lx], 
+                      lonx[lx], zax[lx], aax[lx], ppc, lmax, lat1, lat3, 
+                      lon5, lon6, r15a, r35a, r36a, r16a, r15b, r35b, r36b, 
+                      r16b, rsurface15, rsurface35, rsurface36, rsurface16 );
+      const Index ly = ry.nelem()-1, nxy  = lx + ly + 1;
+      //
+      r_v.resize(nxy);  lat_v.resize(nxy); lon_v.resize(nxy); 
+      za_v.resize(nxy); aa_v.resize(nxy);
+      //
+      for( Index i=0; i<=lx; i++ )
+        { 
+          r_v[i]  = rx[i];   lat_v[i] = latx[i];  lon_v[i] = lonx[i];   
+          za_v[i] = zax[i];  aa_v[i]  = aax[i]; 
+        }
+      for( Index i=0; i<=ly; i++ )
+        { 
+          const Index iv = lx + i;
+          r_v[iv]  = ry[i];   lat_v[iv] = laty[i];  lon_v[iv] = lony[i]; 
+          za_v[iv] = zay[i];  aa_v[iv] = aay[i]; 
+        }
+    }
 }
 
 
@@ -2483,14 +2549,14 @@ void ppath_init_structure(
   ppath.gp_p.resize( np );
   if( atmosphere_dim >= 2 )
     { ppath.gp_lat.resize( np ); }
-  ppath.z.resize( np );
+  ppath.r.resize( np );
   if( np > 0 )
     { ppath.l_step.resize( np-1 ); }
   else
     { ppath.l_step.resize( 0 ); }
   ppath_set_background( ppath, 0 );
-  ppath.tan_pos.resize(0);
-  ppath.geom_tan_pos.resize(0);
+  ppath.nreal.resize( np );
+  ppath.lspace = 0;
 }
 
 
@@ -2606,11 +2672,14 @@ void ppath_copy(
   ppath1.dim        = ppath2.dim;
   ppath1.constant   = ppath2.constant;
   ppath1.background = ppath2.background;
+  ppath1.lspace     = ppath2.lspace;
 
   ppath1.pos(Range(0,ppath2.np),joker) = ppath2.pos;
   ppath1.los(Range(0,ppath2.np),joker) = ppath2.los;
-  ppath1.z[Range(0,ppath2.np)]         = ppath2.z;
-  ppath1.l_step[Range(0,ppath2.np-1)]  = ppath2.l_step;
+  ppath1.r[Range(0,ppath2.np)]         = ppath2.r;
+  ppath1.nreal[Range(0,ppath2.np)]     = ppath2.nreal;
+  if( ppath2.np > 1 )
+    { ppath1.l_step[Range(0,ppath2.np-1)]  = ppath2.l_step; }
 
   for( Index i=0; i<ppath2.np; i++ )
     {
@@ -2622,11 +2691,6 @@ void ppath_copy(
       if( ppath1.dim == 3 )
         { gridpos_copy( ppath1.gp_lon[i], ppath2.gp_lon[i] ); }
      }
-
-  if( ppath2.tan_pos.nelem() )
-    { ppath1.tan_pos = ppath2.tan_pos; }
-  if( ppath2.geom_tan_pos.nelem() )
-    { ppath1.geom_tan_pos = ppath2.geom_tan_pos; }
 }
 
 
@@ -2666,13 +2730,14 @@ void ppath_append(
   // Append data from ppath2
   Index i1;
   for( Index i=1; i<n2; i++ )
-    {
+    { 
       i1 = n1 + i - 1;
 
       ppath1.pos(i1,0)      = ppath2.pos(i,0);
       ppath1.pos(i1,1)      = ppath2.pos(i,1);
       ppath1.los(i1,0)      = ppath2.los(i,0);
-      ppath1.z[i1]          = ppath2.z[i];
+      ppath1.r[i1]          = ppath2.r[i];
+      ppath1.nreal[i1]      = ppath2.nreal[i];
       gridpos_copy( ppath1.gp_p[i1], ppath2.gp_p[i] );
 
       if( ppath1.dim >= 2 )
@@ -2690,6 +2755,8 @@ void ppath_append(
 
   if( ppath_what_background( ppath2 ) )
     { ppath1.background = ppath2.background; }
+
+  ppath.lspace += ppath.lspace;
 }
 
 
@@ -2707,14 +2774,14 @@ void ppath_append(
 
    The length along the path shall be the same between all points.
 
-   \param   ppath      Output: Ppath structure.
-   \param   r          Vector with radius for the path points.
-   \param   lat        Vector with latitude for the path points.
-   \param   za         Vector with zenith angle for the path points.
-   \param   lstep      Length along the path between the points.
-   \param   r_geoid    Geoid radii.
-   \param   z_field    Geometrical altitudes.
-   \param   ip         Pressure grid range.
+   \param   ppath          Output: Ppath structure.
+   \param   r              Vector with radius for the path points.
+   \param   lat            Vector with latitude for the path points.
+   \param   za             Vector with zenith angle for the path points.
+   \param   lstep          Length along the path between the points.
+   \param   refellipsoid   As the WSV with the same name
+   \param   z_field        Geometrical altitudes.
+   \param   ip             Pressure grid range.
 
    \author Patrick Eriksson
    \date   2002-07-18
@@ -2725,17 +2792,18 @@ void ppath_fill_1d(
      ConstVectorView   lat,
      ConstVectorView   za,
      ConstVectorView   lstep,
-     const double&     r_geoid,
+     ConstVectorView   refellipsoid,
      ConstVectorView   z_field,
      const Index&      ip )
 {
   // Help variables that are common for all points.
-  const double   r1 = r_geoid + z_field[ip];
+  const double   r1 = refellipsoid[0] + z_field[ip];
   const double   dr = z_field[ip+1] - z_field[ip];
 
   for( Index i=0; i<r.nelem(); i++ )
     {
-      ppath.pos(i,0) = r[i];
+      ppath.r[i]     = r[i];
+      ppath.pos(i,0) = r[i] - refellipsoid[0];
       ppath.pos(i,1) = lat[i];
       ppath.los(i,0) = za[i];
       
@@ -2743,8 +2811,6 @@ void ppath_fill_1d(
       ppath.gp_p[i].fd[0] = ( r[i] - r1 ) / dr;
       ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
       gridpos_check_fd( ppath.gp_p[i] );
-
-      ppath.z[i] = r[i] - r_geoid;
 
       if( i > 0 )
         { ppath.l_step[i-1] = lstep[i-1]; }
@@ -2765,16 +2831,16 @@ void ppath_fill_1d(
 
    The length along the path shall be the same between all points.
 
-   \param   ppath      Output: Ppath structure.
-   \param   r          Vector with radius for the path points.
-   \param   lat        Vector with latitude for the path points.
-   \param   za         Vector with zenith angle for the path points.
-   \param   lstep      Length along the path between the points.
-   \param   r_geoid    Geoid radii.
-   \param   z_field    Geometrical altitudes
-   \param   lat_grid   Latitude grid.
-   \param   ip         Pressure grid range.
-   \param   ilat       Latitude grid range.
+   \param   ppath          Output: Ppath structure.
+   \param   r              Vector with radius for the path points.
+   \param   lat            Vector with latitude for the path points.
+   \param   za             Vector with zenith angle for the path points.
+   \param   lstep          Length along the path between the points.
+   \param   refellipsoid   As the WSV with the same name.
+   \param   z_field        Geometrical altitudes
+   \param   lat_grid       Latitude grid.
+   \param   ip             Pressure grid range.
+   \param   ilat           Latitude grid range.
 
    \author Patrick Eriksson
    \date   2002-07-03
@@ -2785,7 +2851,7 @@ void ppath_fill_2d(
      ConstVectorView   lat,
      ConstVectorView   za,
      const double&     lstep,
-     ConstVectorView   r_geoid,
+     ConstVectorView   refellipsoid,
      ConstMatrixView   z_field,
      ConstVectorView   lat_grid,
      const Index&      ip,
@@ -2793,22 +2859,24 @@ void ppath_fill_2d(
 {
   // Help variables that are common for all points.
   const double   dlat  = lat_grid[ilat+1] - lat_grid[ilat];
-  const double   r1low = r_geoid[ilat] + z_field(ip,ilat);
-  const double   drlow = r_geoid[ilat+1] + z_field(ip,ilat+1) -r1low;
-  const double   r1upp = r_geoid[ilat] + z_field(ip+1,ilat);
-  const double   drupp = r_geoid[ilat+1] + z_field(ip+1,ilat+1) - r1upp;
-  const double   z1low =  z_field(ip,ilat);
-  const double   dzlow =  z_field(ip,ilat+1) -z1low;
-  const double   z1upp =  z_field(ip+1,ilat);
-  const double   dzupp =  z_field(ip+1,ilat+1) - z1upp;
+  const double   z1low = z_field(ip,ilat);
+  const double   z1upp = z_field(ip+1,ilat);
+  const double   dzlow = z_field(ip,ilat+1) -z1low;
+  const double   dzupp = z_field(ip+1,ilat+1) - z1upp;
+        double   re    = refell2r( refellipsoid, lat_grid[ilat] );
+  const double   r1low = re + z1low;
+  const double   r1upp = re + z1upp;
+                 re    = refell2r( refellipsoid, lat_grid[ilat+1] );
+  const double   drlow = re + z_field(ip,ilat+1) - r1low;
+  const double   drupp = re + z_field(ip+1,ilat+1) - r1upp;
 
   for( Index i=0; i<r.nelem(); i++ )
     {
-      ppath.pos(i,0) = r[i];
+      ppath.r[i]     = r[i];
       ppath.pos(i,1) = lat[i];
       ppath.los(i,0) = za[i];
       
-      // Weigt in the latitude direction
+      // Weight in the latitude direction
       double w = ( lat[i] - lat_grid[ilat] ) / dlat;
 
       // Radius of lower and upper face at present latitude
@@ -2824,7 +2892,7 @@ void ppath_fill_2d(
       ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
       gridpos_check_fd( ppath.gp_p[i] );
 
-      ppath.z[i] = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
+      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
 
       ppath.gp_lat[i].idx   = ilat;
       ppath.gp_lat[i].fd[0] = ( lat[i] - lat_grid[ilat] ) / dlat;
@@ -2850,20 +2918,20 @@ void ppath_fill_2d(
 
    The length along the path shall be the same between all points.
 
-   \param   ppath      Output: Ppath structure.
-   \param   r          Vector with radius for the path points.
-   \param   lat        Vector with latitude for the path points.
-   \param   lon        Vector with longitude for the path points.
-   \param   za         Vector with zenith angle for the path points.
-   \param   aa         Vector with azimuth angle for the path points.
-   \param   lstep      Length along the path between the points.
-   \param   r_geoid    Geoid radii.
-   \param   z_field    Geometrical altitudes
-   \param   lat_grid   Latitude grid.
-   \param   lon_grid   Longitude grid.
-   \param   ip         Pressure grid range.
-   \param   ilat       Latitude grid range.
-   \param   ilon       Longitude grid range.
+   \param   ppath          Output: Ppath structure.
+   \param   r              Vector with radius for the path points.
+   \param   lat            Vector with latitude for the path points.
+   \param   lon            Vector with longitude for the path points.
+   \param   za             Vector with zenith angle for the path points.
+   \param   aa             Vector with azimuth angle for the path points.
+   \param   lstep          Length along the path between the points.
+   \param   refellipsoid   As the WSV with the same name.
+   \param   z_field        Geometrical altitudes
+   \param   lat_grid       Latitude grid.
+   \param   lon_grid       Longitude grid.
+   \param   ip             Pressure grid range.
+   \param   ilat           Latitude grid range.
+   \param   ilon           Longitude grid range.
 
    \author Patrick Eriksson
    \date   2002-12-30
@@ -2876,7 +2944,7 @@ void ppath_fill_3d(
      ConstVectorView   za,
      ConstVectorView   aa,
      const double&     lstep,
-     ConstMatrixView   r_geoid,
+     ConstVectorView   refellipsoid,
      ConstTensor3View  z_field,
      ConstVectorView   lat_grid,
      ConstVectorView   lon_grid,
@@ -2889,18 +2957,16 @@ void ppath_fill_3d(
   const double   lat3  = lat_grid[ilat+1];
   const double   lon5  = lon_grid[ilon];
   const double   lon6  = lon_grid[ilon+1];
-  const double   r15a  = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
-  const double   r35a  = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
-  const double   r36a  = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
-  const double   r16a  = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
-  const double   r15b  = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);
-  const double   r35b  = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon); 
-  const double   r36b  = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1);
-  const double   r16b  = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
-  const double   rg15  = r_geoid(ilat,ilon);
-  const double   rg35  = r_geoid(ilat+1,ilon); 
-  const double   rg36  = r_geoid(ilat+1,ilon+1);
-  const double   rg16  = r_geoid(ilat,ilon+1);     
+  const double   re1   = refell2r( refellipsoid, lat_grid[ilat] );
+  const double   re3   = refell2r( refellipsoid, lat_grid[ilat+1] );
+  const double   r15a  = re1 + z_field(ip,ilat,ilon);
+  const double   r35a  = re3 + z_field(ip,ilat+1,ilon); 
+  const double   r36a  = re3 + z_field(ip,ilat+1,ilon+1); 
+  const double   r16a  = re1 + z_field(ip,ilat,ilon+1);
+  const double   r15b  = re1 + z_field(ip+1,ilat,ilon);
+  const double   r35b  = re3 + z_field(ip+1,ilat+1,ilon); 
+  const double   r36b  = re3 + z_field(ip+1,ilat+1,ilon+1);
+  const double   r16b  = re1 + z_field(ip+1,ilat,ilon+1);
   const double   dlat  = lat3 - lat1;
   const double   dlon  = lon6 - lon5;
 
@@ -2912,8 +2978,8 @@ void ppath_fill_3d(
       const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                       r15b, r35b, r36b, r16b, lat[i], lon[i] );
 
-      // Position and LOS. 
-      ppath.pos(i,0) = r[i];
+      // Position and LOS
+      ppath.r[i]     = r[i];
       ppath.pos(i,1) = lat[i];
       ppath.pos(i,2) = lon[i];
       ppath.los(i,0) = za[i];
@@ -2921,17 +2987,17 @@ void ppath_fill_3d(
       
       // Pressure grid index
       ppath.gp_p[i].idx   = ip;
-      ppath.gp_p[i].fd[0] = ( ppath.pos(i,0) - rlow ) / ( rupp - rlow );
+      ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
       ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
       gridpos_check_fd( ppath.gp_p[i] );
 
       // Geometrical altitude
-      const double   rgeoid = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                      rg15, rg35, rg36, rg16, lat[i], lon[i] );
-      const double   zlow = rlow - rgeoid;
-      const double   zupp = rupp - rgeoid;
+      const double   re = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                           re1, re3, re3, re1, lat[i], lon[i] );
+      const double   zlow = rlow - re;
+      const double   zupp = rupp - re;
       //
-      ppath.z[i] = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
+      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
 
       // Latitude grid index
       ppath.gp_lat[i].idx   = ilat;
@@ -3015,7 +3081,7 @@ double refraction_ppc(
    The function does the asserts and determined some variables that are common
    for geometrical and refraction calculations.
 
-   See the code fo details.
+   See the code for details.
 
    \author Patrick Eriksson
    \date   2002-11-13
@@ -3031,7 +3097,7 @@ void ppath_start_1d(
   const Index   imax = ppath.np - 1;
 
   // Extract starting radius, zenith angle and latitude
-  r_start   = ppath.pos(imax,0);
+  r_start   = ppath.r[imax];
   lat_start = ppath.pos(imax,1);
   za_start  = ppath.los(imax,0);
 
@@ -3050,7 +3116,7 @@ void ppath_start_1d(
    The function performs the end part of the calculations, that are common
    for geometrical and refraction calculations.
 
-   See the code fo details.
+   See the code for details.
 
    \author Patrick Eriksson
    \date   2002-11-27
@@ -3062,10 +3128,9 @@ void ppath_end_1d(
         ConstVectorView   za_v,
         const double&     lstep,
         ConstVectorView   z_field,
-        const double&     r_geoid,
+        ConstVectorView   refellipsoid,
         const Index&      ip,
         const Index&      endface,
-        const Index&      tanpoint,
         const double&     ppc )
 {
   // Number of path points
@@ -3073,11 +3138,11 @@ void ppath_end_1d(
 
   // Re-allocate ppath for return results and fill the structure
   //
-  ppath_init_structure(  ppath, 1, np );
+  ppath_init_structure( ppath, 1, np );
   //
-  ppath.constant   = ppc;
+  ppath.constant = ppc;
   //
-  ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), r_geoid, 
+  ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), refellipsoid, 
                                                                  z_field, ip );
 
   gridpos_check_fd( ppath.gp_p[np-1] );
@@ -3086,19 +3151,9 @@ void ppath_end_1d(
   if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
 
-  //--- End point is a tangent point
-  else if( tanpoint )
-    {
-      ppath.tan_pos.resize(2);
-      ppath.tan_pos[0] = r_v[np-1];
-      ppath.tan_pos[1] = lat_v[np-1];
-    }
-
   //--- End point is on top of a pressure level
   else
-    {
-      gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nelem() );
-    }
+    { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nelem() ); }
 }
 
 
@@ -3110,7 +3165,7 @@ void ppath_end_1d(
    The function does the asserts and determined some variables that are common
    for geometrical and refraction calculations.
 
-   See the code fo details.
+   See the code for details.
 
    \author Patrick Eriksson
    \date   2002-11-18
@@ -3132,7 +3187,7 @@ void ppath_start_2d(
               Ppath&      ppath,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_surface
         )
 {
@@ -3140,7 +3195,7 @@ void ppath_start_2d(
   const Index imax = ppath.np - 1;
 
   // Extract starting radius, zenith angle and latitude
-  r_start   = ppath.pos(imax,0);
+  r_start   = ppath.r[imax];
   lat_start = ppath.pos(imax,1);
   za_start  = ppath.los(imax,0);
 
@@ -3160,10 +3215,13 @@ void ppath_start_2d(
   //
   ip = gridpos2gridrange( ppath.gp_p[imax], abs(za_start) <= 90);
   //
-  r1a = r_geoid[ilat] + z_field(ip,ilat);        // lower-left
-  r3a = r_geoid[ilat+1] + z_field(ip,ilat+1);    // lower-right
-  r3b = r_geoid[ilat+1] + z_field(ip+1,ilat+1);  // upper-right
-  r1b = r_geoid[ilat] + z_field(ip+1,ilat);      // upper-left
+  const double re1 = refell2r( refellipsoid, lat_grid[ilat] );
+  const double re3 = refell2r( refellipsoid, lat_grid[ilat+1] );
+  //
+  r1a = re1 + z_field(ip,ilat);        // lower-left
+  r3a = re3 + z_field(ip,ilat+1);      // lower-right
+  r3b = re3 + z_field(ip+1,ilat+1);    // upper-right
+  r1b = re1 + z_field(ip+1,ilat);      // upper-left
 
   // This part is a fix to catch start postions on top of a pressure level
   // that does not have an end fractional distance for the first step.
@@ -3192,8 +3250,8 @@ void ppath_start_2d(
         {
           ip--;
           r1b = r1a;   r3b = r3a;   c4 = c2;
-          r1a = r_geoid[ilat] + z_field(ip,ilat);
-          r3a = r_geoid[ilat+1] + z_field(ip,ilat+1);
+          r1a = re1 + z_field(ip,ilat);
+          r3a = re3 + z_field(ip,ilat+1);
           c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
         }
     }
@@ -3205,15 +3263,15 @@ void ppath_start_2d(
         {
           ip++;
           r1a = r1b;   r3a = r3b;   c2 = c4;
-          r3b = r_geoid[ilat+1] + z_field(ip+1,ilat+1);
-          r1b = r_geoid[ilat] + z_field(ip+1,ilat);    
+          r3b = re3 + z_field(ip+1,ilat+1);
+          r1b = re1 + z_field(ip+1,ilat);    
           c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
         }
     }
 
   // Surface radius at latitude end points
-  rsurface1 = r_geoid[ilat] + z_surface[ilat];
-  rsurface3 = r_geoid[ilat+1] + z_surface[ilat+1];
+  rsurface1 = re1 + z_surface[ilat];
+  rsurface3 = re3 + z_surface[ilat+1];
 }
 
 
@@ -3225,7 +3283,7 @@ void ppath_start_2d(
    The function performs the end part of the calculations, that are common
    for geometrical and refraction calculations.
 
-   See the code fo details.
+   See the code for details.
 
    \author Patrick Eriksson
    \date   2002-11-29
@@ -3238,11 +3296,10 @@ void ppath_end_2d(
         const double&     lstep,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         const Index&      ip,
         const Index&      ilat,
         const Index&      endface,
-        const Index&      tanpoint,
         const double&     ppc )
 {
   // Number of path points
@@ -3251,12 +3308,12 @@ void ppath_end_2d(
 
   // Re-allocate ppath for return results and fill the structure
   //
-  ppath_init_structure(  ppath, 2, np );
+  ppath_init_structure( ppath, 2, np );
   //
-  ppath.constant   = ppc;
+  ppath.constant = ppc;
   //
-  ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_field, lat_grid, 
-                                                                    ip, ilat );
+  ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, refellipsoid, z_field, 
+                                                          lat_grid, ip, ilat );
 
   gridpos_check_fd( ppath.gp_p[imax] );
   gridpos_check_fd( ppath.gp_lat[imax] );
@@ -3264,12 +3321,6 @@ void ppath_end_2d(
   // Do end-face specific tasks
   if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
-  else if( tanpoint )
-    {
-      ppath.tan_pos.resize(2);
-      ppath.tan_pos[0] = r_v[np-1];
-      ppath.tan_pos[1] = lat_v[np-1];
-    }
 
   // Set fractional distance for end point
   //
@@ -3299,7 +3350,7 @@ void ppath_end_2d(
    The function does the asserts and determined some variables that are common
    for geometrical and refraction calculations.
 
-   See the code fo details.
+   See the code for details.
 
    \author Patrick Eriksson
    \date   2002-12-30
@@ -3333,14 +3384,14 @@ void ppath_start_3d(
               ConstVectorView   lat_grid,
               ConstVectorView   lon_grid,
               ConstTensor3View  z_field,
-              ConstMatrixView   r_geoid,
+              ConstVectorView   refellipsoid,
               ConstMatrixView   z_surface )
 {
   // Index of last point in the incoming ppath
   const Index imax = ppath.np - 1;
 
   // Extract starting radius, zenith angle and latitude
-  r_start   = ppath.pos(imax,0);
+  r_start   = ppath.r[imax];
   lat_start = ppath.pos(imax,1);
   lon_start = ppath.pos(imax,2);
   za_start  = ppath.los(imax,0);
@@ -3400,14 +3451,17 @@ void ppath_start_3d(
   //
   ip = gridpos2gridrange( ppath.gp_p[imax], za_start <= 90 );
   //
-  r15a = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
-  r35a = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
-  r36a = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
-  r16a = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
-  r15b = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);
-  r35b = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon); 
-  r36b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1); 
-  r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
+  const double re1 = refell2r( refellipsoid, lat_grid[ilat] );
+  const double re3 = refell2r( refellipsoid, lat_grid[ilat+1] );
+  //
+  r15a = re1 + z_field(ip,ilat,ilon);
+  r35a = re3 + z_field(ip,ilat+1,ilon); 
+  r36a = re3 + z_field(ip,ilat+1,ilon+1); 
+  r16a = re1 + z_field(ip,ilat,ilon+1);
+  r15b = re1 + z_field(ip+1,ilat,ilon);
+  r35b = re3 + z_field(ip+1,ilat+1,ilon); 
+  r36b = re3 + z_field(ip+1,ilat+1,ilon+1); 
+  r16b = re1 + z_field(ip+1,ilat,ilon+1);
 
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure level (that is, 90 + tilt of pressure level), and in
@@ -3432,10 +3486,10 @@ void ppath_start_3d(
             {
               ip--;
               r15b = r15a;   r35b = r35a;   r36b = r36a;   r16b = r16a;
-              r15a = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
-              r35a = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
-              r36a = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
-              r16a = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
+              r15a = re1 + z_field(ip,ilat,ilon);
+              r35a = re3 + z_field(ip,ilat+1,ilon); 
+              r36a = re3 + z_field(ip,ilat+1,ilon+1); 
+              r16a = re1 + z_field(ip,ilat,ilon+1);
             }
         }
       else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
@@ -3449,19 +3503,19 @@ void ppath_start_3d(
             {
               ip++;
               r15a = r15b;   r35a = r35b;   r36a = r36b;   r16a = r16b;
-              r15b = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);
-              r35b = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon); 
-              r36b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1); 
-              r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
+              r15b = re1 + z_field(ip+1,ilat,ilon);
+              r35b = re3 + z_field(ip+1,ilat+1,ilon); 
+              r36b = re3 + z_field(ip+1,ilat+1,ilon+1); 
+              r16b = re1 + z_field(ip+1,ilat,ilon+1);
             }
         }
     }
 
   // Surface radius at latitude/longitude corner points
-  rsurface15 = r_geoid(ilat,ilon) + z_surface(ilat,ilon);
-  rsurface35 = r_geoid(ilat+1,ilon) + z_surface(ilat+1,ilon);
-  rsurface36 = r_geoid(ilat+1,ilon+1) + z_surface(ilat+1,ilon+1);
-  rsurface16 = r_geoid(ilat,ilon+1) + z_surface(ilat,ilon+1);
+  rsurface15 = re1 + z_surface(ilat,ilon);
+  rsurface35 = re3 + z_surface(ilat+1,ilon);
+  rsurface36 = re3 + z_surface(ilat+1,ilon+1);
+  rsurface16 = re1 + z_surface(ilat,ilon+1);
 }
 
 
@@ -3473,7 +3527,7 @@ void ppath_start_3d(
    The function performs the end part of the calculations, that are common
    for geometrical and refraction calculations.
 
-   See the code fo details.
+   See the code for details.
 
    \author Patrick Eriksson
    \date   2002-12-30
@@ -3489,12 +3543,11 @@ void ppath_end_3d(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
         ConstTensor3View  z_field,
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         const Index&      ip,
         const Index&      ilat,
         const Index&      ilon,
         const Index&      endface,
-        const Index&      tanpoint,
         const double&     ppc )
 {
   // Number of path points
@@ -3503,31 +3556,16 @@ void ppath_end_3d(
 
   // Re-allocate ppath for return results and fill the structure
   //
-  ppath_init_structure(  ppath, 3, np );
+  ppath_init_structure( ppath, 3, np );
   //
-  ppath.constant   = ppc;
+  ppath.constant = ppc;
   //
   ppath_fill_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, 
-                        r_geoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
-
-  // Remove these? !!!
-  assert( ppath.gp_p[imax].fd[0] > -0.01 );   
-  assert( ppath.gp_p[imax].fd[0] < 1.01 );
-  assert( ppath.gp_lat[imax].fd[0] > -0.01 );
-  assert( ppath.gp_lat[imax].fd[0] < 1.01 );
-  assert( ppath.gp_lon[imax].fd[0] > -0.01 );
-  assert( ppath.gp_lon[imax].fd[0] < 1.01 );
+                 refellipsoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
 
   // Do end-face specific tasks
   if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
-  if( tanpoint )
-    {
-      ppath.tan_pos.resize(3);
-      ppath.tan_pos[0] = r_v[imax];
-      ppath.tan_pos[1] = lat_v[imax];
-      ppath.tan_pos[2] = lon_v[imax];
-    }
 
   // Set fractional distance for end point
   //
@@ -3766,12 +3804,12 @@ void from_raytracingarrays_to_ppath_vectors_3d(
    Calculates 1D geometrical propagation path steps.
 
    This is the core function to determine 1D propagation path steps by pure
-   geometrical calculations. Path points are included for crossings with the 
-   grids, tangent points and points of intersection with the surface. In addition,
-   points are included in the propgation path to ensure that the distance
-   along the path between the points does not exceed the selected maximum 
-   length (lmax). If lmax is <= 0, this means that no length criterion shall
-   be applied.
+   geometrical calculations. Path points are included for crossings with the
+   grids, tangent points and points of intersection with the surface. In
+   addition, points are included in the propgation path to ensure that the
+   distance along the path between the points does not exceed the selected
+   maximum length (lmax). If lmax is <= 0, this means that no length criterion
+   shall be applied.
 
    Note that the input variables are here compressed to only hold data for
    a 1D atmosphere. For example, z_field is z_field(:,0,0).
@@ -3779,9 +3817,8 @@ void from_raytracingarrays_to_ppath_vectors_3d(
    For more information read the chapter on propagation paths in AUG.
 
    \param   ppath             Output: A Ppath structure.
-   \param   p_grid            Pressure grid.
    \param   z_field           Geometrical altitudes corresponding to p_grid.
-   \param   r_geoid           Geoid radius.
+   \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitude.
    \param   lmax              Maximum allowed length between the path points.
 
@@ -3790,9 +3827,8 @@ void from_raytracingarrays_to_ppath_vectors_3d(
 */
 void ppath_step_geom_1d(
               Ppath&      ppath,
-        ConstVectorView   p_grid,
         ConstVectorView   z_field,
-        const double&     r_geoid,
+        ConstVectorView   refellipsoid,
         const double&     z_surface,
         const double&     lmax )
 {
@@ -3819,33 +3855,20 @@ void ppath_step_geom_1d(
   // needed bý that function and call the function.
   //
   // Vars to hold found path points, path step length and coding for end face
-  Vector    r_v, lat_v, za_v;
+  Vector   r_v, lat_v, za_v;
   double   lstep;
-  Index     endface, tanpoint;
+  Index    endface;
   //
-  do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, tanpoint,
+  do_gridrange_1d( r_v, lat_v, za_v, lstep, endface,
                    r_start, lat_start, za_start, ppc, lmax, 
-               r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid+z_surface );
-
+                   refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
+                   refellipsoid[0]+z_surface );
 
   // Fill *ppath*
   //
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
-                                                              tanpoint, ppc );
-
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 0  &&  tanpoint )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      ppath_step_geom_1d( ppath2, p_grid, z_field, r_geoid, z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
+  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
+                                                                endface, ppc );
+  // nreal is set to 1 in ppath_stepGeometric
 }
 
 
@@ -3858,11 +3881,10 @@ void ppath_step_geom_1d(
    of different type.
 
    \param   ppath             Output: A Ppath structure.
-   \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
    \param   z_field           Geometrical altitudes
-   \param   r_geoid           Geoid radii.
-   \param   z_surface          Surface altitudes.
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
@@ -3870,10 +3892,9 @@ void ppath_step_geom_1d(
 */
 void ppath_step_geom_2d(
               Ppath&      ppath,
-        ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
         const double&     lmax )
 {
@@ -3889,7 +3910,7 @@ void ppath_step_geom_2d(
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
                   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                  ppath, lat_grid, z_field, r_geoid, z_surface );
+                  ppath, lat_grid, z_field, refellipsoid, z_surface );
 
   // If the field "constant" is negative, this is the first call of the
   // function and the path constant shall be calculated.
@@ -3899,37 +3920,20 @@ void ppath_step_geom_2d(
   else
     { ppc = ppath.constant; }
 
-
   // Vars to hold found path points, path step length and coding for end face
-  Vector    r_v, lat_v, za_v;
+  Vector   r_v, lat_v, za_v;
   double   lstep;
-  Index     endface, tanpoint;
+  Index    endface;
 
-  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
+  do_gridcell_2dv2( r_v, lat_v, za_v, lstep, endface,
                   r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
                                     r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
 
   // Fill *ppath*
   //
-  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-                                            ip, ilat, endface, tanpoint, ppc );
-
-
-  // Make part after a tangent point.
-  //
-  if( endface == 0  &&  tanpoint )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      // Call this function recursively
-      ppath_step_geom_2d( ppath2, p_grid, lat_grid, z_field,
-                                                     r_geoid, z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
+  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
+                                                      ip, ilat, endface, ppc );
+  // nreal is set to 1 in ppath_stepGeometric
 }
 
 
@@ -3942,12 +3946,11 @@ void ppath_step_geom_2d(
    of different type.
 
    \param   ppath             Output: A Ppath structure.
-   \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
    \param   lon_grid          Longitude grid.
    \param   z_field           Geometrical altitudes
-   \param   r_geoid           Geoid radii.
-   \param   z_surface          Surface altitudes.
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
@@ -3955,11 +3958,10 @@ void ppath_step_geom_2d(
 */
 void ppath_step_geom_3d(
               Ppath&       ppath,
-        ConstVectorView    p_grid,
         ConstVectorView    lat_grid,
         ConstVectorView    lon_grid,
         ConstTensor3View   z_field,
-        ConstMatrixView    r_geoid,
+        ConstVectorView    refellipsoid,
         ConstMatrixView    z_surface,
         const double&      lmax )
 {
@@ -3980,7 +3982,7 @@ void ppath_step_geom_3d(
                   ip, ilat, ilon, lat1, lat3, lon5, lon6,
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
                   rsurface15, rsurface35, rsurface36, rsurface16,
-                  ppath, lat_grid, lon_grid, z_field, r_geoid, z_surface );
+                  ppath, lat_grid, lon_grid, z_field, refellipsoid, z_surface );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -3993,11 +3995,11 @@ void ppath_step_geom_3d(
 
 
   // Vars to hold found path points, path step length and coding for end face
-  Vector    r_v, lat_v, lon_v, za_v, aa_v;
+  Vector   r_v, lat_v, lon_v, za_v, aa_v;
   double   lstep;
-  Index     endface, tanpoint;
+  Index    endface;
 
-  do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, tanpoint,
+  do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
                   lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
@@ -4006,24 +4008,8 @@ void ppath_step_geom_3d(
   // Fill *ppath*
   //
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
-          lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint, ppc );
-
-
-  // Make part after a tangent point.
-  //
-  if( endface == 0  &&  tanpoint )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      // Call this function recursively
-      ppath_step_geom_3d( ppath2, p_grid, lat_grid, lon_grid, z_field,
-                                                     r_geoid, z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
+                lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, ppc );
+  // nreal is set to 1 in ppath_stepGeometric
 }
 
 
@@ -4064,7 +4050,6 @@ void ppath_step_geom_3d(
    \param   l_array      Out: Distance along the path between ray tracing 
                          points.
    \param   endface      FIXME: Add documentation.
-   \param   tanpoint     FIXME: Add documentation.
    \param   r            Start radius for ray tracing.
    \param   lat          Start latitude for ray tracing.
    \param   za           Start zenith angle for ray tracing.
@@ -4078,7 +4063,7 @@ void ppath_step_geom_3d(
    \param   r1           Radius of lower pressure level.
    \param   r3           Radius of upper pressure level (r3 > r1).
    \param   r_surface     Radius of the surface.
-   \param   r_geoid      Geoid radii.
+   \param   refellipsoid  As the WSV with the same name.
    \param   p_grid       Pressure grid.
    \param   z_field      Geometrical altitudes corresponding to p_grid.
    \param   t_field      Temperatures corresponding to p_grid.
@@ -4094,7 +4079,6 @@ void raytrace_1d_linear_euler(
               Array<double>&   za_array,
               Array<double>&   l_array,
               Index&           endface,
-              Index&           tanpoint,
               double           r,
               double           lat,
               double           za,
@@ -4108,7 +4092,7 @@ void raytrace_1d_linear_euler(
         const double&          r1,
         const double&          r3,
         const double&          r_surface,
-        const double&          r_geoid,
+        ConstVectorView        refellipsoid,
         ConstVectorView        p_grid,
         ConstVectorView        z_field,
         ConstVectorView        t_field,
@@ -4127,7 +4111,7 @@ void raytrace_1d_linear_euler(
       const double   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, tanpoint, r, lat, za,
+      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za,
                                               ppc_step, -1, r1, r3, r_surface );
 
       assert( r_v.nelem() == 2 );
@@ -4168,24 +4152,15 @@ void raytrace_1d_linear_euler(
       // Refractive index at *r*
       get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
                          rte_vmr_list, refr_index_agenda,
-                         p_grid, r_geoid, z_field, t_field, vmr_field, r );
+                         p_grid, refellipsoid, z_field, t_field, vmr_field, r );
 
       const double   ppc_local = ppc / refr_index; 
 
-      if( ready  &&  tanpoint )
-        { za = 90; }
-      else if( r >= ppc_local )
+      if( r >= ppc_local )
         { za = geompath_za_at_r( ppc_local, za, r ); }
       else
         {  
           r = ppc_local;
-          if( za > 90 )
-            { 
-              ready    = true;  
-              tanpoint = 1;  
-              if( r > r1 )
-                { endface  = 0; }
-            }
           za = 90;
         }
   
@@ -4226,7 +4201,6 @@ void raytrace_1d_linear_euler(
    \param   l_array         Out: Distance along the path between ray tracing 
                             points.
    \param   endface         Out: Number coding of exit face.
-   \param   tanpoint        Out: True if last point is a tangent point.
    \param   r               Out: Start radius for ray tracing.
    \param   lat             Out: Start latitude for ray tracing.
    \param   za              Out: Start zenith angle for ray tracing.
@@ -4246,7 +4220,7 @@ void raytrace_1d_linear_euler(
    \param   rsurface3        Radius for the surface at *lat3*.
    \param   p_grid          The WSV with the same name.
    \param   lat_grid        The WSV with the same name.
-   \param   r_geoid         The WSV with the same name.
+   \param   refellipsoid    The WSV with the same name.
    \param   z_field         The WSV with the same name.
    \param   t_field         The WSV with the same name.
    \param   vmr_field       The WSV with the same name.
@@ -4261,7 +4235,6 @@ void raytrace_2d_linear_euler(
               Array<double>&   za_array,
               Array<double>&   l_array,
               Index&           endface,
-              Index&           tanpoint,
               double           r,
               double           lat,
               double           za,
@@ -4281,7 +4254,7 @@ void raytrace_2d_linear_euler(
         const double&          rsurface3,
         ConstVectorView        p_grid,
         ConstVectorView        lat_grid,
-        ConstVectorView        r_geoid,
+        ConstVectorView        refellipsoid,
         ConstMatrixView        z_field,
         ConstMatrixView        t_field,
         ConstTensor3View       vmr_field )
@@ -4299,8 +4272,8 @@ void raytrace_2d_linear_euler(
       const double   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
-                     r, lat, za, ppc_step, -1, lat1, lat3, r1a, r3a, r3b, r1b, 
+      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
+                      r, lat, za, ppc_step, -1, lat1, lat3, r1a, r3a, r3b, r1b, 
                       rsurface1, rsurface3 );
 
       assert( r_v.nelem() == 2 );
@@ -4345,22 +4318,13 @@ void raytrace_2d_linear_euler(
         }
 
       // Calculate LOS zenith angle at found point.
-      if( ready  &&  tanpoint )
-        { 
-          // It is not totally correct to set *za* to 90 here. We neglect
-          // then the curvature of this ray tracing step, but we don't care
-          // about this for simplicity. This point has been flagged as the
-          // the tangent point and we treat it then it that way.
-          za = sign(za) * 90; 
-        }
-      else
         {
                 Numeric   dndr, dndlat;
           const double   za_rad = DEG2RAD * za;
 
           refr_gradients_2d( ws, refr_index, dndr, dndlat, rte_pressure, 
                              rte_temperature, rte_vmr_list, refr_index_agenda,
-                             p_grid, lat_grid, r_geoid, z_field, t_field, 
+                             p_grid, lat_grid, refellipsoid, z_field, t_field, 
                              vmr_field, r, lat );
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
@@ -4423,7 +4387,6 @@ void raytrace_2d_linear_euler(
    \param   l_array        Out: Distance along the path between ray tracing 
                            points.
    \param   endface        Out: Number coding of exit face.
-   \param   tanpoint       Out: True if last point is a tangent point.
    \param   r              Out: Start radius for ray tracing.
    \param   lat            Out: Start latitude for ray tracing.
    \param   lon            Out: Start longitude for ray tracing.
@@ -4454,7 +4417,7 @@ void raytrace_2d_linear_euler(
    \param   p_grid         The WSV with the same name.
    \param   lat_grid       The WSV with the same name.
    \param   lon_grid       The WSV with the same name.
-   \param   r_geoid        The WSV with the same name.
+   \param   refellipsoid   The WSV with the same name.
    \param   z_field        The WSV with the same name.
    \param   t_field        The WSV with the same name.
    \param   vmr_field      The WSV with the same name.
@@ -4471,7 +4434,6 @@ void raytrace_3d_linear_euler(
               Array<double>&   aa_array,
               Array<double>&   l_array,
               Index&           endface,
-              Index&           tanpoint,
               double           r,
               double           lat,
               double           lon,
@@ -4502,7 +4464,7 @@ void raytrace_3d_linear_euler(
         ConstVectorView        p_grid,
         ConstVectorView        lat_grid,
         ConstVectorView        lon_grid,
-        ConstMatrixView        r_geoid,
+        ConstVectorView        refellipsoid,
         ConstTensor3View       z_field,
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field )
@@ -4521,7 +4483,7 @@ void raytrace_3d_linear_euler(
       const double   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, tanpoint,
+      do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                     r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6, 
                     r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                       rsurface15, rsurface35, rsurface36, rsurface16 );
@@ -4590,56 +4552,46 @@ void raytrace_3d_linear_euler(
         }
 
       // Calculate LOS zenith angle at found point.
-      if( ready  &&  tanpoint )
-        {
-          // It is not totally correct to set *za* to 90 here. We neglect
-          // then the curvature of this ray tracing step, but we don't care
-          // about this for simplicity. This point has been flagged as the
-          // the tangent point and we treat it then it that way.
-          za_new = 90; 
-        }
-      else
-        {
-          Numeric   dndr, dndlat, dndlon;
+      {
+        Numeric   dndr, dndlat, dndlon;
 
-          refr_gradients_3d( ws,
+        refr_gradients_3d( ws,
                              refr_index, dndr, dndlat, dndlon, rte_pressure, 
                              rte_temperature, rte_vmr_list, refr_index_agenda, 
-                             p_grid, lat_grid, lon_grid, r_geoid, z_field, 
+                             p_grid, lat_grid, lon_grid, refellipsoid, z_field, 
                              t_field, vmr_field, r, lat, lon );
 
-          const double   aterm = RAD2DEG * lstep / refr_index;
-          const double   za_rad = DEG2RAD * za;
-          const double   aa_rad = DEG2RAD * aa;
-          const double   sinza = sin( za_rad );
-          const double   sinaa = sin( aa_rad );
-          const double   cosaa = cos( aa_rad );
+        const double   aterm = RAD2DEG * lstep / refr_index;
+        const double   za_rad = DEG2RAD * za;
+        const double   aa_rad = DEG2RAD * aa;
+        const double   sinza = sin( za_rad );
+        const double   sinaa = sin( aa_rad );
+        const double   cosaa = cos( aa_rad );
 
-
-          if( za < ANGTOL  ||  za > 180-ANGTOL )
-            { 
-              za_new += aterm * ( cos(za_rad) * 
+        if( za < ANGTOL  ||  za > 180-ANGTOL )
+          { 
+            za_new += aterm * ( cos(za_rad) * 
+                                ( cosaa * dndlat + sinaa * dndlon ) );
+            aa_new = RAD2DEG * atan2( dndlon, dndlat); 
+          }
+        else
+          { 
+            za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
                                        ( cosaa * dndlat + sinaa * dndlon ) );
-              aa_new = RAD2DEG * atan2( dndlon, dndlat); 
-            }
-          else
-            { 
-              za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
-                                       ( cosaa * dndlat + sinaa * dndlon ) );
-              aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
-            }
+            aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
+          }
           
-          // Make sure that obtained angles are inside valid ranges
-          if( za_new > 180 )
-            { za_new = 180 - za_new; }
-          else if( za_new < 0 )
-            { za_new = -za_new; }
-          //
-          if( aa_new > 180 )
-            { aa_new -= 360; }
-          else if( aa_new < -180 )
-            { aa_new += 360; }
-        }
+        // Make sure that obtained angles are inside valid ranges
+        if( za_new > 180 )
+          { za_new = 180 - za_new; }
+        else if( za_new < 0 )
+          { za_new = -za_new; }
+        //
+        if( aa_new > 180 )
+          { aa_new -= 360; }
+        else if( aa_new < -180 )
+          { aa_new += 360; }
+      }
 
       r   = r_new;
       lat = lat_new;
@@ -4701,8 +4653,8 @@ void raytrace_3d_linear_euler(
    \param   z_field           Geometrical altitudes corresponding to p_grid.
    \param   t_field           Temperatures corresponding to p_grid.
    \param   vmr_field         VMR values corresponding to p_grid.
-   \param   r_geoid           Geoid radius.
-   \param   z_surface          Surface altitude.
+   \param   refellipsoid      As the WSV wit the same name.
+   \param   z_surface         Surface altitude.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -4723,7 +4675,7 @@ void ppath_step_refr_1d(
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
-        const double&     r_geoid,
+        ConstVectorView   refellipsoid,
         const double&     z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
@@ -4747,9 +4699,8 @@ void ppath_step_refr_1d(
   if( ppath.constant < 0 )
     { 
       get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
-                         rte_vmr_list, 
-                         refr_index_agenda, p_grid, r_geoid, z_field, 
-                         t_field, vmr_field, r_start );
+                         rte_vmr_list, refr_index_agenda, p_grid, refellipsoid,
+                         z_field, t_field, vmr_field, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
   else
@@ -4768,16 +4719,16 @@ void ppath_step_refr_1d(
   za_array.push_back( za_start );
   //
   // Number coding for end face
-  Index   endface, tanpoint;
+  Index   endface;
   //
   if( rtrace_method  == "linear_euler" )
     {
-      raytrace_1d_linear_euler( ws,
-        r_array, lat_array, za_array, l_array, endface,
-        tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
-            rte_vmr_list, refr_index, refr_index_agenda, ppc, lraytrace, 
-            r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid + z_surface, 
-                                r_geoid, p_grid, z_field, t_field, vmr_field );
+      raytrace_1d_linear_euler( ws, r_array, lat_array, za_array, l_array, 
+             endface, r_start, lat_start, za_start, rte_pressure, 
+             rte_temperature, rte_vmr_list, refr_index, refr_index_agenda, 
+             ppc, lraytrace, refellipsoid[0]+z_field[ip], 
+             refellipsoid[0]+z_field[ip+1], refellipsoid[0] + z_surface, 
+             refellipsoid, p_grid, z_field, t_field, vmr_field );
     }
 #ifndef NDEBUG
   else
@@ -4786,7 +4737,6 @@ void ppath_step_refr_1d(
       assert( known_ray_trace_method );
     }
 #endif
-
 
   // Interpolate the radii, zenith angles and latitudes to a set of points
   // linearly spaced along the path. 
@@ -4797,29 +4747,9 @@ void ppath_step_refr_1d(
   from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
                               r_array, lat_array, za_array, l_array, 0, lmax );
 
-
   // Fill *ppath*
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
-                                                               tanpoint, ppc );
-
-
-  //--- End point is a tangent point
-  if( endface == 0  &&  tanpoint )
-    {
-      // Make part from tangent point and up to the starting pressure level.
-      //
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      ppath_step_refr_1d( ws,
-                ppath2, rte_pressure, rte_temperature, rte_vmr_list,
-                refr_index, refr_index_agenda, p_grid, z_field, t_field,
-                vmr_field, r_geoid, z_surface, rtrace_method, lraytrace, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
+  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
+                                                                endface, ppc );
 }
 
 
@@ -4844,8 +4774,8 @@ void ppath_step_refr_1d(
    \param   z_field           Geometrical altitudes.
    \param   t_field           Atmospheric temperatures.
    \param   vmr_field         VMR values.
-   \param   r_geoid           Geoid radii.
-   \param   z_surface          Surface altitudes.
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitudes.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -4867,7 +4797,7 @@ void ppath_step_refr_2d(
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
@@ -4885,7 +4815,7 @@ void ppath_step_refr_2d(
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
                   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                  ppath, lat_grid, z_field, r_geoid, z_surface );
+                  ppath, lat_grid, z_field, refellipsoid, z_surface );
 
   // Perform the ray tracing
   //
@@ -4901,16 +4831,16 @@ void ppath_step_refr_2d(
   za_array.push_back( za_start );
   //
   // Number coding for end face
-  Index   endface, tanpoint;
+  Index   endface;
   //
   if( rtrace_method  == "linear_euler" )
     {
       raytrace_2d_linear_euler( ws,
         r_array, lat_array, za_array, l_array, endface,
-        tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
+        r_start, lat_start, za_start, rte_pressure, rte_temperature, 
         rte_vmr_list, refr_index, refr_index_agenda, lraytrace, 
         lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-        p_grid, lat_grid, r_geoid, z_field, t_field, vmr_field );
+        p_grid, lat_grid, refellipsoid, z_field, t_field, vmr_field );
     }
 #ifndef NDEBUG
   else
@@ -4919,7 +4849,6 @@ void ppath_step_refr_2d(
       assert( known_ray_trace_method );
     }
 #endif
-
 
   // Interpolate the radii, zenith angles and latitudes to a set of points
   // linearly spaced along the path. 
@@ -4930,30 +4859,9 @@ void ppath_step_refr_2d(
   from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
                               r_array, lat_array, za_array, l_array, 0, lmax );
 
-
   // Fill *ppath*
-  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-                                             ip, ilat, endface, tanpoint, -1 );
-
-
-  // Make part after a tangent point.
-  //
-  if( endface == 0  &&  tanpoint )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      // Call this function recursively
-      ppath_step_refr_2d( ws,
-                    ppath2, rte_pressure, rte_temperature, rte_vmr_list,
-                    refr_index, refr_index_agenda, p_grid, lat_grid, z_field, 
-                    t_field, vmr_field, 
-                    r_geoid, z_surface, rtrace_method, lraytrace, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
+  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
+                                             ip, ilat, endface, -1 );
 }
 
 
@@ -4979,8 +4887,8 @@ void ppath_step_refr_2d(
    \param   z_field           Geometrical altitudes.
    \param   t_field           Atmospheric temperatures.
    \param   vmr_field         VMR values.
-   \param   r_geoid           Geoid radii.
-   \param   z_surface          Surface altitudes.
+   \param   refellipsoid      As teh WSv with the same name.
+   \param   z_surface         Surface altitudes.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -5003,7 +4911,7 @@ void ppath_step_refr_3d(
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
@@ -5026,7 +4934,7 @@ void ppath_step_refr_3d(
                   ip, ilat, ilon, lat1, lat3, lon5, lon6,
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
                   rsurface15, rsurface35, rsurface36, rsurface16,
-                  ppath, lat_grid, lon_grid, z_field, r_geoid, z_surface );
+                  ppath, lat_grid, lon_grid, z_field, refellipsoid, z_surface );
 
   // Perform the ray tracing
   //
@@ -5044,12 +4952,12 @@ void ppath_step_refr_3d(
   aa_array.push_back( aa_start );
   //
   // Number coding for end face
-  Index   endface, tanpoint;
+  Index   endface;
   //
   if( rtrace_method  == "linear_euler" )
     {
       raytrace_3d_linear_euler( ws, r_array, lat_array, lon_array, za_array, 
-                                aa_array, l_array, endface, tanpoint, r_start,
+                                aa_array, l_array, endface, r_start,
                                 lat_start, lon_start, za_start, aa_start, 
                                 rte_pressure, rte_temperature, rte_vmr_list, 
                                 refr_index, refr_index_agenda, lraytrace, 
@@ -5057,7 +4965,7 @@ void ppath_step_refr_3d(
                                 r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
                                 rsurface15, rsurface35, rsurface36, rsurface16,
                                 p_grid, lat_grid, lon_grid, 
-                                r_geoid, z_field, t_field, vmr_field );
+                                refellipsoid, z_field, t_field, vmr_field );
     }
 #ifndef NDEBUG
   else
@@ -5066,7 +4974,6 @@ void ppath_step_refr_3d(
       assert( known_ray_trace_method );
     }
 #endif
-
 
   // Interpolate the radii, zenith angles and latitudes to a set of points
   // linearly spaced along the path. 
@@ -5078,30 +4985,9 @@ void ppath_step_refr_3d(
                                         lstep, r_array, lat_array, lon_array, 
                                            za_array, aa_array, l_array, lmax );
 
-
   // Fill *ppath*
-  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
-           lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint, -1 );
-
-
-  // Make part after a tangent point.
-  //
-  if( endface == 0  &&  tanpoint )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      // Call this function recursively
-      ppath_step_refr_3d( ws,
-                          ppath2, rte_pressure, rte_temperature, rte_vmr_list,
-                          refr_index, refr_index_agenda, p_grid, lat_grid, 
-                          lon_grid, z_field, t_field, vmr_field, 
-                          r_geoid, z_surface, rtrace_method, lraytrace, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
+  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, lon_grid,
+                z_field, refellipsoid, ip, ilat, ilon, endface, -1 );
 }
 
 
@@ -5145,8 +5031,8 @@ void ppath_step_refr_3d(
    \param   lat_grid          The latitude grid.
    \param   lon_grid          The longitude grid.
    \param   z_field           The field of geometrical altitudes.
-   \param   r_geoid           The geoid radius.
-   \param   z_surface          Surface altitude.
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitude.
    \param   cloudbox_on       Flag to activate the cloud box.
    \param   cloudbox_limits   Index limits of the cloud box.
    \param   outside_cloudbox  Boolean to flag if the propagation path is 
@@ -5161,297 +5047,200 @@ void ppath_step_refr_3d(
    \author Patrick Eriksson
    \date   2002-05-17
 */
-void ppath_start_stepping(Ppath&                ppath,
-                          const Index&          atmosphere_dim,
-                          ConstVectorView       p_grid,
-                          ConstVectorView       lat_grid,
-                          ConstVectorView       lon_grid,
-                          ConstTensor3View      z_field,
-                          ConstMatrixView       r_geoid,
-                          ConstMatrixView       z_surface,
-                          const Index&          cloudbox_on, 
-                          const ArrayOfIndex&   cloudbox_limits,
-                          const bool&           outside_cloudbox,
-                          ConstVectorView       rte_pos,
-                          ConstVectorView       rte_los,
-                          const Verbosity&      verbosity)
+void ppath_start_stepping(
+          Ppath&          ppath,
+    const Index&          atmosphere_dim,
+    ConstVectorView       p_grid,
+    ConstVectorView       lat_grid,
+    ConstVectorView       lon_grid,
+    ConstTensor3View      z_field,
+    ConstVectorView       refellipsoid,
+    ConstMatrixView       z_surface,
+    const Index&          cloudbox_on, 
+    const ArrayOfIndex&   cloudbox_limits,
+    const bool&           outside_cloudbox,
+    ConstVectorView       rte_pos,
+    ConstVectorView       rte_los,
+    const Verbosity&      verbosity)
 {
   CREATE_OUT1
   CREATE_OUT2
   
-  // This function contains no checks or asserts as it is only a sub-function
-  // to ppathCalc where the input is checked carefully.
+  // This function contains no checks or asserts as it is only a sub-function.
 
   // Allocate the ppath structure
   ppath_init_structure(  ppath, atmosphere_dim, 1 );
 
-  // Number of pressure levels
-  const Index np = p_grid.nelem();
+  // Index of last pressure level
+  const Index lp = p_grid.nelem() - 1;
 
   // The different atmospheric dimensionalities are handled seperately
 
   //-- 1D ---------------------------------------------------------------------
   if( atmosphere_dim == 1 )
     {
-      // Radius for the surface
-      const double r_surface = r_geoid(0,0) + z_surface(0,0);
-
-      // Radius for the top of the atmosphere
-      const double r_top = r_geoid(0,0) + z_field(np-1,0,0);
-
-      // The only forbidden case here is that the sensor is below the surface
-      if( (rte_pos[0] + RTOL) < r_surface )
+      // Sensor is inside the model atmosphere:
+      if( rte_pos[0] < z_field(lp,0,0) )
         {
-          ostringstream os;
-          os << "The ppath starting point is placed " 
-             << (r_surface - rte_pos[0])/1e3 << " km below surface level.\n"
-             << "This point must be above the surface.";
-          throw runtime_error(os.str());
-        }
+          // Check that the sensor is above the surface
+          if( (rte_pos[0] + RTOL) < z_surface(0,0) )
+            {
+              ostringstream os;
+              os << "The ppath starting point is placed " 
+                 << (z_surface(0,0) - rte_pos[0])/1e3 
+                 << " km below the surface.";
+              throw runtime_error(os.str());
+            }
 
-      out2 << "  sensor altitude        : " << (rte_pos[0]-r_geoid(0,0))/1e3 
-           << " km\n";
+          // Set ppath
+          ppath.pos(0,0) = rte_pos[0];
+          ppath.pos(0,1) = 0; 
+          ppath.r[0]     = refellipsoid[0] + rte_pos[0];
+          ppath.los(0,0) = rte_los[0];
+          //
+          gridpos( ppath.gp_p, z_field(joker,0,0), ppath.pos(0,0) );
+          gridpos_check_fd( ppath.gp_p[0] );
 
-      // If downwards, calculate geometrical tangent position
-      Vector geom_tan_pos(0);
-      if( rte_los[0] > 90 )
-        {
-          geom_tan_pos.resize(2);
-          geom_tan_pos[0] = geometrical_ppc( rte_pos[0], rte_los[0] );
-          geom_tan_pos[1] = geompath_lat_at_za( rte_los[0], 0, 90 );
-          out2 << "  geom. tangent radius   : " << geom_tan_pos[0]/1e3 
-               <<" km\n";
-          out2 << "  geom. tangent latitude : " << geom_tan_pos[1] << "\n";
-          out2 << "  geom. tangent altitude : " 
-               << (geom_tan_pos[0]-r_geoid(0,0))/1e3 << " km\n";
-        }
-
-      // Put sensor position and LOS in ppath as first guess
-      ppath.pos(0,0) = rte_pos[0];
-      ppath.los(0,0) = rte_los[0];
-      ppath.pos(0,1) = 0; 
-      ppath.z[0]     = ppath.pos(0,0) - r_geoid(0,0);
-      
-
-      // The sensor is inside the model atmosphere, 1D ------------------------
-      if( rte_pos[0] < r_top )
-        {
-          // Use below the values in ppath (instead of rte_pos and rte_los) as 
-          // they can be modified on the way.
-     
           // Is the sensor on the surface looking down?
           // If yes and the sensor is inside the cloudbox, the background will
           // be changed below.
-          if( ppath.pos(0,0) == r_surface  &&  ppath.los(0,0) > 90 )
+          if( ppath.pos(0,0) <= z_surface(0,0)  &&  ppath.los(0,0) > 90 )
             { ppath_set_background( ppath, 2 ); }
 
           // Check sensor position with respect to cloud box.
           if( cloudbox_on )
             {
-              if( outside_cloudbox )
-                {
-                  // Is the sensor inside the cloud box?
-                  if( ppath.z[0] > z_field(cloudbox_limits[0],0,0)  && 
-                                 ppath.z[0] < z_field(cloudbox_limits[1],0,0) )
+              const double fgp = fractional_gp( ppath.gp_p[0] );
+              //
+              // Is the sensor inside the cloud box?
+              if( fgp > cloudbox_limits[0]  && fgp < cloudbox_limits[1] )
+                { 
+                  if( outside_cloudbox )
                     { ppath_set_background( ppath, 4 ); }
-
-                  else if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0)  && 
-                                                        ppath.los(0,0) <= 90 )
-                           || 
-                           ( ppath.z[0] == z_field(cloudbox_limits[1],0,0)  && 
-                                                        ppath.los(0,0) > 90 ) )
-                    {
-                      ppath_set_background( ppath, 3 );
-                    }
                 }
+              // Is the sensor at the cloud box boundary?
+              else if( ( fgp==cloudbox_limits[0] && rte_los[0] <= 90 ) || 
+                       ( fgp==cloudbox_limits[1] && rte_los[0] > 90 ) )
+                { ppath_set_background( ppath, 3 ); }
             }
+          else
+            { assert( outside_cloudbox ); }
         }
 
-      // The sensor is outside the model atmosphere, 1D -----------------------
+      // Sensor is outside the model atmosphere:
       else
         {
-          // Upward:
-          if( rte_los[0] <= 90 )
+          // We can here set ppc as we are outside the atmosphere and n=1
+          ppath.constant = geometrical_ppc( refellipsoid[0] + rte_pos[0], 
+                                                              rte_los[0] );
+
+          // Totally outside
+          if( rte_los[0] <= 90  ||  
+              ppath.constant >= refellipsoid[0] + z_field(lp,0,0) )
             {
+              ppath.pos(0,0) = rte_pos[0];
+              ppath.pos(0,1) = 0; 
+              ppath.r[0]     = refellipsoid[0] + rte_pos[0];
+              ppath.los(0,0) = rte_los[0];
+              //
               ppath_set_background( ppath, 1 );
               out1 << "  --- WARNING ---, path is totally outside of the "
                    << "model atmosphere\n";
             }
-          // Downward:
+
+          // Path enters the atmosphere. 
           else
-            {
-              ppath.constant = geom_tan_pos[0];
- 
-              // Path is above the atmosphere
-              if( ppath.constant >= r_top )
-                {
-                  ppath_set_background( ppath, 1 );
-                  out1 << "  --- WARNING ---, path is totally outside of the "
-                       << "model atmosphere\n";
-                }
+            { 
+              ppath.r[0]     = refellipsoid[0] + z_field(lp,0,0);
+              ppath.pos(0,0) = z_field(lp,0,0);
+              ppath.los(0,0) = geompath_za_at_r( ppath.constant, rte_los[0],
+                                                                 ppath.r[0] );
+              ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], 0, 
+                                                             ppath.los(0,0) );
+              ppath.lspace = geompath_l_at_r( ppath.constant,
+                                              refellipsoid[0] + rte_pos[0] ) -
+                             geompath_l_at_r( ppath.constant, ppath.r[0] ); 
 
-              // Path enters the atmosphere
-              else
-                {
-                  ppath.z[0]     = z_field(np-1,0,0);
-                  ppath.pos(0,0) = r_top;
-                  ppath.los(0,0) = geompath_za_at_r( ppath.constant, rte_los[0],
-                                                                       r_top );
-                  ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], 0, 
-                                                              ppath.los(0,0) );
-                  // Path directly enters at cloudbox (reaching up to top of atmosphere)
-                  if( cloudbox_on )
-                    {
-                      if( ppath.z[0] == z_field(cloudbox_limits[1],0,0) )
-                        {
-                          ppath_set_background( ppath, 3 );
-                        }
-                    }
-                }
-            }
+              // Here we know the grid position exactly
+              ppath.gp_p[0].idx   = lp-1; 
+              ppath.gp_p[0].fd[0] = 1;
+              ppath.gp_p[0].fd[1] = 0;
+
+              // If cloud box reaching TOA, we have also found the background
+              if( cloudbox_on  &&  cloudbox_limits[1] == lp )
+                { ppath_set_background( ppath, 3 ); }
+           }
         }
-
-      // Get grid position for the end point, if it is inside the atmosphere.
-      if( ppath.z[0] <= z_field(np-1,0,0) )
-        { 
-          gridpos( ppath.gp_p, z_field(joker,0,0), ppath.z );
-          gridpos_check_fd( ppath.gp_p[0] );
-        }
-
-      // Set geometrical tangent point position
-      if( geom_tan_pos.nelem() == 2 )
-        {
-          ppath.geom_tan_pos.resize(2);
-          ppath.geom_tan_pos = geom_tan_pos;
-        }
-
     }  // End 1D
 
 
   //-- 2D ---------------------------------------------------------------------
   else if( atmosphere_dim == 2 )
     {
-      // Number of points in the latitude grids
-      const Index   nlat = lat_grid.nelem();
+      // Index of last latitude
+      const Index llat = lat_grid.nelem() -1;
 
-      // Is the sensor inside the latitude range of the model atmosphere,
-      // and below the top of the atmosphere? If yes, is_inside = true.
-      // Store geoid and surface radii, grid position and interpolation weights
-      // for later use.
-      //
-      bool      is_inside = false;   
-      double    rv_geoid=-1, rv_surface=-1;  // -1 to avoid compiler warnings
+      // Is sensor inside range of lat_grid?
+      // If yes, determine TOA altitude at sensor position
       GridPos   gp_lat;
       Vector    itw(2);
-      //
-      if( rte_pos[1] >= lat_grid[0]  &&  rte_pos[1] <= lat_grid[nlat-1] )
-        {
+      bool      islatin = false;
+      double    r_e;  // Ellipsoid radius at sensor position
+      double    z_toa   = -99e99;
+      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat] )
+        { 
+          islatin = true; 
           gridpos( gp_lat, lat_grid, rte_pos[1] );
           interpweights( itw, gp_lat );
-
-          rv_geoid  = interp( itw, r_geoid(joker,0), gp_lat );
-          rv_surface = rv_geoid + interp( itw, z_surface(joker,0), gp_lat );
-
-          out2 << "  sensor altitude        : " << (rte_pos[0]-rv_geoid)/1e3 
-               << " km\n";
-
-          if( rte_pos[0] < ( rv_geoid + 
-                               interp( itw, z_field(np-1,joker,0), gp_lat ) ) )
-            { is_inside = true; }
+          z_toa = interp( itw, z_field(lp,joker,0), gp_lat );
+          r_e   = refell2d( refellipsoid, lat_grid, gp_lat );
         }
+      else
+        { r_e = refell2r( refellipsoid, rte_pos[1] ); }
 
-      // If downwards, calculate geometrical tangent position. If the tangent
-      // point is inside the covered latitude range, calculate also the 
-      // geometrical altitude of the tangent point and the top of atmosphere.
-      //
-      Vector  geom_tan_pos(0);
-      double geom_tan_z=-2, geom_tan_atmtop=-1;  // OK values if the variables
-      //                                             are not set below
-      if( abs(rte_los[0]) > 90 )
+      // Sensor is inside the model atmosphere:
+      if( islatin  &&  rte_pos[0] < z_toa )
         {
-          geom_tan_pos.resize(2);
-          geom_tan_pos[0] = geometrical_ppc( rte_pos[0], rte_los[0] );
-          if( rte_los[0] > 0 )
-            { geom_tan_pos[1] = 
-                            geompath_lat_at_za( rte_los[0], rte_pos[1], 90 ); }
-          else
-            { geom_tan_pos[1] = 
-                           geompath_lat_at_za( rte_los[0], rte_pos[1], -90 ); }
-          out2 << "  geom. tangent radius   : " << geom_tan_pos[0] / 1e3
-               <<" km\n";
-          out2 << "  geom. tangent latitude : " << geom_tan_pos[1] 
-               << "\n";
-          //
-          if( geom_tan_pos[1] >= lat_grid[0]  &&  
-                                          geom_tan_pos[1] <= lat_grid[nlat-1] )
-            {
-              GridPos   gp_tan;
-              Vector    itw_tan(2);
-              gridpos( gp_tan, lat_grid, geom_tan_pos[1] );
-              interpweights( itw_tan, gp_tan );
-              geom_tan_z = geom_tan_pos[0] - 
-                                   interp( itw_tan, r_geoid(joker,0), gp_tan );
-              geom_tan_atmtop = 
-                              interp( itw_tan, z_field(np-1,joker,0), gp_tan );
-              out2 << "  geom. tangent altitude : " << geom_tan_z/1e3 
-                   << " km\n";
-            }
-        }
+          const double z_s = interp( itw, z_surface(joker,0), gp_lat );
 
-      // Put sensor position and LOS in ppath as first guess
-      ppath.pos(0,0) = rte_pos[0];
-      ppath.pos(0,1) = rte_pos[1];
-      ppath.los(0,0) = rte_los[0];
-
-      // The sensor is inside the model atmosphere, 2D ------------------------
-      if( is_inside )
-        {
           // Check that the sensor is above the surface
-          if( (rte_pos[0] + RTOL) < rv_surface )
+          if( (rte_pos[0] + RTOL) < z_s )
             {
-            ostringstream os;
-            os << "The ppath starting point is placed " 
-               << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
-               << "This point must be above the surface.";
-            throw runtime_error(os.str());
+              ostringstream os;
+              os << "The ppath starting point is placed " 
+                 << (z_s - rte_pos[0])/1e3 << " km below the surface.";
+              throw runtime_error(os.str());
             }
 
-          // Check that not at latitude end point and looks out
-          if( ( rte_pos[1] == lat_grid[0]  &&   rte_los[0] < 0 ) )
-            throw runtime_error( "The sensor is at the lower latitude end "
-                                           "point and the zenith angle < 0." );
-          if( rte_pos[1] == lat_grid[nlat-1]  &&   rte_los[0] >= 0 ) 
-            throw runtime_error( "The sensor is at the upper latitude end "
-                                          "point and the zenith angle >= 0." );
-          
-          // Geometrical altitude
-          ppath.z[0] = ppath.pos(0,0) - rv_geoid;
-
-          // Use below the values in ppath (instead of rte_pos and rte_los) as 
-          // they can be modified on the way.
-     
-          // Grid positions
-          ppath.gp_lat[0].idx   = gp_lat.idx;
-          ppath.gp_lat[0].fd[0] = gp_lat.fd[0];
-          ppath.gp_lat[0].fd[1] = gp_lat.fd[1];
+          // Set ppath
+          ppath.pos(0,0) = rte_pos[0];
+          ppath.pos(0,1) = rte_pos[1];
+          ppath.r[0]     = r_e + rte_pos[0];
+          ppath.los(0,0) = rte_los[0];
 
           // Create a vector with the geometrical altitude of the pressure 
           // levels for the sensor latitude and use it to get ppath.gp_p.
-          Vector z_grid(np);
-          z_at_lat_2d( z_grid, p_grid, lat_grid, 
-                                              z_field(joker,joker,0), gp_lat );
-          gridpos( ppath.gp_p, z_grid, ppath.z );
-          
+          Vector z_grid(lp+1);
+          z_at_lat_2d( z_grid, p_grid, lat_grid, z_field(joker,joker,0), 
+                                                                      gp_lat );
+          gridpos( ppath.gp_p, z_grid, rte_pos[0] );
+          gridpos_check_fd( ppath.gp_p[0] );
+
+          // Latitude grid position
+          gridpos_copy( ppath.gp_lat[0], gp_lat );
+          gridpos_check_fd( ppath.gp_lat[0] );
+
           // Is the sensor on the surface looking down?
-          if( ppath.pos(0,0) == rv_surface )
-            {
+          // If yes and the sensor is inside the cloudbox, the background will
+          // be changed below.
+          if( ppath.pos(0,0) <= z_s )
+            { 
               // Calculate radial slope of the surface
-              const double rslope = plevel_slope_2d( lat_grid, 
-                        r_geoid(joker,0), z_surface(joker,0), 
-                                                      gp_lat, ppath.los(0,0) );
+              const double rslope = plevel_slope_2d( lat_grid, refellipsoid,
+                                 z_surface(joker,0), gp_lat, ppath.los(0,0) );
 
               // Calculate angular tilt of the surface
-              const double atilt = plevel_angletilt( rv_surface, rslope);
+              const double atilt = plevel_angletilt( r_e + z_s, rslope );
 
               // Are we looking down into the surface?
               // If yes and the sensor is inside the cloudbox, the background 
@@ -5460,17 +5249,36 @@ void ppath_start_stepping(Ppath&                ppath,
                 { ppath_set_background( ppath, 2 ); }
             }
 
-          // Handle possible numerical problems for grid positions
-          gridpos_check_fd( ppath.gp_p[0] );
-          gridpos_check_fd( ppath.gp_lat[0] );
-        }
+          // Check sensor position with respect to cloud box.
+          if( cloudbox_on )
+            {
+              const double fgp = fractional_gp( ppath.gp_p[0] );
+              const double fgl = fractional_gp( ppath.gp_lat[0] );
+              //
+              // Is the sensor inside the cloud box?
+              if( fgp > cloudbox_limits[0]  &&  fgp < cloudbox_limits[1]  &&
+                  fgl > cloudbox_limits[2]  &&  fgl < cloudbox_limits[3]  )
+                {
+                  if( outside_cloudbox )
+                    { ppath_set_background( ppath, 4 ); }
+                }
+              // Is the sensor at the cloud box boundary?
+              else if( ( fgp==cloudbox_limits[0] && abs(rte_los[0]) <= 90 ) ||
+                       ( fgp==cloudbox_limits[1] && abs(rte_los[0]) > 90 )  ||
+                       ( fgl==cloudbox_limits[2] && rte_los[0] >= 0 ) || 
+                       ( fgl==cloudbox_limits[3] && rte_los[0] <= 0 ) )
+                { ppath_set_background( ppath, 3 ); }
+              else
+                { assert( outside_cloudbox ); }
+            }
+        }      
 
-      // The sensor is outside the model atmosphere, 2D -----------------------
+      // Sensor is outside the model atmosphere:
       else
         {
-          // Handle cases when the sensor appears to look the wrong way
-          if( ( rte_pos[1] <= lat_grid[0]  &&  rte_los[0] <= 0 )  || 
-                      ( rte_pos[1] >= lat_grid[nlat-1]  &&  rte_los[0] >= 0 ) )
+          // Handle cases when the sensor looks in the wrong way
+          if( ( rte_pos[1] <= lat_grid[0]     &&  rte_los[0] <= 0 )  || 
+              ( rte_pos[1] >= lat_grid[llat]  &&  rte_los[0] >= 0 ) )
             {
               ostringstream os;
               os << "The sensor is outside (or at the limit) of the model "
@@ -5480,9 +5288,42 @@ void ppath_start_stepping(Ppath&                ppath,
               throw runtime_error( os.str() );
             }
 
+          // We can here set the path constant, that equals the radius of
+          // the geometrical tangent point.
+          const Numeric r_p = r_e + rte_pos[0];
+          ppath.constant = geometrical_ppc( r_p, rte_los[0] );
+
+          // Determine TOA radii, and min and max value
+          Vector   r_toa(llat+1);
+          double   r_toa_min = 99e99, r_toa_max = -1;
+          for( Index ilat=0; ilat<=llat; ilat++ )
+            {
+              r_toa[ilat] = refell2r( refellipsoid, lat_grid[ilat] ) +
+                                                            z_field(lp,ilat,0);
+              if( r_toa[ilat] < r_toa_min )
+                { r_toa_min = r_toa[ilat]; } 
+              if( r_toa[ilat] > r_toa_max )
+                { r_toa_max = r_toa[ilat]; } 
+            }
+          if( r_p <= r_toa_max )
+            {
+              ostringstream os;
+              os << "The sensor is horizontally outside (or at the limit) of "
+                 << "the model\natmosphere, but is at a radius smaller than "
+                 << "the maximum value of\nthe top-of-the-atmosphere radii. "
+                 << "This is not allowed. Make the\nmodel atmosphere larger "
+                 << "to also cover the sensor position?";
+              throw runtime_error( os.str() );
+            }
+
           // Upward:
           if( abs(rte_los[0]) <= 90 )
             {
+              ppath.pos(0,0) = rte_pos[0];
+              ppath.pos(0,1) = rte_pos[1]; 
+              ppath.r[0]     = r_e + rte_pos[0];
+              ppath.los(0,0) = rte_los[0];
+              //
               ppath_set_background( ppath, 1 );
               out1 << "  ------- WARNING -------: path is totally outside of "
                    << "the model atmosphere\n";
@@ -5491,337 +5332,187 @@ void ppath_start_stepping(Ppath&                ppath,
           // Downward:
           else
             {
-              // We can here set the path constant, that equals the radius of
-              // the geometrical tangent point.
-              ppath.constant = geom_tan_pos[0];
+              bool      above=false, ready=false, failed=false;
+              double    rt=-1, latt, lt, lt_old = L_NOT_FOUND;
+              GridPos   gp_latt;
+              Vector    itwt(2);
 
-              // If the sensor is outside the latitude range, check that path
-              // is above the closest corner of the model atmosphere
-              if( rte_pos[1] < lat_grid[0]  ||  rte_pos[1] > lat_grid[nlat-1] )
-                {
-                  Index   ic = 0;
-                  String  sc = "lower";
-                  if( rte_pos[1] > lat_grid[0] )
-                    { ic = nlat - 1;   sc = "upper"; }
-                  const double rv = geompath_r_at_lat( ppath.constant, 
-                                         rte_pos[1], rte_los[0], lat_grid[ic] );
-                  if( rv < ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
-                    {
-                      ostringstream os;
-                      os << "The sensor is outside of the model atmosphere and "
-                         << "looks in the\n" << sc << " latitude end face.\n"
-                         << "The geometrical altitude of the corner point is "
-                         << z_field(np-1,ic,0)/1e3 << " km.\n"
-                         << "The geometrical altitude of the entrance point is "
-                         << (rv-r_geoid(ic,0))/1e3 << " km.";
-                      throw runtime_error( os.str() );
-                    }
-                }
-
-              // If the tangent point is inside covered latitude range,
-              // everything is OK. If not, the path must be below the corner of
-              // the model atmosphere.
-              if( ( geom_tan_pos[1] < lat_grid[0]  ||  
-                                          geom_tan_pos[1] > lat_grid[nlat-1] ) )
-                {
-                  Index   ic = 0;
-                  String  sc = "lower";
-                  if( rte_los[0] >= 0 )
-                    { ic = nlat - 1;   sc = "upper"; }
-                  const double rv = geompath_r_at_lat( ppath.constant, 
-                                         rte_pos[1], rte_los[0], lat_grid[ic] );
-                  if( rv >= ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
-                    {
-                      ostringstream os;
-                      os << "The combination of sensor position and line-of-"
-                         << "sight gives a\npropagation path that goes above "
-                         << "the model atmosphere, with\na tangent point "
-                         << "outside the covered latitude range.\nThe latitude "
-                         << "of the tangent point is " << geom_tan_pos[1] 
-                         << " degrees.";
-                      throw runtime_error( os.str() );
-                    }
-                }
-
-              // That should be all needed checks. We know now that the path is
-              // either totally outside the atmosphere, with a tangent point 
-              // inside lat_grid, or enters the atmosphere from the top 
-              // somewhere inside lat_grid. In the latter case we need to
-              // determine the latitude of the entrance point.
-              
-              // Path is above the atmosphere:
-              // Requieres that tangent point is inside lat_grid and above the
-              // top of the atmosphere.
-              if( geom_tan_pos[1] >= lat_grid[0]  &&  
-                               geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
-                                                 geom_tan_z >= geom_tan_atmtop )
-                {
-                  ppath_set_background( ppath, 1 );
-                  out1 << "  ------- WARNING -------: "
-                       << "path is totally outside of the model atmosphere\n";
-                }
-
-              // The path enters the atmosphere
+              // Check if clearly above the model atmosphere
+              if( ppath.constant >= r_toa_max )
+                { above=true; ready=true; }
               else
+                { // Otherwise pick out a suitable first test radius
+                  if( islatin  ||  ppath.constant > r_toa_min ) 
+                    { rt = r_toa_max; } 
+                  else 
+                    { rt = r_toa_min; }
+                }
+
+              // Iterate until solution found or moving out from model atm.
+              //
+              while( !ready && !failed )
                 {
-                  // Find the latitude where the path passes top of the
-                  // atmosphere.
-
-                  // We are handling this in a rather dumb way. A test is
-                  // performed for each latitude range using
-                  // plevel_crossing_2d. A bit smarter algorithm was considered
-                  // but that made the code more messy. The case when the
-                  // sensor is placed inside lat_grid must be hanled
-                  // seperetaly.
-
-                  // Determine first latitude range of interest, search
-                  // direction and first test latitude.
-                  double lat0;
-                  Index   ilat0, istep;
-                  //
-                  if( rte_pos[1] <= lat_grid[0] )
-                    {
-                      lat0  = lat_grid[0]; 
-                      ilat0 = 0;
-                      istep = 1;
+                  // If rt < ppath.constant, ppath above atmosphere
+                  if( rt < ppath.constant )
+                    { 
+                      above = true; 
+                      ready = true; 
                     }
-                  else if( rte_pos[1] >= lat_grid[nlat-1] )
-                    {
-                      lat0  = lat_grid[nlat-1]; 
-                      ilat0 = nlat-1;
-                      istep = -1;
-                    }
+
                   else
                     {
-                      lat0  = rte_pos[1]; 
-                      if( rte_los[0] >= 0 )
-                        {  
-                          ilat0 = gridpos2gridrange( gp_lat, 1 );
-                          istep = 1;
-                        }
+                      // Calculate length to entrance point at rt 
+                      r_crossing_2d( latt, lt, rt, r_p, rte_pos[1], rte_los[0],
+                                                              ppath.constant );
+                      assert( lt < 9e9 );
+
+                      // Entrance outside range of lat_grid = fail
+                      if( latt < lat_grid[0]  ||  latt > lat_grid[llat] )
+                        { failed = true; }
+
+                      // OK iteration
                       else
-                        { 
-                          ilat0 = gridpos2gridrange( gp_lat, 0 ) + 1;
-                          istep = -1; 
+                        {
+                          // Converged? (Is length to entrance point found 
+                          // with an accuracy of about 1 mm?)
+                          if( abs( lt-lt_old ) < 1e-3 )
+                            { ready = true; }
+
+                          // Update rt
+                          lt_old = lt;
+                          gridpos( gp_latt, lat_grid, latt );
+                          interpweights( itwt, gp_latt );
+                          rt = interp( itwt, r_toa, gp_latt );
                         }
                     }
+                }  // while
 
-
-                  // Loop until entrance point is found
-                  Index ready = 0;
-                  while( !ready )
-                    {
-                      // The slope c is here calculated for the viewing
-                      // direction and the zenith angle to apply shall then be
-                      // positive.
-
-                      // Calculate radius and zenith angle of path at lat0
-                      double r0  = geompath_r_at_lat( ppath.constant, 
-                                                 rte_pos[1], rte_los[0], lat0 );
-                      double za0 = abs( geompath_za_at_r( ppath.constant, 
-                                                             rte_los[0], r0 ) );
-
-                      // Calculate radius and slope to use in plevel_crossing_2d
-                      double rv1 = r_geoid(ilat0,0) + z_field(np-1,ilat0,0);
-                      double rv2 = r_geoid(ilat0+istep,0) + 
-                                                    z_field(np-1,ilat0+istep,0);
-                      double latstep = abs( lat_grid[ilat0+istep] - 
-                                                              lat_grid[ilat0] );
-                      double c = ( rv2 - rv1 ) / latstep;
-
-                      if( lat0 != lat_grid[ilat0] )
-                        { rv1 = rv1 + c * abs( lat0 - lat_grid[ilat0] ); } 
-
-                      double dlat = plevel_crossing_2d( r0, za0, rv1, c );
-
-                      if( dlat <= latstep )
-                        {
-                          ready = 1;
-                          ppath.pos(0,1) = lat0 + (double)istep*dlat;
-                          ppath.pos(0,0) = rv1 + c * dlat;
-                          ppath.los(0,0) = geompath_za_at_r( ppath.constant, 
-                                                   rte_los[0], ppath.pos(0,0) );
-                          // Re-use some variables from above
-                          rv1 = r_geoid(ilat0,0);
-                          rv2 = r_geoid(ilat0+istep,0);
-                          c   = ( rv2 - rv1 ) / latstep;
-                          ppath.z[0] = ppath.pos(0,0) - ( rv1 + c * 
-                                      abs( ppath.pos(0,1) - lat_grid[ilat0] ) );
-                          ppath.gp_p[0].idx = np - 2;
-                          ppath.gp_p[0].fd[0] = 1;
-                          ppath.gp_p[0].fd[1] = 0;
-                          gridpos( ppath.gp_lat[0], lat_grid, ppath.pos(0,1) );
-                        } 
-                      else
-                        {
-                          ilat0 += istep;
-                          lat0   = lat_grid[ilat0];
-                        }
-                    } 
-
-                  // Handle possible numerical problems for grid positions
-                  gridpos_check_fd( ppath.gp_p[0] );
-                  gridpos_check_fd( ppath.gp_lat[0] );
+              if( failed )
+                {
+                  ostringstream os;
+                  os << "The path does not enter the model atmosphere. It "
+                     << "reaches the\ntop of the atmosphere "
+                     << "altitude around latitude " << latt << " deg.";
+                  throw runtime_error( os.str() );
                 }
-            }
-        }      
+              else if( above )
+                {
+                  ppath.pos(0,0) = rte_pos[0];
+                  ppath.pos(0,1) = rte_pos[1]; 
+                  ppath.r[0]     = r_e + rte_pos[0];
+                  ppath.los(0,0) = rte_los[0];
+                  //
+                  ppath_set_background( ppath, 1 );
+                  out1 << "  ------- WARNING -------: path is totally outside "
+                       << "of the model atmosphere\n";
+                }
+              else
+                {
+                  ppath.r[0]     = rt;
+                  ppath.pos(0,0) = interp( itwt, z_field(lp,joker,0), gp_latt );
+                  // Calculate za first and use to determine lat
+                  ppath.los(0,0) = geompath_za_at_r( ppath.constant, 
+                                                     rte_los[0], rt );
+                  ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], rte_pos[1], 
+                                                              ppath.los(0,0) );
+                  ppath.lspace = lt;
 
-      // Set geometrical tangent point position
-      if( geom_tan_pos.nelem() == 2 )
-        {
-          ppath.geom_tan_pos.resize(2);
-          ppath.geom_tan_pos = geom_tan_pos;
-        }
+                  // Here we know the pressure grid position exactly
+                  ppath.gp_p[0].idx   = lp-1; 
+                  ppath.gp_p[0].fd[0] = 1;
+                  ppath.gp_p[0].fd[1] = 0;
+
+                  // Latitude grid position already calculated
+                  gridpos_copy( ppath.gp_lat[0], gp_latt );
+
+                  // Hit with cloudbox reaching TOA?
+                  if( cloudbox_on  &&  cloudbox_limits[1] == lp )
+                    {
+                      Numeric fgp = fractional_gp(gp_latt);
+                      if( fgp >= (Numeric)cloudbox_limits[2]  &&
+                          fgp <= (Numeric)cloudbox_limits[3] )
+                        { ppath_set_background( ppath, 3 ); }
+                    }
+                }
+            }  // Downward 
+        }  // Outside
     }  // End 2D
 
 
   //-- 3D ---------------------------------------------------------------------
   else
     {
-      // Number of points in the latitude and longitude grids
-      const Index   nlat = lat_grid.nelem();
-      const Index   nlon = lon_grid.nelem();
+      // Index of last latitude and longitude
+      const Index llat = lat_grid.nelem() -1;
+      const Index llon = lon_grid.nelem() -1;
 
-      // Is the sensor inside the latitude and longitude ranges of the
-      // model atmosphere, and below the top of the atmosphere? If
-      // yes, is_inside = true. Store geoid and surface radii, grid
-      // position and interpolation weights for later use.
-      //
-      bool      is_inside = false;   
-      double   rv_geoid=-1, rv_surface=-1;  // -1 to avoid compiler warnings
+      // Is sensor inside range of lat_grid and lon_grid?
+      // If yes, determine TOA altitude at sensor position
       GridPos   gp_lat, gp_lon;
       Vector    itw(4);
-      //
-      if( rte_pos[1] >= lat_grid[0]  &&  rte_pos[1] <= lat_grid[nlat-1]  &&
-                rte_pos[2] >= lon_grid[0]  &&  rte_pos[2] <= lon_grid[nlon-1] )
-        {
+      bool      islatlonin = false;
+      double    r_e;  // Ellipsoid radius at sensor position
+      double    z_toa   = -99e99;
+      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat]  &&
+          rte_pos[2] > lon_grid[0]  &&  rte_pos[2] < lon_grid[llon] )
+        { 
+          islatlonin = true; 
           gridpos( gp_lat, lat_grid, rte_pos[1] );
           gridpos( gp_lon, lon_grid, rte_pos[2] );
           interpweights( itw, gp_lat, gp_lon );
-
-          rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );
-          rv_surface = rv_geoid + interp( itw, z_surface, gp_lat, gp_lon );
-
-          out2 << "  sensor altitude        : " << (rte_pos[0]-rv_geoid)/1e3 
-               << " km\n";
-
-          if( rte_pos[0] < ( rv_geoid + interp( itw, 
-                                z_field(np-1,joker,joker), gp_lat, gp_lon ) ) )
-            { is_inside = true; }
+          z_toa = interp( itw, z_field(lp,joker,joker), gp_lat, gp_lon );
+          r_e   = refell2d( refellipsoid, lat_grid, gp_lat );
         }
+      else
+        { r_e = refell2r( refellipsoid, rte_pos[1] ); }
 
-      // If downwards, calculate geometrical tangent position. If the tangent
-      // point is inside the covered latitude range, calculate also the 
-      // geometrical altitude of the tangent point and the top of atmosphere.
-      //
-      Array<double>  geom_tan_pos(0);
-      double geom_tan_z=-2, geom_tan_atmtop=-1;  // OK values if the variables
-      //                                             are not set below
-      if( rte_los[0] > 90 )
+      // Sensor is inside the model atmosphere:
+      if( islatlonin  &&  rte_pos[0] < z_toa )
         {
-          geom_tan_pos.resize(3);
-          double    dummy;
-          geompath_tanpos_3d( geom_tan_pos[0], geom_tan_pos[1], 
-                   geom_tan_pos[2], dummy, rte_pos[0], rte_pos[1], rte_pos[2], 
-                   rte_los[0], rte_los[1], 
-                   geometrical_ppc( rte_pos[0], rte_los[0] ) );
-          resolve_lon( geom_tan_pos[2], lon_grid[0], lon_grid[nlon-1] ); 
-          out2 << "  geom. tangent radius   : " << geom_tan_pos[0] / 1e3
-               <<" km\n";
-          out2 << "  geom. tangent latitude : " << geom_tan_pos[1] 
-               << "\n";
-          out2 << "  geom. tangent longitude: " << geom_tan_pos[2] 
-               << "\n";
-          //
+          const double z_s = interp( itw, z_surface, gp_lat, gp_lon );
 
-          if( geom_tan_pos[1] >= lat_grid[0]       &&  
-              geom_tan_pos[1] <= lat_grid[nlat-1]  &&
-              geom_tan_pos[2] >= lon_grid[0]       &&
-              geom_tan_pos[2] <= lon_grid[nlon-1] )
-            {
-              GridPos   gp_tanlat, gp_tanlon;
-              Vector    itw_tan(4);
-              gridpos( gp_tanlat, lat_grid, geom_tan_pos[1] );
-              gridpos( gp_tanlon, lon_grid, geom_tan_pos[2] );
-              interpweights( itw_tan, gp_tanlat, gp_tanlon );
-              geom_tan_z = geom_tan_pos[0] - 
-                              interp( itw_tan, r_geoid, gp_tanlat, gp_tanlon );
-              geom_tan_atmtop = interp( itw_tan, 
-               z_field(np-1,joker,joker), gp_tanlat, gp_tanlon );
-              out2 << "  geom. tangent altitude : " << geom_tan_z/1e3 
-                   << " km\n";
-            }
-        }
-
-      // Put sensor position and LOS in ppath as first guess
-      ppath.pos(0,0) = rte_pos[0];
-      ppath.pos(0,1) = rte_pos[1];
-      ppath.pos(0,2) = rte_pos[2];
-      ppath.los(0,0) = rte_los[0];
-      ppath.los(0,1) = rte_los[1];
-
-
-      // The sensor is inside the model atmosphere, 3D ------------------------
-      if( is_inside )
-        {
           // Check that the sensor is above the surface
-          if( (rte_pos[0] + RTOL) < rv_surface )
+          if( (rte_pos[0] + RTOL) < z_s )
             {
-            ostringstream os;
-            os << "The ppath starting point is placed " 
-               << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
-               << "This point must be above the surface.";
-            throw runtime_error(os.str());
+              ostringstream os;
+              os << "The ppath starting point is placed " 
+                 << (z_s - rte_pos[0])/1e3 << " km below the surface.";
+              throw runtime_error(os.str());
             }
 
-          // Check that not at latitude end point and looks out
-          if( rte_pos[1] > -90  &&  rte_pos[1] == lat_grid[0]  &&  
-                                                       abs( rte_los[1] > 90 ) )
-            throw runtime_error( "The sensor is at the lower latitude end "
-                   "point and the absolute value of the azimuth angle > 90." );
-          if( rte_pos[1] < 90  &&  rte_pos[1] == lat_grid[nlat-1]  &&  
-                                                     abs( rte_los[1] ) <= 90 ) 
-            throw runtime_error( "The sensor is at the upper latitude end "
-                  "point and the absolute value of the azimuth angle <= 90." );
-
-          // Check that not at longitude end point and looks out
-          if( rte_pos[2] == lon_grid[0]  &&  rte_los[1] < 0 )
-            throw runtime_error( "The sensor is at the lower longitude end "
-                                          "point and the azimuth angle < 0." );
-          if( rte_pos[2] == lon_grid[nlon-1]  &&  rte_los[1] > 0 ) 
-            throw runtime_error( "The sensor is at the upper longitude end "
-                                          "point and the azimuth angle > 0." );
-          
-          // Geometrical altitude
-          ppath.z[0] = ppath.pos(0,0) - rv_geoid;
-
-          // Use below the values in ppath (instead of rte_pos and rte_los) as 
-          // they can be modified on the way.
-     
-          // Grid positions
-          ppath.gp_lat[0].idx   = gp_lat.idx;
-          ppath.gp_lat[0].fd[0] = gp_lat.fd[0];
-          ppath.gp_lat[0].fd[1] = gp_lat.fd[1];
-          ppath.gp_lon[0].idx   = gp_lon.idx;
-          ppath.gp_lon[0].fd[0] = gp_lon.fd[0];
-          ppath.gp_lon[0].fd[1] = gp_lon.fd[1];
+          // Set ppath
+          ppath.pos(0,0) = rte_pos[0];
+          ppath.pos(0,1) = rte_pos[1];
+          ppath.pos(0,2) = rte_pos[2];
+          ppath.r[0]     = r_e + rte_pos[0];
+          ppath.los(0,0) = rte_los[0];
+          ppath.los(0,1) = rte_los[1];
 
           // Create a vector with the geometrical altitude of the pressure 
           // levels for the sensor latitude and use it to get ppath.gp_p.
-          Vector z_grid(np);
-          z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
-                                                              gp_lat, gp_lon );
-          gridpos( ppath.gp_p, z_grid, ppath.z );
+          Vector z_grid(lp+1);
+          z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, gp_lat,
+                                                                    gp_lon );
+          gridpos( ppath.gp_p, z_grid, rte_pos[0] );
+          gridpos_check_fd( ppath.gp_p[0] );
+
+          // Latitude and longitude grid positions
+          gridpos_copy( ppath.gp_lat[0], gp_lat );
+          gridpos_copy( ppath.gp_lon[0], gp_lon );
+          gridpos_check_fd( ppath.gp_lat[0] );
+          gridpos_check_fd( ppath.gp_lon[0] );
 
           // Is the sensor on the surface looking down?
-          if( ppath.pos(0,0) == rv_surface )
-            {
+          // If yes and the sensor is inside the cloudbox, the background will
+          // be changed below.
+          if( ppath.pos(0,0) <= z_s )
+            { 
               // Calculate radial slope of the surface
               const double rslope = plevel_slope_3d( lat_grid, lon_grid,
-                          r_geoid, z_surface, gp_lat, gp_lon, ppath.los(0,1)  );
+                    refellipsoid, z_surface, gp_lat, gp_lon, ppath.los(0,1) );
 
               // Calculate angular tilt of the surface
-              const double atilt = plevel_angletilt( rv_surface, rslope);
+              const double atilt = plevel_angletilt( r_e + z_s, rslope );
 
               // Are we looking down into the surface?
               // If yes and the sensor is inside the cloudbox, the background 
@@ -5833,75 +5524,99 @@ void ppath_start_stepping(Ppath&                ppath,
           // Check sensor position with respect to cloud box.
           if( cloudbox_on )
             {
-              // To check all possible cases here when the sensor is at the
-              // level and can either look into or out from the box needs
-              // a lot of coding.
-              // So we are instead sloppy and set all cases when the sensor
-              // is inside or at the level to be inside the box.
-              // The neglected cases should be very unlikely in for real
-              // situations.
-
-              if( ppath.pos(0,1) >= lat_grid[cloudbox_limits[2]]  &&
-                  ppath.pos(0,1) <= lat_grid[cloudbox_limits[3]]  &&
-                  ppath.pos(0,2) >= lon_grid[cloudbox_limits[4]]  &&
-                  ppath.pos(0,2) <= lon_grid[cloudbox_limits[5]]  )
+              const double fgp = fractional_gp( ppath.gp_p[0] );
+              const double fgl = fractional_gp( ppath.gp_lat[0] );
+              const double fgo = fractional_gp( ppath.gp_lon[0] );
+              //
+              // Is the sensor inside the cloud box?
+              if( fgp > cloudbox_limits[0]  &&  fgp < cloudbox_limits[1]  &&
+                  fgl > cloudbox_limits[2]  &&  fgl < cloudbox_limits[3]  &&
+                  fgo > cloudbox_limits[4]  &&  fgo < cloudbox_limits[5]  )
                 {
-                  // Calculate the lower and upper altitude radius limit for
-                  // the cloud box at the latitude of the sensor
-
-                  const double   rv_low = rv_geoid + interp( itw, 
-                     z_field(cloudbox_limits[0],joker,joker), gp_lat, gp_lon );
-                  const double   rv_upp = rv_geoid + interp( itw, 
-                     z_field(cloudbox_limits[1],joker,joker), gp_lat, gp_lon );
-
-                  if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
-                    {
-                      if( outside_cloudbox )
-                        { ppath_set_background( ppath, 4 ); }       
-                    }
-                  else if( ppath.pos(0,0) <= rv_low-RTOL  &&  
-                           ppath.pos(0,0) >= rv_upp+RTOL )
-                    { assert( outside_cloudbox ); }
+                  if( outside_cloudbox )
+                    { ppath_set_background( ppath, 4 ); }
                 }
+              // Is the sensor at the cloud box boundary?
+              else if( ( fgp==cloudbox_limits[0] && rte_los[0] <= 90 ) ||
+                       ( fgp==cloudbox_limits[1] && rte_los[0] > 90 )  ||
+                       ( fgl==cloudbox_limits[2] && abs(rte_los[1]) <= 90 ) || 
+                       ( fgl==cloudbox_limits[3] && abs(rte_los[1]) >= 90 ) ||
+                       ( fgo==cloudbox_limits[4] && abs(rte_los[1]) >= 0 ) || 
+                       ( fgo==cloudbox_limits[5] && abs(rte_los[1]) <= 0 ) )
+                { ppath_set_background( ppath, 3 ); }
               else
                 { assert( outside_cloudbox ); }
             }
+        }      
 
-          // Handle possible numerical problems for grid positions
-          gridpos_check_fd( ppath.gp_p[0] );
-          gridpos_check_fd( ppath.gp_lat[0] );
-          gridpos_check_fd( ppath.gp_lon[0] );
-        }
-
-      // The sensor is outside the model atmosphere, 3D -----------------------
+      // Sensor is outside the model atmosphere:
       else
         {
           // Handle cases when the sensor appears to look the wrong way in
           // the north-south direction
-          if( ( rte_pos[1] <= lat_grid[0]  &&  abs( rte_los[1] ) >= 90 )  || 
-              ( rte_pos[1] >= lat_grid[nlat-1]  &&  abs( rte_los[1] ) <= 90 ) )
+          if( ( rte_pos[1] <= lat_grid[0]     &&  abs( rte_los[1] ) >= 90 )  || 
+              ( rte_pos[1] >= lat_grid[llat]  &&  abs( rte_los[1] ) <= 90 ) )
             {
               ostringstream os;
               os << "The sensor is north or south (or at the limit) of the "
-                 << "model atmosphere but\nlooks in the wrong direction.\n";
+                 << "model atmosphere\nbut looks in the wrong direction.";
               throw runtime_error( os.str() );
             }
 
           // Handle cases when the sensor appears to look the wrong way in
           // the west-east direction. We demand that the sensor is inside the
           // range of lon_grid even if all longitudes are covered.
-          if( ( rte_pos[2] <= lon_grid[0]  &&  rte_los[1] < 0 )  || 
-                       ( rte_pos[2] >= lon_grid[nlon-1]  &&  rte_los[1] > 0 ) )
+          if( ( rte_pos[2] <= lon_grid[0]     &&  rte_los[1] < 0 )  || 
+              ( rte_pos[2] >= lon_grid[llon]  &&  rte_los[1] > 0 ) )
             {
               ostringstream os;
               os << "The sensor is east or west (or at the limit) of the "
-                 << "model atmosphere but\nlooks in the wrong direction.\n";
+                 << "model atmosphere\nbut looks in the wrong direction.";
+              throw runtime_error( os.str() );
+            }
+
+          // We can here set the path constant, that equals the radius of
+          // the geometrical tangent point.
+          const Numeric r_p = r_e + rte_pos[0];
+          ppath.constant = geometrical_ppc( r_p, rte_los[0] );
+
+          // Determine TOA radii, and min and max value
+          Matrix   r_toa(llat+1,llon+1);
+          double   r_toa_min = 99e99, r_toa_max = -1;
+          for( Index ilat=0; ilat<=llat; ilat++ )
+            {
+              const Numeric r_lat = refell2r(refellipsoid,lat_grid[ilat]);
+              for( Index ilon=0; ilon<=llon; ilon++ )
+                {
+                  r_toa(ilat,ilon) = r_lat+ z_field(lp,ilat,ilon);
+                  if( r_toa(ilat,ilon) < r_toa_min )
+                    { r_toa_min = r_toa(ilat,ilon); } 
+                  if( r_toa(ilat,ilon) > r_toa_max )
+                    { r_toa_max = r_toa(ilat,ilon); } 
+                }
+            }
+
+          if( r_p <= r_toa_max )
+            {
+              ostringstream os;
+              os << "The sensor is horizontally outside (or at the limit) of "
+                 << "the model\natmosphere, but is at a radius smaller than "
+                 << "the maximum value of\nthe top-of-the-atmosphere radii. "
+                 << "This is not allowed. Make the\nmodel atmosphere larger "
+                 << "to also cover the sensor position?";
               throw runtime_error( os.str() );
             }
 
           // Upward:
-          if( abs(rte_los[0]) <= 90 )
+          if( rte_los[0] <= 90 )
             {
+              ppath.pos(0,0) = rte_pos[0];
+              ppath.pos(0,1) = rte_pos[1]; 
+              ppath.pos(0,1) = rte_pos[2]; 
+              ppath.r[0]     = r_e + rte_pos[0];
+              ppath.los(0,0) = rte_los[0];
+              ppath.los(0,1) = rte_los[1];
+              //
               ppath_set_background( ppath, 1 );
               out1 << "  ------- WARNING -------: path is totally outside of "
                    << "the model atmosphere\n";
@@ -5910,225 +5625,130 @@ void ppath_start_stepping(Ppath&                ppath,
           // Downward:
           else
             {
-          
-              // We can here set the path constant, that equals the radius of
-              // the geometrical tangent point.
-              ppath.constant = geom_tan_pos[0];
+              bool      above=false, ready=false, failed=false;
+              double    rt=-1, latt, lont, lt, lt_old = L_NOT_FOUND;
+              GridPos   gp_latt, gp_lont;
+              Vector    itwt(4);
 
-
-              // We either checks that:
-              // 1. the tangent point is above the atmosphere, inside covered 
-              //    lat and lon ranges
-              // 2. We try to determine the entrance point, and issues an error
-              //    if it is not at the top of the atmosphere.
-              
-              // Is tangent point above the model atmosphere
-              if( geom_tan_pos[1] >= lat_grid[0]  &&  
-                               geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
-                               geom_tan_pos[2] >= lon_grid[0]        &&  
-                               geom_tan_pos[2] <= lon_grid[nlon-1]   &&  
-                                                geom_tan_z >= geom_tan_atmtop )
-                {
-                  ppath_set_background( ppath, 1 );
-                  out1 << "  ------- WARNING -------: path is totally "
-                       << "outside of the model atmosphere\n";
+              // Check if clearly above the model atmosphere
+              if( ppath.constant >= r_toa_max )
+                { above=true; ready=true; }
+              else
+                { // Otherwise pick out a suitable first test radius
+                  if( islatlonin  ||  ppath.constant > r_toa_min ) 
+                    { rt = r_toa_max; } 
+                  else 
+                    { rt = r_toa_min; }
                 }
+              
+              // Sensor pos and LOS in cartesian coordinates
+              double   x, y, z, dx, dy, dz;
+              poslos2cart( x, y, z, dx, dy, dz, r_p, rte_pos[1], rte_pos[2], 
+                                                     rte_los[0], rte_los[1] );
 
-              // The path: does it enter the atmosphere, and then where?
+              // Iterate until solution found or moving out from model atm.
+              //
+              while( !ready && !failed )
+                {
+                  // If rt < ppath.constant, ppath above atmosphere
+                  if( rt < ppath.constant )
+                    { 
+                      above = true; 
+                      ready = true; 
+                    }
+
+                  else
+                    {
+                      // Calculate lat and lon for entrance point at rt 
+                      r_crossing_3d( latt, lont, lt, rt, r_p, rte_pos[1], 
+                                     rte_pos[2], rte_los[0], ppath.constant,
+                                     x, y, z, dx, dy, dz );
+                      assert( lt < 9e9 );
+                      resolve_lon( lont, lon_grid[0], lon_grid[llon] ); 
+
+                      // Entrance outside range of lat/lon_grids = fail
+                      if( latt < lat_grid[0]  ||  latt > lat_grid[llat]  ||
+                          lont < lon_grid[0]  ||  lont > lon_grid[llon] )
+                        { failed = true; }
+
+                      // OK iteration
+                      else
+                        {
+                          // Converged? (Is length to entrance point found 
+                          // with an accuracy of about 1 mm?)
+                          if( abs( lt-lt_old ) < 1e-3 )
+                            { ready = true; }
+                          
+                          // Update rt
+                          lt_old = lt;
+                          gridpos( gp_latt, lat_grid, latt );
+                          gridpos( gp_lont, lon_grid, lont );
+                          interpweights( itwt, gp_latt, gp_lont );
+                          rt = interp( itwt, r_toa, gp_latt, gp_lont );
+                        }
+                    }
+                }  // while
+
+              if( failed )
+                {
+                  ostringstream os;
+                  os << "The path does not enter the model atmosphere. It\n"
+                     << "reaches the top of the atmosphere altitude around:\n"
+                     << "  lat: " << latt << " deg.\n  lon: " << lont 
+                     << " deg.";
+                  throw runtime_error( os.str() );
+                }
+              else if( above )
+                {
+                  ppath.pos(0,0) = rte_pos[0];
+                  ppath.pos(0,1) = rte_pos[1]; 
+                  ppath.pos(0,1) = rte_pos[2]; 
+                  ppath.r[0]     = r_e + rte_pos[0];
+                  ppath.los(0,0) = rte_los[0];
+                  ppath.los(0,1) = rte_los[1];
+                  //
+                  ppath_set_background( ppath, 1 );
+                  out1 << "  ------- WARNING -------: path is totally outside "
+                       << "of the model atmosphere\n";
+                }
               else
                 {
-                  // Create a matrix for top of the atmosphere radii
-                  Matrix r_atmtop(nlat,nlon);
+                  // Calculate lt for last rt, and use it to determine pos/los
+                  lt = geompath_l_at_r( ppath.constant, r_p ) -
+                       geompath_l_at_r( ppath.constant, rt );
+                  cart2poslos( ppath.r[0], ppath.pos(0,1), ppath.pos(0,2),
+                                           ppath.los(0,0), ppath.los(0,1),
+                               x+dx*lt, y+dy*lt, z+dz*lt, dx, dy, dz );
+                  assert( abs( ppath.r[0] -rt ) < RTOL );
+                  resolve_lon( ppath.pos(0,2), lon_grid[0], lon_grid[llon] ); 
                   //
-                  for( Index ilat=0; ilat<nlat; ilat++ )
-                    {
-                      for( Index ilon=0; ilon<nlon; ilon++ )
-                        { r_atmtop(ilat,ilon) = r_geoid(ilat,ilon) +
-                                                      z_field(np-1,ilat,ilon); }
-                    }
-
-                  // Handle the case when the sensor radius is obviously too low
-                  double   rtopmin = min( r_atmtop );
-                  if( rte_pos[0] <= rtopmin )
-                    {
-                      ostringstream os;
-                      os << "The sensor radius is smaller than the minimum "
-                         << "radius of the top of\nthe atmosphere. This gives "
-                         << "no possible OK entrance point for the path.";
-                      throw runtime_error( os.str() );
-                    }
-
-                  // Handle the case when the path clearly passes above the 
-                  // model atmosphere
-                  double   rtopmax = max( r_atmtop );
-                  if( geom_tan_pos[0] >= rtopmax )
-                    {
-                      ostringstream os;
-                      os << "The combination of sensor position and line-of-"
-                         << "sight gives a\npropagation path that goes above "
-                         << "the model atmosphere, with\na tangent point "
-                         << "outside the covered latitude and longitude "
-                         << "ranges.\nThe position of the "
-                         << "tangent point is:\n   lat : " << geom_tan_pos[1] 
-                         << "\n   lon : " << geom_tan_pos[2];
-                      throw runtime_error( os.str() );
-                    }
-
-                  // Sensor pos and LOS in cartesian coordinates
-                  double   x, y, z, dx, dy, dz;
-                  poslos2cart( x, y, z, dx, dy, dz, rte_pos[0], 
-                               rte_pos[1], rte_pos[2], rte_los[0], rte_los[1] );
-
-                  // Boolean for that entrance point CANNOT be found
-                  bool   failed = false;
-                 
-                  // Determine the entrance point for the minimum of *r_atmtop*
-                  double   r_top, lat_top, lon_top, l_top;
-                  plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                                   rtopmin, rte_pos[0], rte_pos[1], rte_pos[2], 
-                                      rte_los[0], x, y, z, dx, dy, dz );
-                  resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
-
-                  // If no crossing was found for min radius, or it is outside
-                  // covered lat and lon ranges, try max radius and make the
-                  // same check. If check not succesful, there is no OK
-                  // entrance point.
-                  if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
-                      lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
-                    {
-                      plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                                    rtopmax, rte_pos[0], rte_pos[1], rte_pos[2],
-                                       rte_los[0], x, y, z, dx, dy, dz );
-                      resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
+                  ppath.pos(0,0) = interp( itwt, z_field(lp,joker,joker), 
+                                                            gp_latt, gp_lont );
+                  ppath.lspace = lt;
                   
-                      if( lat_top < lat_grid[0] || lat_top > lat_grid[nlat-1] ||
-                          lon_top < lon_grid[0] || lon_top > lon_grid[nlon-1] )
-                        { failed = true; }
-                    }
-
-                  // Search iteratively for the entrance point until
-                  // convergence or moving out from covered lat and lon ranges
-                  //
-                  bool   ready = false;
-                  //
-                  while( !failed  &&  !ready )
-                    {
-                      // Determine radius at found lat and lon
-                      GridPos   gp_lattop, gp_lontop;
-                      double   lat1, lat3, lon5, lon6, r15, r35, r36, r16;
-                      Index     ilat, ilon;
-                      gridpos( gp_lattop, lat_grid, lat_top );
-                      ilat = gridpos2gridrange( gp_lattop, abs(rte_los[1])>=90);
-                      gridpos( gp_lontop, lon_grid, lon_top );
-                      ilon  = gridpos2gridrange( gp_lontop, rte_los[1] > 0 );   
-                      r15   = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
-                      r35   = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
-                      r36   = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
-                      r16   = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
-                      lat1  = lat_grid[ilat];
-                      lat3  = lat_grid[ilat+1];
-                      lon5  = lon_grid[ilon];
-                      lon6  = lon_grid[ilon+1];
-                      r_top = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                         r15, r35, r36, r16, lat_top, lon_top );
-
-                      // Determine new entrance position for latest estimated
-                      // entrance radius
-                      double   lat_top2, lon_top2;
-                      plevel_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
-                                     r_top, rte_pos[0], rte_pos[1], rte_pos[2], 
-                                     rte_los[0], x, y, z, dx, dy, dz );
-                      resolve_lon( lon_top2, lon_grid[0], lon_grid[nlon-1] ); 
-                      
-                      // Check if new position is sufficiently close to old
-                      if( abs( lat_top2 - lat_top ) < 1e-6  &&  
-                                              abs( lon_top2 - lon_top ) < 1e-6 )
-                        { ready = true; }
-
-                      // Have we moved outside covered lat or lon range?
-                      else if( lat_top < lat_grid[0]  ||  
-                               lat_top > lat_grid[nlat-1] ||
-                               lon_top < lon_grid[0]  ||  
-                               lon_top > lon_grid[nlon-1] )
-                        { failed = true; }
-                      
-                      lat_top = lat_top2;   
-                      lon_top = lon_top2; 
-                    }
-
-                  if( failed )
-                    {
-                      ostringstream os;
-                      os << "The path does not enter the model atmosphere at "
-                         << "the top.\nThe path reaches the top of the "
-                         << "atmosphere altitude\napproximately at the "
-                         << "position:\n   lat : " << lat_top << "\n   lon : " 
-                         << lon_top;
-                      throw runtime_error( os.str() );
-                    }
-
-                  // Correct found lat and lon for some special cases
-                  //
-                  if( rte_los[0] == 180 )
-                    {
-                      lat_top = rte_pos[1];
-                      lon_top = rte_pos[2];
-                    }
-                  else if( abs( rte_pos[1] ) < 90  && ( abs(rte_los[1]) < ANGTOL
-                                          ||  abs( rte_los[1] ) > 180-ANGTOL ) )
-                    { lon_top = rte_pos[2]; } 
-
-                  // Move found values to *ppath*
-                  //
-                  // Position
-                  ppath.pos(0,0) = r_top;
-                  ppath.pos(0,1) = lat_top;
-                  ppath.pos(0,2) = lon_top;
-                  //
-                  // Grid position
-                  ppath.gp_p[0].idx = np - 2;
+                  // Here we know the pressure grid position exactly
+                  ppath.gp_p[0].idx   = lp-1; 
                   ppath.gp_p[0].fd[0] = 1;
                   ppath.gp_p[0].fd[1] = 0;
-                  gridpos( ppath.gp_lat[0], lat_grid, lat_top ); 
-                  gridpos( ppath.gp_lon[0], lon_grid, lon_top ); 
-                  //
-                  // Geometrical altitude
-                  Vector   itw2(4);
-                  interpweights( itw2, ppath.gp_lat[0], ppath.gp_lon[0] );
-                  ppath.z[0] = ppath.pos(0,0) - interp(itw2,  r_geoid,
-                                             ppath.gp_lat[0], ppath.gp_lon[0] );
-                  //
-                  // LOS
-                  double   zatmp, aatmp;
-                  cart2poslos( r_top, lat_top, lon_top, zatmp, aatmp,
-                               x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
-                  ppath.los(0,0) = zatmp;
-                  ppath.los(0,1) = aatmp;
-                  //
-                  // Correct found LOS for some special cases
-                  if( rte_los[0] == 180 )
-                    { ppath.los(0,0) = 180; }
-                  if( abs( rte_pos[1] ) < 90  &&  ( abs( rte_los[1] ) < ANGTOL  
-                                          ||  abs( rte_los[1] ) > 180-ANGTOL ) )
-                    { ppath.los(0,1) = rte_los[1]; } 
+
+                  // Lat and lon grid position already calculated
+                  gridpos_copy( ppath.gp_lat[0], gp_latt );
+                  gridpos_copy( ppath.gp_lon[0], gp_lont );
+
+                  // Hit with cloudbox reaching TOA?
+                  if( cloudbox_on  &&  cloudbox_limits[1] == lp )
+                    {
+                      Numeric fgp1 = fractional_gp(gp_latt);
+                      Numeric fgp2 = fractional_gp(gp_lont);
+                      if( fgp1 >= (Numeric)cloudbox_limits[2]  &&
+                          fgp1 <= (Numeric)cloudbox_limits[3]  && 
+                          fgp2 >= (Numeric)cloudbox_limits[4]  &&
+                          fgp2 <= (Numeric)cloudbox_limits[5])
+                        { ppath_set_background( ppath, 3 ); }
+                    }
                 }
-
-              // Handle possible numerical problems for grid positions
-              gridpos_check_fd( ppath.gp_p[0] );
-              gridpos_check_fd( ppath.gp_lat[0] );
-              gridpos_check_fd( ppath.gp_lon[0] );
-            } // else
-
-        }
-
-      // Set geometrical tangent point position
-      if( geom_tan_pos.nelem() == 3 )
-        {
-          ppath.geom_tan_pos.resize(3);
-          ppath.geom_tan_pos[0] = geom_tan_pos[0];
-          ppath.geom_tan_pos[1] = geom_tan_pos[1];          
-          ppath.geom_tan_pos[2] = geom_tan_pos[2];        
-        }
+            }  // Downward 
+        }  // Outside
     }  // End 3D
 }
 
@@ -6152,7 +5772,7 @@ void ppath_start_stepping(Ppath&                ppath,
    \param lat_grid           The latitude grid.
    \param lon_grid           The longitude grid.
    \param z_field            The field of geometrical altitudes.
-   \param r_geoid            The geoid radius.
+   \param refellipsoid       As the WSM with the same name.
    \param z_surface          Surface altitude.
    \param cloudbox_on        Flag to activate the cloud box.
    \param cloudbox_limits    Index limits of the cloud box.
@@ -6178,7 +5798,7 @@ void ppath_calc(Workspace&            ws,
                 const Vector&         lat_grid,
                 const Vector&         lon_grid,
                 const Tensor3&        z_field,
-                const Matrix&         r_geoid,
+                const Vector&         refellipsoid,
                 const Matrix&         z_surface,
                 const Index&          cloudbox_on, 
                 const ArrayOfIndex&   cloudbox_limits,
@@ -6191,13 +5811,11 @@ void ppath_calc(Workspace&            ws,
   
   // This function is a WSM but it is normally only called from RteCalc. 
   // For that reason, this function does not repeat input checks that are
-  // performed in RteCalc, it only performs checks regarding the sensor 
+  // performed in yCalc, it only performs checks regarding the sensor 
   // position and LOS.
 
   //--- Check input -----------------------------------------------------------
 
-  // Sensor position and LOS
-  //
   chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
   if( atmosphere_dim == 1 )
     {
@@ -6224,7 +5842,7 @@ void ppath_calc(Workspace&            ws,
 
   // Some messages
   out2 << "  -------------------------------------\n";
-  out2 << "  sensor radius          : " << rte_pos[0]/1e3 << " km\n";
+  out2 << "  sensor altitude        : " << rte_pos[0]/1e3 << " km\n";
   if( atmosphere_dim >= 2 )    
     out2 << "  sensor latitude        : " << rte_pos[1] << "\n";
   if( atmosphere_dim == 3 )
@@ -6246,9 +5864,14 @@ void ppath_calc(Workspace&            ws,
   Ppath   ppath_step;
   //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-                        lon_grid, z_field, r_geoid, z_surface,
-                        cloudbox_on, cloudbox_limits, outside_cloudbox, rte_pos, rte_los,
-                        verbosity );
+                        lon_grid, z_field, refellipsoid, z_surface,
+                        cloudbox_on, cloudbox_limits, outside_cloudbox, 
+                        rte_pos, rte_los, verbosity );
+  // For debugging:
+  //Print( ppath_step, 0, verbosity );
+
+  // The only data we need to store from this initial ppath_step is lspace
+  const  Numeric lspace = ppath_step.lspace;  
 
   out2 << "  -------------------------------------\n";
 
@@ -6258,11 +5881,9 @@ void ppath_calc(Workspace&            ws,
   // The results of each step, returned by ppath_step_agenda as a new 
   // ppath_step, are stored as an array of Ppath structures.
   //
-  Array<Ppath>   ppath_array;
-  ppath_array.push_back( ppath_step );
-  // 
-  Index   np = ppath_step.np;   // Counter for number of points of the path
-  Index   istep = 0;            // Counter for number of steps
+  Array<Ppath> ppath_array(0);
+  Index   np     = 1;   // Counter for number of points of the path
+  Index   istep  = 0;   // Counter for number of steps
   //
   const Index imax_p   = p_grid.nelem() - 1;
   const Index imax_lat = lat_grid.nelem() - 1;
@@ -6275,9 +5896,11 @@ void ppath_calc(Workspace&            ws,
       //
       istep++;
       //
-      ppath_step_agendaExecute( ws, ppath_step, atmosphere_dim, p_grid,
-                                lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                                ppath_step_agenda );
+      ppath_step_agendaExecute( ws, ppath_step, atmosphere_dim, 
+                                lat_grid, lon_grid, z_field, refellipsoid, 
+                                z_surface, ppath_step_agenda );
+      // For debugging:
+      //Print( ppath_step, 0, verbosity );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;
@@ -6313,7 +5936,7 @@ void ppath_calc(Workspace&            ws,
                   ostringstream os;
                   os << "The path exits the atmosphere through the lower "
                      << "latitude end face.\nThe exit point is at an altitude" 
-                     << "of " << ppath_step.z[n-1]/1e3 << " km.";
+                     << " of " << ppath_step.pos(n-1,0)/1e3 << " km.";
                   throw runtime_error( os.str() );
                 }
               if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
@@ -6321,7 +5944,7 @@ void ppath_calc(Workspace&            ws,
                   ostringstream os;
                   os << "The path exits the atmosphere through the upper "
                      << "latitude end face.\nThe exit point is at an altitude" 
-                     << " of " << ppath_step.z[n-1]/1e3 << " km.";
+                     << " of " << ppath_step.pos(n-1,0)/1e3 << " km.";
                   throw runtime_error( os.str() );
                 }
             }
@@ -6334,16 +5957,16 @@ void ppath_calc(Workspace&            ws,
                   ostringstream os;
                   os << "The path exits the atmosphere through the lower "
                      << "latitude end face.\nThe exit point is at an altitude" 
-                     << " of " << ppath_step.z[n-1]/1e3 << " km.";
+                     << " of " << ppath_step.pos(n-1,0)/1e3 << " km.";
                   throw runtime_error( os.str() );
                 }
               if( lat_grid[imax_lat] < 90  && 
                     is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
                 {
                   ostringstream os;
-                  os << "The path exits the atmosphere through the upper"
+                  os << "The path exits the atmosphere through the upper "
                      << "latitude end face.\nThe exit point is at an altitude" 
-                     << " of " << ppath_step.z[n-1]/1e3 << " km.";
+                     << " of " << ppath_step.pos(n-1,0)/1e3 << " km.";
                   throw runtime_error( os.str() );
                 }
 
@@ -6366,7 +5989,8 @@ void ppath_calc(Workspace&            ws,
                       ostringstream os;
                       os << "The path exits the atmosphere through the lower " 
                          << "longitude end face.\nThe exit point is at an "
-                         << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+                         << "altitude of " << ppath_step.pos(n-1,0)/1e3 
+                         << " km.";
                       throw runtime_error( os.str() );
                     }
                 }
@@ -6387,7 +6011,8 @@ void ppath_calc(Workspace&            ws,
                       ostringstream os;
                       os << "The path exits the atmosphere through the upper "
                          << "longitude end face.\nThe exit point is at an "
-                         << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+                         << "altitude of " << ppath_step.pos(n-1,0)/1e3 
+                         << " km.";
                       throw runtime_error( os.str() );
                     }
                 }
@@ -6453,7 +6078,7 @@ void ppath_calc(Workspace&            ws,
               if( ipos1 <= double( cloudbox_limits[2] )  &&  ipos1 < ipos2 )  
                 { ppath_set_background( ppath_step, 3 ); }
 
-              else if( ipos1 >= double( cloudbox_limits[3] )  &&  ipos1 > ipos2 )
+              else if( ipos1 >= double( cloudbox_limits[3] ) && ipos1 > ipos2 )
                 { ppath_set_background( ppath_step, 3 ); }
 
               else if ( atmosphere_dim > 2 )
@@ -6480,42 +6105,44 @@ void ppath_calc(Workspace&            ws,
 
     } // End path steps
 
+
   // Combine all structures in ppath_array to form the return Ppath structure.
   //
   ppath_init_structure( ppath, atmosphere_dim, np );
   //
-  np = 0;   // Now used as counter for points moved to ppath
+  const Index na = ppath_array.nelem();
   //
-  for( Index i=0; i<ppath_array.nelem(); i++ )
+  if( na == 0 )    // No path, just the starting point
     {
-      // For the first structure, the first point shall be included, but the
-      // first structure can also be empty. 
-      // For later structures, the first point shall not be included, but
-      // there will always be at least two points.
-      // Only the first structure can be empty.
-
-      Index n = ppath_array[i].np;
-
-      if( n )
+      ppath_copy( ppath, ppath_step );
+    }
+ 
+  else   // Otherwise, merge the array elelments
+    {
+      np = 0;   // Now used as counter for points moved to ppath
+      //
+      for( Index i=0; i<na; i++ )
         {
+          // For the first structure, the first point shall be included.
+          // For later structures, the first point shall not be included, but
+          // there will always be at least two points.
+          
+          Index n = ppath_array[i].np;
+
           // First index to include
           Index i1 = 1;
           if( i == 0 )
             { i1 = 0; }
-          else
-            { assert( n > 1 ); }
 
           // Vectors and matrices that can be handled by ranges.
-          ppath.z[ Range(np,n-i1) ] = ppath_array[i].z[ Range(i1,n-i1) ];
+          ppath.r[ Range(np,n-i1) ] = ppath_array[i].r[ Range(i1,n-i1) ];
           ppath.pos( Range(np,n-i1), joker ) = 
                                    ppath_array[i].pos( Range(i1,n-i1), joker );
           ppath.los( Range(np,n-i1), joker ) = 
                                    ppath_array[i].los( Range(i1,n-i1), joker );
-
-          // For i==1, there is no defined l_step. For higher i, all 
-          // values in l_step shall be copied.
-          if( i > 0 )
-            { ppath.l_step[ Range(np-1,n-1) ] = ppath_array[i].l_step; }
+          ppath.nreal[ Range(np,n-i1) ] = 
+                                        ppath_array[i].nreal[ Range(i1,n-i1) ];
+          ppath.l_step[ Range(np-i1,n-1) ] = ppath_array[i].l_step; 
 
           // Grid positions must be handled by a loop
           for( Index j=i1; j<n; j++ )
@@ -6531,22 +6158,15 @@ void ppath_calc(Workspace&            ws,
                 { ppath.gp_lon[np+j-i1] = ppath_array[i].gp_lon[j]; }
             }
 
-          // Fields just set once
-          if( ppath_array[i].tan_pos.nelem() )
-            {
-              ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
-              ppath.tan_pos               = ppath_array[i].tan_pos; 
-            }
-          if( ppath_array[i].geom_tan_pos.nelem() )
-            {
-              ppath.geom_tan_pos.resize( ppath_array[i].tan_pos.nelem() );
-              ppath.geom_tan_pos          = ppath_array[i].geom_tan_pos; 
-            }
-
           // Increase number of points done
           np += n - i1;
-         
         }
-    }  
-  ppath.background = ppath_step.background;
+
+      // Field just included once:
+      // Constant and background can be taken from last path_step
+      ppath.constant   = ppath_step.constant;
+      ppath.background = ppath_step.background;
+      // lspace extracted above
+      ppath.lspace     = lspace;
+    }
 }

@@ -1,0 +1,148 @@
+# ARTS control file for testing 3D propagation path calculations
+# 
+# 2012-02-17 Patrick Eriksson
+
+Arts2{
+
+INCLUDE "../../ARTS/arts-dev/includes/general.arts"
+
+
+# Reference ellipsoid
+#
+refellipsoidEarth( refellipsoid, "WGS84" )
+
+
+# A pressure grid rougly matching 0 to 80 km.
+#
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+
+# Atmospheric dimensionality and lat/lon grids
+#
+VectorNLinSpace( lat_grid, 21, 35, 55 )
+VectorNLinSpace( lon_grid, 21, -40, 40 )
+AtmosphereSet3D
+
+
+# Water vapour needed if refraction will be calculated
+#
+SpeciesSet( abs_species, ["H2O"] )
+
+
+# Read a 1D atmospheric case and expand to *atmosphere_dim*
+#
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "../../ARTS/arts-xml-data/atmosphere/fascod/midlatitude-winter" )
+AtmFieldsCalcExpand1D
+
+
+# Ground altitude (z_surface)
+#
+IndexCreate( nlat )
+IndexCreate( nlon )
+nelemGet( nlat, lat_grid )
+nelemGet( nlon, lon_grid )
+#
+MatrixSetConstant( z_surface, nlat, nlon, 500 )
+
+
+# Activate to make tests with cloudbox on:
+#FlagOn( cloudbox_on )
+#ArrayOfIndexSet( cloudbox_limits, [ 4, 7, 10, 11, 8, 12 ] )
+
+
+# A dummy frequency grid
+#
+VectorSet( f_grid, [100e9] )
+
+
+# Check if atmosphere OK
+#
+basics_checkedCalc
+cloudbox_checkedCalc
+
+
+# Agenda for refractive index agenda
+# (not used if ppath_stepGeometric used in ppath_step_agenda)
+#
+AgendaSet( refr_index_agenda ){
+  refr_indexThayer
+}
+
+
+# Max step length and agenda for the calculation of the propagation path
+#
+NumericSet( ppath_lmax, 10e3 )
+AgendaSet( ppath_step_agenda ){
+  ppath_stepGeometric
+}
+
+
+
+
+
+#
+# A single propagation path:
+#
+
+# Set a observation position and line-of-sight (LOS)
+#
+VectorSet( rte_pos, [ 600e3, 70.1, 0 ] )
+VectorSet( rte_los, [   113,  180    ] )
+
+
+# Calculate propagation path
+#
+ppathCalc
+
+
+# Print complete ppath
+#
+#Print( ppath, 0 )
+
+
+
+# Uncomment to skip batch part below
+# 
+#Exit()
+
+
+
+#
+# Run through a number of cases, that should run without error
+# 
+
+
+# Use sensor_pos/los to store each case
+#
+MatrixSet( sensor_pos, [ 600e3, 20.2,   23;
+                         600e3, 70.3,  -12;
+                         600e3, 20.1,  -30; 
+                         600e3, 70.2,   11;
+                           6e3, 40.1, 34.6;
+                           6e3, 40.1,  -39;
+                           500,   41, 0.23;
+                           500, 37.6, -1.1 ] )
+MatrixSet( sensor_los, [   45,    15; 
+                           95,   135; 
+                          113,    12; 
+                          113,  -168;
+                           34,  -180;
+                          156,    90;
+                            0,     0; 
+                           112,   55 ] )
+
+IndexCreate( ilast )
+nrowsGet( ilast, sensor_pos )
+IndexStepDown( ilast, ilast )
+
+AgendaSet( forloop_agenda ){
+  #Print( forloop_index, 0 )
+  VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )
+  VectorExtractFromMatrix( rte_los, sensor_los, forloop_index, "row" )
+  ppathCalc
+}
+
+ForLoop( forloop_agenda, 0, ilast, 1  )
+
+}

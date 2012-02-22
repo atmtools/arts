@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2008 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+/* Copyright (C) 2003-2008 Patrick Eriksson <Patrick.Eriksson@chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   m_refraction.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2003-01-09
 
   \brief  Workspace methods releated to refraction.

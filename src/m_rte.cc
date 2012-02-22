@@ -47,6 +47,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "jacobian.h"
+#include "geodetic.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -374,7 +375,7 @@ void get_iy_of_background(
   ConstTensor3View        t_field,
   ConstTensor3View        z_field,
   ConstTensor4View        vmr_field,
-  const Matrix&           r_geoid,
+  const Vector&           refellipsoid,
   const Matrix&           z_surface,
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
@@ -502,9 +503,30 @@ void get_iy_of_background(
 
                 // Calculate angular tilt of the surface
                 // (sign(los[0]) to handle negative za for 2D)
-                const Numeric atilt = surfacetilt( atmosphere_dim, lat_grid, 
-                                                 lon_grid, r_geoid, z_surface,
-                                                 rte_gp_lat, rte_gp_lat, los );
+                //
+                Numeric atilt = 0.0;
+                //
+                if( atmosphere_dim == 2 )
+                  {
+                    const double rslope = plevel_slope_2d( lat_grid, 
+                        refellipsoid, z_surface(joker,0), rte_gp_lat, los[0] );
+                    Vector itw(2); interpweights( itw, rte_gp_lat );
+                    const Numeric rv_surface = 
+                              refell2r( refellipsoid, rte_pos[1] ) +
+                              interp( itw, z_surface(joker,0), rte_gp_lat );
+                    atilt = plevel_angletilt( rv_surface, rslope);
+                  }
+                else if ( atmosphere_dim == 3 )
+                  {
+                    const double rslope = plevel_slope_3d( lat_grid, lon_grid, 
+                     refellipsoid, z_surface, rte_gp_lat, rte_gp_lon, los[1] );
+                    Vector itw(4); interpweights( itw, rte_gp_lat, rte_gp_lon );
+                    const Numeric rv_surface = 
+                              refell2r( refellipsoid, rte_pos[1] ) +
+                              interp( itw, z_surface, rte_gp_lat, rte_gp_lon );
+                    atilt = plevel_angletilt( rv_surface, rslope);
+                  }
+
                 const Numeric zamax = 90 - sign(los[0])*atilt;
 
                 // I considered to add a check that surface_los is above the
@@ -808,7 +830,7 @@ void iyBeerLambertStandardClearsky(
   const Tensor3&              wind_u_field,
   const Tensor3&              wind_v_field,
   const Tensor3&              wind_w_field,
-  const Matrix&               r_geoid,
+  const Vector&               refellipsoid,
   const Matrix&               z_surface,
   const Index&                cloudbox_on,
   const ArrayOfIndex&         cloudbox_limits,
@@ -855,7 +877,7 @@ void iyBeerLambertStandardClearsky(
   Ppath  ppath;
   //
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              lat_grid, lon_grid, z_field, refellipsoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1,
               verbosity );
 
@@ -907,8 +929,8 @@ void iyBeerLambertStandardClearsky(
   get_iy_of_background( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
                         iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
                         p_grid, lat_grid, lon_grid, t_field, z_field, 
-                        vmr_field, r_geoid, z_surface, cloudbox_on, stokes_dim,
-                        f_grid, iy_clearsky_agenda, iy_space_agenda, 
+                        vmr_field, refellipsoid, z_surface, cloudbox_on, 
+                        stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
                         surface_prop_agenda, iy_cloudbox_agenda, verbosity );
   
   // Do RT calculations
@@ -1112,7 +1134,7 @@ void iyBeerLambertStandardCloudbox(
   const Tensor3&                       z_field,
   const Tensor3&                       t_field,
   const Tensor4&                       vmr_field,
-  const Matrix&                        r_geoid,
+  const Vector&                        refellipsoid,
   const Matrix&                        z_surface,
   const Index&                         cloudbox_on,
   const ArrayOfIndex&                  cloudbox_limits,
@@ -1143,7 +1165,7 @@ void iyBeerLambertStandardCloudbox(
   Ppath  ppath;
   //
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              lat_grid, lon_grid, z_field, refellipsoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0,
               verbosity );
 
@@ -1259,7 +1281,7 @@ void iyEmissionStandardClearsky(
   const Tensor3&                    wind_u_field,
   const Tensor3&                    wind_v_field,
   const Tensor3&                    wind_w_field,
-  const Matrix&                     r_geoid,
+  const Vector&                     refellipsoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
   const ArrayOfIndex&               cloudbox_limits,
@@ -1318,7 +1340,7 @@ void iyEmissionStandardClearsky(
   Ppath  ppath;
   //
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              lat_grid, lon_grid, z_field, refellipsoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1,
               verbosity );
 
@@ -1369,8 +1391,8 @@ void iyEmissionStandardClearsky(
   get_iy_of_background( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
                         iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
                         p_grid, lat_grid, lon_grid, t_field, z_field, 
-                        vmr_field, r_geoid, z_surface, cloudbox_on, stokes_dim,
-                        f_grid, iy_clearsky_agenda, iy_space_agenda, 
+                        vmr_field, refellipsoid, z_surface, cloudbox_on, 
+                        stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
                         surface_prop_agenda, iy_cloudbox_agenda, verbosity);
   
   // Do RT calculations
@@ -1625,7 +1647,7 @@ void iyEmissionStandardClearskyBasic(
   const Tensor3&       wind_u_field,
   const Tensor3&       wind_v_field,
   const Tensor3&       wind_w_field,
-  const Matrix&        r_geoid,
+  const Vector&        refellipsoid,
   const Matrix&        z_surface,
   const Index&         cloudbox_on,
   const ArrayOfIndex&  cloudbox_limits,
@@ -1655,7 +1677,7 @@ void iyEmissionStandardClearskyBasic(
   Ppath  ppath;
   //
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              lat_grid, lon_grid, z_field, refellipsoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1,
               verbosity );
 
@@ -1696,7 +1718,7 @@ void iyEmissionStandardClearskyBasic(
   //  
   get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
                         0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                        t_field, z_field, vmr_field, r_geoid, z_surface, 
+                        t_field, z_field, vmr_field, refellipsoid, z_surface, 
                         cloudbox_on, stokes_dim, f_grid, 
                         iy_clearsky_basic_agenda, iy_space_agenda, 
                         surface_prop_agenda, iy_cloudbox_agenda, verbosity );
@@ -1747,7 +1769,7 @@ void iyMC(
   const Tensor3&                    z_field,
   const Tensor3&                    t_field,
   const Tensor4&                    vmr_field,
-  const Matrix&                     r_geoid,
+  const Vector&                     refellipsoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
   const ArrayOfIndex&               cloudbox_limits,
@@ -1826,7 +1848,7 @@ void iyMC(
                  f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
                  iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda,
                  abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
-                 r_geoid, z_surface, t_field, vmr_field, 
+                 refellipsoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
                  pnd_field, scat_data_mono, 1, cloudbox_checked,
                  mc_seed, y_unit, mc_std_err, mc_max_time, mc_max_iter,
@@ -1911,7 +1933,7 @@ void yCalc(
   // Basics and cloudbox OK?
   //
   if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control varaibles must be "
+    throw runtime_error( "The atmosphere and basic control variables must be "
             "flagged to have passed a consistency check (basics_checked=1)." );
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "

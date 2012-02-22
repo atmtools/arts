@@ -40,8 +40,6 @@ NumericSet( ppath_lmax, 250 )
 
 # Surface properties
 #-------------------
-# Definition of Earth radius
-r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 # Set surface reflectivity (=1-emissivity)
 # corresponds to emissivity=0.75
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.25 )
@@ -70,8 +68,6 @@ MatrixSet( sensor_los,  [131; 179])
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
-# Add earth radius to sensor height
-sensor_posAddRgeoid
 # No sensor characteristics are specified
 sensorOff
 
@@ -168,13 +164,6 @@ ScatteringParticlesSelect
 
 
 # This agenda is already specified in general.arts
-# This should be sufficiently small to assume single scattering in 
-# one propagation path step---------------------------------------------
-#AgendaSet( ppath_step_agenda ){
-#  ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid, lon_grid,
-#                       z_field, r_geoid, z_surface, 0)
-#}
-
 AgendaSet( iy_clearsky_agenda ){
 #  radiative transfer calculations with emission
    iyEmissionStandardClearsky

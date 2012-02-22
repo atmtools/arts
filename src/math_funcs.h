@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
@@ -25,7 +25,7 @@
 
 /*!
    \file   math_funcs.h
-   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    \date 2000-09-18 
 
    Contains the decleration of the functions in math_funcs.cc.
@@ -38,7 +38,10 @@
 
 #include "matpackI.h"
 
-
+void cross( 
+           Vector& c, 
+   ConstVectorView a,
+   ConstVectorView b );
 
 Numeric fac(const Index n);
 
@@ -83,5 +86,7 @@ Numeric sign( const Numeric& x );
 Numeric gamma_func(Numeric xx);
 
 Numeric lgamma_func(Numeric xx);
+
+void unitl( Vector& x );
 
 #endif  // math_funcs_h

@@ -1,6 +1,5 @@
-
 /* Copyright (C) 2004-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
                             
    This program is free software; you can redistribute it and/or modify it
@@ -26,7 +25,7 @@
 
 /*!
   \file   m_batch.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2004-09-15 
 
   \brief  Workspace functions for doing batch calculations.
@@ -354,7 +353,7 @@ void ybatchMetProfiles(
                const Vector& f_grid,
                const Matrix& met_amsu_data,
                const Matrix& sensor_pos,
-               const Matrix& r_geoid,
+               const Vector& refellipsoid,
                const Vector& lat_grid,
                const Vector& lon_grid,
                const Index& atmosphere_dim,
@@ -436,7 +435,7 @@ void ybatchMetProfiles(
       lon_os << setprecision((int)lon_prec) << lon[i];
       
       sensor_los(0,0) = 
-        180.0 - (asin(r_geoid(0,0) * sin(sat_za_from_data[i] * DEG2RAD) /sensor_pos(0,0)))* RAD2DEG;
+        180.0 - (asin(refellipsoid[0] * sin(sat_za_from_data[i] * DEG2RAD) /sensor_pos(0,0)))* RAD2DEG;
       
       //Reads the t_field_raw from file
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".t.xml",
@@ -583,7 +582,7 @@ void ybatchMetProfilesClear(
                 const Vector& f_grid,
                 const Matrix& met_amsu_data,
                 const Matrix& sensor_pos,
-                const Matrix& r_geoid,
+                const Vector& refellipsoid,
                 //Keyword
                 const Index& nelem_p_grid,
                 const String& met_profile_path,
@@ -654,10 +653,8 @@ void ybatchMetProfilesClear(
       
       sat_za = sat_za_from_profile[i];
       
-      //sensor_los(Range(joker),0) = 
-      //    180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
       sensor_los(Range(joker),0) = 
-        180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
+        180.0 - (asin(refellipsoid[0] * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
       cout<<"sensor_los"<<sat_za_from_profile[i]<<endl;
       cout<<"sensor_los"<<sat_za<<endl;
       cout<<"sensor_los"<<sensor_los<<endl;

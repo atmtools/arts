@@ -1,4 +1,4 @@
-\chapter{Geoid and surface properties}
+\chapter{Reference ellipsoid and surface properties}
  \label{sec:surface}
 
 
@@ -11,56 +11,55 @@
 \graphicspath{{Figs/ppath/}}
 
 
-\section{The geoid}
+\section{The reference ellipsoid}
 %===================
 \label{sec:fm_defs:geoid}
 
-The \textindex{geoid} is an imaginary surface used as a
-reference when specifying the surface altitude and the altitude
-of pressure levels. Any shape of the geoid is allowed but a smoothly
-varying geoid is the natural choice, with the centers of the geoid and
-the coordinate system coinciding. The geoid should normally be set to
-the reference ellipsoid for some global geodetic datum, such as
-WGS-84.
-
-Inside ARTS, the geoid is represented as a matrix (\wsvindex{r\_geoid}),
-holding the geoid radius, \aRds{\odot}, for each crossing of the latitude and
-longitude grids, $\aRds{\odot}=\aRds{\odot}(\Lat,\Lon)$. The geoid is not
-defined outside the ranges covered by the latitude and longitude grids, with
-the exception for 1D where the geoid by definition is a full sphere. 
+The \textindex{ellipsoid} is an imaginary surface used as a reference when
+specifying the surface altitude and the altitude of pressure levels. As the
+name indicates, this reference surface is defined as an ellipsoid. The
+reference ellipsoid should normally be set to some global geodetic datum, such
+as WGS-84.
+Inside ARTS, the ellipsoid is represented as a vector denoted as
+\wsvindex{refellipsoid}. This vector must have length two, where the two
+elements are equatorial radius (\aRds{e}) and eccentricity ($e$), respectively.
 
 
 
 
-\subsection{Geoid ellipsoids}
+\subsection{Ellipsoid models}
 %===================
 \label{sec:ppath:geoid}
 
-A geodetic datums is based on a reference ellipsoid\index{geoid
-  ellipsoid}. The ellipsoid is rotationally symmetric around the
-north-south axis. That is, the ellipsoid radius has no longitude
-variation, it is only a function of latitude. The ellipsoid is
-described by an equatorial radius, \aRds{e}, and a polar radius,
-\aRds{p}. These radii are indicated in Figure \ref{fig:ppath:lats}.
-The radius of the ellipsoid for a given latitude, \Lat, is
+A geodetic datums is based on a reference ellipsoid. The ellipsoid is
+rotationally symmetric around the north-south axis. That is, the ellipsoid
+radius has no longitude variation, it is only a function of latitude. The
+ellipsoid is described by an equatorial radius, \aRds{e}, and a polar radius,
+\aRds{p}. These radii are indicated in Figure \ref{fig:ppath:lats}. The
+defintion of the ellispoid used in ARTS is based on \aRds{e} and the
+eccentricity, $e$:
+\begin{equation}
+ e = \sqrt{1-\aRds{e}^2/\aRds{p}^2}.
+ \label{eq:ppath:eccentricity} 
+\end{equation}
+The radius of the ellipsoid for a given (geocentric) latitude, \Lat, is
 \begin{equation}
  \aRds{\odot}(\Lat) = \sqrt{\frac{\aRds{e}^2\aRds{p}^2}
-                    {\aRds{e}^2\sin^2\Lat+\aRds{p}^2\cos^2\Lat}}
+                    {\aRds{e}^2\sin^2\Lat+\aRds{p}^2\cos^2\Lat}} =
+  \frac{\aRds{p}}{\sqrt{\sin^2\Lat+(1-e^2)\cos^2\Lat}}
  \label{eq:ppath:ellipsradius} 
 \end{equation}
-The radius given by Equation \ref{eq:ppath:ellipsradius} can be
-directly applied for 2D and 3D cases. On the other hand, for 1D cases
-the reference geoid is by definition a sphere and the radius of this
-sphere shall be selected in such way that it represents the local
-shape of a reference ellipsoid. This is achieved by setting
-\aRds{\odot} to the radius of curvature of the ellipsoid. The
-curvature radius differs from the local radius except at the equator
-and an east-west direction. For example, at the equator and a
-north-south direction, the curvature radius is smaller then the local
-radius, while at the poles (for all directions) it is greater (see
-further Figure \ref{fig:ppath:wgs84radii}). 
-The \textindex{curvature radius}, \aRds{c}, of an ellipsoid is 
-\citep{rodgers:00}
+The radius given by Equation \ref{eq:ppath:ellipsradius} can be directly
+applied for 2D and 3D cases. On the other hand, for 1D cases the reference
+ellipsoid is by definition a sphere and the radius of this sphere shall be
+selected in such way that it represents the local shape of a reference
+ellipsoid. This is achieved by setting \aRds{e} to the radius of curvature of
+the ellipsoid and $e$ to zero. The curvature radius differs from the local
+radius except at the equator and an east-west direction. For example, at the
+equator and a north-south direction, the curvature radius is smaller then the
+local radius, while at the poles (for all directions) it is greater (see
+further Figure \ref{fig:ppath:wgs84radii}). The \textindex{curvature radius},
+\aRds{c}, of an ellipsoid is \citep{rodgers:00}
 \begin{equation}
  \aRds{c} = \frac{1}{\aRds{ns}^{-1}\cos^2 \Lat + \aRds{ew}^{-1}\sin^2 \Lat}
  \label{eq:ppath:curvradius} 
@@ -89,7 +88,7 @@ shall rather be valid for a middle point of the propagation paths
   \begin{minipage}[c]{0.35\textwidth}
    \caption{Definition of the ellipsoid radii, \aRds{e} and \aRds{p}, 
      geocentric latitude, \Lat, and geodetic latitude, \Lat$^*$. The
-     dotted line is the normal to the local tangent of the geoid
+     dotted line is the normal to the local tangent of the
      ellipsoid. The zenith and nadir directions, and geometrical
      altitudes, are here defined to follow the solid line.}
    \label{fig:ppath:lats}
@@ -138,30 +137,30 @@ shall rather be valid for a middle point of the propagation paths
 %\end{figure}
 % This figure was produced by the Matlab function mkfigs_geoid
 
-Table \ref{tab:ppath:geodatums} gives the equatorial and polar radii
-of the reference ellipsoid for the geodetic datums handled by ARTS.
+% Table \ref{tab:ppath:geodatums} gives the equatorial and polar radii
+% of the reference ellipsoid for the geodetic datums handled by ARTS.
 
-\begin{table}
-  \begin{center}
-    \begin{tabular}{c c c c l}
-     Datum & \aRds{e} & \aRds{p} & $1/f$ & Reference \vspace*{1mm} \\ 
-     \hline 
-     WGS-84 & 6378.137 km & \emph{6356.752 km} & 298.2572235 & {\small \citet{montenbruck:00}}  \rule{0mm}{5mm} \vspace*{1mm} \\
-     \hline
-    \end{tabular}
-    \caption{Equatorial and polar radius of reference ellipsoids. Values 
-      given as \emph{italic} are 
-      derived by the other two values and Equation \ref{eq:ppath:flattening}.}
-    \label{tab:ppath:geodatums}
-  \end{center}
-\end{table}
+% \begin{table}
+%   \begin{center}
+%     \begin{tabular}{c c c c l}
+%      Datum & \aRds{e} & \aRds{p} & $1/f$ & Reference \vspace*{1mm} \\ 
+%      \hline 
+%      WGS-84 & 6378.137 km & \emph{6356.752 km} & 298.2572235 & {\small \citet{montenbruck:00}}  \rule{0mm}{5mm} \vspace*{1mm} \\
+%      \hline
+%     \end{tabular}
+%     \caption{Equatorial and polar radius of reference ellipsoids. Values 
+%       given as \emph{italic} are 
+%       derived by the other two values and Equation \ref{eq:ppath:flattening}.}
+%     \label{tab:ppath:geodatums}
+%   \end{center}
+% \end{table}
 
 
 \subsection{Geocentric and geodetic latitudes}
 %===================
 \label{sec:ppath:geolat}
 
-The fact that the geoid is an ellipsoid, instead of a sphere, opens up
+The fact that Earth is rather an ellipsoid than a sphere, opens up
 for the two different definitions of the latitude. The
 \textindex{geocentric latitude}, which is the the one used here, is the
 angle between the equatorial plane and the vector from the coordinate
@@ -169,7 +168,7 @@ system centre to the position of concern. The \textindex{geodetic
   latitude} is also defined with respect to the equatorial plane, but
 the angle to the normal to the reference ellipsoid is considered here, as
 shown in Figure \ref{fig:ppath:lats}. It could be mentioned that a
-geocentric latitude does not depend on the geoid ellipsoid used, while
+geocentric latitude does not depend on the ellipsoid used, while
 the geodetic latitudes change if another reference ellipsoid is
 selected. An approximative relationship between the geodetic
 ($\Lat^*$) and geocentric (\Lat) latitudes is \citep{montenbruck:00}
@@ -208,7 +207,7 @@ mid-latitudes and the maximum value is about 12 arc-minutes.
 %===================
 
 The surface altitude, \aAlt{g}, is given as the geometrical altitude above the
-geoid. The radius for the surface is accordingly
+reference ellispoid. The radius for the surface is accordingly
 \begin{equation}
   \aRds{s} = \aRds{\odot} + \aAlt{s}
  \label{eq:fm_defs:zsurface}
@@ -216,11 +215,10 @@ geoid. The radius for the surface is accordingly
 As also mentioned in Section~\ref{sec:fm_defs:surf}, a gap between the surface
 and the lowermost pressure level is not allowed.
 
-The ARTS variable for the \textindex{surface altitude}
-(\wsvindex{z\_surface}) is a matrix of the same size as the geoid
-matrix. For 1D, the surface is a sphere by definition (as the geoid),
-while for 2D and 3D any shape is allowed and a rough model of the
-surface topography can be made. 
+The ARTS variable for the \textindex{surface altitude} (\wsvindex{z\_surface})
+is a matrix. For 1D, the surface constitutes a sphere by definition (as the
+ellipsoid), while for 2D and 3D any shape is allowed and a rough model of the
+surface topography can be made.
 
 
 

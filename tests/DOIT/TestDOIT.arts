@@ -57,15 +57,7 @@ AtmFieldsCalc
 
 # Definition of Earth surface
 # ----------------------------
-# spherical geoid 
-#r_geoidWGS84
-
-r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
-
-# Ground altitude (measured from geoid)
-nrowsGet( nrows, r_geoid )
-ncolsGet( ncols, r_geoid )
-MatrixSetConstant( z_surface, nrows, ncols, 500 )
+MatrixSetConstant( z_surface, 1, 1, 500 )
 
 # Properties of surface
 
@@ -93,9 +85,6 @@ nelemGet( nelem, vector_1 )
 VectorCreate( vector_2 )
 VectorSetConstant( vector_2, nelem, 95000.1 )
 
-# Add Earth Radius
-VectorAddScalar( vector_2, vector_2, 6.378e6 )
-
 Matrix1ColFromVector( sensor_pos, vector_2 )
 Matrix1ColFromVector( sensor_los, vector_1 )
 
@@ -103,12 +92,6 @@ Matrix1ColFromVector( sensor_los, vector_1 )
 # which are not modified by sensor properties
 sensorOff
 
-# This should be sufficiently small to assume single scattering in 
-# one propagation path step
-AgendaSet( ppath_step_agenda ){
-  ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                       z_field, r_geoid, z_surface, -1 )
-}
 
 # Set the cloudbox limits (pressure units)
 # Alternative: cloudboxSetManuallyAltitude (specification in [km])

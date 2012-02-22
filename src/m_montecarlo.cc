@@ -85,7 +85,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                const Vector&         p_grid,
                                const Vector&         lat_grid, 
                                const Vector&         lon_grid, 
-                               const Matrix&         r_geoid, 
+                               const Vector&         refellipsoid, 
                                const Matrix&         z_surface,
                                const Tensor3&        z_field, 
                                const Tensor3&        t_field, 
@@ -106,7 +106,8 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
       iwp_cloud_opt_pathCalc(ws, mc_IWP,mc_cloud_opt_path,sensor_pos(0,joker),
                              sensor_los(0,joker),
                              ppath_step_agenda,p_grid,lat_grid,lon_grid,
-                             r_geoid,z_surface,z_field,t_field,vmr_field,cloudbox_limits,
+                             refellipsoid,z_surface,z_field,t_field,vmr_field,
+                             cloudbox_limits,
                              pnd_field,scat_data_mono,particle_masses,
                              verbosity);
     }
@@ -129,8 +130,8 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
           iwp_cloud_opt_pathCalc(ws, iwp,cloud_opt_path,sensor_pos(0,joker),
                                  local_rte_los,
                                  ppath_step_agenda,p_grid,lat_grid,lon_grid,
-                                 r_geoid,z_surface,z_field,t_field,vmr_field,
-                                 cloudbox_limits,
+                                 refellipsoid,z_surface,z_field,t_field,
+                                 vmr_field,cloudbox_limits,
                                  pnd_field,scat_data_mono,particle_masses,
                                  verbosity);
           mc_IWP+=iwp;
@@ -202,7 +203,7 @@ void MCGeneral(Workspace&            ws,
                const Vector&         lat_grid, 
                const Vector&         lon_grid, 
                const Tensor3&        z_field, 
-               const Matrix&         r_geoid, 
+               const Vector&         refellipsoid, 
                const Matrix&         z_surface,
                const Tensor3&        t_field, 
                const Tensor4&        vmr_field, 
@@ -357,7 +358,7 @@ void MCGeneral(Workspace&            ws,
                       rng, local_rte_pos, local_rte_los, pnd_vec, g,ppath_step,
                       termination_flag, inside_cloud, opt_prop_gas_agenda,
                       abs_scalar_gas_agenda, stokes_dim, f_index, p_grid, 
-                      lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                      lat_grid, lon_grid, z_field, refellipsoid, z_surface,
                       t_field, vmr_field, cloudbox_limits, pnd_field,
                       scat_data_mono, verbosity); //, z_field_is_1D ); // Unused?
            
@@ -544,7 +545,7 @@ void MCIPA(Workspace&            ws,
            const Vector&         lat_grid, 
            const Vector&         lon_grid, 
            const Tensor3&        z_field, 
-           const Matrix&         r_geoid, 
+           const Vector&         refellipsoid, 
            const Matrix&         z_surface,
            const Tensor3&        t_field, 
            const Tensor4&        vmr_field, 
@@ -641,7 +642,7 @@ void MCIPA(Workspace&            ws,
       //for the IPA method.
       Ppath ppath;
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
-                  p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                  p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
                   0, cloudbox_limits, local_rte_pos, local_rte_los, 1,
                   verbosity );
       
@@ -654,7 +655,7 @@ void MCIPA(Workspace&            ws,
                          termination_flag, inside_cloud, 
                          opt_prop_gas_agenda,abs_scalar_gas_agenda, 
                          stokes_dim, f_index, p_grid, 
-                         lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                         lat_grid, lon_grid, z_field, refellipsoid, z_surface,
                          t_field, vmr_field, cloudbox_limits, pnd_field,
                          scat_data_mono, z_field_is_1D, ppath,
                          verbosity );
@@ -684,9 +685,19 @@ void MCIPA(Workspace&            ws,
                 }
               else
                 {
-                  //Use the lat and lon of the geometric tangent point
-                  gridpos(latgp,lat_grid,ppath.geom_tan_pos[1]);
-                  gridpos(longp,lon_grid,ppath.geom_tan_pos[2]);
+                  //Use lat and lon at the lowest z (ie. the tangent point)
+                  Numeric latt, lont, zmin=9e99;
+                  for( Index i=0; i<ppath.np; i++ )
+                    {
+                      if( ppath.pos(i,0) < zmin )
+                        {
+                          zmin = ppath.pos(i,0);
+                          latt = ppath.pos(i,1);
+                          lont = ppath.pos(i,2);
+                        }
+                    }
+                  gridpos(latgp,lat_grid,latt);
+                  gridpos(longp,lon_grid,lont);
                 }
               //decide whether we have reflection or emission
               surface_prop_agendaExecute(ws,

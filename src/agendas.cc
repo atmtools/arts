@@ -555,8 +555,8 @@ void define_agenda_data()
         "number of new points of each step can exceed one.\n"
         ),
        OUTPUT( "ppath_step" ),
-       INPUT( "ppath_step", "atmosphere_dim", "p_grid", "lat_grid",
-              "lon_grid", "z_field", "r_geoid", "z_surface" )));
+       INPUT( "ppath_step", "atmosphere_dim", "lat_grid",
+              "lon_grid", "z_field", "refellipsoid", "z_surface" )));
 
   agenda_data.push_back
     (AgRecord

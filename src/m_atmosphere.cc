@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
                             
    This program is free software; you can redistribute it and/or modify it
@@ -25,7 +25,7 @@
 
 /*!
   \file   m_atmosphere.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-05-16
 
   \brief  Workspace functions to set variables defining the atmosphere 
@@ -46,6 +46,7 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "check_input.h"
+#include "geodetic.h"
 #include "matpackIII.h"
 #include "messages.h"
 #include "special_interp.h"
@@ -409,11 +410,11 @@ void atm_fields_compactAddSpecies(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void basics_checkedCalc(
-                        Index&          basics_checked,
-                        const Index&    atmosphere_dim,
-                        const Vector&   p_grid,
-                        const Vector&   lat_grid,
-                        const Vector&   lon_grid,
+                        Index&           basics_checked,
+                        const Index&     atmosphere_dim,
+                        const Vector&    p_grid,
+                        const Vector&    lat_grid,
+                        const Vector&    lon_grid,
                         const ArrayOfArrayOfSpeciesTag&   abs_species,
                         const Tensor3&   z_field,
                         const Tensor3&   t_field,
@@ -421,7 +422,7 @@ void basics_checkedCalc(
                         const Tensor3&   wind_u_field,
                         const Tensor3&   wind_v_field,
                         const Tensor3&   wind_w_field,
-                        const Matrix&    r_geoid,
+                        const Vector&    refellipsoid,
                         const Matrix&    z_surface,
                         const Index&     stokes_dim,
                         const Vector&    f_grid,
@@ -438,8 +439,20 @@ void basics_checkedCalc(
   if( abs_species.nelem() )
     chk_atm_field( "vmr_field", vmr_field, atmosphere_dim, abs_species.nelem(),
                                                   p_grid, lat_grid, lon_grid );
-  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
   chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
+
+  // *refellipsoid*
+  if( refellipsoid.nelem() != 2 )
+    throw runtime_error( "The WSV *refellispoid* must be a vector of "
+                         "length 2*." );
+  if( refellipsoid[0] <= 0 )
+    throw runtime_error( "The first element of *refellispoid* must be > 0." );
+  if( refellipsoid[1] < 0  ||  refellipsoid[1] > 1 )
+    throw runtime_error( "The second element of *refellispoid* must be "
+                         "inside [0,1]." );
+  if( atmosphere_dim == 1  &&  refellipsoid[1] != 0 )
+    throw runtime_error( "For 1D, the second element of *refellispoid* (the "
+                         "eccentricity) must be 0." );
 
   // Check that z_field has strictly increasing pages.
   for( Index row=0; row<z_field.nrows(); row++ )
@@ -1781,7 +1794,7 @@ void z_fieldFromHSE(Tensor3&        z_field,
                     const ArrayOfArrayOfSpeciesTag&   abs_species,
                     const Tensor3&  t_field,
                     const Tensor4&  vmr_field,
-                    const Matrix&   r_geoid,
+                    const Vector&   refellipsoid,
                     const Matrix&   z_surface,
                     const Index&    basics_checked,
                     const Numeric&  p_hse,
@@ -1836,7 +1849,7 @@ void z_fieldFromHSE(Tensor3&        z_field,
   //
   for( Index ilat=0; ilat<nlat; ilat++ )
     {
-      // "Small g" at geoid altitude, g0:
+      // "Small g" at altitude=0, g0:
       // Expression for g0 taken from Wikipedia page "Gravity of Earth", that
       // is stated to be: International Gravity Formula 1967, the 1967 Geodetic
       // Reference System Formula, Helmert's equation or Clairault's formula.
@@ -1863,10 +1876,12 @@ void z_fieldFromHSE(Tensor3&        z_field,
                   // Calculate average g
                   if( ip == 0 )
                     {
-                      z2g( g2, r_geoid(ilat,ilon), g0, z_field(ip,ilat,ilon) );
+                      z2g( g2, refell2r(refellipsoid,lat_grid[ilat]), 
+                           g0, z_field(ip,ilat,ilon) );
                     }
                   g1 = g2;
-                  z2g( g2, r_geoid(ilat,ilon), g0, z_field(ip+1,ilat,ilon) );
+                  z2g( g2, refell2r(refellipsoid,lat_grid[ilat]), 
+                       g0, z_field(ip+1,ilat,ilon) );
                   //
                   const Numeric g = ( g1 + g2 ) / 2.0;
 

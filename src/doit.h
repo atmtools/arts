@@ -72,7 +72,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           const Agenda& ppath_step_agenda,
                           ConstVectorView p_grid,
                           ConstTensor3View z_field,
-                          ConstMatrixView r_geoid,
+                          ConstVectorView refellipsoid,
                           ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
@@ -104,7 +104,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 const Agenda& ppath_step_agenda,
                                 ConstVectorView  p_grid,
                                 ConstTensor3View z_field,
-                                ConstMatrixView r_geoid,
+                                ConstVectorView refellipsoid,
                                 ConstMatrixView z_surface,
                                 // Calculate thermal emission:
                                 ConstTensor3View t_field,
@@ -132,10 +132,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         // Gas absorption:
                                         const Agenda& opt_prop_gas_agenda,
                                         // Propagation path calculation:
-                                        const Agenda& ppath_step_agenda,
                                         ConstVectorView p_grid,
                                         ConstTensor3View z_field,
-                                        ConstMatrixView r_geoid,
                                         // Calculate thermal emission:
                                         ConstTensor3View t_field,
                                         ConstVectorView f_grid,
@@ -169,7 +167,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           ConstVectorView lat_grid,
                           ConstVectorView lon_grid,
                           ConstTensor3View z_field,
-                          ConstMatrixView r_geoid,
+                          ConstVectorView refellipsoid,
                           ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
@@ -218,24 +216,6 @@ void cloud_RT_surface(Workspace& ws,
                       ConstVectorView scat_za_grid, 
                       const Index& scat_za_index
                       );
-
-
-void ppath_step_in_cloudbox(Workspace& ws,
-                            Ppath& ppath_step,
-                            const Agenda& ppath_step_agenda,
-                            const Index& p,
-                            const Index& lat, 
-                            const Index& lon,
-                            ConstTensor3View z_field,
-                            ConstMatrixView r_geoid,
-                            ConstMatrixView z_surface,
-                            ConstVectorView scat_za_grid,
-                            ConstVectorView aa_grid,
-                            const Index& scat_za_index,
-                            const Index& scat_aa_index,
-                            ConstVectorView p_grid,
-                            ConstVectorView lat_grid,
-                            ConstVectorView lon_grid);
 
 void interp_cloud_coeff1D(//Output
                           Tensor3View ext_mat_int,

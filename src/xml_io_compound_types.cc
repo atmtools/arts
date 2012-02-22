@@ -636,18 +636,16 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ppath.dim, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.np, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.constant, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.background, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.pos, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.z, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.los, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.r, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.l_step, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.lspace, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.nreal, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_p, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_lat, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_lon, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.los, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.background, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.tan_pos, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.geom_tan_pos, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.nreal, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.next_parts, pbifs, verbosity);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/Ppath");
@@ -679,23 +677,21 @@ xml_write_to_stream (ostream& os_xml,
                        "NumberOfPositionInPropagationPath", verbosity);
   xml_write_to_stream (os_xml, ppath.constant, pbofs,
                        "PropagationPathConstant", verbosity);
+  xml_write_to_stream (os_xml, ppath.background, pbofs, "RadiativeBackground", verbosity);
   xml_write_to_stream (os_xml, ppath.pos, pbofs,
                        "PropagationPathPointPositions", verbosity);
-  xml_write_to_stream (os_xml, ppath.z, pbofs, "GeometricalAltitudes", verbosity);
+  xml_write_to_stream (os_xml, ppath.los, pbofs, "LineOfSight", verbosity);
+  xml_write_to_stream (os_xml, ppath.r, pbofs, "PropagationPathPointRadii", verbosity);
   xml_write_to_stream (os_xml, ppath.l_step, pbofs,
                        "PropagationPathPositionLength", verbosity);
+  xml_write_to_stream (os_xml, ppath.lspace, pbofs,
+                       "PropagationLengthInSpace", verbosity);
+  xml_write_to_stream (os_xml, ppath.nreal, pbofs, "RefractiveIndexRealPart", verbosity); 
   xml_write_to_stream (os_xml, ppath.gp_p, pbofs, "PressureGridIndexPosition", verbosity);
   xml_write_to_stream (os_xml, ppath.gp_lat, pbofs,
                        "LatitudeGridIndexPosition", verbosity);
   xml_write_to_stream (os_xml, ppath.gp_lon, pbofs,
                        "LongitudeGridIndexPosition", verbosity);
-  xml_write_to_stream (os_xml, ppath.los, pbofs, "LineOfSight", verbosity);
-  xml_write_to_stream (os_xml, ppath.background, pbofs, "RadiativeBackground", verbosity);
-  xml_write_to_stream (os_xml, ppath.tan_pos, pbofs, "TangentPointPosition", verbosity);
-  xml_write_to_stream (os_xml, ppath.geom_tan_pos, pbofs,
-                       "GeometricalTangentPointPosition", verbosity);
-  xml_write_to_stream (os_xml, ppath.nreal, pbofs, "RefractiveIndexRealPart", verbosity); 
-  xml_write_to_stream (os_xml, ppath.next_parts, pbofs, "NextPpathParts", verbosity);
 
   close_tag.set_name ("/Ppath");
   close_tag.write_to_stream (os_xml);

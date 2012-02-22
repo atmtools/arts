@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
@@ -25,7 +25,7 @@
 
 /*!
    \file   math_funcs.cc
-   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    \date   2000-09-18 
 
    Contains basic mathematical functions.
@@ -52,6 +52,36 @@ extern const Numeric PI;
 /*****************************************************************************
  *** The functions (in alphabetical order)
  *****************************************************************************/
+
+//! cross
+/*!
+    Calculates the cross product between two vectors of length 3.
+
+    c = a x b, for 3D vectors. The vector c must have length 3 and can not be
+    the same variable as a or b.
+
+    param    c   Out: The cross product vector
+    \param   a   In: A vector of length 3.
+    \param   b   In: A vector of length 3.
+
+    \author Patrick Eriksson
+    \date   2012-02-12
+*/
+void cross( 
+           Vector& c, 
+   ConstVectorView a,
+   ConstVectorView b )
+{
+  assert( a.nelem() == 3 );
+  assert( b.nelem() == 3 );
+  assert( c.nelem() == 3 );
+
+  c[0] = a[1]*b[2] - a[2]*b[1];
+  c[1] = a[2]*b[0] - a[0]*b[2];
+  c[2] = a[0]*b[1] - a[1]*b[0];
+}
+
+
 
 //! fac
 /*!
@@ -560,5 +590,27 @@ Numeric lgamma_func(Numeric xx)
     << "log Gamma function can not be calculated.\n";
     throw runtime_error(os.str());
   }
+}
+
+
+
+//! lunit
+/*!
+    Normalises a vector to have unit length.
+
+    The standard Euclidean norm is used (2-norm).
+
+    param    x   In/Out: A vector.
+
+    \author Patrick Eriksson
+    \date   2012-02-12
+*/
+void unitl( Vector& x )
+{
+  assert( x.nelem() > 0 );
+ 
+  const Numeric l = sqrt(x*x);
+  for(Index i=0; i<x.nelem(); i++ )
+    x[i] /= l;
 }
         

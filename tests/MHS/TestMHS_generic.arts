@@ -114,7 +114,6 @@ VectorSetConstant( surface_scalar_reflectivity, 1, 0.4 )
 # The sensor altitude is predefined in mhs.arts to 850 km above the geoid. 
 # Comment out the next two lines if you want to set it to something else.
 MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
-sensor_posAddRgeoid
 
 
 # Optionally set sensor_los

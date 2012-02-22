@@ -94,7 +94,6 @@ MatrixSetConstant( sensor_pos, nrows, ncols, 817e3 )
 # MatrixSetConstant( sensor_pos, nrows, ncols, 870e3 )
 # NOAA 19
 # MatrixSetConstant( sensor_pos, nrows, ncols, 870e3 )
-sensor_posAddRgeoid
 
 
 # Sensor response setup

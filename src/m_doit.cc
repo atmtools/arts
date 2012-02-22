@@ -58,6 +58,7 @@
 #include "doit.h"
 #include "m_general.h"
 #include "wsv_aux.h"
+#include "geodetic.h"
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
@@ -566,7 +567,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      const Agenda& ppath_step_agenda,
                      const Vector& p_grid,
                      const Tensor3& z_field,
-                     const Matrix& r_geoid,
+                     const Vector& refellipsoid,
                      const Matrix& z_surface,
                      // Calculate thermal emission:
                      const Tensor3& t_field,
@@ -611,9 +612,6 @@ doit_i_fieldUpdate1D(Workspace& ws,
   chk_size("z_field", z_field, p_grid.nelem(), 1, 1);
   chk_size("t_field", t_field, p_grid.nelem(), 1, 1);
   
-  const Vector dummy(1,0.);
-  chk_atm_surface( "r_geoid", r_geoid, 1, dummy, 
-                   dummy);
   
   // Frequency grid
   //
@@ -698,17 +696,17 @@ doit_i_fieldUpdate1D(Workspace& ws,
           if ( (p_index!=0) || (scat_za_grid[scat_za_index_local] <= 90.))
             {
               cloud_ppath_update1D_noseq(ws, doit_i_field, 
-                                         p_index, scat_za_index_local, 
-                                         scat_za_grid,
-                                         cloudbox_limits, doit_i_field_old, 
-                                         doit_scat_field,
-                                         abs_scalar_gas_agenda, vmr_field,
-                                         opt_prop_gas_agenda, ppath_step_agenda,
-                                         p_grid,  z_field, r_geoid, z_surface,
-                                         t_field, f_grid, f_index, ext_mat_field, 
-                                         abs_vec_field,
-                                         surface_prop_agenda, doit_za_interp,
-                                         verbosity);
+                                     p_index, scat_za_index_local, 
+                                     scat_za_grid,
+                                     cloudbox_limits, doit_i_field_old, 
+                                     doit_scat_field,
+                                     abs_scalar_gas_agenda, vmr_field,
+                                     opt_prop_gas_agenda, ppath_step_agenda,
+                                     p_grid,  z_field, refellipsoid, z_surface,
+                                     t_field, f_grid, f_index, ext_mat_field, 
+                                     abs_vec_field,
+                                     surface_prop_agenda, doit_za_interp,
+                                     verbosity);
             }
         }
     }// Closes loop over scat_za_grid.
@@ -737,7 +735,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Agenda& ppath_step_agenda,
                         const Vector& p_grid,
                         const Tensor3& z_field,
-                        const Matrix& r_geoid,
+                        const Vector& refellipsoid,
                         const Matrix& z_surface,
                         // Calculate thermal emission:
                         const Tensor3& t_field,
@@ -782,9 +780,6 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
   chk_size("z_field", z_field, p_grid.nelem(), 1, 1);
   chk_size("t_field", t_field, p_grid.nelem(), 1, 1);
   
-  const Vector dummy(1,0.);
-  chk_atm_surface( "r_geoid", r_geoid, 1, dummy, 
-                  dummy);
   
   // Frequency grid
   //
@@ -840,9 +835,9 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
      
   // If theta is between 90° and the limiting value, the intersection point
   // is exactly at the same level as the starting point (cp. AUG)
-  Numeric theta_lim = 180. - asin((r_geoid(0,0)+
+  Numeric theta_lim = 180. - asin((refellipsoid[0]+
                                    z_field(cloudbox_limits[0],0,0))/
-                                  (r_geoid(0,0)+
+                                  (refellipsoid[0]+
                                    z_field(cloudbox_limits[1],0,0)))*RAD2DEG;
   //Only dummy variables:
   Index scat_aa_index_local = 0;
@@ -887,7 +882,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                    cloudbox_limits, doit_scat_field,
                                    abs_scalar_gas_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
-                                   p_grid,  z_field, r_geoid, z_surface,
+                                   p_grid,  z_field, refellipsoid, z_surface,
                                    t_field, f_grid, f_index, ext_mat_field,
                                    abs_vec_field, 
                                    surface_prop_agenda, doit_za_interp,
@@ -907,7 +902,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                    cloudbox_limits, doit_scat_field,
                                    abs_scalar_gas_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
-                                   p_grid,  z_field, r_geoid, z_surface,
+                                   p_grid,  z_field, refellipsoid, z_surface,
                                    t_field, f_grid, f_index, ext_mat_field, 
                                    abs_vec_field, 
                                    surface_prop_agenda, doit_za_interp,
@@ -940,7 +935,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                        cloudbox_limits, doit_scat_field,
                                        abs_scalar_gas_agenda, vmr_field,
                                        opt_prop_gas_agenda, ppath_step_agenda,
-                                       p_grid,  z_field, r_geoid, z_surface,
+                                       p_grid,  z_field, refellipsoid, z_surface,
                                        t_field, f_grid, f_index, ext_mat_field, 
                                        abs_vec_field,
                                        surface_prop_agenda, doit_za_interp,
@@ -977,7 +972,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
                         const Tensor3& z_field,
-                        const Matrix& r_geoid,
+                        const Vector& refellipsoid,
                         const Matrix& z_surface,
                         // Calculate thermal emission:
                         const Tensor3& t_field,
@@ -1028,9 +1023,6 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
            lon_grid.nelem());
   chk_size("t_field", t_field, p_grid.nelem(), lat_grid.nelem(), 
            lon_grid.nelem());
-
-  chk_atm_surface( "r_geoid", r_geoid, 3, lat_grid, 
-                   lon_grid);
   
   // Frequency grid
   //
@@ -1123,8 +1115,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
 
           Vector stokes_vec(stokes_dim,0.);
           
-          Numeric theta_lim = 180. - asin((r_geoid(0,0)+z_field(p_low,0,0))
-                                         /(r_geoid(0,0)+z_field(p_up,0,0)))
+          Numeric theta_lim = 180. - asin((refellipsoid[0]+z_field(p_low,0,0))
+                                         /(refellipsoid[0]+z_field(p_up,0,0)))
             *RAD2DEG;
 
           // Sequential update for uplooking angles
@@ -1154,7 +1146,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
-                                               r_geoid, z_surface, t_field,
+                                               refellipsoid, z_surface, t_field,
                                                f_grid, f_index,
                                                ext_mat_field, abs_vec_field,
                                                doit_za_interp,
@@ -1187,7 +1179,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
-                                               r_geoid, z_surface, t_field,
+                                               refellipsoid, z_surface, t_field,
                                                f_grid, f_index,
                                                ext_mat_field, abs_vec_field,
                                                doit_za_interp,
@@ -1236,7 +1228,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                    ppath_step_agenda, p_grid, 
                                                    lat_grid, lon_grid,
                                                    z_field, 
-                                                   r_geoid, z_surface,
+                                                   refellipsoid, z_surface,
                                                    t_field, f_grid,
                                                    f_index,
                                                    ext_mat_field,
@@ -1278,10 +1270,8 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                           const Agenda& opt_prop_part_agenda,
                           const Agenda& opt_prop_gas_agenda,
                           // Propagation path calculation:
-                          const Agenda& ppath_step_agenda,
                           const Vector& p_grid,
                           const Tensor3& z_field,
-                          const Matrix& r_geoid,
                           // Calculate thermal emission:
                           const Tensor3& t_field,
                           const Vector& f_grid,
@@ -1391,8 +1381,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                                                  abs_scalar_gas_agenda,
                                                  vmr_field,
                                                  opt_prop_gas_agenda,
-                                                 ppath_step_agenda,
-                                                 p_grid, z_field, r_geoid,
+                                                 p_grid, z_field,
                                                  t_field, 
                                                  f_grid, f_index,
                                                  ext_mat_field,
@@ -1416,8 +1405,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                                                  abs_scalar_gas_agenda,
                                                  vmr_field,
                                                  opt_prop_gas_agenda,
-                                                 ppath_step_agenda,
-                                                 p_grid, z_field, r_geoid,
+                                                 p_grid, z_field,
                                                  t_field, 
                                                  f_grid, f_index,
                                                  ext_mat_field, 
@@ -2654,7 +2642,6 @@ void CloudboxGetIncoming(Workspace&      ws,
                          const Vector&   lat_grid,
                          const Vector&   lon_grid,
                          const Tensor3&  z_field,
-                         const Matrix&   r_geoid,
                          const Index&    cloudbox_on,
                          const ArrayOfIndex&   cloudbox_limits,
                          const Vector&   f_grid,
@@ -2696,7 +2683,7 @@ void CloudboxGetIncoming(Workspace&      ws,
       //    (boundary=0: lower, boundary=1: upper)
       for (Index boundary = 0; boundary <= 1; boundary++)
         {
-          pos[0] = r_geoid(0,0) + z_field( cloudbox_limits[boundary], 0, 0 );
+          pos[0] = z_field( cloudbox_limits[boundary], 0, 0 );
 
           for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
             {
@@ -2747,13 +2734,11 @@ void CloudboxGetIncoming(Workspace&      ws,
             {
               for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
                 {
-                  pos[0] = r_geoid(lat_index + cloudbox_limits[2],
-                                   lon_index + cloudbox_limits[4]) 
-                    + z_field(cloudbox_limits[boundary],
-                              lat_index + cloudbox_limits[2],
-                              lon_index + cloudbox_limits[4]);
-                  pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
                   pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
+                  pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
+                  pos[0] = z_field(cloudbox_limits[boundary],
+                                   lat_index + cloudbox_limits[2],
+                                   lon_index + cloudbox_limits[4]);
 
                   for (Index scat_za_index = 0; scat_za_index < Nza;
                        scat_za_index ++)
@@ -2793,13 +2778,11 @@ void CloudboxGetIncoming(Workspace&      ws,
             {
               for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
                 {
-                  pos[0] = r_geoid(cloudbox_limits[boundary+2],
-                                   lon_index + cloudbox_limits[4])
-                    + z_field(p_index + cloudbox_limits[0],
+                  pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
+                  pos[1] = lat_grid[cloudbox_limits[boundary+2]];
+                  pos[0] = z_field(p_index + cloudbox_limits[0],
                               cloudbox_limits[boundary+2],
                               lon_index + cloudbox_limits[4]);
-                  pos[1] = lat_grid[cloudbox_limits[boundary+2]];
-                  pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
 
                   for (Index scat_za_index = 0; scat_za_index < Nza;
                        scat_za_index ++)
@@ -2835,13 +2818,11 @@ void CloudboxGetIncoming(Workspace&      ws,
             {
               for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
                 {
-                  pos[0] = r_geoid(lat_index + cloudbox_limits[2],
-                                   cloudbox_limits[boundary+4]) 
-                    + z_field(p_index + cloudbox_limits[0],
+                  pos[2] = lon_grid[cloudbox_limits[boundary+4]];
+                  pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
+                  pos[0] = z_field(p_index + cloudbox_limits[0],
                               lat_index + cloudbox_limits[2],
                               cloudbox_limits[boundary+4]);
-                  pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
-                  pos[2] = lon_grid[cloudbox_limits[boundary+4]];
 
                   for (Index scat_za_index = 0; scat_za_index < Nza;
                        scat_za_index ++)
@@ -2884,7 +2865,6 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
                               const Vector&   lat_grid,
                               const Vector&   lon_grid,
                               const Tensor3&  z_field,
-                              const Matrix&   r_geoid,
                               const ArrayOfIndex&   cloudbox_limits,
                               const Vector&   f_grid,
                               const Index&    stokes_dim,
@@ -2951,9 +2931,8 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
   // Calculate scat_i_p, scat_i_lat, scat_i_lon
   for (Index p_index = 0; p_index < Np_cloud; p_index++ )
     {
-      pos[0] = r_geoid(cloudbox_limits[2], cloudbox_limits[4]) 
-        + z_field(cloudbox_limits[0] + p_index, cloudbox_limits[2],
-                  cloudbox_limits[4]);
+      pos[0] = z_field( cloudbox_limits[0] + p_index, cloudbox_limits[2], 
+                                                      cloudbox_limits[4] );
       
       for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index++ )
         {

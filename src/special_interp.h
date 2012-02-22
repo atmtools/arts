@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2008 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+/* Copyright (C) 2002-2008 Patrick Eriksson <Patrick.Eriksson@chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   special_interp.h
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-11-14   
   
   \brief  Header file for special_interp.cc.

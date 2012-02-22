@@ -51,27 +51,24 @@ ReadXML( antenna_response, "odin/antenna.SM_AC2ab.875ms.xml" )
 
 # We need sensor_pos as input to *VectorZtanToZa1D*
 MatrixSetConstant( sensor_pos, n_pbeams, 1, 600e3 )
-sensor_posAddRgeoid
 
 # Create vector of pencil beam directions
 VectorCreate( z_pbeams )
 VectorNLinSpace( z_pbeams, n_pbeams, 37e3, 9e3 )
-VectorZtanToZa1D( mblock_za_grid, sensor_pos, r_geoid, atmosphere_dim, z_pbeams )
+VectorZtanToZa1D( mblock_za_grid, sensor_pos, refellipsoid, atmosphere_dim, z_pbeams )
 
 # We need sensor_pos as input to *VectorZtanToZa1D*
 MatrixSetConstant( sensor_pos, n_tan, 1, 600e3 )
-sensor_posAddRgeoid
 
 # Create vector of zenith angles for selected tangent altitudes
 VectorCreate( z_tan )
 VectorNLinSpace( z_tan, n_tan, 26e3, 20e3 )
 VectorCreate( za )
-VectorZtanToZa1D( za, sensor_pos, r_geoid, atmosphere_dim, z_tan )
+VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
 Matrix1ColFromVector( antenna_los, za )
 
 # Set *sensor_pos*
 MatrixSetConstant( sensor_pos, 1, 1, 600e3 )
-sensor_posAddRgeoid
 
 # Set *sensor_los*
 MatrixSetConstant( sensor_los, 1, 1, 0)

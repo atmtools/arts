@@ -35,6 +35,7 @@
   ===========================================================================*/
 
 #include "auto_md.h"
+#include "geodetic.h"
 #include "montecarlo.h"
 #include "mc_interp.h"
 
@@ -424,7 +425,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                             const Vector&         p_grid,
                             const Vector&         lat_grid, 
                             const Vector&         lon_grid, 
-                            const Matrix&         r_geoid, 
+                            const Vector&         refellipsoid, 
                             const Matrix&         z_surface,
                             const Tensor3&        z_field, 
                             const Tensor3&        t_field, 
@@ -443,7 +444,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
   cloud_opt_path=0;
   //calculate ppath to cloudbox boundary
   ppath_calc( ws, ppath, ppath_step_agenda, 3, 
-              p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+              p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
               1, cloudbox_limits, local_rte_pos, local_rte_los, 1,
               verbosity );
   //if this ppath hit a cloud, now take ppath inside cloud
@@ -462,7 +463,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                       cloudbox_limits[5]-cloudbox_limits[4]+1);
 
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
-                  p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                  p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
                   1, cloudbox_limits, local_rte_pos, local_rte_los, 0,
                   verbosity );
 
@@ -577,7 +578,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                         const Vector&         lat_grid,
                         const Vector&         lon_grid,
                         const Tensor3&        z_field,
-                        const Matrix&         r_geoid,
+                        const Vector&         refellipsoid,
                         const Matrix&         z_surface,
                         const Tensor3&        t_field,
                         const Tensor4&        vmr_field,
@@ -608,12 +609,12 @@ void mcPathTraceGeneral(Workspace&            ws,
   //initialise Ppath with ppath_start_stepping
   //Index rubbish=z_field_is_1D;rubbish+=1; // 2011-06-17 GH commented out, unused?
   ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
-                        lon_grid, z_field, r_geoid, z_surface,
+                        lon_grid, z_field, refellipsoid, z_surface,
                         0, cloudbox_limits, false, 
                         rte_pos, rte_los, verbosity );
   //Use cloudbox_ppath_start_stepping to avoid unnecessary z_at_latlon calls.
   //cloudbox_ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
-  //                               lon_grid, z_field, r_geoid, z_surface, rte_pos,
+  //                               lon_grid, z_field, refellipsoid, z_surface, rte_pos,
   //                               rte_los ,z_field_is_1D);
   Range p_range(cloudbox_limits[0], 
                 cloudbox_limits[1]-cloudbox_limits[0]+1);
@@ -667,8 +668,8 @@ void mcPathTraceGeneral(Workspace&            ws,
       tArray[0]=tArray[1];
       pnd_vecArray[0]=pnd_vecArray[1];
       //perform single path step using ppath_step_geom_3d
-      ppath_step_geom_3d(ppath_step, p_grid, lat_grid, lon_grid, z_field,
-                         r_geoid, z_surface, -1);
+      ppath_step_geom_3d(ppath_step, lat_grid, lon_grid, z_field,
+                         refellipsoid, z_surface, -1);
       np=ppath_step.np;//I think this should always be 2.
       cum_l_stepCalc(cum_l_step, ppath_step);
       //path_step should now have two elements.
@@ -838,7 +839,7 @@ void mcPathTraceIPA(Workspace&            ws,
                     const Vector&         lat_grid,
                     const Vector&         lon_grid,
                     const Tensor3&        z_field,
-                    const Matrix&         r_geoid,
+                    const Vector&         refellipsoid,
                     const Matrix&         z_surface,
                     const Tensor3&        t_field,
                     const Tensor4&        vmr_field,
@@ -866,7 +867,7 @@ void mcPathTraceIPA(Workspace&            ws,
   Index   istep = 0;            // Counter for number of steps
   Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim,0.0);
   Matrix old_evol_op(stokes_dim,stokes_dim);
-  Numeric rv_geoid=0.;
+  Numeric rv_ellips=0.;
   Numeric rv_surface=0.;
   Numeric alt;
   Numeric gpnum;
@@ -883,8 +884,8 @@ void mcPathTraceIPA(Workspace&            ws,
   if (z_field_is_1D)
     {
       z_grid=z_field(joker,0,0);
-      rv_geoid=r_geoid(0,0);
-      rv_surface=rv_geoid+z_surface(0,0);
+      rv_ellips=refellipsoid[0];
+      rv_surface=rv_ellips+z_surface(0,0);
     }
 
   id_mat(evol_op);
@@ -894,7 +895,7 @@ void mcPathTraceIPA(Workspace&            ws,
   Ppath ppath_step;
   //
   ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
-                        lon_grid, z_field, r_geoid, z_surface,
+                        lon_grid, z_field, refellipsoid, z_surface,
                         0, cloudbox_limits, false, 
                         rte_pos, rte_los, verbosity );
 
@@ -903,6 +904,10 @@ void mcPathTraceIPA(Workspace&            ws,
   gp_lon=ppath_step.gp_lon[0];
   rte_pos=ppath_step.pos(0,joker);
   rte_los=ppath_step.los(0,joker);
+
+  // For simplicity, rte_pos holds the radius (not the altitude) until end of
+  // function 
+  rte_pos[0] += refell2r( refellipsoid, rte_pos[1] ); 
 
   Range p_range(cloudbox_limits[0], 
                 cloudbox_limits[1]-cloudbox_limits[0]+1);
@@ -952,21 +957,14 @@ void mcPathTraceIPA(Workspace&            ws,
       tArray[0]=tArray[1];
       pnd_vecArray[0]=pnd_vecArray[1];
       
-      //Choose sensible path step length.  This is done by considering the dimensions of the
-      //current grid cell and the LOS direction. The aim is to move only one grid cell.
-      //dy=cos(DEG2RAD*rte_los[1])*sin(DEG2RAD*rte_los[0])*
-      //  (lat_grid[gp_lat.idx+1]-lat_grid[gp_lat.idx])*DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx);
-      //dx=sin(DEG2RAD*rte_los[1])*sin(DEG2RAD*rte_los[0])*
-      //  (lon_grid[gp_lon.idx+1]-lon_grid[gp_lon.idx])*DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx)*
-      //  cos(DEG2RAD*rte_pos[1]);
-      //dz=cos(DEG2RAD*rte_los[0])*(z_field(gp_p.idx+1,gp_lat.idx,gp_lon.idx)-
-      //                            z_field(gp_p.idx,gp_lat.idx,gp_lon.idx));
-      //lstep=sqrt(dx*dx+dy*dy+dz*dz);
-      //take the minimum grid dimension as the path step length
+      //Choose sensible path step length. This is done by considering the
+      //dimensions of the current grid cell and the LOS direction. The aim is
+      //to move only one grid cell.
       Numeric Dy=(lat_grid[gp_lat.idx+1]-lat_grid[gp_lat.idx])*DEG2RAD*
-        r_geoid(gp_lat.idx,gp_lon.idx);
+                  refell2r(refellipsoid,lat_grid[gp_lat.idx]);
       Numeric Dx=(lon_grid[gp_lon.idx+1]-lon_grid[gp_lon.idx])*
-        DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx)*cos(DEG2RAD*rte_pos[1]);
+        DEG2RAD*refell2r(refellipsoid,lat_grid[gp_lat.idx])*
+        cos(DEG2RAD*rte_pos[1]);
       Numeric Dz=z_field(gp_p.idx+1,gp_lat.idx,gp_lon.idx)-
         z_field(gp_p.idx,gp_lat.idx,gp_lon.idx);
       Numeric Dxy=sqrt(Dx*Dx+Dy*Dy);
@@ -994,10 +992,10 @@ void mcPathTraceIPA(Workspace&            ws,
         {
           z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, gp_lat, gp_lon );
           interpweights( itw, gp_lat, gp_lon );
-          rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );
-          rv_surface = rv_geoid + interp( itw, z_surface, gp_lat, gp_lon );
+          rv_ellips  = refell2r(refellipsoid,rte_pos[1]);
+          rv_surface = rv_ellips + interp( itw, z_surface, gp_lat, gp_lon );
         }
-      alt = rte_pos[0] - rv_geoid;
+      alt = rte_pos[0] - rv_ellips;
       //Have we left the top of the atmosphere?
       if ((alt>=z_grid[p_grid.nelem()-1])&(rte_los[0]<=90))
         {
@@ -1006,14 +1004,14 @@ void mcPathTraceIPA(Workspace&            ws,
           //z is linearly interpolated with respect to lat and lon
           //I don't think this is overly important.  Just change gp_p and rte_pos
           alt=z_grid[p_grid.nelem()-1];
-          rte_pos[0]=alt+rv_geoid;
+          rte_pos[0]=alt+rv_ellips;
         }
       //Have we hit the surface?
       if( (rte_pos[0] <= rv_surface)&(rte_los[0]>=90) )
         {
           termination_flag=2;
           rte_pos[0]=rv_surface;
-          alt = rte_pos[0] - rv_geoid;
+          alt = rte_pos[0] - rv_ellips;
         }
       gridpos( gp_p, z_grid, alt );
 
@@ -1044,9 +1042,9 @@ void mcPathTraceIPA(Workspace&            ws,
       if (!z_field_is_1D)
        {
           interpweights( itw, gp_lat, gp_lon );
-          rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );          
+          rv_ellips  = refell2r(refellipsoid,ppath.pos(i_closest,1));
         }
-      rte_pos[0]=rv_geoid+interp_atmfield_by_gp(3,z_field,
+      rte_pos[0]=rv_ellips+interp_atmfield_by_gp(3,z_field,
                                                 gp_p,gp_lat,gp_lon);
       rte_pos[1]=interp(lat_iw, lat_grid,gp_lat);
       rte_pos[2]=interp(lon_iw, lon_grid,gp_lon);
@@ -1155,9 +1153,12 @@ void mcPathTraceIPA(Workspace&            ws,
       y+=(ds-lstep)*dy;
       z+=(ds-lstep)*dz;
       //and convert back to spherical.
-      cart2poslos(rte_pos[0],rte_pos[1],rte_pos[2],rte_los[0],rte_los[1],x,y,z,dx,dy,dz);
-      
+      cart2poslos(rte_pos[0],rte_pos[1],rte_pos[2],rte_los[0],rte_los[1],x,y,z,dx,dy,dz); 
     }
+
+  // Go back to altitude in rte_pos
+  rte_pos[0] -= refell2r( refellipsoid, rte_pos[1] ); 
+
 }
 
 //! opt_propCalc

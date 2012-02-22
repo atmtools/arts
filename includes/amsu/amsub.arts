@@ -70,7 +70,6 @@ ReadXML( sensor_los, "amsu/amsub.sensor_los.xml" )
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
-sensor_posAddRgeoid
 
 
 # Sensor response setup

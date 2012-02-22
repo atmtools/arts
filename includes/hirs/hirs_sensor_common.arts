@@ -10,7 +10,6 @@ Select( sensor_los, sensor_los, views )
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
-sensor_posAddRgeoid
 
 
 # Start sensor response setup

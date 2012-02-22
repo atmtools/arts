@@ -25,7 +25,7 @@
 
 /*!
   \file   check_input.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date 2002-04-15 
 
   General functions to check the size and logic of input to functions.
@@ -614,30 +614,28 @@ void chk_atm_grids(
   // lat_grid
   if( dim == 1 )
     {
-      if( lat_grid.nelem() > 1 )
-        throw runtime_error(
-                       "For dim=1, the length of *lat_grid* must be 0 or 1." );
+      if( lat_grid.nelem() > 0 )
+        throw runtime_error("For dim=1, the length of *lat_grid* must be 0.");
     }
   else
     {
       if( lat_grid.nelem() < 2 )
         throw runtime_error(
-                          "For dim>1, the length of *lat_grid* must be >= 2.");
+                         "For dim>1, the length of *lat_grid* must be >= 2.");
       chk_if_increasing( "lat_grid", lat_grid );
     }
 
   // lon_grid
   if( dim < 3 )
     { 
-      if( lon_grid.nelem() > 1 )
-        throw runtime_error(
-                       "For dim<3, the length of *lon_grid* must be 0 or 1." );
+      if( lon_grid.nelem() > 0 )
+        throw runtime_error("For dim<3, the length of *lon_grid* must be 0.");
     }
   else
     {
       if( lon_grid.nelem() < 2 )
         throw runtime_error(
-                          "For dim=3, the length of *lon_grid* must be >= 2.");
+                         "For dim=3, the length of *lon_grid* must be >= 2.");
       chk_if_increasing( "lon_grid", lon_grid );
     }
 
@@ -804,8 +802,6 @@ void chk_atm_field(
 //! chk_atm_surface
 /*! 
     Checks if a surface-type variable matches the dimensionality and the grids.
-
-    Examples of surface-type variables are *z_surface* and *r_geoid*.
 
     The function gives an error message if this is not the case.
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
                             
    This program is free software; you can redistribute it and/or modify it
@@ -25,7 +25,7 @@
 
 /*!
   \file   m_general.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-05-08 
 
   \brief  Workspace functions of a general and overall character.
@@ -59,6 +59,8 @@
 #include "make_vector.h"
 #include "wsv_aux.h"
 
+#include "auto_md.h"
+#include "geodetic.h"
 #include "workspace_ng.h"
 
 /*===========================================================================
@@ -147,12 +149,20 @@ Print(// WS Generic Input:
   Print( x.np, level, verbosity );
   SWITCH_OUTPUT (level, "constant: ")
   Print( x.constant, level, verbosity );
+  SWITCH_OUTPUT (level, "background: ")
+  Print( x.background, level, verbosity );
   SWITCH_OUTPUT (level, "pos: ")
   Print( x.pos, level, verbosity );
-  SWITCH_OUTPUT (level, "z: ")
-  Print( x.z, level, verbosity );
+  SWITCH_OUTPUT (level, "los: ")
+  Print( x.los, level, verbosity );
+  SWITCH_OUTPUT (level, "r: ")
+  Print( x.r, level, verbosity );
   SWITCH_OUTPUT (level, "l_step: ")
   Print( x.l_step, level, verbosity );
+  SWITCH_OUTPUT (level, "lspace: ")
+  Print( x.lspace, level, verbosity );
+  SWITCH_OUTPUT (level, "nreal: ")
+  Print( x.nreal, level, verbosity );
   SWITCH_OUTPUT (level, "gp_p: ")
   Print( x.gp_p, level, verbosity );
   if( x.dim >= 2 )
@@ -164,20 +174,6 @@ Print(// WS Generic Input:
     {
       SWITCH_OUTPUT (level, "gp_lon: ")
       Print( x.gp_lon, level, verbosity );
-    }
-  SWITCH_OUTPUT (level, "los: ")
-  Print( x.los, level, verbosity );
-  SWITCH_OUTPUT (level, "background: ")
-  Print( x.background, level, verbosity );
-  if( x.tan_pos.nelem() )
-    {
-      SWITCH_OUTPUT (level, "tan_pos: ")
-      Print( x.tan_pos, level, verbosity );
-    }
-  if( x.geom_tan_pos.nelem() )
-    {
-      SWITCH_OUTPUT (level, "geom_tan_pos: ")
-      Print( x.geom_tan_pos, level, verbosity );
     }
 }
 
@@ -349,16 +345,18 @@ void Exit(const Verbosity& verbosity)
 void Test(const Verbosity& verbosity)
 {
   // This function can be used to test stuff.
+  // Feel free to change and test things
+
+  Vector refellipsoid;
+  refellipsoidEarth( refellipsoid, "WGS84", verbosity );
   
-  Vector x( 1, 5, 1 );
+  Numeric r_tan, lat_tan, lon_tan;
 
-  Vector y( 0.5, 6, 1 );
-
-  ArrayOfGridPos   gp(y.nelem());
-
-  gridpos( gp, x, y, 1 );
-
-  Print( gp, 0, verbosity );
+  geomtanpoint( r_tan, lat_tan, lon_tan, refellipsoid,
+                refellipsoid[0]+600e3, 90, 0, 113, 34 );
+  cout << (r_tan - refellipsoid[0])/1e3   << endl;
+  cout << lat_tan << endl;
+  cout << lon_tan << endl;
 }
 
 

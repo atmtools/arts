@@ -25,8 +25,6 @@ ReadXML( z_field, "TestMonteCarloDataPrepare.z_field.xml" )
 
 ReadXML( vmr_field, "TestMonteCarloDataPrepare.vmr_field.xml" )
 
-r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
-
 ReadXML( z_surface, "TestMonteCarloDataPrepare.z_surface.xml" )
 
 ReadXML( abs_lookup, "TestMonteCarloDataPrepare.abs_lookup.xml" )
@@ -58,8 +56,6 @@ AgendaSet( abs_scalar_gas_agenda ){
 rte_losSet( rte_los, atmosphere_dim, 99.7841941981, 180 )
 
 rte_posSet( rte_pos, atmosphere_dim, 95000.1, 7.61968838781, 0 )
-
-rte_posAddRgeoid
 
 Matrix1RowFromVector( sensor_pos, rte_pos )
 Matrix1RowFromVector( sensor_los, rte_los )

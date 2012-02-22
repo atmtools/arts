@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2008
    Stefan Buehler <sbuehler@ltu.se>
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Oliver Lemke <olemke@core-dump.info>
 
    This program is free software; you can redistribute it and/or modify it

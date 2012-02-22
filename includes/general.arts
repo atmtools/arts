@@ -79,10 +79,9 @@ IndexSet( abs_t_interp_order,   7 )
 IndexSet( abs_nls_interp_order, 5 )
 
 #
-# Definition of Earth surface
+# Define reference ellipsoid (a spherical ellipsoid must be used for 1D)
 # 
-# geoid: 
-r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
+refellipsoidEarth( refellipsoid, "Sphere" )
 
 
 # 

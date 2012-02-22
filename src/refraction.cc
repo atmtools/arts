@@ -23,7 +23,7 @@
 
 /*!
   \file   refraction.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2003-01-17
   
   \brief  Functions releated to calculation of refractive index.
@@ -38,6 +38,7 @@
 #include <cmath>
 #include "auto_md.h"
 #include "interpolation.h"
+#include "geodetic.h"
 #include "refraction.h"
 #include "special_interp.h"
 
@@ -70,7 +71,7 @@ extern const Numeric RAD2DEG;
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.   
-   \param   r_geoid             As the WSV with the same name.
+   \param   refellipsoid        As the WSV with the same name.
    \param   z_field             The geometric altitude of each pressure level
    \param   t_field             The temperature profile.
    \param   vmr_field           The VMR profile for each species.
@@ -87,7 +88,7 @@ void get_refr_index_1d(
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
-        const Numeric&    r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
@@ -95,7 +96,7 @@ void get_refr_index_1d(
 { 
   // Altitude (equal to pressure) grid position
   ArrayOfGridPos   gp(1);
-  gridpos( gp, z_field, Vector( 1, r - r_geoid ) );
+  gridpos( gp, z_field, Vector( 1, r - refellipsoid[0] ) );
 
   // Altitude interpolation weights
   Matrix   itw(1,2);
@@ -121,9 +122,8 @@ void get_refr_index_1d(
       a_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws,
-                            refr_index, a_pressure, a_temperature, a_vmr_list,
-                            refr_index_agenda );
+  refr_index_agendaExecute( ws, refr_index, a_pressure, a_temperature, 
+                            a_vmr_list, refr_index_agenda );
 }
 
 
@@ -148,7 +148,7 @@ void get_refr_index_1d(
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
-   \param   r_geoid             As the WSV with the same name.
+   \param   refellipsoid        As the WSV with the same name.
    \param   z_field             The geometric altitude of each pressure level
                                 at each latitude.
    \param   t_field             The temperature 2D field.
@@ -168,7 +168,7 @@ void get_refr_index_2d(
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
@@ -183,18 +183,16 @@ void get_refr_index_2d(
   gridpos( gp_lat, lat_grid, lat );
   z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat[0] );
 
-  // Determine the geoid radius at *lat*
-  Matrix   itw(1,2);
-  Vector   dummy(1);
-  interpweights( itw, gp_lat );
-  interp( dummy, itw, r_geoid, gp_lat );
-  const Numeric   rgeoid = dummy[0];
+  // Determine the ellipsoid radius at *lat*
+  const Numeric   rellips = refell2r( refellipsoid, lat );
 
   // Altitude (equal to pressure) grid position
   ArrayOfGridPos   gp_p(1);
-  gridpos( gp_p, z_grid, Vector( 1, r - rgeoid ) );
+  gridpos( gp_p, z_grid, Vector( 1, r - rellips ) );
 
   // Altitude interpolation weights
+  Matrix   itw(1,2);
+  Vector   dummy(1);
   interpweights( itw, gp_p );
 
   // Pressure
@@ -242,7 +240,7 @@ void get_refr_index_2d(
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   lon_grid            As the WSV with the same name.
-   \param   r_geoid             As the WSV with the same name.
+   \param   refellipsoid        As the WSV with the same name.
    \param   z_field             As the WSV with the same name.
    \param   t_field             As the WSV with the same name.
    \param   vmr_field           As the WSV with the same name.
@@ -263,7 +261,7 @@ void get_refr_index_3d(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
@@ -281,19 +279,16 @@ void get_refr_index_3d(
   z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
                                                         gp_lat[0], gp_lon[0] );
   
-  // Determine the geoid radius at *lat*
-  Matrix   itw(1,4);
-  Vector   dummy(1);
-  interpweights( itw, gp_lat, gp_lon );
-  interp( dummy, itw, r_geoid, gp_lat, gp_lon );
-  const Numeric   rgeoid = dummy[0];
+  // Determine the elipsoid radius at *lat*
+  const Numeric   rellips = refell2r( refellipsoid, lat );
 
   // Altitude (equal to pressure) grid position
   ArrayOfGridPos   gp_p(1);
-  gridpos( gp_p, z_grid, Vector( 1, r - rgeoid ) );
+  gridpos( gp_p, z_grid, Vector( 1, r - rellips ) );
 
   // Altitude interpolation weights
-  itw.resize(1,2);
+  Matrix   itw(1,2);
+  Vector   dummy(1);
   interpweights( itw, gp_p );
 
   // Pressure
@@ -346,7 +341,7 @@ void get_refr_index_3d(
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
-   \param   r_geoid             As the WSV with the same name.
+   \param   refellipsoid        As the WSV with the same name.
    \param   z_field             The geometric altitude of each pressure level
                                 at each latitude.
    \param   t_field             The temperature 2D field.
@@ -365,7 +360,7 @@ void refr_gradients_1d(
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
-        const Numeric&    r_geoid,
+        ConstVectorView   refellipsoid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
@@ -373,13 +368,13 @@ void refr_gradients_1d(
 { 
    get_refr_index_1d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
                       refr_index_agenda, p_grid, 
-                      r_geoid, z_field, t_field, vmr_field, r );
+                      refellipsoid, z_field, t_field, vmr_field, r );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_1d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, p_grid, 
-                      r_geoid, z_field, t_field, vmr_field, r+1 );
+                      refellipsoid, z_field, t_field, vmr_field, r+1 );
 
    dndr = refr_index - n0;
 
@@ -416,7 +411,7 @@ void refr_gradients_1d(
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
-   \param   r_geoid             As the WSV with the same name.
+   \param   refellipsoid        As the WSV with the same name.
    \param   z_field             The geometric altitude of each pressure level
                                 at each latitude.
    \param   t_field             The temperature 2D field.
@@ -438,7 +433,7 @@ void refr_gradients_2d(
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
-        ConstVectorView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
@@ -447,12 +442,12 @@ void refr_gradients_2d(
 { 
    get_refr_index_2d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
                       refr_index_agenda, p_grid, lat_grid,
-                      r_geoid, z_field, t_field, vmr_field, r, lat );
+                      refellipsoid, z_field, t_field, vmr_field, r, lat );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, r_geoid, 
+                      refr_index_agenda, p_grid, lat_grid, refellipsoid, 
                       z_field, t_field, vmr_field, r+1, lat );
 
    dndr = refr_index - n0;
@@ -460,7 +455,7 @@ void refr_gradients_2d(
    const Numeric   dlat = 1e-4;
 
    get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, r_geoid, 
+                      refr_index_agenda, p_grid, lat_grid, refellipsoid, 
                       z_field, t_field, vmr_field, r, lat+dlat );
 
    dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
@@ -497,7 +492,7 @@ void refr_gradients_2d(
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   lon_grid            As the WSV with the same name.
-   \param   r_geoid             As the WSV with the same name.
+   \param   refellipsoid        As the WSV with the same name.
    \param   z_field             As the WSV with the same name.
    \param   t_field             As the WSV with the same name.
    \param   vmr_field           As the WSV with the same name.
@@ -521,7 +516,7 @@ void refr_gradients_3d(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
-        ConstMatrixView   r_geoid,
+        ConstVectorView   refellipsoid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
@@ -530,14 +525,14 @@ void refr_gradients_3d(
         const Numeric&    lon )
 { 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-               refr_index_agenda, p_grid, lat_grid, 
-               lon_grid, r_geoid, z_field, t_field, vmr_field, r, lat, lon );
+                      refr_index_agenda, p_grid, lat_grid, lon_grid, 
+                      refellipsoid, z_field, t_field, vmr_field, r, lat, lon );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-               refr_index_agenda, p_grid, lat_grid, 
-               lon_grid, r_geoid, z_field, t_field, vmr_field, r+1, lat, lon );
+                      refr_index_agenda, p_grid, lat_grid, lon_grid, 
+                      refellipsoid, z_field, t_field, vmr_field, r+1, lat, lon );
 
    dndr = refr_index - n0;
 
@@ -545,7 +540,7 @@ void refr_gradients_3d(
 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, p_grid, lat_grid, 
-                      lon_grid, r_geoid, z_field, t_field, vmr_field, 
+                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
                       r, lat+dlat, lon );
 
    dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
@@ -554,7 +549,7 @@ void refr_gradients_3d(
 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, p_grid, lat_grid, 
-                      lon_grid, r_geoid, z_field, t_field, vmr_field, 
+                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
                       r, lat, lon+dlon);
 
    dndlon = ( refr_index - n0 ) / ( DEG2RAD * dlon * r * cos( DEG2RAD*lat ) ); 

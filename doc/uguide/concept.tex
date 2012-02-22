@@ -61,14 +61,15 @@ version. A short summary of ARTS's main features is:
   variables (temperature, gas concentrations etc.) can be assumed to
   only vary in the vertical dimension (1D), to have no longitude
   variation (2D) or vary in all three spatial dimensions (3D).
-\item[The \textindex{surface}] and the geoid can have arbitrary shapes. That is,
-  there are no limitations to a flat or spherical surface.
+\item[The \textindex{surface}] is by default assumed to be spherical. For 2D
+  and 3D, a complete reference ellipsoid is used and the surface can have
+  arbitrary shape.
 \item[Polarisation] is fully described by using the Stokes formalism.
 \item[Scattering] can be considered by two modules, DOIT
-  (Section~\ref{sec:scattering}) and MC
-  (\theory, Section~\ref{T-sec:montecarlo}). The \textindex{scattering} calculations are for
-  efficiency reasons confined to a region of the atmosphere denoted as
-  the cloud box.
+  (Section~\ref{sec:scattering}) and MC (\theory,
+  Section~\ref{T-sec:montecarlo}). The \textindex{scattering} calculations are
+  for efficiency reasons confined to a region of the atmosphere denoted as the
+  cloud box.
 \item[Observation geometry] is free. That is, the forward model can be
   used to simulate ground-based, down-looking, limb sounding and
   balloon/aircraft measurements.

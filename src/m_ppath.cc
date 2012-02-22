@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2008 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+/* Copyright (C) 2002-2008 Patrick Eriksson <Patrick.Eriksson@chalmers.se>
                             
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   m_ppath.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-05-08 
 
   \brief  Workspace functions releated to propagation paths variables.
@@ -67,21 +67,32 @@ void ppathCalc(Workspace&            ws,
                Ppath&                ppath,
                // WS Input:
                const Agenda&         ppath_step_agenda,
+               const Index&          basics_checked,
                const Index&          atmosphere_dim,
                const Vector&         p_grid,
                const Vector&         lat_grid,
                const Vector&         lon_grid,
                const Tensor3&        z_field,
-               const Matrix&         r_geoid,
+               const Vector&         refellipsoid,
                const Matrix&         z_surface,
                const Index&          cloudbox_on, 
+               const Index&          cloudbox_checked,
                const ArrayOfIndex&   cloudbox_limits,
                const Vector&         rte_pos,
                const Vector&         rte_los,
                const Verbosity&      verbosity)
 {
+  // Basics and cloudbox OK?
+  //
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control variables must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( !cloudbox_checked )
+    throw runtime_error( "The cloudbox must be flagged to have passed a "
+                         "consistency check (cloudbox_checked=1)." );
+
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, 
-              p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+              p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1,
               verbosity );
 }
@@ -93,11 +104,10 @@ void ppath_stepGeometric(// WS Output:
                          Ppath&           ppath_step,
                          // WS Input:
                          const Index&     atmosphere_dim,
-                         const Vector&    p_grid,
                          const Vector&    lat_grid,
                          const Vector&    lon_grid,
                          const Tensor3&   z_field,
-                         const Matrix&    r_geoid,
+                         const Vector&    refellipsoid,
                          const Matrix&    z_surface,
                          const Numeric&   ppath_lmax,
                          const Verbosity&)
@@ -107,21 +117,24 @@ void ppath_stepGeometric(// WS Output:
   // here.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_geom_1d( ppath_step, p_grid, z_field(joker,0,0), 
-                          r_geoid(0,0), z_surface(0,0), ppath_lmax ); }
+    { ppath_step_geom_1d( ppath_step, z_field(joker,0,0), 
+                          refellipsoid, z_surface(0,0), ppath_lmax ); }
 
   else if( atmosphere_dim == 2 )
-    { ppath_step_geom_2d( ppath_step, p_grid, lat_grid,
-                          z_field(joker,joker,0), r_geoid(joker,0), 
+    { ppath_step_geom_2d( ppath_step, lat_grid,
+                          z_field(joker,joker,0), refellipsoid, 
                           z_surface(joker,0), ppath_lmax ); }
 
 
   else if( atmosphere_dim == 3 )
-    { ppath_step_geom_3d( ppath_step, p_grid, lat_grid, lon_grid,
-                          z_field, r_geoid, z_surface, ppath_lmax ); }
+    { ppath_step_geom_3d( ppath_step, lat_grid, lon_grid,
+                          z_field, refellipsoid, z_surface, ppath_lmax ); }
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
+
+  // Set nreal
+  ppath_step.nreal = 1;
 }
 
 
@@ -143,7 +156,7 @@ void ppath_stepRefractionEuler(Workspace&  ws,
                                const Tensor3&    z_field,
                                const Tensor3&    t_field,
                                const Tensor4&    vmr_field,
-                               const Matrix&     r_geoid,
+                               const Vector&     refellipsoid,
                                const Matrix&     z_surface,
                                const Numeric&    ppath_lmax,
                                const Numeric&    ppath_lraytrace,
@@ -159,7 +172,7 @@ void ppath_stepRefractionEuler(Workspace&  ws,
     { ppath_step_refr_1d( ws, ppath_step, rte_pressure, rte_temperature, 
                        rte_vmr_list, refr_index, refr_index_agenda,
                        p_grid, z_field(joker,0,0), t_field(joker,0,0), 
-                       vmr_field(joker,joker,0,0), r_geoid(0,0), z_surface(0,0),
+                       vmr_field(joker,joker,0,0), refellipsoid, z_surface(0,0),
                        "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else if( atmosphere_dim == 2 )
@@ -167,41 +180,18 @@ void ppath_stepRefractionEuler(Workspace&  ws,
                        rte_vmr_list, refr_index, refr_index_agenda,
                        p_grid, lat_grid, z_field(joker,joker,0),
                        t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
-                       r_geoid(joker,0), z_surface(joker,0), 
+                       refellipsoid, z_surface(joker,0), 
                        "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else if( atmosphere_dim == 3 )
     { ppath_step_refr_3d( ws, ppath_step, rte_pressure, rte_temperature, 
                        rte_vmr_list, refr_index, refr_index_agenda,
                        p_grid, lat_grid, lon_grid, z_field, 
-                       t_field, vmr_field, r_geoid, z_surface, 
+                       t_field, vmr_field, refellipsoid, z_surface, 
                        "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posAddRgeoid(// WS Output:
-                      Vector&          rte_pos,
-                      // WS Input:
-                      const Index&     atmosphere_dim,
-                      const Vector&    lat_grid,
-                      const Vector&    lon_grid,
-                      const Matrix&    r_geoid,
-                      const Verbosity& verbosity)
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
-
-  // Use *sensor_posAddRgeoid* to perform the calculations.
-  Matrix m(1,rte_pos.nelem());
-  m(0,joker) = rte_pos;
-  sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid, verbosity );
-  rte_pos[0] = m(0,0);
 }
 
 
@@ -237,7 +227,7 @@ void rte_posSet(// WS Output:
                 // WS Input:
                 const Index&     atmosphere_dim,
                 // Control Parameters:
-                const Numeric&   r_or_z,
+                const Numeric&   z,
                 const Numeric&   lat,
                 const Numeric&   lon,
                 const Verbosity&)
@@ -246,79 +236,13 @@ void rte_posSet(// WS Output:
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
 
   rte_pos.resize(atmosphere_dim);
-  rte_pos[0] = r_or_z;
+  rte_pos[0] = z;
   if( atmosphere_dim >= 2 )
     { rte_pos[1] = lat; }
   if( atmosphere_dim == 3 )
     { rte_pos[2] = lon; }
 }
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_posAddRgeoid(// WS Output:
-                         Matrix&          sensor_pos,
-                         // WS Input:
-                         const Index&     atmosphere_dim,
-                         const Vector&    lat_grid,
-                         const Vector&    lon_grid,
-                         const Matrix&    r_geoid,
-                         const Verbosity&)
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_matrix_ncols( "sensor_pos", sensor_pos, atmosphere_dim );
-  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
-
-  // Number of positions
-  const Index npos = sensor_pos.nrows();
-  //
-  if( npos == 0 )
-    throw runtime_error("The number of positions is 0, must be at least 1.");
-
-  if( atmosphere_dim == 1 )
-    { sensor_pos(joker,0) += r_geoid(0,0); }
-
-  else
-    {
-      // Check that positions in sensor_pos are inside the lat and lon grids
-      if( min(sensor_pos(joker,1)) < lat_grid[0]  || 
-                                    max(sensor_pos(joker,1)) > last(lat_grid) )
-        throw runtime_error(
-             "You have given a position with a latitude outside *lat_grid*." );
-      if( atmosphere_dim == 3 )
-        {
-          if( min(sensor_pos(joker,2)) < lon_grid[0]  || 
-                                    max(sensor_pos(joker,2)) > last(lon_grid) )
-            throw runtime_error(
-            "You have given a position with a longitude outside *lon_grid*." );
-        }
-
-      if( atmosphere_dim == 2 )
-        {
-          ArrayOfGridPos gp(npos);
-          Matrix itw(npos,2);
-          gridpos( gp, lat_grid, sensor_pos(joker,1) );
-          interpweights( itw, gp );
-          Vector v_rgeoid(npos);
-          interp( v_rgeoid, itw, r_geoid(joker,0), gp );
-          for( Index i=0; i<npos; i++ )
-            { sensor_pos(i,0) += v_rgeoid[i]; } 
-        }
-      else
-        {
-          ArrayOfGridPos gp_lat(npos), gp_lon(npos);
-          Matrix itw(npos,4);
-          gridpos( gp_lat, lat_grid, sensor_pos(joker,1) );
-          gridpos( gp_lon, lon_grid, sensor_pos(joker,2) );
-          interpweights( itw, gp_lat, gp_lon );
-          Vector v_rgeoid(npos);
-          interp( v_rgeoid, itw, r_geoid, gp_lat, gp_lon );
-          for( Index i=0; i<npos; i++ )
-            { sensor_pos(i,0) += v_rgeoid[i]; } 
-        }
-    }
-}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -332,7 +256,7 @@ void VectorZtanToZaRefr1D(Workspace&          ws,
                           const Tensor3&      t_field,
                           const Tensor3&      z_field,
                           const Tensor4&      vmr_field,
-                          const Matrix&       r_geoid,
+                          const Vector&       refellipsoid,
                           const Index&        atmosphere_dim,
                           // WS Generic Input:
                           const Vector&       ztan_vector,
@@ -349,23 +273,26 @@ void VectorZtanToZaRefr1D(Workspace&          ws,
     throw runtime_error( os.str() );
   }
 
-  //Set za_vector's size equal to ztan_vector
+  // Set za_vector's size equal to ztan_vector
   za_vector.resize( ztan_vector.nelem() );
 
   // Define refraction variables
   Numeric   refr_index, rte_pressure, rte_temperature;
   Vector    rte_vmr_list;
 
-  //Calculate refractive index for the tangential altitudes
+  // Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) {
     get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature, 
-                       rte_vmr_list, refr_index_agenda, p_grid, r_geoid(0,0), 
+                       rte_vmr_list, refr_index_agenda, p_grid, 
+                       refellipsoid[0], 
                        z_field(joker,0,0), t_field(joker,0,0), 
-                       vmr_field(joker,joker,0,0), ztan_vector[i]+r_geoid(0,0) );
+                       vmr_field(joker,joker,0,0), 
+                       ztan_vector[i] + refellipsoid[0] );
 
-    //Calculate zenith angle
-    za_vector[i] = 180-asin(refr_index*(ztan_vector[i]+r_geoid(0,0)) /
-                            sensor_pos(i,0))*RAD2DEG;
+    // Calculate zenith angle
+    za_vector[i] = 180 - RAD2DEG* asin( refr_index * 
+                                        (refellipsoid[0] + ztan_vector[i]) / 
+                                        (refellipsoid[0] + sensor_pos(i,0)) );
   }
 }
 
@@ -376,7 +303,7 @@ void VectorZtanToZa1D(// WS Generic Output:
                       Vector&             za_vector,
                       // WS Input:
                       const Matrix&       sensor_pos,
-                      const Matrix&       r_geoid,
+                      const Vector&       refellipsoid,
                       const Index&        atmosphere_dim,
                       // WS Generic Input:
                       const Vector&       ztan_vector,
@@ -391,16 +318,16 @@ void VectorZtanToZa1D(// WS Generic Output:
   if( ztan_vector.nelem() != npos )
     {
       ostringstream os;
-      os << "The number of altitudes in the geometric tangent altitude vector must\n"
-         << "match the number of positions in *sensor_pos*.";
+      os << "The number of altitudes in the geometric tangent altitude vector\n"
+         << "must match the number of positions in *sensor_pos*.";
       throw runtime_error( os.str() );
     }
 
-  za_vector.resize(npos);
+  za_vector.resize( npos );
 
   for( Index i=0; i<npos; i++ )
-    { za_vector[i] = geompath_za_at_r( r_geoid(0,0) + ztan_vector[i], 100,
-                                                           sensor_pos(i,0) ); }
+    { za_vector[i] = geompath_za_at_r( refellipsoid[0] + ztan_vector[i], 100,
+                                       refellipsoid[0] + sensor_pos(i,0) ); }
 }
 
 

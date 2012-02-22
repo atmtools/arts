@@ -17,7 +17,7 @@
 
 /*!
   \file   special_interp.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-11-14   
   
   \brief  Interpolation routines for special purposes.
@@ -41,7 +41,7 @@
   surface-type variables, with names where _atmfield_ is replaced with
   _atmsurface_. 
 
-  Possible surface-type variables are *r_geoid*, *z_surface* and one page
+  Possible surface-type variables are *z_surface* and one page
   of *z_field*.
 
 

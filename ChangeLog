@@ -1,8 +1,105 @@
 2012-02-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-1
+
+	* Merge arts-dev branch r7344 into trunk.
+
+2012-02-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-0dev1
+
+	* ChangeLog: Remove conflict marker.
+
+2012-02-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-0dev0
+
+	* Merged from trunk r7341.
+
+2012-02-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-0
 
 	* Increase minor version after branching.
+
+2012-02-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-38dev4
+
+	* src/ppath.cc (ppath_calc): lspace was not transfered to final
+	ppath. Polishing of new code for 1D and 2D geomtric.	
+
+	* src/xml_io_compound_types.cc: Ppath constant was saved as
+	lspace!
+
+2012-02-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-38dev3
+
+	* make check and make check-fast now run with OK.
+
+	* tests/*/*.arts:
+	* includes/*/*.arts: All control files adopted to changes made
+	around refellipsoid and ppath.
+
+	* tests/testall.py (TestClearSky.test3): Changed target Tb for
+	ClearSky case. This was needed as the Earth radius in constants.cc
+	has been changed. Verified that old target Tb was obtained with
+	old radius (so no change in RT part).
+
+	Down-looking cases less affected by the changed radius, but could
+	now be a slight shift with respect to old target values (if za <
+	180).
+
+2012-02-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-38dev2
+
+	* src/ppath.cc (ppath_copy): Did not work for l_step if ppath2.np=1.
+
+	* src/ppath.cc (ppath_calc): The case of single point ppaths now
+	handled seperately when creating the final ppath. The merging of
+	ppath_array could then be made somewhat more efficient, and solves
+	a problem of getting nreal into the first point of final ppath.
+
+	* src/m_ppath.cc (ppath_stepGeometric): Now sets nreal to 1. This
+	solves nreal for geometrical calculations (after the changes above).
+
+2012-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-38dev1
+
+	* src/ppath.cc (ppath_calc): Added handling of Ppath.lspace and
+	Ppath.nreal. lspace calculated, but nreal not yet set.
+
+	* src/m_general.cc (Print):
+	* src/xml_io_compound_types.cc (xml_write_to_stream): Added
+	handling of Ppath.lspace, and adopted to changed field order.
+
+	* src/ppath.h (struct Ppath): Added field lspace. Needed to
+	keep track of complte ppath length/delay. Changed order of fields.
+
+	* src/ppath.cc (rslope_crossing): New function. Just performing
+	core task of old plevel_crossing_2d (finding the crossing with a
+	level having radial slope).
+
+	(plevel_crossing_2d): New version of this function, with extended
+	scope. It now handles all tasks around checking if there is a
+	crossing inside the latitude grid range. The accuracy also
+	improved, as the Taylor expansion expression is now only used for
+	a final smaller step. Exact expressions are used in a first step,
+	moving the ppath as close as possible to the surface before the
+	approximative expression is applied.
+
+	(do_gridcell_2dv2): New version of do_gridcell_2d, making use of
+	the functions above. All this recoding done with the aim to later
+	use the same calculation approach, and function structures, for 3D.
+
+2012-02-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-38dev0
+
+	* Merged from trunk r7321.
 
 2012-02-20  Oliver Lemke  <olemke@core-dump.info>
 
@@ -130,6 +227,274 @@
 	bugfix (cloudbox reaching to TOA -> first ppath instance sees
 	background, don't try to iterate along path).
 
+2012-02-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev15
+
+	* tests/Ppath/TestPpath3D.arts: Was not svn-added.
+
+2012-02-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev14
+
+	* src/ppath.cc (r_crossing_2d): New function.
+
+	* src/agendas.cc: p_grid now not input to ppath_step_agenda.
+	Required adoption in several files. 
+	
+	* src/m_ppath.cc (ppath_stepGeometric): Adopted calls of
+	sub-functions. p_grid now not used.
+
+	* src/doit.cc (ppath_step_in_cloudbox): Removed this function. Not
+	used at all!
+
+	* src/ppath.cc: Changes throughout the file with respect to tangent
+	points. The ppath fields now not set. Tangent points now not
+	handled as an "endface", but handled one level lower among the
+	sub-functions (now at the level of do_gridrange_1d level).
+	Requires less shuffling of data and cleaner code.
+
+	* src/m_montecarlo.cc (MCIPA): Lat and lon of tangent point now
+	determined from ppath.pos.
+
+	* src/m_general.cc: 
+	* src/xml_io_compound_types.cc: Adopted to change of Pppath. 
+
+	* src/ppath.h (struct Ppath): Removed field tan_pos, geom_tan_pos and
+	next_parts.
+
+	* src/ppath.cc (ppath_start_stepping): More tests. Fixed one bug
+	and now demanding that platform radius is > r_toa_max. Handling of
+	2D and 3D now even more similar.
+
+	* tests/Ppath/TestPpath3D.arts: New.
+
+2012-02-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev13
+
+	* src/ppath.cc (plevel_crossing_3d): Renamed to r_crossing_3d as
+	task of function has been changed. Header text described the
+	original version.
+
+	* src/ppath.cc (ppath_start_stepping): Some improvements of the
+	code for finding TOA entrance point for 2D.
+	Complete new code for 3D. Not yet tested heavily.
+
+2012-02-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev12
+
+	* tests/Ppath: Start on a set of new test control files.
+
+	* src/ppath.cc: Corrected errors in several headers.
+	Corrected/changed text for several errors.
+	
+	(geompath_za_at_r): Sign of za was not kept if r==ppc! 
+
+	(ppath_start_stepping): Code 2D now revised and using a new
+	algorithm for finding entrance point at TOA.
+	(Full 1D and 2D ppath calculations tested quite carefully.)
+
+	* src/m_cloudbox.cc (cloudbox_checkedCalc): Polished error message.
+
+	* src/m_basic_types.cc (IndexStepDown, IndexStepUp): New WSMs.
+	(IndexStep): Replaced by IndexStepUp.
+	
+2012-02-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev11
+
+	* src/geodetic.cc (poslos2cart): Added assert for za.
+
+2012-02-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev10
+
+	* src/geodetic.cc (geomtanpoint2d): New. Not yet complete.
+
+	* src/ppath.cc (ppath_start_stepping): A complete revision of the
+	function, to use same basic approach for 1D, 2D and 3D. And to add
+	some missing parts (cloudbox in 2D, cloudbox reaching TOA ...).
+	Code for 2D presently not complete.
+
+	* src/geodetic.cc (poslos2cart): Now not calling sph2cart, to save
+	some time (code instead copied and adopted).
+
+	* src/geodetic.cc (geomtanpoint): New function. Calculates the
+	geomtrical tangent altitude, also for non-spherical planets.
+
+	* src/constants.cc: Changed EARTH_RADIUS from 6.378e6 to 6.3781e6,
+	which seems to be the standard value.
+
+	* src/math_funcs.cc (cross): A function for 3D cross product. 
+	(unitl): New function. Normalises a vector.
+	
+2012-02-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev9
+
+	* Change to a more common defintion of the cartesian coordinate
+	system made. 
+
+	* src/ppath.cc: Functions listed below removed.
+	(plevel_crossing_3d): Here y <-> z change needed.
+
+	* src/geodetic.cc: cart2poslos, cart2sph, geompath_tanpos_3d,
+	poslos2cart and sph2cart, now placed in this file. Cartesian y and
+	z axes have changed place inside these functions, to follow a more
+	standard cartesian coordinate system.
+
+2012-02-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev8
+
+	* Code now updated following changes around refellipsoid and
+	sensor_pos/rte_los. Made basic tests, but no heavy testing. This
+	will be done after ppath_start_stepping is finished.
+
+	* src/m_general.cc (Print): Adopted printing for Ppath.
+
+	* src/ppath.h: Removed field z from Ppath structure.
+
+	* src/montecarlo.cc (mcPathTraceIPA): Adopted to change for
+	rte_pos (now holding altitude, not radius). Seems to be only
+	needed change for all MC code, with respect to this point.
+
+	* src/m_doit.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm):
+	Removed refellipsoid as input, now not used.
+
+	* src/m_doit.cc (doit_i_fieldUpdateSeq1DPP):
+	* src/doit.cc (cloud_ppath_update1D_planeparallel): Removed not
+	used input arguments ppath_step_agenda and refellipsoid. Adopted
+	to changes of pos definition.
+
+	* src/ppath.cc (ppath_start_stepping): Now fixed and tested for 3D.
+
+2012-02-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev7
+
+	* src/ppath.cc (ppath_start_stepping): Updated for 3D.
+
+2012-02-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev6
+
+	* src/ppath.cc: 2D geomtric cases revised. 1D and 2D geometric
+	tested. Started on 3D.
+
+	* src/geodetic.cc (refell2d): New function.
+
+2012-02-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev5
+
+	* Work in progress. Transfer from lap- to desktop. Does not compile!
+
+	* src/ppath.cc: Being revised.
+
+	* src/xml_io_compound_types.cc (xml_write_to_stream): ppath.z ->
+	ppath.r.
+
+	* src/ppath.h (struct Ppath): Field z renamed to r.
+
+	* src/m_ppath.cc: File revised with respect to new WSV definitions.
+	(VectorZtanToZa1D): Adopted to new definition of sensor_pos.
+	(VectorZtanToZaRefr1D): As above.
+
+	* tests/OdinSMR/TestOdinSMR.arts:
+	* tests/OdinSMR/TestOdinSMR_119ghz.arts: Removed call of
+	sensor_posAddRgeoid.
+
+	* includes/general.arts: refellipsoid now set (instead of r_geoid).
+
+2012-02-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev4
+
+	* src/: r_geoid and the term geoid wiped out from the source code!
+	Numerous changes to make the change to refellipsoid, affecting a
+	high number of files.
+
+	The code compiles, but no test calculations yet made.
+
+	* src/m_surface.cc (r_geoidSpherical, r_geoidWGS84): Removed.
+
+	* src/workspace.cc: r_geoid removed.
+
+	* src/m_ppath.cc (rte_posAddRgeoid): Removed. Sensor position will
+	be given as altitude above ellipsoid (future change).
+	(sensor_posAddRgeoid): As above.
+
+	* src/m_ppath.cc (ppathCalc): Now considers basics_checked and
+	cloudbox_checked.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): The method now checks
+	refellipsoid instead of r_geoid.
+
+2012-02-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev3
+
+	* doc/uguide/concept.tex: Rewrote item point including "geoid".
+
+	* doc/uguide/surface.tex: Revised, following the change from
+	r_geoid to refellipsoid.
+
+	* doc/uguide/atmosphere.tex: Revised up to Sec. 2.5, following
+	changes made/planned. The view of 1D and 2D atmospheres slightly
+	changed. For 1D, the sensor is now consider to be placed at
+	lat/lon=0, and be looking North. For 2D, the plane is now "locked"
+	to pass above the poles, and lat=0 is at the Equator (but no upper
+	or lower limit as before). This definition is needed for 2D to
+	have a relationship to the reference ellipsoid.
+
+	* src/check_input.cc (chk_atm_grids): Changed back to demand that
+	lat_grid and lon_grid are empty when not used. Variables like
+	"lat_true" and "lon_true" will be introduced to geographically
+	place 1D and 2D cases.
+
+2012-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev2
+
+	* src/geodetic.cc (refell2r): New function.
+
+	* src/m_geodetic.cc (refellipsoidForAzimuth):  New WSM.
+	(refellipsoidOrbitPlane): New WSM.
+
+2012-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-28dev1
+
+	* src/m_geodetic.cc:
+	(refellipsoidEarth, refellipsoidJupiter, refellipsoidMars)
+	(refellipsoidSet, refellipsoidMoon, refellipsoidVenus): New WSMs.
+
+	* src/surface.cc: Moved internal functions before placed in
+	m_surface to this file.
+
+	* src/CMakeLists.txt: Added the new files listed below.
+
+	* src/geodetic.h:
+	* src/geodetic.cc:
+	* src/m_geodetic.cc:
+	* src/surface.h:
+	* src/surface.cc: New files.
+
+	* src/*: Removed all remaining rss. in my email address.
+
+	* src/workspace.cc: Added refellipsoid.
+
+	* TODO: Will be using this file for notes.
+
+2012-02-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-28dev0
+
+	Merged from trunk r7263.
+
 2012-01-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-28
@@ -192,6 +557,12 @@
 
 2011-12-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-0-24dev0
+
+	Merged from trunk r7223.
+
+2011-12-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-0-24
 
 	* src/arts_omp.cc (arts_omp_in_parallel):
@@ -234,6 +605,12 @@
 
 	* doc/uguide/symbol_defs.tex: Added definitions for Stokes elements
 	I, Q, U and V, and speed.
+
+2011-11-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-20dev0
+
+	* Created development branch from trunk r7212.
 
 2011-11-11  Gerrit Holl <gerrit.holl@ltu.se>
 

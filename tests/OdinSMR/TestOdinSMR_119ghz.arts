@@ -1,7 +1,7 @@
 #DEFINITIONS:  -*-sh-*-
 # This control files performs simulations around the 119 GHz O2 line
 #
-# No include files are used, to give a complete view all workspace 
+# No include files ar used, to give a complete view all workspace 
 # variables used.
 #
 # Author: Patrick Eriksson
@@ -185,9 +185,9 @@ VectorAddScalar( f_grid, f_grid, f_shift )
 ### Surface properties
 ##############################################################################
 
-# Geiod radius
+# Reference ellipsoid
 #
-r_geoidWGS84( r_geoid, atmosphere_dim, lat_grid, lon_grid, 0, 7 )
+refellipsoidEarth( refellipsoid, "Sphere" )
 
 # Surface altitude
 #
@@ -316,17 +316,15 @@ NumericSet( z_orbit, 600e3 )
 # The grid for pencil beam calculations
 #
 MatrixSetConstant( sensor_pos, zpb_n, 1, z_orbit )
-sensor_posAddRgeoid
 VectorCreate( ztan )
 VectorNLinSpace( ztan, zpb_n, zpb_start, zpb_stop )
-VectorZtanToZa1D( mblock_za_grid, sensor_pos, r_geoid, atmosphere_dim, ztan )
+VectorZtanToZa1D( mblock_za_grid, sensor_pos, refellipsoid, atmosphere_dim, ztan )
 
 # The centre zenith angle for each spectrum
 #
 MatrixSetConstant( sensor_pos, ztan_n, 1, z_orbit )
-sensor_posAddRgeoid
 VectorNLinSpace( ztan, ztan_n, ztan_start, ztan_stop )
-VectorZtanToZa1D( a_vector, sensor_pos, r_geoid, atmosphere_dim, ztan )
+VectorZtanToZa1D( a_vector, sensor_pos, refellipsoid, atmosphere_dim, ztan )
 Matrix1ColFromVector( antenna_los, a_vector )
 
 # Sensor LOS
@@ -336,7 +334,6 @@ MatrixSetConstant( sensor_los, 1, 1, 0e3 )
 # Sensor position
 #
 MatrixSetConstant( sensor_pos, 1, 1, z_orbit )
-sensor_posAddRgeoid
 
 
 

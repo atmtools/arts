@@ -53,6 +53,7 @@
 #include "check_input.h"
 #include "sorting.h"
 #include "cloudbox.h"
+#include "geodetic.h"
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
@@ -229,7 +230,7 @@ void cloud_fieldsCalc(Workspace& ws,
   \param ppath_step_agenda
   \param p_grid
   \param z_field
-  \param r_geoid
+  \param refellipsoid
   \param z_surface
   Calculate thermal emission:
   \param t_field
@@ -262,7 +263,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           const Agenda& ppath_step_agenda,
                           ConstVectorView  p_grid,
                           ConstTensor3View z_field,
-                          ConstMatrixView r_geoid,
+                          ConstVectorView refellipsoid,
                           ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
@@ -290,8 +291,8 @@ void cloud_ppath_update1D(Workspace& ws,
   // the parameters.
   
   // Assign value to ppath.pos:
-  ppath_step.z[0]     = z_field(p_index,0,0);
-  ppath_step.pos(0,0) = r_geoid(0,0) + ppath_step.z[0];
+  ppath_step.pos(0,0) = z_field(p_index,0,0);
+  ppath_step.r[0]     = refellipsoid[0] + z_field(p_index,0,0);
   
   // Define the direction:
   ppath_step.los(0,0) = scat_za_grid[scat_za_index];
@@ -305,9 +306,9 @@ void cloud_ppath_update1D(Workspace& ws,
   // Call ppath_step_agenda: 
   Vector unused_lat_grid(0);
   Vector unused_lon_grid(0);
-  ppath_step_agendaExecute(ws, ppath_step, 1, p_grid,
+  ppath_step_agendaExecute(ws, ppath_step, 1, 
                            unused_lat_grid, unused_lon_grid,
-                           z_field, r_geoid, z_surface,
+                           z_field, refellipsoid, z_surface,
                            ppath_step_agenda);
   
   // Check whether the next point is inside or outside the
@@ -408,7 +409,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 const Agenda& ppath_step_agenda,
                                 ConstVectorView  p_grid,
                                 ConstTensor3View z_field,
-                                ConstMatrixView r_geoid,
+                                ConstVectorView refellipsoid,
                                 ConstMatrixView z_surface,
                                 // Calculate thermal emission:
                                 ConstTensor3View t_field,
@@ -436,8 +437,8 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   // the parameters.
   
   // Assign value to ppath.pos:
-  ppath_step.z[0]     = z_field(p_index,0,0);
-  ppath_step.pos(0,0) = r_geoid(0,0) + ppath_step.z[0];
+  ppath_step.pos(0,0) = z_field(p_index,0,0);
+  ppath_step.r[0]     = refellipsoid[0] + z_field(p_index,0,0);
   
   // Define the direction:
   ppath_step.los(0,0) = scat_za_grid[scat_za_index];
@@ -451,9 +452,9 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   // Call ppath_step_agenda: 
   Vector unused_lat_grid(0);
   Vector unused_lon_grid(0);
-  ppath_step_agendaExecute(ws, ppath_step, 1, p_grid,
+  ppath_step_agendaExecute(ws, ppath_step, 1,
                            unused_lat_grid, unused_lon_grid,
-                           z_field, r_geoid, z_surface,
+                           z_field, refellipsoid, z_surface,
                            ppath_step_agenda);
   
   // Check whether the next point is inside or outside the
@@ -566,7 +567,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   \param lat_grid
   \param lon_grid
   \param z_field
-  \param r_geoid
+  \param refellipsoid
   \param z_surface
   Calculate thermal emission:
   \param t_field
@@ -601,7 +602,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           ConstVectorView lat_grid,
                           ConstVectorView lon_grid,
                           ConstTensor3View z_field,
-                          ConstMatrixView r_geoid,
+                          ConstVectorView refellipsoid,
                           ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
@@ -630,19 +631,18 @@ void cloud_ppath_update3D(Workspace& ws,
   // See documentation of ppath_init_structure for
   // understanding the parameters.
               
-  // Assign value to ppath.pos:
-  ppath_step.z[0] = z_field(p_index,lat_index,
-                            lon_index);
-
   // The first dimension of pos are the points in 
   // the propagation path. 
   // Here we initialize the first point.
   // The second is: radius, latitude, longitude
 
-  ppath_step.pos(0,0) =
-    r_geoid(lat_index, lon_index) + ppath_step.z[0];
-  ppath_step.pos(0,1) = lat_grid[lat_index];
+  
   ppath_step.pos(0,2) = lon_grid[lon_index];
+  ppath_step.pos(0,1) = lat_grid[lat_index];
+  ppath_step.pos(0,0) = z_field( p_index, lat_index, lon_index );
+  ppath_step.r[0] = refell2r( refellipsoid, ppath_step.pos(0,1) ) + 
+                    ppath_step.pos(0,0);
+
               
   // Define the direction:
   ppath_step.los(0,0) = scat_za_grid[scat_za_index];
@@ -662,9 +662,8 @@ void cloud_ppath_update3D(Workspace& ws,
   ppath_step.gp_lon[0].fd[1] = 1.;
 
   // Call ppath_step_agenda: 
-  ppath_step_agendaExecute(ws, ppath_step, 3, p_grid,
-                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                           ppath_step_agenda);
+  ppath_step_agendaExecute(ws, ppath_step, 3, lat_grid, lon_grid, 
+                           z_field, refellipsoid, z_surface, ppath_step_agenda);
 
     // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -1085,96 +1084,6 @@ void cloud_RT_surface(Workspace& ws,
 }
 
 
-/*! Calculates for a given point and a given direction one
-  propagation path step.
-
-  This function initializes the ppath structure and 
-  executes ppath_step_agenda. Output of the fuinction is 
-  a propagation path with two points. The starting point 
-  and the next point.
-
-  The function is needed in the sequential update
-  (doit_i_fieldUpdateSeq3D).
-  
-  \param[in,out] ws Current workspace
-  \param ppath_step Propagation path step
-  \param ppath_step_agenda Agenda for calculating propagation paths
-  \param p Pressure index 
-  \param lat Latitude index
-  \param lon Longitude index
-  \param z_field Altitude field
-  \param r_geoid Geoid
-  \param z_surface Surface altitude
-  \param scat_za_grid Zenith angle grid
-  \param aa_grid Azimuth angle grid
-  \param scat_za_index Zenith angle index
-  \param scat_aa_index Azimuth angle index
-  \param p_grid Pressure grid
-  \param lat_grid Latitude grid
-  \param lon_grid Longitude grid
-
-  \author Claudia Emde
-  \date 2003-06-06
-*/
-void ppath_step_in_cloudbox(Workspace& ws,
-                            //Output:
-                            Ppath& ppath_step,
-                            //Input:
-                            const Agenda& ppath_step_agenda,
-                            const Index& p,
-                            const Index& lat, 
-                            const Index& lon,
-                            ConstTensor3View z_field,
-                            ConstMatrixView r_geoid,
-                            ConstMatrixView z_surface,
-                            ConstVectorView scat_za_grid,
-                            ConstVectorView aa_grid,
-                            const Index& scat_za_index,
-                            const Index& scat_aa_index,
-                            ConstVectorView p_grid,
-                            ConstVectorView lat_grid,
-                            ConstVectorView lon_grid)
-{
-  //Initialize ppath for 3D.
-  ppath_init_structure(ppath_step, 3, 1);
-  // See documentation of ppath_init_structure for
-  // understanding the parameters.
-    
-  // Assign value to ppath.pos:
-  //
-  ppath_step.z[0] = z_field(p, lat, lon);
-                                  
-  // The first dimension of pos are the points in 
-  // the propagation path. 
-  // Here we initialize the first point.
-  // The second is: radius, latitude, longitude
-
-  ppath_step.pos(0,0) = r_geoid(lat, lon) + ppath_step.z[0];
-  ppath_step.pos(0,1) = lat_grid[lat];
-  ppath_step.pos(0,2) = lon_grid[lon];
-              
-  // Define the direction:
-  ppath_step.los(0,0) = scat_za_grid[scat_za_index];
-  ppath_step.los(0,1) = aa_grid[scat_aa_index];
-              
-  // Define the grid positions:
-  ppath_step.gp_p[0].idx   = p;
-  ppath_step.gp_p[0].fd[0] = 0.;
-  ppath_step.gp_p[0].fd[1] = 1.;
-
-  ppath_step.gp_lat[0].idx   = lat;
-  ppath_step.gp_lat[0].fd[0] = 0.;
-  ppath_step.gp_lat[0].fd[1] = 1.;
-                    
-  ppath_step.gp_lon[0].idx   = lon;
-  ppath_step.gp_lon[0].fd[0] = 0.;
-  ppath_step.gp_lon[0].fd[1] = 1.;
-              
-  // Call ppath_step_agenda: 
-  ppath_step_agendaExecute(ws, ppath_step, 3, p_grid,
-                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                           ppath_step_agenda);
-}
 
 //! interp_cloud_coeff1D 
 /*!  
@@ -1368,7 +1277,7 @@ void interp_cloud_coeff1D(//Output
   \param ppath_step_agenda
   \param p_grid
   \param z_field
-  \param r_geoid
+  \param refellipsoid
   Calculate thermal emission:
   \param t_field
   \param f_grid
@@ -1392,10 +1301,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         // Gas absorption:
                                         const Agenda& opt_prop_gas_agenda,
                                         // Propagation path calculation:
-                                        const Agenda& ppath_step_agenda _U_,
                                         ConstVectorView p_grid,
                                         ConstTensor3View z_field,
-                                        ConstMatrixView r_geoid,
                                         // Calculate thermal emission:
                                         ConstTensor3View t_field,
                                         ConstVectorView f_grid,
@@ -1683,7 +1590,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           //pos
           Vector rte_pos( atmosphere_dim );
           Numeric z_field_0 = z_field(0, 0, 0);
-          rte_pos = z_field_0 + r_geoid(0,0);//ppath_step.pos(np-1,Range(0,atmosphere_dim));
+          rte_pos = z_field_0;  //ppath_step.pos(np-1,Range(0,atmosphere_dim));
           //los
           Vector rte_los(1);
           rte_los = scat_za_grid[scat_za_index];//ppath_step.los(np-1,joker);

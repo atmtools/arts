@@ -42,11 +42,9 @@ WriteXML( output_file_format, z_field )
 
 WriteXML( output_file_format, vmr_field )
 
-r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
+nelemGet( nrows, lat_grid )
 
-nrowsGet( nrows, r_geoid )
-
-ncolsGet( ncols, r_geoid )
+nelemGet( ncols, lon_grid )
 
 MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 

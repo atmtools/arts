@@ -61,19 +61,7 @@ AtmFieldsCalc
 
 # Definition of Earth surface
 # ----------------------------
-# spherical geoid 
-#r_geoidWGS84{}
-
-r_geoidSpherical{
-    r = -1
-}
-
-# Ground altitude (measured from geoid)
-nrowsGet(r_geoid)
-ncolsGet(r_geoid)
-MatrixSetConstant( z_surface){
-    value = 500
-}
+MatrixSetConstant( z_surface, 1, 1, 500 )
 
 MatrixSetConstant( surface_emissivity_field){
     value = 1
@@ -103,11 +91,6 @@ VectorSetConstant( vector_2 ) {
    value =  96000.1
 }
 
-# Add Earth Radius
-VectorAddScalar(vector_2, vector_2){
-    value = 6.378e6
-    }
-
 Matrix1ColFromVector( sensor_pos, vector_2 )
 Matrix1ColFromVector( sensor_los, vector_1 )
 
@@ -115,13 +98,6 @@ Matrix1ColFromVector( sensor_los, vector_1 )
 # which are not modified by sensor properties
 sensorOff
 
-# This should be sufficiently small to assume single scattering in 
-# one propagation path step
-AgendaSet( ppath_step_agenda ) {
-  ppath_stepGeometric{
-      lmax      = -1
-  }
-}
 
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------

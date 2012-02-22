@@ -57,7 +57,7 @@
     \author Patrick Eriksson 
     \date   08.04.2000
 */
-extern const Numeric EARTH_RADIUS   = 6.378e6;
+extern const Numeric EARTH_RADIUS   = 6.3781e6;
 
 /** Global constant, conversion from radians to degrees
 

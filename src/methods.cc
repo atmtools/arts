@@ -2077,7 +2077,7 @@ void define_md_data_raw()
          "\n"
          "The method deals only with the atmospheric fields, and to create\n"
          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
-         "geoid radius is set to be constant for all latitudes/longitudes.\n"
+         "ellipsoid is set to be a sphere.\n"
          "\n"
          "With parameter interp_order you can control the order of \n"
          "interpolation. The default is 1 (linear interpolation).\n"
@@ -2111,7 +2111,7 @@ void define_md_data_raw()
          "\n"
          "The method deals only with the atmospheric fields, and to create\n"
          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
-         "geoid radius is set to be constant for all latitudes/longitudes.\n"
+         "ellipsoid is set to be a sphere.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "t_field", "z_field", "vmr_field" ),
@@ -2613,7 +2613,7 @@ void define_md_data_raw()
          "\n"
          "The following WSVs are treated: f_grid, stokes_dim, p_grid,\n"
          "lat_grid, lon_grid, t_field, z_field, vmr_field, wind_u/v/w_field,\n"
-         "r_geoid and z_surface.\n"
+         "refellipsoid and z_surface.\n"
          "If any of these variables are changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
@@ -2623,9 +2623,11 @@ void define_md_data_raw()
          " 2. That *f_grid* is sorted and increasing.\n"
          " 3. If atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
          "    *atmosphere_dim*.\n"
-         " 4. If atmospheric fields, *r_geoid* and *z_surface* have sizes\n"
-         "    consistent with the atmospheric grids.\n"
-         " 5. There is no gap between *z_surface* and *z_field*.\n"
+         " 4. If *refellipsoid* has correct size, and that eccentricity is\n"
+         "    set to zero if 1D atmosphere.\n"
+         " 5. If atmospheric fields, and *z_surface* have sizes consistent\n"
+         "    with the atmospheric grids.\n"
+         " 6. There is no gap between *z_surface* and *z_field*.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *basics_checked*\n"
          "is set to 1.\n"
@@ -2639,7 +2641,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
             "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field",
-            "wind_w_field", "r_geoid", "z_surface", "stokes_dim", "f_grid" ),
+            "wind_w_field", "refellipsoid", "z_surface", "stokes_dim", 
+            "f_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2785,7 +2788,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_clearsky_basic_agenda", "atmosphere_dim", "lat_grid", 
-            "lon_grid", "z_field", "r_geoid", "cloudbox_on", "cloudbox_limits", 
+            "lon_grid", "z_field", "cloudbox_on", "cloudbox_limits", 
             "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
@@ -2813,7 +2816,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_clearsky_basic_agenda", "atmosphere_dim", "lat_grid", 
-            "lon_grid", "z_field", "r_geoid", "cloudbox_on", "cloudbox_limits", 
+            "lon_grid", "z_field", "cloudbox_on", "cloudbox_limits", 
             "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
@@ -3413,8 +3416,8 @@ void define_md_data_raw()
             "abs_scalar_gas_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
-            "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
-            "t_field", "f_grid", "f_index", "surface_prop_agenda",
+            "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
+            "z_surface", "t_field", "f_grid", "f_index", "surface_prop_agenda",
             "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
@@ -3444,8 +3447,8 @@ void define_md_data_raw()
             "abs_scalar_gas_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field",
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
-            "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
-            "t_field", "f_grid", "f_index", "surface_prop_agenda",
+            "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
+            "z_surface", "t_field", "f_grid", "f_index", "surface_prop_agenda",
             "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
@@ -3478,8 +3481,7 @@ void define_md_data_raw()
             "abs_scalar_gas_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
-            "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "t_field",
-            "f_grid", "f_index" ),
+            "p_grid", "z_field", "t_field", "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3512,7 +3514,7 @@ void define_md_data_raw()
             "pnd_field",
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
             "ppath_step_agenda", "p_grid", "lat_grid", "lon_grid", "z_field",
-            "r_geoid", "z_surface", "t_field",
+            "refellipsoid", "z_surface", "t_field",
             "f_grid", "f_index", "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
@@ -4000,7 +4002,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
+            "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid",
             "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
             "f_grid", "ppath_step_agenda", "emission_agenda",
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
@@ -4274,10 +4276,10 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "IndexStep" ),
+      ( NAME( "IndexStepDown" ),
         DESCRIPTION
         (
-         "Performs i2 = i1 + 1\n"
+         "Performas: i2 = i1 - 1\n"
          "\n"
          "Input and output can be same variable.\n"
          ),
@@ -4287,7 +4289,28 @@ void define_md_data_raw()
         GOUT_TYPE( "Index" ),
         GOUT_DESC( "Output index variable." ),
         IN(),
-        GIN(       "gin1"  ),
+        GIN(       "i1"  ),
+        GIN_TYPE(  "Index" ),
+        GIN_DEFAULT( NODEF   ),
+        GIN_DESC( "Input index variable." )
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "IndexStepUp" ),
+        DESCRIPTION
+        (
+         "Performas: i2 = i1 + 1\n"
+         "\n"
+         "Input and output can be same variable.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "i2"    ),
+        GOUT_TYPE( "Index" ),
+        GOUT_DESC( "Output index variable." ),
+        IN(),
+        GIN(       "i1"  ),
         GIN_TYPE(  "Index" ),
         GIN_DEFAULT( NODEF   ),
         GIN_DESC( "Input index variable." )
@@ -4404,7 +4427,7 @@ void define_md_data_raw()
             "rte_pos", "rte_los", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
-            "wind_w_field", "r_geoid", "z_surface", "cloudbox_on", 
+            "wind_w_field", "refellipsoid", "z_surface", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "abs_species",
             "ppath_step_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda", 
@@ -4442,7 +4465,7 @@ void define_md_data_raw()
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
-            "vmr_field", "r_geoid", "z_surface", "cloudbox_on", 
+            "vmr_field", "refellipsoid", "z_surface", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "pnd_field", 
             "use_mean_scat_data", "scat_data_raw", "opt_prop_gas_agenda" ),
@@ -4486,7 +4509,7 @@ void define_md_data_raw()
             "rte_pos", "rte_los", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
-            "wind_w_field", "r_geoid", "z_surface",
+            "wind_w_field", "refellipsoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "abs_species", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
@@ -4516,7 +4539,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "r_geoid", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim", 
             "f_grid", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
@@ -4564,7 +4587,7 @@ void define_md_data_raw()
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
-            "vmr_field", "r_geoid", "z_surface", "cloudbox_on", 
+            "vmr_field", "refellipsoid", "z_surface", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
             "emission_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
@@ -4615,7 +4638,7 @@ void define_md_data_raw()
             "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", 
             "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", 
+            "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "cloudbox_checked",
             "stokes_dim", "f_grid", "scat_data_raw", 
             "iy_space_agenda", "surface_prop_agenda", "abs_scalar_gas_agenda", 
@@ -5170,7 +5193,7 @@ void define_md_data_raw()
         IN( "jacobian",
             "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid", "t_field", "z_field", "vmr_field", "abs_species",
-            "r_geoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid", 
+            "refellipsoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid", 
             "sensor_pos", "sensor_los", "mblock_za_grid", "mblock_aa_grid", 
             "antenna_dim", "sensor_response", "iy_clearsky_agenda", "y_unit", 
             "p_hse", "z_hse_accuracy", 
@@ -5203,7 +5226,7 @@ void define_md_data_raw()
             "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
             "surface_prop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
-            "r_geoid", "z_surface", 
+            "refellipsoid", "z_surface", 
             "cloudbox_on", "cloudbox_limits", "pnd_field",
             "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
             "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
@@ -5718,7 +5741,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", 
-            "p_grid", "lat_grid", "lon_grid", "r_geoid", "z_surface", 
+            "p_grid", "lat_grid", "lon_grid", "refellipsoid", "z_surface", 
             "z_field", "t_field", "vmr_field", "cloudbox_limits", "pnd_field", 
             "scat_data_mono", "particle_masses", "mc_seed" ),
         GIN( "max_iter" ),
@@ -5758,7 +5781,7 @@ void define_md_data_raw()
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
             "stokes_dim", "atmosphere_dim", "iy_space_agenda", "surface_prop_agenda", 
             "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", 
-            "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface", 
+            "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
             "pnd_field", "scat_data_mono", "basics_checked", "cloudbox_checked",
             "mc_seed", "y_unit", 
@@ -5782,9 +5805,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
-            "stokes_dim", "atmosphere_dim", "iy_space_agenda", "surface_prop_agenda", 
-            "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "ppath_step_agenda",
-            "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface", 
+            "stokes_dim", "atmosphere_dim", "iy_space_agenda", 
+            "surface_prop_agenda", "opt_prop_gas_agenda", 
+            "abs_scalar_gas_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_limits", "pnd_field", 
             "scat_data_mono", "mc_seed", "y_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
@@ -6606,9 +6630,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "z_field", "r_geoid", "z_surface", 
-            "cloudbox_on", "cloudbox_limits", "rte_pos", "rte_los" ),
+        IN( "ppath_step_agenda", "basics_checked", "atmosphere_dim", 
+            "p_grid", "lat_grid", "lon_grid", "z_field", "refellipsoid", 
+            "z_surface", "cloudbox_on", "cloudbox_checked", "cloudbox_limits", 
+            "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6639,8 +6664,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ppath_step", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-            "z_field", "r_geoid", "z_surface", "ppath_lmax" ),
+        IN( "ppath_step", "atmosphere_dim", "lat_grid", "lon_grid", 
+            "z_field", "refellipsoid", "z_surface", "ppath_lmax" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6681,8 +6706,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
-            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
-            "z_surface", "ppath_lmax", "ppath_lraytrace" ),
+            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
+            "refellipsoid", "z_surface", "ppath_lmax", "ppath_lraytrace" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6840,6 +6865,224 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "refellipsoidEarth" ),
+        DESCRIPTION
+        (
+         "Earth reference ellipsoids.\n"
+         "\n"
+         "The reference ellipsoid (*refellipsoid*) is set to model the Earth,\n"
+         "following different models. The options are:\n"
+         "\n"
+         "   \"Sphere\" : A spherical Earth. The radius is set following\n"
+         "      the value set for the Earth radius in constants.cc.\n"
+         "\n"
+         "   \"WGS84\" : The reference ellipsoid used by the GPS system.\n"
+         "      Should be the standard choice for a non-spherical Earth.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "model" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( "Sphere" ),
+        GIN_DESC( "Model ellipsoid to use. Options listed above." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidForAzimuth" ),
+        DESCRIPTION
+        (
+         "Conversion of 3D ellipsoid to 1D curvature radius.\n"
+         "\n"
+         "Calculates the curvature radius for the given latitude and azimuth\n"
+         "angle, and uses this to set a spherical reference ellipsoid\n"
+         "suitable for 1D calculations. The curvature radius is a better\n"
+         "local approximation than using the local ellipsoid radius.\n"
+         "\n"
+         "The used expression assumes a geodetic latitude, but also\n"
+         "latitudes should be OK as using this method anyhow signifies\n"
+         "an approximation.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "refellipsoid" ),
+        GIN( "latitude", "azimuth" ),
+        GIN_TYPE( "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Latitude.", "Azimuth angle." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidJupiter" ),
+        DESCRIPTION
+        (
+         "Jupiter reference ellipsoids.\n"
+         "\n"
+         "The reference ellipsoid (*refellipsoid*) is set to model Jupiter,\n"
+         "folowing different models. The options are:\n"
+         "\n"
+         "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+         "      report of the IAU/IAG Working Group.\n"
+         "\n"
+         "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
+         "      a report of the IAU/IAG Working Group.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "model" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( "Sphere" ),
+        GIN_DESC( "Model ellipsoid to use. Options listed above." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidMars" ),
+        DESCRIPTION
+        (
+         "Mars reference ellipsoids.\n"
+         "\n"
+         "The reference ellipsoid (*refellipsoid*) is set to model Mars,\n"
+         "folowing different models. The options are:\n"
+         "\n"
+         "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+         "      report of the IAU/IAG Working Group.\n"
+         "\n"
+         "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
+         "      a report of the IAU/IAG Working Group.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "model" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( "Sphere" ),
+        GIN_DESC( "Model ellipsoid to use. Options listed above." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidMoon" ),
+        DESCRIPTION
+        (
+         "Moon reference ellipsoids.\n"
+         "\n"
+         "The reference ellipsoid (*refellipsoid*) is set to model Moon,\n"
+         "folowing different models. The options are:\n"
+         "\n"
+         "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+         "      report of the IAU/IAG Working Group.\n"
+         "\n"
+         "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
+         "      Wikepedia (see code for details). The IAU/IAG working group\n"
+         "      defines the Moon ellipsoid to be a sphere.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "model" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( "Sphere" ),
+        GIN_DESC( "Model ellipsoid to use. Options listed above." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidOrbitPlane" ),
+        DESCRIPTION
+        (
+         "Conversion of 3D ellipsoid to 2D orbit track geometry.\n"
+         "\n"
+         "Determines an approximate reference ellipsoid following an orbit\n"
+         "track. The new ellipsoid is determined simply, by determining the\n"
+         "radius at the maximum latitude and from this value calculate a new\n"
+         "new eccentricity. The orbit is specified by giving the orbit\n"
+         "inclination (*orbitinc*), that is normally a value around 100 deg\n"
+         "for polar sun-synchronous orbits.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "refellipsoid" ),
+        GIN( "re" ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Orbit inclination." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidSet" ),
+        DESCRIPTION
+        (
+         "Manual setting of the reference ellipsoid.\n"
+         "\n"
+         "The two values of *refellipsoid* can here be set manually. The two\n"
+         "arguments correspond directly to first and second element of\n"
+         "*refellipsoid*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "re", "e" ),
+        GIN_TYPE(    "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, "0" ),
+        GIN_DESC( "Average or equatorial radius.", "Eccentricity" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refellipsoidVenus" ),
+        DESCRIPTION
+        (
+         "Venus reference ellipsoids.\n"
+         "\n"
+         "The reference ellipsoid (*refellipsoid*) is set to model Venus,\n"
+         "folowing different models. The options are:\n"
+         "\n"
+         "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+         "      report of the IAU/IAG Working Group.\n"
+         "\n"
+         "According to the report used above, the Venus ellipsoid lacks\n"
+         "eccentricity and no further models have been implemented.\n"         
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refellipsoid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "model" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( "Sphere" ),
+        GIN_DESC( "Model ellipsoid to use. Options listed above." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "refr_indexIR" ),
         DESCRIPTION
         (
@@ -6935,33 +7178,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_posAddRgeoid" ),
-        DESCRIPTION
-        (
-         "Adds a geoid radius by interpolating *r_geoid*.\n"
-         "\n"
-         "This function assumes that the first element of *rte_pos* is set\n"
-         "to the geometric altitude for the position of the sensor.\n"
-         "The variable *rte_pos* shall contain the radius instead of the\n"
-         "altitude and that can be achieved by this function. The function\n"
-         "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "obtained by interpolation of *r_geoid*. There is an error if the\n"
-         "given position is outside the latitude and longitude grids.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "rte_pos" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "rte_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "rte_posSet" ),
         DESCRIPTION
         (
@@ -6969,11 +7185,6 @@ void define_md_data_raw()
          "\n"
          "The longitude is ignored for 1D and 2D, and the latitude is also \n"
          "ignored for 1D.\n"
-         "\n"
-         "The argument *r_or_z* can either be a radius, or an altitude\n"
-         "above the geoid. In the latter case, a function such as\n"
-         "*rte_posAddGeoidWGS84* could be called to obtain a radius as\n"
-         "first element of *rte_pos*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "rte_pos" ),
@@ -6981,67 +7192,13 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim" ),
-        GIN( "r_or_z",  "lat",     "lon"     ),
+        GIN( "z",  "lat",     "lon"     ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
-        GIN_DESC( "Radius or geometrical altitude of sensor position.",
+        GIN_DESC( "Geometrical altitude of sensor position.",
                   "Latitude of sensor position.",
                   "Longitude of sensor position." 
                   )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "r_geoidSpherical" ),
-        DESCRIPTION
-        (
-         "Sets the geoid to be a perfect sphere.\n"
-         "\n"
-         "The radius of the sphere is selected by the generic argument r.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "r_geoid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
-        GIN( "r" ),
-        GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF     ),
-        GIN_DESC( "Radius of the geoid sphere. If negative, the radius is set to the "
-                  "global internal variable EARTH_RADIUS, defined in constants.cc."
-         )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "r_geoidWGS84" ),
-        DESCRIPTION
-        (
-         "Sets the geoid radius to match the WGS-84 reference ellipsoid.\n"
-         "\n"
-         "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsoid in the north-south direction. The latitude is\n"
-         "taken from *lat_grid*, that then is demanded to have length 1.\n"
-         "\n"
-         "For 2D and 3D, *r_geoid* is set to the radius of the WGS-84\n"
-         "ellipsoid for the crossing points of the latitude and longitude\n"
-         "grids.\n"
-         "\n"
-         "Please note that the latitude grid must contain true latitudes\n"
-         "if the function shall give correct result, and not just arbitrary\n"
-         "orbit angles which is allowed elsewhere for 2D cases.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "r_geoid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -7279,33 +7436,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "sensor_posAddRgeoid" ),
-        DESCRIPTION
-        (
-         "Adds a geoid radius by interpolating *r_geoid*.\n"
-         "\n"
-         "This function assumes that the first element of *sensor_pos* is set\n"
-         "to the geometric altitude for the position of the sensor.\n"
-         "The variable *rte_pos* shall contain the radius instead of the\n"
-         "altitude and that can be achieved by this function. The function\n"
-         "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "obtained by interpolation of *r_geoid*. There is an error if the\n"
-         "given position is outside the latitude and longitude grids.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_pos" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "sensor_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8867,7 +8997,6 @@ void define_md_data_raw()
          "are converted to a generic vector of zenith angles. The position of\n"
          "the sensor is given by the WSV *sensor_pos*. The function works\n"
          "only for 1D. The zenith angles are always set to be positive.\n"
-         "The tangent altitudes are given as the altitude above the geoid.\n"
          ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT(),
@@ -8875,7 +9004,7 @@ void define_md_data_raw()
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "Vector with zenith angles." ),
         IN( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
-            "vmr_field", "r_geoid", "atmosphere_dim" ),
+            "vmr_field", "refellipsoid", "atmosphere_dim" ),
         GIN(         "v_ztan" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
@@ -8892,16 +9021,14 @@ void define_md_data_raw()
          "The tangent altitudes are given to the function as a vector, which\n"
          "are converted to a generic vector of zenith angles. The position of\n"
          "the sensor is given by the WSV *sensor_pos*. The function works\n"
-         "only for 1D, where the geoid radius is taken from *r_geoid*. The\n"
-         "zenith angles are always set to be positive. The tangent altitudes\n"
-         "are given as the altitude above the geoid.\n"
+         "only for 1D. The zenith angles are always set to be positive.\n"
          ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "v_za"       ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "Vector with zenith angles." ),
-        IN( "sensor_pos", "r_geoid", "atmosphere_dim" ),
+        IN( "sensor_pos", "refellipsoid", "atmosphere_dim" ),
         GIN(         "v_ztan" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
@@ -9279,8 +9406,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "met_profile_calc_agenda", "f_grid", "met_amsu_data",
-            "sensor_pos", "r_geoid", "lat_grid", "lon_grid", "atmosphere_dim",
-            "scat_data_raw" ),
+            "sensor_pos", "refellipsoid", "lat_grid", "lon_grid", 
+            "atmosphere_dim", "scat_data_raw" ),
         GIN( "nelem_p_grid", "met_profile_path", "met_profile_pnd_path" ),
         GIN_TYPE(    "Index",        "String",           "String" ),
         GIN_DEFAULT( NODEF,          NODEF,              NODEF ),
@@ -9323,7 +9450,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "met_profile_calc_agenda", 
-            "f_grid", "met_amsu_data", "sensor_pos", "r_geoid" ),
+            "f_grid", "met_amsu_data", "sensor_pos", "refellipsoid" ),
         GIN( "nelem_p_grid", "met_profile_path" ),
         GIN_TYPE(    "Index",        "String" ),
         GIN_DEFAULT( NODEF,          NODEF ),
@@ -9488,7 +9615,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species", 
-            "t_field", "z_field", "vmr_field", "r_geoid", "z_surface",
+            "t_field", "z_field", "vmr_field", "refellipsoid", "z_surface",
             "basics_checked", "p_hse", "z_hse_accuracy" ),
         GIN(),
         GIN_TYPE(),

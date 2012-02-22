@@ -158,6 +158,7 @@ add_library (artscore STATIC
   file.cc
   gas_abs_lookup.cc
   geomag_calc.cc
+  geodetic.cc
   globals_2.cc
   gridded_fields.cc
   gzstream.cc
@@ -178,6 +179,7 @@ add_library (artscore STATIC
   m_doit.cc
   m_fos.cc
   m_general.cc
+  m_geodetic.cc
   m_jacobian.cc
   m_montecarlo.cc
   m_optproperties.cc
@@ -210,6 +212,7 @@ add_library (artscore STATIC
   sourcetext.cc
   special_interp.cc
   species_data.cc
+  surface.cc
   token.cc
   workspace.cc
   workspace_ng.cc

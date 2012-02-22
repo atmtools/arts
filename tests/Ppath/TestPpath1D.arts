@@ -1,0 +1,128 @@
+# ARTS control file for testing 1D propagation path calculations
+# 
+# 2012-02-17 Patrick Eriksson
+
+Arts2{
+
+INCLUDE "../../ARTS/arts-dev/includes/general.arts"
+
+
+# Reference ellipsoid
+#
+refellipsoidEarth( refellipsoid, "Sphere" )
+
+
+# A pressure grid rougly matching 0 to 80 km.
+#
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+
+# Atmospheric dimensionality
+#
+AtmosphereSet1D
+
+
+# Water vapour needed if refraction will be calculated
+#
+SpeciesSet( abs_species, ["H2O"] )
+
+
+# Read a 1D atmospheric case
+#
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "../../ARTS/arts-xml-data/atmosphere/fascod/midlatitude-winter" )
+AtmFieldsCalc
+
+
+# Ground altitude (z_surface)
+#
+MatrixSetConstant( z_surface, 1, 1, 500 )
+
+
+# Activate to make tests with cloudbox on:
+#FlagOn( cloudbox_on )
+#ArrayOfIndexSet( cloudbox_limits, [ 4, 10 ] )
+
+
+# A dummy frequency grid
+#
+VectorSet( f_grid, [100e9] )
+
+
+# Check if atmosphere OK
+#
+basics_checkedCalc
+cloudbox_checkedCalc
+
+
+# Agenda for refractive index agenda
+# (not used if ppath_stepGeometric used in ppath_step_agenda)
+#
+AgendaSet( refr_index_agenda ){
+  refr_indexThayer
+}
+
+
+# Max step length and agenda for the calculation of the propagation path
+#
+NumericSet( ppath_lmax, 20e3 )
+AgendaSet( ppath_step_agenda ){
+  ppath_stepGeometric
+}
+
+
+
+
+
+#
+# A single propagation path:
+#
+
+# Set a observation position and line-of-sight (LOS)
+#
+VectorSet( rte_pos, [ 600e3 ] )
+#VectorSet( rte_los, [ 112.2550477986 ] )  # Angle that just touches for 600e3
+VectorSet( rte_los, [ 113 ] )
+
+
+# Calculate propagation path
+#
+ppathCalc
+
+
+# Print complete ppath
+#
+#Print( ppath, 0 )
+
+
+
+# Uncomment to skip batch part below
+# 
+#Exit()
+
+
+
+#
+# Run through a number of cases, that should run without error
+# 
+
+
+# Use sensor_pos/los to store each case
+#
+MatrixSet( sensor_pos, [600e3;600e3;600e3; 3e3; 10e3; 9e3; 500; 500] )
+MatrixSet( sensor_los, [   45;   95;  113;   0;   90; 100;  45; 100] )
+
+IndexCreate( ilast )
+nrowsGet( ilast, sensor_pos )
+IndexStepDown( ilast, ilast )
+
+AgendaSet( forloop_agenda ){
+  #Print( forloop_index, 0 )
+  VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )
+  VectorExtractFromMatrix( rte_los, sensor_los, forloop_index, "row" )
+  ppathCalc
+}
+
+ForLoop( forloop_agenda, 0, ilast, 1  )
+
+}
