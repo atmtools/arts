@@ -1,3 +1,12 @@
+2012-02-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-3
+
+	* src/ppath.cc (ppath_step_geom_1d): Had to reinroduce handling of
+	tangent points on this level. It was here for a good reason that I
+	forgot (to also handle DOIT). Tangent points now flagged as endface
+	8. Same change for 2D.
+
 2012-02-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-2
@@ -39,7 +48,7 @@
 	* arts-2-0-38dev4
 
 	* src/ppath.cc (ppath_calc): lspace was not transfered to final
-	ppath. Polishing of new code for 1D and 2D geomtric.	
+	ppath. Polishing of new code for 1D and 2D geomtric.
 
 	* src/xml_io_compound_types.cc: Ppath constant was saved as
 	lspace!

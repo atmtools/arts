@@ -1660,56 +1660,32 @@ void do_gridrange_1d(
   else if( r_start > rb )
     { r_start = rb; }
 
+  double r_end;
   endface = -1;
 
   // If upward, end point radius is always rb
   if( za_start <= 90 )
-    { 
-      endface = 3;
-      // Calculate basic variables from r_start to rb:
-      geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, 
-                                               lat_start, za_start, rb, lmax );
-    }
+    { endface = 3;   r_end = rb; }
+
   else
     {
       // Path reaches ra:
       if( ra > rsurface  &&  ra > ppc ) 
-        {
-          endface = 1;
-          geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, 
-                                               lat_start, za_start, ra, lmax );
-        }
+        { endface = 1;   r_end = ra; }
+
       // Path reaches the surface:
       else if( rsurface > ppc )
-        {
-          endface = 7;
-          geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, 
-                                         lat_start, za_start, rsurface, lmax );
-        }
-      // The tangent point is passed, on the way back to rb
+        { endface = 7;   r_end = rsurface; }
+      
+      // The remaining option is a tangent point:
       else
-        {
-          endface = 1;
-          Vector rx, latx, zax, ry, laty, zay;
-          geompath_from_r1_to_r2( rx, latx, zax, lstep, ppc, r_start, 
-                                              lat_start, za_start, ppc, lmax );
-          const Index lx = rx.nelem()-1;
-          geompath_from_r1_to_r2( ry, laty, zay, lstep, ppc, rx[lx], 
-                                                 latx[lx], zax[lx], rb, lmax );
-          const Index ly = ry.nelem()-1, n  = lx + ly + 1;
-          //
-          r_v.resize(n); lat_v.resize(n); za_v.resize(n);
-          //
-          for( Index i=0; i<=lx; i++ )
-            { r_v[i] = rx[i];   lat_v[i] = latx[i];   za_v[i] = zax[i]; }
-          for( Index i=0; i<=ly; i++ )
-            { 
-              const Index iv = lx + i;
-              r_v[iv] = ry[i];   lat_v[iv] = laty[i];   za_v[iv] = zay[i]; 
-            }
-        }
+        { endface = 8;   r_end = ppc; }
     }
+
   assert( endface > 0 );
+  
+  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start,
+                                                       za_start, r_end, lmax );
 }
 
 
@@ -1727,6 +1703,7 @@ void do_gridrange_1d(
    3: The face at the upper latitude point. <br>
    4: The face at the upper (geometrically) pressure level. <br>
    7: The end point is an intersection with the surface. 
+   8: The end point is a tangent point. 
 
    The corner points are names r[lat][a,b]. For example: r3b.
    The latitudes are numbered to match the end faces. This means that
@@ -1769,193 +1746,6 @@ void do_gridcell_2d(
               Vector&   za_v,
               double&   lstep,
               Index&    endface,
-        const double&   r_start0,
-        const double&   lat_start,
-        const double&   za_start,
-        const double&   ppc,
-        const double&   lmax,
-        const double&   lat1,
-        const double&   lat3,
-        const double&   r1a,
-        const double&   r3a,
-        const double&   r3b,
-        const double&   r1b,
-        const double&   rsurface1,
-        const double&   rsurface3 )
-{
-  double   r_start = r_start0;
-
-  // Assert latitudes
-  assert( lat_start >= lat1 );
-  assert( lat_start <= lat3 );
-
-  // Slopes of pressure levels
-  const double  c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
-  const double  c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
-  const double  csurface = plevel_slope_2d( lat1, lat3, rsurface1, rsurface3 );
-
-  // Latitude distance between start point and left grid cell boundary
-  const double dlat_left  = lat_start - lat1;
-
-  // Radius of lower and upper pressure level at *lat_start*.
-  const double   rlow = r1a + c2*dlat_left;
-  const double   rupp = r1b + c4*dlat_left;
-
-  // Latitude distance to latitude end face in the viewing direction
-  double dlat_endface;
-  if( za_start >= 0 )
-    { dlat_endface = lat3 - lat_start; }
-  else
-    { dlat_endface = -dlat_left; }
-
-  // Assert radius (some extra tolerance is needed for radius)
-  assert( r_start >= rlow - RTOL );
-  assert( r_start <= rupp + RTOL );
-
-  // Shift radius if outside
-  if( r_start < rlow )
-    { r_start = rlow; }
-  else if( r_start > rupp )
-    { r_start = rupp; }
-
-  // The end point is most easily determined by the latitude difference to 
-  // the start point. For some cases there exist several crossings and we want 
-  // the one closest in latitude to the start point. The latitude distance 
-  // for the crossing shall not exceed dlat2end.
-  //
-  double   dlat2end = 999;
-  double   abs_za_start = abs( za_start );
-           endface = 0;
-
-
-  // --- Lower face 
-  //
-  // We don't need to consider the face if we are standing
-  // on the pressure level.
-  //
-  if( r_start > rlow  &&  abs(za_start) > ANGTOL )
-    {
-      dlat2end = plevel_crossing_2d( r_start, za_start, rlow, c2 );
-      endface = 2;  // This variable will be re-set if there was no crossing
-    }
-
-
-  // --- The surface.
-  //
-  // Check shall be done only if the surface is, at least partly, inside 
-  // the grid cell.
-  //
-  if( rsurface1 >= r1a  ||  rsurface3 >= r3a )
-    {
-      double r_surface = rsurface1 + csurface * dlat_left;
-     
-      assert( r_start >= r_surface );
-
-      double dlat2surface = plevel_crossing_2d( r_start, za_start, r_surface,
-                                                                     csurface );
-      if( abs(dlat2surface) <= abs(dlat2end) )
-        {
-          dlat2end = dlat2surface;
-          endface  = 7;
-        }
-    }
-
-
-  // If dlat2end <= dlat_endface we are ready. Otherwise we have to check
-  // remaining cell faces. The same applies after testing upper face.
-
-
-  // --- Upper face  (pressure level ip+1).
-  //
-  if( abs(dlat2end) > abs(dlat_endface)  &&  abs_za_start < 180-ANGTOL )
-    {
-      // For cases when the tangent point is in-between *r_start* and
-      // the pressure level, 999 is returned. This case will anyhow
-      // be handled correctly.
-
-      double dlattry = plevel_crossing_2d( r_start, za_start, rupp, c4 );
-
-      if( abs(dlattry) < abs(dlat2end) )
-        {
-          dlat2end = dlattry;
-          endface  = 4;
-        }
-    }
-
-  // Left or right end face
-  if( abs(dlat2end) > abs(dlat_endface) )
-    { 
-      dlat2end = dlat_endface; 
-      if( za_start >= 0 )
-        { endface  = 3; }
-      else
-        { endface  = 1; }
-    }
-  assert( endface );
-
-  // Check if there is a tangent point inside the grid cell. A tangent point
-  // requires special treatment
-  if( abs_za_start > 90  &&  ( abs_za_start - abs(dlat2end) ) < 90 ) 
-    {  
-      Vector rx, latx, zax, ry, laty, zay;
-      geompath_from_r1_to_r2( rx, latx, zax, lstep, ppc, r_start, 
-                                              lat_start, za_start, ppc, lmax );
-      const Index lx = rx.nelem()-1;
-      do_gridcell_2d( ry, laty, zay, lstep, endface, ppc, latx[lx], zax[lx], 
-                      ppc, lmax, lat1, lat3, r1a, r3a, r3b, r1b, 
-                      rsurface1, rsurface3 );
-      const Index ly = ry.nelem()-1, n  = lx + ly + 1;
-      //
-      r_v.resize(n); lat_v.resize(n); za_v.resize(n);
-      //
-      for( Index i=0; i<=lx; i++ )
-        { r_v[i] = rx[i];   lat_v[i] = latx[i];   za_v[i] = zax[i]; }
-      for( Index i=0; i<=ly; i++ )
-        { 
-          const Index iv = lx + i;
-          r_v[iv] = ry[i];   lat_v[iv] = laty[i];   za_v[iv] = zay[i]; 
-        }
-    }
-
-  // No tangent point
-  else
-    {
-      // Calculate radius for end point.
-      // To obtain best possible accuracy it is calculated to match found,
-      // end face, and not based on dlat2end.
-      //
-      double   r_end = -1;
-      //
-      if( endface == 1 )
-        { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
-      else if( endface == 2 )
-        { r_end = r1a + c2 * ( dlat_left + dlat2end ); }
-      else if( endface == 3 )
-        { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat3 ); }
-      else if( endface == 4 )
-        { r_end = r1b + c4 * ( dlat_left + dlat2end ); }
-      else if( endface == 7 )
-        { r_end = rsurface1 + csurface * ( dlat_left + dlat2end ); }
-
-      // Fill the return vectors
-      geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                                                       za_start, r_end, lmax );
-
-      // Force end latitude to be exact as possible
-      if( endface == 1 )
-        { lat_v[lat_v.nelem()-1] = lat1; }
-      else if( endface == 3 )
-        { lat_v[lat_v.nelem()-1] = lat3; }
-      else
-        { lat_v[lat_v.nelem()-1] = lat_start + dlat2end; }
-    }
-}
-void do_gridcell_2dv2(
-              Vector&   r_v,
-              Vector&   lat_v,
-              Vector&   za_v,
-              double&   lstep,
-              Index&    endface,
         const double&   r_start,
         const double&   lat_start,
         const double&   za_start,
@@ -1992,6 +1782,16 @@ void do_gridcell_2dv2(
       double rt, latt; 
       plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
                                             lat3, rsurface1, rsurface3, true );
+
+      /*
+      cout << "        r: " << r/1e3 << endl;
+      cout << "      lat: " << lat << endl;
+      cout << "  r_start: " << r_start/1e3 << endl;
+      cout << "rsurface1: " << rsurface1/1e3 << endl;
+      cout << "rsurface3: " << rsurface3/1e3 << endl;
+      cout << "       rt: " << rt/1e3 << endl;
+      cout << "     latt: " << latt << endl;
+      */
       if( rt > 0  &&  abs(latt-lat_start) <= abs(lat-lat_start) )
         { endface = 7;   r = rt;   lat = latt; }
     }
@@ -2020,41 +1820,13 @@ void do_gridcell_2dv2(
 
   assert (endface );
 
-  // Check if there is a tangent point inside the grid cell. A tangent point
-  // requires special treatment
+  // Check if there is a tangent point inside the grid cell. 
   const double absza = abs( za_start );
   if( absza > 90  &&  ( absza - abs(lat_start-lat) ) < 90 ) 
-    {  
-      Vector rx, latx, zax, ry, laty, zay;
-      geompath_from_r1_to_r2( rx, latx, zax, lstep, ppc, r_start, lat_start, 
-                                                         za_start, ppc, lmax );
-      const Index lx = rx.nelem()-1;
-      do_gridcell_2dv2( ry, laty, zay, lstep, endface, ppc, latx[lx], zax[lx], 
-                        ppc, lmax, lat1, lat3, r1a, r3a, r3b, r1b, 
-                        rsurface1, rsurface3 );
-      const Index ly = ry.nelem()-1, n  = lx + ly + 1;
-      //
-      r_v.resize(n); lat_v.resize(n); za_v.resize(n);
-      //
-      for( Index i=0; i<=lx; i++ )
-        { r_v[i] = rx[i];   lat_v[i] = latx[i];   za_v[i] = zax[i]; }
-      for( Index i=0; i<=ly; i++ )
-        { 
-          const Index iv = lx + i;
-          r_v[iv] = ry[i];   lat_v[iv] = laty[i];   za_v[iv] = zay[i]; 
-        }
-    }
+    { endface = 8;   r = ppc; }
 
-  // No tangent point
-  else
-    {
-      // Fill the return vectors
-      geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
                                                            za_start, r, lmax );
-
-      // Re-set last latitude, for higher accuracy (possibly?)
-      lat_v[lat_v.nelem()-1] = lat;
-    }
 }
 
 
@@ -3152,7 +2924,7 @@ void ppath_end_1d(
     { ppath_set_background( ppath, 2 ); }
 
   //--- End point is on top of a pressure level
-  else
+  else if( endface <= 3 )
     { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nelem() ); }
 }
 
@@ -3869,6 +3641,19 @@ void ppath_step_geom_1d(
   ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
                                                                 endface, ppc );
   // nreal is set to 1 in ppath_stepGeometric
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      ppath_step_geom_1d( ppath2, z_field, refellipsoid, z_surface, lmax );
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
 }
 
 
@@ -3925,7 +3710,7 @@ void ppath_step_geom_2d(
   double   lstep;
   Index    endface;
 
-  do_gridcell_2dv2( r_v, lat_v, za_v, lstep, endface,
+  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
                   r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
                                     r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
 
@@ -3934,6 +3719,20 @@ void ppath_step_geom_2d(
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
                                                       ip, ilat, endface, ppc );
   // nreal is set to 1 in ppath_stepGeometric
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
+                                                                        lmax );
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
 }
 
 
