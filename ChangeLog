@@ -1,3 +1,29 @@
+2012-02-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-5
+
+	* src/parameters.{cc,h}:
+
+	Add datapath to class Parameters.
+
+	(parse_path_from_environment): Add function to parse paths from an
+	environment variable.
+
+	(get_parameters): Add option --datapath.
+
+	* src/parser.cc (ArtsParser::parse_agenda):
+
+	Pass includepath to find_file
+
+	* src/main.cc (main): Add datapath output to -v.
+
+	* src/file.{cc,h} (find_file): Add parameter paths.
+
+	* src/xml_io.cc
+	(xml_read_from_file,xml_read_arts_catalogue_from_file):
+
+	Pass includepath and datapath to find_file.
+
 2012-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-4

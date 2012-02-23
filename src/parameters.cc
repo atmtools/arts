@@ -39,6 +39,39 @@
 /// Holds the command line parameters.
 Parameters parameters;
 
+
+//! Parse path environment variable
+/** 
+ Parse a colon separated list of paths from the given environment variable
+ into an ArrayOfString.
+ 
+ \param[in]  envvar  Name of environment variable.
+ \param[out] paths   ArrayOfString of paths.
+ 
+ \author Oliver Lemke
+ */
+void parse_path_from_environment (String envvar, ArrayOfString& paths)
+{
+  char *envval = getenv (envvar.c_str());
+  if (envval)
+  {
+    String pathstring(envval);
+    
+    // Skip delimiters at beginning.
+    String::size_type lastPos = pathstring.find_first_not_of(":", 0);
+    // Find first "non-delimiter".
+    String::size_type pos     = pathstring.find_first_of(":", lastPos);
+    
+    while (String::npos != pos || String::npos != lastPos)
+    {
+      paths.push_back (pathstring.substr (lastPos, pos - lastPos));
+      lastPos = pathstring.find_first_not_of(":", pos);
+      pos = pathstring.find_first_of(":", lastPos);
+    }
+  }
+}
+
+
 bool get_parameters(int argc, char **argv)
 {
   /*
@@ -96,6 +129,7 @@ bool get_parameters(int argc, char **argv)
 #endif
     { "help",               no_argument,       NULL, 'h' },
     { "includepath",        required_argument, NULL, 'I' },
+    { "datapath",           required_argument, NULL, 'D' },
     { "input",              required_argument, NULL, 'i' },
     { "methods",            required_argument, NULL, 'm' },
     { "numthreads",         required_argument, NULL, 'n' },
@@ -121,6 +155,7 @@ bool get_parameters(int argc, char **argv)
 #endif
     "       [--help]\n"
     "       [--includepath <path>]\n"
+    "       [--datapath <path>]\n"
     "       [--input <variable>]\n"
     "       [--methods all|<variable>]\n"
     "       [--numthreads <#>\n"
@@ -156,7 +191,11 @@ bool get_parameters(int argc, char **argv)
     "                    Paths specified on the commandline have precedence\n"
     "                    over the environment variable and will be searched\n"
     "                    first.\n"
-    "-m, --methods       If this is given the argument `all',\n"
+    "-D  --datapath      Additional search path for data files. Directories\n"
+    "                    specified here will be searched after the includepath.\n"
+    "                    Data paths can also be added by setting the\n"
+    "                    environment variable ARTS_DATA_PATH.\n"
+    "-m, --methods       If this is given the argument 'all',\n"
     "                    it simply prints a list of all methods.\n"
     "                    If it is given the name of a variable\n"
     "                    (or variable group), it prints all\n"
@@ -182,7 +221,7 @@ bool get_parameters(int argc, char **argv)
     "-S, --docdaemon     Start documentation server in the background.\n"
 #endif
     "-v, --version       Show version information.\n"
-    "-w, --workspacevariables  If this is given the argument `all',\n"
+    "-w, --workspacevariables  If this is given the argument 'all',\n"
     "                    it simply prints a list of all variables.\n"
     "                    If it is given the name of a method, it\n"
     "                    prints all variables needed by this method.";
@@ -255,6 +294,9 @@ bool get_parameters(int argc, char **argv)
           break;
         case 'I':
           parameters.includepath.push_back (optarg);
+          break;
+        case 'D':
+          parameters.datapath.push_back (optarg);
           break;
         case 'm':
           parameters.methods = optarg;
@@ -346,30 +388,12 @@ bool get_parameters(int argc, char **argv)
       optind++;
     }
 
-  //  cout << "alle:\n" << parameters.controlfiles << '\n';
-
-  // Look for include paths in the ARTS_PATH environment variable and
+  // Look for include paths in the ARTS_INCLUDE_PATH environment variable and
   // append them to parameters.includepath
 
-  char *artspathenv = getenv ("ARTS_INCLUDE_PATH");
 
-  if (artspathenv)
-    {
-      String artspath (artspathenv);
-
-      // Skip delimiters at beginning.
-      String::size_type lastPos = artspath.find_first_not_of(":", 0);
-      // Find first "non-delimiter".
-      String::size_type pos     = artspath.find_first_of(":", lastPos);
-
-      while (String::npos != pos || String::npos != lastPos)
-        {
-          parameters.includepath.push_back (artspath.substr (lastPos,
-                                                             pos - lastPos));
-          lastPos = artspath.find_first_not_of(":", pos);
-          pos = artspath.find_first_of(":", lastPos);
-        }
-    }
+  parse_path_from_environment(String("ARTS_INCLUDE_PATH"), parameters.includepath);
+  parse_path_from_environment(String("ARTS_DATA_PATH"), parameters.datapath);
   
 #ifdef ARTS_DEFAULT_INCLUDE_DIR
   String arts_default_include_path (ARTS_DEFAULT_INCLUDE_DIR);

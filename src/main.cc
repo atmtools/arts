@@ -799,6 +799,13 @@ int main (int argc, char **argv)
       {
         osfeatures <<  "   " << (*it) << endl;
       }
+        osfeatures << "Data search paths: " << endl;
+      
+      for (ArrayOfString::const_iterator it = parameters.datapath.begin();
+           it != parameters.datapath.end(); it++)
+      {
+        osfeatures <<  "   " << (*it) << endl;
+      }
     }
 
   if (parameters.version)

@@ -376,10 +376,9 @@ bool file_exists(const String& filename)
 
   @author Oliver Lemke
 */
-bool find_file(String& filename, const char* extension)
+bool find_file(String& filename, const char* extension, const ArrayOfString& paths)
 {
   bool exists = true;
-  extern const Parameters parameters;
 
   if (!file_exists (filename))
     {
@@ -389,11 +388,11 @@ bool find_file(String& filename, const char* extension)
         }
       else
         {
-          Index i;
-          for (i=0; i < parameters.includepath.nelem(); i++)
+          ArrayOfString::const_iterator path;
+          for (path = paths.begin(); path != paths.end(); path++)
             {
               String fullpath;
-              fullpath = parameters.includepath[i] + "/" + filename;
+              fullpath = (*path) + "/" + filename;
               if (file_exists (fullpath))
                 {
                   filename = fullpath;
@@ -405,7 +404,7 @@ bool find_file(String& filename, const char* extension)
                   break;
                 }
             }
-          if (i == parameters.includepath.nelem())
+          if (path == paths.end())
             {
               exists = false;
             }

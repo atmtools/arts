@@ -54,6 +54,7 @@ public:
     methods(""),
     numthreads(0),
     includepath(),
+    datapath(),
     input(""),
     workspacevariables(""),
     describe(""),
@@ -95,6 +96,8 @@ public:
   Index numthreads;
   /** List of paths to search for include files. */
   ArrayOfString includepath; 
+  /** List of paths to search for data files. */
+  ArrayOfString datapath; 
   /** This is complementary to the methods switch. It must be given
       the name of a variable (or group). Then it lists all methods that take this
       variable (or group) as input. */

@@ -247,7 +247,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
           // Command line parameters which give us the include search path.
           extern const Parameters parameters;
 
-          if (!find_file (include_file, ".arts"))
+          if (!find_file (include_file, ".arts", parameters.includepath))
             {
               ostringstream os;
               os << "Cannot find include file " << include_file

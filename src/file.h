@@ -70,8 +70,8 @@ void replace_all(String& s, const String& what, const String& with);
 
 int check_newline(const String& s);
 
-bool file_exists (const String& filename);
+bool file_exists(const String& filename);
 
-bool find_file (String& filename, const char* extension);
+bool find_file(String& filename, const char* extension, const ArrayOfString& paths);
 
 #endif
