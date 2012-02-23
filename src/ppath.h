@@ -227,6 +227,12 @@ void ppath_step_geom_1d(
         const double&     z_surface,
         const double&     lmax );
 
+void ppath_geom_updown_1d(
+              Ppath&      ppath,
+        ConstVectorView   z_field,
+        ConstVectorView   refellipsoid,
+        const double&     z_surface );
+
 void ppath_step_geom_2d(
               Ppath&      ppath,
         ConstVectorView   lat_grid,

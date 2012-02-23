@@ -3417,7 +3417,7 @@ void define_md_data_raw()
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
             "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
-            "z_surface", "t_field", "f_grid", "f_index", "surface_prop_agenda",
+            "t_field", "f_grid", "f_index", "surface_prop_agenda",
             "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
@@ -3448,7 +3448,7 @@ void define_md_data_raw()
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field",
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
             "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
-            "z_surface", "t_field", "f_grid", "f_index", "surface_prop_agenda",
+            "t_field", "f_grid", "f_index", "surface_prop_agenda",
             "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
@@ -3514,7 +3514,7 @@ void define_md_data_raw()
             "pnd_field",
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
             "ppath_step_agenda", "p_grid", "lat_grid", "lon_grid", "z_field",
-            "refellipsoid", "z_surface", "t_field",
+            "refellipsoid", "t_field",
             "f_grid", "f_index", "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
@@ -6666,6 +6666,41 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "ppath_step", "atmosphere_dim", "lat_grid", "lon_grid", 
             "z_field", "refellipsoid", "z_surface", "ppath_lmax" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppath_stepGeometricUpDown" ),
+        DESCRIPTION
+        (
+         "Calculates geometrical propagation paths for some conditions.\n"
+         "\n"
+         "A rapid method for calculating geometrical propagation paths if:\n"
+         "   * 1D atmosphere.\n"
+         "   * Cloudbox not active.\n"
+         "   * The WSM ppath_lmax is < 0.\n"
+         "   * The sensor zenith angle is either 0-85 or 120-180 deg.\n"
+         "\n"
+         "The two last points exclude to use the method for limb sounding.\n"
+         "That is, the method is intended only for observations of up-ward\n"
+         "and down-ward type. However, when this method can be used, it is\n"
+         "very much faster than the standard WSM: *ppath_stepGeometric*.\n"
+         "\n"
+         "This method is faster as it calculates the complete path in one\n"
+         "call. This is a short-cut compared to concept of ppath steps, and\n"
+         "the method can not be used generally.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath_step" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath_step", "atmosphere_dim", "z_field", "refellipsoid", 
+            "z_surface", "cloudbox_on", "ppath_lmax" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

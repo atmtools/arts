@@ -140,6 +140,43 @@ void ppath_stepGeometric(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_stepGeometricUpDown(// WS Output:
+                         Ppath&           ppath_step,
+                         // WS Input:
+                         const Index&     atmosphere_dim,
+                         const Tensor3&   z_field,
+                         const Vector&    refellipsoid,
+                         const Matrix&    z_surface,
+                         const Index&     cloudbox_on, 
+                         const Numeric&   ppath_lmax,
+                         const Verbosity&)
+{
+  // Check if OK to use function
+  if( atmosphere_dim > 1 )
+    {
+      throw runtime_error( "This method can only be used for 1D atmospheres." );
+    }
+  if( ppath_lmax >= 0 )
+    {
+      throw runtime_error( "This method can only be used for ppath_lmax < 0." );
+    }
+  if( cloudbox_on )
+    {
+      throw runtime_error( 
+                      "This method can not be used with an active cloud box." );
+    }
+  // Zenith angle checked in sub-function
+
+  ppath_geom_updown_1d( ppath_step, z_field(joker,0,0), refellipsoid, 
+                                                               z_surface(0,0) );
+
+  // Set nreal
+  ppath_step.nreal = 1;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepRefractionEuler(Workspace&  ws,
                                // WS Output:
                                Ppath&      ppath_step,

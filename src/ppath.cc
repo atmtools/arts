@@ -1391,6 +1391,12 @@ double rslope_crossing(
         const double&   r0,
               double    c )
 {
+  /*
+  cout << "  rp: " << rp/1e3 << endl;
+  cout << "  za: " << za << endl;
+  cout << "  r0: " << r0/1e3 << endl;
+  cout << "   c: " << c << endl;
+  */
   // If r0=rp, numerical inaccuracy can give a false solution, very close
   // to 0, that we must throw away.
   double   dmin = 0;
@@ -1429,7 +1435,7 @@ double rslope_crossing(
       if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
         { dlat = roots(i,0); }
     }  
-  
+
   if( dlat < 1.57 )  // A somewhat smaller value than start one
     { 
       // Convert back to degrees
@@ -1496,21 +1502,17 @@ void plevel_crossing_2d(
   assert( absza <= 180 );
   assert( lat_start >=lat1  &&  lat_start <= lat3 );
 
-  // The case of no slope
-  if( r1 == r3 )
+  const double  cpl = plevel_slope_2d( lat1, lat3, r1, r3 );
+
+  // The case of negligible slope
+  if( abs(cpl) < 1e-6 )
     {
       // Set r_start, considering impact of numerical problems
       double r_start = r_start0;
       if( above )
-        { 
-          if( r_start < r1 ) 
-            { assert(r1-r_start<RTOL);   r_start = r1; } 
-        }
+        { if( r_start < r1 ) { r_start = r1; } }
       else
-        { 
-          if( r_start > r1 ) 
-            { assert(r_start-r1<RTOL);   r_start = r1; } 
-        }
+        { if( r_start > r1 ) { r_start = r1; } }
 
       double l;
       r = r1;
@@ -1530,15 +1532,9 @@ void plevel_crossing_2d(
       // Set r_start, considering impact of numerical problems
       double r_start = r_start0;
       if( above )
-        { 
-          if( r_start < rmin ) 
-            { assert(rmin-r_start<RTOL);   r_start = rmin; } 
-        }
+        { if( r_start < rmin ) { r_start = rmin; } }
       else
-        { 
-          if( r_start > rmax ) 
-            { assert(r_start-rmax<RTOL);   r_start = rmax; } 
-        }
+        { if( r_start > rmax ) { r_start = rmax; } }
 
       double l, za=999;
 
@@ -1563,21 +1559,14 @@ void plevel_crossing_2d(
       // Otherwise continue from found point, considering the level slope 
       else
         {
-          // Radius and slope at lat
-          const double  cpl = plevel_slope_2d( lat1, lat3, r1, r3 );
+          // Radius at lat
           const double  rpl = r1 + cpl*(lat-lat1);
 
           // Make adjustment if numerical problems
           if( above )
-            { 
-              if( r < rpl ) 
-                { assert(rpl-r<RTOL);   r = rpl; } 
-            }
+            { if( r < rpl ) { r = rpl; } }
           else
-            { 
-              if( r > rpl ) 
-                { assert(r-rpl<RTOL); r = rpl; } 
-            }
+            { if( r > rpl ) { r = rpl; } }
 
           // za_start = 0
           if( abs(za_start) < ANGTOL )
@@ -3668,6 +3657,136 @@ void ppath_step_geom_1d(
 
 
 
+void ppath_geom_updown_1d(
+              Ppath&      ppath,
+        ConstVectorView   z_field,
+        ConstVectorView   refellipsoid,
+        const double&     z_surface )
+{
+  // Starting radius, zenith angle and latitude
+  double r_start, lat_start, za_start;
+
+  // Index of the pressure level being the lower limit for the
+  // grid range of interest.
+  Index ip;
+
+  // Determine the variables defined above, and make asserts of input
+  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
+
+  if( za_start > 85  &&  za_start < 120 )
+    {
+      throw runtime_error( "This method can not be used for zenith angles "
+                           "between 85 and 120 deg.!!");
+    }
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  double ppc;
+  if( ppath.constant < 0 )
+    { ppc = geometrical_ppc( r_start, za_start ); }
+  else
+    { ppc = ppath.constant; }
+
+  // Upward
+  if( za_start < 90 )
+    { 
+      const Index np = z_field.nelem() - ip;
+
+      ppath_init_structure( ppath, 1, np );
+      //
+      ppath.constant = ppc;
+      //
+      // Start point
+      ppath.r[0]          = r_start;
+      ppath.pos(0,0)      = r_start - refellipsoid[0];
+      ppath.los(0,0)      = za_start;
+      ppath.pos(0,1)      = lat_start;
+      double llast        = geompath_l_at_r( ppc, ppath.r[0] );
+      ppath.gp_p[0].idx   = ip;
+      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
+                            ( z_field[ip+1]  - z_field[ip] );
+      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
+      gridpos_check_fd( ppath.gp_p[0] );
+      // Later points
+      for( Index i=1; i<np; i++ )
+        {
+          ppath.pos(i,0)      = z_field[ip+i];
+          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
+          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
+          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
+                                                              ppath.los(i,0) );
+          const double lthis  = geompath_l_at_r( ppc, ppath.r[i] );
+          ppath.l_step[i-1]   = lthis - llast;
+          llast               = lthis;
+          ppath.gp_p[i].idx   = ip + i;
+          ppath.gp_p[i].fd[0] = 0;
+          ppath.gp_p[i].fd[1] = 1;
+        }
+      // Special treatment of last point
+      ppath.gp_p[np-1].idx  -= 1;
+      ppath.gp_p[np-1].fd[0] = 1;
+      ppath.gp_p[np-1].fd[1] = 0;
+    }
+
+  // Downward
+  else
+    {
+      if( ppc > refellipsoid[0] + z_surface )
+        {
+          ostringstream os;
+          os << "This function can not be used for propgation paths\n"
+             << "including tangent points. Such a point occurs in this case.";
+          throw runtime_error(os.str());
+        }
+
+
+      // Find grid position of surface altitude
+      GridPos   gp;
+      gridpos( gp, z_field, z_surface );
+      
+      const Index np = ip - gp.idx + 2;
+
+      ppath_init_structure( ppath, 1, np );
+      //
+      ppath_set_background( ppath, 2 );
+      ppath.constant = ppc;
+      //
+      // Start point
+      ppath.r[0]          = r_start;
+      ppath.pos(0,0)      = r_start - refellipsoid[0];
+      ppath.los(0,0)      = za_start;
+      ppath.pos(0,1)      = lat_start;
+      double llast        = geompath_l_at_r( ppc, ppath.r[0] );
+      ppath.gp_p[0].idx   = ip;
+      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
+                            ( z_field[ip+1]  - z_field[ip] );
+      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
+      gridpos_check_fd( ppath.gp_p[0] );
+      // Later points
+      for( Index i=1; i<np; i++ )
+        {
+          if( i < np-1 )
+            { ppath.pos(i,0)  = z_field[ip-i+1]; }
+          else
+            { ppath.pos(i,0)  = z_surface; }
+          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
+          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
+          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
+                                                              ppath.los(i,0) );
+          const double lthis  = geompath_l_at_r( ppc, ppath.r[i] );
+          ppath.l_step[i-1]   = llast - lthis;
+          llast               = lthis;
+          ppath.gp_p[i].idx   = ip - i + 1;
+          ppath.gp_p[i].fd[0] = 0;
+          ppath.gp_p[i].fd[1] = 1;
+        }
+      // Special treatment of last point
+      gridpos_copy( ppath.gp_p[np-1], gp );
+    }
+}
+
+
+
 //! ppath_step_geom_2d
 /*! 
    Calculates 2D geometrical propagation path steps.
@@ -5677,7 +5796,7 @@ void ppath_calc(Workspace&            ws,
                         cloudbox_on, cloudbox_limits, outside_cloudbox, 
                         rte_pos, rte_los, verbosity );
   // For debugging:
-  // Print( ppath_step, 0, verbosity );
+  //Print( ppath_step, 0, verbosity );
 
   // The only data we need to store from this initial ppath_step is lspace
   const  Numeric lspace = ppath_step.lspace;  
@@ -5705,9 +5824,7 @@ void ppath_calc(Workspace&            ws,
       //
       istep++;
       //
-      ppath_step_agendaExecute( ws, ppath_step, atmosphere_dim, 
-                                lat_grid, lon_grid, z_field, refellipsoid, 
-                                z_surface, ppath_step_agenda );
+      ppath_step_agendaExecute( ws, ppath_step, ppath_step_agenda );
       // For debugging:
       // Print( ppath_step, 0, verbosity );
 

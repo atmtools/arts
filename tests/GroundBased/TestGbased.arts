@@ -71,8 +71,8 @@ SpeciesSet( abs_species, [ "O3", "H2O" ] )
 
 # ---- Atmospheric scenario --------------------------------------------------
 
-# A pressure grid rougly matching 0 to 80 km in 1 km steps.
-VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
+# A pressure grid rougly matching 0 to 80 km in 500 m steps.
+VectorNLogSpace( p_grid, 160, 1.013e5, 1 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
                                   "../atmosphere_data/tropical" )
@@ -143,6 +143,17 @@ AgendaSet( iy_space_agenda ){
   Ignore( rte_los )
   nelemGet( nelem, f_grid )
   MatrixSetConstant( iy, nelem, stokes_dim, 0 )
+}
+
+
+
+# --- Propagation path -------------------------------------------------
+
+# Here we test the special WSM for up- and down-ward cases
+
+NumericSet( ppath_lmax, -1 )
+AgendaSet( ppath_step_agenda ){
+  ppath_stepGeometricUpDown
 }
 
 

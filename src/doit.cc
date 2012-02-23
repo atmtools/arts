@@ -264,7 +264,6 @@ void cloud_ppath_update1D(Workspace& ws,
                           ConstVectorView  p_grid,
                           ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
-                          ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
@@ -304,12 +303,7 @@ void cloud_ppath_update1D(Workspace& ws,
   ppath_step.gp_p[0].fd[1] = 1;
   
   // Call ppath_step_agenda: 
-  Vector unused_lat_grid(0);
-  Vector unused_lon_grid(0);
-  ppath_step_agendaExecute(ws, ppath_step, 1, 
-                           unused_lat_grid, unused_lon_grid,
-                           z_field, refellipsoid, z_surface,
-                           ppath_step_agenda);
+  ppath_step_agendaExecute(ws, ppath_step, ppath_step_agenda);
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -410,7 +404,6 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 ConstVectorView  p_grid,
                                 ConstTensor3View z_field,
                                 ConstVectorView refellipsoid,
-                                ConstMatrixView z_surface,
                                 // Calculate thermal emission:
                                 ConstTensor3View t_field,
                                 ConstVectorView f_grid,
@@ -450,12 +443,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   ppath_step.gp_p[0].fd[1] = 1;
   
   // Call ppath_step_agenda: 
-  Vector unused_lat_grid(0);
-  Vector unused_lon_grid(0);
-  ppath_step_agendaExecute(ws, ppath_step, 1,
-                           unused_lat_grid, unused_lon_grid,
-                           z_field, refellipsoid, z_surface,
-                           ppath_step_agenda);
+  ppath_step_agendaExecute(ws, ppath_step, ppath_step_agenda);
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -603,7 +591,6 @@ void cloud_ppath_update3D(Workspace& ws,
                           ConstVectorView lon_grid,
                           ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
-                          ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
@@ -662,8 +649,7 @@ void cloud_ppath_update3D(Workspace& ws,
   ppath_step.gp_lon[0].fd[1] = 1.;
 
   // Call ppath_step_agenda: 
-  ppath_step_agendaExecute(ws, ppath_step, 3, lat_grid, lon_grid, 
-                           z_field, refellipsoid, z_surface, ppath_step_agenda);
+  ppath_step_agendaExecute(ws, ppath_step, ppath_step_agenda);
 
     // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
