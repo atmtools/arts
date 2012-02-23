@@ -1422,7 +1422,7 @@ double rslope_crossing(
   
   // Find the smallest root with imaginary part = 0, and real part > 0.
   //
-  double dlat = 999 / RAD2DEG;
+  double dlat = 1.571;  // Not interested in solutions above 90 deg!
   //
   for( Index i=0; i<4; i++ )
     {
@@ -1430,12 +1430,17 @@ double rslope_crossing(
         { dlat = roots(i,0); }
     }  
   
-  // Convert back to degrees
-  // Change also sign if zenith angle is negative
-  if( dlat < 3.14  &&  za < 0 )
-    { dlat = -RAD2DEG * dlat; }
+  if( dlat < 1.57 )  // A somewhat smaller value than start one
+    { 
+      // Convert back to degrees
+      dlat = RAD2DEG * dlat; 
+
+      // Change sign if zenith angle is negative
+      if( za < 0 )
+        { dlat = -dlat; }
+    }
   else
-    { dlat = RAD2DEG * dlat; }
+    { dlat = LAT_NOT_FOUND; }
 
   return   dlat;
 }
@@ -1497,9 +1502,15 @@ void plevel_crossing_2d(
       // Set r_start, considering impact of numerical problems
       double r_start = r_start0;
       if( above )
-        { if( r_start < r1 ) { r_start = r1; } }
+        { 
+          if( r_start < r1 ) 
+            { assert(r1-r_start<RTOL);   r_start = r1; } 
+        }
       else
-        { if( r_start > r1 ) { r_start = r1; } }
+        { 
+          if( r_start > r1 ) 
+            { assert(r_start-r1<RTOL);   r_start = r1; } 
+        }
 
       double l;
       r = r1;
@@ -1519,10 +1530,16 @@ void plevel_crossing_2d(
       // Set r_start, considering impact of numerical problems
       double r_start = r_start0;
       if( above )
-        { if( r_start < rmax ) { r_start = rmax; } }
+        { 
+          if( r_start < rmin ) 
+            { assert(rmin-r_start<RTOL);   r_start = rmin; } 
+        }
       else
-        { if( r_start > rmin ) { r_start = rmin; } }
-      
+        { 
+          if( r_start > rmax ) 
+            { assert(r_start-rmax<RTOL);   r_start = rmax; } 
+        }
+
       double l, za=999;
 
       // Calculate crossing with closest radius
@@ -1552,9 +1569,15 @@ void plevel_crossing_2d(
 
           // Make adjustment if numerical problems
           if( above )
-            { if( r < rpl ) { r = rpl; } }
+            { 
+              if( r < rpl ) 
+                { assert(rpl-r<RTOL);   r = rpl; } 
+            }
           else
-            { if( r > rpl ) { r = rpl; } }
+            { 
+              if( r > rpl ) 
+                { assert(r-rpl<RTOL); r = rpl; } 
+            }
 
           // za_start = 0
           if( abs(za_start) < ANGTOL )
@@ -1590,11 +1613,7 @@ void plevel_crossing_2d(
               if( lat < lat1  ||  lat > lat3 )
                 { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
               else
-                { 
-                  // Check if the correction ever exceed 0.2 deg?
-                  assert( abs(dlat) < 0.2 );
-                  r = r1 + cpl*(lat-lat1); 
-                }
+                { r = rpl + cpl*dlat; }
             }  
         }
     }
@@ -1783,15 +1802,6 @@ void do_gridcell_2d(
       plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
                                             lat3, rsurface1, rsurface3, true );
 
-      /*
-      cout << "        r: " << r/1e3 << endl;
-      cout << "      lat: " << lat << endl;
-      cout << "  r_start: " << r_start/1e3 << endl;
-      cout << "rsurface1: " << rsurface1/1e3 << endl;
-      cout << "rsurface3: " << rsurface3/1e3 << endl;
-      cout << "       rt: " << rt/1e3 << endl;
-      cout << "     latt: " << latt << endl;
-      */
       if( rt > 0  &&  abs(latt-lat_start) <= abs(lat-lat_start) )
         { endface = 7;   r = rt;   lat = latt; }
     }
@@ -5667,7 +5677,7 @@ void ppath_calc(Workspace&            ws,
                         cloudbox_on, cloudbox_limits, outside_cloudbox, 
                         rte_pos, rte_los, verbosity );
   // For debugging:
-  //Print( ppath_step, 0, verbosity );
+  // Print( ppath_step, 0, verbosity );
 
   // The only data we need to store from this initial ppath_step is lspace
   const  Numeric lspace = ppath_step.lspace;  
@@ -5699,7 +5709,7 @@ void ppath_calc(Workspace&            ws,
                                 lat_grid, lon_grid, z_field, refellipsoid, 
                                 z_surface, ppath_step_agenda );
       // For debugging:
-      //Print( ppath_step, 0, verbosity );
+      // Print( ppath_step, 0, verbosity );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;

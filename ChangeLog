@@ -1,3 +1,15 @@
+2012-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-4
+
+	* src/ppath.cc (rslope_crossing): Changed some limits for dlat.
+	Using atmlab's arts_rslope_crossing, the function is OK-ed again.
+	
+	(plevel_crossing_2d): Added more asserts. Tested the new two step
+	algorithm using atmlab's arts_rslope_crossing. Could not find any
+	case where the algorithm fails (considering that the maximum
+	radius distance for rslope_crossing now is (lat3-lat1)*c).
+
 2012-02-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-3

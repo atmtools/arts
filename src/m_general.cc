@@ -340,6 +340,11 @@ void Exit(const Verbosity& verbosity)
   arts_exit (EXIT_SUCCESS);
 }
 
+double rslope_crossing(
+        const double&   rp,
+        const double&   za,
+        const double&   r0,
+        double    c );
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Test(const Verbosity& verbosity)
@@ -347,6 +352,14 @@ void Test(const Verbosity& verbosity)
   // This function can be used to test stuff.
   // Feel free to change and test things
 
+  Vector refell;
+  refellipsoidEarth( refell, "Sphere", verbosity );
+
+  Numeric dlat = rslope_crossing( refell[0]+1e3, -94, refell[0], 100 );
+
+  cout << "dlat = " << dlat << endl;
+
+  /*
   Vector refellipsoid;
   refellipsoidEarth( refellipsoid, "WGS84", verbosity );
   
@@ -357,6 +370,7 @@ void Test(const Verbosity& verbosity)
   cout << (r_tan - refellipsoid[0])/1e3   << endl;
   cout << lat_tan << endl;
   cout << lon_tan << endl;
+  */
 }
 
 
