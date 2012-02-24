@@ -256,3 +256,7 @@ add_subdirectory (doc)
 add_subdirectory (tests)
 #add_subdirectory (3rdparty)
 
+if (NOT NUMERIC STREQUAL "double")
+  message (WARNING "You chose ${NUMERIC} as the Numeric type. Using anything different than double is completely unsupported, unrecommended and will probably lead to compilation errors, crashes and wrong results. Sorry, you're on your own here. Godspeed!")
+endif (NOT NUMERIC STREQUAL "double")
+
