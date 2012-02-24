@@ -86,20 +86,12 @@ typedef Array<Ppath> ArrayOfPpath;
 // The variable is, for example, used to check that a given a radius is
 // consistent with the specified grid cell.
 //
-#ifdef USE_DOUBLE
-const double   RTOL = 1e-3;
-#else
-const double   RTOL = 10;
-#endif
+const Numeric   RTOL = 1e-3;
 
 
 // As RTOL but for latitudes and longitudes.
 //
-#ifdef USE_DOUBLE
-const double   LATLONTOL = 1e-8;
-#else
-const double   LATLONTOL = 1e-6;
-#endif
+const Numeric   LATLONTOL = 1e-8;
 
 
 // This variable defines how much zenith and azimuth angles can
@@ -109,22 +101,18 @@ const double   LATLONTOL = 1e-6;
 // angles are not allowed to go outside their defined range.  This
 // means, for example, that values above 180 are never allowed.
 //
-#ifdef USE_DOUBLE
-const double   ANGTOL = 1e-6; 
-#else
-const double   ANGTOL = 1e-4; 
-#endif
+const Numeric   ANGTOL = 1e-6; 
 
 
 // Latitudes with an absolute value > POLELAT are considered to be on
 // the south or north pole for 3D.
 //
-const double   POLELAT = 90-1e-8;
+const Numeric   POLELAT = 90-1e-8;
 
 
 // Maximum tilt of pressure levels, in degrees
 //
-const double    PTILTMAX = 5;
+const Numeric    PTILTMAX = 5;
 
 
 
@@ -133,60 +121,60 @@ const double    PTILTMAX = 5;
   ===========================================================================*/
 
 void map_daa(
-             double&   za,
-             double&   aa,
-       const double&   za0,
-       const double&   aa0,
-       const double&   aa_grid );
+             Numeric&   za,
+             Numeric&   aa,
+       const Numeric&   za0,
+       const Numeric&   aa0,
+       const Numeric&   aa_grid );
 
-double geometrical_ppc( const double& r, const double& za );
+Numeric geometrical_ppc( const Numeric& r, const Numeric& za );
 
-double geompath_za_at_r(
-        const double&   ppc,
-        const double&   a_za,
-        const double&   r );
+Numeric geompath_za_at_r(
+        const Numeric&   ppc,
+        const Numeric&   a_za,
+        const Numeric&   r );
 
-double geompath_lat_at_za(
-        const double&   za0,
-        const double&   lat0,
-        const double&   za );
+Numeric geompath_lat_at_za(
+        const Numeric&   za0,
+        const Numeric&   lat0,
+        const Numeric&   za );
 
 bool is_los_downwards( 
-        const double&   za,
-        const double&   tilt );
+        const Numeric&   za,
+        const Numeric&   tilt );
 
-double plevel_slope_2d(
+Numeric plevel_slope_2d(
         ConstVectorView   lat_grid,           
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
-        const double&     za );
+        const Numeric&    za );
 
-double plevel_slope_3d(
-        const double&   lat1,
-        const double&   lat3,
-        const double&   lon5,
-        const double&   lon6,
-        const double&   r15,
-        const double&   r35,
-        const double&   r36,
-        const double&   r16,
-        const double&   lat,
-        const double&   lon,
-        const double&   aa );
+Numeric plevel_slope_3d(
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   lon5,
+        const Numeric&   lon6,
+        const Numeric&   r15,
+        const Numeric&   r35,
+        const Numeric&   r36,
+        const Numeric&   r16,
+        const Numeric&   lat,
+        const Numeric&   lon,
+        const Numeric&   aa );
 
-double plevel_slope_3d(
+Numeric plevel_slope_3d(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,  
         ConstVectorView   refellipsoid,
         ConstMatrixView   z_surf,
         const GridPos&    gp_lat,
         const GridPos&    gp_lon,
-        const double&     aa );
+        const Numeric&    aa );
 
-double plevel_angletilt(
-        const double&   r,
-        const double&   c );
+Numeric plevel_angletilt(
+        const Numeric&   r,
+        const Numeric&   c );
 
 void ppath_init_structure( 
               Ppath&      ppath,
@@ -224,14 +212,16 @@ void ppath_step_geom_1d(
               Ppath&      ppath,
         ConstVectorView   z_field,
         ConstVectorView   refellipsoid,
-        const double&     z_surface,
-        const double&     lmax );
+        const Numeric&    z_surface,
+        const Numeric&    lmax );
 
 void ppath_geom_updown_1d(
               Ppath&      ppath,
         ConstVectorView   z_field,
         ConstVectorView   refellipsoid,
-        const double&     z_surface );
+        const Numeric&    z_surface,
+        const Index&      cloudbox_on, 
+     const ArrayOfIndex&  cloudbox_limits );
 
 void ppath_step_geom_2d(
               Ppath&      ppath,
@@ -239,7 +229,7 @@ void ppath_step_geom_2d(
         ConstMatrixView   z_field,
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
-        const double&     lmax );
+        const Numeric&    lmax );
 
 void ppath_step_geom_3d(
               Ppath&       ppath,
@@ -248,7 +238,7 @@ void ppath_step_geom_3d(
         ConstTensor3View   z_field,
         ConstVectorView    refellipsoid,
         ConstMatrixView    z_surface,
-        const double&      lmax );
+        const Numeric&     lmax );
 
 void ppath_step_refr_1d(
               Workspace&  ws,
@@ -263,10 +253,10 @@ void ppath_step_refr_1d(
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
         ConstVectorView   refellipsoid,
-        const double&     z_surface,
+        const Numeric&    z_surface,
         const String&     rtrace_method,
-        const double&     lraytrace,
-        const double&     lmax );
+        const Numeric&    lraytrace,
+        const Numeric&    lmax );
 
 void ppath_step_refr_2d(
               Workspace&  ws,
@@ -284,8 +274,8 @@ void ppath_step_refr_2d(
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
         const String&     rtrace_method,
-        const double&     lraytrace,
-        const double&     lmax );
+        const Numeric&    lraytrace,
+        const Numeric&    lmax );
 
 void ppath_step_refr_3d(
               Workspace&  ws,
@@ -304,8 +294,8 @@ void ppath_step_refr_3d(
         ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
         const String&     rtrace_method,
-        const double&     lraytrace,
-        const double&     lmax );
+        const Numeric&    lraytrace,
+        const Numeric&    lmax );
 
 void ppath_calc(
               Workspace&      ws,

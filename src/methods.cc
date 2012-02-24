@@ -6681,18 +6681,18 @@ void define_md_data_raw()
          "\n"
          "A rapid method for calculating geometrical propagation paths if:\n"
          "   * 1D atmosphere.\n"
-         "   * Cloudbox not active.\n"
          "   * The WSM ppath_lmax is < 0.\n"
-         "   * The sensor zenith angle is either 0-85 or 120-180 deg.\n"
+         "   * All zenith angles are inside 0-85 or 120-180 deg.\n"
          "\n"
          "The two last points exclude to use the method for limb sounding.\n"
          "That is, the method is intended only for observations of up-ward\n"
-         "and down-ward type. However, when this method can be used, it is\n"
-         "very much faster than the standard WSM: *ppath_stepGeometric*.\n"
+         "and down-ward type. The last point means also that the method can\n"
+         "be applied inside scattering methods (but can be used with DOIT if\n"
+         "(the radiation field is already calculated).\n"
          "\n"
-         "This method is faster as it calculates the complete path in one\n"
-         "call. This is a short-cut compared to concept of ppath steps, and\n"
-         "the method can not be used generally.\n"
+         "However, when this method can be used, it is very much faster than\n"
+         "the standard WSM: *ppath_stepGeometric*. This method is faster as\n"
+         "it calculates the complete path in one call.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath_step" ),
@@ -6700,7 +6700,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_step", "atmosphere_dim", "z_field", "refellipsoid", 
-            "z_surface", "cloudbox_on", "ppath_lmax" ),
+            "z_surface", "cloudbox_on", "cloudbox_limits", "ppath_lmax" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

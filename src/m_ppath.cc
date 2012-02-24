@@ -148,6 +148,7 @@ void ppath_stepGeometricUpDown(// WS Output:
                          const Vector&    refellipsoid,
                          const Matrix&    z_surface,
                          const Index&     cloudbox_on, 
+                    const ArrayOfIndex&   cloudbox_limits,
                          const Numeric&   ppath_lmax,
                          const Verbosity&)
 {
@@ -160,15 +161,10 @@ void ppath_stepGeometricUpDown(// WS Output:
     {
       throw runtime_error( "This method can only be used for ppath_lmax < 0." );
     }
-  if( cloudbox_on )
-    {
-      throw runtime_error( 
-                      "This method can not be used with an active cloud box." );
-    }
   // Zenith angle checked in sub-function
 
   ppath_geom_updown_1d( ppath_step, z_field(joker,0,0), refellipsoid, 
-                                                               z_surface(0,0) );
+                        z_surface(0,0), cloudbox_on, cloudbox_limits );
 
   // Set nreal
   ppath_step.nreal = 1;

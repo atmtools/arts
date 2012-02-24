@@ -72,6 +72,7 @@ void geompath_tanpos_3d(
        const double&    aa,
        const double&    ppc );
 
+/*
 void geomtanpoint2d( 
              double&    r_tan,
              double&    lat_tan,
@@ -90,6 +91,7 @@ void geomtanpoint(
        const double&    lon,
        const double&    za,
        const double&    aa );
+*/
 
 void poslos2cart(
               double&   x,

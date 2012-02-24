@@ -237,6 +237,7 @@ void geompath_tanpos_3d(
    \author Patrick Eriksson
    \date   2012-02-12
 */
+/*
 void geomtanpoint2d( 
              double&    r_tan,
              double&    lat_tan,
@@ -266,7 +267,7 @@ void geomtanpoint2d(
       assert( 0 );  // To be implemented
     }  
 }  
-
+*/
 
 
 //! geomtanpoint
@@ -300,6 +301,7 @@ void geomtanpoint2d(
    \author Patrick Eriksson
    \date   2012-02-12
 */
+/*
 void geomtanpoint( 
              double&    r_tan,
              double&    lat_tan,
@@ -382,6 +384,7 @@ void geomtanpoint(
                                                          w31*x + w32*yr );
     }
 }
+*/
 
 
 
