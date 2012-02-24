@@ -250,7 +250,6 @@ add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
 ########### subdirectories ###############
 
 add_subdirectory (src)
-#add_subdirectory (aii)
 add_subdirectory (includes)
 add_subdirectory (doc)
 add_subdirectory (tests)
