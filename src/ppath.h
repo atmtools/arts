@@ -87,7 +87,7 @@ typedef Array<Ppath> ArrayOfPpath;
 // consistent with the specified grid cell.
 //
 #ifdef USE_DOUBLE
-const double   RTOL = 1e-2;
+const double   RTOL = 1e-3;
 #else
 const double   RTOL = 10;
 #endif
@@ -96,7 +96,7 @@ const double   RTOL = 10;
 // As RTOL but for latitudes and longitudes.
 //
 #ifdef USE_DOUBLE
-const double   LATLONTOL = 1e-11;
+const double   LATLONTOL = 1e-8;
 #else
 const double   LATLONTOL = 1e-6;
 #endif
@@ -110,7 +110,7 @@ const double   LATLONTOL = 1e-6;
 // means, for example, that values above 180 are never allowed.
 //
 #ifdef USE_DOUBLE
-const double   ANGTOL = 1e-7; 
+const double   ANGTOL = 1e-6; 
 #else
 const double   ANGTOL = 1e-4; 
 #endif
@@ -119,7 +119,7 @@ const double   ANGTOL = 1e-4;
 // Latitudes with an absolute value > POLELAT are considered to be on
 // the south or north pole for 3D.
 //
-const double   POLELAT = 89.9999;
+const double   POLELAT = 90-1e-8;
 
 
 // Maximum tilt of pressure levels, in degrees

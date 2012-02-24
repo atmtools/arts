@@ -1,3 +1,11 @@
+2012-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-7
+
+	* src/ppath.h: Changed RTOL to 1e-3, LATLONTOL to 1e-8 and POLELAT
+	to 90-1e-8. These all corresponds to an overall accuracy of about 1
+	mm (for Earth).
+
 2012-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-6
