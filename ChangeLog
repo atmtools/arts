@@ -1,5 +1,11 @@
 2012-02-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-9
+
+	* aii, CMakeLists.txt: Remove outdated IDL routines.
+
+2012-02-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-8
 
 	* CMakeLists.txt: Add a very clear warning if the user decides to
