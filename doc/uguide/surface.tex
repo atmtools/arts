@@ -3,7 +3,7 @@
 
 
 \starthistory
-  110614 & Extended and revised (Patrick Eriksson). \\
+  120224 & Extended and revised (Patrick Eriksson). \\
   050613 & First version finished by Patrick Eriksson. \\
 \stophistory
 
@@ -31,7 +31,7 @@ elements are equatorial radius (\aRds{e}) and eccentricity ($e$), respectively.
 %===================
 \label{sec:ppath:geoid}
 
-A geodetic datums is based on a reference ellipsoid. The ellipsoid is
+A geodetic datum is based on a reference ellipsoid. The ellipsoid is
 rotationally symmetric around the north-south axis. That is, the ellipsoid
 radius has no longitude variation, it is only a function of latitude. The
 ellipsoid is described by an equatorial radius, \aRds{e}, and a polar radius,
@@ -42,6 +42,9 @@ eccentricity, $e$:
  e = \sqrt{1-\aRds{e}^2/\aRds{p}^2}.
  \label{eq:ppath:eccentricity} 
 \end{equation}
+Examples on workspace methods to set the reference ellipsoid include 
+\wsmindex{refellipsoidEarth} and \wsmindex{refellipsoidMars}.
+
 The radius of the ellipsoid for a given (geocentric) latitude, \Lat, is
 \begin{equation}
  \aRds{\odot}(\Lat) = \sqrt{\frac{\aRds{e}^2\aRds{p}^2}
@@ -50,16 +53,23 @@ The radius of the ellipsoid for a given (geocentric) latitude, \Lat, is
  \label{eq:ppath:ellipsradius} 
 \end{equation}
 The radius given by Equation \ref{eq:ppath:ellipsradius} can be directly
-applied for 2D and 3D cases. On the other hand, for 1D cases the reference
-ellipsoid is by definition a sphere and the radius of this sphere shall be
-selected in such way that it represents the local shape of a reference
-ellipsoid. This is achieved by setting \aRds{e} to the radius of curvature of
-the ellipsoid and $e$ to zero. The curvature radius differs from the local
-radius except at the equator and an east-west direction. For example, at the
-equator and a north-south direction, the curvature radius is smaller then the
-local radius, while at the poles (for all directions) it is greater (see
-further Figure \ref{fig:ppath:wgs84radii}). The \textindex{curvature radius},
-\aRds{c}, of an ellipsoid is \citep{rodgers:00}
+applied for 3D atmospheres. For 2D cases, the ellipsoid data must be adopted.
+The assumption inside ARTS is that the 2D plane goes through the North and
+South poles. The polar radius to apply should then match the real ellipsoid
+radius at the highest latitude inside the satellite orbit plane. The method 
+\wsmindex{refellipsoidOrbitPlane} performs this operation.
+
+
+Further, for 1D cases the reference ellipsoid is by definition a sphere and the
+radius of this sphere shall be selected in such way that it represents the
+local shape of a reference ellipsoid. This is achieved with
+\wsmindex{refellipsoidForAzimuth}, that sets \aRds{e} to the local radius of
+curvature of the ellipsoid and $e$ to zero. The curvature radius differs from
+the local radius except at the equator and an east-west direction. For example,
+at the equator and a north-south direction, the curvature radius is smaller
+then the local radius, while at the poles (for all directions) it is greater
+(see further Figure \ref{fig:ppath:wgs84radii}). The \textindex{curvature
+  radius}, \aRds{c}, of an ellipsoid is \citep{rodgers:00}
 \begin{equation}
  \aRds{c} = \frac{1}{\aRds{ns}^{-1}\cos^2 \Lat + \aRds{ew}^{-1}\sin^2 \Lat}
  \label{eq:ppath:curvradius} 
@@ -72,11 +82,11 @@ where \aRds{ns} and \aRds{ew} are the north-south and east-west curvature radius
            \aRds{e}^2\cos^2\AzmAng+\aRds{p}^2\sin^2\AzmAng )^{-\frac{1}{2}} 
  \label{eq:ppath:rew} 
 \end{eqnarray}
-The azimuth angle, \AzmAng, is defined in
-Section \ref{sec:fm_defs:los}. The latitude and azimuth angle to
-apply in Equations \ref{eq:ppath:curvradius}--\ref{eq:ppath:rew}
-shall rather be valid for a middle point of the propagation paths
-(such as some tangent point), instead of the sensor position. 
+The azimuth angle, \AzmAng, is defined in Section \ref{sec:fm_defs:los}. The
+latitude and azimuth angle to apply in Equations
+\ref{eq:ppath:curvradius}--\ref{eq:ppath:rew} shall rather be valid for a
+middle point of the propagation paths (such as some tangent point), instead of
+the sensor position.
 
 \begin{figure}
  \begin{center}
@@ -160,7 +170,7 @@ shall rather be valid for a middle point of the propagation paths
 %===================
 \label{sec:ppath:geolat}
 
-The fact that Earth is rather an ellipsoid than a sphere, opens up
+The fact that Earth is an ellipsoid instead of a sphere, opens up
 for the two different definitions of the latitude. The
 \textindex{geocentric latitude}, which is the the one used here, is the
 angle between the equatorial plane and the vector from the coordinate
@@ -184,6 +194,9 @@ where $f$ is the flattening of the ellipse:
 The value of $f$ for the Earth is about 1/298.26. This means that the
 largest differences between \Lat\ and $\Lat^*$ are found at
 mid-latitudes and the maximum value is about 12 arc-minutes.
+
+There are yet no methods in ARTS for conversion of data between geodetic and
+geocentric latitudes.
 
 % The \textindex{zenith} and \textindex{nadir} directions shall normally be
 % defined to follow the normal to the reference ellipsoid, but, if

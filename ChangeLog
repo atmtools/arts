@@ -1,5 +1,23 @@
 2012-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-11
+
+	* A first step of moving all path equations to ATD.
+
+	* doc/uguide/arts_theory.tex:
+	* doc/uguide/CMakeLists.txt: ppath_theory.tex added.
+
+	* doc/uguide/ppath_theory.tex: Holds the part removed below. Not
+	yet adopted to ATD.
+
+	* doc/uguide/ppath.tex: Last part having a lot of equations moved
+	to ATD.
+
+	* doc/uguide/surface.tex: First two section revised, and slightly
+	changed.
+
+2012-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-10
 
 	* src/m_ppath.cc (ppath_stepGeometricUpDown): Now working with an
