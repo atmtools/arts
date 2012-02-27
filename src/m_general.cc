@@ -159,8 +159,8 @@ Print(// WS Generic Input:
   Print( x.r, level, verbosity );
   SWITCH_OUTPUT (level, "l_step: ")
   Print( x.l_step, level, verbosity );
-  SWITCH_OUTPUT (level, "lspace: ")
-  Print( x.lspace, level, verbosity );
+  SWITCH_OUTPUT (level, "l_space: ")
+  Print( x.l_space, level, verbosity );
   SWITCH_OUTPUT (level, "nreal: ")
   Print( x.nreal, level, verbosity );
   SWITCH_OUTPUT (level, "gp_p: ")

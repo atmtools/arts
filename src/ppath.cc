@@ -2157,7 +2157,7 @@ void ppath_init_structure(
     { ppath.l_step.resize( 0 ); }
   ppath_set_background( ppath, 0 );
   ppath.nreal.resize( np );
-  ppath.lspace = 0;
+  ppath.l_space = 0;
 }
 
 
@@ -2273,7 +2273,7 @@ void ppath_copy(
   ppath1.dim        = ppath2.dim;
   ppath1.constant   = ppath2.constant;
   ppath1.background = ppath2.background;
-  ppath1.lspace     = ppath2.lspace;
+  ppath1.l_space     = ppath2.l_space;
 
   ppath1.pos(Range(0,ppath2.np),joker) = ppath2.pos;
   ppath1.los(Range(0,ppath2.np),joker) = ppath2.los;
@@ -2357,7 +2357,7 @@ void ppath_append(
   if( ppath_what_background( ppath2 ) )
     { ppath1.background = ppath2.background; }
 
-  ppath.lspace += ppath.lspace;
+  ppath.l_space += ppath.l_space;
 }
 
 
@@ -4931,7 +4931,7 @@ void ppath_start_stepping(
                                                                  ppath.r[0] );
               ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], 0, 
                                                              ppath.los(0,0) );
-              ppath.lspace = geompath_l_at_r( ppath.constant,
+              ppath.l_space = geompath_l_at_r( ppath.constant,
                                               refellipsoid[0] + rte_pos[0] ) -
                              geompath_l_at_r( ppath.constant, ppath.r[0] ); 
 
@@ -5189,7 +5189,7 @@ void ppath_start_stepping(
                                                      rte_los[0], rt );
                   ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], rte_pos[1], 
                                                               ppath.los(0,0) );
-                  ppath.lspace = lt;
+                  ppath.l_space = lt;
 
                   // Here we know the pressure grid position exactly
                   ppath.gp_p[0].idx   = lp-1; 
@@ -5498,7 +5498,7 @@ void ppath_start_stepping(
                   //
                   ppath.pos(0,0) = interp( itwt, z_field(lp,joker,joker), 
                                                             gp_latt, gp_lont );
-                  ppath.lspace = lt;
+                  ppath.l_space = lt;
                   
                   // Here we know the pressure grid position exactly
                   ppath.gp_p[0].idx   = lp-1; 
@@ -5644,8 +5644,8 @@ void ppath_calc(Workspace&            ws,
   // For debugging:
   //Print( ppath_step, 0, verbosity );
 
-  // The only data we need to store from this initial ppath_step is lspace
-  const  Numeric lspace = ppath_step.lspace;  
+  // The only data we need to store from this initial ppath_step is l_space
+  const  Numeric l_space = ppath_step.l_space;  
 
   out2 << "  -------------------------------------\n";
 
@@ -5938,7 +5938,7 @@ void ppath_calc(Workspace&            ws,
       // Constant and background can be taken from last path_step
       ppath.constant   = ppath_step.constant;
       ppath.background = ppath_step.background;
-      // lspace extracted above
-      ppath.lspace     = lspace;
+      // l_space extracted above
+      ppath.l_space     = l_space;
     }
 }

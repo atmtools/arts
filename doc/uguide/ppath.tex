@@ -31,12 +31,12 @@ is effectively selected by specifying \wsaindex{ppath\_step\_agenda} (see
 further Section~\ref{sec:fm_defs:ppaths}). The fastest calculations are
 obtained if refraction is neglected, denoted as geometrical calcutions. The
 workspace method to apply if this assumption can be made is
-\wsmindex{ppath\_stepGeometric}.
+\wsmindex{ppath\_stepGeometric}. 
 
 The main consideration for using \builtindoc{ppath\_stepGeometric} is to select
 a value for \wsvindex{ppath\_lmax}. This variable controls to some extent the
 calculation accuarcy, as described in Section~\ref{sec:fm_defs:accuracy}. This
-variable sets the maximum distance between points of the (final) propagation
+variable sets the maximum distance between points of the propagation
 path. Set this variable to e.g.\ -1 if you don't want to apply such a length
 criterion.
 
@@ -66,14 +66,13 @@ A full propagation path is stored in the workspace variable \wsvindex{ppath},
 that is of the type \builtindoc{Ppath} (see Section \ref{sec:ppath:Ppath}). The
 paths are determined by calculating a number of path steps. A path step is the
 path from a point to the next crossing of either the pressure, latitude or
-longitude grid (Figure~\ref{fig:ppath:ex1}). There is one
-exception to this definition of a path step, and that is when there is an
-intersection with the surface, which ends the propagation path at that point.
-The starting point for the calculation of a path step is normally a grid
-crossing point, but can also be an arbitrary point inside the atmosphere, such
-as the sensor position. Only points inside the model atmosphere are handled.
-The path steps are stored in the workspace variable \wsvindex{ppath\_step},
-that is of the same type as \builtindoc{ppath}.
+longitude grid (Figure~\ref{fig:ppath:ex1}). There is one exception to this
+definition of a path step, and that is when there is an intersection with the
+surface, which ends the propagation path at that point. The starting point for
+the calculation of a path step is normally a grid crossing point, but can also
+be an arbitrary point inside the atmosphere, such as the sensor position. The
+path steps are stored in the workspace variable \wsvindex{ppath\_step}, that is
+of the same type as \builtindoc{ppath}.
 
 \begin{figure}
  \begin{center}
@@ -115,8 +114,7 @@ last path point hold by the structure is accordingly the starting
 point for the new calculations. If a total propagation path shall be
 determined, the agenda is called repeatedly until the starting point
 of the propagation path is found and \builtindoc{ppath\_step} will hold
-all path steps that together make up \builtindoc{ppath}. The starting
-point is included in the returned structure.
+all path steps that together make up \builtindoc{ppath}. 
 
 The path is determined by starting at the end point and moving
 backwards to the starting point. The calculations are initiated by
@@ -137,14 +135,14 @@ other tasks are performed by \builtindoc{ppath\_calc}, with one exception.
 If there is an intersection with the surface, the calculations stop at
 this point. This is flagged by setting the background field of
 \builtindoc{ppath\_step}. Beside this, \builtindoc{ppath\_calc} checks if
-the starting point of the calculations is inside the scattering box or
+the starting point of the calculations is inside the cloud box or
 below the surface level, and check if the last point of the path has
 been reached. 
 
-In many cases the propagation path can/must be considered to consist
-of several parts. One exemple is surface reflection (see
-Figure \ref{fig:fm_defs:surface_refl}). The variable \builtindoc{ppath}
-describes then only a single part of the propagation path.
+%In many cases the propagation path can/must be considered to consist
+%of several parts. One exemple is surface reflection (see
+%Figure \ref{fig:fm_defs:surface_refl}). The variable \builtindoc{ppath}
+%describes then only a single part of the propagation path.
 
 
 
@@ -155,8 +153,7 @@ describes then only a single part of the propagation path.
 A propagation path is represented by a structure of type
 \typeindex{Ppath}. This structure holds also auxiliary variables to
 facilitate the radiative transfer calculations and to speed up the
-interpolation. The fields of \builtindoc{Ppath} are described below,
-where the data type is given inside square brackets. 
+interpolation. The fields of \builtindoc{Ppath} are as follows:
 
 \begin{description}
 
@@ -183,6 +180,12 @@ where the data type is given inside square brackets.
      \builtindoc{ppath\_step\_agenda} sets this constant at the first
      call of the agenda if the given value is negative.
 
+   \item[background] [String] The radiative background for the
+     propagation path. The possible
+     options for this field are 'space', 'blackbody surface', 'cloud
+     box interior' and 'cloud box surface', where the source of
+     radiation should be clear the content of the strings.
+     
    \item[pos] [Matrix] The position of the propagation path points.
      This matrix has \shortcode{np} rows and up to 3 columns. Each row
      holds a position where column 1 is the radius, column 2 the
@@ -199,28 +202,6 @@ where the data type is given inside square brackets.
      The full path is stored also for 1D cases with symmetry around a
      tangent point (in contrast to ARTS-1). 
      
-  \item[z] [Vector] The geometrical altitude for each path position. The
-     length of this vector is accordingly \shortcode{np}. This is a help
-     variable for plotting and similar purposes. It shall not be used to
-     interpolate the atmospheric fields, as pressure is the main altitude
-     coordinate.
-     
-   \item[l\_step] [Vector] The length along the propagation path
-     between the positions in \shortcode{pos}. The first value is the
-     length between the first and second point etc. For \shortcode{np}
-     $\geq 2$, the length of the vector is \shortcode{np} - 1.
-     Otherwise it is 0.
-
-   \item[gp\_p] [ArrayOfGridPos] Index position with respect to the
-     pressure grid. The structure for grid positions is described in
-     \developer, Section \ref{D-sec:interpolation:gridpos}. 
-     
-   \item[gp\_lat] [ArrayOfGridPos] As \shortcode{gp\_p} but with
-     respect to the latitude grid.
-
-   \item[gp\_lon] [ArrayOfGridPos] As \shortcode{gp\_p} but with
-     respect to the longitude grid.
-     
    \item[los] [Matrix] The line-of-sight of the propagation path at
      each point. The number of rows of the matrix is \shortcode{np}.
      For 1D and 2D, the matrix has a single column holding the zenith
@@ -232,306 +213,38 @@ where the data type is given inside square brackets.
      extracting the radiative background from the cloud box intensity
      field.
      
-   \item[background] [String] The radiative background for the
-     propagation path. The possible
-     options for this field are 'space', 'blackbody surface', 'cloud
-     box interior' and 'cloud box surface', where the source of
-     radiation should be clear the content of the strings.
+   \item[r] [Vector] The radius for each path position. The length of this
+     vector is accordingly \shortcode{np}. This is a help variable for plotting
+     and similar purposes. 
      
-   \item[tan\_pos] [Vector] The position of the tangent point. This
-     vector is only set if there exists a tangent point (above the
-     surface level), the length of the vector is otherwise 0. The
-     tangent point is defined as the point with the lowest radius
-     along the path. This means that (the absolute value of) the
-     zenith angle at the tangent point is always 90\degree. For 2D
-     and 3D this point can deviate from the point with lowest
-     geometrical altitude.
-     
-   \item[geom\_tan\_pos] [Vector] The position of the geometrical
-     tangent point. This vector is set for all downward observations.
-     Refraction and surface reflections are neglected when calculating
-     this tangent point position. This field is not handled by
-     \builtindoc{ppath\_step\_agenda}. Definition of the tangent point
-     as for \shortcode{tan\_pos}.
+   \item[l\_step] [Vector] The length along the propagation path
+     between the positions in \shortcode{pos}. The first value is the
+     length between the first and second point etc. 
+
+   \item[l\_space] [Numeric] Propagation length through free space above the
+     model atmosphere. Only points inside the atmosphere are stored and the sum
+     of \shortcode{lstep} does not cover the propagation between the top-of-the
+     atmosphere and a sensor placed in space.
 
    \item[nreal] [Vector] The real part of the refractive index at each path
-     position. Length is accordingly \shortcode{np}. 
+     position. 
 
+   \item[gp\_p] [ArrayOfGridPos] Index position with respect to the
+     pressure grid. The structure for grid positions is described in
+     \developer, Section \ref{D-sec:interpolation:gridpos}. 
+     
+   \item[gp\_lat] [ArrayOfGridPos] As \shortcode{gp\_p} but with
+     respect to the latitude grid.
+
+   \item[gp\_lon] [ArrayOfGridPos] As \shortcode{gp\_p} but with
+     respect to the longitude grid.     
 \end{description}
 
 
-
-
-\section{Structure of implementation}
+\section{Further reading}
 %===================
-\label{sec:ppath:structure}
-
-The workspace method for calculating propagation paths is
-\wsmindex{ppathCalc}, but this is just a getaway function for
-\builtindoc{ppath\_calc}. The main use of \builtindoc{ppathCalc} is to
-debug and test the path calculations, and that WSM should normally not
-be part of the control file. Propagation paths, or steps, are
-generated from inside other functions.
-
-
-\subsection{Main functions for clear sky paths}
-%===================
-
-The master function to calculate full clear sky propagation paths is
-\funcindex{ppath\_calc}. This function is outlined in
-Algorithm \ref{alg:ppath:ppath_calc}. The function can be divided into
-three main parts, initialization (handled by
-\builtindoc{ppath\_start\_stepping}), a repeated call of
-\builtindoc{ppath\_step\_agenda} and putting data into the return
-structure (\builtindoc{ppath}).
-
-\begin{algorithm}
- \begin{algorithmic}
-  \STATE{check consistency of function input}
-  \STATE{call \builtindoc{ppath\_start\_stepping} to set 
-    \builtindoc{ppath\_step}}
-  \STATE{create an array of \builtindoc{Ppath} structures, 
-         \builtindoc{ppath\_array}}
-  \STATE{add \builtindoc{ppath\_step} to \builtindoc{ppath\_array}}
-  \WHILE{radiative background not reached}
-   \STATE{call \wsaindex{ppath\_step\_agenda}}
-   \IF{path is at the highest pressure surface}
-    \STATE{radiative background is space}
-   \ELSIF{path is at either end point of latitude or longitude grid}
-    \STATE{this is not allowed, issue an runtime error}
-   \ENDIF
-   \IF{cloud box is active}
-    \IF{path is at the surface of the cloud box}
-     \STATE{radiative background is the cloud box surface}
-    \ENDIF
-   \ENDIF
-   \STATE{add \builtindoc{ppath\_step} to \builtindoc{ppath\_array}}
-  \ENDWHILE
-  \STATE{initialize the WSV \builtindoc{ppath} to hold found number of 
-         path points} 
-  \STATE{copy data from \builtindoc{ppath\_array} to \builtindoc{ppath}}
- \end{algorithmic}
- \caption{Outline of the function \builtindoc{ppath\_calc}.}
- \label{alg:ppath:ppath_calc}
-\end{algorithm}
-
-The main task of the function \funcindex{ppath\_start\_stepping} is to
-set up \wsvindex{ppath\_step} for the first call of
-\builtindoc{ppath\_step\_agenda}, which means that the practical
-starting point for the path calculations must be determined. If the
-sensor is placed inside the model atmosphere, the sensor position
-gives directly the starting point. For cases when the sensor is found
-outside the atmosphere, the point where the path exits the atmosphere
-must be determined. The exit point can be determined by pure
-geometrical calculations (see Sections \ref{sec:ppath:basicgeom} and
-\ref{sec:ppath:stepcalc}) as the refractive index is assumed to have the
-constant value of 1 outside the atmosphere. The problem is accordingly
-to find the geometrical crossing between the limit of the atmosphere
-and the sensor line-of-sight (LOS). The function performs further some
-other tasks, which include:
-\begin{itemize}
-\item For all LOS with a zenith angle $\geq 90\degree$ the position of
-  the geometrical tangent point is calculated.
-\item If the sensor is placed inside the model atmosphere
-  \begin{itemize}
-  \item Checks that the sensor is placed above the surface level. If
-    not, an error is issued.
-  \item Checks for 2D and 3D and when the sensor position as at an end
-    point of the latitude or longitude grid, that the LOS is inwards
-    with respect to the atmospheric limit.
-  \item If the sensor and surface altitudes are equal, and the sensor
-    LOS is downward, the radiative background is set to be the
-    surface. For 2D and 3D, the tilt of the surface radius is considered
-    when determining if the LOS is downward.
-  \item If the cloud box is active and the sensor position is inside
-    the cloud box, the radiative backsurface is set to be ``cloud box
-    interior''. All sensor positions on the cloud box surface are for
-    2D and 3D treated as points inside the box (for simplicity
-    reasons), while for 1D the behavior is as expected.
-  \end{itemize}
-\item If the sensor is placed outside the model atmosphere
-  \begin{itemize}
-  \item Checks that the zenith angle is $\geq  90\degree$.  Upward
-    observations are here not allowed.
-  \item If it is found for 2D and 3D that the exit point of the path
-    not is at the top of the atmosphere, but is either at a latitude
-    or longitude end face of the atmosphere, an error is issued. This
-    problem can not appear for 1D.
-  \end{itemize}
-\end{itemize}
-For further details, see the code.
-
-
-\subsection{Main functions for propagation path steps}
-%===================
-
-Example on workspace methods to calculate propagation path steps are
-\wsmindex{ppath\_stepGeometric} and
-\wsmindex{ppath\_stepRefractionEuler}. All such methods adapt
-automatically to the atmospheric dimensionality, but the different
-dimensionalities are handled by separate internal functions. For
-example, the sub-functions to \builtindoc{ppath\_stepGeometric} are
-\funcindex{ppath\_step\_geom\_1d}, \funcindex{ppath\_step\_geom\_2d}
-and \funcindex{ppath\_step\_geom\_3d}. See \shortcode{m\_ppath.cc} to
-get the names of the sub-functions for other propagation path step
-workspace methods. 
-
-\begin{algorithm}
- \begin{algorithmic}
-  \STATE{call \funcindex{ppath\_start\_2d}}
-  \IF{\shortcode{ppath\_step.ppc} $<1$}
-   \STATE{calculate the path constant}
-   \COMMENT{this is then first path step}
-  \ENDIF
-  \STATE{call \funcindex{do\_gridcell\_2d}}
-  \STATE{call \funcindex{ppath\_end\_2d}}
-  \IF{calculated step ends with tangent point}
-   \STATE{call \shortcode{ppath\_step\_geom\_2d} with temporary 
-     \shortcode{Ppath} structure}
-   \STATE{append temporary \shortcode{Ppath} structure to 
-     \shortcode{ppath\_step}}
-  \ENDIF
- \end{algorithmic}
- \caption{Outline of the function \funcindex{ppath\_step\_geom\_2d}.}
- \label{alg:ppath:ppath_step_geom_2d}
-\end{algorithm}
-
-Many tasks are independent of the algorithm for refraction that is
-used, or if refraction is considered at all. These tasks are solved by
-two functions for each atmospheric dimensionality. For 1D the
-functions are \funcindex{ppath\_start\_1d} and
-\funcindex{ppath\_end\_1d}, and the corresponding functions for 2D and
-3D are named in the same way. The functions to calculate geometrical
-path steps are denoted as \funcindex{do\_gridrange\_1d},
-\funcindex{do\_gridcell\_2d} and \funcindex{do\_gridcell\_3d}. Paths
-steps passing a tangent point are handled by a recursive call of the
-step function. Algorithm \ref{alg:ppath:ppath_step_geom_2d} summerizes
-this for geometrical 2D steps.
-
-
-\section{General comments}
-%===================
-\label{sec:ppath:comments}
-
-The calculation of propagation paths involves a number of mathematical
-expressions and they are presented in
-Sections \ref{sec:ppath:basicgeom}--\ref{sec:ppath:refreuler}. In
-addition, the path calculations present a number of practical
-problems. These practical problems are discussed briefly in this
-section. For further details, see the code.
-
-
-\subsection{Numerical precision}
-%===================
-
-The aim here is not to make a complete discussion around the limited
-numerical accuracy, but just to point out some of the problems caused.
-We can start by noticing that the precision with which atmospheric
-positions can be given is about 0.5\,m when the numeric type is
-\textindex{float} and 2\topowerten{-8}\,m for \textindex{double}
-(assuming that the mantissa has 24 and 48 bits, respectively). The
-numbers given correspond to the change of the position for a change of
-1 bit, in either radius, latitude and longitude. Already these numbers
-cause problems for the approach taken to calculate propagation paths.
-For any path along the border of a grid cell, any rounding error in
-the wrong direction will move the position outside the grid cell,
-which would lead to a crash of the code without countermeasures.
-
-The values above give the representation precision. The precision will
-be even poorer if a position is obtained by calculations as numerical
-problems tend to accumulate. The calculation precision depends on what
-mathematical expressions that are involved.  For example, a radius or
-length obtained by the Pythagorean relation will have a relatively
-high uncertainty as the calculations involve taking the square of a
-radius in the order of 6400\,km. It was found that for calculations
-performed using only float as numeric type, could lead to
-displacements from the true position up to 10\,m. It was first tried to
-hard-code double as the numerical type for the most critical passages
-of the calculations, but a total success was not achieved and some
-code had to be duplicated (to be used with either the float or double
-option by if-statements for the pre-compiler) to avoid compiler
-warnings. A step further was then taken, and double is now hard-coded
-for all internal variables of \fileindex{ppath.cc}. This deviation
-from the rule to have an uniform numeric type inside ARTS was
-introduced to avoid more complicated coding and it has a very small
-impact on the overall calculation speed. However, this measure will
-not lead to that the precision of the path calculations will be the
-same for float and double, as the results will be converted to float
-between each propagation path step when copied to
-\builtindoc{ppath\_step}.
-
-As pointed out above, the most critical cases are when the path goes
-along the boundary of a grid cell. This situation is not common for
-arbitrary observation positions, but it is a standard case for 3D
-scattering calculations as the starting point for the calculations
-there is always a crossing point of the atmospheric grids. The
-solution to this problem is to introduce special treatment for such
-geometrical paths. For strictly vertical 2D and 3D paths, the
-latitude, and also longitude for 3D, of the start and end points shall
-be identical. Paths in 3D with an azimuth angle of 0\degree or
-180\degree\ have a constant longitude; the paths are in the north-south
-plane, and this should also then be valid for the longitude value of
-the start and end positions of the path step.
-
-The variables connected to different problems associated with the
-numerical inaccuracy and singularity of mathematical expressions are
-defined at the top of the file \shortcode{ppath.cc}. The variables
-include the accepted tolerance when making asserts in internal
-functions that the given point is inside the specified grid cell.
-Another example is the latitude limit to use the special mathematical
-expressions needed for positions on the poles.
-
-
-
-\subsection{Propagation paths and grid positions}
-%===================
-
-The grid positions are calculated on the same time as the path is
-determined. The main reason to this is that the grid positions make it
-possible to quickly determine inside which grid box the path step is
-found. Without the grid positions, each call of the functions would
-need a costly search to locate the starting position with respect to
-the grids. If you are not familiar with grid positions, it is
-recommended to read \developer, Section \ref{D-sec:interpolation}
-before you continue here.
-
-The limited numerical accuracy requires some care when setting the
-grid positions. First of all, rounding errors can give a fractional
-distance $< 0$ or $> 1$ and this must be avoided. The function
-\funcindex{gridpos\_check\_fd} was created for this purpose, and
-should be called for each grid position. This function just
-sets all values below 0 to 0 and all value above 1 to 1. In addition,
-the grid position for the end point of a path step (beside when there
-is an intersection with the ground) must have one fractional
-distance of exactly 0 or 1, but this is not ensured by
-\shortcode{gridpos\_check\_fd} and for end points the function
-\funcindex{gridpos\_force\_end\_fd} shall also be called.
-
-Some care is needed to determine in which grid range a path step is
-found. First of all, there exists an ambiguity for the fractional
-distance at the grid points. It can either be 0 or 1. In addition, if
-a position is exactly on top of a grid point, the observation
-direction determines the interesting grid range. As an help to resolve
-these question there is the function \funcindex{gridpos2gridrange}.
-This function takes an argument describing the direction of the
-line-of-sight with respect to the grids. This argument shall be set to
-1 if the viewing direction is towards higher indexes. The direction
-argument can be set with the following logical expressions, for the
-different combinations of atmospheric dimensionality and grid of
-interest:
-
- {\bf 1D-3D, pressure}: $\quad |\ZntAng| \leq 90\degree$
-
- {\bf 2D, latitude}: $\quad \ZntAng \geq 0\degree$
-
- {\bf 3D, latitude}: $\quad \AzmAng \leq 90\degree$
-
- {\bf 3D, longitude}: $\quad \AzmAng \geq 0\degree$
-
-
-
-
-
+The implementation and the numerical expressions used are discussed in
+Chapter~\ref{T-sec:ppaththeory} of \theory.
 
 
 

@@ -1,3 +1,21 @@
+2012-02-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-12
+
+	* doc/uguide/ppath_theory.tex: General revision. Section on
+	numerical precision removed. 2D geometrical section updated
+	following changes in source code.
+
+	* doc/uguide/ppath.tex: Even more sections moved to ATD. Text
+	revised and updated. 
+
+	* src/xml_io_compound_types.cc: 
+	* src/m_general.cc: 
+	* src/ppath.cc (ppath_calc): Adopted to change below.
+
+	* src/ppath.h (struct Ppath): Renamed lspace to l_space (to be
+	consistent with l_space).
+
 2012-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-11
