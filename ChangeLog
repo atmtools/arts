@@ -1,5 +1,15 @@
 2012-02-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-13
+
+	* src/ppath.cc (do_gridcell_3d_byltest): Old do_gridcell_3d renamed.
+
+	(plevel_crossing_3d): Started.
+
+	(do_gridcell_3d): Started on this new version of the function.
+
+2012-02-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-12
 
 	* doc/uguide/ppath_theory.tex: General revision. Section on
@@ -7,10 +17,10 @@
 	following changes in source code.
 
 	* doc/uguide/ppath.tex: Even more sections moved to ATD. Text
-	revised and updated. 
+	revised and updated.
 
-	* src/xml_io_compound_types.cc: 
-	* src/m_general.cc: 
+	* src/xml_io_compound_types.cc:
+	* src/m_general.cc:
 	* src/ppath.cc (ppath_calc): Adopted to change below.
 
 	* src/ppath.h (struct Ppath): Renamed lspace to l_space (to be

@@ -753,7 +753,7 @@ Numeric plevel_slope_2d(
    Determines the radius of a pressure level or the surface given the
    radius at the corners of a 2D grid cell.
 
-   \return         Radius at the given latitude and longitude.
+   \return         Radius at the given latitude.
    \param   lat1   Lower latitude of grid cell.
    \param   lat3   Upper latitude of grid cell.
    \param   r1     Radius at *lat1*
@@ -772,6 +772,7 @@ Numeric rsurf_at_lat(
 {
   return   r1 + ( lat - lat1 ) * ( r3 - r1 ) / ( lat3 - lat1 );
 }
+
 
 
 //! rsurf_at_latlon
@@ -874,7 +875,7 @@ Numeric plevel_slope_3d(
 
   // Radius at point of interest
   const Numeric   r0 = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                                r15, r35, r36, r16, lat, lon );
+                                        r15, r35, r36, r16, lat, lon );
 
   // Convert position and an imaginary LOS to cartesian coordinates
   Numeric   x, y, z, dx, dy, dz;
@@ -1300,7 +1301,7 @@ Numeric rslope_crossing(
 //! plevel_crossing_2d
 /*!
    Handles the crossing with a geometric ppaths step and a atmospheric 
-   grid box level
+   grid box level for 2D.
 
    That is, we have a part of a pressure level or the planet's surface,
    extending between two latitudes (lat1 and lat3). The radius at each latitude
@@ -1346,17 +1347,18 @@ void plevel_crossing_2d(
   assert( absza <= 180 );
   assert( lat_start >=lat1  &&  lat_start <= lat3 );
 
-  const Numeric  cpl = plevel_slope_2d( lat1, lat3, r1, r3 );
+  const Numeric rmin = min( r1, r3 );
+  const Numeric rmax = max( r1, r3 );
 
   // The case of negligible slope
-  if( abs(cpl) < 1e-6 )
+  if( rmax-rmin < RTOL/10 )
     {
       // Set r_start, considering impact of numerical problems
       Numeric r_start = r_start0;
       if( above )
-        { if( r_start < r1 ) { r_start = r1; } }
+        { if( r_start < rmax ) { r_start = rmax; } }
       else
-        { if( r_start > r1 ) { r_start = r1; } }
+        { if( r_start > rmin ) { r_start = rmin; } }
 
       Numeric l;
       r = r1;
@@ -1370,9 +1372,6 @@ void plevel_crossing_2d(
   // With slope
   else
     {
-      const Numeric rmin = min( r1, r3 );
-      const Numeric rmax = max( r1, r3 );
-
       // Set r_start, considering impact of numerical problems
       Numeric r_start = r_start0;
       if( above )
@@ -1403,7 +1402,8 @@ void plevel_crossing_2d(
       // Otherwise continue from found point, considering the level slope 
       else
         {
-          // Radius at lat
+          // Level slope and radius at lat
+          const Numeric  cpl = plevel_slope_2d( lat1, lat3, r1, r3 );
           const Numeric  rpl = r1 + cpl*(lat-lat1);
 
           // Make adjustment if numerical problems
@@ -1449,6 +1449,102 @@ void plevel_crossing_2d(
                 { r = rpl + cpl*dlat; }
             }  
         }
+    }
+}
+
+
+
+//! plevel_crossing_3d
+/*!
+   As plevel_crossing_2d but for 3D
+ 
+
+   \param   r           Out: Radius at crossing.
+   \param   lat         Out: Latitude at crossing.
+   \param   lon         Out: Longitude at crossing.
+   \param   r_start0    In: Radius of start point.
+   \param   lat_start   In: Latitude of start point.
+   \param   lon_start   In: Longitude of start point.
+   \param   za_start    In: LOS zenith angle at start point.
+   \param   aa_start    In: LOS azimuth angle at start point.
+   \param   ppc         In: Propagation path constant.
+   \param   lat1        In: Latitude of lower end.
+   \param   lat3        In: Latitude of upper end.
+   \param   lon5        In: Longitude of lower end.
+   \param   lon6        In: Longitude of upper end.
+   \param   r15         In: Radius at lat1/lon5.
+   \param   r35         In: Radius at lat3/lon5.
+   \param   r36         In: Radius at lat3/lon6.
+   \param   r16         In: Radius at lat1/lon6.
+   \param   x           In: x-coordinate of start position.
+   \param   y           In: y-coordinate of start position.
+   \param   z           In: z-coordinate of start position.
+   \param   dx          In: x-part of LOS unit vector.
+   \param   dy          In: y-part of LOS unit vector.
+   \param   dz          In: z-part of LOS unit vector.
+   \param   above       In: True if ppath start point is above level. 
+                        In: Otherwise false.
+
+   \author Patrick Eriksson
+   \date   2012-02-19
+*/
+void plevel_crossing_3d(
+              Numeric&  r,
+              Numeric&  lat,
+              Numeric&  lon,
+        const Numeric&  r_start0,
+        const Numeric&  lat_start,
+        const Numeric&  lon_start,
+        const Numeric&  za_start,
+        const Numeric&  aa_start,
+        const Numeric&  x,
+        const Numeric&  y,
+        const Numeric&  z,
+        const Numeric&  dx,
+        const Numeric&  dy,
+        const Numeric&  dz,
+        const Numeric&  ppc,
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  lon5,
+        const Numeric&  lon6,
+        const Numeric&  r15,
+        const Numeric&  r35,
+        const Numeric&  r36,
+        const Numeric&  r16,
+        const bool&     above )
+{
+  assert( za_start <= 180 );
+  assert( lat_start >=lat1  &&  lat_start <= lat3 );
+  assert( lon_start >=lon5  &&  lon_start <= lon6 );
+
+  const Numeric rmin = min( r15, min( r35, min( r36, r16 ) ) );
+  const Numeric rmax = max( r15, max( r35, max( r36, r16 ) ) );
+
+  // The case of negligible slope
+  if( rmax-rmin < RTOL/10 )
+    {
+      // Set r_start, considering impact of numerical problems
+      Numeric r_start = r_start0;
+      if( above )
+        { if( r_start < rmax ) { r_start = rmax; } }
+      else
+        { if( r_start > rmin ) { r_start = rmin; } }
+
+      Numeric l;
+      r = r15;
+      r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start, za_start, 
+                     ppc, x, y, z, dx, dy, dz );
+
+      // Check if inside [lat1,lat3]
+      if( lat > lat3  ||  lat < lat1  || lon > lon6  ||  lon < lon5 )
+        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND; }  
+    }
+
+  // With slope
+  else
+    {
+      assert( 0 );
     }
 }
 
@@ -1612,12 +1708,8 @@ void do_gridcell_2d(
         const Numeric&  rsurface1,
         const Numeric&  rsurface3 )
 {
-  // Assert latitudes
-  assert( lat_start >= lat1 );
-  assert( lat_start <= lat3 );
-
   // Radius end latitude of end point
-  Numeric r=-1, lat;
+  Numeric r, lat;
 
   endface = 0;
 
@@ -1635,7 +1727,7 @@ void do_gridcell_2d(
       plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
                                             lat3, rsurface1, rsurface3, true );
 
-      if( rt > 0  &&  abs(latt-lat_start) <= abs(lat-lat_start) )
+      if( rt > 0  &&  abs(rt-r_start) <= abs(r-r_start) )
         { endface = 7;   r = rt;   lat = latt; }
     }
 
@@ -1647,8 +1739,117 @@ void do_gridcell_2d(
       Numeric rt, latt ;
       plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
                                                        lat3, r1b, r3b, false );
-      if( latt < LAT_NOT_FOUND )
+      if( r > 0 )
         { endface = 4;   r = rt;   lat = latt; }
+    }
+  
+  // Latitude endfaces
+  if( r <= 0 )
+    {
+      if( za_start < 0 )
+        { endface = 1;  lat = lat1; }
+      else
+        { endface = 3;  lat = lat3; }
+      r = geompath_r_at_lat( ppc, lat_start, za_start, lat ); 
+    }
+
+  assert (endface );
+
+  // Check if there is a tangent point inside the grid cell. 
+  const Numeric absza = abs( za_start );
+  if( absza > 90  &&  ( absza - abs(lat_start-lat) ) < 90 ) 
+    { endface = 8;   r = ppc; }
+
+  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+                                                           za_start, r, lmax );
+}
+
+
+
+//! do_gridcell_3d
+/*!
+   As do_gridcell_2d but for 3D
+
+   \author Patrick Eriksson
+   \date   2012-02-27
+*/
+void do_gridcell_3d(
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   lon_v,
+              Vector&   za_v,
+              Vector&   aa_v,
+              Numeric&  lstep,
+              Index&    endface,
+        const Numeric&  r_start, 
+        const Numeric&  lat_start,
+        const Numeric&  lon_start,
+        const Numeric&  za_start,
+        const Numeric&  aa_start,
+        const Numeric&  ppc,
+        const Numeric&  lmax,
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  lon5,
+        const Numeric&  lon6,
+        const Numeric&  r15a,
+        const Numeric&  r35a,
+        const Numeric&  r36a,
+        const Numeric&  r16a,
+        const Numeric&  r15b,
+        const Numeric&  r35b,
+        const Numeric&  r36b,
+        const Numeric&  r16b,
+        const Numeric&  rsurface15,
+        const Numeric&  rsurface35,
+        const Numeric&  rsurface36,
+        const Numeric&  rsurface16 )
+{
+  // Radius end latitude of end point
+  Numeric r, lat, lon;
+
+  endface = 0;
+
+  // Sensor pos and LOS in cartesian coordinates
+  Numeric   x, y, z, dx, dy, dz;
+  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
+                                    za_start, aa_start ); 
+
+  // Check if crossing with lower pressure level
+  plevel_crossing_3d( r, lat, lon, lon_start, r_start, lat_start, 
+                      za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
+                      lat1, lat3, lon5, lon6, 
+                      r15a, r35a, r36a, r16a, true );
+  if( r > 0 )
+    { endface = 2; }
+
+
+  // Check if crossing with surface
+  if( rsurface15 >= r15a  ||  rsurface35 >= r35a  ||
+      rsurface36 >= r36a  ||  rsurface16 >= r16a )
+    {
+      Numeric rt, latt, lont; 
+      plevel_crossing_3d( rt, latt, lont, lon_start, r_start, lat_start, 
+                          za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
+                          lat1, lat3, lon5, lon6, 
+                          rsurface15, rsurface35, rsurface36, rsurface16, true);
+
+      if( rt > 0  &&  abs(rt-r_start) <= abs(r-r_start) )
+        { endface = 7;   r = rt;   lat = latt;   lon = lont; }
+    }
+
+  // If crossing found (r>0) we are ready!
+  
+  // Upper pressure level
+  if( r <= 0 )
+    {
+      Numeric rt, latt, lont;
+      plevel_crossing_3d( rt, latt, lont, lon_start, r_start, lat_start, 
+                          za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
+                          lat1, lat3, lon5, lon6, 
+                          r15b, r35b, r36b, r16b, true );
+      if( r > 0 )
+        { endface = 4;   r = rt;   lat = latt;   lon = lont; }
     }
   
   // Latitude endfaces
@@ -1726,7 +1927,7 @@ void do_gridcell_2d(
    \author Patrick Eriksson
    \date   2002-11-28
 */
-void do_gridcell_3d(
+void do_gridcell_3d_byltest(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
@@ -2077,10 +2278,10 @@ void do_gridcell_3d(
       zax  = za_v;
       aax  = aa_v;
       const Index lx = rx.nelem()-1;
-      do_gridcell_3d( ry, laty, lony, zay, aay, lstep, endface, ppc, latx[lx], 
-                      lonx[lx], zax[lx], aax[lx], ppc, lmax, lat1, lat3, 
-                      lon5, lon6, r15a, r35a, r36a, r16a, r15b, r35b, r36b, 
-                      r16b, rsurface15, rsurface35, rsurface36, rsurface16 );
+      do_gridcell_3d_byltest( ry, laty, lony, zay, aay, lstep, endface, ppc, 
+                   latx[lx], lonx[lx], zax[lx], aax[lx], ppc, lmax, lat1, lat3, 
+                   lon5, lon6, r15a, r35a, r36a, r16a, r15b, r35b, r36b, 
+                   r16b, rsurface15, rsurface35, rsurface36, rsurface16 );
       const Index ly = ry.nelem()-1, nxy  = lx + ly + 1;
       //
       r_v.resize(nxy);  lat_v.resize(nxy); lon_v.resize(nxy); 
@@ -3773,7 +3974,7 @@ void ppath_step_geom_3d(
   Numeric   lstep;
   Index    endface;
 
-  do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+  do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
                   lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
@@ -4257,10 +4458,10 @@ void raytrace_3d_linear_euler(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+      do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                     r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6, 
                     r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                      rsurface15, rsurface35, rsurface36, rsurface16 );
+                    rsurface15, rsurface35, rsurface36, rsurface16 );
 
       assert( r_v.nelem() == 2 );
 
