@@ -29,7 +29,7 @@ be part of the control file.
 The master function to calculate full clear sky propagation paths is
 \funcindex{ppath\_calc}. This function is outlined in
 Algorithm \ref{alg:ppath:ppath_calc}. The function can be divided into
-three main parts, initialization (handled by
+three main parts, initialisation (handled by
 \builtindoc{ppath\_start\_stepping}), a repeated call of
 \builtindoc{ppath\_step\_agenda} and putting data into the return
 structure (\builtindoc{ppath}).
@@ -56,7 +56,7 @@ structure (\builtindoc{ppath}).
    \ENDIF
    \STATE{add \builtindoc{ppath\_step} to \builtindoc{ppath\_array}}
   \ENDWHILE
-  \STATE{initialize the WSV \builtindoc{ppath} to hold found number of 
+  \STATE{initialise the WSV \builtindoc{ppath} to hold found number of 
          path points} 
   \STATE{copy data from \builtindoc{ppath\_array} to \builtindoc{ppath}}
  \end{algorithmic}
@@ -88,7 +88,7 @@ other tasks, which include:
     surface. For 2D and 3D, the tilt of the surface radius is considered
     when determining if the LOS is downward.
   \item If the cloud box is active and the sensor position is inside
-    the cloud box, the radiative backsurface is set to be ``cloud box
+    the cloud box, the radiative background is set to be ``cloud box
     interior''. 
   \end{itemize}
 \item If the sensor is placed outside the model atmosphere
@@ -145,7 +145,7 @@ functions are \funcindex{ppath\_start\_1d} and
 path steps are denoted as \funcindex{do\_gridrange\_1d},
 \funcindex{do\_gridcell\_2d} and \funcindex{do\_gridcell\_3d}. Paths
 steps passing a tangent point are handled by a recursive call of the
-step function. Algorithm \ref{alg:ppath:ppath_step_geom_2d} summerizes
+step function. Algorithm \ref{alg:ppath:ppath_step_geom_2d} summarises
 this for geometrical 2D steps.
 
 
@@ -298,7 +298,7 @@ is found along an imaginary prolongation of the path behind the sensor
 if the viewing direction is upwards). The expressions below are based
 on $p_c$ as the usage of a global constant for the path should
 decrease the sensitivity to numerical inaccuracies. If the
-calculations are based solely on the values for the neighboring
+calculations are based solely on the values for the neighbouring
 point, a numerical inaccuracy can accumulate when going from one point
 to next. The propagation path constant is stored in the field
 \shortcode{constant} of \wsvindex{ppath} and \wsvindex{ppath\_step}.
@@ -340,7 +340,7 @@ Equation \ref{eq:ppath:g_geom}, we get that
   \label{eq:ppath:r2l}
 \end{equation}
 As refraction is here neglected, the tangent point, the point of
-concern and the center of the coordinate system make up a right
+concern and the centre of the coordinate system make up a right
 triangle and Equation \ref{eq:ppath:r2l} corresponds to the
 Pythagorean relation where $p_c$ is the radius of the tangent point.
 The distance between two points ($\Delta \PpathLng$) is obtained by
@@ -388,7 +388,7 @@ easily determined by its zenith angle \\
 where \aZntAng{0} and \aLat{0} are the zenith angle and latitude of some 
 other point of the path. Equation \ref{eq:ppath:za2lat} is based on the 
 fact that the quantities \aZntAng{1}, \aZntAng{2} and $\Delta\Lat$
-fulfill the relationship
+fulfil the relationship
 \begin{equation}
   \Delta\Lat = \aZntAng{1} - \aZntAng{2},
   \label{eq:ppath:dlat}
@@ -407,7 +407,7 @@ is obtained by combining Equations \ref{eq:ppath:za2lat} and
 
 
 
-\section{Calculation of geometrical propagations paths}
+\section{Calculation of geometrical propagation paths}
 %===================
 \label{sec:ppath:stepcalc}
 
@@ -434,7 +434,7 @@ the tangent point, the pressure surface below or the surface. The
 needed quantities to describe the propagation path between the two
 found radii are calculated by the function
 \funcindex{geompath\_from\_r1\_to\_r2}, that has the option to
-introduce more points to fulfill a length criterion between the path
+introduce more points to fulfil a length criterion between the path
 points. The mathematics of \shortcode{geompath\_from\_r1\_to\_r2} are
 given by Equations \ref{eq:ppath:geomconst}--\ref{eq:ppath:za2lat}.
 
@@ -483,7 +483,7 @@ which can be re-written to
            (\sin\Theta_p \cos\Lat + \cos\Theta_p \sin\Lat)
  \label{eq:ppath:psurf1}
 \end{equation}
-This equation has no analytical solution. A first step to find an approximative
+This equation has no analytical solution. A first step to find an approximate
 solution is to note that \Lat\ will be limited to relatively small values. For
 example, if it shall be possible for the angular distance \Lat\ to reach the
 value of 3\degree, the vertical distance between $\aRds{p}$ and $\Rds$ must be
@@ -516,9 +516,9 @@ interest shall not be imaginary.
     (solid lines), or the lower pressure surface (dashed lines), to
     all other grid cell faces. The distortion of the grid cell from
     cylinder segment is highly exaggerated compared to a real case.
-    The relationship between vertical and horisontal size deviates
+    The relationship between vertical and horizontal size deviates
     also from normal real cases.  Typical values for the vertical
-    extension is around 500\,m, while the horisontal length is
+    extension is around 500\,m, while the horizontal length is
     normally $>$10\,km.}
   \label{fig:ppath:ex3}  
  \end{center}
@@ -539,6 +539,215 @@ direction) that is of interest (Figure \ref{fig:ppath:ex3}).
 \subsection{3D}
 %===================
 \label{sec:ppath:3Dgeom}
+
+\subsubsection{Conversion between polar and Cartesian coordinates}
+%-
+\label{sec:ppath:cart2sph}
+
+The Cartesian coordinate system used follows the (standard?) Earth-centred
+earth-fixed (ECEF) system (\url{http://en.wikipedia.org/wiki/ECEF}), with the
+axes defined as:
+\begin{description}
+\item[x-axis] is along latitude 0\degree and longitude 0\degree
+\item[y-axis] is along latitude 0\degree and longitude +90\degree
+\item[z-axis] is along latitude +90\degree
+\end{description}
+This definition results in the following relationships between the
+spherical $(\Rds,\Lat,\Lon)$ and Cartesian $(x,y,z)$ coordinates
+\begin{eqnarray}
+  x &=& \Rds \cos(\Lat) \cos(\Lon) \nonumber \\
+  y &=& \Rds \cos(\Lat) \sin(\Lon) \\
+  z &=& \Rds \sin(\Lat)            \nonumber
+ \label{eq:ppath:sph2cart}
+\end{eqnarray}
+and
+\begin{eqnarray}
+ \label{eq:ppath:cart2sph}
+  \Rds &=& \sqrt{x^2+y^2+z^2}  \nonumber  \\
+  \Lat &=& \arcsin(z/\Rds)                \\
+  \Lon &=& \arctan(y/x) \qquad \mathrm{(implemented\ by\ the\ atan2\ function)}
+                               \nonumber
+\end{eqnarray}
+The functions performing these transformations are \funcindex{sph2cart} and
+\funcindex{cart2sph}.
+
+The first step to transform a line-of-sight, given by the zenith
+($\ZntAng$) and the azimuth ($\AzmAng$) angle, to Cartesian
+coordinates is to determine the corresponding vector with unit length
+in the spherical coordinate system:
+\begin{equation}
+ \left[ \begin{array}{c}
+  \DiffD \Rds \\
+  \DiffD \Lat \\
+  \DiffD \Lon
+ \end{array} \right] =
+ \left[ \begin{array}{c}
+   \cos(\ZntAng) \\
+   \sin(\ZntAng) \cos(\AzmAng) / \Rds \\
+   \sin(\ZntAng) \sin(\AzmAng) / ( \Rds \cos(\Lat) )
+ \end{array} \right]
+ \label{eq:ppath:los2sphvec}
+\end{equation}
+This vector is then translated to the Cartesian coordinate system as
+\begin{equation}
+ \left[ \begin{array}{c}
+  \DiffD x \\
+  \DiffD y \\
+  \DiffD z
+ \end{array} \right] =
+ \left[ \begin{array}{ccc}
+  \cos(\Lat)\cos(\Lon) & -\Rds\sin(\Lat)\cos(\Lon) & 
+                                                   -\Rds\cos(\Lat)\sin(\Lon) \\
+  \cos(\Lat)\sin(\Lon) & -\Rds\sin(\Lat)\sin(\Lon) & \Rds\cos(\Lat)\cos(\Lon)\\ 
+  \sin(\Lat)           & \Rds\cos(\Lat)            & 0                     
+ \end{array} \right] 
+ \left[ \begin{array}{c}
+  \DiffD \Rds \\
+  \DiffD \Lat \\
+  \DiffD \Lon
+ \end{array} \right]
+ \label{eq:ppath:los2cart}
+\end{equation}
+Note that the radial terms (\Rds) in Equations
+\ref{eq:ppath:los2sphvec} and \ref{eq:ppath:los2cart} cancel each
+other.  These calculations are performed in \funcindex{poslos2cart}.
+Special expressions must be used for positions at the north and south
+pole (see the code) as the azimuth angle has there a special
+definition (see Section \ref{U-sec:fm_defs:los} of \user).
+
+The Cartesian position of a point along the geometrical path at a
+distance $l$ is then simply
+\begin{equation}
+ \left[ \begin{array}{c}
+  x_2 \\
+  y_2 \\
+  z_2
+ \end{array} \right] =
+ \left[ \begin{array}{c}
+  x_1 + l\DiffD x \\
+  y_1 + l\DiffD y \\
+  z_1 + l\DiffD z
+ \end{array} \right]
+  \label{eq:ppath:xdl}
+\end{equation}
+The Cartesian viewing vector $[\DiffD x, \DiffD y, \DiffD z]^T$ is
+constant along a geometrical path. The new position is converted to
+spherical coordinates by Equation \ref{eq:ppath:cart2sph} and the new
+spherical viewing vector is calculated as
+\begin{equation}
+ \left[ \begin{array}{c}
+  \DiffD \Rds \\
+  \DiffD \Lat \\
+  \DiffD \Lon
+ \end{array} \right] =
+ \left[ \begin{array}{ccc}
+  \cos(\Lat)\cos(\Lon) & \cos(\Lat)\sin(\Lon) & \sin(\Lat) \\ 
+  -\sin(\Lat)\cos(\Lon)/\Rds & -\sin(\Lat)\sin(\Lon)/\Rds & \cos(\Lat)/\Rds \\ 
+  -\sin(\Lon)/(\Rds\cos(\Lat)) & \cos(\Lon)/(\Rds\cos(\Lat)) & 0 
+ \end{array} \right] 
+ \left[ \begin{array}{c}
+  \DiffD x \\
+  \DiffD y \\
+  \DiffD z
+ \end{array} \right]
+ \label{eq:ppath:los2sph}
+\end{equation}
+which is converted to a zenith and azimuth angle as
+\begin{eqnarray}
+  \ZntAng &=& \arccos(\DiffD \Rds) \nonumber  \\
+  \AzmAng &=& \arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), 
+                      \qquad \textrm{for} \quad \DiffD\Lon >= 0 \\
+  \AzmAng &=& -\arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), 
+                      \qquad \textrm{for} \quad \DiffD\Lon < 0  \nonumber
+ \label{eq:ppath:conv2zaaa}
+\end{eqnarray}
+These calculations are performed in \funcindex{cart2poslos}. Again special
+expressions must be used for positions at the north and south pole (see the
+code).
+
+
+\subsubsection{Finding the crossing of a specified \Rds, \Lat\ or \Lon}
+%-
+\label{sec:ppath:3dcross}
+
+%For sensor positions outside the atmosphere, the calculations made in
+%\funcindex{ppath\_start\_stepping} involve the problem of finding the
+%position where the path leaves the atmosphere. This position is found
+%by an iterative search. The maximum radius of the uppermost pressure
+%surface is taken as first guess for the radius of the exit point.  The
+%exit latitude and longitude for this radius is determined (as
+%discussed below), and the radius for the top of the atmosphere for the
+%found position is used as radius for next iteration. This procedure is
+%repeated until the change from one iteration to next for both latitude
+%and longitude is smaller than 1\topowerten{-6}. 
+
+The starting point in for all three cases is the following
+equation system:
+\begin{eqnarray}
+  \Rds \cos(\Lat) \cos(\Lon)  & = & x+l\DiffD x \nonumber \\
+  \Rds \cos(\Lat) \sin(\Lon)  & = & y+l\DiffD y           \\
+  \Rds \sin(\Lat)             & = & z+l\DiffD z \nonumber 
+  \label{eq:ppath:rcoss3Da}
+\end{eqnarray}
+where $(x,y,z)$ is the position of the sensor, $(\DiffD x,\DiffD
+y,\DiffD z)$ the sensor LOS, and either \Rds, \Lat\ or \Lon\ is given.
+
+The distance $l$ to a given \Rds\ is found by adding the square of all three
+equations:
+\begin{equation}
+  \Rds^2 = (x+l\DiffD x)^2 + (y+l\DiffD y)^2 + (z+l\DiffD z)^2.
+  \label{eq:ppath:rcoss3Db}
+\end{equation}
+Once $l$ is determined, the latitude and longitude can easily be
+calculated by Equations \ref{eq:ppath:xdl} and
+\ref{eq:ppath:cart2sph}. These calculations are implemented in the
+function \funcindex{r\_crossing\_3d}.  
+
+%Similar expressions were
+%derived to find the position for the crossing of a given latitude or
+%longitude but those expressions were removed from the code as they are
+%not used with present algorithms.\footnote{The expressions mentioned
+%  can be extracted from the function
+%  \shortcode{gridcell\_crossing\_3d} in ARTS version 1-1-440.}
+
+If instead \Lat\ is given, the length to the point of interest can found by
+again squaring the three equations, but now summing the x- and y-terms
+and diving with the z-term:
+\begin{equation}
+  \tan^2(\Lat) = \frac{(z+l\DiffD z)^2}{(x+l\DiffD x)^2+(y+l\DiffD y)^2}.
+\end{equation}
+The solution of this quadratic equation is implemented in the function
+\funcindex{lat\_crossing\_3d}. The case of $\Lat=90\degree$ must be treated
+separately, as the tangent function then returns infinity. The solution for 
+$\Lat=0\degree$ is particularly simple ($l=-z/(\DiffD z)$).
+
+For a given longitude, the x- and y-equations can be combined to give:
+\begin{equation}
+  l = \frac{y-x\tan(\Lon)}{\DiffD x\tan(\Lon)-\DiffD y}.
+\end{equation}
+This case is handled by \funcindex{lon\_crossing\_3d}.
+
+
+
+\subsubsection{A first 3D algorithm}
+%-
+\label{sec:ppath:3dgeom}
+
+\begin{figure}
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{ppath_3Dsearch}
+  \caption{Schematic of Algorithm \ref{alg:ppath:dogridcell3d}. The
+    figure shows two iterations of the algorithm to search for the
+    total length of the path step. The asterisk $(\ast)$ gives the
+    start point for the calculations and the circles $(\circ)$ are the
+    final end points of the path step. The plus signs $(+)$ shows the
+    position of the different lengths tested during the iterations.}
+  \label{fig:ppath:3Dsearch}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath
+
+\FIXME{Update this section:}
 
 Geometrical 3D propagation path steps are determined by the function
 \funcindex{do\_gridcell\_3d}. It was first tested to use different
@@ -592,7 +801,7 @@ found.
  \end{algorithmic}
  \caption{The method applied in \shortcode{do\_gridcell\_3d} to find the 
           total length of the path step to be calculated.
-          The symbol $S$ signifies here conversion from cartesian to
+          The symbol $S$ signifies here conversion from Cartesian to
           spherical coordinates (Equation \ref{eq:ppath:cart2sph}).}
  \label{alg:ppath:dogridcell3d}
 \end{algorithm}
@@ -601,185 +810,15 @@ A straightforward trail-and-error algorithm was then tested
 (Algorithm \ref{alg:ppath:dogridcell3d} and
 Figure \ref{fig:ppath:3Dsearch}). The main advantage of the algorithm
 is that a correction for the shift in position caused by the
-transformations back and fourth to a cartesian coordinate system can
+transformations back and fourth to a Cartesian coordinate system can
 be applied. The correction term assures that the position is not
 changed for a step of zero length, and is not moved outside the grid
 cell due to the numerical problems. The algorithm was further found to
 be sufficiently fast to be accepted. A simple bisection search to find
 the length of the propagation path step is used. Both the position and
 the line-of-sight for the other end point of the path step are
-calculated using a transformation to cartesian coordinates.  The
-cartesian coordinate system used here is defined as:
-\begin{description}
-\item[x-axis] is along latitude 0\degree and longitude 0\degree
-\item[y-axis] is along latitude +90\degree
-\item[z-axis] is along latitude 0\degree and longitude +90\degree
-\end{description}
-This definition results in the following relationships between the
-spherical $(\Rds,\Lat,\Lon)$ and cartesian $(x,y,z)$ coordinates
-\begin{eqnarray}
-  x &=& \Rds \cos(\Lat) \cos(\Lon) \nonumber \\
-  y &=& \Rds \sin(\Lat)            \\
-  z &=& \Rds \cos(\Lat) \sin(\Lon) \nonumber
- \label{eq:ppath:sph2cart}
-\end{eqnarray}
-and
-\begin{eqnarray}
- \label{eq:ppath:cart2sph}
-  \Rds &=& \sqrt{x^2+y^2+z^2}  \nonumber  \\
-  \Lat &=& \arcsin(y/\Rds)                \\
-  \Lon &=& \arctan(z/x) \qquad \mathrm{(implemented\ by\ the\ atan2\ function)}
-                               \nonumber
-\end{eqnarray}
-The functions performing these transformations are \funcindex{sph2cart} and
-\funcindex{cart2sph}.
+calculated using a transformation to Cartesian coordinates.  
 
-\begin{figure}
- \begin{center}
-  \includegraphics*[width=0.80\hsize]{ppath_3Dsearch}
-  \caption{Schematic of Algorithm \ref{alg:ppath:dogridcell3d}. The
-    figure shows two iterations of the algorith to search for the
-    total length of the path step. The asterisk $(\ast)$ gives the
-    start point for the calculations and the circles $(\circ)$ are the
-    final end points of the path step. The plus signs $(+)$ shows the
-    position of the different lengths tested during the iterations.}
-  \label{fig:ppath:3Dsearch}  
- \end{center}
-\end{figure}
-% This figure was produced by the Matlab function mkfigs_ppath
-
-
-The first step to transform a line-of-sight, given by the zenith
-($\ZntAng$) and the azimuth ($\AzmAng$) angle, to cartesian
-coordinates is to determine the corresponding vector with unit length
-in the spherical coordinate system:
-\begin{equation}
- \left[ \begin{array}{c}
-  \DiffD \Rds \\
-  \DiffD \Lat \\
-  \DiffD \Lon
- \end{array} \right] =
- \left[ \begin{array}{c}
-   \cos(\ZntAng) \\
-   \sin(\ZntAng) \cos(\AzmAng) / \Rds \\
-   \sin(\ZntAng) \sin(\AzmAng) / ( \Rds \cos(\Lat) )
- \end{array} \right]
- \label{eq:ppath:los2sphvec}
-\end{equation}
-This vector is then translated to the cartesian coordinate system as
-\begin{equation}
- \left[ \begin{array}{c}
-  \DiffD x \\
-  \DiffD y \\
-  \DiffD z
- \end{array} \right] =
- \left[ \begin{array}{ccc}
-  \cos(\Lat)\cos(\Lon) & -\Rds\sin(\Lat)\cos(\Lon) & 
-                                                   -\Rds\cos(\Lat)\sin(\Lon) \\
-  \sin(\Lat)           & \Rds\cos(\Lat)            & 0                     \\ 
-  \cos(\Lat)\sin(\Lon) & -\Rds\sin(\Lat)\sin(\Lon) & \Rds\cos(\Lat)\cos(\Lon) 
- \end{array} \right] 
- \left[ \begin{array}{c}
-  \DiffD \Rds \\
-  \DiffD \Lat \\
-  \DiffD \Lon
- \end{array} \right]
- \label{eq:ppath:los2cart}
-\end{equation}
-Note that the radial terms (\Rds) in Equations
-\ref{eq:ppath:los2sphvec} and \ref{eq:ppath:los2cart} cancel each
-other.  These calculations are performed in \funcindex{poslos2cart}.
-Special expressions must be used for positions at the north and south
-pole (see the code) as the azimuth angle has there a special
-definition (Section \ref{sec:fm_defs:los}).
-
-The cartesian position of a point along the geometrical path at a
-distance $l$ is then simply
-\begin{equation}
- \left[ \begin{array}{c}
-  x_2 \\
-  y_2 \\
-  z_2
- \end{array} \right] =
- \left[ \begin{array}{c}
-  x_1 + l\DiffD x \\
-  y_1 + l\DiffD y \\
-  z_1 + l\DiffD z
- \end{array} \right]
-  \label{eq:ppath:xdl}
-\end{equation}
-The cartesian viewing vector $[\DiffD x, \DiffD y, \DiffD z]^T$ is
-constant along a geometrical path. The new position is converted to
-spherical coordinates by Equation \ref{eq:ppath:cart2sph} and the new
-spherical viewing vector is calculated as
-\begin{equation}
- \left[ \begin{array}{c}
-  \DiffD \Rds \\
-  \DiffD \Lat \\
-  \DiffD \Lon
- \end{array} \right] =
- \left[ \begin{array}{ccc}
-  \cos(\Lat)\cos(\Lon) & \sin(\Lat)            & \cos(\Lat)\sin(\Lon) \\ 
-  -\sin(\Lat)\cos(\Lon)/\Rds & \cos(\Lat)/\Rds & -\sin(\Lat)\sin(\Lon)/\Rds \\ 
-  -\sin(\Lon)/(\Rds\cos(\Lat)) & 0             & \cos(\Lon)/(\Rds\cos(\Lat)) 
- \end{array} \right] 
- \left[ \begin{array}{c}
-  \DiffD x \\
-  \DiffD y \\
-  \DiffD z
- \end{array} \right]
- \label{eq:ppath:los2sph}
-\end{equation}
-which is converted to a zenith and azimuth angle as
-\begin{eqnarray}
-  \ZntAng &=& \arccos(\DiffD \Rds) \nonumber  \\
-  \AzmAng &=& \arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), 
-                      \qquad \textrm{for} \quad \DiffD\Lon >= 0 \\
-  \AzmAng &=& -\arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), 
-                      \qquad \textrm{for} \quad \DiffD\Lon < 0  \nonumber
- \label{eq:ppath:conv2zaaa}
-\end{eqnarray}
-Special expressions must be used for positions at the north and south
-pole (see the code) as the azimuth angle has there a special
-definition (Section \ref{sec:fm_defs:los}). These calculations are performed in
-\funcindex{cart2poslos}.
-
-For sensor positions outside the atmosphere, the calculations made in
-\funcindex{ppath\_start\_stepping} involve the problem of finding the
-position where the path leaves the atmosphere. This position is found
-by an iterative search. The maximum radius of the uppermost pressure
-surface is taken as first guess for the radius of the exit point.  The
-exit latitude and longitude for this radius is determined (as
-discussed below), and the radius for the top of the atmosphere for the
-found position is used as radius for next iteration. This procedure is
-repeated until the change from one iteration to next for both latitude
-and longitude is smaller than 1\topowerten{-6}. The exit position for
-a given radius, \Rds, is found by solving the following equation
-system:
-\begin{eqnarray}
-  \Rds \cos(\Lat) \cos(\Lon)  & = & x+l\DiffD x \nonumber \\
-  \Rds \sin(\Lat)             & = & y+l\DiffD y \\
-  \Rds \cos(\Lat) \sin(\Lon)  & = & z+l\DiffD z \nonumber
-  \label{eq:ppath:rcoss3Da}
-\end{eqnarray}
-where $(x,y,z)$ is the position of the sensor, $(\DiffD x,\DiffD
-y,\DiffD z)$ the sensor LOS, and $l$, \Lat\ and \Lon\ are the variables
-to be determined. The first step is to determine the distance $l$ to
-the exit point, which is found by adding the square of all three
-equations:
-\begin{equation}
-  \Rds^2 = (x+l\DiffD x)^2 + (y+l\DiffD y)^2 + (z+l\DiffD z)^2
-  \label{eq:ppath:rcoss3Db}
-\end{equation}
-Once $l$ is determined, the latitude and longitude are easily
-calculated by Equations \ref{eq:ppath:xdl} and
-\ref{eq:ppath:cart2sph}. These calculations are implemented in the
-function \funcindex{plevel\_crossing\_3d}.  Similar expressions were
-derived to find the position for the crossing of a given latitude or
-longitude but those expressions were removed from the code as they are
-not used with present algorithms.\footnote{The expressions mentioned
-  can be extracted from the function
-  \shortcode{gridcell\_crossing\_3d} in ARTS version 1-1-440.}
 
 
 
@@ -794,7 +833,7 @@ not used with present algorithms.\footnote{The expressions mentioned
     with refraction considered, for the same zenith angle of the
     sensor line-of-sight. The figure include two pair of paths, with
     refracted tangent altitude of about 0 and 10\,km, respectively.
-    The horisontal coordinate is the latitude distance from the point
+    The horizontal coordinate is the latitude distance from the point
     where the path exits the model atmosphere (at 80\,km). The model
     atmosphere used had a spherical symmetry (that is, 1 D case, but
     the calculations were performed in 2D mode).}
@@ -1018,7 +1057,7 @@ index.
 \subsection{3D}
 \label{sec:ppath:refr3D}
 %----------------------
-For 3D, the geomtrical expressions are used to
+For 3D, the geometrical expressions are used to
 calculate the geometrical zenith and azimuth angles at the end of the
 ray tracing step. Following the methodology for 2D, the geometrical
 zenith and azimuth angles are then corrected to incorporate the

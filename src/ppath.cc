@@ -1191,6 +1191,177 @@ void r_crossing_3d(
 
 
 
+//! gridcell_crossing_3d
+/*!
+   Position of crossing between path and a grid face
+
+   This is the basic function to determine where the path exits a 3D
+   grid cell, given a single grid face. Or rather, the function
+   determines the position of the path for a given radius, latitude or
+   longitude.
+
+   The function considers only crossings in the forward direction,
+   with a distance > 0. If no crossing is found, *r* is set to -1. The
+   length criterion is in practice set to 1e-6, to avoid problems with
+   numerical inaccuracy.
+
+   \param   r           Out: Radius of observation position.
+   \param   lat         Out: Latitude of observation position.
+   \param   lon         Out: Longitude of observation position.
+   \param   l           Out: Distance along path between (x,y,z) and the
+                             crossing point.
+   \param   x           x-coordinate of observation position.
+   \param   y           y-coordinate of observation position.
+   \param   z           z-coordinate of observation position.
+   \param   dx          x-part of LOS unit vector.
+   \param   dy          y-part of LOS unit vector.
+   \param   dz          z-part of LOS unit vector.
+   \param   known_dim   Given spherical dimension, 1=r, 2=lat and 3=lon.
+   \param   rlatlon     The value for the known dimension.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+/*void gridcell_crossing_3d(
+             double&    r,
+             double&    lat,
+             double&    lon,
+             double&    l,
+       const double&    x,
+       const double&    y,
+       const double&    z,
+       const double&    dx,
+       const double&    dy,
+       const double&    dz,
+       const Index&     known_dim,
+       const double     rlatlon )
+{
+  // Double hard coded above to improve the accuracy for Numeric=float
+
+  assert( known_dim >= 1 );
+  assert( known_dim <= 3 );
+
+  // Length limit to reject solutions close 0
+#ifdef USE_DOUBLE
+  const double   llim = 1e-6;
+#else
+  const double   llim = 10;
+#endif
+
+  // Assert that LOS vector is normalised
+  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
+
+  // Set dummy values to be used if there is no crossing
+  // Note that rlatlon is copied by value (no &) and *r*, *lat* or *lon*
+  // can be the same variable as *rlatlon*.
+
+  r   = -1;
+  lat = 999;
+  lon = 999;
+  l   = -1;
+
+  if( known_dim == 1 )
+    {   
+      assert( rlatlon > 0 );
+
+      const double   p  = x*dx + y*dy + z*dz;
+      const double   pp = p * p;
+      const double   q  = x*x + y*y + z*z - rlatlon*rlatlon;
+
+      const double   l1 = -p + sqrt( pp - q );
+      const double   l2 = -p - sqrt( pp - q );
+
+      if( l1 < llim  &&  l2 > llim )
+        { l = l2; }
+      else if( l1 > llim  &&  l2 < llim )
+        { l = l1; }
+      else if( l1 < l2 )
+        { l = l1; }
+      else
+        { l = l2; }
+
+      if( l > llim )
+        {
+          r   = rlatlon;
+          lat = RAD2DEG * asin( ( y+dy*l ) / r );
+          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
+        }
+    }
+
+  else if( known_dim == 2 )
+    {
+      assert( rlatlon >= -90 );
+      assert( rlatlon <= 90 );
+
+      // The case lat=0 must be handled seperately
+      if( abs( rlatlon ) < 1e-9 )
+        {
+          l = -y / dy;
+        }
+      else
+        {
+          const double   latrad = DEG2RAD * rlatlon;
+                double   t2     = tan( latrad );
+                         t2     = t2 * t2;
+          const double   a      = dx*dx + dz*dz - dy*dy/t2;
+          const double   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
+          const double   pp     = p * p;
+          const double   q      = ( x*x + z*z - y*y/t2 ) / a;
+
+          const double   l1 = -p + sqrt( pp - q );
+          const double   l2 = -p - sqrt( pp - q );
+
+          if( l1 < llim  &&  l2 > llim )
+            { l = l2; }
+          else if( l1 > llim  &&  l2 < llim )
+            { l = l1; }
+          else if( l1 < l2 )
+            { l = l1; }
+          else
+            { l = l2; }
+        }
+
+      if( l > llim )
+        {
+          lat = rlatlon;
+          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
+          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
+        }
+    }
+
+  else
+    {
+      assert( abs( rlatlon ) <= 360 );
+
+      const double   lonrad = DEG2RAD * rlatlon;
+      const double   tanlon = tan( lonrad );
+
+      l = ( z - tanlon*x ) / ( tanlon*dx - dz );
+
+      if( l > llim )
+        {
+          const double   coslon = cos( lonrad );
+          const double   xpdxl  = x+dx*l;
+
+          if( xpdxl != 0 )
+            { lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) ); }
+          else
+            {
+              if( y+dy*l > 0 )
+                { lat = 90; }
+              else
+                { lat = -90; }
+            }
+
+          lon = rlatlon;
+          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
+        }
+    }
+}
+*/
+
+
+
 //! rslope_crossing
 /*!
    Calculates the angular distance to a crossing with a level having a 

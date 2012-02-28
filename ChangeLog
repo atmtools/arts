@@ -1,3 +1,14 @@
+2012-02-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* doc/uguide/ppath_theory.tex: Revision and extending general part
+	of 3D geomtrical calculations. 
+
+	* src/ppath.cc (gridcell_crossing_3d): Extracted this function
+	from arts-1-1-400, for later use (now inside /* */).
+
+	* src/geodetic.cc (cart2poslos): Just rearrangement to get dy and
+	dz terms in logical order.
+
 2012-02-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-13

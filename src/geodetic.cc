@@ -98,8 +98,8 @@ void cart2poslos(
   const double   sinlat = sin( DEG2RAD * lat );
   const double   coslon = cos( DEG2RAD * lon );
   const double   sinlon = sin( DEG2RAD * lon );
-  const double   dr   = coslat*coslon*dx + sinlat*dz + coslat*sinlon*dy;
-  const double   dlat = -sinlat*coslon/r*dx + coslat/r*dz -sinlat*sinlon/r*dy;
+  const double   dr   = coslat*coslon*dx    + coslat*sinlon*dy   + sinlat*dz;
+  const double   dlat = -sinlat*coslon/r*dx - sinlat*sinlon/r*dy + coslat/r*dz;
   const double   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dy;
 
   // LOS angles
