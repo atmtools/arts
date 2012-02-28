@@ -2127,7 +2127,11 @@ xml_read_from_stream (istream& is_xml,
 
   Index artscat_version;
   
-  if (version.substr (0,8) != "ARTSCAT-")
+  if (version == "3")
+  {
+    artscat_version = 3;
+  }
+  else if (version.substr (0,8) != "ARTSCAT-")
   {
     ostringstream os;
     os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"

@@ -1,3 +1,14 @@
+2012-02-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-39
+
+	* src/xml_io_array_types.cc:
+
+	Fix regression for arts catalog reading. "3" is also a valid version
+	number for ARTSCAT-3 catalogs.
+
+	* CMakeLists.txt: Add -Wno-sign-conversion for Clang.
+
 2012-02-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-38
