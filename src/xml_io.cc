@@ -858,8 +858,6 @@ xml_read_from_file (const String& filename,
   
   istream* ifs;
 
-  out2 << "  Reading " << efilename << '\n';
-
   String xml_file = efilename;
   bool found_file;
 
@@ -874,6 +872,8 @@ xml_read_from_file (const String& filename,
   if (!found_file) found_file = find_file (xml_file, ".xml.gz", allpaths);
   if (!found_file) find_file (xml_file, ".gz", allpaths);
 
+  out2 << "  Reading " << xml_file << '\n';
+  
   // Open input stream:
   if (xml_file.substr (xml_file.length () - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
@@ -945,8 +945,6 @@ xml_read_arts_catalogue_from_file (const String&      filename,
   
   istream* ifs;
 
-  out2 << "  Reading " << efilename << '\n';
-
   String xml_file = efilename;
   bool found_file;
 
@@ -960,6 +958,8 @@ xml_read_arts_catalogue_from_file (const String&      filename,
   found_file = find_file (xml_file, ".xml", allpaths);
   if (!found_file) found_file = find_file (xml_file, ".xml.gz", allpaths);
   if (!found_file) find_file (xml_file, ".gz", allpaths);
+
+  out2 << "  Reading " << xml_file << '\n';      
 
   // Open input stream:
   if (xml_file.substr (xml_file.length () - 3, 3) == ".gz")

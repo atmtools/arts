@@ -2127,7 +2127,11 @@ xml_read_from_stream (istream& is_xml,
 
   Index artscat_version;
   
-  if (version.substr (0,8) != "ARTSCAT-")
+  if (version == "3")
+  {
+    artscat_version = 3;
+  }
+  else if (version.substr (0,8) != "ARTSCAT-")
   {
     ostringstream os;
     os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
@@ -2200,23 +2204,44 @@ xml_write_to_stream (ostream& os_xml,
                      const String& name, const Verbosity& verbosity)
 
 {
+  static const LineRecord dummy_linerecord;
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
-  LineRecord dummy_line_record;
+  Index catalog_version = dummy_linerecord.Version();
 
   open_tag.set_name ("ArrayOfLineRecord");
   if (name.length ())
     open_tag.add_attribute ("name", name);
 
-  open_tag.add_attribute ("version", dummy_line_record.Version ());
+  if (alrecord.nelem())
+  {
+    catalog_version = alrecord[0].Version();
+    open_tag.add_attribute ("version", alrecord[0].VersionString());
+  }
+  else
+  {
+    open_tag.add_attribute ("version", dummy_linerecord.VersionString());
+  }
+
   open_tag.add_attribute ("nelem", alrecord.nelem ());
 
   open_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
-  for ( Index n = 0; n < alrecord.nelem(); n++ )
+  for (ArrayOfLineRecord::const_iterator it = alrecord.begin();
+       it != alrecord.end();
+       it++ )
     {
-      os_xml << alrecord[n] << "\n";
+      if (catalog_version != it->Version())
+      {
+        ostringstream os;
+        os << "This ArrayOfLineRecords contains a mixture of lines from different\n"
+        << "ARTS catalog versions (ARTSCAT-" << catalog_version << "/"
+        << it->Version() << ").\n"
+        << "Writing them to the same catalog file is unsupported.";
+        throw runtime_error(os.str());
+      }
+      os_xml << *it << "\n";
     }
 
   close_tag.set_name ("/ArrayOfLineRecord");

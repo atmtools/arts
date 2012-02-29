@@ -324,7 +324,13 @@ void abs_linesReadFromSplitArtscat(// WS Output:
        it != unique_species.end(); it++)
   {
     ArrayOfLineRecord more_abs_lines;
-    abs_linesReadFromArts(more_abs_lines, basename + "." + (species_data[*it].Name()) + ".xml",
+    String tmpbasename = basename;
+    if (basename.length() && basename[basename.length()-1] != '/')
+    {
+       tmpbasename += '.';
+    }
+      
+    abs_linesReadFromArts(more_abs_lines, tmpbasename + (species_data[*it].Name()) + ".xml",
                           fmin, fmax, verbosity);
     abs_lines.insert(abs_lines.end(), more_abs_lines.begin(), more_abs_lines.end());
   }
