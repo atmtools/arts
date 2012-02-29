@@ -1027,7 +1027,7 @@ bool is_los_downwards(
 
 //! r_crossing_2d
 /*!
-   Calculates where a 2D LOS crosses the specied radius.
+   Calculates where a 2D LOS crosses the specified radius.
 
    The function only looks for crossings in the forward direction of
    the given zenith angle (neglecting all solutions giving *l* <= 0).
@@ -1035,7 +1035,7 @@ bool is_los_downwards(
    For cases with r_start <= r_hit and abs(za) > 90, the tangent point is
    passed and the returned crossing is on the other side of the tangent point.
  
-   Both *lat* and *l* are set to a very high value if no crossing is found.
+   LAT_NOT_FOUND and L_NOT_FOUND are returned if no solution is found.
 
    \param   r         Out: Radius of found crossing.
    \param   lat       Out: Latitude of found crossing.
@@ -1066,21 +1066,14 @@ void r_crossing_2d(
   // If above and looking upwards or r_hit below tangent point,
   // we have no crossing:
   if( ( r_start >= r_hit  &&  absza <= 90 )  ||  ppc > r_hit )
-    { lat = LAT_NOT_FOUND;   l   = L_NOT_FOUND; }
-
-  // Handle the cases of za=0 and za=180. 
-  else if( absza < ANGTOL  ||  absza > 180-ANGTOL )
-    {
-      lat = lat_start;
-      l   = abs( r_hit - r_start );
-    }
+    { lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
 
   else
     {
       // Passages of tangent point
       if( absza > 90  &&  r_start <= r_hit )
         {
-          Numeric za  = geompath_za_at_r( ppc, sign(za_start)*89.99999, r_hit );
+          Numeric za  = geompath_za_at_r( ppc, sign(za_start)*89, r_hit );
           lat = geompath_lat_at_za( za_start, lat_start, za );
           l = geompath_l_at_r( ppc, r_start ) + geompath_l_at_r( ppc, r_hit );
         }
@@ -1091,6 +1084,7 @@ void r_crossing_2d(
           lat = geompath_lat_at_za( za_start, lat_start, za );
           l = abs( geompath_l_at_r( ppc, r_start ) -
                    geompath_l_at_r( ppc, r_hit   ) );
+          assert( l > 0 );
         }
     }
 }
@@ -1099,22 +1093,22 @@ void r_crossing_2d(
 
 //! r_crossing_3d
 /*!
-   Calculates where a 3D LOS crosses the specied radius
+   Calculates where a 3D LOS crosses the specified radius
 
-   The solution algorith is described in AUG. See the
+   The solution algorithm is described in ATD. See the
    chapter on propagation paths.
 
    The function only looks for crossings in the forward direction of
    the given zenith angle (neglecting all solutions giving *l* <= 0).
    Note that the tangent point can be passed.
  
-   The radius *r* is set to -1, lat and to 999 and *l* to avery high value if
-   no crossing is found.
+   LAT_NOT_FOUND, LON_NOT_FOUND and L_NOT_FOUND are returned if no solution 
+   is found.
 
    \param   lat       Out: Latitude of found crossing.
    \param   lon       Out: Longitude of found crossing.
    \param   l         Out: Length along the path to the crossing.
-   \param   r_hit     Traget radius.
+   \param   r_hit     Target radius.
    \param   r_start   Radius of start point.
    \param   lat_start Latitude of start point.
    \param   lon_start Longitude of start point.
@@ -1136,8 +1130,6 @@ void r_crossing_3d(
              Numeric&   l,
        const Numeric&   r_hit,
        const Numeric&   r_start,    
-       const Numeric&   lat_start,  
-       const Numeric&   lon_start,  
        const Numeric&   za_start,
        const Numeric&   ppc,
        const Numeric&   x,
@@ -1155,210 +1147,171 @@ void r_crossing_3d(
   if( ( r_start >= r_hit  &&  za_start <= 90 )  ||  ppc > r_hit )
     { lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND;   l   = L_NOT_FOUND; }
 
-  // Handle the cases of za=0 and za=180. 
-  else if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
-    {
-      lat = lat_start;
-      lon = lon_start;
-      l   = abs( r_hit - r_start );
-    }
-
   else
     {
       const Numeric   p  = x*dx + y*dy + z*dz;
       const Numeric   pp = p * p;
       const Numeric   q  = x*x + y*y + z*z - r_hit*r_hit;
+      const Numeric   sq = sqrt( pp - q );
+      const Numeric   l1 = -p + sq;
+      const Numeric   l2 = -p - sq;
 
-      const Numeric   l1 = -p + sqrt( pp - q );
-      const Numeric   l2 = -p - sqrt( pp - q );
-
-      if( l1 < 0  &&  l2 > 0 )
+      if( l1 <= 0  &&  l2 > 0 )
         { l = l2; }
-      else if( l1 > 0  &&  l2 < 0 )
+      else if( l1 > 0  &&  l2 <= 0 )
         { l = l1; }
       else if( l1 < l2 )
         { l = l1; }
       else
         { l = l2; }
+      assert( l > 0 );
 
-      if( l > 0 )
-        {
-          lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
-          lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
-        }
+      lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
+      lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
     }
 }
 
 
 
-//! gridcell_crossing_3d
+//! lat_crossing_3d
 /*!
-   Position of crossing between path and a grid face
+   Calculates where a 3D LOS crosses the specified latitude
 
-   This is the basic function to determine where the path exits a 3D
-   grid cell, given a single grid face. Or rather, the function
-   determines the position of the path for a given radius, latitude or
-   longitude.
+   The solution algorithm is described in ATD. See the
+   chapter on propagation paths.
 
-   The function considers only crossings in the forward direction,
-   with a distance > 0. If no crossing is found, *r* is set to -1. The
-   length criterion is in practice set to 1e-6, to avoid problems with
-   numerical inaccuracy.
+   The function only looks for crossings in the forward direction of
+   the given zenith angle (neglecting all solutions giving *l* <= 0).
+   Note that the tangent point can be passed.
+ 
+   R_NOT_FOUND, LON_NOT_FOUND and L_NOT_FOUND are returned if no solution 
+   is found.
 
-   \param   r           Out: Radius of observation position.
-   \param   lat         Out: Latitude of observation position.
-   \param   lon         Out: Longitude of observation position.
-   \param   l           Out: Distance along path between (x,y,z) and the
-                             crossing point.
-   \param   x           x-coordinate of observation position.
-   \param   y           y-coordinate of observation position.
-   \param   z           z-coordinate of observation position.
-   \param   dx          x-part of LOS unit vector.
-   \param   dy          y-part of LOS unit vector.
-   \param   dz          z-part of LOS unit vector.
-   \param   known_dim   Given spherical dimension, 1=r, 2=lat and 3=lon.
-   \param   rlatlon     The value for the known dimension.
+   \param   r         Out: Radius of found crossing.
+   \param   lon       Out: Longitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   lat_hit   Target latitude.
+   \param   lat_start Latitude of start point.
+   \param   aa_start  Azimuth angle at start point.
+   \param   x         x-coordinate of start position.
+   \param   y         y-coordinate of start position.
+   \param   z         z-coordinate of start position.
+   \param   dx        x-part of LOS unit vector.
+   \param   dy        y-part of LOS unit vector.
+   \param   dz        z-part of LOS unit vector.
 
    \author Patrick Eriksson
-   \date   2002-12-30
+   \date   2012-02-29
 */
-/*void gridcell_crossing_3d(
-             double&    r,
-             double&    lat,
-             double&    lon,
-             double&    l,
-       const double&    x,
-       const double&    y,
-       const double&    z,
-       const double&    dx,
-       const double&    dy,
-       const double&    dz,
-       const Index&     known_dim,
-       const double     rlatlon )
+void lat_crossing_3d(
+             Numeric&   r,
+             Numeric&   lon,
+             Numeric&   l,
+       const Numeric&   lat_hit,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
+  assert( lat_hit >= -90 );
+  assert( lat_hit <= 90 );
 
-  assert( known_dim >= 1 );
-  assert( known_dim <= 3 );
-
-  // Length limit to reject solutions close 0
-#ifdef USE_DOUBLE
-  const double   llim = 1e-6;
-#else
-  const double   llim = 10;
-#endif
-
-  // Assert that LOS vector is normalised
-  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
-
-  // Set dummy values to be used if there is no crossing
-  // Note that rlatlon is copied by value (no &) and *r*, *lat* or *lon*
-  // can be the same variable as *rlatlon*.
-
-  r   = -1;
-  lat = 999;
-  lon = 999;
-  l   = -1;
-
-  if( known_dim == 1 )
-    {   
-      assert( rlatlon > 0 );
-
-      const double   p  = x*dx + y*dy + z*dz;
-      const double   pp = p * p;
-      const double   q  = x*x + y*y + z*z - rlatlon*rlatlon;
-
-      const double   l1 = -p + sqrt( pp - q );
-      const double   l2 = -p - sqrt( pp - q );
-
-      if( l1 < llim  &&  l2 > llim )
-        { l = l2; }
-      else if( l1 > llim  &&  l2 < llim )
-        { l = l1; }
-      else if( l1 < l2 )
-        { l = l1; }
-      else
-        { l = l2; }
-
-      if( l > llim )
-        {
-          r   = rlatlon;
-          lat = RAD2DEG * asin( ( y+dy*l ) / r );
-          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
-        }
-    }
-
-  else if( known_dim == 2 )
+  // The case lat=0 must be handled seperately
+  if( abs( lat_hit ) < 1e-9 )
     {
-      assert( rlatlon >= -90 );
-      assert( rlatlon <= 90 );
-
-      // The case lat=0 must be handled seperately
-      if( abs( rlatlon ) < 1e-9 )
-        {
-          l = -y / dy;
-        }
-      else
-        {
-          const double   latrad = DEG2RAD * rlatlon;
-                double   t2     = tan( latrad );
-                         t2     = t2 * t2;
-          const double   a      = dx*dx + dz*dz - dy*dy/t2;
-          const double   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
-          const double   pp     = p * p;
-          const double   q      = ( x*x + z*z - y*y/t2 ) / a;
-
-          const double   l1 = -p + sqrt( pp - q );
-          const double   l2 = -p - sqrt( pp - q );
-
-          if( l1 < llim  &&  l2 > llim )
-            { l = l2; }
-          else if( l1 > llim  &&  l2 < llim )
-            { l = l1; }
-          else if( l1 < l2 )
-            { l = l1; }
-          else
-            { l = l2; }
-        }
-
-      if( l > llim )
-        {
-          lat = rlatlon;
-          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
-          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
-        }
+      l = -z / dz;
     }
 
   else
     {
-      assert( abs( rlatlon ) <= 360 );
+      const Numeric   latrad = DEG2RAD * lat_hit;
+      const Numeric   t2     = pow( tan(latrad), 2.0 );
+      const Numeric   a      = t2 * ( dx*dx + dy*dy ) - dz*dz;
+      const Numeric   b      = 2 * ( t2 * ( x*dx + y*dy ) - z*dz );
+      const Numeric   c      = t2 * ( x*x + y*y ) - z*z;
+      const Numeric   d      = -0.5*b/a;      
+      const Numeric   e      = -0.5*sqrt(b*b-4*a*c)/a;      
+      const Numeric   l1     = d + e;
+      const Numeric   l2     = d - e;
 
-      const double   lonrad = DEG2RAD * rlatlon;
-      const double   tanlon = tan( lonrad );
+      if( l1 <= 0  &&  l2 > 0 )
+        { l = l2; }
+      else if( l1 > 0  &&  l2 <= 0 )
+        { l = l1; }
+      else if( l1 < l2 )  // If both < 0, we can take either l1 or l2!
+        { l = l1; }
+      else
+        { l = l2; }
+    }
 
-      l = ( z - tanlon*x ) / ( tanlon*dx - dz );
+  if( l > 0 )
+    {
+      r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
+      lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
+    }
+  else  
+    { r = R_NOT_FOUND;   lon = LON_NOT_FOUND;   l   = L_NOT_FOUND; }
+}
 
-      if( l > llim )
-        {
-          const double   coslon = cos( lonrad );
-          const double   xpdxl  = x+dx*l;
 
-          if( xpdxl != 0 )
-            { lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) ); }
-          else
-            {
-              if( y+dy*l > 0 )
-                { lat = 90; }
-              else
-                { lat = -90; }
-            }
 
-          lon = rlatlon;
-          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
-        }
+//! lon_crossing_3d
+/*!
+   Calculates where a 3D LOS crosses the specified longitude.
+
+   The solution algorithm is described in ATD. See the
+   chapter on propagation paths.
+
+   The function only looks for crossings in the forward direction of
+   the given zenith angle (neglecting all solutions giving *l* <= 0).
+   Note that the tangent point can be passed.
+ 
+   R_NOT_FOUND, LAT_NOT_FOUND and L_NOT_FOUND are returned if no solution 
+   is found.
+
+   \param   r         Out: Radius of found crossing.
+   \param   lat       Out: Latitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   lon_hit   Target longitude.
+   \param   x         x-coordinate of start position.
+   \param   y         y-coordinate of start position.
+   \param   z         z-coordinate of start position.
+   \param   dx        x-part of LOS unit vector.
+   \param   dy        y-part of LOS unit vector.
+   \param   dz        z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2012-02-29
+*/
+void lon_crossing_3d(
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   l,
+       const Numeric&   lon_hit,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz )
+{
+  const double   lonrad = DEG2RAD * lon_hit;
+  const double   tanlon = tan( lonrad );
+
+  l = ( y - x*tanlon ) / ( dx*tanlon - dy );
+
+  if( l <= 0 )
+    { r = R_NOT_FOUND;   lat = LAT_NOT_FOUND;   l   = L_NOT_FOUND; }
+
+  else
+    {
+      const Numeric zp = z + dz*l;
+      r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(zp,2.) );
+      lat = RAD2DEG * asin( zp / r );
     }
 }
-*/
 
 
 
@@ -1407,12 +1360,6 @@ Numeric rslope_crossing(
         const Numeric&  r0,
               Numeric    c )
 {
-  /*
-  cout << "  rp: " << rp/1e3 << endl;
-  cout << "  za: " << za << endl;
-  cout << "  r0: " << r0/1e3 << endl;
-  cout << "   c: " << c << endl;
-  */
   // If r0=rp, numerical inaccuracy can give a false solution, very close
   // to 0, that we must throw away.
   Numeric   dmin = 0;
@@ -1486,6 +1433,7 @@ Numeric rslope_crossing(
 
    \param   r           Out: Radius at crossing.
    \param   lat         Out: Latitude at crossing.
+   \param   l           Out: Length between start and crossing points.
    \param   r_start0    In: Radius of start point.
    \param   lat_start   In: Latitude of start point.
    \param   za_start    In: LOS zenith angle at start point.
@@ -1503,6 +1451,7 @@ Numeric rslope_crossing(
 void plevel_crossing_2d(
               Numeric&  r,
               Numeric&  lat,
+              Numeric&  l,
         const Numeric&  r_start0,
         const Numeric&  lat_start,
         const Numeric&  za_start,
@@ -1524,15 +1473,14 @@ void plevel_crossing_2d(
   // The case of negligible slope
   if( rmax-rmin < RTOL/10 )
     {
-      // Set r_start, considering impact of numerical problems
+      // Set r_start and r, considering impact of numerical problems
       Numeric r_start = r_start0;
+              r       = r1;
       if( above )
-        { if( r_start < rmax ) { r_start = rmax; } }
+        { if( r_start < rmax ) { r_start = r = rmax; } }
       else
-        { if( r_start > rmin ) { r_start = rmin; } }
+        { if( r_start > rmin ) { r_start = r = rmin; } }
 
-      Numeric l;
-      r = r1;
       r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
 
       // Check if inside [lat1,lat3]
@@ -1550,7 +1498,7 @@ void plevel_crossing_2d(
       else
         { if( r_start > rmax ) { r_start = rmax; } }
 
-      Numeric l, za=999;
+      Numeric za=999;
 
       // Calculate crossing with closest radius
       if( r_start > rmax )
@@ -1587,18 +1535,18 @@ void plevel_crossing_2d(
           if( abs(za_start) < ANGTOL )
             {
               if( r >= rpl )
-                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
               else
-                { r = rpl; lat = lat_start; }
+                { r = rpl;   lat = lat_start;   l = rpl - r_start; }
             }
 
           // za_start = 180
           else if( abs(za_start) > 180-ANGTOL )
             {
               if( r <= rpl )
-                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
               else
-                { r = rpl; lat = lat_start; }
+                { r = rpl;   lat = lat_start;   l = r_start - rpl; }
             }
           
           // Not nadir or zenith
@@ -1615,9 +1563,13 @@ void plevel_crossing_2d(
               // If yes, determine r
               lat += dlat;
               if( lat < lat1  ||  lat > lat3 )
-                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
               else
-                { r = rpl + cpl*dlat; }
+                { 
+                  r = rpl + cpl*dlat;
+                  l = abs( geompath_l_at_r( ppc, r_start ) -
+                           geompath_l_at_r( ppc, r ) );
+                }
             }  
         }
     }
@@ -1633,6 +1585,7 @@ void plevel_crossing_2d(
    \param   r           Out: Radius at crossing.
    \param   lat         Out: Latitude at crossing.
    \param   lon         Out: Longitude at crossing.
+   \param   l           Out: Distance between start and crossing points.
    \param   r_start0    In: Radius of start point.
    \param   lat_start   In: Latitude of start point.
    \param   lon_start   In: Longitude of start point.
@@ -1663,11 +1616,11 @@ void plevel_crossing_3d(
               Numeric&  r,
               Numeric&  lat,
               Numeric&  lon,
+              Numeric&  l,
         const Numeric&  r_start0,
         const Numeric&  lat_start,
         const Numeric&  lon_start,
         const Numeric&  za_start,
-        const Numeric&  aa_start,
         const Numeric&  x,
         const Numeric&  y,
         const Numeric&  z,
@@ -1697,15 +1650,14 @@ void plevel_crossing_3d(
     {
       // Set r_start, considering impact of numerical problems
       Numeric r_start = r_start0;
+              r       = r15;
       if( above )
-        { if( r_start < rmax ) { r_start = rmax; } }
+        { if( r_start < rmax ) { r_start = r = rmax; } }
       else
-        { if( r_start > rmin ) { r_start = rmin; } }
+        { if( r_start > rmin ) { r_start = r = rmin; } }
 
-      Numeric l;
-      r = r15;
-      r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start, za_start, 
-                     ppc, x, y, z, dx, dy, dz );
+      r_crossing_3d( lat, lon, l, r, r_start, za_start, ppc, 
+                                                         x, y, z, dx, dy, dz );
 
       // Check if inside [lat1,lat3]
       if( lat > lat3  ||  lat < lat1  || lon > lon6  ||  lon < lon5 )
@@ -1739,7 +1691,7 @@ void plevel_crossing_3d(
    \param   lat_v       Out: Vector with latitude of found path points.
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
    \param   lstep       Out: Vector with length along the path between points.
-   \param   endface     Out: Number coding for exit face. See above.
+   \param   endface     Out: Number coding for exit face.
    \param   r_start0    Radius of start point.
    \param   lat_start   Latitude of start point.
    \param   za_start    LOS zenith angle at start point.
@@ -1784,13 +1736,13 @@ void do_gridrange_1d(
 
   // If upward, end point radius is always rb
   if( za_start <= 90 )
-    { endface = 3;   r_end = rb; }
+    { endface = 4;   r_end = rb; }
 
   else
     {
       // Path reaches ra:
       if( ra > rsurface  &&  ra > ppc ) 
-        { endface = 1;   r_end = ra; }
+        { endface = 2;   r_end = ra; }
 
       // Path reaches the surface:
       else if( rsurface > ppc )
@@ -1879,39 +1831,38 @@ void do_gridcell_2d(
         const Numeric&  rsurface1,
         const Numeric&  rsurface3 )
 {
-  // Radius end latitude of end point
-  Numeric r, lat;
+  // Radius and latitude of end point, and the length to it
+  Numeric r, lat, l= L_NOT_FOUND;  // l not always calculated/needed
 
   endface = 0;
 
   // Check if crossing with lower pressure level
-  plevel_crossing_2d( r, lat, r_start, lat_start, za_start, ppc, lat1, lat3, 
+  plevel_crossing_2d( r, lat, l, r_start, lat_start, za_start, ppc, lat1, lat3, 
                                                               r1a, r3a, true );
   if( r > 0 )
     { endface = 2; }
 
-
   // Check if crossing with surface
   if( rsurface1 >= r1a  ||  rsurface3 >= r3a )
     {
-      Numeric rt, latt; 
-      plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
-                                            lat3, rsurface1, rsurface3, true );
+      Numeric rt, latt, lt; 
+      plevel_crossing_2d( rt, latt, lt, r_start, lat_start, za_start, ppc, 
+                                      lat1, lat3, rsurface1, rsurface3, true );
 
-      if( rt > 0  &&  abs(rt-r_start) <= abs(r-r_start) )
-        { endface = 7;   r = rt;   lat = latt; }
+      if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+        { endface = 7;   r = rt;   lat = latt;   l = lt; }
     }
 
   // If crossing found (r>0) we are ready!
+  // (plevel_crossing_2d checks if crossing is inside grid box)
   
   // Upper pressure level
   if( r <= 0 )
     {
-      Numeric rt, latt ;
-      plevel_crossing_2d( rt, latt, r_start, lat_start, za_start, ppc, lat1, 
-                                                       lat3, r1b, r3b, false );
-      if( r > 0 )
-        { endface = 4;   r = rt;   lat = latt; }
+      plevel_crossing_2d( r, lat, l, r_start, lat_start, za_start, ppc, 
+                                                 lat1, lat3, r1b, r3b, false );
+      if( r > 0 ) 
+        { endface = 4; }
     }
   
   // Latitude endfaces
@@ -1924,116 +1875,7 @@ void do_gridcell_2d(
       r = geompath_r_at_lat( ppc, lat_start, za_start, lat ); 
     }
 
-  assert (endface );
-
-  // Check if there is a tangent point inside the grid cell. 
-  const Numeric absza = abs( za_start );
-  if( absza > 90  &&  ( absza - abs(lat_start-lat) ) < 90 ) 
-    { endface = 8;   r = ppc; }
-
-  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                                                           za_start, r, lmax );
-}
-
-
-
-//! do_gridcell_3d
-/*!
-   As do_gridcell_2d but for 3D
-
-   \author Patrick Eriksson
-   \date   2012-02-27
-*/
-void do_gridcell_3d(
-              Vector&   r_v,
-              Vector&   lat_v,
-              Vector&   lon_v,
-              Vector&   za_v,
-              Vector&   aa_v,
-              Numeric&  lstep,
-              Index&    endface,
-        const Numeric&  r_start, 
-        const Numeric&  lat_start,
-        const Numeric&  lon_start,
-        const Numeric&  za_start,
-        const Numeric&  aa_start,
-        const Numeric&  ppc,
-        const Numeric&  lmax,
-        const Numeric&  lat1,
-        const Numeric&  lat3,
-        const Numeric&  lon5,
-        const Numeric&  lon6,
-        const Numeric&  r15a,
-        const Numeric&  r35a,
-        const Numeric&  r36a,
-        const Numeric&  r16a,
-        const Numeric&  r15b,
-        const Numeric&  r35b,
-        const Numeric&  r36b,
-        const Numeric&  r16b,
-        const Numeric&  rsurface15,
-        const Numeric&  rsurface35,
-        const Numeric&  rsurface36,
-        const Numeric&  rsurface16 )
-{
-  // Radius end latitude of end point
-  Numeric r, lat, lon;
-
-  endface = 0;
-
-  // Sensor pos and LOS in cartesian coordinates
-  Numeric   x, y, z, dx, dy, dz;
-  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
-                                    za_start, aa_start ); 
-
-  // Check if crossing with lower pressure level
-  plevel_crossing_3d( r, lat, lon, lon_start, r_start, lat_start, 
-                      za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
-                      lat1, lat3, lon5, lon6, 
-                      r15a, r35a, r36a, r16a, true );
-  if( r > 0 )
-    { endface = 2; }
-
-
-  // Check if crossing with surface
-  if( rsurface15 >= r15a  ||  rsurface35 >= r35a  ||
-      rsurface36 >= r36a  ||  rsurface16 >= r16a )
-    {
-      Numeric rt, latt, lont; 
-      plevel_crossing_3d( rt, latt, lont, lon_start, r_start, lat_start, 
-                          za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
-                          lat1, lat3, lon5, lon6, 
-                          rsurface15, rsurface35, rsurface36, rsurface16, true);
-
-      if( rt > 0  &&  abs(rt-r_start) <= abs(r-r_start) )
-        { endface = 7;   r = rt;   lat = latt;   lon = lont; }
-    }
-
-  // If crossing found (r>0) we are ready!
-  
-  // Upper pressure level
-  if( r <= 0 )
-    {
-      Numeric rt, latt, lont;
-      plevel_crossing_3d( rt, latt, lont, lon_start, r_start, lat_start, 
-                          za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
-                          lat1, lat3, lon5, lon6, 
-                          r15b, r35b, r36b, r16b, true );
-      if( r > 0 )
-        { endface = 4;   r = rt;   lat = latt;   lon = lont; }
-    }
-  
-  // Latitude endfaces
-  if( r <= 0 )
-    {
-      if( za_start < 0 )
-        { endface = 1;  lat = lat1; }
-      else
-        { endface = 3;  lat = lat3; }
-      r = geompath_r_at_lat( ppc, lat_start, za_start, lat ); 
-    }
-
-  assert (endface );
+  assert( endface );
 
   // Check if there is a tangent point inside the grid cell. 
   const Numeric absza = abs( za_start );
@@ -2068,7 +1910,7 @@ void do_gridcell_3d(
    \param   lat_v       Out: Vector with latitude of found path points.
    \param   lon_v       Out: Vector with longitude of found path points.
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
-   \param   aa_v        FIXME: Add documentation.
+   \param   aa_v        Out: Vector with LOS azimuth angle at found path points.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
    \param   r_start0    Radius of start point.
@@ -2097,6 +1939,216 @@ void do_gridcell_3d(
 
    \author Patrick Eriksson
    \date   2002-11-28
+*/
+void do_gridcell_3d(
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   lon_v,
+              Vector&   za_v,
+              Vector&   aa_v,
+              Numeric&  lstep,
+              Index&    endface,
+        const Numeric&  r_start, 
+        const Numeric&  lat_start,
+        const Numeric&  lon_start,
+        const Numeric&  za_start,
+        const Numeric&  aa_start,
+        const Numeric&  ppc,
+        const Numeric&  lmax,
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  lon5,
+        const Numeric&  lon6,
+        const Numeric&  r15a,
+        const Numeric&  r35a,
+        const Numeric&  r36a,
+        const Numeric&  r16a,
+        const Numeric&  r15b,
+        const Numeric&  r35b,
+        const Numeric&  r36b,
+        const Numeric&  r16b,
+        const Numeric&  rsurface15,
+        const Numeric&  rsurface35,
+        const Numeric&  rsurface36,
+        const Numeric&  rsurface16 )
+{
+  // Radius end latitude of end point
+  Numeric r, lat, lon, l= L_NOT_FOUND;  // l not always calculated/needed
+
+  endface = 0;
+
+  // Sensor pos and LOS in cartesian coordinates
+  Numeric   x, y, z, dx, dy, dz;
+  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
+                                             za_start,  aa_start ); 
+
+  // Check if crossing with lower pressure level
+  plevel_crossing_3d( r, lat, lon, l, r_start, lat_start, lon_start,
+                      za_start, x, y, z, dx, dy, dz, ppc, 
+                      lat1, lat3, lon5, lon6, r15a, r35a, r36a, r16a, true );
+  if( r > 0 )
+    { endface = 2; }
+
+  // Check if crossing with surface
+  if( rsurface15 >= r15a  ||  rsurface35 >= r35a  ||
+      rsurface36 >= r36a  ||  rsurface16 >= r16a )
+    {
+      Numeric rt, latt, lont, lt; 
+      plevel_crossing_3d( rt, latt, lont, lt, r_start, lat_start, lon_start,
+                          za_start, x, y, z, dx, dy, dz, ppc, 
+                          lat1, lat3, lon5, lon6, rsurface15, rsurface35, 
+                          rsurface36, rsurface16, true );
+
+      if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+        { endface = 7;   r = rt;   lat = latt;   lon = lont;   l = lt; }
+    }
+
+  // If crossing found (r>0) we are ready!
+  // (plevel_crossing_3d checks if crossing is inside grid box)
+  
+  // Upper pressure level
+  if( r <= 0 )
+    {
+      plevel_crossing_3d( r, lat, lon, l, r_start, lat_start, lon_start, 
+                          za_start, x, y, z, dx, dy, dz, ppc, lat1, lat3,
+                          lon5, lon6, r15b, r35b, r36b, r16b, false );
+      if( r > 0 )
+        { endface = 4; }
+    }
+  
+  // Latitude and longitude endfaces
+  if( r <= 0 )
+    {
+      // Here we test both sides blindly and takes shortest l as solution:
+
+      // Latitude
+      Numeric rlat, latlat = lat1, lonlat, llat;
+      Index   eflat = 1;
+      //
+      lat_crossing_3d( rlat, lonlat, llat, lat1, x, y, z, dx, dy, dz );
+      {
+        Numeric rlat3, lonlat3, llat3;
+        lat_crossing_3d( rlat3, lonlat3, llat3, lat3, x, y, z, dx, dy, dz );
+        if( rlat3 > 0  &&  llat3 < llat )
+          { 
+            eflat = 3; 
+            rlat = rlat3; latlat = lat3; lonlat = lonlat3; llat = llat3; 
+          }
+      }
+ 
+      // Longitude
+      Numeric rlon, latlon, lonlon = lon5, llon;
+      Index   eflon = 5;
+      //
+      lon_crossing_3d( rlon, latlon, llon, lon5, x, y, z, dx, dy, dz );
+      //      
+      {
+        Numeric rlon6, latlon6, llon6;
+        lon_crossing_3d( rlon6, latlon6, llon6, lon6, x, y, z, dx, dy, dz );
+        if( rlon6 > 0  &&  llon6 < llon )
+          { 
+            eflon = 6; 
+            rlon = rlon6; latlon = latlon6; lonlon = lon6; llon = llon6; 
+          }        
+      }
+
+      // Pick out solution with shortest l
+      if( llat < llon )
+        { r = rlat; lat = latlat; lon = lonlat; l = llat; endface = eflat; }
+      else
+        { r = rlon; lat = latlon; lon = lonlon; l = llon; endface = eflon; }
+      assert( lat >= lat1 );
+      assert( lat <= lat3 );
+      assert( lon >= lon5 );
+      assert( lon <= lon6 );
+    }
+
+  assert( endface );
+
+  // Check if there is a tangent point inside the grid cell. 
+  if( za_start > 90  )
+    {
+      Numeric ltan = geompath_l_at_r( ppc, r_start);
+      if( l > ltan ) 
+        { 
+          endface = 8; 
+          geompath_tanpos_3d( r, lat, lon, l, r_start, lat_start, lon_start, 
+                                                     za_start, aa_start, ppc );
+        }
+    }
+
+  resolve_lon( lon, lon5, lon6 );              
+
+
+  //--- Create return vectors
+  //
+  Index n = 1;
+  //
+  if( lmax > 0 )
+    {
+      n = Index( ceil( abs( l / lmax ) ) );
+      if( n < 1 )
+        { n = 1; }
+    }
+  //
+  r_v.resize( n+1 );
+  lat_v.resize( n+1 );
+  lon_v.resize( n+1 );
+  za_v.resize( n+1 );
+  aa_v.resize( n+1 );
+  //
+  r_v[0]   = r_start;
+  lat_v[0] = lat_start;
+  lon_v[0] = lon_start;
+  za_v[0]  = za_start;
+  aa_v[0]  = aa_start;
+  //
+  lstep = l / (Numeric)n;
+  // 
+  for( Index j=1; j<=n; j++ )
+    {
+      const Numeric lj  = lstep * (Numeric)j;
+
+      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
+                                       x+dx*lj, y+dy*lj, z+dz*lj, dx, dy, dz );
+   }
+
+  //--- Set last point especially, which should improve the accuracy
+  r_v[n]   = r; 
+  lat_v[n] = lat;
+  lon_v[n] = lon;
+
+  //--- Set last zenith angle to be as accurate as possible
+  if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
+    { za_v[n] = za_start; }
+  else if( endface == 8 )
+    { za_v[n] = 90; }
+  else
+    { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
+
+  //--- Set last azimuth angle to be as accurate as possible for
+  //    zenith and nadir observations
+  if( abs( lat_start ) < POLELAT  &&  
+          ( abs(aa_start) < ANGTOL  ||  abs( aa_start) > 180-ANGTOL ) )
+    {  
+      aa_v[n]  = aa_start; 
+      lon_v[n] = lon_start;
+    }
+
+  // Shall lon values be shifted (value 0 and n+1 are already OK)?
+  for( Index j=1; j<n; j++ )
+    { resolve_lon( lon_v[j], lon5, lon6 ); }
+}
+
+
+
+//! do_gridcell_3d_byltest
+/*!
+    An older implementation of do_gridcell_3d. See ATD for a description 
+    of the algorithm.
+
+    \author Patrick Eriksson
+    \date   2002-11-28
 */
 void do_gridcell_3d_byltest(
               Vector&   r_v,
@@ -3125,7 +3177,7 @@ void ppath_end_1d(
     { ppath_set_background( ppath, 2 ); }
 
   //--- End point is on top of a pressure level
-  else if( endface <= 3 )
+  else if( endface <= 4 )
     { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nelem() ); }
 }
 
@@ -3276,7 +3328,7 @@ void ppath_end_2d(
         const Numeric&    ppc )
 {
   // Number of path points
-  const Index   np = r_v.nelem();
+  const Index   np   = r_v.nelem();
   const Index   imax = np-1;
 
   // Re-allocate ppath for return results and fill the structure
@@ -4145,12 +4197,22 @@ void ppath_step_geom_3d(
   Numeric   lstep;
   Index    endface;
 
-  do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+  if( 1 )
+    {
+      do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
                   lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                   rsurface15, rsurface35, rsurface36, rsurface16 );
-
+    }
+  else
+    {
+      do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                  r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
+                  lat1, lat3, lon5, lon6, 
+                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                  rsurface15, rsurface35, rsurface36, rsurface16 );
+    }
   // Fill *ppath*
   //
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
@@ -5806,9 +5868,8 @@ void ppath_start_stepping(
                   else
                     {
                       // Calculate lat and lon for entrance point at rt 
-                      r_crossing_3d( latt, lont, lt, rt, r_p, rte_pos[1], 
-                                     rte_pos[2], rte_los[0], ppath.constant,
-                                     x, y, z, dx, dy, dz );
+                      r_crossing_3d( latt, lont, lt, rt, r_p, rte_los[0], 
+                                     ppath.constant, x, y, z, dx, dy, dz );
                       assert( lt < 9e9 );
                       resolve_lon( lont, lon_grid[0], lon_grid[llon] ); 
 
@@ -6014,7 +6075,7 @@ void ppath_calc(Workspace&            ws,
                         cloudbox_on, cloudbox_limits, outside_cloudbox, 
                         rte_pos, rte_los, verbosity );
   // For debugging:
-  //Print( ppath_step, 0, verbosity );
+  // Print( ppath_step, 0, verbosity );
 
   // The only data we need to store from this initial ppath_step is l_space
   const  Numeric l_space = ppath_step.l_space;  
@@ -6044,7 +6105,7 @@ void ppath_calc(Workspace&            ws,
       //
       ppath_step_agendaExecute( ws, ppath_step, ppath_step_agenda );
       // For debugging:
-      // Print( ppath_step, 0, verbosity );
+      //Print( ppath_step, 0, verbosity );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;
