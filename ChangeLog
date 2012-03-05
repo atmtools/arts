@@ -1,5 +1,12 @@
 2012-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-19
+
+	* src/ppath.cc (ppath_step_geom_3d): Forgot to switch back to old
+	version of do_gridcell_3d. (Now checks run with OK.)
+
+2012-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-18
 
 	* src/ppath.cc (r_crossing_3d, lat_crossing_3d, lon_crossing_3d):

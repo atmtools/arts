@@ -4249,7 +4249,7 @@ void ppath_step_geom_3d(
   Numeric   lstep;
   Index    endface;
 
-  if( 0 )
+  if( 1 )
     {
       do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
