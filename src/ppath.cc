@@ -1156,14 +1156,22 @@ void r_crossing_3d(
       const Numeric   l1 = -p + sq;
       const Numeric   l2 = -p - sq;
 
-      if( l1 <= 0  &&  l2 > 0 )
-        { l = l2; }
-      else if( l1 > 0  &&  l2 <= 0 )
-        { l = l1; }
-      else if( l1 < l2 )
-        { l = l1; }
+      // The case r_start==r_hit must be best handled seperately:
+      if( r_start != r_hit )
+        {
+          if( l1 <= 0  &&  l2 > 0 )
+            { l = l2; }
+          else if( l1 > 0  &&  l2 <= 0 )
+            { l = l1; }
+          else if( l1 < l2 )
+            { l = l1; }
+          else
+            { l = l2; }
+        }
       else
-        { l = l2; }
+        {
+          l = max( l1, l2 );
+        }
       assert( l > 0 );
 
       lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
@@ -4270,6 +4278,20 @@ void ppath_step_geom_3d(
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
                 lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, ppc );
   // nreal is set to 1 in ppath_stepGeometric
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      ppath_step_geom_3d( ppath2, lat_grid, lon_grid, z_field, refellipsoid, 
+                                                             z_surface, lmax );
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
 }
 
 

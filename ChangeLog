@@ -1,5 +1,14 @@
 2012-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-20
+
+	* src/ppath.cc (ppath_step_geom_3d): Now handling tangent points
+	in the same way as 1D and 2D functions.
+
+	(r_crossing_3d): Added special handling of r_hit==r_start.
+
+2012-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-19
 
 	* src/ppath.cc (ppath_step_geom_3d): Forgot to switch back to old
