@@ -717,15 +717,18 @@ and diving with the z-term:
   \tan^2(\Lat) = \frac{(z+l\DiffD z)^2}{(x+l\DiffD x)^2+(y+l\DiffD y)^2}.
 \end{equation}
 The solution of this quadratic equation is implemented in the function
-\funcindex{lat\_crossing\_3d}. The case of $\Lat=90\degree$ must be treated
-separately, as the tangent function then returns infinity. The solution for 
-$\Lat=0\degree$ is particularly simple ($l=-z/(\DiffD z)$).
+\funcindex{lat\_crossing\_3d}. The solution for $\Lat=0\degree$ is particularly
+simple ($l=-z/\DiffD z$). The case of $\Lat=90\degree$ is set to have no
+solution ($\tan(90\degree)=\infty$), and is instead assumed to be picked up as
+a crossing with one of the two longitudes defining the grid box.
 
 For a given longitude, the x- and y-equations can be combined to give:
 \begin{equation}
   l = \frac{y-x\tan(\Lon)}{\DiffD x\tan(\Lon)-\DiffD y}.
 \end{equation}
-This case is handled by \funcindex{lon\_crossing\_3d}.
+This case is handled by \funcindex{lon\_crossing\_3d}. If the zenith or azimuth
+angle equals 0\degree\ or 180\degree, or if the start and target longitudes are
+equal, there is no valid solution.
 
 
 

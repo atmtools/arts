@@ -1208,6 +1208,8 @@ void lat_crossing_3d(
              Numeric&   lon,
              Numeric&   l,
        const Numeric&   lat_hit,
+       const Numeric&   lat_start,
+       const Numeric&   za_start,
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z,
@@ -1218,38 +1220,75 @@ void lat_crossing_3d(
   assert( lat_hit >= -90 );
   assert( lat_hit <= 90 );
 
-  // The case lat=0 must be handled seperately
-  if( abs( lat_hit ) < 1e-9 )
-    {
-      l = -z / dz;
-    }
+  // For za=0/180 and lat+-90 there is no solution
+  if( za_start == 0  ||  za_start == 180  ||  abs(lat_hit) == 90 )
+    { l = -1; }
+
+  // The expressions below can not be used for lat=0
+  else if( abs( lat_hit ) < 1e-7 )
+    { l = -z / dz; }
 
   else
     {
-      const Numeric   latrad = DEG2RAD * lat_hit;
-      const Numeric   t2     = pow( tan(latrad), 2.0 );
+      const Numeric   t2     = pow( tan( DEG2RAD * lat_hit ), 2.0 );
       const Numeric   a      = t2 * ( dx*dx + dy*dy ) - dz*dz;
       const Numeric   b      = 2 * ( t2 * ( x*dx + y*dy ) - z*dz );
       const Numeric   c      = t2 * ( x*x + y*y ) - z*z;
-      const Numeric   d      = -0.5*b/a;      
-      const Numeric   e      = -0.5*sqrt(b*b-4*a*c)/a;      
-      const Numeric   l1     = d + e;
-      const Numeric   l2     = d - e;
+      const Numeric   bb     = b * b;
+      const Numeric   ac4    = 4 * a * c;
 
-      if( l1 <= 0  &&  l2 > 0 )
-        { l = l2; }
-      else if( l1 > 0  &&  l2 <= 0 )
-        { l = l1; }
-      else if( l1 < l2 )  // If both < 0, we can take either l1 or l2!
-        { l = l1; }
+      // Check if a real solution is possible
+      if( ac4 > bb )
+        { l = -1; }
       else
-        { l = l2; }
+        {
+          const Numeric   d      = -0.5*b/a;      
+          const Numeric   e      = -0.5*sqrt(b*b-4*a*c)/a;      
+          const Numeric   l1     = d + e;
+          const Numeric   l2     = d - e;
+          /*
+          cout << "---------------------------\n";
+          cout << " lat_start = " << lat_start << endl;
+          cout << " lat_hit   = " << lat_hit << endl;
+          cout << " l1        = " << l1 << endl;
+          cout << " l2        = " << l2 << endl;
+          */
+          // Both lat and -lat can end up as a solution (the sign is lost as
+          // tan(lat) is squared). A correct solution requires that l>=0 and
+          // that z+l*dz has the same sigh as lat. If both l1 and l2 fulfils
+          // the criteria we want the solution with smallest l. For the case
+          // lat=lat0, zero ends up as an unwanted solution.
+          if( lat_start != lat_hit )
+            {
+              l     = LAT_NOT_FOUND;
+              const Numeric zsign = sign( lat_hit ); 
+              if( l1 > 0   &&   sign(z+dz*l1) == zsign ) 
+                { l = l1; }
+              if( l2 > 0   &&   l2 < l   &&  sign(z+dz*l2) == zsign ) 
+                { l = l2; }
+              if( l >= 0.999*LAT_NOT_FOUND )
+                { l = -1; }
+            }
+
+          else
+            {
+              l = max( l1, l2 );
+              if( l <= 0 )
+                { l = -1; }
+            }
+          /*
+          cout << " l         = " << l << endl;
+          cout << "---------------------------\n";
+          */
+        }
     }
 
   if( l > 0 )
     {
-      r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
-      lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
+      const Numeric xp = x+dx*l;
+      const Numeric yp = y+dy*l;
+      r   = sqrt( pow(xp,2.0) + pow(yp,2.0) + pow(z+dz*l,2.0) );
+      lon = RAD2DEG * atan2( yp, xp );
     }
   else  
     { r = R_NOT_FOUND;   lon = LON_NOT_FOUND;   l   = L_NOT_FOUND; }
@@ -1290,6 +1329,9 @@ void lon_crossing_3d(
              Numeric&   lat,
              Numeric&   l,
        const Numeric&   lon_hit,
+       const Numeric&   lon_start,
+       const Numeric&   za_start,
+       const Numeric&   aa_start,
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z,
@@ -1297,10 +1339,16 @@ void lon_crossing_3d(
        const Numeric&   dy,
        const Numeric&   dz )
 {
-  const double   lonrad = DEG2RAD * lon_hit;
-  const double   tanlon = tan( lonrad );
 
-  l = ( y - x*tanlon ) / ( dx*tanlon - dy );
+  if( lon_hit == lon_start  ||  za_start == 0  ||  za_start == 180  ||
+                                aa_start == 0  ||  abs(aa_start) == 180 )
+    { l = -1; }
+
+  else
+    {
+      const double   tanlon = tan( DEG2RAD * lon_hit );
+      l = ( y - x*tanlon ) / ( dx*tanlon - dy );
+    }
 
   if( l <= 0 )
     { r = R_NOT_FOUND;   lat = LAT_NOT_FOUND;   l   = L_NOT_FOUND; }
@@ -1308,7 +1356,7 @@ void lon_crossing_3d(
   else
     {
       const Numeric zp = z + dz*l;
-      r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(zp,2.) );
+      r   = sqrt( pow(x+dx*l,2.0) + pow(y+dy*l,2.0) + pow(zp,2.0) );
       lat = RAD2DEG * asin( zp / r );
     }
 }
@@ -2025,10 +2073,12 @@ void do_gridcell_3d(
       Numeric rlat, latlat = lat1, lonlat, llat;
       Index   eflat = 1;
       //
-      lat_crossing_3d( rlat, lonlat, llat, lat1, x, y, z, dx, dy, dz );
+      lat_crossing_3d( rlat, lonlat, llat, lat1, lat_start, za_start,
+                                                         x, y, z, dx, dy, dz );
       {
         Numeric rlat3, lonlat3, llat3;
-        lat_crossing_3d( rlat3, lonlat3, llat3, lat3, x, y, z, dx, dy, dz );
+        lat_crossing_3d( rlat3, lonlat3, llat3, lat3, lat_start, za_start,
+                                                         x, y, z, dx, dy, dz );
         if( rlat3 > 0  &&  llat3 < llat )
           { 
             eflat = 3; 
@@ -2040,11 +2090,13 @@ void do_gridcell_3d(
       Numeric rlon, latlon, lonlon = lon5, llon;
       Index   eflon = 5;
       //
-      lon_crossing_3d( rlon, latlon, llon, lon5, x, y, z, dx, dy, dz );
+      lon_crossing_3d( rlon, latlon, llon, lon5, lon_start, za_start, aa_start, 
+                                                         x, y, z, dx, dy, dz );
       //      
       {
         Numeric rlon6, latlon6, llon6;
-        lon_crossing_3d( rlon6, latlon6, llon6, lon6, x, y, z, dx, dy, dz );
+        lon_crossing_3d( rlon6, latlon6, llon6, lon6, lon_start, za_start, 
+                                               aa_start, x, y, z, dx, dy, dz );
         if( rlon6 > 0  &&  llon6 < llon )
           { 
             eflon = 6; 
@@ -2291,7 +2343,7 @@ void do_gridcell_3d_byltest(
 
       Numeric   l_acc  = 1e-3;
       Numeric   l_in   = 0, l_out = l_end;
-      bool     ready  = false, startup = true;
+      bool     ready   = false, startup = true;
       Numeric   abs_aa = abs( aa_start );
 
       Numeric   l_tan = 99e6;
@@ -4197,7 +4249,7 @@ void ppath_step_geom_3d(
   Numeric   lstep;
   Index    endface;
 
-  if( 1 )
+  if( 0 )
     {
       do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
