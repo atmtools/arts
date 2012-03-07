@@ -670,6 +670,10 @@ void mcPathTraceGeneral(Workspace&            ws,
       //perform single path step using ppath_step_geom_3d
       ppath_step_geom_3d(ppath_step, lat_grid, lon_grid, z_field,
                          refellipsoid, z_surface, -1);
+
+      // For debugging:
+      // Print( ppath_step, 0, verbosity );
+
       np=ppath_step.np;//I think this should always be 2.
       cum_l_stepCalc(cum_l_step, ppath_step);
       //path_step should now have two elements.

@@ -1156,24 +1156,25 @@ void r_crossing_3d(
       const Numeric   l1 = -p + sq;
       const Numeric   l2 = -p - sq;
 
-      // The case r_start==r_hit must be best handled seperately:
-      if( r_start != r_hit )
-        {
-          if( l1 <= 0  &&  l2 > 0 )
-            { l = l2; }
-          else if( l1 > 0  &&  l2 <= 0 )
-            { l = l1; }
-          else if( l1 < l2 )
-            { l = l1; }
-          else
-            { l = l2; }
-        }
-      else
-        {
-          l = max( l1, l2 );
-        }
-      assert( l > 0 );
+      const Numeric lmin = min( l1, l2 );
+      const Numeric lmax = max( l1, l2 );
 
+      // If r_start equals r_hit solutions just above zero can appear (that
+      // shall be rejected). So we pick the biggest solution if lmin is
+      // negative or just above zero. 
+      // (Tried to use "if( r_start != r_hit )", but failed occasionally)
+      if( lmin < 1e-6 )
+        { l = lmax; }
+      else
+        { l = lmin; }
+      assert( l > 0 );
+      /*
+      cout << "r_start = " << r_start << endl;
+      cout << "r_hit   = " << r_hit << endl;
+      cout << "l1      = " << l1 << endl;
+      cout << "l2      = " << l2 << endl;
+      cout << "l       = " << l << endl;
+      */
       lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
       lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
     }
@@ -1216,7 +1217,6 @@ void lat_crossing_3d(
              Numeric&   lon,
              Numeric&   l,
        const Numeric&   lat_hit,
-       const Numeric&   lat_start,
        const Numeric&   za_start,
        const Numeric&   x,
        const Numeric&   y,
@@ -1252,8 +1252,8 @@ void lat_crossing_3d(
         {
           const Numeric   d      = -0.5*b/a;      
           const Numeric   e      = -0.5*sqrt(b*b-4*a*c)/a;      
-          const Numeric   l1     = d + e;
-          const Numeric   l2     = d - e;
+                Numeric   l1     = d + e;
+                Numeric   l2     = d - e;
           /*
           cout << "---------------------------\n";
           cout << " lat_start = " << lat_start << endl;
@@ -1263,25 +1263,30 @@ void lat_crossing_3d(
           */
           // Both lat and -lat can end up as a solution (the sign is lost as
           // tan(lat) is squared). A correct solution requires that l>=0 and
-          // that z+l*dz has the same sigh as lat. If both l1 and l2 fulfils
-          // the criteria we want the solution with smallest l. For the case
-          // lat=lat0, zero ends up as an unwanted solution.
-          if( lat_start != lat_hit )
-            {
-              l     = LAT_NOT_FOUND;
-              const Numeric zsign = sign( lat_hit ); 
-              if( l1 > 0   &&   sign(z+dz*l1) == zsign ) 
-                { l = l1; }
-              if( l2 > 0   &&   l2 < l   &&  sign(z+dz*l2) == zsign ) 
-                { l = l2; }
-              if( l >= 0.999*LAT_NOT_FOUND )
-                { l = -1; }
-            }
+          // that z+l*dz has the same sigh as lat. Set l to -1 if this not
+          // fulfilled.
+          const Numeric zsign = sign( lat_hit ); 
+          if( l1 > 0   &&   abs(sign(z+dz*l1)-zsign)>0.01 ) 
+            { l1 = -1;}
+          if( l2 > 0   &&   abs(sign(z+dz*l2)-zsign)>0.01 ) 
+            { l2 = -1;}
 
+          // If both l1 and l2 are > 0, we want theoretically the smallest
+          // value. However, with lat=lat0 the "zero solution" can deviate
+          // slightly from zero due to numerical issues, and it is not just to
+          // pick the smallest positive value. As a solution, don't except a
+          // final l below 1e-6 if not both l1 and l2 are inside [0,1e-6].
+          const Numeric lmin = min( l1, l2 );
+          const Numeric lmax = max( l1, l2 );
+          if( lmin >= 0  && lmax < 1e-6 )
+            { l = lmax; }
           else
             {
-              l = max( l1, l2 );
-              if( l <= 0 )
+              if( lmin > 1e-6 ) 
+                { l = lmin; }
+              else if( lmax > 1e-6 )
+                { l = lmax; }
+              else
                 { l = -1; }
             }
           /*
@@ -2081,11 +2086,11 @@ void do_gridcell_3d(
       Numeric rlat, latlat = lat1, lonlat, llat;
       Index   eflat = 1;
       //
-      lat_crossing_3d( rlat, lonlat, llat, lat1, lat_start, za_start,
+      lat_crossing_3d( rlat, lonlat, llat, lat1, za_start,
                                                          x, y, z, dx, dy, dz );
       {
         Numeric rlat3, lonlat3, llat3;
-        lat_crossing_3d( rlat3, lonlat3, llat3, lat3, lat_start, za_start,
+        lat_crossing_3d( rlat3, lonlat3, llat3, lat3, za_start,
                                                          x, y, z, dx, dy, dz );
         if( rlat3 > 0  &&  llat3 < llat )
           { 

@@ -1,3 +1,10 @@
+2012-03-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-21
+
+	* src/ppath.cc (lat_crossing_3d, r_crossing_3d): Yet another
+	version for selection between l1 and l2.
+
 2012-03-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-20
