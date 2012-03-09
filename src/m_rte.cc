@@ -990,7 +990,7 @@ void iyBeerLambertStandardClearsky(
               //
               for( Index iv=0; iv<nf; iv++ )
                 {
-                  X[iv] = 0.5 * ppath.l_step[ip] * exp( -total_tau[iv] );
+                  X[iv] = 0.5 * ppath.lstep[ip] * exp( -total_tau[iv] );
                 }
 
               // Loop quantities
@@ -1471,7 +1471,7 @@ void iyEmissionStandardClearsky(
               //
               for( Index iv=0; iv<nf; iv++ )
                 {
-                  X[iv] = 0.5 * ppath.l_step[ip] * exp( -total_tau[iv] );
+                  X[iv] = 0.5 * ppath.lstep[ip] * exp( -total_tau[iv] );
                   Y[iv] = X[iv] * ( esource[iv] - iy(iv,0) );
                 }
 

@@ -323,7 +323,7 @@ void cloud_ppath_update1D(Workspace& ws,
       // Ppath_step normally has 2 points, the starting
       // point and the intersection point.
       // But there can be points in between, when a maximum 
-      // l_step is given. We have to interpolate on all the 
+      // lstep is given. We have to interpolate on all the 
       // points in the ppath_step.
 
       // Initialize variables for interpolated values
@@ -463,7 +463,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
       // Ppath_step normally has 2 points, the starting
       // point and the intersection point.
       // But there can be points in between, when a maximum 
-      // l_step is given. We have to interpolate on all the 
+      // lstep is given. We have to interpolate on all the 
       // points in the ppath_step.
 
       // Initialize variables for interpolated values
@@ -711,7 +711,7 @@ void cloud_ppath_update3D(Workspace& ws,
       // Ppath_step normally has 2 points, the starting
       // point and the intersection point.
       // But there can be points in between, when a maximum 
-      // l_step is given. We have to interpolate on all the 
+      // lstep is given. We have to interpolate on all the 
       // points in the ppath_step.
       
       Tensor3 ext_mat_int(stokes_dim, stokes_dim, ppath_step.np);
@@ -889,7 +889,7 @@ void cloud_RT_no_background(Workspace& ws,
   for( Index k= ppath_step.np-1; k > 0; k--)
     {
       // Length of the path between the two layers.
-      Numeric l_step = ppath_step.l_step[k-1];
+      Numeric lstep = ppath_step.lstep[k-1];
       // Average temperature
       Numeric rte_temperature_local = 0.5 * (t_int[k] + t_int[k-1]);
       //
@@ -957,7 +957,7 @@ void cloud_RT_no_background(Workspace& ws,
       out3 << "Stokes vector at intersection point: \n" 
            << stokes_vec 
            << "\n"; 
-      out3 << "l_step: ..." << l_step << "\n";
+      out3 << "lstep: ..." << lstep << "\n";
       out3 << "------------------------------------------\n";
       out3 << "Averaged coefficients: \n";
       out3 << "Planck function: " << rte_planck_value << "\n";
@@ -972,7 +972,7 @@ void cloud_RT_no_background(Workspace& ws,
       // is updated until the considered point is reached.
       rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim), 
                    ext_mat_local(0,joker,joker), abs_vec_local(0,joker), 
-                   sca_vec_av, l_step, rte_planck_value);
+                   sca_vec_av, lstep, rte_planck_value);
               
     }// End of loop over ppath_step. 
   // Assign calculated Stokes Vector to doit_i_field. 
@@ -1332,7 +1332,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               Numeric z_field_above = z_field(p_index +1, 0, 0);
               Numeric z_field_0 = z_field(p_index, 0, 0);
              
-              Numeric cos_theta, l_step;
+              Numeric cos_theta, lstep;
               if (scat_za_grid[scat_za_index] == 90.0)
                 {
                   //cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
@@ -1346,7 +1346,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                 }
               Numeric dz = (z_field_above -  z_field_0);
               
-              l_step =  abs(dz/cos_theta) ;
+              lstep =  abs(dz/cos_theta) ;
               
               // Average temperature
               Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
@@ -1421,7 +1421,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               out3 << "Stokes vector at intersection point: \n" 
                    << stokes_vec 
                    << "\n"; 
-              out3 << "l_step: ..." << l_step << "\n";
+              out3 << "lstep: ..." << lstep << "\n";
               out3 << "------------------------------------------\n";
               out3 << "Averaged coefficients: \n";
               out3 << "Planck function: " << rte_planck_value << "\n";
@@ -1436,7 +1436,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // is updated until the considered point is reached.
               rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim), 
                            ext_mat(0,joker,joker), abs_vec(0,joker), 
-                           sca_vec_av, l_step, rte_planck_value);
+                           sca_vec_av, lstep, rte_planck_value);
               
               // Assign calculated Stokes Vector to doit_i_field. 
               doit_i_field(p_index - cloudbox_limits[0],
@@ -1450,7 +1450,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               Numeric z_field_below = z_field(p_index -1, 0, 0);
               Numeric z_field_0 = z_field(p_index, 0, 0);
               
-              Numeric cos_theta, l_step;
+              Numeric cos_theta, lstep;
               if (scat_za_grid[scat_za_index] == 90.0)
                 {
                   cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
@@ -1462,7 +1462,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                   cos_theta = cos(scat_za_grid[scat_za_index]* PI/180.0);
                 }
               Numeric dz = ( z_field_0 - z_field_below);
-              l_step =  abs(dz/cos_theta) ;
+              lstep =  abs(dz/cos_theta) ;
               
               // Average temperature
               Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
@@ -1541,7 +1541,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               out3 << "Stokes vector at intersection point: \n" 
                    << stokes_vec 
                    << "\n"; 
-              out3 << "l_step: ..." << l_step << "\n";
+              out3 << "lstep: ..." << lstep << "\n";
               out3 << "------------------------------------------\n";
               out3 << "Averaged coefficients: \n";
               out3 << "Planck function: " << rte_planck_value << "\n";
@@ -1556,7 +1556,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // is updated until the considered point is reached.
               rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim), 
                            ext_mat(0,joker,joker), abs_vec(0,joker), 
-                           sca_vec_av, l_step, rte_planck_value);
+                           sca_vec_av, lstep, rte_planck_value);
               
               // Assign calculated Stokes Vector to doit_i_field. 
               doit_i_field(p_index - cloudbox_limits[0],
@@ -1667,7 +1667,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
             }
           Numeric dz = (z_field_above -  z_field_0);
           
-          Numeric l_step =  abs(dz/cos_theta) ;
+          Numeric lstep =  abs(dz/cos_theta) ;
           
           // Average temperature
           Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
@@ -1740,7 +1740,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           // is updated until the considered point is reached.
           rte_step_std(stokes_vec_local, ext_mat(0,joker,joker), 
                    abs_vec(0,joker), 
-                   sca_vec_av, l_step, rte_planck_value);
+                   sca_vec_av, lstep, rte_planck_value);
           // Assign calculated Stokes Vector to doit_i_field. 
           doit_i_field(p_index - cloudbox_limits[0],
                   0, 0,

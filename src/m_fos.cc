@@ -505,7 +505,7 @@ void iyFOS(Workspace&          ws,
                   Matrix trans_mat(stokes_dim,stokes_dim); 
                   //
                   rte_step_std( iy(iv,joker), trans_mat, ext_mat, abs_vec,
-                                                     s, ppath.l_step[ip], b );
+                                                       s, ppath.lstep[ip], b );
                 }
             }
         } 

@@ -1,8 +1,5 @@
 # Right now used more for notes, than TODO
 
-2012-02-21
-Is PTILTMAX needed (found in ppath.h)?
-
 2012-02-21, Patrick
 Add sinefit weighting functions.
 
@@ -10,18 +7,16 @@ Add sinefit weighting functions.
 Fix bug for mc_antenna (azimuth distance varies with za)
 
 2012-02-20, Patrick
-Revise AUG with respect to cganges around ppath.
-Remove r_geoid from code. And make sure that it is not mentioned in AUG.
-
-2012-02-20
 Regarding Doppler: Update AUG Information in methods.cc correct?
 Add Doppler shift also to emission/Planck?
 
 2012-02-15, Patrick
 Include tilt when checking cloudbox limit.
 
-2012-02-08, Patrick
-Revise surface tilt and calculation of specular direction.
+2012-02-08, Patrick 
+Revise surface tilt and calculation of specular direction,
+and inside get_iy_of_background. In the later case, also make use of other
+version of plevel_slope_3d and remove this version used now.
 
 2012-02-08, Patrick
 Revise usage of sensor_response_agenda, and resolve yCalc/yCalc2.

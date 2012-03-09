@@ -293,7 +293,7 @@ void apply_y_unit2(
 
     \param   trans_mat          Input/Output: Transmission matrix of slab.
     \param   ext_mat            Input: Averaged extinction matrix.
-    \param   l_step             Input: The length of the RTE step.
+    \param   lstep             Input: The length of the RTE step.
 
     \author Claudia Emde and Patrick Eriksson, 
     \date   2010-10-15
@@ -302,7 +302,7 @@ void ext2trans(//Output and Input:
               MatrixView trans_mat,
               //Input
               ConstMatrixView ext_mat_av,
-              const Numeric& l_step )
+              const Numeric& lstep )
 {
   //Stokes dimension:
   Index stokes_dim = ext_mat_av.nrows();
@@ -310,7 +310,7 @@ void ext2trans(//Output and Input:
   //Check inputs:
   assert( is_size(trans_mat, stokes_dim, stokes_dim) );
   assert( is_size(ext_mat_av, stokes_dim, stokes_dim) );
-  assert( l_step >= 0 );
+  assert( lstep >= 0 );
   assert( !is_singular( ext_mat_av ) );
 
   // Any changes here should also be implemented in rte_step_std.
@@ -318,7 +318,7 @@ void ext2trans(//Output and Input:
   //--- Scalar case: ---------------------------------------------------------
   if( stokes_dim == 1 )
     {
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
+      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
     }
 
 
@@ -327,7 +327,7 @@ void ext2trans(//Output and Input:
   //- Unpolarised
   else if( is_diagonal(ext_mat_av) )
     {
-      const Numeric tv = exp(-ext_mat_av(0,0) * l_step);
+      const Numeric tv = exp(-ext_mat_av(0,0) * lstep);
 
       trans_mat = 0;
 
@@ -342,7 +342,7 @@ void ext2trans(//Output and Input:
   else
     {
       Matrix ext_mat_ds = ext_mat_av;
-      ext_mat_ds *= -l_step; 
+      ext_mat_ds *= -lstep; 
 
       Index q = 10;  // index for the precision of the matrix exp function
 
@@ -621,7 +621,7 @@ void get_ppath_rtvars(
         {
           for( Index iv=0; iv<nf; iv++ )
             { 
-              ppath_tau(iv,ip-1) = 0.5 * ppath.l_step[ip-1] * (
+              ppath_tau(iv,ip-1) = 0.5 * ppath.lstep[ip-1] * (
                                          ppath_abs_scalar(iv,joker,ip-1).sum() +
                                          ppath_abs_scalar(iv,joker,ip).sum() );
               total_tau[iv] += ppath_tau(iv,ip-1);
@@ -836,7 +836,7 @@ void get_ppath_cloudrtvars(
                 }
               // Transmission
               ext2trans( ppath_transmission(iv,joker,joker,ip-1),
-                         ext_mat_av, ppath.l_step[ip-1] );  
+                         ext_mat_av, ppath.lstep[ip-1] );  
               const Matrix tmp = total_transmission(iv,joker,joker);
               mult( total_transmission(iv,joker,joker), tmp,
                     ppath_transmission(iv,joker,joker,ip-1) );
@@ -1058,7 +1058,7 @@ void mirror_los(
     Total extinction and absorption inside the layer are described by
     *ext_mat_av* and *abs_vec_av* respectively,
     the blackbdody radiation of the layer is given by *rte_planck_value*
-    and the propagation path length through the layer is *l_step*.
+    and the propagation path length through the layer is *lstep*.
 
     There is an additional scattering source term in the 
     VRTE, the scattering integral term. For this function a constant
@@ -1083,7 +1083,7 @@ void mirror_los(
     \param   ext_mat_av         Input: Averaged extinction matrix.
     \param   abs_vec_av         Input: Averaged absorption vector.
     \param   sca_vec_av         Input: averaged scattering vector.
-    \param   l_step             Input: The length of the RTE step.
+    \param   lstep             Input: The length of the RTE step.
     \param   rte_planck_value   Input: Blackbody radiation.
 
     \author Claudia Emde and Patrick Eriksson, 
@@ -1096,7 +1096,7 @@ void rte_step_std(//Output and Input:
               ConstMatrixView ext_mat_av,
               ConstVectorView abs_vec_av,
               ConstVectorView sca_vec_av,
-              const Numeric& l_step,
+              const Numeric& lstep,
               const Numeric& rte_planck_value )
 {
   //Stokes dimension:
@@ -1108,7 +1108,7 @@ void rte_step_std(//Output and Input:
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
   assert( rte_planck_value >= 0 );
-  assert( l_step >= 0 );
+  assert( lstep >= 0 );
   assert (!is_singular( ext_mat_av ));
 
   // Any changes here associated with the extinction matrix should also be
@@ -1131,7 +1131,7 @@ void rte_step_std(//Output and Input:
   //--- Scalar case: ---------------------------------------------------------
   if( stokes_dim == 1 )
     {
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
+      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
       stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) +
                        (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) /
         ext_mat_av(0,0) * (1 - trans_mat(0,0));
@@ -1148,11 +1148,11 @@ void rte_step_std(//Output and Input:
   else if( is_diagonal(ext_mat_av) && unpol_abs_vec && unpol_sca_vec )
     {
       trans_mat      = 0;
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
+      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
 
       // Stokes dim 1
       //   assert( ext_mat_av(0,0) == abs_vec_av[0] );
-      //   Numeric transm = exp( -l_step * abs_vec_av[0] );
+      //   Numeric transm = exp( -lstep * abs_vec_av[0] );
       stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) +
                       (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) /
                       ext_mat_av(0,0) * (1 - trans_mat(0,0));
@@ -1193,7 +1193,7 @@ void rte_step_std(//Output and Input:
 
       Matrix ext_mat_ds(stokes_dim, stokes_dim);
       ext_mat_ds = ext_mat_av;
-      ext_mat_ds *= -l_step; // ext_mat_ds = -ext_mat*ds
+      ext_mat_ds *= -lstep; // ext_mat_ds = -ext_mat*ds
 
       Index q = 10;  // index for the precision of the matrix exp function
       //Matrix exp_ext_mat(stokes_dim, stokes_dim);
@@ -1292,7 +1292,7 @@ void surface_calc(
     \param   stokes_vec         Input/Output: A Stokes vector.
     \param   trans_mat          Input/Output: Transmission matrix of slab.
     \param   ext_mat            Input: Averaged extinction matrix.
-    \param   l_step             Input: The length of the RTE step.
+    \param   lstep             Input: The length of the RTE step.
 
     \author Claudia Emde and Patrick Eriksson, 
     \date   2010-10-15
@@ -1302,10 +1302,10 @@ void trans_step_std(//Output and Input:
               MatrixView trans_mat,
               //Input
               ConstMatrixView ext_mat_av,
-              const Numeric& l_step )
+              const Numeric& lstep )
 {
   // Checks made in *ext2trans*.
-  ext2trans( trans_mat, ext_mat_av, l_step );  
+  ext2trans( trans_mat, ext_mat_av, lstep );  
 
   Vector tmp = stokes_vec;
 

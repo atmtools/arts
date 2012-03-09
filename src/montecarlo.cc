@@ -314,7 +314,7 @@ void cloud_atm_vars_by_gp(
 //! cum_l_stepCalc
 
 /*!
-   Returns a vector of cumulative pathlengths for a given ppath by adding ppath.l_step
+   Returns a vector of cumulative pathlengths for a given ppath by adding ppath.lstep
 
    \param cum_l_step    Output: vector of cumulative pathlengths.
    \param ppath         a Ppath.
@@ -333,7 +333,7 @@ void cum_l_stepCalc(
     cum_l_step[0] = 0.0;
     for (Index i=0; i<ppath.np-1; i++)
       {
-        cumsum += ppath.l_step[i];
+        cumsum += ppath.lstep[i];
         cum_l_step[i+1] = cumsum;
       }
   }             
@@ -496,8 +496,8 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
       for (Index i = 0; i < ppath.np-1 ; ++i)
         {
           //Add to path integrals
-          iwp+=0.5*(iwc_vec[i+1]+iwc_vec[i])*ppath.l_step[i];
-          cloud_opt_path+=0.5*(k_vec[i+1]+k_vec[i])*ppath.l_step[i];
+          iwp+=0.5*(iwc_vec[i+1]+iwc_vec[i])*ppath.lstep[i];
+          cloud_opt_path+=0.5*(k_vec[i+1]+k_vec[i])*ppath.lstep[i];
         }
     }
 }

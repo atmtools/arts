@@ -534,9 +534,9 @@ The observation positions of the sensor are stored in
 \wsvindex{sensor\_pos}. This is a matrix where each row corresponds to
 a sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
-matrix (from first to last) are radius, latitude and longitude.
+matrix (from first to last) are geomtrical altitude, latitude and longitude.
 Accordingly, row $i$ of \builtindoc{sensor\_pos} for a 3D case is
-$(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
+$(\aAlt{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
 \builtindoc{sensor\_los}) must be valid with respect to the model
 atmosphere (see Section~\ref{sec:fm_defs:ppaths}). An obviously
@@ -545,14 +545,6 @@ the sensor is placed inside the model atmosphere, any sensor
 line-of-sight is allowed, this including the cases that the sensor is
 placed on the surface looking down, and that the sensor is placed
 inside the cloud box.
-
-The fact that the sensor position can be given any value implies that
-the radius must be used in \builtindoc{sensor\_pos}, in contrast to
-\builtindoc{z\_surface} and \builtindoc{z\_field} where the altitude
-above the geoid is applied. This is the case as, for 2D and 3D, the
-sensor can be placed outside the covered latitude and longitude
-ranges, thus outside the defined geoid, and the geometrical altitude is
-undefined. 
 
 The sensor is treated to be motionless when calculating the spectrum,
 or spectra, for each given observation position. One or several
@@ -716,7 +708,7 @@ A measurement block covers one or several recorded spectra, depending
 on the measurement conditions and the atmospheric dimensionality. A
 block can consist of several spectra when there is no effective motion
 of the sensor with respect to the atmospheric fields. It should be
-noted that for 1D cases, a motion along a constant radius has no
+noted that for 1D cases, a motion along a constant altitude has no
 influence on the simulated spectra as the same atmospheric fields are
 seen for a given viewing direction. It is favourable, if possible, to
 handle all spectra as a single block, instead of using a block for

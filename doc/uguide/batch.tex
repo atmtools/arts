@@ -102,9 +102,8 @@ the lines:
 
 \begin{code}
 AgendaSet( ppath_step_agenda ){
-   ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid,
-                        lat_grid, lon_grid,
-                        z_field, r_geoid, z_surface,
+   ppath_stepGeometric( ppath_step, atmosphere_dim, lat_grid,
+                        lon_grid,z_field, refellipsoid, z_surface,
                         25e3 )
 }
 

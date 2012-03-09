@@ -1,3 +1,37 @@
+2012-03-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-22
+
+	* src/rte.cc:
+	* src/m_rte.cc:
+	* src/m_general.cc (Print):
+	* src/m_fos.cc:
+	* src/doit.cc:
+	* src/ppath.cc:
+	* src/xml_io_compound_types.cc: Adopted to change below.
+
+	* src/ppath.h: Changed back: l_step -> lstep and l_space -> lspace
+	(to be consistent with the WSV ppath_lmax/raytrace).
+
+	* doc/uguide/batch.tex: Updated the code example where
+	ppath_stepGeometric is re-defined.
+
+	* doc/uguide/rte.tex: Updated regarding that sensor_pos now holds
+	altitude instead of radius.
+
+	* doc/uguide/ppath.tex: A quick re-revision. Some less important
+	comments removed.
+
+	* doc/uguide/atmosphere.tex: Some text improvements and updates.
+
+	* src/geodetic.cc: Geiod -> ellipsoid in header.
+
+	* src/ppath.cc: Part around PTILTMAX changed. Some more work on 3D
+	code.
+
+	* src/ppath.h: Removed version of plevel_slope_3d not used outside
+	of ppath.cc. Removed PTILTMAX. Was just used in one place.
+
 2012-03-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-21

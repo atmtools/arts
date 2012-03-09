@@ -640,8 +640,8 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ppath.pos, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.los, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.r, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.l_step, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.l_space, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.lstep, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.lspace, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.nreal, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_p, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_lat, pbifs, verbosity);
@@ -682,9 +682,9 @@ xml_write_to_stream (ostream& os_xml,
                        "PropagationPathPointPositions", verbosity);
   xml_write_to_stream (os_xml, ppath.los, pbofs, "LineOfSight", verbosity);
   xml_write_to_stream (os_xml, ppath.r, pbofs, "PropagationPathPointRadii", verbosity);
-  xml_write_to_stream (os_xml, ppath.l_step, pbofs,
+  xml_write_to_stream (os_xml, ppath.lstep, pbofs,
                        "PropagationPathPositionLength", verbosity);
-  xml_write_to_stream (os_xml, ppath.l_space, pbofs,
+  xml_write_to_stream (os_xml, ppath.lspace, pbofs,
                        "PropagationLengthInSpace", verbosity);
   xml_write_to_stream (os_xml, ppath.nreal, pbofs, "RefractiveIndexRealPart", verbosity); 
   xml_write_to_stream (os_xml, ppath.gp_p, pbofs, "PressureGridIndexPosition", verbosity);

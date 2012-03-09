@@ -484,7 +484,7 @@ void poslos2cart(
 
 //! refell2r
 /*!
-    Reference geoid radius, directly from *refellipsoid*.
+    Reference ellipsoid radius, directly from *refellipsoid*.
 
     Gives the distance from the Earth's centre and the reference ellipsoid
     as a function of geoCENTRIC latitude. 

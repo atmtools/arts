@@ -17,7 +17,7 @@ introduced in Section \ref{sec:fm_defs:ppaths} and this section provides
 further details. For a general usage of ARTS, it should suffice to read
 Section~\ref{sec:ppath:usage}. The remaining sub-sections deal with more
 low-level aspects of the calculations, and are of interest only if you want to
-understand the finer details of ARTS. The actual equations used are found in
+understand the finer details of ARTS. The actual equations applied are found in
 Chapter~\ref{T-sec:ppaththeory} of \theory.
 
 
@@ -27,7 +27,7 @@ Chapter~\ref{T-sec:ppaththeory} of \theory.
 \label{sec:ppath:usage}
 
 The ray tracing algorithm to be applied for the calculation of propagation path
-is effectively selected by specifying \wsaindex{ppath\_step\_agenda} (see
+is selected by specifying \wsaindex{ppath\_step\_agenda} (see
 further Section~\ref{sec:fm_defs:ppaths}). The fastest calculations are
 obtained if refraction is neglected, denoted as geometrical calcutions. The
 workspace method to apply if this assumption can be made is
@@ -113,16 +113,14 @@ That variable is used both as input and output to
 last path point hold by the structure is accordingly the starting
 point for the new calculations. If a total propagation path shall be
 determined, the agenda is called repeatedly until the starting point
-of the propagation path is found and \builtindoc{ppath\_step} will hold
-all path steps that together make up \builtindoc{ppath}. 
+of the propagation path is found. 
 
 The path is determined by starting at the end point and moving
 backwards to the starting point. The calculations are initiated by
 filling \builtindoc{ppath\_step} with the practical end point of the
 path. This is either the position of the sensor (true or
 hypothetical), or some point at the top of the atmosphere (determined
-by geometrical calculations starting at the sensor). This
-initialization is not handled by \builtindoc{ppath\_step\_agenda}. 
+by geometrical calculations starting at the sensor).
 The field \shortcode{constant} is set by \builtindoc{ppath\_calc}
 to the correct value if the sensor is above the model atmosphere.
 Otherwise, the field is set to be negative and is corrected by
@@ -161,7 +159,7 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      be equal to the workspace variable \builtindoc{atmosphere\_dim}.
      
    \item[np] [Index] Number of positions to define the propagation
-     path. Allowed values are $\geq 0$. The number of rows of
+     path. Allowed values are $\geq 1$. The number of rows of
      \shortcode{pos} and \shortcode{los}, and the length of
      \shortcode{z}, \shortcode{gp\_p}, \shortcode{gp\_lat} and
      \shortcode{gp\_lon}, shall be equal to \shortcode{np}. The length
@@ -176,9 +174,7 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      constant can be assigned to all geometrical paths and for 1D
      cases (with or without refraction). This field can be
      initiated to a negative value to indicate that the constant is
-     undefined or not yet set. For cases where the constant applies,
-     \builtindoc{ppath\_step\_agenda} sets this constant at the first
-     call of the agenda if the given value is negative.
+     undefined or not yet set. 
 
    \item[background] [String] The radiative background for the
      propagation path. The possible
@@ -217,11 +213,11 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      vector is accordingly \shortcode{np}. This is a help variable for plotting
      and similar purposes. 
      
-   \item[l\_step] [Vector] The length along the propagation path
+   \item[lstep] [Vector] The length along the propagation path
      between the positions in \shortcode{pos}. The first value is the
      length between the first and second point etc. 
 
-   \item[l\_space] [Numeric] Propagation length through free space above the
+   \item[lspace] [Numeric] Propagation length through free space above the
      model atmosphere. Only points inside the atmosphere are stored and the sum
      of \shortcode{lstep} does not cover the propagation between the top-of-the
      atmosphere and a sensor placed in space.
@@ -243,8 +239,8 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
 
 \section{Further reading}
 %===================
-The implementation and the numerical expressions used are discussed in
-Chapter~\ref{T-sec:ppaththeory} of \theory.
+The implementation, calculation approaches and the numerical expressions used
+are discussed in Chapter~\ref{T-sec:ppaththeory} of \theory.
 
 
 

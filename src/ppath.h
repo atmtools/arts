@@ -64,8 +64,8 @@ struct Ppath {
   Matrix            pos;
   Matrix            los;
   Vector            r;
-  Vector            l_step;
-  Numeric           l_space;
+  Vector            lstep;
+  Numeric           lspace;
   Vector            nreal;
   ArrayOfGridPos    gp_p;
   ArrayOfGridPos    gp_lat;
@@ -110,11 +110,6 @@ const Numeric   ANGTOL = 1e-6;
 const Numeric   POLELAT = 90-1e-8;
 
 
-// Maximum tilt of pressure levels, in degrees
-//
-const Numeric    PTILTMAX = 5;
-
-
 
 /*===========================================================================
   === Functions from ppath.cc
@@ -149,19 +144,6 @@ Numeric plevel_slope_2d(
         ConstVectorView   z_surf,
         const GridPos&    gp,
         const Numeric&    za );
-
-Numeric plevel_slope_3d(
-        const Numeric&   lat1,
-        const Numeric&   lat3,
-        const Numeric&   lon5,
-        const Numeric&   lon6,
-        const Numeric&   r15,
-        const Numeric&   r35,
-        const Numeric&   r36,
-        const Numeric&   r16,
-        const Numeric&   lat,
-        const Numeric&   lon,
-        const Numeric&   aa );
 
 Numeric plevel_slope_3d(
         ConstVectorView   lat_grid,
