@@ -62,6 +62,28 @@ extern const Numeric RAD2DEG;
 
 
 
+
+/*===========================================================================
+  === Precision variables
+  ===========================================================================*/
+
+// This variable defines the maximum allowed error tolerance for radius.
+// The variable is, for example, used to check that a given a radius is
+// consistent with the specified grid cell.
+//
+const Numeric   RTOL = 1e-3;
+
+
+// As RTOL but for latitudes and longitudes.
+//
+const Numeric   LATLONTOL = 1e-8;
+
+
+// Accuarcy for algorithms applying a length search
+//
+const Numeric   LACC = 1e-5;
+
+
 // Values to apply if some calculation does not provide a solution
 const Numeric   R_NOT_FOUND   = -1;       // A value below zero
 const Numeric   L_NOT_FOUND   = 99e99;    // Some very large value for l/lat/lon
@@ -236,7 +258,7 @@ Numeric geompath_l_at_r(
 /*!
    Calculates the radius for a distance from the tangent point.
 
-   The tangent point is either rwal or imaginary depending on the zenith
+   The tangent point is either real or imaginary depending on the zenith
    angle of the sensor. See geometrical_tangent_radius.
 
    \return         Radius. 
@@ -324,8 +346,8 @@ void geompath_from_r1_to_r2(
        const Numeric&  lmax )
 {
   // Calculate length along the path for point 1 and 2.
-  const Numeric l1 =  geompath_l_at_r( ppc, r1 );
-  const Numeric l2 =  geompath_l_at_r( ppc, r2 );
+  const Numeric l1 = geompath_l_at_r( ppc, r1 );
+  const Numeric l2 = geompath_l_at_r( ppc, r2 );
   
   // Calculate needed number of steps, considering a possible length criterion
   Index n;
@@ -395,9 +417,9 @@ void geompath_from_r1_to_r2(
    \date   2002-07-03
 */
 Numeric za_geom2other_point(
-       const Numeric&   r1,
+       const Numeric&  r1,
        const Numeric&  lat1,
-       const Numeric&   r2,
+       const Numeric&  r2,
        const Numeric&  lat2 )
 {
   if( lat2 == lat1 )
@@ -871,8 +893,8 @@ Numeric plevel_slope_3d(
         const Numeric&  aa )
 {
   // Size of test angular distance. Unit is degrees.
-  const Numeric   dang = 1e-5;  // = about 1 m shift horisontally
-
+  const Numeric   dang = 1e-5;  // = about 1 m shift horisontally. Smaller 
+                                // values seem to cause numerical problems
   // Radius at point of interest
   const Numeric   r0 = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                         r15, r35, r36, r16, lat, lon );
@@ -1168,13 +1190,7 @@ void r_crossing_3d(
       else
         { l = lmin; }
       assert( l > 0 );
-      /*
-      cout << "r_start = " << r_start << endl;
-      cout << "r_hit   = " << r_hit << endl;
-      cout << "l1      = " << l1 << endl;
-      cout << "l2      = " << l2 << endl;
-      cout << "l       = " << l << endl;
-      */
+
       lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
       lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
     }
@@ -1257,13 +1273,7 @@ void lat_crossing_3d(
           const Numeric   e      = -0.5*sqrt(b*b-4*a*c)/a;      
                 Numeric   l1     = d + e;
                 Numeric   l2     = d - e;
-          /*
-          cout << "---------------------------\n";
-          cout << " lat_start = " << lat_start << endl;
-          cout << " lat_hit   = " << lat_hit << endl;
-          cout << " l1        = " << l1 << endl;
-          cout << " l2        = " << l2 << endl;
-          */
+
           // Both lat and -lat can end up as a solution (the sign is lost as
           // tan(lat) is squared). A correct solution requires that l>=0 and
           // that z+l*dz has the same sigh as lat. Set l to -1 if this not
@@ -1292,10 +1302,6 @@ void lat_crossing_3d(
               else
                 { l = -1; }
             }
-          /*
-          cout << " l         = " << l << endl;
-          cout << "---------------------------\n";
-          */
         }
     }
 
@@ -2401,7 +2407,6 @@ void do_gridcell_3d_byltest(
   // Determine the position of the end point
   //
   endface  = 0;
-  bool tanpoint = false;
   //
   Numeric   r_end, lat_end, lon_end, l_end;
 
@@ -2461,10 +2466,9 @@ void do_gridcell_3d_byltest(
       // limit is found be testing lengths of 100, 1000 ... m.
       // The search algorith is bisection, the next length to test is the
       // mean value of the minimum and maximum length limits.
-
-               l_end  = 100;
-
-      Numeric   l_acc  = 1e-4;
+      //
+      l_end  = 100;
+      //
       Numeric   l_in   = 0, l_out = l_end;
       bool      ready  = false, startup = true;
       Numeric   abs_aa = abs( aa_start );
@@ -2480,8 +2484,8 @@ void do_gridcell_3d_byltest(
 
       while( !ready )
         {
-          cart2sph( r_end, lat_end, lon_end, 
-                                          x+dx*l_end, y+dy*l_end, z+dz*l_end );
+          cart2sph( r_end, lat_end, lon_end, x+dx*l_end, y+dy*l_end, 
+                                                         z+dz*l_end );
           r_end   -= r_corr;
           lat_end -= lat_corr;
           lon_end -= lon_corr;
@@ -2507,8 +2511,6 @@ void do_gridcell_3d_byltest(
 
           rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15a, r35a, r36a, r16a, lat_end, lon_end );
-          rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15b, r35b, r36b, r16b, lat_end, lon_end );
           
           if( do_surface )
             {
@@ -2516,8 +2518,7 @@ void do_gridcell_3d_byltest(
                            rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                            rsurface15, rsurface35, rsurface36, rsurface16, 
                                                         lat_end, lon_end );
-
-              if( r_surface+RTOL >= rlow  &&  r_end <= r_surface+RTOL )
+              if( r_surface >= rlow  &&  r_end <= r_surface )
                 { inside = false;   endface = 7; }
             }
 
@@ -2533,17 +2534,23 @@ void do_gridcell_3d_byltest(
                 { inside = false;   endface = 6; }
               else if( r_end < rlow )
                 { inside = false;   endface = 2; }
-              else if( r_end > rupp )
-                { inside = false;   endface = 4; }
+              else
+                {
+                  rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15b, r35b, r36b, r16b, lat_end, lon_end );
+                  if( r_end > rupp )
+                    { inside = false;   endface = 4; }
+                }
             }              
 
           if( startup )
             {
               if( inside )
                 { 
+                  l_in   = l_end;
                   if( l_end < l_tan  &&  l_end*10 > l_tan )
-                    { l_end = l_tan; }
-                  else
+                    { l_end = l_tan; }  // Check always l_tan if relevant, as 
+                  else                  // lowest radius inside grid box
                     { l_end *= 10; }
                 }
               else
@@ -2560,7 +2567,7 @@ void do_gridcell_3d_byltest(
               else
                 { l_out = l_end; }
                             
-              if( ( l_out - l_in ) < l_acc )
+              if( ( l_out - l_in ) < LACC )
                 { ready = true; }
               else
                 { l_end = ( l_out + l_in ) / 2; }
@@ -2574,6 +2581,15 @@ void do_gridcell_3d_byltest(
       lat_end += lat_corr;
       lon_end += lon_corr;
       resolve_lon( lon_end, lon5, lon6 );              
+
+      // Check if there is a tangent point inside the grid cell. 
+      if( za_start > 90  &&  l_tan < l_end )
+        {
+          geompath_tanpos_3d( r_end, lat_end, lon_end, l_end, r_start, 
+                              lat_start, lon_start, za_start, aa_start, ppc );
+          resolve_lon( lon_end, lon5, lon6 );              
+          endface = 8;
+        }
 
       // Set the relevant coordinate to be consistent with found endface.
       //
@@ -2594,16 +2610,6 @@ void do_gridcell_3d_byltest(
       else if( endface == 7 )
         { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15,  
                       rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
-
-      // Check if there is a tangent point inside the grid cell. A tangent 
-      // point requires special treatment, which is done last in function
-      if( za_start > 90  &&  l_tan < l_end )
-        {
-          geompath_tanpos_3d( r_end, lat_end, lon_end, l_end, r_start, 
-                              lat_start, lon_start, za_start, aa_start, ppc );
-          resolve_lon( lon_end, lon5, lon6 );              
-          tanpoint = 1;
-        }
     }
 
   //--- Create return vectors
@@ -2648,7 +2654,7 @@ void do_gridcell_3d_byltest(
   //--- Set last zenith angle to be as accurate as possible
   if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
     { za_v[n] = za_start; }
-  else if( tanpoint )
+  else if( endface == 8 )  // A tangent point
     { za_v[n] = 90; }
   else
     { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
@@ -2665,38 +2671,6 @@ void do_gridcell_3d_byltest(
   // Shall lon values be shifted (value 0 and n+1 are already OK)?
   for( Index j=1; j<n; j++ )
     { resolve_lon( lon_v[j], lon5, lon6 ); }
-
-  // Make second part if above ending at tangent point 
-  if( tanpoint )
-    {
-      Vector rx, latx, lonx, zax, aax, ry, laty, lony, zay, aay;
-      rx   = r_v;
-      latx = lat_v;
-      lonx = lon_v;
-      zax  = za_v;
-      aax  = aa_v;
-      const Index lx = rx.nelem()-1;
-      do_gridcell_3d_byltest( ry, laty, lony, zay, aay, lstep, endface, ppc, 
-                   latx[lx], lonx[lx], zax[lx], aax[lx], ppc, lmax, lat1, lat3, 
-                   lon5, lon6, r15a, r35a, r36a, r16a, r15b, r35b, r36b, 
-                   r16b, rsurface15, rsurface35, rsurface36, rsurface16 );
-      const Index ly = ry.nelem()-1, nxy  = lx + ly + 1;
-      //
-      r_v.resize(nxy);  lat_v.resize(nxy); lon_v.resize(nxy); 
-      za_v.resize(nxy); aa_v.resize(nxy);
-      //
-      for( Index i=0; i<=lx; i++ )
-        { 
-          r_v[i]  = rx[i];   lat_v[i] = latx[i];  lon_v[i] = lonx[i];   
-          za_v[i] = zax[i];  aa_v[i]  = aax[i]; 
-        }
-      for( Index i=0; i<=ly; i++ )
-        { 
-          const Index iv = lx + i;
-          r_v[iv]  = ry[i];   lat_v[iv] = laty[i];  lon_v[iv] = lony[i]; 
-          za_v[iv] = zay[i];  aa_v[iv] = aay[i]; 
-        }
-    }
 }
 
 
@@ -5765,9 +5739,8 @@ void ppath_start_stepping(
                       // OK iteration
                       else
                         {
-                          // Converged? (Is length to entrance point found 
-                          // with an accuracy of about 1 mm?)
-                          if( abs( lt-lt_old ) < 1e-3 )
+                          // Converged? 
+                          if( abs( lt-lt_old ) < LACC )
                             { ready = true; }
 
                           // Update rt
@@ -6018,7 +5991,7 @@ void ppath_start_stepping(
           else
             {
               bool      above=false, ready=false, failed=false;
-              Numeric    rt=-1, latt, lont, lt, lt_old = L_NOT_FOUND;
+              Numeric   rt=-1, latt, lont, lt, lt_old = L_NOT_FOUND;
               GridPos   gp_latt, gp_lont;
               Vector    itwt(4);
 
@@ -6065,9 +6038,8 @@ void ppath_start_stepping(
                       // OK iteration
                       else
                         {
-                          // Converged? (Is length to entrance point found 
-                          // with an accuracy of about 1 mm?)
-                          if( abs( lt-lt_old ) < 1e-3 )
+                          // Converged? 
+                          if( abs( lt-lt_old ) < LACC )
                             { ready = true; }
                           
                           // Update rt
@@ -6289,7 +6261,7 @@ void ppath_calc(Workspace&            ws,
       //
       ppath_step_agendaExecute( ws, ppath_step, ppath_step_agenda );
       // For debugging:
-      //Print( ppath_step, 0, verbosity );
+      // Print( ppath_step, 0, verbosity );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;

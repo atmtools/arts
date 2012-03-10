@@ -79,20 +79,13 @@ typedef Array<Ppath> ArrayOfPpath;
 
 
 /*===========================================================================
-  === Common precision variables
+  === South/north pole, nadir/zenith
   ===========================================================================*/
 
-// This variable defines the maximum allowed error tolerance for radius.
-// The variable is, for example, used to check that a given a radius is
-// consistent with the specified grid cell.
+// Latitudes with an absolute value > POLELAT are considered to be on
+// the south or north pole for 3D.
 //
-const Numeric   RTOL = 1e-3;
-
-
-// As RTOL but for latitudes and longitudes.
-//
-const Numeric   LATLONTOL = 1e-8;
-
+const Numeric   POLELAT = 90-1e-8;
 
 // This variable defines how much zenith and azimuth angles can
 // deviate from 0, 90 and 180 degrees, but still be treated to be 0,
@@ -103,11 +96,6 @@ const Numeric   LATLONTOL = 1e-8;
 //
 const Numeric   ANGTOL = 1e-6; 
 
-
-// Latitudes with an absolute value > POLELAT are considered to be on
-// the south or north pole for 3D.
-//
-const Numeric   POLELAT = 90-1e-8;
 
 
 
