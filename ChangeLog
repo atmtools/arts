@@ -1,3 +1,12 @@
+2012-03-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-24
+
+	* src/ppath.cc: Moved inactive parts to file below.
+
+	* src/ppath_NotUsed.cc: New file. Storage for code from ppath.cc
+	now not used.
+
 2012-03-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-23
