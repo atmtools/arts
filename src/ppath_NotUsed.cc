@@ -1,3 +1,53 @@
+//! za_geom2other_point
+/*!
+   Calculates the zenith angle for the geometrical propagation path between
+   two specified points.
+
+   The returned zenith angle is valid for point 1. That is, the propagation
+   path goes from point 1 to point 2.
+
+   \return         Zenith angle.
+   \param   r1     Radius for point 1.
+   \param   lat1   Latiytude for point 1.
+   \param   r2     Radius for point 2.
+   \param   lat2   Latitude for point 2.
+
+   \author Patrick Eriksson
+   \date   2002-07-03
+*/
+Numeric za_geom2other_point(
+       const Numeric&  r1,
+       const Numeric&  lat1,
+       const Numeric&  r2,
+       const Numeric&  lat2 )
+{
+  if( lat2 == lat1 )
+    {
+      if( r1 <= r2 )
+        { return 0; }
+      else
+        { return 180; }
+    }
+  else
+    {
+      // Absolute value of the latitude difference
+      const Numeric dlat = abs( lat2 - lat1 );
+
+      // The zenith angle is obtained by a combination of the lawes of sine
+      // and cosine.
+      Numeric za = dlat + RAD2DEG * asin( r1 * sin( DEG2RAD * dlat ) / 
+                 sqrt( r1*r1 + r2*r2 - 2 * r1 * r2 * cos( DEG2RAD * dlat ) ) );
+
+      // Consider viewing direction
+      if( lat2 < lat1 )
+        { za = -za; }
+
+      return za;
+    }
+}
+
+
+
 //! lat_crossing_3d
 /*!
    Calculates where a 3D LOS crosses the specified latitude

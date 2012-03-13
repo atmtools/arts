@@ -36,6 +36,8 @@
 
 
 
+
+
 /*===========================================================================
   === External declarations
   ===========================================================================*/
@@ -59,6 +61,7 @@
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
+
 
 
 
@@ -399,153 +402,11 @@ void geompath_from_r1_to_r2(
 
 
 
-//! za_geom2other_point
-/*!
-   Calculates the zenith angle for the geometrical propagation path between
-   two specified points.
-
-   The returned zenith angle is valid for point 1. That is, the propagation
-   path goes from point 1 to point 2.
-
-   \return         Zenith angle.
-   \param   r1     Radius for point 1.
-   \param   lat1   Latiytude for point 1.
-   \param   r2     Radius for point 2.
-   \param   lat2   Latitude for point 2.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-Numeric za_geom2other_point(
-       const Numeric&  r1,
-       const Numeric&  lat1,
-       const Numeric&  r2,
-       const Numeric&  lat2 )
-{
-  if( lat2 == lat1 )
-    {
-      if( r1 <= r2 )
-        { return 0; }
-      else
-        { return 180; }
-    }
-  else
-    {
-      // Absolute value of the latitude difference
-      const Numeric dlat = abs( lat2 - lat1 );
-
-      // The zenith angle is obtained by a combination of the lawes of sine
-      // and cosine.
-      Numeric za = dlat + RAD2DEG * asin( r1 * sin( DEG2RAD * dlat ) / 
-                 sqrt( r1*r1 + r2*r2 - 2 * r1 * r2 * cos( DEG2RAD * dlat ) ) );
-
-      // Consider viewing direction
-      if( lat2 < lat1 )
-        { za = -za; }
-
-      return za;
-    }
-}
-
-
-
 
 
 /*===========================================================================
-  === Various functions
+  === Functions focusing on zenith and azimuth angles
   ===========================================================================*/
-
-//! resolve_lon
-/*! 
-   Resolves which longitude angle that shall be used.
-
-   Longitudes are allowed to vary between -360 and 360 degress, while the
-   inverse trigonomtric functions returns values between -180 and 180.
-   This function determines if the longitude shall be shifted -360 or
-   +360 to fit the longitudes set by the user.
-   
-   The argument *lon* as input is a value calculated by some inverse
-   trigonometric function. The arguments *lon5* and *lon6* are the
-   lower and upper limit for the probable range for *lon*. The longitude
-   *lon* will be shifted with -360 or +360 degrees if lon is significantly
-   outside *lon5* and *lon6*. No error is given if it is not possible to
-   obtain a value between *lon5* and *lon6*. 
-
-   \param   lon    In/Out: Longitude, possible shifted when returned.
-   \param   lon5   Lower limit of probable range for lon.
-   \param   lon6   Upper limit of probable range for lon
-
-   \author Patrick Eriksson
-   \date   2003-01-05
-*/
-void resolve_lon(
-              Numeric&  lon,
-        const Numeric&  lon5,
-        const Numeric&  lon6 )
-{
-  assert( lon6 >= lon5 ); 
-
-  if( lon < lon5  &&  lon+180 <= lon6 )
-    { lon += 360; }
-  else if( lon > lon6  &&  lon-180 >= lon5 )
-    { lon -= 360; }
-}
-
-
-
-//! rotationmat3D
-/*! 
-   Creates a 3D rotation matrix
-
-   Creates a rotation matrix such that R * x, operates on x by rotating 
-   x around the origin a radians around line connecting the origin to the 
-   point vrot.
-
-   The function is based on rotationmat3D.m, by Belechi (the function 
-   is found in atmlab).
-
-   \param   R     Out: Rotation matrix
-   \param   vrot  Rotation axis
-   \param   a     Rotation angle
-
-   \author Bileschi and Patrick Eriksson
-   \date   2009-10-02
-*/
-void rotationmat3D( 
-           Matrix&   R, 
-   ConstVectorView   vrot, 
-    const Numeric&   a )
-{
-  assert( R.ncols() == 3 );
-  assert( R.nrows() == 3 );
-  assert( vrot.nelem() == 3 );
-
-  const Numeric u = vrot[0];
-  const Numeric v = vrot[1];
-  const Numeric w = vrot[2];
-
-  const Numeric u2 = u * u;
-  const Numeric v2 = v * v;
-  const Numeric w2 = w * w;
-
-  assert( sqrt( u2 + v2 + w2 ) );
-
-  const Numeric c = cos( DEG2RAD * a );
-  const Numeric s = sin( DEG2RAD * a );
-  
-  // Fill R
-  R(0,0) = u2 + (v2 + w2)*c;
-  R(0,1) = u*v*(1-c) - w*s;
-  R(0,2) = u*w*(1-c) + v*s;
-  R(1,0) = u*v*(1-c) + w*s;
-  R(1,1) = v2 + (u2+w2)*c;
-  R(1,2) = v*w*(1-c) - u*s;
-  R(2,0) = u*w*(1-c) - v*s;
-  R(2,1) = v*w*(1-c)+u*s;
-  R(2,2) = w2 + (u2+v2)*c;
-}
-
-
 
 //! cart2zaaa
 /*! 
@@ -630,6 +491,60 @@ void zaaa2cart(
 
 
 
+//! rotationmat3D
+/*! 
+   Creates a 3D rotation matrix
+
+   Creates a rotation matrix such that R * x, operates on x by rotating 
+   x around the origin a radians around line connecting the origin to the 
+   point vrot.
+
+   The function is based on rotationmat3D.m, by Belechi (the function 
+   is found in atmlab).
+
+   \param   R     Out: Rotation matrix
+   \param   vrot  Rotation axis
+   \param   a     Rotation angle
+
+   \author Bileschi and Patrick Eriksson
+   \date   2009-10-02
+*/
+void rotationmat3D( 
+           Matrix&   R, 
+   ConstVectorView   vrot, 
+    const Numeric&   a )
+{
+  assert( R.ncols() == 3 );
+  assert( R.nrows() == 3 );
+  assert( vrot.nelem() == 3 );
+
+  const Numeric u = vrot[0];
+  const Numeric v = vrot[1];
+  const Numeric w = vrot[2];
+
+  const Numeric u2 = u * u;
+  const Numeric v2 = v * v;
+  const Numeric w2 = w * w;
+
+  assert( sqrt( u2 + v2 + w2 ) );
+
+  const Numeric c = cos( DEG2RAD * a );
+  const Numeric s = sin( DEG2RAD * a );
+  
+  // Fill R
+  R(0,0) = u2 + (v2 + w2)*c;
+  R(0,1) = u*v*(1-c) - w*s;
+  R(0,2) = u*w*(1-c) + v*s;
+  R(1,0) = u*v*(1-c) + w*s;
+  R(1,1) = v2 + (u2+w2)*c;
+  R(1,2) = v*w*(1-c) - u*s;
+  R(2,0) = u*w*(1-c) - v*s;
+  R(2,1) = v*w*(1-c)+u*s;
+  R(2,2) = w2 + (u2+v2)*c;
+}
+
+
+
 /*! Maps MBLOCK_AA_GRID values to correct ZA and AA
 
    Sensor LOS azimuth angles and mblock_aa_grid values can not be added in a
@@ -691,6 +606,76 @@ void map_daa(
   cart2zaaa( za, aa, u[0], u[1], u[2] );
 }
 
+
+
+
+
+/*===========================================================================
+  === Various functions
+  ===========================================================================*/
+
+//! refraction_ppc
+/*! 
+   Calculates the propagation path constant for cases with refraction.
+
+   Both positive and negative zenith angles are handled.
+
+   \return               Path constant.
+   \param   r            Radius.
+   \param   za           LOS Zenith angle.
+   \param   refr_index   Refractive index.
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+Numeric refraction_ppc( 
+        const Numeric&  r, 
+        const Numeric&  za, 
+        const Numeric&  refr_index )
+{
+  assert( r > 0 );
+  assert( abs(za) <= 180 );
+
+  return r * refr_index * sin( DEG2RAD * abs(za) );
+}
+
+
+
+//! resolve_lon
+/*! 
+   Resolves which longitude angle that shall be used.
+
+   Longitudes are allowed to vary between -360 and 360 degress, while the
+   inverse trigonomtric functions returns values between -180 and 180.
+   This function determines if the longitude shall be shifted -360 or
+   +360 to fit the longitudes set by the user.
+   
+   The argument *lon* as input is a value calculated by some inverse
+   trigonometric function. The arguments *lon5* and *lon6* are the
+   lower and upper limit for the probable range for *lon*. The longitude
+   *lon* will be shifted with -360 or +360 degrees if lon is significantly
+   outside *lon5* and *lon6*. No error is given if it is not possible to
+   obtain a value between *lon5* and *lon6*. 
+
+   \param   lon    In/Out: Longitude, possible shifted when returned.
+   \param   lon5   Lower limit of probable range for lon.
+   \param   lon6   Upper limit of probable range for lon
+
+   \author Patrick Eriksson
+   \date   2003-01-05
+*/
+void resolve_lon(
+              Numeric&  lon,
+        const Numeric&  lon5,
+        const Numeric&  lon6 )
+{
+  assert( lon6 >= lon5 ); 
+
+  if( lon < lon5  &&  lon+180 <= lon6 )
+    { lon += 360; }
+  else if( lon > lon6  &&  lon-180 >= lon5 )
+    { lon -= 360; }
+}
 
 
 
@@ -1461,8 +1446,1061 @@ void plevel_crossing_2d(
 
 
 
+
 /*===========================================================================
-  === Path through grid cells and 1D pressure range
+  === Basic functions for the Ppath structure
+  ===========================================================================*/
+
+//! ppath_init_structure
+/*!
+   Initiates a Ppath structure to hold the given number of points.
+
+   All fields releated with the surface, symmetry and tangent point are set
+   to 0 or empty. The background field is set to background case 0. The
+   constant field is set to -1. The refraction field is set to 0.
+
+   The length of the lstep field is set to np-1.
+
+   \param   ppath            Output: A Ppath structure.
+   \param   atmosphere_dim   The atmospheric dimensionality.
+   \param   np               Number of points of the path.
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+void ppath_init_structure( 
+              Ppath&      ppath,
+        const Index&      atmosphere_dim,
+        const Index&      np )
+{
+  assert( atmosphere_dim >= 1 );
+  assert( atmosphere_dim <= 3 );
+
+  ppath.dim        = atmosphere_dim;
+  ppath.np         = np;
+  ppath.constant   = -1;   
+  if( atmosphere_dim < 3 )
+    {
+      ppath.pos.resize( np, 2 );
+      ppath.los.resize( np, 1 );
+    }
+  else
+    {
+      ppath.pos.resize( np, atmosphere_dim );
+      ppath.los.resize( np, 2 );
+      ppath.gp_lon.resize( np );
+    }
+  ppath.gp_p.resize( np );
+  if( atmosphere_dim >= 2 )
+    { ppath.gp_lat.resize( np ); }
+  ppath.r.resize( np );
+  if( np > 0 )
+    { ppath.lstep.resize( np-1 ); }
+  else
+    { ppath.lstep.resize( 0 ); }
+  ppath_set_background( ppath, 0 );
+  ppath.nreal.resize( np );
+  ppath.lspace = 0;
+}
+
+
+
+
+//! ppath_set_background 
+/*!
+   Sets the background field of a Ppath structure.
+
+   The different background cases have a number coding to simplify a possible
+   change of the strings and checking of the what case that is valid.
+
+   The case numbers are:                    <br>
+      0. Not yet set.                       <br>
+      1. Space.                             <br>
+      2. The surface.                       <br>
+      3. The cloud box boundary.            <br>
+      4. The interior of the cloud box.       
+
+   \param   ppath            Output: A Ppath structure.
+   \param   case_nr          Case number (see above)
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+void ppath_set_background( 
+              Ppath&      ppath,
+        const Index&      case_nr )
+{
+  switch ( case_nr )
+    {
+    case 0:
+      ppath.background = "";
+      break;
+    case 1:
+      ppath.background = "space";
+      break;
+    case 2:
+      ppath.background = "surface";
+      break;
+    case 3:
+      ppath.background = "cloud box level";
+      break;
+    case 4:
+      ppath.background = "cloud box interior";
+      break;
+    default:
+      ostringstream os;
+      os << "Case number " << case_nr << " is not defined.";
+      throw runtime_error(os.str());
+    }
+}
+
+
+
+//! ppath_what_background
+/*!
+   Returns the case number for the radiative background.
+
+   See further the function *ppath_set_background*.
+
+   \return                   The case number.
+   \param   ppath            A Ppath structure.
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+Index ppath_what_background( const Ppath&   ppath )
+{
+  if( ppath.background == "" )
+    { return 0; }
+  else if( ppath.background == "space" )
+    { return 1; }
+  else if( ppath.background == "surface" )
+    { return 2; }
+  else if( ppath.background == "cloud box level" )
+    { return 3; }
+  else if( ppath.background == "cloud box interior" )
+    { return 4; }
+  else
+    {
+      ostringstream os;
+      os << "The string " << ppath.background 
+         << " is not a valid background case.";
+      throw runtime_error(os.str());
+    }
+}
+
+
+
+//! ppath_copy
+/*!
+   Copy the content in ppath2 to ppath1.
+
+   The ppath1 structure must be allocated before calling the function. The
+   structure can be allocated to hold more points than found in ppath2.
+   The data of ppath2 is placed in the first positions of ppath1.
+
+   \param   ppath1    Output: Ppath structure.
+   \param   ppath2    The ppath structure to be copied.
+
+   \author Patrick Eriksson
+   \date   2002-07-03
+*/
+void ppath_copy(
+           Ppath&      ppath1,
+     const Ppath&      ppath2 )
+{
+  assert( ppath1.np >= ppath2.np ); 
+
+  // The field np shall not be copied !
+
+  ppath1.dim        = ppath2.dim;
+  ppath1.constant   = ppath2.constant;
+  ppath1.background = ppath2.background;
+  ppath1.lspace     = ppath2.lspace;
+
+  ppath1.pos(Range(0,ppath2.np),joker) = ppath2.pos;
+  ppath1.los(Range(0,ppath2.np),joker) = ppath2.los;
+  ppath1.r[Range(0,ppath2.np)]         = ppath2.r;
+  ppath1.nreal[Range(0,ppath2.np)]     = ppath2.nreal;
+  if( ppath2.np > 1 )
+    { ppath1.lstep[Range(0,ppath2.np-1)]  = ppath2.lstep; }
+
+  for( Index i=0; i<ppath2.np; i++ )
+    {
+      gridpos_copy( ppath1.gp_p[i], ppath2.gp_p[i] );
+      
+      if( ppath1.dim >= 2 )
+        { gridpos_copy( ppath1.gp_lat[i], ppath2.gp_lat[i] ); }
+      
+      if( ppath1.dim == 3 )
+        { gridpos_copy( ppath1.gp_lon[i], ppath2.gp_lon[i] ); }
+     }
+}
+
+
+
+//! ppath_append
+/*!
+   Combines two Ppath structures   
+
+   The function appends a Ppath structure to another structure. 
+ 
+   All the data of ppath1 is kept.
+
+   The first point in ppath2 is assumed to be the same as the last in ppath1.
+   Only data in ppath from the fields pos, los, z, lstep, gp_XXX and 
+   background are considered.
+
+   \param   ppath1    Output: Ppath structure to be expanded.
+   \param   ppath2    The Ppath structure to include in ppath.
+
+   \author Patrick Eriksson
+   \date   2002-07-03
+*/
+void ppath_append(
+           Ppath&   ppath1,
+     const Ppath&   ppath2 )
+{
+  const Index n1 = ppath1.np;
+  const Index n2 = ppath2.np;
+
+  Ppath   ppath;
+  ppath_init_structure( ppath, ppath1.dim, n1 );
+  ppath_copy( ppath, ppath1 );
+
+  ppath_init_structure( ppath1, ppath1.dim, n1 + n2 - 1 );
+  ppath_copy( ppath1, ppath );
+
+  // Append data from ppath2
+  Index i1;
+  for( Index i=1; i<n2; i++ )
+    { 
+      i1 = n1 + i - 1;
+
+      ppath1.pos(i1,0)      = ppath2.pos(i,0);
+      ppath1.pos(i1,1)      = ppath2.pos(i,1);
+      ppath1.los(i1,0)      = ppath2.los(i,0);
+      ppath1.r[i1]          = ppath2.r[i];
+      ppath1.nreal[i1]      = ppath2.nreal[i];
+      gridpos_copy( ppath1.gp_p[i1], ppath2.gp_p[i] );
+
+      if( ppath1.dim >= 2 )
+        { gridpos_copy( ppath1.gp_lat[i1], ppath2.gp_lat[i] ); }
+      
+      if( ppath1.dim == 3 )
+        {
+          ppath1.pos(i1,2)        = ppath2.pos(i,2);
+          ppath1.los(i1,1)        = ppath2.los(i,1);
+          gridpos_copy( ppath1.gp_lon[i1], ppath2.gp_lon[i] ); 
+        }
+      
+      ppath1.lstep[i1-1] = ppath2.lstep[i-1];
+    }
+
+  if( ppath_what_background( ppath2 ) )
+    { ppath1.background = ppath2.background; }
+
+  ppath.lspace += ppath.lspace;
+}
+
+
+
+
+
+/*===========================================================================
+  === 1D/2D/3D start/fill/end ppath functions
+  ===========================================================================*/
+
+//! ppath_start_1d
+/*! 
+   Internal help function for 1D path calculations.
+
+   The function does the asserts and determined some variables that are common
+   for geometrical and refraction calculations.
+
+   See the code for details.
+
+   \author Patrick Eriksson
+   \date   2002-11-13
+*/
+void ppath_start_1d(
+              Numeric&    r_start,
+              Numeric&    lat_start,
+              Numeric&    za_start,
+              Index&      ip,
+        const Ppath&      ppath )
+{
+  // Number of points in the incoming ppath
+  const Index   imax = ppath.np - 1;
+
+  // Extract starting radius, zenith angle and latitude
+  r_start   = ppath.r[imax];
+  lat_start = ppath.pos(imax,1);
+  za_start  = ppath.los(imax,0);
+
+  // Determine index of the pressure level being the lower limit for the
+  // grid range of interest.
+  //
+  ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
+}
+
+
+
+//! ppath_fill_1d
+/*!
+   Fills a 1D Ppath structure with position and LOS values.
+
+   The function fills the fields: pos, los, z, lstep and gp_p.
+   The pressure grid positions (gp_p) are filtered through gridpos_check_fd.
+
+   The structure fields must be allocated to correct size before calling the 
+   function. The field size must be at least as large as the length of r,
+   lat and za vectors.
+
+   The length along the path shall be the same between all points.
+
+   \param   ppath          Output: Ppath structure.
+   \param   r              Vector with radius for the path points.
+   \param   lat            Vector with latitude for the path points.
+   \param   za             Vector with zenith angle for the path points.
+   \param   lstep          Length along the path between the points.
+   \param   refellipsoid   As the WSV with the same name
+   \param   z_field        Geometrical altitudes.
+   \param   ip             Pressure grid range.
+
+   \author Patrick Eriksson
+   \date   2002-07-18
+*/
+void ppath_fill_1d(
+           Ppath&      ppath,
+     ConstVectorView   r,
+     ConstVectorView   lat,
+     ConstVectorView   za,
+     ConstVectorView   lstep,
+     ConstVectorView   refellipsoid,
+     ConstVectorView   z_field,
+     const Index&      ip )
+{
+  // Help variables that are common for all points.
+  const Numeric   r1 = refellipsoid[0] + z_field[ip];
+  const Numeric   dr = z_field[ip+1] - z_field[ip];
+
+  for( Index i=0; i<r.nelem(); i++ )
+    {
+      ppath.r[i]     = r[i];
+      ppath.pos(i,0) = r[i] - refellipsoid[0];
+      ppath.pos(i,1) = lat[i];
+      ppath.los(i,0) = za[i];
+      
+      ppath.gp_p[i].idx   = ip;
+      ppath.gp_p[i].fd[0] = ( r[i] - r1 ) / dr;
+      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
+      gridpos_check_fd( ppath.gp_p[i] );
+
+      if( i > 0 )
+        { ppath.lstep[i-1] = lstep[i-1]; }
+    }
+}
+
+
+
+//! ppath_end_1d
+/*! 
+   Internal help function for 1D path calculations.
+
+   The function performs the end part of the calculations, that are common
+   for geometrical and refraction calculations.
+
+   See the code for details.
+
+   \author Patrick Eriksson
+   \date   2002-11-27
+*/
+void ppath_end_1d(
+              Ppath&      ppath,
+        ConstVectorView   r_v,
+        ConstVectorView   lat_v,
+        ConstVectorView   za_v,
+        const Numeric&    lstep,
+        ConstVectorView   z_field,
+        ConstVectorView   refellipsoid,
+        const Index&      ip,
+        const Index&      endface,
+        const Numeric&    ppc )
+{
+  // Number of path points
+  const Index   np = r_v.nelem();
+
+  // Re-allocate ppath for return results and fill the structure
+  //
+  ppath_init_structure( ppath, 1, np );
+  //
+  ppath.constant = ppc;
+  //
+  ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), refellipsoid, 
+                                                                 z_field, ip );
+
+  gridpos_check_fd( ppath.gp_p[np-1] );
+
+  //--- End point is the surface
+  if( endface == 7 )
+    { ppath_set_background( ppath, 2 ); }
+
+  //--- End point is on top of a pressure level
+  else if( endface <= 4 )
+    { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nelem() ); }
+}
+
+
+
+//! ppath_start_2d
+/*! 
+   Internal help function for 2D path calculations.
+
+   The function does the asserts and determined some variables that are common
+   for geometrical and refraction calculations.
+
+   See the code for details.
+
+   \author Patrick Eriksson
+   \date   2002-11-18
+*/
+void ppath_start_2d(
+              Numeric&    r_start,
+              Numeric&    lat_start,
+              Numeric&    za_start,
+              Index&      ip,
+              Index&      ilat,
+              Numeric&    lat1,
+              Numeric&    lat3,
+              Numeric&    r1a,
+              Numeric&    r3a,
+              Numeric&    r3b,
+              Numeric&    r1b,
+              Numeric&    rsurface1,
+              Numeric&    rsurface3,
+              Ppath&      ppath,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstVectorView   refellipsoid,
+        ConstVectorView   z_surface
+        )
+{
+  // Number of points in the incoming ppath
+  const Index imax = ppath.np - 1;
+
+  // Extract starting radius, zenith angle and latitude
+  r_start   = ppath.r[imax];
+  lat_start = ppath.pos(imax,1);
+  za_start  = ppath.los(imax,0);
+
+  // Determine interesting latitude grid range and latitude end points of 
+  // the range.
+  //
+  ilat = gridpos2gridrange( ppath.gp_lat[imax], za_start >= 0 );
+  //
+  lat1 = lat_grid[ilat];
+  lat3 = lat_grid[ilat+1];
+
+  // Determine interesting pressure grid range. Do this first assuming that
+  // the pressure levels are not tilted (that is, abs(za_start<=90) always
+  // mean upward observation). 
+  // Set radius for the corners of the grid cell and the radial slope of 
+  // pressure level limits of the grid cell to match the found ip.
+  //
+  ip = gridpos2gridrange( ppath.gp_p[imax], abs(za_start) <= 90);
+  //
+  const Numeric re1 = refell2r( refellipsoid, lat_grid[ilat] );
+  const Numeric re3 = refell2r( refellipsoid, lat_grid[ilat+1] );
+  //
+  r1a = re1 + z_field(ip,ilat);        // lower-left
+  r3a = re3 + z_field(ip,ilat+1);      // lower-right
+  r3b = re3 + z_field(ip+1,ilat+1);    // upper-right
+  r1b = re1 + z_field(ip+1,ilat);      // upper-left
+
+  // This part is a fix to catch start postions on top of a pressure level
+  // that does not have an end fractional distance for the first step.
+  {
+    // Radius of lower and upper pressure level at the start position
+    const Numeric   rlow = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_start );
+    const Numeric   rupp = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_start );
+    if( abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL )
+      { gridpos_force_end_fd( ppath.gp_p[imax], z_field.nrows() ); }
+  }
+  
+  // Slopes of pressure levels
+  Numeric   c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
+  Numeric   c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
+
+  // Check if the LOS zenith angle happen to be between 90 and the zenith angle
+  // of the pressure level (that is, 90 + tilt of pressure level), and in
+  // that case if ip must be changed. This check is only needed when the
+  // start point is on a pressure level.
+  //
+  if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
+    {
+      Numeric tilt = plevel_angletilt( r_start, c2 );
+
+      if( is_los_downwards( za_start, tilt ) )
+        {
+          ip--;
+          r1b = r1a;   r3b = r3a;   c4 = c2;
+          r1a = re1 + z_field(ip,ilat);
+          r3a = re3 + z_field(ip,ilat+1);
+          c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
+        }
+    }
+  else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
+    {
+      Numeric tilt = plevel_angletilt( r_start, c4 );
+
+      if( !is_los_downwards( za_start, tilt ) )
+        {
+          ip++;
+          r1a = r1b;   r3a = r3b;   c2 = c4;
+          r3b = re3 + z_field(ip+1,ilat+1);
+          r1b = re1 + z_field(ip+1,ilat);    
+          c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
+        }
+    }
+
+  // Surface radius at latitude end points
+  rsurface1 = re1 + z_surface[ilat];
+  rsurface3 = re3 + z_surface[ilat+1];
+}
+
+
+
+//! ppath_fill_2d
+/*!
+   Fills a 2D Ppath structure with position and LOS values.
+
+   The function fills the fields: pos, los, z, lstep, gp_p and gp_lat.
+
+   The structure fields must be allocated to correct size before calling the 
+   function. The field size must be at least as large as the length of r,
+   lat and za vectors.
+
+   The length along the path shall be the same between all points.
+
+   \param   ppath          Output: Ppath structure.
+   \param   r              Vector with radius for the path points.
+   \param   lat            Vector with latitude for the path points.
+   \param   za             Vector with zenith angle for the path points.
+   \param   lstep          Length along the path between the points.
+   \param   refellipsoid   As the WSV with the same name.
+   \param   z_field        Geometrical altitudes
+   \param   lat_grid       Latitude grid.
+   \param   ip             Pressure grid range.
+   \param   ilat           Latitude grid range.
+
+   \author Patrick Eriksson
+   \date   2002-07-03
+*/
+void ppath_fill_2d(
+           Ppath&      ppath,
+     ConstVectorView   r,
+     ConstVectorView   lat,
+     ConstVectorView   za,
+     const Numeric&    lstep,
+     ConstVectorView   refellipsoid,
+     ConstMatrixView   z_field,
+     ConstVectorView   lat_grid,
+     const Index&      ip,
+     const Index&      ilat )
+{
+  // Help variables that are common for all points.
+  const Numeric   dlat  = lat_grid[ilat+1] - lat_grid[ilat];
+  const Numeric   z1low = z_field(ip,ilat);
+  const Numeric   z1upp = z_field(ip+1,ilat);
+  const Numeric   dzlow = z_field(ip,ilat+1) -z1low;
+  const Numeric   dzupp = z_field(ip+1,ilat+1) - z1upp;
+        Numeric   re    = refell2r( refellipsoid, lat_grid[ilat] );
+  const Numeric   r1low = re + z1low;
+  const Numeric   r1upp = re + z1upp;
+                 re    = refell2r( refellipsoid, lat_grid[ilat+1] );
+  const Numeric   drlow = re + z_field(ip,ilat+1) - r1low;
+  const Numeric   drupp = re + z_field(ip+1,ilat+1) - r1upp;
+
+  for( Index i=0; i<r.nelem(); i++ )
+    {
+      ppath.r[i]     = r[i];
+      ppath.pos(i,1) = lat[i];
+      ppath.los(i,0) = za[i];
+      
+      // Weight in the latitude direction
+      Numeric w = ( lat[i] - lat_grid[ilat] ) / dlat;
+
+      // Radius of lower and upper face at present latitude
+      const Numeric rlow = r1low + w * drlow;
+      const Numeric rupp = r1upp + w * drupp;
+
+      // Geometrical altitude of lower and upper face at present latitude
+      const Numeric zlow = z1low + w * dzlow;
+      const Numeric zupp = z1upp + w * dzupp;
+
+      ppath.gp_p[i].idx   = ip;
+      ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
+      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
+      gridpos_check_fd( ppath.gp_p[i] );
+
+      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
+
+      ppath.gp_lat[i].idx   = ilat;
+      ppath.gp_lat[i].fd[0] = ( lat[i] - lat_grid[ilat] ) / dlat;
+      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
+      gridpos_check_fd( ppath.gp_lat[i] );
+
+      if( i > 0 )
+        { ppath.lstep[i-1] = lstep; }
+    }
+}
+
+
+
+//! ppath_end_2d
+/*! 
+   Internal help function for 2D path calculations.
+
+   The function performs the end part of the calculations, that are common
+   for geometrical and refraction calculations.
+
+   See the code for details.
+
+   \author Patrick Eriksson
+   \date   2002-11-29
+*/
+void ppath_end_2d(
+              Ppath&      ppath,
+        ConstVectorView   r_v,
+        ConstVectorView   lat_v,
+        ConstVectorView   za_v,
+        const Numeric&    lstep,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstVectorView   refellipsoid,
+        const Index&      ip,
+        const Index&      ilat,
+        const Index&      endface,
+        const Numeric&    ppc )
+{
+  // Number of path points
+  const Index   np   = r_v.nelem();
+  const Index   imax = np-1;
+
+  // Re-allocate ppath for return results and fill the structure
+  //
+  ppath_init_structure( ppath, 2, np );
+  //
+  ppath.constant = ppc;
+  //
+  ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, refellipsoid, z_field, 
+                                                          lat_grid, ip, ilat );
+
+  gridpos_check_fd( ppath.gp_p[imax] );
+  gridpos_check_fd( ppath.gp_lat[imax] );
+
+  // Do end-face specific tasks
+  if( endface == 7 )
+    { ppath_set_background( ppath, 2 ); }
+
+  // Set fractional distance for end point
+  //
+  if( endface == 1  ||  endface == 3 )
+    { gridpos_force_end_fd( ppath.gp_lat[np-1], lat_grid.nelem() ); }
+  else if( endface == 2  ||  endface == 4 )
+    { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nrows() ); }
+
+  // Handle cases where exactly a corner is hit, or when slipping outside of
+  // the grid box due to numerical inaccuarcy
+  if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_p[imax], z_field.nrows() ); 
+    }
+  if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); 
+    }
+}
+
+
+
+//! ppath_start_3d
+/*! 
+   Internal help function for 3D path calculations.
+
+   The function does the asserts and determined some variables that are common
+   for geometrical and refraction calculations.
+
+   See the code for details.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void ppath_start_3d(
+              Numeric&    r_start,
+              Numeric&    lat_start,
+              Numeric&    lon_start,
+              Numeric&    za_start,
+              Numeric&    aa_start,
+              Index&      ip,
+              Index&      ilat,
+              Index&      ilon,
+              Numeric&    lat1,
+              Numeric&    lat3,
+              Numeric&    lon5,
+              Numeric&    lon6,
+              Numeric&    r15a,
+              Numeric&    r35a,
+              Numeric&    r36a,
+              Numeric&    r16a,
+              Numeric&    r15b,
+              Numeric&    r35b,
+              Numeric&    r36b,
+              Numeric&    r16b,
+              Numeric&    rsurface15,
+              Numeric&    rsurface35,
+              Numeric&    rsurface36,
+              Numeric&    rsurface16,
+              Ppath&      ppath,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,
+        ConstTensor3View  z_field,
+        ConstVectorView   refellipsoid,
+        ConstMatrixView   z_surface )
+{
+  // Index of last point in the incoming ppath
+  const Index imax = ppath.np - 1;
+
+  // Extract starting radius, zenith angle and latitude
+  r_start   = ppath.r[imax];
+  lat_start = ppath.pos(imax,1);
+  lon_start = ppath.pos(imax,2);
+  za_start  = ppath.los(imax,0);
+  aa_start  = ppath.los(imax,1);
+
+  // Number of lat/lon
+  const Index nlat = lat_grid.nelem();
+  const Index nlon = lon_grid.nelem();
+
+  // Lower index of lat and lon ranges of interest
+  //
+  // The longitude is undefined at the poles and as the azimuth angle
+  // is defined in other way at the poles.
+  //
+  if( lat_start == 90 )
+    { 
+      ilat = nlat - 2;
+      GridPos   gp_tmp;
+      gridpos( gp_tmp, lon_grid, aa_start );
+      if( aa_start < 180 )
+        { ilon = gridpos2gridrange( gp_tmp, 1 ); }
+      else
+        { ilon = gridpos2gridrange( gp_tmp, 0 ); }
+    }
+  else if( lat_start == -90 )
+    { 
+      ilat = 0; 
+      GridPos   gp_tmp;
+      gridpos( gp_tmp, lon_grid, aa_start );
+      if( aa_start < 180 )
+        { ilon = gridpos2gridrange( gp_tmp, 1 ); }
+      else
+        { ilon = gridpos2gridrange( gp_tmp, 0 ); }
+    }
+  else
+    { 
+      if( lat_start > 0 )
+        { ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start )<90 ); }
+      else
+        { ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start )<=90 );}
+      if( lon_start < lon_grid[nlon-1] )
+        { ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); }
+      else
+        { ilon = nlon - 2; }
+    }
+  //
+  lat1 = lat_grid[ilat];
+  lat3 = lat_grid[ilat+1];
+  lon5 = lon_grid[ilon];
+  lon6 = lon_grid[ilon+1];
+
+  // Determine interesting pressure grid range. Do this first assuming that
+  // the pressure levels are not tilted (that is, abs(za_start<=90) always
+  // mean upward observation). 
+  // Set radius for the corners of the grid cell and the radial slope of 
+  // pressure level limits of the grid cell to match the found ip.
+  //
+  ip = gridpos2gridrange( ppath.gp_p[imax], za_start <= 90 );
+  //
+  const Numeric re1 = refell2r( refellipsoid, lat_grid[ilat] );
+  const Numeric re3 = refell2r( refellipsoid, lat_grid[ilat+1] );
+  //
+  r15a = re1 + z_field(ip,ilat,ilon);
+  r35a = re3 + z_field(ip,ilat+1,ilon); 
+  r36a = re3 + z_field(ip,ilat+1,ilon+1); 
+  r16a = re1 + z_field(ip,ilat,ilon+1);
+  r15b = re1 + z_field(ip+1,ilat,ilon);
+  r35b = re3 + z_field(ip+1,ilat+1,ilon); 
+  r36b = re3 + z_field(ip+1,ilat+1,ilon+1); 
+  r16b = re1 + z_field(ip+1,ilat,ilon+1);
+
+  // Check if the LOS zenith angle happen to be between 90 and the zenith angle
+  // of the pressure level (that is, 90 + tilt of pressure level), and in
+  // that case if ip must be changed. This check is only needed when the
+  // start point is on a pressure level.
+  //
+  if( fabs(za_start-90) <= 10 )  // To save time. Ie. max tilt assumed =10 deg 
+    {
+      if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
+        {
+          // Slope and angular tilt of lower pressure level
+          Numeric c2 = plevel_slope_3d( lat1, lat3, lon5, lon6, 
+                       r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
+          Numeric tilt = plevel_angletilt( r_start, c2 );
+          // Negelect very small tilts, likely caused by numerical problems
+          if( abs(tilt) > 1e-4  &&  is_los_downwards( za_start, tilt ) )
+            {
+              ip--;
+              r15b = r15a;   r35b = r35a;   r36b = r36a;   r16b = r16a;
+              r15a = re1 + z_field(ip,ilat,ilon);
+              r35a = re3 + z_field(ip,ilat+1,ilon); 
+              r36a = re3 + z_field(ip,ilat+1,ilon+1); 
+              r16a = re1 + z_field(ip,ilat,ilon+1);
+            }
+        }
+      else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
+        {
+          // Slope and angular tilt of upper pressure level
+          Numeric c4 = plevel_slope_3d( lat1, lat3 ,lon5, lon6, 
+                       r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
+          Numeric tilt = plevel_angletilt( r_start, c4 );
+          // Negelect very small tilts, likely caused by numerical problems
+          if( abs(tilt) > 1e-4  &&  !is_los_downwards( za_start, tilt ) )
+            {
+              ip++;
+              r15a = r15b;   r35a = r35b;   r36a = r36b;   r16a = r16b;
+              r15b = re1 + z_field(ip+1,ilat,ilon);
+              r35b = re3 + z_field(ip+1,ilat+1,ilon); 
+              r36b = re3 + z_field(ip+1,ilat+1,ilon+1); 
+              r16b = re1 + z_field(ip+1,ilat,ilon+1);
+            }
+        }
+    }
+
+  // Surface radius at latitude/longitude corner points
+  rsurface15 = re1 + z_surface(ilat,ilon);
+  rsurface35 = re3 + z_surface(ilat+1,ilon);
+  rsurface36 = re3 + z_surface(ilat+1,ilon+1);
+  rsurface16 = re1 + z_surface(ilat,ilon+1);
+}
+
+
+
+//! ppath_fill_3d
+/*!
+   Fills a 3D Ppath structure with position and LOS values.
+
+   The function fills the fields: pos, los, z, lstep, gp_p, gp_lat and gp_lon.
+
+   The structure fields must be allocated to correct size before calling the 
+   function. The field size must be at least as large as the length of r,
+   lat and za vectors.
+
+   The length along the path shall be the same between all points.
+
+   \param   ppath          Output: Ppath structure.
+   \param   r              Vector with radius for the path points.
+   \param   lat            Vector with latitude for the path points.
+   \param   lon            Vector with longitude for the path points.
+   \param   za             Vector with zenith angle for the path points.
+   \param   aa             Vector with azimuth angle for the path points.
+   \param   lstep          Length along the path between the points.
+   \param   refellipsoid   As the WSV with the same name.
+   \param   z_field        Geometrical altitudes
+   \param   lat_grid       Latitude grid.
+   \param   lon_grid       Longitude grid.
+   \param   ip             Pressure grid range.
+   \param   ilat           Latitude grid range.
+   \param   ilon           Longitude grid range.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void ppath_fill_3d(
+           Ppath&      ppath,
+     ConstVectorView   r,
+     ConstVectorView   lat,
+     ConstVectorView   lon,
+     ConstVectorView   za,
+     ConstVectorView   aa,
+     const Numeric&    lstep,
+     ConstVectorView   refellipsoid,
+     ConstTensor3View  z_field,
+     ConstVectorView   lat_grid,
+     ConstVectorView   lon_grid,
+     const Index&      ip,
+     const Index&      ilat,
+     const Index&      ilon )
+{
+  // Help variables that are common for all points.
+  const Numeric   lat1  = lat_grid[ilat];
+  const Numeric   lat3  = lat_grid[ilat+1];
+  const Numeric   lon5  = lon_grid[ilon];
+  const Numeric   lon6  = lon_grid[ilon+1];
+  const Numeric   re1   = refell2r( refellipsoid, lat_grid[ilat] );
+  const Numeric   re3   = refell2r( refellipsoid, lat_grid[ilat+1] );
+  const Numeric   r15a  = re1 + z_field(ip,ilat,ilon);
+  const Numeric   r35a  = re3 + z_field(ip,ilat+1,ilon); 
+  const Numeric   r36a  = re3 + z_field(ip,ilat+1,ilon+1); 
+  const Numeric   r16a  = re1 + z_field(ip,ilat,ilon+1);
+  const Numeric   r15b  = re1 + z_field(ip+1,ilat,ilon);
+  const Numeric   r35b  = re3 + z_field(ip+1,ilat+1,ilon); 
+  const Numeric   r36b  = re3 + z_field(ip+1,ilat+1,ilon+1);
+  const Numeric   r16b  = re1 + z_field(ip+1,ilat,ilon+1);
+  const Numeric   dlat  = lat3 - lat1;
+  const Numeric   dlon  = lon6 - lon5;
+
+  for( Index i=0; i<r.nelem(); i++ )
+    {
+      // Radius of pressure levels at present lat and lon
+      const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                      r15a, r35a, r36a, r16a, lat[i], lon[i] );
+      const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                      r15b, r35b, r36b, r16b, lat[i], lon[i] );
+
+      // Position and LOS
+      ppath.r[i]     = r[i];
+      ppath.pos(i,1) = lat[i];
+      ppath.pos(i,2) = lon[i];
+      ppath.los(i,0) = za[i];
+      ppath.los(i,1) = aa[i];
+      
+      // Pressure grid index
+      ppath.gp_p[i].idx   = ip;
+      ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
+      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
+      gridpos_check_fd( ppath.gp_p[i] );
+
+      // Geometrical altitude
+      const Numeric   re = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                           re1, re3, re3, re1, lat[i], lon[i] );
+      const Numeric   zlow = rlow - re;
+      const Numeric   zupp = rupp - re;
+      //
+      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
+
+      // Latitude grid index
+      ppath.gp_lat[i].idx   = ilat;
+      ppath.gp_lat[i].fd[0] = ( lat[i] - lat1 ) / dlat;
+      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
+      gridpos_check_fd( ppath.gp_lat[i] );
+
+      // Longitude grid index
+      //
+      // The longitude  is undefined at the poles. The grid index is set to
+      // the start point.
+      //
+      if( abs( lat[i] ) < 90 )
+        {
+          ppath.gp_lon[i].idx   = ilon;
+          ppath.gp_lon[i].fd[0] = ( lon[i] - lon5 ) / dlon;
+          ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
+          gridpos_check_fd( ppath.gp_lon[i] );
+        }
+      else
+        {
+          ppath.gp_lon[i].idx   = 0;
+          ppath.gp_lon[i].fd[0] = 0;
+          ppath.gp_lon[i].fd[1] = 1;
+        }
+
+      if( i > 0 )
+        { ppath.lstep[i-1] = lstep; }
+    }
+}
+
+
+
+//! ppath_end_3d
+/*! 
+   Internal help function for 3D path calculations.
+
+   The function performs the end part of the calculations, that are common
+   for geometrical and refraction calculations.
+
+   See the code for details.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void ppath_end_3d(
+              Ppath&      ppath,
+        ConstVectorView   r_v,
+        ConstVectorView   lat_v,
+        ConstVectorView   lon_v,
+        ConstVectorView   za_v,
+        ConstVectorView   aa_v,
+        const Numeric&    lstep,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,
+        ConstTensor3View  z_field,
+        ConstVectorView   refellipsoid,
+        const Index&      ip,
+        const Index&      ilat,
+        const Index&      ilon,
+        const Index&      endface,
+        const Numeric&    ppc )
+{
+  // Number of path points
+  const Index   np   = r_v.nelem();
+  const Index   imax = np-1;
+
+  // Re-allocate ppath for return results and fill the structure
+  //
+  ppath_init_structure( ppath, 3, np );
+  //
+  ppath.constant = ppc;
+  //
+  ppath_fill_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, 
+                 refellipsoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
+
+  // Do end-face specific tasks
+  if( endface == 7 )
+    { ppath_set_background( ppath, 2 ); }
+
+  // Set fractional distance for end point
+  //
+  if( endface == 1  ||  endface == 3 )
+    { gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); }
+  else if( endface == 2  ||  endface == 4 )
+    { gridpos_force_end_fd( ppath.gp_p[imax], z_field.npages() ); }
+  else if( endface == 5  ||  endface == 6 )
+    { gridpos_force_end_fd( ppath.gp_lon[imax], lon_grid.nelem() ); }
+
+  // Handle cases where exactly a corner is hit, or when slipping outside of
+  // the grid box due to numerical inaccuarcy
+  if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_p[imax], z_field.npages() ); 
+    }
+  if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); 
+    }
+  if( ppath.gp_lon[imax].fd[0] < 0  ||  ppath.gp_lon[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_lon[imax], lon_grid.nelem() ); 
+    }
+}
+
+
+
+
+
+
+/*===========================================================================
+  === Core functions for geometrical ppath_step calculations
   ===========================================================================*/
 
 //! do_gridrange_1d
@@ -1544,6 +2582,239 @@ void do_gridrange_1d(
   
   geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start,
                                                        za_start, r_end, lmax );
+}
+
+
+
+//! ppath_step_geom_1d
+/*! 
+   Calculates 1D geometrical propagation path steps.
+
+   This is the core function to determine 1D propagation path steps by pure
+   geometrical calculations. Path points are included for crossings with the
+   grids, tangent points and points of intersection with the surface. In
+   addition, points are included in the propgation path to ensure that the
+   distance along the path between the points does not exceed the selected
+   maximum length (lmax). If lmax is <= 0, this means that no length criterion
+   shall be applied.
+
+   Note that the input variables are here compressed to only hold data for
+   a 1D atmosphere. For example, z_field is z_field(:,0,0).
+
+   For more information read the chapter on propagation paths in AUG.
+
+   \param   ppath             Output: A Ppath structure.
+   \param   z_field           Geometrical altitudes corresponding to p_grid.
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitude.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
+void ppath_step_geom_1d(
+              Ppath&      ppath,
+        ConstVectorView   z_field,
+        ConstVectorView   refellipsoid,
+        const Numeric&    z_surface,
+        const Numeric&    lmax )
+{
+  // Starting radius, zenith angle and latitude
+  Numeric r_start, lat_start, za_start;
+
+  // Index of the pressure level being the lower limit for the
+  // grid range of interest.
+  Index ip;
+
+  // Determine the variables defined above, and make asserts of input
+  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { ppc = geometrical_ppc( r_start, za_start ); }
+  else
+    { ppc = ppath.constant; }
+
+
+  // The path is determined by another function. Determine some variables
+  // needed bý that function and call the function.
+  //
+  // Vars to hold found path points, path step length and coding for end face
+  Vector   r_v, lat_v, za_v;
+  Numeric   lstep;
+  Index    endface;
+  //
+  do_gridrange_1d( r_v, lat_v, za_v, lstep, endface,
+                   r_start, lat_start, za_start, ppc, lmax, 
+                   refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
+                   refellipsoid[0]+z_surface );
+
+  // Fill *ppath*
+  //
+  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
+                                                                endface, ppc );
+  // nreal is set to 1 in ppath_stepGeometric
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      ppath_step_geom_1d( ppath2, z_field, refellipsoid, z_surface, lmax );
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
+}
+
+
+
+void ppath_geom_updown_1d(
+              Ppath&      ppath,
+        ConstVectorView   z_field,
+        ConstVectorView   refellipsoid,
+        const Numeric&    z_surface,
+        const Index&      cloudbox_on, 
+     const ArrayOfIndex&  cloudbox_limits )
+{
+  // Starting radius, zenith angle and latitude
+  Numeric r_start, lat_start, za_start;
+
+  // Index of the pressure level being the lower limit for the
+  // grid range of interest.
+  Index ip;
+
+  // Determine the variables defined above, and make asserts of input
+  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
+
+  if( za_start > 85  &&  za_start < 120 )
+    {
+      throw runtime_error( "This method can not be used for initial zenith "
+                           "angles between 85 and 120 deg.!!");
+    }
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { ppc = geometrical_ppc( r_start, za_start ); }
+  else
+    { ppc = ppath.constant; }
+
+  // Upward
+  if( za_start < 90 )
+    { 
+      // Determine number of ppath points
+      Index ilastp1;  // Last index + 1
+      if( cloudbox_on  &&  cloudbox_limits[0] > ip )
+        { ilastp1 = cloudbox_limits[0] + 1; }  // Points inside cloudbox
+      else                                     // are handled by 
+        { ilastp1 = z_field.nelem(); }         // ppath_start_stepping
+      const Index np = ilastp1 - ip;
+
+      ppath_init_structure( ppath, 1, np );
+      //
+      ppath.constant = ppc;
+      //
+      // Start point
+      ppath.r[0]          = r_start;
+      ppath.pos(0,0)      = r_start - refellipsoid[0];
+      ppath.los(0,0)      = za_start;
+      ppath.pos(0,1)      = lat_start;
+      Numeric llast        = geompath_l_at_r( ppc, ppath.r[0] );
+      ppath.gp_p[0].idx   = ip;
+      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
+                            ( z_field[ip+1]  - z_field[ip] );
+      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
+      gridpos_check_fd( ppath.gp_p[0] );
+      // Later points
+      for( Index i=1; i<np; i++ )
+        {
+          ppath.pos(i,0)      = z_field[ip+i];
+          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
+          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
+          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
+                                                              ppath.los(i,0) );
+          const Numeric lthis  = geompath_l_at_r( ppc, ppath.r[i] );
+          ppath.lstep[i-1]   = lthis - llast;
+          llast               = lthis;
+          ppath.gp_p[i].idx   = ip + i;
+          ppath.gp_p[i].fd[0] = 0;
+          ppath.gp_p[i].fd[1] = 1;
+        }
+      // Special treatment of last point
+      ppath.gp_p[np-1].idx  -= 1;
+      ppath.gp_p[np-1].fd[0] = 1;
+      ppath.gp_p[np-1].fd[1] = 0;
+    }
+
+  // Downward
+  else
+    {
+      if( ppc > refellipsoid[0] + z_surface )
+        {
+          ostringstream os;
+          os << "This function can not be used for propgation paths\n"
+             << "including tangent points. Such a point occurs in this case.";
+          throw runtime_error(os.str());
+        }
+
+      // Find grid position of surface altitude
+      GridPos   gp;
+      gridpos( gp, z_field, z_surface );
+      
+      // Determine number of ppath points. Start assumption is hit with surface
+      Index  ilast   = gp.idx+1;  // Index of last pressure level to include
+      Index  surface = 1;
+      if( cloudbox_on  &&  cloudbox_limits[1] <= ip )
+        {                                  // Points inside cloudbox are
+          ilast   = cloudbox_limits[1];    // handled by ppath_start_stepping
+          surface = 0;
+        }  
+      const Index np = ip - ilast + 2 + surface;
+
+      ppath_init_structure( ppath, 1, np );
+      //
+      ppath_set_background( ppath, 2 );
+      ppath.constant = ppc;
+      //
+      // Start point
+      ppath.r[0]          = r_start;
+      ppath.pos(0,0)      = r_start - refellipsoid[0];
+      ppath.los(0,0)      = za_start;
+      ppath.pos(0,1)      = lat_start;
+      Numeric llast        = geompath_l_at_r( ppc, ppath.r[0] );
+      ppath.gp_p[0].idx   = ip;
+      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
+                            ( z_field[ip+1]  - z_field[ip] );
+      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
+      gridpos_check_fd( ppath.gp_p[0] );
+      // Later points
+      for( Index i=1; i<np; i++ )
+        {
+          if( i < np-1  ||  !surface )
+            { ppath.pos(i,0)  = z_field[ip-i+1]; }
+          else
+            { ppath.pos(i,0)  = z_surface; }
+          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
+          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
+          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
+                                                              ppath.los(i,0) );
+          const Numeric lthis  = geompath_l_at_r( ppc, ppath.r[i] );
+          ppath.lstep[i-1]   = llast - lthis;
+          llast               = lthis;
+          ppath.gp_p[i].idx   = ip - i + 1;
+          ppath.gp_p[i].fd[0] = 0;
+          ppath.gp_p[i].fd[1] = 1;
+        }
+      // Special treatment of last point
+      if( surface )
+        { gridpos_copy( ppath.gp_p[np-1], gp ); }
+    }
 }
 
 
@@ -1675,10 +2946,88 @@ void do_gridcell_2d(
 
 
 
+//! ppath_step_geom_2d
+/*! 
+   Calculates 2D geometrical propagation path steps.
+
+   Works as the same function for 1D despite that some input arguments are
+   of different type.
+
+   \param   ppath             Output: A Ppath structure.
+   \param   lat_grid          Latitude grid.
+   \param   z_field           Geometrical altitudes
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitudes.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-07-03
+*/
+void ppath_step_geom_2d(
+              Ppath&      ppath,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstVectorView   refellipsoid,
+        ConstVectorView   z_surface,
+        const Numeric&    lmax )
+{
+  // Radius, zenith angle and latitude of start point.
+  Numeric   r_start, lat_start, za_start;
+
+  // Lower grid index for the grid cell of interest.
+  Index   ip, ilat;
+
+  // Radii and latitudes set by *ppath_start_2d*.
+  Numeric   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3;
+
+  // Determine the variables defined above and make all possible asserts
+  ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
+                  lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
+                  ppath, lat_grid, z_field, refellipsoid, z_surface );
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { ppc = geometrical_ppc( r_start, za_start ); }
+  else
+    { ppc = ppath.constant; }
+
+  // Vars to hold found path points, path step length and coding for end face
+  Vector   r_v, lat_v, za_v;
+  Numeric   lstep;
+  Index    endface;
+
+  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
+                  r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
+                                    r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
+
+  // Fill *ppath*
+  //
+  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
+                                                      ip, ilat, endface, ppc );
+  // nreal is set to 1 in ppath_stepGeometric
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
+                                                                        lmax );
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
+}
+
+
+
 //! do_gridcell_3d_byltest
 /*!
-    An older implementation of do_gridcell_3d. See ATD for a description 
-    of the algorithm.
+    See ATD for a description of the algorithm.
 
     \author Patrick Eriksson
     \date   2002-11-28
@@ -2027,531 +3376,91 @@ void do_gridcell_3d_byltest(
 
 
 
-
-
-/*===========================================================================
-  === Functions operating on the Ppath structure
-  ===========================================================================*/
-
-//! ppath_init_structure
-/*!
-   Initiates a Ppath structure to hold the given number of points.
-
-   All fields releated with the surface, symmetry and tangent point are set
-   to 0 or empty. The background field is set to background case 0. The
-   constant field is set to -1. The refraction field is set to 0.
-
-   The length of the lstep field is set to np-1.
-
-   \param   ppath            Output: A Ppath structure.
-   \param   atmosphere_dim   The atmospheric dimensionality.
-   \param   np               Number of points of the path.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-void ppath_init_structure( 
-              Ppath&      ppath,
-        const Index&      atmosphere_dim,
-        const Index&      np )
-{
-  assert( atmosphere_dim >= 1 );
-  assert( atmosphere_dim <= 3 );
-
-  ppath.dim        = atmosphere_dim;
-  ppath.np         = np;
-  ppath.constant   = -1;   
-  if( atmosphere_dim < 3 )
-    {
-      ppath.pos.resize( np, 2 );
-      ppath.los.resize( np, 1 );
-    }
-  else
-    {
-      ppath.pos.resize( np, atmosphere_dim );
-      ppath.los.resize( np, 2 );
-      ppath.gp_lon.resize( np );
-    }
-  ppath.gp_p.resize( np );
-  if( atmosphere_dim >= 2 )
-    { ppath.gp_lat.resize( np ); }
-  ppath.r.resize( np );
-  if( np > 0 )
-    { ppath.lstep.resize( np-1 ); }
-  else
-    { ppath.lstep.resize( 0 ); }
-  ppath_set_background( ppath, 0 );
-  ppath.nreal.resize( np );
-  ppath.lspace = 0;
-}
-
-
-
-
-//! ppath_set_background 
-/*!
-   Sets the background field of a Ppath structure.
-
-   The different background cases have a number coding to simplify a possible
-   change of the strings and checking of the what case that is valid.
-
-   The case numbers are:                    <br>
-      0. Not yet set.                       <br>
-      1. Space.                             <br>
-      2. The surface.                       <br>
-      3. The cloud box boundary.            <br>
-      4. The interior of the cloud box.       
-
-   \param   ppath            Output: A Ppath structure.
-   \param   case_nr          Case number (see above)
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-void ppath_set_background( 
-              Ppath&      ppath,
-        const Index&      case_nr )
-{
-  switch ( case_nr )
-    {
-    case 0:
-      ppath.background = "";
-      break;
-    case 1:
-      ppath.background = "space";
-      break;
-    case 2:
-      ppath.background = "surface";
-      break;
-    case 3:
-      ppath.background = "cloud box level";
-      break;
-    case 4:
-      ppath.background = "cloud box interior";
-      break;
-    default:
-      ostringstream os;
-      os << "Case number " << case_nr << " is not defined.";
-      throw runtime_error(os.str());
-    }
-}
-
-
-
-//! ppath_what_background
-/*!
-   Returns the case number for the radiative background.
-
-   See further the function *ppath_set_background*.
-
-   \return                   The case number.
-   \param   ppath            A Ppath structure.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-Index ppath_what_background( const Ppath&   ppath )
-{
-  if( ppath.background == "" )
-    { return 0; }
-  else if( ppath.background == "space" )
-    { return 1; }
-  else if( ppath.background == "surface" )
-    { return 2; }
-  else if( ppath.background == "cloud box level" )
-    { return 3; }
-  else if( ppath.background == "cloud box interior" )
-    { return 4; }
-  else
-    {
-      ostringstream os;
-      os << "The string " << ppath.background 
-         << " is not a valid background case.";
-      throw runtime_error(os.str());
-    }
-}
-
-
-
-//! ppath_copy
-/*!
-   Copy the content in ppath2 to ppath1.
-
-   The ppath1 structure must be allocated before calling the function. The
-   structure can be allocated to hold more points than found in ppath2.
-   The data of ppath2 is placed in the first positions of ppath1.
-
-   \param   ppath1    Output: Ppath structure.
-   \param   ppath2    The ppath structure to be copied.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-void ppath_copy(
-           Ppath&      ppath1,
-     const Ppath&      ppath2 )
-{
-  assert( ppath1.np >= ppath2.np ); 
-
-  // The field np shall not be copied !
-
-  ppath1.dim        = ppath2.dim;
-  ppath1.constant   = ppath2.constant;
-  ppath1.background = ppath2.background;
-  ppath1.lspace     = ppath2.lspace;
-
-  ppath1.pos(Range(0,ppath2.np),joker) = ppath2.pos;
-  ppath1.los(Range(0,ppath2.np),joker) = ppath2.los;
-  ppath1.r[Range(0,ppath2.np)]         = ppath2.r;
-  ppath1.nreal[Range(0,ppath2.np)]     = ppath2.nreal;
-  if( ppath2.np > 1 )
-    { ppath1.lstep[Range(0,ppath2.np-1)]  = ppath2.lstep; }
-
-  for( Index i=0; i<ppath2.np; i++ )
-    {
-      gridpos_copy( ppath1.gp_p[i], ppath2.gp_p[i] );
-      
-      if( ppath1.dim >= 2 )
-        { gridpos_copy( ppath1.gp_lat[i], ppath2.gp_lat[i] ); }
-      
-      if( ppath1.dim == 3 )
-        { gridpos_copy( ppath1.gp_lon[i], ppath2.gp_lon[i] ); }
-     }
-}
-
-
-
-//! ppath_append
-/*!
-   Combines two Ppath structures   
-
-   The function appends a Ppath structure to another structure. 
- 
-   All the data of ppath1 is kept.
-
-   The first point in ppath2 is assumed to be the same as the last in ppath1.
-   Only data in ppath from the fields pos, los, z, lstep, gp_XXX and 
-   background are considered.
-
-   \param   ppath1    Output: Ppath structure to be expanded.
-   \param   ppath2    The Ppath structure to include in ppath.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-void ppath_append(
-           Ppath&   ppath1,
-     const Ppath&   ppath2 )
-{
-  const Index n1 = ppath1.np;
-  const Index n2 = ppath2.np;
-
-  Ppath   ppath;
-  ppath_init_structure( ppath, ppath1.dim, n1 );
-  ppath_copy( ppath, ppath1 );
-
-  ppath_init_structure( ppath1, ppath1.dim, n1 + n2 - 1 );
-  ppath_copy( ppath1, ppath );
-
-  // Append data from ppath2
-  Index i1;
-  for( Index i=1; i<n2; i++ )
-    { 
-      i1 = n1 + i - 1;
-
-      ppath1.pos(i1,0)      = ppath2.pos(i,0);
-      ppath1.pos(i1,1)      = ppath2.pos(i,1);
-      ppath1.los(i1,0)      = ppath2.los(i,0);
-      ppath1.r[i1]          = ppath2.r[i];
-      ppath1.nreal[i1]      = ppath2.nreal[i];
-      gridpos_copy( ppath1.gp_p[i1], ppath2.gp_p[i] );
-
-      if( ppath1.dim >= 2 )
-        { gridpos_copy( ppath1.gp_lat[i1], ppath2.gp_lat[i] ); }
-      
-      if( ppath1.dim == 3 )
-        {
-          ppath1.pos(i1,2)        = ppath2.pos(i,2);
-          ppath1.los(i1,1)        = ppath2.los(i,1);
-          gridpos_copy( ppath1.gp_lon[i1], ppath2.gp_lon[i] ); 
-        }
-      
-      ppath1.lstep[i1-1] = ppath2.lstep[i-1];
-    }
-
-  if( ppath_what_background( ppath2 ) )
-    { ppath1.background = ppath2.background; }
-
-  ppath.lspace += ppath.lspace;
-}
-
-
-
-//! ppath_fill_1d
-/*!
-   Fills a 1D Ppath structure with position and LOS values.
-
-   The function fills the fields: pos, los, z, lstep and gp_p.
-   The pressure grid positions (gp_p) are filtered through gridpos_check_fd.
-
-   The structure fields must be allocated to correct size before calling the 
-   function. The field size must be at least as large as the length of r,
-   lat and za vectors.
-
-   The length along the path shall be the same between all points.
-
-   \param   ppath          Output: Ppath structure.
-   \param   r              Vector with radius for the path points.
-   \param   lat            Vector with latitude for the path points.
-   \param   za             Vector with zenith angle for the path points.
-   \param   lstep          Length along the path between the points.
-   \param   refellipsoid   As the WSV with the same name
-   \param   z_field        Geometrical altitudes.
-   \param   ip             Pressure grid range.
-
-   \author Patrick Eriksson
-   \date   2002-07-18
-*/
-void ppath_fill_1d(
-           Ppath&      ppath,
-     ConstVectorView   r,
-     ConstVectorView   lat,
-     ConstVectorView   za,
-     ConstVectorView   lstep,
-     ConstVectorView   refellipsoid,
-     ConstVectorView   z_field,
-     const Index&      ip )
-{
-  // Help variables that are common for all points.
-  const Numeric   r1 = refellipsoid[0] + z_field[ip];
-  const Numeric   dr = z_field[ip+1] - z_field[ip];
-
-  for( Index i=0; i<r.nelem(); i++ )
-    {
-      ppath.r[i]     = r[i];
-      ppath.pos(i,0) = r[i] - refellipsoid[0];
-      ppath.pos(i,1) = lat[i];
-      ppath.los(i,0) = za[i];
-      
-      ppath.gp_p[i].idx   = ip;
-      ppath.gp_p[i].fd[0] = ( r[i] - r1 ) / dr;
-      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
-      gridpos_check_fd( ppath.gp_p[i] );
-
-      if( i > 0 )
-        { ppath.lstep[i-1] = lstep[i-1]; }
-    }
-}
-
-
-
-//! ppath_fill_2d
-/*!
-   Fills a 2D Ppath structure with position and LOS values.
-
-   The function fills the fields: pos, los, z, lstep, gp_p and gp_lat.
-
-   The structure fields must be allocated to correct size before calling the 
-   function. The field size must be at least as large as the length of r,
-   lat and za vectors.
-
-   The length along the path shall be the same between all points.
-
-   \param   ppath          Output: Ppath structure.
-   \param   r              Vector with radius for the path points.
-   \param   lat            Vector with latitude for the path points.
-   \param   za             Vector with zenith angle for the path points.
-   \param   lstep          Length along the path between the points.
-   \param   refellipsoid   As the WSV with the same name.
-   \param   z_field        Geometrical altitudes
-   \param   lat_grid       Latitude grid.
-   \param   ip             Pressure grid range.
-   \param   ilat           Latitude grid range.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-void ppath_fill_2d(
-           Ppath&      ppath,
-     ConstVectorView   r,
-     ConstVectorView   lat,
-     ConstVectorView   za,
-     const Numeric&    lstep,
-     ConstVectorView   refellipsoid,
-     ConstMatrixView   z_field,
-     ConstVectorView   lat_grid,
-     const Index&      ip,
-     const Index&      ilat )
-{
-  // Help variables that are common for all points.
-  const Numeric   dlat  = lat_grid[ilat+1] - lat_grid[ilat];
-  const Numeric   z1low = z_field(ip,ilat);
-  const Numeric   z1upp = z_field(ip+1,ilat);
-  const Numeric   dzlow = z_field(ip,ilat+1) -z1low;
-  const Numeric   dzupp = z_field(ip+1,ilat+1) - z1upp;
-        Numeric   re    = refell2r( refellipsoid, lat_grid[ilat] );
-  const Numeric   r1low = re + z1low;
-  const Numeric   r1upp = re + z1upp;
-                 re    = refell2r( refellipsoid, lat_grid[ilat+1] );
-  const Numeric   drlow = re + z_field(ip,ilat+1) - r1low;
-  const Numeric   drupp = re + z_field(ip+1,ilat+1) - r1upp;
-
-  for( Index i=0; i<r.nelem(); i++ )
-    {
-      ppath.r[i]     = r[i];
-      ppath.pos(i,1) = lat[i];
-      ppath.los(i,0) = za[i];
-      
-      // Weight in the latitude direction
-      Numeric w = ( lat[i] - lat_grid[ilat] ) / dlat;
-
-      // Radius of lower and upper face at present latitude
-      const Numeric rlow = r1low + w * drlow;
-      const Numeric rupp = r1upp + w * drupp;
-
-      // Geometrical altitude of lower and upper face at present latitude
-      const Numeric zlow = z1low + w * dzlow;
-      const Numeric zupp = z1upp + w * dzupp;
-
-      ppath.gp_p[i].idx   = ip;
-      ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
-      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
-      gridpos_check_fd( ppath.gp_p[i] );
-
-      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
-
-      ppath.gp_lat[i].idx   = ilat;
-      ppath.gp_lat[i].fd[0] = ( lat[i] - lat_grid[ilat] ) / dlat;
-      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
-      gridpos_check_fd( ppath.gp_lat[i] );
-
-      if( i > 0 )
-        { ppath.lstep[i-1] = lstep; }
-    }
-}
-
-
-
-//! ppath_fill_3d
-/*!
-   Fills a 3D Ppath structure with position and LOS values.
-
-   The function fills the fields: pos, los, z, lstep, gp_p, gp_lat and gp_lon.
-
-   The structure fields must be allocated to correct size before calling the 
-   function. The field size must be at least as large as the length of r,
-   lat and za vectors.
-
-   The length along the path shall be the same between all points.
-
-   \param   ppath          Output: Ppath structure.
-   \param   r              Vector with radius for the path points.
-   \param   lat            Vector with latitude for the path points.
-   \param   lon            Vector with longitude for the path points.
-   \param   za             Vector with zenith angle for the path points.
-   \param   aa             Vector with azimuth angle for the path points.
-   \param   lstep          Length along the path between the points.
-   \param   refellipsoid   As the WSV with the same name.
-   \param   z_field        Geometrical altitudes
-   \param   lat_grid       Latitude grid.
-   \param   lon_grid       Longitude grid.
-   \param   ip             Pressure grid range.
-   \param   ilat           Latitude grid range.
-   \param   ilon           Longitude grid range.
+//! ppath_step_geom_3d
+/*! 
+   Calculates 3D geometrical propagation path steps.
+
+   Works as the same function for 1D despite that some input arguments are
+   of different type.
+
+   \param   ppath             Output: A Ppath structure.
+   \param   lat_grid          Latitude grid.
+   \param   lon_grid          Longitude grid.
+   \param   z_field           Geometrical altitudes
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitudes.
+   \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
    \date   2002-12-30
 */
-void ppath_fill_3d(
-           Ppath&      ppath,
-     ConstVectorView   r,
-     ConstVectorView   lat,
-     ConstVectorView   lon,
-     ConstVectorView   za,
-     ConstVectorView   aa,
-     const Numeric&    lstep,
-     ConstVectorView   refellipsoid,
-     ConstTensor3View  z_field,
-     ConstVectorView   lat_grid,
-     ConstVectorView   lon_grid,
-     const Index&      ip,
-     const Index&      ilat,
-     const Index&      ilon )
+void ppath_step_geom_3d(
+              Ppath&       ppath,
+        ConstVectorView    lat_grid,
+        ConstVectorView    lon_grid,
+        ConstTensor3View   z_field,
+        ConstVectorView    refellipsoid,
+        ConstMatrixView    z_surface,
+        const Numeric&     lmax )
 {
-  // Help variables that are common for all points.
-  const Numeric   lat1  = lat_grid[ilat];
-  const Numeric   lat3  = lat_grid[ilat+1];
-  const Numeric   lon5  = lon_grid[ilon];
-  const Numeric   lon6  = lon_grid[ilon+1];
-  const Numeric   re1   = refell2r( refellipsoid, lat_grid[ilat] );
-  const Numeric   re3   = refell2r( refellipsoid, lat_grid[ilat+1] );
-  const Numeric   r15a  = re1 + z_field(ip,ilat,ilon);
-  const Numeric   r35a  = re3 + z_field(ip,ilat+1,ilon); 
-  const Numeric   r36a  = re3 + z_field(ip,ilat+1,ilon+1); 
-  const Numeric   r16a  = re1 + z_field(ip,ilat,ilon+1);
-  const Numeric   r15b  = re1 + z_field(ip+1,ilat,ilon);
-  const Numeric   r35b  = re3 + z_field(ip+1,ilat+1,ilon); 
-  const Numeric   r36b  = re3 + z_field(ip+1,ilat+1,ilon+1);
-  const Numeric   r16b  = re1 + z_field(ip+1,ilat,ilon+1);
-  const Numeric   dlat  = lat3 - lat1;
-  const Numeric   dlon  = lon6 - lon5;
+  // Radius, zenith angle and latitude of start point.
+  Numeric   r_start, lat_start, lon_start, za_start, aa_start;
 
-  for( Index i=0; i<r.nelem(); i++ )
+  // Lower grid index for the grid cell of interest.
+  Index   ip, ilat, ilon;
+
+  // Radius for corner points, latitude and longitude of the grid cell
+  //
+  Numeric   lat1, lat3, lon5, lon6;
+  Numeric   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b;
+  Numeric   rsurface15, rsurface35, rsurface36, rsurface16;
+
+  // Determine the variables defined above and make all possible asserts
+  ppath_start_3d( r_start, lat_start, lon_start, za_start, aa_start, 
+                  ip, ilat, ilon, lat1, lat3, lon5, lon6,
+                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
+                  rsurface15, rsurface35, rsurface36, rsurface16,
+                  ppath, lat_grid, lon_grid, z_field, refellipsoid, z_surface );
+
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { ppc = geometrical_ppc( r_start, za_start ); }
+  else
+    { ppc = ppath.constant; }
+
+
+  // Vars to hold found path points, path step length and coding for end face
+  Vector   r_v, lat_v, lon_v, za_v, aa_v;
+  Numeric   lstep;
+  Index    endface;
+
+  do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                          r_start, lat_start, lon_start, za_start, aa_start, 
+                          ppc, lmax, lat1, lat3, lon5, lon6, 
+                          r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                          rsurface15, rsurface35, rsurface36, rsurface16 );
+
+  // Fill *ppath*
+  //
+  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
+                lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, ppc );
+  // nreal is set to 1 in ppath_stepGeometric
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
     {
-      // Radius of pressure levels at present lat and lon
-      const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                      r15a, r35a, r36a, r16a, lat[i], lon[i] );
-      const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                      r15b, r35b, r36b, r16b, lat[i], lon[i] );
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
 
-      // Position and LOS
-      ppath.r[i]     = r[i];
-      ppath.pos(i,1) = lat[i];
-      ppath.pos(i,2) = lon[i];
-      ppath.los(i,0) = za[i];
-      ppath.los(i,1) = aa[i];
-      
-      // Pressure grid index
-      ppath.gp_p[i].idx   = ip;
-      ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
-      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
-      gridpos_check_fd( ppath.gp_p[i] );
+      ppath_step_geom_3d( ppath2, lat_grid, lon_grid, z_field, refellipsoid, 
+                                                             z_surface, lmax );
 
-      // Geometrical altitude
-      const Numeric   re = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                           re1, re3, re3, re1, lat[i], lon[i] );
-      const Numeric   zlow = rlow - re;
-      const Numeric   zupp = rupp - re;
-      //
-      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
-
-      // Latitude grid index
-      ppath.gp_lat[i].idx   = ilat;
-      ppath.gp_lat[i].fd[0] = ( lat[i] - lat1 ) / dlat;
-      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
-      gridpos_check_fd( ppath.gp_lat[i] );
-
-      // Longitude grid index
-      //
-      // The longitude  is undefined at the poles. The grid index is set to
-      // the start point.
-      //
-      if( abs( lat[i] ) < 90 )
-        {
-          ppath.gp_lon[i].idx   = ilon;
-          ppath.gp_lon[i].fd[0] = ( lon[i] - lon5 ) / dlon;
-          ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
-          gridpos_check_fd( ppath.gp_lon[i] );
-        }
-      else
-        {
-          ppath.gp_lon[i].idx   = 0;
-          ppath.gp_lon[i].fd[0] = 0;
-          ppath.gp_lon[i].fd[1] = 1;
-        }
-
-      if( i > 0 )
-        { ppath.lstep[i-1] = lstep; }
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
     }
 }
 
@@ -2560,560 +3469,8 @@ void ppath_fill_3d(
 
 
 /*===========================================================================
-  === Functions related to propagation paths with refraction
+  === Core functions for refraction *ppath_step* functions
   ===========================================================================*/
-
-//! refraction_ppc
-/*! 
-   Calculates the propagation path constant for cases with refraction.
-
-   Both positive and negative zenith angles are handled.
-
-   \return               Path constant.
-   \param   r            Radius.
-   \param   za           LOS Zenith angle.
-   \param   refr_index   Refractive index.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-Numeric refraction_ppc( 
-        const Numeric&  r, 
-        const Numeric&  za, 
-        const Numeric&  refr_index )
-{
-  assert( r > 0 );
-  assert( abs(za) <= 180 );
-
-  return r * refr_index * sin( DEG2RAD * abs(za) );
-}
-
-
-
-
-
-/*===========================================================================
-  === Help functions for the *ppath_step* functions found below
-  === These functions are mainly pieces of code that are common for at least
-  === two functions (or two places in some function) and for this reason 
-  === the headers are not complete. 
-  ===========================================================================*/
-
-
-//! ppath_start_1d
-/*! 
-   Internal help function for 1D path calculations.
-
-   The function does the asserts and determined some variables that are common
-   for geometrical and refraction calculations.
-
-   See the code for details.
-
-   \author Patrick Eriksson
-   \date   2002-11-13
-*/
-void ppath_start_1d(
-              Numeric&    r_start,
-              Numeric&    lat_start,
-              Numeric&    za_start,
-              Index&      ip,
-        const Ppath&      ppath )
-{
-  // Number of points in the incoming ppath
-  const Index   imax = ppath.np - 1;
-
-  // Extract starting radius, zenith angle and latitude
-  r_start   = ppath.r[imax];
-  lat_start = ppath.pos(imax,1);
-  za_start  = ppath.los(imax,0);
-
-  // Determine index of the pressure level being the lower limit for the
-  // grid range of interest.
-  //
-  ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
-}
-
-
-
-//! ppath_end_1d
-/*! 
-   Internal help function for 1D path calculations.
-
-   The function performs the end part of the calculations, that are common
-   for geometrical and refraction calculations.
-
-   See the code for details.
-
-   \author Patrick Eriksson
-   \date   2002-11-27
-*/
-void ppath_end_1d(
-              Ppath&      ppath,
-        ConstVectorView   r_v,
-        ConstVectorView   lat_v,
-        ConstVectorView   za_v,
-        const Numeric&    lstep,
-        ConstVectorView   z_field,
-        ConstVectorView   refellipsoid,
-        const Index&      ip,
-        const Index&      endface,
-        const Numeric&    ppc )
-{
-  // Number of path points
-  const Index   np = r_v.nelem();
-
-  // Re-allocate ppath for return results and fill the structure
-  //
-  ppath_init_structure( ppath, 1, np );
-  //
-  ppath.constant = ppc;
-  //
-  ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), refellipsoid, 
-                                                                 z_field, ip );
-
-  gridpos_check_fd( ppath.gp_p[np-1] );
-
-  //--- End point is the surface
-  if( endface == 7 )
-    { ppath_set_background( ppath, 2 ); }
-
-  //--- End point is on top of a pressure level
-  else if( endface <= 4 )
-    { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nelem() ); }
-}
-
-
-
-//! ppath_start_2d
-/*! 
-   Internal help function for 2D path calculations.
-
-   The function does the asserts and determined some variables that are common
-   for geometrical and refraction calculations.
-
-   See the code for details.
-
-   \author Patrick Eriksson
-   \date   2002-11-18
-*/
-void ppath_start_2d(
-              Numeric&    r_start,
-              Numeric&    lat_start,
-              Numeric&    za_start,
-              Index&      ip,
-              Index&      ilat,
-              Numeric&    lat1,
-              Numeric&    lat3,
-              Numeric&    r1a,
-              Numeric&    r3a,
-              Numeric&    r3b,
-              Numeric&    r1b,
-              Numeric&    rsurface1,
-              Numeric&    rsurface3,
-              Ppath&      ppath,
-        ConstVectorView   lat_grid,
-        ConstMatrixView   z_field,
-        ConstVectorView   refellipsoid,
-        ConstVectorView   z_surface
-        )
-{
-  // Number of points in the incoming ppath
-  const Index imax = ppath.np - 1;
-
-  // Extract starting radius, zenith angle and latitude
-  r_start   = ppath.r[imax];
-  lat_start = ppath.pos(imax,1);
-  za_start  = ppath.los(imax,0);
-
-  // Determine interesting latitude grid range and latitude end points of 
-  // the range.
-  //
-  ilat = gridpos2gridrange( ppath.gp_lat[imax], za_start >= 0 );
-  //
-  lat1 = lat_grid[ilat];
-  lat3 = lat_grid[ilat+1];
-
-  // Determine interesting pressure grid range. Do this first assuming that
-  // the pressure levels are not tilted (that is, abs(za_start<=90) always
-  // mean upward observation). 
-  // Set radius for the corners of the grid cell and the radial slope of 
-  // pressure level limits of the grid cell to match the found ip.
-  //
-  ip = gridpos2gridrange( ppath.gp_p[imax], abs(za_start) <= 90);
-  //
-  const Numeric re1 = refell2r( refellipsoid, lat_grid[ilat] );
-  const Numeric re3 = refell2r( refellipsoid, lat_grid[ilat+1] );
-  //
-  r1a = re1 + z_field(ip,ilat);        // lower-left
-  r3a = re3 + z_field(ip,ilat+1);      // lower-right
-  r3b = re3 + z_field(ip+1,ilat+1);    // upper-right
-  r1b = re1 + z_field(ip+1,ilat);      // upper-left
-
-  // This part is a fix to catch start postions on top of a pressure level
-  // that does not have an end fractional distance for the first step.
-  {
-    // Radius of lower and upper pressure level at the start position
-    const Numeric   rlow = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_start );
-    const Numeric   rupp = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_start );
-    if( abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL )
-      { gridpos_force_end_fd( ppath.gp_p[imax], z_field.nrows() ); }
-  }
-  
-  // Slopes of pressure levels
-  Numeric   c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
-  Numeric   c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
-
-  // Check if the LOS zenith angle happen to be between 90 and the zenith angle
-  // of the pressure level (that is, 90 + tilt of pressure level), and in
-  // that case if ip must be changed. This check is only needed when the
-  // start point is on a pressure level.
-  //
-  if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
-    {
-      Numeric tilt = plevel_angletilt( r_start, c2 );
-
-      if( is_los_downwards( za_start, tilt ) )
-        {
-          ip--;
-          r1b = r1a;   r3b = r3a;   c4 = c2;
-          r1a = re1 + z_field(ip,ilat);
-          r3a = re3 + z_field(ip,ilat+1);
-          c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
-        }
-    }
-  else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
-    {
-      Numeric tilt = plevel_angletilt( r_start, c4 );
-
-      if( !is_los_downwards( za_start, tilt ) )
-        {
-          ip++;
-          r1a = r1b;   r3a = r3b;   c2 = c4;
-          r3b = re3 + z_field(ip+1,ilat+1);
-          r1b = re1 + z_field(ip+1,ilat);    
-          c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
-        }
-    }
-
-  // Surface radius at latitude end points
-  rsurface1 = re1 + z_surface[ilat];
-  rsurface3 = re3 + z_surface[ilat+1];
-}
-
-
-
-//! ppath_end_2d
-/*! 
-   Internal help function for 2D path calculations.
-
-   The function performs the end part of the calculations, that are common
-   for geometrical and refraction calculations.
-
-   See the code for details.
-
-   \author Patrick Eriksson
-   \date   2002-11-29
-*/
-void ppath_end_2d(
-              Ppath&      ppath,
-        ConstVectorView   r_v,
-        ConstVectorView   lat_v,
-        ConstVectorView   za_v,
-        const Numeric&    lstep,
-        ConstVectorView   lat_grid,
-        ConstMatrixView   z_field,
-        ConstVectorView   refellipsoid,
-        const Index&      ip,
-        const Index&      ilat,
-        const Index&      endface,
-        const Numeric&    ppc )
-{
-  // Number of path points
-  const Index   np   = r_v.nelem();
-  const Index   imax = np-1;
-
-  // Re-allocate ppath for return results and fill the structure
-  //
-  ppath_init_structure( ppath, 2, np );
-  //
-  ppath.constant = ppc;
-  //
-  ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, refellipsoid, z_field, 
-                                                          lat_grid, ip, ilat );
-
-  gridpos_check_fd( ppath.gp_p[imax] );
-  gridpos_check_fd( ppath.gp_lat[imax] );
-
-  // Do end-face specific tasks
-  if( endface == 7 )
-    { ppath_set_background( ppath, 2 ); }
-
-  // Set fractional distance for end point
-  //
-  if( endface == 1  ||  endface == 3 )
-    { gridpos_force_end_fd( ppath.gp_lat[np-1], lat_grid.nelem() ); }
-  else if( endface == 2  ||  endface == 4 )
-    { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nrows() ); }
-
-  // Handle cases where exactly a corner is hit, or when slipping outside of
-  // the grid box due to numerical inaccuarcy
-  if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
-    { 
-      gridpos_force_end_fd( ppath.gp_p[imax], z_field.nrows() ); 
-    }
-  if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
-    { 
-      gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); 
-    }
-}
-
-
-
-//! ppath_start_3d
-/*! 
-   Internal help function for 3D path calculations.
-
-   The function does the asserts and determined some variables that are common
-   for geometrical and refraction calculations.
-
-   See the code for details.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void ppath_start_3d(
-              Numeric&    r_start,
-              Numeric&    lat_start,
-              Numeric&    lon_start,
-              Numeric&    za_start,
-              Numeric&    aa_start,
-              Index&      ip,
-              Index&      ilat,
-              Index&      ilon,
-              Numeric&    lat1,
-              Numeric&    lat3,
-              Numeric&    lon5,
-              Numeric&    lon6,
-              Numeric&    r15a,
-              Numeric&    r35a,
-              Numeric&    r36a,
-              Numeric&    r16a,
-              Numeric&    r15b,
-              Numeric&    r35b,
-              Numeric&    r36b,
-              Numeric&    r16b,
-              Numeric&    rsurface15,
-              Numeric&    rsurface35,
-              Numeric&    rsurface36,
-              Numeric&    rsurface16,
-              Ppath&      ppath,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,
-        ConstTensor3View  z_field,
-        ConstVectorView   refellipsoid,
-        ConstMatrixView   z_surface )
-{
-  // Index of last point in the incoming ppath
-  const Index imax = ppath.np - 1;
-
-  // Extract starting radius, zenith angle and latitude
-  r_start   = ppath.r[imax];
-  lat_start = ppath.pos(imax,1);
-  lon_start = ppath.pos(imax,2);
-  za_start  = ppath.los(imax,0);
-  aa_start  = ppath.los(imax,1);
-
-  // Number of lat/lon
-  const Index nlat = lat_grid.nelem();
-  const Index nlon = lon_grid.nelem();
-
-  // Lower index of lat and lon ranges of interest
-  //
-  // The longitude is undefined at the poles and as the azimuth angle
-  // is defined in other way at the poles.
-  //
-  if( lat_start == 90 )
-    { 
-      ilat = nlat - 2;
-      GridPos   gp_tmp;
-      gridpos( gp_tmp, lon_grid, aa_start );
-      if( aa_start < 180 )
-        { ilon = gridpos2gridrange( gp_tmp, 1 ); }
-      else
-        { ilon = gridpos2gridrange( gp_tmp, 0 ); }
-    }
-  else if( lat_start == -90 )
-    { 
-      ilat = 0; 
-      GridPos   gp_tmp;
-      gridpos( gp_tmp, lon_grid, aa_start );
-      if( aa_start < 180 )
-        { ilon = gridpos2gridrange( gp_tmp, 1 ); }
-      else
-        { ilon = gridpos2gridrange( gp_tmp, 0 ); }
-    }
-  else
-    { 
-      if( lat_start > 0 )
-        { ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start )<90 ); }
-      else
-        { ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start )<=90 );}
-      if( lon_start < lon_grid[nlon-1] )
-        { ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); }
-      else
-        { ilon = nlon - 2; }
-    }
-  //
-  lat1 = lat_grid[ilat];
-  lat3 = lat_grid[ilat+1];
-  lon5 = lon_grid[ilon];
-  lon6 = lon_grid[ilon+1];
-
-  // Determine interesting pressure grid range. Do this first assuming that
-  // the pressure levels are not tilted (that is, abs(za_start<=90) always
-  // mean upward observation). 
-  // Set radius for the corners of the grid cell and the radial slope of 
-  // pressure level limits of the grid cell to match the found ip.
-  //
-  ip = gridpos2gridrange( ppath.gp_p[imax], za_start <= 90 );
-  //
-  const Numeric re1 = refell2r( refellipsoid, lat_grid[ilat] );
-  const Numeric re3 = refell2r( refellipsoid, lat_grid[ilat+1] );
-  //
-  r15a = re1 + z_field(ip,ilat,ilon);
-  r35a = re3 + z_field(ip,ilat+1,ilon); 
-  r36a = re3 + z_field(ip,ilat+1,ilon+1); 
-  r16a = re1 + z_field(ip,ilat,ilon+1);
-  r15b = re1 + z_field(ip+1,ilat,ilon);
-  r35b = re3 + z_field(ip+1,ilat+1,ilon); 
-  r36b = re3 + z_field(ip+1,ilat+1,ilon+1); 
-  r16b = re1 + z_field(ip+1,ilat,ilon+1);
-
-  // Check if the LOS zenith angle happen to be between 90 and the zenith angle
-  // of the pressure level (that is, 90 + tilt of pressure level), and in
-  // that case if ip must be changed. This check is only needed when the
-  // start point is on a pressure level.
-  //
-  if( fabs(za_start-90) <= 10 )  // To save time. Ie. max tilt assumed =10 deg 
-    {
-      if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
-        {
-          // Slope and angular tilt of lower pressure level
-          Numeric c2 = plevel_slope_3d( lat1, lat3, lon5, lon6, 
-                       r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
-          Numeric tilt = plevel_angletilt( r_start, c2 );
-          // Negelect very small tilts, likely caused by numerical problems
-          if( abs(tilt) > 1e-4  &&  is_los_downwards( za_start, tilt ) )
-            {
-              ip--;
-              r15b = r15a;   r35b = r35a;   r36b = r36a;   r16b = r16a;
-              r15a = re1 + z_field(ip,ilat,ilon);
-              r35a = re3 + z_field(ip,ilat+1,ilon); 
-              r36a = re3 + z_field(ip,ilat+1,ilon+1); 
-              r16a = re1 + z_field(ip,ilat,ilon+1);
-            }
-        }
-      else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
-        {
-          // Slope and angular tilt of upper pressure level
-          Numeric c4 = plevel_slope_3d( lat1, lat3 ,lon5, lon6, 
-                       r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
-          Numeric tilt = plevel_angletilt( r_start, c4 );
-          // Negelect very small tilts, likely caused by numerical problems
-          if( abs(tilt) > 1e-4  &&  !is_los_downwards( za_start, tilt ) )
-            {
-              ip++;
-              r15a = r15b;   r35a = r35b;   r36a = r36b;   r16a = r16b;
-              r15b = re1 + z_field(ip+1,ilat,ilon);
-              r35b = re3 + z_field(ip+1,ilat+1,ilon); 
-              r36b = re3 + z_field(ip+1,ilat+1,ilon+1); 
-              r16b = re1 + z_field(ip+1,ilat,ilon+1);
-            }
-        }
-    }
-
-  // Surface radius at latitude/longitude corner points
-  rsurface15 = re1 + z_surface(ilat,ilon);
-  rsurface35 = re3 + z_surface(ilat+1,ilon);
-  rsurface36 = re3 + z_surface(ilat+1,ilon+1);
-  rsurface16 = re1 + z_surface(ilat,ilon+1);
-}
-
-
-
-//! ppath_end_3d
-/*! 
-   Internal help function for 3D path calculations.
-
-   The function performs the end part of the calculations, that are common
-   for geometrical and refraction calculations.
-
-   See the code for details.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void ppath_end_3d(
-              Ppath&      ppath,
-        ConstVectorView   r_v,
-        ConstVectorView   lat_v,
-        ConstVectorView   lon_v,
-        ConstVectorView   za_v,
-        ConstVectorView   aa_v,
-        const Numeric&    lstep,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,
-        ConstTensor3View  z_field,
-        ConstVectorView   refellipsoid,
-        const Index&      ip,
-        const Index&      ilat,
-        const Index&      ilon,
-        const Index&      endface,
-        const Numeric&    ppc )
-{
-  // Number of path points
-  const Index   np   = r_v.nelem();
-  const Index   imax = np-1;
-
-  // Re-allocate ppath for return results and fill the structure
-  //
-  ppath_init_structure( ppath, 3, np );
-  //
-  ppath.constant = ppc;
-  //
-  ppath_fill_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, 
-                 refellipsoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
-
-  // Do end-face specific tasks
-  if( endface == 7 )
-    { ppath_set_background( ppath, 2 ); }
-
-  // Set fractional distance for end point
-  //
-  if( endface == 1  ||  endface == 3 )
-    { gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); }
-  else if( endface == 2  ||  endface == 4 )
-    { gridpos_force_end_fd( ppath.gp_p[imax], z_field.npages() ); }
-  else if( endface == 5  ||  endface == 6 )
-    { gridpos_force_end_fd( ppath.gp_lon[imax], lon_grid.nelem() ); }
-
-  // Handle cases where exactly a corner is hit, or when slipping outside of
-  // the grid box due to numerical inaccuarcy
-  if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
-    { 
-      gridpos_force_end_fd( ppath.gp_p[imax], z_field.npages() ); 
-    }
-  if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
-    { 
-      gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); 
-    }
-  if( ppath.gp_lon[imax].fd[0] < 0  ||  ppath.gp_lon[imax].fd[1] < 0 )
-    { 
-      gridpos_force_end_fd( ppath.gp_lon[imax], lon_grid.nelem() ); 
-    }
-}
-
-
 
 //! interpolate_raytracing_points
 /*! 
@@ -3316,418 +3673,6 @@ void from_raytracingarrays_to_ppath_vectors_3d(
 
 
 
-/*===========================================================================
-  === Core functions for geometrical *ppath_step* functions
-  ===========================================================================*/
-
-//! ppath_step_geom_1d
-/*! 
-   Calculates 1D geometrical propagation path steps.
-
-   This is the core function to determine 1D propagation path steps by pure
-   geometrical calculations. Path points are included for crossings with the
-   grids, tangent points and points of intersection with the surface. In
-   addition, points are included in the propgation path to ensure that the
-   distance along the path between the points does not exceed the selected
-   maximum length (lmax). If lmax is <= 0, this means that no length criterion
-   shall be applied.
-
-   Note that the input variables are here compressed to only hold data for
-   a 1D atmosphere. For example, z_field is z_field(:,0,0).
-
-   For more information read the chapter on propagation paths in AUG.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   z_field           Geometrical altitudes corresponding to p_grid.
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitude.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-05-20
-*/
-void ppath_step_geom_1d(
-              Ppath&      ppath,
-        ConstVectorView   z_field,
-        ConstVectorView   refellipsoid,
-        const Numeric&    z_surface,
-        const Numeric&    lmax )
-{
-  // Starting radius, zenith angle and latitude
-  Numeric r_start, lat_start, za_start;
-
-  // Index of the pressure level being the lower limit for the
-  // grid range of interest.
-  Index ip;
-
-  // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
-
-  // If the field "constant" is negative, this is the first call of the
-  // function and the path constant shall be calculated.
-  Numeric ppc;
-  if( ppath.constant < 0 )
-    { ppc = geometrical_ppc( r_start, za_start ); }
-  else
-    { ppc = ppath.constant; }
-
-
-  // The path is determined by another function. Determine some variables
-  // needed bý that function and call the function.
-  //
-  // Vars to hold found path points, path step length and coding for end face
-  Vector   r_v, lat_v, za_v;
-  Numeric   lstep;
-  Index    endface;
-  //
-  do_gridrange_1d( r_v, lat_v, za_v, lstep, endface,
-                   r_start, lat_start, za_start, ppc, lmax, 
-                   refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
-                   refellipsoid[0]+z_surface );
-
-  // Fill *ppath*
-  //
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
-                                                                endface, ppc );
-  // nreal is set to 1 in ppath_stepGeometric
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      ppath_step_geom_1d( ppath2, z_field, refellipsoid, z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
-}
-
-
-
-void ppath_geom_updown_1d(
-              Ppath&      ppath,
-        ConstVectorView   z_field,
-        ConstVectorView   refellipsoid,
-        const Numeric&    z_surface,
-        const Index&      cloudbox_on, 
-     const ArrayOfIndex&  cloudbox_limits )
-{
-  // Starting radius, zenith angle and latitude
-  Numeric r_start, lat_start, za_start;
-
-  // Index of the pressure level being the lower limit for the
-  // grid range of interest.
-  Index ip;
-
-  // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
-
-  if( za_start > 85  &&  za_start < 120 )
-    {
-      throw runtime_error( "This method can not be used for initial zenith "
-                           "angles between 85 and 120 deg.!!");
-    }
-
-  // If the field "constant" is negative, this is the first call of the
-  // function and the path constant shall be calculated.
-  Numeric ppc;
-  if( ppath.constant < 0 )
-    { ppc = geometrical_ppc( r_start, za_start ); }
-  else
-    { ppc = ppath.constant; }
-
-  // Upward
-  if( za_start < 90 )
-    { 
-      // Determine number of ppath points
-      Index ilastp1;  // Last index + 1
-      if( cloudbox_on  &&  cloudbox_limits[0] > ip )
-        { ilastp1 = cloudbox_limits[0] + 1; }  // Points inside cloudbox
-      else                                     // are handled by 
-        { ilastp1 = z_field.nelem(); }         // ppath_start_stepping
-      const Index np = ilastp1 - ip;
-
-      ppath_init_structure( ppath, 1, np );
-      //
-      ppath.constant = ppc;
-      //
-      // Start point
-      ppath.r[0]          = r_start;
-      ppath.pos(0,0)      = r_start - refellipsoid[0];
-      ppath.los(0,0)      = za_start;
-      ppath.pos(0,1)      = lat_start;
-      Numeric llast        = geompath_l_at_r( ppc, ppath.r[0] );
-      ppath.gp_p[0].idx   = ip;
-      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
-                            ( z_field[ip+1]  - z_field[ip] );
-      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
-      gridpos_check_fd( ppath.gp_p[0] );
-      // Later points
-      for( Index i=1; i<np; i++ )
-        {
-          ppath.pos(i,0)      = z_field[ip+i];
-          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
-          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
-          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
-                                                              ppath.los(i,0) );
-          const Numeric lthis  = geompath_l_at_r( ppc, ppath.r[i] );
-          ppath.lstep[i-1]   = lthis - llast;
-          llast               = lthis;
-          ppath.gp_p[i].idx   = ip + i;
-          ppath.gp_p[i].fd[0] = 0;
-          ppath.gp_p[i].fd[1] = 1;
-        }
-      // Special treatment of last point
-      ppath.gp_p[np-1].idx  -= 1;
-      ppath.gp_p[np-1].fd[0] = 1;
-      ppath.gp_p[np-1].fd[1] = 0;
-    }
-
-  // Downward
-  else
-    {
-      if( ppc > refellipsoid[0] + z_surface )
-        {
-          ostringstream os;
-          os << "This function can not be used for propgation paths\n"
-             << "including tangent points. Such a point occurs in this case.";
-          throw runtime_error(os.str());
-        }
-
-      // Find grid position of surface altitude
-      GridPos   gp;
-      gridpos( gp, z_field, z_surface );
-      
-      // Determine number of ppath points. Start assumption is hit with surface
-      Index  ilast   = gp.idx+1;  // Index of last pressure level to include
-      Index  surface = 1;
-      if( cloudbox_on  &&  cloudbox_limits[1] <= ip )
-        {                                  // Points inside cloudbox are
-          ilast   = cloudbox_limits[1];    // handled by ppath_start_stepping
-          surface = 0;
-        }  
-      const Index np = ip - ilast + 2 + surface;
-
-      ppath_init_structure( ppath, 1, np );
-      //
-      ppath_set_background( ppath, 2 );
-      ppath.constant = ppc;
-      //
-      // Start point
-      ppath.r[0]          = r_start;
-      ppath.pos(0,0)      = r_start - refellipsoid[0];
-      ppath.los(0,0)      = za_start;
-      ppath.pos(0,1)      = lat_start;
-      Numeric llast        = geompath_l_at_r( ppc, ppath.r[0] );
-      ppath.gp_p[0].idx   = ip;
-      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
-                            ( z_field[ip+1]  - z_field[ip] );
-      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
-      gridpos_check_fd( ppath.gp_p[0] );
-      // Later points
-      for( Index i=1; i<np; i++ )
-        {
-          if( i < np-1  ||  !surface )
-            { ppath.pos(i,0)  = z_field[ip-i+1]; }
-          else
-            { ppath.pos(i,0)  = z_surface; }
-          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
-          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
-          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
-                                                              ppath.los(i,0) );
-          const Numeric lthis  = geompath_l_at_r( ppc, ppath.r[i] );
-          ppath.lstep[i-1]   = llast - lthis;
-          llast               = lthis;
-          ppath.gp_p[i].idx   = ip - i + 1;
-          ppath.gp_p[i].fd[0] = 0;
-          ppath.gp_p[i].fd[1] = 1;
-        }
-      // Special treatment of last point
-      if( surface )
-        { gridpos_copy( ppath.gp_p[np-1], gp ); }
-    }
-}
-
-
-
-//! ppath_step_geom_2d
-/*! 
-   Calculates 2D geometrical propagation path steps.
-
-   Works as the same function for 1D despite that some input arguments are
-   of different type.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   lat_grid          Latitude grid.
-   \param   z_field           Geometrical altitudes
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitudes.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-void ppath_step_geom_2d(
-              Ppath&      ppath,
-        ConstVectorView   lat_grid,
-        ConstMatrixView   z_field,
-        ConstVectorView   refellipsoid,
-        ConstVectorView   z_surface,
-        const Numeric&    lmax )
-{
-  // Radius, zenith angle and latitude of start point.
-  Numeric   r_start, lat_start, za_start;
-
-  // Lower grid index for the grid cell of interest.
-  Index   ip, ilat;
-
-  // Radii and latitudes set by *ppath_start_2d*.
-  Numeric   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3;
-
-  // Determine the variables defined above and make all possible asserts
-  ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
-                  lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                  ppath, lat_grid, z_field, refellipsoid, z_surface );
-
-  // If the field "constant" is negative, this is the first call of the
-  // function and the path constant shall be calculated.
-  Numeric ppc;
-  if( ppath.constant < 0 )
-    { ppc = geometrical_ppc( r_start, za_start ); }
-  else
-    { ppc = ppath.constant; }
-
-  // Vars to hold found path points, path step length and coding for end face
-  Vector   r_v, lat_v, za_v;
-  Numeric   lstep;
-  Index    endface;
-
-  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
-                  r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
-                                    r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
-
-  // Fill *ppath*
-  //
-  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
-                                                      ip, ilat, endface, ppc );
-  // nreal is set to 1 in ppath_stepGeometric
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
-                                                                        lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
-}
-
-
-
-//! ppath_step_geom_3d
-/*! 
-   Calculates 3D geometrical propagation path steps.
-
-   Works as the same function for 1D despite that some input arguments are
-   of different type.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   lat_grid          Latitude grid.
-   \param   lon_grid          Longitude grid.
-   \param   z_field           Geometrical altitudes
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitudes.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void ppath_step_geom_3d(
-              Ppath&       ppath,
-        ConstVectorView    lat_grid,
-        ConstVectorView    lon_grid,
-        ConstTensor3View   z_field,
-        ConstVectorView    refellipsoid,
-        ConstMatrixView    z_surface,
-        const Numeric&     lmax )
-{
-  // Radius, zenith angle and latitude of start point.
-  Numeric   r_start, lat_start, lon_start, za_start, aa_start;
-
-  // Lower grid index for the grid cell of interest.
-  Index   ip, ilat, ilon;
-
-  // Radius for corner points, latitude and longitude of the grid cell
-  //
-  Numeric   lat1, lat3, lon5, lon6;
-  Numeric   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b;
-  Numeric   rsurface15, rsurface35, rsurface36, rsurface16;
-
-  // Determine the variables defined above and make all possible asserts
-  ppath_start_3d( r_start, lat_start, lon_start, za_start, aa_start, 
-                  ip, ilat, ilon, lat1, lat3, lon5, lon6,
-                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
-                  rsurface15, rsurface35, rsurface36, rsurface16,
-                  ppath, lat_grid, lon_grid, z_field, refellipsoid, z_surface );
-
-
-  // If the field "constant" is negative, this is the first call of the
-  // function and the path constant shall be calculated.
-  Numeric ppc;
-  if( ppath.constant < 0 )
-    { ppc = geometrical_ppc( r_start, za_start ); }
-  else
-    { ppc = ppath.constant; }
-
-
-  // Vars to hold found path points, path step length and coding for end face
-  Vector   r_v, lat_v, lon_v, za_v, aa_v;
-  Numeric   lstep;
-  Index    endface;
-
-  do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                          r_start, lat_start, lon_start, za_start, aa_start, 
-                          ppc, lmax, lat1, lat3, lon5, lon6, 
-                          r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                          rsurface15, rsurface35, rsurface36, rsurface16 );
-
-  // Fill *ppath*
-  //
-  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
-                lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, ppc );
-  // nreal is set to 1 in ppath_stepGeometric
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      ppath_step_geom_3d( ppath2, lat_grid, lon_grid, z_field, refellipsoid, 
-                                                             z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
-}
-
-
-
-
-
-/*===========================================================================
-  === Ray tracing functions
-  ===========================================================================*/
-
 //! raytrace_1d_linear_euler
 /*! 
    Performs ray tracing for 1D with linear Euler steps.
@@ -3878,6 +3823,128 @@ void raytrace_1d_linear_euler(
       za_array.push_back( za );
       l_array.push_back( lstep );
     }  
+}
+
+
+
+//! ppath_step_refr_1d
+/*! 
+   Calculates 1D propagation path steps including effects of refraction.
+
+   This function works as the function *ppath_step_geom_1d* but considers
+   also refraction. The upper length of the ray tracing steps is set by
+   the argument *lraytrace*. This argument controls only the internal
+   calculations. The maximum distance between the path points is still
+   determined by *lmax*.
+
+   \param   ws                Current Workspace
+   \param   ppath             Out: A Ppath structure.
+   \param   rte_pressure      Out: The WSV with the same name.
+   \param   rte_temperature   Out: The WSV with the same name.
+   \param   rte_vmr_list      Out: The WSV with the same name.
+   \param   refr_index        Out: The WSV with the same name.
+   \param   refr_index_agenda The WSV with the same name.
+   \param   p_grid            Pressure grid.
+   \param   z_field           Geometrical altitudes corresponding to p_grid.
+   \param   t_field           Temperatures corresponding to p_grid.
+   \param   vmr_field         VMR values corresponding to p_grid.
+   \param   refellipsoid      As the WSV wit the same name.
+   \param   z_surface         Surface altitude.
+   \param   rtrace_method     String giving which ray tracing method to use.
+                              See the function for options.
+   \param   lraytrace         Maximum allowed length for ray tracing steps.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-11-26
+*/
+void ppath_step_refr_1d(
+              Workspace&  ws,
+              Ppath&      ppath,
+              Numeric&    rte_pressure,
+              Numeric&    rte_temperature,
+              Vector&     rte_vmr_list,
+              Numeric&    refr_index,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
+        ConstMatrixView   vmr_field,
+        ConstVectorView   refellipsoid,
+        const Numeric&    z_surface,
+        const String&     rtrace_method,
+        const Numeric&    lraytrace,
+        const Numeric&    lmax )
+{
+  // Starting radius, zenith angle and latitude
+  Numeric   r_start, lat_start, za_start;
+
+  // Index of the pressure level being the lower limit for the
+  // grid range of interest.
+  Index   ip;
+
+  // Determine the variables defined above, and make asserts of input
+  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  // If the sensor is placed outside the atmosphere, the constant is
+  // already set.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { 
+      get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
+                         rte_vmr_list, refr_index_agenda, p_grid, refellipsoid,
+                         z_field, t_field, vmr_field, r_start );
+      ppc = refraction_ppc( r_start, za_start, refr_index ); 
+    }
+  else
+    { ppc = ppath.constant; }
+
+
+  // Perform the ray tracing
+  //
+  // Arrays to store found ray tracing points
+  // (Vectors don't work here as we don't know how many points there will be)
+  Array<Numeric>   r_array, lat_array, za_array, l_array;
+  //
+  // Store the start point
+  r_array.push_back( r_start );
+  lat_array.push_back( lat_start );
+  za_array.push_back( za_start );
+  //
+  // Number coding for end face
+  Index   endface;
+  //
+  if( rtrace_method  == "linear_euler" )
+    {
+      raytrace_1d_linear_euler( ws, r_array, lat_array, za_array, l_array, 
+             endface, r_start, lat_start, za_start, rte_pressure, 
+             rte_temperature, rte_vmr_list, refr_index, refr_index_agenda, 
+             ppc, lraytrace, refellipsoid[0]+z_field[ip], 
+             refellipsoid[0]+z_field[ip+1], refellipsoid[0] + z_surface, 
+             refellipsoid, p_grid, z_field, t_field, vmr_field );
+    }
+#ifndef NDEBUG
+  else
+    {
+      bool   known_ray_trace_method = false;
+      assert( known_ray_trace_method );
+    }
+#endif
+
+  // Interpolate the radii, zenith angles and latitudes to a set of points
+  // linearly spaced along the path. 
+  //
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep;
+  //
+  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
+                              r_array, lat_array, za_array, l_array, 0, lmax );
+
+  // Fill *ppath*
+  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
+                                                                endface, ppc );
 }
 
 
@@ -4061,6 +4128,118 @@ void raytrace_2d_linear_euler(
       za_array.push_back( za );
       l_array.push_back( lstep );
     }  
+}
+
+
+
+//! ppath_step_refr_2d
+/*! 
+   Calculates 2D propagation path steps, with refraction, using a simple
+   and fast ray tracing scheme.
+
+   Works as the same function for 1D despite that some input arguments are
+   of different type.
+
+   \param   ws                Current Workspace
+   \param   ppath             Out: A Ppath structure.
+   \param   rte_pressure      Out: The WSV with the same name.
+   \param   rte_temperature   Out: The WSV with the same name.
+   \param   rte_vmr_list      Out: The WSV with the same name.
+   \param   refr_index        Out: The WSV with the same name.
+   \param   refr_index_agenda The WSV with the same name.
+   \param   p_grid            Pressure grid.
+   \param   lat_grid          Latitude grid.
+   \param   z_field           Geometrical altitudes.
+   \param   t_field           Atmospheric temperatures.
+   \param   vmr_field         VMR values.
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitudes.
+   \param   rtrace_method     String giving which ray tracing method to use.
+                              See the function for options.
+   \param   lraytrace         Maximum allowed length for ray tracing steps.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-12-02
+*/
+void ppath_step_refr_2d(
+              Workspace&  ws,
+              Ppath&      ppath,
+              Numeric&    rte_pressure,
+              Numeric&    rte_temperature,
+              Vector&     rte_vmr_list,
+              Numeric&    refr_index,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstMatrixView   t_field,
+        ConstTensor3View  vmr_field,
+        ConstVectorView   refellipsoid,
+        ConstVectorView   z_surface,
+        const String&     rtrace_method,
+        const Numeric&    lraytrace,
+        const Numeric&    lmax )
+{
+  // Radius, zenith angle and latitude of start point.
+  Numeric   r_start, lat_start, za_start;
+
+  // Lower grid index for the grid cell of interest.
+  Index   ip, ilat;
+
+  // Radii and latitudes set by *ppath_start_2d*.
+  Numeric   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3;
+
+  // Determine the variables defined above and make all possible asserts
+  ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
+                  lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
+                  ppath, lat_grid, z_field, refellipsoid, z_surface );
+
+  // Perform the ray tracing
+  //
+  // No constant for the path is valid here.
+  //
+  // Arrays to store found ray tracing points
+  // (Vectors don't work here as we don't know how many points there will be)
+  Array<Numeric>   r_array, lat_array, za_array, l_array;
+  //
+  // Store the start point
+  r_array.push_back( r_start );
+  lat_array.push_back( lat_start );
+  za_array.push_back( za_start );
+  //
+  // Number coding for end face
+  Index   endface;
+  //
+  if( rtrace_method  == "linear_euler" )
+    {
+      raytrace_2d_linear_euler( ws,
+        r_array, lat_array, za_array, l_array, endface,
+        r_start, lat_start, za_start, rte_pressure, rte_temperature, 
+        rte_vmr_list, refr_index, refr_index_agenda, lraytrace, 
+        lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
+        p_grid, lat_grid, refellipsoid, z_field, t_field, vmr_field );
+    }
+#ifndef NDEBUG
+  else
+    {
+      bool   known_ray_trace_method = false;
+      assert( known_ray_trace_method );
+    }
+#endif
+
+  // Interpolate the radii, zenith angles and latitudes to a set of points
+  // linearly spaced along the path. 
+  //
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep;
+  //
+  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
+                              r_array, lat_array, za_array, l_array, 0, lmax );
+
+  // Fill *ppath*
+  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
+                                             ip, ilat, endface, -1 );
 }
 
 
@@ -4334,246 +4513,6 @@ void raytrace_3d_linear_euler(
 
 
 
-
-
-/*===========================================================================
-  === Core functions for refraction *ppath_step* functions
-  ===========================================================================*/
-
-//! ppath_step_refr_1d
-/*! 
-   Calculates 1D propagation path steps including effects of refraction.
-
-   This function works as the function *ppath_step_geom_1d* but considers
-   also refraction. The upper length of the ray tracing steps is set by
-   the argument *lraytrace*. This argument controls only the internal
-   calculations. The maximum distance between the path points is still
-   determined by *lmax*.
-
-   \param   ws                Current Workspace
-   \param   ppath             Out: A Ppath structure.
-   \param   rte_pressure      Out: The WSV with the same name.
-   \param   rte_temperature   Out: The WSV with the same name.
-   \param   rte_vmr_list      Out: The WSV with the same name.
-   \param   refr_index        Out: The WSV with the same name.
-   \param   refr_index_agenda The WSV with the same name.
-   \param   p_grid            Pressure grid.
-   \param   z_field           Geometrical altitudes corresponding to p_grid.
-   \param   t_field           Temperatures corresponding to p_grid.
-   \param   vmr_field         VMR values corresponding to p_grid.
-   \param   refellipsoid      As the WSV wit the same name.
-   \param   z_surface         Surface altitude.
-   \param   rtrace_method     String giving which ray tracing method to use.
-                              See the function for options.
-   \param   lraytrace         Maximum allowed length for ray tracing steps.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-11-26
-*/
-void ppath_step_refr_1d(
-              Workspace&  ws,
-              Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        ConstMatrixView   vmr_field,
-        ConstVectorView   refellipsoid,
-        const Numeric&    z_surface,
-        const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax )
-{
-  // Starting radius, zenith angle and latitude
-  Numeric   r_start, lat_start, za_start;
-
-  // Index of the pressure level being the lower limit for the
-  // grid range of interest.
-  Index   ip;
-
-  // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
-
-  // If the field "constant" is negative, this is the first call of the
-  // function and the path constant shall be calculated.
-  // If the sensor is placed outside the atmosphere, the constant is
-  // already set.
-  Numeric ppc;
-  if( ppath.constant < 0 )
-    { 
-      get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
-                         rte_vmr_list, refr_index_agenda, p_grid, refellipsoid,
-                         z_field, t_field, vmr_field, r_start );
-      ppc = refraction_ppc( r_start, za_start, refr_index ); 
-    }
-  else
-    { ppc = ppath.constant; }
-
-
-  // Perform the ray tracing
-  //
-  // Arrays to store found ray tracing points
-  // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, za_array, l_array;
-  //
-  // Store the start point
-  r_array.push_back( r_start );
-  lat_array.push_back( lat_start );
-  za_array.push_back( za_start );
-  //
-  // Number coding for end face
-  Index   endface;
-  //
-  if( rtrace_method  == "linear_euler" )
-    {
-      raytrace_1d_linear_euler( ws, r_array, lat_array, za_array, l_array, 
-             endface, r_start, lat_start, za_start, rte_pressure, 
-             rte_temperature, rte_vmr_list, refr_index, refr_index_agenda, 
-             ppc, lraytrace, refellipsoid[0]+z_field[ip], 
-             refellipsoid[0]+z_field[ip+1], refellipsoid[0] + z_surface, 
-             refellipsoid, p_grid, z_field, t_field, vmr_field );
-    }
-#ifndef NDEBUG
-  else
-    {
-      bool   known_ray_trace_method = false;
-      assert( known_ray_trace_method );
-    }
-#endif
-
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. 
-  //
-  Vector    r_v, lat_v, za_v;
-  Numeric   lstep;
-  //
-  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
-                              r_array, lat_array, za_array, l_array, 0, lmax );
-
-  // Fill *ppath*
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
-                                                                endface, ppc );
-}
-
-
-
-//! ppath_step_refr_2d
-/*! 
-   Calculates 2D propagation path steps, with refraction, using a simple
-   and fast ray tracing scheme.
-
-   Works as the same function for 1D despite that some input arguments are
-   of different type.
-
-   \param   ws                Current Workspace
-   \param   ppath             Out: A Ppath structure.
-   \param   rte_pressure      Out: The WSV with the same name.
-   \param   rte_temperature   Out: The WSV with the same name.
-   \param   rte_vmr_list      Out: The WSV with the same name.
-   \param   refr_index        Out: The WSV with the same name.
-   \param   refr_index_agenda The WSV with the same name.
-   \param   p_grid            Pressure grid.
-   \param   lat_grid          Latitude grid.
-   \param   z_field           Geometrical altitudes.
-   \param   t_field           Atmospheric temperatures.
-   \param   vmr_field         VMR values.
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitudes.
-   \param   rtrace_method     String giving which ray tracing method to use.
-                              See the function for options.
-   \param   lraytrace         Maximum allowed length for ray tracing steps.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
-void ppath_step_refr_2d(
-              Workspace&  ws,
-              Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstMatrixView   z_field,
-        ConstMatrixView   t_field,
-        ConstTensor3View  vmr_field,
-        ConstVectorView   refellipsoid,
-        ConstVectorView   z_surface,
-        const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax )
-{
-  // Radius, zenith angle and latitude of start point.
-  Numeric   r_start, lat_start, za_start;
-
-  // Lower grid index for the grid cell of interest.
-  Index   ip, ilat;
-
-  // Radii and latitudes set by *ppath_start_2d*.
-  Numeric   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3;
-
-  // Determine the variables defined above and make all possible asserts
-  ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
-                  lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                  ppath, lat_grid, z_field, refellipsoid, z_surface );
-
-  // Perform the ray tracing
-  //
-  // No constant for the path is valid here.
-  //
-  // Arrays to store found ray tracing points
-  // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, za_array, l_array;
-  //
-  // Store the start point
-  r_array.push_back( r_start );
-  lat_array.push_back( lat_start );
-  za_array.push_back( za_start );
-  //
-  // Number coding for end face
-  Index   endface;
-  //
-  if( rtrace_method  == "linear_euler" )
-    {
-      raytrace_2d_linear_euler( ws,
-        r_array, lat_array, za_array, l_array, endface,
-        r_start, lat_start, za_start, rte_pressure, rte_temperature, 
-        rte_vmr_list, refr_index, refr_index_agenda, lraytrace, 
-        lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-        p_grid, lat_grid, refellipsoid, z_field, t_field, vmr_field );
-    }
-#ifndef NDEBUG
-  else
-    {
-      bool   known_ray_trace_method = false;
-      assert( known_ray_trace_method );
-    }
-#endif
-
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. 
-  //
-  Vector    r_v, lat_v, za_v;
-  Numeric   lstep;
-  //
-  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
-                              r_array, lat_array, za_array, l_array, 0, lmax );
-
-  // Fill *ppath*
-  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
-                                             ip, ilat, endface, -1 );
-}
-
-
-
 //! ppath_step_refr_3d
 /*! 
    Calculates 3D propagation path steps, with refraction, using a simple
@@ -4697,6 +4636,7 @@ void ppath_step_refr_3d(
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, lon_grid,
                 z_field, refellipsoid, ip, ilat, ilon, endface, -1 );
 }
+
 
 
 

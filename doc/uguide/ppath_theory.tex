@@ -720,7 +720,11 @@ The solution of this quadratic equation is implemented in the function
 \funcindex{lat\_crossing\_3d}. The solution for $\Lat=0\degree$ is particularly
 simple ($l=-z/\DiffD z$). The case of $\Lat=90\degree$ is set to have no
 solution ($\tan(90\degree)=\infty$), and is instead assumed to be picked up as
-a crossing with one of the two longitudes defining the grid box.
+a crossing with one of the two longitudes defining the grid box. Another
+complication is that, as the $\tan$ term is squared, both $\pm\Lat$ can show up
+as possible solutions, and it must be tested that the found length gives a
+\Lat\ with the correct sign.\footnote{This function is presently not used. The
+  implementation is found in \texttt{ppath\_NotUsed.cc}.}
 
 For a given longitude, the x- and y-equations can be combined to give:
 \begin{equation}
@@ -728,7 +732,7 @@ For a given longitude, the x- and y-equations can be combined to give:
 \end{equation}
 This case is handled by \funcindex{lon\_crossing\_3d}. If the zenith or azimuth
 angle equals 0\degree\ or 180\degree, or if the start and target longitudes are
-equal, there is no valid solution.
+equal, there is no valid solution.\footnote{Same as in prevoius footnote.}
 
 
 
@@ -750,20 +754,14 @@ equal, there is no valid solution.
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath
 
-\FIXME{Update this section:}
-
-Geometrical 3D propagation path steps are determined by the function
-\funcindex{do\_gridcell\_3d}. It was first tested to use different
-analytical expressions to calculate the length between a point and
-the crossing of some radius, latitude or longitude. However, the
-expressions found include the trigonometric functions and the squaring
-of radii, which resulted in a high sensitivity to the numerical
-inaccuracy. It was found that the numerical problems made the created
-algorithm impossible to use in practice.
-Equation \ref{eq:ppath:rcoss3Db} below is a reminiscence of that work.
-In addition, no simple solution to the problem of finding the crossing
-with a tilted 3D pressure surface using the analytical expressions was
-found.
+It was first tested to use the analytical expressions above to calculate the
+length between a point and the crossing of some radius, latitude or longitude.
+However, the expressions include the trigonometric functions and the
+squaring of radii, which results in a high sensitivity to numerical
+inaccuracy. A second, less advanced, algorithm was then implemented and tested,
+that is described below. It turned out that the two algorithms gave similar
+calculation speed for non-spherical cases and the second, more stable,
+algorithm was the selected.
 
 \begin{algorithm}
  \begin{algorithmic}
@@ -771,7 +769,7 @@ found.
          $(\DiffD x,\DiffD y,\DiffD z)$}
   \STATE{calculate $(\Rds_c,\Lat_c,\Lon_c)=S(x_0,y_0,z_0)-(\Rds_0,\Lat_0,\Lon_0)$, the position correction term}
   \STATE{set $l_{in} = 0$} 
-  \STATE{set $l_{out} = 1$}
+  \STATE{set $l_{out}$ to a start value}
   \IF{LOS is downwards}
    \STATE{calculate length to the tangent point, $l_{tan}$}
   \ELSE
@@ -809,18 +807,19 @@ found.
  \label{alg:ppath:dogridcell3d}
 \end{algorithm}
 
-A straightforward trail-and-error algorithm was then tested
-(Algorithm \ref{alg:ppath:dogridcell3d} and
-Figure \ref{fig:ppath:3Dsearch}). The main advantage of the algorithm
-is that a correction for the shift in position caused by the
-transformations back and fourth to a Cartesian coordinate system can
-be applied. The correction term assures that the position is not
-changed for a step of zero length, and is not moved outside the grid
-cell due to the numerical problems. The algorithm was further found to
-be sufficiently fast to be accepted. A simple bisection search to find
-the length of the propagation path step is used. Both the position and
-the line-of-sight for the other end point of the path step are
-calculated using a transformation to Cartesian coordinates.  
+Geometrical 3D propagation path steps are determined by the function
+\funcindex{do\_gridcell\_3d\_byltest}. It applies a straightforward
+``length-search'' algorithm (Algorithm
+\ref{alg:ppath:dogridcell3d} and Figure \ref{fig:ppath:3Dsearch}). The main
+advantage of the algorithm is that a correction for the shift in position
+caused by the transformations back and fourth to a Cartesian coordinate system
+can be applied. The correction term assures that the position is not changed
+for a step of zero length, and is not moved outside the grid cell due to the
+numerical problems. The algorithm was further found to be sufficiently fast to
+be accepted. A simple bisection search to find the length of the propagation
+path step is used. Both the position and the line-of-sight for the other end
+point of the path step are calculated using a transformation to Cartesian
+coordinates.
 
 
 

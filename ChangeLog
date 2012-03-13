@@ -1,3 +1,15 @@
+2012-03-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-25
+
+	* doc/uguide/ppath_theory.tex: Updated geomtrical 3D text to last
+	changes.
+
+	* src/ppath.cc: Resorted order of functions, to better seperate
+	code for geometrical and refraction calculations.
+
+	* src/ppath_NotUsed.cc (za_geom2other_point): Now placed here.
+
 2012-03-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-24

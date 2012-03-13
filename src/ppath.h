@@ -103,13 +103,6 @@ const Numeric   ANGTOL = 1e-6;
   === Functions from ppath.cc
   ===========================================================================*/
 
-void map_daa(
-             Numeric&   za,
-             Numeric&   aa,
-       const Numeric&   za0,
-       const Numeric&   aa0,
-       const Numeric&   aa_grid );
-
 Numeric geometrical_ppc( const Numeric& r, const Numeric& za );
 
 Numeric geompath_za_at_r(
@@ -122,9 +115,12 @@ Numeric geompath_lat_at_za(
         const Numeric&   lat0,
         const Numeric&   za );
 
-bool is_los_downwards( 
-        const Numeric&   za,
-        const Numeric&   tilt );
+void map_daa(
+             Numeric&   za,
+             Numeric&   aa,
+       const Numeric&   za0,
+       const Numeric&   aa0,
+       const Numeric&   aa_grid );
 
 Numeric plevel_slope_2d(
         ConstVectorView   lat_grid,           
@@ -141,6 +137,10 @@ Numeric plevel_slope_3d(
         const GridPos&    gp_lat,
         const GridPos&    gp_lon,
         const Numeric&    aa );
+
+bool is_los_downwards( 
+        const Numeric&   za,
+        const Numeric&   tilt );
 
 Numeric plevel_angletilt(
         const Numeric&   r,
@@ -160,23 +160,6 @@ Index ppath_what_background( const Ppath&   ppath );
 void ppath_copy(
               Ppath&      ppath1,
         const Ppath&      ppath2 );
-
-void ppath_start_stepping(
-              Ppath&            ppath,
-        const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
-        ConstTensor3View        z_field,
-        ConstVectorView         refellipsoid,
-        ConstMatrixView         z_surface,
-        const Index &           cloudbox_on,
-        const ArrayOfIndex &    cloudbox_limits,
-        const bool &            outside_cloudbox,
-        ConstVectorView         rte_pos,
-        ConstVectorView         rte_los,
-        const Verbosity&        verbosity);
-
 
 void ppath_step_geom_1d(
               Ppath&      ppath,
@@ -266,6 +249,22 @@ void ppath_step_refr_3d(
         const String&     rtrace_method,
         const Numeric&    lraytrace,
         const Numeric&    lmax );
+
+void ppath_start_stepping(
+              Ppath&            ppath,
+        const Index&            atmosphere_dim,
+        ConstVectorView         p_grid,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+        ConstTensor3View        z_field,
+        ConstVectorView         refellipsoid,
+        ConstMatrixView         z_surface,
+        const Index &           cloudbox_on,
+        const ArrayOfIndex &    cloudbox_limits,
+        const bool &            outside_cloudbox,
+        ConstVectorView         rte_pos,
+        ConstVectorView         rte_los,
+        const Verbosity&        verbosity);
 
 void ppath_calc(
               Workspace&      ws,
