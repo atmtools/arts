@@ -132,9 +132,6 @@ void ppath_stepGeometric(// WS Output:
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
-
-  // Set nreal
-  ppath_step.nreal = 1;
 }
 
 
@@ -165,9 +162,6 @@ void ppath_stepGeometricUpDown(// WS Output:
 
   ppath_geom_updown_1d( ppath_step, z_field(joker,0,0), refellipsoid, 
                         z_surface(0,0), cloudbox_on, cloudbox_limits );
-
-  // Set nreal
-  ppath_step.nreal = 1;
 }
 
 
@@ -175,11 +169,7 @@ void ppath_stepGeometricUpDown(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepRefractionEuler(Workspace&  ws,
                                // WS Output:
-                               Ppath&      ppath_step,
-                               Numeric&    rte_pressure,
-                               Numeric&    rte_temperature,
-                               Vector&     rte_vmr_list,
-                               Numeric&    refr_index,
+                                     Ppath&      ppath_step,
                                // WS Input:
                                const Agenda&     refr_index_agenda,
                                const Index&      atmosphere_dim,
@@ -196,33 +186,32 @@ void ppath_stepRefractionEuler(Workspace&  ws,
                                const Verbosity&)
 {
   // Input checks here would be rather costly as this function is called
-  // many times. So we do only asserts. The keywords are checked here,
-  // other input in the sub-functions to make them as simple as possible.
+  // many times. 
 
   assert( ppath_lraytrace > 0 );
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_1d( ws, ppath_step, rte_pressure, rte_temperature, 
-                       rte_vmr_list, refr_index, refr_index_agenda,
-                       p_grid, z_field(joker,0,0), t_field(joker,0,0), 
-                       vmr_field(joker,joker,0,0), refellipsoid, z_surface(0,0),
-                       "linear_euler", ppath_lraytrace, ppath_lmax ); }
-
+    { 
+      ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
+                          t_field(joker,0,0), vmr_field(joker,joker,0,0), 
+                          refellipsoid, z_surface(0,0), ppath_lmax, 
+                          refr_index_agenda, "linear_euler", ppath_lraytrace );
+    }
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_2d( ws, ppath_step, rte_pressure, rte_temperature, 
-                       rte_vmr_list, refr_index, refr_index_agenda,
-                       p_grid, lat_grid, z_field(joker,joker,0),
-                       t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
-                       refellipsoid, z_surface(joker,0), 
-                       "linear_euler", ppath_lraytrace, ppath_lmax ); }
-
+    { 
+      ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
+                          z_field(joker,joker,0), t_field(joker,joker,0), 
+                          vmr_field(joker, joker,joker,0), refellipsoid, 
+                          z_surface(joker,0), ppath_lmax, refr_index_agenda,
+                          "linear_euler", ppath_lraytrace ); 
+    }
   else if( atmosphere_dim == 3 )
-    { ppath_step_refr_3d( ws, ppath_step, rte_pressure, rte_temperature, 
-                       rte_vmr_list, refr_index, refr_index_agenda,
-                       p_grid, lat_grid, lon_grid, z_field, 
-                       t_field, vmr_field, refellipsoid, z_surface, 
-                       "linear_euler", ppath_lraytrace, ppath_lmax ); }
-
+    { 
+      ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, z_field, 
+                          t_field, vmr_field, refellipsoid, z_surface, 
+                          ppath_lmax, refr_index_agenda,
+                          "linear_euler", ppath_lraytrace ); 
+    }
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
 }
@@ -310,15 +299,12 @@ void VectorZtanToZaRefr1D(Workspace&          ws,
   za_vector.resize( ztan_vector.nelem() );
 
   // Define refraction variables
-  Numeric   refr_index, rte_pressure, rte_temperature;
-  Vector    rte_vmr_list;
+  Numeric   refr_index;
 
   // Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) {
-    get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature, 
-                       rte_vmr_list, refr_index_agenda, p_grid, 
-                       refellipsoid[0], 
-                       z_field(joker,0,0), t_field(joker,0,0), 
+    get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
+                       refellipsoid[0], z_field(joker,0,0), t_field(joker,0,0), 
                        vmr_field(joker,joker,0,0), 
                        ztan_vector[i] + refellipsoid[0] );
 

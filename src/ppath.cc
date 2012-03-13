@@ -1708,7 +1708,7 @@ void ppath_append(
 
 
 /*===========================================================================
-  === 1D/2D/3D start/fill/end ppath functions
+  === 1D/2D/3D start and end ppath functions
   ===========================================================================*/
 
 //! ppath_start_1d
@@ -1746,64 +1746,6 @@ void ppath_start_1d(
 
 
 
-//! ppath_fill_1d
-/*!
-   Fills a 1D Ppath structure with position and LOS values.
-
-   The function fills the fields: pos, los, z, lstep and gp_p.
-   The pressure grid positions (gp_p) are filtered through gridpos_check_fd.
-
-   The structure fields must be allocated to correct size before calling the 
-   function. The field size must be at least as large as the length of r,
-   lat and za vectors.
-
-   The length along the path shall be the same between all points.
-
-   \param   ppath          Output: Ppath structure.
-   \param   r              Vector with radius for the path points.
-   \param   lat            Vector with latitude for the path points.
-   \param   za             Vector with zenith angle for the path points.
-   \param   lstep          Length along the path between the points.
-   \param   refellipsoid   As the WSV with the same name
-   \param   z_field        Geometrical altitudes.
-   \param   ip             Pressure grid range.
-
-   \author Patrick Eriksson
-   \date   2002-07-18
-*/
-void ppath_fill_1d(
-           Ppath&      ppath,
-     ConstVectorView   r,
-     ConstVectorView   lat,
-     ConstVectorView   za,
-     ConstVectorView   lstep,
-     ConstVectorView   refellipsoid,
-     ConstVectorView   z_field,
-     const Index&      ip )
-{
-  // Help variables that are common for all points.
-  const Numeric   r1 = refellipsoid[0] + z_field[ip];
-  const Numeric   dr = z_field[ip+1] - z_field[ip];
-
-  for( Index i=0; i<r.nelem(); i++ )
-    {
-      ppath.r[i]     = r[i];
-      ppath.pos(i,0) = r[i] - refellipsoid[0];
-      ppath.pos(i,1) = lat[i];
-      ppath.los(i,0) = za[i];
-      
-      ppath.gp_p[i].idx   = ip;
-      ppath.gp_p[i].fd[0] = ( r[i] - r1 ) / dr;
-      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
-      gridpos_check_fd( ppath.gp_p[i] );
-
-      if( i > 0 )
-        { ppath.lstep[i-1] = lstep[i-1]; }
-    }
-}
-
-
-
 //! ppath_end_1d
 /*! 
    Internal help function for 1D path calculations.
@@ -1821,7 +1763,8 @@ void ppath_end_1d(
         ConstVectorView   r_v,
         ConstVectorView   lat_v,
         ConstVectorView   za_v,
-        const Numeric&    lstep,
+        ConstVectorView   lstep,
+        ConstVectorView   n_v,
         ConstVectorView   z_field,
         ConstVectorView   refellipsoid,
         const Index&      ip,
@@ -1832,15 +1775,32 @@ void ppath_end_1d(
   const Index   np = r_v.nelem();
 
   // Re-allocate ppath for return results and fill the structure
-  //
   ppath_init_structure( ppath, 1, np );
-  //
-  ppath.constant = ppc;
-  //
-  ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), refellipsoid, 
-                                                                 z_field, ip );
 
+  ppath.constant = ppc;
+
+  // Help variables that are common for all points.
+  const Numeric   r1 = refellipsoid[0] + z_field[ip];
+  const Numeric   dr = z_field[ip+1] - z_field[ip];
+
+  for( Index i=0; i<np; i++ )
+    {
+      ppath.r[i]     = r_v[i];
+      ppath.pos(i,0) = r_v[i] - refellipsoid[0];
+      ppath.pos(i,1) = lat_v[i];
+      ppath.los(i,0) = za_v[i];
+      ppath.nreal[i] = n_v[i];
+      
+      ppath.gp_p[i].idx   = ip;
+      ppath.gp_p[i].fd[0] = ( r_v[i] - r1 ) / dr;
+      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
+      gridpos_check_fd( ppath.gp_p[i] );
+
+      if( i > 0 )
+        { ppath.lstep[i-1] = lstep[i-1]; }
+    }
   gridpos_check_fd( ppath.gp_p[np-1] );
+
 
   //--- End point is the surface
   if( endface == 7 )
@@ -1971,93 +1931,6 @@ void ppath_start_2d(
 
 
 
-//! ppath_fill_2d
-/*!
-   Fills a 2D Ppath structure with position and LOS values.
-
-   The function fills the fields: pos, los, z, lstep, gp_p and gp_lat.
-
-   The structure fields must be allocated to correct size before calling the 
-   function. The field size must be at least as large as the length of r,
-   lat and za vectors.
-
-   The length along the path shall be the same between all points.
-
-   \param   ppath          Output: Ppath structure.
-   \param   r              Vector with radius for the path points.
-   \param   lat            Vector with latitude for the path points.
-   \param   za             Vector with zenith angle for the path points.
-   \param   lstep          Length along the path between the points.
-   \param   refellipsoid   As the WSV with the same name.
-   \param   z_field        Geometrical altitudes
-   \param   lat_grid       Latitude grid.
-   \param   ip             Pressure grid range.
-   \param   ilat           Latitude grid range.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-void ppath_fill_2d(
-           Ppath&      ppath,
-     ConstVectorView   r,
-     ConstVectorView   lat,
-     ConstVectorView   za,
-     const Numeric&    lstep,
-     ConstVectorView   refellipsoid,
-     ConstMatrixView   z_field,
-     ConstVectorView   lat_grid,
-     const Index&      ip,
-     const Index&      ilat )
-{
-  // Help variables that are common for all points.
-  const Numeric   dlat  = lat_grid[ilat+1] - lat_grid[ilat];
-  const Numeric   z1low = z_field(ip,ilat);
-  const Numeric   z1upp = z_field(ip+1,ilat);
-  const Numeric   dzlow = z_field(ip,ilat+1) -z1low;
-  const Numeric   dzupp = z_field(ip+1,ilat+1) - z1upp;
-        Numeric   re    = refell2r( refellipsoid, lat_grid[ilat] );
-  const Numeric   r1low = re + z1low;
-  const Numeric   r1upp = re + z1upp;
-                 re    = refell2r( refellipsoid, lat_grid[ilat+1] );
-  const Numeric   drlow = re + z_field(ip,ilat+1) - r1low;
-  const Numeric   drupp = re + z_field(ip+1,ilat+1) - r1upp;
-
-  for( Index i=0; i<r.nelem(); i++ )
-    {
-      ppath.r[i]     = r[i];
-      ppath.pos(i,1) = lat[i];
-      ppath.los(i,0) = za[i];
-      
-      // Weight in the latitude direction
-      Numeric w = ( lat[i] - lat_grid[ilat] ) / dlat;
-
-      // Radius of lower and upper face at present latitude
-      const Numeric rlow = r1low + w * drlow;
-      const Numeric rupp = r1upp + w * drupp;
-
-      // Geometrical altitude of lower and upper face at present latitude
-      const Numeric zlow = z1low + w * dzlow;
-      const Numeric zupp = z1upp + w * dzupp;
-
-      ppath.gp_p[i].idx   = ip;
-      ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
-      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
-      gridpos_check_fd( ppath.gp_p[i] );
-
-      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
-
-      ppath.gp_lat[i].idx   = ilat;
-      ppath.gp_lat[i].fd[0] = ( lat[i] - lat_grid[ilat] ) / dlat;
-      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
-      gridpos_check_fd( ppath.gp_lat[i] );
-
-      if( i > 0 )
-        { ppath.lstep[i-1] = lstep; }
-    }
-}
-
-
-
 //! ppath_end_2d
 /*! 
    Internal help function for 2D path calculations.
@@ -2075,7 +1948,8 @@ void ppath_end_2d(
         ConstVectorView   r_v,
         ConstVectorView   lat_v,
         ConstVectorView   za_v,
-        const Numeric&    lstep,
+        ConstVectorView   lstep,
+        ConstVectorView   n_v,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   refellipsoid,
@@ -2091,12 +1965,55 @@ void ppath_end_2d(
   // Re-allocate ppath for return results and fill the structure
   //
   ppath_init_structure( ppath, 2, np );
-  //
-  ppath.constant = ppc;
-  //
-  ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, refellipsoid, z_field, 
-                                                          lat_grid, ip, ilat );
 
+  ppath.constant = ppc;
+
+  // Help variables that are common for all points.
+  const Numeric   dlat  = lat_grid[ilat+1] - lat_grid[ilat];
+  const Numeric   z1low = z_field(ip,ilat);
+  const Numeric   z1upp = z_field(ip+1,ilat);
+  const Numeric   dzlow = z_field(ip,ilat+1) -z1low;
+  const Numeric   dzupp = z_field(ip+1,ilat+1) - z1upp;
+        Numeric   re    = refell2r( refellipsoid, lat_grid[ilat] );
+  const Numeric   r1low = re + z1low;
+  const Numeric   r1upp = re + z1upp;
+                  re    = refell2r( refellipsoid, lat_grid[ilat+1] );
+  const Numeric   drlow = re + z_field(ip,ilat+1) - r1low;
+  const Numeric   drupp = re + z_field(ip+1,ilat+1) - r1upp;
+
+  for( Index i=0; i<np; i++ )
+    {
+      ppath.r[i]     = r_v[i];
+      ppath.pos(i,1) = lat_v[i];
+      ppath.los(i,0) = za_v[i];
+      ppath.nreal[i] = n_v[i];
+      
+      // Weight in the latitude direction
+      Numeric w = ( lat_v[i] - lat_grid[ilat] ) / dlat;
+
+      // Radius of lower and upper face at present latitude
+      const Numeric rlow = r1low + w * drlow;
+      const Numeric rupp = r1upp + w * drupp;
+
+      // Geometrical altitude of lower and upper face at present latitude
+      const Numeric zlow = z1low + w * dzlow;
+      const Numeric zupp = z1upp + w * dzupp;
+
+      ppath.gp_p[i].idx   = ip;
+      ppath.gp_p[i].fd[0] = ( r_v[i] - rlow ) / ( rupp - rlow );
+      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
+      gridpos_check_fd( ppath.gp_p[i] );
+
+      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
+
+      ppath.gp_lat[i].idx   = ilat;
+      ppath.gp_lat[i].fd[0] = ( lat_v[i] - lat_grid[ilat] ) / dlat;
+      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
+      gridpos_check_fd( ppath.gp_lat[i] );
+
+      if( i > 0 )
+        { ppath.lstep[i-1] = lstep[i-1]; }
+    }
   gridpos_check_fd( ppath.gp_p[imax] );
   gridpos_check_fd( ppath.gp_lat[imax] );
 
@@ -2297,131 +2214,6 @@ void ppath_start_3d(
 
 
 
-//! ppath_fill_3d
-/*!
-   Fills a 3D Ppath structure with position and LOS values.
-
-   The function fills the fields: pos, los, z, lstep, gp_p, gp_lat and gp_lon.
-
-   The structure fields must be allocated to correct size before calling the 
-   function. The field size must be at least as large as the length of r,
-   lat and za vectors.
-
-   The length along the path shall be the same between all points.
-
-   \param   ppath          Output: Ppath structure.
-   \param   r              Vector with radius for the path points.
-   \param   lat            Vector with latitude for the path points.
-   \param   lon            Vector with longitude for the path points.
-   \param   za             Vector with zenith angle for the path points.
-   \param   aa             Vector with azimuth angle for the path points.
-   \param   lstep          Length along the path between the points.
-   \param   refellipsoid   As the WSV with the same name.
-   \param   z_field        Geometrical altitudes
-   \param   lat_grid       Latitude grid.
-   \param   lon_grid       Longitude grid.
-   \param   ip             Pressure grid range.
-   \param   ilat           Latitude grid range.
-   \param   ilon           Longitude grid range.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void ppath_fill_3d(
-           Ppath&      ppath,
-     ConstVectorView   r,
-     ConstVectorView   lat,
-     ConstVectorView   lon,
-     ConstVectorView   za,
-     ConstVectorView   aa,
-     const Numeric&    lstep,
-     ConstVectorView   refellipsoid,
-     ConstTensor3View  z_field,
-     ConstVectorView   lat_grid,
-     ConstVectorView   lon_grid,
-     const Index&      ip,
-     const Index&      ilat,
-     const Index&      ilon )
-{
-  // Help variables that are common for all points.
-  const Numeric   lat1  = lat_grid[ilat];
-  const Numeric   lat3  = lat_grid[ilat+1];
-  const Numeric   lon5  = lon_grid[ilon];
-  const Numeric   lon6  = lon_grid[ilon+1];
-  const Numeric   re1   = refell2r( refellipsoid, lat_grid[ilat] );
-  const Numeric   re3   = refell2r( refellipsoid, lat_grid[ilat+1] );
-  const Numeric   r15a  = re1 + z_field(ip,ilat,ilon);
-  const Numeric   r35a  = re3 + z_field(ip,ilat+1,ilon); 
-  const Numeric   r36a  = re3 + z_field(ip,ilat+1,ilon+1); 
-  const Numeric   r16a  = re1 + z_field(ip,ilat,ilon+1);
-  const Numeric   r15b  = re1 + z_field(ip+1,ilat,ilon);
-  const Numeric   r35b  = re3 + z_field(ip+1,ilat+1,ilon); 
-  const Numeric   r36b  = re3 + z_field(ip+1,ilat+1,ilon+1);
-  const Numeric   r16b  = re1 + z_field(ip+1,ilat,ilon+1);
-  const Numeric   dlat  = lat3 - lat1;
-  const Numeric   dlon  = lon6 - lon5;
-
-  for( Index i=0; i<r.nelem(); i++ )
-    {
-      // Radius of pressure levels at present lat and lon
-      const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                      r15a, r35a, r36a, r16a, lat[i], lon[i] );
-      const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                      r15b, r35b, r36b, r16b, lat[i], lon[i] );
-
-      // Position and LOS
-      ppath.r[i]     = r[i];
-      ppath.pos(i,1) = lat[i];
-      ppath.pos(i,2) = lon[i];
-      ppath.los(i,0) = za[i];
-      ppath.los(i,1) = aa[i];
-      
-      // Pressure grid index
-      ppath.gp_p[i].idx   = ip;
-      ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
-      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
-      gridpos_check_fd( ppath.gp_p[i] );
-
-      // Geometrical altitude
-      const Numeric   re = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                           re1, re3, re3, re1, lat[i], lon[i] );
-      const Numeric   zlow = rlow - re;
-      const Numeric   zupp = rupp - re;
-      //
-      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
-
-      // Latitude grid index
-      ppath.gp_lat[i].idx   = ilat;
-      ppath.gp_lat[i].fd[0] = ( lat[i] - lat1 ) / dlat;
-      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
-      gridpos_check_fd( ppath.gp_lat[i] );
-
-      // Longitude grid index
-      //
-      // The longitude  is undefined at the poles. The grid index is set to
-      // the start point.
-      //
-      if( abs( lat[i] ) < 90 )
-        {
-          ppath.gp_lon[i].idx   = ilon;
-          ppath.gp_lon[i].fd[0] = ( lon[i] - lon5 ) / dlon;
-          ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
-          gridpos_check_fd( ppath.gp_lon[i] );
-        }
-      else
-        {
-          ppath.gp_lon[i].idx   = 0;
-          ppath.gp_lon[i].fd[0] = 0;
-          ppath.gp_lon[i].fd[1] = 1;
-        }
-
-      if( i > 0 )
-        { ppath.lstep[i-1] = lstep; }
-    }
-}
-
-
-
 //! ppath_end_3d
 /*! 
    Internal help function for 3D path calculations.
@@ -2441,7 +2233,8 @@ void ppath_end_3d(
         ConstVectorView   lon_v,
         ConstVectorView   za_v,
         ConstVectorView   aa_v,
-        const Numeric&    lstep,
+        ConstVectorView   lstep,
+        ConstVectorView   n_v,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
         ConstTensor3View  z_field,
@@ -2461,9 +2254,84 @@ void ppath_end_3d(
   ppath_init_structure( ppath, 3, np );
   //
   ppath.constant = ppc;
-  //
-  ppath_fill_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, 
-                 refellipsoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
+
+
+  // Help variables that are common for all points.
+  const Numeric   lat1  = lat_grid[ilat];
+  const Numeric   lat3  = lat_grid[ilat+1];
+  const Numeric   lon5  = lon_grid[ilon];
+  const Numeric   lon6  = lon_grid[ilon+1];
+  const Numeric   re1   = refell2r( refellipsoid, lat_grid[ilat] );
+  const Numeric   re3   = refell2r( refellipsoid, lat_grid[ilat+1] );
+  const Numeric   r15a  = re1 + z_field(ip,ilat,ilon);
+  const Numeric   r35a  = re3 + z_field(ip,ilat+1,ilon); 
+  const Numeric   r36a  = re3 + z_field(ip,ilat+1,ilon+1); 
+  const Numeric   r16a  = re1 + z_field(ip,ilat,ilon+1);
+  const Numeric   r15b  = re1 + z_field(ip+1,ilat,ilon);
+  const Numeric   r35b  = re3 + z_field(ip+1,ilat+1,ilon); 
+  const Numeric   r36b  = re3 + z_field(ip+1,ilat+1,ilon+1);
+  const Numeric   r16b  = re1 + z_field(ip+1,ilat,ilon+1);
+  const Numeric   dlat  = lat3 - lat1;
+  const Numeric   dlon  = lon6 - lon5;
+
+  for( Index i=0; i<np; i++ )
+    {
+      // Radius of pressure levels at present lat and lon
+      const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                  r15a, r35a, r36a, r16a, lat_v[i], lon_v[i] );
+      const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                  r15b, r35b, r36b, r16b, lat_v[i], lon_v[i] );
+
+      // Position and LOS
+      ppath.r[i]     = r_v[i];
+      ppath.pos(i,1) = lat_v[i];
+      ppath.pos(i,2) = lon_v[i];
+      ppath.los(i,0) = za_v[i];
+      ppath.los(i,1) = aa_v[i];
+      ppath.nreal[i] = n_v[i];
+      
+      // Pressure grid index
+      ppath.gp_p[i].idx   = ip;
+      ppath.gp_p[i].fd[0] = ( r_v[i] - rlow ) / ( rupp - rlow );
+      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
+      gridpos_check_fd( ppath.gp_p[i] );
+
+      // Geometrical altitude
+      const Numeric   re = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                       re1, re3, re3, re1, lat_v[i], lon_v[i] );
+      const Numeric   zlow = rlow - re;
+      const Numeric   zupp = rupp - re;
+      //
+      ppath.pos(i,0) = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
+
+      // Latitude grid index
+      ppath.gp_lat[i].idx   = ilat;
+      ppath.gp_lat[i].fd[0] = ( lat_v[i] - lat1 ) / dlat;
+      ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
+      gridpos_check_fd( ppath.gp_lat[i] );
+
+      // Longitude grid index
+      //
+      // The longitude  is undefined at the poles. The grid index is set to
+      // the start point.
+      //
+      if( abs( lat_v[i] ) < 90 )
+        {
+          ppath.gp_lon[i].idx   = ilon;
+          ppath.gp_lon[i].fd[0] = ( lon_v[i] - lon5 ) / dlon;
+          ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
+          gridpos_check_fd( ppath.gp_lon[i] );
+        }
+      else
+        {
+          ppath.gp_lon[i].idx   = 0;
+          ppath.gp_lon[i].fd[0] = 0;
+          ppath.gp_lon[i].fd[1] = 1;
+        }
+
+      if( i > 0 )
+        { ppath.lstep[i-1] = lstep[i-1]; }
+    }
 
   // Do end-face specific tasks
   if( endface == 7 )
@@ -2510,7 +2378,7 @@ void ppath_end_3d(
    This function works as *do_gridcell_2d*, but is valid for 1D cases.
 
    The coding of variables and end face is as for *do_gridcell_2d*, with
-   the excpetion that end faces 2 and 4 do not exist here.
+   the exception that end faces 2 and 4 do not exist here.
 
    \param   r_v         Out: Vector with radius of found path points.
    \param   lat_v       Out: Vector with latitude of found path points.
@@ -2642,9 +2510,9 @@ void ppath_step_geom_1d(
   // needed bý that function and call the function.
   //
   // Vars to hold found path points, path step length and coding for end face
-  Vector   r_v, lat_v, za_v;
+  Vector    r_v, lat_v, za_v;
   Numeric   lstep;
-  Index    endface;
+  Index     endface;
   //
   do_gridrange_1d( r_v, lat_v, za_v, lstep, endface,
                    r_start, lat_start, za_start, ppc, lmax, 
@@ -2652,10 +2520,9 @@ void ppath_step_geom_1d(
                    refellipsoid[0]+z_surface );
 
   // Fill *ppath*
-  //
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
-                                                                endface, ppc );
-  // nreal is set to 1 in ppath_stepGeometric
+  const Index np = r_v.nelem();
+  ppath_end_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1), 
+                                     z_field, refellipsoid, ip, endface, ppc );
 
   // Make part from a tangent point and up to the starting pressure level.
   if( endface == 8 )
@@ -3003,10 +2870,9 @@ void ppath_step_geom_2d(
                                     r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
 
   // Fill *ppath*
-  //
-  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
-                                                      ip, ilat, endface, ppc );
-  // nreal is set to 1 in ppath_stepGeometric
+  const Index np = r_v.nelem();
+  ppath_end_2d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1), 
+                lat_grid, z_field, refellipsoid, ip, ilat, endface, ppc );
 
   // Make part from a tangent point and up to the starting pressure level.
   if( endface == 8 )
@@ -3444,10 +3310,10 @@ void ppath_step_geom_3d(
                           rsurface15, rsurface35, rsurface36, rsurface16 );
 
   // Fill *ppath*
-  //
-  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
-                lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, ppc );
-  // nreal is set to 1 in ppath_stepGeometric
+  const Index np = r_v.nelem();
+  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, Vector(np-1,lstep), 
+                Vector(np,1), lat_grid, lon_grid, z_field, refellipsoid, 
+                ip, ilat, ilon, endface, ppc );
 
   // Make part from a tangent point and up to the starting pressure level.
   if( endface == 8 )
@@ -3472,207 +3338,6 @@ void ppath_step_geom_3d(
   === Core functions for refraction *ppath_step* functions
   ===========================================================================*/
 
-//! interpolate_raytracing_points
-/*! 
-   Interpolates a set of ray tracing points to a set of points linearly
-   spaced along the path.
-
-   All quantities are interpolated linearly.
-
-   Empty vectors can be sent as input for *lon_rt* and *aa_rt* for 1D and 2D.
-   The output vectors *lon_v* and *aa_v* are then not filled.
-
-   \author Patrick Eriksson
-   \date   2002-11-27
-*/
-void interpolate_raytracing_points(
-             Vector&     r_v,
-             Vector&     lat_v,
-             Vector&     lon_v,
-             Vector&     za_v,
-             Vector&     aa_v,
-             Numeric&    lstep,
-       ConstVectorView   r_rt,
-       ConstVectorView   lat_rt,
-       ConstVectorView   lon_rt,
-       ConstVectorView   za_rt,
-       ConstVectorView   aa_rt,
-       ConstVectorView   l_rt,
-       const Numeric&    lmax )
-{
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. If *lmax* <= 0, then only the end points
-  // shall be kept.
-  //
-  const Index     nrt = r_rt.nelem();
-        Index     n = 2;
-        Numeric   ltotsum = l_rt.sum();
-  // Ensure that there are at least two points
-  if( lmax > 0 )
-    { n = max (Index( ceil( ltotsum / lmax ) ) + 1, Index(2)); }
-  //
-  r_v.resize(n);
-  lat_v.resize(n);
-  za_v.resize(n);
-  //
-  if( n == 2 )
-    {
-      r_v[0] = r_rt[0];     r_v[1] = r_rt[nrt-1];
-      za_v[0] = za_rt[0];   za_v[1] = za_rt[nrt-1];
-      lat_v[0] = lat_rt[0]; lat_v[1] = lat_rt[nrt-1];
-      lstep = ltotsum;
-      if( lon_rt.nelem() > 0 )
-        {
-            lon_v.resize(n); lon_v[0] = lon_rt[0]; lon_v[1] = lon_rt[nrt-1];
-            aa_v.resize(n);  aa_v[0] = aa_rt[0];   aa_v[1] = aa_rt[nrt-1];
-        }
-    }
-  else
-    {
-      Vector           lsum(nrt), llin(n);
-      ArrayOfGridPos   gp(n);
-      Matrix           itw(n,2);
-      
-      lsum[0] = 0;
-      for( Index i=1; i<nrt; i++ )
-        { lsum[i] = lsum[i-1] + l_rt[i-1]; }
-
-      nlinspace( llin, 0, ltotsum, n );
-
-      gridpos( gp, lsum, llin );
-
-      interpweights( itw, gp );
-
-      interp( r_v, itw, r_rt, gp );
-      interp( za_v, itw, za_rt, gp );
-      interp( lat_v, itw, lat_rt, gp );
-      lstep = llin[1] - llin[0];
-
-      if( lon_rt.nelem() > 0 )
-        {
-          lon_v.resize(n); interp( lon_v, itw, lon_rt, gp );
-          aa_v.resize(n);  interp( aa_v, itw, aa_rt, gp );
-        }
-    }
-}
-
-
-
-//! from_raytracingarrays_to_ppath_vectors_1d_and_2d
-/*! 
-   A small help function to convert arrays with ray tracing points to
-   interpolated values along the path.
-
-   This function is common for 1D and 2D.
-
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
-void from_raytracingarrays_to_ppath_vectors_1d_and_2d(
-             Vector&          r_v,
-             Vector&          lat_v,
-             Vector&          za_v,
-             Numeric&         lstep,
-       const Array<Numeric>&  r_array,
-       const Array<Numeric>&  lat_array,
-       const Array<Numeric>&  za_array,
-       const Array<Numeric>&  l_array,
-       const Index&           reversed,
-       const Numeric&         lmax )
-{
-  // Copy arrays to vectors for later interpolation
-  //
-  // Number of ray tracing points
-  const Index   nrt=r_array.nelem();
-  //
-  Vector    r_rt(nrt), lat_rt(nrt), za_rt(nrt), l_rt(nrt-1);    
-  //
-  if( !reversed )
-    {
-      for( Index i=0; i<nrt; i++ )
-        {
-          r_rt[i]   = r_array[i];
-          lat_rt[i] = lat_array[i]; 
-          za_rt[i]  = za_array[i];
-          if( i < (nrt-1) )
-            { l_rt[i]   = l_array[i]; }
-        }
-    }
-  else
-    {
-      for( Index i=0; i<nrt; i++ )
-        {
-          const Index i1 = nrt - 1 - i;
-          r_rt[i]   = r_array[i1];
-          lat_rt[i] = lat_array[0]+ lat_array[nrt-1] - lat_array[i1]; 
-          za_rt[i]  = 180 - za_array[i1];
-          if( i < (nrt-1) )
-            { l_rt[i]   = l_array[i1-1]; }
-        }
-    }
-
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. If *lmax* <= 0, then only the end points
-  //
-  Vector    dummy;   // Dummy vector for output variables not used
-  //
-  interpolate_raytracing_points( r_v, lat_v, dummy, za_v, dummy, lstep,
-      r_rt, lat_rt, Vector(0), za_rt, Vector(0), l_rt, lmax );
-}
-
-
-
-//! from_raytracingarrays_to_ppath_vectors_3d
-/*! 
-   A small help function to convert arrays with ray tracing points to
-   interpolated values along the path.
-
-   \author Patrick Eriksson
-   \date   2003-01-18
-*/
-void from_raytracingarrays_to_ppath_vectors_3d(
-             Vector&          r_v,
-             Vector&          lat_v,
-             Vector&          lon_v,
-             Vector&          za_v,
-             Vector&          aa_v,
-             Numeric&         lstep,
-       const Array<Numeric>&  r_array,
-       const Array<Numeric>&  lat_array,
-       const Array<Numeric>&  lon_array,
-       const Array<Numeric>&  za_array,
-       const Array<Numeric>&  aa_array,
-       const Array<Numeric>&  l_array,
-       const Numeric&         lmax )
-{
-  // Copy arrays to vectors for later interpolation
-  //
-  // Number of ray tracing points
-  const Index   nrt=r_array.nelem();
-  //
-  Vector    r_rt(nrt), lat_rt(nrt), lon_rt(nrt);
-  Vector    za_rt(nrt), aa_rt(nrt),l_rt(nrt-1);    
-  //
-  for( Index i=0; i<nrt; i++ )
-    {
-      r_rt[i]   = r_array[i];
-      lat_rt[i] = lat_array[i]; 
-      lon_rt[i] = lon_array[i]; 
-      za_rt[i]  = za_array[i];
-      aa_rt[i]  = aa_array[i];
-      if( i < (nrt-1) )
-        { l_rt[i]   = l_array[i]; }
-    }
-
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. If *lmax* <= 0, then only the end points
-  //
-  interpolate_raytracing_points( r_v, lat_v, lon_v, za_v, aa_v, lstep,
-                              r_rt, lat_rt, lon_rt, za_rt, aa_rt, l_rt, lmax );
-}
-
-
-
 //! raytrace_1d_linear_euler
 /*! 
    Performs ray tracing for 1D with linear Euler steps.
@@ -3690,11 +3355,7 @@ void from_raytracingarrays_to_ppath_vectors_3d(
    will not be symmetric around the tangent point.
 
    For more information read the chapter on propagation paths in AUG.
-   The algorithm used is described in that part of AUG.
-
-   The array variables *r_array*, *lat_array* and *za_array* shall include
-   the start position when calling the function. The length of *l_array*
-   will be one smaller than the length of the other arrays.
+   The algorithm used is described in that part of ATD.
 
    \param   ws           Current Workspace
    \param   r_array      Out: Radius of ray tracing points.
@@ -3702,25 +3363,23 @@ void from_raytracingarrays_to_ppath_vectors_3d(
    \param   za_array     Out: LOS zenith angle at ray tracing points.
    \param   l_array      Out: Distance along the path between ray tracing 
                          points.
-   \param   endface      FIXME: Add documentation.
-   \param   r            Start radius for ray tracing.
-   \param   lat          Start latitude for ray tracing.
-   \param   za           Start zenith angle for ray tracing.
-   \param   rte_pressure     FIXME: Add documentation.
-   \param   rte_temperature  FIXME: Add documentation.
-   \param   rte_vmr_list     FIXME: Add documentation.
-   \param   refr_index   Refractive index.
-   \param   refr_index_agenda   FIXME: Add documentation.
-   \param   ppc          Propagation path constant.
-   \param   lraytrace    Maximum allowed length for ray tracing steps.
-   \param   r1           Radius of lower pressure level.
-   \param   r3           Radius of upper pressure level (r3 > r1).
-   \param   r_surface    Radius of the surface.
+   \param   n_array      Out: Refractive index at ray tracing points.
+   \param   endface      See do_gridrange_1d.
    \param   refellipsoid As the WSV with the same name.
    \param   p_grid       Pressure grid.
    \param   z_field      Geometrical altitudes corresponding to p_grid.
    \param   t_field      Temperatures corresponding to p_grid.
    \param   vmr_field    VMR values corresponding to p_grid.
+   \param   lmax         As the WSV ppath_lmax
+   \param   refr_index_agenda   As the WSV with the same name.
+   \param   lraytrace    Maximum allowed length for ray tracing steps.
+   \param   ppc          Propagation path constant.
+   \param   r_surface    Radius of the surface.
+   \param   r1           Radius of lower pressure level.
+   \param   r3           Radius of upper pressure level (r3 > r1).
+   \param   r            Start radius for ray tracing.
+   \param   lat          Start latitude for ray tracing.
+   \param   za           Start zenith angle for ray tracing.
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -3731,32 +3390,41 @@ void raytrace_1d_linear_euler(
               Array<Numeric>&  lat_array,
               Array<Numeric>&  za_array,
               Array<Numeric>&  l_array,
+              Array<Numeric>&  n_array,
               Index&           endface,
-              Numeric          r,
-              Numeric          lat,
-              Numeric          za,
-              Numeric&         rte_pressure,
-              Numeric&         rte_temperature,
-              Vector&          rte_vmr_list,
-              Numeric&         refr_index,
-        const Agenda&          refr_index_agenda,
-        const Numeric&         ppc,
-        const Numeric&         lraytrace,
-        const Numeric&         r1,
-        const Numeric&         r3,
-        const Numeric&         r_surface,
         ConstVectorView        refellipsoid,
         ConstVectorView        p_grid,
         ConstVectorView        z_field,
         ConstVectorView        t_field,
-        ConstMatrixView        vmr_field )
+        ConstMatrixView        vmr_field,
+        const Numeric&         lmax,
+        const Agenda&          refr_index_agenda,
+        const Numeric&         lraytrace,
+        const Numeric&         ppc,
+        const Numeric&         r_surface,
+        const Numeric&         r1,
+        const Numeric&         r3,
+              Numeric&         r,
+              Numeric&         lat,
+              Numeric&         za )
 {
   // Loop boolean
   bool ready = false;
 
+  // Store first point
+  //
+  Numeric refr_index;
+  get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
+                     refellipsoid, z_field, t_field, vmr_field, r );
+  //
+  r_array.push_back( r );
+  lat_array.push_back( lat );
+  za_array.push_back( za );
+  n_array.push_back( refr_index );
+
   // Variables for output from do_gridrange_1d
   Vector    r_v, lat_v, za_v;
-  Numeric   lstep, dlat = 9999;
+  Numeric   lstep, lacc = 0;
 
   while( !ready )
     {
@@ -3764,64 +3432,62 @@ void raytrace_1d_linear_euler(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za,
-                                              ppc_step, -1, r1, r3, r_surface );
-
+      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
+                                                       -1, r1, r3, r_surface );
       assert( r_v.nelem() == 2 );
 
-      // If *lstep* is < *lraytrace*, extract the found end point and
+      // If *lstep* is <= *lraytrace*, extract the found end point and
       // we are ready. 
       // Otherwise, we make a geometrical step with length *lraytrace*.
-      // To avoid that the refraction calculations end up outside the grid
-      // cell when *lstep* is just below *lraytrace*, we allow *lstep*
-      // to be somewhat larger than *lraytrace*.
 
-      if( lstep <= 1.01 * lraytrace )
+      if( lstep <= lraytrace )
         {
           r     = r_v[1];
-          dlat  = lat_v[1] - lat;
           lat   = lat_v[1];
+          lacc += lstep;
           ready = true;
         }
       else
         {
-          if( abs(za) <= 90 )
+          if( za <= 90 )
             { lstep = lraytrace; }
           else
             { lstep = -lraytrace; }
 
-          const Numeric   r_new = geompath_r_at_l( ppc_step, 
+          const Numeric r_new = geompath_r_at_l( ppc_step, 
                                          geompath_l_at_r(ppc_step,r) + lstep );
-
-          dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
+          lat  += RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
           r     = r_new;
-          lat   = lat + dlat;
-          lstep = abs( lstep );
+          lacc += lraytrace;
         }
 
       // Calculate LOS zenith angle at found point.
-      //
+   
       // Refractive index at *r*
-      get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
-                         rte_vmr_list, refr_index_agenda,
-                         p_grid, refellipsoid, z_field, t_field, vmr_field, r );
+      get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
+                           refellipsoid, z_field, t_field, vmr_field, r );
 
       const Numeric   ppc_local = ppc / refr_index; 
 
       if( r >= ppc_local )
         { za = geompath_za_at_r( ppc_local, za, r ); }
       else
-        {  
+        { // If moved below tangent point:
           r = ppc_local;
           za = 90;
         }
-  
-      // Store found point
-      r_array.push_back( r );
-      lat_array.push_back( lat );
-      za_array.push_back( za );
-      l_array.push_back( lstep );
+      
+      // Store found point?
+      if( ready  ||  lacc + lraytrace > lmax )
+        {
+          r_array.push_back( r );
+          lat_array.push_back( lat );
+          za_array.push_back( za );
+          n_array.push_back( refr_index );
+          l_array.push_back( lacc );
+          lacc = 0;
+        }
     }  
 }
 
@@ -3839,21 +3505,17 @@ void raytrace_1d_linear_euler(
 
    \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
-   \param   rte_pressure      Out: The WSV with the same name.
-   \param   rte_temperature   Out: The WSV with the same name.
-   \param   rte_vmr_list      Out: The WSV with the same name.
-   \param   refr_index        Out: The WSV with the same name.
-   \param   refr_index_agenda The WSV with the same name.
    \param   p_grid            Pressure grid.
    \param   z_field           Geometrical altitudes corresponding to p_grid.
    \param   t_field           Temperatures corresponding to p_grid.
    \param   vmr_field         VMR values corresponding to p_grid.
    \param   refellipsoid      As the WSV wit the same name.
    \param   z_surface         Surface altitude.
+   \param   lmax              Maximum allowed length between the path points.
+   \param   refr_index_agenda The WSV with the same name.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
-   \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
    \date   2002-11-26
@@ -3861,20 +3523,16 @@ void raytrace_1d_linear_euler(
 void ppath_step_refr_1d(
               Workspace&  ws,
               Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
         ConstVectorView   refellipsoid,
         const Numeric&    z_surface,
+        const Numeric&    lmax,
+        const Agenda&     refr_index_agenda,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax )
+        const Numeric&    lraytrace )
 {
   // Starting radius, zenith angle and latitude
   Numeric   r_start, lat_start, za_start;
@@ -3893,9 +3551,9 @@ void ppath_step_refr_1d(
   Numeric ppc;
   if( ppath.constant < 0 )
     { 
-      get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
-                         rte_vmr_list, refr_index_agenda, p_grid, refellipsoid,
-                         z_field, t_field, vmr_field, r_start );
+      Numeric refr_index;
+      get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
+                         refellipsoid, z_field, t_field, vmr_field, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
   else
@@ -3906,45 +3564,48 @@ void ppath_step_refr_1d(
   //
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, za_array, l_array;
-  //
-  // Store the start point
-  r_array.push_back( r_start );
-  lat_array.push_back( lat_start );
-  za_array.push_back( za_start );
-  //
-  // Number coding for end face
-  Index   endface;
+  Array<Numeric>   r_array, lat_array, za_array, l_array, n_array;
+  Index            endface;
   //
   if( rtrace_method  == "linear_euler" )
     {
       raytrace_1d_linear_euler( ws, r_array, lat_array, za_array, l_array, 
-             endface, r_start, lat_start, za_start, rte_pressure, 
-             rte_temperature, rte_vmr_list, refr_index, refr_index_agenda, 
-             ppc, lraytrace, refellipsoid[0]+z_field[ip], 
-             refellipsoid[0]+z_field[ip+1], refellipsoid[0] + z_surface, 
-             refellipsoid, p_grid, z_field, t_field, vmr_field );
+                 n_array, endface, refellipsoid, p_grid, z_field, t_field,
+                 vmr_field, lmax, refr_index_agenda, lraytrace, ppc,
+                 refellipsoid[0] + z_surface, refellipsoid[0]+z_field[ip], 
+                 refellipsoid[0]+z_field[ip+1], r_start, lat_start, za_start );
     }
-#ifndef NDEBUG
-  else
-    {
-      bool   known_ray_trace_method = false;
-      assert( known_ray_trace_method );
-    }
-#endif
-
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. 
-  //
-  Vector    r_v, lat_v, za_v;
-  Numeric   lstep;
-  //
-  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
-                              r_array, lat_array, za_array, l_array, 0, lmax );
 
   // Fill *ppath*
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, refellipsoid, ip, 
+  //
+  const Index np = r_array.nelem();
+  Vector r_v(np), lat_v(np), za_v(np), l_v(np-1), n_v(np);
+  for( Index i=0; i<np; i++ )
+    { 
+      r_v[i]   = r_array[i];    
+      lat_v[i] = lat_array[i];
+      za_v[i]  = za_array[i];   
+      n_v[i]   = n_array[i];
+      if( i < np-1 )
+        { l_v[i] = l_array[i]; }
+    }
+  //
+  ppath_end_1d( ppath, r_v, lat_v, za_v, l_v, n_v, z_field, refellipsoid, ip, 
                                                                 endface, ppc );
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      ppath_step_geom_1d( ppath2, z_field, refellipsoid, z_surface, lmax );
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
+
 }
 
 
@@ -3963,11 +3624,7 @@ void ppath_step_refr_1d(
    levels and the latitude grid points.
 
    For more information read the chapter on propagation paths in AUG.
-   The algorithm used is described in that part of AUG.
-
-   The array variables *r_array*, *lat_array* and *za_array* shall include
-   the start position when calling the function. The length of *l_array*
-   will be one smaller than the length of the other arrays.
+   The algorithm used is described in that part of ATD.
 
    \param   ws              Current Workspace
    \param   r_array         Out: Radius of ray tracing points.
@@ -3975,30 +3632,29 @@ void ppath_step_refr_1d(
    \param   za_array        Out: LOS zenith angle at ray tracing points.
    \param   l_array         Out: Distance along the path between ray tracing 
                             points.
+   \param   n_array         Out: Refractive index at ray tracing points.
    \param   endface         Out: Number coding of exit face.
-   \param   r               Out: Start radius for ray tracing.
-   \param   lat             Out: Start latitude for ray tracing.
-   \param   za              Out: Start zenith angle for ray tracing.
-   \param   rte_pressure      Out: The WSV with the same name.
-   \param   rte_temperature   Out: The WSV with the same name.
-   \param   rte_vmr_list      Out: The WSV with the same name.
-   \param   refr_index        Out: The WSV with the same name.
-   \param   refr_index_agenda    The WSV with the same name.
-   \param   lraytrace       Maximum allowed length for ray tracing steps.
-   \param   lat1            Latitude of left end face of the grid cell.
-   \param   lat3            Latitude of right end face  of the grid cell.
-   \param   r1a             Radius of lower-left corner of the grid cell.
-   \param   r3a             Radius of lower-right corner of the grid cell.
-   \param   r3b             Radius of upper-right corner of the grid cell.
-   \param   r1b             Radius of upper-left corner of the grid cell.
-   \param   rsurface1       Radius for the surface at *lat1*.
-   \param   rsurface3       Radius for the surface at *lat3*.
    \param   p_grid          The WSV with the same name.
    \param   lat_grid        The WSV with the same name.
    \param   refellipsoid    The WSV with the same name.
    \param   z_field         The WSV with the same name.
    \param   t_field         The WSV with the same name.
    \param   vmr_field       The WSV with the same name.
+   \param   lmax            As the WSV ppath_lmax
+   \param   refr_index_agenda    The WSV with the same name.
+   \param   lraytrace       Maximum allowed length for ray tracing steps.
+   \param   lat1            Latitude of left end face of the grid cell.
+   \param   lat3            Latitude of right end face  of the grid cell.
+   \param   rsurface1       Radius for the surface at *lat1*.
+   \param   rsurface3       Radius for the surface at *lat3*.
+   \param   r1a             Radius of lower-left corner of the grid cell.
+   \param   r3a             Radius of lower-right corner of the grid cell.
+   \param   r3b             Radius of upper-right corner of the grid cell.
+   \param   r1b             Radius of upper-left corner of the grid cell.
+   \param   r               Start radius for ray tracing.
+   \param   lat             Start latitude for ray tracing.
+   \param   za              Start zenith angle for ray tracing.
+
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -4009,37 +3665,46 @@ void raytrace_2d_linear_euler(
               Array<Numeric>&  lat_array,
               Array<Numeric>&  za_array,
               Array<Numeric>&  l_array,
+              Array<Numeric>&  n_array,
               Index&           endface,
-              Numeric          r,
-              Numeric          lat,
-              Numeric          za,
-              Numeric&         rte_pressure,
-              Numeric&         rte_temperature,
-              Vector&          rte_vmr_list,
-              Numeric&         refr_index,
-        const Agenda&          refr_index_agenda,
-        const Numeric&         lraytrace,
-        const Numeric&         lat1,
-        const Numeric&         lat3,
-        const Numeric&         r1a,
-        const Numeric&         r3a,
-        const Numeric&         r3b,
-        const Numeric&         r1b,
-        const Numeric&         rsurface1,
-        const Numeric&         rsurface3,
         ConstVectorView        p_grid,
         ConstVectorView        lat_grid,
         ConstVectorView        refellipsoid,
         ConstMatrixView        z_field,
         ConstMatrixView        t_field,
-        ConstTensor3View       vmr_field )
+        ConstTensor3View       vmr_field,
+        const Numeric&         lmax,
+        const Agenda&          refr_index_agenda,
+        const Numeric&         lraytrace,
+        const Numeric&         lat1,
+        const Numeric&         lat3,
+        const Numeric&         rsurface1,
+        const Numeric&         rsurface3,
+        const Numeric&         r1a,
+        const Numeric&         r3a,
+        const Numeric&         r3b,
+        const Numeric&         r1b,
+              Numeric          r,
+              Numeric          lat,
+              Numeric          za )
 {
   // Loop boolean
   bool ready = false;
 
+  // Store first point
+  //
+  Numeric refr_index;
+  get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
+                     refellipsoid, z_field, t_field, vmr_field, r, lat );
+  //
+  r_array.push_back( r );
+  lat_array.push_back( lat );
+  za_array.push_back( za );
+  n_array.push_back( refr_index );
+
   // Variables for output from do_gridcell_2d
-  Vector   r_v, lat_v, za_v;
-  Numeric   lstep, dlat = 9999, r_new, lat_new;
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep, lacc = 0, dlat;
 
   while( !ready )
     {
@@ -4047,25 +3712,21 @@ void raytrace_2d_linear_euler(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface,
-                      r, lat, za, ppc_step, -1, lat1, lat3, r1a, r3a, r3b, r1b, 
-                      rsurface1, rsurface3 );
-
+      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
+                    -1, lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is < *lraytrace*, extract the found end point and
       // we are ready.
       // Otherwise, we make a geometrical step with length *lraytrace*.
-      // To avoid that the refrcation calculations end up outside the grid
-      // cell when *lstep* is just below *lraytrace*, we allow *lstep*
-      // to be somewhat larger than *lraytrace*.
 
-      if( lstep <= 1.01 * lraytrace )
+      if( lstep <= lraytrace )
         {
-          r_new   = r_v[1];
-          dlat    = lat_v[1] - lat;
-          lat_new = lat_v[1];
-          ready   = true;
+          r     = r_v[1];
+          dlat  = lat_v[1] - lat;
+          lat   = lat_v[1];
+          lacc += lstep;
+          ready = true;
         }
       else
         {
@@ -4074,46 +3735,43 @@ void raytrace_2d_linear_euler(
           else
             { lstep = -lraytrace; }
 
-          r_new = geompath_r_at_l( ppc_step, 
+          const Numeric r_new = geompath_r_at_l( ppc_step, 
                                          geompath_l_at_r(ppc_step,r) + lstep );
-          dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
+                        dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
           if( za < 0 )
             { dlat = -dlat; }
 
-          lat_new = lat + dlat;
-          lstep   = abs( lstep );
+          r     = r_new;
+          lat   = lat + dlat;
+          lacc += lraytrace;
 
           // For paths along the latitude end faces we can end up outside the
           // grid cell. We simply look for points outisde the grid cell.
-          if( lat_new < lat1 )
-            { lat_new = lat1; }
-          else if( lat_new > lat3 )
-            { lat_new = lat3; }
+          if( lat < lat1 )
+            { lat = lat1; }
+          else if( lat > lat3 )
+            { lat = lat3; }
         }
 
       // Calculate LOS zenith angle at found point.
-        {
-                Numeric   dndr, dndlat;
-          const Numeric   za_rad = DEG2RAD * za;
+      {
+              Numeric   dndr, dndlat;
+        const Numeric   za_rad = DEG2RAD * za;
 
-          refr_gradients_2d( ws, refr_index, dndr, dndlat, rte_pressure, 
-                             rte_temperature, rte_vmr_list, refr_index_agenda,
-                             p_grid, lat_grid, refellipsoid, z_field, t_field, 
-                             vmr_field, r, lat );
+        refr_gradients_2d( ws, refr_index, dndr, dndlat, refr_index_agenda,
+                           p_grid, lat_grid, refellipsoid, z_field, t_field, 
+                           vmr_field, r, lat );
 
-          za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
+        za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
 
-          // Make sure that obtained *za* is inside valid range
-          if( za < -180 )
-            { za += 360; }
-          else if( za > 180 )
-            { za -= 360; }
-        }
-
-      r   = r_new;
-      lat = lat_new;
+        // Make sure that obtained *za* is inside valid range
+        if( za < -180 )
+          { za += 360; }
+        else if( za > 180 )
+          { za -= 360; }
+      }
 
       // If the path is zenith/nadir along a latitude end face, we must check
       // that the path does not exit with new *za*.
@@ -4122,11 +3780,16 @@ void raytrace_2d_linear_euler(
       else if( lat == lat3  &&  za > 0 )
         { endface = 3;   ready = 1; }
       
-      // Store found point
-      r_array.push_back( r );
-      lat_array.push_back( lat );
-      za_array.push_back( za );
-      l_array.push_back( lstep );
+      // Store found point?
+      if( ready  ||  lacc + lraytrace > lmax )
+        {
+          r_array.push_back( r );
+          lat_array.push_back( lat );
+          za_array.push_back( za );
+          n_array.push_back( refr_index );
+          l_array.push_back( lacc );
+          lacc = 0;
+        }
     }  
 }
 
@@ -4142,11 +3805,6 @@ void raytrace_2d_linear_euler(
 
    \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
-   \param   rte_pressure      Out: The WSV with the same name.
-   \param   rte_temperature   Out: The WSV with the same name.
-   \param   rte_vmr_list      Out: The WSV with the same name.
-   \param   refr_index        Out: The WSV with the same name.
-   \param   refr_index_agenda The WSV with the same name.
    \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
    \param   z_field           Geometrical altitudes.
@@ -4154,10 +3812,11 @@ void raytrace_2d_linear_euler(
    \param   vmr_field         VMR values.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
+   \param   lmax              Maximum allowed length between the path points.
+   \param   refr_index_agenda The WSV with the same name.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
-   \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -4165,11 +3824,6 @@ void raytrace_2d_linear_euler(
 void ppath_step_refr_2d(
               Workspace&  ws,
               Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
@@ -4177,9 +3831,10 @@ void ppath_step_refr_2d(
         ConstTensor3View  vmr_field,
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
+        const Numeric&    lmax,
+        const Agenda&     refr_index_agenda,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax )
+        const Numeric&    lraytrace )
 {
   // Radius, zenith angle and latitude of start point.
   Numeric   r_start, lat_start, za_start;
@@ -4201,45 +3856,49 @@ void ppath_step_refr_2d(
   //
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, za_array, l_array;
-  //
-  // Store the start point
-  r_array.push_back( r_start );
-  lat_array.push_back( lat_start );
-  za_array.push_back( za_start );
-  //
-  // Number coding for end face
-  Index   endface;
+  Array<Numeric>   r_array, lat_array, za_array, l_array, n_array;
+  Index            endface;
   //
   if( rtrace_method  == "linear_euler" )
     {
-      raytrace_2d_linear_euler( ws,
-        r_array, lat_array, za_array, l_array, endface,
-        r_start, lat_start, za_start, rte_pressure, rte_temperature, 
-        rte_vmr_list, refr_index, refr_index_agenda, lraytrace, 
-        lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-        p_grid, lat_grid, refellipsoid, z_field, t_field, vmr_field );
+      raytrace_2d_linear_euler( ws, r_array, lat_array, za_array, l_array, 
+                                n_array, endface, p_grid, lat_grid, 
+                                refellipsoid, z_field, t_field, vmr_field,
+                                lmax, refr_index_agenda, lraytrace, lat1, lat3,
+                                rsurface1, rsurface3, r1a, r3a, r3b, r1b, 
+                                r_start, lat_start, za_start );
     }
-#ifndef NDEBUG
-  else
-    {
-      bool   known_ray_trace_method = false;
-      assert( known_ray_trace_method );
-    }
-#endif
-
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. 
-  //
-  Vector    r_v, lat_v, za_v;
-  Numeric   lstep;
-  //
-  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
-                              r_array, lat_array, za_array, l_array, 0, lmax );
 
   // Fill *ppath*
-  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, refellipsoid,
-                                             ip, ilat, endface, -1 );
+  //
+  const Index np = r_array.nelem();
+  Vector r_v(np), lat_v(np), za_v(np), l_v(np-1), n_v(np);
+  for( Index i=0; i<np; i++ )
+    { 
+      r_v[i]   = r_array[i];    
+      lat_v[i] = lat_array[i];
+      za_v[i]  = za_array[i];   
+      n_v[i]   = n_array[i];
+      if( i < np-1 )
+        { l_v[i] = l_array[i]; }
+    }
+  //
+  ppath_end_2d( ppath, r_v, lat_v, za_v, l_v, n_v, lat_grid, z_field, 
+                                         refellipsoid, ip, ilat, endface, -1 );
+
+  // Make part from a tangent point and up to the starting pressure level.
+  if( endface == 8 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
+                                                                        lmax );
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
 }
 
 
@@ -4258,12 +3917,7 @@ void ppath_step_refr_2d(
    levels and the latitude grid points.
 
    For more information read the chapter on propagation paths in AUG.
-   The algorithm used is described in that part of AUG.
-
-   The array variables *r_array*, *lat_array*, *lon_array*, *za_array*
-   and *aa_array* shall include the start position when calling the
-   function. The length of *l_array* will be one smaller than the
-   length of the other arrays.
+   The algorithm used is described in that part of ATD.
 
    \param   ws             Current Workspace
    \param   r_array        Out: Radius of ray tracing points.
@@ -4274,21 +3928,26 @@ void ppath_step_refr_2d(
    \param   l_array        Out: Distance along the path between ray tracing 
                            points.
    \param   endface        Out: Number coding of exit face.
-   \param   r              Out: Start radius for ray tracing.
-   \param   lat            Out: Start latitude for ray tracing.
-   \param   lon            Out: Start longitude for ray tracing.
-   \param   za             Out: Start zenith angle for ray tracing.
-   \param   aa             Out: Start azimuth angle for ray tracing.
-   \param   rte_pressure     Out: The WSV with the same name.
-   \param   rte_temperature  Out: The WSV with the same name.
-   \param   rte_vmr_list     Out: The WSV with the same name.
-   \param   refr_index       Out: The WSV with the same name.
+   \param   n_array        Out: Refractive index at ray tracing points.
+
+   \param   lmax         As the WSV ppath_lmax
    \param   refr_index_agenda    The WSV with the same name.
    \param   lraytrace      Maximum allowed length for ray tracing steps.
+   \param   refellipsoid   The WSV with the same name.
+   \param   p_grid         The WSV with the same name.
+   \param   lat_grid       The WSV with the same name.
+   \param   lon_grid       The WSV with the same name.
+   \param   z_field        The WSV with the same name.
+   \param   t_field        The WSV with the same name.
+   \param   vmr_field      The WSV with the same name.
    \param   lat1           Latitude of left end face of the grid cell.
    \param   lat3           Latitude of right end face of the grid cell.
    \param   lon5           Lower longitude of the grid cell.
    \param   lon6           Upper longitude of the grid cell.
+   \param   rsurface15     Radius for the surface at *lat1* and *lon5*.
+   \param   rsurface35     Radius for the surface at *lat3* and *lon5*.
+   \param   rsurface36     Radius for the surface at *lat3* and *lon6*.
+   \param   rsurface16     Radius for the surface at *lat1* and *lon6*.   
    \param   r15a           Radius of corner: lower p-level,*lat1* and *lon5*.
    \param   r35a           Radius of corner: lower p-level,*lat3* and *lon5*.
    \param   r36a           Radius of corner: lower p-level,*lat3* and *lon6*.
@@ -4297,17 +3956,11 @@ void ppath_step_refr_2d(
    \param   r35b           Radius of corner: upper p-level,*lat3* and *lon5*.
    \param   r36b           Radius of corner: upper p-level,*lat3* and *lon6*.
    \param   r16b           Radius of corner: upper p-level,*lat1* and *lon6*.
-   \param   rsurface15     Radius for the surface at *lat1* and *lon5*.
-   \param   rsurface35     Radius for the surface at *lat3* and *lon5*.
-   \param   rsurface36     Radius for the surface at *lat3* and *lon6*.
-   \param   rsurface16     Radius for the surface at *lat1* and *lon6*.   
-   \param   p_grid         The WSV with the same name.
-   \param   lat_grid       The WSV with the same name.
-   \param   lon_grid       The WSV with the same name.
-   \param   refellipsoid   The WSV with the same name.
-   \param   z_field        The WSV with the same name.
-   \param   t_field        The WSV with the same name.
-   \param   vmr_field      The WSV with the same name.
+   \param   r              Out: Start radius for ray tracing.
+   \param   lat            Out: Start latitude for ray tracing.
+   \param   lon            Out: Start longitude for ray tracing.
+   \param   za             Out: Start zenith angle for ray tracing.
+   \param   aa             Out: Start azimuth angle for ray tracing.
 
    \author Patrick Eriksson
    \date   2003-01-18
@@ -4320,22 +3973,26 @@ void raytrace_3d_linear_euler(
               Array<Numeric>&  za_array,
               Array<Numeric>&  aa_array,
               Array<Numeric>&  l_array,
+              Array<Numeric>&  n_array,
               Index&           endface,
-              Numeric          r,
-              Numeric          lat,
-              Numeric          lon,
-              Numeric          za,
-              Numeric          aa,
-              Numeric&         rte_pressure,
-              Numeric&         rte_temperature,
-              Vector&          rte_vmr_list,
-              Numeric&         refr_index,
+        ConstVectorView        refellipsoid,
+        ConstVectorView        p_grid,
+        ConstVectorView        lat_grid,
+        ConstVectorView        lon_grid,
+        ConstTensor3View       z_field,
+        ConstTensor3View       t_field,
+        ConstTensor4View       vmr_field,
+        const Numeric&         lmax,
         const Agenda&          refr_index_agenda,
         const Numeric&         lraytrace,
         const Numeric&         lat1,
         const Numeric&         lat3,
         const Numeric&         lon5,
         const Numeric&         lon6,
+        const Numeric&         rsurface15,
+        const Numeric&         rsurface35,
+        const Numeric&         rsurface36,
+        const Numeric&         rsurface16,
         const Numeric&         r15a,
         const Numeric&         r35a,
         const Numeric&         r36a,
@@ -4344,25 +4001,32 @@ void raytrace_3d_linear_euler(
         const Numeric&         r35b,
         const Numeric&         r36b,
         const Numeric&         r16b,
-        const Numeric&         rsurface15,
-        const Numeric&         rsurface35,
-        const Numeric&         rsurface36,
-        const Numeric&         rsurface16,
-        ConstVectorView        p_grid,
-        ConstVectorView        lat_grid,
-        ConstVectorView        lon_grid,
-        ConstVectorView        refellipsoid,
-        ConstTensor3View       z_field,
-        ConstTensor3View       t_field,
-        ConstTensor4View       vmr_field )
+              Numeric          r,
+              Numeric          lat,
+              Numeric          lon,
+              Numeric          za,
+              Numeric          aa )
 {
   // Loop boolean
   bool ready = false;
 
+  // Store first point
+  //
+  Numeric refr_index;
+  get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid,
+            lon_grid, refellipsoid, z_field, t_field, vmr_field, r, lat, lon );
+  //
+  r_array.push_back( r );
+  lat_array.push_back( lat );
+  lon_array.push_back( lon );
+  za_array.push_back( za );
+  aa_array.push_back( aa );
+  n_array.push_back( refr_index );
+
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
+  Numeric   lstep, lacc = 0;
   Numeric   r_new, lat_new, lon_new, za_new, aa_new;
-  Numeric   lstep;
 
   while( !ready )
     {
@@ -4374,33 +4038,29 @@ void raytrace_3d_linear_euler(
                     r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6, 
                     r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                     rsurface15, rsurface35, rsurface36, rsurface16 );
-
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is < *lraytrace*, extract the found end point and
       // we are ready.
       // Otherwise, we make a geometrical step with length *lraytrace*.
-      // To avoid that the refrcation calculations end up outside the grid
-      // cell when *lstep* is just below *lraytrace*, we allow *lstep*
-      // to be somewhat larger than *lraytrace*.
 
-      if( lstep <= 1.01 * lraytrace )
+      if( lstep <= lraytrace )
         {
-          r_new   = r_v[1];
-          lat_new = lat_v[1];
-          lon_new = lon_v[1];
-          za_new  = za_v[1];
-          aa_new  = aa_v[1];
-          ready   = true;
+          r     = r_v[1];
+          lat   = lat_v[1];
+          lon   = lon_v[1];
+          za    = za_v[1];
+          aa    = aa_v[1];
+          lacc += lstep;
+          ready = true;
         }
       else
         {
           // Sensor pos and LOS in cartesian coordinates
           Numeric   x, y, z, dx, dy, dz;
+          //
           poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa ); 
-
           lstep = lraytrace;
-
           cart2poslos( r_new, lat_new, lon_new, za_new, aa_new, 
                               x+dx*lstep, y+dy*lstep, z+dz*lstep, dx, dy, dz );
 
@@ -4416,14 +4076,12 @@ void raytrace_3d_linear_euler(
             { lon_new = lon6; }
 
           // Checks to improve the accuracy for speciel cases.
-          // The checks are only needed for values cacluated locally as
-          // the same checks are made inside *do_gridcell_3d*.
 
           //--- Set zenith angle to be as accurate as possible
-          if( za < ANGTOL  ||  za > 180-ANGTOL )
+          if( za_new < ANGTOL  ||  za_new > 180-ANGTOL )
             { za_new = za; }
           else
-            { za_new = geompath_za_at_r( ppc_step, za, r_new ); }
+            { za_new = geompath_za_at_r( ppc_step, za, r ); }
 
           //--- Set azimuth angle and lon. to be as accurate as possible for
           //    north-south observations
@@ -4439,46 +4097,54 @@ void raytrace_3d_linear_euler(
         }
 
       // Calculate LOS zenith angle at found point.
-      {
-        Numeric   dndr, dndlat, dndlon;
+      if( ready  &&  endface == 8 )
+        {
+          // It is not totally correct to set *za* to 90 here. We neglect
+          // then the curvature of this ray tracing step, but we don't care
+          // about this for simplicity. This point has been flagged as the
+          // the tangent point and we treat it then it that way.
+          za_new = 90; 
+        }
+      else
+        {
+          Numeric   dndr, dndlat, dndlon;
 
-        refr_gradients_3d( ws,
-                             refr_index, dndr, dndlat, dndlon, rte_pressure, 
-                             rte_temperature, rte_vmr_list, refr_index_agenda, 
-                             p_grid, lat_grid, lon_grid, refellipsoid, z_field, 
-                             t_field, vmr_field, r, lat, lon );
+          refr_gradients_3d( ws, refr_index, dndr, dndlat, dndlon, 
+                             refr_index_agenda, p_grid, lat_grid, lon_grid, 
+                             refellipsoid, z_field, t_field, vmr_field, 
+                             r, lat, lon );
 
-        const Numeric   aterm = RAD2DEG * lstep / refr_index;
-        const Numeric   za_rad = DEG2RAD * za;
-        const Numeric   aa_rad = DEG2RAD * aa;
-        const Numeric   sinza = sin( za_rad );
-        const Numeric   sinaa = sin( aa_rad );
-        const Numeric   cosaa = cos( aa_rad );
-
-        if( za < ANGTOL  ||  za > 180-ANGTOL )
-          { 
-            za_new += aterm * ( cos(za_rad) * 
-                                ( cosaa * dndlat + sinaa * dndlon ) );
-            aa_new = RAD2DEG * atan2( dndlon, dndlat); 
-          }
-        else
-          { 
-            za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
-                                       ( cosaa * dndlat + sinaa * dndlon ) );
-            aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
-          }
+          const Numeric   aterm = RAD2DEG * lstep / refr_index;
+          const Numeric   za_rad = DEG2RAD * za;
+          const Numeric   aa_rad = DEG2RAD * aa;
+          const Numeric   sinza = sin( za_rad );
+          const Numeric   sinaa = sin( aa_rad );
+          const Numeric   cosaa = cos( aa_rad );
           
-        // Make sure that obtained angles are inside valid ranges
-        if( za_new > 180 )
-          { za_new = 180 - za_new; }
-        else if( za_new < 0 )
-          { za_new = -za_new; }
-        //
-        if( aa_new > 180 )
-          { aa_new -= 360; }
-        else if( aa_new < -180 )
-          { aa_new += 360; }
-      }
+          if( za < ANGTOL  ||  za > 180-ANGTOL )
+            { 
+              za_new += aterm * ( cos(za_rad) * 
+                                         ( cosaa * dndlat + sinaa * dndlon ) );
+              aa_new = RAD2DEG * atan2( dndlon, dndlat); 
+            }
+          else
+            { 
+              za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
+                                         ( cosaa * dndlat + sinaa * dndlon ) );
+              aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
+            }
+          
+          // Make sure that obtained angles are inside valid ranges
+          if( za_new > 180 )
+            { za_new = 180 - za_new; }
+          else if( za_new < 0 )
+            { za_new = -za_new; }
+          //
+          if( aa_new > 180 )
+            { aa_new -= 360; }
+          else if( aa_new < -180 )
+            { aa_new += 360; }
+        }
 
       r   = r_new;
       lat = lat_new;
@@ -4501,14 +4167,19 @@ void raytrace_3d_linear_euler(
             { endface = 3;   ready = 1; }
         }
 
-      // Store found point
-      r_array.push_back( r );
-      lat_array.push_back( lat );
-      lon_array.push_back( lon );
-      za_array.push_back( za );
-      aa_array.push_back( aa );
-      l_array.push_back( lstep );
-    }  
+      // Store found point?
+      if( ready  ||  lacc + lraytrace > lmax )
+        {
+          r_array.push_back( r );
+          lat_array.push_back( lat );
+          lon_array.push_back( lon );
+          za_array.push_back( za );
+          aa_array.push_back( aa );
+          n_array.push_back( refr_index );
+          l_array.push_back( lacc );
+          lacc = 0;
+        }  
+    }
 }
 
 
@@ -4523,11 +4194,6 @@ void raytrace_3d_linear_euler(
 
    \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
-   \param   rte_pressure      Out: The WSV with the same name.
-   \param   rte_temperature   Out: The WSV with the same name.
-   \param   rte_vmr_list      Out: The WSV with the same name.
-   \param   refr_index        Out: The WSV with the same name.
-   \param   refr_index_agenda The WSV with the same name.
    \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
    \param   lon_grid          Longitude grid.
@@ -4536,10 +4202,11 @@ void raytrace_3d_linear_euler(
    \param   vmr_field         VMR values.
    \param   refellipsoid      As teh WSv with the same name.
    \param   z_surface         Surface altitudes.
+   \param   lmax              Maximum allowed length between the path points.
+   \param   refr_index_agenda The WSV with the same name.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
-   \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
    \date   2003-01-08
@@ -4547,11 +4214,6 @@ void raytrace_3d_linear_euler(
 void ppath_step_refr_3d(
               Workspace&  ws,
               Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
@@ -4560,9 +4222,10 @@ void ppath_step_refr_3d(
         ConstTensor4View  vmr_field,
         ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
+        const Numeric&    lmax,
+        const Agenda&     refr_index_agenda,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax )
+        const Numeric&    lraytrace )
 {
   // Radius, zenith angle and latitude of start point.
   Numeric   r_start, lat_start, lon_start, za_start, aa_start;
@@ -4589,52 +4252,43 @@ void ppath_step_refr_3d(
   //
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, lon_array, za_array, aa_array, l_array;
-  //
-  // Store the start point
-  r_array.push_back( r_start );
-  lat_array.push_back( lat_start );
-  lon_array.push_back( lon_start );
-  za_array.push_back( za_start );
-  aa_array.push_back( aa_start );
-  //
-  // Number coding for end face
-  Index   endface;
+  Array<Numeric>   r_array, lat_array, lon_array, za_array, aa_array;
+  Array<Numeric>   l_array, n_array;
+  Index            endface;
   //
   if( rtrace_method  == "linear_euler" )
     {
       raytrace_3d_linear_euler( ws, r_array, lat_array, lon_array, za_array, 
-                                aa_array, l_array, endface, r_start,
-                                lat_start, lon_start, za_start, aa_start, 
-                                rte_pressure, rte_temperature, rte_vmr_list, 
-                                refr_index, refr_index_agenda, lraytrace, 
-                                lat1, lat3, lon5, lon6, 
-                                r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
-                                rsurface15, rsurface35, rsurface36, rsurface16,
-                                p_grid, lat_grid, lon_grid, 
-                                refellipsoid, z_field, t_field, vmr_field );
+                           aa_array, l_array, n_array, endface, 
+                           refellipsoid, p_grid, lat_grid, lon_grid, 
+                           z_field, t_field, vmr_field, lmax,
+                           refr_index_agenda, lraytrace, 
+                           lat1, lat3, lon5, lon6, 
+                           rsurface15, rsurface35, rsurface36, rsurface16,
+                           r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
+                           r_start, lat_start, lon_start, za_start, aa_start );
     }
-#ifndef NDEBUG
-  else
-    {
-      bool   known_ray_trace_method = false;
-      assert( known_ray_trace_method );
-    }
-#endif
 
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. 
-  //
-  Vector    r_v, lat_v, lon_v, za_v, aa_v;
-  Numeric   lstep;
-  //
-  from_raytracingarrays_to_ppath_vectors_3d( r_v, lat_v, lon_v, za_v, aa_v, 
-                                        lstep, r_array, lat_array, lon_array, 
-                                           za_array, aa_array, l_array, lmax );
 
   // Fill *ppath*
-  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, lon_grid,
-                z_field, refellipsoid, ip, ilat, ilon, endface, -1 );
+  //
+  const Index np = r_array.nelem();
+  Vector r_v(np), lat_v(np), lon_v(np), za_v(np), aa_v(np), l_v(np-1), n_v(np);
+  for( Index i=0; i<np; i++ )
+    { 
+      r_v[i]   = r_array[i];    
+      lat_v[i] = lat_array[i];
+      lon_v[i] = lon_array[i];
+      za_v[i]  = za_array[i];   
+      aa_v[i]  = aa_array[i];   
+      n_v[i]   = n_array[i];
+      if( i < np-1 )
+        { l_v[i] = l_array[i]; }
+    }
+  //
+  // Fill *ppath*
+  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, l_v, n_v, lat_grid, 
+                lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, -1 );
 }
 
 

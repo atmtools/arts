@@ -66,9 +66,6 @@ extern const Numeric RAD2DEG;
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
-   \param   a_pressure          Pressure in hPa.
-   \param   a_temperature       Temperature in K.
-   \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.   
    \param   refellipsoid        As the WSV with the same name.
@@ -83,9 +80,6 @@ extern const Numeric RAD2DEG;
 void get_refr_index_1d(
               Workspace&  ws,
               Numeric&    refr_index,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   refellipsoid,
@@ -94,7 +88,10 @@ void get_refr_index_1d(
         ConstMatrixView   vmr_field,
         const Numeric&    r )
 { 
-  // Altitude (equal to pressure) grid position
+  Numeric   rte_pressure, rte_temperature;
+  Vector    rte_vmr_list;
+
+  // Pressure grid position
   ArrayOfGridPos   gp(1);
   gridpos( gp, z_field, Vector( 1, r - refellipsoid[0] ) );
 
@@ -105,25 +102,25 @@ void get_refr_index_1d(
   // Pressure
   Vector   dummy(1);
   itw2p( dummy, p_grid, gp, itw );
-  a_pressure = dummy[0];
+  rte_pressure = dummy[0];
 
   // Temperature
   interp( dummy, itw, t_field, gp );
-  a_temperature = dummy[0];
+  rte_temperature = dummy[0];
 
   // VMR
   const Index   ns = vmr_field.nrows();
   //
-  a_vmr_list.resize(ns);
+  rte_vmr_list.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
       interp( dummy, itw, vmr_field(is,joker), gp );
-      a_vmr_list[is] = dummy[0];
+      rte_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, a_pressure, a_temperature, 
-                            a_vmr_list, refr_index_agenda );
+  refr_index_agendaExecute( ws, refr_index, rte_pressure, rte_temperature, 
+                            rte_vmr_list, refr_index_agenda );
 }
 
 
@@ -142,9 +139,6 @@ void get_refr_index_1d(
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
-   \param   a_pressure          Pressure in hPa.
-   \param   a_temperature       Temperature in K.
-   \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
@@ -162,9 +156,6 @@ void get_refr_index_1d(
 void get_refr_index_2d(
               Workspace&  ws,
               Numeric&    refr_index,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -175,6 +166,9 @@ void get_refr_index_2d(
         const Numeric&    r,
         const Numeric&    lat )
 { 
+  Numeric   rte_pressure, rte_temperature;
+  Vector    rte_vmr_list;
+
   // Determine the geometric altitudes at *lat*
   const Index      np = p_grid.nelem();
   Vector           z_grid(np);
@@ -197,28 +191,27 @@ void get_refr_index_2d(
 
   // Pressure
   itw2p( dummy, p_grid, gp_p, itw );
-  a_pressure = dummy[0];
+  rte_pressure = dummy[0];
 
   // Temperature
   itw.resize(1,4);
   interpweights( itw, gp_p, gp_lat );
   interp( dummy, itw, t_field, gp_p, gp_lat );
-  a_temperature = dummy[0];
+  rte_temperature = dummy[0];
 
   // VMR
   const Index   ns = vmr_field.npages();
   //
-  a_vmr_list.resize(ns);
+  rte_vmr_list.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
       interp( dummy, itw, vmr_field(is,joker,joker), gp_p, gp_lat );
-      a_vmr_list[is] = dummy[0];
+      rte_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws,
-                            refr_index, a_pressure, a_temperature, a_vmr_list,
-                            refr_index_agenda );
+  refr_index_agendaExecute( ws, refr_index, rte_pressure, rte_temperature, 
+                            rte_vmr_list, refr_index_agenda );
 }
 
 
@@ -233,9 +226,6 @@ void get_refr_index_2d(
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
-   \param   a_pressure          Pressure in hPa.
-   \param   a_temperature       Temperature in K.
-   \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
@@ -254,9 +244,6 @@ void get_refr_index_2d(
 void get_refr_index_3d(
               Workspace&  ws,
               Numeric&    refr_index,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -269,6 +256,9 @@ void get_refr_index_3d(
         const Numeric&    lat,
         const Numeric&    lon )
 { 
+  Numeric   rte_pressure, rte_temperature;
+  Vector    rte_vmr_list;
+
   // Determine the geometric altitudes at *lat* and *lon*
   const Index      np = p_grid.nelem();
   Vector           z_grid(np);
@@ -293,92 +283,28 @@ void get_refr_index_3d(
 
   // Pressure
   itw2p( dummy, p_grid, gp_p, itw );
-  a_pressure = dummy[0];
+  rte_pressure = dummy[0];
 
   // Temperature
   itw.resize(1,8);
   interpweights( itw, gp_p, gp_lat, gp_lon );
   interp( dummy, itw, t_field, gp_p, gp_lat, gp_lon );
-  a_temperature = dummy[0];
+  rte_temperature = dummy[0];
 
   // VMR
   const Index   ns = vmr_field.nbooks();
   //
-  a_vmr_list.resize(ns);
+  rte_vmr_list.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
       interp( dummy, itw, vmr_field(is,joker,joker,joker), gp_p, gp_lat, 
                                                                       gp_lon );
-      a_vmr_list[is] = dummy[0];
+      rte_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws,
-                            refr_index, a_pressure, a_temperature, a_vmr_list,
-                            refr_index_agenda );
-}
-
-
-
-//! refr_gradients_1d
-/*! 
-   Determines the refractive index, and the radial gradient.
-
-   The gradient is calculated in pure numerical way. That is, the
-   refractive index is calculated for slightly shifted radius and the
-   difference to the refractive index at the given point determines
-   the gradient.
-
-   The atmosphere is given by its 1D view. That is, the latitude and
-   longitude dimensions are removed from the atmospheric fields. For
-   example, the temperature is given as a vector.
-
-   \param   ws                  Current Workspace
-   \param   refr_index          Output: As the WSV with the same name.
-   \param   dndr                Output: Radial gradient of refractive index.
-   \param   a_pressure          Pressure in hPa.
-   \param   a_temperature       Temperature in K.
-   \param   a_vmr_list          Vector with VMR values.
-   \param   refr_index_agenda   As the WSV with the same name.
-   \param   p_grid              As the WSV with the same name.
-   \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure level
-                                at each latitude.
-   \param   t_field             The temperature 2D field.
-   \param   vmr_field           The VMR 2D field for each species.
-   \param   r                   The radius of the position of interest.
-
-   \author Patrick Eriksson
-   \date   2003-01-20
-*/
-void refr_gradients_1d(
-              Workspace&  ws,
-              Numeric&    refr_index,
-              Numeric&    dndr,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   refellipsoid,
-        ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        ConstMatrixView   vmr_field,
-        const Numeric&    r )
-{ 
-   get_refr_index_1d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, r );
-
-   const Numeric   n0 = refr_index;
-
-   get_refr_index_1d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, r+1 );
-
-   dndr = refr_index - n0;
-
-   refr_index = n0;
+  refr_index_agendaExecute( ws, refr_index, rte_pressure, rte_temperature, 
+                            rte_vmr_list, refr_index_agenda );
 }
 
 
@@ -405,9 +331,6 @@ void refr_gradients_1d(
    \param   refr_index          Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
    \param   dndlat              Output: Latitude gradient of refractive index.
-   \param   a_pressure          Pressure in hPa.
-   \param   a_temperature       Temperature in K.
-   \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
@@ -427,9 +350,6 @@ void refr_gradients_2d(
               Numeric&    refr_index,
               Numeric&    dndr,
               Numeric&    dndlat,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -440,23 +360,20 @@ void refr_gradients_2d(
         const Numeric&    r,
         const Numeric&    lat )
 { 
-   get_refr_index_2d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid,
+   get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid,
                       refellipsoid, z_field, t_field, vmr_field, r, lat );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, refellipsoid, 
-                      z_field, t_field, vmr_field, r+1, lat );
+   get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
+                      refellipsoid, z_field, t_field, vmr_field, r+1, lat );
 
    dndr = refr_index - n0;
 
    const Numeric   dlat = 1e-4;
 
-   get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, refellipsoid, 
-                      z_field, t_field, vmr_field, r, lat+dlat );
+   get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
+                      refellipsoid, z_field, t_field, vmr_field, r, lat+dlat );
 
    dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
@@ -485,9 +402,6 @@ void refr_gradients_2d(
    \param   dndr                Output: Radial gradient of refractive index.
    \param   dndlat              Output: Latitude gradient of refractive index.
    \param   dndlon              Output: Longitude gradient of refractive index.
-   \param   a_pressure          Pressure in hPa.
-   \param   a_temperature       Temperature in K.
-   \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
@@ -509,9 +423,6 @@ void refr_gradients_3d(
               Numeric&    dndr,
               Numeric&    dndlat,
               Numeric&    dndlon,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -524,22 +435,21 @@ void refr_gradients_3d(
         const Numeric&    lat,
         const Numeric&    lon )
 { 
-   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, lon_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, r, lat, lon );
+   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
+                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
+                      r, lat, lon );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, lon_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, r+1, lat, lon );
+   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
+                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
+                      r+1, lat, lon );
 
    dndr = refr_index - n0;
 
    const Numeric   dlat = 1e-4;
 
-   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, 
+   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, refellipsoid, z_field, t_field, vmr_field, 
                       r, lat+dlat, lon );
 
@@ -547,8 +457,7 @@ void refr_gradients_3d(
 
    const Numeric   dlon = 1e-4;
 
-   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, p_grid, lat_grid, 
+   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, refellipsoid, z_field, t_field, vmr_field, 
                       r, lat, lon+dlon);
 

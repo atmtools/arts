@@ -696,3 +696,67 @@ void do_gridcell_3d(
 
 
 
+
+//! refr_gradients_1d
+/*! 
+   Determines the refractive index, and the radial gradient.
+
+   The gradient is calculated in pure numerical way. That is, the
+   refractive index is calculated for slightly shifted radius and the
+   difference to the refractive index at the given point determines
+   the gradient.
+
+   The atmosphere is given by its 1D view. That is, the latitude and
+   longitude dimensions are removed from the atmospheric fields. For
+   example, the temperature is given as a vector.
+
+   \param   ws                  Current Workspace
+   \param   refr_index          Output: As the WSV with the same name.
+   \param   dndr                Output: Radial gradient of refractive index.
+   \param   a_pressure          Pressure in hPa.
+   \param   a_temperature       Temperature in K.
+   \param   a_vmr_list          Vector with VMR values.
+   \param   refr_index_agenda   As the WSV with the same name.
+   \param   p_grid              As the WSV with the same name.
+   \param   refellipsoid        As the WSV with the same name.
+   \param   z_field             The geometric altitude of each pressure level
+                                at each latitude.
+   \param   t_field             The temperature 2D field.
+   \param   vmr_field           The VMR 2D field for each species.
+   \param   r                   The radius of the position of interest.
+
+   \author Patrick Eriksson
+   \date   2003-01-20
+*/
+void refr_gradients_1d(
+              Workspace&  ws,
+              Numeric&    refr_index,
+              Numeric&    dndr,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   refellipsoid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
+        ConstMatrixView   vmr_field,
+        const Numeric&    r )
+{ 
+   get_refr_index_1d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
+                      refr_index_agenda, p_grid, 
+                      refellipsoid, z_field, t_field, vmr_field, r );
+
+   const Numeric   n0 = refr_index;
+
+   get_refr_index_1d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
+                      refr_index_agenda, p_grid, 
+                      refellipsoid, z_field, t_field, vmr_field, r+1 );
+
+   dndr = refr_index - n0;
+
+   refr_index = n0;
+}
+
+
+

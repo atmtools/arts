@@ -1,5 +1,32 @@
 2012-03-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-26
+
+	* src/ppath.cc: Code for refraction cleaned up and chenged. The
+	old length interpolation removed as it deteriorates the accuracy
+	and anyhow makes the code slower. A lot of changes caused by this.
+
+	3D with refraction not yet ready!
+
+	(interpolate_raytracing_points)
+	(from_raytracingarrays_to_ppath_vectors_1d_and_2d)
+	(from_raytracingarrays_to_ppath_vectors_3d):
+	(ppath_fill_1d, ppath_fill_2d, ppath_fill_3d): Removed or merged
+	into other functions.
+
+	(ppath_end_1d,ppath_end_2d,ppath_end_3d): Now also making "fill"
+	and handles vector lstep and nreal.
+
+	* src/ppath_NotUsed.cc (refr_gradients_1d): Now placed here.
+
+	* src/refraction.cc (get_refr_index_1d, get_refr_index_2d)
+	(get_refr_index_3d, refr_gradients_2d, refr_gradients_3d):
+	Converted rte_pressure, rte_temperature and rte_vmr_list from
+	in/out/arguments to local variables (reminiscent from old agenda
+	functionality).
+
+2012-03-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-25
 
 	* doc/uguide/ppath_theory.tex: Updated geomtrical 3D text to last

@@ -6735,8 +6735,7 @@ void define_md_data_raw()
          "including the functionality of *ppath_lmax*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath_step", "rte_pressure", "rte_temperature", "rte_vmr_list", 
-             "refr_index" ),
+        OUT( "ppath_step" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

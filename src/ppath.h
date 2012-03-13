@@ -196,29 +196,20 @@ void ppath_step_geom_3d(
 void ppath_step_refr_1d(
               Workspace&  ws,
               Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
         ConstVectorView   refellipsoid,
         const Numeric&    z_surface,
+        const Numeric&    lmax,
+        const Agenda&     refr_index_agenda,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax );
+        const Numeric&    lraytrace );
 
 void ppath_step_refr_2d(
               Workspace&  ws,
               Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
@@ -226,18 +217,14 @@ void ppath_step_refr_2d(
         ConstTensor3View  vmr_field,
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
+        const Numeric&    lmax,
+        const Agenda&     refr_index_agenda,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax );
+        const Numeric&    lraytrace);
 
 void ppath_step_refr_3d(
               Workspace&  ws,
               Ppath&      ppath,
-              Numeric&    rte_pressure,
-              Numeric&    rte_temperature,
-              Vector&     rte_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
@@ -246,9 +233,10 @@ void ppath_step_refr_3d(
         ConstTensor4View  vmr_field,
         ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
+        const Numeric&    lmax,
+        const Agenda&     refr_index_agenda,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax );
+        const Numeric&    lraytrace );
 
 void ppath_start_stepping(
               Ppath&            ppath,
