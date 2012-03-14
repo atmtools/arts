@@ -1,3 +1,11 @@
+2012-03-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-27
+
+	* src/ppath.cc: Work on code for refraction. Now complete, and
+	works in the case of n=1 with an accuarcy better than 1 mm.
+	Not yet tested for n>1.
+
 2012-03-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-26

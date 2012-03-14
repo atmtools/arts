@@ -98,6 +98,6 @@ void refr_indexThayer(Numeric&        refr_index,
 void refr_indexUnit(Numeric& refr_index,
                     const Verbosity&)
 {
-  refr_index = 1;
+  refr_index = 1.0;
 }
 

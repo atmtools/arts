@@ -3412,11 +3412,9 @@ void raytrace_1d_linear_euler(
   bool ready = false;
 
   // Store first point
-  //
   Numeric refr_index;
   get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
                      refellipsoid, z_field, t_field, vmr_field, r );
-  //
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
@@ -3424,7 +3422,7 @@ void raytrace_1d_linear_euler(
 
   // Variables for output from do_gridrange_1d
   Vector    r_v, lat_v, za_v;
-  Numeric   lstep, lacc = 0;
+  Numeric   lstep, lcum = 0;
 
   while( !ready )
     {
@@ -3432,20 +3430,24 @@ void raytrace_1d_linear_euler(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
+      bool tanpoint = false;
       do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
                                                        -1, r1, r3, r_surface );
       assert( r_v.nelem() == 2 );
 
-      // If *lstep* is <= *lraytrace*, extract the found end point and
-      // we are ready. 
+      // If *lstep* is <= *lraytrace*, extract the found end point (if not 
+      // a tangent point, we are ready).
       // Otherwise, we make a geometrical step with length *lraytrace*.
 
       if( lstep <= lraytrace )
         {
           r     = r_v[1];
           lat   = lat_v[1];
-          lacc += lstep;
-          ready = true;
+          lcum += lstep;
+          if( endface == 8 )
+            { tanpoint = true; }
+          else
+            { ready = true; }
         }
       else
         {
@@ -3459,34 +3461,42 @@ void raytrace_1d_linear_euler(
           lat  += RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
           r     = r_new;
-          lacc += lraytrace;
+          lcum += lraytrace;
         }
 
-      // Calculate LOS zenith angle at found point.
-   
       // Refractive index at *r*
       get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
                            refellipsoid, z_field, t_field, vmr_field, r );
 
-      const Numeric   ppc_local = ppc / refr_index; 
+      // Calculate LOS zenith angle at found point.
+      // The general code is very sensitive for numerical problems around the
+      // tangent point, and to get correct results in the limit of n=1 it was
+      // found better to handle tangent points seperately.
+      if( tanpoint )
+        { za = 90; }
 
-      if( r >= ppc_local )
-        { za = geompath_za_at_r( ppc_local, za, r ); }
       else
-        { // If moved below tangent point:
-          r = ppc_local;
-          za = 90;
+        {
+          const Numeric   ppc_local = ppc / refr_index; 
+
+          if( r >= ppc_local )
+            { za = geompath_za_at_r( ppc_local, za, r ); }
+          else  // If moved below tangent point:
+            { 
+              r = ppc_local;
+              za = 90;
+            }
         }
       
       // Store found point?
-      if( ready  ||  lacc + lraytrace > lmax )
+      if( ready  ||  lcum + lraytrace > lmax )
         {
           r_array.push_back( r );
           lat_array.push_back( lat );
           za_array.push_back( za );
           n_array.push_back( refr_index );
-          l_array.push_back( lacc );
-          lacc = 0;
+          l_array.push_back( lcum );
+          lcum = 0;
         }
     }  
 }
@@ -3592,20 +3602,6 @@ void ppath_step_refr_1d(
   //
   ppath_end_1d( ppath, r_v, lat_v, za_v, l_v, n_v, z_field, refellipsoid, ip, 
                                                                 endface, ppc );
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      ppath_step_geom_1d( ppath2, z_field, refellipsoid, z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
-
 }
 
 
@@ -3692,11 +3688,9 @@ void raytrace_2d_linear_euler(
   bool ready = false;
 
   // Store first point
-  //
   Numeric refr_index;
   get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
                      refellipsoid, z_field, t_field, vmr_field, r, lat );
-  //
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
@@ -3704,7 +3698,7 @@ void raytrace_2d_linear_euler(
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, za_v;
-  Numeric   lstep, lacc = 0, dlat;
+  Numeric   lstep, lcum = 0, dlat;
 
   while( !ready )
     {
@@ -3716,8 +3710,8 @@ void raytrace_2d_linear_euler(
                     -1, lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
       assert( r_v.nelem() == 2 );
 
-      // If *lstep* is < *lraytrace*, extract the found end point and
-      // we are ready.
+      // If *lstep* is <= *lraytrace*, extract the found end point (if not 
+      // a tangent point, we are ready).
       // Otherwise, we make a geometrical step with length *lraytrace*.
 
       if( lstep <= lraytrace )
@@ -3725,8 +3719,9 @@ void raytrace_2d_linear_euler(
           r     = r_v[1];
           dlat  = lat_v[1] - lat;
           lat   = lat_v[1];
-          lacc += lstep;
-          ready = true;
+          lcum += lstep;
+          if( endface != 8 )
+            { ready = true; }
         }
       else
         {
@@ -3744,7 +3739,7 @@ void raytrace_2d_linear_euler(
 
           r     = r_new;
           lat   = lat + dlat;
-          lacc += lraytrace;
+          lcum += lraytrace;
 
           // For paths along the latitude end faces we can end up outside the
           // grid cell. We simply look for points outisde the grid cell.
@@ -3754,24 +3749,22 @@ void raytrace_2d_linear_euler(
             { lat = lat3; }
         }
 
-      // Calculate LOS zenith angle at found point.
-      {
-              Numeric   dndr, dndlat;
-        const Numeric   za_rad = DEG2RAD * za;
-
-        refr_gradients_2d( ws, refr_index, dndr, dndlat, refr_index_agenda,
+      // Refractive index at new point
+      Numeric   dndr, dndlat;
+      refr_gradients_2d( ws, refr_index, dndr, dndlat, refr_index_agenda,
                            p_grid, lat_grid, refellipsoid, z_field, t_field, 
                            vmr_field, r, lat );
 
-        za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
+      // Calculate LOS zenith angle at found point.
+      const Numeric   za_rad = DEG2RAD * za;
+      za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
 
-        // Make sure that obtained *za* is inside valid range
-        if( za < -180 )
-          { za += 360; }
-        else if( za > 180 )
-          { za -= 360; }
-      }
+      // Make sure that obtained *za* is inside valid range
+      if( za < -180 )
+        { za += 360; }
+      else if( za > 180 )
+        { za -= 360; }
 
       // If the path is zenith/nadir along a latitude end face, we must check
       // that the path does not exit with new *za*.
@@ -3781,14 +3774,14 @@ void raytrace_2d_linear_euler(
         { endface = 3;   ready = 1; }
       
       // Store found point?
-      if( ready  ||  lacc + lraytrace > lmax )
+      if( ready  ||  lcum + lraytrace > lmax )
         {
           r_array.push_back( r );
           lat_array.push_back( lat );
           za_array.push_back( za );
           n_array.push_back( refr_index );
-          l_array.push_back( lacc );
-          lacc = 0;
+          l_array.push_back( lcum );
+          lcum = 0;
         }
     }  
 }
@@ -3885,20 +3878,6 @@ void ppath_step_refr_2d(
   //
   ppath_end_2d( ppath, r_v, lat_v, za_v, l_v, n_v, lat_grid, z_field, 
                                          refellipsoid, ip, ilat, endface, -1 );
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
-                                                                        lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
 }
 
 
@@ -4011,11 +3990,9 @@ void raytrace_3d_linear_euler(
   bool ready = false;
 
   // Store first point
-  //
   Numeric refr_index;
   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid,
             lon_grid, refellipsoid, z_field, t_field, vmr_field, r, lat, lon );
-  //
   r_array.push_back( r );
   lat_array.push_back( lat );
   lon_array.push_back( lon );
@@ -4025,8 +4002,8 @@ void raytrace_3d_linear_euler(
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
-  Numeric   lstep, lacc = 0;
-  Numeric   r_new, lat_new, lon_new, za_new, aa_new;
+  Numeric   lstep, lcum = 0;
+  Numeric   za_new, aa_new;
 
   while( !ready )
     {
@@ -4040,45 +4017,49 @@ void raytrace_3d_linear_euler(
                     rsurface15, rsurface35, rsurface36, rsurface16 );
       assert( r_v.nelem() == 2 );
 
-      // If *lstep* is < *lraytrace*, extract the found end point and
-      // we are ready.
+      // If *lstep* is <= *lraytrace*, extract the found end point (if not 
+      // a tangent point, we are ready).
       // Otherwise, we make a geometrical step with length *lraytrace*.
 
       if( lstep <= lraytrace )
         {
-          r     = r_v[1];
-          lat   = lat_v[1];
-          lon   = lon_v[1];
-          za    = za_v[1];
-          aa    = aa_v[1];
-          lacc += lstep;
-          ready = true;
+          r      = r_v[1];
+          lat    = lat_v[1];
+          lon    = lon_v[1];
+          za_new = za_v[1];
+          aa_new = aa_v[1];
+          lcum  += lstep;
+          if( endface != 8 )
+            { ready = true; }
         }
       else
         {
           // Sensor pos and LOS in cartesian coordinates
-          Numeric   x, y, z, dx, dy, dz;
+          Numeric   x, y, z, dx, dy, dz, lon_new;
           //
           poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa ); 
           lstep = lraytrace;
-          cart2poslos( r_new, lat_new, lon_new, za_new, aa_new, 
+          cart2poslos( r, lat, lon_new, za_new, aa_new, 
                               x+dx*lstep, y+dy*lstep, z+dz*lstep, dx, dy, dz );
+          lcum += lstep;
 
           // For paths along some end face we can end up outside the
           // grid cell. We simply look for points outisde the grid cell.
-          if( lat_new < lat1 )
-            { lat_new = lat1; }
-          else if( lat_new > lat3 )
-            { lat_new = lat3; }
+          if( lat < lat1 )
+            { lat = lat1; }
+          else if( lat > lat3 )
+            { lat = lat3; }
           if( lon_new < lon5 )
             { lon_new = lon5; }
           else if( lon_new > lon6 )
             { lon_new = lon6; }
 
           // Checks to improve the accuracy for speciel cases.
+          // The checks are only needed for values cacluated locally as
+          // the same checks are made inside *do_gridcell_3d*.
 
           //--- Set zenith angle to be as accurate as possible
-          if( za_new < ANGTOL  ||  za_new > 180-ANGTOL )
+          if( za < ANGTOL  ||  za > 180-ANGTOL )
             { za_new = za; }
           else
             { za_new = geompath_za_at_r( ppc_step, za, r ); }
@@ -4094,61 +4075,49 @@ void raytrace_3d_linear_euler(
 
           // Shall lon values be shifted?
           resolve_lon( lon_new, lon5, lon6 );
+          //
+          lon = lon_new;
         }
+
+      // Refractive index at new point
+      Numeric   dndr, dndlat, dndlon;
+      refr_gradients_3d( ws, refr_index, dndr, dndlat, dndlon, 
+                         refr_index_agenda, p_grid, lat_grid, lon_grid, 
+                         refellipsoid, z_field, t_field, vmr_field, 
+                         r, lat, lon );
 
       // Calculate LOS zenith angle at found point.
-      if( ready  &&  endface == 8 )
-        {
-          // It is not totally correct to set *za* to 90 here. We neglect
-          // then the curvature of this ray tracing step, but we don't care
-          // about this for simplicity. This point has been flagged as the
-          // the tangent point and we treat it then it that way.
-          za_new = 90; 
+      const Numeric   aterm = RAD2DEG * lstep / refr_index;
+      const Numeric   za_rad = DEG2RAD * za;
+      const Numeric   aa_rad = DEG2RAD * aa;
+      const Numeric   sinza = sin( za_rad );
+      const Numeric   sinaa = sin( aa_rad );
+      const Numeric   cosaa = cos( aa_rad );
+          
+      if( za < ANGTOL  ||  za > 180-ANGTOL )
+        { 
+          za_new += aterm * ( cos(za_rad) * 
+                                         ( cosaa * dndlat + sinaa * dndlon ) );
+          aa_new = RAD2DEG * atan2( dndlon, dndlat); 
         }
       else
-        {
-          Numeric   dndr, dndlat, dndlon;
-
-          refr_gradients_3d( ws, refr_index, dndr, dndlat, dndlon, 
-                             refr_index_agenda, p_grid, lat_grid, lon_grid, 
-                             refellipsoid, z_field, t_field, vmr_field, 
-                             r, lat, lon );
-
-          const Numeric   aterm = RAD2DEG * lstep / refr_index;
-          const Numeric   za_rad = DEG2RAD * za;
-          const Numeric   aa_rad = DEG2RAD * aa;
-          const Numeric   sinza = sin( za_rad );
-          const Numeric   sinaa = sin( aa_rad );
-          const Numeric   cosaa = cos( aa_rad );
-          
-          if( za < ANGTOL  ||  za > 180-ANGTOL )
-            { 
-              za_new += aterm * ( cos(za_rad) * 
-                                         ( cosaa * dndlat + sinaa * dndlon ) );
-              aa_new = RAD2DEG * atan2( dndlon, dndlat); 
-            }
-          else
-            { 
-              za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
-                                         ( cosaa * dndlat + sinaa * dndlon ) );
-              aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
-            }
-          
-          // Make sure that obtained angles are inside valid ranges
-          if( za_new > 180 )
-            { za_new = 180 - za_new; }
-          else if( za_new < 0 )
-            { za_new = -za_new; }
-          //
-          if( aa_new > 180 )
-            { aa_new -= 360; }
-          else if( aa_new < -180 )
-            { aa_new += 360; }
+        { 
+          za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
+                              ( cosaa * dndlat + sinaa * dndlon ) );
+          aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
         }
-
-      r   = r_new;
-      lat = lat_new;
-      lon = lon_new;
+          
+      // Make sure that obtained angles are inside valid ranges
+      if( za_new > 180 )
+        { za_new = 180 - za_new; }
+      else if( za_new < 0 )
+        { za_new = -za_new; }
+      //
+      if( aa_new > 180 )
+        { aa_new -= 360; }
+      else if( aa_new < -180 )
+        { aa_new += 360; }
+      
       za  = za_new;
       aa  = aa_new;
 
@@ -4168,7 +4137,7 @@ void raytrace_3d_linear_euler(
         }
 
       // Store found point?
-      if( ready  ||  lacc + lraytrace > lmax )
+      if( ready  ||  lcum + lraytrace > lmax )
         {
           r_array.push_back( r );
           lat_array.push_back( lat );
@@ -4176,8 +4145,8 @@ void raytrace_3d_linear_euler(
           za_array.push_back( za );
           aa_array.push_back( aa );
           n_array.push_back( refr_index );
-          l_array.push_back( lacc );
-          lacc = 0;
+          l_array.push_back( lcum );
+          lcum = 0;
         }  
     }
 }
@@ -4268,7 +4237,6 @@ void ppath_step_refr_3d(
                            r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
                            r_start, lat_start, lon_start, za_start, aa_start );
     }
-
 
   // Fill *ppath*
   //
