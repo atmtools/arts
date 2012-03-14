@@ -494,6 +494,8 @@ void refr_index_thayer_1974(
                                           ( 64.8e-8 + 3.776e-3 / t ) * e ) / t;
 }
 
+
+
 //! refr_index_ir
 /*!
    Calculation of refractive index for the infrared frequency band.

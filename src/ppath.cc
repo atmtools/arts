@@ -3739,7 +3739,8 @@ void raytrace_2d_linear_euler(
 
           r     = r_new;
           lat   = lat + dlat;
-          lcum += lraytrace;
+          lstep = abs( lstep );
+          lcum += lstep;
 
           // For paths along the latitude end faces we can end up outside the
           // grid cell. We simply look for points outisde the grid cell.
@@ -3756,8 +3757,11 @@ void raytrace_2d_linear_euler(
                            vmr_field, r, lat );
 
       // Calculate LOS zenith angle at found point.
+      //
+      za += - dlat;   // Pure geometrical effect
+      //
       const Numeric   za_rad = DEG2RAD * za;
-      za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
+      za += (RAD2DEG * lstep / refr_index) * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
 
       // Make sure that obtained *za* is inside valid range

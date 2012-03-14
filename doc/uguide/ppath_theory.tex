@@ -64,10 +64,11 @@ structure (\builtindoc{ppath}).
  \label{alg:ppath:ppath_calc}
 \end{algorithm}
 
-The main task of the function \funcindex{ppath\_start\_stepping} is to
-set up \wsvindex{ppath\_step} for the first call of
-\builtindoc{ppath\_step\_agenda}, which means that the practical
-starting point for the path calculations must be determined. If the
+The main task of the function \funcindex{ppath\_start\_stepping} is to set up
+\wsvindex{ppath\_step} for the first call of \builtindoc{ppath\_step\_agenda},
+which means that the practical starting point for the path calculations must be
+determined. As the propagation path is followed in the backward direction, the
+calculation starting points equals the end point of the path. If the
 sensor is placed inside the model atmosphere, the sensor position
 gives directly the starting point. For cases when the sensor is found
 outside the atmosphere, the point where the path exits the atmosphere
@@ -143,7 +144,7 @@ functions are \funcindex{ppath\_start\_1d} and
 \funcindex{ppath\_end\_1d}, and the corresponding functions for 2D and
 3D are named in the same way. The functions to calculate geometrical
 path steps are denoted as \funcindex{do\_gridrange\_1d},
-\funcindex{do\_gridcell\_2d} and \funcindex{do\_gridcell\_3d}. Paths
+\funcindex{do\_gridcell\_2d} and \funcindex{do\_gridcell\_3d\_byltest}. Paths
 steps passing a tangent point are handled by a recursive call of the
 step function. Algorithm \ref{alg:ppath:ppath_step_geom_2d} summarises
 this for geometrical 2D steps.
@@ -426,7 +427,7 @@ a sub-function for each dimensionality.
 
 The core function for this case is \funcindex{do\_gridrange\_1d}. The
 lowest and highest radius value along the path step is first
-determined. If the line-of-sight is upwards ($\|\ZntAng| \leq
+determined. If the line-of-sight is upwards ($\ZntAng \leq
 90\degree$), then the start point of the step gives the lowest radius,
 and the radius of the pressure surface above gives the highest value.
 In the case of a downwards line-of-sight, the lowest radius is either
@@ -451,10 +452,9 @@ step procedure is applied. In the first step the propagation path is moved
 towards the pressure level as far as exact expressions can be used. For
 example, if the level is approached from above the path is moved down to the
 maximum radius of the level inside the gridbox. An approximative solution is
-needed to for the second step. Figure \ref{fig:ppath:psurf_crossing} gives a
+needed for the second step. Figure \ref{fig:ppath:psurf_crossing} gives a
 schematic description of the problem at hand, which is handled by the internal
 function \funcindex{rslope\_crossing}.
-
 The law of sine gives the following relationship for the crossing
 point:
 \begin{equation}
@@ -721,7 +721,7 @@ The solution of this quadratic equation is implemented in the function
 simple ($l=-z/\DiffD z$). The case of $\Lat=90\degree$ is set to have no
 solution ($\tan(90\degree)=\infty$), and is instead assumed to be picked up as
 a crossing with one of the two longitudes defining the grid box. Another
-complication is that, as the $\tan$ term is squared, both $\pm\Lat$ can show up
+complication is that, as the $\tan$-term is squared, both $\pm\Lat$ can show up
 as possible solutions, and it must be tested that the found length gives a
 \Lat\ with the correct sign.\footnote{This function is presently not used. The
   implementation is found in \texttt{ppath\_NotUsed.cc}.}
@@ -828,9 +828,9 @@ coordinates.
 %===================
 \label{sec:ppath:refreuler}
 
-\begin{figure}
+\begin{figure}[tb!]
  \begin{center}
-  \includegraphics*[width=0.80\hsize]{ppath_refr1}
+  \includegraphics*[width=0.70\hsize]{ppath_refr1}
   \caption{Comparison of propagation paths calculated geometrically and 
     with refraction considered, for the same zenith angle of the
     sensor line-of-sight. The figure include two pair of paths, with
@@ -854,7 +854,7 @@ considered. For limb sounding and a fixed zenith angle, the tangent
 point is moved downwards compared to the pure geometrical case
 (Figure \ref{fig:ppath:ppath_refr1}), resulting in that inclusion of
 refraction in general gives higher intensities. However, the
-propagation path is still symmetric around tangent and surface points.
+propagation path is still symmetric around tangent points.
 
 The refraction causes a bending of the path, which gives a deviation
 from the geometrical approximation of propagation along a straight
@@ -869,7 +869,7 @@ path, $n$ the refractive index\footnote{The refractive index is here
 perpendicular to the path. See further Section 9.4 in
 \citet{rodgers:00}.
 
-\begin{figure}
+\begin{figure}[tb!]
  \begin{center}
   \includegraphics*{euler}
   \caption{Schematic of the Euler ray tracing scheme. The ray tracing step 
@@ -882,9 +882,7 @@ The workspace method \wsmindex{ppath\_stepRefractionEuler} takes
 refraction into consideration by probably the most simple (from the
 viewpoint of implementation) algorithm possible. This does not mean
 that it is the best way to consider refraction, it is rather
-inefficient regarding computational burden, and if the step length for
-the ray tracing (see below) is made very small, the result can be
-completely wrong due to numerical problems.
+inefficient regarding computational burden.
 
 The approach taken in \builtindoc{ppath\_stepRefractionEuler} is to
 take a geometrical ray tracing step from the present point of the path
@@ -903,9 +901,7 @@ The length of the calculation steps is set by the generic input
 \shortcode{lraytrace}. This length shall not be confused with the
 final distance between the points that define the path, which is
 controlled by the generic input \shortcode{lmax}. The path is first
-determined in steps of \shortcode{lraytrace}. The found ray tracing
-points are then used for an interpolation to create a path step
-defined exactly as for geometrical calculations. The normal situation
+determined in steps of \shortcode{lraytrace}. The normal situation
 is that the ray tracing step length is considerably shorter than the
 final spacing between the path points. Suitable values for
 \shortcode{lraytrace} have not yet been investigated in detail, but
@@ -919,14 +915,14 @@ calculations.
 \subsection{1D}
 \label{sec:ppath:refr1D}
 %-----------------------
-\begin{figure}
+\begin{figure}[tb!]
   \begin{center}
     \includegraphics*{snell}
     \caption{Geometry to derive Snell's law for a spherical atmosphere. }
     \label{fig:ppath:snell} 
   \end{center} 
 \end{figure}
-\begin{figure}
+\begin{figure}[tb!]
  \begin{center}
   \includegraphics*[width=0.7\hsize]{ppath_N}
   \caption{Vertical variation of refractivity $(n-1)\topowerten{6}$.
@@ -986,7 +982,7 @@ refractive index.
 \subsection{2D}
 \label{sec:ppath:refr2D}
 %-----------------------
-\begin{figure}
+\begin{figure}[tb!]
  \begin{center}
   \includegraphics*[width=0.7\hsize]{ppath_dndr}
   \caption{Vertical gradient of the refractive index.
@@ -998,7 +994,7 @@ refractive index.
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_refraction
 
-\begin{figure}
+\begin{figure}[tb!]
  \begin{center}
   \includegraphics*[width=0.7\hsize]{ppath_dndlat}
   \caption{Latitude gradient of the refractive index due to varying radius 
@@ -1039,19 +1035,18 @@ get the following expression:
   \right]  
   \label{eq:ppath:za2d}
 \end{equation}
-The gradients of the refractive index for 2D are calculated by the
-function \funcindex{refr\_gradients\_2d}. This function returns the
-gradients as the change of the refractive index over 1\,m. The
-conversion for the latitude gradient corresponds to the $1/\Rds$ term
-found in Equation \ref{eq:ppath:za2d}, and this term is accordingly
-left out in \funcindex{raytrace\_2d\_linear\_euler}, which is the
-function of this section. 
+These calculations are handled by \funcindex{raytrace\_2d\_linear\_euler}.
 
-The radial and latitudinal gradients of the refractive index are
-calculated in pure numerical way, by shifting the position slightly
-from the position of concern. Figures \ref{fig:ppath:dndr} and
-\ref{fig:ppath:dndlat} show example on gradients of the refractive
-index.
+The gradients of the refractive index for 2D are calculated by the function
+\funcindex{refr\_gradients\_2d}. The radial and latitudinal gradients of the
+refractive index are calculated in pure numerical way, by shifting the position
+slightly from the position of concern. Figures \ref{fig:ppath:dndr} and
+\ref{fig:ppath:dndlat} show example on gradients of the refractive index. This
+function returns both gradients as the change of the refractive index over
+1\,m. The conversion for the latitude gradient, from rad$^{-1}$ to m$^{-1}$,
+corresponds to the $1/\Rds$ term found in Equation \ref{eq:ppath:za2d}, and
+this term is accordingly left out in \shortcode{raytrace\_2d\_linear\_euler}.
+
 
 
 
