@@ -297,12 +297,15 @@ void abs_lines_per_speciesWriteToSplitArtscat(// WS Input:
        it != abs_lines_per_species.end();
        it++)
   {
-    String species_filename = basename;
-    if (basename.length() && basename[basename.length()-1] != '/')
-      species_filename += ".";
-    
-    species_filename += species_data[(*it)[0].Species()].Name() + ".xml";
-    WriteXML(output_file_format, *it, species_filename, "", "", verbosity);
+    if (it->nelem())
+    {
+      String species_filename = basename;
+      if (basename.length() && basename[basename.length()-1] != '/')
+        species_filename += ".";
+      
+      species_filename += species_data[(*it)[0].Species()].Name() + ".xml";
+      WriteXML(output_file_format, *it, species_filename, "", "", verbosity);
+    }
   }
 }
 
