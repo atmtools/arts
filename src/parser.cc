@@ -1641,7 +1641,10 @@ Index ArtsParser::read_name_or_value(      String&        name,
       extern const ArrayOfString wsv_group_names;
       ostringstream os;
       os << "Unsupported parameter type: " << wsv_group_names[group];
-      throw runtime_error (os.str());
+      throw ParseError (os.str(),
+                        msource.File(),
+                        msource.Line(),
+                        msource.Column());
     }
 
   return wsvid;

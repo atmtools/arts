@@ -822,6 +822,25 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back
+  ( MdRecord
+   ( NAME( "abs_lines_per_speciesWriteToSplitArtscat" ),
+    DESCRIPTION
+    (
+     "Write each species to a separate catalogue file.\n"
+     ),
+    AUTHORS( "Oliver Lemke" ),
+    OUT(),
+    GOUT(),
+    GOUT_TYPE(),
+    GOUT_DESC(),
+    IN( "output_file_format", "abs_lines_per_species" ),
+    GIN(         "basename" ),
+    GIN_TYPE(    "String" ),
+    GIN_DEFAULT( "" ),
+    GIN_DESC(    "Basename of the catalogue." )
+    ));
+  
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "abs_lookupAdapt" ),

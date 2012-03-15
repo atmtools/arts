@@ -1330,7 +1330,7 @@ void plevel_crossing_2d(
         const Numeric&  r3,
         const bool&     above )
 {
-  const Numeric absza = abs( za_start );
+  DEBUG_ONLY( const Numeric absza = abs( za_start ); )
 
   assert( absza <= 180 );
   assert( lat_start >=lat1  &&  lat_start <= lat3 );

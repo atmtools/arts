@@ -119,7 +119,7 @@
 
 //---------------< Global function declarations: >---------------
 // Documentations are with function definitions.
-// FIXME OLE: These should be moved to a separate header file.
+// FIXME: OLE: These should be moved to a separate header file.
 class ArtsOut;
 
 void define_wsv_group_names();  

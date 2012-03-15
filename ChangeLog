@@ -1,3 +1,42 @@
+2012-03-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-29
+
+	* src/methods.cc, src/m_abs.cc
+	(abs_lines_per_speciesWriteToSplitArtscat):
+
+	Add WSM to write a splitted ARTSCAT based on abs_lines_per_species.
+
+	* src/xml_io_array_types.cc (xml_read_from_stream):
+
+	Output some info to out2 about how many lines were actually read from
+	the ARTSCAT. (read vs. total)
+
+	* src/m_abs.cc (abs_linesReadFromArts):
+
+	out2 output moved to xml_read_from_stream because there we have access
+	to the total number of lines in the catalog.
+
+	* src/parser.cc (ArtsParser::read_name_or_value):
+
+	Throw a ParseError instead of plain runtime_error for unsupported
+	parameter types. This way it outputs information about the line number
+	in the controlfile.
+
+	* src/ppath.cc (plevel_crossing_2d):
+
+	Use DEBUG_ONLY macro for definition of absza.
+
+	* src/math_funcs.cc (lgamma_func):
+
+	Remove warning about value being floored to 1 if compiled with
+	Numeric==float as we don't support float anymore.
+
+	* src/arts.h, src/m_abs.cc, src/xml_io_array_types.cc:
+
+	Change my "FIXME OLE:" to "FIXME: OLE:" so they're recognized by
+	Xcode.
+
 2012-03-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-28

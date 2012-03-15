@@ -279,11 +279,31 @@ void abs_linesReadFromArts(// WS Output:
                            const Numeric& fmax,
                            const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  
   xml_read_arts_catalogue_from_file (filename, abs_lines, fmin, fmax, verbosity);
+}
 
-  out2 << "  Read " << abs_lines.nelem() << " lines from " << filename << ".\n";
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesWriteToSplitArtscat(// WS Input:
+                                              const String& output_file_format,
+                                              const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                              // Control Parameters:
+                                              const String& basename,
+                                              const Verbosity& verbosity)
+{
+  extern const Array<SpeciesRecord> species_data;
+  
+  for (ArrayOfArrayOfLineRecord::const_iterator it = abs_lines_per_species.begin();
+       it != abs_lines_per_species.end();
+       it++)
+  {
+    String species_filename = basename;
+    if (basename.length() && basename[basename.length()-1] != '/')
+      species_filename += ".";
+    
+    species_filename += species_data[(*it)[0].Species()].Name() + ".xml";
+    WriteXML(output_file_format, *it, species_filename, "", "", verbosity);
+  }
 }
 
 
@@ -422,7 +442,7 @@ void abs_linesReadFromArtsObsolete(// WS Output:
 }
 
 
-/* FIXME OLE: Do we need this function? */
+/* FIXME: OLE: Do we need this function? */
 void linesElowToJoule(// WS Output:
                       ArrayOfLineRecord& abs_lines )
 {

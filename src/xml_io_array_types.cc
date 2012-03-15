@@ -2113,6 +2113,8 @@ xml_read_from_stream (istream& is_xml,
                       const Numeric fmax,
                       bifstream * pbifs _U_, const Verbosity& verbosity)
 {
+  CREATE_OUT2
+  
   ArtsXMLTag tag(verbosity);
   Index nelem;
 
@@ -2185,6 +2187,8 @@ xml_read_from_stream (istream& is_xml,
     throw runtime_error(os.str());
   }
 
+  out2 << "  Read " << alrecord.nelem() << " out of " << nelem << " lines.\n";
+
   tag.read_from_stream (is_xml);
   tag.check_name ("/ArrayOfLineRecord");
 }
@@ -2236,9 +2240,11 @@ xml_write_to_stream (ostream& os_xml,
       {
         ostringstream os;
         os << "This ArrayOfLineRecords contains a mixture of lines from different\n"
-        << "ARTS catalog versions (ARTSCAT-" << catalog_version << "/"
-        << it->Version() << ").\n"
-        << "Writing them to the same catalog file is unsupported.";
+        << "ARTS catalog versions (writing ARTSCAT-" << catalog_version
+        << ", this LineRecord is ARTSCAT-" << it->Version() << ").\n"
+        << "Writing them to the same catalog file is unsupported."
+        << "The offending LineRecord is: \n" << *it;
+        
         throw runtime_error(os.str());
       }
       os_xml << *it << "\n";
@@ -2347,7 +2353,7 @@ xml_read_from_stream (istream& is_xml _U_,
                       ArrayOfLineshapeSpec& alspec _U_,
                       bifstream * pbifs _U_, const Verbosity&)
 {
-  // FIXME OLE: Implement this.
+  // FIXME: OLE: Implement this.
   throw runtime_error ("Boo. Not yet implemented.");
 }
 
@@ -2367,7 +2373,7 @@ xml_write_to_stream (ostream& os_xml _U_,
                      const Verbosity&)
 
 {
-  // FIXME OLE: Implement this.
+  // FIXME: OLE: Implement this.
   throw runtime_error ("Boo. Not yet implemented.");
 } 
 
