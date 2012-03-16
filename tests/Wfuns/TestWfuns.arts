@@ -132,9 +132,11 @@ MatrixCompare( Ja, Jp, 0.005 )
 #
 ##############################################################################
 
-# Dummy values
+# Stuff needed for HSE
 NumericSet( p_hse, 1000e2 )
 NumericSet( z_hse_accuracy, 1 )
+VectorSet( lat_true, [15] )
+VectorSet( lon_true, [123] )
 
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,

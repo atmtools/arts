@@ -1,5 +1,12 @@
 2012-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-33
+
+	* tests/Wfuns/TestWfuns.arts: Updated according to changes in last
+	commit. 
+
+2012-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-32
 
 	* tests/GroundBased/TestGbased.arts: Added definition of lat_true.
