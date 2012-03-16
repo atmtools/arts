@@ -53,11 +53,14 @@ extern const Numeric RAD2DEG;
 /*! 
    The inverse of *poslos2cart*.
 
-   The azimuth angle is set to: <br> 
-      0 when the zenith angle is 0 or 180.
-      atan2(dy,dx) at the poles (lat = +- 90).
-
-   The longitude is set to 0 at the poles (lat = +- 90).
+   Beside the cartesian coordinates (x,y,z,dx,dy,dz), the function takes as
+   input information about the original position and LOS. The later data are
+   used to improve the accuracy. For example, for zenith and nadir cases it is
+   ensured that the latitude and longitude are not changed. This makes the
+   function slower, but accuarcy is favoured as zenith, nadir, north and south
+   line-of-sights are especially tricky as they can go along a grid box
+   boundary and the smallest rounding error can move the path from one grid box
+   to the neighbouring one.
 
    \param   r     Out: Radius of observation position.
    \param   lat   Out: Latitude of observation position.
@@ -70,6 +73,11 @@ extern const Numeric RAD2DEG;
    \param   dx    x-part of LOS unit vector.
    \param   dy    y-part of LOS unit vector.
    \param   dz    z-part of LOS unit vector.
+   \param   ppc   Propagation path constant (r*sin(za))
+   \param   lat0  Original latitude.
+   \param   lon0  Original longitude.
+   \param   za0   Original zenith angle.
+   \param   aa0   Original azimuth angle.
 
    \author Patrick Eriksson
    \date   2002-12-30
@@ -85,48 +93,106 @@ void cart2poslos(
        const double&   z,
        const double&   dx,
        const double&   dy,
-       const double&   dz )
+       const double&   dz,
+       const double&   ppc,
+       const double&   lat0,
+       const double&   lon0,
+       const double&   za0,
+       const double&   aa0 )
 {
-  // Assert that LOS vector is normalised
-  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
+  r   = sqrt( x*x + y*y + z*z );
 
-  // Spherical coordinates
-  cart2sph( r, lat, lon, x, y, z );
-
-  // Spherical derivatives
-  const double   coslat = cos( DEG2RAD * lat );
-  const double   sinlat = sin( DEG2RAD * lat );
-  const double   coslon = cos( DEG2RAD * lon );
-  const double   sinlon = sin( DEG2RAD * lon );
-  const double   dr   = coslat*coslon*dx    + coslat*sinlon*dy   + sinlat*dz;
-  const double   dlat = -sinlat*coslon/r*dx - sinlat*sinlon/r*dy + coslat/r*dz;
-  const double   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dy;
-
-  // LOS angles
-  za = RAD2DEG * acos( dr );
-  //
-  if( za < ANGTOL  ||  za > 180-ANGTOL  )
-    { aa = 0; }
-
-  else if( abs( lat ) <= POLELAT )
-    {
-      aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
-
-      if( isnan( aa ) )
-        {
-          if( dlat >= 0 )
-            { aa = 0; }
-          else
-            { aa = 180; }
-        }
-      else if( dlon < 0 )
-        { aa = -aa; }
+  // Zenith and nadir cases
+  if( za0 < ANGTOL  ||  za0 > 180-ANGTOL  )
+    { 
+      lat = lat0;
+      lon = lon0;
+      za  = za0; 
+      aa  = aa0; 
     }
 
-  // For lat = +- 90 the azimuth angle gives the longitude along which the
-  // LOS goes
   else
-    { aa = RAD2DEG * atan2( dy, dx ); }
+    {
+      lat = RAD2DEG * asin( z / r );
+      lon = RAD2DEG * atan2( y, x );
+
+      bool ns_case = false;
+      bool lon_flip = false;
+
+      // Make sure that lon is maintained for N-S cases (if not 
+      // starting on a pole)
+      if( ( abs(aa0) < ANGTOL  ||  abs(180-aa0) < ANGTOL )  && 
+                                             abs( lat0 ) <= POLELAT )
+        {
+          ns_case = true;
+          // Check that not lon changed with 180 deg
+          if( abs(lon-lon0) < 1 )
+            { lon = lon0; }
+          else
+            {
+              lon_flip = true;
+              if( lon0 > 0 )
+                { lon = lon0 - 180; }
+              else
+                { lon = lon0 + 180; }
+            }
+        }
+
+      const double   coslat = cos( DEG2RAD * lat );
+      const double   sinlat = sin( DEG2RAD * lat );
+      const double   coslon = cos( DEG2RAD * lon );
+      const double   sinlon = sin( DEG2RAD * lon );
+      const double   dr     = coslat*coslon*dx + coslat*sinlon*dy + sinlat*dz;
+
+      // Use ppc for max accuracy, but dr required to resolve if up- 
+      // and downward cases
+      za = RAD2DEG * asin( ppc / r );
+      if( isnan( za ) )
+        { za = 90; }
+      if( dr < 0 )
+        { za = 180.0 - za; }
+      //cout << za << " " << za - RAD2DEG*acos(dr) << endl;
+      // The difference below can at least be 3e-6 for tangent points 
+      assert( abs( za - RAD2DEG*acos(dr) ) < 1e-4 );
+
+      // For lat = +- 90 the azimuth angle gives the longitude along which 
+      // the LOS goes
+      if( abs( lat ) >= POLELAT )      
+        { aa = RAD2DEG * atan2( dy, dx ); }
+
+      // N-S cases, not starting at a pole
+      else if( ns_case )
+        { 
+          if( !lon_flip )
+            { aa = aa0; }
+          else
+            {
+              if( abs(aa0) < ANGTOL )
+                { aa = 180; }
+              else
+                { aa = 0; }
+            }
+        }
+
+      else
+        {
+          const double   dlat = -sinlat*coslon/r*dx - sinlat*sinlon/r*dy + 
+                                                             coslat/r*dz;
+          const double   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dy;
+
+          aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
+
+          if( isnan( aa ) )
+            {
+              if( dlat >= 0 )
+                { aa = 0; }
+              else
+                { aa = 180; }
+            }
+          else if( dlon < 0 )
+            { aa = -aa; }
+        }
+    }
 }
 
 
@@ -135,27 +201,65 @@ void cart2poslos(
 /*! 
    The inverse of *sph2cart*.
 
+   For definition of lat0, lon0, za0 and aa0, see *cart2poslos*.
+
    \param   r     Out: Radius of observation position.
    \param   lat   Out: Latitude of observation position.
    \param   lon   Out: Longitude of observation position.
    \param   x     x-coordinate of observation position.
    \param   y     y-coordinate of observation position.
    \param   z     z-coordinate of observation position.
+   \param   lat0  Original latitude.
+   \param   lon0  Original longitude.
+   \param   za0   Original zenith angle.
+   \param   aa0   Original azimuth angle.
 
    \author Patrick Eriksson
    \date   2002-12-30
 */
 void cart2sph(
-             double&    r,
-             double&    lat,
-             double&    lon,
-       const double&    x,
-       const double&    y,
-       const double&    z )
+             double&   r,
+             double&   lat,
+             double&   lon,
+       const double&   x,
+       const double&   y,
+       const double&   z,
+       const double&   lat0,
+       const double&   lon0,
+       const double&   za0,
+       const double&   aa0 )
 {
   r   = sqrt( x*x + y*y + z*z );
-  lat = RAD2DEG * asin( z / r );
-  lon = RAD2DEG * atan2( y, x ); 
+
+  // Zenith and nadir cases
+  if( za0 < ANGTOL  ||  za0 > 180-ANGTOL  )
+    { 
+      lat = lat0;
+      lon = lon0;
+    }
+
+  else
+    {
+      lat = RAD2DEG * asin( z / r );
+      lon = RAD2DEG * atan2( y, x );
+
+      // Make sure that lon is maintained for N-S cases (if not 
+      // starting on a pole)
+      if( ( abs(aa0) < ANGTOL  ||  abs(180-aa0) < ANGTOL )  && 
+                                             abs( lat0 ) <= POLELAT )
+        {
+          // Check that not lon changed with 180 deg
+          if( abs(lon-lon0) < 1 )
+            { lon = lon0; }
+          else
+            {
+              if( lon0 > 0 )
+                { lon = lon0 - 180; }
+              else
+                { lon = lon0 + 180; }
+            }
+        }
+    }
 }
 
 
@@ -201,7 +305,8 @@ void geompath_tanpos_3d(
 
   l_tan = sqrt( r*r - ppc*ppc );
 
-  cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
+  cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan,
+            lat, lon, za, aa );
 }
 
 

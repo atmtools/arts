@@ -50,15 +50,24 @@ void cart2poslos(
        const double&   z,
        const double&   dx,
        const double&   dy,
-       const double&   dz );
+       const double&   dz,
+       const double&   ppc,
+       const double&   lat0,
+       const double&   lon0,
+       const double&   za0,
+       const double&   aa0 );
 
 void cart2sph(
-             double&    r,
-             double&    lat,
-             double&    lon,
-       const double&    x,
-       const double&    y,
-       const double&    z );
+             double&   r,
+             double&   lat,
+             double&   lon,
+       const double&   x,
+       const double&   y,
+       const double&   z,
+       const double&   lat0,
+       const double&   lon0,
+       const double&   za0,
+       const double&   aa0 );
 
 void geompath_tanpos_3d( 
              double&    r_tan,

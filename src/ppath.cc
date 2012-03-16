@@ -893,8 +893,8 @@ Numeric plevel_slope_3d(
 
   // Calculate radius of the pressure level at the lat/lon, the distance
   // *l* away.
-  Numeric   r2, lat2, lon2, za2, aa2;
-  cart2poslos( r2, lat2, lon2, za2, aa2, x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
+  Numeric   r2, lat2, lon2;
+  cart2sph( r2, lat2, lon2, x+dx*l, y+dy*l, z+dz*l, lat, lon, 90, aa );
   resolve_lon( lon2, lon5, lon6 );              
   r2 = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15, r35, r36, r16, lat2,lon2);
 
@@ -1330,7 +1330,7 @@ void plevel_crossing_2d(
         const Numeric&  r3,
         const bool&     above )
 {
-  DEBUG_ONLY( const Numeric absza = abs( za_start ); )
+  const Numeric absza = abs( za_start );
 
   assert( absza <= 180 );
   assert( lat_start >=lat1  &&  lat_start <= lat3 );
@@ -1400,7 +1400,7 @@ void plevel_crossing_2d(
             { if( r > rpl ) { r = rpl; } }
 
           // za_start = 0
-          if( abs(za_start) < ANGTOL )
+          if( absza < ANGTOL )
             {
               if( r >= rpl )
                 { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
@@ -1409,7 +1409,7 @@ void plevel_crossing_2d(
             }
 
           // za_start = 180
-          else if( abs(za_start) > 180-ANGTOL )
+          else if( absza > 180-ANGTOL )
             {
               if( r <= rpl )
                 { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
@@ -2315,7 +2315,7 @@ void ppath_end_3d(
       // The longitude  is undefined at the poles. The grid index is set to
       // the start point.
       //
-      if( abs( lat_v[i] ) < 90 )
+      if( abs( lat_v[i] ) < POLELAT )
         {
           ppath.gp_lon[i].idx   = ilon;
           ppath.gp_lon[i].fd[0] = ( lon_v[i] - lon5 ) / dlon;
@@ -2937,8 +2937,8 @@ void do_gridcell_3d_byltest(
   // Assert latitude and longitude
   assert( lat_start >= lat1 - LATLONTOL );
   assert( lat_start <= lat3 + LATLONTOL );
-  assert( !( abs( lat_start) < 90  &&  lon_start < lon5 - LATLONTOL ) );
-  assert( !( abs( lat_start) < 90  &&  lon_start > lon6 + LATLONTOL ) );
+  assert( !( abs( lat_start) < POLELAT  &&  lon_start < lon5 - LATLONTOL ) );
+  assert( !( abs( lat_start) < POLELAT  &&  lon_start > lon6 + LATLONTOL ) );
 
   // Shift latitude and longitude if outside
   if( lat_start < lat1 )
@@ -3019,7 +3019,8 @@ void do_gridcell_3d_byltest(
       //
       Numeric   r_corr, lat_corr, lon_corr;
       //
-      cart2sph( r_corr, lat_corr, lon_corr, x, y, z );
+      cart2sph( r_corr, lat_corr, lon_corr, x, y, z, lat_start, lon_start,
+                                                     za_start,  aa_start );
       //
       r_corr   -= r_start;
       lat_corr -= lat_start;
@@ -3038,7 +3039,6 @@ void do_gridcell_3d_byltest(
       //
       Numeric   l_in   = 0, l_out = l_end;
       bool      ready  = false, startup = true;
-      Numeric   abs_aa = abs( aa_start );
 
       Numeric   l_tan = 99e6;
       if( za_start > 90 )
@@ -3052,28 +3052,17 @@ void do_gridcell_3d_byltest(
       while( !ready )
         {
           cart2sph( r_end, lat_end, lon_end, x+dx*l_end, y+dy*l_end, 
-                                                         z+dz*l_end );
+                    z+dz*l_end, lat_start, lon_start, za_start,  aa_start );
           r_end   -= r_corr;
           lat_end -= lat_corr;
           lon_end -= lon_corr;
           resolve_lon( lon_end, lon5, lon6 );              
 
-          // Special fixes for north-south observations
-          if( abs( lat_start ) < 90  &&  ( abs(aa_start) < ANGTOL  ||  
-                                           abs(aa_start) > 180-ANGTOL ) )
+          // Special fix for north-south observations
+          if( abs( lat_start ) < POLELAT  &&  abs( lat_end ) < POLELAT  &&
+             ( abs(aa_start) < ANGTOL  ||  abs(aa_start) > 180-ANGTOL ) )
             { lon_end = lon_start; }
           
-          // Special fixes for west-east observations
-          if( abs( abs_aa - 90 ) < ANGTOL )
-            {
-              if( lat_start == 0 )
-                { lat_end = 0; }
-              else if( lat_start > 0  &&  lat_end > lat_start )
-                { lat_end = lat_start; }
-              else if( lat_start < 0  &&  lat_end < lat_start )
-                { lat_end = lat_start; }
-            }
-
           bool   inside = true;
 
           rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -3208,9 +3197,9 @@ void do_gridcell_3d_byltest(
   for( Index j=1; j<=n; j++ )
     {
       const Numeric   l  = ldouble * (Numeric)j;
-
-      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
-                                          x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
+      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j], x+dx*l, 
+                   y+dy*l, z+dz*l, dx, dy, dz, ppc, lat_start, lon_start,
+                   za_start, aa_start );
    }
 
   //--- Set last point especially, which should improve the accuracy
@@ -3218,22 +3207,9 @@ void do_gridcell_3d_byltest(
   lat_v[n] = lat_end;
   lon_v[n] = lon_end;
 
-  //--- Set last zenith angle to be as accurate as possible
-  if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
-    { za_v[n] = za_start; }
-  else if( endface == 8 )  // A tangent point
+  // A tangent point?
+  if( endface == 8 ) 
     { za_v[n] = 90; }
-  else
-    { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
-
-  //--- Set last azimuth angle to be as accurate as possible for
-  //    zenith and nadir observations
-  if( abs( lat_start ) < 90  &&  
-          ( abs(aa_start) < ANGTOL  ||  abs( aa_start) > 180-ANGTOL ) )
-    {  
-      aa_v[n]  = aa_start; 
-      lon_v[n] = lon_start;
-    }
 
   // Shall lon values be shifted (value 0 and n+1 are already OK)?
   for( Index j=1; j<n; j++ )
@@ -3757,10 +3733,10 @@ void raytrace_2d_linear_euler(
                            vmr_field, r, lat );
 
       // Calculate LOS zenith angle at found point.
+      const Numeric   za_rad = DEG2RAD * za;
       //
       za += - dlat;   // Pure geometrical effect
       //
-      const Numeric   za_rad = DEG2RAD * za;
       za += (RAD2DEG * lstep / refr_index) * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
 
@@ -4039,47 +4015,19 @@ void raytrace_3d_linear_euler(
       else
         {
           // Sensor pos and LOS in cartesian coordinates
-          Numeric   x, y, z, dx, dy, dz, lon_new;
+          Numeric   x, y, z, dx, dy, dz, lat_new, lon_new;
           //
           poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa ); 
           lstep = lraytrace;
-          cart2poslos( r, lat, lon_new, za_new, aa_new, 
-                              x+dx*lstep, y+dy*lstep, z+dz*lstep, dx, dy, dz );
+          cart2poslos( r, lat_new, lon_new, za_new, aa_new, x+dx*lstep, 
+                       y+dy*lstep, z+dz*lstep, dx, dy, dz, ppc_step,
+                       lat, lon, za, aa );
           lcum += lstep;
-
-          // For paths along some end face we can end up outside the
-          // grid cell. We simply look for points outisde the grid cell.
-          if( lat < lat1 )
-            { lat = lat1; }
-          else if( lat > lat3 )
-            { lat = lat3; }
-          if( lon_new < lon5 )
-            { lon_new = lon5; }
-          else if( lon_new > lon6 )
-            { lon_new = lon6; }
-
-          // Checks to improve the accuracy for speciel cases.
-          // The checks are only needed for values cacluated locally as
-          // the same checks are made inside *do_gridcell_3d*.
-
-          //--- Set zenith angle to be as accurate as possible
-          if( za < ANGTOL  ||  za > 180-ANGTOL )
-            { za_new = za; }
-          else
-            { za_new = geompath_za_at_r( ppc_step, za, r ); }
-
-          //--- Set azimuth angle and lon. to be as accurate as possible for
-          //    north-south observations
-          if( abs( lat ) < 90  &&  
-                     ( abs(aa) < ANGTOL  ||  abs( aa ) > 180-ANGTOL ) )
-            { 
-              aa_new  = aa; 
-              lon_new = lon;
-            }
 
           // Shall lon values be shifted?
           resolve_lon( lon_new, lon5, lon6 );
-          //
+
+          lat = lat_new;
           lon = lon_new;
         }
 
@@ -4988,15 +4936,16 @@ void ppath_start_stepping(
                   lt = geompath_l_at_r( ppath.constant, r_p ) -
                        geompath_l_at_r( ppath.constant, rt );
                   cart2poslos( ppath.r[0], ppath.pos(0,1), ppath.pos(0,2),
-                                           ppath.los(0,0), ppath.los(0,1),
-                               x+dx*lt, y+dy*lt, z+dz*lt, dx, dy, dz );
+                               ppath.los(0,0), ppath.los(0,1),x+dx*lt, y+dy*lt,
+                               z+dz*lt, dx, dy, dz, ppath.constant, rte_pos[1],
+                               rte_pos[2], rte_los[0], rte_los[1] );
                   assert( abs( ppath.r[0] -rt ) < RTOL );
                   resolve_lon( ppath.pos(0,2), lon_grid[0], lon_grid[llon] ); 
                   //
                   ppath.pos(0,0) = interp( itwt, z_field(lp,joker,joker), 
                                                             gp_latt, gp_lont );
                   ppath.lspace = lt;
-                  
+
                   // Here we know the pressure grid position exactly
                   ppath.gp_p[0].idx   = lp-1; 
                   ppath.gp_p[0].fd[0] = 1;

@@ -946,6 +946,9 @@ void mcPathTraceIPA(Workspace&            ws,
   pnd_vecArray[1]=pnd_vec;
   //draw random number to determine end point
   Numeric r = rng.draw();
+  //
+  Numeric ppc, lat0, lon0, za0, aa0;
+  //
   while ((evol_op(0,0)>r)&(!termination_flag))
     {
       //check we are not in an infinite loop (assert for ease of debugging
@@ -982,13 +985,18 @@ void mcPathTraceIPA(Workspace&            ws,
       //current position and direction vector
       poslos2cart( x, y, z, dx, dy, dz, rte_pos[0], rte_pos[1], rte_pos[2], 
                    rte_los[0], rte_los[1] );
+      lat0 = rte_pos[1];
+      lon0 = rte_pos[2];
+      za0  = rte_los[0];
+      aa0  = rte_los[1];
+      ppc  = rte_pos[0]*sin(DEG2RAD*rte_los[0]);
       //new_position
       x+=lstep*dx;
       y+=lstep*dy;
       z+=lstep*dz;
       //back to spherical coords
       cart2poslos(rte_pos[0],rte_pos[1],rte_pos[2],rte_los[0],rte_los[1],
-                  x,y,z,dx,dy,dz);
+                  x,y,z,dx,dy,dz,ppc,lat0,lon0,za0,aa0);
       //get new grid_positions
       gridpos( gp_lat, lat_grid, rte_pos[1] );
       gridpos( gp_lon, lon_grid, rte_pos[2] );
@@ -1157,7 +1165,8 @@ void mcPathTraceIPA(Workspace&            ws,
       y+=(ds-lstep)*dy;
       z+=(ds-lstep)*dz;
       //and convert back to spherical.
-      cart2poslos(rte_pos[0],rte_pos[1],rte_pos[2],rte_los[0],rte_los[1],x,y,z,dx,dy,dz); 
+      cart2poslos(rte_pos[0],rte_pos[1],rte_pos[2],rte_los[0],rte_los[1],
+                  x,y,z,dx,dy,dz,ppc,lat0,lon0,za0,aa0); 
     }
 
   // Go back to altitude in rte_pos

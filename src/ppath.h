@@ -89,7 +89,7 @@ const Numeric   POLELAT = 90-1e-8;
 
 // This variable defines how much zenith and azimuth angles can
 // deviate from 0, 90 and 180 degrees, but still be treated to be 0,
-// 90 or 180.  For example, an azimuth angle of 180-ANGTOL/2 will
+// 90 or 180.  For example, an azimuth angle of 180-0.999*ANGTOL will
 // be treated as a strictly southward observation.  However, the
 // angles are not allowed to go outside their defined range.  This
 // means, for example, that values above 180 are never allowed.

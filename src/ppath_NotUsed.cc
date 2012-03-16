@@ -1,3 +1,113 @@
+//! cart2poslos
+/*! 
+   The inverse of *poslos2cart*.
+
+   The azimuth angle is set to: <br> 
+      0 when the zenith angle is 0 or 180.
+      atan2(dy,dx) at the poles (lat = +- 90).
+
+   The longitude is set to 0 at the poles (lat = +- 90).
+
+   \param   r     Out: Radius of observation position.
+   \param   lat   Out: Latitude of observation position.
+   \param   lon   Out: Longitude of observation position.
+   \param   za    Out: LOS zenith angle at observation position.
+   \param   aa    Out: LOS azimuth angle at observation position.
+   \param   x     x-coordinate of observation position.
+   \param   y     y-coordinate of observation position.
+   \param   z     z-coordinate of observation position.
+   \param   dx    x-part of LOS unit vector.
+   \param   dy    y-part of LOS unit vector.
+   \param   dz    z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void cart2poslos(
+             double&   r,
+             double&   lat,
+             double&   lon,
+             double&   za,
+             double&   aa,
+       const double&   x,
+       const double&   y,
+       const double&   z,
+       const double&   dx,
+       const double&   dy,
+       const double&   dz )
+{
+  // Assert that LOS vector is normalised
+  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
+
+  // Spherical coordinates
+  cart2sph( r, lat, lon, x, y, z );
+
+  // Spherical derivatives
+  const double   coslat = cos( DEG2RAD * lat );
+  const double   sinlat = sin( DEG2RAD * lat );
+  const double   coslon = cos( DEG2RAD * lon );
+  const double   sinlon = sin( DEG2RAD * lon );
+  const double   dr   = coslat*coslon*dx    + coslat*sinlon*dy   + sinlat*dz;
+  const double   dlat = -sinlat*coslon/r*dx - sinlat*sinlon/r*dy + coslat/r*dz;
+  const double   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dy;
+
+  // LOS angles
+  za = RAD2DEG * acos( dr );
+  //
+  if( za < ANGTOL  ||  za > 180-ANGTOL  )
+    { aa = 0; }
+
+  else if( abs( lat ) <= POLELAT )
+    {
+      aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
+
+      if( isnan( aa ) )
+        {
+          if( dlat >= 0 )
+            { aa = 0; }
+          else
+            { aa = 180; }
+        }
+      else if( dlon < 0 )
+        { aa = -aa; }
+    }
+
+  // For lat = +- 90 the azimuth angle gives the longitude along which the
+  // LOS goes
+  else
+    { aa = RAD2DEG * atan2( dy, dx ); }
+}
+
+
+//! cart2sph
+/*! 
+   The inverse of *sph2cart*.
+
+   \param   r     Out: Radius of observation position.
+   \param   lat   Out: Latitude of observation position.
+   \param   lon   Out: Longitude of observation position.
+   \param   x     x-coordinate of observation position.
+   \param   y     y-coordinate of observation position.
+   \param   z     z-coordinate of observation position.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void cart2sph(
+             double&    r,
+             double&    lat,
+             double&    lon,
+       const double&    x,
+       const double&    y,
+       const double&    z )
+{
+  r   = sqrt( x*x + y*y + z*z );
+  lat = RAD2DEG * asin( z / r );
+  lon = RAD2DEG * atan2( y, x ); 
+}
+
+
+
 //! za_geom2other_point
 /*!
    Calculates the zenith angle for the geometrical propagation path between
