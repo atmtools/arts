@@ -50,45 +50,11 @@
 
 
 extern const Numeric DEG2RAD;
-extern const Numeric EARTH_RADIUS;
-
-
-// Ref. 1:
-// Seidelmann, P. Kenneth; Archinal, B. A.; A'hearn, M. F. et al (2007).
-// "Report of the IAU/IAG Working Group on cartographic coordinates and
-// rotational elements: 2006". Celestial Mechanics and Dynamical Astronomy 98
-// (3): 155–180. Bibcode 2007CeMDA..98..155S. doi:10.1007/s10569-007-9072-y
 
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidEarth(            
-         Vector&    refellipsoid,
-   const String&    model,
-   const Verbosity& )
-{
-  refellipsoid.resize(2);
-
-  if( model == "Sphere" )
-    {
-      refellipsoid[0] = EARTH_RADIUS;
-      refellipsoid[1] = 0;
-    }
-
-  else if( model == "WGS84" )
-    { // Values taken from atmlab's ellipsoidmodels.m
-      refellipsoid[0] = 6378137; 
-      refellipsoid[1] = 0.081819190842621;
-    }
-
-  else
-    throw runtime_error( "Unknown selection for input argument *model*." );
-}
-
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidForAzimuth( 
@@ -115,87 +81,6 @@ void refellipsoidForAzimuth(
       refellipsoid[1] = 0;
     }
 }
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidJupiter(            
-         Vector&    refellipsoid,
-   const String&    model,
-   const Verbosity& )
-{
-  refellipsoid.resize(2);
-
-  if( model == "Sphere" )
-    { 
-      refellipsoid[0] = 69911e3;   // From Ref. 1 (see above)
-      refellipsoid[1] = 0;
-    }
-
-  else if( model == "Ellipsoid" )
-    {
-      refellipsoid[0] = 71492e3;   // From Ref. 1
-      refellipsoid[1] = 0.3543;    // Based on Ref. 1
-    }
-
-  else
-    throw runtime_error( "Unknown selection for input argument *model*." );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidMars(            
-         Vector&    refellipsoid,
-   const String&    model,
-   const Verbosity& )
-{
-  refellipsoid.resize(2);
-
-  if( model == "Sphere" )
-    { 
-      refellipsoid[0] = 3389.5e3;   // From Ref. 1 (see above)
-      refellipsoid[1] = 0;
-    }
-
-  else if( model == "Ellipsoid" )
-    {
-      refellipsoid[0] = 3396.19e3;   // From Ref. 1
-      refellipsoid[1] = 0.1083;      // Based on Ref. 1
-    }
-
-  else
-    throw runtime_error( "Unknown selection for input argument *model*." );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidMoon(            
-         Vector&    refellipsoid,
-   const String&    model,
-   const Verbosity& )
-{
-  refellipsoid.resize(2);
-
-  if( model == "Sphere" )
-    { 
-      refellipsoid[0] = 1737.4e3;  // From Ref. 1 (see above)
-      refellipsoid[1] = 0;
-    }
-
-  else if( model == "Ellipsoid" )
-    { // Values taken from Wikipedia, with reference to:
-      // Williams, Dr. David R. (2 February 2006). "Moon Fact Sheet". 
-      // NASA (National Space Science Data Center). Retrieved 31 December 2008.
-      refellipsoid[0] = 1738.14e3; 
-      refellipsoid[1] = 0.0500;
-    }
-
-  else
-    throw runtime_error( "Unknown selection for input argument *model*." );
-}
-
 
 
 
@@ -229,26 +114,6 @@ void refellipsoidSet(
 
   refellipsoid[0] = re;
   refellipsoid[1] = e;
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidVenus(            
-         Vector&    refellipsoid,
-   const String&    model,
-   const Verbosity& )
-{
-  refellipsoid.resize(2);
-
-  if( model == "Sphere" )
-    { 
-      refellipsoid[0] = 6051.8e3;   // From Ref. 1 (see above)
-      refellipsoid[1] = 0;
-    }
-
-  else
-    throw runtime_error( "Unknown selection for input argument *model*." );
 }
 
 

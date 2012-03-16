@@ -184,6 +184,7 @@ add_library (artscore STATIC
   m_montecarlo.cc
   m_optproperties.cc
   m_physics.cc
+  m_planets.cc
   m_ppath.cc
   m_refraction.cc
   m_rte.cc

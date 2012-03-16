@@ -1560,6 +1560,27 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
     (WsvRecord
+     (NAME( "g0" ),
+      DESCRIPTION
+      (
+       "Gravity at zero altitude.\n"
+       "\n"
+       "This variable is \"little g\" at the reference ellipsiod. That is,\n"
+       "for Earth this is a value around 9.81 m/s2\n"
+       ),
+      GROUP( "Numeric" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "g0_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+    (WsvRecord
      (NAME( "imblock" ),
       DESCRIPTION
       (
@@ -1839,6 +1860,17 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "lat" ),
+      DESCRIPTION
+      (
+       "A latitude.\n"
+       "\n"
+       "Unit:  degrees\n"
+       ),
+      GROUP( "Numeric" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "lat_grid" ),
@@ -1850,15 +1882,12 @@ void Workspace::define_wsv_data()
        "atmosphere is undefined outside the range covered by the grid.\n"
        "The grid must be sorted in increasing order, with no repetitions.\n"
        "\n"
-       "Geocentric latitudes shall be used.\n"
+       "Geocentric latitudes are used.\n"
        "\n"
-       "For 1D calculations this vector can is some cases be set to be empty.\n"
-       "Some methods are requiring a latitude even for 1D and the latitude\n"
-       "is then taken from this vector. That is, for 1D the length can either\n"
-       "be 0 or 1.\n"
+       "For 1D calculations this vector shall be set to be empty.\n"
        "\n"
        "For 2D cases the latitudes shall be interpreted as the angular\n"
-       "distance inside the orbit plane from an arbitrary zero point (values\n"
+       "distance inside the orbit plane from the equator (values\n"
        "outside +-90 deg are allowed).\n"
        "\n"
        "For 3D, the valid latitude range is [-90,90].\n"
@@ -1873,6 +1902,23 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "lat_true" ),
+      DESCRIPTION
+      (
+       "Latitudinal geolocation for 1D and 2D data.\n"
+       "\n"
+       "The \"true\" latitude is not specified by *lat_grid* for 1D and 2D\n"
+       "and this WSV gives that information. For 1D *lat_true* shall be left\n"
+       "emmpty, or have length 1. For 2D, the allowed cases are empty or set\n"
+       "to have the same length as *lat_grid*.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  degrees\n"
+       ),
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1911,6 +1957,17 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "lon" ),
+      DESCRIPTION
+      (
+       "A longitude.\n"
+       "\n"
+       "Unit:  degrees\n"
+       ),
+      GROUP( "Numeric" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "lon_grid" ),
       DESCRIPTION
       (
@@ -1920,15 +1977,31 @@ void Workspace::define_wsv_data()
        "atmosphere is undefined outside the range covered by the grid.\n"
        "The grid must be sorted in increasing order, with no repetitions.\n"
        "\n"
-       "For 1D and 2D, some methods could expect this vector to have\n"
-       "length 1, and holding a longitude representing the case. Otherwise\n"
-       "the length can be 0. That is, works as *lat_grid* for 1D.\n"
+       "For 1D and 2D, this WSV shall be set to be empty.\n"
        "\n"
        "Allowed values for longitudes is the range [-360,360].\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  degrees\n"
+       ),
+      GROUP( "Vector" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "lon_true" ),
+      DESCRIPTION
+      (
+       "Longitudinal geolocation for 1D and 2D data.\n"
+       "\n"
+       "The \"true\" longitude is not specified by *lon_grid* for 1D and 2D\n"
+       "and this WSV gives that information. For 1D *lon_true* shall be left\n"
+       "emmpty, or have length 1. For 2D, the allowed cases are empty or set\n"
+       "to have the same length as *lat_grid*.\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"

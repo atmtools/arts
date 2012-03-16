@@ -1389,6 +1389,8 @@ void jacobianCalcTemperaturePerturbations(
   const Vector&                     p_grid,
   const Vector&                     lat_grid,
   const Vector&                     lon_grid,
+  const Vector&                     lat_true,
+  const Vector&                     lon_true,
   const Tensor3&                    t_field,
   const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
@@ -1406,6 +1408,7 @@ void jacobianCalcTemperaturePerturbations(
   const Sparse&                     sensor_response,
   const Agenda&                     iy_clearsky_agenda,
   const String&                     y_unit,
+  const Agenda&                     g0_agenda,
   const Numeric&                    p_hse,
   const Numeric&                    z_hse_accuracy,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -1543,10 +1546,10 @@ void jacobianCalcTemperaturePerturbations(
               // Apply HSE, if selected
               if( rq.Subtag() == "HSE on" )
                 {
-                  z_fieldFromHSE( z, atmosphere_dim, p_grid, lat_grid, 
-                                  lon_grid, abs_species, t_p, vmr_field, 
-                                  refellipsoid, z_surface, 1,
-                                  p_hse, z_hse_accuracy, verbosity);
+                  z_fieldFromHSE( ws,z, atmosphere_dim, p_grid, lat_grid, 
+                                  lon_grid, lat_true, lon_true, abs_species, 
+                                  t_p, vmr_field, refellipsoid, z_surface, 1,
+                                  g0_agenda, p_hse, z_hse_accuracy, verbosity );
                 }
        
               // Calculate the perturbed spectrum  

@@ -4160,6 +4160,27 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "g0Earth" ),
+        DESCRIPTION
+        (
+         "Gravity at zero altitude on Earth.\n"
+         "\n"
+         "Sets *g0* for the given latitude using a standard parameterisation.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "g0" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "lat" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "Massdensity_cleanup" ),
@@ -5211,12 +5232,13 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian",
             "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "t_field", "z_field", "vmr_field", "abs_species",
-            "refellipsoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid", 
-            "sensor_pos", "sensor_los", "mblock_za_grid", "mblock_aa_grid", 
-            "antenna_dim", "sensor_response", "iy_clearsky_agenda", "y_unit", 
-            "p_hse", "z_hse_accuracy", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "lon_grid", "lat_true", "lon_true", "t_field", "z_field", 
+            "vmr_field", "abs_species", "refellipsoid", "z_surface", 
+            "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
+            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_response", "iy_clearsky_agenda", "y_unit", "g0_agenda", 
+            "p_hse", "z_hse_accuracy", "jacobian_quantities", 
+            "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9667,9 +9689,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species", 
-            "t_field", "z_field", "vmr_field", "refellipsoid", "z_surface",
-            "basics_checked", "p_hse", "z_hse_accuracy" ),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "lat_true", 
+            "lon_true", "abs_species", "t_field", "z_field", "vmr_field", 
+            "refellipsoid", "z_surface", "basics_checked", "g0_agenda",
+            "p_hse", "z_hse_accuracy" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

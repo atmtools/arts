@@ -45,6 +45,7 @@
 #include <algorithm>
 #include "agenda_class.h"
 #include "arts.h"
+#include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
 #include "matpackIII.h"
@@ -1757,6 +1758,8 @@ void InterpAtmFieldToRteGps(Numeric&   outvalue,
   out3 << "    Result = " << outvalue << "\n";
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void p_gridFromAtmRaw(//WS Output
                       Vector& p_grid,
@@ -1786,20 +1789,25 @@ void z2g(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void z_fieldFromHSE(Tensor3&        z_field,
-                    const Index&    atmosphere_dim,
-                    const Vector&   p_grid,
-                    const Vector&   lat_grid,
-                    const Vector&   lon_grid,
-                    const ArrayOfArrayOfSpeciesTag&   abs_species,
-                    const Tensor3&  t_field,
-                    const Tensor4&  vmr_field,
-                    const Vector&   refellipsoid,
-                    const Matrix&   z_surface,
-                    const Index&    basics_checked,
-                    const Numeric&  p_hse,
-                    const Numeric&  z_hse_accuracy,
-                    const Verbosity&)
+void z_fieldFromHSE(
+         Workspace&   ws,
+         Tensor3&     z_field,
+   const Index&       atmosphere_dim,
+   const Vector&      p_grid,
+   const Vector&      lat_grid,
+   const Vector&      lon_grid,
+   const Vector&      lat_true,
+   const Vector&      lon_true,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Tensor3&     t_field,
+   const Tensor4&     vmr_field,
+   const Vector&      refellipsoid,
+   const Matrix&      z_surface,
+   const Index&       basics_checked,
+   const Agenda&      g0_agenda,
+   const Numeric&     p_hse,
+   const Numeric&     z_hse_accuracy,
+   const Verbosity&)
 {
   // Some general variables
   const Index np   = p_grid.nelem();
@@ -1815,9 +1823,15 @@ void z_fieldFromHSE(Tensor3&        z_field,
     throw runtime_error( "The atmosphere must be flagged to have passed a "
                          "consistency check (basics_checked=1)." );
   //
-  if( atmosphere_dim == 1  &&  lat_grid.nelem() != 1 )
-    { throw runtime_error(
-                "The method requires that, for 1D, *lat_grid* has length 1." );
+  if( atmosphere_dim == 1  &&  ( lat_true.nelem()!=1 || lon_true.nelem()!=1 ) )
+    { throw runtime_error( "For 1D, the method requires that *lat_true* and "
+                           "*lon_true* have length 1." );
+    }
+  //
+  if( atmosphere_dim == 2  &&  ( lat_true.nelem() != nlat || 
+                                 lon_true.nelem() != nlat ) )
+    { throw runtime_error( "For 2D, the method requires that *lat_true* and "
+                           "*lon_true* have the same length as *lat_grid*." );
     }
   //
   if( firstH2O < 0 )
@@ -1844,22 +1858,35 @@ void z_fieldFromHSE(Tensor3&        z_field,
   p2gridpos( gp, p_grid, Vector(1,p_hse) );
   interpweights ( itw, gp );
   
+  // Set-up lat and grids to apply
+  Vector latgr, longr;
+  if( atmosphere_dim == 1 )
+    { 
+      latgr.resize(nlat); latgr = lat_true[0];
+      longr.resize(nlon); longr = lon_true[0];
+    }
+  else if( atmosphere_dim == 2 )
+    { latgr = lat_true;   longr = lon_true; }
+  else 
+    { latgr = lat_grid;   longr = lon_grid; }
+
+
+  // Appearent molecular weight of dry air
+  //const Numeric md = 28.966;
+
+  // Ratio between molcular weight of water and md (0.622 for Earth)
+  //const Numeric eps = 18.016/md;
 
   // The calculations
   //
   for( Index ilat=0; ilat<nlat; ilat++ )
     {
-      // "Small g" at altitude=0, g0:
-      // Expression for g0 taken from Wikipedia page "Gravity of Earth", that
-      // is stated to be: International Gravity Formula 1967, the 1967 Geodetic
-      // Reference System Formula, Helmert's equation or Clairault's formula.
-      const Numeric x = fabs( lat_grid[ilat] );
-      const Numeric g0 = 9.780327 * ( 1 + 5.3024e-3*pow(sin(DEG2RAD*x),2) + 
-                                      5.8e-6*pow(sin(2*DEG2RAD*x),2) );
-
-
       for( Index ilon=0; ilon<nlon; ilon++ )
         {
+          // Get g0
+          Numeric g0;
+          g0_agendaExecute( ws, g0, latgr[ilat], longr[ilon], g0_agenda );
+
           // Determine altitude for p_hse
           Vector z_hse(1);
           interp( z_hse, itw, z_field(joker,ilat,ilon), gp );
@@ -1876,11 +1903,11 @@ void z_fieldFromHSE(Tensor3&        z_field,
                   // Calculate average g
                   if( ip == 0 )
                     {
-                      z2g( g2, refell2r(refellipsoid,lat_grid[ilat]), 
+                      z2g( g2, refell2r(refellipsoid,latgr[ilat]), 
                            g0, z_field(ip,ilat,ilon) );
                     }
                   g1 = g2;
-                  z2g( g2, refell2r(refellipsoid,lat_grid[ilat]), 
+                  z2g( g2, refell2r(refellipsoid,latgr[ilat]), 
                        g0, z_field(ip+1,ilat,ilon) );
                   //
                   const Numeric g = ( g1 + g2 ) / 2.0;
@@ -1927,11 +1954,6 @@ void z_fieldFromHSE(Tensor3&        z_field,
               ostringstream os;
               os << "The surface altitude (*z_surface*) cannot be outside "
                  << "of the altitudes in *z_field*.";
-              if( atmosphere_dim > 1 )
-                os << "\nThis was found to be the case for:\n"
-                   << "latitude " << lat_grid[row];
-              if( atmosphere_dim > 2 )
-                os << "\nlongitude " << lon_grid[col];
               throw runtime_error( os.str() );
             }
         }

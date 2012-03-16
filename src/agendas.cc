@@ -261,6 +261,18 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "g0_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of the gravity at zero altitude.\n"
+        "\n"
+        "Returns *g0* for given geographical position.\n"
+        ),
+       OUTPUT( "g0" ),
+       INPUT( "lat", "lon" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "iy_clearsky_agenda" ),
        DESCRIPTION
        (

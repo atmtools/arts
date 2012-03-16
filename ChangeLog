@@ -1,5 +1,32 @@
 2012-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-32
+
+	* tests/GroundBased/TestGbased.arts: Added definition of lat_true.
+
+	* src/m_jacobian.cc (jacobianCalcTemperaturePerturbations):
+	Adopted call of z_fieldFromHSE, that required adding input vars.
+
+	* includes/general.arts: Added definition of g0_agenda.
+
+	* src/m_atmosphere.cc: Some methods moved to m_planets.cc.
+
+	(z_fieldFromHSE): Now using g0_agenda, lat_true and lon_true.
+	A first step to make the function more general.
+
+	* src/m_planets.cc: New file, for planet specific workspace
+	methods. Some WSM from m_atmosphere moved here.
+
+	(g0Earth): New WSM.
+
+	* src/agendas.cc: Added g0_agenda.
+
+	* src/workspace.cc: New WSVs: g0, lat, lat_true, lon and lon_true.
+	Text for lat_grid and lon_grid updated, now (again) saying that
+	they must be set to be empty when not used.
+
+2012-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-31
 
 	* src/ppath.cc: Many changes. In summary: Several bug fixes.

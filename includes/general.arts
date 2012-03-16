@@ -70,6 +70,7 @@ AgendaSet( abs_scalar_gas_agenda ){
   #abs_scalar_gasExtractFromLookup
 }
 
+
 #
 # Set default interpolation orders for absorption lookup table. Do not
 # mess with these values, unless you know what you are doing! 
@@ -78,10 +79,20 @@ IndexSet( abs_p_interp_order,   5 )
 IndexSet( abs_t_interp_order,   7 )
 IndexSet( abs_nls_interp_order, 5 )
 
+
 #
 # Define reference ellipsoid (a spherical ellipsoid must be used for 1D)
 # 
 refellipsoidEarth( refellipsoid, "Sphere" )
+
+
+#
+# Gravity (needed for hydrostatic equilibrium calculations)
+# 
+AgendaSet( g0_agenda ){
+   Ignore( lon )
+   g0Earth
+} 
 
 
 # 
