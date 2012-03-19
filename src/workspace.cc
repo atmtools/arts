@@ -1086,7 +1086,7 @@ void Workspace::define_wsv_data()
        "Usage:      Output of *iy_clearsky_agenda*.\n"
        "\n"
        "Dimensions: \n"
-       "     [n_quantities][ ppath.np, f_grid, stokes_dim ]\n"
+       "     [n_quantities][ n_retrieval_points, f_grid, stokes_dim ]\n"
        ),
       GROUP( "ArrayOfTensor3" )));
 

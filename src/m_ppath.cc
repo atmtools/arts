@@ -55,7 +55,7 @@
 
 extern const Numeric RAD2DEG;
 extern const Numeric DEG2RAD;
-extern const Numeric EARTH_GRAV_CONST;
+
 
 /*===========================================================================
   === The functions (in alphabetical order)

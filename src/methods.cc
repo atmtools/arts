@@ -4517,6 +4517,39 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyCalc" ),
+        DESCRIPTION
+        (
+         "A single monochromatic pencil beam calculation.\n"
+         "\n"
+         "Performs monochromatic radiative transfer calculations for the\n"
+         "specified position (*rte_pos*) and line-of-sight (*rte_pos*).\n"
+         "See *iy* and associated variables for format of output.\n"
+         "\n"
+         "Only analytical Jacobian calculations are performed. Hence,\n"
+         "elements of *diy_dx* can be empty.\n"
+         "\n"
+         "No unit conversion is applied (but can be done as post-processing).\n"
+         "\n"
+         "No sensor charactersitcs are applied. That is most easily\n"
+         "incorporated by using *yCalc*\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "iy_error", "iy_error_type", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "basics_checked", "p_grid", "lat_grid", "lon_grid", "t_field", 
+            "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
+            "rte_pos", "rte_los", "jacobian_do", "iy_clearsky_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyEmissionStandardClearsky" ),
         DESCRIPTION
         (
@@ -4529,7 +4562,7 @@ void define_md_data_raw()
          "The overall strategy is to take the average of the absorption and\n"
          "the emission source function at the end points of each step of\n"
          "the propagation path. See further the user guide. *iy_error*\n"
-         "is considered to be 0. \n" 
+         "is considered to be 0.\n" 
          "\n"
          "The WSV *iy_aux* is set to hold the transmission, if the radiative\n"
          "background is space or the surface. That is, as long as there is no\n"
@@ -9576,6 +9609,65 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yFromIy" ),
+        DESCRIPTION
+        (
+         "Converts monochromatic pencil beam data to measurement data.\n"
+         "\n"
+         "The method takes the output from *iyCalc* and converts the data\n"
+         "to match the output that should be obtained by *yCalc* for the\n"
+         "same conditions (a single monochromatic pencil beam calculation\n"
+         "and no sensor applied).\n"
+         "\n"
+         "In short, the method converts monochromatic pencil beam data to\n"
+         "match the format of \"measurement data\".\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
+             "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "jacobian_do", "jacobian_indices", 
+            "rte_pos", "rte_los", "iy", "iy_aux", "iy_error", "iy_error_type",
+            "diy_dx" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yCompareToReference" ),
+        DESCRIPTION
+        (
+         "Compares simulated data with reference data.\n"
+         "\n"
+         "The two vector *y* and *y0* are checked to not deviate outside the\n"
+         "set value (*maxdev*). An error is issued if this is not fulfilled.\n"
+         "\n"
+         "The main application of this method is to be part of the test\n"
+         "control files, and then used to check that the calculated spectrum\n"
+         "is consistent with an old, reference, calculation.\n"
+         "\n"
+         "The defualt value for *maxdev* is adopted for comapring two spectra\n"
+         "with brightness temperature as unit.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "y" ),
+        GIN( "y0", "maxdev" ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, "0.01" ),
+        GIN_DESC( "Reference data", "Maximum deviation allowed" )
         ));
 
   md_data_raw.push_back

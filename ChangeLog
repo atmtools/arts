@@ -1,9 +1,37 @@
+2012-03-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-34
+
+	* src/workspace.cc: Stated dimension of diy_dx was wrong.
+
+	* src/m_rte.cc (iyCalc, yFromIy,yCompareToReference): New WSMs.
+
+	* src/rte.cc (iyb_calc,get_iy_of_background): Now placed in this file.
+	(iyb_calc): Now using iyCalc.
+
+	* src/m_atmosphere.cc (z_fieldFromHSE): Now using versions of the
+	equations, and some changes to for efficiency. Chwecked to give
+	same results as pt2z in atmlab.
+	The only Earth specific setting now is average molecular weight of
+	dry air. Shall this be a WSV or calculated from vmr_field (if
+	constrain that sum up to 1 is introduced)?
+
+	* src/m_ppath.cc: Removed EARTH_GRAV_CONST (not used).
+
+	* src/constants.cc: Removed not used constants EARTH_GRAV_CONST,
+	LOSCHMIDT_CONST, ATOMIC_MASS_UNIT, SUN_TEMP and PRES_STAND.
+	Added GAS_CONST.
+	Sorted alphabetically (beside when dependency demand other order).
+	Set PI, DEG2RAD and RAD2DEG to value reported by matlab, with
+	"format long". That gave for all three constants one digit more
+	compared to old value (no change for already existing digits).
+
 2012-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-33
 
 	* tests/Wfuns/TestWfuns.arts: Updated according to changes in last
-	commit. 
+	commit.
 
 2012-03-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

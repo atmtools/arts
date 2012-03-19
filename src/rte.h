@@ -51,6 +51,17 @@
 #include "optproperties.h"
 
 
+
+// A macro to loop analytical jacobian quantities
+#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
+  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) \
+    { \
+      if( jacobian_quantities[iq].Analytical() ) \
+        { what_to_do } \
+    } 
+
+
+
 /*===========================================================================
   === Functions in rte.cc
   ===========================================================================*/
@@ -72,6 +83,34 @@ void ext2trans(
          MatrixView   trans_mat,
    ConstMatrixView    ext_mat_av,
    const Numeric&     l_step );
+
+void get_iy_of_background(
+        Workspace&        ws,
+        Matrix&           iy,
+        Matrix&           iy_error,
+        Index&            iy_error_type,
+        Matrix&           iy_aux,
+        ArrayOfTensor3&   diy_dx,
+  ConstTensor3View        iy_transmission,
+  const Index&            jacobian_do,
+  const Ppath&            ppath,
+  const Index&            atmosphere_dim,
+  ConstVectorView         p_grid,
+  ConstVectorView         lat_grid,
+  ConstVectorView         lon_grid,
+  ConstTensor3View        t_field,
+  ConstTensor3View        z_field,
+  ConstTensor4View        vmr_field,
+  const Vector&           refellipsoid,
+  const Matrix&           z_surface,
+  const Index&            cloudbox_on,
+  const Index&            stokes_dim,
+  ConstVectorView         f_grid,
+  const Agenda&           iy_clearsky_agenda,
+  const Agenda&           iy_space_agenda,
+  const Agenda&           surface_prop_agenda,
+  const Agenda&           iy_cloudbox_agenda,
+  const Verbosity&        verbosity);
 
 void get_ppath_atmvars( 
         Vector&      ppath_p, 

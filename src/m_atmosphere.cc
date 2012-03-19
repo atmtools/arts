@@ -67,6 +67,7 @@ extern const Index GFIELD4_LAT_GRID;
 extern const Index GFIELD4_LON_GRID;
 
 extern const Numeric DEG2RAD;
+extern const Numeric GAS_CONSTANT;
 
 /*===========================================================================
  *=== Helper functions
@@ -1785,7 +1786,7 @@ void z2g(
          const Numeric& g0,
          const Numeric& z )
 {
-  g = g0 * pow( r/(r+z), 2 );
+  g = g0 * pow( r/(r+z), 2.0 );
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1823,17 +1824,6 @@ void z_fieldFromHSE(
     throw runtime_error( "The atmosphere must be flagged to have passed a "
                          "consistency check (basics_checked=1)." );
   //
-  if( atmosphere_dim == 1  &&  ( lat_true.nelem()!=1 || lon_true.nelem()!=1 ) )
-    { throw runtime_error( "For 1D, the method requires that *lat_true* and "
-                           "*lon_true* have length 1." );
-    }
-  //
-  if( atmosphere_dim == 2  &&  ( lat_true.nelem() != nlat || 
-                                 lon_true.nelem() != nlat ) )
-    { throw runtime_error( "For 2D, the method requires that *lat_true* and "
-                           "*lon_true* have the same length as *lat_grid*." );
-    }
-  //
   if( firstH2O < 0 )
     throw runtime_error(
        "Water vapour is a requiered (must be a tag group in *abs_species*)." );
@@ -1849,6 +1839,12 @@ void z_fieldFromHSE(
   //
   if( z_hse_accuracy <= 0 )
     { throw runtime_error( "The value of *z_hse_accuracy* must be > 0." ); }
+  //
+  // Check lat_true and lon_true. The function returns also the lat and lon
+  // grid to apply:
+  Vector latgr, longr;
+  chk_latlon_true( latgr, longr, atmosphere_dim, lat_grid, lon_grid, 
+                                                 lat_true, lon_true );
 
 
   // Determine interpolation weights for p_hse
@@ -1857,30 +1853,21 @@ void z_fieldFromHSE(
   Matrix itw( 1, 2);
   p2gridpos( gp, p_grid, Vector(1,p_hse) );
   interpweights ( itw, gp );
-  
-  // Set-up lat and grids to apply
-  Vector latgr, longr;
-  if( atmosphere_dim == 1 )
-    { 
-      latgr.resize(nlat); latgr = lat_true[0];
-      longr.resize(nlon); longr = lon_true[0];
-    }
-  else if( atmosphere_dim == 2 )
-    { latgr = lat_true;   longr = lon_true; }
-  else 
-    { latgr = lat_grid;   longr = lon_grid; }
 
 
-  // Appearent molecular weight of dry air
-  //const Numeric md = 28.966;
-
-  // Ratio between molcular weight of water and md (0.622 for Earth)
-  //const Numeric eps = 18.016/md;
+  // Some constants used below
+  const Numeric md = 28.966;   // Average molecular weight of dry air
+  const Numeric mw = 18.016;   // Molecular weight of water vapour
+  //
+  const Numeric k  = 1- mw/md; // mw/md matches eps inEq. 3.14 in Wallace&Hobbs
+  const Numeric rd = 1e3*GAS_CONSTANT/md; // Gas constant for 1kg dry air 
 
   // The calculations
   //
   for( Index ilat=0; ilat<nlat; ilat++ )
     {
+      const Numeric re = refell2r( refellipsoid, latgr[ilat] );
+
       for( Index ilon=0; ilon<nlon; ilon++ )
         {
           // Get g0
@@ -1902,29 +1889,24 @@ void z_fieldFromHSE(
                 {
                   // Calculate average g
                   if( ip == 0 )
-                    {
-                      z2g( g2, refell2r(refellipsoid,latgr[ilat]), 
-                           g0, z_field(ip,ilat,ilon) );
-                    }
+                    { z2g( g2, re, g0, z_field(ip,ilat,ilon) ); }
                   g1 = g2;
-                  z2g( g2, refell2r(refellipsoid,latgr[ilat]), 
-                       g0, z_field(ip+1,ilat,ilon) );
+                  z2g( g2, re, g0, z_field(ip+1,ilat,ilon) );
                   //
                   const Numeric g = ( g1 + g2 ) / 2.0;
 
-                  // Weight mixing ratio for water assuming constant average
-                  // molecular weight of the air
-                  // 0.3108 = 18/28.96 * 0.5
-                  const Numeric r = 0.3108 * ( vmr_field(firstH2O,ip,ilat,ilon)
-                                         + vmr_field(firstH2O,ip+1,ilat,ilon) );
+                  //Average water vapour VMR
+                  const Numeric hm = 0.5* ( vmr_field(firstH2O,ip,ilat,ilon)
+                                        + vmr_field(firstH2O,ip+1,ilat,ilon) );
   
-                  // Virtual temperature (no liquid water)
-                  const Numeric tv = 0.5 * ( 1 + 0.61*r) * (
-                              t_field(ip,ilat,ilon) + t_field(ip+1,ilat,ilon) );
+                  // Average virtual temperature (no liquid water)
+                  // (cf. e.g. Eq. 3.16 in Wallace&Hobbs)
+                  const Numeric tv = ( 1 / ( 2 * (1-hm*k) ) ) * 
+                           ( t_field(ip,ilat,ilon) + t_field(ip+1,ilat,ilon) );
   
                   // Change in vertical altitude from ip to ip+1 
-                  const Numeric dz = 287.053 * (tv/g) * 
-                                                 log( p_grid[ip]/p_grid[ip+1] );
+                  //  (cf. e.g. Eq. 3.24 in Wallace&Hobbs)
+                  const Numeric dz = rd*(tv/g)*log( p_grid[ip]/p_grid[ip+1] );
 
                   // New altitude
                   Numeric znew = z_field(ip,ilat,ilon) + dz;
