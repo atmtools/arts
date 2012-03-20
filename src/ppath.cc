@@ -4216,7 +4216,7 @@ void ppath_step_refr_3d(
 
 
 /*===========================================================================
-  === Core of ppathCalc and help function(s)
+  === Main functions
   ===========================================================================*/
 
 //! ppath_start_stepping
@@ -4978,15 +4978,14 @@ void ppath_start_stepping(
 
 //! ppath_calc
 /*! 
-   This is the core for the WSM ppathCalc.
+   This is the core for the WSM ppathStepByStep.
 
-   This function takes the same input as ppathCalc (that is, those
-   input arguments are the WSV with the same name), but there are some
-   additional argument(s):
+   This function takes mainly the same input as ppathStepByStep (that 
+   is, those input arguments are the WSV with the same name).
 
    \param ws                 Current Workspace
    \param ppath              Output: A Ppath structure
-   \param ppath_step_agenda  FIXME: Add documentation.
+   \param ppath_step_agenda  As the WSm with the same name.
    \param atmosphere_dim     The atmospheric dimensionality.
    \param p_grid             The pressure grid.
    \param lat_grid           The latitude grid.
@@ -5008,10 +5007,8 @@ void ppath_start_stepping(
    \author Patrick Eriksson
    \date   2003-01-08
 */
-void ppath_calc(Workspace&            ws,
-                // WS Output:
-                Ppath&                ppath,
-                // WS Input:
+void ppath_calc(      Workspace&      ws,
+                      Ppath&          ppath,
                 const Agenda&         ppath_step_agenda,
                 const Index&          atmosphere_dim,
                 const Vector&         p_grid,
@@ -5029,7 +5026,7 @@ void ppath_calc(Workspace&            ws,
 {
   CREATE_OUT2
   
-  // This function is a WSM but it is normally only called from RteCalc. 
+  // This function is a WSM but it is normally only called from yCalc. 
   // For that reason, this function does not repeat input checks that are
   // performed in yCalc, it only performs checks regarding the sensor 
   // position and LOS.

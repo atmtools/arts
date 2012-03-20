@@ -49,6 +49,145 @@ extern const Numeric RAD2DEG;
 
 
 
+/*===========================================================================
+  === 2D functions
+  ===========================================================================*/
+
+// The 2D case is treated as being the 3D x/z-plane. That is, y-coordinate
+// skipped. For simplicity, the angle coordinate is denoted as latitude.
+// However, the latitude is not here limited to [-90,90]. It can here have any
+// value. The input *lat0* is used to shift the output from atan2 with n*360 to
+// return the expected latitude. That is, it is assumed that no operation moves
+// the latitude more than 360 degree from the initial value *lat0*.
+
+
+//! cart2pol
+/*! 
+   The inverse of *pol2cart*. 
+   
+   A 2D version of cart2sph 
+
+   \param   r     Out: Radius of position.
+   \param   lat   Out: Latitude of position.
+   \param   x     x-coordinate of position.
+   \param   z     z-coordinate of position.
+   \param   lat0  Original latitude.
+   \param   za0   Original zenith angle.
+
+   \author Patrick Eriksson
+   \date   2012-03-20
+*/
+void cart2pol(
+            double&   r,
+            double&   lat,
+      const double&   x,
+      const double&   z,
+      const double&   lat0,
+      const double&   za0 )
+{
+  r   = sqrt( x*x + z*z );
+
+  // Zenith and nadir cases
+  if( za0 < ANGTOL  ||  za0 > 180-ANGTOL  )
+    { lat = lat0; }
+
+  else
+    { // Not finished:
+      lat = RAD2DEG * atan2( z, x );
+      if( lat - lat0 > 360 )
+        { lat -= 360; }
+      else if( lat0 - lat > 360 )
+        { lat += 360; }
+    }
+}
+
+
+
+//! pol2cart
+/*! 
+   Conversion from polar to cartesian coordinates.
+
+   The cartesian coordinate system is defined such as the x-axis goes along
+   lat=0 and lon=0 and z-axis goes along lat=90.
+
+   \param   x     Out: x position.
+   \param   z     Out: z position.
+   \param   r     Radius.
+   \param   lat   Latitude.
+
+   \author Patrick Eriksson
+   \date   2012-03-20
+*/
+void pol2cart(
+            double&   x,
+            double&   z,
+      const double&   r,
+      const double&   lat )
+{
+  assert( r > 0 );
+
+  const double   latrad = DEG2RAD * lat;
+
+  x = r * cos( latrad );  
+  z = r * sin( latrad );
+}
+
+
+
+//! poslos2cart
+/*! 
+   2D version of poslos2cart
+
+   \param   x     Out: x-coordinate of observation position.
+   \param   z     Out: z-coordinate of observation position.
+   \param   dx    Out: x-part of LOS unit vector.
+   \param   dz    Out: z-part of LOS unit vector.
+   \param   r     Radius of observation position.
+   \param   lat   Latitude of observation position.
+   \param   za    LOS zenith angle at observation position.
+
+   \author Patrick Eriksson
+   \date   2012-03-20
+*/
+void poslos2cart(
+             double&   x,
+             double&   z,
+             double&   dx,
+             double&   dz,
+       const double&   r,
+       const double&   lat,
+       const double&   za )
+{
+  assert( r > 0 );
+  assert( za >= -180 && za<=180 );
+
+  const double   latrad = DEG2RAD * lat;
+  const double   zarad  = DEG2RAD * za;
+
+  const double   coslat = cos( latrad );
+  const double   sinlat = sin( latrad );
+  const double   cosza  = cos( zarad );
+  const double   sinza  = sin( zarad );
+
+  // This part as pol2cart but uses local variables
+  x = r * coslat;  
+  z = r * sinlat;
+
+  const double   dr   = cosza;
+  const double   dlat = sinza;         // r-terms cancel out below
+
+  dx = coslat * dr - sinlat * dlat;
+  dz = sinlat * dr + coslat * dlat;
+}
+
+
+
+
+
+/*===========================================================================
+  === 3D functions
+  ===========================================================================*/
+
 //! cart2poslos
 /*! 
    The inverse of *poslos2cart*.
@@ -570,7 +709,7 @@ void poslos2cart(
       const double   sinaa  = sin( aarad );
 
       // This part as sph2cart but uses local variables
-      x = r * coslat;   // Common term for x and z
+      x = r * coslat;   // Common term for x and y
       y = x * sinlon;
       x = x * coslon;
       z = r * sinlat;
@@ -705,6 +844,7 @@ void sph2cart(
   x = x * cos( lonrad );
   z = r * sin( latrad );
 }
+
 
 
 

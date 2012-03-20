@@ -5639,13 +5639,14 @@ void define_md_data_raw()
       ( NAME( "MatrixCompare" ),
         DESCRIPTION
         (
-         "Checks the deviation between two matrices.\n" 
+         "Checks the consistency between two matrices.\n" 
          "\n"
-         "The method was implemented having jacobian matrices in mind, but\n"
-         "can be applied on any matrices.\n"
+         "The two matrices are checked to not deviate outside the specified\n"
+         "value (*maxdev*). An error is issued if this is not fulfilled.\n"
          "\n"
-         "It is checked if the maximum absolute difference is below the given\n"
-         "limit.\n"
+         "The main application of this method is to be part of the test\n"
+         "control files, and then used to check that a calculated Jacobian\n"
+         "is consistent with an old, reference, calculation.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
@@ -5655,8 +5656,8 @@ void define_md_data_raw()
         IN( ),
         GIN( "matrix1", "matrix2", "maxabsdiff" ),
         GIN_TYPE( "Matrix", "Matrix", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, "0.01" ),
-        GIN_DESC( "A first jacobian matrix", "A second jacobian matrix", 
+        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN_DESC( "A first matrix", "A second matrix", 
                   "Threshold for maximum absolute difference." )
         ));
 
@@ -6683,21 +6684,21 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ppathCalc" ),
+      ( NAME( "ppathStepByStep" ),
         DESCRIPTION
         (
-         "Main method for calculation of propagation paths.\n"
+         "Standard method for calculation of propagation paths.\n"
          "\n"
-         "There exists only one function to calculate total propagation\n"
-         "paths and this is that function. The function is normally not\n"
+         "This method calculates complete propagation paths in a stepwise\n"
+         "manner. Each step is denoted as a \"ppath_step\" and is the path\n"
+         "through/inside a songle grid box. The function is normally not\n"
          "visible in the control file, it is called from inside *yCalc*.\n"
          "A reason to call this function directly would be to plot a\n"
          "propgation path.\n"
          "\n"
          "The definition of a propgation path cannot be accomodated here.\n"
          "For more information read the chapter on propagation paths in the\n"
-         "ARTS user guide and read the  on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\" ).\n"
+         "ARTS user guide.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath" ),
@@ -8809,6 +8810,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "VectorCompare" ),
+        DESCRIPTION
+        (
+         "Checks the consistency between two vectors.\n" 
+         "\n"
+         "The two vectors are checked to not deviate outside the specified\n"
+         "value (*maxdev*). An error is issued if this is not fulfilled.\n"
+         "\n"
+         "The main application of this method is to be part of the test\n"
+         "control files, and then used to check that a calculated spectrum\n"
+         "is consistent with an old, reference, calculation.\n"
+         "\n"
+         "The defualt value for *maxdev* is adopted for comparing two spectra\n"
+         "with brightness temperature as unit.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "vector1", "vector2", "maxabsdiff" ),
+        GIN_TYPE( "Vector", "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, "0.01" ),
+        GIN_DESC( "A first vector", "A second vector", 
+                  "Threshold for maximum absolute difference." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "VectorExtractFromMatrix" ),
         DESCRIPTION
         (
@@ -9639,35 +9670,6 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "yCompareToReference" ),
-        DESCRIPTION
-        (
-         "Compares simulated data with reference data.\n"
-         "\n"
-         "The two vector *y* and *y0* are checked to not deviate outside the\n"
-         "set value (*maxdev*). An error is issued if this is not fulfilled.\n"
-         "\n"
-         "The main application of this method is to be part of the test\n"
-         "control files, and then used to check that the calculated spectrum\n"
-         "is consistent with an old, reference, calculation.\n"
-         "\n"
-         "The defualt value for *maxdev* is adopted for comapring two spectra\n"
-         "with brightness temperature as unit.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "y" ),
-        GIN( "y0", "maxdev" ),
-        GIN_TYPE( "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF, "0.01" ),
-        GIN_DESC( "Reference data", "Maximum deviation allowed" )
         ));
 
   md_data_raw.push_back

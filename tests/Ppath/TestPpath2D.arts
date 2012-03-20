@@ -90,7 +90,7 @@ VectorSet( rte_los, [ -113 ] )
 
 # Calculate propagation path
 #
-ppathCalc
+ppathStepByStep
 
 
 # Print complete ppath
@@ -130,7 +130,7 @@ AgendaSet( forloop_agenda ){
   #Print( forloop_index, 0 )
   VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )
   VectorExtractFromMatrix( rte_los, sensor_los, forloop_index, "row" )
-  ppathCalc
+  ppathStepByStep
 }
 
 ForLoop( forloop_agenda, 0, ilast, 1  )

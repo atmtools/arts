@@ -57,30 +57,30 @@ extern const Numeric RAD2DEG;
 extern const Numeric DEG2RAD;
 
 
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathCalc(Workspace&            ws,
-               // WS Output:
-               Ppath&                ppath,
-               // WS Input:
-               const Agenda&         ppath_step_agenda,
-               const Index&          basics_checked,
-               const Index&          atmosphere_dim,
-               const Vector&         p_grid,
-               const Vector&         lat_grid,
-               const Vector&         lon_grid,
-               const Tensor3&        z_field,
-               const Vector&         refellipsoid,
-               const Matrix&         z_surface,
-               const Index&          cloudbox_on, 
-               const Index&          cloudbox_checked,
-               const ArrayOfIndex&   cloudbox_limits,
-               const Vector&         rte_pos,
-               const Vector&         rte_los,
-               const Verbosity&      verbosity)
+void ppathStepByStep(
+         Workspace&      ws,
+         Ppath&          ppath,
+   const Agenda&         ppath_step_agenda,
+   const Index&          basics_checked,
+   const Index&          atmosphere_dim,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        z_field,
+   const Vector&         refellipsoid,
+   const Matrix&         z_surface,
+   const Index&          cloudbox_on, 
+   const Index&          cloudbox_checked,
+   const ArrayOfIndex&   cloudbox_limits,
+   const Vector&         rte_pos,
+   const Vector&         rte_los,
+   const Verbosity&      verbosity)
 {
   // Basics and cloudbox OK?
   //
@@ -96,6 +96,8 @@ void ppathCalc(Workspace&            ws,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1,
               verbosity );
 }
+
+
 
 
 
@@ -136,6 +138,8 @@ void ppath_stepGeometric(// WS Output:
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepGeometricUpDown(// WS Output:
                          Ppath&           ppath_step,
@@ -163,6 +167,8 @@ void ppath_stepGeometricUpDown(// WS Output:
   ppath_geom_updown_1d( ppath_step, z_field(joker,0,0), refellipsoid, 
                         z_surface(0,0), cloudbox_on, cloudbox_limits );
 }
+
+
 
 
 
@@ -218,6 +224,8 @@ void ppath_stepRefractionEuler(Workspace&  ws,
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losSet(// WS Output:
                 Vector&          rte_los,
@@ -243,6 +251,8 @@ void rte_losSet(// WS Output:
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posSet(// WS Output:
                 Vector&          rte_pos,
@@ -264,6 +274,8 @@ void rte_posSet(// WS Output:
   if( atmosphere_dim == 3 )
     { rte_pos[2] = lon; }
 }
+
+
 
 
 
@@ -302,11 +314,12 @@ void VectorZtanToZaRefr1D(Workspace&          ws,
   Numeric   refr_index;
 
   // Calculate refractive index for the tangential altitudes
-  for( Index i=0; i<ztan_vector.nelem(); i++ ) {
-    get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
-                       refellipsoid[0], z_field(joker,0,0), t_field(joker,0,0), 
-                       vmr_field(joker,joker,0,0), 
-                       ztan_vector[i] + refellipsoid[0] );
+  for( Index i=0; i<ztan_vector.nelem(); i++ ) 
+    {
+      get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
+                         refellipsoid[0], z_field(joker,0,0), 
+                         t_field(joker,0,0), vmr_field(joker,joker,0,0), 
+                         ztan_vector[i] + refellipsoid[0] );
 
     // Calculate zenith angle
     za_vector[i] = 180 - RAD2DEG* asin( refr_index * 
@@ -314,6 +327,8 @@ void VectorZtanToZaRefr1D(Workspace&          ws,
                                         (refellipsoid[0] + sensor_pos(i,0)) );
   }
 }
+
+
 
 
 

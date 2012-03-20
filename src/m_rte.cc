@@ -2069,40 +2069,6 @@ void yCalc2(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yCompareToReference(
-   const Vector&    y,
-   const Vector&    y0,
-   const Numeric&   maxdev,
-   const Verbosity&  )
-{
-  const Index n = y.nelem();
-
-  if( y0.nelem() != n )
-    throw runtime_error( "The lengths *y* and *y0* differ and a comparsion can "
-                         "not be made." );
-
-  Numeric dev = 0;
-  for( Index i=0; i <n; i++ )
-    {
-      if( abs( y[i] - y0[i] ) > dev )
-        { dev = abs( y[i] - y0[i] ); }
-    }
-    
-  if( dev > maxdev )
-    {
-      ostringstream os;
-      os << "Checked failed!\n"
-         << "Max allowed deviation set to: " << maxdev << endl
-         << "but the vectors deviate with: " << dev << endl;
-      throw runtime_error( os.str() );
-    }
-}
-
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void yFromIy(
         Vector&         y,
         Vector&         y_f,

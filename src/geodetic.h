@@ -39,6 +39,14 @@
 #include "interpolation.h"
 #include "matpackI.h"
 
+// 2D:
+
+
+
+
+
+// 3D:
+
 void cart2poslos(
              double&   r,
              double&   lat,
