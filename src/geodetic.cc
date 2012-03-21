@@ -53,12 +53,13 @@ extern const Numeric RAD2DEG;
   === 2D functions
   ===========================================================================*/
 
-// The 2D case is treated as being the 3D x/z-plane. That is, y-coordinate
+// The 2D case is treated as being the 3D x/z-plane. That is, y-coordinate is
 // skipped. For simplicity, the angle coordinate is denoted as latitude.
-// However, the latitude is not here limited to [-90,90]. It can here have any
-// value. The input *lat0* is used to shift the output from atan2 with n*360 to
-// return the expected latitude. That is, it is assumed that no operation moves
-// the latitude more than 360 degree from the initial value *lat0*.
+// However, the latitude is here not limited to [-90,90]. It is cyclic and can
+// have any value. The input *lat0* is used to shift the output from atan2 with
+// n*360 to return what should be the expected latitude. That is, it is assumed
+// that no operation moves the latitude more than 180 degrees from the initial
+// value *lat0*.
 
 
 //! cart2pol
@@ -92,15 +93,177 @@ void cart2pol(
     { lat = lat0; }
 
   else
-    { // Not finished:
+    { // Latitude inside [0,360]
       lat = RAD2DEG * atan2( z, x );
-      if( lat - lat0 > 360 )
-        { lat -= 360; }
-      else if( lat0 - lat > 360 )
-        { lat += 360; }
+      // Shift with n*360 to get as close as possible to lat0
+      lat = lat - 360.0 * Numeric( round( ( lat -lat0 ) / 360.0 ) );
     }
 }
 
+
+
+//! cart2poslos
+/*! 
+   2D version of the 3D *cart2poslos*.
+
+   \param   r     Out: Radius of observation position.
+   \param   lat   Out: Latitude of observation position.
+   \param   za    Out: LOS zenith angle at observation position.
+   \param   x     x-coordinate of observation position.
+   \param   z     z-coordinate of observation position.
+   \param   dx    x-part of LOS unit vector.
+   \param   dz    z-part of LOS unit vector.
+   \param   ppc   Propagation path constant (r*sin(za))
+   \param   lat0  Original latitude.
+   \param   za0   Original zenith angle.
+
+   \author Patrick Eriksson
+   \date   2012-03-21
+*/
+void cart2poslos(
+             double&   r,
+             double&   lat,
+             double&   za,
+       const double&   x,
+       const double&   z,
+       const double&   dx,
+       const double&   dz,
+       const double&   ppc,
+       const double&   lat0,
+       const double&   za0 )
+{
+  r   = sqrt( x*x + z*z );
+
+  // Zenith and nadir cases
+  if( za0 < ANGTOL  ||  za0 > 180-ANGTOL  )
+    { 
+      lat = lat0;
+      za  = za0; 
+    }
+
+  else
+    {
+      lat = RAD2DEG * atan2( z, x );
+
+      const double   latrad = DEG2RAD * lat;
+      const double   coslat = cos( latrad );
+      const double   sinlat = sin( latrad );
+      const double   dr     = coslat*dx + sinlat*dz;
+
+      // Use ppc for max accuracy, but dr required to resolve if up- 
+      // and downward cases
+      za = RAD2DEG * asin( ppc / r );
+      if( isnan( za ) )
+        { za = 90; }
+      if( dr < 0 )
+        {
+          za = 180.0 - za;
+          if( za0 < 0 )
+            { za = - za; }
+        }
+
+      // The difference below can at least be 3e-6 for tangent points 
+      assert( abs( za - RAD2DEG*acos(dr) ) < 1e-4 );
+    }
+}
+
+
+
+//! distance2D
+/*! 
+   The distance between two 2D points.
+   
+   The two latitudes can deviate with max 180 degrees.
+
+   \param   l     Out: The distance
+   \param   r1    Radius of position 1
+   \param   lat1  Latitude of position 1
+   \param   r2    Radius of position 2
+   \param   lat2  Latitude of position 2
+
+   \author Patrick Eriksson
+   \date   2012-03-20
+*/
+void distance2D(
+            double&   l,
+      const double&   r1,
+      const double&   lat1,
+      const double&   r2,
+      const double&   lat2 )
+{
+  assert( abs( lat2 - lat1 ) <= 180 );
+
+  Numeric x1, z1, x2, z2;
+  pol2cart( x1, z1, r1, lat1 );
+  pol2cart( x2, z2, r2, lat2 );
+
+  l = sqrt( pow( x2-x1, 2.0 ) + pow( x2-x1, 2.0 ) ); 
+}
+
+
+
+//! geomtanpoint2d
+/*! 
+   Position of the tangent point for 3D cases.
+
+   Calculates the 3D geometrical tangent point for arbitrary reference
+   ellipsiod. That is, a spherical planet is not assumed. The tangent
+   point is thus defined as the point closest to the ellipsoid (not as the
+   ppoint with za=90).
+  
+   Geocentric coordinates are used for both sensor and tangent point
+   positions.
+
+   The algorithm used for non-spherical cases is derived by Nick Lloyd at
+   University of Saskatchewan, Canada (nick.lloyd@usask.ca), and is part of
+   the operational code for both OSIRIS and SMR on-board- the Odin
+   satellite.
+
+   The zenith angle must be >= 90.
+
+   \param   r_tan       Out: Radius of tangent point.
+   \param   lat_tan     Out: Latitude of tangent point.
+   \param   lon_tan     Out: Longitude of tangent point.
+   \param   r           Radius of observation position.
+   \param   lat         Latitude of observation position.
+   \param   lon         Longitude of observation position.
+   \param   za          LOS zenith angle at observation position.
+   \param   aa          LOS azimuth angle at observation position.
+
+   \author Patrick Eriksson
+   \date   2012-02-12
+*/
+/*
+void geomtanpoint2d( 
+             double&    r_tan,
+             double&    lat_tan,
+     ConstVectorView    refellipsoid,
+       const double&    r,
+       const double&    lat,
+       const double&    za )
+{
+  assert( refellipsoid.nelem() == 2 );
+  assert( refellipsoid[0] > 0 );
+  assert( refellipsoid[1] >= 0 );
+  assert( refellipsoid[1] < 1 );
+  assert( r > 0 );
+  assert( za >= 90 );
+                                // e=1e-7 corresponds to that polar radius
+  if( refellipsoid[1] < 1e-7 )  // less than 1 um smaller than equatorial 
+    {                           // one for the Earth
+      r_tan = geometrical_ppc( r, za );
+      if( za > 0 )
+        { lat_tan = geompath_lat_at_za( za, lat, 90 ); }
+      else
+        { lat_tan = geompath_lat_at_za( za, lat, -90 ); }
+    }
+
+  else
+    {
+      assert( 0 );  // To be implemented
+    }  
+}  
+*/
 
 
 //! pol2cart
@@ -174,7 +337,7 @@ void poslos2cart(
   z = r * sinlat;
 
   const double   dr   = cosza;
-  const double   dlat = sinza;         // r-terms cancel out below
+  const double   dlat = sinza;         // r-term cancel out below
 
   dx = coslat * dr - sinlat * dlat;
   dz = sinlat * dr + coslat * dlat;
@@ -277,10 +440,12 @@ void cart2poslos(
             }
         }
 
-      const double   coslat = cos( DEG2RAD * lat );
-      const double   sinlat = sin( DEG2RAD * lat );
-      const double   coslon = cos( DEG2RAD * lon );
-      const double   sinlon = sin( DEG2RAD * lon );
+      const double   latrad = DEG2RAD * lat;
+      const double   lonrad = DEG2RAD * lon;
+      const double   coslat = cos( latrad );
+      const double   sinlat = sin( latrad );
+      const double   coslon = cos( lonrad );
+      const double   sinlon = sin( lonrad );
       const double   dr     = coslat*coslon*dx + coslat*sinlon*dy + sinlat*dz;
 
       // Use ppc for max accuracy, but dr required to resolve if up- 
@@ -290,7 +455,7 @@ void cart2poslos(
         { za = 90; }
       if( dr < 0 )
         { za = 180.0 - za; }
-      //cout << za << " " << za - RAD2DEG*acos(dr) << endl;
+
       // The difference below can at least be 3e-6 for tangent points 
       assert( abs( za - RAD2DEG*acos(dr) ) < 1e-4 );
 
@@ -403,6 +568,39 @@ void cart2sph(
 
 
 
+//! distance3D
+/*! 
+   The distance between two 3D points.
+   
+   \param   l     Out: The distance
+   \param   r1    Radius of position 1
+   \param   lat1  Latitude of position 1
+   \param   lon1  Longitude of position 1
+   \param   r2    Radius of position 2
+   \param   lat2  Latitude of position 2
+   \param   lon2  Longitude of position 2
+
+   \author Patrick Eriksson
+   \date   2012-03-20
+*/
+void distance3D(
+            double&   l,
+      const double&   r1,
+      const double&   lat1,
+      const double&   lon1,
+      const double&   r2,
+      const double&   lat2,
+      const double&   lon2 )
+{
+  Numeric x1, y1, z1, x2, y2, z2;
+  sph2cart( x1, y1, z1, r1, lat1, lon1 );
+  sph2cart( x2, y2, z2, r2, lat2, lon2 );
+
+  l = sqrt( pow( x2-x1, 2.0 ) + pow( y2-y1, 2.0 ) + pow( x2-x1, 2.0 ) ); 
+}
+
+
+
 //! geompath_tanpos_3d
 /*! 
    Position of the tangent point for 3D cases.
@@ -448,70 +646,6 @@ void geompath_tanpos_3d(
             lat, lon, za, aa );
 }
 
-
-
-//! geomtanpoint2d
-/*! 
-   Position of the tangent point for 3D cases.
-
-   Calculates the 3D geometrical tangent point for arbitrary reference
-   ellipsiod. That is, a spherical planet is not assumed. The tangent
-   point is thus defined as the point closest to the ellipsoid (not as the
-   ppoint with za=90).
-  
-   Geocentric coordinates are used for both sensor and tangent point
-   positions.
-
-   The algorithm used for non-spherical cases is derived by Nick Lloyd at
-   University of Saskatchewan, Canada (nick.lloyd@usask.ca), and is part of
-   the operational code for both OSIRIS and SMR on-board- the Odin
-   satellite.
-
-   The zenith angle must be >= 90.
-
-   \param   r_tan       Out: Radius of tangent point.
-   \param   lat_tan     Out: Latitude of tangent point.
-   \param   lon_tan     Out: Longitude of tangent point.
-   \param   r           Radius of observation position.
-   \param   lat         Latitude of observation position.
-   \param   lon         Longitude of observation position.
-   \param   za          LOS zenith angle at observation position.
-   \param   aa          LOS azimuth angle at observation position.
-
-   \author Patrick Eriksson
-   \date   2012-02-12
-*/
-/*
-void geomtanpoint2d( 
-             double&    r_tan,
-             double&    lat_tan,
-     ConstVectorView    refellipsoid,
-       const double&    r,
-       const double&    lat,
-       const double&    za )
-{
-  assert( refellipsoid.nelem() == 2 );
-  assert( refellipsoid[0] > 0 );
-  assert( refellipsoid[1] >= 0 );
-  assert( refellipsoid[1] < 1 );
-  assert( r > 0 );
-  assert( za >= 90 );
-                                // e=1e-7 corresponds to that polar radius
-  if( refellipsoid[1] < 1e-7 )  // less than 1 um smaller than equatorial 
-    {                           // one for the Earth
-      r_tan = geometrical_ppc( r, za );
-      if( za > 0 )
-        { lat_tan = geompath_lat_at_za( za, lat, 90 ); }
-      else
-        { lat_tan = geompath_lat_at_za( za, lat, -90 ); }
-    }
-
-  else
-    {
-      assert( 0 );  // To be implemented
-    }  
-}  
-*/
 
 
 //! geomtanpoint
@@ -715,7 +849,7 @@ void poslos2cart(
       z = r * sinlat;
 
       const double   dr   = cosza;
-      const double   dlat = sinza * cosaa;         // r-terms cancel out below
+      const double   dlat = sinza * cosaa;         // r-term cancel out below
       const double   dlon = sinza * sinaa / coslat; 
 
       dx = coslat*coslon * dr - sinlat*coslon * dlat - coslat*sinlon * dlon;

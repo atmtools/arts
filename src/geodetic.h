@@ -41,7 +41,56 @@
 
 // 2D:
 
+void cart2pol(
+            double&   r,
+            double&   lat,
+      const double&   x,
+      const double&   z,
+      const double&   lat0,
+      const double&   za0 );
 
+void cart2poslos(
+             double&   r,
+             double&   lat,
+             double&   za,
+       const double&   x,
+       const double&   z,
+       const double&   dx,
+       const double&   dz,
+       const double&   ppc,
+       const double&   lat0,
+       const double&   za0 );
+
+void distance2D(
+            double&   l,
+      const double&   r1,
+      const double&   lat1,
+      const double&   lat2 );
+
+/*
+void geomtanpoint2d( 
+             double&    r_tan,
+             double&    lat_tan,
+     ConstVectorView    refellipsoid,
+       const double&    r,
+       const double&    lat,
+       const double&    za );
+*/
+
+void pol2cart(
+            double&   x,
+            double&   z,
+      const double&   r,
+      const double&   lat );
+
+void poslos2cart(
+             double&   x,
+             double&   z,
+             double&   dx,
+             double&   dz,
+       const double&   r,
+       const double&   lat,
+       const double&   za );
 
 
 
@@ -77,6 +126,15 @@ void cart2sph(
        const double&   za0,
        const double&   aa0 );
 
+void distance3D(
+            double&   l,
+      const double&   r1,
+      const double&   lat1,
+      const double&   lon1,
+      const double&   r2,
+      const double&   lat2,
+      const double&   lon2 );
+
 void geompath_tanpos_3d( 
              double&    r_tan,
              double&    lat_tan,
@@ -90,14 +148,6 @@ void geompath_tanpos_3d(
        const double&    ppc );
 
 /*
-void geomtanpoint2d( 
-             double&    r_tan,
-             double&    lat_tan,
-     ConstVectorView    refellipsoid,
-       const double&    r,
-       const double&    lat,
-       const double&    za );
-
 void geomtanpoint( 
              double&    r_tan,
              double&    lat_tan,
