@@ -75,14 +75,13 @@ Numeric dinvplanckdI(
   assert( i >= 0 );
   assert( f > 0 );
 
-  // Use always double to avoid numerical problem (see invrayjean)
-  static const double a = PLANCK_CONST / BOLTZMAN_CONST;
-  static const double b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
+  static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
+  static const Numeric b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
 
-  const double d    = b * pow((double)f,3) / (double)i;
-  const double binv = a * (double)f / log( d + 1 );
+  const Numeric d    = b * pow(f,3.0) / i;
+  const Numeric binv = a * f / log( d + 1 );
 
-  return pow(binv,2) / ( a * (double)f * (double)i * (1/d+1) ); 
+  return pow(binv,2.0) / ( a * f * i * (1/d+1) ); 
 }
 
 
@@ -146,12 +145,10 @@ Numeric invplanck(
   assert( i >= 0 );
   assert( f > 0 );
 
-  // Use always double to avoid numerical problem (see invrayjean)
-  static const double a = PLANCK_CONST / BOLTZMAN_CONST;
-  // Double clealrly needed. b likely too small for float. b is approx 1e-50
-  static const double b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
+  static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
+  static const Numeric b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
 
-  return   ( a * (double)f ) / log( (b*pow((double)f,3))/(double)i + 1 );
+  return   ( a * f ) / log( (b*pow(f,3.0))/i + 1.0 );
 }
 
 
@@ -173,11 +170,9 @@ Numeric invrayjean(
 {
   assert( f > 0 );
 
-  // Double must be used here (if not, the result can be NaN when using float)
-  
-  static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+  static const Numeric   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
 
-  return  ( a * (double)i ) / ( (double)f * (double)f );
+  return  ( a * i ) / ( f * f );
 }
 
 
@@ -228,11 +223,10 @@ Numeric planck(
 
   else
     {
-    // Double must be used here (if not, a becomes 0 when using float)
-    static const double a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-    static const double b = PLANCK_CONST / BOLTZMAN_CONST;
+    static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+    static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
   
-    return  ( a * pow((double)f,3) ) / ( exp( (b*(double)f)/(double)t ) - 1 );
+    return  ( a * pow(f,3.0) ) / ( exp( (b*f)/t ) - 1.0 );
     }
 }
 
@@ -255,13 +249,7 @@ Numeric rayjean(
 {
   assert( f > 0 );
 
-  // Double must be used here (if not, the result can be NaN when using float)
-  
-  static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+  static const Numeric   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
 
-  return  ( (double)f * (double)f ) / ( a * (double)t );
+  return  ( f * f ) / ( a * t );
 }
-
-
-
-

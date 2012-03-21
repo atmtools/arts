@@ -1,5 +1,11 @@
 2012-03-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-37
+
+	* src/physics_funcs.cc: Removed all hard-coding of double.
+
+2012-03-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-36
 
 	* src/geodetic.cc (cart2pol, ..., distance2D,distance3D): 2D
