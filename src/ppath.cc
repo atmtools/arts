@@ -4664,8 +4664,8 @@ void ppath_start_stepping(
   else
     {
       // Index of last latitude and longitude
-      const Index llat = lat_grid.nelem() -1;
-      const Index llon = lon_grid.nelem() -1;
+      const Index llat = lat_grid.nelem() - 1;
+      const Index llon = lon_grid.nelem() - 1;
 
       // Is sensor inside range of lat_grid and lon_grid?
       // If yes, determine TOA altitude at sensor position
@@ -5384,4 +5384,205 @@ void ppath_calc(      Workspace&      ws,
       // lspace extracted above
       ppath.lspace     = lspace;
     }
+}
+
+
+
+
+//! ppath_calc
+/*! 
+   This is the core for the WSM ppathStepByStep.
+
+   This function takes mainly the same input as ppathStepByStep (that 
+   is, those input arguments are the WSV with the same name).
+
+   \param ws                 Current Workspace
+   \param ppath              Output: A Ppath structure
+   \param ppath_step_agenda  As the WSm with the same name.
+   \param atmosphere_dim     The atmospheric dimensionality.
+   \param p_grid             The pressure grid.
+   \param lat_grid           The latitude grid.
+   \param lon_grid           The longitude grid.
+   \param z_field            The field of geometrical altitudes.
+   \param refellipsoid       As the WSM with the same name.
+   \param z_surface          Surface altitude.
+   \param cloudbox_on        Flag to activate the cloud box.
+   \param cloudbox_limits    Index limits of the cloud box.
+   \param rte_pos            The position of the sensor.
+   \param rte_los            The line-of-sight of the sensor.
+   \param outside_cloudbox   Boolean to flag if the propagation path is 
+                             (expected to be) outside the cloudbox. Ordinary
+                             clear sky calculations are selected by the value
+                             1. The value 0 means tracking of a propagation 
+                             path inside the cloudbox. The path is then
+                             tracked to the cloudbox boundary.
+
+   \author Patrick Eriksson
+   \date   2003-01-08
+*/
+void los2xyz( 
+         Numeric&   za, 
+         Numeric&   aa, 
+   const Numeric&   r1,
+   const Numeric&   lat1,    
+   const Numeric&   lon1,
+   const Numeric&   x1, 
+   const Numeric&   y1, 
+   const Numeric&   z1, 
+   const Numeric&   x2, 
+   const Numeric&   y2, 
+   const Numeric&   z2 )
+{
+  Numeric dx = x2-x1, dy = y2-y1, dz = z2-z1;
+  const Numeric ldxyz = sqrt( dx*dx + dy*dy + dz*dz );
+  dx /= ldxyz;   
+  dy /= ldxyz;   
+  dz /= ldxyz;
+
+  // All below extracted from 3D version of cart2poslos:
+  const double   latrad = DEG2RAD * lat1;
+  const double   lonrad = DEG2RAD * lon1;
+  const double   coslat = cos( latrad );
+  const double   sinlat = sin( latrad );
+  const double   coslon = cos( lonrad );
+  const double   sinlon = sin( lonrad );
+
+  const double   dr     = coslat*coslon*dx    + coslat*sinlon*dy    + sinlat*dz;
+  const double   dlat   = -sinlat*coslon/r1*dx - sinlat*sinlon/r1*dy + 
+                                                                   coslat/r1*dz;
+  const double   dlon   = -sinlon/coslat/r1*dx + coslon/coslat/r1*dy;
+
+  za = RAD2DEG * acos( dr );
+  aa = RAD2DEG * acos( r1 * dlat / sin( DEG2RAD * za ) );
+  if( isnan( aa ) )
+    {
+      if( dlat >= 0 )
+        { aa = 0; }
+      else
+        { aa = 180; }
+    }
+  else if( dlon < 0 )
+    { aa = -aa; }
+
+}
+
+void ppath_to_transmitter(      
+         Workspace&      ws,
+         Ppath&          ppath,
+   const Agenda&         ppath_step_agenda,
+   const Index&          atmosphere_dim,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        z_field,
+   const Vector&         refellipsoid,
+   const Matrix&         z_surface,
+   const Index&          cloudbox_on, 
+   const ArrayOfIndex&   cloudbox_limits,
+   const Vector&         rte_pos,
+   const Vector&         transmitter_pos,
+   const bool&           outside_cloudbox,
+   const Verbosity&      verbosity)
+{
+  //--- Check input -----------------------------------------------------------
+  // transmitter_pos checked below
+  //
+  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
+
+
+  // Cartesian coordinates of sensor and transmitter
+  Numeric rs, lats, lons=0, rt, xs, ys=0, zs, xt, yt=0, zt;
+  //
+  if( atmosphere_dim == 1 )
+    {
+      if( transmitter_pos.nelem() != 2 )
+        throw runtime_error("For 1D *transmitter_pos* must have length 2.*");
+      rs   = refellipsoid[0] + rte_pos[0];
+      lats = 0;
+      rt = refellipsoid[0] + transmitter_pos[0];
+      pol2cart( xs, zs, rs, lats );
+      pol2cart( xt, zt, rt, transmitter_pos[1] );
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      if( transmitter_pos.nelem() != 2 )
+        throw runtime_error("For 2D *transmitter_pos* must have length 2.*");
+      const Index llat = lat_grid.nelem() - 1;
+      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, rte_pos[1] );
+          rs = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos[0];
+        }
+      else
+        { rs = refell2r( refellipsoid, rte_pos[1] ) + rte_pos[0]; }
+      lats = rte_pos[1];
+      pol2cart( xs, zs, rs, lats );
+      if( transmitter_pos[1] > lat_grid[0]  &&  
+          transmitter_pos[1] < lat_grid[llat] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, transmitter_pos[1] );
+          rt = refell2d( refellipsoid, lat_grid, gp_lat ) + transmitter_pos[0];
+        }
+      else
+        { rt = refell2r( refellipsoid, transmitter_pos[1] )+transmitter_pos[0];}
+      pol2cart( xt, zt, rt, transmitter_pos[1] );
+    }
+  else 
+    {
+      if( transmitter_pos.nelem() != 3 )
+        throw runtime_error("For 3D *transmitter_pos* must have length 3.*");
+      const Index llat = lat_grid.nelem() - 1;
+      const Index llon = lon_grid.nelem() - 1;
+      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat]  &&
+          rte_pos[2] > lon_grid[0]  &&  rte_pos[2] < lon_grid[llon] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, rte_pos[1] );
+          rs = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos[0];
+        }
+      else
+        { rs = refell2r( refellipsoid, rte_pos[1] ) + rte_pos[0]; }
+      lats = rte_pos[1];
+      lons = rte_pos[2];
+      sph2cart( xs, ys, zs, rs, lats, lons );
+      if( transmitter_pos[1] > lat_grid[0]     &&  
+          transmitter_pos[1] < lat_grid[llat]  &&
+          transmitter_pos[2] > lon_grid[0]     &&  
+          transmitter_pos[2] < lon_grid[llon] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, transmitter_pos[1] );
+          rt = refell2d( refellipsoid, lat_grid, gp_lat ) + transmitter_pos[0];
+        }
+      else
+        { rt = refell2r( refellipsoid, transmitter_pos[1] )+transmitter_pos[0];}
+      sph2cart( xt, yt, zt, rt, transmitter_pos[1], transmitter_pos[2] );
+    }
+
+  // Geometrical LOS to transmitter
+  Numeric za0, aa0;
+  Vector  rte_los0;
+  //
+  los2xyz( za0, aa0, rs, lats, lons, xs, ys, zs, xt, yt, zt );
+  //
+  if( atmosphere_dim == 3 )
+    { rte_los0.resize(2); rte_los0[0] = za0; rte_los0[1] = aa0; }
+  else 
+    { 
+      rte_los0.resize(1); 
+      rte_los0[0] = za0; 
+      if( atmosphere_dim == 2  && aa0 < 0 ) // Negative za ?
+        { rte_los0[0] = -za0; }
+    }
+  
+  // So far we just return the geometrical ppath
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
+              lon_grid, z_field, refellipsoid, z_surface, cloudbox_on, 
+              cloudbox_limits, rte_pos, rte_los0, outside_cloudbox, verbosity );
+
+  //ppath_init_structure( ppath, atmosphere_dim, ppath0.np );
+  //ppath_copy( ppath, ppath0 );
 }
