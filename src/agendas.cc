@@ -517,7 +517,6 @@ void define_agenda_data()
        INPUT( "pha_mat_spt", "scat_za_index", "scat_lat_index", "scat_lon_index",
               "scat_p_index", "scat_aa_index", "rte_temperature")));
        
-
   agenda_data.push_back
     (AgRecord
      ( NAME( "ppath_step_agenda" ),
@@ -550,14 +549,8 @@ void define_agenda_data()
         "This is either the position of the sensor (true or hypothetical), \n"
         "or some point at the top of the atmosphere (determined by\n" 
         "geometrical calculations starting at the sensor). This \n" 
-        "initialisation is not handled by *ppath_step_agenda*. All fields of\n"
-        "*ppath_step* are set by *ppath_step_agenda*. If the sensor is above\n"
-        "the model atmosphere the field *constant* can be initiated by the \n" 
-        "calling method. Otherwise the field shall be set to negative and it\n"
-        "is set to the correct value by *ppath_step* at the first call. This\n"
-        "procedure is needed as the path constant changes if refraction is \n"
-        "considered, or not, when the sensor is placed inside the\n" 
-        "atmosphere.\n"
+        "initialisation is not handled by *ppath_step_agenda* (but by \n"
+        "the internal function ppath_start_stepping). \n"
         "\n"
         "The *ppath_step_agenda* put in points along the propagation path \n"
         "at all crossings with the grids, tangent points and points of \n"
@@ -571,13 +564,30 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "ppath_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of complete propagation paths.\n"
+        "\n"
+        "In contrast to *ppath_step_agenda* that controls the ray tracing\n"
+        "inside each grid box, this agenda determines how complete paths are\n"
+        "determined. The standard choice is to do this in a step-by-step\n"
+        "manner using *ppath_step_agenda*, with this agenda set to call\n" 
+        "*ppathStepByStep*.\n" 
+        ),
+       OUTPUT( "ppath" ),
+       INPUT( "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", 
+              "t_field", "z_field", "vmr_field", "ppath_cloudbox_do" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "refr_index_agenda" ),
        DESCRIPTION
        (
         "Calculation of the refractive index of air.\n"
         "\n"
         "This agenda should calculate the summed refractive index for all\n"
-        "relevant atmospheric constituients.\n"
+        "relevant atmospheric constituents.\n"
         ),
        OUTPUT( "refr_index" ),
        INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list" )));

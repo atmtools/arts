@@ -1,3 +1,22 @@
+2012-03-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-39
+
+	* src/workspace.cc: Defined ppath_cloudbox_do. This WSV correponds
+	to the ppath_calc input argument outside_cloudbox (but equals
+	!outside_cloudbox).
+
+	* src/agendas.cc: Defined ppath_agenda. 
+
+	* src/refraction.cc (refr_index_ir): As below + declared constants
+	as static.
+
+	* src/geodetic.cc (distance3D,distance3D): As below.
+
+	* src/physics_funcs.cc: Replaced usage of pow with
+	multiplications, eg. pow(f,3.0) -> f*f*f. To hopefully gain some
+	calculation time. 
+
 2012-03-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-38

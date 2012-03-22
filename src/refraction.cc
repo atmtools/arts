@@ -510,9 +510,9 @@ void refr_index_ir(
         const Numeric&   p,
         const Numeric&   t )
 {
-  const Numeric bn0 = 1.000272620045304;
-  const Numeric bk = 288.16 * (pow(bn0,Numeric(2.0))-1.0)/
-                                        (1013.25*(pow(bn0,Numeric(2.0))+2.0));
+  static const Numeric bn0  = 1.000272620045304;
+  static const Numeric bn02 = bn0*bn0;
+  static const Numeric bk   = 288.16 * (bn02-1.0) / (1013.25*(bn02+2.0));
 
   // Pa -> HPa
   refr_index = sqrt((2.0*bk*p/100.0+t)/(t-bk*p/100.0));

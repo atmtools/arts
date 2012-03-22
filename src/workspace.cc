@@ -2611,6 +2611,31 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "ppath_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_cloudbox_do" ),
+      DESCRIPTION
+      (
+       "Flag to perform ray tracing inside the cloudbox.\n"
+       "\n"
+       "Standard propagation path calculations stop at the bounday of the\n"
+       "clouxbox, or stop directly if started inside the cloudbox. This WSV\n"
+       "allows scatting methods to obtain propagation paths inside the\n"
+       "cloudbox. Hence, this variable is for internal usage primarily.\n"
+       "\n"
+       "Usage: For communication between modules of arts.\n"
+       ),
+      GROUP( "Numeric" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "ppath_lmax" ),
       DESCRIPTION
       (

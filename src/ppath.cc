@@ -4259,7 +4259,7 @@ void ppath_step_refr_3d(
    \param   cloudbox_limits   Index limits of the cloud box.
    \param   outside_cloudbox  Boolean to flag if the propagation path is 
                               (expected to be) outside the cloudbox. Ordinary
-                              clerar sky calculations are selected by the value
+                              clear sky calculations are selected by the value
                               1. The value 0 means tracking of a propagation 
                               path inside the cloudbox. The path is then
                               tracked to the cloudbox boundary.

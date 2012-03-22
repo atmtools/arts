@@ -197,7 +197,9 @@ void distance2D(
   pol2cart( x1, z1, r1, lat1 );
   pol2cart( x2, z2, r2, lat2 );
 
-  l = sqrt( pow( x2-x1, 2.0 ) + pow( x2-x1, 2.0 ) ); 
+  const Numeric dx = x2 - x1; 
+  const Numeric dz = z2 - z1; 
+  l = sqrt( dx*dx + dz*dz ); 
 }
 
 
@@ -596,7 +598,10 @@ void distance3D(
   sph2cart( x1, y1, z1, r1, lat1, lon1 );
   sph2cart( x2, y2, z2, r2, lat2, lon2 );
 
-  l = sqrt( pow( x2-x1, 2.0 ) + pow( y2-y1, 2.0 ) + pow( x2-x1, 2.0 ) ); 
+  const Numeric dx = x2 - x1; 
+  const Numeric dy = y2 - y1; 
+  const Numeric dz = z2 - z1; 
+  l = sqrt( dx*dx + dy*dy + dz*dz ); 
 }
 
 

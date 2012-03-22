@@ -78,10 +78,10 @@ Numeric dinvplanckdI(
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
 
-  const Numeric d    = b * pow(f,3.0) / i;
+  const Numeric d    = b * f*f*f / i;
   const Numeric binv = a * f / log( d + 1 );
 
-  return pow(binv,2.0) / ( a * f * i * (1/d+1) ); 
+  return binv*binv / ( a * f * i * (1/d+1) ); 
 }
 
 
@@ -148,7 +148,7 @@ Numeric invplanck(
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
 
-  return   ( a * f ) / log( (b*pow(f,3.0))/i + 1.0 );
+  return   ( a * f ) / log( (b*f*f*f)/i + 1.0 );
 }
 
 
@@ -226,7 +226,7 @@ Numeric planck(
     static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
     static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
   
-    return  ( a * pow(f,3.0) ) / ( exp( (b*f)/t ) - 1.0 );
+    return  ( a * f*f*f ) / ( exp( (b*f)/t ) - 1.0 );
     }
 }
 
