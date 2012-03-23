@@ -392,7 +392,7 @@ bool find_file(String& filename, const char* extension, const ArrayOfString& pat
           for (path = paths.begin(); path != paths.end(); path++)
             {
               String fullpath;
-              fullpath = (*path) + "/" + filename;
+              fullpath = expand_path(*path) + "/" + filename;
               if (file_exists (fullpath))
                 {
                   filename = fullpath;
