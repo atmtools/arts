@@ -1,5 +1,16 @@
 2012-03-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-42
+
+	* tests/DOITBatch/TestDOITBatch.arts: Moved up call of
+	basics_checkedCalc and cloudbox_checkedCalc, to be placed before
+	CloudboxGetIncoming. (This was already the case in TestDOIT.arts)
+
+	* src/m_doit.cc (CloudboxGetIncoming): Now checking if
+	basics_checked and cloudbox_checked are set to true.
+
+2012-03-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-41
 
 	* ppath_agenda introduced. With the exceptions: Not relevant for

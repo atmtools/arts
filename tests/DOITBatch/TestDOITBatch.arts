@@ -238,6 +238,10 @@ AgendaSet( ybatch_calc_agenda ){
   #WriteXMLIndexed (output_file_format, ybatch_index, pnd_field, 
   #    "./pnd_fields/pnd_f")
 
+  # Consistency checks
+  basics_checkedCalc
+  cloudbox_checkedCalc  
+
   # Calculate incoming radiation field on cloudbox boundaries
   CloudboxGetIncoming
 
@@ -246,10 +250,6 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Executes doit_mono_agenda for all frequencies
   ScatteringDoit
-
-  # Consistency checks
-  basics_checkedCalc
-  cloudbox_checkedCalc  
 
   # Calculate complete measurement vector 
   yCalc
