@@ -71,17 +71,14 @@ void fos_yStandard(Workspace&          ws,
                    const Index&        atmosphere_dim,
                    const Vector&       p_grid,
                    const Vector&       lat_grid,
-                   const Vector&       lon_grid,
                    const Tensor3&      z_field,
                    const Tensor3&      t_field,
                    const Tensor4&      vmr_field,
-                   const Vector&       refellipsoid,
-                   const Matrix&       z_surface,
                    const Index&        cloudbox_on,
                    const ArrayOfIndex& cloudbox_limits,
                    const Index&        stokes_dim,
                    const Vector&       f_grid,
-                   const Agenda&       ppath_step_agenda,
+                   const Agenda&       ppath_agenda,
                    const Agenda&       emission_agenda,
                    const Agenda&       abs_scalar_gas_agenda,
                    const Agenda&       iy_clearsky_agenda,
@@ -130,13 +127,10 @@ void fos_yStandard(Workspace&          ws,
               else
                 {
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, 
-                                             iy_transmission,
+                                             iy_aux, diy_dx, 0, iy_transmission,
                                              rte_pos, fos_angles(ia,Range(0,1)),
-                                             0, jacobian_do, p_grid, 
-                                             lat_grid, lon_grid, t_field, 
-                                             z_field, vmr_field, 
-                                             iy_clearsky_agenda );
+                                             0, jacobian_do, t_field, z_field, 
+                                             vmr_field, iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -194,14 +188,14 @@ void fos_yStandard(Workspace&          ws,
                   else
                     { lat_stretched = lat_grid; }
                   
+                  throw runtime_error( "2D FOS can not be used presently "
+                       "as the \"lat-stretch\" approach not can be handled!" );
+
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, 
-                                             iy_transmission, 
-                                             rte_pos, rte_los,
-                                             0, jacobian_do, p_grid, 
-                                             lat_stretched, lon_grid, t_field, 
-                                             z_field, vmr_field, 
-                                             iy_clearsky_agenda );
+                                             iy_aux, diy_dx, 0, iy_transmission,
+                                             rte_pos, rte_los, 0,
+                                             jacobian_do, t_field, z_field, 
+                                             vmr_field, iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -212,13 +206,10 @@ void fos_yStandard(Workspace&          ws,
           for( Index ia=0; ia<nfosa; ia++ )
             { 
               iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                         iy_aux, diy_dx, 0, 
-                                         iy_transmission, 
+                                         iy_aux, diy_dx, 0, iy_transmission, 
                                          rte_pos, fos_angles(ia,Range(0,2)),
-                                         0, jacobian_do, p_grid, 
-                                         lat_grid, lon_grid, t_field, 
-                                         z_field, vmr_field, 
-                                         iy_clearsky_agenda );
+                                         0, jacobian_do, t_field, z_field, 
+                                         vmr_field, iy_clearsky_agenda );
               fos_y(ia,joker,joker) = tmp;
             }
         }
@@ -238,10 +229,10 @@ void fos_yStandard(Workspace&          ws,
         { 
           iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
                  iy_transmission, rte_pos, fos_angles(ia,Range(0,nlos)), 
-                 jacobian_do, atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                 z_field, t_field, vmr_field, refellipsoid, z_surface, 
+                 jacobian_do, atmosphere_dim, p_grid, 
+                 z_field, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
-                 ppath_step_agenda, emission_agenda, 
+                 ppath_agenda, emission_agenda, 
                  abs_scalar_gas_agenda, iy_clearsky_agenda, 
                  pnd_field, scat_data_raw, opt_prop_gas_agenda, fos_y_agenda, 
                  fos_angles, use_mean_scat_data, fos_n, fos_i+1, verbosity);
@@ -266,18 +257,14 @@ void iyFOS(Workspace&          ws,
            const Index&        jacobian_do,
            const Index&        atmosphere_dim,
            const Vector&       p_grid,
-           const Vector&       lat_grid,
-           const Vector&       lon_grid,
            const Tensor3&      z_field,
            const Tensor3&      t_field,
            const Tensor4&      vmr_field,
-           const Vector&       refellipsoid,
-           const Matrix&       z_surface,
            const Index&        cloudbox_on,
            const ArrayOfIndex& cloudbox_limits,
            const Index&        stokes_dim,
            const Vector&       f_grid,
-           const Agenda&       ppath_step_agenda,
+           const Agenda&       ppath_agenda,
            const Agenda&       emission_agenda,
            const Agenda&       abs_scalar_gas_agenda,
            const Agenda&       iy_clearsky_agenda,
@@ -320,10 +307,8 @@ void iyFOS(Workspace&          ws,
   //
   Ppath  ppath;
   //
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, refellipsoid, z_surface,
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0,
-              verbosity );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 1,
+                       t_field, z_field, vmr_field, ppath_agenda );
 
   // Check radiative background
   const Index bkgr = ppath_what_background( ppath );
@@ -392,8 +377,7 @@ void iyFOS(Workspace&          ws,
     //
     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
                                iy_aux, diy_dx, 0, iy_trans_new,
-                               rte_pos2, rte_los2, 0, jacobian_do, 
-                               p_grid, lat_grid, lon_grid, t_field, 
+                               rte_pos2, rte_los2, 0, jacobian_do, t_field, 
                                z_field, vmr_field, iy_clearsky_agenda );
   }
 

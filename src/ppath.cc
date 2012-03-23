@@ -2540,152 +2540,6 @@ void ppath_step_geom_1d(
 
 
 
-void ppath_geom_updown_1d(
-              Ppath&      ppath,
-        ConstVectorView   z_field,
-        ConstVectorView   refellipsoid,
-        const Numeric&    z_surface,
-        const Index&      cloudbox_on, 
-     const ArrayOfIndex&  cloudbox_limits )
-{
-  // Starting radius, zenith angle and latitude
-  Numeric r_start, lat_start, za_start;
-
-  // Index of the pressure level being the lower limit for the
-  // grid range of interest.
-  Index ip;
-
-  // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
-
-  if( za_start > 85  &&  za_start < 120 )
-    {
-      throw runtime_error( "This method can not be used for initial zenith "
-                           "angles between 85 and 120 deg.!!");
-    }
-
-  // If the field "constant" is negative, this is the first call of the
-  // function and the path constant shall be calculated.
-  Numeric ppc;
-  if( ppath.constant < 0 )
-    { ppc = geometrical_ppc( r_start, za_start ); }
-  else
-    { ppc = ppath.constant; }
-
-  // Upward
-  if( za_start < 90 )
-    { 
-      // Determine number of ppath points
-      Index ilastp1;  // Last index + 1
-      if( cloudbox_on  &&  cloudbox_limits[0] > ip )
-        { ilastp1 = cloudbox_limits[0] + 1; }  // Points inside cloudbox
-      else                                     // are handled by 
-        { ilastp1 = z_field.nelem(); }         // ppath_start_stepping
-      const Index np = ilastp1 - ip;
-
-      ppath_init_structure( ppath, 1, np );
-      //
-      ppath.constant = ppc;
-      //
-      // Start point
-      ppath.r[0]          = r_start;
-      ppath.pos(0,0)      = r_start - refellipsoid[0];
-      ppath.los(0,0)      = za_start;
-      ppath.pos(0,1)      = lat_start;
-      Numeric llast        = geompath_l_at_r( ppc, ppath.r[0] );
-      ppath.gp_p[0].idx   = ip;
-      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
-                            ( z_field[ip+1]  - z_field[ip] );
-      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
-      gridpos_check_fd( ppath.gp_p[0] );
-      // Later points
-      for( Index i=1; i<np; i++ )
-        {
-          ppath.pos(i,0)      = z_field[ip+i];
-          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
-          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
-          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
-                                                              ppath.los(i,0) );
-          const Numeric lthis  = geompath_l_at_r( ppc, ppath.r[i] );
-          ppath.lstep[i-1]   = lthis - llast;
-          llast               = lthis;
-          ppath.gp_p[i].idx   = ip + i;
-          ppath.gp_p[i].fd[0] = 0;
-          ppath.gp_p[i].fd[1] = 1;
-        }
-      // Special treatment of last point
-      ppath.gp_p[np-1].idx  -= 1;
-      ppath.gp_p[np-1].fd[0] = 1;
-      ppath.gp_p[np-1].fd[1] = 0;
-    }
-
-  // Downward
-  else
-    {
-      if( ppc > refellipsoid[0] + z_surface )
-        {
-          ostringstream os;
-          os << "This function can not be used for propgation paths\n"
-             << "including tangent points. Such a point occurs in this case.";
-          throw runtime_error(os.str());
-        }
-
-      // Find grid position of surface altitude
-      GridPos   gp;
-      gridpos( gp, z_field, z_surface );
-      
-      // Determine number of ppath points. Start assumption is hit with surface
-      Index  ilast   = gp.idx+1;  // Index of last pressure level to include
-      Index  surface = 1;
-      if( cloudbox_on  &&  cloudbox_limits[1] <= ip )
-        {                                  // Points inside cloudbox are
-          ilast   = cloudbox_limits[1];    // handled by ppath_start_stepping
-          surface = 0;
-        }  
-      const Index np = ip - ilast + 2 + surface;
-
-      ppath_init_structure( ppath, 1, np );
-      //
-      ppath_set_background( ppath, 2 );
-      ppath.constant = ppc;
-      //
-      // Start point
-      ppath.r[0]          = r_start;
-      ppath.pos(0,0)      = r_start - refellipsoid[0];
-      ppath.los(0,0)      = za_start;
-      ppath.pos(0,1)      = lat_start;
-      Numeric llast        = geompath_l_at_r( ppc, ppath.r[0] );
-      ppath.gp_p[0].idx   = ip;
-      ppath.gp_p[0].fd[0] = ( ppath.pos(0,0) - z_field[ip] ) / 
-                            ( z_field[ip+1]  - z_field[ip] );
-      ppath.gp_p[0].fd[1] = 1 - ppath.gp_p[0].fd[0];
-      gridpos_check_fd( ppath.gp_p[0] );
-      // Later points
-      for( Index i=1; i<np; i++ )
-        {
-          if( i < np-1  ||  !surface )
-            { ppath.pos(i,0)  = z_field[ip-i+1]; }
-          else
-            { ppath.pos(i,0)  = z_surface; }
-          ppath.r[i]          = refellipsoid[0] + ppath.pos(i,0);
-          ppath.los(i,0)      = geompath_za_at_r( ppc, za_start, ppath.r[i] );
-          ppath.pos(i,1)      = geompath_lat_at_za( za_start, lat_start,
-                                                              ppath.los(i,0) );
-          const Numeric lthis  = geompath_l_at_r( ppc, ppath.r[i] );
-          ppath.lstep[i-1]   = llast - lthis;
-          llast               = lthis;
-          ppath.gp_p[i].idx   = ip - i + 1;
-          ppath.gp_p[i].fd[0] = 0;
-          ppath.gp_p[i].fd[1] = 1;
-        }
-      // Special treatment of last point
-      if( surface )
-        { gridpos_copy( ppath.gp_p[np-1], gp ); }
-    }
-}
-
-
-
 //! do_gridcell_2d
 /*!
    Calculates the geometrical path through a 2D grid cell.
@@ -4257,12 +4111,7 @@ void ppath_step_refr_3d(
    \param   z_surface         Surface altitude.
    \param   cloudbox_on       Flag to activate the cloud box.
    \param   cloudbox_limits   Index limits of the cloud box.
-   \param   outside_cloudbox  Boolean to flag if the propagation path is 
-                              (expected to be) outside the cloudbox. Ordinary
-                              clear sky calculations are selected by the value
-                              1. The value 0 means tracking of a propagation 
-                              path inside the cloudbox. The path is then
-                              tracked to the cloudbox boundary.
+   \param   ppath_inside_cloudbox_do   As the WSV with the same name.
    \param   rte_pos           The position of the sensor.
    \param   rte_los           The line-of-sight of the sensor.
 
@@ -4280,7 +4129,7 @@ void ppath_start_stepping(
     ConstMatrixView       z_surface,
     const Index&          cloudbox_on, 
     const ArrayOfIndex&   cloudbox_limits,
-    const bool&           outside_cloudbox,
+    const bool&           ppath_inside_cloudbox_do,
     ConstVectorView       rte_pos,
     ConstVectorView       rte_los,
     const Verbosity&      verbosity)
@@ -4337,7 +4186,7 @@ void ppath_start_stepping(
               // Is the sensor inside the cloud box?
               if( fgp > cloudbox_limits[0]  && fgp < cloudbox_limits[1] )
                 { 
-                  if( outside_cloudbox )
+                  if( !ppath_inside_cloudbox_do )
                     { ppath_set_background( ppath, 4 ); }
                 }
               // Is the sensor at the cloud box boundary?
@@ -4346,7 +4195,7 @@ void ppath_start_stepping(
                 { ppath_set_background( ppath, 3 ); }
             }
           else
-            { assert( outside_cloudbox ); }
+            { assert( !ppath_inside_cloudbox_do ); }
         }
 
       // Sensor is outside the model atmosphere:
@@ -4481,7 +4330,7 @@ void ppath_start_stepping(
               if( fgp > cloudbox_limits[0]  &&  fgp < cloudbox_limits[1]  &&
                   fgl > cloudbox_limits[2]  &&  fgl < cloudbox_limits[3]  )
                 {
-                  if( outside_cloudbox )
+                  if( !ppath_inside_cloudbox_do )
                     { ppath_set_background( ppath, 4 ); }
                 }
               // Is the sensor at the cloud box boundary?
@@ -4491,7 +4340,7 @@ void ppath_start_stepping(
                        ( fgl==cloudbox_limits[3] && rte_los[0] <= 0 ) )
                 { ppath_set_background( ppath, 3 ); }
               else
-                { assert( outside_cloudbox ); }
+                { assert( !ppath_inside_cloudbox_do ); }
             }
         }      
 
@@ -4754,7 +4603,7 @@ void ppath_start_stepping(
                   fgl > cloudbox_limits[2]  &&  fgl < cloudbox_limits[3]  &&
                   fgo > cloudbox_limits[4]  &&  fgo < cloudbox_limits[5]  )
                 {
-                  if( outside_cloudbox )
+                  if( !ppath_inside_cloudbox_do )
                     { ppath_set_background( ppath, 4 ); }
                 }
               // Is the sensor at the cloud box boundary?
@@ -4766,7 +4615,7 @@ void ppath_start_stepping(
                        ( fgo==cloudbox_limits[5] && abs(rte_los[1]) <= 0 ) )
                 { ppath_set_background( ppath, 3 ); }
               else
-                { assert( outside_cloudbox ); }
+                { assert( !ppath_inside_cloudbox_do ); }
             }
         }      
 
@@ -4985,7 +4834,7 @@ void ppath_start_stepping(
 
    \param ws                 Current Workspace
    \param ppath              Output: A Ppath structure
-   \param ppath_step_agenda  As the WSm with the same name.
+   \param ppath_step_agenda  As the WSM with the same name.
    \param atmosphere_dim     The atmospheric dimensionality.
    \param p_grid             The pressure grid.
    \param lat_grid           The latitude grid.
@@ -4997,12 +4846,7 @@ void ppath_start_stepping(
    \param cloudbox_limits    Index limits of the cloud box.
    \param rte_pos            The position of the sensor.
    \param rte_los            The line-of-sight of the sensor.
-   \param outside_cloudbox   Boolean to flag if the propagation path is 
-                             (expected to be) outside the cloudbox. Ordinary
-                             clear sky calculations are selected by the value
-                             1. The value 0 means tracking of a propagation 
-                             path inside the cloudbox. The path is then
-                             tracked to the cloudbox boundary.
+   \param ppath_inside_cloudbox_do  As the WSM with the same name.
 
    \author Patrick Eriksson
    \date   2003-01-08
@@ -5014,14 +4858,16 @@ void ppath_calc(      Workspace&      ws,
                 const Vector&         p_grid,
                 const Vector&         lat_grid,
                 const Vector&         lon_grid,
+                const Tensor3&        t_field,
                 const Tensor3&        z_field,
+                const Tensor4&        vmr_field,
                 const Vector&         refellipsoid,
                 const Matrix&         z_surface,
                 const Index&          cloudbox_on, 
                 const ArrayOfIndex&   cloudbox_limits,
                 const Vector&         rte_pos,
                 const Vector&         rte_los,
-                const bool&           outside_cloudbox,
+                const bool&           ppath_inside_cloudbox_do,
                 const Verbosity&      verbosity)
 {
   CREATE_OUT2
@@ -5052,7 +4898,9 @@ void ppath_calc(      Workspace&      ws,
       chk_if_in_range( "sensor zenith angle", rte_los[0], 0., 180. );
       chk_if_in_range( "sensor azimuth angle", rte_los[1], -180., 180. );
     }
-  assert( outside_cloudbox  ||  cloudbox_on );
+  if( ppath_inside_cloudbox_do  &&  cloudbox_on )
+    throw runtime_error( "The WSV *ppath_inside_cloudbox_do* can only be set "
+                         "to 1 if also *cloudbox_on* is 1." );
   
   //--- End: Check input ------------------------------------------------------
 
@@ -5082,7 +4930,7 @@ void ppath_calc(      Workspace&      ws,
   //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
                         lon_grid, z_field, refellipsoid, z_surface,
-                        cloudbox_on, cloudbox_limits, outside_cloudbox, 
+                        cloudbox_on, cloudbox_limits, ppath_inside_cloudbox_do, 
                         rte_pos, rte_los, verbosity );
   // For debugging:
   // Print( ppath_step, 0, verbosity );
@@ -5113,7 +4961,8 @@ void ppath_calc(      Workspace&      ws,
       //
       istep++;
       //
-      ppath_step_agendaExecute( ws, ppath_step, ppath_step_agenda );
+      ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
+                                ppath_step_agenda );
       // For debugging:
       // Print( ppath_step, 0, verbosity );
 
@@ -5133,7 +4982,7 @@ void ppath_calc(      Workspace&      ws,
       //----------------------------------------------------------------------
 
       //--- Outside cloud box ------------------------------------------------
-      if( outside_cloudbox )
+      if( !ppath_inside_cloudbox_do )
         {
 
           // Check if the top of the atmosphere is reached
@@ -5389,7 +5238,7 @@ void ppath_calc(      Workspace&      ws,
 
 
 
-//! ppath_calc
+//! ppath_to_transmitter
 /*! 
    This is the core for the WSM ppathStepByStep.
 
@@ -5398,7 +5247,7 @@ void ppath_calc(      Workspace&      ws,
 
    \param ws                 Current Workspace
    \param ppath              Output: A Ppath structure
-   \param ppath_step_agenda  As the WSm with the same name.
+   \param ppath_step_agenda  As the WSM with the same name.
    \param atmosphere_dim     The atmospheric dimensionality.
    \param p_grid             The pressure grid.
    \param lat_grid           The latitude grid.
@@ -5410,12 +5259,7 @@ void ppath_calc(      Workspace&      ws,
    \param cloudbox_limits    Index limits of the cloud box.
    \param rte_pos            The position of the sensor.
    \param rte_los            The line-of-sight of the sensor.
-   \param outside_cloudbox   Boolean to flag if the propagation path is 
-                             (expected to be) outside the cloudbox. Ordinary
-                             clear sky calculations are selected by the value
-                             1. The value 0 means tracking of a propagation 
-                             path inside the cloudbox. The path is then
-                             tracked to the cloudbox boundary.
+   \param ppath_inside_cloudbox_do  As the WSM with the same name.
 
    \author Patrick Eriksson
    \date   2003-01-08
@@ -5474,14 +5318,16 @@ void ppath_to_transmitter(
    const Vector&         p_grid,
    const Vector&         lat_grid,
    const Vector&         lon_grid,
+   const Tensor3&        t_field,
    const Tensor3&        z_field,
+   const Tensor4&        vmr_field,
    const Vector&         refellipsoid,
    const Matrix&         z_surface,
    const Index&          cloudbox_on, 
    const ArrayOfIndex&   cloudbox_limits,
    const Vector&         rte_pos,
    const Vector&         transmitter_pos,
-   const bool&           outside_cloudbox,
+   const bool&           ppath_inside_cloudbox_do,
    const Verbosity&      verbosity)
 {
   //--- Check input -----------------------------------------------------------
@@ -5580,8 +5426,9 @@ void ppath_to_transmitter(
   // So far we just return the geometrical ppath
   //
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
-              lon_grid, z_field, refellipsoid, z_surface, cloudbox_on, 
-              cloudbox_limits, rte_pos, rte_los0, outside_cloudbox, verbosity );
+              lon_grid, t_field, z_field, vmr_field, refellipsoid, z_surface, 
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los0, 
+              ppath_inside_cloudbox_do, verbosity );
 
   //ppath_init_structure( ppath, atmosphere_dim, ppath0.np );
   //ppath_copy( ppath, ppath0 );

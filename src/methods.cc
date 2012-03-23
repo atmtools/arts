@@ -4020,10 +4020,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid",
-            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
-            "f_grid", "ppath_step_agenda", "emission_agenda",
+        IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid", "z_field", 
+            "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits",
+            "stokes_dim", "f_grid", "ppath_agenda", "emission_agenda",
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_transmission", "pnd_field", "scat_data_raw", 
             "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
@@ -4468,8 +4467,8 @@ void define_md_data_raw()
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
             "wind_w_field", "refellipsoid", "z_surface", "cloudbox_on", 
-            "cloudbox_limits", "stokes_dim", "f_grid", "abs_species",
-            "ppath_step_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "stokes_dim", "f_grid", "abs_species",
+            "ppath_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
@@ -4504,9 +4503,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", 
-            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
-            "vmr_field", "refellipsoid", "z_surface", "cloudbox_on", 
-            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
+            "p_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "pnd_field", 
             "use_mean_scat_data", "scat_data_raw", "opt_prop_gas_agenda" ),
         GIN(),
@@ -4539,7 +4537,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "basics_checked", "p_grid", "lat_grid", "lon_grid", "t_field", 
+        IN( "basics_checked", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
             "rte_pos", "rte_los", "jacobian_do", "iy_clearsky_agenda" ),
         GIN(),
@@ -4583,8 +4581,8 @@ void define_md_data_raw()
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
             "wind_w_field", "refellipsoid", "z_surface",
-            "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
-            "abs_species", "ppath_step_agenda", "emission_agenda", 
+            "cloudbox_on", "stokes_dim", "f_grid",
+            "abs_species", "ppath_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
             "surface_prop_agenda", "iy_cloudbox_agenda",
             "jacobian_quantities", "jacobian_indices" ),
@@ -4613,8 +4611,8 @@ void define_md_data_raw()
         IN( "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
             "wind_u_field", "wind_v_field", "wind_w_field", "refellipsoid", 
-            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim", 
-            "f_grid", "ppath_step_agenda", "emission_agenda", 
+            "z_surface", "cloudbox_on", "stokes_dim", 
+            "f_grid", "ppath_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
             "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda" ),
         GIN(),
@@ -4659,9 +4657,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", 
-            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
-            "vmr_field", "refellipsoid", "z_surface", "cloudbox_on", 
-            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
+            "p_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
             "emission_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
             "fos_angles", "use_mean_scat_data", "fos_n", "fos_i" ),
@@ -5183,8 +5180,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian",
-            "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
+            "imblock", "iyb", "yb", "atmosphere_dim",
+            "t_field", "z_field", "vmr_field", "cloudbox_on", 
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_time", 
@@ -6705,10 +6702,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ppath_step_agenda", "basics_checked", "atmosphere_dim", 
-            "p_grid", "lat_grid", "lon_grid", "z_field", "refellipsoid", 
-            "z_surface", "cloudbox_on", "cloudbox_checked", "cloudbox_limits", 
-            "rte_pos", "rte_los" ),
+        IN( "ppath_step_agenda", "ppath_inside_cloudbox_do", "basics_checked", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field", 
+            "z_field", "vmr_field", "refellipsoid", "z_surface", "cloudbox_on", 
+            "cloudbox_checked", "cloudbox_limits", "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6741,41 +6738,6 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "ppath_step", "atmosphere_dim", "lat_grid", "lon_grid", 
             "z_field", "refellipsoid", "z_surface", "ppath_lmax" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppath_stepGeometricUpDown" ),
-        DESCRIPTION
-        (
-         "Calculates geometrical propagation paths for some conditions.\n"
-         "\n"
-         "A rapid method for calculating geometrical propagation paths if:\n"
-         "   * 1D atmosphere.\n"
-         "   * The WSM ppath_lmax is < 0.\n"
-         "   * All zenith angles are inside 0-85 or 120-180 deg.\n"
-         "\n"
-         "The two last points exclude to use the method for limb sounding.\n"
-         "That is, the method is intended only for observations of up-ward\n"
-         "and down-ward type. The last point means also that the method can\n"
-         "be applied inside scattering methods (but can be used with DOIT if\n"
-         "(the radiation field is already calculated).\n"
-         "\n"
-         "However, when this method can be used, it is very much faster than\n"
-         "the standard WSM: *ppath_stepGeometric*. This method is faster as\n"
-         "it calculates the complete path in one call.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath_step" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath_step", "atmosphere_dim", "z_field", "refellipsoid", 
-            "z_surface", "cloudbox_on", "cloudbox_limits", "ppath_lmax" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9627,8 +9589,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "basics_checked", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
+        IN( "basics_checked", "atmosphere_dim",
+            "t_field", "z_field", "vmr_field", "cloudbox_on", 
             "cloudbox_checked", "stokes_dim", "f_grid", "sensor_pos", 
             "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_response_f",
@@ -9702,8 +9664,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "basics_checked", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
+        IN( "basics_checked", "atmosphere_dim", 
+            "t_field", "z_field", "vmr_field", "cloudbox_on", 
             "cloudbox_checked", "stokes_dim", "f_grid", "sensor_pos", 
             "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response_agenda", "iy_clearsky_agenda", "y_unit", 

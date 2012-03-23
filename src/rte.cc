@@ -405,7 +405,6 @@ void get_iy_of_background(
   const Index&            jacobian_do,
   const Ppath&            ppath,
   const Index&            atmosphere_dim,
-  ConstVectorView         p_grid,
   ConstVectorView         lat_grid,
   ConstVectorView         lon_grid,
   ConstTensor3View        t_field,
@@ -591,9 +590,8 @@ void get_iy_of_background(
                 else
                   {
                     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                                  iy_aux, diy_dx, 0, iy_trans_new, 
-                                  rte_pos, los, cloudbox_on, jacobian_do, 
-                                  p_grid, lat_grid, lon_grid, t_field, 
+                                  iy_aux, diy_dx, 0, iy_trans_new, rte_pos, 
+                                  los, cloudbox_on, jacobian_do, t_field,
                                   z_field, vmr_field, iy_clearsky_agenda );
                   }
 
@@ -1171,9 +1169,6 @@ void iyb_calc(
         ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,
-  ConstVectorView                   p_grid,
-  ConstVectorView                   lat_grid,
-  ConstVectorView                   lon_grid,
   ConstTensor3View                  t_field,
   ConstTensor3View                  z_field,
   ConstTensor4View                  vmr_field,
@@ -1238,7 +1233,7 @@ void iyb_calc(
   default(none)                                                   \
   firstprivate(l_ws, l_iy_clearsky_agenda)                        \
   shared(sensor_los, mblock_za_grid, mblock_aa_grid, vmr_field,   \
-         t_field, lon_grid, lat_grid, p_grid, f_grid, sensor_pos, \
+         t_field, f_grid, sensor_pos, \
          joker, naa) */
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && nza>1)                            \
@@ -1277,8 +1272,7 @@ void iyb_calc(
               ArrayOfTensor3 diy_dx;
               //
               iyCalc( l_ws, iy, iy_aux, iy_error, iy_error_type, diy_dx, 
-                      1, p_grid, lat_grid, lon_grid, t_field, 
-                      z_field, vmr_field, cloudbox_on, 1, 
+                      1, t_field, z_field, vmr_field, cloudbox_on, 1, 
                       sensor_pos(imblock,joker), los, j_analytical_do, 
                       l_iy_clearsky_agenda, verbosity );
 

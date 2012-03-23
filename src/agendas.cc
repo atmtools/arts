@@ -287,8 +287,7 @@ void define_agenda_data()
        INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
               "iy_agenda_call1", "iy_transmission",
               "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", 
-              "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", 
-              "vmr_field" )));
+              "t_field", "z_field", "vmr_field" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -322,8 +321,8 @@ void define_agenda_data()
         "calculations from this point.\n"
         "\n"
         "A function calling this agenda shall set *rte_pos*, *rte_los* and\n"
-        "*rte_gp_...* variables to the position and line-of-sight for which the\n"
-        "scattered radiation shall be determined.\n"
+        "*rte_gp_...* variables to the position and line-of-sight for which\n"
+        "the scattered radiation shall be determined.\n"
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
        INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx", 
@@ -519,6 +518,23 @@ void define_agenda_data()
        
   agenda_data.push_back
     (AgRecord
+     ( NAME( "ppath_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of complete propagation paths.\n"
+        "\n"
+        "In contrast to *ppath_step_agenda* that controls the ray tracing\n"
+        "inside each grid box, this agenda determines how complete paths are\n"
+        "determined. The standard choice is to do this in a step-by-step\n"
+        "manner using *ppath_step_agenda*, with this agenda set to call\n" 
+        "*ppathStepByStep*.\n" 
+        ),
+       OUTPUT( "ppath" ),
+       INPUT( "rte_pos", "rte_los", "cloudbox_on", "ppath_inside_cloudbox_do", 
+              "t_field", "z_field", "vmr_field" )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "ppath_step_agenda" ),
        DESCRIPTION
        (
@@ -560,24 +576,7 @@ void define_agenda_data()
         "number of new points of each step can exceed one.\n"
         ),
        OUTPUT( "ppath_step" ),
-       INPUT( "ppath_step" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "ppath_agenda" ),
-       DESCRIPTION
-       (
-        "Calculation of complete propagation paths.\n"
-        "\n"
-        "In contrast to *ppath_step_agenda* that controls the ray tracing\n"
-        "inside each grid box, this agenda determines how complete paths are\n"
-        "determined. The standard choice is to do this in a step-by-step\n"
-        "manner using *ppath_step_agenda*, with this agenda set to call\n" 
-        "*ppathStepByStep*.\n" 
-        ),
-       OUTPUT( "ppath" ),
-       INPUT( "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", 
-              "t_field", "z_field", "vmr_field", "ppath_cloudbox_do" )));
+       INPUT( "ppath_step", "t_field", "z_field", "vmr_field" )));
 
   agenda_data.push_back
     (AgRecord

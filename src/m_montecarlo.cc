@@ -642,9 +642,9 @@ void MCIPA(Workspace&            ws,
       //for the IPA method.
       Ppath ppath;
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
-                  p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
-                  0, cloudbox_limits, local_rte_pos, local_rte_los, 1,
-                  verbosity );
+                  p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field,
+                  refellipsoid, z_surface, 0, cloudbox_limits, 
+                  local_rte_pos, local_rte_los, 0, verbosity );
       
       while (keepgoing)
         {

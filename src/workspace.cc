@@ -2605,7 +2605,7 @@ void Workspace::define_wsv_data()
        "find where the data structure, Ppath, for propagation paths is \n"
        "discussed. It is listed as a subentry to \"data structures\".\n"
        "\n"
-       "Usage: Output from the method *ppathCalc*.\n"
+       "Usage: Output from *ppath_agenda*.\n"
        ),
       GROUP( "Ppath" )));
 
@@ -2620,7 +2620,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppath_cloudbox_do" ),
+    ( NAME( "ppath_inside_cloudbox_do" ),
       DESCRIPTION
       (
        "Flag to perform ray tracing inside the cloudbox.\n"
@@ -2632,7 +2632,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: For communication between modules of arts.\n"
        ),
-      GROUP( "Numeric" )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2671,7 +2671,7 @@ void Workspace::define_wsv_data()
        "The main intention of this variable is communication with the agenda\n"
        "*ppath_step_agenda*.\n"
        "\n"
-       "See *ppathCalc* for more information on this variable and\n"
+       "See *ppath_step_agenda* for more information on this variable and\n"
        "the calculation of propagation paths. Or read the chapter on\n"
        "propagation paths in the ARTS user guide.\n"
        "\n"
@@ -2883,9 +2883,7 @@ void Workspace::define_wsv_data()
        "A line-of-sight for radiative transfer calculations.\n"
        "\n"
        "The main purpose of this WSV and *rte_pos* is communication with \n"
-       "different agendas involved in the RTE calculations. These variables \n"
-       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
-       "methods) from the workspace. \n"
+       "different agendas involved in the RTE calculations.\n"
        "\n"
        "For 1D and 2D cases, *rte_los* is a vector of length 1 holding the \n"
        "zenith angle. For 3D, the length of the vector is 2, where the\n"
@@ -2909,9 +2907,7 @@ void Workspace::define_wsv_data()
        "A geographical position for radiative transfer calculations.\n"
        "\n"
        "The main purpose of this WSV and *rte_los* is communication with \n"
-       "different agendas involved in the RTE calculations. These variables \n"
-       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
-       "methods) from the workspace. \n"
+       "different agendas involved in the RTE calculations.\n"
         "\n"
        "This variable is a vector with a length equalling the atmospheric\n"
        "dimensionality. The first element is the geomtrical altitude.\n"

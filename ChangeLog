@@ -1,3 +1,52 @@
+2012-03-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-41
+
+	* ppath_agenda introduced. With the exceptions: Not relevant for
+	DOIT (inside cloudbox). Nothing changed for MC (as other
+	ppath_step part is anyhow hard-coded inside MC).
+
+	* Clean-up/bugfix regarding input to ppath_step_agenda and
+	iy_clearsky_agenda. Caused changes in several files (list below
+	probably not complete). If general.arts used, no changes should be
+	needed.
+
+	* src/m_ppath.cc (ppath_stepGeometricUpDown): Removed. More
+	complete tests showed that for complete simulations the time gain
+	is very small and then better to remove a method of such low
+	generality.
+
+	* src/ppath_NotUsed.cc (ppath_geom_updown_1d): Now placed here.
+
+	* includes/general.arts: Now also defining ppath_agenda and
+	ppath_inside_cloudbox_do.
+
+	* src/workspace.cc: ppath_cloudbox_do was incorrectly declared as
+	Numeric. Also renamed to ppath_inside_cloudbox_do, for better
+	clarity. N.B., this is a variable that standard usage not need to
+	consider. Just use value set in general.arts!
+
+	* src/ppath.cc: Replaced outside_cloudbox with ppath_inside_cloudbox_do.
+
+	* src/montecarlo.cc:
+	* src/m_montecarlo.cc:
+	* src/m_rte.cc:
+	* src/m_jacobian.cc:
+	* src/m_fos.cc: Adopted to agenda changes below.
+
+	* src/agendas.cc (ppath_step_agenda): A bug found! Added t_field,
+	z_field and vmr_field as agenda input. This is required for
+	jacobian perturbation calculations, to allow that e.g.
+	t-disturbances can affect the refractive index.
+
+	(iy_clearsky_agenda): Removed p/lat/lon_grid as input. These
+	variables were added to handle FOS-2D, but realises that these
+	variables must be pushed own to ppath_step_agenda level to work.
+	And also other variables must be passed on from agenda to agenda
+	for totally correct results. How to handle this is a later issue!
+
+	* src/m_atmosphere.cc (z2g): Removed another pow.
+
 2012-03-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-40
@@ -15,7 +64,7 @@
 	to the ppath_calc input argument outside_cloudbox (but equals
 	!outside_cloudbox).
 
-	* src/agendas.cc: Defined ppath_agenda. 
+	* src/agendas.cc: Defined ppath_agenda.
 
 	* src/refraction.cc (refr_index_ir): As below + declared constants
 	as static.
@@ -24,7 +73,7 @@
 
 	* src/physics_funcs.cc: Replaced usage of pow with
 	multiplications, eg. pow(f,3.0) -> f*f*f. To hopefully gain some
-	calculation time. 
+	calculation time.
 
 2012-03-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

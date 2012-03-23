@@ -444,8 +444,9 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
   cloud_opt_path=0;
   //calculate ppath to cloudbox boundary
   ppath_calc( ws, ppath, ppath_step_agenda, 3, 
-              p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
-              1, cloudbox_limits, local_rte_pos, local_rte_los, 1,
+              p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field,
+              refellipsoid, z_surface, 
+              1, cloudbox_limits, local_rte_pos, local_rte_los, 0,
               verbosity );
   //if this ppath hit a cloud, now take ppath inside cloud
   if (ppath_what_background(ppath)>2)
@@ -463,8 +464,9 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                       cloudbox_limits[5]-cloudbox_limits[4]+1);
 
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
-                  p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
-                  1, cloudbox_limits, local_rte_pos, local_rte_los, 0,
+                  p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field,
+                  refellipsoid, z_surface, 
+                  1, cloudbox_limits, local_rte_pos, local_rte_los, 1,
                   verbosity );
 
       Matrix  pnd_ppath(particle_masses.nelem(),ppath.np);

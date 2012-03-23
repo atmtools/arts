@@ -144,17 +144,6 @@ AgendaSet( iy_space_agenda ){
 
 
 
-# --- Propagation path -------------------------------------------------
-
-# Here we test the special WSM for up- and down-ward cases
-
-NumericSet( ppath_lmax, -1 )
-AgendaSet( ppath_step_agenda ){
-  ppath_stepGeometricUpDown
-}
-
-
-
 # --- Common sensor settings -------------------------------------------------
 
 FlagOn( sensor_norm )

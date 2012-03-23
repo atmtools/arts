@@ -151,15 +151,24 @@ AgendaSet( refr_index_agenda ){
 
 
 #
-# Agenda for the calculation of propagation path steps
+# Agendas and variables for calculation of propagation paths:
 # (This will result in pure geometrical calculations. That is, refraction is 
 # neglected. The value for ppath_lmax of 10e3 is OK for limb sounding, and 
-# also for down-looking if not very accutate results are demanded.)
+# also for down-looking if not very accutate results are demanded.
+# You should not change the value of ppath_inside_cloudbox_do, if you don't 
+# know exactly what you are doing!)
 #
-NumericSet( ppath_lmax, 10e3 )
 AgendaSet( ppath_step_agenda ){
+  Ignore( t_field )
+  Ignore( vmr_field )
   ppath_stepGeometric
 }
+NumericSet( ppath_lmax, 10e3 )
+#
+AgendaSet( ppath_agenda ){
+  ppathStepByStep
+}
+FlagOff( ppath_inside_cloudbox_do )
 
 
 #

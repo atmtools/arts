@@ -67,12 +67,15 @@ void ppathStepByStep(
          Workspace&      ws,
          Ppath&          ppath,
    const Agenda&         ppath_step_agenda,
+   const Index&          ppath_inside_cloudbox_do,
    const Index&          basics_checked,
    const Index&          atmosphere_dim,
    const Vector&         p_grid,
    const Vector&         lat_grid,
    const Vector&         lon_grid,
+   const Tensor3&        t_field,
    const Tensor3&        z_field,
+   const Tensor4&        vmr_field,
    const Vector&         refellipsoid,
    const Matrix&         z_surface,
    const Index&          cloudbox_on, 
@@ -90,11 +93,12 @@ void ppathStepByStep(
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
+  // Rest is checked inside ppath_calc
 
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, 
-              p_grid, lat_grid, lon_grid, z_field, refellipsoid, z_surface, 
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1,
-              verbosity );
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
+              lon_grid, t_field, z_field, vmr_field, refellipsoid, z_surface, 
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
+              ppath_inside_cloudbox_do, verbosity );
 }
 
 
@@ -134,38 +138,6 @@ void ppath_stepGeometric(// WS Output:
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
-}
-
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_stepGeometricUpDown(// WS Output:
-                         Ppath&           ppath_step,
-                         // WS Input:
-                         const Index&     atmosphere_dim,
-                         const Tensor3&   z_field,
-                         const Vector&    refellipsoid,
-                         const Matrix&    z_surface,
-                         const Index&     cloudbox_on, 
-                    const ArrayOfIndex&   cloudbox_limits,
-                         const Numeric&   ppath_lmax,
-                         const Verbosity&)
-{
-  // Check if OK to use function
-  if( atmosphere_dim > 1 )
-    {
-      throw runtime_error( "This method can only be used for 1D atmospheres." );
-    }
-  if( ppath_lmax >= 0 )
-    {
-      throw runtime_error( "This method can only be used for ppath_lmax < 0." );
-    }
-  // Zenith angle checked in sub-function
-
-  ppath_geom_updown_1d( ppath_step, z_field(joker,0,0), refellipsoid, 
-                        z_surface(0,0), cloudbox_on, cloudbox_limits );
 }
 
 

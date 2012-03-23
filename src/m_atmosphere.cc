@@ -1786,7 +1786,8 @@ void z2g(
          const Numeric& g0,
          const Numeric& z )
 {
-  g = g0 * pow( r/(r+z), 2.0 );
+  const Numeric x = r/(r+z);
+  g = g0 * x*x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
