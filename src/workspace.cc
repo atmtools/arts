@@ -2359,6 +2359,20 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "molarmass_dry_air" ),
+      DESCRIPTION
+      (
+       "The average molar mass of dry air.\n"
+       "\n"
+       "This could also be referred to as the average molecular weight for\n"
+       "dry air. The definition of \"dry air\" can differ between planets and\n"
+       "methods using the WSV. For Earth, this should be a value around\n"
+       "28.97.\n"
+       ),
+      GROUP( "Numeric" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "opt_prop_gas_agenda" ),

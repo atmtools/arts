@@ -1,5 +1,8 @@
 # Right now used more for notes, than TODO
 
+2012-03-23, Patrick
+Are rte_gp_XXX really needed?
+
 2012-02-21, Patrick
 Add sinefit weighting functions.
 
@@ -20,9 +23,6 @@ version of plevel_slope_3d and remove this version used now.
 
 2012-02-08, Patrick
 Revise usage of sensor_response_agenda, and resolve yCalc/yCalc2.
-
-2012-02-08, Patrick
-Make function for HSE general and using lat_true. Update TestGbased.arts
 
 2011-07-13, Patrick
 Make a WSV out of the epsilon that is GIN for doit_conv_flagAbs. And use this

@@ -1,0 +1,94 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Demonstration and test of a single monochromatic pencil beam calculation
+#
+# Author: Patrick Eriksson
+
+
+Arts2 {
+
+INCLUDE "general.arts"
+INCLUDE "continua.arts"
+
+
+# Frequency grid 
+#
+VectorNLinSpace( f_grid, 201, 325e9, 327e9 )
+
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+#
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+
+# Definition of species
+# 
+SpeciesSet( abs_species,
+            ["H2O-PWR98", 
+             "N2-SelfContStandardType",
+             "O2-PWR93"] )
+
+# No line data needed here
+# 
+abs_lines_per_speciesSetEmpty
+
+
+# Atmospheric profiles
+# 
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "../atmosphere_data/tropical" )
+#
+AtmFieldsCalc
+
+
+# Get ground altitude (z_surface) from z_field
+Extract( z_surface, z_field, 0 )
+
+
+# Definition of position and LOS (simulating limb sounding from 600 km)
+# 
+VectorSet( rte_pos, [ 600e3 ] )
+VectorSet( rte_los, [ 113.3 ] )
+
+
+# Perform RT calculations
+# 
+basics_checkedCalc
+cloudbox_checkedCalc
+iyCalc
+
+
+# The standard choice is to use yCalc, and for conversion to Tb and other 
+# later operations, the simplest is to convert the output from iyCalc to 
+# the variables returned by yCalc:
+#
+yFromIy
+
+
+# Convert to Tb
+#
+StringSet( y_unit, "RJBT" )
+#
+y_unitApply
+
+
+# To save calculated spectrum and transmission
+#
+#output_file_formatSetAscii
+#WriteXML( output_file_format, f_grid, "f_grid.xml" )
+#WriteXML( output_file_format, y, "y.xml" )
+#WriteXML( output_file_format, y_aux, "y_aux.xml" )
+
+
+# Check that results are OK with respect to an older reference calculation
+#
+VectorCreate( y0 )
+#
+ReadXML( y0, "yREFERENCE.xml" )
+VectorCompare( y, y0 )
+#
+ReadXML( y0, "y_auxREFERENCE.xml" )
+VectorCompare( y_aux, y0, 0.001 )
+
+}
+ 

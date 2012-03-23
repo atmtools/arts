@@ -5268,8 +5268,8 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "iy_clearsky_agenda", "y_unit", "g0_agenda", 
-            "p_hse", "z_hse_accuracy", "jacobian_quantities", 
-            "jacobian_indices" ),
+            "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
+            "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9720,11 +9720,13 @@ void define_md_data_raw()
       ( NAME( "z_fieldFromHSE" ),
         DESCRIPTION
         (
-         "Altitudes to fulfil hydrostatic equilibrium.\n"
+         "Forse altitudes to fulfil hydrostatic equilibrium.\n"
          "\n"
-         "The method applies hydrostatic equilibrium, considering the effect\n"
-         "of water vapour (but not liquid or ice water). Several variables\n"
-         "are hard-coded and the method is only valid for the Earth\n"
+         "The method applies hydrostatic equilibrium. A mixture of \"dry\n"
+         "air\" and water vapour is assumed. That is, the air is assumed to\n"
+         "be well mixed and its weight, beside water vapour, is constant\n"
+         "(*molarmass_dry_air*). In addition, the effect of any particles\n"
+         "(including liquid and ice particles) is neglected.\n"
          "\n"
          "The output is an update of *z_field*. This variable is expected to\n"
          "contain approximative altitudes when calling the function. The\n"
@@ -9735,11 +9737,8 @@ void define_md_data_raw()
          "*z_hse_accuracy*. An iterative process is needed as gravity varies\n"
          "with altitude.\n"
          "\n"
-         "The values in *lat_grid* must be \"geophysical\" latitudes. For 1D,\n"
-         "this method requires that the length of *lat_grid* is 1.\n"
-         "\n"
-         "As a last step, it is checked that no gap between *z_surface* and\n"
-         "*z_field* has been genereted.\n"
+         "For 1D and 2D, the geographical position is taken from *lat_true*\n"
+         "and *lon_true*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "z_field" ),
@@ -9749,7 +9748,7 @@ void define_md_data_raw()
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "lat_true", 
             "lon_true", "abs_species", "t_field", "z_field", "vmr_field", 
             "refellipsoid", "z_surface", "basics_checked", "g0_agenda",
-            "p_hse", "z_hse_accuracy" ),
+            "molarmass_dry_air", "p_hse", "z_hse_accuracy" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

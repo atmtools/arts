@@ -87,12 +87,14 @@ refellipsoidEarth( refellipsoid, "Sphere" )
 
 
 #
-# Gravity (needed for hydrostatic equilibrium calculations)
+# Gravity and weight of dry air
+# (needed for hydrostatic equilibrium calculations)
 # 
 AgendaSet( g0_agenda ){
    Ignore( lon )
    g0Earth
 } 
+NumericSet( molarmass_dry_air, 28.966 )
 
 
 # 

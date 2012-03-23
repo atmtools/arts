@@ -1807,6 +1807,7 @@ void z_fieldFromHSE(
    const Matrix&      z_surface,
    const Index&       basics_checked,
    const Agenda&      g0_agenda,
+   const Numeric&     molarmass_dry_air,
    const Numeric&     p_hse,
    const Numeric&     z_hse_accuracy,
    const Verbosity&)
@@ -1856,12 +1857,14 @@ void z_fieldFromHSE(
   interpweights ( itw, gp );
 
 
-  // Some constants used below
-  const Numeric md = 28.966;   // Average molecular weight of dry air
-  const Numeric mw = 18.016;   // Molecular weight of water vapour
-  //
-  const Numeric k  = 1- mw/md; // mw/md matches eps inEq. 3.14 in Wallace&Hobbs
-  const Numeric rd = 1e3*GAS_CONSTANT/md; // Gas constant for 1kg dry air 
+  // // Molecular weight of water vapour
+  const Numeric mw = 18.016;   
+
+  // mw/molarmass_dry_air matches eps in Eq. 3.14 in Wallace&Hobbs:
+  const Numeric k  = 1- mw/molarmass_dry_air; 
+
+  // Gas constant for 1kg dry air:
+  const Numeric rd = 1e3*GAS_CONSTANT/molarmass_dry_air; 
 
   // The calculations
   //

@@ -1406,6 +1406,7 @@ void jacobianCalcTemperaturePerturbations(
   const Agenda&                     iy_clearsky_agenda,
   const String&                     y_unit,
   const Agenda&                     g0_agenda,
+  const Numeric&                    molarmass_dry_air,
   const Numeric&                    p_hse,
   const Numeric&                    z_hse_accuracy,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -1546,7 +1547,8 @@ void jacobianCalcTemperaturePerturbations(
                   z_fieldFromHSE( ws,z, atmosphere_dim, p_grid, lat_grid, 
                                   lon_grid, lat_true, lon_true, abs_species, 
                                   t_p, vmr_field, refellipsoid, z_surface, 1,
-                                  g0_agenda, p_hse, z_hse_accuracy, verbosity );
+                                  g0_agenda, molarmass_dry_air, 
+                                  p_hse, z_hse_accuracy, verbosity );
                 }
        
               // Calculate the perturbed spectrum  

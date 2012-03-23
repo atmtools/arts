@@ -1,10 +1,12 @@
+#DEFINITIONS:  -*-sh-*-
+#
 # ARTS control file for testing 3D propagation path calculations
 # 
 # 2012-02-17 Patrick Eriksson
 
 Arts2{
 
-INCLUDE "../../ARTS/arts-dev/includes/general.arts"
+INCLUDE "general.arts"
 
 
 # Reference ellipsoid
@@ -32,7 +34,7 @@ SpeciesSet( abs_species, ["H2O"] )
 # Read a 1D atmospheric case and expand to *atmosphere_dim*
 #
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "../../ARTS/arts-xml-data/atmosphere/fascod/midlatitude-winter" )
+            "../atmosphere_data/tropical" )
 AtmFieldsCalcExpand1D
 
 

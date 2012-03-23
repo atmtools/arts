@@ -1,5 +1,26 @@
 2012-03-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-43
+
+	* src/m_jacobian.cc (jacobianCalcTemperaturePerturbations): 
+	molarmass_dry_air required for HSE calculations.
+
+	* src/m_atmosphere.cc (z_fieldFromHSE): Now using
+	molarmass_dry_air, and could potentially be used for planets
+	beside Earth. The description (in methods.cc) updated.
+
+	* includes/general.arts: molarmass_dry_air set to 28.966.
+
+	* src/workspace.cc: Added molarmass_dry_air.
+
+	* tests/PencilBeam: New folder with a simple test of monochromatic
+	pencil beam calculations.
+
+	* tests/Ppath/TestPpath1/2/3D.arts: Changed paths to files to work
+	as (future) test cases.
+
+2012-03-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-42
 
 	* tests/DOITBatch/TestDOITBatch.arts: Moved up call of
