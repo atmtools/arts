@@ -505,7 +505,16 @@ int main()
               << "\n"
               << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
               << "       it != outputs_to_push.end (); it++)\n"
-              << "  { ws.push (*it, NULL); }\n"
+              << "  {\n"
+          // Even if a variable is only used as WSM output inside this agenda,
+          // It is possible that it is used as input further down by another agenda,
+          // which we can't see here. Therefore initialized variables have to be
+          // duplicated.
+              << "     if (ws.is_initialized(*it))\n"
+              << "       ws.duplicate (*it);\n"
+              << "     else\n"
+              << "       ws.push_uninitialized (*it, NULL);\n"
+              << "  }\n"
               << "\n"
               << "  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();\n"
               << "       it != outputs_to_dup.end (); it++)\n"

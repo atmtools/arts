@@ -94,7 +94,7 @@ string Docserver::new_page(const string &url)
   split_tokens (surl);
   
   while (tokens.size() && tokens[tokens.size()-1] == "")
-    tokens.erase(tokens.end());
+    tokens.pop_back();
   
   while (tokens.size() && tokens[0] == "")
     tokens.erase(tokens.begin());

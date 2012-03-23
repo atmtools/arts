@@ -1,3 +1,27 @@
+2012-03-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-44
+
+	* src/make_auto_md_cc.cc:
+
+        Bugfix in auto-generated agendaExecute code. Even if a variable is only
+	used as WSM output inside the current agenda, it is possible that it is
+	used first as input further down by another nested agenda, which we
+	can't see here. Therefore initialized variables have to be duplicated.
+	Also, non-initialized WSM output-only variables were falsely flagged as
+	initialized. Fixes bug reported by patrick.
+
+	* src/methods.cc, src/m_doit.cc:
+
+	Reverted patrick's workaround for the above bug from arts-2-1-42.
+
+	* src/docserver.cc (Docserver::new_page):
+
+	Fixed crash with new libc++. tokens.erase(tokens.end()) never did what
+	it was meant to do (because end() is not a pointer to the last element,
+	but behind it). Statement has no effect with the old libstdc++.
+	Now replaced with the correct call tokens.pop_back();
+
 2012-03-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-43

@@ -2643,21 +2643,10 @@ void CloudboxGetIncoming(Workspace&      ws,
                          const ArrayOfIndex&   cloudbox_limits,
                          const Vector&   f_grid,
                          const Index&    stokes_dim,
-                         const Index&    basics_checked,
-                         const Index&    cloudbox_checked,
                          const Vector&   scat_za_grid,
                          const Vector&   scat_aa_grid,
                          const Verbosity&)
 {
-  // Basics and cloudbox OK?
-  //
-  if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control variables must be "
-            "flagged to have passed a consistency check (basics_checked=1)." );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
-
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
   
