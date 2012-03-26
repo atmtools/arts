@@ -6680,15 +6680,34 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  /*
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ppathFromTransmitter" ),
+      ( NAME( "ppathFromRtePos2" ),
         DESCRIPTION
         (
-         "Determines the propagation path from a transmitter to *rte_pos*.\n"
+         "Determines the propagation path from *rte_pos2* to *rte_pos*.\n"
          "\n"
-         "To be written ...\n"
+         "The propagation path linking *rte_pos* and *rte_pos2* is calculated\n"
+         "and returned. The method assumes that refraction is considered and\n"
+         "determines the path in a pure numerical manner. A simple algorithm\n"
+         "is applied. Repeated propagation path calculations (starting at\n"
+         "*rte_pos*) are performed. The closest distance between the path and"
+         "*rte_pos2* is converted to a correction for *rte_los* and a new\n"
+         "path is calculated. This is repeated until the convergence\n"
+         "criterion is fulfilled.\n"
+         "\n"
+         "The standard application of this method should be to radio link\n"
+         "calculations, where *rte_pos2* corresponds to a transmitter, and\n"
+         "*rte_pos* to the receiver/sensor.\n"
+         "\n"
+         "The WSV *rte_los* is both input and output. The input *rte_los*\n"
+         "shall contain an useful \"first guess\" for the line-of-sight at\n"
+         "*rte_pos*. The output *rte_los* is the line-of-sight for the\n"
+         "returned *ppath*. The best choice should be to first set *rte_los*\n"
+         "to the geometrical line-of-sight (can be done by e.g. \n"
+         "*rte_losGeometricFromRtePosToRtePos2*). If this is done, the\n"
+         "difference between in- and output *rte_los* can be used to obtain\n"
+         "the so called bending angle.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath", "rte_los" ),
@@ -6698,13 +6717,13 @@ void define_md_data_raw()
         IN( "ppath_step_agenda", "basics_checked", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", 
             "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_checked", 
-            "cloudbox_limits", "rte_pos", "transmitter_rte_pos" ),
+            "cloudbox_limits", "rte_pos", "rte_pos2", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  */
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ppathStepByStep" ),
@@ -7244,6 +7263,33 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_losGeometricFromRtePosToRtePos2" ),
+        DESCRIPTION
+        (
+         "The geometric line-of-sight between two points.\n"
+         "\n"
+         "The method sets *rte_los* to the line-of-sight, at *rte_pos*,\n"
+         "that matches the geometrical propagation path between *rte_pos*\n"
+         "and *rte_pos2*.\n"
+         "\n"
+         "The standard case should be that *rte_pos2* corresponds to a\n"
+         "transmitter, and *rte_pos* to the receiver/sensor.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "rte_los" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid", "refellipsoid", 
+            "rte_pos", "rte_pos2" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

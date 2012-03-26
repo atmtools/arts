@@ -103,18 +103,6 @@ void chk_if_equal(
         ConstVectorView v2,
         Numeric         margin=1e-6);
 
-void chk_interpolation_grids(const String&   which_interpolation,
-                             ConstVectorView old_grid,
-                             ConstVectorView new_grid,
-                             const Index     order=1,                             
-                             const Numeric&  extpolfac=0.5 );
-
-void chk_interpolation_grids(const String&   which_interpolation,
-                             ConstVectorView old_grid,
-                             const Numeric&  new_grid,
-                             const Index     order=1,
-                             const Numeric&  extpolfac=0.5 );
-
 void chk_matrix_ncols( 
         const String&      x_name,
         ConstMatrixView    x,
@@ -125,56 +113,6 @@ void chk_matrix_nrows(
         ConstMatrixView    x,
         const Index&       l );
 
-void chk_atm_grids( 
-        const Index&      dim,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid );
-
-void chk_atm_field( 
-        const String&     x_name,
-        ConstTensor3View  x, 
-        const Index&      dim,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid );
-
-void chk_atm_field( 
-        const String&   x_name,
-        ConstTensor4View  x, 
-        const Index&    dim,
-        const Index&    nspecies,
-        ConstVectorView p_grid,
-        ConstVectorView lat_grid,
-        ConstVectorView lon_grid );
-
-void chk_latlon_true(
-        Vector&      lat,
-        Vector&      lon,  
-   const Index&      atmosphere_dim,
-   ConstVectorView   lat_grid,
-   ConstVectorView   lon_grid,
-   ConstVectorView   lat_true,
-   ConstVectorView   lon_true );
-
-void chk_atm_surface( 
-        const String&     x_name,
-        const Matrix&     x, 
-        const Index&      dim,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid );
-
-void chk_not_empty( 
-        const String&      x_name,
-        const Agenda&      x );
-
-void chk_pnd_field_raw_only_in_cloudbox(
-        const Index&                 dim,
-        const ArrayOfGriddedField3&  pnd_field_raw,
-        ConstVectorView              p_grid,
-        ConstVectorView              lat_grid,
-        ConstVectorView              lon_grid,
-        const ArrayOfIndex&          cloudbox_limits);
 
 /*===========================================================================
   === Template Functions for Arrays
@@ -325,5 +263,77 @@ void chk_size( const String&    x_name,
                const Index&     p,
                const Index&     r,
                const Index&     c );
+
+void chk_not_empty( 
+        const String&      x_name,
+        const Agenda&      x );
+
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             ConstVectorView new_grid,
+                             const Index     order=1,
+                             const Numeric&  extpolfac=0.5 );
+
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             const Numeric&  new_grid,
+                             const Index     order=1,
+                             const Numeric&  extpolfac=0.5 );
+
+void chk_atm_grids( 
+        const Index&      dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid );
+
+void chk_atm_field( 
+        const String&     x_name,
+        ConstTensor3View  x, 
+        const Index&      dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid );
+
+void chk_atm_field( 
+        const String&   x_name,
+        ConstTensor4View  x, 
+        const Index&    dim,
+        const Index&    nspecies,
+        ConstVectorView p_grid,
+        ConstVectorView lat_grid,
+        ConstVectorView lon_grid );
+
+void chk_latlon_true(
+        Vector&      lat,
+        Vector&      lon,  
+   const Index&      atmosphere_dim,
+   ConstVectorView   lat_grid,
+   ConstVectorView   lon_grid,
+   ConstVectorView   lat_true,
+   ConstVectorView   lon_true );
+
+void chk_atm_surface( 
+        const String&     x_name,
+        const Matrix&     x, 
+        const Index&      dim,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid );
+
+void chk_pnd_field_raw_only_in_cloudbox(
+        const Index&                 dim,
+        const ArrayOfGriddedField3&  pnd_field_raw,
+        ConstVectorView              p_grid,
+        ConstVectorView              lat_grid,
+        ConstVectorView              lon_grid,
+        const ArrayOfIndex&          cloudbox_limits);
+
+void chk_rte_pos( 
+        const Index&      atmosphere_dim,
+        ConstVectorView   rte_pos,
+        const Index&      is_rte_pos2 );
+
+void chk_rte_los( 
+        const Index&      atmosphere_dim,
+        ConstVectorView   rte_los );
 
 #endif  // checkinput_h

@@ -4879,25 +4879,8 @@ void ppath_calc(      Workspace&      ws,
 
   //--- Check input -----------------------------------------------------------
 
-  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
-  if( atmosphere_dim == 1 )
-    {
-      chk_vector_length( "rte_los", rte_los, 1 );
-      chk_if_in_range( "sensor zenith angle", rte_los[0], 0., 180. );
-    }
-  else if( atmosphere_dim == 2 )
-    {
-      chk_vector_length( "rte_los", rte_los, 1 );
-      chk_if_in_range( "sensor zenith angle", rte_los[0], -180., 180. );
-    }
-  else
-    {
-      chk_if_in_range( "sensor latitude", rte_pos[1], -90., 90. );
-      chk_if_in_range( "sensor longitude", rte_pos[2], -360., 360. );
-      chk_vector_length( "rte_los", rte_los, 2 );
-      chk_if_in_range( "sensor zenith angle", rte_los[0], 0., 180. );
-      chk_if_in_range( "sensor azimuth angle", rte_los[1], -180., 180. );
-    }
+  chk_rte_pos( atmosphere_dim, rte_pos, 0 );
+  chk_rte_los( atmosphere_dim, rte_los );
   if( ppath_inside_cloudbox_do  &&  cloudbox_on )
     throw runtime_error( "The WSV *ppath_inside_cloudbox_do* can only be set "
                          "to 1 if also *cloudbox_on* is 1." );

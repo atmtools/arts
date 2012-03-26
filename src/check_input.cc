@@ -48,6 +48,10 @@ extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
 extern const Index GFIELD3_LON_GRID;
 
+
+
+
+
 /*===========================================================================
   === Functions for Index
   ===========================================================================*/
@@ -138,6 +142,9 @@ void chk_if_increasing(
 }
 
 
+
+
+
 /*===========================================================================
   === Functions for Numeric
   ===========================================================================*/
@@ -199,6 +206,8 @@ void chk_if_in_range(
       throw runtime_error( os.str() );
     }
 }
+
+
 
 
 
@@ -326,6 +335,8 @@ void chk_if_decreasing(
     }
 }
 
+
+
 //! chk_if_equal
 /*!
  * Checks if two vectors are equal within a margin.
@@ -365,159 +376,9 @@ void chk_if_equal(
   }
 }
 
-/*===========================================================================
-  === Functions for interpolation grids
-  ===========================================================================*/
-
-//! Check interpolation grids
-/*!
-  This function checks if old and new grid for an interpolation are
-  ok. If not, it throws a detailed runtime error message. This is
-  intended for workspace method input variable checking. 
-  
-  \param[in] which_interpolation A string describing the interpolation for
-                                 which the grids are intended. 
-  \param[in] old_grid            The original grid.
-  \param[in] new_grid            The new grid.
-  \param[in] order               Interpolation order. (Default value is 1.)
-  \param[in] extpolfac           The extrapolation fraction. See gridpos function
-                                 for details. Has a default value, which is
-                                 consistent with gridpos.  
-  
-  \author Stefan Buehler
-  \date   2008-11-24 
-*/
-void chk_interpolation_grids(const String&   which_interpolation,
-                             ConstVectorView old_grid,
-                             ConstVectorView new_grid,
-                             const Index     order,
-                             const Numeric&  extpolfac )
-{
-  const Index n_old = old_grid.nelem();
-
-  ostringstream os;
-  os << "There is a problem with the grids for the\n"
-     << "following interpolation: " << which_interpolation << ".\n";
-
-  // Old grid must have at least order+1 elements:
-  if (n_old < order+1)
-    {
-      os << "The original grid must have at least " << order+1 << " elements.";
-      throw runtime_error( os.str() );
-    }
-  
-  // Decide whether we have an ascending or descending grid:
-  bool ascending = ( old_grid[0] <= old_grid[1] );
-
-  // Minimum and maximum allowed value from old grid. (Will include
-  // extrapolation tolerance.)
-  Numeric og_min, og_max;
-
-  if (ascending)  
-    {
-      // Old grid must be strictly increasing (no duplicate values.)
-      if ( !is_increasing(old_grid) )
-        {
-          os << "The original grid must be strictly sorted\n"
-             << "(no duplicate values). Yours is:\n"
-             << old_grid << ".";
-          throw runtime_error( os.str() );
-        }
-
-      // Limits of extrapolation. 
-      og_min = old_grid[0] - 
-               extpolfac * ( old_grid[1] - old_grid[0] );
-      og_max = old_grid[n_old-1] + 
-               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
-    }
-  else
-    {
-      // Old grid must be strictly decreasing (no duplicate values.)
-      if ( !is_decreasing(old_grid) )
-        {
-          os << "The original grid must be strictly sorted\n"
-             << "(no duplicate values). Yours is:\n"
-             << old_grid << ".";
-          throw runtime_error( os.str() );
-        }
-
-      // The max is now the first point, the min the last point!
-      // I think the sign is right here...
-      og_max = old_grid[0] - 
-               extpolfac * ( old_grid[1] - old_grid[0] );
-      og_min = old_grid[n_old-1] + 
-               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
-    }
-  
-  // Min and max of new grid:
-  const Numeric ng_min = min(new_grid);
-  const Numeric ng_max = max(new_grid);
-
-  // New grid must be inside old grid (plus extpolfac).
-  // (Values right on the edge (ng_min==og_min) are still allowed.)
-
-  if (ng_min < og_min)
-    {
-      os << "The minimum of the new grid must be inside\n"
-         << "the original grid. (We allow a bit of extrapolation,\n"
-         << "but not so much).\n"
-         << "Minimum of original grid:           " << min(old_grid) << "\n"
-         << "Minimum allowed value for new grid: " << og_min << "\n"
-         << "Actual minimum of new grid:         " << ng_min;
-      throw runtime_error( os.str() );
-    }
-
-  if (ng_max > og_max)
-    {
-      os << "The maximum of the new grid must be inside\n"
-         << "the original grid. (We allow a bit of extrapolation,\n"
-         << "but not so much).\n"
-         << "Maximum of original grid:           " << max(old_grid) << "\n"
-         << "Maximum allowed value for new grid: " << og_max << "\n"
-         << "Actual maximum of new grid:         " << ng_max;
-      throw runtime_error( os.str() );
-    }
-
-  // If we get here, than everything should be fine.
-}
 
 
-//! Check interpolation grids
-/*!
-  This function checks if old and new grid for an interpolation are
-  ok. If not, it throws a detailed runtime error message. This is
-  intended for workspace method input variable checking. 
-  
-  This is for the special case that the new grid is just a single
-  Numeric, instead of a Vector. ("Red" interpolation.)
-  It just calles the other more general chk_interpolation_grids
-  function for which both grid arguments are vectors.
 
-  \param[in] which_interpolation A string describing the interpolation for
-                                 which the grids are intended. 
-  \param[in] old_grid            The original grid.
-  \param[in] new_grid            The new grid.
-  \param[in] order               Interpolation order. (Default value is 1.)
-  \param[in] extpolfac           The extrapolation fraction. See gridpos function
-                                 for details. Has a default value, which is
-                                 consistent with gridpos.  
-  
-  \author Stefan Buehler
-  \date   2008-11-24 
-*/
-void chk_interpolation_grids(const String&   which_interpolation,
-                             ConstVectorView old_grid,
-                             const Numeric&  new_grid,
-                             const Index     order,
-                             const Numeric&  extpolfac )
-{
-  Vector v(1, new_grid);
-  chk_interpolation_grids(which_interpolation,
-                          old_grid,
-                          v,
-                          order,
-                          extpolfac );
-}
 
 /*===========================================================================
   === Functions for Matrix
@@ -581,373 +442,7 @@ void chk_matrix_nrows(
 
 
 
-/*===========================================================================
-  === Functions related to atmospheric and surface grids and fields.
-  ===========================================================================*/
 
-//! chk_atm_grids 
-/*! 
-    Checks if the atmospheric grids and the specified atmospheric 
-    dimensionality match, and if the grids are ordered correctly.
-
-    The function gives an error message if this is not the case.
-
-    \param    dim          The atmospheric dimensionality.
-    \param    p_grid       The pressure grid.
-    \param    lat_grid     The latitude grid.
-    \param    lon_grid     The longitude grid.
-
-    \author Patrick Eriksson 
-    \date   2002-04-15
-*/
-void chk_atm_grids( 
-        const Index&      dim,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid )
-{
-  // p_grid
-  if( p_grid.nelem() < 2 )
-    throw runtime_error( "The length of *p_grid* must be >= 2." );
-  chk_if_decreasing( "p_grid", p_grid );
-
-  // lat_grid
-  if( dim == 1 )
-    {
-      if( lat_grid.nelem() > 0 )
-        throw runtime_error("For dim=1, the length of *lat_grid* must be 0.");
-    }
-  else
-    {
-      if( lat_grid.nelem() < 2 )
-        throw runtime_error(
-                         "For dim>1, the length of *lat_grid* must be >= 2.");
-      chk_if_increasing( "lat_grid", lat_grid );
-    }
-
-  // lon_grid
-  if( dim < 3 )
-    { 
-      if( lon_grid.nelem() > 0 )
-        throw runtime_error("For dim<3, the length of *lon_grid* must be 0.");
-    }
-  else
-    {
-      if( lon_grid.nelem() < 2 )
-        throw runtime_error(
-                         "For dim=3, the length of *lon_grid* must be >= 2.");
-      chk_if_increasing( "lon_grid", lon_grid );
-    }
-
-  // Check that latitude and longitude grids are inside OK ranges for 3D
-  if( dim == 3 )
-    {
-      if( lat_grid[0] < -90 )
-        throw runtime_error( 
-                  "The latitude grid cannot extend below -90 degrees for 3D" );
-      if( lat_grid[lat_grid.nelem() - 1] > 90 )
-        throw runtime_error( 
-                  "The latitude grid cannot extend above 90 degrees for 3D" );
-      if( lon_grid[0] < -360 )
-        throw runtime_error( 
-                "No longitude (in lon_grid) can be below -360 degrees." );
-      if( lon_grid[lon_grid.nelem() - 1] > 360 )
-        throw runtime_error( 
-                "No longitude (in lon_grid) can be above 360 degrees." );
-      if( lon_grid[lon_grid.nelem() - 1]-lon_grid[0] > 360 )
-        throw runtime_error( 
-         "The longitude grid is not allowed to cover more than 360 degrees." );
-    }
-}
-
-
-
-//! chk_atm_field (simple fields)
-/*! 
-    Checks if an atmospheric field matches the dimensionality and the grids.
-
-    The function gives an error message if this is not the case.
-
-    \param    x_name       The name of the atmospheric field.
-    \param    x            A variable holding an atmospheric field.
-    \param    dim          The atmospheric dimensionality.
-    \param    p_grid       The pressure grid.
-    \param    lat_grid     The latitude grid.
-    \param    lon_grid     The longitude grid.
-
-    \author Patrick Eriksson 
-    \date   2002-04-15
-*/
-void chk_atm_field( 
-        const String&     x_name,
-        ConstTensor3View    x, 
-        const Index&      dim,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid )
-{
-  // It is assumed that grids OK-ed through chk_atm_grids
-  Index npages=p_grid.nelem(), nrows=1, ncols=1;
-  if( dim > 1 )
-    nrows = lat_grid.nelem();
-  if( dim > 2 )
-    ncols = lon_grid.nelem();
-  if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ) 
-    {
-      ostringstream os;
-      os << "The atmospheric field *" << x_name <<  "* has wrong size.\n"
-         << "Expected size is " << npages << " x " << nrows << " x " 
-         << ncols << ", while actual size is " << x.npages() << " x " 
-         << x.nrows() << " x " << x.ncols() << ".";
-      throw runtime_error( os.str() );
-    }
-  // If all lons are covered, check if cyclic
-  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
-    {
-      const Index ic = ncols-1;
-      for( Index ip=0; ip<npages; ip++ )
-        {
-          for( Index ir=0; ir<nrows; ir++ )
-            {
-              if( fabs(x(ip,ir,ic)-x(ip,ir,0)) > 0 )
-                {
-                  ostringstream os;
-                  os << "The variable *" << x_name <<  "* covers 360 "
-                     << "degrees in the longitude direction, but the field "
-                     << "seems to deviate between first and last longitude "
-                     << "point. The field must be \"cyclic\".";
-                  throw runtime_error( os.str() );
-                }
-            }
-        }
-    }
-}
-
-
-
-//! chk_atm_field (fields with one more dimension)
-/*! 
-    Checks if an atmospheric field matches the dimensionality and the
-    grids. This is the version for fields like vmr_field, which are a
-    Tensor4, not a Tensor3. (First dimension is the gas species.)
-
-    The function gives an error message if this is not the case.
-
-    \param    x_name       The name of the atmospheric field.
-    \param    x            A variable holding an atmospheric field.
-    \param    dim          The atmospheric dimensionality.
-    \param    nspecies     Number of species.
-    \param    p_grid       The pressure grid.
-    \param    lat_grid     The latitude grid.
-    \param    lon_grid     The longitude grid.
-
-    \author Stefan Buehler, cloned from Patrick Eriksson 
-    \date   2002-12-20
-*/
-void chk_atm_field( 
-        const String&   x_name,
-        ConstTensor4View  x, 
-        const Index&    dim,
-        const Index&    nspecies,
-        ConstVectorView p_grid,
-        ConstVectorView lat_grid,
-        ConstVectorView lon_grid )
-{
-  Index npages=p_grid.nelem(), nrows=1, ncols=1;
-  if( dim > 1 )
-    nrows = lat_grid.nelem();
-  if( dim > 2 )
-    ncols = lon_grid.nelem();
-
-  const Index nbooks=nspecies;
-
-  if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ||
-      x.nbooks()!=nbooks ) 
-    {
-      ostringstream os;
-      os << "The atmospheric field *" << x_name <<  "* has wrong size.\n"
-         << "Expected size is "
-         << nbooks << " x " << npages << " x "
-         << nrows << " x " << ncols << ",\n"
-         << "while actual size is "
-         << x.nbooks() << " x " << x.npages() << " x "
-         << x.nrows() << " x " << x.ncols() << ".";
-      throw runtime_error( os.str() );
-    }
-  // If all lons are covered, check if cyclic
-  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
-    {
-      const Index ic = ncols-1;
-      for( Index is=0; is<nspecies; is++ )
-        {
-        for( Index ip=0; ip<npages; ip++ )
-        {
-          for( Index ir=0; ir<nrows; ir++ )
-            {
-              if( fabs(x(is,ip,ir,ic)-x(is,ip,ir,0)) > 0 )
-                {
-                  ostringstream os;
-                  os << "The variable *" << x_name <<  "* covers 360 degrees"
-                     << "in the longitude direction, but at least one field "
-                     << "seems to deviate between first and last longitude "
-                     << "point. The field must be \"cyclic\". This was found "
-                     << "for field with index " << is <<" (0-based).";
-                  throw runtime_error( os.str() );
-                }
-            }
-        }
-        }
-    }
-}
-
-
-
-//! chk_latlon_true
-/*! 
-    Checks that *lat_true* and *lon_true* have the correct size for 1D and 2D
-    cases (they are not used for 3D). The functions returns also the lat and
-    lon grids to apply for geopositioning data.
-
-    \param   lat              Set to lat_true for 1D and 2D, lat_grid for 3D
-    \param   lon              Set to lon_true for 1D and 2D, lon_grid for 3D
-    \param   atmosphere_dim   As the WSV with the same name
-    \param   lat_grid         As the WSV with the same name
-    \param   lon_grid         As the WSV with the same name
-    \param   lat_true         As the WSV with the same name
-    \param   lon_true         As the WSV with the same name
-
-    \author Patrick Eriksson 
-    \date   2012-03-19
-*/
-void chk_latlon_true(
-        Vector&      lat,
-        Vector&      lon,  
-   const Index&      atmosphere_dim,
-   ConstVectorView   lat_grid,
-   ConstVectorView   lon_grid,
-   ConstVectorView   lat_true,
-   ConstVectorView   lon_true )
-{
-  if( atmosphere_dim == 1 )
-    {
-      if( lat_true.nelem()!=1  ||  lon_true.nelem()!=1 )
-        { 
-          throw runtime_error( "For 1D, the method requires that *lat_true* "
-                                              "and *lon_true* have length 1." );
-        }
-      lat = lat_true;
-      lon = lon_true;
-    }
-  //
-  else if( atmosphere_dim == 2 ) 
-    {
-      if( lat_true.nelem() != lat_grid.nelem()   ||  
-          lon_true.nelem() != lon_grid.nelem() )
-        { 
-          throw runtime_error( "For 2D, the method requires that *lat_true* "
-                         "and *lon_true* have the same length as *lat_grid*." );
-        }
-      lat = lat_true;   
-      lon = lon_true;
-    }
-  //
-  else
-    {
-      lat = lat_grid;
-      lon = lon_grid;
-    }
-}
-
-
-
-//! chk_atm_surface
-/*! 
-    Checks if a surface-type variable matches the dimensionality and the grids.
-
-    The function gives an error message if this is not the case.
-
-    \param    x_name       The name of the surface-type variable.
-    \param    x            The variable holding the surface data.
-    \param    dim          The atmospheric dimensionality.
-    \param    lat_grid     The latitude grid.
-    \param    lon_grid     The longitude grid.
-
-    \author Patrick Eriksson 
-    \date   2002-04-15
-*/
-void chk_atm_surface( 
-        const String&     x_name,
-        const Matrix&     x, 
-        const Index&      dim,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid )
-{
-  Index ncols=1, nrows=1;
-  if( dim > 1 )
-    nrows = lat_grid.nelem();
-  if( dim > 2 )
-    ncols = lon_grid.nelem();
-  if( x.ncols()!=ncols || x.nrows()!=nrows ) 
-    {
-      ostringstream os;
-      os << "The surface variable *" << x_name <<  "* has wrong size.\n"
-         << "Expected size is " << nrows << " x " << ncols << ","
-         << " while actual size is " << x.nrows() << " x " << x.ncols() << ".";
-      throw runtime_error( os.str() );
-    }
-  // If all lons are covered, check if cyclic
-  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
-    {
-      const Index ic = ncols-1;
-      for( Index ir=0; ir<nrows; ir++ )
-        {
-          if( fabs(x(ir,ic)-x(ir,0)) > 0 )
-            {
-              ostringstream os;
-              os << "The variable *" << x_name <<  "* covers 360 "
-                 << "degrees in the longitude direction, but the data "
-                 << "seems to deviate between first and last longitude "
-                 << "point. The surface must be \"cyclic\".";
-              throw runtime_error( os.str() );
-            }
-        }
-    }
-}
-
-
-
-
-
-/*===========================================================================
-  === Functions for Agendas
-  ===========================================================================*/
-
-//! chk_not_empty
-/*! 
-    Checks that an agenda is not empty.
-
-    The function gives an error message if the agenda is empty.
-
-    \param    x_name   The name of the agenda.
-    \param    x        A variable of type Agenda.
-
-    \author Patrick Eriksson 
-    \date   2002-08-20
-*/
-void chk_not_empty( 
-        const String&      x_name,
-        const Agenda&      x ) 
-{
-  if( x.nelem() == 0 )
-    {
-      ostringstream os;
-      os << "The agenda *" << x_name << "* is empty.\nIt is not allowed \n"
-         << "that an agenda that is actually used to be empty.\n"
-         << "Empty agendas are only created of methods setting dummy values \n"
-         << "to variables.";
-      throw runtime_error( os.str() );
-    }
-}
 
 /*===========================================================================
   === Functions for Tensors
@@ -1247,6 +742,637 @@ void chk_size( const String&    x_name,
     }
 }
 
+
+
+
+
+
+/*===========================================================================
+  === Functions for Agendas
+  ===========================================================================*/
+
+//! chk_not_empty
+/*! 
+    Checks that an agenda is not empty.
+
+    The function gives an error message if the agenda is empty.
+
+    \param    x_name   The name of the agenda.
+    \param    x        A variable of type Agenda.
+
+    \author Patrick Eriksson 
+    \date   2002-08-20
+*/
+void chk_not_empty( 
+        const String&      x_name,
+        const Agenda&      x ) 
+{
+  if( x.nelem() == 0 )
+    {
+      ostringstream os;
+      os << "The agenda *" << x_name << "* is empty.\nIt is not allowed \n"
+         << "that an agenda that is actually used to be empty.\n"
+         << "Empty agendas are only created of methods setting dummy values \n"
+         << "to variables.";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+
+
+
+
+
+/*===========================================================================
+  === Functions for interpolation grids
+  ===========================================================================*/
+
+//! Check interpolation grids
+/*!
+  This function checks if old and new grid for an interpolation are
+  ok. If not, it throws a detailed runtime error message. This is
+  intended for workspace method input variable checking. 
+  
+  \param[in] which_interpolation A string describing the interpolation for
+                                 which the grids are intended. 
+  \param[in] old_grid            The original grid.
+  \param[in] new_grid            The new grid.
+  \param[in] order               Interpolation order. (Default value is 1.)
+  \param[in] extpolfac           The extrapolation fraction. See gridpos function
+                                 for details. Has a default value, which is
+                                 consistent with gridpos.  
+  
+  \author Stefan Buehler
+  \date   2008-11-24 
+*/
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             ConstVectorView new_grid,
+                             const Index     order,
+                             const Numeric&  extpolfac )
+{
+  const Index n_old = old_grid.nelem();
+
+  ostringstream os;
+  os << "There is a problem with the grids for the\n"
+     << "following interpolation: " << which_interpolation << ".\n";
+
+  // Old grid must have at least order+1 elements:
+  if (n_old < order+1)
+    {
+      os << "The original grid must have at least " << order+1 << " elements.";
+      throw runtime_error( os.str() );
+    }
+  
+  // Decide whether we have an ascending or descending grid:
+  bool ascending = ( old_grid[0] <= old_grid[1] );
+
+  // Minimum and maximum allowed value from old grid. (Will include
+  // extrapolation tolerance.)
+  Numeric og_min, og_max;
+
+  if (ascending)  
+    {
+      // Old grid must be strictly increasing (no duplicate values.)
+      if ( !is_increasing(old_grid) )
+        {
+          os << "The original grid must be strictly sorted\n"
+             << "(no duplicate values). Yours is:\n"
+             << old_grid << ".";
+          throw runtime_error( os.str() );
+        }
+
+      // Limits of extrapolation. 
+      og_min = old_grid[0] - 
+               extpolfac * ( old_grid[1] - old_grid[0] );
+      og_max = old_grid[n_old-1] + 
+               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    }
+  else
+    {
+      // Old grid must be strictly decreasing (no duplicate values.)
+      if ( !is_decreasing(old_grid) )
+        {
+          os << "The original grid must be strictly sorted\n"
+             << "(no duplicate values). Yours is:\n"
+             << old_grid << ".";
+          throw runtime_error( os.str() );
+        }
+
+      // The max is now the first point, the min the last point!
+      // I think the sign is right here...
+      og_max = old_grid[0] - 
+               extpolfac * ( old_grid[1] - old_grid[0] );
+      og_min = old_grid[n_old-1] + 
+               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    }
+  
+  // Min and max of new grid:
+  const Numeric ng_min = min(new_grid);
+  const Numeric ng_max = max(new_grid);
+
+  // New grid must be inside old grid (plus extpolfac).
+  // (Values right on the edge (ng_min==og_min) are still allowed.)
+
+  if (ng_min < og_min)
+    {
+      os << "The minimum of the new grid must be inside\n"
+         << "the original grid. (We allow a bit of extrapolation,\n"
+         << "but not so much).\n"
+         << "Minimum of original grid:           " << min(old_grid) << "\n"
+         << "Minimum allowed value for new grid: " << og_min << "\n"
+         << "Actual minimum of new grid:         " << ng_min;
+      throw runtime_error( os.str() );
+    }
+
+  if (ng_max > og_max)
+    {
+      os << "The maximum of the new grid must be inside\n"
+         << "the original grid. (We allow a bit of extrapolation,\n"
+         << "but not so much).\n"
+         << "Maximum of original grid:           " << max(old_grid) << "\n"
+         << "Maximum allowed value for new grid: " << og_max << "\n"
+         << "Actual maximum of new grid:         " << ng_max;
+      throw runtime_error( os.str() );
+    }
+
+  // If we get here, than everything should be fine.
+}
+
+
+//! Check interpolation grids
+/*!
+  This function checks if old and new grid for an interpolation are
+  ok. If not, it throws a detailed runtime error message. This is
+  intended for workspace method input variable checking. 
+  
+  This is for the special case that the new grid is just a single
+  Numeric, instead of a Vector. ("Red" interpolation.)
+  It just calles the other more general chk_interpolation_grids
+  function for which both grid arguments are vectors.
+
+  \param[in] which_interpolation A string describing the interpolation for
+                                 which the grids are intended. 
+  \param[in] old_grid            The original grid.
+  \param[in] new_grid            The new grid.
+  \param[in] order               Interpolation order. (Default value is 1.)
+  \param[in] extpolfac           The extrapolation fraction. See gridpos function
+                                 for details. Has a default value, which is
+                                 consistent with gridpos.  
+  
+  \author Stefan Buehler
+  \date   2008-11-24 
+*/
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             const Numeric&  new_grid,
+                             const Index     order,
+                             const Numeric&  extpolfac )
+{
+  Vector v(1, new_grid);
+  chk_interpolation_grids(which_interpolation,
+                          old_grid,
+                          v,
+                          order,
+                          extpolfac );
+}
+
+
+
+
+
+/*===========================================================================
+  === Functions related to atmospheric and surface grids and fields.
+  ===========================================================================*/
+
+//! chk_atm_grids 
+/*! 
+    Checks if the atmospheric grids and the specified atmospheric 
+    dimensionality match, and if the grids are ordered correctly.
+
+    The function gives an error message if this is not the case.
+
+    \param    dim          The atmospheric dimensionality.
+    \param    p_grid       The pressure grid.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
+
+    \author Patrick Eriksson 
+    \date   2002-04-15
+*/
+void chk_atm_grids( 
+        const Index&      dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid )
+{
+  // p_grid
+  if( p_grid.nelem() < 2 )
+    throw runtime_error( "The length of *p_grid* must be >= 2." );
+  chk_if_decreasing( "p_grid", p_grid );
+
+  // lat_grid
+  if( dim == 1 )
+    {
+      if( lat_grid.nelem() > 0 )
+        throw runtime_error("For dim=1, the length of *lat_grid* must be 0.");
+    }
+  else
+    {
+      if( lat_grid.nelem() < 2 )
+        throw runtime_error(
+                         "For dim>1, the length of *lat_grid* must be >= 2.");
+      chk_if_increasing( "lat_grid", lat_grid );
+    }
+
+  // lon_grid
+  if( dim < 3 )
+    { 
+      if( lon_grid.nelem() > 0 )
+        throw runtime_error("For dim<3, the length of *lon_grid* must be 0.");
+    }
+  else
+    {
+      if( lon_grid.nelem() < 2 )
+        throw runtime_error(
+                         "For dim=3, the length of *lon_grid* must be >= 2.");
+      chk_if_increasing( "lon_grid", lon_grid );
+    }
+
+  // Check that latitude and longitude grids are inside OK ranges for 3D
+  if( dim == 3 )
+    {
+      if( lat_grid[0] < -90 )
+        throw runtime_error( 
+                  "The latitude grid cannot extend below -90 degrees for 3D" );
+      if( lat_grid[lat_grid.nelem() - 1] > 90 )
+        throw runtime_error( 
+                  "The latitude grid cannot extend above 90 degrees for 3D" );
+      if( lon_grid[0] < -360 )
+        throw runtime_error( 
+                "No longitude (in lon_grid) can be below -360 degrees." );
+      if( lon_grid[lon_grid.nelem() - 1] > 360 )
+        throw runtime_error( 
+                "No longitude (in lon_grid) can be above 360 degrees." );
+      if( lon_grid[lon_grid.nelem() - 1]-lon_grid[0] > 360 )
+        throw runtime_error( 
+         "The longitude grid is not allowed to cover more than 360 degrees." );
+    }
+}
+
+
+
+//! chk_atm_field (simple fields)
+/*! 
+    Checks if an atmospheric field matches the dimensionality and the grids.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name       The name of the atmospheric field.
+    \param    x            A variable holding an atmospheric field.
+    \param    dim          The atmospheric dimensionality.
+    \param    p_grid       The pressure grid.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
+
+    \author Patrick Eriksson 
+    \date   2002-04-15
+*/
+void chk_atm_field( 
+        const String&     x_name,
+        ConstTensor3View  x, 
+        const Index&      dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid )
+{
+  // It is assumed that grids OK-ed through chk_atm_grids
+  Index npages=p_grid.nelem(), nrows=1, ncols=1;
+  if( dim > 1 )
+    nrows = lat_grid.nelem();
+  if( dim > 2 )
+    ncols = lon_grid.nelem();
+  if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ) 
+    {
+      ostringstream os;
+      os << "The atmospheric field *" << x_name <<  "* has wrong size.\n"
+         << "Expected size is " << npages << " x " << nrows << " x " 
+         << ncols << ", while actual size is " << x.npages() << " x " 
+         << x.nrows() << " x " << x.ncols() << ".";
+      throw runtime_error( os.str() );
+    }
+  // Special 3D checks:
+  if( dim == 3  )
+    {
+      // If all lons are covered, check if cyclic
+      if( (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+        {
+          const Index ic = ncols-1;
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ir=0; ir<nrows; ir++ )
+                {
+                  if( fabs(x(ip,ir,ic)-x(ip,ir,0)) > 0 )
+                    {
+                      ostringstream os;
+                      os << "The variable *" << x_name <<  "* covers 360 "
+                         << "degrees in the longitude direction, but the field "
+                         << "seems to deviate between first and last longitude "
+                         << "point. The field must be \"cyclic\".";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+        }
+
+      // No variation at the South pole!
+      if( lat_grid[0] == -90 )
+        {
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ic=1; ic<ncols; ic++ )
+                {
+                  if( fabs(x(ip,0,ic)-x(ip,0,ic-1)) > 0 )
+                    {
+                      ostringstream os;
+                      os << "The variable *" << x_name <<  "* covers the South "
+                         << "pole. The data corresponding to the pole can not "
+                         << "vary with longitude, but this appears to be the "
+                         << "case.";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+        }
+      // No variation at the North pole!
+      if( lat_grid[nrows-1] == 90 )
+        {
+          const Index ir = nrows-1;
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ic=1; ic<ncols; ic++ )
+                {
+                  if( fabs(x(ip,ir,ic)-x(ip,ir,ic-1)) > 0 )
+                    {
+                      ostringstream os;
+                      os << "The variable *" << x_name <<  "* covers the North "
+                         << "pole. The data corresponding to the pole can not "
+                         << "vary with longitude, but this appears to be the "
+                         << "case.";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+//! chk_atm_field (fields with one more dimension)
+/*! 
+    Checks if an atmospheric field matches the dimensionality and the
+    grids. This is the version for fields like vmr_field, which are a
+    Tensor4, not a Tensor3. (First dimension is the gas species.)
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name       The name of the atmospheric field.
+    \param    x            A variable holding an atmospheric field.
+    \param    dim          The atmospheric dimensionality.
+    \param    nspecies     Number of species.
+    \param    p_grid       The pressure grid.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
+
+    \author Stefan Buehler, cloned from Patrick Eriksson 
+    \date   2002-12-20
+*/
+void chk_atm_field( 
+        const String&   x_name,
+        ConstTensor4View  x, 
+        const Index&    dim,
+        const Index&    nspecies,
+        ConstVectorView p_grid,
+        ConstVectorView lat_grid,
+        ConstVectorView lon_grid )
+{
+  Index npages=p_grid.nelem(), nrows=1, ncols=1;
+  if( dim > 1 )
+    nrows = lat_grid.nelem();
+  if( dim > 2 )
+    ncols = lon_grid.nelem();
+
+  const Index nbooks=nspecies;
+
+  if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ||
+      x.nbooks()!=nbooks ) 
+    {
+      ostringstream os;
+      os << "The atmospheric field *" << x_name <<  "* has wrong size.\n"
+         << "Expected size is "
+         << nbooks << " x " << npages << " x "
+         << nrows << " x " << ncols << ",\n"
+         << "while actual size is "
+         << x.nbooks() << " x " << x.npages() << " x "
+         << x.nrows() << " x " << x.ncols() << ".";
+      throw runtime_error( os.str() );
+    }
+  // Special 3D checks:
+  if( dim == 3  )
+    {
+      // If all lons are covered, check if cyclic
+      if( (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+        {
+          const Index ic = ncols-1;
+          for( Index is=0; is<nspecies; is++ )
+            {
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ir=0; ir<nrows; ir++ )
+                {
+                  if( fabs(x(is,ip,ir,ic)-x(is,ip,ir,0)) > 0 )
+                    {
+                      ostringstream os;
+                      os << "The variable *" << x_name <<  "* covers 360 "
+                         << "degrees in the longitude direction, but at least "
+                         << "one field seems to deviate between first and last "
+                         << "longitude point. The field must be \"cyclic\". "
+                         << "This was found for field with index " 
+                         << is <<" (0-based).";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+            }
+        }
+      // No variation at the South pole!
+      if( lat_grid[0] == -90 )
+        {
+          for( Index is=0; is<nspecies; is++ )
+            {
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ic=1; ic<ncols; ic++ )
+                {
+                  if( fabs(x(is,ip,0,ic)-x(is,ip,0,ic-1)) > 0 )
+                    {
+                      ostringstream os;
+                      os << "The variable *" << x_name <<  "* covers the South "
+                         << "pole. The data corresponding to the pole can not "
+                         << "vary with longitude, but this appears to be the "
+                         << "case. This was found for field with index " 
+                         << is <<" (0-based).";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+            }
+        }
+      // No variation at the North pole!
+      if( lat_grid[nrows-1] == 90 )
+        {
+          const Index ir = nrows-1;
+          for( Index is=0; is<nspecies; is++ )
+            {
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ic=1; ic<ncols; ic++ )
+                {
+                  if( fabs(x(is,ip,ir,ic)-x(is,ip,ir,ic-1)) > 0 )
+                    {
+                      ostringstream os;
+                      os << "The variable *" << x_name <<  "* covers the North "
+                         << "pole. The data corresponding to the pole can not "
+                         << "vary with longitude, but this appears to be the "
+                         << "case. This was found for field with index " 
+                         << is <<" (0-based).";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+            }
+        }
+    }
+}
+
+
+
+//! chk_latlon_true
+/*! 
+    Checks that *lat_true* and *lon_true* have the correct size for 1D and 2D
+    cases (they are not used for 3D). The functions returns also the lat and
+    lon grids to apply for geopositioning data.
+
+    \param   lat              Set to lat_true for 1D and 2D, lat_grid for 3D
+    \param   lon              Set to lon_true for 1D and 2D, lon_grid for 3D
+    \param   atmosphere_dim   As the WSV with the same name
+    \param   lat_grid         As the WSV with the same name
+    \param   lon_grid         As the WSV with the same name
+    \param   lat_true         As the WSV with the same name
+    \param   lon_true         As the WSV with the same name
+
+    \author Patrick Eriksson 
+    \date   2012-03-19
+*/
+void chk_latlon_true(
+        Vector&      lat,
+        Vector&      lon,  
+   const Index&      atmosphere_dim,
+   ConstVectorView   lat_grid,
+   ConstVectorView   lon_grid,
+   ConstVectorView   lat_true,
+   ConstVectorView   lon_true )
+{
+  if( atmosphere_dim == 1 )
+    {
+      if( lat_true.nelem()!=1  ||  lon_true.nelem()!=1 )
+        { 
+          throw runtime_error( "For 1D, the method requires that *lat_true* "
+                                              "and *lon_true* have length 1." );
+        }
+      lat = lat_true;
+      lon = lon_true;
+    }
+  //
+  else if( atmosphere_dim == 2 ) 
+    {
+      if( lat_true.nelem() != lat_grid.nelem()   ||  
+          lon_true.nelem() != lon_grid.nelem() )
+        { 
+          throw runtime_error( "For 2D, the method requires that *lat_true* "
+                         "and *lon_true* have the same length as *lat_grid*." );
+        }
+      lat = lat_true;   
+      lon = lon_true;
+    }
+  //
+  else
+    {
+      lat = lat_grid;
+      lon = lon_grid;
+    }
+}
+
+
+
+//! chk_atm_surface
+/*! 
+    Checks if a surface-type variable matches the dimensionality and the grids.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name       The name of the surface-type variable.
+    \param    x            The variable holding the surface data.
+    \param    dim          The atmospheric dimensionality.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
+
+    \author Patrick Eriksson 
+    \date   2002-04-15
+*/
+void chk_atm_surface( 
+        const String&     x_name,
+        const Matrix&     x, 
+        const Index&      dim,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid )
+{
+  Index ncols=1, nrows=1;
+  if( dim > 1 )
+    nrows = lat_grid.nelem();
+  if( dim > 2 )
+    ncols = lon_grid.nelem();
+  if( x.ncols()!=ncols || x.nrows()!=nrows ) 
+    {
+      ostringstream os;
+      os << "The surface variable *" << x_name <<  "* has wrong size.\n"
+         << "Expected size is " << nrows << " x " << ncols << ","
+         << " while actual size is " << x.nrows() << " x " << x.ncols() << ".";
+      throw runtime_error( os.str() );
+    }
+  // If all lons are covered, check if cyclic
+  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+    {
+      const Index ic = ncols-1;
+      for( Index ir=0; ir<nrows; ir++ )
+        {
+          if( fabs(x(ir,ic)-x(ir,0)) > 0 )
+            {
+              ostringstream os;
+              os << "The variable *" << x_name <<  "* covers 360 "
+                 << "degrees in the longitude direction, but the data "
+                 << "seems to deviate between first and last longitude "
+                 << "point. The surface must be \"cyclic\".";
+              throw runtime_error( os.str() );
+            }
+        }
+    }
+}
+
+
+
 //! chk_pnd_field_raw_only_in_cloudbox
 /*! 
     Checks whether the pnd_field is zero outside the cloudbox.
@@ -1334,3 +1460,148 @@ void chk_pnd_field_raw_only_in_cloudbox(
         }
     }
 }
+
+
+
+
+
+/*===========================================================================
+  === Functions related to sensor variables.
+  ===========================================================================*/
+
+//! chk_rte_pos
+/*! 
+    Performs all needed checks of rte_pos and rte_pos2.
+
+    The function gives an error message if this is not the case.
+
+    \param    atmosphere_dim   As the WSV with the same name.
+    \param    rte_pos          As WSV rte_pos or rte_pos2.
+    \param    is_rte_pos2      True if rte_pos actually is rte_pos2.
+
+    \author Patrick Eriksson 
+    \date   2012-03-26
+*/
+void chk_rte_pos( 
+        const Index&      atmosphere_dim,
+        ConstVectorView   rte_pos,
+        const Index&      is_rte_pos2 )
+
+{  
+  String vname = "*rte_pos*";
+  if( is_rte_pos2 )
+    { vname = "*rte_pos2*"; }
+
+  if( atmosphere_dim == 1 )
+    {
+      if( !is_rte_pos2 )
+        {
+          if( rte_pos.nelem() != 1 )
+            {
+              ostringstream os;
+              os << "For 1D, " << vname << " must have length 1.";
+              throw runtime_error(os.str());
+            }
+        }
+      else
+        {
+          if( rte_pos.nelem() != 2 )
+            {
+              ostringstream os;
+              os << "For 1D, " << vname << " must have length 2.";
+              throw runtime_error(os.str());
+            }
+          if( rte_pos[1] < -90  ||  rte_pos[1] > 90 )
+            {
+              ostringstream os;
+              os << "For 1D, the latitude in " << vname << " must be in the "
+                 << "range [-180,180].";
+              throw runtime_error(os.str());
+            }
+        }
+    }
+  else if( atmosphere_dim == 2 )
+    { 
+      if( rte_pos.nelem() != 2 )
+        {
+          ostringstream os;
+          os << "For 2D, " << vname << " must have length 2.";
+          throw runtime_error(os.str());
+        }
+    }
+  else
+    {
+      if( rte_pos.nelem() != 3 )
+        {
+          ostringstream os;
+          os << "For 3D, " << vname << " must have length 3.";
+          throw runtime_error(os.str());
+        }
+      if( rte_pos[1] < -90  ||  rte_pos[1] > 90 )
+        {
+          ostringstream os;
+          os << "The (3D) latitude in " << vname << " must be in the "
+             << "range [-90,90].";
+          throw runtime_error(os.str());
+        }
+      if( rte_pos[1] < -360  ||  rte_pos[2] > 360 )
+        {
+          ostringstream os;
+          os << "The longitude in " << vname << " must be in the "
+             << "range [-360,360].";
+          throw runtime_error(os.str());
+        } 
+    }
+}
+
+
+
+//! chk_rte_los
+/*! 
+    Performs all needed checks of rte_los
+
+    The function gives an error message if this is not the case.
+
+    \param    atmosphere_dim   As the WSV with the same name.
+    \param    rte_los          As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2012-03-26
+*/
+void chk_rte_los( 
+        const Index&      atmosphere_dim,
+        ConstVectorView   rte_los )
+
+{  
+  if( atmosphere_dim == 1 )
+    {
+      if( rte_los.nelem() != 1 )
+        { throw runtime_error( "For 1D, *rte_los* must have length 1." ); }
+      if( rte_los[0] < 0  ||  rte_los[0] > 180 )
+        { throw runtime_error( "For 1D, the zenith angle of *rte_los* must "
+                               "be in the range [0,180]." ); }
+    }
+  else if( atmosphere_dim == 2 )
+    { 
+      if( rte_los.nelem() != 1 )
+        { throw runtime_error( "For 2D, *rte_los* must have length 1." ); }
+      if( rte_los[0] < -180  ||  rte_los[0] > 180 )
+        { throw runtime_error( "For 2D, the zenith angle of *rte_los* must "
+                               "be in the range [-180,180]." ); }
+    }
+  else
+    {
+      if( rte_los.nelem() != 2 )
+        { throw runtime_error( "For 3D, *rte_los* must have length 2." ); }
+      if( rte_los[0] < 0  ||  rte_los[0] > 180 )
+        { throw runtime_error( "For 3D, the zenith angle of *rte_los* must "
+                               "be in the range [0,180]." ); }
+      if( rte_los[1] < -180  ||  rte_los[1] > 180 )
+        { throw runtime_error( "For 3D, the azimuth angle of *rte_los* must "
+                               "be in the range [-180,180]." ); }
+    }
+}
+
+
+
+
