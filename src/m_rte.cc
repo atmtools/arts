@@ -337,6 +337,7 @@ void iyBeerLambertStandardClearsky(
   const Index&                stokes_dim,
   const Vector&               f_grid,
   const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Index&                mblock_index,
   const Agenda&               ppath_agenda,
   const Agenda&               abs_scalar_gas_agenda,
   const Agenda&               iy_clearsky_agenda,
@@ -375,9 +376,11 @@ void iyBeerLambertStandardClearsky(
   //- Determine propagation path
   //
   Ppath  ppath;
+  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
-                       t_field, z_field, vmr_field, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 0,
+                       mblock_index, t_field, z_field, vmr_field, 
+                       ppath_agenda );
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
@@ -659,8 +662,9 @@ void iyBeerLambertStandardCloudbox(
   // Determine ppath through the cloudbox
   //
   Ppath  ppath;
+  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 1,
+  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 1, -1,
                        t_field, z_field, vmr_field, ppath_agenda );
 
   // Check radiative background
@@ -735,7 +739,7 @@ void iyBeerLambertStandardCloudbox(
     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
                                iy_aux, diy_dx, 0, iy_trans_new,
                                rte_pos2, rte_los2, 0, jacobian_do, t_field, 
-                               z_field, vmr_field, iy_clearsky_agenda );
+                               z_field, vmr_field, -1, iy_clearsky_agenda );
   }
 
   // Without jacobians the complete RT calculations are just multiplication
@@ -780,6 +784,7 @@ void iyEmissionStandardClearsky(
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
   const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Index&                      mblock_index,
   const Agenda&                     ppath_agenda,
   const Agenda&                     emission_agenda,
   const Agenda&                     abs_scalar_gas_agenda,
@@ -830,9 +835,11 @@ void iyEmissionStandardClearsky(
   //- Determine propagation path
   //
   Ppath  ppath;
+  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
-                       t_field, z_field, vmr_field, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 0, 
+                       mblock_index, t_field, z_field, vmr_field, 
+                       ppath_agenda );
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
@@ -1166,8 +1173,9 @@ void iyEmissionStandardClearskyBasic(
   //- Determine propagation path
   //
   Ppath  ppath;
+  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
+  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 0, -1,
                        t_field, z_field, vmr_field, ppath_agenda );
 
   // Get quantities required for each ppath point
@@ -1380,6 +1388,7 @@ void iyCalc(
   const Vector&      rte_pos,
   const Vector&      rte_los,
   const Index&       jacobian_do,
+  const Index&       mblock_index,
   const Agenda&      iy_clearsky_agenda,
   const Verbosity& )
 {
@@ -1392,7 +1401,7 @@ void iyCalc(
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
 
-  // Make sure that output is empty if not set the agenda
+  // Make sure that output is empty if not set by the agenda
   iy.resize(0,0);
   iy_aux.resize(0,0);
   iy_error.resize(0,0);
@@ -1405,7 +1414,7 @@ void iyCalc(
   iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
                              1, iy_transmission, rte_pos, rte_los, cloudbox_on,
                              jacobian_do, t_field, z_field, vmr_field, 
-                             iy_clearsky_agenda );
+                             mblock_index, iy_clearsky_agenda );
 }
 
 
@@ -1620,7 +1629,7 @@ void yCalc(
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && nmblock>1 && nmblock>=nza)        \
   firstprivate(l_ws, l_jacobian_agenda, l_iy_clearsky_agenda)
-  for( Index imblock=0; imblock<nmblock; imblock++ )
+  for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
       // Calculate monochromatic pencil beam data for 1 measurement block
       //
@@ -1629,7 +1638,7 @@ void yCalc(
       ArrayOfMatrix   diyb_dx;      
       //
       iyb_calc( l_ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
-                imblock, atmosphere_dim, t_field, 
+                mblock_index, atmosphere_dim, t_field, 
                 z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
                 l_iy_clearsky_agenda, y_unit, j_analytical_do, 
@@ -1638,7 +1647,8 @@ void yCalc(
 
       // Apply sensor response matrix on iyb, and put into y
       //
-      const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+      const Range rowind = get_rowindex_for_mblock( sensor_response, 
+                                                                mblock_index );
       const Index row0   = rowind.get_start();
       //
       mult( yb, sensor_response, iyb );
@@ -1675,11 +1685,13 @@ void yCalc(
         { 
           y_f[row0+i]         = sensor_response_f[i];
           y_pol[row0+i]       = sensor_response_pol[i]; 
-          y_pos(row0+i,joker) = sensor_pos(imblock,joker);
-          y_los(row0+i,0)     = sensor_los(imblock,0) + sensor_response_za[i];
+          y_pos(row0+i,joker) = sensor_pos(mblock_index,joker);
+          y_los(row0+i,0)     = sensor_los(mblock_index,0) + 
+                                sensor_response_za[i];
           if( sensor_response_aa.nelem() )
             { 
-              y_los(row0+i,1) = sensor_los(imblock,0) + sensor_response_aa[i]; 
+              y_los(row0+i,1) = sensor_los(mblock_index,0) + 
+                                sensor_response_aa[i]; 
             }
         }
 
@@ -1699,7 +1711,7 @@ void yCalc(
       //
       if( jacobian_do )
         { 
-          jacobian_agendaExecute( l_ws, jacobian, imblock, iyb, yb, 
+          jacobian_agendaExecute( l_ws, jacobian, mblock_index, iyb, yb, 
                                                             l_jacobian_agenda );
         }
     }  // End mblock loop
@@ -1872,7 +1884,7 @@ void yCalc2(
 #pragma omp parallel for                                                \
   if(!arts_omp_in_parallel() && nmblock>1 && nmblock>=nza)              \
   firstprivate(l_ws, l_jacobian_agenda, l_iy_clearsky_agenda)
-  for( Index imblock=0; imblock<nmblock; imblock++ )
+  for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
       // Calculate monochromatic pencil beam data for 1 measurement block
       //
@@ -1881,7 +1893,7 @@ void yCalc2(
       ArrayOfMatrix   diyb_dx;      
       //
       iyb_calc( l_ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
-                imblock, atmosphere_dim, t_field, 
+                mblock_index, atmosphere_dim, t_field, 
                 z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
                 l_iy_clearsky_agenda, y_unit, j_analytical_do, 
@@ -1898,7 +1910,7 @@ void yCalc2(
       sensor_response_agendaExecute( l_ws, sensor_response, sensor_response_f, 
                                      sensor_response_pol, sensor_response_za,
                                      sensor_response_aa, 
-                                     imblock, l_sensor_response_agenda );
+                                     mblock_index, l_sensor_response_agenda );
 
       if( sensor_response.ncols() != niyb ) 
         {
@@ -1927,58 +1939,62 @@ void yCalc2(
 
       // Set sizes of ya and associated variables
       //
-      ya[imblock].resize( yl );
-      yf[imblock].resize( yl );
-      ypol[imblock].resize( yl );
-      ypos[imblock].resize( yl, sensor_pos.ncols() );
-      ylos[imblock].resize( yl, sensor_los.ncols() );
-      yerror[imblock].resize( yl );
-      yaux[imblock].resize( yl );
+      ya[mblock_index].resize( yl );
+      yf[mblock_index].resize( yl );
+      ypol[mblock_index].resize( yl );
+      ypos[mblock_index].resize( yl, sensor_pos.ncols() );
+      ylos[mblock_index].resize( yl, sensor_los.ncols() );
+      yerror[mblock_index].resize( yl );
+      yaux[mblock_index].resize( yl );
       if( jacobian_do )
-        { ja[imblock].resize( yl, 
+        { ja[mblock_index].resize( yl, 
                          jacobian_indices[jacobian_indices.nelem()-1][1]+1 ); }
 
       // Apply sensor response matrix on iyb, and put into ya
       //
-      mult( ya[imblock], sensor_response, iyb );
+      mult( ya[mblock_index], sensor_response, iyb );
 
       // Apply sensor response matrix on iyb_error, and put into yerror
       //
       if( iy_error_type == 0 )
-        { yerror[imblock] = 0; }
+        { yerror[mblock_index] = 0; }
       else if( iy_error_type == 1 )
         { 
           for( Index i=0; i<yl; i++ )
             {
-              yerror[imblock][i] = 0;
+              yerror[mblock_index][i] = 0;
               for( Index icol=0; icol<niyb; icol++ )
                 { 
-                  yerror[imblock][i] += pow( 
+                  yerror[mblock_index][i] += pow( 
                        sensor_response(i,icol)*iyb_error[icol], (Numeric)2.0 ); 
                 }
-              yerror[imblock][i] = sqrt( yerror[imblock][i] );              
+              yerror[mblock_index][i] = sqrt( yerror[mblock_index][i] );              
             }
         }
       else if( iy_error_type == 2 )
-        { mult( yerror[imblock], sensor_response, iyb_error ); }
+        { mult( yerror[mblock_index], sensor_response, iyb_error ); }
 
       // Apply sensor response matrix on iyb_aux, and put into y_aux
       // (if filled)
       if( iyb_aux.nelem() )
-        { mult( yaux[imblock], sensor_response, iyb_aux ); }
+        { mult( yaux[mblock_index], sensor_response, iyb_aux ); }
       else
-        { yaux[imblock] = 999; }
+        { yaux[mblock_index] = 999; }
 
       // Fill information variables
       //
       for( Index i=0; i<yl; i++ )
         { 
-          yf[imblock][i]         = sensor_response_f[i];
-          ypol[imblock][i]       = sensor_response_pol[i]; 
-          ypos[imblock](i,joker) = sensor_pos(imblock,joker);
-          ylos[imblock](i,0)     = sensor_los(imblock,0)+sensor_response_za[i];
+          yf[mblock_index][i]         = sensor_response_f[i];
+          ypol[mblock_index][i]       = sensor_response_pol[i]; 
+          ypos[mblock_index](i,joker) = sensor_pos(mblock_index,joker);
+          ylos[mblock_index](i,0)     = sensor_los(mblock_index,0) + 
+                                        sensor_response_za[i];
           if( sensor_response_aa.nelem() )
-            { ylos[imblock](i,1) = sensor_los(imblock,0)+sensor_response_aa[i];}
+            { 
+              ylos[mblock_index](i,1) = sensor_los(mblock_index,0) + 
+                                        sensor_response_aa[i];
+            }
         }
 
       // Apply sensor response matrix on diyb_dx, and put into jacobian
@@ -1987,7 +2003,7 @@ void yCalc2(
       if( j_analytical_do )
         {
           FOR_ANALYTICAL_JACOBIANS_DO(
-            mult( ja[imblock](joker, Range(jacobian_indices[iq][0],
+            mult( ja[mblock_index](joker, Range(jacobian_indices[iq][0],
                           jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
                                                 sensor_response, diyb_dx[iq] );
           )
@@ -1997,8 +2013,8 @@ void yCalc2(
       //
       if( jacobian_do )
         { 
-          jacobian_agendaExecute( l_ws, ja[imblock], imblock, iyb, ya[imblock], 
-                                                            l_jacobian_agenda );
+          jacobian_agendaExecute( l_ws, ja[mblock_index], mblock_index, iyb, 
+                                  ya[mblock_index], l_jacobian_agenda );
         }
     }  // End mblock loop
 

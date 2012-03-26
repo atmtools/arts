@@ -1238,7 +1238,7 @@ void sensor_responseFromArrayData(
         ArrayOfIndex&          sensor_response_pol,
         Vector&                sensor_response_za,
         Vector&                sensor_response_aa,
-  const Index&                 imblock,
+  const Index&                 mblock_index,
   const ArrayOfSparse&         sensor_response_array,
   const ArrayOfVector&         sensor_response_f_array,
   const ArrayOfArrayOfIndex&   sensor_response_pol_array,
@@ -1259,14 +1259,14 @@ void sensor_responseFromArrayData(
       throw runtime_error( "All arrays (sensor_response_X_array) must have "
                            "the same length." ); 
     }
-  if( imblock >= sensor_response_index.nelem() )
+  if( mblock_index >= sensor_response_index.nelem() )
     {
-      throw runtime_error( "The given *imblock* is too high with respect "
+      throw runtime_error( "The given *mblock_index* is too high with respect "
                            "to the length of *sensor_response_index*." );
     }
 
   // Determine index
-  const Index i = sensor_response_index[imblock];
+  const Index i = sensor_response_index[mblock_index];
 
   if( i >= na )
     {

@@ -592,7 +592,7 @@ void get_iy_of_background(
                     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
                                   iy_aux, diy_dx, 0, iy_trans_new, rte_pos, 
                                   los, cloudbox_on, jacobian_do, t_field,
-                                  z_field, vmr_field, iy_clearsky_agenda );
+                                  z_field, vmr_field, -1, iy_clearsky_agenda );
                   }
 
                 I(ilos,joker,joker) = iy;
@@ -1136,17 +1136,17 @@ void get_ppath_cloudrtvars(
 
     \return  The range.
     \param   sensor_response    As the WSV.
-    \param   imblock            Index of the measurement block.
+    \param   mblock_index            Index of the measurement block.
 
     \author Patrick Eriksson 
     \date   2009-10-16
 */
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 
-  const Index&    imblock )
+  const Index&    mblock_index )
 {
   const Index   n1y = sensor_response.nrows();
-  return Range( n1y*imblock, n1y );
+  return Range( n1y*mblock_index, n1y );
 }
 
 
@@ -1167,7 +1167,7 @@ void iyb_calc(
         Index&                      iy_error_type,
         Vector&                     iyb_aux,
         ArrayOfMatrix&              diyb_dx,
-  const Index&                      imblock,
+  const Index&                      mblock_index,
   const Index&                      atmosphere_dim,
   ConstTensor3View                  t_field,
   ConstTensor3View                  z_field,
@@ -1250,7 +1250,7 @@ void iyb_calc(
               //
               Vector los( sensor_los.ncols() );
               //
-              los     = sensor_los( imblock, joker );
+              los     = sensor_los( mblock_index, joker );
               los[0] += mblock_za_grid[iza];
 
               // Handle za/aa_grid "out-of-bounds" and mapping effects
@@ -1273,8 +1273,8 @@ void iyb_calc(
               //
               iyCalc( l_ws, iy, iy_aux, iy_error, iy_error_type, diy_dx, 
                       1, t_field, z_field, vmr_field, cloudbox_on, 1, 
-                      sensor_pos(imblock,joker), los, j_analytical_do, 
-                      l_iy_clearsky_agenda, verbosity );
+                      sensor_pos(mblock_index,joker), los, j_analytical_do, 
+                      mblock_index, l_iy_clearsky_agenda, verbosity );
 
               // Start row in iyb etc. for present LOS
               //

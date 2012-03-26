@@ -168,7 +168,9 @@ AgendaSet( ppath_step_agenda ){
 NumericSet( ppath_lmax, 10e3 )
 #
 AgendaSet( ppath_agenda ){
+  Ignore( mblock_index )
   ppathStepByStep
+  Touch( rte_los )
 }
 FlagOff( ppath_inside_cloudbox_do )
 

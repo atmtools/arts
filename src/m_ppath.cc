@@ -45,6 +45,7 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "geodetic.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "ppath.h"
@@ -61,6 +62,152 @@ extern const Numeric DEG2RAD;
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathFromTransmitter(      
+         Workspace&      ws,
+         Ppath&          ppath,
+   const Agenda&         ppath_step_agenda,
+   const Index&          basics_checked,
+   const Index&          atmosphere_dim,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        t_field,
+   const Tensor3&        z_field,
+   const Tensor4&        vmr_field,
+   const Vector&         refellipsoid,
+   const Matrix&         z_surface,
+   const Index&          cloudbox_on, 
+   const Index&          cloudbox_checked,
+   const ArrayOfIndex&   cloudbox_limits,
+   const Vector&         rte_pos,
+   const Vector&         transmitter_rte_pos,
+   const Verbosity&      verbosity)
+{
+  //--- Check input -----------------------------------------------------------
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control variables must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( !cloudbox_checked )
+    throw runtime_error( "The cloudbox must be flagged to have passed a "
+                         "consistency check (cloudbox_checked=1)." );
+  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
+  // More checks inside ppath_calc
+  // transmitter_rte_pos checked below
+
+
+  // Cartesian coordinates of sensor and transmitter
+  Numeric rs, lats, lons=0, rt, xs, ys=0, zs, xt, yt=0, zt;
+  //
+  if( atmosphere_dim == 1 )
+    {
+      if( transmitter_rte_pos.nelem() != 2 )
+        throw runtime_error(
+                         "For 1D *transmitter_rte_pos* must have length 2.*" );
+      rs   = refellipsoid[0] + rte_pos[0];
+      lats = 0;
+      rt = refellipsoid[0] + transmitter_rte_pos[0];
+      pol2cart( xs, zs, rs, lats );
+      pol2cart( xt, zt, rt, transmitter_rte_pos[1] );
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      if( transmitter_rte_pos.nelem() != 2 )
+        throw runtime_error(
+                         "For 2D *transmitter_rte_pos* must have length 2.*" );
+      const Index llat = lat_grid.nelem() - 1;
+      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, rte_pos[1] );
+          rs = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos[0];
+        }
+      else
+        { rs = refell2r( refellipsoid, rte_pos[1] ) + rte_pos[0]; }
+      lats = rte_pos[1];
+      pol2cart( xs, zs, rs, lats );
+      if( transmitter_rte_pos[1] > lat_grid[0]  &&  
+          transmitter_rte_pos[1] < lat_grid[llat] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, transmitter_rte_pos[1] );
+          rt = refell2d( refellipsoid, lat_grid, gp_lat ) + 
+                                                        transmitter_rte_pos[0];
+        }
+      else
+        { 
+          rt = refell2r( refellipsoid, transmitter_rte_pos[1] ) + 
+                                                        transmitter_rte_pos[0];
+        }
+      pol2cart( xt, zt, rt, transmitter_rte_pos[1] );
+    }
+  else 
+    {
+      if( transmitter_rte_pos.nelem() != 3 )
+        throw runtime_error(
+                         "For 3D *transmitter_rte_pos* must have length 3.*" );
+      const Index llat = lat_grid.nelem() - 1;
+      const Index llon = lon_grid.nelem() - 1;
+      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat]  &&
+          rte_pos[2] > lon_grid[0]  &&  rte_pos[2] < lon_grid[llon] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, rte_pos[1] );
+          rs = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos[0];
+        }
+      else
+        { rs = refell2r( refellipsoid, rte_pos[1] ) + rte_pos[0]; }
+      lats = rte_pos[1];
+      lons = rte_pos[2];
+      sph2cart( xs, ys, zs, rs, lats, lons );
+      if( transmitter_rte_pos[1] > lat_grid[0]     &&  
+          transmitter_rte_pos[1] < lat_grid[llat]  &&
+          transmitter_rte_pos[2] > lon_grid[0]     &&  
+          transmitter_rte_pos[2] < lon_grid[llon] )
+        { 
+          GridPos gp_lat;
+          gridpos( gp_lat, lat_grid, transmitter_rte_pos[1] );
+          rt = refell2d( refellipsoid, lat_grid, gp_lat ) + 
+                                                        transmitter_rte_pos[0];
+        }
+      else
+        { 
+          rt = refell2r( refellipsoid, transmitter_rte_pos[1] ) + 
+                                                        transmitter_rte_pos[0];
+        }
+      sph2cart( xt, yt, zt, rt, transmitter_rte_pos[1], transmitter_rte_pos[2]);
+    }
+
+  // Geometrical LOS to transmitter
+  Numeric za0, aa0;
+  Vector  rte_los0;
+  //
+  los2xyz( za0, aa0, rs, lats, lons, xs, ys, zs, xt, yt, zt );
+  //
+  if( atmosphere_dim == 3 )
+    { rte_los0.resize(2); rte_los0[0] = za0; rte_los0[1] = aa0; }
+  else 
+    { 
+      rte_los0.resize(1); 
+      rte_los0[0] = za0; 
+      if( atmosphere_dim == 2  && aa0 < 0 ) // Should 2D-za be negative?
+        { rte_los0[0] = -za0; }
+    }
+  
+  // So far we just return the geometrical ppath
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
+              lon_grid, t_field, z_field, vmr_field, refellipsoid, z_surface, 
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los0, 0, verbosity );
+
+  //ppath_init_structure( ppath, atmosphere_dim, ppath0.np );
+  //ppath_copy( ppath, ppath0 );
+}
+
+
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathStepByStep(
@@ -100,7 +247,6 @@ void ppathStepByStep(
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
               ppath_inside_cloudbox_do, verbosity );
 }
-
 
 
 

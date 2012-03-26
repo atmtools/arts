@@ -771,6 +771,75 @@ void geomtanpoint(
 
 
 
+//! los2xyz
+/*! 
+   Line-of-sight to another position given in cartesian coordinates.
+
+   Calculates the zenith and azimuth angle for the geomrical path from 
+   position 1 to position 2.
+
+   \param   za    Out: LOS zenith angle at position 1.
+   \param   aa    Out: LOS azimuth angle at position 1.
+   \param   r     Radius of position 1.
+   \param   lat   Latitude of position 1.
+   \param   lon   Longitude of position 1.
+   \param   x1    x-coordinate of position 1.
+   \param   y1    y-coordinate of position 1.
+   \param   z1    z-coordinate of position 1.
+   \param   x2    x-coordinate of position 2.
+   \param   y2    y-coordinate of position 2.
+   \param   z2    z-coordinate of position 2.
+
+   \author Patrick Eriksson
+   \date   2012-03-26
+*/
+void los2xyz( 
+         Numeric&   za, 
+         Numeric&   aa, 
+   const Numeric&   r1,
+   const Numeric&   lat1,    
+   const Numeric&   lon1,
+   const Numeric&   x1, 
+   const Numeric&   y1, 
+   const Numeric&   z1, 
+   const Numeric&   x2, 
+   const Numeric&   y2, 
+   const Numeric&   z2 )
+{
+  Numeric dx = x2-x1, dy = y2-y1, dz = z2-z1;
+  const Numeric ldxyz = sqrt( dx*dx + dy*dy + dz*dz );
+  dx /= ldxyz;   
+  dy /= ldxyz;   
+  dz /= ldxyz;
+
+  // All below extracted from 3D version of cart2poslos:
+  const double   latrad = DEG2RAD * lat1;
+  const double   lonrad = DEG2RAD * lon1;
+  const double   coslat = cos( latrad );
+  const double   sinlat = sin( latrad );
+  const double   coslon = cos( lonrad );
+  const double   sinlon = sin( lonrad );
+
+  const double   dr     = coslat*coslon*dx    + coslat*sinlon*dy    + sinlat*dz;
+  const double   dlat   = -sinlat*coslon/r1*dx - sinlat*sinlon/r1*dy + 
+                                                                   coslat/r1*dz;
+  const double   dlon   = -sinlon/coslat/r1*dx + coslon/coslat/r1*dy;
+
+  za = RAD2DEG * acos( dr );
+  aa = RAD2DEG * acos( r1 * dlat / sin( DEG2RAD * za ) );
+  if( isnan( aa ) )
+    {
+      if( dlat >= 0 )
+        { aa = 0; }
+      else
+        { aa = 180; }
+    }
+  else if( dlon < 0 )
+    { aa = -aa; }
+}
+
+
+
 //! poslos2cart
 /*! 
    Conversion from position and LOS to cartesian coordinates

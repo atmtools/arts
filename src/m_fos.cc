@@ -130,7 +130,8 @@ void fos_yStandard(Workspace&          ws,
                                              iy_aux, diy_dx, 0, iy_transmission,
                                              rte_pos, fos_angles(ia,Range(0,1)),
                                              0, jacobian_do, t_field, z_field, 
-                                             vmr_field, iy_clearsky_agenda );
+                                             vmr_field, -1, 
+                                             iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -193,9 +194,9 @@ void fos_yStandard(Workspace&          ws,
 
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
                                              iy_aux, diy_dx, 0, iy_transmission,
-                                             rte_pos, rte_los, 0,
-                                             jacobian_do, t_field, z_field, 
-                                             vmr_field, iy_clearsky_agenda );
+                                             rte_pos, rte_los, 0, jacobian_do, 
+                                             t_field, z_field, vmr_field, -1, 
+                                             iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -209,7 +210,7 @@ void fos_yStandard(Workspace&          ws,
                                          iy_aux, diy_dx, 0, iy_transmission, 
                                          rte_pos, fos_angles(ia,Range(0,2)),
                                          0, jacobian_do, t_field, z_field, 
-                                         vmr_field, iy_clearsky_agenda );
+                                         vmr_field, -1, iy_clearsky_agenda );
               fos_y(ia,joker,joker) = tmp;
             }
         }
@@ -306,8 +307,9 @@ void iyFOS(Workspace&          ws,
   // Determine ppath through the cloudbox
   //
   Ppath  ppath;
+  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 1,
+  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 1, -1,
                        t_field, z_field, vmr_field, ppath_agenda );
 
   // Check radiative background
@@ -378,7 +380,7 @@ void iyFOS(Workspace&          ws,
     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
                                iy_aux, diy_dx, 0, iy_trans_new,
                                rte_pos2, rte_los2, 0, jacobian_do, t_field, 
-                               z_field, vmr_field, iy_clearsky_agenda );
+                               z_field, vmr_field, -1, iy_clearsky_agenda );
   }
 
   // RT for part inside cloudbox

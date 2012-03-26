@@ -1,3 +1,45 @@
+2012-03-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-45
+
+	* src/m_ppath.cc (ppathToTransmitter): Just moved the (unused)
+	code from ppath.cc to this file.
+
+	* src/geodetic.cc (los2xyz): New function.
+
+	* tests/MonteCarlo/TestRteCalcMC.arts: Added Ignore(mblock_index) to
+	definition of iy_clearsky_agenda.
+
+	* includes/general.arts: Added Ignore(mblock_index) and
+	Touch(rteLlos) to definition of ppath_agenda.
+
+	* src/rte.cc: 
+	* src/m_fos.cc: 
+	* src/m_rte.cc: Adopted to new agenda input described below.
+	mblock_index is applied only for first part of rt calculation.
+	That is, not inside cloudbox or after surface reflection
+	(iy_clearsky_agenda or ppath_agenda is here given -1).
+
+	* src/agendas.cc: Added mblock_index as input to
+	iy_clearsky_agenda and ppath_agenda. rte_los added as output for
+	ppath_agenda (needed to obtain bending angles for radio links).
+
+	* src/workspace.cc: Added transmitter_pos and rte_pos2. 
+
+	* src/m_rte.cc:
+	* src/m_sensor.cc:
+	* src/rte.cc:
+	* src/methods.cc:
+	* src/m_jacobian.cc:
+	* src/agendas.cc: imblock -> mblock_index. 
+
+	* src/workspace.cc: Renamed imblock to mblock_index (to fit naming
+	pattern of f_index ybach_index ...). 
+
+	* src/m_doit.cc (CloudboxGetIncoming): Re-reverted (not just a
+	workaround, in fact also a bit safer with respect to ending up
+	with asserts).
+
 2012-03-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-44

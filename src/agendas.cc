@@ -287,7 +287,7 @@ void define_agenda_data()
        INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
               "iy_agenda_call1", "iy_transmission",
               "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", 
-              "t_field", "z_field", "vmr_field" )));  
+              "t_field", "z_field", "vmr_field", "mblock_index" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -326,8 +326,8 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
        INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx", 
-              "iy_transmission",
-              "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" )));
+              "iy_transmission", "rte_pos", "rte_los", "rte_gp_p", 
+              "rte_gp_lat", "rte_gp_lon" )));
 
   agenda_data.push_back
     (AgRecord
@@ -363,7 +363,7 @@ void define_agenda_data()
         "by calling the the jacobianAdd set of methods.\n"
        ),
        OUTPUT( "jacobian" ),
-       INPUT( "jacobian", "imblock", "iyb", "yb" )));
+       INPUT( "jacobian", "mblock_index", "iyb", "yb" )));
 
   agenda_data.push_back
     (AgRecord
@@ -528,10 +528,14 @@ void define_agenda_data()
         "determined. The standard choice is to do this in a step-by-step\n"
         "manner using *ppath_step_agenda*, with this agenda set to call\n" 
         "*ppathStepByStep*.\n" 
+        "\n"
+        "The WSV *rte_los* is both input and output as in some cases it is\n"
+        "determined as part of the propagation path calculations (such as for"
+        "for radio link calculations).\n"
         ),
-       OUTPUT( "ppath" ),
-       INPUT( "rte_pos", "rte_los", "cloudbox_on", "ppath_inside_cloudbox_do", 
-              "t_field", "z_field", "vmr_field" )));
+       OUTPUT( "ppath", "rte_los" ),
+       INPUT( "rte_los", "rte_pos", "cloudbox_on", "ppath_inside_cloudbox_do", 
+              "mblock_index", "t_field", "z_field", "vmr_field" )));
 
   agenda_data.push_back
     (AgRecord
@@ -599,11 +603,11 @@ void define_agenda_data()
         "The sensor response data for present measurement block.\n"
         "\n"
         "This agenda shall provide *sensor_response* and associated variables\n"
-        "for the present measurement block (*imblock*).\n"
+        "for the present measurement block (*mblock_index*).\n"
         ),
        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa" ),
-       INPUT(  "imblock" )));
+       INPUT(  "mblock_index" )));
 
  agenda_data.push_back
     (AgRecord

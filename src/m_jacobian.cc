@@ -294,7 +294,7 @@ void jacobianAddAbsSpecies(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcAbsSpeciesAnalytical(
         Matrix&     jacobian _U_,
-  const Index&      imblock _U_,
+  const Index&      mblock_index _U_,
   const Vector&     iyb _U_,
   const Vector&     yb _U_,
   const Verbosity& )
@@ -309,7 +309,7 @@ void jacobianCalcAbsSpeciesAnalytical(
 void jacobianCalcAbsSpeciesPerturbations(
         Workspace&                  ws,
         Matrix&                     jacobian,
-  const Index&                      imblock,
+  const Index&                      mblock_index,
   const Vector&                     iyb _U_,
   const Vector&                     yb,
   const Index&                      atmosphere_dim,
@@ -421,7 +421,7 @@ void jacobianCalcAbsSpeciesPerturbations(
   //
   const Index    n1y = sensor_response.nrows();
         Vector   dy( n1y ); 
-  const Range    rowind = get_rowindex_for_mblock( sensor_response, imblock ); 
+  const Range    rowind = get_rowindex_for_mblock( sensor_response, mblock_index ); 
   //
   for( Index lon_it=0; lon_it<j_lon; lon_it++ )
     {
@@ -500,7 +500,7 @@ void jacobianCalcAbsSpeciesPerturbations(
               Vector        iybp, dummy1, dummy3;
               ArrayOfMatrix dummy4;      
               //
-              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
+              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, 
                         t_field, z_field, vmr_p, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
@@ -590,7 +590,7 @@ void jacobianAddFreqShiftAndStretch(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcFreqShiftAndStretchInterp(
         Matrix&                    jacobian,
-  const Index&                     imblock,
+  const Index&                     mblock_index,
   const Vector&                    iyb,
   const Vector&                    yb,
   const Index&                     stokes_dim,
@@ -696,7 +696,7 @@ void jacobianCalcFreqShiftAndStretchInterp(
 
   //--- Create jacobians ---
   //
-  const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
   const Index lg = rq.Grids()[0].nelem();
         Index it = ji[0];
 
@@ -822,7 +822,7 @@ void jacobianAddPointingZa(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcPointingZaInterp(
         Matrix&                    jacobian,
-  const Index&                     imblock,
+  const Index&                     mblock_index,
   const Vector&                    iyb,
   const Vector&                    yb _U_,
   const Index&                     stokes_dim,
@@ -917,15 +917,15 @@ void jacobianCalcPointingZaInterp(
 
   const Index lg = rq.Grids()[0].nelem();
   const Index it = ji[0];
-  const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
   const Index row0 = rowind.get_start();
 
   // Handle gitter seperately
   if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
     {                                           // but should already have been 
       assert( lg == sensor_los.nrows() );       // set to 0
-      assert( rq.Grids()[0][imblock] == -1 );
-      jacobian(rowind,it+imblock) = dy;     
+      assert( rq.Grids()[0][mblock_index] == -1 );
+      jacobian(rowind,it+mblock_index) = dy;     
     }                                
 
   // Polynomial representation
@@ -939,7 +939,7 @@ void jacobianCalcPointingZaInterp(
           polynomial_basis_func( w, sensor_time, c );
           //
           for( Index i=0; i<n1y; i++ )
-            { jacobian(row0+i,it+c) = w[imblock] * dy[i]; }
+            { jacobian(row0+i,it+c) = w[mblock_index] * dy[i]; }
         }
     }
 }
@@ -950,7 +950,7 @@ void jacobianCalcPointingZaInterp(
 void jacobianCalcPointingZaRecalc(
         Workspace&                 ws,
         Matrix&                    jacobian,
-  const Index&                     imblock,
+  const Index&                     mblock_index,
   const Vector&                    iyb _U_,
   const Vector&                    yb,
   const Index&                     atmosphere_dim,
@@ -1009,7 +1009,7 @@ void jacobianCalcPointingZaRecalc(
 
     los(joker,0) += rq.Perturbation();
 
-    iyb_calc( ws, iyb2, iye, iyet, iyb_aux, diyb_dx, imblock, 
+    iyb_calc( ws, iyb2, iye, iyet, iyb_aux, diyb_dx, mblock_index, 
               atmosphere_dim, 
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
@@ -1029,15 +1029,15 @@ void jacobianCalcPointingZaRecalc(
 
   const Index lg = rq.Grids()[0].nelem();
   const Index it = ji[0];
-  const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
   const Index row0 = rowind.get_start();
 
   // Handle gitter seperately
   if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
     {                                           // but should already have been 
       assert( lg == sensor_los.nrows() );       // set to 0
-      assert( rq.Grids()[0][imblock] == -1 );
-      jacobian(rowind,it+imblock) = dy;     
+      assert( rq.Grids()[0][mblock_index] == -1 );
+      jacobian(rowind,it+mblock_index) = dy;     
     }                                
 
   // Polynomial representation
@@ -1051,7 +1051,7 @@ void jacobianCalcPointingZaRecalc(
           polynomial_basis_func( w, sensor_time, c );
           //
           for( Index i=0; i<n1y; i++ )
-            { jacobian(row0+i,it+c) = w[imblock] * dy[i]; }
+            { jacobian(row0+i,it+c) = w[mblock_index] * dy[i]; }
         }
     }
 }
@@ -1160,7 +1160,7 @@ void jacobianAddPolyfit(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcPolyfit(
         Matrix&                    jacobian,
-  const Index&                     imblock,
+  const Index&                     mblock_index,
   const Vector&                    iyb _U_,
   const Vector&                    yb _U_,
   const Sparse&                    sensor_response,
@@ -1212,12 +1212,12 @@ void jacobianCalcPolyfit(
   const Index n1     = jg[1].nelem();
   const Index n2     = jg[2].nelem();
   const Index n3     = jg[3].nelem();
-  const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
   const Index row4   = rowind.get_start();
         Index col4   = jacobian_indices[iq][0];
 
   if( n3 > 1 )
-    { col4 += imblock*n2*n1; }
+    { col4 += mblock_index*n2*n1; }
       
   for( Index l=0; l<nza; l++ )
     {
@@ -1363,7 +1363,7 @@ void jacobianAddTemperature(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcTemperatureAnalytical(
         Matrix&     jacobian _U_,
-  const Index&      imblock _U_,
+  const Index&      mblock_index _U_,
   const Vector&     iyb _U_,
   const Vector&     yb _U_,
   const Verbosity& )
@@ -1379,7 +1379,7 @@ void jacobianCalcTemperatureAnalytical(
 void jacobianCalcTemperaturePerturbations(
         Workspace&                 ws,
         Matrix&                    jacobian,
-  const Index&                      imblock,
+  const Index&                      mblock_index,
   const Vector&                     iyb _U_,
   const Vector&                     yb,
   const Index&                      atmosphere_dim,
@@ -1480,7 +1480,7 @@ void jacobianCalcTemperaturePerturbations(
   //
   const Index    n1y = sensor_response.nrows();
         Vector   dy( n1y ); 
-  const Range    rowind = get_rowindex_for_mblock( sensor_response, imblock ); 
+  const Range    rowind = get_rowindex_for_mblock( sensor_response, mblock_index ); 
   //
   for( Index lon_it=0; lon_it<j_lon; lon_it++ )
     {
@@ -1556,7 +1556,7 @@ void jacobianCalcTemperaturePerturbations(
               Vector        iybp, dummy1, dummy3;
               ArrayOfMatrix dummy4;      
               //
-              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
+              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, 
                         t_p, z, vmr_field, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 

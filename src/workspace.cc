@@ -1580,19 +1580,6 @@ void Workspace::define_wsv_data()
        GROUP( "Agenda" )));
 
   wsv_data.push_back
-    (WsvRecord
-     (NAME( "imblock" ),
-      DESCRIPTION
-      (
-       "Measurement block index. \n"
-       "\n"
-       "Used to tell agendas the index of present measurement block.\n"
-       "\n"
-       "Usage: Used internally.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),
       DESCRIPTION
@@ -2080,6 +2067,19 @@ void Workspace::define_wsv_data()
        "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "mblock_index" ),
+      DESCRIPTION
+      (
+       "Measurement block index. \n"
+       "\n"
+       "Used to tell agendas the index of present measurement block.\n"
+       "\n"
+       "Usage: Used internally.\n"
+       ),
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2926,6 +2926,29 @@ void Workspace::define_wsv_data()
        "This variable is a vector with a length equalling the atmospheric\n"
        "dimensionality. The first element is the geomtrical altitude.\n"
        "Element 2 is the latitude and element 3 is the longitude.\n"
+       "\n"
+       "Usage: See above. \n"
+       "\n"
+       "Units: [ m, degree, degree ]\n"
+       "\n"
+       "Size:  [ atmosphere_dim ]\n"
+       ),
+      GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_pos2" ),
+      DESCRIPTION
+      (
+       "A second geographical position for radiative transfer calculations.\n"
+       "\n"
+       "Used when the propagation path is defined by two positions, instead\n"
+       "of a position and a line-of-sight. That is, this variable basically\n"
+       "replaces *rte_los* for the cases of consideration.\n"
+       "\n"
+       "As *rte_pos* with the exception that a \"latitude\" must also be\n"
+       "specified for 1D. This is the angular distance to *rtte_pos*, where\n"
+       "this distance is defined as the 2D-\"latitude\".\n"
        "\n"
        "Usage: See above. \n"
        "\n"
@@ -4045,6 +4068,33 @@ void Workspace::define_wsv_data()
        "Stores the starting time for time measurements.\n"
        ),
       GROUP( "Timer" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "transmitter_pos" ),
+      DESCRIPTION
+      (
+       "Transmitter positions.\n"
+       "\n"
+       "Used for radio link calculations and gives then the position of the\n"
+       "transmitting device. The corresponding positions of the reciever are\n"
+       "given by *sensor_pos. The number of rows in *transitter_pos* and\n"
+       "*sensor_pos* must be equal.\n"
+       "\n" 
+       "This WSV is also defined as *sensor_pos* regarding the content of the\n"
+       "columns, accepted range for latitudes etc. With one exception, this\n"
+       "WSV is demanded to have two columns also for 1D. The additional\n"
+       "second value is the angular distance between the transmitter and the\n"
+       "reciver. This angle is defined as \"latitude\" for 2D, with the\n"
+       "sensor fixed at the angle of 0 degree. This definition fits\n"
+       "*rte_pos2* and single transmitter positions should notmally be put\n"
+       "into *rte_pos2*.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ m, degrees, degrees ]\n"
+       ),
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord

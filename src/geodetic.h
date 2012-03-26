@@ -160,6 +160,19 @@ void geomtanpoint(
        const double&    aa );
 */
 
+void los2xyz( 
+         Numeric&   za, 
+         Numeric&   aa, 
+   const Numeric&   r1,
+   const Numeric&   lat1,    
+   const Numeric&   lon1,
+   const Numeric&   x1, 
+   const Numeric&   y1, 
+   const Numeric&   z1, 
+   const Numeric&   x2, 
+   const Numeric&   y2, 
+   const Numeric&   z2 );
+
 void poslos2cart(
               double&   x,
               double&   y,
