@@ -1,5 +1,26 @@
 2012-03-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-49
+
+	* Same changes as for arts-2-0-40:
+
+	* tests/Wfuns/TestWfuns.arts:
+	* tests/GroundBased/TestGbased.arts:
+	* tests/ClearSky/TestClearSky.arts: Adopted call of
+	jacobianAddFreqShiftAndStretch.
+
+	* src/m_jacobian.cc (jacobianAddFreqShiftAndStretch): df now
+	carefully checked, to not give rise to an assert in interpolation
+	applied in function below. f_grid had to be added is input.
+
+	(jacobianCalcFreqShiftAndStretchInterp): The extrapolation factor
+	for gridpos_poly now set to 1 (default of 0.5 was used before).
+
+	(jacobianAddPointingZa): Added check that dza is inside [0,0.1],
+	to avoid that unnecessary large values are used.
+
+2012-03-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-48
 
 	* src/ppath.cc (raytrace_2d_linear_euler): Expression for dlat can

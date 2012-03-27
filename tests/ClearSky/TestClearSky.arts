@@ -129,7 +129,7 @@ jacobianAddPointingZa( jacobian_quantities, jacobian_agenda,
 
 # Another test of jacobianAddFreqShiftAndStretch is found in Groundbased
 jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
-                                "interp", 50e3, 1 )
+                                f_grid, "interp", 50e3, 1 )
 
 jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
     sensor_response_pol_grid, sensor_response_f_grid, 
