@@ -6682,6 +6682,36 @@ void define_md_data_raw()
         ));
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ppathCalc" ),
+        DESCRIPTION
+        (
+         "Stand-alone calculation of propagation paths.\n"
+         "\n"
+         "Beside a few checks of input data, the only operation of this\n"
+         "method is to execute *ppath_agenda*.\n"
+         "\n"
+         "Propagation paths are normally calculated as part of the radiative\n"
+         "transfer calculations, and this method is not part of the control\n"
+         "file. A reason to call this function directly would be to obtain a\n"
+         "propagation path for plotting. Anyhow, use this method instead\n"
+         "of calling e.g.*ppathStepByStep directly.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath", "rte_los" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath_agenda", "basics_checked", "t_field", "z_field", 
+            "vmr_field", "cloudbox_on", "cloudbox_checked", 
+            "ppath_inside_cloudbox_do", "mblock_index", "rte_pos", "rte_los" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ppathFromRtePos2" ),
         DESCRIPTION
         (
@@ -6733,24 +6763,24 @@ void define_md_data_raw()
          "\n"
          "This method calculates complete propagation paths in a stepwise\n"
          "manner. Each step is denoted as a \"ppath_step\" and is the path\n"
-         "through/inside a songle grid box. The function is normally not\n"
-         "visible in the control file, it is called from inside *yCalc*.\n"
-         "A reason to call this function directly would be to plot a\n"
-         "propgation path.\n"
+         "through/inside a single grid box.\n"
          "\n"
          "The definition of a propgation path cannot be accomodated here.\n"
          "For more information read the chapter on propagation paths in the\n"
          "ARTS user guide.\n"
+         "\n"
+         "This method shuld never be called directly. Use instead *ppathCalc*\n"
+         "if you want to extract propagation paths.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ppath_step_agenda", "ppath_inside_cloudbox_do", "basics_checked", 
+        IN( "ppath_step_agenda", "ppath_inside_cloudbox_do", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "t_field", 
             "z_field", "vmr_field", "refellipsoid", "z_surface", "cloudbox_on", 
-            "cloudbox_checked", "cloudbox_limits", "rte_pos", "rte_los" ),
+            "cloudbox_limits", "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

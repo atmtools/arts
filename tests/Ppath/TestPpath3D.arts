@@ -64,21 +64,21 @@ basics_checkedCalc
 cloudbox_checkedCalc
 
 
-# Agenda for refractive index agenda
-# (not used if ppath_stepGeometric used in ppath_step_agenda)
+# Uncomment the calls below to activate refraction 
 #
-AgendaSet( refr_index_agenda ){
-  refr_indexThayer
-}
+#
+#AgendaSet( refr_index_agenda ){
+#  refr_indexThayer
+#}
+#AgendaSet( ppath_step_agenda ){
+#  ppath_stepRefractionEuler
+#}
+#NumericSet( ppath_lraytrace, 2e3 )
 
 
 # Max step length and agenda for the calculation of the propagation path
 #
-NumericSet( ppath_lmax, 10e3 )
-AgendaSet( ppath_step_agenda ){
-  ppath_stepGeometric
-}
-
+NumericSet( ppath_lmax, 20e3 )
 
 
 
@@ -95,7 +95,10 @@ VectorSet( rte_los, [   113,  180    ] )
 
 # Calculate propagation path
 #
-ppathStepByStep
+IndexSet( mblock_index, -1 )    # A dummy value!
+#
+ppathCalc
+
 
 
 # Print complete ppath
@@ -142,7 +145,7 @@ AgendaSet( forloop_agenda ){
   #Print( forloop_index, 0 )
   VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )
   VectorExtractFromMatrix( rte_los, sensor_los, forloop_index, "row" )
-  ppathStepByStep
+  ppathCalc
 }
 
 ForLoop( forloop_agenda, 0, ilast, 1  )

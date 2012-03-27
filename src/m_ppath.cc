@@ -64,6 +64,38 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ppathCalc(      
+         Workspace&      ws,
+         Ppath&          ppath,
+         Vector&         rte_los,
+   const Agenda&         ppath_agenda,
+   const Index&          basics_checked,
+   const Tensor3&        t_field,
+   const Tensor3&        z_field,
+   const Tensor4&        vmr_field,
+   const Index&          cloudbox_on, 
+   const Index&          cloudbox_checked,
+   const Index&          ppath_inside_cloudbox_do,
+   const Index&          mblock_index,
+   const Vector&         rte_pos,
+   const Verbosity&  )
+{
+  //--- Check input -----------------------------------------------------------
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control variables must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( !cloudbox_checked )
+    throw runtime_error( "The cloudbox must be flagged to have passed a "
+                         "consistency check (cloudbox_checked=1)." );
+
+  ppath_agendaExecute( ws, ppath, rte_los, rte_pos, cloudbox_on, 
+                       ppath_inside_cloudbox_do, mblock_index, 
+                       t_field, z_field, vmr_field, ppath_agenda );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathFromRtePos2(      
          Workspace&      ws,
          Ppath&          ppath,
@@ -118,7 +150,6 @@ void ppathStepByStep(
          Ppath&          ppath,
    const Agenda&         ppath_step_agenda,
    const Index&          ppath_inside_cloudbox_do,
-   const Index&          basics_checked,
    const Index&          atmosphere_dim,
    const Vector&         p_grid,
    const Vector&         lat_grid,
@@ -129,22 +160,11 @@ void ppathStepByStep(
    const Vector&         refellipsoid,
    const Matrix&         z_surface,
    const Index&          cloudbox_on, 
-   const Index&          cloudbox_checked,
    const ArrayOfIndex&   cloudbox_limits,
    const Vector&         rte_pos,
    const Vector&         rte_los,
    const Verbosity&      verbosity)
 {
-  // Basics and cloudbox OK?
-  //
-  if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control variables must be "
-            "flagged to have passed a consistency check (basics_checked=1)." );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
-  // Rest is checked inside ppath_calc
-
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
               lon_grid, t_field, z_field, vmr_field, refellipsoid, z_surface, 
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
@@ -170,25 +190,34 @@ void ppath_stepGeometric(// WS Output:
   // Input checks here would be rather costly as this function is called
   // many times. So we perform asserts in the sub-functions, but no checks 
   // here.
+  
+  // A call with background set, just wants to obtain the refractive index for
+  // complete ppaths consistent of a single point.
+  if( !ppath_what_background( ppath_step ) )
+    {
+      if( atmosphere_dim == 1 )
+        { ppath_step_geom_1d( ppath_step, z_field(joker,0,0), 
+                              refellipsoid, z_surface(0,0), ppath_lmax ); }
 
-  if( atmosphere_dim == 1 )
-    { ppath_step_geom_1d( ppath_step, z_field(joker,0,0), 
-                          refellipsoid, z_surface(0,0), ppath_lmax ); }
+      else if( atmosphere_dim == 2 )
+        { ppath_step_geom_2d( ppath_step, lat_grid,
+                              z_field(joker,joker,0), refellipsoid, 
+                              z_surface(joker,0), ppath_lmax ); }
 
-  else if( atmosphere_dim == 2 )
-    { ppath_step_geom_2d( ppath_step, lat_grid,
-                          z_field(joker,joker,0), refellipsoid, 
-                          z_surface(joker,0), ppath_lmax ); }
+      else if( atmosphere_dim == 3 )
+        { ppath_step_geom_3d( ppath_step, lat_grid, lon_grid,
+                              z_field, refellipsoid, z_surface, ppath_lmax ); }
 
-
-  else if( atmosphere_dim == 3 )
-    { ppath_step_geom_3d( ppath_step, lat_grid, lon_grid,
-                          z_field, refellipsoid, z_surface, ppath_lmax ); }
+      else
+        { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
+    }
 
   else
-    { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
+    { 
+      assert( ppath_step.np == 1 );
+      ppath_step.nreal[0] = 1;
+    }
 }
-
 
 
 
@@ -217,30 +246,60 @@ void ppath_stepRefractionEuler(Workspace&  ws,
 
   assert( ppath_lraytrace > 0 );
 
-  if( atmosphere_dim == 1 )
-    { 
-      ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
-                          t_field(joker,0,0), vmr_field(joker,joker,0,0), 
-                          refellipsoid, z_surface(0,0), ppath_lmax, 
-                          refr_index_agenda, "linear_euler", ppath_lraytrace );
+  // A call with background set, just wants to obtain the refractive index for
+  // complete ppaths consistent of a single point.
+  if( !ppath_what_background( ppath_step ) )
+    {
+      if( atmosphere_dim == 1 )
+        { 
+          ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
+                              t_field(joker,0,0), vmr_field(joker,joker,0,0), 
+                              refellipsoid, z_surface(0,0), ppath_lmax, 
+                              refr_index_agenda, "linear_euler", 
+                              ppath_lraytrace );
+        }
+      else if( atmosphere_dim == 2 )
+        { 
+          ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
+                              z_field(joker,joker,0), t_field(joker,joker,0), 
+                              vmr_field(joker, joker,joker,0), refellipsoid, 
+                              z_surface(joker,0), ppath_lmax, refr_index_agenda,
+                              "linear_euler", ppath_lraytrace ); 
+        }
+      else if( atmosphere_dim == 3 )
+        { 
+          ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
+                              z_field, t_field, vmr_field, refellipsoid, 
+                              z_surface, ppath_lmax, refr_index_agenda,
+                              "linear_euler", ppath_lraytrace ); 
+        }
+      else
+        { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
     }
-  else if( atmosphere_dim == 2 )
-    { 
-      ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
-                          z_field(joker,joker,0), t_field(joker,joker,0), 
-                          vmr_field(joker, joker,joker,0), refellipsoid, 
-                          z_surface(joker,0), ppath_lmax, refr_index_agenda,
-                          "linear_euler", ppath_lraytrace ); 
-    }
-  else if( atmosphere_dim == 3 )
-    { 
-      ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, z_field, 
-                          t_field, vmr_field, refellipsoid, z_surface, 
-                          ppath_lmax, refr_index_agenda,
-                          "linear_euler", ppath_lraytrace ); 
-    }
+
   else
-    { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
+    { 
+      assert( ppath_step.np == 1 );
+      if( atmosphere_dim == 1 )
+        { get_refr_index_1d( ws, ppath_step.nreal[0], refr_index_agenda, 
+                             p_grid, refellipsoid, z_field(joker,0,0), 
+                             t_field(joker,0,0), vmr_field(joker,joker,0,0), 
+                             ppath_step.r[0] ); 
+        }
+      else if( atmosphere_dim == 2 )
+        { get_refr_index_2d( ws, ppath_step.nreal[0], refr_index_agenda, 
+                             p_grid, lat_grid, refellipsoid, 
+                             z_field(joker,joker,0), t_field(joker,joker,0), 
+                             vmr_field(joker, joker,joker,0),
+                             ppath_step.r[0], ppath_step.pos(0,1) ); 
+        }
+      else
+        { get_refr_index_3d( ws, ppath_step.nreal[0], refr_index_agenda, 
+                             p_grid, lat_grid, lon_grid, refellipsoid, 
+                             z_field, t_field, vmr_field, ppath_step.r[0], 
+                             ppath_step.pos(0,1), ppath_step.pos(0,2) ); 
+        }
+    }
 }
 
 

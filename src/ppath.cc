@@ -2663,6 +2663,16 @@ void do_gridcell_2d(
 
   geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
                                                            za_start, r, lmax );
+  // Force exact values for end point when they are know
+  if( endface == 8 )
+    {
+      if( za_start >0 )
+        { za_v[za_v.nelem()-1] = 90; }
+      else
+        { za_v[za_v.nelem()-1] = -90; }
+    }
+  if( endface == 1  ||  endface == 3 )
+    { lat_v[lat_v.nelem()-1] = lat; }
 }
 
 
@@ -4201,7 +4211,8 @@ void ppath_start_stepping(
       // Sensor is outside the model atmosphere:
       else
         {
-          // We can here set ppc as we are outside the atmosphere and n=1
+          // We can here set ppc and nreal as we are outside the atmosphere
+          ppath.nreal    = 1.0;
           ppath.constant = geometrical_ppc( refellipsoid[0] + rte_pos[0], 
                                                               rte_los[0] );
 
@@ -4359,8 +4370,8 @@ void ppath_start_stepping(
               throw runtime_error( os.str() );
             }
 
-          // We can here set the path constant, that equals the radius of
-          // the geometrical tangent point.
+          // We can here set ppc and nreal as we are outside the atmosphere
+          ppath.nreal    = 1.0;
           const Numeric r_p = r_e + rte_pos[0];
           ppath.constant = geometrical_ppc( r_p, rte_los[0] );
 
@@ -4645,8 +4656,8 @@ void ppath_start_stepping(
               throw runtime_error( os.str() );
             }
 
-          // We can here set the path constant, that equals the radius of
-          // the geometrical tangent point.
+          // We can here set ppc and nreal as we are outside the atmosphere
+          ppath.nreal    = 1.0;
           const Numeric r_p = r_e + rte_pos[0];
           ppath.constant = geometrical_ppc( r_p, rte_los[0] );
 
@@ -4916,7 +4927,7 @@ void ppath_calc(      Workspace&      ws,
                         cloudbox_on, cloudbox_limits, ppath_inside_cloudbox_do, 
                         rte_pos, rte_los, verbosity );
   // For debugging:
-  // Print( ppath_step, 0, verbosity );
+  //Print( ppath_step, 0, verbosity );
 
   // The only data we need to store from this initial ppath_step is lspace
   const  Numeric lspace = ppath_step.lspace;  
@@ -4947,7 +4958,7 @@ void ppath_calc(      Workspace&      ws,
       ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
                                 ppath_step_agenda );
       // For debugging:
-      // Print( ppath_step, 0, verbosity );
+      //Print( ppath_step, 0, verbosity );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;
@@ -5133,7 +5144,7 @@ void ppath_calc(      Workspace&      ws,
                   // Longitude dimension
                   ipos1 = fractional_gp( ppath_step.gp_lon[n-1] );
                   ipos2 = fractional_gp( ppath_step.gp_lon[n-2] );
-                  if( ipos1 <= Numeric( cloudbox_limits[4] )  &&  ipos1 < ipos2 )
+                  if( ipos1 <= Numeric( cloudbox_limits[4] )  &&  ipos1<ipos2 )
                     { ppath_set_background( ppath_step, 3 ); }
 
                   else if( ipos1 >= Numeric( cloudbox_limits[5] )  &&
@@ -5162,6 +5173,16 @@ void ppath_calc(      Workspace&      ws,
   if( na == 0 )    // No path, just the starting point
     {
       ppath_copy( ppath, ppath_step );
+      // To set nreal for positions inside the atmosphere, ppath_step_agenda
+      // must be called once. The later is not always the case. A fix to handle
+      // those cases:  
+      if( ppath_what_background(ppath_step) > 1 )
+        {
+          //Print( ppath_step, 0, verbosity );
+          ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, 
+                                    vmr_field, ppath_step_agenda );
+          ppath.nreal[0] = ppath_step.nreal[0];
+        }
     }
  
   else   // Otherwise, merge the array elelments
