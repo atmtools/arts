@@ -4778,7 +4778,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda" ),
+        IN( "jacobian_quantities", "jacobian_agenda", "f_grid" ),
         GIN( "calcmode", "df", "do_stretch" ),
         GIN_TYPE( "String", "Numeric", "Index" ),
         GIN_DEFAULT( "interp", "100e3", "0" ),

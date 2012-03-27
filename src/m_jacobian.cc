@@ -537,15 +537,12 @@ void jacobianAddFreqShiftAndStretch(
         Workspace&                 ws _U_,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
         Agenda&                    jacobian_agenda,
+  const Vector&                    f_grid,
   const String&                    calcmode,
   const Numeric&                   df,
   const Index&                     do_stretch,
   const Verbosity& )
 {
-  // Check that do_stretch is 0 or 1
-  if( do_stretch!=0 && do_stretch!=1 )
-    throw runtime_error( "The argument *do_stretch* must be 0 or 1." );
-
   // Check that this type of frequency fit is not already included in the
   // jacobian.
   for( Index it=0; it<jacobian_quantities.nelem(); it++ )
@@ -560,6 +557,29 @@ void jacobianAddFreqShiftAndStretch(
         }
     }
 
+  // Check that do_stretch is 0 or 1
+  if( do_stretch!=0 && do_stretch!=1 )
+    throw runtime_error( "The argument *do_stretch* must be 0 or 1." );
+
+  // Checks of df
+  if( df <= 0 )
+    throw runtime_error( "The argument *df* must be > 0." );
+  if( df > 1e6 )
+    throw runtime_error( "The argument *df* is not allowed to exceed 1 MHz." );
+  const Index   nf    = f_grid.nelem();
+  const Numeric maxdf = f_grid[nf-1] - f_grid[nf-2]; 
+  if( calcmode == "interp"  &&  df > maxdf )
+    {
+      ostringstream os;
+      os << "The value of *df* is too big with respect to spacing of "
+         << "*f_grid*.\nWith *calcmode* set to \"interp\", the maximum "
+         << "value of *df* equals\nthe spacing between the two last "
+         << "elements of *f_grid*.\n"
+         << "This spacing is   : " <<maxdf/1e3 << " kHz\n"
+         << "The value of df is: " << df/1e3   << " kHz";
+      throw runtime_error(os.str());
+    }
+    
   // Create the new retrieval quantity
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag( FREQUENCY_MAINTAG );
@@ -575,8 +595,7 @@ void jacobianAddFreqShiftAndStretch(
   if( calcmode == "interp" )
     { 
       rq.Mode( FREQUENCY_CALCMODE_A );
-      jacobian_agenda.append( "jacobianCalcFreqShiftAndStretchInterp", 
-                                                                           "" );
+      jacobian_agenda.append( "jacobianCalcFreqShiftAndStretchInterp", "" );
    }
   else
     throw runtime_error( "Possible choices for *calcmode* are \"interp\"." ); 
@@ -668,7 +687,7 @@ void jacobianCalcFreqShiftAndStretchInterp(
                 Vector   fg_new = f_grid, iyb2(niyb);
     //
     fg_new += rq.Perturbation();
-    gridpos_poly( gp, f_grid, fg_new, porder );
+    gridpos_poly( gp, f_grid, fg_new, porder, 1.0 );
     interpweights( itw, gp );
 
     // Do interpolation
@@ -750,7 +769,7 @@ void jacobianAddPointingZa(
   // Check that poly_order is -1 or positive
   if( poly_order < -1 )
     throw runtime_error(
-                  "The polynomial order has to be positive or -1 for gitter." );
+                 "The polynomial order has to be positive or -1 for gitter." );
  
   // Check that this jacobian type is not already included.
   for( Index it=0; it<jacobian_quantities.nelem(); it++ )
@@ -764,6 +783,13 @@ void jacobianAddPointingZa(
           throw runtime_error(os.str());
         }
     }
+
+  // Checks of dza
+  if( dza <= 0 )
+    throw runtime_error( "The argument *dza* must be > 0." );
+  if( dza > 0.1 )
+    throw runtime_error( 
+                     "The argument *dza* is not allowed to exceed 0.1 deg." );
 
   // Check that sensor_time is consistent with sensor_pos
   if( sensor_time.nelem() != sensor_pos.nrows() )
