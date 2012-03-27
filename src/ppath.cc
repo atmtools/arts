@@ -3574,7 +3574,10 @@ void raytrace_2d_linear_euler(
                                          geompath_l_at_r(ppc_step,r) + lstep );
                         dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
-          if( za < 0 )
+          // We can get Nan for za close to 0 and 180 (ie. dlat=0)
+          if( isnan( dlat ) )
+            { dlat = 0; }
+          else if( za < 0 )
             { dlat = -dlat; }
 
           r     = r_new;
@@ -3603,6 +3606,16 @@ void raytrace_2d_linear_euler(
       //
       za += (RAD2DEG * lstep / refr_index) * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
+
+      // Make sure that we don't get stuck in an infinite loop at a
+      // tanbent point
+      if( endface == 8  &&  abs(za)> 90  &&  lstep < 1e-3 )
+        {
+          if( za > 0 )
+            { za = 90; }
+          else
+            { za = -90; }
+        }
 
       // Make sure that obtained *za* is inside valid range
       if( za < -180 )

@@ -1,14 +1,25 @@
 2012-03-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-48
+
+	* src/ppath.cc (raytrace_2d_linear_euler): Expression for dlat can
+	return NaN. If isnan, then set 0.
+	Added also an if-statement to brake what can be become an infinite
+	loop at tangent points.
+	(This fixes so that test cfiles TestPpath1/2/3D.arts also run OK)
+	(with refraction.)
+
+2012-03-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-47
 
 	* tests/Ppath/TestPpath1/2/3D.arts: Updated. Now using ppathCalc.
 
 	* src/m_ppath.cc (ppath_stepGeometric,ppath_stepRefractionEuler):
 	The case when called just to get nreal catched and handled seperately.
-	
+
 	* src/ppath.cc (ppath_start_stepping, ppath_calc): nreal was not
-	always set for ppath having a single point. 
+	always set for ppath having a single point.
 	(do_gridcell_2d): Reintroduced some code to set exact value for
 	zenith angle and latitude (when known). A case where numerical
 	problems moved the latitude 1e-13 deg (!) outside the grid box was
