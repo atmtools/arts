@@ -1,3 +1,15 @@
+2012-03-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-50
+
+	* tests/RadioLink/TestRadioLink.arts: Start on a new test cfile.
+
+	* src/m_ppath.cc (ppathFromRtePos2): Further work ...
+
+	* src/geodetic.cc (pos2refell_r): New function.
+
+	* src/geodetic.h: Declaration of distance2D was incorrect.
+
 2012-03-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-49

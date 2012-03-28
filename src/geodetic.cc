@@ -934,17 +934,65 @@ void poslos2cart(
 
 
 
+//! pos2refell_r
+/*!
+    Extracts the reference ellipsoid for the specified position.
+
+    The rference ellipsoid radius is defined slightly differently inside and
+    outside of the model atmosphere. See *refell2r*. This function takes care
+    of all those aspects. 
+
+    If you know the latitude grid position of *rte_pos*, it is faster to use
+    *refell2d*. 
+
+    \return                 Ellispoid radius
+    \param  atmosphere_dim  In: As the WSV with same name.
+    \param  refellipsoid    In: As the WSV with same name.
+    \param  lat_grid        In: As the WSV with same name.
+    \param  rte_pos         In: As the WSV with same name.
+
+    \author Patrick Eriksson 
+    \date   2012-03-27
+*/
+double pos2refell_r(
+       const Index&     atmosphere_dim,
+       ConstVectorView  refellipsoid,
+       ConstVectorView  lat_grid,
+       ConstVectorView  rte_pos )
+{
+  if( atmosphere_dim == 1 )
+    { return refellipsoid[0]; }
+  else
+    {
+      assert( rte_pos.nelem() > 1 );
+      if( rte_pos[1] < lat_grid[0] ||  rte_pos[1] > last(lat_grid) )
+        { return refell2r( refellipsoid, rte_pos[1] ); }
+      else
+        {
+          GridPos   gp_lat;
+          gridpos( gp_lat, lat_grid, rte_pos[1] );
+          return refell2d( refellipsoid, lat_grid, gp_lat );
+        }
+    }
+}
+
+
+
 //! refell2r
 /*!
     Reference ellipsoid radius, directly from *refellipsoid*.
 
-    Gives the distance from the Earth's centre and the reference ellipsoid
-    as a function of geoCENTRIC latitude. 
+    Gives the distance from the Earth's centre and the reference ellipsoid as a
+    function of geoCENTRIC latitude.
 
     For 1D, extract r directly as refellipsoid[0] to save time.
 
-    For 2D and 3D and the position is inside the atmosphere, use *refell2d* and
-    *refell3d* for highest internal consistency.
+    This is the basic function to calculate the reference ellipsoid radius.
+    However, inside the atmosphere this radius is just used at the positions of
+    the lat_grid. A linear interpolation is applied between these points. This
+    is handled by other functions. For 2D and 3D and the grid position is
+    known, use *refell2d*. The function pos2refell_r handles all this in a
+    general way (but not always the fastet option).
 
     \return                 Ellispoid radius
     \param  refellipsoid    In: As the WSV with same name.
@@ -983,7 +1031,7 @@ double refell2r(
 
 //! refell2d
 /*!
-    Reference ellipsoid radius for points inside 2D atmospheres.
+    Reference ellipsoid radius for points inside 2D and 3D atmospheres.
 
     To be consistent with the ppath calculations, the ellipsoid radius shall be
     treated to vary linear between the latitude grid points. This function

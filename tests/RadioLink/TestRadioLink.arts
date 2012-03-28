@@ -1,0 +1,89 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Demonstration and test of a single monochromatic pencil beam calculation
+#
+# Author: Patrick Eriksson
+
+
+Arts2 {
+
+INCLUDE "general.arts"
+INCLUDE "continua.arts"
+
+
+# Frequency grid 
+#
+VectorSet( f_grid, [10e9] )
+
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+#
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+
+# Definition of species
+# 
+SpeciesSet( abs_species,
+            ["H2O-PWR98", 
+             "N2-SelfContStandardType",
+             "O2-PWR93"] )
+
+# No line data needed here
+# 
+abs_lines_per_speciesSetEmpty
+
+
+# Atmospheric profiles
+# 
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "../atmosphere_data/tropical" )
+#
+AtmFieldsCalc
+
+
+# Get ground altitude (z_surface) from z_field
+Extract( z_surface, z_field, 0 )
+
+
+# Check model atmosphere
+# 
+basics_checkedCalc
+cloudbox_checkedCalc
+
+
+# Propagation path agendas and variables
+#
+AgendaSet( ppath_step_agenda ){
+  ppath_stepRefractionEuler
+}
+NumericSet( ppath_lmax, 20e3 )
+NumericSet( ppath_lraytrace, 5e3 )
+#
+AgendaSet( ppath_agenda ){
+  Ignore( ppath_inside_cloudbox_do )
+  VectorExtractFromMatrix( rte_pos2, transmitter_pos, mblock_index, "row" )
+  rte_losGeometricFromRtePosToRtePos2
+  ppathFromRtePos2
+}
+
+
+# Postion of sensor/receiver and transmitter
+# 
+VectorSet( rte_pos, [ 600e3 ] )
+MatrixSet( transmitter_pos, [ 80520, 32; 113, 3; 12e3, 0.2 ] )
+
+
+# So far we just calculate the propgation path
+#
+IndexSet( mblock_index, 2 )
+VectorSet( rte_los, [-999] )   # A dummy value
+#
+ppathCalc
+#
+#Print( ppath, 0 )
+#Print( rte_los, 0 )
+
+
+
+}
+ 

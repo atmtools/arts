@@ -116,7 +116,7 @@ void ppathFromRtePos2(
    const ArrayOfIndex&   cloudbox_limits,
    const Vector&         rte_pos,
    const Vector&         rte_pos2,
-   const Verbosity&      verbosity)
+   const Verbosity&      verbosity )
 {
   //--- Check input -----------------------------------------------------------
   if( !basics_checked )
@@ -129,15 +129,80 @@ void ppathFromRtePos2(
   chk_rte_los( atmosphere_dim, rte_los );
   chk_rte_pos( atmosphere_dim, rte_pos2, 1 );
 
+  // Radius of rte_pos and rte_pos2
+  const Numeric r_pos  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       rte_pos ) + rte_pos[0];
+  const Numeric r_pos2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       rte_pos2 ) + rte_pos2[0];
 
-  // So far we just return the first guess ppath
+  // LOS from rte_pos to rte_pos2
+  Vector rte_los_geom;
+  rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
+                                       lon_grid, refellipsoid, rte_pos,
+                                       rte_pos2, verbosity );
+
+  // Geometric distance between rte_pos and rte_pos2
+  Numeric l12;
+  if( atmosphere_dim == 1 )
+    { distance2D( l12, r_pos, 0, r_pos2, rte_pos2[1] ); } 
+  else if( atmosphere_dim == 2 )
+    { distance2D( l12, r_pos, rte_pos[1], r_pos2, rte_pos2[1] ); } 
+  else
+    { distance3D( l12, r_pos,  rte_pos[1],  rte_pos[2], 
+                       r_pos2, rte_pos2[1], rte_pos2[2] ); }
+  
+  // Iterate until convergence for rte_los
   //
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
-              lon_grid, t_field, z_field, vmr_field, refellipsoid, z_surface, 
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0, verbosity );
+  rte_los     = rte_los_geom;
+  Index ready = false;
+  //
+  while( !ready )
+    {
+      // Path for present rte_los (with no cloudbox)
+      ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+                  lat_grid, lon_grid, t_field, z_field, vmr_field, 
+                  refellipsoid, z_surface, 0, cloudbox_limits, 
+                  rte_pos, rte_los, 0, verbosity );
 
-  //ppath_init_structure( ppath, atmosphere_dim, ppath0.np );
-  //ppath_copy( ppath, ppath0 );
+      // Find point closest to rte_pos2 (as limb sounding should be standard
+      // case, start from last point in ppath)
+      Numeric mindist = 99e99, thisdist = 0;
+      Index ip = ppath.np;
+      bool  closer = true;
+      //
+      while( closer  &&  ip >= 0 )
+        {
+          ip--;
+          
+          // Distance between rte_pos2 and present ppath point
+          if( atmosphere_dim <= 2 )
+            { distance2D( thisdist, r_pos2, rte_pos2[1], 
+                          ppath.r[ip], ppath.pos(ip,1) ); }
+          else
+            { distance3D( thisdist, r_pos2, rte_pos2[1], rte_pos2[2], 
+                          ppath.r[ip], ppath.pos(ip,1), ppath.pos(ip,2) ); }
+
+          // Getting closer or the opposite?
+          if( thisdist < mindist )
+            { mindist = thisdist; }
+          else
+            { 
+              closer = false; 
+              ip++;   // Now index of closest point
+            }
+        }
+
+      // 
+
+
+      ready = true;
+    }
+
+  // Path for present rte_los (considering cloudbox_on)
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, t_field, z_field, vmr_field, 
+              refellipsoid, z_surface, cloudbox_on, cloudbox_limits, 
+              rte_pos, rte_los, 0, verbosity );
 }
 
 

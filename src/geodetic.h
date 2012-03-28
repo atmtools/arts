@@ -65,6 +65,7 @@ void distance2D(
             double&   l,
       const double&   r1,
       const double&   lat1,
+      const double&   r2,
       const double&   lat2 );
 
 /*
@@ -185,6 +186,12 @@ void poslos2cart(
         const double&   lon,
         const double&   za,
         const double&   aa );
+
+double pos2refell_r(
+       const Index&     atmosphere_dim,
+       ConstVectorView  refellipsoid,
+       ConstVectorView  lat_grid,
+       ConstVectorView  rte_pos );
 
 double refell2r(
        ConstVectorView  refellipsoid,
