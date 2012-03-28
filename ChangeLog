@@ -1,5 +1,30 @@
 2012-03-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-51
+
+	* src/m_ppath.cc (ppathFromRtePos2): Complete, but not always
+	converging :-(  Will be fixed ...
+
+	(rte_losGeometricFromRtePosToRtePos2): Now using pos2refell_r
+	(making the function much shorter).
+
+	(PrintTangentPoint): New WSM.
+
+	* src/geodetic.cc (pos2refell_r): Was not OK for 3D. Had to add
+	check with respect to lon_grid.
+
+	* src/montecarlo.cc (mcPathTraceIPA):
+	* src/rte.cc (get_iy_of_background):
+	* src/refraction.cc (get_refr_index_3d, get_refr_index_2d):
+	Replaced call of refell2r with refell2d (to be fully conistent
+	with model definitions).
+
+	* src/m_atmosphere.cc (z_fieldFromHSE):
+	* src/doit.cc (cloud_ppath_update3D): Added comments that using
+	refell2r is OK.
+
+2012-03-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-50
 
 	* tests/RadioLink/TestRadioLink.arts: Start on a new test cfile.

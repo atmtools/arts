@@ -913,7 +913,8 @@ void mcPathTraceIPA(Workspace&            ws,
 
   // For simplicity, rte_pos holds the radius (not the altitude) until end of
   // function 
-  rte_pos[0] += refell2r( refellipsoid, rte_pos[1] ); 
+  const Numeric rre = refell2d( refellipsoid, lat_grid, gp_lat ); 
+  rte_pos[0] += rre;
 
   Range p_range(cloudbox_limits[0], 
                 cloudbox_limits[1]-cloudbox_limits[0]+1);
@@ -1006,7 +1007,7 @@ void mcPathTraceIPA(Workspace&            ws,
         {
           z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, gp_lat, gp_lon );
           interpweights( itw, gp_lat, gp_lon );
-          rv_ellips  = refell2r(refellipsoid,rte_pos[1]);
+          rv_ellips  = refell2d(refellipsoid,lat_grid,gp_lat);
           rv_surface = rv_ellips + interp( itw, z_surface, gp_lat, gp_lon );
         }
       alt = rte_pos[0] - rv_ellips;
@@ -1056,7 +1057,7 @@ void mcPathTraceIPA(Workspace&            ws,
       if (!z_field_is_1D)
        {
           interpweights( itw, gp_lat, gp_lon );
-          rv_ellips  = refell2r(refellipsoid,ppath.pos(i_closest,1));
+          rv_ellips  = refell2d(refellipsoid,lat_grid,gp_lat);
         }
       rte_pos[0]=rv_ellips+interp_atmfield_by_gp(3,z_field,
                                                 gp_p,gp_lat,gp_lon);
@@ -1172,7 +1173,7 @@ void mcPathTraceIPA(Workspace&            ws,
     }
 
   // Go back to altitude in rte_pos
-  rte_pos[0] -= refell2r( refellipsoid, rte_pos[1] ); 
+  rte_pos[0] -= rre; 
 
 }
 

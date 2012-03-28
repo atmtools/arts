@@ -178,7 +178,7 @@ void get_refr_index_2d(
   z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat[0] );
 
   // Determine the ellipsoid radius at *lat*
-  const Numeric   rellips = refell2r( refellipsoid, lat );
+  const Numeric   rellips = refell2d( refellipsoid, lat_grid, gp_lat[0] );
 
   // Altitude (equal to pressure) grid position
   ArrayOfGridPos   gp_p(1);
@@ -270,7 +270,7 @@ void get_refr_index_3d(
                                                         gp_lat[0], gp_lon[0] );
   
   // Determine the elipsoid radius at *lat*
-  const Numeric   rellips = refell2r( refellipsoid, lat );
+  const Numeric   rellips = refell2d( refellipsoid, lat_grid, gp_lat[0] );
 
   // Altitude (equal to pressure) grid position
   ArrayOfGridPos   gp_p(1);

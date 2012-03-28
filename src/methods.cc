@@ -6680,6 +6680,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ppathCalc" ),
@@ -6717,6 +6718,8 @@ void define_md_data_raw()
         (
          "Determines the propagation path from *rte_pos2* to *rte_pos*.\n"
          "\n"
+         "FIXME: Need an update!\n"
+         "\n"
          "The propagation path linking *rte_pos* and *rte_pos2* is calculated\n"
          "and returned. The method assumes that refraction is considered and\n"
          "determines the path in a pure numerical manner. A simple algorithm\n"
@@ -6746,8 +6749,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "ppath_step_agenda", "basics_checked", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", 
-            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_checked", 
-            "cloudbox_limits", "rte_pos", "rte_pos2", "rte_los" ),
+            "refellipsoid", "z_surface", "rte_pos", "rte_pos2" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6884,6 +6886,30 @@ void define_md_data_raw()
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "PrintTangentPoint" ),
+        DESCRIPTION
+        (
+         "Prints information about the tangennt point of a propagation path.\n"
+         "\n"
+         "The tangent point is here defined as the point with the lowest\n"
+         "altitude (which differes from the definition used in the code\n"
+         "where it is the point with the lowest radius, or equally the point\n"
+         "with a zenith angle of 90 deg.)\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath" ),
+        GIN( "level" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Output level to use." )
         ));
 
   md_data_raw.push_back     

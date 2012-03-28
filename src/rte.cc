@@ -547,7 +547,7 @@ void get_iy_of_background(
                         refellipsoid, z_surface(joker,0), rte_gp_lat, los[0] );
                     Vector itw(2); interpweights( itw, rte_gp_lat );
                     const Numeric rv_surface = 
-                              refell2r( refellipsoid, rte_pos[1] ) +
+                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
                               interp( itw, z_surface(joker,0), rte_gp_lat );
                     atilt = plevel_angletilt( rv_surface, rslope);
                   }
@@ -557,7 +557,7 @@ void get_iy_of_background(
                      refellipsoid, z_surface, rte_gp_lat, rte_gp_lon, los[1] );
                     Vector itw(4); interpweights( itw, rte_gp_lat, rte_gp_lon );
                     const Numeric rv_surface = 
-                              refell2r( refellipsoid, rte_pos[1] ) +
+                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
                               interp( itw, z_surface, rte_gp_lat, rte_gp_lon );
                     atilt = plevel_angletilt( rv_surface, rslope);
                   }

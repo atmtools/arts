@@ -191,6 +191,7 @@ double pos2refell_r(
        const Index&     atmosphere_dim,
        ConstVectorView  refellipsoid,
        ConstVectorView  lat_grid,
+       ConstVectorView  lon_grid,
        ConstVectorView  rte_pos );
 
 double refell2r(

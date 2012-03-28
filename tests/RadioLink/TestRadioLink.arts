@@ -56,13 +56,15 @@ cloudbox_checkedCalc
 AgendaSet( ppath_step_agenda ){
   ppath_stepRefractionEuler
 }
-NumericSet( ppath_lmax, 20e3 )
-NumericSet( ppath_lraytrace, 5e3 )
+NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_lraytrace, 1e3 )
 #
 AgendaSet( ppath_agenda ){
+  Ignore( rte_los )
+  Ignore( cloudbox_on )
   Ignore( ppath_inside_cloudbox_do )
   VectorExtractFromMatrix( rte_pos2, transmitter_pos, mblock_index, "row" )
-  rte_losGeometricFromRtePosToRtePos2
+#  rte_losGeometricFromRtePosToRtePos2
   ppathFromRtePos2
 }
 
@@ -70,20 +72,19 @@ AgendaSet( ppath_agenda ){
 # Postion of sensor/receiver and transmitter
 # 
 VectorSet( rte_pos, [ 600e3 ] )
-MatrixSet( transmitter_pos, [ 80520, 32; 113, 3; 12e3, 0.2 ] )
+MatrixSet( transmitter_pos, [ 200e3, 38; 113, 3; 12e3, 0.2 ] )
 
 
 # So far we just calculate the propgation path
 #
-IndexSet( mblock_index, 2 )
+IndexSet( mblock_index, 0 )
 VectorSet( rte_los, [-999] )   # A dummy value
 #
 ppathCalc
 #
 #Print( ppath, 0 )
 #Print( rte_los, 0 )
-
-
+PrintTangentPoint
 
 }
  

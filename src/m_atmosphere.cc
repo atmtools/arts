@@ -1870,6 +1870,7 @@ void z_fieldFromHSE(
   //
   for( Index ilat=0; ilat<nlat; ilat++ )
     {
+      // As always on top of the lat. grid positions, OK to call refell2r:
       const Numeric re = refell2r( refellipsoid, latgr[ilat] );
 
       for( Index ilon=0; ilon<nlon; ilon++ )

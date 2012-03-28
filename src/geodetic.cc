@@ -949,6 +949,7 @@ void poslos2cart(
     \param  atmosphere_dim  In: As the WSV with same name.
     \param  refellipsoid    In: As the WSV with same name.
     \param  lat_grid        In: As the WSV with same name.
+    \param  lon_grid        In: As the WSV with same name.
     \param  rte_pos         In: As the WSV with same name.
 
     \author Patrick Eriksson 
@@ -958,6 +959,7 @@ double pos2refell_r(
        const Index&     atmosphere_dim,
        ConstVectorView  refellipsoid,
        ConstVectorView  lat_grid,
+       ConstVectorView  lon_grid,
        ConstVectorView  rte_pos )
 {
   if( atmosphere_dim == 1 )
@@ -965,14 +967,26 @@ double pos2refell_r(
   else
     {
       assert( rte_pos.nelem() > 1 );
+
+      bool inside = true;
+
       if( rte_pos[1] < lat_grid[0] ||  rte_pos[1] > last(lat_grid) )
-        { return refell2r( refellipsoid, rte_pos[1] ); }
-      else
+        { inside = false; }
+      else if( atmosphere_dim == 3 )
         {
-          GridPos   gp_lat;
+          assert( rte_pos.nelem() == 3 );
+          if( rte_pos[2] < lon_grid[0] ||  rte_pos[2] > last(lon_grid) )
+            { inside = false; }
+        }
+          
+      if( inside )
+        {
+          GridPos gp_lat;
           gridpos( gp_lat, lat_grid, rte_pos[1] );
           return refell2d( refellipsoid, lat_grid, gp_lat );
         }
+      else
+        { return refell2r( refellipsoid, rte_pos[1] ); }
     }
 }
 

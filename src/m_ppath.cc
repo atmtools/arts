@@ -94,6 +94,43 @@ void ppathCalc(
 }
 
 
+void line_circle_intersect(
+         Numeric&   x,
+         Numeric&   z,
+   const Numeric&   xl,
+   const Numeric&   zl,
+   const Numeric&   dx,
+   const Numeric&   dz,
+   const Numeric&   xc,
+   const Numeric&   zc,
+   const Numeric&   r )
+{
+  const Numeric a = dx*dx + dz*dz;
+  const Numeric b = 2*( dx*(xl-xc) + dz*(zl-zc) );
+  const Numeric c = xc*xc + zc*zc + xl*xl + zl*zl - 2*(xc*xl + zc*zl) - r*r;
+  
+  Numeric d = b*b - 4*a*c;
+  assert( d > 0 );
+  
+  const Numeric a2 = 2*a;
+  const Numeric b2 = -b / a2;
+  const Numeric e  = sqrt( d ) / a2;
+
+  const Numeric l1 = b2 + e;
+  const Numeric l2 = b2 + e;
+
+  Numeric l;
+  if( l1 < 0 )
+    { l = l2; }
+  else  if( l2 < 0 )
+    { l = l1; }
+  else
+    { l = min(l1,l2); assert( l>=0 ); }
+
+  x = xl + l*dx;
+  z = zl + l*dz;
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathFromRtePos2(      
@@ -111,9 +148,6 @@ void ppathFromRtePos2(
    const Tensor4&        vmr_field,
    const Vector&         refellipsoid,
    const Matrix&         z_surface,
-   const Index&          cloudbox_on, 
-   const Index&          cloudbox_checked,
-   const ArrayOfIndex&   cloudbox_limits,
    const Vector&         rte_pos,
    const Vector&         rte_pos2,
    const Verbosity&      verbosity )
@@ -122,87 +156,142 @@ void ppathFromRtePos2(
   if( !basics_checked )
     throw runtime_error( "The atmosphere and basic control variables must be "
             "flagged to have passed a consistency check (basics_checked=1)." );
-  if( !cloudbox_checked )
-    throw runtime_error( "The cloudbox must be flagged to have passed a "
-                         "consistency check (cloudbox_checked=1)." );
   chk_rte_pos( atmosphere_dim, rte_pos, 0 );
-  chk_rte_los( atmosphere_dim, rte_los );
   chk_rte_pos( atmosphere_dim, rte_pos2, 1 );
 
   // Radius of rte_pos and rte_pos2
-  const Numeric r_pos  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                       rte_pos ) + rte_pos[0];
-  const Numeric r_pos2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                       rte_pos2 ) + rte_pos2[0];
+  const Numeric r1  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       lon_grid, rte_pos ) + rte_pos[0];
+  const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       lon_grid, rte_pos2 ) + rte_pos2[0];
 
   // LOS from rte_pos to rte_pos2
   Vector rte_los_geom;
   rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
-                                       lon_grid, refellipsoid, rte_pos,
-                                       rte_pos2, verbosity );
+                       lon_grid, refellipsoid, rte_pos, rte_pos2, verbosity );
 
   // Geometric distance between rte_pos and rte_pos2
-  Numeric l12;
-  if( atmosphere_dim == 1 )
-    { distance2D( l12, r_pos, 0, r_pos2, rte_pos2[1] ); } 
-  else if( atmosphere_dim == 2 )
-    { distance2D( l12, r_pos, rte_pos[1], r_pos2, rte_pos2[1] ); } 
+  Numeric l12, lat1=0;
+  if( atmosphere_dim <= 2 )
+    { 
+      if( atmosphere_dim == 2 )
+        { lat1 = rte_pos[1]; }
+      distance2D( l12, r1, lat1, r2, rte_pos2[1] ); 
+    } 
   else
-    { distance3D( l12, r_pos,  rte_pos[1],  rte_pos[2], 
-                       r_pos2, rte_pos2[1], rte_pos2[2] ); }
+    { distance3D( l12, r1,  rte_pos[1],  rte_pos[2], 
+                       r2, rte_pos2[1], rte_pos2[2] ); }
   
   // Iterate until convergence for rte_los
   //
   rte_los     = rte_los_geom;
-  Index ready = false;
+  Index ready = false, counter=0;
   //
   while( !ready )
     {
-      // Path for present rte_los (with no cloudbox)
+      // Path for present rte_los (no cloudbox!)
       ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
                   lat_grid, lon_grid, t_field, z_field, vmr_field, 
-                  refellipsoid, z_surface, 0, cloudbox_limits, 
+                  refellipsoid, z_surface, 0, ArrayOfIndex(0), 
                   rte_pos, rte_los, 0, verbosity );
 
-      // Find point closest to rte_pos2 (as limb sounding should be standard
-      // case, start from last point in ppath)
-      Numeric mindist = 99e99, thisdist = 0;
+      // Find the point closest to rte_pos2, on the side towards rte_pos
+      // We do this by looking at the distance to rte_pos (should be as close
+      // to l12 as possible, but not exceed it)
+      Numeric lip = 99e99;
       Index ip = ppath.np;
-      bool  closer = true;
       //
-      while( closer  &&  ip >= 0 )
+      while( lip >= l12  &&  ip > 0 )
         {
           ip--;
           
-          // Distance between rte_pos2 and present ppath point
+          // Distance between rte_pos and ppath point
           if( atmosphere_dim <= 2 )
-            { distance2D( thisdist, r_pos2, rte_pos2[1], 
-                          ppath.r[ip], ppath.pos(ip,1) ); }
+            { distance2D( lip, r1, lat1, ppath.r[ip], ppath.pos(ip,1) ); }
           else
-            { distance3D( thisdist, r_pos2, rte_pos2[1], rte_pos2[2], 
+            { distance3D( lip, r1, rte_pos[1], rte_pos[2], 
                           ppath.r[ip], ppath.pos(ip,1), ppath.pos(ip,2) ); }
-
-          // Getting closer or the opposite?
-          if( thisdist < mindist )
-            { mindist = thisdist; }
-          else
-            { 
-              closer = false; 
-              ip++;   // Now index of closest point
-            }
         }
 
-      // 
+      // Estimate ppath at the distance of l12, and the distance for that point
+      // to rte_pos2 (dd)
+      Vector  posc;
+      Numeric dd;
+      {
+        if( atmosphere_dim <= 2 )
+          { 
+            Numeric xip, zip, dxip, dzip, x1, z1, xc, zc, rc, latc;
+            poslos2cart( xip, zip, dxip, dzip, ppath.r[ip], 
+                         ppath.pos(ip,1), ppath.los(ip,0) );
+            pol2cart( x1, z1, r1, lat1 );
+            line_circle_intersect( xc, zc, xip, zip, dxip, dzip, x1, z1, l12 );
+            cart2pol( rc, latc, xc, zc, ppath.pos(ip,1), ppath.los(ip,0) );
+            posc.resize(2);
+            posc[1] = latc;
+            posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
+                                           lat_grid, lon_grid, posc );
+            distance2D( dd, rc, latc, r2, rte_pos2[1] );
+            
+            /*
+            const Numeric dl = l12 - lip;
+            cout << "dl = " << dl << endl;
+            Numeric rl, latl, xip, zip, dxip, dzip;
+            poslos2cart( xip, zip, dxip, dzip, ppath.r[ip], 
+                         ppath.pos(ip,1), ppath.los(ip,0) );
+            cart2pol( rl, latl, xip+dl*dxip, zip+dl*dzip,
+                      ppath.pos(ip,1), ppath.los(ip,0) );
+            posc.resize(2);
+            posc[1] = latl;
+            posc[0] = rl - pos2refell_r( atmosphere_dim, refellipsoid, 
+                                           lat_grid, lon_grid, posc );
+            cout << "zl = " << posc[0]/1e3 << endl;
+            cout << "latl= " << latl << endl;
+            distance2D( dd, rl, latl, r2, rte_pos2[1] );
+            */
+          }
+        else
+          { 
+            const Numeric dl = l12 - lip;
+            Numeric rl, latl, lonl, xip, yip, zip, dxip, dyip, dzip;
+            poslos2cart( xip, yip, zip, dxip, dyip, dzip, ppath.r[ip], 
+                         ppath.pos(ip,1), ppath.pos(ip,2), 
+                         ppath.los(ip,0), ppath.los(ip,1) );
+            cart2sph( rl, latl, lonl, xip+dl*dxip, yip+dl*dyip, zip+dl*dzip,
+                      ppath.pos(ip,1), ppath.pos(ip,2), 
+                      ppath.los(ip,0), ppath.los(ip,1) );
+            posc.resize(3);
+            posc[1] = latl;
+            posc[2] = lonl;
+            posc[0] = rl - pos2refell_r( atmosphere_dim, refellipsoid, 
+                                           lat_grid, lon_grid, posc );
+            distance3D( dd, rl, latl, lonl, r2, rte_pos2[1], rte_pos2[2] );
+          }
+      }
 
+      // Converged?
+      if( dd < 1e-3 )
+        { ready = true; }
 
-      ready = true;
+      // Otherwise, calculate correction for rte_los
+      else
+        {
+          Vector los;
+          rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, lat_grid, 
+                        lon_grid, refellipsoid, rte_pos, posc, verbosity );
+          rte_los[0] -= los[0] - rte_los_geom[0];
+          if( atmosphere_dim == 3 )
+            { rte_los[1] -= los[1] - rte_los_geom[1]; }
+
+          cout << rte_los[0]-rte_los_geom[0] << " " << los[0]-rte_los_geom[0]
+               << endl;
+        }
+
+      // Brake if not finding a solution
+      counter++;
+      if( counter >= 30 )
+        throw runtime_error( "Sorry, but the algorithm is not converging. "
+                             "Don't know what to do!" );
     }
-
-  // Path for present rte_los (considering cloudbox_on)
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, t_field, z_field, vmr_field, 
-              refellipsoid, z_surface, cloudbox_on, cloudbox_limits, 
-              rte_pos, rte_los, 0, verbosity );
 }
 
 
@@ -372,6 +461,49 @@ void ppath_stepRefractionEuler(Workspace&  ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void PrintTangentPoint(
+   const Ppath&     ppath,
+   const Index&     level,
+   const Verbosity& verbosity)
+{
+  // Find lowest z and its index
+  Numeric zmin = 99e99;
+  Index   imin = -1;
+  for( Index i=0; i<ppath.np; i++ )
+    {
+      if( ppath.pos(i,0) < zmin )
+        {
+          zmin = ppath.pos(i,0);
+          imin = i;
+        }
+    }
+
+  ostringstream os;
+
+  if( imin == 0  ||  imin == ppath.np-1 )
+    {
+      os << "Lowest altitude found at the end of the propagation path.\n"
+         << "This indicates that the tangent point is either above the\n"
+         << "top-of-the-atmosphere or below the planet's surface.";
+    }
+
+  else
+    {
+      os << "   z: " << ppath.pos(imin,0)/1e3 << " km\n" 
+         << " lat: " << ppath.pos(imin,1) << " deg";
+        if( ppath.pos.ncols() == 3 )
+          os << "\n lon: " << ppath.pos(imin,2) << " deg";
+    }
+
+  CREATE_OUTS
+  SWITCH_OUTPUT (level, os.str ());  
+}
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losSet(// WS Output:
                 Vector&          rte_los,
                 // WS Input:
@@ -413,70 +545,35 @@ void rte_losGeometricFromRtePosToRtePos2(
   chk_rte_pos( atmosphere_dim, rte_pos, 0 );
   chk_rte_pos( atmosphere_dim, rte_pos2, 1 );
 
-  // Polar and cartesian coordinates of rte_pos
-  Numeric r1, lat1, lon1=0, x1, y1=0, z1;
-  // Radius and cartesian coordinates of rte_pos2
-  Numeric r2, x2, y2=0, z2;
+  // Radius of rte_pos and rte_pos2
+  const Numeric r1  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       lon_grid, rte_pos ) + rte_pos[0];
+  const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       lon_grid, rte_pos2 ) + rte_pos2[0];
+
+  // Remaining polar and cartesian coordinates of rte_pos
+  Numeric lat1, lon1=0, x1, y1=0, z1;
+  // Cartesian coordinates of rte_pos2
+  Numeric x2, y2=0, z2;
   //
   if( atmosphere_dim == 1 )
     {
       // Latitude distance implicitly checked by chk_rte_pos 
-      r1   = refellipsoid[0] + rte_pos[0];
-      r2   = refellipsoid[0] + rte_pos2[0];
       lat1 = 0;
       pol2cart( x1, z1, r1, lat1 );
       pol2cart( x2, z2, r2, rte_pos2[1] );
     }
   else if( atmosphere_dim == 2 )
     {
-      const Index llat = lat_grid.nelem() - 1;
-      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat] )
-        { 
-          GridPos gp_lat;
-          gridpos( gp_lat, lat_grid, rte_pos[1] );
-          r1 = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos[0];
-        }
-      else
-        { r1 = refell2r( refellipsoid, rte_pos[1] ) + rte_pos[0]; }
       lat1 = rte_pos[1];
       pol2cart( x1, z1, r1, lat1 );
-      //
-      if( rte_pos2[1] > lat_grid[0]  &&  rte_pos2[1] < lat_grid[llat] )
-        { 
-          GridPos gp_lat;
-          gridpos( gp_lat, lat_grid, rte_pos2[1] );
-          r2 = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos2[0];
-        }
-      else
-        { r2 = refell2r( refellipsoid, rte_pos2[1] ) + rte_pos2[0]; }
       pol2cart( x2, z2, r2, rte_pos2[1] );
     }
   else 
     {
-      const Index llat = lat_grid.nelem() - 1;
-      const Index llon = lon_grid.nelem() - 1;
-      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat]  &&
-          rte_pos[2] > lon_grid[0]  &&  rte_pos[2] < lon_grid[llon] )
-        { 
-          GridPos gp_lat;
-          gridpos( gp_lat, lat_grid, rte_pos[1] );
-          r1 = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos[0];
-        }
-      else
-        { r1 = refell2r( refellipsoid, rte_pos[1] ) + rte_pos[0]; }
       lat1 = rte_pos[1];
       lon1 = rte_pos[2];
       sph2cart( x1, y1, z1, r1, lat1, lon1 );
-      //
-      if( rte_pos2[1] > lat_grid[0]  &&  rte_pos2[1] < lat_grid[llat]  &&
-          rte_pos2[2] > lon_grid[0]  &&  rte_pos2[2] < lon_grid[llon] )
-        { 
-          GridPos gp_lat;
-          gridpos( gp_lat, lat_grid, rte_pos2[1] );
-          r2 = refell2d( refellipsoid, lat_grid, gp_lat ) + rte_pos2[0];
-        }
-      else
-        { r2 = refell2r( refellipsoid, rte_pos2[1] ) + rte_pos2[0]; }
       sph2cart( x2, y2, z2, r2, rte_pos2[1], rte_pos2[2] );
     }
 

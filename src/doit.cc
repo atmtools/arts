@@ -629,6 +629,7 @@ void cloud_ppath_update3D(Workspace& ws,
   ppath_step.pos(0,2) = lon_grid[lon_index];
   ppath_step.pos(0,1) = lat_grid[lat_index];
   ppath_step.pos(0,0) = z_field( p_index, lat_index, lon_index );
+  // As always on top of the lat. grid positions, OK to call refell2r:
   ppath_step.r[0] = refell2r( refellipsoid, ppath_step.pos(0,1) ) + 
                     ppath_step.pos(0,0);
 
