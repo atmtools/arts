@@ -790,6 +790,141 @@ void chk_not_empty(
 
 //! Check interpolation grids
 /*!
+ This function checks if old and new grid for an interpolation are
+ ok. If not, it throws a detailed runtime error message. This is
+ intended for workspace method input variable checking. If the original grid does
+ not have to cover the whole new grid. The returned ing_min and ing_max give
+ the positions in the new grid of the first values that are outside the old grid.
+ This is only allowed if the boundary value in the input data is 0.
+ 
+ \param[out] ing_min             Index in the new grid with first value covered
+                                 by the old grid.
+ \param[out] ing_max             Index in the new grid with last value covered
+                                 by the old grid.
+ \param[in]  which_interpolation A string describing the interpolation for
+                                 which the grids are intended. 
+ \param[in]  old_grid            The original grid.
+ \param[in]  new_grid            The new grid.
+ \param[in]  data                The data for the interpolation.
+ \param[in]  order               Interpolation order. (Default value is 1.)
+ \param[in]  extpolfac           The extrapolation fraction. See gridpos function
+                                 for details. Has a default value, which is
+                                 consistent with gridpos.  
+ 
+ \author Oliver Lemke (based on chk_interpolation_grids by Stefan)
+ \date   2012-03-28
+ */
+void chk_interpolation_grids_loose(Index&          ing_min,
+                                   Index&          ing_max,
+                                   const String&   which_interpolation,
+                                   ConstVectorView old_grid,
+                                   ConstVectorView new_grid,
+                                   ConstVectorView data,
+                                   const Index     order,
+                                   const Numeric&  extpolfac )
+{
+  const Index n_old = old_grid.nelem();
+  
+  ostringstream os;
+  os << "There is a problem with the grids for the\n"
+  << "following interpolation: " << which_interpolation << ".\n";
+  
+  // Old grid must have at least order+1 elements:
+  if (n_old < order+1)
+  {
+    os << "The original grid must have at least " << order+1 << " elements.";
+    throw runtime_error( os.str() );
+  }
+  
+  // Decide whether we have an ascending or descending grid:
+  const bool ascending = ( old_grid[0] <= old_grid[1] );
+  
+  // Minimum and maximum allowed value from old grid. (Will include
+  // extrapolation tolerance.)
+  Numeric og_min, og_max;
+  
+  ing_min = 0;
+  ing_max = new_grid.nelem()-1;
+  if (ascending)  
+  {
+    // Old grid must be strictly increasing (no duplicate values.)
+    if ( !is_increasing(old_grid) )
+    {
+      os << "The original grid must be strictly sorted\n"
+      << "(no duplicate values). Yours is:\n"
+      << old_grid << ".";
+      throw runtime_error( os.str() );
+    }
+    
+    // Limits of extrapolation. 
+    og_min = old_grid[0] - 
+    extpolfac * ( old_grid[1] - old_grid[0] );
+    og_max = old_grid[n_old-1] + 
+    extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+  }
+  else
+  {
+    // Old grid must be strictly decreasing (no duplicate values.)
+    if ( !is_decreasing(old_grid) )
+    {
+      os << "The original grid must be strictly sorted\n"
+      << "(no duplicate values). Yours is:\n"
+      << old_grid << ".";
+      throw runtime_error( os.str() );
+    }
+    
+    // The max is now the first point, the min the last point!
+    // I think the sign is right here...
+    og_max = old_grid[0] - 
+    extpolfac * ( old_grid[1] - old_grid[0] );
+    og_min = old_grid[n_old-1] + 
+    extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+  }
+  
+  // Min and max of new grid:
+  const Numeric ng_min = min(new_grid);
+  const Numeric ng_max = max(new_grid);
+  
+  // If new grid is not inside old grid, determine the indexes of the range
+  // that is.
+  
+  const Index iog_min = ascending?old_grid.nelem()-1:0;
+  const Index iog_max = ascending?0:old_grid.nelem()-1;
+  
+  if (ng_min < og_min)
+  {
+    while (ing_max > 0 && new_grid[ing_max] < old_grid[iog_max])
+      ing_max--;
+  }
+  
+  if (ng_max > og_max)
+  {
+    while (ing_min < new_grid.nelem()-1 && new_grid[ing_min] > old_grid[iog_min])
+      ing_min++;
+  }
+  
+  if (ing_min > 0 && data[iog_min] != 0)
+  {
+    os << "\nThe new grid is not fully inside the original grid.\n"
+    << "This is allowed if the corresponding boundary value of Raw VMR is 0.\n"
+    << "Boundary value: " << data[iog_min];
+    throw runtime_error(os.str());
+  }
+  
+  if (ing_max < new_grid.nelem()-1 && data[iog_max] != 0)
+  {
+    os << "\nThe new grid is not fully inside the original grid.\n"
+    << "This is allowed if the corresponding boundary value of Raw VMR is 0.\n"
+    << "Boundary value: " << data[iog_max];
+    throw runtime_error(os.str());
+  }
+  
+  // If we get here, than everything should be fine.
+}
+
+
+//! Check interpolation grids
+/*!
   This function checks if old and new grid for an interpolation are
   ok. If not, it throws a detailed runtime error message. This is
   intended for workspace method input variable checking. 
@@ -826,7 +961,7 @@ void chk_interpolation_grids(const String&   which_interpolation,
     }
   
   // Decide whether we have an ascending or descending grid:
-  bool ascending = ( old_grid[0] <= old_grid[1] );
+  const bool ascending = ( old_grid[0] <= old_grid[1] );
 
   // Minimum and maximum allowed value from old grid. (Will include
   // extrapolation tolerance.)
@@ -930,7 +1065,7 @@ void chk_interpolation_grids(const String&   which_interpolation,
                              const Index     order,
                              const Numeric&  extpolfac )
 {
-  Vector v(1, new_grid);
+  const Vector v(1, new_grid);
   chk_interpolation_grids(which_interpolation,
                           old_grid,
                           v,

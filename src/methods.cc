@@ -5653,11 +5653,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( ),
-        GIN( "matrix1", "matrix2", "maxabsdiff" ),
-        GIN_TYPE( "Matrix", "Matrix", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF ),
+        GIN( "matrix1", "matrix2", "maxabsdiff", "error_message" ),
+        GIN_TYPE( "Matrix", "Matrix", "Numeric", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
         GIN_DESC( "A first matrix", "A second matrix", 
-                  "Threshold for maximum absolute difference." )
+                  "Threshold for maximum absolute difference.",
+                  "Additional error message.")
         ));
 
   md_data_raw.push_back
@@ -8906,14 +8907,14 @@ void define_md_data_raw()
          "Checks the consistency between two vectors.\n" 
          "\n"
          "The two vectors are checked to not deviate outside the specified\n"
-         "value (*maxdev*). An error is issued if this is not fulfilled.\n"
+         "value (*maxabsdiff*). An error is issued if this is not fulfilled.\n"
          "\n"
          "The main application of this method is to be part of the test\n"
          "control files, and then used to check that a calculated spectrum\n"
          "is consistent with an old, reference, calculation.\n"
          "\n"
-         "The defualt value for *maxdev* is adopted for comparing two spectra\n"
-         "with brightness temperature as unit.\n"
+         "The default value for *maxabsdiff* is adopted for comparing two\n"
+         "spectra with brightness temperature as unit.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( ),
@@ -8921,11 +8922,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "vector1", "vector2", "maxabsdiff" ),
-        GIN_TYPE( "Vector", "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, "0.01" ),
+        GIN( "vector1", "vector2", "maxabsdiff", "error_message" ),
+        GIN_TYPE( "Vector", "Vector", "Numeric", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, "0.01", "" ),
         GIN_DESC( "A first vector", "A second vector", 
-                  "Threshold for maximum absolute difference." )
+                  "Threshold for maximum absolute difference.",
+                  "Additional error message.")
         ));
 
   md_data_raw.push_back

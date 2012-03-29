@@ -1137,28 +1137,39 @@ void AtmFieldsCalc(//WS Output:
               throw runtime_error( os.str() );
             }
           
+          Index ing_min, ing_max;
+
           // Check that interpolation grids are ok (and throw a detailed
           // error message if not):
           os << "Raw VMR[" << gas_i << "] to p_grid, 1D case";
-          chk_interpolation_grids(os.str(),
-                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                  p_grid,
-                                  interp_order);
+          chk_interpolation_grids_loose(ing_min,
+                                        ing_max,
+                                        os.str(),
+                                        vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+                                        p_grid,
+                                        vmr_field_raw[gas_i].data(joker, 0, 0),
+                                        interp_order);
 
+          Range vmr_range(ing_min, ing_max-ing_min+1);
+          
+          ArrayOfGridPosPoly vmr_gp_p;
+          for(Index i = ing_min; i <= ing_max; i++)
+            vmr_gp_p.push_back(gp_p[i]);
+          
           // Calculate grid positions:
-          p2gridpos_poly(gp_p, 
+          p2gridpos_poly(vmr_gp_p, 
                          vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
-                         p_grid, 
+                         p_grid[vmr_range], 
                          interp_order);
           
           // Interpolation weights:
-          interpweights( itw, gp_p);
+          interpweights( itw(vmr_range, joker), vmr_gp_p);
           
+          vmr_field(gas_i, joker, 0, 0) = 0;
           // Interpolate:
-          interp( vmr_field(gas_i, joker, 0, 0),
-                  itw, vmr_field_raw[gas_i].data(joker, 0, 0), gp_p);
+          interp( vmr_field(gas_i, vmr_range, 0, 0),
+                  itw(vmr_range, joker), vmr_field_raw[gas_i].data(joker, 0, 0), vmr_gp_p);
         }
-      
     }
 
   //=========================================================================

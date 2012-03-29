@@ -228,10 +228,11 @@ void Matrix3ColFromVectors(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixCompare(const Matrix&              matrix1,
-                   const Matrix&              matrix2,
-                   const Numeric&             maxabsdiff,
-                   const Verbosity&           verbosity )
+void MatrixCompare(const Matrix&    matrix1,
+                   const Matrix&    matrix2,
+                   const Numeric&   maxabsdiff,
+                   const String&    error_message,
+                   const Verbosity& verbosity)
 {
   const Index nrows = matrix1.nrows();
   const Index ncols = matrix1.ncols();
@@ -245,7 +246,7 @@ void MatrixCompare(const Matrix&              matrix1,
     { 
       for( Index c=0; c<ncols; c++ )
         {
-          Numeric diff = fabs( matrix1(r,c) - matrix2(r,c) );
+          const Numeric diff = abs( matrix1(r,c) - matrix2(r,c) );
           if( diff > maxdiff )
             { maxdiff = diff; }
         }
@@ -254,8 +255,10 @@ void MatrixCompare(const Matrix&              matrix1,
   if( maxdiff > maxabsdiff )
     {
       ostringstream os;
-      os << "A difference of " << maxdiff << " was found, which is larger "
-         << "than the specified threshold of " << maxabsdiff << ".";
+      os << "Checked failed!\n";
+      if (error_message.length()) os << error_message << "\n";
+      os << "Max allowed deviation set to : " << maxabsdiff << endl
+         << "but the matrices deviate with: " << maxdiff << endl;
       throw runtime_error(os.str());
     }
 
@@ -704,33 +707,37 @@ void VectorAddScalar(Vector&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorCompare(
-   const Vector&    y,
-   const Vector&    y0,
-   const Numeric&   maxdev,
-   const Verbosity&  )
+void VectorCompare(const Vector&    vector1,
+                   const Vector&    vector2,
+                   const Numeric&   maxabsdiff,
+                   const String&    error_message,
+                   const Verbosity& verbosity)
 {
-  const Index n = y.nelem();
+  const Index n = vector1.nelem();
 
-  if( y0.nelem() != n )
-    throw runtime_error( "The lengths *vector1* and *vector2* differ and a "
-                         "comparsion can not be made." );
+  if( vector2.nelem() != n )
+    throw runtime_error( "The two vectors do not have the same size." );
 
-  Numeric dev = 0;
+  Numeric maxdiff = 0.0;
   for( Index i=0; i <n; i++ )
     {
-      if( abs( y[i] - y0[i] ) > dev )
-        { dev = abs( y[i] - y0[i] ); }
+      const Numeric diff = abs( vector1[i] - vector2[i] );
+      if( diff > maxdiff )
+      { maxdiff = diff; }
     }
     
-  if( dev > maxdev )
-    {
-      ostringstream os;
-      os << "Checked failed!\n"
-         << "Max allowed deviation set to: " << maxdev << endl
-         << "but the vectors deviate with: " << dev << endl;
-      throw runtime_error( os.str() );
-    }
+  if( maxdiff > maxabsdiff )
+  {
+    ostringstream os;
+    os << "Checked failed!\n";
+    if (error_message.length()) os << error_message << "\n";
+    os << "Max allowed deviation set to: " << maxabsdiff << endl
+       << "but the vectors deviate with: " << maxdiff << endl;
+    throw runtime_error(os.str());
+  }
+  
+  CREATE_OUT2
+  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
 }
 
 

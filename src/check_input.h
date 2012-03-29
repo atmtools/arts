@@ -268,6 +268,15 @@ void chk_not_empty(
         const String&      x_name,
         const Agenda&      x );
 
+void chk_interpolation_grids_loose(Index&          ing_min,
+                                   Index&          ing_max,
+                                   const String&   which_interpolation,
+                                   ConstVectorView old_grid,
+                                   ConstVectorView new_grid,
+                                   ConstVectorView data,
+                                   const Index     order=1,
+                                   const Numeric&  extpolfac=0.5 );
+
 void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView old_grid,
                              ConstVectorView new_grid,
