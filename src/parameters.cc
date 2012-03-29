@@ -408,7 +408,7 @@ bool get_parameters(int argc, char **argv)
   if (fileparts.nelem() > 1)
   {
     String controlfile_path;
-    for(Index i = 0; i <= fileparts.nelem(); i++)
+    for(Index i = 0; i < fileparts.nelem()-1; i++)
       controlfile_path += fileparts[i] + "/";
     parameters.includepath.push_back(controlfile_path);
   }

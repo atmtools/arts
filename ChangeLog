@@ -1,5 +1,13 @@
 2012-03-29  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-55
+
+	* src/parameters.cc (get_parameters):
+
+	Fix indexing bug introduced accidentally right before committing.
+
+2012-03-29  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-54
 	
 	* src/parameters.cc (get_parameters):
