@@ -991,7 +991,9 @@ int main (int argc, char **argv)
   if ( "" == parameters.basename )
     {
       extern String out_basename;
-      out_basename = parameters.controlfiles[0];
+      ArrayOfString fileparts;
+      parameters.controlfiles[0].split(fileparts, "/");
+      out_basename = fileparts[fileparts.nelem()-1];
       // Find the last . in the name
       String::size_type p = out_basename.rfind(".arts");
 
