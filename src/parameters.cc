@@ -402,6 +402,16 @@ bool get_parameters(int argc, char **argv)
     parameters.includepath.push_back (arts_default_include_path);
   }
 #endif
-  
+
+  ArrayOfString fileparts;
+  parameters.controlfiles[0].split(fileparts, "/");
+  if (fileparts.nelem() > 1)
+  {
+    String controlfile_path;
+    for(Index i = 0; i <= fileparts.nelem(); i++)
+      controlfile_path += fileparts[i] + "/";
+    parameters.includepath.push_back(controlfile_path);
+  }
+
   return false;
 }
