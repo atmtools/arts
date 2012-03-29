@@ -1,5 +1,13 @@
 2012-03-29  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-56
+
+	* src/file.{cc,h}: Add function get_dirname.
+
+	* src/parameters.cc (get_parameters): Use get_dirname.
+
+2012-03-29  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-55
 
 	* src/parameters.cc (get_parameters):

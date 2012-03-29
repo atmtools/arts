@@ -35,6 +35,7 @@
 #include <arts_getopt.h>
 #endif
 #include "parameters.h"
+#include "file.h"
 
 /// Holds the command line parameters.
 Parameters parameters;
@@ -403,15 +404,9 @@ bool get_parameters(int argc, char **argv)
   }
 #endif
 
-  ArrayOfString fileparts;
-  parameters.controlfiles[0].split(fileparts, "/");
-  if (fileparts.nelem() > 1)
-  {
-    String controlfile_path;
-    for(Index i = 0; i < fileparts.nelem()-1; i++)
-      controlfile_path += fileparts[i] + "/";
-    parameters.includepath.push_back(controlfile_path);
-  }
+  String cfdirname;
+  get_dirname(cfdirname, parameters.controlfiles[0]);
+  if (cfdirname.nelem()) parameters.includepath.push_back(cfdirname);
 
   return false;
 }

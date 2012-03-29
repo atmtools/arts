@@ -414,3 +414,30 @@ bool find_file(String& filename, const char* extension, const ArrayOfString& pat
   return exists;
 }
 
+
+//! Return the parent directory of a path
+/** 
+ Extracts the parent directory part of the given path.
+ 
+ \param[out]  dirname  Parent directory of path
+ \param[in]   path     Path
+ 
+ \author Oliver Lemke
+ */
+void get_dirname(String& dirname, const String& path)
+{
+  dirname = "";
+  if (!path.nelem()) return;
+  
+  ArrayOfString fileparts;
+  path.split(fileparts, "/");
+  if (path[0] == '/') dirname = "/";
+  if (fileparts.nelem() > 1)
+  {
+    for(Index i = 0; i < fileparts.nelem()-1; i++)
+    {
+      dirname += fileparts[i];
+      if (i < fileparts.nelem()-2) dirname += "/";
+    }
+  }
+}

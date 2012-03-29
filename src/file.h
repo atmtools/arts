@@ -74,4 +74,6 @@ bool file_exists(const String& filename);
 
 bool find_file(String& filename, const char* extension, const ArrayOfString& paths);
 
+void get_dirname(String& dirname, const String& path);
+
 #endif
