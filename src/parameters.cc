@@ -404,9 +404,12 @@ bool get_parameters(int argc, char **argv)
   }
 #endif
 
-  String cfdirname;
-  get_dirname(cfdirname, parameters.controlfiles[0]);
-  if (cfdirname.nelem()) parameters.includepath.push_back(cfdirname);
-
+  if (parameters.controlfiles.nelem())
+  {
+    String cfdirname;
+    get_dirname(cfdirname, parameters.controlfiles[0]);
+    if (cfdirname.nelem()) parameters.includepath.push_back(cfdirname);
+  }
+  
   return false;
 }

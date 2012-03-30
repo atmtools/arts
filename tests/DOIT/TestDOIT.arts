@@ -258,9 +258,19 @@ WriteXML( "ascii", y )
 WriteXML( "ascii", y_aux )
 WriteXML( "ascii", y_error )
 
-
-
 #==================stop==========================
+
+#==================check==========================
+
+NumericCreate(y_0)
+Extract(y_0, y, 0)
+NumericCompare(y_0, 204.5, 1.,
+               "Total radiance y[0] should be close to 204.5 K")
+
+NumericCreate(y_1)
+Extract(y_1, y, 1)
+NumericCompare(y_1, 7.2, 1.,
+               "Polarization difference y[1] should be close to 7.2 K")
 
 } # End of Main
  

@@ -379,6 +379,29 @@ void NumericAdd(Numeric&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void NumericCompare(const Numeric&   n1,
+                    const Numeric&   n2,
+                    const Numeric&   maxabsdiff,
+                    const String&    error_message,
+                    const Verbosity& verbosity)
+{
+  const Numeric maxdiff = abs(n1-n2);
+  if( maxdiff > maxabsdiff )
+  {
+    ostringstream os;
+    os << "Checked failed!\n";
+    if (error_message.length()) os << error_message << "\n";
+    os << "Max allowed deviation set to: " << maxabsdiff << endl
+       << "but the value deviates with:  " << maxdiff << endl;
+    throw runtime_error(os.str());
+  }
+  
+  CREATE_OUT2
+  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericScale(Numeric&   out,
                   const Numeric&   in,
                   const Numeric&   value,

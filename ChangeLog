@@ -1,3 +1,20 @@
+2012-03-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-57
+
+	* tests/DOIT/TestDOIT.arts, tests/ClearSky/TestClearSky.arts,
+	tests/testall.py:
+
+	Started to move tests for verifying calculation results against
+	reference values directly into the controlfiles. Removed corresponding
+	tests from testall.py.  
+
+	* src/m_basic_types.cc, src/methods.cc: Add WSM NumericCompare.
+
+	* src/parameters.cc (get_parameters):
+
+	Fix crash for arts calls with no controlfile.
+
 2012-03-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-56

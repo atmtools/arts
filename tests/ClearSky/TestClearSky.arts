@@ -84,6 +84,17 @@ basics_checkedCalc
 cloudbox_checkedCalc
 yCalc
 
+VectorCreate(y1)
+Copy(y1,y)
+
+# Checks
+# ---
+
+NumericCreate(y_0)
+Extract(y_0, y, 0)
+NumericCompare(y_0, 112.36, 0.01,
+               "Total radiance y[0] should be close to 112.36 K")
+
 # Write the result for the python test script
 output_file_formatSetAscii
 WriteXML( output_file_format, y, "TestClearSky.y1.xml" )
@@ -146,6 +157,12 @@ output_file_formatSetAscii
 WriteXML( output_file_format, y, "TestClearSky.y2.xml" )
 
 WriteXML( output_file_format, jacobian )
+
+# Check
+# ---
+
+VectorCompare(y1, y, 0.01,
+              "Difference between on-the-fly and lookup table should be below 0.01 K")
 
 } # End of Main
  

@@ -119,14 +119,14 @@ class TestDOIT(unittest.TestCase):
         """Simple DOIT test should run with no errors"""
         self.DOITrun.run()
         assert self.DOITrun.error=='','Error running TestDOIT.arts: '+self.DOITrun.error
-    def test2(self):
-        """Total radiance should be close to 204.5 K"""
-        I=artsXML.load("DOIT/TestDOIT.y.xml")[0]
-        assert abs(I-204.5) < 1., 'I (='+str(I)+'K) is too far away from 204.5 K'
-    def test3(self):
-        """Polarization difference should be close to 7.2 K"""
-        Q=artsXML.load("DOIT/TestDOIT.y.xml")[1]
-        assert abs(Q-7.2) < 1., 'Q (=%.2f K) is too far away from 7.2 K' % Q
+#    def test2(self):
+#        """Total radiance should be close to 204.5 K"""
+#        I=artsXML.load("DOIT/TestDOIT.y.xml")[0]
+#        assert abs(I-204.5) < 1., 'I (='+str(I)+'K) is too far away from 204.5 K'
+#    def test3(self):
+#        """Polarization difference should be close to 7.2 K"""
+#        Q=artsXML.load("DOIT/TestDOIT.y.xml")[1]
+#        assert abs(Q-7.2) < 1., 'Q (=%.2f K) is too far away from 7.2 K' % Q
         
 
 class TestClearSky(unittest.TestCase):
@@ -136,15 +136,15 @@ class TestClearSky(unittest.TestCase):
         """Simple clear sky test should run with no errors"""
         self.CSrun.run()
         assert self.CSrun.error=='','Error running TestClearSky.arts: '+self.CSrun.error
-    def test2(self):
-        """Total radiance should be close to 112.36 K"""
-        I=artsXML.load("ClearSky/TestClearSky.y1.xml")[0]
-        assert abs(I-112.36) < 0.01, 'I (='+str(I)+'K) is too far away from 112.36 K'
-    def test3(self):
-        """Difference between on-the-fly and lookup table should be below 0.01 K"""
-        I1=artsXML.load("ClearSky/TestClearSky.y1.xml")[0]
-        I2=artsXML.load("ClearSky/TestClearSky.y2.xml")[0]
-        assert abs(I2-I1) < 0.01, 'Discrepancy (=%.3f K) is too large' % I2-I1
+#    def test2(self):
+#        """Total radiance should be close to 112.36 K"""
+#        I=artsXML.load("ClearSky/TestClearSky.y1.xml")[0]
+#        assert abs(I-112.36) < 0.01, 'I (='+str(I)+'K) is too far away from 112.36 K'
+#    def test3(self):
+#        """Difference between on-the-fly and lookup table should be below 0.01 K"""
+#        I1=artsXML.load("ClearSky/TestClearSky.y1.xml")[0]
+#        I2=artsXML.load("ClearSky/TestClearSky.y2.xml")[0]
+#        assert abs(I2-I1) < 0.01, 'Discrepancy (=%.3f K) is too large' % I2-I1
 
 class TestGroundBased(unittest.TestCase):
     """Testing GroundBased calculation"""

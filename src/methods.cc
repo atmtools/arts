@@ -5938,6 +5938,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "NumericCompare" ),
+        DESCRIPTION
+        (
+         "Checks the consistency between two numerics.\n" 
+         "\n"
+         "The two numerics are checked to not deviate outside the specified\n"
+         "value (*maxabsdiff*). An error is issued if this is not fulfilled.\n"
+         "\n"
+         "The main application of this method is to be part of the test\n"
+         "control files, and then used to check that a calculated value\n"
+         "is consistent with an old, reference, value.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "n1", "n2", "maxabsdiff", "error_message" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, "", "" ),
+        GIN_DESC( "A first vector", "A second vector", 
+                  "Threshold for maximum absolute difference.",
+                  "Additional error message.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "NumericScale" ),
         DESCRIPTION
         (
