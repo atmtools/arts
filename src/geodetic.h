@@ -78,6 +78,17 @@ void geomtanpoint2d(
        const double&    za );
 */
 
+void line_circle_intersect(
+         Numeric&   x,
+         Numeric&   z,
+   const Numeric&   xl,
+   const Numeric&   zl,
+   const Numeric&   dx,
+   const Numeric&   dz,
+   const Numeric&   xc,
+   const Numeric&   zc,
+   const Numeric&   r );
+
 void pol2cart(
             double&   x,
             double&   z,
@@ -160,6 +171,21 @@ void geomtanpoint(
        const double&    za,
        const double&    aa );
 */
+
+void line_sphere_intersect(
+         Numeric&   x,
+         Numeric&   y,
+         Numeric&   z,
+   const Numeric&   xl,
+   const Numeric&   yl,
+   const Numeric&   zl,
+   const Numeric&   dx,
+   const Numeric&   dy,
+   const Numeric&   dz,
+   const Numeric&   xc,
+   const Numeric&   yc,
+   const Numeric&   zc,
+   const Numeric&   r );
 
 void los2xyz( 
          Numeric&   za, 

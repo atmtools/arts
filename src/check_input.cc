@@ -1679,7 +1679,7 @@ void chk_rte_pos(
              << "range [-90,90].";
           throw runtime_error(os.str());
         }
-      if( rte_pos[1] < -360  ||  rte_pos[2] > 360 )
+      if( rte_pos[2] < -360  ||  rte_pos[2] > 360 )
         {
           ostringstream os;
           os << "The longitude in " << vname << " must be in the "

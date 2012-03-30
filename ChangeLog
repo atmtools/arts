@@ -1,3 +1,16 @@
+2012-03-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-58
+
+	* src/m_ppath.cc (ppathFromRtePos2): Still not complete, but a
+	core algorith now established (afer several tries).
+
+	* src/geodetic.cc (line_circle_intersect,line_sphere_intersect):
+	New functions.
+
+	* src/check_input.cc (chk_rte_pos): What now is rte_pos[2] was
+	rte_pos[1].
+
 2012-03-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-57
@@ -7,7 +20,7 @@
 
 	Started to move tests for verifying calculation results against
 	reference values directly into the controlfiles. Removed corresponding
-	tests from testall.py.  
+	tests from testall.py.
 
 	* src/m_basic_types.cc, src/methods.cc: Add WSM NumericCompare.
 

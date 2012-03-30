@@ -268,6 +268,62 @@ void geomtanpoint2d(
 */
 
 
+//! line_circle_intersect
+/*! 
+   Find the intersection between a line and a circle
+
+   \param   x     Out: X-coordinate of intersection
+   \param   z     Out: Z-coordinate of intersection
+   \param   xl    A x-coordinate on the line
+   \param   zl    A z-coordinate on the line
+   \param   dx    X-component of line direction vector
+   \param   dz    Z-component of line direction vector
+   \param   xc    X-coordinate of sphere origo
+   \param   zc    Z-coordinate of sphere origo
+   \param   r     Radius of sphere
+
+   \author Patrick Eriksson
+   \date   2012-03-30
+*/
+void line_circle_intersect(
+         Numeric&   x,
+         Numeric&   z,
+   const Numeric&   xl,
+   const Numeric&   zl,
+   const Numeric&   dx,
+   const Numeric&   dz,
+   const Numeric&   xc,
+   const Numeric&   zc,
+   const Numeric&   r )
+{
+  const Numeric a = dx*dx + dz*dz;
+  const Numeric b = 2*( dx*(xl-xc) + dz*(zl-zc) );
+  const Numeric c = xc*xc + zc*zc + xl*xl + zl*zl - 2*(xc*xl + zc*zl) - r*r;
+  
+  Numeric d = b*b - 4*a*c;
+  assert( d > 0 );
+  
+  const Numeric a2 = 2*a;
+  const Numeric b2 = -b / a2;
+  const Numeric e  = sqrt( d ) / a2;
+
+  const Numeric l1 = b2 + e;
+  const Numeric l2 = b2 - e;
+
+  Numeric l;
+  if( l1 < 0 )
+    { l = l2; }
+  else  if( l2 < 0 )
+    { l = l1; }
+  else
+    { l = min(l1,l2); assert( l>=0 ); }
+
+  x = xl + l*dx;
+  z = zl + l*dz;
+}
+
+
+
 //! pol2cart
 /*! 
    Conversion from polar to cartesian coordinates.
@@ -768,6 +824,72 @@ void geomtanpoint(
     }
 }
 */
+
+
+
+//! line_sphere_intersect
+/*! 
+   Find the intersection between a line and a sphere
+
+   \param   x     Out: X-coordinate of intersection
+   \param   y     Out: Y-coordinate of intersection
+   \param   z     Out: Z-coordinate of intersection
+   \param   xl    A x-coordinate on the line
+   \param   yl    A y-coordinate on the line
+   \param   zl    A z-coordinate on the line
+   \param   dx    X-component of line direction vector
+   \param   dy    Y-component of line direction vector
+   \param   dz    Z-component of line direction vector
+   \param   xc    X-coordinate of sphere origo
+   \param   yc    Y-coordinate of sphere origo
+   \param   zc    Z-coordinate of sphere origo
+   \param   r     Radius of sphere
+
+   \author Patrick Eriksson
+   \date   2012-03-30
+*/
+void line_sphere_intersect(
+         Numeric&   x,
+         Numeric&   y,
+         Numeric&   z,
+   const Numeric&   xl,
+   const Numeric&   yl,
+   const Numeric&   zl,
+   const Numeric&   dx,
+   const Numeric&   dy,
+   const Numeric&   dz,
+   const Numeric&   xc,
+   const Numeric&   yc,
+   const Numeric&   zc,
+   const Numeric&   r )
+{
+  const Numeric a = dx*dx + dy*dy + dz*dz;
+  const Numeric b = 2*( dx*(xl-xc) + dy*(yl-yc) + dz*(zl-zc) );
+  const Numeric c = xc*xc + yc*yc + zc*zc + 
+                    xl*xl + yl*yl + zl*zl - 2*(xc*xl + yc*yl + zc*zl) - r*r;
+  
+  Numeric d = b*b - 4*a*c;
+  assert( d > 0 );
+  
+  const Numeric a2 = 2*a;
+  const Numeric b2 = -b / a2;
+  const Numeric e  = sqrt( d ) / a2;
+
+  const Numeric l1 = b2 + e;
+  const Numeric l2 = b2 - e;
+
+  Numeric l;
+  if( l1 < 0 )
+    { l = l2; }
+  else  if( l2 < 0 )
+    { l = l1; }
+  else
+    { l = min(l1,l2); assert( l>=0 ); }
+
+  x = xl + l*dx;
+  y = yl + l*dy;
+  z = zl + l*dz;
+}
 
 
 

@@ -94,42 +94,7 @@ void ppathCalc(
 }
 
 
-void line_circle_intersect(
-         Numeric&   x,
-         Numeric&   z,
-   const Numeric&   xl,
-   const Numeric&   zl,
-   const Numeric&   dx,
-   const Numeric&   dz,
-   const Numeric&   xc,
-   const Numeric&   zc,
-   const Numeric&   r )
-{
-  const Numeric a = dx*dx + dz*dz;
-  const Numeric b = 2*( dx*(xl-xc) + dz*(zl-zc) );
-  const Numeric c = xc*xc + zc*zc + xl*xl + zl*zl - 2*(xc*xl + zc*zl) - r*r;
-  
-  Numeric d = b*b - 4*a*c;
-  assert( d > 0 );
-  
-  const Numeric a2 = 2*a;
-  const Numeric b2 = -b / a2;
-  const Numeric e  = sqrt( d ) / a2;
 
-  const Numeric l1 = b2 + e;
-  const Numeric l2 = b2 + e;
-
-  Numeric l;
-  if( l1 < 0 )
-    { l = l2; }
-  else  if( l2 < 0 )
-    { l = l1; }
-  else
-    { l = min(l1,l2); assert( l>=0 ); }
-
-  x = xl + l*dx;
-  z = zl + l*dz;
-}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -164,40 +129,61 @@ void ppathFromRtePos2(
                                        lon_grid, rte_pos ) + rte_pos[0];
   const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
                                        lon_grid, rte_pos2 ) + rte_pos2[0];
-
+  
   // LOS from rte_pos to rte_pos2
   Vector rte_los_geom;
   rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
                        lon_grid, refellipsoid, rte_pos, rte_pos2, verbosity );
 
   // Geometric distance between rte_pos and rte_pos2
+  // And Cartesian coordinates of rte_pos
   Numeric l12, lat1=0;
+  Numeric x1, y1=0, z1;
   if( atmosphere_dim <= 2 )
     { 
       if( atmosphere_dim == 2 )
         { lat1 = rte_pos[1]; }
       distance2D( l12, r1, lat1, r2, rte_pos2[1] ); 
+      pol2cart( x1, z1, r1, lat1 );
     } 
   else
-    { distance3D( l12, r1,  rte_pos[1],  rte_pos[2], 
-                       r2, rte_pos2[1], rte_pos2[2] ); }
-  
+    { 
+      distance3D( l12, r1,  rte_pos[1],  rte_pos[2], 
+                       r2, rte_pos2[1], rte_pos2[2] ); 
+      sph2cart( x1, y1, z1, r1, rte_pos[1], rte_pos[2] );
+    }
+
+  // "Hit data":
+  Matrix  H(2,5);
+  H(joker,0) = -1; 
+  H(0,1) = 99e99; 
+  H(1,1) = -99e99; 
+ 
   // Iterate until convergence for rte_los
   //
-  rte_los     = rte_los_geom;
-  Index ready = false, counter=0;
+  rte_los = rte_los_geom;
+  Index   ready = false;   // True when convergence criteria fulfilled
+  Index   failed = false;  // True when convergence failed 
+  Index   counter=0;       // Number of tries
+  Numeric dl;              // Path length error
+  const Numeric dlmax=1e-4;// Max error in path length allowed
+  Numeric ds;              // Spatial error
+  Index   surface_hits=0;  // Numer of tries ending up in the surface
   //
-  while( !ready )
+  while( !ready && !failed )
     {
+      cout << rte_los[0]-rte_los_geom[0] << " ";
+
       // Path for present rte_los (no cloudbox!)
       ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
                   lat_grid, lon_grid, t_field, z_field, vmr_field, 
                   refellipsoid, z_surface, 0, ArrayOfIndex(0), 
                   rte_pos, rte_los, 0, verbosity );
 
-      // Find the point closest to rte_pos2, on the side towards rte_pos
-      // We do this by looking at the distance to rte_pos (should be as close
-      // to l12 as possible, but not exceed it)
+      // Find the point closest to rte_pos2, on the side towards rte_pos. 
+      // We do this by looking at the distance to rte_pos, that should be 
+      // as close to l12 as possible, but not exceed it.
+      //
       Numeric lip = 99e99;
       Index ip = ppath.np;
       //
@@ -213,85 +199,183 @@ void ppathFromRtePos2(
                           ppath.r[ip], ppath.pos(ip,1), ppath.pos(ip,2) ); }
         }
 
-      // Estimate ppath at the distance of l12, and the distance for that point
-      // to rte_pos2 (dd)
-      Vector  posc;
-      Numeric dd;
-      {
-        if( atmosphere_dim <= 2 )
-          { 
-            Numeric xip, zip, dxip, dzip, x1, z1, xc, zc, rc, latc;
-            poslos2cart( xip, zip, dxip, dzip, ppath.r[ip], 
-                         ppath.pos(ip,1), ppath.los(ip,0) );
-            pol2cart( x1, z1, r1, lat1 );
-            line_circle_intersect( xc, zc, xip, zip, dxip, dzip, x1, z1, l12 );
-            cart2pol( rc, latc, xc, zc, ppath.pos(ip,1), ppath.los(ip,0) );
-            posc.resize(2);
-            posc[1] = latc;
-            posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
-                                           lat_grid, lon_grid, posc );
-            distance2D( dd, rc, latc, r2, rte_pos2[1] );
-            
-            /*
-            const Numeric dl = l12 - lip;
-            cout << "dl = " << dl << endl;
-            Numeric rl, latl, xip, zip, dxip, dzip;
-            poslos2cart( xip, zip, dxip, dzip, ppath.r[ip], 
-                         ppath.pos(ip,1), ppath.los(ip,0) );
-            cart2pol( rl, latl, xip+dl*dxip, zip+dl*dzip,
-                      ppath.pos(ip,1), ppath.los(ip,0) );
-            posc.resize(2);
-            posc[1] = latl;
-            posc[0] = rl - pos2refell_r( atmosphere_dim, refellipsoid, 
-                                           lat_grid, lon_grid, posc );
-            cout << "zl = " << posc[0]/1e3 << endl;
-            cout << "latl= " << latl << endl;
-            distance2D( dd, rl, latl, r2, rte_pos2[1] );
-            */
-          }
-        else
-          { 
-            const Numeric dl = l12 - lip;
-            Numeric rl, latl, lonl, xip, yip, zip, dxip, dyip, dzip;
-            poslos2cart( xip, yip, zip, dxip, dyip, dzip, ppath.r[ip], 
-                         ppath.pos(ip,1), ppath.pos(ip,2), 
-                         ppath.los(ip,0), ppath.los(ip,1) );
-            cart2sph( rl, latl, lonl, xip+dl*dxip, yip+dl*dyip, zip+dl*dzip,
-                      ppath.pos(ip,1), ppath.pos(ip,2), 
-                      ppath.los(ip,0), ppath.los(ip,1) );
-            posc.resize(3);
-            posc[1] = latl;
-            posc[2] = lonl;
-            posc[0] = rl - pos2refell_r( atmosphere_dim, refellipsoid, 
-                                           lat_grid, lon_grid, posc );
-            distance3D( dd, rl, latl, lonl, r2, rte_pos2[1], rte_pos2[2] );
-          }
-      }
+      // Surface intersections too far from rte_pos2 not OK 
+      if( ppath_what_background(ppath) == 2  &&  ip == ppath.np-1  
+                                             &&  l12-lip > 10e3 ) 
+        { 
+          surface_hits++;
 
-      // Converged?
-      if( dd < 1e-3 )
-        { ready = true; }
+          // Stop if "too many" surface hits
+          if( surface_hits == 100 )
+            { 
+              //Print( ppath, 0, Verbosity() );
+              ostringstream os;
+              os << "Repeated intersections with the surface caused failure\n"
+                 << "in the attempt to determine propagation path.";
+              throw runtime_error( os.str() );
+            }
+          cout << "Surface intersection !!!\n";
 
-      // Otherwise, calculate correction for rte_los
+          // Set H, with a ? error
+          H(0,0)=1;  H(0,1)=0.1; H(0,2)=rte_los[0]; 
+          H(0,3)=99e3; H(0,4)=99e3; 
+
+          // If an OK lower angle exist, select an angle relatively close
+          // to that one. Otherwise, make a substantial jump upwards
+          if( H(1,0) > 0 )
+            { rte_los[0] =  0.5*rte_los[0] + 0.5*H(1,2); }
+          else
+            { rte_los[0] -= 0.25; }
+          cout << H << endl;
+        }
+
+      // Path OK:
       else
         {
-          Vector los;
-          rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, lat_grid, 
-                        lon_grid, refellipsoid, rte_pos, posc, verbosity );
-          rte_los[0] -= los[0] - rte_los_geom[0];
-          if( atmosphere_dim == 3 )
-            { rte_los[1] -= los[1] - rte_los_geom[1]; }
+          // Estimate ppath at the distance of l12, and the distance from
+          // that point to rte_pos2 (ds)
+          Vector  posc;
+          if( atmosphere_dim <= 2 )
+            { 
+              // Convert pos and los for point ip to cartesian coordinates
+              Numeric xip, zip, dxip, dzip;
+              poslos2cart( xip, zip, dxip, dzip, ppath.r[ip], 
+                           ppath.pos(ip,1), ppath.los(ip,0) );
+              // Find where the extension from point ip crosses the l12 
+              // sphere: point c
+              Numeric xc, zc, rc, latc;
+              line_circle_intersect( xc, zc, xip, zip, dxip, dzip, x1, z1, l12);
+              cart2pol( rc, latc, xc, zc, ppath.pos(ip,1), ppath.los(ip,0) );
+              posc.resize(2);
+              posc[1] = latc;
+              posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
+                                                    lat_grid, lon_grid, posc );
+              distance2D( ds, rc, latc, r2, rte_pos2[1] );
+              dl = sqrt( l12*l12 + ds*ds ) - l12;
+              cout << posc[0]-rte_pos2[0] << " " 
+                   << (posc[1]-rte_pos2[1])*111e3 << " " 
+                  << dl << " " << ds << " ";
+            }
+          else
+            { 
+              // Convert pos and los for point ip to cartesian coordinates
+              Numeric xip, yip, zip, dxip, dyip, dzip;
+              poslos2cart( xip, yip, zip, dxip, dyip, dzip, ppath.r[ip], 
+                           ppath.pos(ip,1), ppath.pos(ip,2), 
+                           ppath.los(ip,0), ppath.los(ip,1) );
+              // Find where the extension from point ip crosses the l12 
+              // sphere: point c
+              Numeric xc, yc, zc, rc, latc, lonc;
+              line_sphere_intersect( xc, yc, zc, xip, yip, zip, 
+                                     dxip, dyip, dzip, x1, y1, z1, l12 );
+              cart2sph( rc, latc, lonc, xc, yc, zc, ppath.pos(ip,1), 
+                        ppath.pos(ip,2), ppath.los(ip,0), ppath.los(ip,1) );
+              posc.resize(3);
+              posc[1] = latc;
+              posc[2] = lonc;
+              posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
+                                                    lat_grid, lon_grid, posc );
+              distance3D( ds, rc, latc, lonc, r2, rte_pos2[1], rte_pos2[2] );
+              dl = sqrt( l12*l12 + ds*ds ) - l12;
+              cout << posc[0]-rte_pos2[0] << " " 
+                   << (posc[1]-rte_pos2[1])*111e3 << " " 
+                    << (posc[2]-rte_pos2[2])*111e3 << " " 
+                  << dl << " " << ds << " ";
+            }
 
-          cout << rte_los[0]-rte_los_geom[0] << " " << los[0]-rte_los_geom[0]
-               << endl;
+          // Converged?
+          if( dl < dlmax )
+            { ready = true; cout << endl; } 
+          
+          // Otherwise, calculate new rte_los
+          else
+            {
+              Vector los;
+              rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, 
+                  lat_grid, lon_grid, refellipsoid, rte_pos, posc, verbosity );
+              Numeric dza = los[0] - rte_los_geom[0];
+              cout << dza << endl;
+              
+              //rte_los[0] += 0.01;
+
+
+              // Any improvement compared to existing results in H
+              if( dza > 0   &&  dza < H(0,1) )
+                { H(0,0)=1;  H(0,1)=dza; H(0,2)=rte_los[0]; 
+                  H(0,3)=dl; H(0,4)=ds; }
+              else if( dza < 0   &&  dza > H(1,1) )
+                { H(1,0)=1;  H(1,1)=dza; H(1,2)=rte_los[0]; 
+                  H(1,3)=dl; H(1,4)=ds; } 
+              else
+                { failed = true; }
+              cout << H << endl;
+
+              // Select new rte_los
+              if( ~ready )
+                {
+                  if( H(0,0)>0  &&  H(1,0)>0 )
+                    { rte_los[0] = H(1,2) - (H(0,2)-H(1,2)) * H(1,1) / 
+                                            (H(0,1)-H(1,1)); }
+                  else
+                    { rte_los[0] -= dza; }
+
+                  // Simplest possible correction for azimuth angle
+                  if( atmosphere_dim == 3 )
+                    { rte_los[1] -= los[1] - rte_los_geom[1]; }
+                }
+            }
         }
 
       // Brake if not finding a solution
       counter++;
-      if( counter >= 30 )
+      if( counter >= 200 )
         throw runtime_error( "Sorry, but the algorithm is not converging. "
                              "Don't know what to do!" );
     }
+
+  // If "failed", the last calculation is not the best one. 
+  // Reconstruct best solution:
+  if( failed )
+    {
+      if( H(0,3) < H(1,3) )
+        { rte_los[0] = H(0,2); dl = H(0,3); ds = H(0,4); }
+      else
+        { rte_los[0] = H(1,2); dl = H(1,3); ds = H(1,4); }
+
+      // This solution OK?
+      if( dl > 100*dlmax )
+        {
+          ostringstream os;
+          os << "The smallest path length error achieved is " << dl
+             << " m,\nwhich is a too high value.\n"
+             << "Geographically, the closest match with *rte_pos2* is " 
+             << ds << " m.\n"
+             << "This can (hopefully) be improved by decreasing the value of\n"
+             << "*ppath_lmax* and *ppath_lraytrace*\n";
+          throw runtime_error( os.str() );
+        }
+
+      ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+                  lat_grid, lon_grid, t_field, z_field, vmr_field, 
+                  refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+                  rte_pos, rte_los, 0, verbosity );
+    }
+
+  if( ready )
+  cout << " |                Convergence: OK\n";
+  else
+  cout << " |                Convergence: Failed\n";
+  cout << " |          Path length error: " << dl << " m.\n";
+  cout << " | Spatial miss of *rte_pos2*: " << ds << " m.\n";
+
+  CREATE_OUT2
+  if( ready )
+  out2 << " |                Convergence: OK\n";
+  else
+  out2 << " |                Convergence: Failed\n";
+  out2 << " |          Path length error: " << dl << " m.\n";
+  out2 << " | Spatial miss of *rte_pos2*: " << ds << " m.\n";
+
 }
 
 
