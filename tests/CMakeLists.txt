@@ -103,3 +103,8 @@ else (PYTHONINTERP_FOUND)
   message(STATUS "Test cases disabled due to missing Python interpreter")
 endif (PYTHONINTERP_FOUND)
 
+############ tests ##########
+
+set(ARTS arts -r012)
+add_test(NAME "arts.ctlfile.fast.clearsky" COMMAND ${ARTS} ${CMAKE_CURRENT_SOURCE_DIR}/ClearSky/TestClearSky.arts)
+

@@ -374,3 +374,13 @@ if (WITH_GUI)
   add_subdirectory (gui)
 endif (WITH_GUI)
 
+########### tests ###############
+
+add_test("arts.cmdline.describe" arts -d Copy)
+add_test("arts.cmdline.groups" arts -g)
+add_test("arts.cmdline.help" arts -h)
+add_test("arts.cmdline.input" arts -i Index)
+add_test("arts.cmdline.methods" arts -m all)
+add_test("arts.cmdline.version" arts -v)
+add_test("arts.cmdline.workspacevariables" arts -w all)
+
