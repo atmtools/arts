@@ -55,6 +55,7 @@ VectorSet( rte_los, [ 113.3 ] )
 # 
 basics_checkedCalc
 cloudbox_checkedCalc
+IndexSet( mblock_index, -1 )   # A dummy value
 iyCalc
 
 
