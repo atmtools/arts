@@ -4201,24 +4201,21 @@ void ppath_start_stepping(
           if( ppath.pos(0,0) <= z_surface(0,0)  &&  ppath.los(0,0) > 90 )
             { ppath_set_background( ppath, 2 ); }
 
+          // Outside cloudbox:
           // Check sensor position with respect to cloud box.
-          if( cloudbox_on )
+          if( cloudbox_on  &&  !ppath_inside_cloudbox_do )
             {
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
-              //
-              // Is the sensor inside the cloud box?
-              if( fgp > cloudbox_limits[0]  && fgp < cloudbox_limits[1] )
-                { 
-                  if( !ppath_inside_cloudbox_do )
-                    { ppath_set_background( ppath, 4 ); }
-                }
-              // Is the sensor at the cloud box boundary?
-              else if( ( fgp==cloudbox_limits[0] && rte_los[0] <= 90 ) || 
-                       ( fgp==cloudbox_limits[1] && rte_los[0] > 90 ) )
-                { ppath_set_background( ppath, 3 ); }
+              if( fgp >= cloudbox_limits[0]  &&  fgp <= cloudbox_limits[1] )
+                { ppath_set_background( ppath, 4 ); }
             }
-          else
-            { assert( !ppath_inside_cloudbox_do ); }
+
+          // Inside cloudbox:
+          DEBUG_ONLY( if( ppath_inside_cloudbox_do )
+            {
+              const Numeric fgp = fractional_gp( ppath.gp_p[0] );
+              assert( fgp >= cloudbox_limits[0] && fgp <= cloudbox_limits[1] );
+            } )
         }
 
       // Sensor is outside the model atmosphere:
@@ -4344,28 +4341,25 @@ void ppath_start_stepping(
                 { ppath_set_background( ppath, 2 ); }
             }
 
+          // Outside cloudbox:
           // Check sensor position with respect to cloud box.
-          if( cloudbox_on )
+          if( cloudbox_on  &&  !ppath_inside_cloudbox_do )
             {
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
               const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
-              //
-              // Is the sensor inside the cloud box?
-              if( fgp > cloudbox_limits[0]  &&  fgp < cloudbox_limits[1]  &&
-                  fgl > cloudbox_limits[2]  &&  fgl < cloudbox_limits[3]  )
-                {
-                  if( !ppath_inside_cloudbox_do )
-                    { ppath_set_background( ppath, 4 ); }
-                }
-              // Is the sensor at the cloud box boundary?
-              else if( ( fgp==cloudbox_limits[0] && abs(rte_los[0]) <= 90 ) ||
-                       ( fgp==cloudbox_limits[1] && abs(rte_los[0]) > 90 )  ||
-                       ( fgl==cloudbox_limits[2] && rte_los[0] >= 0 ) || 
-                       ( fgl==cloudbox_limits[3] && rte_los[0] <= 0 ) )
-                { ppath_set_background( ppath, 3 ); }
-              else
-                { assert( !ppath_inside_cloudbox_do ); }
+              if( fgp >= cloudbox_limits[0]  &&  fgp <= cloudbox_limits[1]  &&
+                  fgl >= cloudbox_limits[2]  &&  fgl <= cloudbox_limits[3]  )
+                { ppath_set_background( ppath, 4 ); }
             }
+
+          // Inside cloudbox:
+          DEBUG_ONLY( if( ppath_inside_cloudbox_do )
+            {
+              const Numeric fgp = fractional_gp( ppath.gp_p[0] );
+              const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
+              assert( fgp >= cloudbox_limits[0] && fgp <= cloudbox_limits[1] &&
+                      fgl >= cloudbox_limits[2] && fgl <= cloudbox_limits[3]  );
+            } )
         }      
 
       // Sensor is outside the model atmosphere:
@@ -4615,32 +4609,29 @@ void ppath_start_stepping(
                 { ppath_set_background( ppath, 2 ); }
             }
 
+          // Outside cloudbox:
           // Check sensor position with respect to cloud box.
-          if( cloudbox_on )
+          if( cloudbox_on  &&  !ppath_inside_cloudbox_do )
             {
               const Numeric fgp = fractional_gp( ppath.gp_p[0] );
               const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
               const Numeric fgo = fractional_gp( ppath.gp_lon[0] );
-              //
-              // Is the sensor inside the cloud box?
-              if( fgp > cloudbox_limits[0]  &&  fgp < cloudbox_limits[1]  &&
-                  fgl > cloudbox_limits[2]  &&  fgl < cloudbox_limits[3]  &&
-                  fgo > cloudbox_limits[4]  &&  fgo < cloudbox_limits[5]  )
-                {
-                  if( !ppath_inside_cloudbox_do )
-                    { ppath_set_background( ppath, 4 ); }
-                }
-              // Is the sensor at the cloud box boundary?
-              else if( ( fgp==cloudbox_limits[0] && rte_los[0] <= 90 ) ||
-                       ( fgp==cloudbox_limits[1] && rte_los[0] > 90 )  ||
-                       ( fgl==cloudbox_limits[2] && abs(rte_los[1]) <= 90 ) || 
-                       ( fgl==cloudbox_limits[3] && abs(rte_los[1]) >= 90 ) ||
-                       ( fgo==cloudbox_limits[4] && abs(rte_los[1]) >= 0 ) || 
-                       ( fgo==cloudbox_limits[5] && abs(rte_los[1]) <= 0 ) )
-                { ppath_set_background( ppath, 3 ); }
-              else
-                { assert( !ppath_inside_cloudbox_do ); }
+              if( fgp >= cloudbox_limits[0]  &&  fgp <= cloudbox_limits[1]  &&
+                  fgl >= cloudbox_limits[2]  &&  fgl <= cloudbox_limits[3]  &&
+                  fgo >= cloudbox_limits[4]  &&  fgo <= cloudbox_limits[5]  )
+                { ppath_set_background( ppath, 4 ); }
             }
+
+          // Inside cloudbox:
+          DEBUG_ONLY( if( ppath_inside_cloudbox_do )
+            {
+              const Numeric fgp = fractional_gp( ppath.gp_p[0] );
+              const Numeric fgl = fractional_gp( ppath.gp_lat[0] );
+              const Numeric fgo = fractional_gp( ppath.gp_lon[0] );
+              assert( fgp >= cloudbox_limits[0] && fgp <= cloudbox_limits[1] &&
+                      fgl >= cloudbox_limits[2] && fgl <= cloudbox_limits[3] &&
+                      fgo >= cloudbox_limits[4] && fgo <= cloudbox_limits[5] );
+            } )
         }      
 
       // Sensor is outside the model atmosphere:
@@ -4902,13 +4893,11 @@ void ppath_calc(      Workspace&      ws,
   // position and LOS.
 
   //--- Check input -----------------------------------------------------------
-
   chk_rte_pos( atmosphere_dim, rte_pos, 0 );
   chk_rte_los( atmosphere_dim, rte_los );
-  if( ppath_inside_cloudbox_do  &&  cloudbox_on )
+  if( ppath_inside_cloudbox_do  &&  !cloudbox_on )
     throw runtime_error( "The WSV *ppath_inside_cloudbox_do* can only be set "
                          "to 1 if also *cloudbox_on* is 1." );
-  
   //--- End: Check input ------------------------------------------------------
 
 
@@ -4991,7 +4980,6 @@ void ppath_calc(      Workspace&      ws,
       //--- Outside cloud box ------------------------------------------------
       if( !ppath_inside_cloudbox_do )
         {
-
           // Check if the top of the atmosphere is reached
           if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
             { 
@@ -5135,7 +5123,9 @@ void ppath_calc(      Workspace&      ws,
           // Pressure dimension
           Numeric ipos1 = fractional_gp( ppath_step.gp_p[n-1] );
           Numeric ipos2 = fractional_gp( ppath_step.gp_p[n-2] );
-          if( ipos1 <= Numeric( cloudbox_limits[0] )  &&  ipos1 < ipos2 )
+          assert( ipos1 >= cloudbox_limits[0] );
+          assert( ipos1 <= cloudbox_limits[1] );
+          if( ipos1 <= cloudbox_limits[0]  &&  ipos1 < ipos2 )
             { ppath_set_background( ppath_step, 3 ); }
               
           else if( ipos1 >= Numeric( cloudbox_limits[1] )  &&  ipos1 > ipos2 )
@@ -5146,6 +5136,8 @@ void ppath_calc(      Workspace&      ws,
               // Latitude dimension
               ipos1 = fractional_gp( ppath_step.gp_lat[n-1] );
               ipos2 = fractional_gp( ppath_step.gp_lat[n-2] );
+              assert( ipos1 >= cloudbox_limits[2] );
+              assert( ipos1 <= cloudbox_limits[3] );
               if( ipos1 <= Numeric( cloudbox_limits[2] )  &&  ipos1 < ipos2 )  
                 { ppath_set_background( ppath_step, 3 ); }
 
@@ -5157,6 +5149,8 @@ void ppath_calc(      Workspace&      ws,
                   // Longitude dimension
                   ipos1 = fractional_gp( ppath_step.gp_lon[n-1] );
                   ipos2 = fractional_gp( ppath_step.gp_lon[n-2] );
+                  assert( ipos1 >= cloudbox_limits[4] );
+                  assert( ipos1 <= cloudbox_limits[5] );
                   if( ipos1 <= Numeric( cloudbox_limits[4] )  &&  ipos1<ipos2 )
                     { ppath_set_background( ppath_step, 3 ); }
 

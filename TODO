@@ -13,9 +13,6 @@ Fix bug for mc_antenna (azimuth distance varies with za)
 Regarding Doppler: Update AUG Information in methods.cc correct?
 Add Doppler shift also to emission/Planck?
 
-2012-02-15, Patrick
-Include tilt when checking cloudbox limit.
-
 2012-02-08, Patrick 
 Revise surface tilt and calculation of specular direction,
 and inside get_iy_of_background. In the later case, also make use of other

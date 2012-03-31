@@ -1,3 +1,17 @@
+2012-03-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-61
+
+	* src/ppath.cc (ppath_calc): Combined check of cloudbox_on and
+	ppath_inside_cloudbox_do lacked a !. Added some assert for extra
+	safety when running with ppath_inside_cloudbox_do set to true.
+
+	(ppath_start_stepping): Also points on the cloudbox boundary are
+	now flagged as inside cloudbox. That is, no start poinst can end
+	up as "cloudbox boundary". This made the code shorter and avoids
+	unsafe calculations of pressure levels tilts (the code was not
+	complete on this point). Thos closed one point in TODO.
+
 2012-03-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-60
@@ -24,7 +38,7 @@
 	* arts-2-1-58
 
 	* src/m_ppath.cc (ppathFromRtePos2): Still not complete, but a
-	core algorith now established (afer several tries).
+	core algorith now established (after several tries).
 
 	* src/geodetic.cc (line_circle_intersect,line_sphere_intersect):
 	New functions.
