@@ -45,7 +45,9 @@ extern const Numeric PI;
 #include "physics_funcs.h"
 #include "math_funcs.h"
 #include "check_input.h"
-
+#include "rng.h"
+#include <ctime>
+#include "mc_antenna.h"
 
 //! Check whether hydromet grid size is equal to atmospheric grid size 
 //! and if hydromet profile is zero (no cloud) in each grid point.
@@ -828,33 +830,74 @@ Numeric barometric_heightformula ( //output is p1
 Numeric IWCtopnd_MH97 (	const Numeric iwc,
 			const Numeric dm,
 			const Numeric t,
-			const Numeric density)
+			const Numeric density,
+			const bool noisy )
 {
   // skip calculation if IWC is 0.0
   if ( iwc == 0.0 )
   {
     return 0.0;
   }
+
+  Numeric sig_a=0.068, sig_b1=0.054;
+  Numeric sig_b2=5.5e-3, sig_m=0.0029;
+  Numeric sig_aamu=0.02, sig_bamu=0.0005;
+  Numeric sig_abmu=0.023, sig_bbmu=0.5e-3;
+  Numeric sig_aasigma=0.02, sig_basigma=0.5e-3;
+  Numeric sig_absigma=0.023, sig_bbsigma=4.7e-4;
+
+  if ( noisy )
+  {
+    Rng rng;                      //Random Number generator
+    Index mc_seed;
+    mc_seed = (Index)time(NULL);
+    rng.seed(mc_seed, Verbosity());
+
+    sig_a = ran_gaussian(rng,sig_a);
+    sig_b1 = ran_gaussian(rng,sig_b1);
+    sig_b2 = ran_gaussian(rng,sig_b2);
+    sig_m = ran_gaussian(rng,sig_m);
+    sig_aamu = ran_gaussian(rng,sig_aamu);
+    sig_bamu = ran_gaussian(rng,sig_bamu);
+    sig_abmu = ran_gaussian(rng,sig_abmu);
+    sig_bbmu = ran_gaussian(rng,sig_bbmu);
+    sig_aasigma = ran_gaussian(rng,sig_aasigma);
+    sig_basigma = ran_gaussian(rng,sig_basigma);
+    sig_absigma = ran_gaussian(rng,sig_absigma);
+    sig_bbsigma = ran_gaussian(rng,sig_bbsigma);
+  }
+  else
+  {
+    sig_a=0., sig_b1=0.;
+    sig_b2=0., sig_m=0.;
+    sig_aamu=0., sig_bamu=0.;
+    sig_abmu=0., sig_bbmu=0.;
+    sig_aasigma=0., sig_basigma=0;
+    sig_absigma=0., sig_bbsigma=0.;
+  }
+
   Numeric dN1;
   Numeric dN2;
   Numeric dN;
+
   // convert m to microns
   Numeric Dm = dm * 1e6;
   //convert T from Kelvin to Celsius
   Numeric T = t-273.15;
   //split IWC in IWCs100 and IWCl100
-  Numeric a=0.252; //g/m^3
-  Numeric b1=0.837;
-  Numeric IWC0=1; //g/m^3
-  Numeric IWCs100=min ( iwc,a*pow ( iwc/IWC0,b1 ) );
+
+  // determine iwc<100um and iwc>100um
+  Numeric a=0.252+sig_a; //g/m^3
+  Numeric b1=0.837+sig_b1;
+  Numeric IWCs100=min ( iwc,a*pow ( iwc,b1 ) );
   Numeric IWCl100=iwc-IWCs100;
 
 
   //Gamma distribution component
 
-  Numeric b2=-4.99*1e-3; //micron^-1
-  Numeric m=0.0494; //micron^-1
-  Numeric alphas100=b2-m*log10 ( IWCs100/IWC0 ); //micron^-1
+  Numeric b2=-4.99e-3+sig_b2; //micron^-1
+  Numeric m=0.0494+sig_m; //micron^-1
+  Numeric alphas100=b2-m*log10 ( IWCs100 ); //micron^-1
   // for large IWC alpha, hence dN1, goes negative. avoid that.
   // towards this limit, particles anyway get larger 100um, i.e.,
   // outside the size region gamma distrib is intended for
@@ -877,27 +920,42 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   // this will give dN2=NaN. avoid that by explicitly setting to 0
   if (IWCl100>0.)
   {
-    Numeric aamu=5.20;
-    Numeric bamu=0.0013;
-    Numeric abmu=0.026;
-    Numeric bbmu=-1.2*1e-3;
+    //FIXME: Do we need to ensure mul100>0 and sigmal100>0?
+
+    Numeric aamu=5.20+sig_aamu;
+    Numeric bamu=0.0013+sig_bamu;
+    Numeric abmu=0.026+sig_abmu;
+    Numeric bbmu=-1.2e-3+sig_bbmu;
     Numeric amu=aamu+bamu*T;
     Numeric bmu=abmu+bbmu*T;
-    Numeric mul100=amu+bmu*log10 ( IWCl100/IWC0 );
+    Numeric mul100=amu+bmu*log10 ( IWCl100 );
 
-    Numeric aasigma=0.47;
-    Numeric basigma=2.1*1e-3;
-    Numeric absigma=0.018;
-    Numeric bbsigma=-2.1*1e-4;
+    Numeric aasigma=0.47+sig_aasigma;
+    Numeric basigma=2.1e-3+sig_basigma;
+    Numeric absigma=0.018+sig_absigma;
+    Numeric bbsigma=-2.1e-4+sig_bbsigma;
     Numeric asigma=aasigma+basigma*T;
     Numeric bsigma=absigma+bbsigma*T;
-    Numeric sigmal100=asigma+bsigma*log10 ( IWCl100/IWC0 );
+    Numeric sigmal100=asigma+bsigma*log10 ( IWCl100 );
 
-    Numeric D0=1.0; //micron
-    Numeric a1=6*IWCl100; //g/m^3
-    Numeric a2=pow ( PI,3./2. ) *density*sqrt ( 2 ) *exp ( 3*mul100+9./2.*pow ( sigmal100,2 ) ) *sigmal100*pow ( D0,3 ) *Dm; //g/m^3/micron^4
-    Numeric Nm2=a1/a2*exp ( -0.5*pow ( ( log ( Dm/D0 )-mul100 ) /sigmal100,2 ) ); //micron^-4
-    dN2 = Nm2*1e18; // m^-3 micron^-1
+    if ( (mul100>0.) & (sigmal100>0.) )
+    {
+      Numeric a1=6*IWCl100; //g/m^3
+      Numeric a2=pow ( PI,3./2. ) *density*sqrt ( 2 ) *exp ( 3*mul100+9./2.*pow ( sigmal100,2 ) ) *sigmal100*pow ( 1.,3 ) *Dm; //g/m^3/micron^4
+      Numeric Nm2=a1/a2*exp ( -0.5*pow ( ( log ( Dm )-mul100 ) /sigmal100,2 ) ); //micron^-4
+      dN2 = Nm2*1e18; // m^-3 micron^-1
+    }
+    else
+    {
+      dN2 = 0.;
+/*      ostringstream os;
+      os<< "ERROR: not a valid MH97 size distribution:\n"
+        << "mu>100=" << mul100 << " resulting from amu="<< amu << " and bmu="<< bmu << "\n"
+        << "(aamu="<<aamu<<", bamu="<<bamu<<", abmu="<<abmu<<", bbmu="<<bbmu<<")\n"
+        << "sigma>100=" << sigmal100 << " resulting from asigma="<< asigma << " and bsigma="<< bsigma << "\n"
+        << "(aasigma="<<aasigma<<", basigma="<<basigma<<", absigma="<<absigma<<", bbsigma="<<bbsigma<<")\n";
+      throw runtime_error ( os.str() );      */
+    }
   }
   else
   {
@@ -1025,7 +1083,7 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 
 
 /*! Scaling pnd values by width of size bin. 
- * Bin width is detemined from preceding and following particle size.
+ * Bin width is determined from preceeding and following particle size.
  * Vector y and x must be equal in size. Vector w holds the weights.
  * Derived from trapezoid integration rule.
          
@@ -1047,22 +1105,28 @@ void scale_pnd  (  Vector& w,
         throw std::logic_error("x and y must be the same size");
     }
     
-    // calc. weights (derived from trapezoid integration)  
-    for (Index i = 0; i<x.nelem(); i++)
-	{
-		if (i == 0) // first value
-		{
-		  w[i] = 0.5*(x[i+1]-x[i])*y[i]; // m^-3
-		}
-		else if (i == x.nelem()-1) //last value
-		{
-		  w[i] = 0.5*(x[i]-x[i-1])*y[i]; // m^-3
-		}
-		else { // all values inbetween
-		  w[i] = 0.5*(x[i+1]-x[i-1])*y[i]; // m^-3   
-		}
-	}	
-
+    if (x.nelem()>1) // calc. integration weights (using trapezoid integration)
+    {
+        for (Index i = 0; i<x.nelem(); i++)
+        {
+            if (i == 0) // first value
+            {
+                w[i] = 0.5*(x[i+1]-x[i])*y[i]; // m^-3
+            }
+            else if (i == x.nelem()-1) //last value
+            {
+                w[i] = 0.5*(x[i]-x[i-1])*y[i]; // m^-3
+            }
+            else // all values inbetween
+            {
+                w[i] = 0.5*(x[i+1]-x[i-1])*y[i]; // m^-3
+            }
+        }
+    }
+    else // for monodisperse pnd=dN
+    {
+      w[0] = y[0];
+    }
 }
 
 /*! Check sum of pnd vector against total mass density value.
@@ -1101,7 +1165,7 @@ void chk_pndsum (Vector& pnd,
   }
 
   //cout<<"at p = "<<p<<", lat = "<<lat<<", lon = "<<lon
-  //<<" given mass density: "<<xwc<<", calc mass density: "<<x.sum();
+  //<<" given mass density: "<<xwc<<", calc mass density: "<<x.sum() << "\n";
   if ( x.sum() == 0.0 )
     if ( xwc == 0.0 )
     {
@@ -1116,7 +1180,8 @@ void chk_pndsum (Vector& pnd,
       os<< "ERROR: in WSM chk_pndsum in pnd_fieldSetup!\n" 
       << "Given mass density != 0, but calculated mass density == 0.\n"
       << "Seems, something went wrong in pnd_fieldSetup. Check!\n"
-      << "The problem occured at: p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
+      << "The problem occured at: "
+      << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
      throw runtime_error ( os.str() );
     }
   else
@@ -1132,13 +1197,15 @@ void chk_pndsum (Vector& pnd,
       out1<< "WARNING: in WSM chk_pndsum in pnd_fieldSetup!\n" 
       << "The deviation of the sum of nodes in the particle size distribution\n"
       << "to the initial input mass density (IWC/LWC) is larger than 10%!\n"
-      << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
+      << "The deviation of: "<< error-1.0<<" occured in the atmospheric level: "
+      << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
       //cerr<<os;
     }
   }
   //cout<<", error: "<<error<<"corrected to: "<<x.sum()*error<<"\n";
 
-  out2 << "PND scaling factor in atm. level (p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
+  out2 << "PND scaling factor in atm. level "
+       << "(p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<"): "<< error <<"\n";
     //cout<<"\npnd_scaled\t"<<pnd<<endl;
     //cout<<"\nPND\t"<<pnd.sum()<<"\nXWC\t"<<xwc<<"\nerror\t"<<error<<endl;
     //cout<<"\n"<<x.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
@@ -1222,8 +1289,9 @@ void parse_part_type (//WS Output:
 	part_type != "Rain" )
   {
     ostringstream os;
-    os << "First substring in " << part_string << " must be rather 'LWC', 'IWC', 'Rain' or 'Snow'\n"
-    <<"Ckeck input in *part_species*!\n";
+    os << "First substring in " << part_string
+       << " must be rather 'LWC', 'IWC', 'Rain' or 'Snow'\n"
+       <<"Check input in *part_species*!\n";
     throw runtime_error ( os.str() );
   }
 }
@@ -1249,11 +1317,16 @@ void parse_psd_param (//WS Output:
   // second entry is particle size distribution parametrisation  ( e.g."MH97")
   psd_param = strarr[1];
 
-  if ( psd_param != "MH97" && psd_param != "liquid" && psd_param != "H11" )
+  // jm120218: FIX!
+  // this should not be checked here, but in pnd_fieldSetup (e.g., via
+  // a case switch default)
+  if ( psd_param.substr(0,4) != "MH97" && psd_param != "liquid" &&
+       psd_param != "H11" )
   {
     ostringstream os;
-    os <<"The chosen PSD parametrisation in " << part_string << " can not be handeled in the moment.\n"
-    <<"Choose either 'MH97', 'H11' or 'liquid'!\n" ;
+    os <<"The chosen PSD parametrisation in " << part_string
+       << " can not be handeled in the moment.\n"
+       <<"Choose either 'MH97', 'H11' or 'liquid'!\n" ;
     throw runtime_error ( os.str() );
   }
 }

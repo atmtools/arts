@@ -52,7 +52,7 @@
   Polar (Box-Mueller) method; See Knuth v2, 3rd ed, p122 
   
   \param rng  Rng random number generator instance
-  \param sigma standrade deviation paramter for gaussian distribution
+  \param sigma standard deviation parameter for gaussian distribution
 
   Returns the gaussian random deviate.
 

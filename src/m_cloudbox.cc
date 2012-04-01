@@ -633,9 +633,9 @@ void cloudbox_checkedCalc(Index&          cloudbox_checked,
             {
               ostringstream os;
               os << "Too small distance between cloudbox and lower end of "
-                 << "latitude grid.\nThis distance must be " << llmin 
-                 << "degrees.\nCloudbox ends at " 
-                 << lat_grid[cloudbox_limits[2]]
+                 << "latitude grid.\n"
+                 << "This distance must be " << llmin << "degrees.\n"
+                 << "Cloudbox ends at " << lat_grid[cloudbox_limits[2]]
                  << " and latitude grid starts at " << lat_grid[0] << ".";
               throw runtime_error( os.str() );
             }
@@ -644,10 +644,10 @@ void cloudbox_checkedCalc(Index&          cloudbox_checked,
               (atmosphere_dim==3 && lat_grid[n-1]<90) ) )
             {
               ostringstream os;
-              os << "Too small distance between cloudbox and upper end of\n"
-                 << "latitude grid.\nThis distance must be " << llmin 
-                 << "degrees.\nCloudbox ends at " 
-                 << lat_grid[cloudbox_limits[3]]
+              os << "Too small distance between cloudbox and upper end of "
+                 << "latitude grid.\n"
+                 << "This distance must be " << llmin << "degrees.\n"
+                 << "Cloudbox ends at " << lat_grid[cloudbox_limits[3]]
                  << " and latitude grid ends at " << lat_grid[n-1] << ".";
               throw runtime_error( os.str() );
             }
@@ -967,12 +967,13 @@ void ScatteringParticlesSelect (//WS Output:
         "Single Scattering Data input? \n";
     throw runtime_error ( os.str() );
   }
-  // check if we ignored any smd
+  // check if we ignored any ScatteringMetaData entry
   for ( Index j = 0; j<selected.nelem(); j++)
   {
     if (selected[j]==0)
     {
-      out1 << "WARNING! Ignored SMD[" << j << "] (" << scat_data_meta_array_tmp[j].type << ")!\n";
+      out1 << "WARNING! Ignored ScatteringMetaData[" << j << "] ("
+           << scat_data_meta_array_tmp[j].type << ")!\n";
     }
   }
 
@@ -1433,9 +1434,11 @@ void pnd_fieldSetup (//WS Output:
 
 
     //---- start pnd_field calculations for MH97 -------------------------------
-    if ( psd_param == "MH97" )
+    if ( psd_param.substr(0,4) == "MH97" )
     {
       
+      bool noisy = (psd_param == "MH97n");
+
       for ( Index i=0; i < scat_data_nelem[k]; i++ )
       {
 	//m^3
@@ -1485,7 +1488,7 @@ void pnd_fieldSetup (//WS Output:
               // calculate particle size distribution with MH97
               // [# m^-3 m^-1]
               dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ), dm[i],
-                                      t_field ( p, lat, lon ), rho[i] );
+                                      t_field ( p, lat, lon ), rho[i], noisy );
 	      //dN2[i] = dN[i] * vol[i] * rho[i];
             }
             //out0<<"level: "<<p<<"\n"<<dN<<"\n";
@@ -1494,7 +1497,8 @@ void pnd_fieldSetup (//WS Output:
             if (dm.nelem() > 1)
             {
               scale_pnd( pnd, dm, dN );
-            } else
+            }
+            else //if (dm.nelem() > 0)
             {
               pnd = dN;
             }
@@ -1588,7 +1592,8 @@ void pnd_fieldSetup (//WS Output:
             if (dm.nelem() > 1)
             {
               scale_pnd( pnd, dm, dN ); //[# m^-3]
-            } else
+            }
+            else //if (dm.nelem() > 0)
             {
               pnd = dN;
             }
@@ -1680,7 +1685,8 @@ void pnd_fieldSetup (//WS Output:
             if (r.nelem() > 1)
             {
               scale_pnd( pnd, r, dN ); //[# m^-3]
-            } else
+            }
+            else //if (dm.nelem() > 0)
             {
               pnd = dN;
             }

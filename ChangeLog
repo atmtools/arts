@@ -1,3 +1,24 @@
+2012-04-01  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-62
+
+	* src/cloudbox.cc: some formatting for better readability.
+
+	(IWCtopnd_MH97): MH97 PSD with noisy distribution parameters (gaussian
+	noise according to error statistics given in MH97 paper). untested for
+	stability, correct output etc. (but not breaking existing setups), so
+	use with care.
+
+	(scale_pnd): bugfix. for monodisperse case (no	integration) set pnd=dN.
+
+	* src/cloudbox.h (IWCtopnd_MH97): adapted for noisy MH97 (see above).
+
+	* src/m_cloudbox.cc: some formatting for better readability.
+
+	(pnd_fieldSetup): adapted for noisy MH97 (see above).
+
+	* src/mc_antenna.cc (ran_gaussian): fixed typo.
+
 2012-03-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-61
@@ -4730,7 +4751,7 @@
 					scat_data_meta
 					scat_data_meta_array
 				Documentation is partially incomplete.
- 
+
 2011-02-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-138
@@ -4922,15 +4943,15 @@
 	* arts-1-14-124
 
 	* src/doit.cc (cloud_ppath_update1D_noseq): allow cloudbox@surface for
-        non-sequential 1D case
+	non-sequential 1D case
 
 	* src/doit.h: switch on passing of surface_prop_agenda to
-        cloud_ppath_update1D_noseq
+	cloud_ppath_update1D_noseq
 
 	* src/m_doit.cc (doit_i_fieldUpdate1D): pass surface agenda. avoid
-        ppath_update for upwelling radiation at surface (that anyway shouldn't
-        change, i.e. update not needed), since that causes problems when
-        gridpos2gridrange returns gp.idx=-1.
+	ppath_update for upwelling radiation at surface (that anyway shouldn't
+	change, i.e. update not needed), since that causes problems when
+	gridpos2gridrange returns gp.idx=-1.
 
 	* ChangeLog: corrected/saved last entry
 
@@ -4939,12 +4960,12 @@
 	* arts-1-14-123
 
 	* src/doit.cc (cloud_RT_surface): bugfix. use actual f_index (instead of
-        f_index=0) when assigning calculated surface contribution (iy) to
-        cloudbox intensity field (doit_i_field) at lowest cloudbox level (in
-        case this is at surface level). seems to fix the doit issues when
-        cloubbox lower limit is at surface.
-        however, cloudbox@surface is currently only implemented for Seq1D (no
-        non-Seq, no 3D).
+	f_index=0) when assigning calculated surface contribution (iy) to
+	cloudbox intensity field (doit_i_field) at lowest cloudbox level (in
+	case this is at surface level). seems to fix the doit issues when
+	cloubbox lower limit is at surface.
+	however, cloudbox@surface is currently only implemented for Seq1D (no
+	non-Seq, no 3D).
 
 2010-11-18  Stefan Buehler  <sbuehler(at)ltu.se>
 
@@ -5027,16 +5048,16 @@
 	* arts-1-14-118
 
 	* src/interpolation.cc (gridpos): documentation of extrapolation
-        ability rephrased less ambiguous (hopefully).
+	ability rephrased less ambiguous (hopefully).
 
 	* src/methods.cc: correct documentation of cloudboxSetManuallyAltitude
-        (z1<z2).
+	(z1<z2).
 
 	* src/workspace.cc: correct documentation of doit_za_grid_size (it's
-        just a number (of vector elements), not the vector).
+	just a number (of vector elements), not the vector).
 
 	* src/cloudbox.cc (chk_single_scattering_data): allow higher
-        (unearthly, but e.g. venusian) T in scat_data.T_grid.
+	(unearthly, but e.g. venusian) T in scat_data.T_grid.
 
 2010-11-10  Oliver Lemke  <olemke@core-dump.info>
 
@@ -5083,17 +5104,17 @@
 	* ChangeLog: corrected date of last entry
 
 	* src/montecarlo.cc (pha_mat_singleExtract, opt_propExtract),
-        src/mc_interp.cc (interp_scat_angle_temperature): some fixes to allow
-        use of optprops with T_grid.nelem==1 in MC for p20, add error message
-        for p30.
+	src/mc_interp.cc (interp_scat_angle_temperature): some fixes to allow
+	use of optprops with T_grid.nelem==1 in MC for p20, add error message
+	for p30.
 
 2010-11-05  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-113
 
 	* src/optproperties.cc (abs_vecTransform, ext_matTransform): fixed
-        bug here that was already fixed by stefan in arts-1-14-35 in function
-        pha_matTransform (for explanation see there).
+	bug here that was already fixed by stefan in arts-1-14-35 in function
+	pha_matTransform (for explanation see there).
 
 2010-11-04  Oliver Lemke  <olemke@core-dump.info>
 
@@ -5501,7 +5522,7 @@
 	rng.seed(my_seed);
 	ostringstream os;
 	os << "Thread " << actual_thread_index << ", seed: " << rng.showseed();
-        out3 << os;
+	out3 << os;
 
 	Note that I write to a string first. If you don't do that, the
 	output will look scrambled, since the different threads will all
@@ -6029,14 +6050,14 @@
 
 	* arts-1-14-52
 
-        * src/m_batch.cc (ybatchCalc): Fixed an Issue reported by
+	* src/m_batch.cc (ybatchCalc): Fixed an Issue reported by
 	Isaac. The user may want the different Jacobians to have different
 	number of x gridpoints (e.g., different number of vertical levels
 	for different radiosonde profiles). This works now. Also fixed one
 	OpenMP bug pointed out by Oliver, and another bug I discovered
 	myself. Hope it works correctly now!
 
-        * src/workspace.cc (ybatch_jacobians): Changed type of this
+	* src/workspace.cc (ybatch_jacobians): Changed type of this
 	variable from Tensor3 to ArrayOfMatrix, to allow for different
 	size of different Jacobians.
 
@@ -6058,7 +6079,7 @@
 	still turned off at the moment. (No particular reason, you can
 	turn them on if you want.)
 
- 2010-06-24  Stefan Buehler  <sbuehler(at)ltu.se>
+2010-06-24  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-50
 
@@ -6777,8 +6798,8 @@
 	* arts-1-13-33
 
 	* src/scatrtc.{cc,h}: Renamed, now they are called doit.{cc,h}
-          Moved the functions is_gp_inside_cloudbox, is_inside_cloudbox to
-	  cloudbox.{cc,h}.
+	Moved the functions is_gp_inside_cloudbox, is_inside_cloudbox to
+	cloudbox.{cc,h}.
 
 	* src/cloudbox.{cc,h}: Included functions is_gp_inside_cloudbox,
 	is_inside_cloudbox.
@@ -7223,12 +7244,12 @@
 
 	* includes/mhs/mhs.arts:modified to use new functions
 
-        * includes/mhs/mhs_fast.arts:modified to use new functions
+	* includes/mhs/mhs_fast.arts:modified to use new functions
 
 	* includes/mhs/mhs.lo.xml, includes/mhs/mhs.f_backend.xml,
-	  includes/mhs/mhs.backend_channel_response.xml,
-          includes/mhs/mhs.sideband_mode.xml,
-          includes/mhs/mhs.sideband_response.xml: removed
+	includes/mhs/mhs.backend_channel_response.xml,
+	includes/mhs/mhs.sideband_mode.xml,
+	includes/mhs/mhs.sideband_response.xml: removed
 
 2010-03-08  Oliver Lemke  <olemke@core-dump.info>
 
@@ -7289,10 +7310,10 @@
 	current standard setups.
 
 	* includes/amsu/amsub.lo.xml,
-       	includes/amsu/amsub.sideband_mode.xml,
-       	includes/amsu/amsub.sideband_response.xml,
-       	includes/amsu/amsub.f_backend.xml,
-       	includes/amsu/amsub.backend_channel_response.xml: Removed.
+	includes/amsu/amsub.sideband_mode.xml,
+	includes/amsu/amsub.sideband_response.xml,
+	includes/amsu/amsub.f_backend.xml,
+	includes/amsu/amsub.backend_channel_response.xml: Removed.
 
 2010-03-01  Oliver Lemke  <olemke(at)core-dump.info>
 
@@ -7957,7 +7978,7 @@
 
 	* src/m_sensor.cc (antenna_responseGaussian): Fixed bugs found by
 	Oliver. Thanks.
- 
+
 2009-09-21  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-77
@@ -8023,7 +8044,7 @@
 	  included MHS testcases
 
 	* tests/testall.py
-          Modified testall.py:
+	Modified testall.py:
 	  - Updated reference values for the test of AMSU-B to the new setup
 	  - decreased acceptance limit for AMSU from 0.02 to 0.001.
 	  - included testcases for MHS and MHS_fast.
@@ -8390,11 +8411,11 @@
 	function. 
 
 	* src/m_atmosphere.cc,
-      	src/m_abs_lookup.cc,
-      	src/m_scatrte.cc,
-      	src/interpolation_poly.cc,
-      	src/m_rte.cc,
-      	src/m_batch.cc: Added the new if(!arts_omp_in_parallel()) clause
+	src/m_abs_lookup.cc,
+	src/m_scatrte.cc,
+	src/interpolation_poly.cc,
+	src/m_rte.cc,
+	src/m_batch.cc: Added the new if(!arts_omp_in_parallel()) clause
 	to all parallel loops.
 	
 	* src/absorption.cc (xsec_species): Parallelized the line-by-line
@@ -8651,7 +8672,7 @@
 	two new folders below.
 
 	* doc/uguide/Figs/atmosphere:
-        * doc/uguide/Figs/rte: Created.
+	* doc/uguide/Figs/rte: Created.
 	
 	* doc/uguide/rte.tex: Included text from fm_definitions and started
 	revision.

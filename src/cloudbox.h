@@ -99,7 +99,8 @@ Numeric barometric_heightformula (const Numeric& p,
 Numeric IWCtopnd_MH97 (const Numeric iwc,
                        Numeric dm,
                        const Numeric t,
-                       const Numeric density);
+                       const Numeric density,
+                       const bool noisy);
 
 Numeric psd_H11 (const Numeric xwc,
 		 const Numeric d,
