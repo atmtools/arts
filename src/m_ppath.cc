@@ -123,22 +123,25 @@ void ppathFromRtePos2(
             "flagged to have passed a consistency check (basics_checked=1)." );
   chk_rte_pos( atmosphere_dim, rte_pos, 0 );
   chk_rte_pos( atmosphere_dim, rte_pos2, 1 );
+  //---------------------------------------------------------------------------
+
+  CREATE_OUT2
+  CREATE_OUT3
 
   // Radius of rte_pos and rte_pos2
   const Numeric r1  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                       lon_grid, rte_pos ) + rte_pos[0];
+                                              lon_grid, rte_pos ) + rte_pos[0];
   const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                       lon_grid, rte_pos2 ) + rte_pos2[0];
+                                            lon_grid, rte_pos2 ) + rte_pos2[0];
   
   // LOS from rte_pos to rte_pos2
   Vector rte_los_geom;
   rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
-                       lon_grid, refellipsoid, rte_pos, rte_pos2, verbosity );
+                        lon_grid, refellipsoid, rte_pos, rte_pos2, verbosity );
 
-  // Geometric distance between rte_pos and rte_pos2
-  // And Cartesian coordinates of rte_pos
-  Numeric l12, lat1=0;
-  Numeric x1, y1=0, z1;
+  // Geometric distance between rte_pos and rte_pos2, effective 2D-lat for
+  // rte_pos and and Cartesian coordinates of rte_pos:
+  Numeric l12, lat1=0, x1, y1=0, z1;
   if( atmosphere_dim <= 2 )
     { 
       if( atmosphere_dim == 2 )
@@ -153,39 +156,48 @@ void ppathFromRtePos2(
       sph2cart( x1, y1, z1, r1, rte_pos[1], rte_pos[2] );
     }
 
-  // "Hit data":
+  // A matrix with "hit data", to keep track of most close tries so far.
+  // Row 0 holds data for the closest calculation where end point is at a too
+  // high zenith angle. Row 1, the same for too low zenith angle. The columns,
+  // 0: Valid data flag. Below 0, not data yet. Avove 0, valid data.
+  // 1: Size of zenith angle deviation for end point
+  // 2: rte_los of this calculation
+  // 3: Estimate of path length error
+  // 4. Spatal error.
   Matrix  H(2,5);
   H(joker,0) = -1; 
-  H(0,1) = 99e99; 
-  H(1,1) = -99e99; 
+  H(0,1) = 99e99;    // A value to indicate infinite error
+  H(1,1) = -99e99;    // A value to indicate infinite error
  
   // Iterate until convergence for rte_los
-  //
-  rte_los = rte_los_geom;
+  rte_los = rte_los_geom;  // We start with geomtrical angles
   Index   ready = false;   // True when convergence criteria fulfilled
-  Index   failed = false;  // True when convergence failed 
   Index   counter=0;       // Number of tries
   Numeric dl;              // Path length error
   const Numeric dlmax=1e-4;// Max error in path length allowed
   Numeric ds;              // Spatial error
-  Index   surface_hits=0;  // Numer of tries ending up in the surface
+  Index   surface_hits=0;  // Number of tries ending up in the surface
+  Ppath   ppt;             // Test ppath
+  // The point of ppath closest to rte_pos2 (on "l12 sphere"), and 
+  // its index, radius and cartesian coordinates
+  Vector  posc( max(Index(2),atmosphere_dim) );
+  Index   ip;
+  Numeric rc, xc, yc=0, zc, dxip, dyip=0, dzip;
   //
-  while( !ready && !failed )
+  while( !ready )
     {
-      cout << rte_los[0]-rte_los_geom[0] << " ";
+      out3 << "    Trying rte_los: [" << rte_los << "]\n";
 
       // Path for present rte_los (no cloudbox!)
-      ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-                  lat_grid, lon_grid, t_field, z_field, vmr_field, 
-                  refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-                  rte_pos, rte_los, 0, verbosity );
+      ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, 
+               lat_grid, lon_grid, t_field, z_field, vmr_field, refellipsoid, 
+               z_surface, 0, ArrayOfIndex(0), rte_pos, rte_los, 0, verbosity );
 
       // Find the point closest to rte_pos2, on the side towards rte_pos. 
       // We do this by looking at the distance to rte_pos, that should be 
       // as close to l12 as possible, but not exceed it.
-      //
       Numeric lip = 99e99;
-      Index ip = ppath.np;
+      ip = ppt.np;
       //
       while( lip >= l12  &&  ip > 0 )
         {
@@ -193,99 +205,86 @@ void ppathFromRtePos2(
           
           // Distance between rte_pos and ppath point
           if( atmosphere_dim <= 2 )
-            { distance2D( lip, r1, lat1, ppath.r[ip], ppath.pos(ip,1) ); }
+            { distance2D( lip, r1, lat1, ppt.r[ip], ppt.pos(ip,1) ); }
           else
             { distance3D( lip, r1, rte_pos[1], rte_pos[2], 
-                          ppath.r[ip], ppath.pos(ip,1), ppath.pos(ip,2) ); }
+                          ppt.r[ip], ppt.pos(ip,1), ppt.pos(ip,2) ); }
         }
 
       // Surface intersections too far from rte_pos2 not OK 
-      if( ppath_what_background(ppath) == 2  &&  ip == ppath.np-1  
-                                             &&  l12-lip > 10e3 ) 
+      // (50 km selected to allow misses of smaller size when rte_pos2 is at
+      // surface level, but surface interference never OK if rte_pos above TOA)
+      if( ppath_what_background(ppt) == 2  &&  ip == ppt.np-1  
+                                             &&  l12-lip > 50e3 ) 
         { 
-          surface_hits++;
-
           // Stop if "too many" surface hits
-          if( surface_hits == 100 )
+          surface_hits++;
+          if( surface_hits == 20 )
             { 
-              //Print( ppath, 0, Verbosity() );
               ostringstream os;
               os << "Repeated intersections with the surface caused failure\n"
                  << "in the attempt to determine propagation path.";
               throw runtime_error( os.str() );
             }
-          cout << "Surface intersection !!!\n";
 
-          // Set H, with a ? error
-          H(0,0)=1;  H(0,1)=0.1; H(0,2)=rte_los[0]; 
-          H(0,3)=99e3; H(0,4)=99e3; 
+          // Set H, with a relative lare error
+          H(0,0)=1;  H(0,1)=0.1; H(0,2)=rte_los[0]; H(0,3)=99e3; H(0,4)=99e3; 
 
-          // If an OK lower angle exist, select an angle relatively close
-          // to that one. Otherwise, make a substantial jump upwards
+          // If an OK lower angle exist, take middle point.
+          // Otherwise, make a substantial jump upwards
           if( H(1,0) > 0 )
             { rte_los[0] =  0.5*rte_los[0] + 0.5*H(1,2); }
           else
             { rte_los[0] -= 0.25; }
-          cout << H << endl;
         }
 
-      // Path OK:
+      // No surface intersection:
       else
         {
           // Estimate ppath at the distance of l12, and the distance from
           // that point to rte_pos2 (ds)
-          Vector  posc;
           if( atmosphere_dim <= 2 )
             { 
               // Convert pos and los for point ip to cartesian coordinates
-              Numeric xip, zip, dxip, dzip;
-              poslos2cart( xip, zip, dxip, dzip, ppath.r[ip], 
-                           ppath.pos(ip,1), ppath.los(ip,0) );
+              Numeric xip, zip;
+              poslos2cart( xip, zip, dxip, dzip, ppt.r[ip], ppt.pos(ip,1), 
+                                                              ppt.los(ip,0) );
               // Find where the extension from point ip crosses the l12 
               // sphere: point c
-              Numeric xc, zc, rc, latc;
+              Numeric latc;
               line_circle_intersect( xc, zc, xip, zip, dxip, dzip, x1, z1, l12);
-              cart2pol( rc, latc, xc, zc, ppath.pos(ip,1), ppath.los(ip,0) );
-              posc.resize(2);
+              cart2pol( rc, latc, xc, zc, ppt.pos(ip,1), ppt.los(ip,0) );
               posc[1] = latc;
               posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
                                                     lat_grid, lon_grid, posc );
               distance2D( ds, rc, latc, r2, rte_pos2[1] );
               dl = sqrt( l12*l12 + ds*ds ) - l12;
-              cout << posc[0]-rte_pos2[0] << " " 
-                   << (posc[1]-rte_pos2[1])*111e3 << " " 
-                  << dl << " " << ds << " ";
             }
           else
             { 
               // Convert pos and los for point ip to cartesian coordinates
-              Numeric xip, yip, zip, dxip, dyip, dzip;
-              poslos2cart( xip, yip, zip, dxip, dyip, dzip, ppath.r[ip], 
-                           ppath.pos(ip,1), ppath.pos(ip,2), 
-                           ppath.los(ip,0), ppath.los(ip,1) );
+              Numeric xip, yip, zip;
+              poslos2cart( xip, yip, zip, dxip, dyip, dzip, ppt.r[ip], 
+                           ppt.pos(ip,1), ppt.pos(ip,2), 
+                           ppt.los(ip,0), ppt.los(ip,1) );
               // Find where the extension from point ip crosses the l12 
               // sphere: point c
-              Numeric xc, yc, zc, rc, latc, lonc;
+              Numeric latc, lonc;
               line_sphere_intersect( xc, yc, zc, xip, yip, zip, 
-                                     dxip, dyip, dzip, x1, y1, z1, l12 );
-              cart2sph( rc, latc, lonc, xc, yc, zc, ppath.pos(ip,1), 
-                        ppath.pos(ip,2), ppath.los(ip,0), ppath.los(ip,1) );
-              posc.resize(3);
+                                           dxip, dyip, dzip, x1, y1, z1, l12 );
+              cart2sph( rc, latc, lonc, xc, yc, zc, ppt.pos(ip,1), 
+                           ppt.pos(ip,2), ppt.los(ip,0), ppt.los(ip,1) );
               posc[1] = latc;
               posc[2] = lonc;
               posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
                                                     lat_grid, lon_grid, posc );
               distance3D( ds, rc, latc, lonc, r2, rte_pos2[1], rte_pos2[2] );
               dl = sqrt( l12*l12 + ds*ds ) - l12;
-              cout << posc[0]-rte_pos2[0] << " " 
-                   << (posc[1]-rte_pos2[1])*111e3 << " " 
-                    << (posc[2]-rte_pos2[2])*111e3 << " " 
-                  << dl << " " << ds << " ";
             }
 
           // Converged?
           if( dl < dlmax )
-            { ready = true; cout << endl; } 
+            { ready = true;  } 
           
           // Otherwise, calculate new rte_los
           else
@@ -294,10 +293,6 @@ void ppathFromRtePos2(
               rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, 
                   lat_grid, lon_grid, refellipsoid, rte_pos, posc, verbosity );
               Numeric dza = los[0] - rte_los_geom[0];
-              cout << dza << endl;
-              
-              //rte_los[0] += 0.01;
-
 
               // Any improvement compared to existing results in H
               if( dza > 0   &&  dza < H(0,1) )
@@ -306,76 +301,109 @@ void ppathFromRtePos2(
               else if( dza < 0   &&  dza > H(1,1) )
                 { H(1,0)=1;  H(1,1)=dza; H(1,2)=rte_los[0]; 
                   H(1,3)=dl; H(1,4)=ds; } 
-              else
-                { failed = true; }
-              cout << H << endl;
-
-              // Select new rte_los
-              if( ~ready )
-                {
-                  if( H(0,0)>0  &&  H(1,0)>0 )
-                    { rte_los[0] = H(1,2) - (H(0,2)-H(1,2)) * H(1,1) / 
-                                            (H(0,1)-H(1,1)); }
-                  else
-                    { rte_los[0] -= dza; }
-
-                  // Simplest possible correction for azimuth angle
-                  if( atmosphere_dim == 3 )
-                    { rte_los[1] -= los[1] - rte_los_geom[1]; }
+              else // Ending up here means likely "jitter" in ppath calculation
+                { 
+                  if( H(0,3) < H(1,3) )  { dl = H(0,3); ds = H(0,4); }
+                  else                   { dl = H(1,3); ds = H(1,4); }
+                  ostringstream os;
+                  os << "The smallest path length error achieved is " << dl
+                     << " m,\nwhich is a too high value.\n Geographically, the"
+                     << " closest match with *rte_pos2* is " << ds << " m.\n"
+                     << "This can (hopefully) be improved by decreasing the \n"
+                     << "value of *ppath_lmax* and *ppath_lraytrace*.\n";
+                  throw runtime_error( os.str() );
                 }
+
+              // Select new rte_los. If both rows of H filled, use bisection. 
+              // Otherwise use dza.
+              if( H(0,0)>0  &&  H(1,0)>0 )
+                { rte_los[0] = H(1,2) - (H(0,2)-H(1,2)) * H(1,1) / 
+                                                             (H(0,1)-H(1,1)); }
+              else
+                { rte_los[0] -= dza; }
+
+              // For azimuth angle, we just apply the "miss angle"
+              if( atmosphere_dim == 3 )
+                { rte_los[1] -= los[1] - rte_los_geom[1]; }
             }
         }
 
       // Brake if not finding a solution
       counter++;
-      if( counter >= 200 )
+      if( counter >= 50 )
         throw runtime_error( "Sorry, but the algorithm is not converging. "
                              "Don't know what to do!" );
     }
+  out2 << "  Length error: " << dl << " m.\n";
+  out2 << "  Spatial miss: " << ds << " m.\n";
 
-  // If "failed", the last calculation is not the best one. 
-  // Reconstruct best solution:
-  if( failed )
-    {
-      if( H(0,3) < H(1,3) )
-        { rte_los[0] = H(0,2); dl = H(0,3); ds = H(0,4); }
-      else
-        { rte_los[0] = H(1,2); dl = H(1,3); ds = H(1,4); }
+  // Create final ppath. Background here always set to space as iy_space_agenda
+  // used for transmitted signal even if transmitter inside the atmosphere
 
-      // This solution OK?
-      if( dl > 100*dlmax )
-        {
-          ostringstream os;
-          os << "The smallest path length error achieved is " << dl
-             << " m,\nwhich is a too high value.\n"
-             << "Geographically, the closest match with *rte_pos2* is " 
-             << ds << " m.\n"
-             << "This can (hopefully) be improved by decreasing the value of\n"
-             << "*ppath_lmax* and *ppath_lraytrace*\n";
-          throw runtime_error( os.str() );
-        }
+  // Distance between point ip of ppt and posc
+  Numeric ll;
+  if( atmosphere_dim <= 2 )
+    { distance2D( ll, rc, posc[1], ppt.r[ip], ppt.pos(ip,1) ); }
+  else
+    { distance3D( ll, rc, posc[1], posc[2], ppt.r[ip], ppt.pos(ip,1), 
+                                                       ppt.pos(ip,2) ); }
 
-      ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-                  lat_grid, lon_grid, t_field, z_field, vmr_field, 
-                  refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-                  rte_pos, rte_los, 0, verbosity );
+  // Last point of ppt closest to rte_pos2 (no point to add, maybe increase
+  // lspace): 
+  if( ip == ppt.np-1 )
+    { 
+      ppath_init_structure( ppath, atmosphere_dim, ppt.np );
+      ppath_copy( ppath, ppt, -1 );
+      ppath_set_background( ppath, 1 );
+      if( ppath_what_background( ppath ) == 1 )
+        { ppath.lspace += ll; }
     }
-
-  if( ready )
-  cout << " |                Convergence: OK\n";
+  // rte_pos2 inside the atmosphere (posc entered as end point) 
   else
-  cout << " |                Convergence: Failed\n";
-  cout << " |          Path length error: " << dl << " m.\n";
-  cout << " | Spatial miss of *rte_pos2*: " << ds << " m.\n";
+    {
+      ppath_init_structure( ppath, atmosphere_dim, ip+2 );
+      ppath_copy( ppath, ppt, ip+1 );
+      ppath_set_background( ppath, 1 );
+      //
+      const Index i = ip+1;
+      if( atmosphere_dim <= 2 )
+        { cart2poslos( ppath.r[i], ppath.pos(i,1), ppath.los(i,0), xc, zc, 
+                       dxip, dzip, ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                       ppt.pos(ip,1), ppt.los(ip,0) ); }
+      else
+        { cart2poslos( ppath.r[i], ppath.pos(i,1), ppath.pos(i,2), 
+                       ppath.los(i,0), ppath.los(i,1), xc, yc, zc, 
+                       dxip, dyip, dzip, ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                       ppt.pos(ip,1), ppt.pos(ip,2), 
+                       ppt.los(ip,0), ppt.los(ip,1) ); }
+      //
+      ppath.pos(i,0)   = posc[0];
+      ppath.lstep[i-1] = ll;
 
-  CREATE_OUT2
-  if( ready )
-  out2 << " |                Convergence: OK\n";
-  else
-  out2 << " |                Convergence: Failed\n";
-  out2 << " |          Path length error: " << dl << " m.\n";
-  out2 << " | Spatial miss of *rte_pos2*: " << ds << " m.\n";
+      // nreal by linear interpolation
+      assert( ll < ppt.lstep[i-1] );
+      const Numeric w = ll/ppt.lstep[i-1];
+      ppath.nreal[i] = (1-w)*ppt.nreal[i-1] + w*ppt.nreal[i];
 
+      // Grid positions
+      Vector z_grid( p_grid.nelem() );
+      if( atmosphere_dim == 1 )
+        { z_grid = z_field(joker,0,0); }
+      else if( atmosphere_dim == 2 )
+        { 
+          gridpos( ppath.gp_lat[i], lat_grid, ppath.pos(i,1) ); 
+          z_at_lat_2d( z_grid, p_grid, lat_grid, z_field(joker,joker,0), 
+                                                             ppath.gp_lat[i] );
+        }
+      else if( atmosphere_dim == 3 )
+        { 
+          gridpos( ppath.gp_lat[i], lat_grid, ppath.pos(i,1) ); 
+          gridpos( ppath.gp_lon[i], lon_grid, ppath.pos(i,2) ); 
+          z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
+                                            ppath.gp_lat[i], ppath.gp_lon[i] );
+        }
+      gridpos( ppath.gp_p[i], z_grid, ppath.pos(i,0) );
+    }
 }
 
 
@@ -573,10 +601,10 @@ void PrintTangentPoint(
 
   else
     {
-      os << "   z: " << ppath.pos(imin,0)/1e3 << " km\n" 
-         << " lat: " << ppath.pos(imin,1) << " deg";
+      os << "    z: " << ppath.pos(imin,0)/1e3 << " km\n" 
+         << "  lat: " << ppath.pos(imin,1) << " deg";
         if( ppath.pos.ncols() == 3 )
-          os << "\n lon: " << ppath.pos(imin,2) << " deg";
+          os << "\n   lon: " << ppath.pos(imin,2) << " deg";
     }
 
   CREATE_OUTS

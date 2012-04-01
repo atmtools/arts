@@ -1601,15 +1601,24 @@ Index ppath_what_background( const Ppath&   ppath )
 
    \param   ppath1    Output: Ppath structure.
    \param   ppath2    The ppath structure to be copied.
+   \param   ncopy     Number of points in ppath2 to copy. If set to negative,
+                      the number is set to ppath2.np. 
 
    \author Patrick Eriksson
    \date   2002-07-03
 */
 void ppath_copy(
            Ppath&      ppath1,
-     const Ppath&      ppath2 )
+    const Ppath&       ppath2,
+    const Index&       ncopy )
 {
-  assert( ppath1.np >= ppath2.np ); 
+  Index n;
+  if( ncopy < 0 )
+    { n = ppath2.np; }
+  else
+    { n = ncopy; }
+
+  assert( ppath1.np >= n ); 
 
   // The field np shall not be copied !
 
@@ -1618,14 +1627,14 @@ void ppath_copy(
   ppath1.background = ppath2.background;
   ppath1.lspace     = ppath2.lspace;
 
-  ppath1.pos(Range(0,ppath2.np),joker) = ppath2.pos;
-  ppath1.los(Range(0,ppath2.np),joker) = ppath2.los;
-  ppath1.r[Range(0,ppath2.np)]         = ppath2.r;
-  ppath1.nreal[Range(0,ppath2.np)]     = ppath2.nreal;
-  if( ppath2.np > 1 )
-    { ppath1.lstep[Range(0,ppath2.np-1)]  = ppath2.lstep; }
+  ppath1.pos(Range(0,n),joker) = ppath2.pos(Range(0,n),joker);
+  ppath1.los(Range(0,n),joker) = ppath2.los(Range(0,n),joker);
+  ppath1.r[Range(0,n)]         = ppath2.r[Range(0,n)];
+  ppath1.nreal[Range(0,n)]     = ppath2.nreal[Range(0,n)];
+  if( n > 1 )
+    { ppath1.lstep[Range(0,n-1)]  = ppath2.lstep[Range(0,n-1)]; }
 
-  for( Index i=0; i<ppath2.np; i++ )
+  for( Index i=0; i<n; i++ )
     {
       gridpos_copy( ppath1.gp_p[i], ppath2.gp_p[i] );
       
@@ -1666,10 +1675,10 @@ void ppath_append(
 
   Ppath   ppath;
   ppath_init_structure( ppath, ppath1.dim, n1 );
-  ppath_copy( ppath, ppath1 );
+  ppath_copy( ppath, ppath1, -1 );
 
   ppath_init_structure( ppath1, ppath1.dim, n1 + n2 - 1 );
-  ppath_copy( ppath1, ppath );
+  ppath_copy( ppath1, ppath, -1 );
 
   // Append data from ppath2
   Index i1;
@@ -2529,7 +2538,7 @@ void ppath_step_geom_1d(
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
+      ppath_copy( ppath2, ppath, -1 );
 
       ppath_step_geom_1d( ppath2, z_field, refellipsoid, z_surface, lmax );
 
@@ -2743,7 +2752,7 @@ void ppath_step_geom_2d(
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
+      ppath_copy( ppath2, ppath, -1 );
 
       ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
                                                                         lmax );
@@ -3160,7 +3169,7 @@ void ppath_step_geom_3d(
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
+      ppath_copy( ppath2, ppath, -1 );
 
       ppath_step_geom_3d( ppath2, lat_grid, lon_grid, z_field, refellipsoid, 
                                                              z_surface, lmax );
@@ -4158,7 +4167,6 @@ void ppath_start_stepping(
     const Verbosity&      verbosity)
 {
   CREATE_OUT1
-  CREATE_OUT2
   
   // This function contains no checks or asserts as it is only a sub-function.
 
@@ -4885,8 +4893,6 @@ void ppath_calc(      Workspace&      ws,
                 const bool&           ppath_inside_cloudbox_do,
                 const Verbosity&      verbosity)
 {
-  CREATE_OUT2
-  
   // This function is a WSM but it is normally only called from yCalc. 
   // For that reason, this function does not repeat input checks that are
   // performed in yCalc, it only performs checks regarding the sensor 
@@ -4899,18 +4905,6 @@ void ppath_calc(      Workspace&      ws,
     throw runtime_error( "The WSV *ppath_inside_cloudbox_do* can only be set "
                          "to 1 if also *cloudbox_on* is 1." );
   //--- End: Check input ------------------------------------------------------
-
-
-  // Some messages
-  out2 << "  -------------------------------------\n";
-  out2 << "  sensor altitude        : " << rte_pos[0]/1e3 << " km\n";
-  if( atmosphere_dim >= 2 )    
-    out2 << "  sensor latitude        : " << rte_pos[1] << "\n";
-  if( atmosphere_dim == 3 )
-    out2 << "  sensor longitude       : " << rte_pos[2] << "\n";
-  out2 << "  sensor zenith angle    : " << rte_los[0] << "\n";
-  if( atmosphere_dim == 3 )
-    out2 << "  sensor azimuth angle   : " << rte_los[1] << "\n";
 
 
   // Initiate the partial Ppath structure. 
@@ -4933,8 +4927,6 @@ void ppath_calc(      Workspace&      ws,
 
   // The only data we need to store from this initial ppath_step is lspace
   const  Numeric lspace = ppath_step.lspace;  
-
-  out2 << "  -------------------------------------\n";
 
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
@@ -5179,7 +5171,7 @@ void ppath_calc(      Workspace&      ws,
   //
   if( na == 0 )    // No path, just the starting point
     {
-      ppath_copy( ppath, ppath_step );
+      ppath_copy( ppath, ppath_step, 1 );
       // To set nreal for positions inside the atmosphere, ppath_step_agenda
       // must be called once. The later is not always the case. A fix to handle
       // those cases:  

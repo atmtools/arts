@@ -4798,6 +4798,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyRadioLink" ),
+        DESCRIPTION
+        (
+         "Method in development ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+            "iy_agenda_call1", "iy_transmission", 
+            "rte_pos", "jacobian_do",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
+            "wind_w_field", "refellipsoid", "z_surface", "cloudbox_on", 
+            "stokes_dim", "f_grid", "mblock_index",
+            "ppath_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianAddAbsSpecies" ),
         DESCRIPTION
         (

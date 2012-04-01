@@ -1372,6 +1372,138 @@ void iyMC(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iyRadioLink(
+        Workspace&            ws,
+        Matrix&               iy,
+        Matrix&               iy_error _U_,
+        Index&                iy_error_type _U_,
+        Matrix&               iy_aux,
+        ArrayOfTensor3&       diy_dx _U_,
+  const Index&                iy_agenda_call1,
+  const Tensor3&              iy_transmission _U_,
+  const Vector&               rte_pos,      
+  const Index&                jacobian_do,
+  const Index&                atmosphere_dim,
+  const Vector&               p_grid,
+  const Vector&               lat_grid,
+  const Vector&               lon_grid,
+  const Tensor3&              z_field,
+  const Tensor3&              t_field,
+  const Tensor4&              vmr_field,
+  const Tensor3&              wind_u_field,
+  const Tensor3&              wind_v_field,
+  const Tensor3&              wind_w_field,
+  const Vector&               refellipsoid,
+  const Matrix&               z_surface,
+  const Index&                cloudbox_on,
+  const Index&                stokes_dim,
+  const Vector&               f_grid,
+  const Index&                mblock_index,
+  const Agenda&               ppath_agenda,
+  const Agenda&               abs_scalar_gas_agenda,
+  const Agenda&               iy_clearsky_agenda,
+  const Agenda&               iy_space_agenda,
+  const Agenda&               surface_prop_agenda,
+  const Agenda&               iy_cloudbox_agenda,
+  const Verbosity&            verbosity )
+{
+  // See initial comments of iyEmissionStandardClearsky
+
+  if( !iy_agenda_call1 )
+    throw runtime_error( 
+                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+
+  // Jacobians not yet handled. Set vars to be empty.
+  if( jacobian_do )
+    throw runtime_error( "This method does not yet provide any jacobians and "
+                         "*jacobian_do* must be 0." );
+
+
+  // Sizes
+  //
+  const Index nf = f_grid.nelem();
+  //
+  iy_aux.resize( nf, stokes_dim ); 
+  iy_aux = 0;  // Remove when iy_aux handled
+
+  //- Determine propagation path
+  //
+  Ppath  ppath;
+  Vector rte_los(0);
+  //
+  ppath_agendaExecute( ws, ppath, rte_los, rte_pos, cloudbox_on, 0,
+                       mblock_index, t_field, z_field, vmr_field, 
+                       ppath_agenda );
+  if( ppath_what_background(ppath) > 2 )
+    { throw runtime_error( "Radiative background not set to \"space\" by "
+                      "*ppath_agenda*. Is correct WSM used in teh agenda?" ); }
+
+  // Get atmospheric and RT quantities for each ppath point/step
+  //
+  // If np = 1, we only need to determine the radiative background
+  // "atmvars"
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Matrix    ppath_vmr;
+  // "rtvars"
+  Vector    total_tau;
+  Matrix    emission_dummy, ppath_tau;
+  Tensor3   ppath_abs_scalar, iy_trans_new;
+  Agenda    agenda_dummy;
+  //
+  const Index np  = ppath.np;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_u_field, wind_v_field, wind_w_field );
+
+      // Absorption and optical thickness for each step
+      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                        emission_dummy,  abs_scalar_gas_agenda, agenda_dummy,
+                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 0 );
+    }
+
+  // Radiative background
+  //
+  Matrix          dummy1, dummy3;
+  Index           dummy2;
+  ArrayOfTensor3  dummy4;
+  Tensor3         dummy5;
+  //
+  get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
+                        jacobian_do, ppath, atmosphere_dim, 
+                        lat_grid, lon_grid, t_field, z_field, 
+                        vmr_field, refellipsoid, z_surface, cloudbox_on, 
+                        stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
+                        surface_prop_agenda, iy_cloudbox_agenda, verbosity );
+  
+  // Do RT calculations
+  //
+  if( np > 1 )
+    {
+      // Loop ppath steps
+      for( Index ip=np-2; ip>=0; ip-- )
+        {
+          // Loop frequencies
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+              //
+              for( Index is=0; is<stokes_dim; is++ )
+                { iy(iv,is) *= step_tr; }
+            }
+        } 
+    }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyCalc(
         Workspace&   ws,
         Matrix&      iy,

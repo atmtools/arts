@@ -158,8 +158,9 @@ void ppath_set_background(
 Index ppath_what_background( const Ppath&   ppath );
 
 void ppath_copy(
-              Ppath&      ppath1,
-        const Ppath&      ppath2 );
+          Ppath&      ppath1,
+    const Ppath&       ppath2,
+    const Index&       ncopy );
 
 void ppath_step_geom_1d(
               Ppath&      ppath,

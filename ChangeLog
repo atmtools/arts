@@ -1,3 +1,22 @@
+2012-04-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-63
+
+	* src/m_rte.cc (iyRadioLink): New WSM. So far just calculating the
+	ransmission (jacobians and iy_aux not yet handled). But first
+	complete radio link calculations!
+
+	* src/m_ppath.cc (ppathFromRtePos2): A complete version.
+
+	* src/ppath.cc: Several functions adopted to change of ppath_copy.
+
+	(ppath_copy): Handles now also partial copying of
+	ppath2.
+
+	(ppath_calc): Now completely silent. The output just makes it hard
+	to get good reports from the WSM using this function. So moving
+	the reporting to the WSMs.
+	
 2012-04-01  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-62
