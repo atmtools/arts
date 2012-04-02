@@ -1,3 +1,23 @@
+2012-04-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-64
+
+	* cmake/modules/ArtsTestcases.cmake:
+
+	Add convenience macros to create controlfile based tests.
+
+	* tests/CMakeLists.txt:
+
+	Add more new tests and use new macro to create them. MC test cases
+	still need the check against reference values implemented.
+
+	* src/xml_io.cc
+	(xml_read_from_file,xml_read_arts_catalogue_from_file):
+
+	Make sure we read the .bin file from the same path as the .xml file.
+
+	* CMakeLists.txt: Tweak newcheck-fast.
+
 2012-04-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-63

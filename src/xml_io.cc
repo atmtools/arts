@@ -913,7 +913,7 @@ xml_read_from_file (const String& filename,
         }
       else
         {
-          String bfilename = efilename + ".bin";
+          String bfilename = xml_file + ".bin";
           bifstream bifs (bfilename.c_str ());
           xml_read_from_stream (*ifs, type, &bifs, verbosity);
         }
@@ -923,7 +923,7 @@ xml_read_from_file (const String& filename,
     {
       delete ifs;
       ostringstream os;
-      os << "Error reading file: " << efilename << '\n'
+      os << "Error reading file: " << xml_file << '\n'
          << e.what ();
       throw runtime_error (os.str ());
     }
@@ -1000,7 +1000,7 @@ xml_read_arts_catalogue_from_file (const String&      filename,
         }
       else
         {
-          String bfilename = efilename + ".bin";
+          String bfilename = xml_file + ".bin";
           bifstream bifs (bfilename.c_str ());
           xml_read_from_stream (*ifs, type, fmin, fmax, &bifs, verbosity);
         }
@@ -1010,7 +1010,7 @@ xml_read_arts_catalogue_from_file (const String&      filename,
     {
       delete ifs;
       ostringstream os;
-      os << "Error reading file: " << efilename << '\n'
+      os << "Error reading file: " << xml_file << '\n'
          << e.what ();
       throw runtime_error (os.str ());
     }
