@@ -956,18 +956,37 @@ void ScatteringParticlesSelect (//WS Output:
     // connected to each selection String in *part_species*   
     scat_data_nelem[k] = intarr.nelem() - intarr_total;
     intarr_total = intarr.nelem();
+
+    // Use particle profile without corresponding ScattData poses high risk of
+    // accidentially neglecting those particles. That's unlikely what the user
+    // intends. Hence throw error.
+    if (scat_data_nelem[k]<1)
+      {
+        ostringstream os;
+        os << "Particle species " << part_type << " of type " << type
+           << " requested.\n"
+           << "But no Scattering Data found for it!\n";
+        throw runtime_error ( os.str() );
+      }
   }
+
   // check if array is empty
   if ( !intarr.nelem() )
   {
+    /* don't throw error. just a warning (should only apply when part_species is empty)!
     ostringstream os;
     os << "The selection in " << part_species << 
         " is NOT choosing any of the given Scattering Data.\n"
         "--> Does the selection in *part_species* fit any of the "
         "Single Scattering Data input? \n";
-    throw runtime_error ( os.str() );
+    throw runtime_error ( os.str() );*/
+    out1 << "WARNING! No ScatteringData selected.\n"
+         << "Continuing with no particles.\n";
   }
+
   // check if we ignored any ScatteringMetaData entry
+  /* JM120401: what's the meaning of this? does it work properly?
+               uncomment again, when answered.
   for ( Index j = 0; j<selected.nelem(); j++)
   {
     if (selected[j]==0)
@@ -975,7 +994,7 @@ void ScatteringParticlesSelect (//WS Output:
       out1 << "WARNING! Ignored ScatteringMetaData[" << j << "] ("
            << scat_data_meta_array_tmp[j].type << ")!\n";
     }
-  }
+  } */
 
 
   // resize WSVs to size of intarr
@@ -1415,9 +1434,11 @@ void pnd_fieldSetup (//WS Output:
   {
 
     String psd_param;
+    String part_type;
 
     //split String and copy to ArrayOfString
     parse_psd_param( psd_param, part_species[k]);
+    parse_part_type( part_type, part_species[k]);
 
     // initialize control parameters
     Vector vol_unsorted ( scat_data_nelem[k], 0.0 );
@@ -1450,7 +1471,7 @@ void pnd_fieldSetup (//WS Output:
       // NOTE: the order of scattering particle profiles in *massdensity_field*
       // is HARD WIRED!
       // extract IWC_field and convert from kg/m^3 to g/m^3
-      Tensor3 IWC_field = massdensity_field ( 1, joker, joker, joker );
+      Tensor3 IWC_field = massdensity_field ( k, joker, joker, joker );
       IWC_field*=1000; //IWC [g/m^3]
       //out0<<"\n"<<IWC_field<<"\n";
 
@@ -1474,50 +1495,54 @@ void pnd_fieldSetup (//WS Output:
         }
       }
       
-
-      // itertation over all atm. levels
-      for ( Index p=p_cbstart; p<p_cbend; p++ )
+      if (dm.nelem() > 0)
+      // dm.nelem()=0 implies no selected particles for the respective particle
+      // field. should not occur
       {
-        for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
-        {
-          for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
+          // iteration over all atm. levels
+          for ( Index p=p_cbstart; p<p_cbend; p++ )
           {
-            // iteration over all given size bins
-            for ( Index i=0; i<dm.nelem(); i++ )
+            for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
             {
-              // calculate particle size distribution with MH97
-              // [# m^-3 m^-1]
-              dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ), dm[i],
-                                      t_field ( p, lat, lon ), rho[i], noisy );
-	      //dN2[i] = dN[i] * vol[i] * rho[i];
-            }
-            //out0<<"level: "<<p<<"\n"<<dN<<"\n";
+              for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
+              {
+                // iteration over all given size bins
+                for ( Index i=0; i<dm.nelem(); i++ )
+                {
+                  // calculate particle size distribution with MH97
+                  // [# m^-3 m^-1]
+                  dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ), dm[i],
+                                          t_field ( p, lat, lon ), rho[i], noisy );
+                  //dN2[i] = dN[i] * vol[i] * rho[i];
+                }
+                //out0<<"level: "<<p<<"\n"<<dN<<"\n";
             
-            // scale pnds by bin width
-            if (dm.nelem() > 1)
-            {
-              scale_pnd( pnd, dm, dN );
-            }
-            else //if (dm.nelem() > 0)
-            {
-              pnd = dN;
-            }
-
+                // scale pnds by bin width
+                if (dm.nelem() > 1)
+                {
+                  scale_pnd( pnd, dm, dN );
+                }
+                else
+                {
+                  pnd = dN;
+                }
 	    
-	    //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
-            // calculate error of pnd sum and real XWC
-            chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho, p, lat, lon, verbosity );
-            //chk_pndsum2 (pnd2, IWC_field ( p,lat,lon ));
+                //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
+                // calculate error of pnd sum and real XWC
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
+                             p, lat, lon, part_type, verbosity );
+                //chk_pndsum2 (pnd2, IWC_field ( p,lat,lon ));
 	    
-            // writing pnd vector to wsv pnd_field
-            for ( Index i = 0; i< scat_data_nelem[k]; i++ )
-            {
-              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
-                          lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
-            }
+                // writing pnd vector to wsv pnd_field
+                for ( Index i = 0; i< scat_data_nelem[k]; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
+                              lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
+                }
 
+              }
+            }
           }
-        }
       }
 
     }
@@ -1525,7 +1550,6 @@ void pnd_fieldSetup (//WS Output:
     //---- start pnd_field calculations for H11 ----------------------------
     else if ( psd_param == "H11" )
     {
-      String part_type;
       Tensor3 X_field;
 
       for ( Index i=0; i < scat_data_nelem[k]; i++ )
@@ -1535,25 +1559,9 @@ void pnd_fieldSetup (//WS Output:
       }
       get_sorted_indexes(intarr, d_max_unsorted);
       
-      //get particle type to decide if H11 gets apllied on 'IWC' profile or 'Snow' profile
-      parse_part_type( part_type, part_species[k]);
-      
-      if (  part_type == "IWC" )
-      {
-	// NOTE: the order of scattering particle profiles in *massdensity_field*
-        // is HARD WIRED!
-	// extract IWC and convert from kg/m^3 to g/m^3
-	X_field = massdensity_field ( 1, joker, joker, joker );
-	X_field *= 1000; //IWC [g/m^3]
-      }
-      else if ( part_type == "Snow" )
-      {
-	// NOTE: the order of scattering particle profiles in *massdensity_field*
-	// is HARD WIRED!
-	// extract Snow rate and convert from kg/(m2*s) to g/(m2*s)
-	X_field = massdensity_field ( 3, joker, joker, joker );
-	X_field *= 1000; //Snow [g/(m2*s)]
-      } 
+      X_field = massdensity_field ( k, joker, joker, joker );
+      X_field *= 1000; // [kg/m^3] -> [g/m^3]
+
       // extract scattering meta data
       for ( Index i=0; i< scat_data_nelem[k]; i++ )
       {
@@ -1574,52 +1582,59 @@ void pnd_fieldSetup (//WS Output:
 			       "Check ScatteringMetaData!" );
         }
       }
-      // itertation over all atm. levels
-      for ( Index p=p_cbstart; p<p_cbend; p++ )
+
+      if (dm.nelem() > 0)
+      // dm.nelem()=0 implies no selected particles for the respective particle
+      // field. should not occur (once the "ignore" works for particle fields.
+      // up to then we need to catch it here...)
       {
-        for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
-        {
-          for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
+          // itertation over all atm. levels
+          for ( Index p=p_cbstart; p<p_cbend; p++ )
           {
-            // iteration over all given size bins
-            for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of particles
+            for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
             {
-              // calculate particle size distribution for H11
-              // [# m^-3 m^-1]
-              dN[i] = psd_H11 ( X_field ( p, lat, lon), dm[i], t_field ( p, lat, lon ) );
-            }
-            // scale pnds by scale width
-            if (dm.nelem() > 1)
-            {
-              scale_pnd( pnd, dm, dN ); //[# m^-3]
-            }
-            else //if (dm.nelem() > 0)
-            {
-              pnd = dN;
-            }
+              for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
+              {
+                // iteration over all given size bins
+                for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of particles
+                {
+                  // calculate particle size distribution for H11
+                  // [# m^-3 m^-1]
+                  dN[i] = psd_H11 ( X_field ( p, lat, lon), dm[i],
+                                    t_field ( p, lat, lon ) );
+                }
+                // scale pnds by scale width
+                if (dm.nelem() > 1)
+                {
+                  scale_pnd( pnd, dm, dN ); //[# m^-3]
+                }
+                else
+                {
+                  pnd = dN;
+                }
 
-	    //cout<<"\nlevel: "<<p<<"\n"<<"X: "<<X_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n"<< dN<<"\n"<<pnd<<"\n";
-            // scale H11 distribution (which is independent of Ice or 
-	    // Snow massdensity) to current massdensity.
-	    // Output pnd: still in [# m^-3]
-            scale_H11 ( pnd, X_field ( p,lat,lon ), vol, rho ); 
+                //cout<<"\nlevel: "<<p<<"\n"<<"X: "<<X_field ( p, lat, lon )<<"\n"
+                //    <<"T: "<<t_field ( p, lat, lon )<<"\n"<< dN<<"\n"<<pnd<<"\n";
+                // scale H11 distribution (which is independent of Ice or 
+                // Snow massdensity) to current massdensity.
+                // Output pnd: still in [# m^-3]
+                scale_H11 ( pnd, X_field ( p,lat,lon ), vol, rho ); 
 
-            // calculate error of pnd sum and real XWC
-            chk_pndsum ( pnd, X_field ( p,lat,lon ), vol, rho, p, lat, lon, verbosity );
+                // calculate error of pnd sum and real XWC
+                chk_pndsum ( pnd, X_field ( p,lat,lon ), vol, rho,
+                             p, lat, lon, part_type, verbosity );
 
-	    //cout<<pnd<<"\n";
-
-            // writing pnd vector to wsv pnd_field
-            for ( Index i =0; i< scat_data_nelem[k]; i++ )
-            {
-              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
-                          lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
-              //dlwc[q] = pnd2[q]*vol[q]*rho[q];
+                // writing pnd vector to wsv pnd_field
+                for ( Index i =0; i< scat_data_nelem[k]; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
+                              lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
+                  //dlwc[q] = pnd2[q]*vol[q]*rho[q];
+                }
+              }
             }
           }
-        }
       }
-
     }
     
     // ---- start pnd_field calculations for liquid ----------------------------
@@ -1636,7 +1651,7 @@ void pnd_fieldSetup (//WS Output:
       // NOTE: the order of scattering particle profiles in *massdensity_field*
       // is HARD WIRED!
       // extract LWC_field and convert from kg/m^3 to g/m^3
-      Tensor3 LWC_field = massdensity_field ( 0, joker, joker, joker );
+      Tensor3 LWC_field = massdensity_field ( k, joker, joker, joker );
       LWC_field *= 1000; //LWC [g/m^3]
 
       // extract scattering meta data
@@ -1661,62 +1676,78 @@ void pnd_fieldSetup (//WS Output:
             "Check ScatteringMetaData!" );
         }
       }
-      //cout<<"\nr:\t"<<r<<endl;
-      // itertation over all atm. levels
-      for ( Index p=p_cbstart; p<p_cbend; p++ )
+
+      if (dm.nelem() > 0)
+      // dm.nelem()=0 implies no selected particles for the respective particle
+      // field. should not occur (once the "ignore" works for particle fields.
+      // up to then we need to catch it here...)
       {
-        for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
-        {
-          for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
+          // itertation over all atm. levels
+          for ( Index p=p_cbstart; p<p_cbend; p++ )
           {
-            // iteration over all given size bins
-            for ( Index i=0; i<r.nelem(); i++ ) //loop over number of particles
+            for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
             {
-              // calculate particle size distribution for liquid
-              // [# m^-3 m^-1]
-              dN[i] = LWCtopnd ( LWC_field ( p,lat,lon ), r[i] );
-              //dN2[i] = LWCtopnd2 ( r[i] );  // [# m^-3 m^-1]
-	      //dN2[i] = dN[i] * vol[i] * rho[i];
-            }
-            //dlwc *= LWC_field(p, lat, lon)/dlwc.sum();
-            //out0<<"\n"<<dN<<"\n"<<dN2<<"\n";
+              for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
+              {
+                if (LWC_field ( p,lat,lon )>0.)
 
-            // scale pnds by scale width
-            if (r.nelem() > 1)
-            {
-              scale_pnd( pnd, r, dN ); //[# m^-3]
-            }
-            else //if (dm.nelem() > 0)
-            {
-              pnd = dN;
-            }
-	    //scale_pnd( pnd2, r, dN2 );
-            //trapezoid_integrate ( pnd2, r, dN2 );//[# m^-3]
-            //out0<<"\n"<<"HIER!"<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
+                // iteration over all given size bins
+                for ( Index i=0; i<r.nelem(); i++ ) //loop over number of particles
+                {
+                  // calculate particle size distribution for liquid
+                  // [# m^-3 m^-1]
+                  dN[i] = LWCtopnd ( LWC_field ( p,lat,lon ), r[i] );
+                  //dN2[i] = LWCtopnd2 ( r[i] );  // [# m^-3 m^-1]
+	          //dN2[i] = dN[i] * vol[i] * rho[i];
+                }
+                //dlwc *= LWC_field(p, lat, lon)/dlwc.sum();
+                //out0<<"\n"<<dN<<"\n"<<dN2<<"\n";
+
+                // scale pnds by scale width
+                if (r.nelem() > 1)
+                {
+                  scale_pnd( pnd, r, dN ); //[# m^-3]
+                }
+                else
+                {
+                  pnd = dN;
+                }
+	        //scale_pnd( pnd2, r, dN2 );
+                //trapezoid_integrate ( pnd2, r, dN2 );//[# m^-3]
+                //out0<<"\n"<<"HIER!"<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
 	    
-            // calculate error of pnd sum and real XWC
-            chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho, p, lat, lon, verbosity );
-	    //chk_pndsum2 (pnd2, LWC_field ( p,lat,lon ));
-            //chk_pndsum (pnd, testiwc[p], vol, rho);
+                // calculate error of pnd sum and real XWC
+                chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho,
+                             p, lat, lon, part_type, verbosity );
+                //chk_pndsum2 (pnd2, LWC_field ( p,lat,lon ));
+                //chk_pndsum (pnd, testiwc[p], vol, rho);
 
 
-            // writing pnd vector to wsv pnd_field
-            for ( Index i =0; i< scat_data_nelem[k]; i++ )
-            {
-              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
-                          lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
-              //dlwc[q] = pnd2[q]*vol[q]*rho[q];
+                // writing pnd vector to wsv pnd_field
+                for ( Index i =0; i< scat_data_nelem[k]; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
+                              lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
+                  //dlwc[q] = pnd2[q]*vol[q]*rho[q];
+                }
+
+                //out0<<"\n"<<LWC_field(p, lat, lon)<<"\n"<< dlwc.sum()<<"\n";
+
+                //pnd2 *= ( LWC_field ( p, lat, lon ) /dlwc.sum() );
+
+                //out0<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
+
+              }
             }
-
-            //out0<<"\n"<<LWC_field(p, lat, lon)<<"\n"<< dlwc.sum()<<"\n";
-
-            //pnd2 *= ( LWC_field ( p, lat, lon ) /dlwc.sum() );
-
-            //out0<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
-
           }
-        }
       }
+    }
+
+    else
+    {
+        ostringstream os;
+        os << "Size distribution function '" << psd_param << "' is unknown!\n";
+        throw runtime_error( os.str() );
     }
 
     // alter starting index of current scattering data array to starting index

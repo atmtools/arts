@@ -1148,6 +1148,7 @@ void chk_pndsum (Vector& pnd,
                  const Index& p,
                  const Index& lat,
                  const Index& lon,
+                 const String& part_type,
                  const Verbosity& verbosity)
 
 {
@@ -1157,11 +1158,14 @@ void chk_pndsum (Vector& pnd,
   Vector x ( pnd.nelem(), 0.0 );
   Numeric error;
 
+  //cout << "p = " << p << ", pnd.nelem:" << pnd.nelem() << ", xwc: " << xwc << "\n";
   for ( Index i = 0; i<pnd.nelem(); i++ )
   {
     // convert from particles/m^3 to g/m^3
     x[i] = pnd[i]*density[i]*vol[i];
-    //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
+    /*cout<< "p = " << p << ", i: " << i << "\n"
+        << "pnd[i]: " << pnd[i] << ", density[i]: " << density[i] << ", vol[i]: " << vol[i] << "\n"
+        << "x[i]: " << x[i] << "\n";*/
   }
 
   //cout<<"at p = "<<p<<", lat = "<<lat<<", lon = "<<lon
@@ -1180,7 +1184,7 @@ void chk_pndsum (Vector& pnd,
       os<< "ERROR: in WSM chk_pndsum in pnd_fieldSetup!\n" 
       << "Given mass density != 0, but calculated mass density == 0.\n"
       << "Seems, something went wrong in pnd_fieldSetup. Check!\n"
-      << "The problem occured at: "
+      << "The problem occured for profile '"<< part_type <<"' at: "
       << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
      throw runtime_error ( os.str() );
     }
@@ -1314,10 +1318,15 @@ void parse_psd_param (//WS Output:
 
   // split part_species string at "-" and write to ArrayOfString
   part_string.split ( strarr, "-" );
-  // second entry is particle size distribution parametrisation  ( e.g."MH97")
-  psd_param = strarr[1];
 
-  // jm120218: FIX!
+  // second entry is particle size distribution parametrisation  ( e.g."MH97")
+  // check, whether we have a second entry
+  if (strarr.size()>1)
+      psd_param = strarr[1];
+  else
+      psd_param = "";
+
+/*  // jm120218: FIX! <- DONE (120401)
   // this should not be checked here, but in pnd_fieldSetup (e.g., via
   // a case switch default)
   if ( psd_param.substr(0,4) != "MH97" && psd_param != "liquid" &&
@@ -1328,7 +1337,7 @@ void parse_psd_param (//WS Output:
        << " can not be handeled in the moment.\n"
        <<"Choose either 'MH97', 'H11' or 'liquid'!\n" ;
     throw runtime_error ( os.str() );
-  }
+  }*/
 }
 
 /*! Splitting part_species string and parse min and max particle radius

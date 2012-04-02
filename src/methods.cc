@@ -2314,7 +2314,7 @@ void define_md_data_raw()
          "                 There must be one name less than matrix columns,\n"
          "                 because the first column must contain pressure.\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
+        AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
         OUT( "atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
@@ -2330,51 +2330,6 @@ void define_md_data_raw()
                   "Order/names of atmospheric fields." )
         ));
     
-    md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "atm_fields_compactFromMatrixChevalAll" ),
-        DESCRIPTION
-        (
-         "Set *atm_fields_compact* and *atm_fields_compact_all* from 1D profiles in a matrix.\n"
-         "\n"
-         "This WSM replaces *atm_fields_compactFromMatrix* in case of calculations,\n"
-         "including scattering. *atm_fields_compact_all* additionally contains \n"
-         "the mass concentration profiles of scattering particles.\n"
-         "\n"
-         "In case of batch calculations, this WSM is called internally by\n" 
-         "*batch_atm_fields_compactFromArrayOfMatrixChevalAll*.\n"
-         "In this case *atm_fields_compact* is also still needed, for the WSM *abs_lookupSetupBatch*.\n"
-         "For that reason both GriddedField4 are defined as output here.\n"
-         "\n"
-         "For further documentation see: *atm_fields_compactFromMatrix*\n"
-         "\n"
-         "Row format:\n"
-         "\n"
-         "p[Pa] T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
-         "\n"
-         "Works only for *atmosphere_dim*==1.\n"
-         "\n"
-         "Possible future changes: name should fit naming conventions.\n"
-         "\tWSM *abs_lookupSetupBatch* could be edited to handle *batch_atm_fields_compact*\n"
-         "\tincluding scattering particles. Then two different *batch_atm_fields_compact*s\n"
-         "\tand two different *atm_fields_compact*s would no longer be necessary.\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "atm_fields_compact_all", "atm_fields_compact" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim" ),
-        GIN(      "gin1"      ,
-                  "field_names" ),
-        GIN_TYPE(    "Matrix",
-                     "ArrayOfString" ),
-        GIN_DEFAULT( NODEF   ,
-                     NODEF ),
-        GIN_DESC( "One atmosphere matrix from batch input ArrayOfMatrix.",
-                  "Order/Names of atmospheric fields." )
-        ));
-
 
   md_data_raw.push_back
     ( MdRecord
@@ -2405,67 +2360,19 @@ void define_md_data_raw()
          "pressure grid if it is too coarse. Or a version that interpolates onto\n"
          "given grids, instead of using and returning the original grids.\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field" ),
+        AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
+        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field",
+             "vmr_field", "massdensity_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "atm_fields_compact", "atmosphere_dim" ),
+        IN( "abs_species", "part_species", "atm_fields_compact", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
     
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "AtmFieldsFromCompactChevalAll" ),
-        DESCRIPTION
-        (
-         "Extract pressure grid and atmospheric fields from\n"
-         "*atm_fields_compact_all*.\n"
-         "\n"
-         "In contrast to *atm_fields_compact*, *atm_fields_compact_all*\n"
-         "also contains mass concentrations for scattering particles\n"
-         "\n"
-         "An atmospheric scenario includes the following data for each\n"
-         "position (pressure, latitude, longitude) in the atmosphere:\n"
-         "           1. temperature field\n"
-         "           2. the corresponding altitude field\n"
-         "           3. mass concentration fields for the scattering particles\n"
-         "           4. vmr fields for the gaseous species\n"
-         "This method just splits up the data found in *atm_fields_compact_all* to\n"
-         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation.\n"
-         "See documentation of *atm_fields_compact_all* for a definition of the data.\n"
-         "\n"
-         "NOTE: HARD WIRED code!\n"
-         "\n"
-         "There are some safety checks on the names of the fields: The first\n"
-         "field must be called \"T\", the second \"z\".\n"
-         "The following 4 fields must be \"LWC\", \"IWC\", \"Rain\" and \"Snow\".\n"
-         "Remaining fields must be trace gas species volume mixing ratios,\n"
-         "named for example \"H2O\", \"O3\", and so on. The species names must fit \n"
-         "the species in *abs_species*.\n"
-         "(Same species in same order.) Only the species name must fit, not the\n"
-         "full tag.\n"
-         "\n"
-         "Possible future extensions: Add a keyword parameter to refine the\n"
-         "pressure grid if it is too coarse. Or a version that interpolates onto\n"
-         "given grids, instead of using and returning the original grids.\n"
-         "Name should fit naming conventions.\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "massdensity_field", "vmr_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "atm_fields_compact_all", "atmosphere_dim" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));    
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "AtmosphereSet1D" ),
@@ -2702,7 +2609,7 @@ void define_md_data_raw()
          "   extra_field_values : Give here the constant field value. Default:\n"
          "                        Empty. Dimension must match extra_field_names.\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
+        AUTHORS( "Stefan Buehler", "Daniel Kreyling", "Jana Mendrok" ),
         OUT( "batch_atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
@@ -2722,70 +2629,6 @@ void define_md_data_raw()
         ));
     
     
-    md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "batch_atm_fields_compactFromArrayOfMatrixChevalAll" ),
-        DESCRIPTION
-        (
-         "Expand batch of 1D atmospheric states to a *batch_atm_fields_compact_all*.\n"
-         "\n"
-         "In contrast to *batch_atm_fields_compactFromArrayOfMatrix*, this WSM\n"
-         "includes reading scattering particle profiles from the Chevallier\n"
-         "data set, stored in a matrix.\n"
-         "\n"
-         "This WSM fully replaces *batch_atm_fields_compactFromArrayOfMatrix*, since the\n"
-         "*batch_atm_fields_compact* without scattering particle profiles is also still\n"
-         "an output. It is needed for lookup table creation in WSM *abs_lookupSetupBatch*.\n"
-         "\n"
-         "Please also see:*batch_atm_fields_compactFromArrayOfMatrix*.\n"
-         "\n"
-         "Row format:\n"
-         "\n" 
-         "p[Pa] T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
-         "\n"
-         "Keywords:\n"
-         "   field_names : Field names to store in atm_fields_compact_all.\n"
-         "                 This should be, e.g.:\n"
-         "                 [\"T\", \"z\", \"LWC\", \"IWC\", \"Rain\", \"Snow\", \"H2O\", \"O3\", \"ignore\"]\n"
-         "                 There must be one name less than matrix columns,\n"
-         "                 because the first column must contain pressure.\n"
-         "\n"
-         "   extra_field_names : You can add additional constant VMR fields,\n"
-         "                       which is handy for O2 and N2. Give here the\n"
-         "                       field name, e.g., \"O2\". Default: Empty.\n"
-         "\n"
-         "   extra_field_values : Give here the constant field value. Default:\n"
-         "                        Empty. Dimension must match extra_field_names.\n"
-         "\n"
-         "Possible future changes:\n"
-     "    Either:\n"
-     "        Name should fit naming convention.\n"
-     "    Or:\n"
-         "        WSM *abs_lookupSetupBatch* could be edited to handle *batch_atm_fields_compact*\n"
-         "        including scattering particles. Then two different *batch_atm_fields_compact*s\n"
-         "        and two different *atm_fields_compact*s would no longer be necessary.\n"
-         
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "batch_atm_fields_compact", "batch_atm_fields_compact_all" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim" ),
-        GIN(      "gin1"             ,
-                  "field_names", "extra_field_names", "extra_field_values" ),
-        GIN_TYPE(    "ArrayOfMatrix",
-                     "ArrayOfString", "ArrayOfString",     "Vector" ),
-        GIN_DEFAULT( NODEF          ,
-                     NODEF,         "[]",                "[]" ),
-        //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
-        GIN_DESC( "Batch of atmospheres stored in one array of matrix,\n"
-                  "including scattering particles.",
-                  "Order/names of atmospheric fields.",
-                  "Names of additional atmospheric fields, with constant values.",
-                  "Constant values of additional fields." )
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "CloudboxGetIncoming" ),

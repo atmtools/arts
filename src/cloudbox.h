@@ -126,6 +126,7 @@ void chk_pndsum (Vector& pnd,
                  const Index& p,
                  const Index& lat,
                  const Index& lon,
+                 const String& part_type,
                  const Verbosity& verbosity);
 
 void scale_H11 (Vector& pnd,

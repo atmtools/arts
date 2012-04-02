@@ -1,3 +1,86 @@
+2012-04-02  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-67
+
+	* CAREFUL! THIS COMMIT BREAKS BACKWARD COMPATIBILITY!
+	'ChevalAll' batch routines removed (functionality merged into basic
+	batch routines). Also impacts:
+	- setup of part_species (number, order, and naming needs to fit particle
+	field names passed to batch_atm_fields_compactFromArrayOfMatrix - 
+	equivalent to abs_species philosophy.)
+
+	* src/m_atmosphere.cc
+	(atm_fields_compactFromMatrix):
+	- proper implementation of "ignore" (any columns, not only from the
+	back, can be ignored now.)
+	- now also to be used with batch atmospheres that include particle
+	profiles. replaces atm_fields_compactFromMatrixChevalAll.
+
+	(batch_atm_fields_compactFromArrayOfMatrix):
+	- added catch when batch atmosphere arrayofmatrix is empty (e.g., cause
+	reading-in accidentially removed from control file).
+	- now also to be used with batch atmospheres that include particle
+	profiles. replaces batch_atm_fields_compactFromArrayOfMatrixChevalAll.
+
+	(AtmFieldsFromCompact):
+	- adapted such that now also to be used with batch atmospheres that
+	include particle profiles. replaces AtmFieldsFromCompactChevalAll.
+	- added massdensity_field and part_species as input parameters.
+	- non-hardwired handling of particle profiles (number, order, naming
+	have to correspond to part_species definition. like vmr profiles to
+	abs_species).
+
+	(atm_fields_compactFromMatrixChevalAll,
+	 batch_atm_fields_compactFromArrayOfMatrixChevalAll,
+	 AtmFieldsFromCompactChevalAll): removed.
+
+	* src/methods.cc
+	(atm_fields_compactFromMatrixChevalAll,
+	 batch_atm_fields_compactFromArrayOfMatrixChevalAll,
+	 AtmFieldsFromCompactChevalAll): removed.
+	(atm_fields_compactFromMatrix,
+	 batch_atm_fields_compactFromArrayOfMatrix,
+	 AtmFieldsFromCompact): adapted.
+
+	* src/m_cloudbox.cc
+	(ScatteringParticlesSelect):
+	- throw error, when particle profile given, but no corresponding
+	ScattData in selection.
+	- replace error when no ScattData selected by a warning (should only
+	occur when part_species empty, which occurs when using batch
+	atmospheres, but having/wanting no particle profiles).
+	- commented out check, whether all ScattData got selected (meaning
+	of check unclear as well as whether it at all works as intended).
+
+	(pnd_fieldSetup):
+	- remove hardwiring of position of certain hydrometeor in
+	massdensity_field and fixed link between particle profile type (IWC,
+	LWC, etc.) and PSD. it's responsibility of the user to ensure profile
+	type and PSD fit together (i.e., user here can now apply MH97 on LWC -
+	not tested throughout, though. there might be further places hardwiring
+	profile type and PSD relations.)!
+	- catch case with no actual particles/ScattData linked to the particular
+	part_species (though should never occur anymore, since already catched
+	in ScatteringParticlesSelect
+	- throw error, when given PSD is unknown
+
+	* src/cloudbox.cc
+	(chk_pndsum): added particle type (first part of part_species string) as
+	input parameter, write clearer error message when pnd==0, but xwc!=0.
+
+	(parse_psd_param): proper handling of incomplete part_species strings.
+	remove check PSD validity here (now done in pnd_fieldSetup).
+
+	* src/cloudbox.h (chk_pndsum): added part_type as passed parameter.
+
+	* includes/general.arts: added part_species default setting (empty).
+	required for AtmFieldsFromCompact for no-particle (i.e., clear-sky)
+	batch cases.
+
+	* tests/DOITBatch/TestDOITBatch.arts:
+	adapted to new requirements (removed *ChevalAll calls, resorted
+	part_species acc. to new requirements, ignore snow and rain).
+
 2012-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-66

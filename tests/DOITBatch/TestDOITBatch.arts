@@ -82,12 +82,11 @@ ReadXML( arrayofmatrix_1, "chevallierl91_all_extract.xml" )
 # Convert to batch_atm_fields_compact AND batch_atm_fields_compact_all
 # -----------------------------------------------------------------------
 # The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
-batch_atm_fields_compactFromArrayOfMatrixChevalAll(
+batch_atm_fields_compactFromArrayOfMatrix(
    batch_atm_fields_compact,
-   batch_atm_fields_compact_all,
    atmosphere_dim,
    arrayofmatrix_1,
-   ["T", "z", "LWC", "IWC", "Rain", "Snow", "H2O", "O3"],
+   ["T", "z", "LWC", "IWC", "ignore", "ignore", "H2O", "O3"],
    ["O2", "N2"],
    [0.2095, 0.7808]
 )
@@ -149,7 +148,9 @@ ScatteringParticleTypeAndMetaRead (scat_data_raw, scat_data_meta_array, f_grid,
 
 # Definition of particle species
 #--------------------------------
-ParticleSpeciesSet(part_species, ["IWC-MH97-0.1-2000", "LWC-liquid-0.1-2000"])
+ParticleSpeciesSet(part_species,
+                   ["LWC-liquid-0.1-2000",
+                    "IWC-MH97-0.1-2000"])
 
 # Selection/filerting of particles according to *part_species*
 #------------------------------------------------------------
@@ -196,18 +197,18 @@ AgendaSet( ybatch_calc_agenda ){
   
   # Extract the atmospheric profiles for current atmosphere:
   Extract(
-    atm_fields_compact_all, 
-    batch_atm_fields_compact_all, 
+    atm_fields_compact, 
+    batch_atm_fields_compact, 
     ybatch_index
   )
 
   # Split up *atm_fields_compact_all* to
   # generate p_grid, t_field, z_field, massdensity_field, vmr_field:
-  AtmFieldsFromCompactChevalAll
+  AtmFieldsFromCompact
 
   # Unrealistic (small) values in massdensity_field will be set to zero
   Massdensity_cleanup
-  #Massdensity_cleanup(massdensity_field, 1e-15)
+  #Massdensity_cleanup(massdensity_field, 1e-9)
 
   # Get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )

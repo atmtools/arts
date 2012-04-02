@@ -57,6 +57,7 @@
 #include "interpolation.h"
 #include "interpolation_poly.h"
 #include "xml_io.h"
+#include "cloudbox.h"
 
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
@@ -153,9 +154,9 @@ void atm_fields_compactFromMatrix(// WS Output:
     }
 
   const Index np = im.nrows();   // Number of pressure levels.
-  const Index nf = im.ncols()-1; // Total number of fields. 
-  Index nf_1; // Number of required fields. 
-                  // All fields called "ignore" are ignored.
+  const Index nf = im.ncols()-1; // Total number of fields.
+  ArrayOfIndex f_1; // indices of non-ignored fields 
+                   // All fields called "ignore" will be ignored.
   String fn_upper; // Temporary variable to hold upper case field_names.
 
   if (field_names.nelem()!=nf)
@@ -171,17 +172,31 @@ void atm_fields_compactFromMatrix(// WS Output:
   // Remove additional fields from the field_names. All fields that
   // are flagged by 'ignore' in the field names, small or large letters,
   // are removed.
-  nf_1 = 0;
   for(Index f = 0; f < field_names.nelem(); f++)
     {
       fn_upper = field_names[f];
+      //cout << "fieldname[" << f << "]: " << fn_upper;
       std::transform ( fn_upper.begin(),  fn_upper.end(), fn_upper.begin(), ::toupper);
-      if(fn_upper != "IGNORE") nf_1++;
+      if(fn_upper != "IGNORE")
+      {
+        f_1.push_back(f);
+        //cout << " put as element " << f_1.size()-1 << " into selection\n";
+      }
+      /*else
+      {
+        cout << " not selected\n";
+      }*/
     }
 
   // Copy required field_names to a new variable called field_names_1
+  Index nf_1=f_1.size(); // Number of required fields. 
   ArrayOfString field_names_1(nf_1);
-  for (Index f=0; f< nf_1; f++) field_names_1[f] = field_names[f];
+  for (Index f=0; f<nf_1; f++)
+  {
+    field_names_1[f] = field_names[f_1[f]];
+    //cout << "new fieldname[" << f << "] (formerly [" << f_1[f] << "]): "
+    //     << field_names_1[f] << "\n";
+  }
 
 
   //  out3 << "Copying *" << im_name << "* to *atm_fields_compact*.\n";
@@ -194,118 +209,8 @@ void atm_fields_compactFromMatrix(// WS Output:
   af.set_grid(GFIELD4_LON_GRID, Vector());
   
   af.resize(nf_1,np,1,1); // Resize it according to the required fields
-  af.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
-}
-
-// Workspace method, doxygen header will be auto-generated.
-// 2011-01-24 Daniel Kreyling
-void atm_fields_compactFromMatrixChevalAll(// WS Output:
-                                           GriddedField4& af_all, // atm_fields_compact_all
-                                           GriddedField4& af_vmr, // atm_fields_compact
-                                           // WS Input:
-                                           const Index& atmosphere_dim,
-                                           // WS Generic Input:
-                                           const Matrix& im,
-                                           // Control Parameters:
-                                           const ArrayOfString& field_names,
-                                           const Verbosity&)
-{
-  // NOTE: follwoing section is HARD WIRED 
-  // This method can only be applied to matrix data sets with a specific order of columns
-  // See method documentation!
-  
-  if (1!=atmosphere_dim)
-    {
-      ostringstream os; 
-      os << "Atmospheric dimension must be one.";
-      throw runtime_error( os.str() );
-    }
-
-  const Index np = im.nrows();   // Number of pressure levels.
-  const Index nf = im.ncols()-1; // Number of colums without pressure.
- 
-  
-  Index nf_1, nf_2; // Number of required fields. 
-                    // All fields called "ignore" are ignored.
-  String fn_upper; // Temporary variable to hold upper case field_names.
-
-  if (field_names.nelem()!= nf)
-    {
-      ostringstream os; 
-      os << "Cannot extract fields from Matrix.\n"
-         << "*field_names* must have one element less than there are\n"
-         << "matrix columns.";
-      throw runtime_error( os.str() );
-    }
-
-
-  // Remove additional fields from the field_names. All fields that
-  // are flagged by 'ignore' in the field names, small or large letters,
-  // are removed. The remaining number of fields is stored in *nf_1*.
-  // Usage: total batch_atm_fields_compact_all
-  nf_1 = 0;
-  nf_2 = 0;
-  ArrayOfIndex intarr;
-  for(Index f = 0; f < field_names.nelem(); f++)
-    {
-      fn_upper = field_names[f];
-      std::transform ( fn_upper.begin(),  fn_upper.end(), fn_upper.begin(), ::toupper);
-      if(fn_upper != "IGNORE" ) nf_1++;
-      
-      // Remove all 'ignore' and massdensity fields in this step, so that only T, z and vmrs remain.
-      // The Index of these fields in stroed in *intarr*, for later access.
-      // The remaining number of fields is stored in *nf_2*.
-      if ( fn_upper !="IGNORE" && field_names[f] != "LWC" && field_names[f] != "IWC" &&
-	field_names[f] != "Rain" && field_names[f] != "Snow" ) 
-      {
-	nf_2++;
-	intarr.push_back(f);
-	
-      }
-    }
-    
-  //------- write batch_atm_fields_compact_all ----------------------------------------------------
-  // including massdenity fields!
-  
-  // Copy required field_names to a new variable called field_names_1
-  ArrayOfString field_names_1(nf_1); //f_names_2(2);
-  for (Index f=0; f< nf_1; f++) field_names_1[f] = field_names[f];
-
-  //  out3 << "Copying *" << im_name << "* to *atm_fields_compact*.\n";
-
-  //cout<<nf<<"\t"<<nf_1<<"\t"<<field_names.nelem()<<endl;
-   
-
-  af_all.set_grid(GFIELD4_FIELD_NAMES, field_names_1);
-
-  af_all.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
-  
-  af_all.set_grid(GFIELD4_LAT_GRID, Vector());
-  af_all.set_grid(GFIELD4_LON_GRID, Vector());
-  
-  af_all.resize(nf_1,np,1,1); // Resize it according to the required fields
-  af_all.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
-  
- 
-  //------- write batch_atm_fields_compact -------------------------------------------------------------
-  // excluding massdenity fields!
-  
-  ArrayOfString field_names_2(nf_2);
-  for ( Index i=0; i<nf_2; i++ ) field_names_2[i] = field_names[intarr[i]] ;
-  
-  af_vmr.set_grid(GFIELD4_FIELD_NAMES, field_names_2);
-  
-  af_vmr.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
-  
-  af_vmr.set_grid(GFIELD4_LAT_GRID, Vector());
-  af_vmr.set_grid ( GFIELD4_LON_GRID, Vector() );
-
-  af_vmr.resize ( nf_2,np,1,1 ); // Resize it according to the required fields
-  for ( Index i=0; i<nf_2; i++ )
-  {
-    // write T, z and VMRs
-    af_vmr.data ( Range(i,1) ,Range ( joker ),0,0 ) = transpose ( im ( Range ( joker ), Range(intarr[i]+1,1)) );
-  }
+  for (Index f = 0; f < nf_1; f++)
+      af.data(f,Range(joker),0,0) = im(Range(joker),f_1[f]+1);
 }
 
 
@@ -573,6 +478,14 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
 {
   const Index amnelem = am.nelem();
 
+  if (amnelem == 0)
+    {
+      ostringstream os; 
+      os << "No elements in atmospheric scenario batch.\n"
+         << "Check, whether any batch atmosphere file has been read!";
+      throw runtime_error( os.str() );
+    }
+
   // We use the existing WSMs atm_fields_compactFromMatrix and
   // atm_fields_compactAddConstant to do most of the work.
 
@@ -629,235 +542,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
 }
 
 
-// Workspace method, doxygen header is auto-generated.
-// 2011-01-24 Daniel Kreyling
-void batch_atm_fields_compactFromArrayOfMatrixChevalAll(// WS Output:
-                                                        ArrayOfGriddedField4& batch_atm_fields_compact,
-                                                        ArrayOfGriddedField4& batch_atm_fields_compact_all,
-                                                        // WS Input:
-                                                        const Index& atmosphere_dim,
-                                                        // WS Generic Input:
-                                                        const ArrayOfMatrix& am,
-                                                        // Control Parameters:
-                                                        const ArrayOfString& field_names,
-                                                        const ArrayOfString& extra_field_names,
-                                                        const Vector& extra_field_values,
-                                                        const Verbosity& verbosity)
-{
-  const Index amnelem = am.nelem();
-
-  // We use the existing WSMs atm_fields_compactFromMatrix and
-  // atm_fields_compactAddConstant to do most of the work.
-
-  // Check that extra_field_names and extra_field_values have matching
-  // dimensions:
-  if (extra_field_names.nelem() != extra_field_values.nelem())
-    {
-      ostringstream os; 
-      os << "The keyword arguments extra_field_names and\n"
-         << "extra_field_values must have matching dimensions.";
-      throw runtime_error( os.str() );
-    }
-
-  // Make output variable the proper size:
-  batch_atm_fields_compact.resize(amnelem);
-  batch_atm_fields_compact_all.resize(amnelem);
-  // Loop the batch cases:
-/*#pragma omp parallel for                                     \
-  if(!arts_omp_in_parallel())                                \
-  default(none)                                              \
-  shared(am, atmosphere_dim, batch_atm_fields_compact,       \
-         extra_field_names, extra_field_values, field_names) */
-#pragma omp parallel for                                     \
-  if(!arts_omp_in_parallel())
-  for (Index i=0; i<amnelem; ++i)
-    {
-      // All the input variables are visible here, despite the
-      // "default(none)". The reason is that they are return by
-      // reference arguments of this function, which are shared
-      // automatically. 
-
-      // The try block here is necessary to correctly handle
-      // exceptions inside the parallel region. 
-      try
-      {
-        atm_fields_compactFromMatrixChevalAll(batch_atm_fields_compact_all[i],
-                                              batch_atm_fields_compact[i],
-                                              atmosphere_dim,
-                                              am[i],
-                                              field_names,
-                                              verbosity);
-        
-        
-        for (Index j=0; j<extra_field_names.nelem(); ++j){
-          atm_fields_compactAddConstant(batch_atm_fields_compact_all[i],
-                                        extra_field_names[j],
-                                        extra_field_values[j],
-                                        verbosity);
-          
-          atm_fields_compactAddConstant(batch_atm_fields_compact[i],
-                                        extra_field_names[j],
-                                        extra_field_values[j],
-                                        verbosity);
-        }
-      }
-      catch (runtime_error e)
-      {
-        CREATE_OUT0
-        exit_or_rethrow(e.what(), out0);
-      }
-    }    
-}
-
-// Workspace method, doxygen header will be auto-generated.
-// 2010-11-29 Daniel Kreyling
-void AtmFieldsFromCompactChevalAll(// WS Output:
-                                   Vector& p_grid,
-                                   Vector& lat_grid,
-                                   Vector& lon_grid,
-                                   Tensor3& t_field,
-                                   Tensor3& z_field,
-                                   Tensor4& massdensity_field,
-                                   Tensor4& vmr_field,
-                                   // WS Input:
-                                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                                   // const ArrayOfArrayOfSpeciesTag& 
-                                   const GriddedField4& atm_fields_compact_all,
-                                   const Index&  atmosphere_dim,
-                                   const Verbosity&)
-{
-  // Make a handle on atm_fields_compact to save typing:
-  const GriddedField4& c = atm_fields_compact_all;
-  
-  // Check if the grids in our data match atmosphere_dim
-  // (throws an error if the dimensionality is not correct):
-  chk_atm_grids(atmosphere_dim,
-                c.get_numeric_grid(GFIELD4_P_GRID),
-                c.get_numeric_grid(GFIELD4_LAT_GRID),
-                c.get_numeric_grid(GFIELD4_LON_GRID));
-
-  const Index nf   = c.get_grid_size(GFIELD4_FIELD_NAMES);
-  const Index np   = c.get_grid_size(GFIELD4_P_GRID);
-  const Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
-  const Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
-
-  // Grids:
-  p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
-  lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
-  lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
-
-  // NOTE: follwoing section is HARD WIRED 
-  // The order of the fields is:
-  // T[K] z[m] LWC[kg/m^3] IWC[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)] VMR_1[1] ... VMR_n[1]
-
-  // Number of VMR species:
-  const Index ns = nf-6;
-  
-  // Check that there is at least one VMR species:
-  if (ns<1)
-    {
-      ostringstream os;
-      os << "There must be at least three fields in *atm_fields_compact*.\n"
-         << "T, z, and at least one VMR.";
-      throw runtime_error( os.str() );
-    }
-
-  // Check that first field is T:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[0] != "T")
-    {
-      ostringstream os;
-      os << "The first field must be \"T\", but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[0];
-      throw runtime_error( os.str() );
-    }
-
-  // Check that second field is z:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[1] != "z")
-    {
-      ostringstream os;
-      os << "The second field must be \"z\"*, but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[1];
-      throw runtime_error( os.str() );
-    }
-
-  // Check that third field is LWC:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[2] != "LWC")
-    {
-      ostringstream os;
-      os << "The third field must be \"LWC\"*, but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[2];
-      throw runtime_error( os.str() );
-    }
-
-  // Check that fourth field is IWC:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[3] != "IWC")
-    {
-      ostringstream os;
-      os << "The fourth field must be \"IWC\"*, but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[3];
-      throw runtime_error( os.str() );
-    }
-
-  // Check that fifth field is Rain:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[4] != "Rain")
-    {
-      ostringstream os;
-      os << "The fifth field must be \"Rain\"*, but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[4];
-      throw runtime_error( os.str() );
-    }
-
-  // Check that sixth field is Snow:
-  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[5] != "Snow")
-    {
-      ostringstream os;
-      os << "The sixth field must be \"IWC\"*, but it is:"
-         << c.get_string_grid(GFIELD4_FIELD_NAMES)[5];
-      throw runtime_error( os.str() );
-    }
-    
-  // Check that the other fields are VMR fields and match abs_species:
-  for (Index i=0; i<ns; ++i)
-    {
-      const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[6+i];
-      
-      // Get name of species from abs_species:      
-      extern const Array<SpeciesRecord> species_data;  // The species lookup data:
-      const String as_species = species_data[abs_species[i][0].Species()].Name();
-
-      // Species in field name and abs_species should be the same:
-      if (tf_species != as_species)
-        {
-          ostringstream os;
-          os << "Field name not valid: "
-             << tf_species << "\n"
-             << "Based on *abs_species*, the field name should be: "
-             << as_species;
-          throw runtime_error( os.str() );
-        }
-    }
-
-  // Temperature field (first field):
-  t_field.resize(np,nlat,nlon);
-  t_field = c.data(0,Range(joker),Range(joker),Range(joker));
-
-  // Altitude profile (second field):
-  z_field.resize(np,nlat,nlon);
-  z_field = c.data(1,Range(joker),Range(joker),Range(joker));
-
-  //write all massdensity profile to one Tensor4
-  massdensity_field.resize(4,np,nlat,nlon);
-  massdensity_field = c.data(Range(2,4),Range(joker),Range(joker),Range(joker));
-
-  // VMR profiles (remaining fields):
-  vmr_field.resize(ns,np,nlat,nlon);
-  vmr_field = c.data(Range(6,ns),Range(joker),Range(joker),Range(joker));
-    
-}
-
-
-// Workspace method, doxygen header will be auto-generated.
-// 2007-07-24 Stefan Buehler
 void AtmFieldsFromCompact(// WS Output:
                           Vector& p_grid,
                           Vector& lat_grid,
@@ -865,8 +549,10 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor3& t_field,
                           Tensor3& z_field,
                           Tensor4& vmr_field,
+                          Tensor4& massdensity_field,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                          const ArrayOfString& part_species,
                           const GriddedField4& atm_fields_compact,
                           const Index&  atmosphere_dim,
                           const Verbosity&)
@@ -892,13 +578,14 @@ void AtmFieldsFromCompact(// WS Output:
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
   // The order of the fields is:
-  // T[K] z[m] VMR_1[1] ... VMR_n[1]
+  // T[K] z[m] Particle_1[?] ...  Particle_m[?] VMR_1[1] ... VMR_n[1]
 
-  // Number of VMR species:
-  const Index ns = nf-2;
+  // Number of Particle&VMR species:
+  const Index nsp = part_species.nelem();
+  const Index nsa = nf-nsp-2;
   
   // Check that there is at least one VMR species:
-  if (ns<1)
+  if (nsa<1)
     {
       ostringstream os;
       os << "There must be at least three fields in *atm_fields_compact*.\n"
@@ -924,10 +611,27 @@ void AtmFieldsFromCompact(// WS Output:
       throw runtime_error( os.str() );
     }
 
-  // Check that the other fields are VMR fields and match abs_species:
-  for (Index i=0; i<ns; ++i)
+  // Check that the (supposed) particle fields match part_species:
+  for (Index i=0; i<nsp; ++i)
     {
       const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+i];
+     String ps_species;
+      parse_part_type(ps_species,part_species[i]);
+      if (tf_species != ps_species)
+        {
+          ostringstream os;
+          os << "Field name for particle field not valid: "
+             << tf_species << "\n"
+             << "Based on *part_species*, the field name should be: "
+             << ps_species;
+          throw runtime_error( os.str() );
+        }
+    }
+
+  // Check that the (supposed) VMR fields match abs_species:
+  for (Index i=0; i<nsa; ++i)
+    {
+      const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+nsp+i];
       
       // Get name of species from abs_species:      
       extern const Array<SpeciesRecord> species_data;  // The species lookup data:
@@ -937,7 +641,7 @@ void AtmFieldsFromCompact(// WS Output:
       if (tf_species != as_species)
         {
           ostringstream os;
-          os << "Field name not valid: "
+          os << "Field name for absorption species field not valid: "
              << tf_species << "\n"
              << "Based on *abs_species*, the field name should be: "
              << as_species;
@@ -953,9 +657,13 @@ void AtmFieldsFromCompact(// WS Output:
   z_field.resize(np,nlat,nlon);
   z_field = c.data(1,Range(joker),Range(joker),Range(joker));
 
+  //Particle profiles:
+  massdensity_field.resize(nsp,np,nlat,nlon);
+  massdensity_field = c.data(Range(2,nsp),Range(joker),Range(joker),Range(joker));
+
   // VMR profiles (remaining fields):
-  vmr_field.resize(ns,np,nlat,nlon);
-  vmr_field = c.data(Range(2,ns),Range(joker),Range(joker),Range(joker));
+  vmr_field.resize(nsa,np,nlat,nlon);
+  vmr_field = c.data(Range(2+nsp,nsa),Range(joker),Range(joker),Range(joker));
 }
 
 
