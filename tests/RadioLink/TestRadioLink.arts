@@ -19,7 +19,7 @@ VectorSet( f_grid, [10e9] )
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 1 km.
 #
-VectorNLogSpace( p_grid, 81, 1013e2, 1 )
+VectorNLogSpace( p_grid, 41, 1013e2, 1 )
 
 
 # Definition of species
@@ -58,7 +58,7 @@ cloudbox_checkedCalc
 AgendaSet( ppath_step_agenda ){
   ppath_stepRefractionEuler
 }
-NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_lmax, 20e3 )
 NumericSet( ppath_lraytrace, 1e3 )
 #
 AgendaSet( ppath_agenda ){
@@ -93,13 +93,13 @@ AgendaSet( iy_clearsky_agenda ){
 #   3: Satellite
 # 
 VectorSet( rte_pos, [ 600e3 ] )
-MatrixSet( transmitter_pos, [ 0, 2.3; 10e3, 25.7; 600e3, 47.6 ] )
+MatrixSet( transmitter_pos, [ 0, 2.3; 10e3, 25.7; 600e3, 48.3 ] )
 
 
 # Expected transmissions
 #
 MatrixCreate( iyREFERENCE )
-MatrixSet( iyREFERENCE, [ 0.982364, 0.843648, 0.948657 ] )
+MatrixSet( iyREFERENCE, [ 0.981436, 0.843843, 0.714316 ] )
 
 
 # Set up the ForLoop agenda to run and check the cases
@@ -116,7 +116,7 @@ AgendaSet( forloop_agenda ){
   VectorExtractFromMatrix( iy_test, iy, 0, "column" )
   VectorCreate( iy_ref )
   VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
-  VectorCompare( iy_test, iy_ref, 0.0001 )
+  VectorCompare( iy_test, iy_ref, 0.001 )
 }
 
 

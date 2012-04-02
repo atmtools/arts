@@ -1,3 +1,13 @@
+2012-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-68
+
+	* tests/RadioLink/TestRadioLink.arts: Somewhat more demanding for
+	limb sounding. 
+
+	* src/m_ppath.cc (ppathFromRtePos2): One of the tuning parameters
+	had slipped back to an earlier, bad, value in the commit. 
+
 2012-04-02  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-67

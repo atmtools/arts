@@ -215,8 +215,9 @@ void ppathFromRtePos2(
       // (50 km selected to allow misses of smaller size when rte_pos2 is at
       // surface level, but surface interference never OK if rte_pos above TOA)
       if( ppath_what_background(ppt) == 2  &&  ip == ppt.np-1  
-                                             &&  l12-lip > 50e3 ) 
+                                                           &&  l12-lip > 50e3 )
         { 
+          //cout << "Surface hit\n";
           // Stop if "too many" surface hits
           surface_hits++;
           if( surface_hits == 20 )
@@ -228,7 +229,7 @@ void ppathFromRtePos2(
             }
 
           // Set H, with a relative lare error
-          H(0,0)=1;  H(0,1)=0.1; H(0,2)=rte_los[0]; H(0,3)=99e3; H(0,4)=99e3; 
+          H(0,0)=1;  H(0,1)=0.5; H(0,2)=rte_los[0]; H(0,3)=99e3; H(0,4)=99e3; 
 
           // If an OK lower angle exist, take middle point.
           // Otherwise, make a substantial jump upwards
@@ -236,6 +237,7 @@ void ppathFromRtePos2(
             { rte_los[0] =  0.5*rte_los[0] + 0.5*H(1,2); }
           else
             { rte_los[0] -= 0.25; }
+          //cout << "-----\n" << H << "\n-----\n" << endl;
         }
 
       // No surface intersection:
@@ -293,6 +295,7 @@ void ppathFromRtePos2(
               rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, 
                   lat_grid, lon_grid, refellipsoid, rte_pos, posc, verbosity );
               Numeric dza = los[0] - rte_los_geom[0];
+              //cout << rte_los[0] - rte_los_geom[0] << " " << dza << endl;
 
               // Any improvement compared to existing results in H
               if( dza > 0   &&  dza < H(0,1) )
@@ -303,20 +306,22 @@ void ppathFromRtePos2(
                   H(1,3)=dl; H(1,4)=ds; } 
               else // Ending up here means likely "jitter" in ppath calculation
                 { 
-                  if( H(0,3) < H(1,3) )  { dl = H(0,3); ds = H(0,4); }
-                  else                   { dl = H(1,3); ds = H(1,4); }
+                  if( H(0,3) < H(1,3) )  { dl = H(0,3);   ds = H(0,4); }
+                  else                   { dl = H(1,3);   ds = H(1,4); }
                   ostringstream os;
-                  os << "The smallest path length error achieved is " << dl
-                     << " m,\nwhich is a too high value.\n Geographically, the"
+                  os << "The smallest path length error achieved is: " << dl
+                     << " m\nwhich is above the set accuracy limit of  : " 
+                     << dlmax << " m.\nGeographically, the"
                      << " closest match with *rte_pos2* is " << ds << " m.\n"
-                     << "This can (hopefully) be improved by decreasing the \n"
-                     << "value of *ppath_lmax* and *ppath_lraytrace*.\n";
+                     << "This can (hopefully) be improved by decreasing the "
+                     << "value of\n*ppath_lraytrace*, and maybe also the one "
+                     << "of *ppath_lmax*.\n";
                   throw runtime_error( os.str() );
                 }
 
               // Select new rte_los. If both rows of H filled, use bisection. 
               // Otherwise use dza.
-              if( H(0,0)>0  &&  H(1,0)>0 )
+              if( H(0,0) > 0   &&   H(1,0) > 0 )
                 { rte_los[0] = H(1,2) - (H(0,2)-H(1,2)) * H(1,1) / 
                                                              (H(0,1)-H(1,1)); }
               else
@@ -325,6 +330,7 @@ void ppathFromRtePos2(
               // For azimuth angle, we just apply the "miss angle"
               if( atmosphere_dim == 3 )
                 { rte_los[1] -= los[1] - rte_los_geom[1]; }
+              //cout << "-----\n" << H << "\n-----\n" << endl;
             }
         }
 
