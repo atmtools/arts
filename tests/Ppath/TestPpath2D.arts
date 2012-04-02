@@ -1,8 +1,10 @@
 #DEFINITIONS:  -*-sh-*-
 #
 # ARTS control file for testing 2D propagation path calculations
+#
+# It is also demonstration of how to use the ForLopp agenda.
 # 
-# 2012-02-17 Patrick Eriksson
+# 2012-02-17, Patrick Eriksson
 
 Arts2{
 

@@ -1,9 +1,10 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration and test of a single monochromatic pencil beam calculation
+# Demonstration and test of a single radio link calculation.
 #
-# Author: Patrick Eriksson
-
+# Three different 1D cases are calculated.
+#
+# 2012-04-02, Patrick Eriksson
 
 Arts2 {
 
@@ -16,9 +17,9 @@ INCLUDE "continua.arts"
 VectorSet( f_grid, [10e9] )
 
 
-# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+# A pressure grid rougly matching 0 to 80 km, in steps of 1 km.
 #
-VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+VectorNLogSpace( p_grid, 81, 1013e2, 1 )
 
 
 # Definition of species
@@ -27,6 +28,7 @@ SpeciesSet( abs_species,
             ["H2O-PWR98", 
              "N2-SelfContStandardType",
              "O2-PWR93"] )
+
 
 # No line data needed here
 # 
@@ -41,8 +43,8 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 AtmFieldsCalc
 
 
-# Get ground altitude (z_surface) from z_field
-Extract( z_surface, z_field, 0 )
+# Surface altitude
+MatrixSetConstant( z_surface, 1, 1, 0 )
 
 
 # Check model atmosphere
@@ -64,27 +66,65 @@ AgendaSet( ppath_agenda ){
   Ignore( cloudbox_on )
   Ignore( ppath_inside_cloudbox_do )
   VectorExtractFromMatrix( rte_pos2, transmitter_pos, mblock_index, "row" )
-#  rte_losGeometricFromRtePosToRtePos2
   ppathFromRtePos2
+  #Print( ppath, 0 )
+  #PrintTangentPoint( ppath, 0 )
+}
+
+
+# Radiative transfer agendas
+#
+AgendaSet( iy_space_agenda ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  MatrixUnitIntensity( iy, stokes_dim, f_grid )
+}
+AgendaSet( iy_clearsky_agenda ){
+  Ignore( rte_los )
+  iyRadioLink
 }
 
 
 # Postion of sensor/receiver and transmitter
+#
+# The transmisster cases are defined:
+#   1: Ground-based
+#   2: Air-borne (behind a tangent point)
+#   3: Satellite
 # 
 VectorSet( rte_pos, [ 600e3 ] )
-MatrixSet( transmitter_pos, [ 200e3, 38; 113, 3; 12e3, 0.2 ] )
+MatrixSet( transmitter_pos, [ 0, 2.3; 10e3, 25.7; 600e3, 47.6 ] )
 
 
-# So far we just calculate the propgation path
+# Expected transmissions
 #
-IndexSet( mblock_index, 0 )
-VectorSet( rte_los, [-999] )   # A dummy value
+MatrixCreate( iyREFERENCE )
+MatrixSet( iyREFERENCE, [ 0.982364, 0.843648, 0.948657 ] )
+
+
+# Set up the ForLoop agenda to run and check the cases
 #
-ppathCalc
+IndexCreate( ilast )
+nrowsGet( ilast, transmitter_pos )
+IndexStepDown( ilast, ilast )
 #
-#Print( ppath, 0 )
-#Print( rte_los, 0 )
-PrintTangentPoint
+AgendaSet( forloop_agenda ){
+  Copy( mblock_index, forloop_index )
+  iyCalc
+  #Print( iy, 0 )
+  VectorCreate( iy_test)
+  VectorExtractFromMatrix( iy_test, iy, 0, "column" )
+  VectorCreate( iy_ref )
+  VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
+  VectorCompare( iy_test, iy_ref, 0.0001 )
+}
+
+
+# Calculate
+#
+VectorSet( rte_los, [] )   # Dummy value
+#
+ForLoop( forloop_agenda, 0, ilast, 1  )
 
 }
  

@@ -1,9 +1,10 @@
 #DEFINITIONS:  -*-sh-*-
 #
 # Demonstration and test of a transmission calculation in a 
-# refractive 3D atmosphere.
+# refractive 3D atmosphere. The case treats ground-based sensor, observing 
+# at a high/low zenith/elevation angle.
 #
-# Author: Patrick Eriksson
+# 2012-04-02, Patrick Eriksson
 
 
 Arts2 {

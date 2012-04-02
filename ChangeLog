@@ -1,5 +1,23 @@
 2012-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-66
+
+	* tests/CMakeLists.txt: Added RadioLink case. Placed transmission
+	type cases (Transmission+RadioLink) between basic emission cases
+	and the scattering cases.
+
+	* tests/RadioLink/TestRadioLink.arts: Complete. (But calculations
+	seems unstable, something is wrong. So far limb sounding case set
+	to be simple.)
+
+	* tests/Transmission/TestTransmission.arts:
+	* tests/PencilBeam/TestPencilBeam.arts:
+	* tests/Ppath/TestPpath3D.arts:
+	* tests/Ppath/TestPpath2D.arts:
+	* tests/Ppath/TestPpath1D.arts: Header text extended.
+
+2012-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-65
 
 	* tests/CMakeLists.txt: Added Transmission test (as fast).
