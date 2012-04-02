@@ -1,3 +1,13 @@
+2012-04-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-65
+
+	* tests/CMakeLists.txt: Added Transmission test (as fast).
+
+	* tests/Transmission/TestTransmission.arts: New test.
+
+	* tests/PencilBeam/TestPencilBeam.arts: Updated.
+
 2012-04-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-64

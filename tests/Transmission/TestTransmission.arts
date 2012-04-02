@@ -1,0 +1,116 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Demonstration and test of a transmission calculation in a 
+# refractive 3D atmosphere.
+#
+# Author: Patrick Eriksson
+
+
+Arts2 {
+
+INCLUDE "general.arts"
+INCLUDE "continua.arts"
+
+
+# Reference ellipsoid
+#
+refellipsoidEarth( refellipsoid, "WGS84" )
+
+
+# Frequency grid 
+#
+VectorSet( f_grid, [10e9] )
+
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+#
+VectorNLogSpace( p_grid, 41, 1013e2, 1 )
+
+
+# Atmospheric dimensionality and lat/lon grids
+#
+VectorNLinSpace( lat_grid, 11, 5, 13 )
+VectorNLinSpace( lon_grid, 11, -14, -10 )
+AtmosphereSet3D
+
+
+# Definition of species
+# 
+SpeciesSet( abs_species,
+            ["H2O-PWR98", 
+             "N2-SelfContStandardType",
+             "O2-PWR93"] )
+
+# No line data needed here
+# 
+abs_lines_per_speciesSetEmpty
+
+
+# Atmospheric profiles
+# 
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "../atmosphere_data/tropical" )
+#
+AtmFieldsCalcExpand1D
+
+
+# Get ground altitude (z_surface) from z_field
+MatrixSetConstant( z_surface, 11, 11, 0 )
+
+
+# Check model atmosphere
+# 
+basics_checkedCalc
+cloudbox_checkedCalc
+
+
+# Propagation path agendas and variables
+#
+AgendaSet( ppath_step_agenda ){
+  ppath_stepRefractionEuler
+}
+NumericSet( ppath_lmax, 2e3 )
+NumericSet( ppath_lraytrace, 500 )
+
+
+# Postion and line-of-sight of sensor
+# 
+VectorSet( rte_pos, [ 0, 5.1, -13.82 ] )
+VectorSet( rte_los, [ 80, 24 ] )
+
+
+# Radiative transfer agendas
+#
+AgendaSet( iy_space_agenda ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  MatrixUnitIntensity( iy, stokes_dim, f_grid )
+}
+AgendaSet( iy_clearsky_agenda ){
+  iyBeerLambertStandardClearsky
+}
+
+
+# Calculate
+#
+IndexSet( mblock_index, -1 )  # Dummy value
+#
+iyCalc
+
+
+# To save calculated spectrum and transmission
+#
+#output_file_formatSetAscii
+#WriteXML( output_file_format, iy, "iyREFERENCE.xml" )
+
+
+
+# Check that results are OK with respect to an older reference calculation
+#
+MatrixCreate( iy0 )
+#
+ReadXML( iy0, "iyREFERENCE.xml" )
+MatrixCompare( iy, iy0, 0.0001 )
+
+}
+ 
