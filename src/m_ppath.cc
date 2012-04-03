@@ -129,7 +129,7 @@ void ppathFromRtePos2(
   CREATE_OUT3
 
   // Radius of rte_pos and rte_pos2
-  const Numeric r1  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+  const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
                                               lon_grid, rte_pos ) + rte_pos[0];
   const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
                                             lon_grid, rte_pos2 ) + rte_pos2[0];

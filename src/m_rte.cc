@@ -46,6 +46,7 @@
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "geodetic.h"
 #include "jacobian.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -56,6 +57,8 @@
 #include "rte.h"
 #include "special_interp.h"
 
+extern const Numeric PI;
+extern const Numeric SPEED_OF_LIGHT;
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 
@@ -1418,13 +1421,12 @@ void iyRadioLink(
     throw runtime_error( "This method does not yet provide any jacobians and "
                          "*jacobian_do* must be 0." );
 
-
   // Sizes
   //
   const Index nf = f_grid.nelem();
   //
   iy_aux.resize( nf, stokes_dim ); 
-  iy_aux = 0;  // Remove when iy_aux handled
+  iy_aux = 999;  // Remove when iy_aux handled
 
   //- Determine propagation path
   //
@@ -1483,11 +1485,17 @@ void iyRadioLink(
   
   // Do RT calculations
   //
+  Numeric lbg = ppath.lspace;  // Bent geometrical length of ray path
+  Numeric lba = ppath.lspace;  // Bent apparent length of ray path
+  //
   if( np > 1 )
     {
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
+          lbg += ppath.lstep[ip];
+          lba += ppath.lstep[ip] * (ppath.nreal[ip]+ppath.nreal[ip+1]) / 2.0;
+
           // Loop frequencies
           for( Index iv=0; iv<nf; iv++ )
             {
@@ -1498,6 +1506,36 @@ void iyRadioLink(
             }
         } 
     }
+
+  // Free space loss
+  const Numeric fspl = 1 / (4 * PI * lbg*lbg);
+
+  // Geomtrical distance between rte_pos and rte_pos2
+  Numeric lgd = 0;
+  /*
+  {
+    // Radius of rte_pos and rte_pos2
+    const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                              lon_grid, rte_pos ) + rte_pos[0];
+    const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                            lon_grid, rte_pos2 ) + rte_pos2[0];
+    if( atmosphere_dim == 1 )
+      { distance2D( lgd, r1, 0, r2, rte_pos2[1] ); }
+    else if( atmosphere_dim == 2 )
+      { distance2D( lgd, r1, rte_pos[1], r2, rte_pos2[1] ); }
+    else 
+      { distance3D( lgd, r1,rte_pos[1],rte_pos[2],r2,rte_pos2[1],rte_pos2[2] );}
+  }
+  */
+
+  CREATE_OUT2
+  out2 << "  Atmospheric attenuation : " << iy(joker,0) << "\n";
+  out2 << "          Free space loss : " << fspl << "\n";
+  out2 << "         Extra path delay : " << 1e9*(lba-lgd)/SPEED_OF_LIGHT 
+       << " ns\n";
+
+  // Total attenuation
+  //iy *= fspl;
 }
 
 
