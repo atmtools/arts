@@ -78,8 +78,16 @@ public:
                      const my_basic_string<charT>& insstr);
 
   // Split string
-  void split (Array< my_basic_string<charT> > &aos,
+  void split(Array< my_basic_string<charT> > &aos,
               const my_basic_string<charT> &delim) const;
+  
+  /** Convert to upper case */
+  void toupper() { std::transform ( this->begin(),  this->end(),
+                                    this->begin(), ::toupper); }
+
+  /** Convert to lower case */
+  void tolower() { std::transform ( this->begin(),  this->end(),
+                                    this->begin(), ::tolower); }
   
   // Number of elements:
   Index nelem() const;

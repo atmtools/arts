@@ -12,4 +12,9 @@ INCLUDE "TestMHS_generic.arts"
 # ---
 WriteXML( "ascii", ybatch )
 
+MatrixCreate( ybatch_ref )
+ReadXML( ybatch_ref, "TestMHS.ybatch.ref.xml" )
+MatrixCompare( ybatch, ybatch_ref, 0.01,
+               "Total radiance should be close to the reference values" )
+
 }

@@ -175,8 +175,8 @@ void atm_fields_compactFromMatrix(// WS Output:
   for(Index f = 0; f < field_names.nelem(); f++)
     {
       fn_upper = field_names[f];
+      fn_upper.toupper();
       //cout << "fieldname[" << f << "]: " << fn_upper;
-      std::transform ( fn_upper.begin(),  fn_upper.end(), fn_upper.begin(), ::toupper);
       if(fn_upper != "IGNORE")
       {
         f_1.push_back(f);

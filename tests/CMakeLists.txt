@@ -86,8 +86,6 @@ if (NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
        AMSU Abs ClearSky DOIT DOITBatch GroundBased MHS MonteCarlo OdinSMR Wfuns)
   set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
                             "${TESTCLEANFILES}")
-  set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
-                            "Test*")
 endif (NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_custom_target (check-fast DEPENDS ${TESTFASTTARGETS})
@@ -137,4 +135,7 @@ arts_test_ctlfile_depends(fast.montecarlo.rtecalc fast.montecarlo.dataprepare)
 arts_test_run_ctlfile(slow.amsub AMSU/TestAMSUB.arts)
 
 arts_test_run_ctlfile(slow.doitbatch DOITBatch/TestDOITBatch.arts)
+
+arts_test_run_ctlfile(fast.mhs MHS/TestMHS_fast.arts)
+arts_test_run_ctlfile(slow.mhs MHS/TestMHS.arts)
 

@@ -161,26 +161,26 @@ class TestAMSUB(unittest.TestCase):
         """AMSU-B test should run with no errors"""
         self.Amsurun.run()
         assert self.Amsurun.error=='','Error running TestAMSUB.arts: '+self.Amsurun.error
-    def test2(self):
-        """Total radiance should be close to the reference values"""
-        Iref=array([
-            [206.9169, 216.4922, 234.6898, 219.1338, 244.0035, 246.9210, 237.9041, 227.6869, 233.2804, 233.9388],
-            [244.8373, 256.5383, 272.6222, 258.8054, 281.0623, 280.4536, 274.0261, 267.5187, 271.1467, 273.2158],
-            [247.1439, 242.4708, 244.0733, 247.5317, 246.4463, 246.4177, 243.0605, 242.3689, 245.1436, 246.5355],
-            [261.7384, 258.6013, 257.8965, 260.5558, 263.8710, 263.8911, 257.4703, 261.4709, 260.2463, 263.2372],
-            [271.8140, 270.8092, 271.0481, 273.4095, 276.4952, 275.8080, 270.0098, 275.6307, 271.8183, 276.1186]]);
-
-        I = artsXML.load("AMSU/TestAMSUB.ybatch.xml")
-        for j in range (5):
-            for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
-    def test3(self):
-        """Total radiance should be close to the values of TestAMSUB_fast"""
-        Iref = artsXML.load("AMSU/TestAMSUB.ybatch.xml")
-        I    = artsXML.load("AMSU/TestAMSUB_fast.ybatch.xml")
-        for j in range (5):
-            for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+#    def test2(self):
+#        """Total radiance should be close to the reference values"""
+#        Iref=array([
+#            [206.9169, 216.4922, 234.6898, 219.1338, 244.0035, 246.9210, 237.9041, 227.6869, 233.2804, 233.9388],
+#            [244.8373, 256.5383, 272.6222, 258.8054, 281.0623, 280.4536, 274.0261, 267.5187, 271.1467, 273.2158],
+#            [247.1439, 242.4708, 244.0733, 247.5317, 246.4463, 246.4177, 243.0605, 242.3689, 245.1436, 246.5355],
+#            [261.7384, 258.6013, 257.8965, 260.5558, 263.8710, 263.8911, 257.4703, 261.4709, 260.2463, 263.2372],
+#            [271.8140, 270.8092, 271.0481, 273.4095, 276.4952, 275.8080, 270.0098, 275.6307, 271.8183, 276.1186]]);
+#
+#        I = artsXML.load("AMSU/TestAMSUB.ybatch.xml")
+#        for j in range (5):
+#            for k in range (10):
+#                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+#    def test3(self):
+#        """Total radiance should be close to the values of TestAMSUB_fast"""
+#        Iref = artsXML.load("AMSU/TestAMSUB.ybatch.xml")
+#        I    = artsXML.load("AMSU/TestAMSUB_fast.ybatch.xml")
+#        for j in range (5):
+#            for k in range (10):
+#                assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
 
 class TestAMSUB_fast(unittest.TestCase):
     """Testing AMSU-B fast calculation (reduced frequency set)"""
@@ -197,26 +197,26 @@ class TestMHS(unittest.TestCase):
         """MHS test should run with no errors"""
         self.Mhsrun.run()
         assert self.Mhsrun.error=='','Error running TestMHS.arts: '+self.Mhsrun.error
-    def test2(self):
-        """Total radiance should be close to the reference values"""
-        Iref=array([
-            [206.9141, 216.4894, 234.6865, 219.1307, 244.0012, 246.9191, 237.9013, 227.6830, 233.2771, 233.9353],
-            [250.9726, 261.8183, 276.0355, 264.2595, 283.5446, 282.1988, 276.6646, 272.2757, 274.6164, 277.2745],
-            [247.1424, 242.4698, 244.0724, 247.5299, 246.4444, 246.4159, 243.0598, 242.3682, 245.1427, 246.5343],
-            [261.7384, 258.6013, 257.8964, 260.5557, 263.8710, 263.8910, 257.4703, 261.4709, 260.2462, 263.2372],
-            [271.4295, 270.2120, 270.2595, 272.7365, 275.7939, 275.2503, 269.2983, 274.9742, 271.1960, 275.4193]]);
-
-        I = artsXML.load("MHS/TestMHS.ybatch.xml")
-        for j in range (5):
-            for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
-    def test3(self):
-        """Total radiance should be close to the values of TestMHS_fast"""
-        Iref = artsXML.load("MHS/TestMHS.ybatch.xml")
-        I    = artsXML.load("MHS/TestMHS_fast.ybatch.xml")
-        for j in range (5):
-            for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+#    def test2(self):
+#        """Total radiance should be close to the reference values"""
+#        Iref=array([
+#            [206.9141, 216.4894, 234.6865, 219.1307, 244.0012, 246.9191, 237.9013, 227.6830, 233.2771, 233.9353],
+#            [250.9726, 261.8183, 276.0355, 264.2595, 283.5446, 282.1988, 276.6646, 272.2757, 274.6164, 277.2745],
+#            [247.1424, 242.4698, 244.0724, 247.5299, 246.4444, 246.4159, 243.0598, 242.3682, 245.1427, 246.5343],
+#            [261.7384, 258.6013, 257.8964, 260.5557, 263.8710, 263.8910, 257.4703, 261.4709, 260.2462, 263.2372],
+#            [271.4295, 270.2120, 270.2595, 272.7365, 275.7939, 275.2503, 269.2983, 274.9742, 271.1960, 275.4193]]);
+#
+#        I = artsXML.load("MHS/TestMHS.ybatch.xml")
+#        for j in range (5):
+#            for k in range (10):
+#                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+#    def test3(self):
+#        """Total radiance should be close to the values of TestMHS_fast"""
+#        Iref = artsXML.load("MHS/TestMHS.ybatch.xml")
+#        I    = artsXML.load("MHS/TestMHS_fast.ybatch.xml")
+#        for j in range (5):
+#            for k in range (10):
+#                assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
 
 class TestMHS_fast(unittest.TestCase):
     """Testing MHS fast calculation (reduced frequency set)"""
@@ -241,18 +241,18 @@ class TestDOITBatch(unittest.TestCase):
         """DOITBatch test should run with no errors"""
         self.Doitbatchrun.run()
         assert self.Doitbatchrun.error=='','Error running TestDOITBatch.arts: '+self.Doitbatchrun.error
-    def test2(self):
-        """Total BT should be close to the reference values"""
-        Iref=array([
-                [244.3848,  243.2521,  270.6285,  229.2447,  282.4720,  282.6709],
-                [176.9833,  176.9405,  271.1160,  259.5076,  261.2708,  262.5003],
-                [259.0476,  257.7898,  258.9736,  218.6711,  275.5341,  273.9887],
-                [204.4788,  204.0665,  277.7738,  257.0578,  268.1884,  269.2191]]);
-
-        I = artsXML.load("DOITBatch/TestDOITBatch.ybatch.xml")
-        for j in range (4):
-            for k in range (6):
-                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+#    def test2(self):
+#        """Total BT should be close to the reference values"""
+#        Iref=array([
+#                [244.3848,  243.2521,  270.6285,  229.2447,  282.4720,  282.6709],
+#                [176.9833,  176.9405,  271.1160,  259.5076,  261.2708,  262.5003],
+#                [259.0476,  257.7898,  258.9736,  218.6711,  275.5341,  273.9887],
+#                [204.4788,  204.0665,  277.7738,  257.0578,  268.1884,  269.2191]]);
+#
+#        I = artsXML.load("DOITBatch/TestDOITBatch.ybatch.xml")
+#        for j in range (4):
+#            for k in range (6):
+#                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
 
 class Testatm_fields_compactAddSpecies(unittest.TestCase):
     """Test WSM atm_fields_compactAddSpecies
