@@ -1025,9 +1025,10 @@ Numeric psd_H11 (	const Numeric xwc,
   return dN;
 }
 
-/*! Calculates particle size distribution for liquid particles using gamma parametrization.
- *  Each radius of the scattering particles is a node in the ditribution.
- *  One call of this function, calculates one particle number density. 
+/*! Calculates particle size distribution for liquid water clouds using a gamma
+ *  parametrization by Hess et al., 1998 (continental stratus).
+ *  Each radius of the scattering particles is a node in the distribution.
+ *  One call of this function calculates one particle number density. 
 
 	\return n particle number density per radius interval [#/m3*m]
          
@@ -1148,7 +1149,7 @@ void chk_pndsum (Vector& pnd,
                  const Index& p,
                  const Index& lat,
                  const Index& lon,
-                 const String& part_type,
+                 const String& prof_type,
                  const Verbosity& verbosity)
 
 {
@@ -1184,7 +1185,7 @@ void chk_pndsum (Vector& pnd,
       os<< "ERROR: in WSM chk_pndsum in pnd_fieldSetup!\n" 
       << "Given mass density != 0, but calculated mass density == 0.\n"
       << "Seems, something went wrong in pnd_fieldSetup. Check!\n"
-      << "The problem occured for profile '"<< part_type <<"' at: "
+      << "The problem occured for profile '"<< prof_type <<"' at: "
       << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
      throw runtime_error ( os.str() );
     }
@@ -1264,42 +1265,53 @@ void scale_H11 (Vector& pnd,
 
 }
 
+
 /*! Splitting part_species string and parse type of massdensity_field
 
-	\param  part_type type of atmospheric scattering particle profile 
+	\param  prof_type type of atmospheric particle profile 
 	\param  part_string containing infos about scattering particle calculations
 
   \author Daniel Kreyling
   \date 2011-02-21
 
 */
-void parse_part_type (//WS Output:
-                      String& part_type,
+void parse_prof_type (//WS Output:
+                      String& prof_type,
                       // WS Input:
                       const String& part_string)
 {
-
   ArrayOfString strarr;
+  const String delim="-";
 
-  // split part_species string at "-" and write to ArrayOfString
-  part_string.split ( strarr, "-" );
+  // split part_species string at delim and write to ArrayOfString
+  part_string.split ( strarr, delim );
 
-  //first entry is hydrometeor type (e.g. "IWC", "LWC" etc.)
-  part_type = strarr[0];
+  //first entry is particle profile type (e.g. "IWC", "LWC" etc.)
+  if (strarr.size()>0 && part_string[0]!=delim[0])
+  {
+      prof_type = strarr[0];
+  }
+  else
+  {
+      ostringstream os;
+      os << "No information on particle profile type in '" << part_string << "'\n";
+      throw runtime_error ( os.str() );
 
-  if (  part_type != "IWC" && 
-	part_type != "Snow" &&
-	part_type != "LWC" &&
-	part_type != "Rain" )
+  }
+
+  /* no restrictions on profile naming anymore
+  if (  prof_type != "IWC" && 
+	prof_type != "Snow" &&
+	prof_type != "LWC" &&
+	prof_type != "Rain" )
   {
     ostringstream os;
     os << "First substring in " << part_string
        << " must be rather 'LWC', 'IWC', 'Rain' or 'Snow'\n"
        <<"Check input in *part_species*!\n";
     throw runtime_error ( os.str() );
-  }
+  }*/
 }
-
 
 /*! Splitting part_species string and parse psd_param
 	\param psd_param particle size distribution parametrization
@@ -1315,9 +1327,10 @@ void parse_psd_param (//WS Output:
                       const String& part_string)
 {
   ArrayOfString strarr;
+  const String delim="-";
 
-  // split part_species string at "-" and write to ArrayOfString
-  part_string.split ( strarr, "-" );
+  // split part_species string at delim and write to ArrayOfString
+  part_string.split ( strarr, delim );
 
   // second entry is particle size distribution parametrisation  ( e.g."MH97")
   // check, whether we have a second entry
@@ -1340,6 +1353,40 @@ void parse_psd_param (//WS Output:
   }*/
 }
 
+/*! Splitting part_species string and parse type of particle (from ScattData array)
+
+	\param  part_type particle type (material, phase). 
+	\param  part_string containing infos about scattering particle calculations
+
+  \author Jana Mendrok
+  \date 2012-04-03
+
+*/
+void parse_part_type (//WS Output:
+                      String& part_type,
+                      // WS Input:
+                      const String& part_string)
+{
+  ArrayOfString strarr;
+  const String delim="-";
+
+  // split part_species string at delim and write to ArrayOfString
+  part_string.split ( strarr, delim );
+
+  // third entry is requested particle (material) type ( e.g."Water", "Ice")
+  // check, whether we have a third entry
+  if (strarr.size()>2)
+  {
+      part_type = strarr[2];
+  }
+  else
+  {
+      ostringstream os;
+      os << "No information on particle type in '" << part_string << "'\n";
+      throw runtime_error ( os.str() );
+  }
+}
+
 /*! Splitting part_species string and parse min and max particle radius
 	\param sizemin min scattering particle radius
 	\param sizemax max scattering particle radius
@@ -1356,30 +1403,30 @@ void parse_part_size (//WS Output:
                       const String& part_string)
 {
   ArrayOfString strarr;
+  const String delim="-";
 
-  // split part_species string at "-" and write to ArrayOfString
-  part_string.split ( strarr, "-" );
+  // split part_species string at delim and write to ArrayOfString
+  part_string.split ( strarr, delim );
   
   // convert String for size range, into Numeric
   // 1. third entry is minimum particle radius
-  if ( strarr.nelem() < 3 || strarr[2] == "*" )
+  if ( strarr.nelem() < 4 || strarr[3] == "*" )
   {
     sizemin = 0.;
   }
   else
   {
-    istringstream os1 ( strarr[2] );
+    istringstream os1 ( strarr[3] );
     os1 >> sizemin;
   }
   // 2. fourth entry is maximum particle radius
-  if ( strarr.nelem() < 4 || strarr[3] == "*" )
+  if ( strarr.nelem() < 5 || strarr[4] == "*" )
   {
     sizemax = -1.;
   }
   else
   {
-    istringstream os2 ( strarr[3] );
+    istringstream os2 ( strarr[4] );
     os2 >> sizemax;
   }
-
 }

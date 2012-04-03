@@ -149,8 +149,8 @@ ScatteringParticleTypeAndMetaRead (scat_data_raw, scat_data_meta_array, f_grid,
 # Definition of particle species
 #--------------------------------
 ParticleSpeciesSet(part_species,
-                   ["LWC-liquid-0.1-2000",
-                    "IWC-MH97-0.1-2000"])
+                   ["LWC-liquid-Water-0.1-2000",
+                    "IWC-MH97-Ice-0.1-2000"])
 
 # Selection/filerting of particles according to *part_species*
 #------------------------------------------------------------
@@ -219,7 +219,7 @@ AgendaSet( ybatch_calc_agenda ){
   # ---------------------------------------------------------------------
   cloudboxSetAutomatically
   # cloudboxSetAutomatically( cloudbox_on, cloudbox_limits, atmosphere_dim, 
-  #    part_species, p_grid, lat_grid, lon_grid, massdensity_field, -1 )
+  #    p_grid, lat_grid, lon_grid, massdensity_field, -1 )
   #
   # Alternative: set cloudbox manually
   # In this case the extent of the cloudbox should cover almost the 

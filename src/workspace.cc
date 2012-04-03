@@ -655,7 +655,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:        m^2\n"
         "\n"
-        "Dimensions: [part_types,stokes_dim]\n"
+        "Dimensions: [N_particletypes,stokes_dim]\n"
         ),
        GROUP( "Matrix" ) ));
 
@@ -1364,7 +1364,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:        m^2 \n"
        "\n"
-       "Dimensions: [part_types, stokes_dim, stokes_dim]\n"
+       "Dimensions: [N_particletypes, stokes_dim, stokes_dim]\n"
        ),
       GROUP( "Tensor3" )));
 
@@ -2486,7 +2486,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:        m^2\n"
        "\n"
-       "Dimensions: [part_types, *scat_za_grid*, *scat_aa_grid*, *stokes_dim*, *stokes_dim*]\n"
+       "Dimensions: [N_particletypes, *scat_za_grid*, *scat_aa_grid*, *stokes_dim*, *stokes_dim*]\n"
        ),
       GROUP( "Tensor5" )));
 
@@ -2539,7 +2539,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:        m^-3\n"
        "\n"
-       "Size: [N_part_types, \n"
+       "Size: [N_particletypes, \n"
        "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
        "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1 ] \n"

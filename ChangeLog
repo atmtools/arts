@@ -1,3 +1,41 @@
+2012-04-02  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-73
+
+	* CAREFUL! THIS COMMIT BREAKS BACKWARD COMPATIBILITY!
+	redefinition of part_species tag structure: third element now part_type
+	(the material/phase of the individual particle as given in
+	ScattMetaData, e.g., "Ice"), size selection shifted backwards. first
+	element renamed part_type->prof_type (the type of particle bulk profile,
+	e.g. "IWC").
+
+	* src/m_cloudbox.cc, cloudbox.cc, src/cloudbox.h, m_atmosphere.cc:
+	renamed (parse_)part_type -> (parse_)prof_type.
+
+	* src/m_cloudbox.cc:
+	(cloudboxSetAutomatically): removed hardwired prof_type-to-position-in-
+	massdensity_field relation.
+	(ScatteringParticlesSelect): removed hardwired prof_type-to-part_type
+	relation.
+	(pnd_fieldSetup): allow "H98_STCO" and "STCO" as more appropriate PSD
+	selection tags for the current liquid cloud psd (which is continental
+	stratus from Hess98). currently used "liquid" to be removed in future.
+
+	* src/cloudbox.cc:
+	(parse_prof_type): removed hard-wired restrictions on allowed prof_type
+	names.
+	(parse_part_type): added. function to parse part_species for part_type,
+	the material/phase of the individual
+	particle (e.g., "Ice").
+
+	* src/cloudbox.h: adapted acc. to cloudbox.cc changes
+
+	* src/methods.cc, workspace.cc:
+	descriptions of several particle related methods updated.
+
+	* tests/DOITBatch/TestDOITBatch.arts:
+	adapted to new part_species structure.
+
 2012-04-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-72

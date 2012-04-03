@@ -1531,9 +1531,9 @@ void define_md_data_raw()
          "variable *abs_vec*\n"
          "Output and input of this method is *abs_vec* (stokes_dim).\n"
          "The inputs are the absorption vector for the single particle type\n"
-         "*abs_vec_spt* (part_types, stokes_dim) and the local particle\n"
+         "*abs_vec_spt* (N_particletypes, stokes_dim) and the local particle\n"
          " number densities for all particle types namely the\n"
-         "*pnd_field* (part_types, p_grid, lat_grid, lon_grid, ) for given\n"
+         "*pnd_field* (N_particletypes, p_grid, lat_grid, lon_grid, ) for given\n"
          "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
          "are specified in the control file.\n"
          ),
@@ -2749,7 +2749,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
         GIN( "cloudbox_margin"),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "-1" ),
@@ -3702,9 +3702,9 @@ void define_md_data_raw()
          "variable *ext_mat*\n"
          "The output of this method is *ext_mat* (stokes_dim, stokes_dim).\n"
          "The inputs are the extinction matrix for the single particle type\n"
-         "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local\n"
+         "*ext_mat_spt* (N_particletypes, stokes_dim, stokes_dim) and the local\n"
          "particle number densities for all particle types namely the\n"
-         "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given\n"
+         "*pnd_field* (N_particletypes, p_grid, lat_grid, lon_grid ) for given\n"
          "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
          "are specified in the control file.\n"
          ),
@@ -6511,19 +6511,22 @@ void define_md_data_raw()
          "will be skipped.\n"
          "The *cloudbox_limits* are used to determine the p, lat and lon size for\n"
          "the *pnd_field* tensor.\n"
-         "Currently there are three particle size distribution parameterisations implemented:\n"
-         "\t1. MH97 for ice particles. Using a first-order gamma distribution for particles\n"
-         "\t smaller than 100 microns (melted diameter) and a lognormal distribution for\n"
+         "Currently there are three particle size distribution (PSD) parameterisations\n"
+         "implemented:\n"
+         "\t1. 'MH97' for ice particles. Parameterisation in temperature and mass content.\n"
+         "\t Using a first-order gamma distribution for particles smaller than \n"
+         "\t 100 microns (melted diameter) and a lognormal distribution for\n"
          "\t particles bigger 100 microns. Values from both modes are cumulative.\n"
          "\t See internal function 'IWCtopnd_MH97' for implementation/units/output.\n"
          "\t (src.: McFarquhar G.M., Heymsfield A.J., 1997)"
          "\n"
-	 "\t2. H11 for ice particles and precepitating ice (snow). H11 in NOT dependent\n"
-	 "\t on massdensity of ice/snow, but on atmospheric temperature.\n"
+	 "\t2. 'H11' for cloud ice and precipitating ice (snow). H11 is NOT dependent\n"
+	 "\t on mass content of ice/snow, but only on atmospheric temperature.\n"
 	 "\t The PSD is scaled to the current IWC/Snow density in an additional step.\n"
 	 "\t See internal function 'pnd_H11' and 'scale_H11' for implementation/units/output.\n"
 	 "\t (src.: Heymsfield A.J., 2011, not published yet)\n"
-         "\t3. Gamma distribution for liquid cloud particles.\n"
+         "\t3. 'H98_STCO' for liquid water clouds. Using a gamma distribution with"
+         "\t parameters from Hess et al., 1998, continental stratus.\n"
          "\t See internal function 'LWCtopnd' for implementation/units/output.\n"
          "\t (src.: Deirmendjian D., 1963 and Hess M., et al 1998)\n"
          "\n"
@@ -6539,7 +6542,8 @@ void define_md_data_raw()
          "the process.The new pnd values will be appended to the existing *pnd_field*.\n"
          "And so on...\n"
          "\n"
-         "NOTE: the order of scattering particle profiles in *massdensity_field* is HARD WIRED!\n"
+         "NOTE: the order of scattering particle profiles in *massdensity_field* has to\n"
+         "fit the order of part_species tags!\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "pnd_field"),

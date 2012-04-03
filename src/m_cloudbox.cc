@@ -96,7 +96,6 @@ void cloudboxSetAutomatically (// WS Output:
                                //Agenda&  iy_cloudbox_agenda,
                                // WS Input:
                                const Index&    atmosphere_dim,
-                               const ArrayOfString&  part_species,
                                const Vector&   p_grid,
                                const Vector&   lat_grid,
                                const Vector&   lon_grid,
@@ -116,7 +115,8 @@ void cloudboxSetAutomatically (// WS Output:
              Index lon2 = 0;
   )
 
-  Index type_flag=0, i=0, j=0, k=0, l=0;
+  Index i, j, k, l;
+
   // initialize flag, telling if all selected *massdensity_fields* are
   // zero(false) or not(true)
   bool x = false; 
@@ -133,26 +133,13 @@ void cloudboxSetAutomatically (// WS Output:
   cloudbox_limits.resize ( atmosphere_dim*2 );
 
   //--------- Start loop over particles ----------------------------------------
-  for ( l=0; l<part_species.nelem(); l++ )
+  for ( l=0; l<massdensity_field.nbooks(); l++ )
   {
-    String part_type;
-
-    //split String and copy to ArrayOfString
-    // split part_species string at "-" and write to ArrayOfString
-    parse_part_type( part_type, part_species[l]);
-    
-    // select hydrometeor type according to user input
-    // Index nhyd, describes the column index in *massdensity_field*
-    if ( part_type == "LWC" ) type_flag = 0;
-    else if ( part_type == "IWC" ) type_flag = 1;
-    else if ( part_type == "Rain" ) type_flag = 2;
-    else if ( part_type == "Snow" ) type_flag = 3;
-   
     bool y; // empty_flag
     //y is set to true, if a single value of massdensity_field is unequal zero
     chk_massdensity_field ( y,
                          atmosphere_dim,
-                         massdensity_field ( type_flag, joker, joker, joker ),
+                         massdensity_field ( l, joker, joker, joker ),
                          p_grid,
                          lat_grid,
                          lon_grid );
@@ -166,7 +153,7 @@ void cloudboxSetAutomatically (// WS Output:
       if ( atmosphere_dim == 1 )
       {
         // Pressure limits
-        ConstVectorView hydro_p = massdensity_field ( type_flag, joker, 0 , 0 );
+        ConstVectorView hydro_p = massdensity_field ( l, joker, 0 , 0 );
 
 
         // set lower cloudbox_limit to surface if margin = -1
@@ -286,6 +273,7 @@ void cloudboxSetAutomatically (// WS Output:
   // alter lower cloudbox_limit by cloudbox_margin, using barometric
   // height formula
   p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
+  k = 0;
   while ( p_grid[k+1] >= p_margin1 && k+1 < p_grid.nelem() ) k++;
   cloudbox_limits[0]= k;
 
@@ -896,7 +884,6 @@ void ScatteringParticlesSelect (//WS Output:
   CREATE_OUT3
   //--- Adjusting data to user specified input (part_species)-------------------
   
-  String type;
   Index intarr_total = 0;
   ArrayOfIndex intarr;
   
@@ -914,24 +901,21 @@ void ScatteringParticlesSelect (//WS Output:
   {
    
     String part_type;
+    String prof_type;
     Numeric sizemin;
     Numeric sizemax;
 
     //split part_species string and copy values to parameter
+    parse_prof_type( prof_type, part_species[k]);
     parse_part_type( part_type, part_species[k]);
-    // set type according to *part_species* input
-    if ( part_type == "IWC" || part_type== "Snow" ) type = "Ice";
-    else if ( part_type== "LWC" || part_type == "Rain" ) type = "Water";
-    
-    //split part_species string and copy values to parameter
     parse_part_size(sizemin, sizemax, part_species[k]);
     
 
     // choosing the specified SingleScatteringData and ScatteringMetaData
     for ( Index j=0; j<scat_data_meta_array_tmp.nelem(); j++ )
     {
-      // check for particle phase type (e.g. "Ice", "Water",...)
-      if ( scat_data_meta_array_tmp[j].type == type ) 
+      // check for particle (material/phase) type (e.g. "Ice", "Water",...)
+      if ( scat_data_meta_array_tmp[j].type == part_type ) 
       {       
         // particle radius is calculated from particle volume given in
         // scattering meta data
@@ -939,8 +923,8 @@ void ScatteringParticlesSelect (//WS Output:
           pow ( 3./4. * scat_data_meta_array_tmp[j].V * 1e18 / PI , 1./3. );
 	
 	// check if particle is in size range
-  // (sizemax < 0 results from wildcard usage and means all sizes on the
-  // upper end)
+  // (sizemax < 0 results from wildcard usage and means consider all sizes on
+  // the upper end)
         if ( r_particle  >= sizemin &&
              ( sizemax >= r_particle || sizemax < 0. ))
 	{
@@ -963,7 +947,7 @@ void ScatteringParticlesSelect (//WS Output:
     if (scat_data_nelem[k]<1)
       {
         ostringstream os;
-        os << "Particle species " << part_type << " of type " << type
+        os << "Particle species " << prof_type << " of type " << part_type
            << " requested.\n"
            << "But no Scattering Data found for it!\n";
         throw runtime_error ( os.str() );
@@ -1434,11 +1418,11 @@ void pnd_fieldSetup (//WS Output:
   {
 
     String psd_param;
-    String part_type;
+    String prof_type;
 
     //split String and copy to ArrayOfString
     parse_psd_param( psd_param, part_species[k]);
-    parse_part_type( part_type, part_species[k]);
+    parse_prof_type( prof_type, part_species[k]);
 
     // initialize control parameters
     Vector vol_unsorted ( scat_data_nelem[k], 0.0 );
@@ -1530,7 +1514,7 @@ void pnd_fieldSetup (//WS Output:
                 //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
                 // calculate error of pnd sum and real XWC
                 chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, part_type, verbosity );
+                             p, lat, lon, prof_type, verbosity );
                 //chk_pndsum2 (pnd2, IWC_field ( p,lat,lon ));
 	    
                 // writing pnd vector to wsv pnd_field
@@ -1622,7 +1606,7 @@ void pnd_fieldSetup (//WS Output:
 
                 // calculate error of pnd sum and real XWC
                 chk_pndsum ( pnd, X_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, part_type, verbosity );
+                             p, lat, lon, prof_type, verbosity );
 
                 // writing pnd vector to wsv pnd_field
                 for ( Index i =0; i< scat_data_nelem[k]; i++ )
@@ -1637,8 +1621,9 @@ void pnd_fieldSetup (//WS Output:
       }
     }
     
-    // ---- start pnd_field calculations for liquid ----------------------------
-    else if ( psd_param == "liquid" )
+    // ---- pnd_field calculations for liquid water clouds ---------------------
+    //      (parameters from Hess98, Stratus continental)
+    else if ( psd_param == "H98_STCO" || psd_param == "STCO" || psd_param == "liquid" )
     {
       for ( Index i=0; i < scat_data_nelem[k]; i++ )
       {
@@ -1718,7 +1703,7 @@ void pnd_fieldSetup (//WS Output:
 	    
                 // calculate error of pnd sum and real XWC
                 chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, part_type, verbosity );
+                             p, lat, lon, prof_type, verbosity );
                 //chk_pndsum2 (pnd2, LWC_field ( p,lat,lon ));
                 //chk_pndsum (pnd, testiwc[p], vol, rho);
 

@@ -141,10 +141,13 @@ void chk_massdensity_field(bool& x,
                            const Vector& lat_grid,
                            const Vector& lon_grid);
 
-void parse_part_type (String& part_type,
+void parse_prof_type (String& prof_type,
                       const String& part_string);
 
 void parse_psd_param (String& psd_param,
+                      const String& part_string);
+
+void parse_part_type (String& part_type,
                       const String& part_string);
 
 void parse_part_size (Numeric& sizemin,

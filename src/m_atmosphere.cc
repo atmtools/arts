@@ -615,7 +615,7 @@ void AtmFieldsFromCompact(// WS Output:
     {
       const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+i];
      String ps_species;
-      parse_part_type(ps_species,part_species[i]);
+      parse_prof_type(ps_species,part_species[i]);
       if (tf_species != ps_species)
         {
           ostringstream os;
