@@ -158,17 +158,16 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
   \item[dim] [Index] The atmospheric dimensionality. This field shall always 
      be equal to the workspace variable \builtindoc{atmosphere\_dim}.
      
-   \item[np] [Index] Number of positions to define the propagation
-     path. Allowed values are $\geq 1$. The number of rows of
-     \shortcode{pos} and \shortcode{los}, and the length of
-     \shortcode{z}, \shortcode{gp\_p}, \shortcode{gp\_lat} and
-     \shortcode{gp\_lon}, shall be equal to \shortcode{np}. The length
-     of \shortcode{l\_step} is \shortcode{np} - 1. If \shortcode{np}
-     $\leq$ 1, the observed spectrum is identical to the radiative
-     background. For cases where the sensor is placed inside the model
-     atmosphere and \shortcode{np} = 1, the stored position is
-     identical to the sensor position and that position can be used to
-     determinate the radiative background (see below).
+   \item[np] [Index] Number of positions to define the propagation path through
+     the atmosphere. Allowed values are $\geq 1$. The number of rows of
+     \shortcode{pos} and \shortcode{los}, and the length of \shortcode{z},
+     \shortcode{gp\_p}, \shortcode{gp\_lat} and \shortcode{gp\_lon}, shall be
+     equal to \shortcode{np}. The length of \shortcode{l\_step} is
+     \shortcode{np} - 1. If \shortcode{np} $\leq$ 1, the observed spectrum is
+     identical to the radiative background. For cases where the sensor is
+     placed inside the model atmosphere and \shortcode{np} = 1, the stored
+     position is identical to the sensor position and that position can be used
+     to determinate the radiative background (see below).
 
    \item[constant] [Numeric] The propagation path constant. Such a
      constant can be assigned to all geometrical paths and for 1D
@@ -176,27 +175,43 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      initiated to a negative value to indicate that the constant is
      undefined or not yet set. 
 
-   \item[background] [String] The radiative background for the
-     propagation path. The possible
-     options for this field are 'space', 'blackbody surface', 'cloud
-     box interior' and 'cloud box surface', where the source of
-     radiation should be clear the content of the strings.
+   \item[background] [String] The radiative background for the propagation
+     path. The possible options for this field are 'space', 'surface', 'cloud
+     box interior' and 'cloud box level', where the source of radiation
+     should be clear the content of the strings.
      
-   \item[pos] [Matrix] The position of the propagation path points.
-     This matrix has \shortcode{np} rows and up to 3 columns. Each row
-     holds a position where column 1 is the radius, column 2 the
-     latitude and column 3 the longitude (cf.
-     Section \ref{sec:fm_defs:sensorpos}). The number of columns for
-     1D and 2D is 2, while for 3D it is 3. The latitudes are stored
-     for 1D cases as these can be of interest for some applications
-     and are useful if the propagation path shall be plotted. The
-     latitudes for 1D give the angular distance to the sensor (see
-     further Section \ref{sec:fm_defs:atmdim}).
-     The propagation path is stored in reversed order, that is, the
-     position with index 0 is the path point closest to the sensor
-     (and equals the sensor position if it is inside the atmosphere).
-     The full path is stored also for 1D cases with symmetry around a
-     tangent point (in contrast to ARTS-1). 
+   \item[start\_pos] [Vector] The practical start position of the propagation
+     path. This vector equals in general the last row of \shortcode{pos}. The
+     exception if radio link calculations where the transmitter is placed above
+     the model atmosphere, where this field gives the position of the
+     transmitter.
+
+   \item[start\_los] [Vector] Line-of-sight at end point of propagation
+     path. Set and used in the same way as \shortcode{start\_pos}.
+
+   \item[end\_pos] [Vector] The end position of the propagation path. If
+     the point is placed inside the atmosphere, this field is redundant as it
+     is equal to the first row of \shortcode{pos}, but identifies the sensor
+     position for observations from space.
+
+   \item[end\_los] [Vector] The line-of-sight at the end point of the
+     propagation path. Provides additional information if the sensor is placed
+     above the top-of-the-atmosphere, and gives then the observation direction
+     of the sensor.
+
+   \item[pos] [Matrix] The position of the propagation path points inside the
+     atmosphere. This matrix has \shortcode{np} rows and up to 3 columns. Each
+     row holds a position where column 1 is the radius, column 2 the latitude
+     and column 3 the longitude (cf. Section \ref{sec:fm_defs:sensorpos}). The
+     number of columns for 1D and 2D is 2, while for 3D it is 3. The latitudes
+     are stored for 1D cases as these can be of interest for some applications
+     and are useful if the propagation path shall be plotted. The latitudes for
+     1D give the angular distance to the sensor (see further Section
+     \ref{sec:fm_defs:atmdim}). The propagation path is stored in reversed
+     order, that is, the position with index 0 is the path point closest to the
+     sensor (and equals \shortcode{start\_pos} if it is inside the atmosphere).
+     The full path is stored also for 1D cases with symmetry around a tangent
+     point (in contrast to ARTS-1).
      
    \item[los] [Matrix] The line-of-sight of the propagation path at
      each point. The number of rows of the matrix is \shortcode{np}.

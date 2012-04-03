@@ -61,6 +61,10 @@ struct Ppath {
   Index             np;
   Numeric           constant;
   String            background;
+  Vector            start_pos;
+  Vector            start_los;
+  Vector            end_pos;
+  Vector            end_los;
   Matrix            pos;
   Matrix            los;
   Vector            r;

@@ -151,6 +151,14 @@ Print(// WS Generic Input:
   Print( x.constant, level, verbosity );
   SWITCH_OUTPUT (level, "background: ")
   Print( x.background, level, verbosity );
+  SWITCH_OUTPUT (level, "start_pos: ")
+  Print( x.start_pos, level, verbosity );
+  SWITCH_OUTPUT (level, "start_los: ")
+  Print( x.start_los, level, verbosity );
+  SWITCH_OUTPUT (level, "end_pos: ")
+  Print( x.end_pos, level, verbosity );
+  SWITCH_OUTPUT (level, "end_los: ")
+  Print( x.end_los, level, verbosity );
   SWITCH_OUTPUT (level, "pos: ")
   Print( x.pos, level, verbosity );
   SWITCH_OUTPUT (level, "los: ")

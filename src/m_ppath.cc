@@ -134,7 +134,7 @@ void ppathFromRtePos2(
   const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
                                             lon_grid, rte_pos2 ) + rte_pos2[0];
   
-  // LOS from rte_pos to rte_pos2
+  // Geometric LOS from rte_pos to rte_pos2
   Vector rte_los_geom;
   rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
                         lon_grid, refellipsoid, rte_pos, rte_pos2, verbosity );
@@ -180,7 +180,7 @@ void ppathFromRtePos2(
   Ppath   ppt;             // Test ppath
   // The point of ppath closest to rte_pos2 (on "l12 sphere"), and 
   // its index, radius and cartesian coordinates
-  Vector  posc( max(Index(2),atmosphere_dim) );
+  Vector  posc( max( Index(2), atmosphere_dim ) );
   Index   ip;
   Numeric rc, xc, yc=0, zc, dxip, dyip=0, dzip;
   //
@@ -344,7 +344,7 @@ void ppathFromRtePos2(
   out2 << "  Spatial miss: " << ds << " m.\n";
 
   // Create final ppath. Background here always set to space as iy_space_agenda
-  // used for transmitted signal even if transmitter inside the atmosphere
+  // used for transmitted signal even if transmitter inside the atmosphere!
 
   // Distance between point ip of ppt and posc
   Numeric ll;
@@ -354,22 +354,33 @@ void ppathFromRtePos2(
     { distance3D( ll, rc, posc[1], posc[2], ppt.r[ip], ppt.pos(ip,1), 
                                                        ppt.pos(ip,2) ); }
 
-  // Last point of ppt closest to rte_pos2 (no point to add, maybe increase
-  // lspace): 
+  // Last point of ppt closest to rte_pos2. No point to add, maybe increase
+  // lspace and calculate start_los: 
   if( ip == ppt.np-1 )
     { 
       ppath_init_structure( ppath, atmosphere_dim, ppt.np );
       ppath_copy( ppath, ppt, -1 );
-      ppath_set_background( ppath, 1 );
       if( ppath_what_background( ppath ) == 1 )
-        { ppath.lspace += ll; }
+        { 
+          ppath.lspace += ll; 
+          Numeric d1, d2=0, d3;
+          if( atmosphere_dim <= 2 )
+            { cart2poslos( d1, d3, ppath.start_los[0], xc, zc, dxip, dzip, 
+                           ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           ppt.pos(ip,1), ppt.los(ip,0) ); }
+          else
+            { cart2poslos( d1, d2, d3, ppath.start_los[0], ppath.start_los[1],
+                           xc, yc, zc, dxip, dyip, dzip, 
+                           ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           ppt.pos(ip,1), ppt.pos(ip,2), 
+                           ppt.los(ip,0), ppt.los(ip,1) ); }
+        }
     }
   // rte_pos2 inside the atmosphere (posc entered as end point) 
   else
     {
       ppath_init_structure( ppath, atmosphere_dim, ip+2 );
       ppath_copy( ppath, ppt, ip+1 );
-      ppath_set_background( ppath, 1 );
       //
       const Index i = ip+1;
       if( atmosphere_dim <= 2 )
@@ -385,6 +396,7 @@ void ppathFromRtePos2(
       //
       ppath.pos(i,0)   = posc[0];
       ppath.lstep[i-1] = ll;
+      ppath.start_los  = ppath.los(i,joker);
 
       // nreal by linear interpolation
       assert( ll < ppt.lstep[i-1] );
@@ -410,6 +422,10 @@ void ppathFromRtePos2(
         }
       gridpos( ppath.gp_p[i], z_grid, ppath.pos(i,0) );
     }
+
+  // Common stuff
+  ppath_set_background( ppath, 1 );
+  ppath.start_pos = rte_pos2;
 }
 
 

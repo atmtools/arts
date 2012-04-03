@@ -637,6 +637,10 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ppath.np, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.constant, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.background, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.start_pos, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.start_los, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.end_pos, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.end_los, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.pos, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.los, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.r, pbifs, verbosity);
@@ -678,6 +682,14 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, ppath.constant, pbofs,
                        "PropagationPathConstant", verbosity);
   xml_write_to_stream (os_xml, ppath.background, pbofs, "RadiativeBackground", verbosity);
+  xml_write_to_stream (os_xml, ppath.start_pos, pbofs,
+                       "StartPositionOfPropagationPath", verbosity);
+  xml_write_to_stream (os_xml, ppath.start_los, pbofs,
+                       "StartLOSOfPropagationPath", verbosity);
+  xml_write_to_stream (os_xml, ppath.end_pos, pbofs,
+                       "EndPositionOfPropagationPath", verbosity);
+  xml_write_to_stream (os_xml, ppath.end_los, pbofs,
+                       "EndLOSOfPropagationPath", verbosity);
   xml_write_to_stream (os_xml, ppath.pos, pbofs,
                        "PropagationPathPointPositions", verbosity);
   xml_write_to_stream (os_xml, ppath.los, pbofs, "LineOfSight", verbosity);

@@ -1510,32 +1510,39 @@ void iyRadioLink(
   // Free space loss
   const Numeric fspl = 1 / (4 * PI * lbg*lbg);
 
-  // Geomtrical distance between rte_pos and rte_pos2
+  // Geomtrical distance between start and end point
   Numeric lgd = 0;
-  /*
   {
     // Radius of rte_pos and rte_pos2
     const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                              lon_grid, rte_pos ) + rte_pos[0];
+                                  lon_grid, ppath.end_pos ) + ppath.end_pos[0];
     const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                            lon_grid, rte_pos2 ) + rte_pos2[0];
-    if( atmosphere_dim == 1 )
-      { distance2D( lgd, r1, 0, r2, rte_pos2[1] ); }
-    else if( atmosphere_dim == 2 )
-      { distance2D( lgd, r1, rte_pos[1], r2, rte_pos2[1] ); }
+                              lon_grid, ppath.start_pos ) + ppath.start_pos[0];
+    if( atmosphere_dim <= 2 )
+      { distance2D( lgd, r1, ppath.end_pos[1], r2, ppath.start_pos[1] ); }
     else 
-      { distance3D( lgd, r1,rte_pos[1],rte_pos[2],r2,rte_pos2[1],rte_pos2[2] );}
+      { distance3D( lgd, r1, ppath.end_pos[1],   ppath.end_pos[2],
+                         r2, ppath.start_pos[1], ppath.start_pos[2] ); }
   }
-  */
+
+  // Geometric LOS from rte_pos to rte_pos2
+  Vector rte_los_geom;
+  rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
+                 lon_grid, refellipsoid, rte_pos, ppath.start_pos, verbosity );
 
   CREATE_OUT2
   out2 << "  Atmospheric attenuation : " << iy(joker,0) << "\n";
   out2 << "          Free space loss : " << fspl << "\n";
   out2 << "         Extra path delay : " << 1e9*(lba-lgd)/SPEED_OF_LIGHT 
        << " ns\n";
+  out2 << "     Zenith bending angle : " << rte_los_geom[0]-ppath.end_los[0] 
+       << " deg.\n";
+  if( atmosphere_dim == 3 )
+    out2 << "    Azimuth bending angle : " << rte_los_geom[1]-ppath.end_los[1] 
+         << " deg.\n";
 
   // Total attenuation
-  //iy *= fspl;
+  iy *= fspl;
 }
 
 

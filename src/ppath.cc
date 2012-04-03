@@ -1473,31 +1473,35 @@ void ppath_init_structure(
         const Index&      atmosphere_dim,
         const Index&      np )
 {
+  assert( np > 0 );
   assert( atmosphere_dim >= 1 );
   assert( atmosphere_dim <= 3 );
 
   ppath.dim        = atmosphere_dim;
   ppath.np         = np;
-  ppath.constant   = -1;   
-  if( atmosphere_dim < 3 )
-    {
-      ppath.pos.resize( np, 2 );
-      ppath.los.resize( np, 1 );
-    }
-  else
-    {
-      ppath.pos.resize( np, atmosphere_dim );
-      ppath.los.resize( np, 2 );
-      ppath.gp_lon.resize( np );
-    }
+  ppath.constant   = -1;  
+
+  const Index npos = max( Index(2), atmosphere_dim );
+  const Index nlos = max( Index(1), atmosphere_dim-1 );
+
+  ppath.start_pos.resize( npos );
+  ppath.start_los.resize( nlos );
+  ppath.end_pos.resize( npos );
+  ppath.end_los.resize( nlos );
+
+  ppath.pos.resize( np, npos );
+  ppath.los.resize( np, nlos );
+  ppath.r.resize( np );
+  ppath.lstep.resize( np-1 );
+
   ppath.gp_p.resize( np );
   if( atmosphere_dim >= 2 )
-    { ppath.gp_lat.resize( np ); }
-  ppath.r.resize( np );
-  if( np > 0 )
-    { ppath.lstep.resize( np-1 ); }
-  else
-    { ppath.lstep.resize( 0 ); }
+    { 
+      ppath.gp_lat.resize( np ); 
+      if( atmosphere_dim == 3 )
+        { ppath.gp_lon.resize( np ); }
+    }
+
   ppath_set_background( ppath, 0 );
   ppath.nreal.resize( np );
   ppath.lspace = 0;
@@ -1608,9 +1612,9 @@ Index ppath_what_background( const Ppath&   ppath )
    \date   2002-07-03
 */
 void ppath_copy(
-           Ppath&      ppath1,
-    const Ppath&       ppath2,
-    const Index&       ncopy )
+          Ppath&  ppath1,
+    const Ppath&  ppath2,
+    const Index&  ncopy )
 {
   Index n;
   if( ncopy < 0 )
@@ -1626,6 +1630,17 @@ void ppath_copy(
   ppath1.constant   = ppath2.constant;
   ppath1.background = ppath2.background;
   ppath1.lspace     = ppath2.lspace;
+
+  // As index 0 always is included in the copying, the end poinst is covered
+  ppath1.end_pos    = ppath2.end_pos;
+  ppath1.end_los    = ppath2.end_los;
+
+  // Copy start point only if coptying fills up ppath1
+  if( n == ppath1.np )
+    {
+      ppath1.start_pos = ppath2.start_pos;
+      ppath1.start_los = ppath2.start_los;
+    }
 
   ppath1.pos(Range(0,n),joker) = ppath2.pos(Range(0,n),joker);
   ppath1.los(Range(0,n),joker) = ppath2.los(Range(0,n),joker);
@@ -1657,8 +1672,8 @@ void ppath_copy(
    All the data of ppath1 is kept.
 
    The first point in ppath2 is assumed to be the same as the last in ppath1.
-   Only data in ppath from the fields pos, los, z, lstep, gp_XXX and 
-   background are considered.
+   Only ppath2 fields start_pos, start_los, pos, los, r, lstep, lspace, nreal, 
+   gp_XXX and background are considered.
 
    \param   ppath1    Output: Ppath structure to be expanded.
    \param   ppath2    The Ppath structure to include in ppath.
@@ -1709,7 +1724,9 @@ void ppath_append(
   if( ppath_what_background( ppath2 ) )
     { ppath1.background = ppath2.background; }
 
-  ppath.lspace += ppath.lspace;
+  ppath.start_pos = ppath2.start_pos;
+  ppath.start_los = ppath2.start_los;
+  ppath.lspace   += ppath2.lspace;
 }
 
 
@@ -4181,6 +4198,11 @@ void ppath_start_stepping(
   //-- 1D ---------------------------------------------------------------------
   if( atmosphere_dim == 1 )
     {
+      // End position and LOS
+      ppath.end_pos[0] = rte_pos[0];
+      ppath.end_pos[1] = 0; 
+      ppath.end_los[0] = rte_los[0];
+
       // Sensor is inside the model atmosphere:
       if( rte_pos[0] < z_field(lp,0,0) )
         {
@@ -4195,10 +4217,9 @@ void ppath_start_stepping(
             }
 
           // Set ppath
-          ppath.pos(0,0) = rte_pos[0];
-          ppath.pos(0,1) = 0; 
-          ppath.r[0]     = refellipsoid[0] + rte_pos[0];
-          ppath.los(0,0) = rte_los[0];
+          ppath.pos(0,joker) = ppath.end_pos;
+          ppath.r[0]         = refellipsoid[0] + rte_pos[0];
+          ppath.los(0,joker) = ppath.end_los;
           //
           gridpos( ppath.gp_p, z_field(joker,0,0), ppath.pos(0,0) );
           gridpos_check_fd( ppath.gp_p[0] );
@@ -4277,6 +4298,11 @@ void ppath_start_stepping(
   //-- 2D ---------------------------------------------------------------------
   else if( atmosphere_dim == 2 )
     {
+      // End position and LOS
+      ppath.end_pos[0] = rte_pos[0];
+      ppath.end_pos[1] = rte_pos[1];
+      ppath.end_los[0] = rte_los[0];
+
       // Index of last latitude
       const Index llat = lat_grid.nelem() -1;
 
@@ -4313,10 +4339,9 @@ void ppath_start_stepping(
             }
 
           // Set ppath
-          ppath.pos(0,0) = rte_pos[0];
-          ppath.pos(0,1) = rte_pos[1];
-          ppath.r[0]     = r_e + rte_pos[0];
-          ppath.los(0,0) = rte_los[0];
+          ppath.pos(0,joker) = ppath.end_pos;
+          ppath.r[0]         = r_e + rte_pos[0];
+          ppath.los(0,joker) = ppath.end_los;
 
           // Create a vector with the geometrical altitude of the pressure 
           // levels for the sensor latitude and use it to get ppath.gp_p.
@@ -4538,6 +4563,13 @@ void ppath_start_stepping(
   //-- 3D ---------------------------------------------------------------------
   else
     {
+      // End position and LOS
+      ppath.end_pos[0] = rte_pos[0];
+      ppath.end_pos[1] = rte_pos[1];
+      ppath.end_pos[2] = rte_pos[2];
+      ppath.end_los[0] = rte_los[0];
+      ppath.end_los[1] = rte_los[1];
+
       // Index of last latitude and longitude
       const Index llat = lat_grid.nelem() - 1;
       const Index llon = lon_grid.nelem() - 1;
@@ -4577,12 +4609,9 @@ void ppath_start_stepping(
             }
 
           // Set ppath
-          ppath.pos(0,0) = rte_pos[0];
-          ppath.pos(0,1) = rte_pos[1];
-          ppath.pos(0,2) = rte_pos[2];
-          ppath.r[0]     = r_e + rte_pos[0];
-          ppath.los(0,0) = rte_los[0];
-          ppath.los(0,1) = rte_los[1];
+          ppath.pos(0,joker) = ppath.end_pos;
+          ppath.r[0]         = r_e + rte_pos[0];
+          ppath.los(0,joker) = ppath.end_los;
 
           // Create a vector with the geometrical altitude of the pressure 
           // levels for the sensor latitude and use it to get ppath.gp_p.
@@ -4926,7 +4955,10 @@ void ppath_calc(      Workspace&      ws,
   //Print( ppath_step, 0, verbosity );
 
   // The only data we need to store from this initial ppath_step is lspace
-  const  Numeric lspace = ppath_step.lspace;  
+  // and end_pos/los
+  const Numeric lspace  = ppath_step.lspace;
+  const Vector  end_pos = ppath_step.end_pos;
+  const Vector  end_los = ppath_step.end_los;
 
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
@@ -4941,8 +4973,10 @@ void ppath_calc(      Workspace&      ws,
   const Index imax_p   = p_grid.nelem() - 1;
   const Index imax_lat = lat_grid.nelem() - 1;
   const Index imax_lon = lon_grid.nelem() - 1;
-
-  while( !ppath_what_background( ppath_step ) )
+  //
+  bool ready = ppath_what_background( ppath_step );
+  //
+  while( !ready )
     {
       // Call ppath_step agenda. 
       // The new path step is added to *ppath_array* last in the while block
@@ -5156,12 +5190,18 @@ void ppath_calc(      Workspace&      ws,
       //---  End of boundary check
       //----------------------------------------------------------------------
 
+      // Ready?
+      if( ppath_what_background( ppath_step ) )
+        {
+          ppath_step.start_pos = ppath_step.pos(n-1,joker);
+          ppath_step.start_los = ppath_step.los(n-1,joker);
+          ready = true;
+        }
 
       // Put new ppath_step in ppath_array
       ppath_array.push_back( ppath_step );
 
     } // End path steps
-
 
   // Combine all structures in ppath_array to form the return Ppath structure.
   //
@@ -5230,10 +5270,14 @@ void ppath_calc(      Workspace&      ws,
         }
 
       // Field just included once:
-      // Constant and background can be taken from last path_step
+      // lspace end_pos/los from first path_step (extracted above):
+      ppath.lspace   = lspace;
+      ppath.end_pos  = end_pos;
+      ppath.end_los  = end_los;
+      // Constant, background and start_pos/los from last path_step:
       ppath.constant   = ppath_step.constant;
       ppath.background = ppath_step.background;
-      // lspace extracted above
-      ppath.lspace     = lspace;
+      ppath.start_pos  = ppath_step.start_pos;
+      ppath.start_los  = ppath_step.start_los;
     }
 }

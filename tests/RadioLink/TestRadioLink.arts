@@ -99,7 +99,7 @@ MatrixSet( transmitter_pos, [ 0, 2.3; 10e3, 25.7; 600e3, 48.3 ] )
 # Expected transmissions
 #
 MatrixCreate( iyREFERENCE )
-MatrixSet( iyREFERENCE, [ 0.981436, 0.843843, 0.714316 ] )
+MatrixSet( iyREFERENCE, [ 1.80909e-13, 7.32491e-15, 1.74347e-15 ] )
 
 
 # Set up the ForLoop agenda to run and check the cases
@@ -116,7 +116,10 @@ AgendaSet( forloop_agenda ){
   VectorExtractFromMatrix( iy_test, iy, 0, "column" )
   VectorCreate( iy_ref )
   VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
-  VectorCompare( iy_test, iy_ref, 0.001 )
+  NumericCreate( accuracy )
+  Extract( accuracy, iy_ref, 0 )
+  NumericScale( accuracy, accuracy, 0.001 )
+  VectorCompare( iy_test, iy_ref, accuracy )
 }
 
 
@@ -125,6 +128,7 @@ AgendaSet( forloop_agenda ){
 VectorSet( rte_los, [] )   # Dummy value
 #
 ForLoop( forloop_agenda, 0, ilast, 1  )
+
 
 }
  
