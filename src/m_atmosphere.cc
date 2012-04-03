@@ -42,7 +42,6 @@
   ===========================================================================*/
 
 #include <cmath>
-#include <algorithm>
 #include "agenda_class.h"
 #include "arts.h"
 #include "auto_md.h"

@@ -30,6 +30,7 @@
 #include <cassert>
 #include <climits>
 #include <string>
+#include <algorithm>
 #include "matpack.h"
 #include "array.h"
 

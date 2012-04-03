@@ -1,5 +1,13 @@
 2012-04-03  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-71
+	
+	* src/mystring.h: Include algorithm for transform.
+
+	* src/m_atmosphere.cc: Include algorithm no longer needed here.
+
+2012-04-03  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-70
 	
 	* tests/CMakeLists.txt:
