@@ -6205,13 +6205,14 @@ void define_md_data_raw()
         (
          "With this function, the user specifies settings for the \n"
          "particle number density calculations using *pnd_fieldSetup*.\n"
-         "The input is an ArrayOfString that needs to be in a specific format:\n"
-         "\n" 
-         "*Example:* \t ['IWC-MH97-0.1-200', 'LWC-liquid-0.1-50'] \n"
+         "The input is an ArrayOfString that needs to be in a specific format,\n"
+         "for details, see WSV *part_species*.\n"
+         "\n"         
+         "*Example:* \t ['IWC-MH97-Ice-0.1-200', 'LWC-H98_STCO-Water-0.1-50'] \n"
          "\n"
-         "The order of the Strings can be arbitrarily chosen.\n"
-         "\n"
-         "For more details, see WSV *part_species*.\n"
+         "NOTE: The order of the Strings need to match the order of the\n"
+         "*atm_fields_compact* field names, their number determines how many fields\n"
+         "of *atm_fields_compact* are considered particle profiles.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "part_species" ),
@@ -6222,7 +6223,7 @@ void define_md_data_raw()
         GIN( "names" ),
         GIN_TYPE(  "ArrayOfString" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("Array of selection criteria." )
+        GIN_DESC("Array of pnd calculation parameters." )
         ));
  
     
@@ -6525,7 +6526,7 @@ void define_md_data_raw()
 	 "\t The PSD is scaled to the current IWC/Snow density in an additional step.\n"
 	 "\t See internal function 'pnd_H11' and 'scale_H11' for implementation/units/output.\n"
 	 "\t (src.: Heymsfield A.J., 2011, not published yet)\n"
-         "\t3. 'H98_STCO' for liquid water clouds. Using a gamma distribution with"
+         "\t3. 'H98_STCO' for liquid water clouds. Using a gamma distribution with\n"
          "\t parameters from Hess et al., 1998, continental stratus.\n"
          "\t See internal function 'LWCtopnd' for implementation/units/output.\n"
          "\t (src.: Deirmendjian D., 1963 and Hess M., et al 1998)\n"
