@@ -1,8 +1,27 @@
 2012-04-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-77
+
+	* src/m_rte.cc (iyRadioLink): Extended. Now handling dispersion
+	and iy_aux set. Auxiliary variable to return can be selected (as a
+	temporary solution?).
+
+	* src/rte.cc (get_ppath_rtvars): Now using f_index.
+	(get_iy_of_background): Adopted to agenda changes.
+
+	* src/m_montecarlo.cc: Adopted call of iy_space_agenda. 
+
+	* src/agendas.cc: f_grid new input for emission_agenda and
+	iy_space_agenda. Needed to handle dispersion (and could be used to
+	consider Doppler shift also for these terms).
+
+	* src/workspace.cc: Introduced dispersion_do. 
+
+2012-04-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-76
 
-	* tests/Ppath/TestPpath2D.arts:
+	* tests/Ppath/TestPpath3D.arts:
 	* tests/Ppath/TestPpath2D.arts:
 	* tests/Ppath/TestPpath1D.arts: Some changes. The files test
 	different options for f_index = -1.

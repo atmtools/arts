@@ -72,7 +72,10 @@ AgendaSet( ppath_agenda ){
 }
 
 
-# Radiative transfer agendas
+# Radiative transfer agendas and variables
+#
+VectorSet( rte_los, [] )   # Dummy value
+FlagOff( dispersion_do )
 #
 AgendaSet( iy_space_agenda ){
   Ignore( rte_pos )
@@ -124,8 +127,6 @@ AgendaSet( forloop_agenda ){
 
 
 # Calculate
-#
-VectorSet( rte_los, [] )   # Dummy value
 #
 ForLoop( forloop_agenda, 0, ilast, 1  )
 

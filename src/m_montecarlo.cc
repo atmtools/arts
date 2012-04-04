@@ -385,7 +385,7 @@ void MCGeneral(Workspace&            ws,
           else if (termination_flag==1)
             {
               iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
-                                     iy_space_agenda);
+                                     Vector(1,f_grid[f_index]),iy_space_agenda);
               mult(vector1,evol_op,local_iy(f_index,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -670,7 +670,7 @@ void MCIPA(Workspace&            ws,
           if (termination_flag==1)
             {
               iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
-                                     iy_space_agenda);
+                                     Vector(1,f_grid[f_index]),iy_space_agenda);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;

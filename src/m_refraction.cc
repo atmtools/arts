@@ -74,9 +74,9 @@ void refr_indexFreeElectrons(
     {
       Numeric f;
       if( f_index < 0 )
-        { f = f_grid[f_index]; }
-      else
         { f = ( f_grid[0] + last(f_grid) ) / 2.0; }
+      else
+        { f = f_grid[f_index]; }
 
       // The expression is taken from Rybicki and Lightman (1979), and 
       // considers the group velocity.

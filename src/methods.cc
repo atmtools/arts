@@ -4655,14 +4655,14 @@ void define_md_data_raw()
             "rte_pos", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
-            "wind_w_field", "edensity_field", "refellipsoid", "z_surface", 
-            "cloudbox_on", "stokes_dim", "f_grid", "mblock_index",
-            "ppath_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
-            "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+            "wind_w_field", "edensity_field", "refellipsoid",
+            "cloudbox_on", "stokes_dim", "f_grid", "dispersion_do",
+            "mblock_index", "ppath_agenda", "abs_scalar_gas_agenda", 
+            "iy_space_agenda" ),
+        GIN( "aux_var"),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "ExtraPathDelay" ),
+        GIN_DESC( "Name of auxilary variable" )
         ));
 
   md_data_raw.push_back

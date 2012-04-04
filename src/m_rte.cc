@@ -410,9 +410,9 @@ void iyBeerLambertStandardClearsky(
 
       // Absorption and optical thickness for each step
       get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                        emission_dummy,  abs_scalar_gas_agenda, agenda_dummy,
-                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
-                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 0 );
+                   emission_dummy,  abs_scalar_gas_agenda, agenda_dummy,
+                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                   ppath_wind_v, ppath_wind_w, f_grid, -1, atmosphere_dim, 0 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     {
@@ -478,7 +478,7 @@ void iyBeerLambertStandardClearsky(
                                 emission_dummy, abs_scalar_gas_agenda, 
                                 agenda_dummy, ppath, ppath_p, t2, ppath_vmr, 
                                 ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                                f_grid, atmosphere_dim, 0 );
+                                f_grid, -1, atmosphere_dim, 0 );
             }
         }
 
@@ -869,9 +869,9 @@ void iyEmissionStandardClearsky(
 
       // Get emission, absorption and optical thickness for each step
       get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                        ppath_emission, abs_scalar_gas_agenda, emission_agenda, 
-                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
-                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 1 );
+                   ppath_emission, abs_scalar_gas_agenda, emission_agenda, 
+                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                   ppath_wind_v, ppath_wind_w, f_grid, -1, atmosphere_dim, 1 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     { 
@@ -938,7 +938,7 @@ void iyEmissionStandardClearsky(
                                 ppath_e2, abs_scalar_gas_agenda, 
                                 emission_agenda, ppath, ppath_p, t2, ppath_vmr, 
                                 ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                                f_grid, atmosphere_dim, 1 );
+                                f_grid, -1, atmosphere_dim, 1 );
             }
         }
 
@@ -1206,9 +1206,9 @@ void iyEmissionStandardClearskyBasic(
 
       // Get emission, absorption and optical thickness for each step
       get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                        ppath_emission, abs_scalar_gas_agenda, emission_agenda, 
-                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
-                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 1 );
+                   ppath_emission, abs_scalar_gas_agenda, emission_agenda, 
+                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
+                   ppath_wind_v, ppath_wind_w, f_grid, -1, atmosphere_dim, 1 );
     }
 
   // Radiative background
@@ -1400,17 +1400,15 @@ void iyRadioLink(
   const Tensor3&              wind_w_field,
   const Tensor3&              edensity_field,
   const Vector&               refellipsoid,
-  const Matrix&               z_surface,
   const Index&                cloudbox_on,
   const Index&                stokes_dim,
   const Vector&               f_grid,
+  const Index&                dispersion_do,
   const Index&                mblock_index,
   const Agenda&               ppath_agenda,
   const Agenda&               abs_scalar_gas_agenda,
-  const Agenda&               iy_clearsky_agenda,
   const Agenda&               iy_space_agenda,
-  const Agenda&               surface_prop_agenda,
-  const Agenda&               iy_cloudbox_agenda,
+  const String&               aux_var,
   const Verbosity&            verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
@@ -1423,129 +1421,207 @@ void iyRadioLink(
   if( jacobian_do )
     throw runtime_error( "This method does not yet provide any jacobians and "
                          "*jacobian_do* must be 0." );
+  CREATE_OUT2
+  if( dispersion_do )
+    { out2 << "  Dispersion mode selected !!!\n"; }
 
   // Sizes
   //
-  const Index nf = f_grid.nelem();
+  Index nf = f_grid.nelem();
   //
   iy_aux.resize( nf, stokes_dim ); 
-  iy_aux = 999;  // Remove when iy_aux handled
+  iy_aux = 0;  // Remove when iy_aux handled
 
-  //- Determine propagation path
-  //
-  Ppath  ppath;
-  Vector rte_los(0);
-  //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
-                       mblock_index, t_field, z_field, vmr_field,
-                       edensity_field, -1, ppath_agenda );
-  if( ppath_what_background(ppath) > 2 )
-    { throw runtime_error( "Radiative background not set to \"space\" by "
-                      "*ppath_agenda*. Is correct WSM used in teh agenda?" ); }
-
-  // Get atmospheric and RT quantities for each ppath point/step
-  //
-  // If np = 1, we only need to determine the radiative background
-  // "atmvars"
-  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
-  Matrix    ppath_vmr;
-  // "rtvars"
-  Vector    total_tau;
-  Matrix    emission_dummy, ppath_tau;
-  Tensor3   ppath_abs_scalar, iy_trans_new;
-  Agenda    agenda_dummy;
-  //
-  const Index np  = ppath.np;
-  //
-  if( np > 1 )
-    {
-      // Get pressure, temperature and VMRs
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
-                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field );
-
-      // Absorption and optical thickness for each step
-      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                        emission_dummy,  abs_scalar_gas_agenda, agenda_dummy,
-                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
-                        ppath_wind_v, ppath_wind_w, f_grid, atmosphere_dim, 0 );
-    }
-
-  // Radiative background
-  //
-  Matrix          dummy1, dummy3;
-  Index           dummy2;
-  ArrayOfTensor3  dummy4;
-  Tensor3         dummy5;
-  //
-  get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
-                        jacobian_do, ppath, atmosphere_dim, 
-                        lat_grid, lon_grid, t_field, z_field, 
-                        vmr_field, refellipsoid, z_surface, cloudbox_on, 
-                        stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
-                        surface_prop_agenda, iy_cloudbox_agenda, verbosity );
+  // Dispersion?
+  Index nloops=1; 
+  if( dispersion_do )
+    { 
+      iy.resize( nf, stokes_dim );  // iy_space_handles this if no dispersion
+      nloops = nf; 
+      nf     = 1;
+    }  
   
-  // Do RT calculations
-  //
-  Numeric lbg = ppath.lspace;  // Bent geometrical length of ray path
-  Numeric lba = ppath.lspace;  // Bent apparent length of ray path
-  //
-  if( np > 1 )
+  // Different ppath variables
+  Ppath  ppath;
+  Numeric lbg=0;  // Bent geometrical length of ray path
+  Numeric lba=0;  // Bent apparent length of ray path
+
+  for( Index i=0; i<nloops; i++ )
     {
-      // Loop ppath steps
-      for( Index ip=np-2; ip>=0; ip-- )
+      Index f_index = -1; if( dispersion_do ){ f_index = i; }
+
+      //- Determine propagation path
+      Vector rte_los(0);  // Dummy value
+      //
+      ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
+                           mblock_index, t_field, z_field, vmr_field,
+                           edensity_field, f_index, ppath_agenda );
+      if( ppath_what_background(ppath) > 2 )
+        { throw runtime_error( "Radiative background not set to \"space\" by "
+                      "*ppath_agenda*. Is correct WSM used in the agenda?" ); }
+
+      // Get atmospheric and RT quantities for each ppath point/step
+      //
+      // "atmvars":
+      Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+      Matrix    ppath_vmr;
+      // "rtvars":
+      Vector    total_tau;
+      Matrix    emission_dummy, ppath_tau;
+      Tensor3   ppath_abs_scalar, iy_trans_new;
+      Agenda    agenda_dummy;
+      //
+      const Index np  = ppath.np;
+      //
+      if( np > 1 )
         {
-          lbg += ppath.lstep[ip];
-          lba += ppath.lstep[ip] * (ppath.nreal[ip]+ppath.nreal[ip+1]) / 2.0;
+          // Get pressure, temperature and VMRs
+          get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                             ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                             ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                             wind_u_field, wind_v_field, wind_w_field );
 
-          // Loop frequencies
-          for( Index iv=0; iv<nf; iv++ )
+          // Absorption and optical thickness for each step
+          get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                            emission_dummy,  abs_scalar_gas_agenda, 
+                            agenda_dummy, ppath, ppath_p, ppath_t, ppath_vmr, 
+                            ppath_wind_u, ppath_wind_v, ppath_wind_w, f_grid, 
+                            f_index, atmosphere_dim, 0 );
+        }
+
+      // Radiative background
+      //
+      if( dispersion_do )
+        { 
+          Matrix iy1;  // Single frequency version of iy
+          iy_space_agendaExecute( ws, iy1, rte_pos, rte_los, 
+                                Vector(1,f_grid[f_index]), iy_space_agenda ); 
+          if( iy1.ncols() != stokes_dim  ||  iy1.nrows() != 1 )
+            { throw runtime_error( "The size of *iy* returned from "
+                                   "*iy_space_agenda* is not correct." ); }
+          iy(f_index,joker) = iy1(0,joker);
+        }
+      else
+        { 
+          iy_space_agendaExecute( ws, iy, rte_pos, rte_los, f_grid,
+                                                           iy_space_agenda ); 
+          if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+            { throw runtime_error( "The size of *iy* returned from "
+                                   "*iy_space_agenda* is not correct." ); }
+        }
+      //      
+
+      // Do RT calculations
+      //
+      lbg = ppath.lspace;
+      lba = ppath.lspace;
+      //
+      if( np > 1 )
+        {
+          // Loop ppath steps
+          for( Index ip=np-2; ip>=0; ip-- )
             {
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-              //
-              for( Index is=0; is<stokes_dim; is++ )
-                { iy(iv,is) *= step_tr; }
-            }
-        } 
-    }
+              lbg += ppath.lstep[ip];
+              lba += ppath.lstep[ip] * (ppath.nreal[ip]+ppath.nreal[ip+1])/2.0;
 
-  // Free space loss
-  const Numeric fspl = 1 / (4 * PI * lbg*lbg);
-
-  // Geomtrical distance between start and end point
-  Numeric lgd = 0;
-  {
-    // Radius of rte_pos and rte_pos2
-    const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+              if( dispersion_do )
+                {
+                  const Numeric step_tr = exp( -ppath_tau(0,ip) );
+                  for( Index is=0; is<stokes_dim; is++ )
+                    { iy(f_index,is) *= step_tr; }
+                }
+              else
+                {
+                  // Loop frequencies
+                  for( Index iv=0; iv<nf; iv++ )
+                    {
+                      const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+                      for( Index is=0; is<stokes_dim; is++ )
+                        { iy(iv,is) *= step_tr; }
+                    }
+                }
+            } 
+        }
+      
+      // Geomtrical distance between start and end point
+      Numeric lgd = 0;
+      {
+        // Radius of rte_pos and rte_pos2
+        const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid,
                                   lon_grid, ppath.end_pos ) + ppath.end_pos[0];
-    const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+        const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid,
                               lon_grid, ppath.start_pos ) + ppath.start_pos[0];
-    if( atmosphere_dim <= 2 )
-      { distance2D( lgd, r1, ppath.end_pos[1], r2, ppath.start_pos[1] ); }
-    else 
-      { distance3D( lgd, r1, ppath.end_pos[1],   ppath.end_pos[2],
+        if( atmosphere_dim <= 2 )
+          { distance2D( lgd, r1, ppath.end_pos[1], r2, ppath.start_pos[1] ); }
+        else 
+          { distance3D( lgd, r1, ppath.end_pos[1],   ppath.end_pos[2],
                          r2, ppath.start_pos[1], ppath.start_pos[2] ); }
-  }
+      }
 
-  // Geometric LOS from rte_pos to rte_pos2
-  Vector rte_los_geom;
-  rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
-                 lon_grid, refellipsoid, rte_pos, ppath.start_pos, verbosity );
+      // Geometric LOS from rte_pos to rte_pos2
+      Vector rte_los_geom;
+      rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, 
+                                         lat_grid, lon_grid, refellipsoid, 
+                                         rte_pos, ppath.start_pos, verbosity );
 
-  CREATE_OUT2
-  out2 << "  Atmospheric attenuation : " << iy(joker,0) << "\n";
-  out2 << "          Free space loss : " << fspl << "\n";
-  out2 << "         Extra path delay : " << 1e9*(lba-lgd)/SPEED_OF_LIGHT 
-       << " ns\n";
-  out2 << "     Zenith bending angle : " << rte_los_geom[0]-ppath.end_los[0] 
-       << " deg.\n";
-  if( atmosphere_dim == 3 )
-    out2 << "    Azimuth bending angle : " << rte_los_geom[1]-ppath.end_los[1] 
-         << " deg.\n";
+      // Free space loss
+      const Numeric fspl = 1 / ( 4 * PI * lbg*lbg );
 
-  // Total attenuation
-  iy *= fspl;
+      // Extra path delay
+      const Numeric epd = ( lba - lgd ) / SPEED_OF_LIGHT;
+
+      // Zenith bending angle
+      const Numeric zba = rte_los_geom[0]-ppath.end_los[0];
+
+      // Azimuth bending angle
+      Numeric aba = 0;
+      if( atmosphere_dim == 3 )
+        { aba = rte_los_geom[1]-ppath.end_los[1]; }
+
+      out2 << "  Atmospheric attenuation : " << iy(joker,0) << "\n";
+      out2 << "          Free space loss : " << fspl << "\n";
+      out2 << "         Extra path delay : " << 1e9*epd << " ns\n";
+      out2 << "     Zenith bending angle : " << zba << " deg.\n";
+      if( atmosphere_dim == 3 )
+        { out2 << "    Azimuth bending angle : " << aba << " deg.\n"; }
+
+      // Apply loss terms and fill iy_aux
+      if( dispersion_do )
+        {
+          if( aux_var == "AtmosAtten" )
+            { iy_aux(f_index,joker) = iy(f_index,joker); }
+          else if( aux_var == "FreeSpaceLoss" )
+            { iy_aux(f_index,0) = fspl; }
+          else if( aux_var == "DefocusingLoss" )
+            { iy_aux(f_index,0) = 0; }
+          else if( aux_var == "ExtraPathDelay" )
+            { iy_aux(f_index,0) = epd; }
+          else if( aux_var == "ZenithBendingAngle" )
+            { iy_aux(f_index,0) = zba; }
+          else if( aux_var == "AzimuthBendingAngle" )
+            { iy_aux(f_index,0) = aba; }
+          //
+          for( Index is=0; is<stokes_dim; is++ )
+            { iy(f_index,is) *= fspl; }
+        }
+      else
+        {
+          if( aux_var == "AtmosAtten" )
+            { iy_aux = iy; }
+          else if( aux_var == "FreeSpaceLoss" )
+            { iy_aux(joker,0) = fspl; }
+          else if( aux_var == "DefocusingLoss" )
+            { iy_aux(joker,0) = 0; }
+          else if( aux_var == "ExtraPathDelay" )
+            { iy_aux(joker,0) = epd; }
+          else if( aux_var == "ZenithBendingAngle" )
+            { iy_aux(joker,0) = zba; }
+          else if( aux_var == "AzimuthBendingAngle" )
+            { iy_aux(joker,0) = aba; }
+          //
+          iy *= fspl;
+        }
+    }
 }
 
 

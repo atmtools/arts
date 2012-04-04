@@ -459,7 +459,8 @@ void get_iy_of_background(
 
     case 1:   //--- Space ---------------------------------------------------- 
       {
-        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, iy_space_agenda );
+        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, f_grid,
+                                iy_space_agenda );
         
         if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
           {
@@ -801,6 +802,7 @@ void get_ppath_pnd(
     \param   ppath_wind_v      V-wind for each ppath point.
     \param   ppath_wind_w      W-wind for each ppath point.
     \param   f_grid            As the WSV.    
+    \param   f_index           As the WSV.
     \param   atmosphere_dim    As the WSV.    
     \param   emission_do       Flag for calculation of emission. Should be
                                set to 0 for pure transmission calculations.
@@ -824,13 +826,27 @@ void get_ppath_rtvars(
   ConstVectorView    ppath_wind_v, 
   ConstVectorView    ppath_wind_w, 
   ConstVectorView    f_grid, 
+  const Index&       f_index, 
   const Index&       atmosphere_dim,
   const Index&       emission_do )
 {
   // Sizes
   const Index   np   = ppath.np;
   const Index   nabs = ppath_vmr.nrows();
-  const Index   nf   = f_grid.nelem();
+
+  // Frequencies
+  Numeric fd;  // Frequency to apply for Doppler shift
+  Index   nf;
+  if( f_index < 0 )
+    { 
+      nf = f_grid.nelem(); 
+      fd = ( f_grid[0] + f_grid[nf-1] ) / 2.0;
+    }
+  else
+    { 
+      nf = 1; 
+      fd = f_grid[f_index];
+    }
 
   // Init variables
   ppath_abs_scalar.resize( nf, nabs, np );
@@ -842,9 +858,6 @@ void get_ppath_rtvars(
   else
     { ppath_emission.resize( 0, 0 ); }
 
-  // Mean of extreme frequencies
-  const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
-
   for( Index ip=0; ip<np; ip++ )
     {
       // Doppler shift
@@ -853,10 +866,12 @@ void get_ppath_rtvars(
       //
       if( ppath_wind_v[ip]!=0 || ppath_wind_u[ip]!=0 || ppath_wind_w[ip]!=0 )
         {
-          // za nd aa of winds and LOS
-          const Numeric v = sqrt( pow(ppath_wind_u[ip],2) + 
-                           pow(ppath_wind_v[ip],2) + pow(ppath_wind_w[ip],2) );
-          Numeric aa_w = 0, aa_p = 0;
+          // za and aa of winds and LOS
+          const Numeric v = sqrt( ppath_wind_u[ip]*ppath_wind_u[ip] + 
+                                  ppath_wind_v[ip]*ppath_wind_v[ip] + 
+                                  ppath_wind_w[ip]*ppath_wind_w[ip] );
+
+          Numeric aa_w = 0, aa_p = 0; // Azimuth for wind and ppath-los, in RAD
           if( atmosphere_dim < 3 )
             {
               if( ppath_wind_v[ip]<0 ) 
@@ -876,7 +891,7 @@ void get_ppath_rtvars(
           const Numeric costerm = cos(za_w) * cos(za_p) + 
                                   sin(za_w) * sin(za_p)*cos(aa_w-aa_p); 
 
-          rte_doppler = -v * f0 * costerm / SPEED_OF_LIGHT;
+          rte_doppler = -v * fd * costerm / SPEED_OF_LIGHT;
         }
 
       // We must use temporary variables as the agenda input must be
@@ -884,14 +899,19 @@ void get_ppath_rtvars(
       Vector   evector;
       Matrix   sgmatrix;
       //
-      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, rte_doppler, ppath_p[ip], 
-                                    ppath_t[ip], ppath_vmr(joker,ip), 
-                                    abs_scalar_gas_agenda );
+      abs_scalar_gas_agendaExecute( ws, sgmatrix, f_index, rte_doppler, 
+                                ppath_p[ip], ppath_t[ip], ppath_vmr(joker,ip), 
+                                abs_scalar_gas_agenda );
       ppath_abs_scalar(joker,joker,ip) = sgmatrix;
       //
       if( emission_do )
         {
-          emission_agendaExecute( ws, evector, ppath_t[ip], emission_agenda );
+          if( f_index < 0 )
+            { emission_agendaExecute( ws, evector, ppath_t[ip], f_grid,
+                                      emission_agenda ); }
+          else
+            { emission_agendaExecute( ws, evector, ppath_t[ip], 
+                                Vector(1,f_grid[f_index]), emission_agenda ); }
           ppath_emission(joker,ip) = evector;
         }
 
@@ -1034,7 +1054,8 @@ void get_ppath_cloudrtvars(
       if( emission_do )
         {
           Vector   evector;   // Agenda must be free to resize
-          emission_agendaExecute( ws, evector, ppath_t[ip], emission_agenda );
+          emission_agendaExecute( ws, evector, ppath_t[ip], f_grid,
+                                  emission_agenda );
           ppath_emission(joker,ip) = evector;
         }
 

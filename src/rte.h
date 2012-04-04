@@ -178,6 +178,7 @@ void get_ppath_rtvars(
   ConstVectorView    ppath_wind_v, 
   ConstVectorView    ppath_wind_w, 
   ConstVectorView    f_grid, 
+  const Index&       f_index,
   const Index&       atmosphere_dim,
   const Index&       emission_do );
 

@@ -198,7 +198,7 @@ void define_agenda_data()
         "non-LTE conditions much more complex calculations are required.\n"
         ),
        OUTPUT( "emission" ),
-       INPUT( "rte_temperature" )));
+       INPUT( "rte_temperature", "f_grid" )));
  
   agenda_data.push_back
     (AgRecord
@@ -345,7 +345,7 @@ void define_agenda_data()
         "for example, when radiation from the sun is considered.\n"
         ),
        OUTPUT( "iy" ),
-       INPUT( "rte_pos", "rte_los" )));
+       INPUT( "rte_pos", "rte_los", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord
