@@ -105,6 +105,12 @@ Tensor3SetConstant( wind_v_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
 
 
+# 
+# Field of free electrons (empty is shorthand for no free electrons)
+#
+Tensor3SetConstant( edensity_field, 0, 0, 0, 0.0 )
+
+
 # Surface emissivity
 # 
 # The default model is a blackbody surface. This is a good choice only
@@ -118,8 +124,8 @@ Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
 AgendaSet( surface_prop_agenda ){
    Ignore( rte_pos )
    Ignore( rte_los )
-   InterpAtmFieldToRteGps( surface_skin_t, atmosphere_dim, 
-                            rte_gp_p, rte_gp_lat, rte_gp_lon, t_field )
+   InterpAtmFieldToRteGps( surface_skin_t, atmosphere_dim, rte_gp_p, 
+                           rte_gp_lat, rte_gp_lon, t_field )
    surfaceBlackbody
 } 
 
@@ -166,6 +172,8 @@ AgendaSet( refr_index_agenda ){
 AgendaSet( ppath_step_agenda ){
   Ignore( t_field )
   Ignore( vmr_field )
+  Ignore( edensity_field )
+  Ignore( f_index )
   ppath_stepGeometric
 }
 NumericSet( ppath_lmax, 10e3 )
@@ -173,7 +181,6 @@ NumericSet( ppath_lmax, 10e3 )
 AgendaSet( ppath_agenda ){
   Ignore( mblock_index )
   ppathStepByStep
-  Touch( rte_los )
 }
 FlagOff( ppath_inside_cloudbox_do )
 
@@ -205,7 +212,7 @@ StringSet( y_unit, "1" )
 # No scattering
 #
 cloudboxOff
-ParticleSpeciesSet(part_species, [])
+ParticleSpeciesSet( part_species, [] )
 
 
 #

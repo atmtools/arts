@@ -74,6 +74,7 @@ void fos_yStandard(Workspace&          ws,
                    const Tensor3&      z_field,
                    const Tensor3&      t_field,
                    const Tensor4&      vmr_field,
+                   const Tensor3&      edensity_field,
                    const Index&        cloudbox_on,
                    const ArrayOfIndex& cloudbox_limits,
                    const Index&        stokes_dim,
@@ -130,7 +131,7 @@ void fos_yStandard(Workspace&          ws,
                                              iy_aux, diy_dx, 0, iy_transmission,
                                              rte_pos, fos_angles(ia,Range(0,1)),
                                              0, jacobian_do, t_field, z_field, 
-                                             vmr_field, -1, 
+                                             vmr_field, -1,
                                              iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
@@ -231,7 +232,7 @@ void fos_yStandard(Workspace&          ws,
           iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
                  iy_transmission, rte_pos, fos_angles(ia,Range(0,nlos)), 
                  jacobian_do, atmosphere_dim, p_grid, 
-                 z_field, t_field, vmr_field, 
+                 z_field, t_field, vmr_field, edensity_field,
                  cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
                  ppath_agenda, emission_agenda, 
                  abs_scalar_gas_agenda, iy_clearsky_agenda, 
@@ -261,6 +262,7 @@ void iyFOS(Workspace&          ws,
            const Tensor3&      z_field,
            const Tensor3&      t_field,
            const Tensor4&      vmr_field,
+           const Tensor3&      edensity_field,
            const Index&        cloudbox_on,
            const ArrayOfIndex& cloudbox_limits,
            const Index&        stokes_dim,
@@ -307,10 +309,10 @@ void iyFOS(Workspace&          ws,
   // Determine ppath through the cloudbox
   //
   Ppath  ppath;
-  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 1, -1,
-                       t_field, z_field, vmr_field, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 1, -1,
+                       t_field, z_field, vmr_field, edensity_field, -1,
+                       ppath_agenda );
 
   // Check radiative background
   const Index bkgr = ppath_what_background( ppath );

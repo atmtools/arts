@@ -54,7 +54,7 @@ MatrixSetConstant( z_surface, nlat, 1, 500 )
 
 # A dummy frequency grid
 #
-VectorSet( f_grid, [100e9] )
+VectorSet( f_grid, [1e9,10e9] )
 
 
 # Check if atmosphere OK
@@ -91,7 +91,8 @@ VectorSet( rte_los, [ -113 ] )
 # Calculate propagation path
 #
 IndexSet( mblock_index, -1 )    # A dummy value!
-#
+IndexSet( f_index, 0 )          # Refractive index will be calculated for
+#                               # element 1 of f_grid.
 ppathCalc
 
 

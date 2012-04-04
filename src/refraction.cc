@@ -72,21 +72,25 @@ extern const Numeric RAD2DEG;
    \param   z_field             The geometric altitude of each pressure level
    \param   t_field             The temperature profile.
    \param   vmr_field           The VMR profile for each species.
+   \param   edensity_field      As the WSV with the same name (NB. full field)
+   \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
 
    \author Patrick Eriksson
    \date   2003-01-16
 */
 void get_refr_index_1d(
-              Workspace&  ws,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   refellipsoid,
-        ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        ConstMatrixView   vmr_field,
-        const Numeric&    r )
+          Workspace&  ws,
+          Numeric&    refr_index,
+    const Agenda&     refr_index_agenda,
+    ConstVectorView   p_grid,
+    ConstVectorView   refellipsoid,
+    ConstVectorView   z_field,
+    ConstVectorView   t_field,
+    ConstMatrixView   vmr_field,
+    ConstTensor3View  edensity_field,
+    const Index&      f_index,
+    const Numeric&    r )
 { 
   Numeric   rte_pressure, rte_temperature, rte_edensity=0;
   Vector    rte_vmr_list;
@@ -119,16 +123,13 @@ void get_refr_index_1d(
       rte_vmr_list[is] = dummy[0];
     }
 
-  // Electron density
-  /*
-  if( edensity_field.nelem() )
+  // Electron density (initiated to zero above)
+  if( edensity_field.npages() )
     {
-      interp( dummy, itw, t_field, gp );
+      interp( dummy, itw, edensity_field(joker,0,0), gp );
       rte_edensity = dummy[0];
     }
-  */
 
-  const Index f_index=-1;
   refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
                             rte_temperature, rte_vmr_list, rte_edensity,
                             refr_index_agenda );
@@ -158,6 +159,8 @@ void get_refr_index_1d(
                                 at each latitude.
    \param   t_field             The temperature 2D field.
    \param   vmr_field           The VMR 2D field for each species.
+   \param   edensity_field      As the WSV with the same name (NB. full field)
+   \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
    \param   lat                 The latitude of the position of interest.
 
@@ -165,17 +168,19 @@ void get_refr_index_1d(
    \date   2003-01-14
 */
 void get_refr_index_2d(
-              Workspace&  ws,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   refellipsoid,
-        ConstMatrixView   z_field,
-        ConstMatrixView   t_field,
-        ConstTensor3View  vmr_field,
-        const Numeric&    r,
-        const Numeric&    lat )
+          Workspace&  ws,
+          Numeric&    refr_index,
+    const Agenda&     refr_index_agenda,
+    ConstVectorView   p_grid,
+    ConstVectorView   lat_grid,
+    ConstVectorView   refellipsoid,
+    ConstMatrixView   z_field,
+    ConstMatrixView   t_field,
+    ConstTensor3View  vmr_field,
+    ConstTensor3View  edensity_field,
+    const Index&      f_index,
+    const Numeric&    r,
+    const Numeric&    lat )
 { 
   Numeric   rte_pressure, rte_temperature, rte_edensity=0;
   Vector    rte_vmr_list;
@@ -221,7 +226,13 @@ void get_refr_index_2d(
       rte_vmr_list[is] = dummy[0];
     }
 
-  const Index f_index=-1;
+  // Electron density (initiated to zero above)
+  if( edensity_field.nrows() )
+    {
+      interp( dummy, itw, edensity_field(joker,joker,0), gp_p, gp_lat );
+      rte_edensity = dummy[0];
+    }
+
   refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
                             rte_temperature, rte_vmr_list, rte_edensity,
                             refr_index_agenda );
@@ -247,6 +258,8 @@ void get_refr_index_2d(
    \param   z_field             As the WSV with the same name.
    \param   t_field             As the WSV with the same name.
    \param   vmr_field           As the WSV with the same name.
+   \param   edensity_field      As the WSV with the same name.
+   \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
    \param   lat                 The latitude of the position of interest.
    \param   lon                 The longitude of the position of interest.
@@ -255,19 +268,21 @@ void get_refr_index_2d(
    \date   2003-01-17
 */
 void get_refr_index_3d(
-              Workspace&  ws,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,
-        ConstVectorView   refellipsoid,
-        ConstTensor3View  z_field,
-        ConstTensor3View  t_field,
-        ConstTensor4View  vmr_field,
-        const Numeric&    r,
-        const Numeric&    lat,
-        const Numeric&    lon )
+          Workspace&  ws,
+          Numeric&    refr_index,
+    const Agenda&     refr_index_agenda,
+    ConstVectorView   p_grid,
+    ConstVectorView   lat_grid,
+    ConstVectorView   lon_grid,
+    ConstVectorView   refellipsoid,
+    ConstTensor3View  z_field,
+    ConstTensor3View  t_field,
+    ConstTensor4View  vmr_field,
+    ConstTensor3View  edensity_field,
+    const Index&      f_index,
+    const Numeric&    r,
+    const Numeric&    lat,
+    const Numeric&    lon )
 { 
   Numeric   rte_pressure, rte_temperature, rte_edensity=0;
   Vector    rte_vmr_list;
@@ -316,7 +331,14 @@ void get_refr_index_3d(
       rte_vmr_list[is] = dummy[0];
     }
 
-  const Index f_index=-1;
+
+  // Electron density (initiated to zero above)
+  if( edensity_field.nrows() )
+    {
+      interp( dummy, itw, edensity_field, gp_p, gp_lat, gp_lon );
+      rte_edensity = dummy[0];
+    }
+
   refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
                             rte_temperature, rte_vmr_list, rte_edensity,
                             refr_index_agenda );
@@ -354,6 +376,8 @@ void get_refr_index_3d(
                                 at each latitude.
    \param   t_field             The temperature 2D field.
    \param   vmr_field           The VMR 2D field for each species.
+   \param   edensity_field      As the WSV with the same name (NB. full field)
+   \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
    \param   lat                 The latitude of the position of interest.
 
@@ -361,34 +385,39 @@ void get_refr_index_3d(
    \date   2003-01-14
 */
 void refr_gradients_2d(
-              Workspace&  ws,
-              Numeric&    refr_index,
-              Numeric&    dndr,
-              Numeric&    dndlat,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   refellipsoid,
-        ConstMatrixView   z_field,
-        ConstMatrixView   t_field,
-        ConstTensor3View  vmr_field,
-        const Numeric&    r,
-        const Numeric&    lat )
+          Workspace&  ws,
+          Numeric&    refr_index,
+          Numeric&    dndr,
+          Numeric&    dndlat,
+    const Agenda&     refr_index_agenda,
+    ConstVectorView   p_grid,
+    ConstVectorView   lat_grid,
+    ConstVectorView   refellipsoid,
+    ConstMatrixView   z_field,
+    ConstMatrixView   t_field,
+    ConstTensor3View  vmr_field,
+    ConstTensor3View  edensity_field,
+    const Index&      f_index,
+    const Numeric&    r,
+    const Numeric&    lat )
 { 
    get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid,
-                      refellipsoid, z_field, t_field, vmr_field, r, lat );
+                      refellipsoid, z_field, t_field, vmr_field, edensity_field,
+                      f_index, r, lat );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, r+1, lat );
+                      refellipsoid, z_field, t_field, vmr_field, edensity_field,
+                      f_index, r+1, lat );
 
    dndr = refr_index - n0;
 
    const Numeric   dlat = 1e-4;
 
    get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, r, lat+dlat );
+                      refellipsoid, z_field, t_field, vmr_field, edensity_field,
+                      f_index, r, lat+dlat );
 
    dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
@@ -425,6 +454,8 @@ void refr_gradients_2d(
    \param   z_field             As the WSV with the same name.
    \param   t_field             As the WSV with the same name.
    \param   vmr_field           As the WSV with the same name.
+   \param   edensity_field      As the WSV with the same name.
+   \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
    \param   lat                 The latitude of the position of interest.
    \param   lon                 The longitude of the position of interest.
@@ -433,32 +464,34 @@ void refr_gradients_2d(
    \date   2003-01-17
 */
 void refr_gradients_3d(
-              Workspace&  ws,
-              Numeric&    refr_index,
-              Numeric&    dndr,
-              Numeric&    dndlat,
-              Numeric&    dndlon,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,
-        ConstVectorView   refellipsoid,
-        ConstTensor3View  z_field,
-        ConstTensor3View  t_field,
-        ConstTensor4View  vmr_field,
-        const Numeric&    r,
-        const Numeric&    lat,
-        const Numeric&    lon )
+          Workspace&  ws,
+          Numeric&    refr_index,
+          Numeric&    dndr,
+          Numeric&    dndlat,
+          Numeric&    dndlon,
+    const Agenda&     refr_index_agenda,
+    ConstVectorView   p_grid,
+    ConstVectorView   lat_grid,
+    ConstVectorView   lon_grid,
+    ConstVectorView   refellipsoid,
+    ConstTensor3View  z_field,
+    ConstTensor3View  t_field,
+    ConstTensor4View  vmr_field,
+    ConstTensor3View  edensity_field,
+    const Index&      f_index,
+    const Numeric&    r,
+    const Numeric&    lat,
+    const Numeric&    lon )
 { 
    get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      r, lat, lon );
+                      edensity_field, f_index, r, lat, lon );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      r+1, lat, lon );
+                      edensity_field, f_index, r+1, lat, lon );
 
    dndr = refr_index - n0;
 
@@ -466,7 +499,7 @@ void refr_gradients_3d(
 
    get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      r, lat+dlat, lon );
+                      edensity_field, f_index, r, lat+dlat, lon );
 
    dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
@@ -474,7 +507,7 @@ void refr_gradients_3d(
 
    get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      r, lat, lon+dlon);
+                      edensity_field, f_index, r, lat, lon+dlon);
 
    dndlon = ( refr_index - n0 ) / ( DEG2RAD * dlon * r * cos( DEG2RAD*lat ) ); 
 

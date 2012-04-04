@@ -90,6 +90,8 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                const Tensor3&        z_field, 
                                const Tensor3&        t_field, 
                                const Tensor4&        vmr_field, 
+                               const Tensor3&        edensity_field, 
+                               const Index&          f_index,
                                const ArrayOfIndex&   cloudbox_limits, 
                                const Tensor4&        pnd_field,
                                const ArrayOfSingleScatteringData& scat_data_mono,
@@ -107,7 +109,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                              sensor_los(0,joker),
                              ppath_step_agenda,p_grid,lat_grid,lon_grid,
                              refellipsoid,z_surface,z_field,t_field,vmr_field,
-                             cloudbox_limits,
+                             edensity_field, f_index, cloudbox_limits,
                              pnd_field,scat_data_mono,particle_masses,
                              verbosity);
     }
@@ -131,7 +133,8 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                  local_rte_los,
                                  ppath_step_agenda,p_grid,lat_grid,lon_grid,
                                  refellipsoid,z_surface,z_field,t_field,
-                                 vmr_field,cloudbox_limits,
+                                 vmr_field,edensity_field, f_index,
+                                 cloudbox_limits,
                                  pnd_field,scat_data_mono,particle_masses,
                                  verbosity);
           mc_IWP+=iwp;
@@ -549,6 +552,7 @@ void MCIPA(Workspace&            ws,
            const Matrix&         z_surface,
            const Tensor3&        t_field, 
            const Tensor4&        vmr_field, 
+           const Tensor3&        edensity_field, 
            const ArrayOfIndex&   cloudbox_limits, 
            const Tensor4&        pnd_field,
            const ArrayOfSingleScatteringData& scat_data_mono,
@@ -643,8 +647,8 @@ void MCIPA(Workspace&            ws,
       Ppath ppath;
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field,
-                  refellipsoid, z_surface, 0, cloudbox_limits, 
-                  local_rte_pos, local_rte_los, 0, verbosity );
+                  edensity_field, f_index, refellipsoid, z_surface, 0, 
+                  cloudbox_limits, local_rte_pos, local_rte_los, 0, verbosity );
       
       while (keepgoing)
         {

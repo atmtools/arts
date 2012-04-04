@@ -285,9 +285,9 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
        INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-              "iy_agenda_call1", "iy_transmission",
-              "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", 
-              "t_field", "z_field", "vmr_field", "mblock_index" )));  
+              "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
+              "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
+              "mblock_index" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -533,9 +533,10 @@ void define_agenda_data()
         "determined as part of the propagation path calculations (such as for"
         "for radio link calculations).\n"
         ),
-       OUTPUT( "ppath", "rte_los" ),
-       INPUT( "rte_los", "rte_pos", "cloudbox_on", "ppath_inside_cloudbox_do", 
-              "mblock_index", "t_field", "z_field", "vmr_field" )));
+       OUTPUT( "ppath" ),
+       INPUT( "rte_pos", "rte_los", "cloudbox_on", "ppath_inside_cloudbox_do", 
+              "mblock_index", "t_field", "z_field", "vmr_field",
+              "edensity_field", "f_index" )));
 
   agenda_data.push_back
     (AgRecord
@@ -580,7 +581,8 @@ void define_agenda_data()
         "number of new points of each step can exceed one.\n"
         ),
        OUTPUT( "ppath_step" ),
-       INPUT( "ppath_step", "t_field", "z_field", "vmr_field" )));
+       INPUT( "ppath_step", "t_field", "z_field", "vmr_field", 
+              "edensity_field", "f_index" )));
 
   agenda_data.push_back
     (AgRecord

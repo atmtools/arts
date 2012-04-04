@@ -328,6 +328,7 @@ void basics_checkedCalc(
                         const Tensor3&   wind_u_field,
                         const Tensor3&   wind_v_field,
                         const Tensor3&   wind_w_field,
+                        const Tensor3&   edensity_field,
                         const Vector&    refellipsoid,
                         const Matrix&    z_surface,
                         const Index&     stokes_dim,
@@ -410,6 +411,13 @@ void basics_checkedCalc(
   if( atmosphere_dim > 2  &&  wind_u_field.npages() > 0 )
     { 
       chk_atm_field( "wind_u_field", wind_u_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+    }
+
+  // Free electrons
+  if( edensity_field.npages() > 0 )
+    { 
+      chk_atm_field( "edensity_field", edensity_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
     }
 

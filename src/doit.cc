@@ -266,6 +266,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           ConstVectorView refellipsoid,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
+                          ConstTensor3View edensity_field,
                           ConstVectorView f_grid,
                           const Index& f_index,
                           //particle optical properties
@@ -304,7 +305,7 @@ void cloud_ppath_update1D(Workspace& ws,
   
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            ppath_step_agenda );
+                            edensity_field, f_index, ppath_step_agenda );
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -407,6 +408,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 ConstVectorView refellipsoid,
                                 // Calculate thermal emission:
                                 ConstTensor3View t_field,
+                                ConstTensor3View edensity_field,
                                 ConstVectorView f_grid,
                                 // used for surface ?
                                 const Index& f_index,
@@ -445,7 +447,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            ppath_step_agenda );
+                            edensity_field, f_index, ppath_step_agenda );
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -595,6 +597,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           ConstVectorView refellipsoid,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
+                          ConstTensor3View edensity_field,
                           ConstVectorView f_grid,
                           const Index& f_index,
                           //particle optical properties
@@ -653,7 +656,7 @@ void cloud_ppath_update3D(Workspace& ws,
 
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            ppath_step_agenda);
+                            edensity_field, f_index, ppath_step_agenda);
 
     // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the

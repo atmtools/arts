@@ -65,20 +65,22 @@ extern const Numeric DEG2RAD;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalc(      
-         Workspace&      ws,
-         Ppath&          ppath,
-         Vector&         rte_los,
-   const Agenda&         ppath_agenda,
-   const Index&          basics_checked,
-   const Tensor3&        t_field,
-   const Tensor3&        z_field,
-   const Tensor4&        vmr_field,
-   const Index&          cloudbox_on, 
-   const Index&          cloudbox_checked,
-   const Index&          ppath_inside_cloudbox_do,
-   const Index&          mblock_index,
-   const Vector&         rte_pos,
-   const Verbosity&  )
+          Workspace&      ws,
+          Ppath&          ppath,
+    const Agenda&         ppath_agenda,
+    const Index&          basics_checked,
+    const Tensor3&        t_field,
+    const Tensor3&        z_field,
+    const Tensor4&        vmr_field,
+    const Tensor3&        edensity_field,
+    const Index&          f_index,
+    const Index&          cloudbox_on, 
+    const Index&          cloudbox_checked,
+    const Index&          ppath_inside_cloudbox_do,
+    const Index&          mblock_index,
+    const Vector&         rte_pos,
+    const Vector&         rte_los,
+    const Verbosity&  )
 {
   //--- Check input -----------------------------------------------------------
   if( !basics_checked )
@@ -88,9 +90,9 @@ void ppathCalc(
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
 
-  ppath_agendaExecute( ws, ppath, rte_los, rte_pos, cloudbox_on, 
-                       ppath_inside_cloudbox_do, mblock_index, 
-                       t_field, z_field, vmr_field, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 
+                       ppath_inside_cloudbox_do, mblock_index, t_field, z_field,
+                       vmr_field, edensity_field, f_index, ppath_agenda );
 }
 
 
@@ -99,23 +101,25 @@ void ppathCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathFromRtePos2(      
-         Workspace&      ws,
-         Ppath&          ppath,
-         Vector&         rte_los,
-   const Agenda&         ppath_step_agenda,
-   const Index&          basics_checked,
-   const Index&          atmosphere_dim,
-   const Vector&         p_grid,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const Tensor3&        t_field,
-   const Tensor3&        z_field,
-   const Tensor4&        vmr_field,
-   const Vector&         refellipsoid,
-   const Matrix&         z_surface,
-   const Vector&         rte_pos,
-   const Vector&         rte_pos2,
-   const Verbosity&      verbosity )
+          Workspace&      ws,
+          Ppath&          ppath,
+          Vector&         rte_los,
+    const Agenda&         ppath_step_agenda,
+    const Index&          basics_checked,
+    const Index&          atmosphere_dim,
+    const Vector&         p_grid,
+    const Vector&         lat_grid,
+    const Vector&         lon_grid,
+    const Tensor3&        t_field,
+    const Tensor3&        z_field,
+    const Tensor4&        vmr_field,
+    const Tensor3&        edensity_field,
+    const Index&          f_index,
+    const Vector&         refellipsoid,
+    const Matrix&         z_surface,
+    const Vector&         rte_pos,
+    const Vector&         rte_pos2,
+    const Verbosity&      verbosity )
 {
   //--- Check input -----------------------------------------------------------
   if( !basics_checked )
@@ -189,9 +193,10 @@ void ppathFromRtePos2(
       out3 << "    Trying rte_los: [" << rte_los << "]\n";
 
       // Path for present rte_los (no cloudbox!)
-      ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, 
-               lat_grid, lon_grid, t_field, z_field, vmr_field, refellipsoid, 
-               z_surface, 0, ArrayOfIndex(0), rte_pos, rte_los, 0, verbosity );
+      ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+                  lon_grid, t_field, z_field, vmr_field, edensity_field,
+                  f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+                  rte_pos, rte_los, 0, verbosity );
 
       // Find the point closest to rte_pos2, on the side towards rte_pos. 
       // We do this by looking at the distance to rte_pos, that should be 
@@ -434,29 +439,31 @@ void ppathFromRtePos2(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathStepByStep(
-         Workspace&      ws,
-         Ppath&          ppath,
-   const Agenda&         ppath_step_agenda,
-   const Index&          ppath_inside_cloudbox_do,
-   const Index&          atmosphere_dim,
-   const Vector&         p_grid,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const Tensor3&        t_field,
-   const Tensor3&        z_field,
-   const Tensor4&        vmr_field,
-   const Vector&         refellipsoid,
-   const Matrix&         z_surface,
-   const Index&          cloudbox_on, 
-   const ArrayOfIndex&   cloudbox_limits,
-   const Vector&         rte_pos,
-   const Vector&         rte_los,
-   const Verbosity&      verbosity)
+          Workspace&      ws,
+          Ppath&          ppath,
+    const Agenda&         ppath_step_agenda,
+    const Index&          ppath_inside_cloudbox_do,
+    const Index&          atmosphere_dim,
+    const Vector&         p_grid,
+    const Vector&         lat_grid,
+    const Vector&         lon_grid,
+    const Tensor3&        t_field,
+    const Tensor3&        z_field,
+    const Tensor4&        vmr_field,
+    const Tensor3&        edensity_field,
+    const Index&          f_index,
+    const Vector&         refellipsoid,
+    const Matrix&         z_surface,
+    const Index&          cloudbox_on, 
+    const ArrayOfIndex&   cloudbox_limits,
+    const Vector&         rte_pos,
+    const Vector&         rte_los,
+    const Verbosity&      verbosity)
 {
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
-              lon_grid, t_field, z_field, vmr_field, refellipsoid, z_surface, 
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
-              ppath_inside_cloudbox_do, verbosity );
+              lon_grid, t_field, z_field, vmr_field, edensity_field, f_index, 
+              refellipsoid, z_surface, cloudbox_on, cloudbox_limits, rte_pos, 
+              rte_los, ppath_inside_cloudbox_do, verbosity );
 }
 
 
@@ -511,23 +518,24 @@ void ppath_stepGeometric(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_stepRefractionEuler(Workspace&  ws,
-                               // WS Output:
-                                     Ppath&      ppath_step,
-                               // WS Input:
-                               const Agenda&     refr_index_agenda,
-                               const Index&      atmosphere_dim,
-                               const Vector&     p_grid,
-                               const Vector&     lat_grid,
-                               const Vector&     lon_grid,
-                               const Tensor3&    z_field,
-                               const Tensor3&    t_field,
-                               const Tensor4&    vmr_field,
-                               const Vector&     refellipsoid,
-                               const Matrix&     z_surface,
-                               const Numeric&    ppath_lmax,
-                               const Numeric&    ppath_lraytrace,
-                               const Verbosity&)
+void ppath_stepRefractionEuler(
+          Workspace&  ws,
+          Ppath&      ppath_step,
+    const Agenda&     refr_index_agenda,
+    const Index&      atmosphere_dim,
+    const Vector&     p_grid,
+    const Vector&     lat_grid,
+    const Vector&     lon_grid,
+    const Tensor3&    z_field,
+    const Tensor3&    t_field,
+    const Tensor4&    vmr_field,
+    const Tensor3&    edensity_field,
+    const Vector&     refellipsoid,
+    const Matrix&     z_surface,
+    const Index&      f_index,
+    const Numeric&    ppath_lmax,
+    const Numeric&    ppath_lraytrace,
+    const Verbosity&)
 {
   // Input checks here would be rather costly as this function is called
   // many times. 
@@ -542,24 +550,26 @@ void ppath_stepRefractionEuler(Workspace&  ws,
         { 
           ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
                               t_field(joker,0,0), vmr_field(joker,joker,0,0), 
-                              refellipsoid, z_surface(0,0), ppath_lmax, 
-                              refr_index_agenda, "linear_euler", 
-                              ppath_lraytrace );
+                              edensity_field, f_index, refellipsoid, 
+                              z_surface(0,0), ppath_lmax, refr_index_agenda, 
+                              "linear_euler", ppath_lraytrace );
         }
       else if( atmosphere_dim == 2 )
         { 
           ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
                               z_field(joker,joker,0), t_field(joker,joker,0), 
-                              vmr_field(joker, joker,joker,0), refellipsoid, 
+                              vmr_field(joker,joker,joker,0), 
+                              edensity_field, f_index, refellipsoid, 
                               z_surface(joker,0), ppath_lmax, refr_index_agenda,
                               "linear_euler", ppath_lraytrace ); 
         }
       else if( atmosphere_dim == 3 )
         { 
           ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
-                              z_field, t_field, vmr_field, refellipsoid, 
-                              z_surface, ppath_lmax, refr_index_agenda,
-                              "linear_euler", ppath_lraytrace ); 
+                              z_field, t_field, vmr_field, edensity_field, 
+                              f_index, refellipsoid, z_surface, ppath_lmax, 
+                              refr_index_agenda, "linear_euler", 
+                              ppath_lraytrace ); 
         }
       else
         { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
@@ -572,19 +582,21 @@ void ppath_stepRefractionEuler(Workspace&  ws,
         { get_refr_index_1d( ws, ppath_step.nreal[0], refr_index_agenda, 
                              p_grid, refellipsoid, z_field(joker,0,0), 
                              t_field(joker,0,0), vmr_field(joker,joker,0,0), 
-                             ppath_step.r[0] ); 
+                             edensity_field, f_index, ppath_step.r[0] ); 
         }
       else if( atmosphere_dim == 2 )
         { get_refr_index_2d( ws, ppath_step.nreal[0], refr_index_agenda, 
                              p_grid, lat_grid, refellipsoid, 
                              z_field(joker,joker,0), t_field(joker,joker,0), 
-                             vmr_field(joker, joker,joker,0),
+                             vmr_field(joker,joker,joker,0),
+                             edensity_field, f_index, 
                              ppath_step.r[0], ppath_step.pos(0,1) ); 
         }
       else
         { get_refr_index_3d( ws, ppath_step.nreal[0], refr_index_agenda, 
                              p_grid, lat_grid, lon_grid, refellipsoid, 
-                             z_field, t_field, vmr_field, ppath_step.r[0], 
+                             z_field, t_field, vmr_field, edensity_field, 
+                             f_index, ppath_step.r[0], 
                              ppath_step.pos(0,1), ppath_step.pos(0,2) ); 
         }
     }
@@ -596,9 +608,9 @@ void ppath_stepRefractionEuler(Workspace&  ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintTangentPoint(
-   const Ppath&     ppath,
-   const Index&     level,
-   const Verbosity& verbosity)
+    const Ppath&     ppath,
+    const Index&     level,
+    const Verbosity& verbosity)
 {
   // Find lowest z and its index
   Numeric zmin = 99e99;
@@ -638,14 +650,12 @@ void PrintTangentPoint(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losSet(// WS Output:
-                Vector&          rte_los,
-                // WS Input:
-                const Index&     atmosphere_dim,
-                // Control Parameters:
-                const Numeric&   za,
-                const Numeric&   aa,
-                const Verbosity&)
+void rte_losSet(
+          Vector&    rte_los,
+    const Index&     atmosphere_dim,
+    const Numeric&   za,
+    const Numeric&   aa,
+    const Verbosity&)
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -666,14 +676,14 @@ void rte_losSet(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losGeometricFromRtePosToRtePos2(
-         Vector&         rte_los,
-   const Index&          atmosphere_dim,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const Vector&         refellipsoid,
-   const Vector&         rte_pos,
-   const Vector&         rte_pos2,
-   const Verbosity& )
+          Vector&         rte_los,
+    const Index&          atmosphere_dim,
+    const Vector&         lat_grid,
+    const Vector&         lon_grid,
+    const Vector&         refellipsoid,
+    const Vector&         rte_pos,
+    const Vector&         rte_pos2,
+    const Verbosity& )
 {
   // Check input
   chk_rte_pos( atmosphere_dim, rte_pos, 0 );
@@ -737,15 +747,13 @@ void rte_losGeometricFromRtePosToRtePos2(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posSet(// WS Output:
-                Vector&          rte_pos,
-                // WS Input:
-                const Index&     atmosphere_dim,
-                // Control Parameters:
-                const Numeric&   z,
-                const Numeric&   lat,
-                const Numeric&   lon,
-                const Verbosity&)
+void rte_posSet(
+          Vector&    rte_pos,
+    const Index&     atmosphere_dim,
+    const Numeric&   z,
+    const Numeric&   lat,
+    const Numeric&   lon,
+    const Verbosity&)
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -763,21 +771,21 @@ void rte_posSet(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZaRefr1D(Workspace&          ws,
-                          // WS Generic Output:
-                          Vector&             za_vector,
-                          // WS Input:
-                          const Agenda&       refr_index_agenda,
-                          const Matrix&       sensor_pos,
-                          const Vector&       p_grid,
-                          const Tensor3&      t_field,
-                          const Tensor3&      z_field,
-                          const Tensor4&      vmr_field,
-                          const Vector&       refellipsoid,
-                          const Index&        atmosphere_dim,
-                          // WS Generic Input:
-                          const Vector&       ztan_vector,
-                          const Verbosity&)
+void VectorZtanToZaRefr1D(
+           Workspace&    ws,
+           Vector&       za_vector,
+     const Agenda&       refr_index_agenda,
+     const Matrix&       sensor_pos,
+     const Vector&       p_grid,
+     const Tensor3&      t_field,
+     const Tensor3&      z_field,
+     const Tensor4&      vmr_field,
+     const Tensor3&      edensity_field,
+     const Vector&       refellipsoid,
+     const Index&        atmosphere_dim,
+     const Index&        f_index,
+     const Vector&       ztan_vector,
+     const Verbosity&)
 {
   if( atmosphere_dim != 1 ) {
     throw runtime_error( "The function can only be used for 1D atmospheres." );
@@ -802,6 +810,7 @@ void VectorZtanToZaRefr1D(Workspace&          ws,
       get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
                          refellipsoid[0], z_field(joker,0,0), 
                          t_field(joker,0,0), vmr_field(joker,joker,0,0), 
+                         edensity_field, f_index,
                          ztan_vector[i] + refellipsoid[0] );
 
     // Calculate zenith angle
@@ -816,15 +825,13 @@ void VectorZtanToZaRefr1D(Workspace&          ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZa1D(// WS Generic Output:
-                      Vector&             za_vector,
-                      // WS Input:
-                      const Matrix&       sensor_pos,
-                      const Vector&       refellipsoid,
-                      const Index&        atmosphere_dim,
-                      // WS Generic Input:
-                      const Vector&       ztan_vector,
-                      const Verbosity&)
+void VectorZtanToZa1D(
+          Vector&       za_vector,
+    const Matrix&       sensor_pos,
+    const Vector&       refellipsoid,
+    const Index&        atmosphere_dim,
+    const Vector&       ztan_vector,
+    const Verbosity&)
 {
   if( atmosphere_dim != 1 ) {
     throw runtime_error( "The function can only be used for 1D atmospheres." );

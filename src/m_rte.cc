@@ -334,6 +334,7 @@ void iyBeerLambertStandardClearsky(
   const Tensor3&              wind_u_field,
   const Tensor3&              wind_v_field,
   const Tensor3&              wind_w_field,
+  const Tensor3&              edensity_field,
   const Vector&               refellipsoid,
   const Matrix&               z_surface,
   const Index&                cloudbox_on,
@@ -379,11 +380,10 @@ void iyBeerLambertStandardClearsky(
   //- Determine propagation path
   //
   Ppath  ppath;
-  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 0,
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
                        mblock_index, t_field, z_field, vmr_field, 
-                       ppath_agenda );
+                       edensity_field, -1, ppath_agenda );
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
@@ -638,6 +638,7 @@ void iyBeerLambertStandardCloudbox(
   const Tensor3&                       z_field,
   const Tensor3&                       t_field,
   const Tensor4&                       vmr_field,
+  const Tensor3&                       edensity_field,
   const Index&                         cloudbox_on,
   const ArrayOfIndex&                  cloudbox_limits,
   const Index&                         stokes_dim,
@@ -665,10 +666,10 @@ void iyBeerLambertStandardCloudbox(
   // Determine ppath through the cloudbox
   //
   Ppath  ppath;
-  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 1, -1,
-                       t_field, z_field, vmr_field, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 1, -1,
+                       t_field, z_field, vmr_field, edensity_field, -1,
+                       ppath_agenda );
 
   // Check radiative background
   const Index bkgr = ppath_what_background( ppath );
@@ -781,6 +782,7 @@ void iyEmissionStandardClearsky(
   const Tensor3&                    wind_u_field,
   const Tensor3&                    wind_v_field,
   const Tensor3&                    wind_w_field,
+  const Tensor3&                    edensity_field,
   const Vector&                     refellipsoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
@@ -838,11 +840,10 @@ void iyEmissionStandardClearsky(
   //- Determine propagation path
   //
   Ppath  ppath;
-  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 0, 
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0, 
                        mblock_index, t_field, z_field, vmr_field, 
-                       ppath_agenda );
+                       edensity_field, -1, ppath_agenda );
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
@@ -1149,6 +1150,7 @@ void iyEmissionStandardClearskyBasic(
   const Tensor3&       wind_u_field,
   const Tensor3&       wind_v_field,
   const Tensor3&       wind_w_field,
+  const Tensor3&       edensity_field,
   const Vector&        refellipsoid,
   const Matrix&        z_surface,
   const Index&         cloudbox_on,
@@ -1176,10 +1178,10 @@ void iyEmissionStandardClearskyBasic(
   //- Determine propagation path
   //
   Ppath  ppath;
-  Vector los2agenda; los2agenda = rte_los; 
   //
-  ppath_agendaExecute( ws, ppath, los2agenda, rte_pos, cloudbox_on, 0, -1,
-                       t_field, z_field, vmr_field, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0, -1,
+                       t_field, z_field, vmr_field, edensity_field, -1,
+                       ppath_agenda );
 
   // Get quantities required for each ppath point
   //
@@ -1396,6 +1398,7 @@ void iyRadioLink(
   const Tensor3&              wind_u_field,
   const Tensor3&              wind_v_field,
   const Tensor3&              wind_w_field,
+  const Tensor3&              edensity_field,
   const Vector&               refellipsoid,
   const Matrix&               z_surface,
   const Index&                cloudbox_on,
@@ -1433,9 +1436,9 @@ void iyRadioLink(
   Ppath  ppath;
   Vector rte_los(0);
   //
-  ppath_agendaExecute( ws, ppath, rte_los, rte_pos, cloudbox_on, 0,
-                       mblock_index, t_field, z_field, vmr_field, 
-                       ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
+                       mblock_index, t_field, z_field, vmr_field,
+                       edensity_field, -1, ppath_agenda );
   if( ppath_what_background(ppath) > 2 )
     { throw runtime_error( "Radiative background not set to \"space\" by "
                       "*ppath_agenda*. Is correct WSM used in teh agenda?" ); }

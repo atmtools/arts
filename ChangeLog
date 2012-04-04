@@ -1,9 +1,46 @@
 2012-04-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-76
+
+	* tests/Ppath/TestPpath2D.arts:
+	* tests/Ppath/TestPpath2D.arts:
+	* tests/Ppath/TestPpath1D.arts: Some changes. The files test
+	different options for f_index = -1.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Now also checking
+	edensity_field.
+
+	* includes/general.arts: edensity_field set to be empty. Adopted
+	definition of ppath_step_agenda.
+
+	* src/montecarlo.cc (iwp_cloud_opt_pathCalc):
+	* src/m_rte.cc:
+	* src/m_montecarlo.cc (MCIPA):
+	* src/m_fos.cc:
+	* src/m_doit.cc:
+	* src/doit.cc:
+	* src/ppath.cc:
+	* src/m_ppath.cc: Numerous changes due to changes below (but all
+	basically only to hand over variables to next function in the chain).
+
+	* src/agendas.cc: Added edensity_field and f_index as input to
+	ppath_agenda and ppath_step_agenda (edensity_field is presently
+	not needed as agenda input, just in case if we want edensity
+	jacobians in the future. To finish this, edensity_field must be
+	added as input to iy_clearsky_agenda.).
+
+	Reverted change for ppath_agenda. rte_los now only input. Not
+	needed as output now with end_los added to Ppath structure.
+
+	* src/refraction.cc: All functions consider now f_index and
+	edensity_field.
+
+2012-04-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-75
 
 	* src/refraction.cc (get_refr_index_1/2/3d): Adopted call of
-	refr_index_agenda, but so far just using local variables. 
+	refr_index_agenda, but so far just using local variables.
 
 	* src/m_refraction.cc (refr_indexThayer): Now also doing the
 	calculation (code moved from refr_index_thayer_1974). Works now in
@@ -21,13 +58,13 @@
 	* tests/Ppath/TestPpath2D.arts:
 	* tests/Ppath/TestPpath3D.arts: Removed definition of
 	refr_index_agenda (was same as in general.arts).
-	
+
 	* includes/general.arts: Adopted definition of refr_index_agenda.
 
 	* src/agendas.cc: Added f_index and rte_edensity to the input of
 	refr_index_agenda.
 
-	* src/workspace.cc: Introduced edensity_field and rte_edensity. 
+	* src/workspace.cc: Introduced edensity_field and rte_edensity.
 
 2012-04-03  Jana Mendrok <jana.mendrok@ltu.se>
 
