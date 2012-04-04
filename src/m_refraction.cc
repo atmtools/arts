@@ -38,16 +38,21 @@
   === External declarations
   ===========================================================================*/
 
+#include <cmath>
 #include "absorption.h"
 #include "arts.h"
 #include "check_input.h"
+#include "math_funcs.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "refraction.h"
 #include "special_interp.h"
 #include "abs_species_tags.h"
 
-
+extern const Numeric ELECTRON_CHARGE;
+extern const Numeric ELECTRON_MASS;
+extern const Numeric PI;
+extern const Numeric VACUUM_PERMITTIVITY;
 
 /*===========================================================================
   === WSMs
@@ -55,32 +60,62 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexIR(// WS Output
-                  Numeric&       refr_index,
-                  // WS Input
-                  const Numeric& a_pressure,
-                  const Numeric& a_temperature,
-                  const Vector&  a_vmr_list,
-                  const Verbosity&)
+void refr_indexFreeElectrons(
+          Numeric&   refr_index,
+    const Vector&    f_grid,
+    const Index&     f_index,
+    const Numeric&   rte_edensity,
+    const Verbosity&)
 {
-  //To suppress warning about unused parameter
-  a_vmr_list.nelem();
+  static const Numeric k = ELECTRON_CHARGE * ELECTRON_CHARGE / 
+                         ( VACUUM_PERMITTIVITY * ELECTRON_MASS * 4 * PI * PI );
 
-  refr_index_ir( refr_index, a_pressure, a_temperature );
+  if( rte_edensity > 0 )
+    {
+      Numeric f;
+      if( f_index < 0 )
+        { f = f_grid[f_index]; }
+      else
+        { f = ( f_grid[0] + last(f_grid) ) / 2.0; }
+
+      // The expression is taken from Rybicki and Lightman (1979), and 
+      // considers the group velocity.
+      refr_index += sqrt( 1 - rte_edensity*k/(f*f) ) - 1;
+    }
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexThayer(Numeric&        refr_index,
-                      const Numeric&  a_pressure,
-                      const Numeric&  a_temperature,
-                      const Vector&   a_vmr_list,
-                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const Verbosity&)
+void refr_indexIR(
+          Numeric&   refr_index,
+    const Numeric&   rte_pressure,
+    const Numeric&   rte_temperature,
+    const Verbosity&)
 {
-  if( abs_species.nelem() != a_vmr_list.nelem() )
+  static const Numeric bn0  = 1.000272620045304;
+  static const Numeric bn02 = bn0*bn0;
+  static const Numeric bk   = 288.16 * (bn02-1.0) / (1013.25*(bn02+2.0));
+
+  // Pa -> hPa
+  refr_index += sqrt( (2.0*bk*rte_pressure/100.0+rte_temperature) / 
+                      ( rte_temperature-bk*rte_pressure/100.0) ) - 1;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refr_indexThayer(
+          Numeric&   refr_index,
+    const Numeric&   rte_pressure,
+    const Numeric&   rte_temperature,
+    const Vector&    rte_vmr_list,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Verbosity& )
+{
+  if( abs_species.nelem() != rte_vmr_list.nelem() )
     throw runtime_error( "The number of tag groups differ between "
-                                           "*a_vmr_list* and *abs_species*." );
+                                         "*rte_vmr_list* and *abs_species*." );
 
   Index   firstH2O = find_first_species_tg( abs_species,
                                       species_index_from_species_name("H2O") );
@@ -89,15 +124,9 @@ void refr_indexThayer(Numeric&        refr_index,
     throw runtime_error(
        "Water vapour is a required (must be a tag group in *abs_species*)." );
 
-  refr_index_thayer_1974( refr_index, a_pressure, a_temperature,
-                                                        a_vmr_list[firstH2O] );
-}
+  const Numeric   e = rte_pressure * rte_vmr_list[firstH2O];
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void refr_indexUnit(Numeric& refr_index,
-                    const Verbosity&)
-{
-  refr_index = 1.0;
+  refr_index += ( 77.6e-8 * ( rte_pressure - e ) + 
+             ( 64.8e-8 + 3.776e-3 / rte_temperature ) * e ) / rte_temperature;
 }
 

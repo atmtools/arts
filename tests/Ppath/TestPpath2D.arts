@@ -65,10 +65,6 @@ cloudbox_checkedCalc
 
 # Uncomment the calls below to activate refraction 
 #
-#
-#AgendaSet( refr_index_agenda ){
-#  refr_indexThayer
-#}
 #AgendaSet( ppath_step_agenda ){
 #  ppath_stepRefractionEuler
 #}

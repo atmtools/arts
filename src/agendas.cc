@@ -593,7 +593,8 @@ void define_agenda_data()
         "relevant atmospheric constituents.\n"
         ),
        OUTPUT( "refr_index" ),
-       INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list" )));
+       INPUT(  "f_index", "rte_pressure", "rte_temperature", "rte_vmr_list", 
+               "rte_edensity" )));
 
   agenda_data.push_back
     (AgRecord

@@ -7143,7 +7143,7 @@ void define_md_data_raw()
          "      report of the IAU/IAG Working Group.\n"
          "\n"
          "According to the report used above, the Venus ellipsoid lacks\n"
-         "eccentricity and no further models have been implemented.\n"         
+         "eccentricity and no further models should be required.\n"         
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refellipsoid" ),
@@ -7159,6 +7159,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "refr_indexFreeElectrons" ),
+        DESCRIPTION
+        (
+         "Microwave refractive index due to free electrons.\n"
+         "\n"
+         "The refractive index of free electrons is added to *refr_index*.\n"
+         "To obtain the complete value, *refr_index* should be set to 1\n"
+         "before calling this WSM.\n"
+         "\n"
+         "The expression is dispersive. The frequency applied is selected as\n"
+         "follows. If *f_index* < 0, the mean of first and last element of\n"
+         "*f_grid* is selected. Otherwise, *f_index* specifies the element\n"
+         "of *f_grid* to extract.\n"
+         "\n"
+         "The expression applied is taken from Rybicki and Lightman (1979),\n"
+         "and considers the group velocity.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "refr_index" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "refr_index", "f_grid", "f_index", "rte_edensity" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "refr_indexIR" ),
         DESCRIPTION
         (
@@ -7167,13 +7198,17 @@ void define_md_data_raw()
          "\n"
          "Only refractivity of dry air is considered. The formula used is\n"
          "contributed by Michael Hoefner, Forschungszentrum Karlsruhe.\n"
+         "\n"
+         "The refractivity of dry air is added to *refr_index*. To obtain\n"
+         "the complete value, *refr_index* should be set to 1 before\n"
+         "calling this WSM. The expression used is non-dispersive.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT( "refr_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        IN( "refr_index", "rte_pressure", "rte_temperature" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7185,11 +7220,12 @@ void define_md_data_raw()
       ( NAME( "refr_indexThayer" ),
         DESCRIPTION
         (
-         "Calculates the microwave refractive index due to gases in the\n"
-         "Earth's atmosphere.\n"
+         "Microwave refractive index due to gases in the Earth's atmosphere.\n"
          "\n"
-         "The refractivity of dry air and water vapour is summed. All\n"
-         "other gases are assumed to have a negligible contribution. \n"
+         "The refractivity of dry air and water vapour is added to\n"
+         "*refr_index*. To obtain the complete value, *refr_index* should\n"
+         "be set to 1 before calling this WSM. The expression\n"
+         "used is non-dispersive.\n"
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
@@ -7200,29 +7236,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pressure", "rte_temperature", "rte_vmr_list", "abs_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "refr_indexUnit" ),
-        DESCRIPTION
-        (
-         "Sets the refractive index to 1.\n"
-         "\n"
-         "If this method is used, the obtained path should be identical to\n"
-         "the geomtrical path.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
+        IN( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list", 
+            "abs_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

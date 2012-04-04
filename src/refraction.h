@@ -124,15 +124,4 @@ void refr_gradients_3d(
         const Numeric&    lat,
         const Numeric&    lon );
 
-void refr_index_thayer_1974(
-              Numeric&   refr_index,
-        const Numeric&   p,
-        const Numeric&   t,
-        const Numeric&   h2o_vmr );
-
-void refr_index_ir(
-              Numeric&   refr_index,
-        const Numeric&   p,
-        const Numeric&   t );
-
 #endif  // refraction_h

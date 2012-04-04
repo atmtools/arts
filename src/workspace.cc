@@ -1298,6 +1298,27 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "edensity_field" ),
+      DESCRIPTION
+      (
+       "The field of free electrons.\n"
+       "\n"
+       "This variable gives the density of free electrons at each crossing of\n"
+       "the pressure, latitude and longitude grids. The density for a point\n"
+       "between the grid crossings is obtained by multi-linear interpolation\n"
+       "of the field.\n"
+       "\n"
+       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       1/m3\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
+       ),
+      GROUP( "Tensor3" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "emission" ),
       DESCRIPTION
       (
@@ -2853,6 +2874,23 @@ void Workspace::define_wsv_data()
        "Usage:   Set internally, by *RteCalc*.\n"
       ),
       GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_edensity" ),
+      DESCRIPTION
+      (
+       "An electron density for radiative transfer calculations.\n"
+       "\n"
+       "This scalar variable can hold the local electron density. It is\n"
+       "intended mainly for communication with various methods and agendas,\n"
+       "such as methods and agendas calculating refractive index.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ 1/m3 ]\n"
+       ),
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord

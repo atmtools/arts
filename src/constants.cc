@@ -103,6 +103,22 @@ extern const Numeric DEG2RAD        = 0.017453292519943;
 extern const Numeric EARTH_RADIUS   = 6.3781e6;
 
 
+/** Global constant, the charge of an electron [As]
+    N.B. this is a negative number.
+
+    \author Patrick Eriksson 
+    \date   2012-04-04
+*/
+extern const Numeric ELECTRON_CHARGE   = -1.602176565e-19;
+
+
+/** Global constant, the mass of an electron [kg]
+    \author Patrick Eriksson 
+    \date   2012-04-04
+*/
+extern const Numeric ELECTRON_MASS   = 9.10938291e-31;
+
+
 /** Global constant, e (Euler's number)
     \author Thomas Kuhn
     \date   08.11.2001
@@ -205,6 +221,19 @@ extern const Numeric TEMP_0_C       =  273.15;
     \date   2000-10-31
 */
 extern const Numeric TORR2PA        = 133.3227;
+
+
+/** Global constant, the vacuum permittivity [F m-1]
+
+    The constant is also know the permittivity of free space or electric
+    constant.
+
+    \author Patrick Eriksson \date 2012-04-04
+*/
+extern const Numeric  VACUUM_PERMITTIVITY  = 8.854187817620e-12;
+
+
+
 
 
 

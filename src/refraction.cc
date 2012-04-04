@@ -88,7 +88,7 @@ void get_refr_index_1d(
         ConstMatrixView   vmr_field,
         const Numeric&    r )
 { 
-  Numeric   rte_pressure, rte_temperature;
+  Numeric   rte_pressure, rte_temperature, rte_edensity=0;
   Vector    rte_vmr_list;
 
   // Pressure grid position
@@ -119,8 +119,19 @@ void get_refr_index_1d(
       rte_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, rte_pressure, rte_temperature, 
-                            rte_vmr_list, refr_index_agenda );
+  // Electron density
+  /*
+  if( edensity_field.nelem() )
+    {
+      interp( dummy, itw, t_field, gp );
+      rte_edensity = dummy[0];
+    }
+  */
+
+  const Index f_index=-1;
+  refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
+                            rte_temperature, rte_vmr_list, rte_edensity,
+                            refr_index_agenda );
 }
 
 
@@ -166,7 +177,7 @@ void get_refr_index_2d(
         const Numeric&    r,
         const Numeric&    lat )
 { 
-  Numeric   rte_pressure, rte_temperature;
+  Numeric   rte_pressure, rte_temperature, rte_edensity=0;
   Vector    rte_vmr_list;
 
   // Determine the geometric altitudes at *lat*
@@ -210,8 +221,10 @@ void get_refr_index_2d(
       rte_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, rte_pressure, rte_temperature, 
-                            rte_vmr_list, refr_index_agenda );
+  const Index f_index=-1;
+  refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
+                            rte_temperature, rte_vmr_list, rte_edensity,
+                            refr_index_agenda );
 }
 
 
@@ -256,7 +269,7 @@ void get_refr_index_3d(
         const Numeric&    lat,
         const Numeric&    lon )
 { 
-  Numeric   rte_pressure, rte_temperature;
+  Numeric   rte_pressure, rte_temperature, rte_edensity=0;
   Vector    rte_vmr_list;
 
   // Determine the geometric altitudes at *lat* and *lon*
@@ -303,8 +316,10 @@ void get_refr_index_3d(
       rte_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, rte_pressure, rte_temperature, 
-                            rte_vmr_list, refr_index_agenda );
+  const Index f_index=-1;
+  refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
+                            rte_temperature, rte_vmr_list, rte_edensity,
+                            refr_index_agenda );
 }
 
 
@@ -467,53 +482,3 @@ void refr_gradients_3d(
 }
 
 
-
-//! refr_index_thayer_1974
-/*! 
-   Calculation of microwave refractive index following Thayer 1974.
-
-   Calculates the microwave refractive index due to gases in the
-   Earth's atmosphere. The refractivity of dry air and water vapour is
-   summed. All other gases has a negligible contribution.
-
-   The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)
-   is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104, pp. 9664).
-
-   \author Patrick Eriksson
-   \date   2002-11-13
-*/
-void refr_index_thayer_1974(
-              Numeric&   refr_index,
-        const Numeric&   p,
-        const Numeric&   t,
-        const Numeric&   h2o_vmr )
-{
-  const Numeric   e = p * h2o_vmr;
-
-  refr_index = 1 + ( 77.6e-8 * ( p - e ) +
-                                          ( 64.8e-8 + 3.776e-3 / t ) * e ) / t;
-}
-
-
-
-//! refr_index_ir
-/*!
-   Calculation of refractive index for the infrared frequency band.
-   The function uses a definition from Michael Höpfner,
-   Forschungszentrum Karlsruhe.
-
-   \author Mattias Ekström
-   \date   2003-05-15
-*/
-void refr_index_ir(
-              Numeric&   refr_index,
-        const Numeric&   p,
-        const Numeric&   t )
-{
-  static const Numeric bn0  = 1.000272620045304;
-  static const Numeric bn02 = bn0*bn0;
-  static const Numeric bk   = 288.16 * (bn02-1.0) / (1013.25*(bn02+2.0));
-
-  // Pa -> HPa
-  refr_index = sqrt((2.0*bk*p/100.0+t)/(t-bk*p/100.0));
-}
