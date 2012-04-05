@@ -1,3 +1,21 @@
+2012-04-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-78
+
+	* tests/testall.py,
+	tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts,
+	tests/MonteCarlo/TestRteCalcMC.arts,
+	tests/MonteCarlo/TestMonteCarloGeneral.arts:
+
+	Move tests into the controlfiles.
+
+	* tests/CMakeLists.txt: Add fast.odinsmr test.
+
+	* cmake/modules/ArtsTestcases.cmake:
+
+	Set arts screen output level for tests to 0 to only output the error
+	in case of failure instead of the whole method log.
+
 2012-04-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-77

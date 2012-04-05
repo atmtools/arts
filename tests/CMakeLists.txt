@@ -115,6 +115,7 @@ arts_test_run_ctlfile(fast.transmission   Transmission/TestTransmission.arts)
 arts_test_run_ctlfile(fast.radiolink      RadioLink/TestRadioLink.arts)
 arts_test_run_ctlfile(fast.amsub          AMSU/TestAMSUB_fast.arts)
 arts_test_run_ctlfile(fast.doit           DOIT/TestDOIT.arts)
+arts_test_run_ctlfile(fast.odinsmr        OdinSMR/TestOdinSMR.arts)
 
 arts_test_run_ctlfile(fast.montecarlo.dataprepare
                       MonteCarlo/TestMonteCarloDataPrepare.arts)

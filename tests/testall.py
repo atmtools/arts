@@ -56,16 +56,16 @@ class TestMonteCarloGeneral(unittest.TestCase):
         """MCGeneral test should run with no errors"""
         self.MCrun.run()
         assert self.MCrun.error=='','Error running TestMonteCarloSimple.arts: '+self.MCrun.error
-    def test2(self):
-        """Total radiance should be close to 201.8 K"""
-        I=artsXML.load("MonteCarlo/TestMonteCarloGeneral.y.xml")[0]
-        dI=artsXML.load("MonteCarlo/TestMonteCarloGeneral.mc_error.xml")[0]
-        assert abs(I-201.8) < 4*dI, 'I (= %.2f K) is too far away from 201.8 K' % I
-    def test3(self):
-        """Polarization difference should be close to 7.6 K"""
-        Q=artsXML.load("MonteCarlo/TestMonteCarloGeneral.y.xml")[1]
-        dQ=artsXML.load("MonteCarlo/TestMonteCarloGeneral.mc_error.xml")[1]
-        assert abs(Q-7.6) < 4*dQ, 'Q (= %.2f K) is too far away from 7.6 K' % Q
+#    def test2(self):
+#        """Total radiance should be close to 201.8 K"""
+#        I=artsXML.load("MonteCarlo/TestMonteCarloGeneral.y.xml")[0]
+#        dI=artsXML.load("MonteCarlo/TestMonteCarloGeneral.mc_error.xml")[0]
+#        assert abs(I-201.8) < 4*dI, 'I (= %.2f K) is too far away from 201.8 K' % I
+#    def test3(self):
+#        """Polarization difference should be close to 7.6 K"""
+#        Q=artsXML.load("MonteCarlo/TestMonteCarloGeneral.y.xml")[1]
+#        dQ=artsXML.load("MonteCarlo/TestMonteCarloGeneral.mc_error.xml")[1]
+#        assert abs(Q-7.6) < 4*dQ, 'Q (= %.2f K) is too far away from 7.6 K' % Q
         
 class TestMonteCarloGeneralGaussian(unittest.TestCase):
     """Testing the MCGeneral algorithm with a Gaussian antenna response"""
@@ -74,16 +74,16 @@ class TestMonteCarloGeneralGaussian(unittest.TestCase):
         """MCGeneral (Gaussian Antenna) test should run with no errors"""
         self.MCrun.run()
         assert self.MCrun.error=='','Error running TestMonteCarloGeneralGaussian.arts: '+self.MCrun.error
-    def test2(self):
-        """Total radiance should be close to 201 K"""
-        I=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.y.xml")[0]
-        dI=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.mc_error.xml")[0]
-        assert abs(I-201) < 4*dI, 'I (= %.2f K) is too far away from 201 K' % I
-    def test3(self):
-        """Polarization difference should be close to 7.7 K"""
-        Q=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.y.xml")[1]
-        dQ=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.mc_error.xml")[1]
-        assert abs(Q-7.6) < 4*dQ, 'Q (= %.2f K) is too far away from 7.6 K' % Q
+#    def test2(self):
+#        """Total radiance should be close to 201 K"""
+#        I=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.y.xml")[0]
+#        dI=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.mc_error.xml")[0]
+#        assert abs(I-201) < 4*dI, 'I (= %.2f K) is too far away from 201 K' % I
+#    def test3(self):
+#        """Polarization difference should be close to 7.7 K"""
+#        Q=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.y.xml")[1]
+#        dQ=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.mc_error.xml")[1]
+#        assert abs(Q-7.6) < 4*dQ, 'Q (= %.2f K) is too far away from 7.6 K' % Q
 
 class TestRteCalcMC(unittest.TestCase):
     """Testing the WSM RteCalcMC"""
@@ -92,11 +92,11 @@ class TestRteCalcMC(unittest.TestCase):
         """RteCalcMC test should run with no errors"""
         self.MCrun.run()
         assert self.MCrun.error=='','Error running RteCalcMC.arts: '+self.MCrun.error
-    def test2(self):
-        """Total radiance should be close to 199.5 K"""
-        I=artsXML.load("MonteCarlo/TestRteCalcMC.y.xml")[0]
-        dI=artsXML.load("MonteCarlo/TestRteCalcMC.y_error.xml")[0]
-        assert abs(I-199.5) < 4*dI, 'I (=%.2f K) is too far away from 199.5 K' % I
+#    def test2(self):
+#        """Total radiance should be close to 199.5 K"""
+#        I=artsXML.load("MonteCarlo/TestRteCalcMC.y.xml")[0]
+#        dI=artsXML.load("MonteCarlo/TestRteCalcMC.y_error.xml")[0]
+#        assert abs(I-199.5) < 4*dI, 'I (=%.2f K) is too far away from 199.5 K' % I
 
 
 class TestOdinSMR(unittest.TestCase):

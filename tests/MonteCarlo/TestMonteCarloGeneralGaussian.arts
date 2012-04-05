@@ -103,5 +103,33 @@ Print( mc_iteration_count, 1 )
 
 Print( y_unit, 1 )
 
+#### Tests ########################
+
+# Radiance test
+NumericCreate( mc_error_0 )
+Extract( mc_error_0, mc_error, 0 )
+NumericScale( mc_error_0, mc_error_0, 4. )
+
+VectorCreate( y_0 )
+Select( y_0, y, [ 0 ] )
+
+VectorCreate( y_ref )
+VectorSetConstant( y_ref, 1, 201. )
+
+VectorCompare( y_0, y_ref, mc_error_0,
+               "Total radiance should be close to 201 K" )
+
+# Polarization test
+NumericCreate( mc_error_1 )
+Extract( mc_error_1, mc_error, 1 )
+NumericScale( mc_error_1, mc_error_1, 4. )
+
+VectorCreate( y_1 )
+Select( y_1, y, [ 1 ] )
+
+VectorSetConstant( y_ref, 1, 7.6 )
+
+VectorCompare( y_1, y_ref, mc_error_1,
+               "Polarization difference should be close to 7.6 K" )
 }
 
