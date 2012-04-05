@@ -1,5 +1,29 @@
 2012-04-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-79
+
+	* Switching to ctest!
+
+	* CMakeLists.txt:
+
+	Use ctest as the default for the check/check-fast targets.
+
+	* tests/testall.py:
+
+	Remove all tests that moved to the ctest interface. Only one left
+	that was currently not used due to a dependency on PyARTS. I'll leave
+	the code here for now.
+
+	* cmake/modules/ArtsTestcases.cmake: Remove deprecated macros.
+
+	* tests/CMakeLists.txt:
+
+	Add last missing test Wfuns.
+
+	Remove deprecated testing code.
+
+2012-04-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-78
 
 	* tests/testall.py,

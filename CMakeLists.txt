@@ -247,10 +247,10 @@ add_custom_command (
 
 add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
 
-add_custom_target(newcheck
+add_custom_target(check
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure DEPENDS arts)
 
-add_custom_target(newcheck-fast
+add_custom_target(check-fast
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -E ".slow." DEPENDS arts)
 
 ########### subdirectories ###############
