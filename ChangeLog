@@ -1,3 +1,20 @@
+2012-04-05  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-80
+
+	* src/m_cloudbox.cc (pnd_fieldSetup):
+	- moved all specific PSD calculation functionality into individual
+	functions.
+	- added Marshall&Palmer PSD for rain (also intended for use with snow,
+	graupel/hail).
+	- changed errors due to 'incorrect' profile or particle type
+	into warnings, giving more freedom to the user how to name and combine
+	things.
+
+	* src/cloudbox.cc,cloudbox.h:
+	added individual function for each implemented PSD type (currently:
+	MH97, H11, H98_STCO, MP48).
+
 2012-04-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-79

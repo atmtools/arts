@@ -48,6 +48,7 @@ extern const Numeric PI;
 #include "rng.h"
 #include <ctime>
 #include "mc_antenna.h"
+#include "sorting.h"
 
 //! Check whether hydromet grid size is equal to atmospheric grid size 
 //! and if hydromet profile is zero (no cloud) in each grid point.
@@ -775,6 +776,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
   
 }
 
+
 /*! barometric heightformula for isothermal earth atmosphere 
     \return p1 pressure in displacement level [Pa]
           
@@ -812,9 +814,540 @@ Numeric barometric_heightformula ( //output is p1
   
 }
 
+
+/*! Calculates the particle number density field for McFarquhar and Heymsfield
+    (1997) size distribution. To be used for cloud ice.
+
+    \return pnd_field Particle number density field
+          
+    \param IWC_field mass content (cloud ice) field [g/m3]
+    \param t_field atmospheric temperature [K]
+    \param limits pnd_field boundaries (p, lat, lon)
+    \param scat_data_meta_array particle meta data for particles
+    \param scat_data_start start index for particles handled by this distribution
+    \param npart number of particles handled by this distribution
+    \param part_string part_species tag for profile/distribution handled here
+  
+  \author Jana Mendrok, Daniel Kreyling
+  \date 2012-04-03
+
+*/
+void pnd_fieldMH97 (Tensor4View pnd_field,
+                    const Tensor3& IWC_field,
+                    const Tensor3& t_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfScatteringMetaData& scat_data_meta_array,
+                    const Index& scat_data_start,
+                    const Index& npart,
+                    const String& part_string,
+                    const Verbosity& verbosity)
+{
+  ArrayOfIndex intarr;
+  Index pos;
+  Vector vol_unsorted ( npart, 0.0 );
+  Vector vol ( npart, 0.0 );
+  Vector dm ( npart, 0.0 );
+  Vector rho ( npart, 0.0 );
+  Vector pnd ( npart, 0.0 );
+  Vector dN ( npart, 0.0 );
+
+  String psd_param;
+  String prof_type;
+
+  //split String and copy to ArrayOfString
+  parse_psd_param( psd_param, part_string);
+  parse_prof_type( prof_type, part_string);
+
+  bool noisy = (psd_param == "MH97n");
+
+  // convert IWC from kg/m^3 to g/m^3
+  const Numeric convfac=1e3;
+
+  for ( Index i=0; i < npart; i++ )
+      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
+  get_sorted_indexes(intarr, vol_unsorted);
+
+  // extract scattering meta data
+  for ( Index i=0; i< npart; i++ )
+  {
+      pos = intarr[i]+scat_data_start;
+
+      vol[i] = ( scat_data_meta_array[pos].V ); //m^3
+      // calculate melted diameter from volume [m]
+      dm[i] = pow ( 
+             ( scat_data_meta_array[pos].V *6./PI ),
+             ( 1./3. ) );
+      // get density from meta data [kg/m^3] and convert to [g/m^3]
+      rho[i] = scat_data_meta_array[pos].density * 1e3;
+  }
+      
+  if (dm.nelem() > 0)
+  // dm.nelem()=0 implies no selected particles for the respective particle
+  // field. should not occur
+  {
+      // iteration over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
+      {
+        for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+        {
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            // we only need to go through PSD calc if there is any material
+            if (IWC_field ( p, lat, lon ) > 0.)
+            {
+                // iteration over all given size bins
+                for ( Index i=0; i<dm.nelem(); i++ )
+                {
+                  // calculate particle size distribution with MH97
+                  // [# m^-3 m^-1]
+                  dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon )*convfac,
+                                          dm[i], t_field ( p, lat, lon ),
+                                          rho[i], noisy );
+                  //dN2[i] = dN[i] * vol[i] * rho[i];
+                }
+            
+                // scale pnds by bin width
+                if (dm.nelem() > 1)
+                  scale_pnd( pnd, dm, dN );
+                else
+                  pnd = dN;
+	    
+                // calculate error of pnd sum and real XWC
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon )*convfac, vol, rho,
+                             p, lat, lon, prof_type, verbosity );
+	    
+                // writing pnd vector to wsv pnd_field
+                for ( Index i = 0; i< npart; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = pnd[i];
+                }
+            }
+            else
+                for ( Index i = 0; i< npart; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = 0.;
+                }
+          }
+        }
+      }
+  }
+}
+
+/*! Calculates the particle number density field for Heymsfield (2011, personal
+    comm.) size distribution. To be used for atmospheric ice, particularly cloud
+    ice and snow.
+
+    \return pnd_field Particle number density field
+          
+    \param IWC_field mass content (cloud ice or snow) field [g/m3]
+    \param t_field atmospheric temperature [K]
+    \param limits pnd_field boundaries (p, lat, lon)
+    \param scat_data_meta_array particle meta data for particles
+    \param scat_data_start start index for particles handled by this distribution
+    \param npart number of particles handled by this distribution
+    \param part_string part_species tag for profile/distribution handled here
+  
+  \author Jana Mendrok, Daniel Kreyling
+  \date 2012-04-05
+
+*/
+void pnd_fieldH11 (Tensor4View pnd_field,
+                   const Tensor3& IWC_field,
+                   const Tensor3& t_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfScatteringMetaData& scat_data_meta_array,
+                   const Index& scat_data_start,
+                   const Index& npart,
+                   const String& part_string,
+                   const Verbosity& verbosity)
+{
+  ArrayOfIndex intarr;
+  Index pos;
+  Vector dmax_unsorted ( npart, 0.0 );
+  Vector vol ( npart, 0.0 );
+  Vector dm ( npart, 0.0 );
+  Vector rho ( npart, 0.0 );
+  Vector pnd ( npart, 0.0 );
+  Vector dN ( npart, 0.0 );
+  
+  String prof_type;
+
+  //split String and copy to ArrayOfString
+  parse_prof_type( prof_type, part_string);
+
+  for ( Index i=0; i < npart; i++ )
+      dmax_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].d_max );
+  get_sorted_indexes(intarr, dmax_unsorted);
+      
+  // convert IWC from kg/m^3 to g/m^3
+  const Numeric convfac = 1e3;
+
+  // extract scattering meta data
+  for ( Index i=0; i< npart; i++ )
+  {
+      pos = intarr[i]+scat_data_start;
+
+      vol[i]= scat_data_meta_array[pos].V; //[m^3]
+      // get maximum diameter from meta data [m]
+      dm[i] = scat_data_meta_array[pos].d_max;
+      // get density from meta data [g/m^3]
+      rho[i] = scat_data_meta_array[pos].density * 1e3;
+  }
+
+  if (dm.nelem() > 0)
+  // dm.nelem()=0 implies no selected particles for the respective particle
+  // field. should not occur (once the "ignore" works for particle fields.
+  // up to then we need to catch it here...)
+  {
+      // itertation over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
+      {
+        for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+        {
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            // we only need to go through PSD calc if there is any material
+            if (IWC_field ( p, lat, lon ) > 0.)
+            {
+                // iteration over all given size bins
+                for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of particles
+                {
+                  // calculate particle size distribution for H11
+                  // [# m^-3 m^-1]
+/*FIXME: do we need to pass IWC_Field?
+we do anyway do scale_H11 later on. and chk_pndsum.
+*/
+                  dN[i] = psd_H11 ( IWC_field ( p, lat, lon)*convfac,
+                                    dm[i], t_field ( p, lat, lon ) );
+                }
+                // scale pnds by scale width
+                if (dm.nelem() > 1)
+                    scale_pnd( pnd, dm, dN ); //[# m^-3]
+                else
+                    pnd = dN;
+
+                // scale H11 distribution (which is independent of Ice or 
+                // Snow massdensity) to current massdensity.
+                scale_H11 ( pnd, IWC_field ( p,lat,lon )*convfac, vol, rho ); 
+
+                // calculate error of pnd sum and real IWC
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon )*convfac, vol, rho,
+                             p, lat, lon, prof_type, verbosity );
+
+                // writing pnd vector to wsv pnd_field
+                for ( Index i =0; i< npart; i++ )
+                {
+                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                lat-limits[2], lon-limits[4] ) = pnd[i];
+                    //dlwc[q] = pnd2[q]*vol[q]*rho[q];
+                }
+            }
+            else
+            {
+                for ( Index i = 0; i< npart; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = 0.;
+                }
+            }
+          }
+        }
+      }
+  }
+}
+
+/*! Calculates the particle number density field for Marshall and Palmer (1948)
+    size distribution. To be used for precipitation, particularly rain.
+
+    \return pnd_field Particle number density field
+          
+    \param PR_field precipitation rate field [kg/(m2*s)]
+    \param limits pnd_field boundaries (p, lat, lon)
+    \param scat_data_meta_array particle meta data for particles
+    \param scat_data_start start index for particles handled by this distribution
+    \param npart number of particles handled by this distribution
+    \param part_string part_species tag for profile/distribution handled here
+  
+  \author Jana Mendrok
+  \date 2012-04-04
+
+*/
+void pnd_fieldMP48 (Tensor4View pnd_field,
+                    const Tensor3& PR_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfScatteringMetaData& scat_data_meta_array,
+                    const Index& scat_data_start,
+                    const Index& npart,
+                    const String& part_string,
+                    const Verbosity& verbosity)
+{
+  ArrayOfIndex intarr;
+  Index pos;
+  Vector vol_unsorted ( npart, 0.0 );
+  Vector vol ( npart, 0.0 );
+  Vector dm ( npart, 0.0 );
+  Vector rho ( npart, 0.0 );
+  Vector pnd ( npart, 0.0 );
+  Vector dN ( npart, 0.0 );
+
+  String prof_type;
+
+  //split String and copy to ArrayOfString
+  parse_prof_type( prof_type, part_string);
+
+  for ( Index i=0; i < npart; i++ )
+      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
+  get_sorted_indexes(intarr, vol_unsorted);
+	
+  // extract scattering meta data
+  for ( Index i=0; i< npart; i++ )
+  {
+      pos = intarr[i]+scat_data_start;
+
+      vol[i] = ( scat_data_meta_array[pos].V ); //m^3
+      // calculate volume equivalent diameter [m]
+      dm[i] = pow ( 
+             ( scat_data_meta_array[pos].V *6./PI ),
+             ( 1./3. ) );
+      // get density from meta data [kg/m^3]
+      rho[i] = scat_data_meta_array[pos].density;
+  }
+
+  // convert from PR [kg/(m^2*s)] to PR[mm/hr]
+  /* for the conversion we needneed to mean density of distribution:
+     rho_mean = mass_total/vol_total
+              = int(vol[D]*rho[D]*dN[D])dD/int(vol[D]*dN[D])dD
+
+     however, we do not yet know dN[D], which in turn is dependent on rho[D].
+      proper solution requires iterative approach (does it?), but is it really
+      worth to implement this? at least rain drops density should not really
+      vary with particle size. might be different for snow/hail/graupel.
+     so, here we only do conversion to pseudo-PR[mm/hr]*[kg/m^3] and divide by
+      density later on 
+  */
+  const Numeric convfac=3.6e6; // [PR [kg/(m^2*s)] to PR[mm/hr]*[kg/m3]
+  Numeric fac, rho_mean, vol_total, mass_total, tPR;
+      
+  if (dm.nelem() > 0)
+  // dm.nelem()=0 implies no selected particles for the respective particle
+  // field. should not occur
+  {
+      // iteration over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
+      {
+        for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+        {
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            // we only need to go through PSD calc if there is any material
+            if (PR_field ( p, lat, lon ) > 0.)
+            {
+              Index n_it = 0;
+
+              // initializing for proper start of while loop
+              rho_mean = 0.;
+              mass_total = rho.sum()/Numeric(npart);
+              vol_total = 1.;
+              while (abs( rho_mean/(mass_total/vol_total)-1.)>1e-2)
+              {
+                if (n_it>10)
+                {
+                    ostringstream os;
+                    os<< "ERROR: Bulk mean density for MP48 distribution is"
+                      << " not converging.\n"
+                      << "fractional change: "
+                      << abs( rho_mean/(mass_total/vol_total)-1.) << "\n"
+                      << "at p: " << p << " lat: " << lat << " lon" << lon
+                      << " for PR=" << PR_field ( p, lat, lon ) << "\n";
+                    throw runtime_error ( os.str() );
+                }
+                rho_mean = mass_total/vol_total;
+                fac = convfac/rho_mean;
+
+                // first get true PR [mm/hr] assuming mean density equals
+                // density of this individual particle
+                tPR = PR_field ( p, lat, lon ) * fac;
+
+                // iteration over all given size bins
+                for ( Index i=0; i<dm.nelem(); i++ )
+                {
+                    // calculate particle size distribution with MP48
+                    // output: [# m^-3 m^-1]
+                    dN[i] = PRtopnd_MP48 ( tPR, dm[i]);
+                    //dN2[i] = dN[i] * vol[i] * rho[i];
+                }
+
+                // scale pnds by bin width
+                if (dm.nelem() > 1)
+                    scale_pnd( pnd, dm, dN );
+                else
+                    pnd = dN;
+
+                //now we can at least check, how much rho_mean changes (and
+                // maybe redo the pnd calculation?)
+                mass_total = vol_total = 0.;
+                for ( Index i=0; i<dm.nelem(); i++ )
+                {
+                    mass_total += vol[i]*rho[i]*pnd[i];
+                    vol_total += vol[i]*pnd[i];
+                }
+                //cout << n_it << ". iteration changing bulk density from "
+                //     << rho_mean << " to " << mass_total/vol_total << "\n";
+                n_it++;
+
+                //cout << "fine at p: " << p << " lat: " << lat << " lon" << lon
+                //     << " for PR=" << PR_field ( p, lat, lon )*fac << "mm/hr.\n";
+                // calculate error of pnd sum and real XWC
+/*FIXME: need to check, whether we're checking against correct precip value here!
+*/
+                chk_pndsum ( pnd, PR_field ( p,lat,lon ), vol, rho,
+                             p, lat, lon, prof_type, verbosity );
+	    
+                // writing pnd vector to wsv pnd_field
+                for ( Index i = 0; i< npart; i++ )
+                {
+                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                lat-limits[2], lon-limits[4] ) = pnd[i];
+                }
+              }
+            }
+            else
+                for ( Index i = 0; i< npart; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = 0.;
+                }
+          }
+        }
+      }
+  }
+}
+
+/*! Calculates the particle number density field for Hess et al. (1998)
+    size distribution, namely the continental stratus case. To be used for
+    liquid clouds.
+
+    \return pnd_field Particle number density field
+          
+    \param LWC_field mass content (liquid water) field [g/m3]
+    \param limits pnd_field boundaries (p, lat, lon)
+    \param scat_data_meta_array particle meta data for particles
+    \param scat_data_start start index for particles handled by this distribution
+    \param npart number of particles handled by this distribution
+    \param part_string part_species tag for profile/distribution handled here
+  
+  \author Jana Mendrok, Daniel Kreyling
+  \date 2012-04-04
+
+*/
+void pnd_fieldH98 (Tensor4View pnd_field,
+                   const Tensor3& LWC_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfScatteringMetaData& scat_data_meta_array,
+                   const Index& scat_data_start,
+                   const Index& npart,
+                   const String& part_string,
+                   const Verbosity& verbosity)
+{
+  ArrayOfIndex intarr;
+  Index pos;
+  Vector vol_unsorted ( npart, 0.0 );
+  Vector vol ( npart, 0.0 );
+  Vector r ( npart, 0.0 );
+  Vector rho ( npart, 0.0 );
+  Vector pnd ( npart, 0.0 );
+  Vector dN ( npart, 0.0 );
+
+  String prof_type;
+
+  //split String and copy to ArrayOfString
+  parse_prof_type( prof_type, part_string);
+
+  for ( Index i=0; i < npart; i++ )
+      vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
+  get_sorted_indexes(intarr, vol_unsorted);
+      
+  // convert LWC from kg/m^3 to g/m^3
+  const Numeric convfac = 1e3;
+
+  // extract scattering meta data
+  for ( Index i=0; i< npart; i++ )
+  {
+      pos = intarr[i]+scat_data_start;
+
+      vol[i]= scat_data_meta_array[pos].V; // [m^3]
+      // calculate radius from volume [m]
+      r[i] = 0.5 * pow (
+               ( 6*scat_data_meta_array[pos].V/PI ), ( 1./3. ) );
+      // get density from meta data [g/m^3]
+      rho[i] = scat_data_meta_array[pos].density * 1e3;
+  }
+
+  if (r.nelem() > 0)
+  // r.nelem()=0 implies no selected particles for the respective particle
+  // field. should not occur (once the "ignore" works for particle fields.
+  // up to then we need to catch it here...)
+  {
+      // iteration over all atm. levels
+      for ( Index p=limits[0]; p<limits[1]; p++ )
+      {
+        for ( Index lat=limits[2]; lat<limits[3]; lat++ )
+        {
+          for ( Index lon=limits[4]; lon<limits[5]; lon++ )
+          {
+            if (LWC_field ( p,lat,lon )>0.)
+            {
+                // iteration over all given size bins
+                for ( Index i=0; i<r.nelem(); i++ ) //loop over number of particles
+                {
+                    // calculate particle size distribution for liquid
+                    // [# m^-3 m^-1]
+/*FIXME: do we need to pass LWC_Field?
+we do chk_pndsum later on. at least make consistent with H11.
+*/
+                    dN[i] = LWCtopnd ( LWC_field ( p,lat,lon )*convfac, r[i] );
+                    //dN2[i] = LWCtopnd2 ( r[i] );  // [# m^-3 m^-1]
+                    //dN2[i] = dN[i] * vol[i] * rho[i];
+                }
+
+                // scale pnds by scale width. output: [# m^-3]
+                if (r.nelem() > 1)
+                    scale_pnd( pnd, r, dN );
+                else
+                    pnd = dN;
+	    
+                // calculate error of pnd sum and real XWC
+                chk_pndsum ( pnd, LWC_field ( p,lat,lon )*convfac, vol, rho,
+                             p, lat, lon, prof_type, verbosity );
+
+                // writing pnd vector to wsv pnd_field
+                for ( Index i =0; i< npart; i++ )
+                {
+                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                                lat-limits[2], lon-limits[4] ) = pnd[i];
+                    //dlwc[q] = pnd2[q]*vol[q]*rho[q];
+                }
+            }
+            else
+            {
+                for ( Index i = 0; i< npart; i++ )
+                {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = 0.;
+                }
+            }
+          }
+        }
+      }
+  }
+}
+
+
 /*! Calculates particle size distribution using MH97 parametrization.
- *  Each diameter of the scattering particles is a node in the ditribution.
- *  One call of this function, calculates one particle number density.  
+ *  Each diameter of the scattering particles is a node in the distribution.
+ *  One call of this function calculates one particle number density.  
 
     \return dN particle number density per diameter interval [#/m3*m]
           
@@ -970,8 +1503,8 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 }
 
 /*! Calculates particle size distribution using H11 parametrization.
- *  Each diameter of the scattering particles is a node in the ditribution.
- *  One call of this function, calculates one particle number density.  
+ *  Each diameter of the scattering particles is a node in the distribution.
+ *  One call of this function calculates one particle number density.  
 
     \return dN particle number density per diameter interval [#/m3*m]
           
@@ -1082,6 +1615,35 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 	return n;
 }
 
+
+/*! Calculates particle size distribution using MP48 parametrization for rain.
+ *  Each diameter of the scattering particles is a node in the distribution.
+ *  One call of this function calculates one particle number density.  
+
+    \return dN particle number density per diameter interval [#/m3*m]
+          
+    \param R precipitation rate [mm/hr]
+    \param D volume equivalent diameter of scattering particle [m]
+ 
+  \author Jana Mendrok
+  \date 2012-04-04
+
+*/
+Numeric PRtopnd_MP48 (	const Numeric R,
+			const Numeric D)
+{
+  // skip calculation if PR is 0.0
+  if ( R == 0.0 )
+  {
+    return 0.0;
+  }
+
+  Numeric N0 = 0.08*1e-2; // [#/cm^3/cm] converted to [#/m^3/um]
+  Numeric lambda = 41.*1e2*pow(R,-0.21); // [cm^-1] converted to [m^-1] to fit D[m]
+
+  Numeric n = N0*exp(-lambda*D);
+  return n;
+}
 
 /*! Scaling pnd values by width of size bin. 
  * Bin width is determined from preceeding and following particle size.

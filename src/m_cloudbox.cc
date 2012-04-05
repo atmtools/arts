@@ -1347,6 +1347,8 @@ void pnd_fieldSetup (//WS Output:
                      const ArrayOfIndex& scat_data_nelem,
                      const Verbosity& verbosity)
 {
+  CREATE_OUT1
+
   // Cloudbox on/off?
   if ( !cloudbox_on )
   {
@@ -1356,44 +1358,46 @@ void pnd_fieldSetup (//WS Output:
   }
 
   // ------- set pnd_field boundaries to cloudbox boundaries -------------------
-  //initialize pnd_field boundaries
-  Index p_cbstart = 0;
-  Index p_cbend = 1;
-  Index lat_cbstart = 0;
-  Index lat_cbend = 1;
-  Index lon_cbstart = 0;
-  Index lon_cbend = 1;
+  //set pnd_field boundaries
+  ArrayOfIndex limits(6);
   //pressure
-  p_cbstart = cloudbox_limits[0];
-  p_cbend = cloudbox_limits[1]+1;
-
+  limits[0] = cloudbox_limits[0];
+  limits[1] = cloudbox_limits[1]+1;
   //latitude
-  if ( atmosphere_dim >= 2 )
+  if ( atmosphere_dim > 1 )
   {
-    lat_cbstart = cloudbox_limits[2];
-    lat_cbend = cloudbox_limits[3]+1;
+      limits[2] = cloudbox_limits[2];
+      limits[3] = cloudbox_limits[3]+1;
   }
-  //longitude
-  if ( atmosphere_dim == 3 )
+  else
   {
-    lon_cbstart = cloudbox_limits[4];
-    lon_cbend = cloudbox_limits[5]+1;
+      limits[2] = 0;
+      limits[3] = 1;
+  }
+  if ( atmosphere_dim > 2 )
+  {
+      limits[4] = cloudbox_limits[4];
+      limits[5] = cloudbox_limits[5]+1;
+  }
+  else
+  {
+      limits[4] = 0;
+      limits[5] = 1;
+  }
 
-  }
-  
   /* Do some checks. Not foolproof, but catches at least some. */
 
-  if ((p_cbend > massdensity_field.npages()) ||
-      (p_cbend > t_field.npages()) ||
-      (lat_cbend > massdensity_field.nrows()) ||
-      (lat_cbend > t_field.nrows()) ||
-      (lon_cbend > massdensity_field.ncols()) ||
-      (lon_cbend > t_field.ncols()))
+  if ((limits[1] > massdensity_field.npages()) ||
+      (limits[1] > t_field.npages()) ||
+      (limits[3] > massdensity_field.nrows()) ||
+      (limits[3] > t_field.nrows()) ||
+      (limits[5] > massdensity_field.ncols()) ||
+      (limits[5] > t_field.ncols()))
   {
     ostringstream os;
     os << "Cloudbox out of bounds compared to fields. "
        << "Upper limits: (p, lat, lon): "
-       << "(" << p_cbend << ", " << lat_cbend << ", " << lon_cbend << "). "
+       << "(" << limits[1] << ", " << limits[3] << ", " << limits[5] << "). "
        << "*massdensity_field*: "
        << "(" << massdensity_field.npages() << ", "
        << massdensity_field.nrows() << ", "
@@ -1406,8 +1410,8 @@ void pnd_fieldSetup (//WS Output:
   }
 
   //resize pnd_field to required atmospheric dimension and scatt particles
-  pnd_field.resize ( scat_data_meta_array.nelem(), p_cbend-p_cbstart,
-                     lat_cbend-lat_cbstart, lon_cbend-lon_cbstart );
+  pnd_field.resize ( scat_data_meta_array.nelem(), limits[1]-limits[0],
+                     limits[3]-limits[2], limits[5]-limits[4] );
   Index scat_data_start = 0;
   ArrayOfIndex intarr;
 
@@ -1419,10 +1423,13 @@ void pnd_fieldSetup (//WS Output:
 
     String psd_param;
     String prof_type;
+    String part_type;
+    String psd;
 
     //split String and copy to ArrayOfString
     parse_psd_param( psd_param, part_species[k]);
     parse_prof_type( prof_type, part_species[k]);
+    parse_part_type( part_type, part_species[k]);
 
     // initialize control parameters
     Vector vol_unsorted ( scat_data_nelem[k], 0.0 );
@@ -1437,295 +1444,120 @@ void pnd_fieldSetup (//WS Output:
     //Vector dN2 ( scat_data_nelem[k], 0.0 ); //temporary
     //Vector dlwc ( scat_data_nelem[k], 0.0 ); //temporary
 
+    //Tensor3 md_field =  massdensity_field ( k, joker, joker, joker );
 
-    //---- start pnd_field calculations for MH97 -------------------------------
+    //---- pnd_field calculations for MH97 -------------------------------
     if ( psd_param.substr(0,4) == "MH97" )
     {
-      
-      bool noisy = (psd_param == "MH97n");
+        psd = "MH97";
 
-      for ( Index i=0; i < scat_data_nelem[k]; i++ )
-      {
-	//m^3
-        vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
-      }
-      get_sorted_indexes(intarr, vol_unsorted);
-      //cout<<"intarr\t"<<intarr<<endl;
-	
-      // NOTE: the order of scattering particle profiles in *massdensity_field*
-      // is HARD WIRED!
-      // extract IWC_field and convert from kg/m^3 to g/m^3
-      Tensor3 IWC_field = massdensity_field ( k, joker, joker, joker );
-      IWC_field*=1000; //IWC [g/m^3]
-      //out0<<"\n"<<IWC_field<<"\n";
-
-      // extract scattering meta data
-      for ( Index i=0; i< scat_data_nelem[k]; i++ )
-      {
-        vol[i] = ( scat_data_meta_array[intarr[i]+scat_data_start].V ); //m^3
-        // calculate melted diameter from volume [m]
-        dm[i] = pow ( 
-                 ( (6*scat_data_meta_array[intarr[i]+scat_data_start].V) /PI ),
-                 ( 1./3. ) );
-	// get density from meta data [g/m^3]
-        rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
-
-        //check for correct particle phase
-        if ( scat_data_meta_array[intarr[i]+scat_data_start].type != "Ice" )
+        //check for expected profile type
+        if ( prof_type != "IWC" )
         {
-          throw runtime_error ( "The particle phase is unequal 'Ice'.\n"
-                                "MH97 can only be applied to ice particles.\n"
-                                "Check ScatteringMetaData!" );
+            out1 << "WARNING! The profile type is unequal 'IWC'.\n"
+                 << psd << " should should only be applied to cloud"
+                 << " ice.\n";
         }
-      }
-      
-      if (dm.nelem() > 0)
-      // dm.nelem()=0 implies no selected particles for the respective particle
-      // field. should not occur
-      {
-          // iteration over all atm. levels
-          for ( Index p=p_cbstart; p<p_cbend; p++ )
-          {
-            for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
-            {
-              for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
-              {
-                // iteration over all given size bins
-                for ( Index i=0; i<dm.nelem(); i++ )
-                {
-                  // calculate particle size distribution with MH97
-                  // [# m^-3 m^-1]
-                  dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ), dm[i],
-                                          t_field ( p, lat, lon ), rho[i], noisy );
-                  //dN2[i] = dN[i] * vol[i] * rho[i];
-                }
-                //out0<<"level: "<<p<<"\n"<<dN<<"\n";
-            
-                // scale pnds by bin width
-                if (dm.nelem() > 1)
-                {
-                  scale_pnd( pnd, dm, dN );
-                }
-                else
-                {
-                  pnd = dN;
-                }
-	    
-                //out0<<"level: "<<p<<"\n"<<pnd<<"\n"<<"IWC: "<<IWC_field ( p, lat, lon )<<"\n"<<"T: "<<t_field ( p, lat, lon )<<"\n";
-                // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, prof_type, verbosity );
-                //chk_pndsum2 (pnd2, IWC_field ( p,lat,lon ));
-	    
-                // writing pnd vector to wsv pnd_field
-                for ( Index i = 0; i< scat_data_nelem[k]; i++ )
-                {
-                  pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
-                              lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
-                }
 
-              }
-            }
-          }
-      }
+        //check for expected particle phase
+        if ( part_type != "Ice" )
+        {
+            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+                 << psd << " should only be applied to ice"
+                 << " particles.\n";
+        }
 
+        pnd_fieldMH97( pnd_field,
+                       massdensity_field ( k, joker, joker, joker ),
+                       t_field, limits,
+                       scat_data_meta_array, scat_data_start,
+                       scat_data_nelem[k], part_species[k], verbosity);
     }
 
-    //---- start pnd_field calculations for H11 ----------------------------
+    //---- pnd_field calculations for H11 ----------------------------
     else if ( psd_param == "H11" )
     {
-      Tensor3 X_field;
+        psd = "H11";
 
-      for ( Index i=0; i < scat_data_nelem[k]; i++ )
-      {
-	//m
-        d_max_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].d_max );
-      }
-      get_sorted_indexes(intarr, d_max_unsorted);
-      
-      X_field = massdensity_field ( k, joker, joker, joker );
-      X_field *= 1000; // [kg/m^3] -> [g/m^3]
-
-      // extract scattering meta data
-      for ( Index i=0; i< scat_data_nelem[k]; i++ )
-      {
-        vol[i]= scat_data_meta_array[intarr[i]+scat_data_start].V; //[m^3]
-        
-	// get maximum diameter from meta data [m]
-        dm[i] = scat_data_meta_array[intarr[i]+scat_data_start].d_max;
-
-        // get density from meta data [g/m^3]
-        rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
-
-        //check for correct particle phase
-        if ( scat_data_meta_array[intarr[i]+scat_data_start].type != "Ice" )
+        //check for expected profile type
+        if ( prof_type != "IWC" && prof_type != "Snow")
         {
-          throw runtime_error (
-			       "The particle phase is unequal 'Ice'.\n"
-			       "H11 can only be applied to ice/snow particles.\n"
-			       "Check ScatteringMetaData!" );
+            out1 << "WARNING! The profile type is unequal 'IWC' and 'Snow'.\n"
+                 << psd << " should only be applied to cloud or precipitating"
+                 << " ice.\n";
         }
-      }
 
-      if (dm.nelem() > 0)
-      // dm.nelem()=0 implies no selected particles for the respective particle
-      // field. should not occur (once the "ignore" works for particle fields.
-      // up to then we need to catch it here...)
-      {
-          // itertation over all atm. levels
-          for ( Index p=p_cbstart; p<p_cbend; p++ )
-          {
-            for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
-            {
-              for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
-              {
-                // iteration over all given size bins
-                for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of particles
-                {
-                  // calculate particle size distribution for H11
-                  // [# m^-3 m^-1]
-                  dN[i] = psd_H11 ( X_field ( p, lat, lon), dm[i],
-                                    t_field ( p, lat, lon ) );
-                }
-                // scale pnds by scale width
-                if (dm.nelem() > 1)
-                {
-                  scale_pnd( pnd, dm, dN ); //[# m^-3]
-                }
-                else
-                {
-                  pnd = dN;
-                }
+        //check for expected particle phase
+      //check for correct particle phase
+        if ( part_type != "Ice" &&  part_type != "Water" )
+        {
+            out1 << "WARNING! The particle phase is unequal 'Ice'.\n"
+                 << psd << " should only be applied to ice (cloud ice or snow)"
+                 << " particles.\n";
+        }
 
-                //cout<<"\nlevel: "<<p<<"\n"<<"X: "<<X_field ( p, lat, lon )<<"\n"
-                //    <<"T: "<<t_field ( p, lat, lon )<<"\n"<< dN<<"\n"<<pnd<<"\n";
-                // scale H11 distribution (which is independent of Ice or 
-                // Snow massdensity) to current massdensity.
-                // Output pnd: still in [# m^-3]
-                scale_H11 ( pnd, X_field ( p,lat,lon ), vol, rho ); 
-
-                // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, X_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, prof_type, verbosity );
-
-                // writing pnd vector to wsv pnd_field
-                for ( Index i =0; i< scat_data_nelem[k]; i++ )
-                {
-                  pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
-                              lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
-                  //dlwc[q] = pnd2[q]*vol[q]*rho[q];
-                }
-              }
-            }
-          }
-      }
+        pnd_fieldH11 (pnd_field,
+                       massdensity_field ( k, joker, joker, joker ),
+                       t_field, limits,
+                       scat_data_meta_array, scat_data_start,
+                       scat_data_nelem[k], part_species[k], verbosity);
     }
-    
+
+    //---- pnd_field calculations for MP48 -------------------------------
+    else if ( psd_param == "MP48" )
+    {
+        psd = "MP48";
+
+        //check for expected profile type
+        if ( prof_type != "Rain" && prof_type != "Snow")
+        {
+            out1 << "WARNING! The profile type is unequal 'Rain' and 'Snow'.\n"
+                 << psd << " should only be applied to liquid or frozen"
+                 << " precipitation.\n";
+        }
+
+        //check for expected particle phase
+        if ( part_type != "Ice" &&  part_type != "Water" )
+        {
+            out1 << "WARNING! The particle phase is unequal 'Ice' and 'Water'.\n"
+                 << psd << " should only be applied to liquid water or water"
+                 << " ice particles.\n";
+        }
+
+        pnd_fieldMP48( pnd_field,
+                       massdensity_field ( k, joker, joker, joker ),
+                       limits,
+                       scat_data_meta_array, scat_data_start,
+                       scat_data_nelem[k], part_species[k], verbosity);
+    }
+
     // ---- pnd_field calculations for liquid water clouds ---------------------
     //      (parameters from Hess98, Stratus continental)
     else if ( psd_param == "H98_STCO" || psd_param == "STCO" || psd_param == "liquid" )
     {
-      for ( Index i=0; i < scat_data_nelem[k]; i++ )
-      {
-	//m^3
-        vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
-      }
-      get_sorted_indexes(intarr, vol_unsorted);
-      //cout<<"intarr\t"<<intarr<<endl;
-      
-      // NOTE: the order of scattering particle profiles in *massdensity_field*
-      // is HARD WIRED!
-      // extract LWC_field and convert from kg/m^3 to g/m^3
-      Tensor3 LWC_field = massdensity_field ( k, joker, joker, joker );
-      LWC_field *= 1000; //LWC [g/m^3]
+        psd = "H98_STCO";
 
-      // extract scattering meta data
-      for ( Index i=0; i< scat_data_nelem[k]; i++ )
-      {
-        vol[i]= scat_data_meta_array[intarr[i]+scat_data_start].V; //m^3
-        // calculate diameter from volume [m]
-        dm[i] = pow (
-                 ( 6*scat_data_meta_array[intarr[i]+scat_data_start].V/PI ),
-                 ( 1./3. ) );
-        // diameter to radius
-        r[i] = dm[i]/2; // [m]
-        // get density from meta data [g/m^3]
-        rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
-
-        //check for correct particle phase
-        if ( scat_data_meta_array[intarr[i]+scat_data_start].type != "Water" )
+        //check for expected profile type
+        if ( prof_type != "LWC")
         {
-          throw runtime_error (
-            "The particle phase is unequal 'Water'.\n"
-            "All particles must be of liquid phase to apply this PSD.\n"
-            "Check ScatteringMetaData!" );
+            out1 << "WARNING! The profile type is unequal 'LWC'.\n"
+                 << psd << " should should only be applied to liquid or frozen"
+                 << " precipitation.\n";
         }
-      }
 
-      if (dm.nelem() > 0)
-      // dm.nelem()=0 implies no selected particles for the respective particle
-      // field. should not occur (once the "ignore" works for particle fields.
-      // up to then we need to catch it here...)
-      {
-          // itertation over all atm. levels
-          for ( Index p=p_cbstart; p<p_cbend; p++ )
-          {
-            for ( Index lat=lat_cbstart; lat<lat_cbend; lat++ )
-            {
-              for ( Index lon=lon_cbstart; lon<lon_cbend; lon++ )
-              {
-                if (LWC_field ( p,lat,lon )>0.)
+        //check for expected particle phase
+        if ( part_type != "Water" )
+        {
+            out1 << "WARNING! The particle phase is unequal 'Water'.\n"
+                 << psd << " should only be applied to liquid water"
+                 << " particles.\n";
+        }
 
-                // iteration over all given size bins
-                for ( Index i=0; i<r.nelem(); i++ ) //loop over number of particles
-                {
-                  // calculate particle size distribution for liquid
-                  // [# m^-3 m^-1]
-                  dN[i] = LWCtopnd ( LWC_field ( p,lat,lon ), r[i] );
-                  //dN2[i] = LWCtopnd2 ( r[i] );  // [# m^-3 m^-1]
-	          //dN2[i] = dN[i] * vol[i] * rho[i];
-                }
-                //dlwc *= LWC_field(p, lat, lon)/dlwc.sum();
-                //out0<<"\n"<<dN<<"\n"<<dN2<<"\n";
-
-                // scale pnds by scale width
-                if (r.nelem() > 1)
-                {
-                  scale_pnd( pnd, r, dN ); //[# m^-3]
-                }
-                else
-                {
-                  pnd = dN;
-                }
-	        //scale_pnd( pnd2, r, dN2 );
-                //trapezoid_integrate ( pnd2, r, dN2 );//[# m^-3]
-                //out0<<"\n"<<"HIER!"<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
-	    
-                // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, prof_type, verbosity );
-                //chk_pndsum2 (pnd2, LWC_field ( p,lat,lon ));
-                //chk_pndsum (pnd, testiwc[p], vol, rho);
-
-
-                // writing pnd vector to wsv pnd_field
-                for ( Index i =0; i< scat_data_nelem[k]; i++ )
-                {
-                  pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
-                              lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
-                  //dlwc[q] = pnd2[q]*vol[q]*rho[q];
-                }
-
-                //out0<<"\n"<<LWC_field(p, lat, lon)<<"\n"<< dlwc.sum()<<"\n";
-
-                //pnd2 *= ( LWC_field ( p, lat, lon ) /dlwc.sum() );
-
-                //out0<<"\n"<<pnd<<"\n"<<pnd2<<"\n";
-
-              }
-            }
-          }
-      }
+        pnd_fieldH98 (pnd_field,
+                       massdensity_field ( k, joker, joker, joker ),
+                       limits,
+                       scat_data_meta_array, scat_data_start,
+                       scat_data_nelem[k], part_species[k], verbosity);
     }
 
     else

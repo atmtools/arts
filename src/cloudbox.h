@@ -96,6 +96,45 @@ bool is_inside_cloudbox (const Ppath& ppath_step,
 Numeric barometric_heightformula (const Numeric& p,
                                   const Numeric& dh);
 
+
+void pnd_fieldMH97 (Tensor4View pnd_field,
+                    const Tensor3& IWC_field,
+                    const Tensor3& t_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfScatteringMetaData& scat_data_meta_array,
+                    const Index& scat_data_start,
+                    const Index& npart,
+                    const String& part_string,
+                    const Verbosity& verbosity);
+
+void pnd_fieldH11 (Tensor4View pnd_field,
+                   const Tensor3& IWC_field,
+                   const Tensor3& t_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfScatteringMetaData& scat_data_meta_array,
+                   const Index& scat_data_start,
+                   const Index& npart,
+                   const String& part_string,
+                   const Verbosity& verbosity);
+
+void pnd_fieldMP48 (Tensor4View pnd_field,
+                    const Tensor3& PR_field,
+                    const ArrayOfIndex& limits,
+                    const ArrayOfScatteringMetaData& scat_data_meta_array,
+                    const Index& scat_data_start,
+                    const Index& npart,
+                    const String& part_string,
+                    const Verbosity& verbosity);
+
+void pnd_fieldH98 (Tensor4View pnd_field,
+                   const Tensor3& LWC_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfScatteringMetaData& scat_data_meta_array,
+                   const Index& scat_data_start,
+                   const Index& npart,
+                   const String& part_string,
+                   const Verbosity& verbosity);
+
 Numeric IWCtopnd_MH97 (const Numeric iwc,
                        Numeric dm,
                        const Numeric t,
@@ -113,6 +152,9 @@ Numeric LWCtopnd (const Numeric lwc,
 // ONLY FOR TESTING PURPOSES
 Numeric LWCtopnd2 (//const Numeric density,
                    const Numeric r);
+
+Numeric PRtopnd_MP48 (	const Numeric R,
+			const Numeric D);
 
 
 void scale_pnd (Vector& w,
