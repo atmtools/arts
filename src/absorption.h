@@ -1233,20 +1233,6 @@ void xsec_species( MatrixView               xsec,
 Numeric wavenumber_to_joule(Numeric e);
 
 
-//======================================================================
-//             Functions related to refraction
-//======================================================================
-
-void refr_index_BoudourisDryAir (
-                    Vector&     refr_index,
-              ConstVectorView   abs_p,
-              ConstVectorView   abs_t );
-
-void refr_index_Boudouris (
-                    Vector&     refr_index,
-              ConstVectorView   abs_p,
-              ConstVectorView   abs_t,
-              ConstVectorView   h2o_abs );
 
 //======================================================================
 //             Functions to convert the accuracy index

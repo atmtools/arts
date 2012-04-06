@@ -79,12 +79,12 @@ extern const Numeric RAD2DEG;
    \date   2012-03-20
 */
 void cart2pol(
-            double&   r,
-            double&   lat,
-      const double&   x,
-      const double&   z,
-      const double&   lat0,
-      const double&   za0 )
+            Numeric&   r,
+            Numeric&   lat,
+      const Numeric&   x,
+      const Numeric&   z,
+      const Numeric&   lat0,
+      const Numeric&   za0 )
 {
   r   = sqrt( x*x + z*z );
 
@@ -121,16 +121,16 @@ void cart2pol(
    \date   2012-03-21
 */
 void cart2poslos(
-             double&   r,
-             double&   lat,
-             double&   za,
-       const double&   x,
-       const double&   z,
-       const double&   dx,
-       const double&   dz,
-       const double&   ppc,
-       const double&   lat0,
-       const double&   za0 )
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   za,
+       const Numeric&   x,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dz,
+       const Numeric&   ppc,
+       const Numeric&   lat0,
+       const Numeric&   za0 )
 {
   r   = sqrt( x*x + z*z );
 
@@ -145,10 +145,10 @@ void cart2poslos(
     {
       lat = RAD2DEG * atan2( z, x );
 
-      const double   latrad = DEG2RAD * lat;
-      const double   coslat = cos( latrad );
-      const double   sinlat = sin( latrad );
-      const double   dr     = coslat*dx + sinlat*dz;
+      const Numeric   latrad = DEG2RAD * lat;
+      const Numeric   coslat = cos( latrad );
+      const Numeric   sinlat = sin( latrad );
+      const Numeric   dr     = coslat*dx + sinlat*dz;
 
       // Use ppc for max accuracy, but dr required to resolve if up- 
       // and downward cases
@@ -185,11 +185,11 @@ void cart2poslos(
    \date   2012-03-20
 */
 void distance2D(
-            double&   l,
-      const double&   r1,
-      const double&   lat1,
-      const double&   r2,
-      const double&   lat2 )
+            Numeric&   l,
+      const Numeric&   r1,
+      const Numeric&   lat1,
+      const Numeric&   r2,
+      const Numeric&   lat2 )
 {
   assert( abs( lat2 - lat1 ) <= 180 );
 
@@ -237,12 +237,12 @@ void distance2D(
 */
 /*
 void geomtanpoint2d( 
-             double&    r_tan,
-             double&    lat_tan,
+             Numeric&    r_tan,
+             Numeric&    lat_tan,
      ConstVectorView    refellipsoid,
-       const double&    r,
-       const double&    lat,
-       const double&    za )
+       const Numeric&    r,
+       const Numeric&    lat,
+       const Numeric&    za )
 {
   assert( refellipsoid.nelem() == 2 );
   assert( refellipsoid[0] > 0 );
@@ -340,14 +340,14 @@ void line_circle_intersect(
    \date   2012-03-20
 */
 void pol2cart(
-            double&   x,
-            double&   z,
-      const double&   r,
-      const double&   lat )
+            Numeric&   x,
+            Numeric&   z,
+      const Numeric&   r,
+      const Numeric&   lat )
 {
   assert( r > 0 );
 
-  const double   latrad = DEG2RAD * lat;
+  const Numeric   latrad = DEG2RAD * lat;
 
   x = r * cos( latrad );  
   z = r * sin( latrad );
@@ -371,31 +371,31 @@ void pol2cart(
    \date   2012-03-20
 */
 void poslos2cart(
-             double&   x,
-             double&   z,
-             double&   dx,
-             double&   dz,
-       const double&   r,
-       const double&   lat,
-       const double&   za )
+             Numeric&   x,
+             Numeric&   z,
+             Numeric&   dx,
+             Numeric&   dz,
+       const Numeric&   r,
+       const Numeric&   lat,
+       const Numeric&   za )
 {
   assert( r > 0 );
   assert( za >= -180 && za<=180 );
 
-  const double   latrad = DEG2RAD * lat;
-  const double   zarad  = DEG2RAD * za;
+  const Numeric   latrad = DEG2RAD * lat;
+  const Numeric   zarad  = DEG2RAD * za;
 
-  const double   coslat = cos( latrad );
-  const double   sinlat = sin( latrad );
-  const double   cosza  = cos( zarad );
-  const double   sinza  = sin( zarad );
+  const Numeric   coslat = cos( latrad );
+  const Numeric   sinlat = sin( latrad );
+  const Numeric   cosza  = cos( zarad );
+  const Numeric   sinza  = sin( zarad );
 
   // This part as pol2cart but uses local variables
   x = r * coslat;  
   z = r * sinlat;
 
-  const double   dr   = cosza;
-  const double   dlat = sinza;         // r-term cancel out below
+  const Numeric   dr   = cosza;
+  const Numeric   dlat = sinza;         // r-term cancel out below
 
   dx = coslat * dr - sinlat * dlat;
   dz = sinlat * dr + coslat * dlat;
@@ -443,22 +443,22 @@ void poslos2cart(
    \date   2002-12-30
 */
 void cart2poslos(
-             double&   r,
-             double&   lat,
-             double&   lon,
-             double&   za,
-             double&   aa,
-       const double&   x,
-       const double&   y,
-       const double&   z,
-       const double&   dx,
-       const double&   dy,
-       const double&   dz,
-       const double&   ppc,
-       const double&   lat0,
-       const double&   lon0,
-       const double&   za0,
-       const double&   aa0 )
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   lon,
+             Numeric&   za,
+             Numeric&   aa,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz,
+       const Numeric&   ppc,
+       const Numeric&   lat0,
+       const Numeric&   lon0,
+       const Numeric&   za0,
+       const Numeric&   aa0 )
 {
   r   = sqrt( x*x + y*y + z*z );
 
@@ -498,13 +498,13 @@ void cart2poslos(
             }
         }
 
-      const double   latrad = DEG2RAD * lat;
-      const double   lonrad = DEG2RAD * lon;
-      const double   coslat = cos( latrad );
-      const double   sinlat = sin( latrad );
-      const double   coslon = cos( lonrad );
-      const double   sinlon = sin( lonrad );
-      const double   dr     = coslat*coslon*dx + coslat*sinlon*dy + sinlat*dz;
+      const Numeric   latrad = DEG2RAD * lat;
+      const Numeric   lonrad = DEG2RAD * lon;
+      const Numeric   coslat = cos( latrad );
+      const Numeric   sinlat = sin( latrad );
+      const Numeric   coslon = cos( lonrad );
+      const Numeric   sinlon = sin( lonrad );
+      const Numeric   dr     = coslat*coslon*dx + coslat*sinlon*dy + sinlat*dz;
 
       // Use ppc for max accuracy, but dr required to resolve if up- 
       // and downward cases
@@ -538,9 +538,9 @@ void cart2poslos(
 
       else
         {
-          const double   dlat = -sinlat*coslon/r*dx - sinlat*sinlon/r*dy + 
+          const Numeric   dlat = -sinlat*coslon/r*dx - sinlat*sinlon/r*dy + 
                                                              coslat/r*dz;
-          const double   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dy;
+          const Numeric   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dy;
 
           aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
@@ -580,16 +580,16 @@ void cart2poslos(
    \date   2002-12-30
 */
 void cart2sph(
-             double&   r,
-             double&   lat,
-             double&   lon,
-       const double&   x,
-       const double&   y,
-       const double&   z,
-       const double&   lat0,
-       const double&   lon0,
-       const double&   za0,
-       const double&   aa0 )
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   lon,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   lat0,
+       const Numeric&   lon0,
+       const Numeric&   za0,
+       const Numeric&   aa0 )
 {
   r   = sqrt( x*x + y*y + z*z );
 
@@ -642,13 +642,13 @@ void cart2sph(
    \date   2012-03-20
 */
 void distance3D(
-            double&   l,
-      const double&   r1,
-      const double&   lat1,
-      const double&   lon1,
-      const double&   r2,
-      const double&   lat2,
-      const double&   lon2 )
+            Numeric&   l,
+      const Numeric&   r1,
+      const Numeric&   lat1,
+      const Numeric&   lon1,
+      const Numeric&   r2,
+      const Numeric&   lat2,
+      const Numeric&   lon2 )
 {
   Numeric x1, y1, z1, x2, y2, z2;
   sph2cart( x1, y1, z1, r1, lat1, lon1 );
@@ -683,21 +683,21 @@ void distance3D(
    \date   2002-12-31
 */
 void geompath_tanpos_3d( 
-             double&    r_tan,
-             double&    lat_tan,
-             double&    lon_tan,
-             double&    l_tan,
-       const double&    r,
-       const double&    lat,
-       const double&    lon,
-       const double&    za,
-       const double&    aa,
-       const double&    ppc )
+             Numeric&    r_tan,
+             Numeric&    lat_tan,
+             Numeric&    lon_tan,
+             Numeric&    l_tan,
+       const Numeric&    r,
+       const Numeric&    lat,
+       const Numeric&    lon,
+       const Numeric&    za,
+       const Numeric&    aa,
+       const Numeric&    ppc )
 {
   assert( za >= 90 );
   assert( r >= ppc );
 
-  double   x, y, z, dx, dy, dz; 
+  Numeric   x, y, z, dx, dy, dz; 
 
   poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
 
@@ -742,15 +742,15 @@ void geompath_tanpos_3d(
 */
 /*
 void geomtanpoint( 
-             double&    r_tan,
-             double&    lat_tan,
-             double&    lon_tan,
+             Numeric&    r_tan,
+             Numeric&    lat_tan,
+             Numeric&    lon_tan,
      ConstVectorView    refellipsoid,
-       const double&    r,
-       const double&    lat,
-       const double&    lon,
-       const double&    za,
-       const double&    aa )
+       const Numeric&    r,
+       const Numeric&    lat,
+       const Numeric&    lon,
+       const Numeric&    za,
+       const Numeric&    aa )
 {
   assert( refellipsoid.nelem() == 2 );
   assert( refellipsoid[0] > 0 );
@@ -761,12 +761,12 @@ void geomtanpoint(
 
   if( refellipsoid[1] < 1e-7 )        // e=1e-7 corresponds to that polar radius
     {                                 // less than 1 um smaller than equatorial 
-      double   x, y, z, dx, dy, dz;   // one for the Earth
+      Numeric   x, y, z, dx, dy, dz;   // one for the Earth
 
       poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
    
-      const double ppc   = r * sin( DEG2RAD * abs(za) );
-      const double l_tan = sqrt( r*r - ppc*ppc );
+      const Numeric ppc   = r * sin( DEG2RAD * abs(za) );
+      const Numeric l_tan = sqrt( r*r - ppc*ppc );
    
       cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
     }
@@ -774,8 +774,8 @@ void geomtanpoint(
   else
     {
       // Equatorial and polar radii squared:
-      const double a2 = refellipsoid[0]*refellipsoid[0];
-      const double b2 = a2 * ( 1 - refellipsoid[1]*refellipsoid[1] ); 
+      const Numeric a2 = refellipsoid[0]*refellipsoid[0];
+      const Numeric b2 = a2 * ( 1 - refellipsoid[1]*refellipsoid[1] ); 
 
       Vector X(3), xunit(3), yunit(3), zunit(3);
 
@@ -787,34 +787,34 @@ void geomtanpoint(
       cross( yunit, zunit, xunit );
       unitl( yunit );                // Normalisation of length to 1
 
-            double x   = X[0];
-            double y   = X[1];
-      const double w11 = xunit[0];
-      const double w12 = yunit[0];
-      const double w21 = xunit[1];
-      const double w22 = yunit[1];
-      const double w31 = xunit[2];
-      const double w32 = yunit[2];
+            Numeric x   = X[0];
+            Numeric y   = X[1];
+      const Numeric w11 = xunit[0];
+      const Numeric w12 = yunit[0];
+      const Numeric w21 = xunit[1];
+      const Numeric w22 = yunit[1];
+      const Numeric w31 = xunit[2];
+      const Numeric w32 = yunit[2];
 
-      const double yr = X * yunit;
-      const double xr = X * xunit;
+      const Numeric yr = X * yunit;
+      const Numeric xr = X * xunit;
 
-      const double A = (w11*w11 + w21*w21)/a2 + w31*w31/b2;
-      const double B = 2.0*((w11*w12 + w21*w22)/a2 + (w31*w32)/b2);
-      const double C = (w12*w12 + w22*w22)/a2 + w32*w32/b2;
+      const Numeric A = (w11*w11 + w21*w21)/a2 + w31*w31/b2;
+      const Numeric B = 2.0*((w11*w12 + w21*w22)/a2 + (w31*w32)/b2);
+      const Numeric C = (w12*w12 + w22*w22)/a2 + w32*w32/b2;
 
       if( B == 0.0 )
         { x = 0.0; }
       else 
         { 
-          const double K      = -2.0*A/B; 
-          const double factor = 1.0/(A+(B+C*K)*K);
+          const Numeric K      = -2.0*A/B; 
+          const Numeric factor = 1.0/(A+(B+C*K)*K);
           x = sqrt(factor);
           y = K*x;
         }
 
-      const double dist1 = (xr-X[0])*(xr-X[0]) + (yr-y)*(yr-y);
-      const double dist2 = (xr+X[0])*(xr+X[0]) + (yr+y)*(yr+y);
+      const Numeric dist1 = (xr-X[0])*(xr-X[0]) + (yr-y)*(yr-y);
+      const Numeric dist2 = (xr+X[0])*(xr+X[0]) + (yr+y)*(yr+y);
  	
       if( dist1 > dist2 )
         { x = -x; }
@@ -935,17 +935,17 @@ void los2xyz(
   dz /= ldxyz;
 
   // All below extracted from 3D version of cart2poslos:
-  const double   latrad = DEG2RAD * lat1;
-  const double   lonrad = DEG2RAD * lon1;
-  const double   coslat = cos( latrad );
-  const double   sinlat = sin( latrad );
-  const double   coslon = cos( lonrad );
-  const double   sinlon = sin( lonrad );
+  const Numeric   latrad = DEG2RAD * lat1;
+  const Numeric   lonrad = DEG2RAD * lon1;
+  const Numeric   coslat = cos( latrad );
+  const Numeric   sinlat = sin( latrad );
+  const Numeric   coslon = cos( lonrad );
+  const Numeric   sinlon = sin( lonrad );
 
-  const double   dr     = coslat*coslon*dx    + coslat*sinlon*dy    + sinlat*dz;
-  const double   dlat   = -sinlat*coslon/r1*dx - sinlat*sinlon/r1*dy + 
+  const Numeric   dr     = coslat*coslon*dx    + coslat*sinlon*dy    + sinlat*dz;
+  const Numeric   dlat   = -sinlat*coslon/r1*dx - sinlat*sinlon/r1*dy + 
                                                                    coslat/r1*dz;
-  const double   dlon   = -sinlon/coslat/r1*dx + coslon/coslat/r1*dy;
+  const Numeric   dlon   = -sinlon/coslat/r1*dx + coslon/coslat/r1*dy;
 
   za = RAD2DEG * acos( dr );
   aa = RAD2DEG * acos( r1 * dlat / sin( DEG2RAD * za ) );
@@ -988,17 +988,17 @@ void los2xyz(
    \date   2002-12-30
 */
 void poslos2cart(
-             double&   x,
-             double&   y,
-             double&   z,
-             double&   dx,
-             double&   dy,
-             double&   dz,
-       const double&   r,
-       const double&   lat,
-       const double&   lon,
-       const double&   za,
-       const double&   aa )
+             Numeric&   x,
+             Numeric&   y,
+             Numeric&   z,
+             Numeric&   dx,
+             Numeric&   dy,
+             Numeric&   dz,
+       const Numeric&   r,
+       const Numeric&   lat,
+       const Numeric&   lon,
+       const Numeric&   za,
+       const Numeric&   aa )
 {
   assert( r > 0 );
   assert( abs( lat ) <= 90 );
@@ -1010,7 +1010,7 @@ void poslos2cart(
   // LOS goes
   if( abs( lat ) > POLELAT )
     {
-      const double   s = sign( lat );
+      const Numeric   s = sign( lat );
 
       x = 0;
       y = 0;
@@ -1024,19 +1024,19 @@ void poslos2cart(
 
   else
     {
-      const double   latrad = DEG2RAD * lat;
-      const double   lonrad = DEG2RAD * lon;
-      const double   zarad  = DEG2RAD * za;
-      const double   aarad  = DEG2RAD * aa;
+      const Numeric   latrad = DEG2RAD * lat;
+      const Numeric   lonrad = DEG2RAD * lon;
+      const Numeric   zarad  = DEG2RAD * za;
+      const Numeric   aarad  = DEG2RAD * aa;
 
-      const double   coslat = cos( latrad );
-      const double   sinlat = sin( latrad );
-      const double   coslon = cos( lonrad );
-      const double   sinlon = sin( lonrad );
-      const double   cosza  = cos( zarad );
-      const double   sinza  = sin( zarad );
-      const double   cosaa  = cos( aarad );
-      const double   sinaa  = sin( aarad );
+      const Numeric   coslat = cos( latrad );
+      const Numeric   sinlat = sin( latrad );
+      const Numeric   coslon = cos( lonrad );
+      const Numeric   sinlon = sin( lonrad );
+      const Numeric   cosza  = cos( zarad );
+      const Numeric   sinza  = sin( zarad );
+      const Numeric   cosaa  = cos( aarad );
+      const Numeric   sinaa  = sin( aarad );
 
       // This part as sph2cart but uses local variables
       x = r * coslat;   // Common term for x and y
@@ -1044,9 +1044,9 @@ void poslos2cart(
       x = x * coslon;
       z = r * sinlat;
 
-      const double   dr   = cosza;
-      const double   dlat = sinza * cosaa;         // r-term cancel out below
-      const double   dlon = sinza * sinaa / coslat; 
+      const Numeric   dr   = cosza;
+      const Numeric   dlat = sinza * cosaa;         // r-term cancel out below
+      const Numeric   dlon = sinza * sinaa / coslat; 
 
       dx = coslat*coslon * dr - sinlat*coslon * dlat - coslat*sinlon * dlon;
       dz =        sinlat * dr +        coslat * dlat;
@@ -1077,7 +1077,7 @@ void poslos2cart(
     \author Patrick Eriksson 
     \date   2012-03-27
 */
-double pos2refell_r(
+Numeric pos2refell_r(
        const Index&     atmosphere_dim,
        ConstVectorView  refellipsoid,
        ConstVectorView  lat_grid,
@@ -1137,9 +1137,9 @@ double pos2refell_r(
     \author Patrick Eriksson 
     \date   2012-02-07
 */
-double refell2r(
+Numeric refell2r(
        ConstVectorView  refellipsoid,
-       const double&   lat )
+       const Numeric&   lat )
 {
   assert( refellipsoid.nelem() == 2 );
   assert( refellipsoid[0] > 0 );
@@ -1153,11 +1153,11 @@ double refell2r(
 
   else
     {
-      const double   c = 1 - refellipsoid[1]*refellipsoid[1];
-      const double   b = refellipsoid[0] * sqrt( c );
-      const double   v = DEG2RAD * lat;
-      const double   ct = cos( v );
-      const double   st = sin( v );
+      const Numeric   c = 1 - refellipsoid[1]*refellipsoid[1];
+      const Numeric   b = refellipsoid[0] * sqrt( c );
+      const Numeric   v = DEG2RAD * lat;
+      const Numeric   ct = cos( v );
+      const Numeric   st = sin( v );
       
       return b / sqrt( c*ct*ct + st*st );
     }
@@ -1182,7 +1182,7 @@ double refell2r(
     \author Patrick Eriksson 
     \date   2012-02-09
 */
-double refell2d(
+Numeric refell2d(
        ConstVectorView  refellipsoid,
        ConstVectorView  lat_grid,
        const GridPos    gp )
@@ -1195,6 +1195,40 @@ double refell2d(
     return gp.fd[1] * refell2r(refellipsoid,lat_grid[gp.idx]) +
            gp.fd[0] * refell2r(refellipsoid,lat_grid[gp.idx+1]);
 }       
+
+
+
+//! sphdist
+/*!
+    The distance between two geograpgical positions
+
+    "As-the-crow-flies" distance between two points, specified by their
+    latitude and longitude. 
+
+    \return        Angular distance
+    \param  lat1   Latitude of position 1.
+    \param  lon1   Longitude of position 1.
+    \param  lat2   Latitude of position 2.
+    \param  lon2   Longitude of position 2.
+
+    \author Patrick Eriksson 
+    \date   2012-04-05
+*/
+Numeric sphdist(
+   const Numeric&   lat1,
+   const Numeric&   lon1,
+   const Numeric&   lat2,
+   const Numeric&   lon2 )
+{
+  // Equations taken from http://www.movable-type.co.uk/scripts/latlong.html
+  const Numeric slat = sin( DEG2RAD*(lat2-lat1) / 2.0 );
+  const Numeric slon = sin( DEG2RAD*(lon2-lon1) / 2.0 );
+  const Numeric a = slat*slat + cos(DEG2RAD*lat1)*cos(DEG2RAD*lat2)*slon*slon;
+
+  return RAD2DEG * 2 * atan2( sqrt(a), sqrt(1-a) );
+}       
+
+
 
 
 
@@ -1217,19 +1251,19 @@ double refell2d(
    \date   2002-12-17
 */
 void sph2cart(
-            double&   x,
-            double&   y,
-            double&   z,
-      const double&   r,
-      const double&   lat,
-      const double&   lon )
+            Numeric&   x,
+            Numeric&   y,
+            Numeric&   z,
+      const Numeric&   r,
+      const Numeric&   lat,
+      const Numeric&   lon )
 {
   assert( r > 0 );
   assert( abs( lat ) <= 90 );
   assert( abs( lon ) <= 360 );
 
-  const double   latrad = DEG2RAD * lat;
-  const double   lonrad = DEG2RAD * lon;
+  const Numeric   latrad = DEG2RAD * lat;
+  const Numeric   lonrad = DEG2RAD * lon;
 
   x = r * cos( latrad );   // Common term for x and z
   y = x * sin( lonrad );

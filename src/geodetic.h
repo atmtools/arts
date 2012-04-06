@@ -42,40 +42,40 @@
 // 2D:
 
 void cart2pol(
-            double&   r,
-            double&   lat,
-      const double&   x,
-      const double&   z,
-      const double&   lat0,
-      const double&   za0 );
+            Numeric&   r,
+            Numeric&   lat,
+      const Numeric&   x,
+      const Numeric&   z,
+      const Numeric&   lat0,
+      const Numeric&   za0 );
 
 void cart2poslos(
-             double&   r,
-             double&   lat,
-             double&   za,
-       const double&   x,
-       const double&   z,
-       const double&   dx,
-       const double&   dz,
-       const double&   ppc,
-       const double&   lat0,
-       const double&   za0 );
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   za,
+       const Numeric&   x,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dz,
+       const Numeric&   ppc,
+       const Numeric&   lat0,
+       const Numeric&   za0 );
 
 void distance2D(
-            double&   l,
-      const double&   r1,
-      const double&   lat1,
-      const double&   r2,
-      const double&   lat2 );
+            Numeric&   l,
+      const Numeric&   r1,
+      const Numeric&   lat1,
+      const Numeric&   r2,
+      const Numeric&   lat2 );
 
 /*
 void geomtanpoint2d( 
-             double&    r_tan,
-             double&    lat_tan,
+             Numeric&    r_tan,
+             Numeric&    lat_tan,
      ConstVectorView    refellipsoid,
-       const double&    r,
-       const double&    lat,
-       const double&    za );
+       const Numeric&    r,
+       const Numeric&    lat,
+       const Numeric&    za );
 */
 
 void line_circle_intersect(
@@ -90,86 +90,86 @@ void line_circle_intersect(
    const Numeric&   r );
 
 void pol2cart(
-            double&   x,
-            double&   z,
-      const double&   r,
-      const double&   lat );
+            Numeric&   x,
+            Numeric&   z,
+      const Numeric&   r,
+      const Numeric&   lat );
 
 void poslos2cart(
-             double&   x,
-             double&   z,
-             double&   dx,
-             double&   dz,
-       const double&   r,
-       const double&   lat,
-       const double&   za );
+             Numeric&   x,
+             Numeric&   z,
+             Numeric&   dx,
+             Numeric&   dz,
+       const Numeric&   r,
+       const Numeric&   lat,
+       const Numeric&   za );
 
 
 
 // 3D:
 
 void cart2poslos(
-             double&   r,
-             double&   lat,
-             double&   lon,
-             double&   za,
-             double&   aa,
-       const double&   x,
-       const double&   y,
-       const double&   z,
-       const double&   dx,
-       const double&   dy,
-       const double&   dz,
-       const double&   ppc,
-       const double&   lat0,
-       const double&   lon0,
-       const double&   za0,
-       const double&   aa0 );
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   lon,
+             Numeric&   za,
+             Numeric&   aa,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz,
+       const Numeric&   ppc,
+       const Numeric&   lat0,
+       const Numeric&   lon0,
+       const Numeric&   za0,
+       const Numeric&   aa0 );
 
 void cart2sph(
-             double&   r,
-             double&   lat,
-             double&   lon,
-       const double&   x,
-       const double&   y,
-       const double&   z,
-       const double&   lat0,
-       const double&   lon0,
-       const double&   za0,
-       const double&   aa0 );
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   lon,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   lat0,
+       const Numeric&   lon0,
+       const Numeric&   za0,
+       const Numeric&   aa0 );
 
 void distance3D(
-            double&   l,
-      const double&   r1,
-      const double&   lat1,
-      const double&   lon1,
-      const double&   r2,
-      const double&   lat2,
-      const double&   lon2 );
+            Numeric&   l,
+      const Numeric&   r1,
+      const Numeric&   lat1,
+      const Numeric&   lon1,
+      const Numeric&   r2,
+      const Numeric&   lat2,
+      const Numeric&   lon2 );
 
 void geompath_tanpos_3d( 
-             double&    r_tan,
-             double&    lat_tan,
-             double&    lon_tan,
-             double&    l_tan,
-       const double&    r,
-       const double&    lat,
-       const double&    lon,
-       const double&    za,
-       const double&    aa,
-       const double&    ppc );
+             Numeric&    r_tan,
+             Numeric&    lat_tan,
+             Numeric&    lon_tan,
+             Numeric&    l_tan,
+       const Numeric&    r,
+       const Numeric&    lat,
+       const Numeric&    lon,
+       const Numeric&    za,
+       const Numeric&    aa,
+       const Numeric&    ppc );
 
 /*
 void geomtanpoint( 
-             double&    r_tan,
-             double&    lat_tan,
-             double&    lon_tan,
+             Numeric&    r_tan,
+             Numeric&    lat_tan,
+             Numeric&    lon_tan,
      ConstVectorView    refellipsoid,
-       const double&    r,
-       const double&    lat,
-       const double&    lon,
-       const double&    za,
-       const double&    aa );
+       const Numeric&    r,
+       const Numeric&    lat,
+       const Numeric&    lon,
+       const Numeric&    za,
+       const Numeric&    aa );
 */
 
 void line_sphere_intersect(
@@ -201,40 +201,46 @@ void los2xyz(
    const Numeric&   z2 );
 
 void poslos2cart(
-              double&   x,
-              double&   y,
-              double&   z,
-              double&   dx,
-              double&   dy,
-              double&   dz,
-        const double&   r,
-        const double&   lat,
-        const double&   lon,
-        const double&   za,
-        const double&   aa );
+              Numeric&   x,
+              Numeric&   y,
+              Numeric&   z,
+              Numeric&   dx,
+              Numeric&   dy,
+              Numeric&   dz,
+        const Numeric&   r,
+        const Numeric&   lat,
+        const Numeric&   lon,
+        const Numeric&   za,
+        const Numeric&   aa );
 
-double pos2refell_r(
+Numeric pos2refell_r(
        const Index&     atmosphere_dim,
        ConstVectorView  refellipsoid,
        ConstVectorView  lat_grid,
        ConstVectorView  lon_grid,
        ConstVectorView  rte_pos );
 
-double refell2r(
+Numeric refell2r(
        ConstVectorView  refellipsoid,
-       const double&   lat );
+       const Numeric&   lat );
 
-double refell2d(
+Numeric refell2d(
        ConstVectorView  refellipsoid,
        ConstVectorView  lat_grid,
        const GridPos    gp );
 
+Numeric sphdist(
+   const Numeric&   lat1,
+   const Numeric&   lon1,
+   const Numeric&   lat2,
+   const Numeric&   lon2 );
+
 void sph2cart(
-            double&   x,
-            double&   y,
-            double&   z,
-      const double&   r,
-      const double&   lat,
-      const double&   lon );
+            Numeric&   x,
+            Numeric&   y,
+            Numeric&   z,
+      const Numeric&   r,
+      const Numeric&   lat,
+      const Numeric&   lon );
 
 #endif  // geodetic_h

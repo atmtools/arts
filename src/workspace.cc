@@ -2801,13 +2801,13 @@ void Workspace::define_wsv_data()
     ( NAME( "refr_index" ),
       DESCRIPTION
       (
-       "Refractive index of air (only real part).\n"
+       "Real part of the refractive index of air.\n"
        "\n"
        "This variable contains the refractive index summed over all relevant\n"
-       "constituents, at one position in the atmosphere. The standard set of\n"
-       "functions assumes that all frequency components propagate along the\n"
-       "same path. That is, dispersion is neglected and this variable has no\n"
-       "frequency dimension.\n"
+       "constituents, at one position in the atmosphere. Propagation paths\n"
+       "are calculated for one frequency at the time (or dispersion is\n"
+       "neglected, ie. the path is common for all frequency components) and\n"
+       "this WSV lacks a frequency dimension.\n"
        "\n"
        "Unit: 1\n"
        ),

@@ -276,10 +276,43 @@ void apply_y_unit2(
          << "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\""; 
       
       throw runtime_error( os.str() );      
-    }
-  
+    }  
 }
 
+
+
+//! bending_angle1d
+/*!
+    Calculates the bending angle for a 1D atmosphere.
+
+    The expression used assumes a 1D atmosphere, that allows the bendng angle
+    to be calculated by start and end LOS. This is an approximation for 2D and
+    3D, but very a small one and the function should in general be OK also for
+    2D and 3D.
+
+    \return   alpha   Bending angle
+    \param    ppath   Propagation path.
+
+    \author Patrick Eriksson 
+    \date   2012-04-05
+*/
+Numeric bending_angle1d( const Ppath&   ppath )
+{
+  Numeric theta;
+  if( ppath.dim < 3 )
+    { theta = abs( ppath.start_pos[1] - ppath.end_pos[1] ); }
+  else
+    { theta = sphdist( ppath.start_pos[1], ppath.start_pos[2],
+                       ppath.end_pos[1], ppath.end_pos[2] ); }
+
+  // Eq 17 in Kursinski et al., TAO, 2000:
+  return ppath.start_los[0] - ppath.end_los[0] + theta;
+
+  // This as
+  // phi_r = 180 - ppath.end_los[0]
+  // phi_t = ppath.start_los[0]
+
+}
 
 
 //! ext2trans

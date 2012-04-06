@@ -79,6 +79,8 @@ void apply_y_unit2(
    ConstVectorView       f_grid,
    const ArrayOfIndex&   i_pol );
 
+Numeric bending_angle1d( const Ppath&   ppath );
+
 void ext2trans(
          MatrixView   trans_mat,
    ConstMatrixView    ext_mat_av,

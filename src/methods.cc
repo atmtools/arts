@@ -4659,10 +4659,11 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", "f_grid", "dispersion_do",
             "mblock_index", "ppath_agenda", "abs_scalar_gas_agenda", 
             "iy_space_agenda" ),
-        GIN( "aux_var"),
-        GIN_TYPE( "String" ),
-        GIN_DEFAULT( "ExtraPathDelay" ),
-        GIN_DESC( "Name of auxilary variable" )
+        GIN( "main_var", "aux_var"),
+        GIN_TYPE( "String", "String" ),
+        GIN_DEFAULT( "TotalLoss", "ExtraPathDelay" ),
+        GIN_DESC( "Name of main variable (iy)", 
+                  "Name of auxilary variable (iy_aux)" )
         ));
 
   md_data_raw.push_back

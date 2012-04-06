@@ -1,3 +1,22 @@
+2012-04-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-81
+
+	* src/m_rte.cc (iyRadioLink): Now calculating the bending angle
+	correctly (for 1D, approximative for 2D and 3D).
+	Now the quantity for both iy and iy_aux can be selected.
+
+	* src/workspace.cc: Description of refr_index polished. 
+
+	* src/absorption.cc (refr_index_BoudourisDryAir)
+	(refr_index_Boudouris): Removed. Old. Not used. Should not be in
+	this file.
+
+	* src/rte.cc (bending_angle1d): New function.
+
+	* src/geodetic.cc: double was still hard-coded in this function! 
+	(sphdist): New function.
+	
 2012-04-05  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-80
@@ -408,7 +427,7 @@
 	* arts-2-1-63
 
 	* src/m_rte.cc (iyRadioLink): New WSM. So far just calculating the
-	ransmission (jacobians and iy_aux not yet handled). But first
+	transmission (jacobians and iy_aux not yet handled). But first
 	complete radio link calculations!
 
 	* src/m_ppath.cc (ppathFromRtePos2): A complete version.

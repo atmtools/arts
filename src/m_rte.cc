@@ -88,9 +88,9 @@ extern const String TEMPERATURE_MAINTAG;
 */
 // A small help function, to make the code below cleaner
 void from_dpath_to_dx(
-         MatrixView   diy_dx,
-    ConstMatrixView   diy_dq,
-    const Numeric&    w )
+        MatrixView   diy_dx,
+   ConstMatrixView   diy_dq,
+   const Numeric&    w )
 {
   for( Index irow=0; irow<diy_dx.nrows(); irow++ )
     { 
@@ -278,10 +278,10 @@ void diy_from_path_to_rgrids(
     \date   2009-10-07
 */
 void get_pointers_for_analytical_jacobians( 
-        ArrayOfIndex&               abs_species_i, 
-        ArrayOfIndex&               is_t,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfSpeciesTag&   abs_species )
+         ArrayOfIndex&               abs_species_i, 
+         ArrayOfIndex&               is_t,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfSpeciesTag&   abs_species )
 {
 
   FOR_ANALYTICAL_JACOBIANS_DO( 
@@ -313,44 +313,44 @@ void get_pointers_for_analytical_jacobians(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyBeerLambertStandardClearsky(
-        Workspace&            ws,
-        Matrix&               iy,
-        Matrix&               iy_error,
-        Index&                iy_error_type,
-        Matrix&               iy_aux,
-        ArrayOfTensor3&       diy_dx,
-  const Index&                iy_agenda_call1,
-  const Tensor3&              iy_transmission,
-  const Vector&               rte_pos,      
-  const Vector&               rte_los,      
-  const Index&                jacobian_do,
-  const Index&                atmosphere_dim,
-  const Vector&               p_grid,
-  const Vector&               lat_grid,
-  const Vector&               lon_grid,
-  const Tensor3&              z_field,
-  const Tensor3&              t_field,
-  const Tensor4&              vmr_field,
-  const Tensor3&              wind_u_field,
-  const Tensor3&              wind_v_field,
-  const Tensor3&              wind_w_field,
-  const Tensor3&              edensity_field,
-  const Vector&               refellipsoid,
-  const Matrix&               z_surface,
-  const Index&                cloudbox_on,
-  const Index&                stokes_dim,
-  const Vector&               f_grid,
-  const ArrayOfArrayOfSpeciesTag&   abs_species,
-  const Index&                mblock_index,
-  const Agenda&               ppath_agenda,
-  const Agenda&               abs_scalar_gas_agenda,
-  const Agenda&               iy_clearsky_agenda,
-  const Agenda&               iy_space_agenda,
-  const Agenda&               surface_prop_agenda,
-  const Agenda&               iy_cloudbox_agenda,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&  jacobian_indices,
-  const Verbosity&            verbosity )
+         Workspace&            ws,
+         Matrix&               iy,
+         Matrix&               iy_error,
+         Index&                iy_error_type,
+         Matrix&               iy_aux,
+         ArrayOfTensor3&       diy_dx,
+   const Index&                iy_agenda_call1,
+   const Tensor3&              iy_transmission,
+   const Vector&               rte_pos,      
+   const Vector&               rte_los,      
+   const Index&                jacobian_do,
+   const Index&                atmosphere_dim,
+   const Vector&               p_grid,
+   const Vector&               lat_grid,
+   const Vector&               lon_grid,
+   const Tensor3&              z_field,
+   const Tensor3&              t_field,
+   const Tensor4&              vmr_field,
+   const Tensor3&              wind_u_field,
+   const Tensor3&              wind_v_field,
+   const Tensor3&              wind_w_field,
+   const Tensor3&              edensity_field,
+   const Vector&               refellipsoid,
+   const Matrix&               z_surface,
+   const Index&                cloudbox_on,
+   const Index&                stokes_dim,
+   const Vector&               f_grid,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                mblock_index,
+   const Agenda&               ppath_agenda,
+   const Agenda&               abs_scalar_gas_agenda,
+   const Agenda&               iy_clearsky_agenda,
+   const Agenda&               iy_space_agenda,
+   const Agenda&               surface_prop_agenda,
+   const Agenda&               iy_cloudbox_agenda,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&  jacobian_indices,
+   const Verbosity&            verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
 
@@ -623,34 +623,34 @@ void iyBeerLambertStandardClearsky(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyBeerLambertStandardCloudbox(
-        Workspace&                     ws,
-        Matrix&                        iy,
-        Matrix&                        iy_error,
-        Index&                         iy_error_type,
-        Matrix&                        iy_aux,
-        ArrayOfTensor3&                diy_dx,
-  const Tensor3&                       iy_transmission,
-  const Vector&                        rte_pos,
-  const Vector&                        rte_los,
-  const Index&                         jacobian_do,
-  const Index&                         atmosphere_dim,
-  const Vector&                        p_grid,
-  const Tensor3&                       z_field,
-  const Tensor3&                       t_field,
-  const Tensor4&                       vmr_field,
-  const Tensor3&                       edensity_field,
-  const Index&                         cloudbox_on,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Index&                         stokes_dim,
-  const Vector&                        f_grid,
-  const Agenda&                        ppath_agenda,
-  const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        iy_clearsky_agenda,
-  const Tensor4&                       pnd_field,
-  const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                        opt_prop_gas_agenda,
-  const Verbosity&                     verbosity)
+         Workspace&                     ws,
+         Matrix&                        iy,
+         Matrix&                        iy_error,
+         Index&                         iy_error_type,
+         Matrix&                        iy_aux,
+         ArrayOfTensor3&                diy_dx,
+   const Tensor3&                       iy_transmission,
+   const Vector&                        rte_pos,
+   const Vector&                        rte_los,
+   const Index&                         jacobian_do,
+   const Index&                         atmosphere_dim,
+   const Vector&                        p_grid,
+   const Tensor3&                       z_field,
+   const Tensor3&                       t_field,
+   const Tensor4&                       vmr_field,
+   const Tensor3&                       edensity_field,
+   const Index&                         cloudbox_on,
+   const ArrayOfIndex&                  cloudbox_limits,
+   const Index&                         stokes_dim,
+   const Vector&                        f_grid,
+   const Agenda&                        ppath_agenda,
+   const Agenda&                        abs_scalar_gas_agenda,
+   const Agenda&                        iy_clearsky_agenda,
+   const Tensor4&                       pnd_field,
+   const Index&                         use_mean_scat_data,
+   const ArrayOfSingleScatteringData&   scat_data_raw,
+   const Agenda&                        opt_prop_gas_agenda,
+   const Verbosity&                     verbosity)
 {
   // Input checks
   if( !cloudbox_on )
@@ -761,45 +761,45 @@ void iyBeerLambertStandardCloudbox(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardClearsky(
-        Workspace&                  ws,
-        Matrix&                     iy,
-        Matrix&                     iy_error,
-        Index&                      iy_error_type,
-        Matrix&                     iy_aux,
-        ArrayOfTensor3&             diy_dx,
-  const Index&                      iy_agenda_call1,
-  const Tensor3&                    iy_transmission,
-  const Vector&                     rte_pos,      
-  const Vector&                     rte_los,      
-  const Index&                      jacobian_do,
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    z_field,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Tensor3&                    wind_u_field,
-  const Tensor3&                    wind_v_field,
-  const Tensor3&                    wind_w_field,
-  const Tensor3&                    edensity_field,
-  const Vector&                     refellipsoid,
-  const Matrix&                     z_surface,
-  const Index&                      cloudbox_on,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const ArrayOfArrayOfSpeciesTag&   abs_species,
-  const Index&                      mblock_index,
-  const Agenda&                     ppath_agenda,
-  const Agenda&                     emission_agenda,
-  const Agenda&                     abs_scalar_gas_agenda,
-  const Agenda&                     iy_clearsky_agenda,
-  const Agenda&                     iy_space_agenda,
-  const Agenda&                     surface_prop_agenda,
-  const Agenda&                     iy_cloudbox_agenda,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
-  const Verbosity&                  verbosity )
+         Workspace&                  ws,
+         Matrix&                     iy,
+         Matrix&                     iy_error,
+         Index&                      iy_error_type,
+         Matrix&                     iy_aux,
+         ArrayOfTensor3&             diy_dx,
+   const Index&                      iy_agenda_call1,
+   const Tensor3&                    iy_transmission,
+   const Vector&                     rte_pos,      
+   const Vector&                     rte_los,      
+   const Index&                      jacobian_do,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Tensor4&                    vmr_field,
+   const Tensor3&                    wind_u_field,
+   const Tensor3&                    wind_v_field,
+   const Tensor3&                    wind_w_field,
+   const Tensor3&                    edensity_field,
+   const Vector&                     refellipsoid,
+   const Matrix&                     z_surface,
+   const Index&                      cloudbox_on,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Index&                      mblock_index,
+   const Agenda&                     ppath_agenda,
+   const Agenda&                     emission_agenda,
+   const Agenda&                     abs_scalar_gas_agenda,
+   const Agenda&                     iy_clearsky_agenda,
+   const Agenda&                     iy_space_agenda,
+   const Agenda&                     surface_prop_agenda,
+   const Agenda&                     iy_cloudbox_agenda,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const Verbosity&                  verbosity )
 {
   // The method can in principle be used "stand-alone", but for efficiency
   // reasons we skip all checks needed to handle such usage. Those checks are
@@ -1135,35 +1135,35 @@ void iyEmissionStandardClearsky(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardClearskyBasic(
-        Workspace&     ws,
-        Matrix&        iy,
-  const Vector&        rte_pos,      
-  const Vector&        rte_los,      
-  const Index&         jacobian_do,
-  const Index&         atmosphere_dim,
-  const Vector&        p_grid,
-  const Vector&        lat_grid,
-  const Vector&        lon_grid,
-  const Tensor3&       z_field,
-  const Tensor3&       t_field,
-  const Tensor4&       vmr_field,
-  const Tensor3&       wind_u_field,
-  const Tensor3&       wind_v_field,
-  const Tensor3&       wind_w_field,
-  const Tensor3&       edensity_field,
-  const Vector&        refellipsoid,
-  const Matrix&        z_surface,
-  const Index&         cloudbox_on,
-  const Index&         stokes_dim,
-  const Vector&        f_grid,
-  const Agenda&        ppath_agenda,
-  const Agenda&        emission_agenda,
-  const Agenda&        abs_scalar_gas_agenda,
-  const Agenda&        iy_clearsky_basic_agenda,
-  const Agenda&        iy_space_agenda,
-  const Agenda&        surface_prop_agenda,
-  const Agenda&        iy_cloudbox_agenda,
-  const Verbosity&     verbosity )
+         Workspace&     ws,
+         Matrix&        iy,
+   const Vector&        rte_pos,      
+   const Vector&        rte_los,      
+   const Index&         jacobian_do,
+   const Index&         atmosphere_dim,
+   const Vector&        p_grid,
+   const Vector&        lat_grid,
+   const Vector&        lon_grid,
+   const Tensor3&       z_field,
+   const Tensor3&       t_field,
+   const Tensor4&       vmr_field,
+   const Tensor3&       wind_u_field,
+   const Tensor3&       wind_v_field,
+   const Tensor3&       wind_w_field,
+   const Tensor3&       edensity_field,
+   const Vector&        refellipsoid,
+   const Matrix&        z_surface,
+   const Index&         cloudbox_on,
+   const Index&         stokes_dim,
+   const Vector&        f_grid,
+   const Agenda&        ppath_agenda,
+   const Agenda&        emission_agenda,
+   const Agenda&        abs_scalar_gas_agenda,
+   const Agenda&        iy_clearsky_basic_agenda,
+   const Agenda&        iy_space_agenda,
+   const Agenda&        surface_prop_agenda,
+   const Agenda&        iy_cloudbox_agenda,
+   const Verbosity&     verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
 
@@ -1253,42 +1253,42 @@ void iyEmissionStandardClearskyBasic(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyMC(
-        Workspace&                  ws,
-        Matrix&                     iy,
-        Matrix&                     iy_error,
-        Index&                      iy_error_type,
-        Matrix&                     iy_aux,
-        ArrayOfTensor3&             diy_dx,
-  const Index&                      iy_agenda_call1,
-  const Tensor3&                    iy_transmission,
-  const Vector&                     rte_pos,      
-  const Vector&                     rte_los,      
-  const Index&                      jacobian_do,
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    z_field,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Vector&                     refellipsoid,
-  const Matrix&                     z_surface,
-  const Index&                      cloudbox_on,
-  const ArrayOfIndex&               cloudbox_limits,
-  const Index&                      cloudbox_checked,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                     iy_space_agenda,
-  const Agenda&                     surface_prop_agenda,
-  const Agenda&                     abs_scalar_gas_agenda, 
-  const Agenda&                     opt_prop_gas_agenda,
-  const Tensor4&                    pnd_field,
-  const String&                     y_unit,
-  const Numeric&                    mc_std_err,
-  const Index&                      mc_max_time,
-  const Index&                      mc_max_iter,
-  const Verbosity&                  verbosity)
+         Workspace&                  ws,
+         Matrix&                     iy,
+         Matrix&                     iy_error,
+         Index&                      iy_error_type,
+         Matrix&                     iy_aux,
+         ArrayOfTensor3&             diy_dx,
+   const Index&                      iy_agenda_call1,
+   const Tensor3&                    iy_transmission,
+   const Vector&                     rte_pos,      
+   const Vector&                     rte_los,      
+   const Index&                      jacobian_do,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Tensor4&                    vmr_field,
+   const Vector&                     refellipsoid,
+   const Matrix&                     z_surface,
+   const Index&                      cloudbox_on,
+   const ArrayOfIndex&               cloudbox_limits,
+   const Index&                      cloudbox_checked,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const ArrayOfSingleScatteringData&   scat_data_raw,
+   const Agenda&                     iy_space_agenda,
+   const Agenda&                     surface_prop_agenda,
+   const Agenda&                     abs_scalar_gas_agenda, 
+   const Agenda&                     opt_prop_gas_agenda,
+   const Tensor4&                    pnd_field,
+   const String&                     y_unit,
+   const Numeric&                    mc_std_err,
+   const Index&                      mc_max_time,
+   const Index&                      mc_max_iter,
+   const Verbosity&                  verbosity)
 {
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 3 )
@@ -1378,38 +1378,39 @@ void iyMC(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyRadioLink(
-        Workspace&            ws,
-        Matrix&               iy,
-        Matrix&               iy_error _U_,
-        Index&                iy_error_type _U_,
-        Matrix&               iy_aux,
-        ArrayOfTensor3&       diy_dx _U_,
-  const Index&                iy_agenda_call1,
-  const Tensor3&              iy_transmission _U_,
-  const Vector&               rte_pos,      
-  const Index&                jacobian_do,
-  const Index&                atmosphere_dim,
-  const Vector&               p_grid,
-  const Vector&               lat_grid,
-  const Vector&               lon_grid,
-  const Tensor3&              z_field,
-  const Tensor3&              t_field,
-  const Tensor4&              vmr_field,
-  const Tensor3&              wind_u_field,
-  const Tensor3&              wind_v_field,
-  const Tensor3&              wind_w_field,
-  const Tensor3&              edensity_field,
-  const Vector&               refellipsoid,
-  const Index&                cloudbox_on,
-  const Index&                stokes_dim,
-  const Vector&               f_grid,
-  const Index&                dispersion_do,
-  const Index&                mblock_index,
-  const Agenda&               ppath_agenda,
-  const Agenda&               abs_scalar_gas_agenda,
-  const Agenda&               iy_space_agenda,
-  const String&               aux_var,
-  const Verbosity&            verbosity )
+         Workspace&            ws,
+         Matrix&               iy,
+         Matrix&               iy_error _U_,
+         Index&                iy_error_type _U_,
+         Matrix&               iy_aux,
+         ArrayOfTensor3&       diy_dx _U_,
+   const Index&                iy_agenda_call1,
+   const Tensor3&              iy_transmission _U_,
+   const Vector&               rte_pos,      
+   const Index&                jacobian_do,
+   const Index&                atmosphere_dim,
+   const Vector&               p_grid,
+   const Vector&               lat_grid,
+   const Vector&               lon_grid,
+   const Tensor3&              z_field,
+   const Tensor3&              t_field,
+   const Tensor4&              vmr_field,
+   const Tensor3&              wind_u_field,
+   const Tensor3&              wind_v_field,
+   const Tensor3&              wind_w_field,
+   const Tensor3&              edensity_field,
+   const Vector&               refellipsoid,
+   const Index&                cloudbox_on,
+   const Index&                stokes_dim,
+   const Vector&               f_grid,
+   const Index&                dispersion_do,
+   const Index&                mblock_index,
+   const Agenda&               ppath_agenda,
+   const Agenda&               abs_scalar_gas_agenda,
+   const Agenda&               iy_space_agenda,
+   const String&               main_var,
+   const String&               aux_var,
+   const Verbosity&             )
 {
   // See initial comments of iyEmissionStandardClearsky
 
@@ -1421,25 +1422,66 @@ void iyRadioLink(
   if( jacobian_do )
     throw runtime_error( "This method does not yet provide any jacobians and "
                          "*jacobian_do* must be 0." );
-  CREATE_OUT2
-  if( dispersion_do )
-    { out2 << "  Dispersion mode selected !!!\n"; }
 
-  // Sizes
+  // main_var and aux_var
+  if( main_var ==  aux_var )
+    throw runtime_error("No need to set *main_var* and *aux_var* to be equal.");
+  if( !( main_var=="FreeSpaceLoss"  || main_var=="AtmosphericLoss" ||
+         main_var=="DefocusingLoss" || main_var=="TotalLoss"       ||
+         main_var=="ExtraPathDelay" || main_var=="BendingAngle" ) )
+    throw runtime_error( "Choice for *main_var* not recognised." );
+  if( !( aux_var=="FreeSpaceLoss"  || aux_var=="AtmosphericLoss" ||
+         aux_var=="DefocusingLoss" || aux_var=="TotalLoss"       ||
+         aux_var=="ExtraPathDelay" || aux_var=="BendingAngle"    ||
+         aux_var=="None" ) )
+    throw runtime_error( "Choice for *aux_var* not recognised." );
+
+  // Determine which variables to compute
+  //
+  bool FreeSpaceLoss = false;
+  bool AtmosphericLoss = false;
+  bool DefocusingLoss = false;
+  bool TotalLoss = false;
+  bool ExtraPathDelay = false;
+  bool BendingAngle = false;
+  //
+  if( main_var == "FreeSpaceLoss"  ||  aux_var == "FreeSpaceLoss" )
+    { FreeSpaceLoss = true; }
+  if( main_var == "DefocusingLoss"  ||  aux_var == "DefocusingLoss" )
+    { DefocusingLoss = true; }
+  if( main_var == "AtmosphericLoss"  ||  aux_var == "AtmosphericLoss" )
+    { AtmosphericLoss = true; }
+  if( main_var == "TotalLoss"  ||  aux_var == "TotalLoss" )
+    { AtmosphericLoss = true;  TotalLoss = true; }
+  if( main_var == "ExtraPathDelay"  ||  aux_var == "ExtraPathDelay" )
+    { ExtraPathDelay = true; }
+  if( main_var == "BendingAngle"  ||  aux_var == "BendingAngle" )
+    { BendingAngle = true; }
+
+  // Set up iy and iy_aux (can be redundancy here)
   //
   Index nf = f_grid.nelem();
   //
+  iy.resize( nf, stokes_dim );  
+  iy     = 0;  
   iy_aux.resize( nf, stokes_dim ); 
-  iy_aux = 0;  // Remove when iy_aux handled
+  iy_aux = 0;  
 
-  // Dispersion?
-  Index nloops=1; 
+  // Variables to handle dispersion
+  Index nloops, f_index; 
+  Range fr(0,0);
   if( dispersion_do )
     { 
-      iy.resize( nf, stokes_dim );  // iy_space_handles this if no dispersion
-      nloops = nf; 
-      nf     = 1;
+      nloops  = nf; 
+      nf      = 1;
     }  
+  else
+    {
+      nloops  = nf; 
+      fr      = Range( 0, nf );
+      f_index = -1;
+    }
+
   
   // Different ppath variables
   Ppath  ppath;
@@ -1448,7 +1490,11 @@ void iyRadioLink(
 
   for( Index i=0; i<nloops; i++ )
     {
-      Index f_index = -1; if( dispersion_do ){ f_index = i; }
+      if( dispersion_do )
+        { 
+          f_index = i; 
+          fr      = Range( i, 1 );
+        }
 
       //- Determine propagation path
       Vector rte_los(0);  // Dummy value
@@ -1460,167 +1506,178 @@ void iyRadioLink(
         { throw runtime_error( "Radiative background not set to \"space\" by "
                       "*ppath_agenda*. Is correct WSM used in the agenda?" ); }
 
-      // Get atmospheric and RT quantities for each ppath point/step
-      //
-      // "atmvars":
-      Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
-      Matrix    ppath_vmr;
-      // "rtvars":
-      Vector    total_tau;
-      Matrix    emission_dummy, ppath_tau;
-      Tensor3   ppath_abs_scalar, iy_trans_new;
-      Agenda    agenda_dummy;
-      //
-      const Index np  = ppath.np;
-      //
-      if( np > 1 )
+      Matrix    ppath_tau;
+
+      if( AtmosphericLoss )
         {
-          // Get pressure, temperature and VMRs
-          get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
-                             ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                             ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                             wind_u_field, wind_v_field, wind_w_field );
-
-          // Absorption and optical thickness for each step
-          get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                            emission_dummy,  abs_scalar_gas_agenda, 
-                            agenda_dummy, ppath, ppath_p, ppath_t, ppath_vmr, 
-                            ppath_wind_u, ppath_wind_v, ppath_wind_w, f_grid, 
-                            f_index, atmosphere_dim, 0 );
-        }
-
-      // Radiative background
-      //
-      if( dispersion_do )
-        { 
-          Matrix iy1;  // Single frequency version of iy
-          iy_space_agendaExecute( ws, iy1, rte_pos, rte_los, 
-                                Vector(1,f_grid[f_index]), iy_space_agenda ); 
-          if( iy1.ncols() != stokes_dim  ||  iy1.nrows() != 1 )
-            { throw runtime_error( "The size of *iy* returned from "
-                                   "*iy_space_agenda* is not correct." ); }
-          iy(f_index,joker) = iy1(0,joker);
-        }
-      else
-        { 
-          iy_space_agendaExecute( ws, iy, rte_pos, rte_los, f_grid,
-                                                           iy_space_agenda ); 
-          if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
-            { throw runtime_error( "The size of *iy* returned from "
-                                   "*iy_space_agenda* is not correct." ); }
-        }
-      //      
-
-      // Do RT calculations
-      //
-      lbg = ppath.lspace;
-      lba = ppath.lspace;
-      //
-      if( np > 1 )
-        {
-          // Loop ppath steps
-          for( Index ip=np-2; ip>=0; ip-- )
+          // Get atmospheric and RT quantities for each ppath point/step
+          // "atmvars":
+          Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+          Matrix    ppath_vmr;
+          // "rtvars":
+          Vector    total_tau;
+          Matrix    emission_dummy;
+          Tensor3   ppath_abs_scalar, iy_trans_new;
+          Agenda    agenda_dummy;
+          //
+          if( ppath.np > 1 )
             {
-              lbg += ppath.lstep[ip];
-              lba += ppath.lstep[ip] * (ppath.nreal[ip]+ppath.nreal[ip+1])/2.0;
+              // Get pressure, temperature and VMRs
+              get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                                 ppath_wind_v, ppath_wind_w, ppath, 
+                                 atmosphere_dim, p_grid, t_field, vmr_field,
+                                 wind_u_field, wind_v_field, wind_w_field );
 
-              if( dispersion_do )
+              // Absorption and optical thickness for each step
+              get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                                emission_dummy,  abs_scalar_gas_agenda, 
+                                agenda_dummy, ppath, ppath_p, ppath_t, 
+                                ppath_vmr, ppath_wind_u, ppath_wind_v, 
+                                ppath_wind_w, f_grid, f_index, atmosphere_dim, 
+                                0 );
+            }
+
+          // Radiative background
+          //
+          if( dispersion_do )
+            { 
+              Matrix iy1;  // Single frequency version of iy
+              iy_space_agendaExecute( ws, iy1, rte_pos, rte_los, 
+                                      Vector(1,f_grid[f_index]), 
+                                      iy_space_agenda ); 
+              
+              if( iy1.ncols() != stokes_dim  ||  iy1.nrows() != 1 )
+                { throw runtime_error( "The size of *iy* returned from "
+                                       "*iy_space_agenda* is not correct." ); }
+              iy(f_index,joker) = iy1(0,joker);
+            }
+          else
+            { 
+              iy_space_agendaExecute( ws, iy, rte_pos, rte_los, f_grid,
+                                                           iy_space_agenda ); 
+              if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+                { throw runtime_error( "The size of *iy* returned from "
+                                       "*iy_space_agenda* is not correct." ); }
+            }
+        }  // if( AtmosphericLoss )
+
+      // Lengts and RT calculations
+      if( FreeSpaceLoss || AtmosphericLoss || ExtraPathDelay )
+        {
+          //
+          lbg = ppath.lspace;
+          lba = ppath.lspace;
+          //
+          if( ppath.np > 1 )
+            {
+              // Loop ppath steps
+              for( Index ip=ppath.np-2; ip>=0; ip-- )
                 {
-                  const Numeric step_tr = exp( -ppath_tau(0,ip) );
-                  for( Index is=0; is<stokes_dim; is++ )
-                    { iy(f_index,is) *= step_tr; }
-                }
-              else
-                {
-                  // Loop frequencies
-                  for( Index iv=0; iv<nf; iv++ )
+                  lbg += ppath.lstep[ip];
+                  lba += ppath.lstep[ip] * ( ppath.nreal[ip] + 
+                                             ppath.nreal[ip+1] ) / 2.0;
+                  if( AtmosphericLoss )
                     {
-                      const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-                      for( Index is=0; is<stokes_dim; is++ )
-                        { iy(iv,is) *= step_tr; }
+                      if( dispersion_do )
+                        {
+                          const Numeric step_tr = exp( -ppath_tau(0,ip) );
+                          for( Index is=0; is<stokes_dim; is++ )
+                            { iy(f_index,is) *= step_tr; }
+                        }
+                      else
+                        {
+                          // Loop frequencies
+                          for( Index iv=0; iv<nf; iv++ )
+                            {
+                              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+                              for( Index is=0; is<stokes_dim; is++ )
+                                { iy(iv,is) *= step_tr; }
+                            }
+                        }
                     }
                 }
             } 
         }
-      
-      // Geomtrical distance between start and end point
-      Numeric lgd = 0;
-      {
-        // Radius of rte_pos and rte_pos2
-        const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid,
-                                  lon_grid, ppath.end_pos ) + ppath.end_pos[0];
-        const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid,
-                              lon_grid, ppath.start_pos ) + ppath.start_pos[0];
-        if( atmosphere_dim <= 2 )
-          { distance2D( lgd, r1, ppath.end_pos[1], r2, ppath.start_pos[1] ); }
-        else 
-          { distance3D( lgd, r1, ppath.end_pos[1],   ppath.end_pos[2],
-                         r2, ppath.start_pos[1], ppath.start_pos[2] ); }
-      }
-
-      // Geometric LOS from rte_pos to rte_pos2
-      Vector rte_los_geom;
-      rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, 
-                                         lat_grid, lon_grid, refellipsoid, 
-                                         rte_pos, ppath.start_pos, verbosity );
 
       // Free space loss
-      const Numeric fspl = 1 / ( 4 * PI * lbg*lbg );
+      Numeric fspl = -999;
+      if( FreeSpaceLoss  ||  TotalLoss )
+        { fspl = 1 / ( 4 * PI * lbg*lbg ); }
+
+      // Defocusing loss
+      const Numeric dfl = 0;
 
       // Extra path delay
-      const Numeric epd = ( lba - lgd ) / SPEED_OF_LIGHT;
-
-      // Zenith bending angle
-      const Numeric zba = rte_los_geom[0]-ppath.end_los[0];
-
-      // Azimuth bending angle
-      Numeric aba = 0;
-      if( atmosphere_dim == 3 )
-        { aba = rte_los_geom[1]-ppath.end_los[1]; }
-
-      out2 << "  Atmospheric attenuation : " << iy(joker,0) << "\n";
-      out2 << "          Free space loss : " << fspl << "\n";
-      out2 << "         Extra path delay : " << 1e9*epd << " ns\n";
-      out2 << "     Zenith bending angle : " << zba << " deg.\n";
-      if( atmosphere_dim == 3 )
-        { out2 << "    Azimuth bending angle : " << aba << " deg.\n"; }
-
-      // Apply loss terms and fill iy_aux
-      if( dispersion_do )
+      Numeric epd = -999;
+      if( ExtraPathDelay )
         {
-          if( aux_var == "AtmosAtten" )
-            { iy_aux(f_index,joker) = iy(f_index,joker); }
-          else if( aux_var == "FreeSpaceLoss" )
-            { iy_aux(f_index,0) = fspl; }
-          else if( aux_var == "DefocusingLoss" )
-            { iy_aux(f_index,0) = 0; }
-          else if( aux_var == "ExtraPathDelay" )
-            { iy_aux(f_index,0) = epd; }
-          else if( aux_var == "ZenithBendingAngle" )
-            { iy_aux(f_index,0) = zba; }
-          else if( aux_var == "AzimuthBendingAngle" )
-            { iy_aux(f_index,0) = aba; }
+          // Radius of rte_pos and rte_pos2
+          const Numeric r1 = ppath.end_pos[0] +
+                             pos2refell_r( atmosphere_dim, refellipsoid, 
+                                           lat_grid, lon_grid, ppath.end_pos );
+          const Numeric r2 = ppath.start_pos[0] +
+                             pos2refell_r( atmosphere_dim, refellipsoid, 
+                                         lat_grid, lon_grid, ppath.start_pos );
+          // Geomtrical distance between start and end point
+          Numeric lgd ;
+          if( atmosphere_dim <= 2 )
+            { distance2D( lgd, r1, ppath.end_pos[1], r2, ppath.start_pos[1] ); }
+          else 
+            { distance3D( lgd, r1, ppath.end_pos[1],   ppath.end_pos[2],
+                               r2, ppath.start_pos[1], ppath.start_pos[2] ); }
           //
-          for( Index is=0; is<stokes_dim; is++ )
-            { iy(f_index,is) *= fspl; }
+          epd = ( lba - lgd ) / SPEED_OF_LIGHT;
         }
-      else
+
+      // Bending angle
+      Numeric ba = -999;
+      if( BendingAngle )
+        { ba = bending_angle1d( ppath ); }
+
+      // Atmospheric loss as aux is a special case
+      if( aux_var == "AtmosphericLoss" )
+        { iy_aux(fr,joker) = iy(fr,joker); }
+
+      // Total loss
+      Matrix atmloss(0,0);
+      if( TotalLoss )
         {
-          if( aux_var == "AtmosAtten" )
-            { iy_aux = iy; }
-          else if( aux_var == "FreeSpaceLoss" )
-            { iy_aux(joker,0) = fspl; }
-          else if( aux_var == "DefocusingLoss" )
-            { iy_aux(joker,0) = 0; }
-          else if( aux_var == "ExtraPathDelay" )
-            { iy_aux(joker,0) = epd; }
-          else if( aux_var == "ZenithBendingAngle" )
-            { iy_aux(joker,0) = zba; }
-          else if( aux_var == "AzimuthBendingAngle" )
-            { iy_aux(joker,0) = aba; }
-          //
-          iy *= fspl;
+          // A copy of atmospheric loss needed?
+          if( main_var == "AtmosphericLoss" )
+            {  
+              atmloss = iy(fr,joker);
+            }
+          if( dispersion_do )
+            for( Index is=0; is<stokes_dim; is++ ){ iy(f_index,is) *= fspl; }
+          else
+            { iy *= fspl; }
         }
+
+      // Fill iy_aux
+      if( aux_var == "None" )
+        { iy_aux(fr,0) = -999; }
+      else if( aux_var == "FreeSpaceLoss" )
+        { iy_aux(fr,0) = fspl; }
+      else if( aux_var == "DefocusingLoss" )
+        { iy_aux(fr,0) = dfl; }
+      else if( aux_var == "TotalLoss" )
+        { iy_aux(fr,joker) = iy(fr,joker); }
+      else if( aux_var == "ExtraPathDelay" )
+        { iy_aux(fr,0) = epd; }
+      else if( aux_var == "BendingAngle" )
+        { iy_aux(fr,0) = ba; }
+
+      // Fill iy
+      if( main_var == "FreeSpaceLoss" )
+        { iy(fr,0) = fspl; }
+      else if( main_var == "DefocusingLoss" )
+        { iy(fr,0) = dfl; }
+      else if( main_var == "AtmosphericLoss" )
+        { iy(fr,joker) = atmloss(joker,joker); }
+      else if( main_var == "ExtraPathDelay" )
+        { iy(fr,0) = epd; }
+      else if( main_var == "BendingAngle" )
+        { iy(fr,0) = ba; }
     }
 }
 
@@ -1629,24 +1686,24 @@ void iyRadioLink(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyCalc(
-        Workspace&   ws,
-        Matrix&      iy,
-        Matrix&      iy_aux,
-        Matrix&      iy_error,
-        Index&       iy_error_type,
-  ArrayOfTensor3&    diy_dx,
-  const Index&       basics_checked,
-  const Tensor3&     t_field,
-  const Tensor3&     z_field,
-  const Tensor4&     vmr_field,
-  const Index&       cloudbox_on,
-  const Index&       cloudbox_checked,
-  const Vector&      rte_pos,
-  const Vector&      rte_los,
-  const Index&       jacobian_do,
-  const Index&       mblock_index,
-  const Agenda&      iy_clearsky_agenda,
-  const Verbosity& )
+         Workspace&   ws,
+         Matrix&      iy,
+         Matrix&      iy_aux,
+         Matrix&      iy_error,
+         Index&       iy_error_type,
+   ArrayOfTensor3&    diy_dx,
+   const Index&       basics_checked,
+   const Tensor3&     t_field,
+   const Tensor3&     z_field,
+   const Tensor4&     vmr_field,
+   const Index&       cloudbox_on,
+   const Index&       cloudbox_checked,
+   const Vector&      rte_pos,
+   const Vector&      rte_los,
+   const Index&       jacobian_do,
+   const Index&       mblock_index,
+   const Agenda&      iy_clearsky_agenda,
+   const Verbosity& )
 {
   // Basics and cloudbox OK?
   //
@@ -1679,41 +1736,41 @@ void iyCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yCalc(
-        Workspace&                  ws,
-        Vector&                     y,
-        Vector&                     y_f,
-        ArrayOfIndex&               y_pol,
-        Matrix&                     y_pos,
-        Matrix&                     y_los,
-        Vector&                     y_error,
-        Vector&                     y_aux,
-        Matrix&                     jacobian,
-  const Index&                      basics_checked,
-  const Index&                      atmosphere_dim,
-  const Tensor3&                    t_field,
-  const Tensor3&                    z_field,
-  const Tensor4&                    vmr_field,
-  const Index&                      cloudbox_on,
-  const Index&                      cloudbox_checked,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const Matrix&                     sensor_pos,
-  const Matrix&                     sensor_los,
-  const Vector&                     mblock_za_grid,
-  const Vector&                     mblock_aa_grid,
-  const Index&                      antenna_dim,
-  const Sparse&                     sensor_response,
-  const Vector&                     sensor_response_f,
-  const ArrayOfIndex&               sensor_response_pol,
-  const Vector&                     sensor_response_za,
-  const Vector&                     sensor_response_aa,
-  const Agenda&                     iy_clearsky_agenda,
-  const String&                     y_unit,
-  const Agenda&                     jacobian_agenda,
-  const Index&                      jacobian_do,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
-  const Verbosity&                  verbosity )
+         Workspace&                  ws,
+         Vector&                     y,
+         Vector&                     y_f,
+         ArrayOfIndex&               y_pol,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
+         Vector&                     y_error,
+         Vector&                     y_aux,
+         Matrix&                     jacobian,
+   const Index&                      basics_checked,
+   const Index&                      atmosphere_dim,
+   const Tensor3&                    t_field,
+   const Tensor3&                    z_field,
+   const Tensor4&                    vmr_field,
+   const Index&                      cloudbox_on,
+   const Index&                      cloudbox_checked,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid,
+   const Index&                      antenna_dim,
+   const Sparse&                     sensor_response,
+   const Vector&                     sensor_response_f,
+   const ArrayOfIndex&               sensor_response_pol,
+   const Vector&                     sensor_response_za,
+   const Vector&                     sensor_response_aa,
+   const Agenda&                     iy_clearsky_agenda,
+   const String&                     y_unit,
+   const Agenda&                     jacobian_agenda,
+   const Index&                      jacobian_do,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const Verbosity&                  verbosity )
 {
   // Some sizes
   const Index   nf      = f_grid.nelem();
@@ -1979,37 +2036,37 @@ void yCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yCalc2(
-        Workspace&                  ws,
-        Vector&                     y,
-        Vector&                     y_f,
-        ArrayOfIndex&               y_pol,
-        Matrix&                     y_pos,
-        Matrix&                     y_los,
-        Vector&                     y_error,
-        Vector&                     y_aux,
-        Matrix&                     jacobian,
-  const Index&                      basics_checked,
-  const Index&                      atmosphere_dim,
-  const Tensor3&                    t_field,
-  const Tensor3&                    z_field,
-  const Tensor4&                    vmr_field,
-  const Index&                      cloudbox_on,
-  const Index&                      cloudbox_checked,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const Matrix&                     sensor_pos,
-  const Matrix&                     sensor_los,
-  const Vector&                     mblock_za_grid,
-  const Vector&                     mblock_aa_grid,
-  const Index&                      antenna_dim,
-  const Agenda&                     sensor_response_agenda,
-  const Agenda&                     iy_clearsky_agenda,
-  const String&                     y_unit,
-  const Agenda&                     jacobian_agenda,
-  const Index&                      jacobian_do,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
-  const Verbosity&                  verbosity )
+         Workspace&                  ws,
+         Vector&                     y,
+         Vector&                     y_f,
+         ArrayOfIndex&               y_pol,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
+         Vector&                     y_error,
+         Vector&                     y_aux,
+         Matrix&                     jacobian,
+   const Index&                      basics_checked,
+   const Index&                      atmosphere_dim,
+   const Tensor3&                    t_field,
+   const Tensor3&                    z_field,
+   const Tensor4&                    vmr_field,
+   const Index&                      cloudbox_on,
+   const Index&                      cloudbox_checked,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid,
+   const Index&                      antenna_dim,
+   const Agenda&                     sensor_response_agenda,
+   const Agenda&                     iy_clearsky_agenda,
+   const String&                     y_unit,
+   const Agenda&                     jacobian_agenda,
+   const Index&                      jacobian_do,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const Verbosity&                  verbosity )
 {
   // Some sizes
   const Index   nf      = f_grid.nelem();
@@ -2317,26 +2374,26 @@ void yCalc2(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yFromIy(
-        Vector&         y,
-        Vector&         y_f,
-        ArrayOfIndex&   y_pol,
-        Matrix&         y_pos,
-        Matrix&         y_los,
-        Vector&         y_error,
-        Vector&         y_aux,
-        Matrix&         jacobian,
-  const Index&          stokes_dim,
-  const Vector&         f_grid,
-  const Index&                 jacobian_do,
-  const ArrayOfArrayOfIndex&   jacobian_indices,
-  const Vector&         rte_pos,
-  const Vector&         rte_los,
-  const Matrix&         iy,
-  const Matrix&         iy_aux,
-  const Matrix&         iy_error,
-  const Index&          iy_error_type,
-  const ArrayOfTensor3& diy_dx,
-  const Verbosity& )
+         Vector&         y,
+         Vector&         y_f,
+         ArrayOfIndex&   y_pol,
+         Matrix&         y_pos,
+         Matrix&         y_los,
+         Vector&         y_error,
+         Vector&         y_aux,
+         Matrix&         jacobian,
+   const Index&          stokes_dim,
+   const Vector&         f_grid,
+   const Index&                 jacobian_do,
+   const ArrayOfArrayOfIndex&   jacobian_indices,
+   const Vector&         rte_pos,
+   const Vector&         rte_los,
+   const Matrix&         iy,
+   const Matrix&         iy_aux,
+   const Matrix&         iy_error,
+   const Index&          iy_error_type,
+   const ArrayOfTensor3& diy_dx,
+   const Verbosity& )
 {
   const Index nf = f_grid.nelem();
 
@@ -2408,13 +2465,13 @@ void yFromIy(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void y_unitApply(
-        Vector&         y,
-        Vector&         y_error,
-        Matrix&         jacobian,
-  const Vector&         y_f,
-  const ArrayOfIndex&   y_pol,
-  const String&         y_unit,
-  const Verbosity&)
+         Vector&         y,
+         Vector&         y_error,
+         Matrix&         jacobian,
+   const Vector&         y_f,
+   const ArrayOfIndex&   y_pol,
+   const String&         y_unit,
+   const Verbosity&)
 {
   if( y_unit == "1" )
     { throw runtime_error(
