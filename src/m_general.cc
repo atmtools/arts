@@ -155,10 +155,8 @@ Print(// WS Generic Input:
   Print( x.start_pos, level, verbosity );
   SWITCH_OUTPUT (level, "start_los: ")
   Print( x.start_los, level, verbosity );
-  SWITCH_OUTPUT (level, "end_pos: ")
-  Print( x.end_pos, level, verbosity );
-  SWITCH_OUTPUT (level, "end_los: ")
-  Print( x.end_los, level, verbosity );
+  SWITCH_OUTPUT (level, "start_lstep: ")
+  Print( x.start_lstep, level, verbosity );
   SWITCH_OUTPUT (level, "pos: ")
   Print( x.pos, level, verbosity );
   SWITCH_OUTPUT (level, "los: ")
@@ -167,8 +165,12 @@ Print(// WS Generic Input:
   Print( x.r, level, verbosity );
   SWITCH_OUTPUT (level, "lstep: ")
   Print( x.lstep, level, verbosity );
-  SWITCH_OUTPUT (level, "lspace: ")
-  Print( x.lspace, level, verbosity );
+  SWITCH_OUTPUT (level, "end_pos: ")
+  Print( x.end_pos, level, verbosity );
+  SWITCH_OUTPUT (level, "end_los: ")
+  Print( x.end_los, level, verbosity );
+  SWITCH_OUTPUT (level, "end_lstep: ")
+  Print( x.end_lstep, level, verbosity );
   SWITCH_OUTPUT (level, "nreal: ")
   Print( x.nreal, level, verbosity );
   SWITCH_OUTPUT (level, "gp_p: ")

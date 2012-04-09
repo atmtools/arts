@@ -1400,17 +1400,19 @@ void iyRadioLink(
    const Tensor3&              wind_w_field,
    const Tensor3&              edensity_field,
    const Vector&               refellipsoid,
+   const Matrix&               z_surface,
    const Index&                cloudbox_on,
    const Index&                stokes_dim,
    const Vector&               f_grid,
    const Index&                dispersion_do,
    const Index&                mblock_index,
    const Agenda&               ppath_agenda,
+   const Agenda&               ppath_step_agenda,
    const Agenda&               abs_scalar_gas_agenda,
    const Agenda&               iy_space_agenda,
    const String&               main_var,
    const String&               aux_var,
-   const Verbosity&             )
+   const Verbosity&            verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
 
@@ -1452,20 +1454,26 @@ void iyRadioLink(
   if( main_var == "AtmosphericLoss"  ||  aux_var == "AtmosphericLoss" )
     { AtmosphericLoss = true; }
   if( main_var == "TotalLoss"  ||  aux_var == "TotalLoss" )
-    { AtmosphericLoss = true;  TotalLoss = true; }
+    { FreeSpaceLoss   = true;   DefocusingLoss = true;
+      AtmosphericLoss = true;   TotalLoss      = true; }
   if( main_var == "ExtraPathDelay"  ||  aux_var == "ExtraPathDelay" )
     { ExtraPathDelay = true; }
   if( main_var == "BendingAngle"  ||  aux_var == "BendingAngle" )
     { BendingAngle = true; }
 
-  // Set up iy and iy_aux (can be redundancy here)
+  // Set up iy and iy_aux (can be redone by e.g. iy_space_agenda)
   //
   Index nf = f_grid.nelem();
   //
   iy.resize( nf, stokes_dim );  
   iy     = 0;  
-  iy_aux.resize( nf, stokes_dim ); 
-  iy_aux = 0;  
+  if( aux_var ==" None" ) 
+    { iy_aux.resize( 0, 0); }
+  else
+    {
+      iy_aux.resize( nf, stokes_dim ); 
+      iy_aux = 0;
+    }  
 
   // Variables to handle dispersion
   Index nloops, f_index; 
@@ -1565,8 +1573,8 @@ void iyRadioLink(
       if( FreeSpaceLoss || AtmosphericLoss || ExtraPathDelay )
         {
           //
-          lbg = ppath.lspace;
-          lba = ppath.lspace;
+          lbg = ppath.start_lstep + ppath.end_lstep;
+          lba = lbg;
           //
           if( ppath.np > 1 )
             {
@@ -1600,12 +1608,17 @@ void iyRadioLink(
         }
 
       // Free space loss
-      Numeric fspl = -999;
-      if( FreeSpaceLoss  ||  TotalLoss )
+      Numeric fspl = 1;
+      if( FreeSpaceLoss )
         { fspl = 1 / ( 4 * PI * lbg*lbg ); }
 
       // Defocusing loss
-      const Numeric dfl = 0;
+      Numeric dfl = 1;
+      if( DefocusingLoss )
+        { defocusing_limb1d( ws, dfl, ppath_step_agenda, atmosphere_dim, 
+                             p_grid, lat_grid, lon_grid, t_field, z_field, 
+                             vmr_field, edensity_field, f_index, refellipsoid, 
+                             z_surface, ppath, verbosity ); }
 
       // Extra path delay
       Numeric epd = -999;
@@ -1632,7 +1645,7 @@ void iyRadioLink(
       // Bending angle
       Numeric ba = -999;
       if( BendingAngle )
-        { ba = bending_angle1d( ppath ); }
+        { bending_angle1d( ba, ppath ); }
 
       // Atmospheric loss as aux is a special case
       if( aux_var == "AtmosphericLoss" )
@@ -1648,9 +1661,10 @@ void iyRadioLink(
               atmloss = iy(fr,joker);
             }
           if( dispersion_do )
-            for( Index is=0; is<stokes_dim; is++ ){ iy(f_index,is) *= fspl; }
+            { for( Index is=0; is<stokes_dim; is++ )
+                { iy(f_index,is) *= fspl*dfl; } }
           else
-            { iy *= fspl; }
+            { iy *= fspl*dfl; }
         }
 
       // Fill iy_aux

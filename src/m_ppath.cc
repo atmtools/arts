@@ -359,15 +359,15 @@ void ppathFromRtePos2(
     { distance3D( ll, rc, posc[1], posc[2], ppt.r[ip], ppt.pos(ip,1), 
                                                        ppt.pos(ip,2) ); }
 
-  // Last point of ppt closest to rte_pos2. No point to add, maybe increase
-  // lspace and calculate start_los: 
+  // Last point of ppt closest to rte_pos2. No point to add, maybe calculate
+  // start_lstep and start_los: 
   if( ip == ppt.np-1 )
     { 
       ppath_init_structure( ppath, atmosphere_dim, ppt.np );
       ppath_copy( ppath, ppt, -1 );
       if( ppath_what_background( ppath ) == 1 )
         { 
-          ppath.lspace += ll; 
+          ppath.start_lstep= ll; 
           Numeric d1, d2=0, d3;
           if( atmosphere_dim <= 2 )
             { cart2poslos( d1, d3, ppath.start_los[0], xc, zc, dxip, dzip, 
@@ -612,33 +612,23 @@ void PrintTangentPoint(
     const Index&     level,
     const Verbosity& verbosity)
 {
-  // Find lowest z and its index
-  Numeric zmin = 99e99;
-  Index   imin = -1;
-  for( Index i=0; i<ppath.np; i++ )
-    {
-      if( ppath.pos(i,0) < zmin )
-        {
-          zmin = ppath.pos(i,0);
-          imin = i;
-        }
-    }
+  Index it;
+  find_tanpoint( it, ppath );
 
   ostringstream os;
 
-  if( imin == 0  ||  imin == ppath.np-1 )
+  if( it < 0 )
     {
       os << "Lowest altitude found at the end of the propagation path.\n"
          << "This indicates that the tangent point is either above the\n"
          << "top-of-the-atmosphere or below the planet's surface.";
     }
-
   else
     {
-      os << "    z: " << ppath.pos(imin,0)/1e3 << " km\n" 
-         << "  lat: " << ppath.pos(imin,1) << " deg";
+      os << "    z: " << ppath.pos(it,0)/1e3 << " km\n" 
+         << "  lat: " << ppath.pos(it,1) << " deg";
         if( ppath.pos.ncols() == 3 )
-          os << "\n   lon: " << ppath.pos(imin,2) << " deg";
+          os << "\n   lon: " << ppath.pos(it,2) << " deg";
     }
 
   CREATE_OUTS

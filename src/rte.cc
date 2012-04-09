@@ -287,8 +287,11 @@ void apply_y_unit2(
 
     The expression used assumes a 1D atmosphere, that allows the bendng angle
     to be calculated by start and end LOS. This is an approximation for 2D and
-    3D, but very a small one and the function should in general be OK also for
-    2D and 3D.
+    3D, but a very small one and the function should in general be OK also for
+    2D and 3D. 
+
+    The expression is taken from Kursinski et al., The GPS radio occultation
+    technique, TAO, 2000.
 
     \return   alpha   Bending angle
     \param    ppath   Propagation path.
@@ -296,7 +299,9 @@ void apply_y_unit2(
     \author Patrick Eriksson 
     \date   2012-04-05
 */
-Numeric bending_angle1d( const Ppath&   ppath )
+void bending_angle1d( 
+        Numeric&   alpha,
+  const Ppath&     ppath )
 {
   Numeric theta;
   if( ppath.dim < 3 )
@@ -306,13 +311,240 @@ Numeric bending_angle1d( const Ppath&   ppath )
                        ppath.end_pos[1], ppath.end_pos[2] ); }
 
   // Eq 17 in Kursinski et al., TAO, 2000:
-  return ppath.start_los[0] - ppath.end_los[0] + theta;
+  alpha = ppath.start_los[0] - ppath.end_los[0] + theta;
 
   // This as
   // phi_r = 180 - ppath.end_los[0]
   // phi_t = ppath.start_los[0]
-
 }
+
+
+
+void defocusing3d( 
+        Workspace&   ws,
+        Numeric&     dfl,
+  const Agenda&      ppath_step_agenda,
+  const Index&       atmosphere_dim,
+  const Vector&      p_grid,
+  const Vector&      lat_grid,
+  const Vector&      lon_grid,
+  const Tensor3&     t_field,
+  const Tensor3&     z_field,
+  const Tensor4&     vmr_field,
+  const Tensor3&     edensity_field,
+  const Index&       f_index,
+  const Vector&      refellipsoid,
+  const Matrix&      z_surface,
+  const Ppath&       ppath,
+  const Verbosity&   verbosity )
+{
+  // Optical and physical path between transmitter and reciver
+  Numeric lo = ppath.start_lstep + ppath.end_lstep;
+  Numeric lp = lo;
+  for( Index i=0; i<=ppath.np-2; i++ )
+    { lp += ppath.lstep[i];
+      lo += ppath.lstep[i] * ( ppath.nreal[i] + ppath.nreal[i+1] ) / 2.0; 
+    }
+
+  // Extract rte_pos and rte_los
+  Vector    rte_pos = ppath.start_pos[Range(0,atmosphere_dim)];
+  Vector    rte_los = ppath.start_los;
+
+  rte_los[0] = 180 - rte_los[0];
+
+  // Size of zenith angle disturbance
+  const Numeric dza = 1e-3;
+
+  // A new ppath with positive zenith angle off-set
+  Vector  pos1;
+  {
+    Ppath   ppx;
+    rte_los[0] += dza;
+    ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+                lon_grid, t_field, z_field, vmr_field, edensity_field,
+                f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+                rte_pos, rte_los, 0, verbosity );
+    //
+    Vector lox( ppx.np );
+    Index ilast = ppx.np-1;
+    lox[0] = ppx.start_lstep;
+    for( Index i=1; i<=ilast; i++ )
+      { lox[i] = lox[i-1] + ppx.lstep[i-1] * ( ppx.nreal[i-1] + 
+                                               ppx.nreal[i] ) / 2.0; }
+    //
+    if( lox[ilast] < lo )
+      {
+        const Numeric dl = lo - lox[ilast];
+        if( atmosphere_dim < 3 )
+          {
+            pos1.resize(2);
+            Numeric x, z, dx, dz;
+            poslos2cart( x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast,1), 
+                                                     ppx.los(ilast,0) );
+            cart2pol( pos1[0], pos1[1], x+dl*dx, z+dl*dz, ppx.pos(ilast,1), 
+                                                          ppx.los(ilast,0) );
+          }
+        else
+          { assert(0); } 
+      }
+    else
+      { assert(0); } // Interpolation must be added here
+  }
+
+  // Same thing with negative zenit agle off-set
+  Vector  pos2;
+  {
+    Ppath   ppx;
+    rte_los[0] -= 2*dza;
+    ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+                lon_grid, t_field, z_field, vmr_field, edensity_field,
+                f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+                rte_pos, rte_los, 0, verbosity );
+    //
+    Vector lox( ppx.np );
+    Index ilast = ppx.np-1;
+    lox[0] = ppx.start_lstep;
+    for( Index i=1; i<=ilast; i++ )
+      { lox[i] = lox[i-1] + ppx.lstep[i-1] * ( ppx.nreal[i-1] + 
+                                               ppx.nreal[i] ) / 2.0; }
+    //
+    if( lox[ilast] < lo )
+      {
+        const Numeric dl = lo - lox[ilast];
+        if( atmosphere_dim < 3 )
+          {
+            pos2.resize(2);
+            Numeric x, z, dx, dz;
+            poslos2cart( x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast,1), 
+                                                     ppx.los(ilast,0) );
+            cart2pol( pos2[0], pos2[1], x+dl*dx, z+dl*dz, ppx.pos(ilast,1), 
+                                                          ppx.los(ilast,0) );
+          }
+        else
+          { assert(0); } 
+      }
+    else
+      { assert(0); } // Interpolation must be added here
+  }
+
+  Numeric l12;
+  distance2D( l12, pos1[0], pos1[1], pos2[0], pos2[1] );
+
+  dfl = lp*2*DEG2RAD*dza /  l12;
+}
+
+
+
+//! defocusing_limb1d
+/*!
+    Calculates the defocusing for limb measurements of a 1D atmosphere
+
+    The expressions used assume a 1D atmosphere, and can only be applied on
+    limb sounding geoemtry.
+
+    The expressions is taken from Kursinski et al., The GPS radio occultation
+    technique, TAO, 2000.
+
+    \return   alpha   Bending angle
+    \param    ppath   Propagation path.
+
+    \author Patrick Eriksson 
+    \date   2012-04-05
+*/
+void defocusing_limb1d( 
+        Workspace&   ws,
+        Numeric&     dfl,
+  const Agenda&      ppath_step_agenda,
+  const Index&       atmosphere_dim,
+  const Vector&      p_grid,
+  const Vector&      lat_grid,
+  const Vector&      lon_grid,
+  const Tensor3&     t_field,
+  const Tensor3&     z_field,
+  const Tensor4&     vmr_field,
+  const Tensor3&     edensity_field,
+  const Index&       f_index,
+  const Vector&      refellipsoid,
+  const Matrix&      z_surface,
+  const Ppath&       ppath,
+  const Verbosity&   verbosity )
+{
+  dfl = 1;
+
+  if( 0 )
+    {
+  if( ppath.start_lstep == 0  ||  ppath.end_lstep == 0 )
+    throw runtime_error( "The function *defocusing_limb1d* requires that both "
+                         "transmitter and reciver are placed in space." );
+
+  // Index of tangent point
+  Index it;
+  find_tanpoint( it, ppath );
+  cout << "it = " << it << endl;
+  cout << "np = " << ppath.np << endl;
+  assert( it >= 0 );
+
+  // Length between tangent point and transmitter/reciver
+  Numeric lt = ppath.start_lstep, lr = ppath.end_lstep;
+  for( Index i=it; i<=ppath.np-2; i++ )
+    { lt += ppath.lstep[i]; }
+  for( Index i=0; i<it; i++ )
+    { lr += ppath.lstep[i]; }
+  cout << "lt = " << lt/1e3 << " km\n";
+  cout << "lr = " << lr/1e3 << " km\n";
+
+  // Bending angle
+  Numeric alpha;
+  bending_angle1d( alpha, ppath );
+  cout << "Bending angle0 = " << alpha << endl;
+
+  // Azimuth loss term (Eq 18.5 in Kursinski et al.)
+  const Numeric lf = lr*lt / (lr+lt);
+  const Numeric alt = 1 / ( 1 - alpha*lf / refellipsoid[0] );
+  cout << "Azimuth loss = " << alt << endl;
+
+  // Calculate two new ppaths to get dalpha/da
+  const Numeric dza = 1e-3;
+  Numeric   alpha1, a1, alpha2, a2;
+  Ppath     ppt;
+  Vector    rte_pos = ppath.end_pos[Range(0,atmosphere_dim)];
+  Vector    rte_los = ppath.end_los;
+  //
+  rte_los[0] += dza;
+  ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+              lon_grid, t_field, z_field, vmr_field, edensity_field,
+              f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+              rte_pos, rte_los, 0, verbosity );
+  bending_angle1d( alpha1, ppt );
+  find_tanpoint( it, ppt );
+  a1 = ppt.pos(it,0);
+  //
+  rte_los[0] -= 2*dza;
+  ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+              lon_grid, t_field, z_field, vmr_field, edensity_field,
+              f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+              rte_pos, rte_los, 0, verbosity );
+  bending_angle1d( alpha2, ppt );
+  find_tanpoint( it, ppt );
+  a2 = ppt.pos(it,0);
+  //
+  const Numeric dada = (alpha2-alpha1) / (a2-a1); 
+  cout << "alpha1 = " << alpha1 << endl;
+  cout << "alpha2 = " << alpha2 << endl;
+  cout << "a1 = " << a1 << endl;
+  cout << "a2 = " << a2 << endl;
+  cout << "dalpha_da = " << dada << endl;
+
+  // Zenith loss term (Eq 18 in Kursinski et al.)
+  const Numeric zlt = 1 / ( 1 - dada*lf );
+  cout << "Zenith loss = " << zlt << endl;
+
+  // Total defocusing loss
+  dfl = zlt * alt;
+  cout << "Total loss = " << dfl << endl;
+    }
+}
+
 
 
 //! ext2trans

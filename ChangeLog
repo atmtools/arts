@@ -1,3 +1,29 @@
+2012-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-82
+
+	* src/m_rte.cc (iyRadioLink): Defocusing was not correctly iniated
+	and applied.
+
+	* src/rte.cc (defocusing3d, defocusing_limb1d): Started on two
+	different aproaches to calculate defocusing. Not working and not
+	active.
+
+	* src/m_general.cc (Print): 
+	* src/xml_io_compound_types.cc (xml_read_from_stream)
+	(xml_write_to_stream): Adopted to end/start_lstep.
+
+	* src/m_ppath.cc (PrintTangentPoint): Now using find_tanpoint.
+	(ppathFromRtePos2): Adopted to end/start_lstep.
+
+	* src/ppath.cc: Adopted to end/start_lstep.
+	(find_tanpoint): New function.
+
+	* src/ppath.h (struct Ppath): lspace removed. start_lstep and
+	end_lstep introduced. (lspace was the sum of the two new fields,
+	but this is not sufficient information for calculating
+	defocusing).
+
 2012-04-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-81

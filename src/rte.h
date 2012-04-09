@@ -79,7 +79,45 @@ void apply_y_unit2(
    ConstVectorView       f_grid,
    const ArrayOfIndex&   i_pol );
 
-Numeric bending_angle1d( const Ppath&   ppath );
+void bending_angle1d( 
+        Numeric&   alpha,
+  const Ppath&     ppath );
+
+void defocusing3d( 
+        Workspace&   ws,
+        Numeric&     dfl,
+  const Agenda&      ppath_step_agenda,
+  const Index&       atmosphere_dim,
+  const Vector&      p_grid,
+  const Vector&      lat_grid,
+  const Vector&      lon_grid,
+  const Tensor3&     t_field,
+  const Tensor3&     z_field,
+  const Tensor4&     vmr_field,
+  const Tensor3&     edensity_field,
+  const Index&       f_index,
+  const Vector&      refellipsoid,
+  const Matrix&      z_surface,
+  const Ppath&       ppath,
+  const Verbosity&   verbosity );
+
+void defocusing_limb1d( 
+        Workspace&   ws,
+        Numeric&     dfl,
+  const Agenda&      ppath_step_agenda,
+  const Index&       atmosphere_dim,
+  const Vector&      p_grid,
+  const Vector&      lat_grid,
+  const Vector&      lon_grid,
+  const Tensor3&     t_field,
+  const Tensor3&     z_field,
+  const Tensor4&     vmr_field,
+  const Tensor3&     edensity_field,
+  const Index&       f_index,
+  const Vector&      refellipsoid,
+  const Matrix&      z_surface,
+  const Ppath&       ppath,
+  const Verbosity&   verbosity );
 
 void ext2trans(
          MatrixView   trans_mat,

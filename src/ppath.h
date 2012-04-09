@@ -63,13 +63,14 @@ struct Ppath {
   String            background;
   Vector            start_pos;
   Vector            start_los;
-  Vector            end_pos;
-  Vector            end_los;
+  Numeric           start_lstep;
   Matrix            pos;
   Matrix            los;
   Vector            r;
   Vector            lstep;
-  Numeric           lspace;
+  Vector            end_pos;
+  Vector            end_los;
+  Numeric           end_lstep;
   Vector            nreal;
   ArrayOfGridPos    gp_p;
   ArrayOfGridPos    gp_lat;
@@ -125,6 +126,10 @@ void map_daa(
        const Numeric&   za0,
        const Numeric&   aa0,
        const Numeric&   aa_grid );
+
+void find_tanpoint( 
+         Index&   it,
+   const Ppath    ppath );
 
 Numeric plevel_slope_2d(
         ConstVectorView   lat_grid,           

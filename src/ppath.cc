@@ -679,6 +679,38 @@ void resolve_lon(
 
 
 
+//! find_tanpoint
+/*! 
+   Identifies the tangent point of a propagation path
+
+   The tangent points is defined as the point with the lowest altitude. 
+
+   The index of the tangent point is determined. If no tangent point is found,
+   the index is set to -1. 
+
+   \param   it      Out: Index of tangent point
+   \param   ppath   Propagation path structure.
+
+   \author Patrick Eriksson
+   \date   2012-04-07
+*/
+void find_tanpoint( 
+         Index&   it,
+   const Ppath    ppath )
+{
+  Numeric zmin = 99e99;
+  it = -1;
+  while( it < ppath.np-1  &&  ppath.pos(it+1,0) < zmin ) 
+    {
+      it++;
+      zmin = ppath.pos(it,0);
+    }
+  if( it == 0  ||  it == ppath.np-1 )
+    { it = -1; }
+}
+
+
+
 
 
 /*===========================================================================
@@ -1486,8 +1518,10 @@ void ppath_init_structure(
 
   ppath.start_pos.resize( npos );
   ppath.start_los.resize( nlos );
+  ppath.start_lstep = 0;
   ppath.end_pos.resize( npos );
   ppath.end_los.resize( nlos );
+  ppath.end_lstep = 0;
 
   ppath.pos.resize( np, npos );
   ppath.los.resize( np, nlos );
@@ -1504,7 +1538,6 @@ void ppath_init_structure(
 
   ppath_set_background( ppath, 0 );
   ppath.nreal.resize( np );
-  ppath.lspace = 0;
 }
 
 
@@ -1629,17 +1662,18 @@ void ppath_copy(
   ppath1.dim        = ppath2.dim;
   ppath1.constant   = ppath2.constant;
   ppath1.background = ppath2.background;
-  ppath1.lspace     = ppath2.lspace;
 
   // As index 0 always is included in the copying, the end poinst is covered
-  ppath1.end_pos    = ppath2.end_pos;
-  ppath1.end_los    = ppath2.end_los;
+  ppath1.end_pos   = ppath2.end_pos;
+  ppath1.end_los   = ppath2.end_los;
+  ppath1.end_lstep = ppath2.end_lstep;
 
   // Copy start point only if coptying fills up ppath1
   if( n == ppath1.np )
     {
-      ppath1.start_pos = ppath2.start_pos;
-      ppath1.start_los = ppath2.start_los;
+      ppath1.start_pos   = ppath2.start_pos;
+      ppath1.start_los   = ppath2.start_los;
+      ppath1.start_lstep = ppath2.start_lstep;
     }
 
   ppath1.pos(Range(0,n),joker) = ppath2.pos(Range(0,n),joker);
@@ -1665,15 +1699,15 @@ void ppath_copy(
 
 //! ppath_append
 /*!
-   Combines two Ppath structures   
+   Combines two Ppath structures.
 
    The function appends a Ppath structure to another structure. 
  
    All the data of ppath1 is kept.
 
    The first point in ppath2 is assumed to be the same as the last in ppath1.
-   Only ppath2 fields start_pos, start_los, pos, los, r, lstep, lspace, nreal, 
-   gp_XXX and background are considered.
+   Only ppath2 fields start_pos, start_los, start_lstep, pos, los, r, lstep,
+   nreal, gp_XXX and background are considered.
 
    \param   ppath1    Output: Ppath structure to be expanded.
    \param   ppath2    The Ppath structure to include in ppath.
@@ -1724,9 +1758,9 @@ void ppath_append(
   if( ppath_what_background( ppath2 ) )
     { ppath1.background = ppath2.background; }
 
-  ppath.start_pos = ppath2.start_pos;
-  ppath.start_los = ppath2.start_los;
-  ppath.lspace   += ppath2.lspace;
+  ppath.start_pos   = ppath2.start_pos;
+  ppath.start_los   = ppath2.start_los;
+  ppath.start_lstep = ppath2.start_lstep;
 }
 
 
@@ -4309,7 +4343,7 @@ void ppath_start_stepping(
                                                                  ppath.r[0] );
               ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], 0, 
                                                              ppath.los(0,0) );
-              ppath.lspace = geompath_l_at_r( ppath.constant,
+              ppath.end_lstep = geompath_l_at_r( ppath.constant,
                                               refellipsoid[0] + rte_pos[0] ) -
                              geompath_l_at_r( ppath.constant, ppath.r[0] ); 
 
@@ -4567,7 +4601,7 @@ void ppath_start_stepping(
                                                      rte_los[0], rt );
                   ppath.pos(0,1) = geompath_lat_at_za( rte_los[0], rte_pos[1], 
                                                               ppath.los(0,0) );
-                  ppath.lspace = lt;
+                  ppath.end_lstep = lt;
 
                   // Here we know the pressure grid position exactly
                   ppath.gp_p[0].idx   = lp-1; 
@@ -4876,7 +4910,7 @@ void ppath_start_stepping(
                   //
                   ppath.pos(0,0) = interp( itwt, z_field(lp,joker,joker), 
                                                             gp_latt, gp_lont );
-                  ppath.lspace = lt;
+                  ppath.start_lstep = lt;
 
                   // Here we know the pressure grid position exactly
                   ppath.gp_p[0].idx   = lp-1; 
@@ -4992,11 +5026,11 @@ void ppath_calc(
   // For debugging:
   //Print( ppath_step, 0, verbosity );
 
-  // The only data we need to store from this initial ppath_step is lspace
-  // and end_pos/los
-  const Numeric lspace  = ppath_step.lspace;
-  const Vector  end_pos = ppath_step.end_pos;
-  const Vector  end_los = ppath_step.end_los;
+  // The only data we need to store from this initial ppath_step is
+  // end_pos/los/lstep
+  const Numeric end_lstep = ppath_step.end_lstep;
+  const Vector  end_pos   = ppath_step.end_pos;
+  const Vector  end_los   = ppath_step.end_los;
 
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
@@ -5309,14 +5343,15 @@ void ppath_calc(
         }
 
       // Field just included once:
-      // lspace end_pos/los from first path_step (extracted above):
-      ppath.lspace   = lspace;
-      ppath.end_pos  = end_pos;
-      ppath.end_los  = end_los;
+      // end_pos/los/lspace from first path_step (extracted above):
+      ppath.end_lstep = end_lstep;
+      ppath.end_pos   = end_pos;
+      ppath.end_los   = end_los;
       // Constant, background and start_pos/los from last path_step:
-      ppath.constant   = ppath_step.constant;
-      ppath.background = ppath_step.background;
-      ppath.start_pos  = ppath_step.start_pos;
-      ppath.start_los  = ppath_step.start_los;
+      ppath.constant    = ppath_step.constant;
+      ppath.background  = ppath_step.background;
+      ppath.start_pos   = ppath_step.start_pos;
+      ppath.start_los   = ppath_step.start_los;
+      ppath.start_lstep = ppath_step.start_lstep;
     }
 }
