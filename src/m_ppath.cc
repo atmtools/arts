@@ -155,7 +155,7 @@ void ppathFromRtePos2(
     } 
   else
     { 
-      distance3D( l12, r1,  rte_pos[1],  rte_pos[2], 
+      distance3D( l12, r1, rte_pos[1],  rte_pos[2], 
                        r2, rte_pos2[1], rte_pos2[2] ); 
       sph2cart( x1, y1, z1, r1, rte_pos[1], rte_pos[2] );
     }

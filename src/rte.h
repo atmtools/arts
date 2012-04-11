@@ -83,39 +83,39 @@ void bending_angle1d(
         Numeric&   alpha,
   const Ppath&     ppath );
 
-void defocusing3d( 
+void defocusing_general( 
         Workspace&   ws,
-        Numeric&     dfl,
+        Numeric&     dlf,
   const Agenda&      ppath_step_agenda,
   const Index&       atmosphere_dim,
-  const Vector&      p_grid,
-  const Vector&      lat_grid,
-  const Vector&      lon_grid,
-  const Tensor3&     t_field,
-  const Tensor3&     z_field,
-  const Tensor4&     vmr_field,
-  const Tensor3&     edensity_field,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor3View   z_field,
+  ConstTensor4View   vmr_field,
+  ConstTensor3View   edensity_field,
   const Index&       f_index,
-  const Vector&      refellipsoid,
-  const Matrix&      z_surface,
+  ConstVectorView    refellipsoid,
+  ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Verbosity&   verbosity );
 
-void defocusing_limb1d( 
+void defocusing_sat2sat( 
         Workspace&   ws,
-        Numeric&     dfl,
+        Numeric&     dlf,
   const Agenda&      ppath_step_agenda,
   const Index&       atmosphere_dim,
-  const Vector&      p_grid,
-  const Vector&      lat_grid,
-  const Vector&      lon_grid,
-  const Tensor3&     t_field,
-  const Tensor3&     z_field,
-  const Tensor4&     vmr_field,
-  const Tensor3&     edensity_field,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor3View   z_field,
+  ConstTensor4View   vmr_field,
+  ConstTensor3View   edensity_field,
   const Index&       f_index,
-  const Vector&      refellipsoid,
-  const Matrix&      z_surface,
+  ConstVectorView    refellipsoid,
+  ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Verbosity&   verbosity );
 
@@ -140,8 +140,8 @@ void get_iy_of_background(
   ConstTensor3View        t_field,
   ConstTensor3View        z_field,
   ConstTensor4View        vmr_field,
-  const Vector&           refellipsoid,
-  const Matrix&           z_surface,
+  ConstVectorView         refellipsoid,
+  ConstMatrixView         z_surface,
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
@@ -286,10 +286,10 @@ void rte_step_std(
 
 void surface_calc(
               Matrix&         iy,
-        const Tensor3&        I,
-        const Matrix&         surface_los,
-        const Tensor4&        surface_rmatrix,
-        const Matrix&         surface_emission );
+        ConstTensor3View      I,
+        ConstMatrixView       surface_los,
+        ConstTensor4View      surface_rmatrix,
+        ConstMatrixView       surface_emission );
 
 void trans_step_std(//Output and Input:
               VectorView stokes_vec,

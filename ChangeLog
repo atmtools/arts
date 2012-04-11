@@ -1,3 +1,27 @@
+2012-04-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-83
+
+	* src/m_rte.cc (iyRadioLink): Prepared for using
+	defocusing_general but so far inactive. 
+
+	* src/ppath.h: Added declaration of cart2zaaa and cart2zaaa.
+
+	* src/rte.cc: Replaced a number of "const Xxxxx&" with
+	"ConstXxxxxView" where Xxxx is Vector etc.
+
+	(adjust_los): New function.
+
+	(defocusing_general):
+	(defocusing_sat2sat): Complete. The two version give somewhat
+	different results but a perfect agreement can not be expected. So
+	OK right now. More detailed tests later on.
+
+	Fails at least for 1D cases corresponding to za=0.
+
+	* src/ppath.cc (raytrace_1d_linear_euler): Added an if-statement
+	to handle poor accuracy for latitude when zenith angle = 0 or 180.
+
 2012-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-82

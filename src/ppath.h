@@ -120,6 +120,20 @@ Numeric geompath_lat_at_za(
         const Numeric&   lat0,
         const Numeric&   za );
 
+void cart2zaaa(
+             Numeric&  za,
+             Numeric&  aa,
+       const Numeric&  dx,
+       const Numeric&  dy,
+       const Numeric&  dz );
+
+void zaaa2cart(
+             Numeric&  dx,
+             Numeric&  dy,
+             Numeric&  dz,
+       const Numeric&  za,
+       const Numeric&  aa );
+
 void map_daa(
              Numeric&   za,
              Numeric&   aa,

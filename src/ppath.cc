@@ -3363,8 +3363,14 @@ void raytrace_1d_linear_euler(
 
           const Numeric r_new = geompath_r_at_l( ppc_step, 
                                          geompath_l_at_r(ppc_step,r) + lstep );
-          lat  += RAD2DEG * acos( ( r_new*r_new + r*r - 
+
+          // No change of latitude for za = 0/180:
+          if( za > ANGTOL  &&  za < 180-ANGTOL )
+            {
+               lat += RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
+            }
+
           r     = r_new;
           lcum += lraytrace;
         }

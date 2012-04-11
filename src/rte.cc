@@ -64,6 +64,53 @@ extern const Numeric RAD2DEG;
   === The functions in alphabetical order
   ===========================================================================*/
 
+
+//! adjust_los
+/*!
+    Ensures that the zenitha nd azimuth angles of a line-of-sight vector are
+    inside defined ranges.
+
+    This function should not be used blindly, just when you know that the
+    out-of-bounds values are obtained by an OK operation. As when making a
+    disturbance calculation where e.g. the zenith angle is shifted with a small
+    value. This function then handles the case when the original zenith angle
+    is 0 or 180 and the disturbance then moves the angle outside the defined
+    range. 
+
+    \param   los              In/Out: LOS vector, defined as e.g. rte_los.
+    \param   atmosphere_dim   As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2012-04-11
+*/
+void adjust_los( 
+         VectorView   los, 
+   const Index &      atmosphere_dim )
+{
+  if( atmosphere_dim == 1 )
+    {
+           if( los[0] <   0 ) { los[0] = -los[0];    }
+      else if( los[0] > 180 ) { los[0] = 360-los[0]; }
+    }
+  else if( atmosphere_dim == 2 )
+    {
+           if( los[0] < -180 ) { los[0] = los[0] + 360; }
+      else if( los[0] >  180 ) { los[0] = los[0] - 360; }
+    }
+  else 
+    {
+      // If any of the angles out-of-bounds, use cart2zaaa to resolve 
+      if( abs(los[0]-90) > 90  ||  abs(los[1]) > 180 )
+        {
+          Numeric dx, dy, dz;
+          zaaa2cart( dx, dy, dz, los[0], los[1] );
+          cart2zaaa( los[0], los[1], dx, dy, dz );
+        }        
+    }
+}
+
+
+
 //! apply_y_unit
 /*!
     Performs conversion from radiance to other units.
@@ -320,21 +367,172 @@ void bending_angle1d(
 
 
 
-void defocusing3d( 
+// Size of disturbance for calculating defocusing.
+// Used of both methods below, where +-dza applied.
+// 1e-3 corresponds to roughly 100 m difference in 
+// tangent altitude for limb sounding cases. 
+const Numeric dza = 1e-3;
+
+
+//! defocusing_general_sub
+/*!
+    Just to avoid duplicatuion of code in *defocusing_general*.
+   
+    rte_los is mainly an input, but is also returned "adjusted" (with zenith
+    and azimuth angles inside defined ranges) 
+ 
+    \param    pos                 Out: Position of ppath at optical distance lo0
+    \param    rte_los             In/out: Direction for transmitted signal 
+                                  (disturbed from nominal value)
+    \param    rte_pos             Position of transmitter.
+    \param    lo0                 Optical path length between transmitter 
+                                  and receiver.
+    \param    ppath_step_agenda   As the WSV with the same name.
+    \param    atmosphere_dim      As the WSV with the same name.
+    \param    p_grid              As the WSV with the same name.
+    \param    lat_grid            As the WSV with the same name.
+    \param    lon_grid            As the WSV with the same name.
+    \param    t_field             As the WSV with the same name.
+    \param    z_field             As the WSV with the same name.
+    \param    vmr_field           As the WSV with the same name.
+    \param    edensity_field      As the WSV with the same name.
+    \param    f_index             As the WSV with the same name.
+    \param    refellipsoid        As the WSV with the same name.
+    \param    z_surface           As the WSV with the same name.
+    \param    verbosity           As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2012-04-11
+*/
+void defocusing_general_sub( 
         Workspace&   ws,
-        Numeric&     dfl,
+        Vector&      pos,
+        Vector&      rte_los,
+  ConstVectorView    rte_pos,
+  const Numeric&     lo0,
   const Agenda&      ppath_step_agenda,
   const Index&       atmosphere_dim,
-  const Vector&      p_grid,
-  const Vector&      lat_grid,
-  const Vector&      lon_grid,
-  const Tensor3&     t_field,
-  const Tensor3&     z_field,
-  const Tensor4&     vmr_field,
-  const Tensor3&     edensity_field,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor3View   z_field,
+  ConstTensor4View   vmr_field,
+  ConstTensor3View   edensity_field,
   const Index&       f_index,
-  const Vector&      refellipsoid,
-  const Matrix&      z_surface,
+  ConstVectorView    refellipsoid,
+  ConstMatrixView    z_surface,
+  const Verbosity&   verbosity )
+{
+  // Handle cases where angles have moved out-of-bounds due to disturbance
+  adjust_los( rte_los, atmosphere_dim );
+
+  // Calculate the ppath for disturbed rte_los
+  Ppath ppx;
+  //
+  ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+              lon_grid, t_field, z_field, vmr_field, edensity_field,
+              f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+              rte_pos, rte_los, 0, verbosity );
+
+  // Calcualte cumulative optical path for ppx
+  Vector lox( ppx.np );
+  Index ilast = ppx.np-1;
+  lox[0] = ppx.end_lstep;
+  for( Index i=1; i<=ilast; i++ )
+    { lox[i] = lox[i-1] + ppx.lstep[i-1] * ( ppx.nreal[i-1] + 
+                                             ppx.nreal[i] ) / 2.0; }
+
+  pos.resize( max( Index(2), atmosphere_dim ) );
+
+  // Reciever at a longer distance (most likely out in space):
+  if( lox[ilast] < lo0 )
+    {
+      const Numeric dl = lo0 - lox[ilast];
+      if( atmosphere_dim < 3 )
+        {
+          Numeric x, z, dx, dz;
+          poslos2cart( x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast,1), 
+                       ppx.los(ilast,0) );
+          cart2pol( pos[0], pos[1], x+dl*dx, z+dl*dz, ppx.pos(ilast,1), 
+                    ppx.los(ilast,0) );
+        }
+      else
+        {
+          Numeric x, y, z, dx, dy, dz;
+          poslos2cart( x, y, z, dx, dy, dz, ppx.r[ilast], ppx.pos(ilast,1), 
+                       ppx.pos(ilast,2), ppx.los(ilast,0), ppx.los(ilast,1) );
+          cart2sph( pos[0], pos[1], pos[2], x+dl*dx, y+dl*dy, z+dl*dz, 
+                    ppx.pos(ilast,1), ppx.pos(ilast,2), 
+                    ppx.los(ilast,0), ppx.los(ilast,1) );
+        }
+    }
+
+  // Interpolate to lo0
+  else
+    { 
+      GridPos   gp;
+      Vector    itw(2);
+      gridpos( gp, lox, lo0 );
+      interpweights( itw, gp );
+      //
+      pos[0] = interp( itw, ppx.r, gp );
+      pos[1] = interp( itw, ppx.pos(joker,1), gp );
+      if( atmosphere_dim == 3 )
+        { pos[1] = interp( itw, ppx.pos(joker,2), gp ); }
+      
+    } 
+}
+
+
+//! defocusing_general
+/*!
+    Defocusing for arbitrary geometry (zenith angle part only)
+
+    Estimates the defocusing loss factor by calculating two paths with zenith
+    angle off-sets. The distance between the two path at the optical path
+    length between the transmitter and the receiver, divided with the
+    corresponding distance for free space propagation, gives the defocusing
+    loss. 
+
+    The azimuth (gain) factor is not calculated. The path calculations are here
+    done starting from the transmitter, which is the reversed direction
+    compared to the ordinary path calculations starting at the receiver.
+    
+    \return   dlf                 Defocusing loss factor (1 for no loss)
+    \param    ppath_step_agenda   As the WSV with the same name.
+    \param    atmosphere_dim      As the WSV with the same name.
+    \param    p_grid              As the WSV with the same name.
+    \param    lat_grid            As the WSV with the same name.
+    \param    lon_grid            As the WSV with the same name.
+    \param    t_field             As the WSV with the same name.
+    \param    z_field             As the WSV with the same name.
+    \param    vmr_field           As the WSV with the same name.
+    \param    edensity_field      As the WSV with the same name.
+    \param    f_index             As the WSV with the same name.
+    \param    refellipsoid        As the WSV with the same name.
+    \param    z_surface           As the WSV with the same name.
+    \param    ppath               As the WSV with the same name.
+    \param    verbosity           As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2012-04-11
+*/
+void defocusing_general( 
+        Workspace&   ws,
+        Numeric&     dlf,
+  const Agenda&      ppath_step_agenda,
+  const Index&       atmosphere_dim,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor3View   z_field,
+  ConstTensor4View   vmr_field,
+  ConstTensor3View   edensity_field,
+  const Index&       f_index,
+  ConstVectorView    refellipsoid,
+  ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Verbosity&   verbosity )
 {
@@ -345,143 +543,103 @@ void defocusing3d(
     { lp += ppath.lstep[i];
       lo += ppath.lstep[i] * ( ppath.nreal[i] + ppath.nreal[i+1] ) / 2.0; 
     }
-
   // Extract rte_pos and rte_los
-  Vector    rte_pos = ppath.start_pos[Range(0,atmosphere_dim)];
-  Vector    rte_los = ppath.start_los;
+  const Vector rte_pos = ppath.start_pos[Range(0,atmosphere_dim)];
 
-  rte_los[0] = 180 - rte_los[0];
-
-  // Size of zenith angle disturbance
-  const Numeric dza = 1e-3;
+  Vector rte_los0(max(Index(1),atmosphere_dim-1)), rte_los;
+  mirror_los( rte_los, ppath.start_los, atmosphere_dim );
+  rte_los0 = rte_los[Range(0,max(Index(1),atmosphere_dim-1))];
 
   // A new ppath with positive zenith angle off-set
+  //
   Vector  pos1;
-  {
-    Ppath   ppx;
-    rte_los[0] += dza;
-    ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
-                lon_grid, t_field, z_field, vmr_field, edensity_field,
-                f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-                rte_pos, rte_los, 0, verbosity );
-    //
-    Vector lox( ppx.np );
-    Index ilast = ppx.np-1;
-    lox[0] = ppx.start_lstep;
-    for( Index i=1; i<=ilast; i++ )
-      { lox[i] = lox[i-1] + ppx.lstep[i-1] * ( ppx.nreal[i-1] + 
-                                               ppx.nreal[i] ) / 2.0; }
-    //
-    if( lox[ilast] < lo )
-      {
-        const Numeric dl = lo - lox[ilast];
-        if( atmosphere_dim < 3 )
-          {
-            pos1.resize(2);
-            Numeric x, z, dx, dz;
-            poslos2cart( x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast,1), 
-                                                     ppx.los(ilast,0) );
-            cart2pol( pos1[0], pos1[1], x+dl*dx, z+dl*dz, ppx.pos(ilast,1), 
-                                                          ppx.los(ilast,0) );
-          }
-        else
-          { assert(0); } 
-      }
-    else
-      { assert(0); } // Interpolation must be added here
-  }
+  rte_los     = rte_los0;
+  rte_los[0] += dza;
+  //
+  defocusing_general_sub( ws, pos1, rte_los, rte_pos, lo, ppath_step_agenda, 
+                          atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
+                          z_field, vmr_field, edensity_field, f_index, 
+                          refellipsoid, z_surface, verbosity );
+  cout << pos1 << endl;
 
-  // Same thing with negative zenit agle off-set
+  // Same thing with negative zenit angle off-set
   Vector  pos2;
-  {
-    Ppath   ppx;
-    rte_los[0] -= 2*dza;
-    ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
-                lon_grid, t_field, z_field, vmr_field, edensity_field,
-                f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-                rte_pos, rte_los, 0, verbosity );
-    //
-    Vector lox( ppx.np );
-    Index ilast = ppx.np-1;
-    lox[0] = ppx.start_lstep;
-    for( Index i=1; i<=ilast; i++ )
-      { lox[i] = lox[i-1] + ppx.lstep[i-1] * ( ppx.nreal[i-1] + 
-                                               ppx.nreal[i] ) / 2.0; }
-    //
-    if( lox[ilast] < lo )
-      {
-        const Numeric dl = lo - lox[ilast];
-        if( atmosphere_dim < 3 )
-          {
-            pos2.resize(2);
-            Numeric x, z, dx, dz;
-            poslos2cart( x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast,1), 
-                                                     ppx.los(ilast,0) );
-            cart2pol( pos2[0], pos2[1], x+dl*dx, z+dl*dz, ppx.pos(ilast,1), 
-                                                          ppx.los(ilast,0) );
-          }
-        else
-          { assert(0); } 
-      }
-    else
-      { assert(0); } // Interpolation must be added here
-  }
+  rte_los     = rte_los0;  // Use rte_los0 as rte_los can have been "adjusted"
+  rte_los[0] -= dza;
+  //
+  defocusing_general_sub( ws, pos2, rte_los, rte_pos, lo, ppath_step_agenda, 
+                          atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
+                          z_field, vmr_field, edensity_field, f_index, 
+                          refellipsoid, z_surface, verbosity );
 
+  // Calculate distance between pos1 and 2, and derive the loss factor
   Numeric l12;
-  distance2D( l12, pos1[0], pos1[1], pos2[0], pos2[1] );
-
-  dfl = lp*2*DEG2RAD*dza /  l12;
+  if( atmosphere_dim < 3 )
+    { distance2D( l12, pos1[0], pos1[1], pos2[0], pos2[1] ); }
+  else
+    { distance3D( l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2] ); }
+  //
+  dlf = lp*2*DEG2RAD*dza /  l12;
 }
 
 
 
-//! defocusing_limb1d
+//! defocusing_sat2sat
 /*!
-    Calculates the defocusing for limb measurements of a 1D atmosphere
+    Calculates defocusing for limb measurements between two satellites.
 
     The expressions used assume a 1D atmosphere, and can only be applied on
-    limb sounding geoemtry.
+    limb sounding geoemtry. The function works for 2D and 3D and should give 
+    OK estimates. Both the zenith angle (loss) and azimuth angle (gain) terms
+    are considered.
 
     The expressions is taken from Kursinski et al., The GPS radio occultation
     technique, TAO, 2000.
 
-    \return   alpha   Bending angle
-    \param    ppath   Propagation path.
+    \return   dlf                 Defocusing loss factor (1 for no loss)
+    \param    ppath_step_agenda   As the WSV with the same name.
+    \param    atmosphere_dim      As the WSV with the same name.
+    \param    p_grid              As the WSV with the same name.
+    \param    lat_grid            As the WSV with the same name.
+    \param    lon_grid            As the WSV with the same name.
+    \param    t_field             As the WSV with the same name.
+    \param    z_field             As the WSV with the same name.
+    \param    vmr_field           As the WSV with the same name.
+    \param    edensity_field      As the WSV with the same name.
+    \param    f_index             As the WSV with the same name.
+    \param    refellipsoid        As the WSV with the same name.
+    \param    z_surface           As the WSV with the same name.
+    \param    ppath               As the WSV with the same name.
+    \param    verbosity           As the WSV with the same name.
 
     \author Patrick Eriksson 
-    \date   2012-04-05
+    \date   2012-04-11
 */
-void defocusing_limb1d( 
+void defocusing_sat2sat( 
         Workspace&   ws,
-        Numeric&     dfl,
+        Numeric&     dlf,
   const Agenda&      ppath_step_agenda,
   const Index&       atmosphere_dim,
-  const Vector&      p_grid,
-  const Vector&      lat_grid,
-  const Vector&      lon_grid,
-  const Tensor3&     t_field,
-  const Tensor3&     z_field,
-  const Tensor4&     vmr_field,
-  const Tensor3&     edensity_field,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor3View   z_field,
+  ConstTensor4View   vmr_field,
+  ConstTensor3View   edensity_field,
   const Index&       f_index,
-  const Vector&      refellipsoid,
-  const Matrix&      z_surface,
+  ConstVectorView    refellipsoid,
+  ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Verbosity&   verbosity )
 {
-  dfl = 1;
-
-  if( 0 )
-    {
   if( ppath.start_lstep == 0  ||  ppath.end_lstep == 0 )
-    throw runtime_error( "The function *defocusing_limb1d* requires that both "
-                         "transmitter and reciver are placed in space." );
+    throw runtime_error( "The function *defocusing_sat2sat* can only be used "
+                         "for satellite-to-satellite cases." );
 
   // Index of tangent point
   Index it;
   find_tanpoint( it, ppath );
-  cout << "it = " << it << endl;
-  cout << "np = " << ppath.np << endl;
   assert( it >= 0 );
 
   // Length between tangent point and transmitter/reciver
@@ -490,59 +648,53 @@ void defocusing_limb1d(
     { lt += ppath.lstep[i]; }
   for( Index i=0; i<it; i++ )
     { lr += ppath.lstep[i]; }
-  cout << "lt = " << lt/1e3 << " km\n";
-  cout << "lr = " << lr/1e3 << " km\n";
 
   // Bending angle
   Numeric alpha;
   bending_angle1d( alpha, ppath );
-  cout << "Bending angle0 = " << alpha << endl;
+  alpha *= DEG2RAD;
 
   // Azimuth loss term (Eq 18.5 in Kursinski et al.)
   const Numeric lf = lr*lt / (lr+lt);
   const Numeric alt = 1 / ( 1 - alpha*lf / refellipsoid[0] );
-  cout << "Azimuth loss = " << alt << endl;
 
   // Calculate two new ppaths to get dalpha/da
-  const Numeric dza = 1e-3;
   Numeric   alpha1, a1, alpha2, a2;
   Ppath     ppt;
   Vector    rte_pos = ppath.end_pos[Range(0,atmosphere_dim)];
   Vector    rte_los = ppath.end_los;
   //
   rte_los[0] += dza;
+  adjust_los( rte_los, atmosphere_dim );
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
               f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, 0, verbosity );
   bending_angle1d( alpha1, ppt );
+  alpha1 *= DEG2RAD;
   find_tanpoint( it, ppt );
   a1 = ppt.pos(it,0);
   //
   rte_los[0] -= 2*dza;
+  adjust_los( rte_los, atmosphere_dim );
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
               f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, 0, verbosity );
   bending_angle1d( alpha2, ppt );
+  alpha2 *= DEG2RAD;
   find_tanpoint( it, ppt );
   a2 = ppt.pos(it,0);
   //
   const Numeric dada = (alpha2-alpha1) / (a2-a1); 
-  cout << "alpha1 = " << alpha1 << endl;
-  cout << "alpha2 = " << alpha2 << endl;
-  cout << "a1 = " << a1 << endl;
-  cout << "a2 = " << a2 << endl;
-  cout << "dalpha_da = " << dada << endl;
 
   // Zenith loss term (Eq 18 in Kursinski et al.)
   const Numeric zlt = 1 / ( 1 - dada*lf );
-  cout << "Zenith loss = " << zlt << endl;
+
+  cout << "Zenith term = " << zlt << endl;
 
   // Total defocusing loss
-  dfl = zlt * alt;
-  cout << "Total loss = " << dfl << endl;
-    }
+  dlf = zlt * alt;
 }
 
 
@@ -675,8 +827,8 @@ void get_iy_of_background(
   ConstTensor3View        t_field,
   ConstTensor3View        z_field,
   ConstTensor4View        vmr_field,
-  const Vector&           refellipsoid,
-  const Matrix&           z_surface,
+  ConstVectorView         refellipsoid,
+  ConstMatrixView         z_surface,
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
@@ -2004,10 +2156,10 @@ void rte_step_std(//Output and Input:
 */
 void surface_calc(
               Matrix&         iy,
-        const Tensor3&        I,
-        const Matrix&         surface_los,
-        const Tensor4&        surface_rmatrix,
-        const Matrix&         surface_emission )
+        ConstTensor3View      I,
+        ConstMatrixView       surface_los,
+        ConstTensor4View      surface_rmatrix,
+        ConstMatrixView       surface_emission )
 {
   // Some sizes
   const Index   nf         = I.nrows();

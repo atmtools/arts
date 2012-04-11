@@ -1614,11 +1614,22 @@ void iyRadioLink(
 
       // Defocusing loss
       Numeric dfl = 1;
-      if( DefocusingLoss )
-        { defocusing_limb1d( ws, dfl, ppath_step_agenda, atmosphere_dim, 
-                             p_grid, lat_grid, lon_grid, t_field, z_field, 
-                             vmr_field, edensity_field, f_index, refellipsoid, 
-                             z_surface, ppath, verbosity ); }
+      if( DefocusingLoss && 0 )
+        {
+          if( 0 )
+            { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
+                                  p_grid, lat_grid, lon_grid, t_field, z_field, 
+                                  vmr_field, edensity_field, f_index, 
+                                  refellipsoid, z_surface, ppath, verbosity ); 
+            }
+          else
+            {
+              defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
+                                  p_grid, lat_grid, lon_grid, t_field, z_field, 
+                                  vmr_field, edensity_field, f_index, 
+                                  refellipsoid, z_surface, ppath, verbosity ); 
+            }
+        }
 
       // Extra path delay
       Numeric epd = -999;
@@ -1686,7 +1697,7 @@ void iyRadioLink(
         { iy(fr,0) = fspl; }
       else if( main_var == "DefocusingLoss" )
         { iy(fr,0) = dfl; }
-      else if( main_var == "AtmosphericLoss" )
+      else if( main_var == "AtmosphericLoss"  && TotalLoss )
         { iy(fr,joker) = atmloss(joker,joker); }
       else if( main_var == "ExtraPathDelay" )
         { iy(fr,0) = epd; }
