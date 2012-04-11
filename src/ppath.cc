@@ -3361,17 +3361,10 @@ void raytrace_1d_linear_euler(
           else
             { lstep = -lraytrace; }
 
-          const Numeric r_new = geompath_r_at_l( ppc_step, 
-                                         geompath_l_at_r(ppc_step,r) + lstep );
+          r = geompath_r_at_l( ppc_step, geompath_l_at_r(ppc_step,r) + lstep );
 
-          // No change of latitude for za = 0/180:
-          if( za > ANGTOL  &&  za < 180-ANGTOL )
-            {
-               lat += RAD2DEG * acos( ( r_new*r_new + r*r - 
-                                             lstep*lstep ) / ( 2 * r_new*r ) );
-            }
-
-          r     = r_new;
+          lat = geompath_lat_at_za( za, lat, 
+                                          geompath_za_at_r( ppc_step, za, r) );
           lcum += lraytrace;
         }
 
@@ -3571,7 +3564,6 @@ void ppath_step_refr_1d(
    \param   lat             Start latitude for ray tracing.
    \param   za              Start zenith angle for ray tracing.
 
-
    \author Patrick Eriksson
    \date   2002-12-02
 */
@@ -3653,18 +3645,12 @@ void raytrace_2d_linear_euler(
           else
             { lstep = -lraytrace; }
 
-          const Numeric r_new = geompath_r_at_l( ppc_step, 
-                                         geompath_l_at_r(ppc_step,r) + lstep );
-                        dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
-                                             lstep*lstep ) / ( 2 * r_new*r ) );
-          // We can get Nan for za close to 0 and 180 (ie. dlat=0)
-          if( isnan( dlat ) )
-            { dlat = 0; }
-          else if( za < 0 )
-            { dlat = -dlat; }
+          r = geompath_r_at_l( ppc_step, geompath_l_at_r(ppc_step,r) + lstep );
 
-          r     = r_new;
-          lat   = lat + dlat;
+          const Numeric lat_new = geompath_lat_at_za( za, lat, 
+                                          geompath_za_at_r( ppc_step, za, r) );
+          dlat  = lat_new - lat;
+          lat   = lat_new;
           lstep = abs( lstep );
           lcum += lstep;
 

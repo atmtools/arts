@@ -1614,7 +1614,7 @@ void iyRadioLink(
 
       // Defocusing loss
       Numeric dfl = 1;
-      if( DefocusingLoss && 0 )
+      if( DefocusingLoss )
         {
           if( 0 )
             { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 

@@ -1,5 +1,24 @@
 2012-04-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-84
+
+	* tests/RadioLink/TestRadioLink.arts: Now checking atmospheric
+	loss and extra path delay.
+
+	* src/rte.cc (defocusing_general_sub): 1D calculations around
+	zenith/nadir requires special treatment.
+	
+	* src/ppath.cc (raytrace_1d_linear_euler): The law of cosines was
+	used to calculate new latitude, which wasfound to be numerically
+	unstable around zenith and nadir. Now using combination of
+	geompath functions, that seems to work much better.
+
+	(raytrace_2d_linear_euler): As above.
+
+	* src/rte.cc (iyb_calc): Code replaced by call of adjust_los.
+
+2012-04-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-83
 
 	* src/m_rte.cc (iyRadioLink): Prepared for using

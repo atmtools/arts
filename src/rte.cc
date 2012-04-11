@@ -424,6 +424,12 @@ void defocusing_general_sub(
   ConstMatrixView    z_surface,
   const Verbosity&   verbosity )
 {
+  // Special treatment of 1D around zenith/nadir
+  // (zenith angles outside [0,180] are changed by *adjust_los*)
+  bool invert_lat = false;
+  if( atmosphere_dim == 1  &&  ( rte_los[0] < 0 || rte_los[0] > 180 ) )
+    { invert_lat = true; }
+
   // Handle cases where angles have moved out-of-bounds due to disturbance
   adjust_los( rte_los, atmosphere_dim );
 
@@ -479,9 +485,11 @@ void defocusing_general_sub(
       pos[0] = interp( itw, ppx.r, gp );
       pos[1] = interp( itw, ppx.pos(joker,1), gp );
       if( atmosphere_dim == 3 )
-        { pos[1] = interp( itw, ppx.pos(joker,2), gp ); }
-      
+        { pos[2] = interp( itw, ppx.pos(joker,2), gp ); }
     } 
+
+  if( invert_lat )
+    { pos[1] = -pos[1]; }
 }
 
 
@@ -560,7 +568,6 @@ void defocusing_general(
                           atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                           z_field, vmr_field, edensity_field, f_index, 
                           refellipsoid, z_surface, verbosity );
-  cout << pos1 << endl;
 
   // Same thing with negative zenit angle off-set
   Vector  pos2;
@@ -1690,19 +1697,12 @@ void iyb_calc(
               //
               los     = sensor_los( mblock_index, joker );
               los[0] += mblock_za_grid[iza];
-
-              // Handle za/aa_grid "out-of-bounds" and mapping effects
               //
-              if( antenna_dim == 2 )
+              if( antenna_dim == 2 )  // map_daa handles also "adjustment"
                 { map_daa( los[0], los[1], los[0], los[1], 
                                                     mblock_aa_grid[iaa] ); }
-              else if( atmosphere_dim == 1  && abs(los[0]-90) > 90 )
-                { if( los[0] < 0 )          { los[0] = -los[0]; }
-                  else if( los[0] > 180 )   { los[0] = 360 - los[0]; } }
-              else if( atmosphere_dim == 2  && abs(los[0]) > 180 )
-                { los[0] = -sign(los[0])*360 + los[0]; }
-              else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
-                { map_daa( los[0], los[1], los[0], los[1], 0 ); }
+              else 
+                { adjust_los( los, atmosphere_dim ); }
 
               // Calculate iy and associated variables
               //

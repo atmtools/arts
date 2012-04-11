@@ -58,8 +58,8 @@ cloudbox_checkedCalc
 AgendaSet( ppath_step_agenda ){
   ppath_stepRefractionEuler
 }
-NumericSet( ppath_lmax, 20e3 )
-NumericSet( ppath_lraytrace, 1e3 )
+NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_lraytrace, 100 )
 #
 AgendaSet( ppath_agenda ){
   Ignore( rte_los )
@@ -84,7 +84,15 @@ AgendaSet( iy_space_agenda ){
 }
 AgendaSet( iy_clearsky_agenda ){
   Ignore( rte_los )
-  iyRadioLink
+  iyRadioLink( iy, iy_error, iy_error_type, iy_aux, 
+               diy_dx, iy_agenda_call1, iy_transmission, rte_pos, 
+               jacobian_do, atmosphere_dim, p_grid, lat_grid, lon_grid, 
+               z_field, t_field, vmr_field, wind_u_field, wind_v_field, 
+               wind_w_field, edensity_field, refellipsoid, z_surface, 
+               cloudbox_on, stokes_dim, f_grid, dispersion_do, 
+               mblock_index, ppath_agenda, ppath_step_agenda, 
+               abs_scalar_gas_agenda, iy_space_agenda, 
+               "AtmosphericLoss", "ExtraPathDelay" )
 }
 
 
@@ -102,7 +110,9 @@ MatrixSet( transmitter_pos, [ 0, 2.3; 10e3, 25.7; 600e3, 48.3 ] )
 # Expected transmissions
 #
 MatrixCreate( iyREFERENCE )
-MatrixSet( iyREFERENCE, [ 1.80909e-13, 7.32491e-15, 1.74347e-15 ] )
+MatrixSet( iyREFERENCE, [ 0.981436, 0.843776, 0.7138 ] )
+MatrixCreate( iy_auxREFERENCE )
+MatrixSet( iy_auxREFERENCE, [ 7.5e-9, 2.04615e-7, 6.36657e-07 ] )
 
 
 # Set up the ForLoop agenda to run and check the cases
@@ -115,15 +125,33 @@ AgendaSet( forloop_agenda ){
   Copy( mblock_index, forloop_index )
   iyCalc
   #Print( iy, 0 )
+  #Print( iy_aux, 0 )
   VectorCreate( iy_test)
   VectorExtractFromMatrix( iy_test, iy, 0, "column" )
   VectorCreate( iy_ref )
   VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
-  NumericCreate( accuracy )
-  Extract( accuracy, iy_ref, 0 )
-  NumericScale( accuracy, accuracy, 0.001 )
-  VectorCompare( iy_test, iy_ref, accuracy )
+  VectorCompare( iy_test, iy_ref, 0.0001 )
+  #
+  VectorExtractFromMatrix( iy_test, iy_aux, 0, "column" )
+  VectorExtractFromMatrix( iy_ref, iy_auxREFERENCE, mblock_index, "column" )
+  VectorCompare( iy_test, iy_ref, 1e-9 )
 }
+
+
+# Better version if free space loss included
+#AgendaSet( forloop_agenda ){
+#  Copy( mblock_index, forloop_index )
+#  iyCalc
+#  Print( iy, 0 )
+#  VectorCreate( iy_test)
+#  VectorExtractFromMatrix( iy_test, iy, 0, "column" )
+#  VectorCreate( iy_ref )
+#  VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
+#  NumericCreate( accuracy )
+#  Extract( accuracy, iy_ref, 0 )
+#  NumericScale( accuracy, accuracy, 0.001 )
+#  VectorCompare( iy_test, iy_ref, accuracy )
+#}
 
 
 # Calculate
