@@ -1108,32 +1108,41 @@ int main (int argc, char **argv)
       out3 << "\nReading control files:\n";
       for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
         {
-          out3 << "- " << parameters.controlfiles[i] << "\n";
-
-          // The list of methods to execute and their keyword data from
-          // the control file. 
-          Agenda tasklist;
-
-          Workspace workspace;
-
-          // Call the parser to parse the control text:
-          ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
-
-          arts_parser.parse_tasklist();
-
-          tasklist.set_name("Arts");
-
-          tasklist.set_main_agenda();
-
-          //tasklist.find_unused_variables();
-
-          workspace.initialize ();
-
-          // Execute main agenda:
-          Arts2(workspace, tasklist, verbosity);
+          try {
+            out3 << "- " << parameters.controlfiles[i] << "\n";
+            
+            // The list of methods to execute and their keyword data from
+            // the control file. 
+            Agenda tasklist;
+            
+            Workspace workspace;
+            
+            // Call the parser to parse the control text:
+            ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
+            
+            arts_parser.parse_tasklist();
+            
+            tasklist.set_name("Arts");
+            
+            tasklist.set_main_agenda();
+            
+            //tasklist.find_unused_variables();
+            
+            workspace.initialize ();
+            
+            // Execute main agenda:
+            Arts2(workspace, tasklist, verbosity);
+          }
+          catch (const runtime_error x)
+          {
+            ostringstream os;
+            os << "Run-time error in controlfile: " << parameters.controlfiles[i] << '\n'
+            << x.what();
+            throw runtime_error(os.str());
+          }
         }
     }
-  catch (runtime_error x)
+  catch (const runtime_error x)
     {
 #ifdef TIME_SUPPORT
       struct tms arts_cputime_end;

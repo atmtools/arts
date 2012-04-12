@@ -86,9 +86,10 @@ void ArtsParser::parse_main()
           
       if ( "Arts" != md_data[id].Name() &&  "Arts2" != md_data[id].Name() )
         {
-          out0 << "The outermost agenda must be Arts2!\n"
-               << "(But it seems to be " << md_data[id].Name() << ".)\n";
-          arts_exit ();
+          ostringstream os;
+          os << "The outermost agenda must be Arts2!\n"
+             << "(But it seems to be " << md_data[id].Name() << ".)\n";
+          throw runtime_error(os.str());
         }
 
       try {
@@ -105,96 +106,105 @@ void ArtsParser::parse_main()
       }
       catch (const UnexpectedChar& x)
       {
-        out0 << "Unexpected character(s) at the end of the control file\n";
-        out0 << "after the main agenda was already closed.\n";
-        out0 << "File:   " << x.file() << '\n';
-        out0 << "Line:   " << x.line() << '\n';
-        out0 << "Column: " << x.column() << '\n';
-        arts_exit ();
+        ostringstream os;
+        os << "Unexpected character(s) at the end of the control file\n";
+        os << "after the main agenda was already closed.\n";
+        os << "File:   " << x.file() << '\n';
+        os << "Line:   " << x.line() << '\n';
+        os << "Column: " << x.column() << '\n';
+        throw runtime_error(os.str());
       }
     }
   catch (const Eot& x)
     {
       // Unexpected end of the source text:
-      out0 << "Unexpected end of control script.\n";
-      out0 << "File: " << x.file() << '\n';
-      out0 << "Line: " << x.line() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Unexpected end of control script.\n";
+      os << "File: " << x.file() << '\n';
+      os << "Line: " << x.line() << '\n';
+      throw runtime_error(os.str());
     }
   catch (const UnexpectedChar& x)
     {
       // Unexpected Character:
-      out0 << "Unexpected character:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File:   "   << x.file() << '\n';
-      out0 << "Line:   "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Unexpected character:\n";
+      os << x.what()   << '\n';
+      os << "File:   "   << x.file() << '\n';
+      os << "Line:   "   << x.line() << '\n';
+      os << "Column: " << x.column() << '\n';
+      throw runtime_error(os.str());
     }
   catch (const IllegalLinebreak& x)
     {
       // A line break in an illegal position:
-      out0 << "Illegal Line break:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Illegal Line break:\n";
+      os << x.what()   << '\n';
+      os << "File: "   << x.file() << '\n';
+      os << "Line: "   << x.line() << '\n';
+      throw runtime_error(os.str());
     }
   catch (const UnknownMethod& x)
     {
       // Method unknown:
       // [**This should give a hint on how to obtain a list of allowed 
       // methods.]
-      out0 << "Unknown Method:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File:   "   << x.file() << '\n';
-      out0 << "Line:   "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Unknown Method:\n";
+      os << x.what()   << '\n';
+      os << "File:   "   << x.file() << '\n';
+      os << "Line:   "   << x.line() << '\n';
+      os << "Column: " << x.column() << '\n';
+      throw runtime_error(os.str());
     }
   catch (const UnknownWsv& x)
     {
       // Workspace variable unknown:
       // [**This should give a hint on how to obtain a list of allowed 
       // Wsvs.]
-      out0 << "Unknown workspace variable:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File:   "   << x.file() << '\n';
-      out0 << "Line:   "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Unknown workspace variable:\n";
+      os << x.what()   << '\n';
+      os << "File:   "   << x.file() << '\n';
+      os << "Line:   "   << x.line() << '\n';
+      os << "Column: " << x.column() << '\n';
+      throw runtime_error(os.str());
     }
   catch (const WsvAlreadyExists& x)
     {
       // Trying to create the same variable twice:
-      out0 << "Attempt to create a workspace variable that already exists:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File:   "   << x.file() << '\n';
-      out0 << "Line:   "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Attempt to create a workspace variable that already exists:\n";
+      os << x.what()   << '\n';
+      os << "File:   "   << x.file() << '\n';
+      os << "Line:   "   << x.line() << '\n';
+      os << "Column: " << x.column() << '\n';
+      throw runtime_error(os.str());
     }
   catch (const WrongWsvGroup& x)
     {
       // Workspace variable unknown:
       // [**This should give a hint on how to obtain a list of Wsvs in 
       // this group.
-      out0 << "Workspace variable belongs to the wrong group:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File:   "   << x.file() << '\n';
-      out0 << "Line:   "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Workspace variable belongs to the wrong group:\n";
+      os << x.what()   << '\n';
+      os << "File:   "   << x.file() << '\n';
+      os << "Line:   "   << x.line() << '\n';
+      os << "Column: " << x.column() << '\n';
+      throw runtime_error(os.str());
     }
   catch (const ParseError& x)
     {
       // General Parse Error (parent of all the above):
-      out0 << "Parse error:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File:   "   << x.file() << '\n';
-      out0 << "Line:   "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
-      arts_exit ();
+      ostringstream os;
+      os << "Parse error:\n";
+      os << x.what()   << '\n';
+      os << "File:   "   << x.file() << '\n';
+      os << "Line:   "   << x.line() << '\n';
+      os << "Column: " << x.column() << '\n';
+      throw runtime_error(os.str());
     }
 }
 
@@ -687,6 +697,16 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
     }
   else
     {
+      if (mdd->GOut().nelem())
+      {
+        ostringstream os;
+        os << "This method has generic output. "
+           << "You have to pass a variable!";
+        throw ParseError( os.str(),
+                         msource.File(),
+                         msource.Line(),
+                         msource.Column() );
+      }
       // If the parenthesis were omitted we still have to add the implicit
       // outputs and inputs to the methods input and output variable lists
       ArrayOfIndex vo=mdd->Out();
@@ -743,7 +763,7 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
               ostringstream os;
               os << "Not all generic inputs of this method have default "
                 << "values, you have to specify them!";
-              throw UnexpectedChar( os.str(),
+              throw ParseError( os.str(),
                                     msource.File(),
                                     msource.Line(),
                                     msource.Column() );

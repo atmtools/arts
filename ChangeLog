@@ -1,5 +1,28 @@
 2012-04-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-87
+
+	* src/parser.cc (ArtsParser::parse_method_args):
+
+	Bug fix. When the controlfile contained a call to a WSM that has
+	generic output but all arguments were omitted, all hell broke lose.
+	Try this controlfile with an older version ;-): Arts2 { ReadXML }
+
+	Change exception type from UnexpectedChar to ParseError for
+	missing generic inputs.
+
+	(ArtsParser::parse_main):
+
+	Instead of calling arts_exit directly in case of errors, rethrow the
+	exception.
+
+	* src/main.cc (main):
+
+	Add a try catch block inside the main controlfile loop and add the
+	current controlfile name to the error output.
+
+2012-04-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-86
 
 	* README: Updated. Add section headings. Add ctest documentation.
