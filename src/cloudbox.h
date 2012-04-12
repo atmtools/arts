@@ -141,12 +141,11 @@ Numeric IWCtopnd_MH97 (const Numeric iwc,
                        const Numeric density,
                        const bool noisy);
 
-Numeric psd_H11 (const Numeric xwc,
-		 const Numeric d,
-		 const Numeric t);
+Numeric IWCtopnd_H11 ( const Numeric d,
+                       const Numeric t);
 
 Numeric LWCtopnd (const Numeric lwc,
-                  //const Numeric density,
+                  const Numeric density,
                   const Numeric r);
 
 // ONLY FOR TESTING PURPOSES

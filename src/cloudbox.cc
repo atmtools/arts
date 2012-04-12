@@ -818,8 +818,7 @@ Numeric barometric_heightformula ( //output is p1
 /*! Calculates the particle number density field for McFarquhar and Heymsfield
     (1997) size distribution. To be used for cloud ice.
 
-    \return pnd_field Particle number density field
-          
+    \param pnd_field Particle number density field
     \param IWC_field mass content (cloud ice) field [g/m3]
     \param t_field atmospheric temperature [K]
     \param limits pnd_field boundaries (p, lat, lon)
@@ -860,9 +859,6 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 
   bool noisy = (psd_param == "MH97n");
 
-  // convert IWC from kg/m^3 to g/m^3
-  const Numeric convfac=1e3;
-
   for ( Index i=0; i < npart; i++ )
       vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
   get_sorted_indexes(intarr, vol_unsorted);
@@ -877,13 +873,13 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
       dm[i] = pow ( 
              ( scat_data_meta_array[pos].V *6./PI ),
              ( 1./3. ) );
-      // get density from meta data [kg/m^3] and convert to [g/m^3]
-      rho[i] = scat_data_meta_array[pos].density * 1e3;
+      // get density from meta data [kg/m^3]
+      rho[i] = scat_data_meta_array[pos].density;
   }
       
   if (dm.nelem() > 0)
   // dm.nelem()=0 implies no selected particles for the respective particle
-  // field. should not occur
+  // field. should not occur.
   {
       // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
@@ -900,7 +896,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                 {
                   // calculate particle size distribution with MH97
                   // [# m^-3 m^-1]
-                  dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon )*convfac,
+                  dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ),
                                           dm[i], t_field ( p, lat, lon ),
                                           rho[i], noisy );
                   //dN2[i] = dN[i] * vol[i] * rho[i];
@@ -913,7 +909,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                   pnd = dN;
 	    
                 // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon )*convfac, vol, rho,
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
                              p, lat, lon, prof_type, verbosity );
 	    
                 // writing pnd vector to wsv pnd_field
@@ -939,8 +935,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
     comm.) size distribution. To be used for atmospheric ice, particularly cloud
     ice and snow.
 
-    \return pnd_field Particle number density field
-          
+    \param pnd_field Particle number density field
     \param IWC_field mass content (cloud ice or snow) field [g/m3]
     \param t_field atmospheric temperature [K]
     \param limits pnd_field boundaries (p, lat, lon)
@@ -981,9 +976,6 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       dmax_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].d_max );
   get_sorted_indexes(intarr, dmax_unsorted);
       
-  // convert IWC from kg/m^3 to g/m^3
-  const Numeric convfac = 1e3;
-
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
@@ -992,14 +984,15 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       vol[i]= scat_data_meta_array[pos].V; //[m^3]
       // get maximum diameter from meta data [m]
       dm[i] = scat_data_meta_array[pos].d_max;
-      // get density from meta data [g/m^3]
-      rho[i] = scat_data_meta_array[pos].density * 1e3;
+      // get density from meta data [kg/m^3]
+      rho[i] = scat_data_meta_array[pos].density;
   }
+
+  //const bool suppress=true;
 
   if (dm.nelem() > 0)
   // dm.nelem()=0 implies no selected particles for the respective particle
-  // field. should not occur (once the "ignore" works for particle fields.
-  // up to then we need to catch it here...)
+  // field. should not occur anymore.
   {
       // itertation over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
@@ -1014,13 +1007,9 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                 // iteration over all given size bins
                 for ( Index i=0; i<dm.nelem(); i++ ) //loop over number of particles
                 {
-                  // calculate particle size distribution for H11
-                  // [# m^-3 m^-1]
-/*FIXME: do we need to pass IWC_Field?
-we do anyway do scale_H11 later on. and chk_pndsum.
-*/
-                  dN[i] = psd_H11 ( IWC_field ( p, lat, lon)*convfac,
-                                    dm[i], t_field ( p, lat, lon ) );
+                    // calculate particle size distribution for H11
+                    // [# m^-3 m^-1]
+                    dN[i] = IWCtopnd_H11 ( dm[i], t_field ( p, lat, lon ) );
                 }
                 // scale pnds by scale width
                 if (dm.nelem() > 1)
@@ -1030,10 +1019,14 @@ we do anyway do scale_H11 later on. and chk_pndsum.
 
                 // scale H11 distribution (which is independent of Ice or 
                 // Snow massdensity) to current massdensity.
-                scale_H11 ( pnd, IWC_field ( p,lat,lon )*convfac, vol, rho ); 
+                /* JM120411: we don't need this - it's doing exactly, what
+                             chk_pndsum is doing. instead we redefine verbosity
+                             for checksum here to suppress the 'scaling is off'
+                             warnings and let chk_pndsum do the proper scaling.
+                scale_H11 ( pnd, IWC_field ( p,lat,lon ), vol, rho ); */
 
-                // calculate error of pnd sum and real IWC
-                chk_pndsum ( pnd, IWC_field ( p,lat,lon )*convfac, vol, rho,
+                // calculate proper scaling of pnd sum from real IWC and apply
+                chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
                              p, lat, lon, prof_type, verbosity );
 
                 // writing pnd vector to wsv pnd_field
@@ -1041,7 +1034,6 @@ we do anyway do scale_H11 later on. and chk_pndsum.
                 {
                     pnd_field ( intarr[i]+scat_data_start, p-limits[0],
                                 lat-limits[2], lon-limits[4] ) = pnd[i];
-                    //dlwc[q] = pnd2[q]*vol[q]*rho[q];
                 }
             }
             else
@@ -1061,8 +1053,7 @@ we do anyway do scale_H11 later on. and chk_pndsum.
 /*! Calculates the particle number density field for Marshall and Palmer (1948)
     size distribution. To be used for precipitation, particularly rain.
 
-    \return pnd_field Particle number density field
-          
+    \param pnd_field Particle number density field
     \param PR_field precipitation rate field [kg/(m2*s)]
     \param limits pnd_field boundaries (p, lat, lon)
     \param scat_data_meta_array particle meta data for particles
@@ -1087,7 +1078,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   Index pos;
   Vector vol_unsorted ( npart, 0.0 );
   Vector vol ( npart, 0.0 );
-  Vector dm ( npart, 0.0 );
+  Vector d ( npart, 0.0 );
   Vector rho ( npart, 0.0 );
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
@@ -1108,15 +1099,15 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
 
       vol[i] = ( scat_data_meta_array[pos].V ); //m^3
       // calculate volume equivalent diameter [m]
-      dm[i] = pow ( 
+      d[i] = pow ( 
              ( scat_data_meta_array[pos].V *6./PI ),
              ( 1./3. ) );
       // get density from meta data [kg/m^3]
       rho[i] = scat_data_meta_array[pos].density;
   }
 
-  // convert from PR [kg/(m^2*s)] to PR[mm/hr]
-  /* for the conversion we needneed to mean density of distribution:
+  // conversion factor from PR [kg/(m^2*s)] to PR[mm/hr]
+  /* for the conversion we need to know the mean density of distribution:
      rho_mean = mass_total/vol_total
               = int(vol[D]*rho[D]*dN[D])dD/int(vol[D]*dN[D])dD
 
@@ -1124,15 +1115,22 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
       proper solution requires iterative approach (does it?), but is it really
       worth to implement this? at least rain drops density should not really
       vary with particle size. might be different for snow/hail/graupel.
-     so, here we only do conversion to pseudo-PR[mm/hr]*[kg/m^3] and divide by
+     so, here we set conversion factor to pseudo-PR[mm/hr]*[kg/m^3] and divide by
       density later on 
   */
   const Numeric convfac=3.6e6; // [PR [kg/(m^2*s)] to PR[mm/hr]*[kg/m3]
   Numeric fac, rho_mean, vol_total, mass_total, tPR;
       
-  if (dm.nelem() > 0)
-  // dm.nelem()=0 implies no selected particles for the respective particle
-  // field. should not occur
+  // set parameterisation constants here instead of in PRtopnd_MP48, since we
+  // also need them for PR to PWC conversion
+  const Numeric N0 = 0.08*1e8; // [#/cm^3/cm] converted to [#/m^3/m]
+  const Numeric lambda_fac = 41.*1e2; // [cm^-1] converted to [m^-1] to fit d[m]
+  const Numeric lambda_exp = -0.21;
+  Numeric PWC, lambda;
+
+  if (d.nelem() > 0)
+  // d.nelem()=0 implies no selected particles for the respective particle
+  // field. should not occur.
   {
       // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
@@ -1141,7 +1139,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
         {
           for ( Index lon=limits[4]; lon<limits[5]; lon++ )
           {
-            // we only need to go through PSD calc if there is any material
+            // we only need to go through PSD calc if there is any precipitation
             if (PR_field ( p, lat, lon ) > 0.)
             {
               Index n_it = 0;
@@ -1151,6 +1149,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
               mass_total = rho.sum()/Numeric(npart);
               vol_total = 1.;
               while (abs( rho_mean/(mass_total/vol_total)-1.)>1e-2)
+              // did bulk mean density change?
               {
                 if (n_it>10)
                 {
@@ -1166,29 +1165,33 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                 rho_mean = mass_total/vol_total;
                 fac = convfac/rho_mean;
 
-                // first get true PR [mm/hr] assuming mean density equals
-                // density of this individual particle
+                // do PR [kg/(m^2*s)] to PR [mm/hr] conversion
                 tPR = PR_field ( p, lat, lon ) * fac;
+                // get slope of distribution [m^-1]
+                lambda = lambda_fac * pow(tPR,lambda_exp);
 
-                // iteration over all given size bins
-                for ( Index i=0; i<dm.nelem(); i++ )
+                // derive particle number density for all given sizes
+                for ( Index i=0; i<d.nelem(); i++ )
                 {
                     // calculate particle size distribution with MP48
                     // output: [# m^-3 m^-1]
-                    dN[i] = PRtopnd_MP48 ( tPR, dm[i]);
+                    //dN[i] = PRtopnd_MP48 ( tPR, d[i]);
+                    // too much a hassle to have a separate function. so we do
+                    // the calculation directly here.
+                    dN[i] = N0 * exp(-lambda*d[i]);
                     //dN2[i] = dN[i] * vol[i] * rho[i];
                 }
 
                 // scale pnds by bin width
-                if (dm.nelem() > 1)
-                    scale_pnd( pnd, dm, dN );
+                if (d.nelem() > 1)
+                    scale_pnd( pnd, d, dN );
                 else
                     pnd = dN;
 
-                //now we can at least check, how much rho_mean changes (and
-                // maybe redo the pnd calculation?)
+                // derive mass and volume over whole size distribution for
+                // updated mean density
                 mass_total = vol_total = 0.;
-                for ( Index i=0; i<dm.nelem(); i++ )
+                for ( Index i=0; i<d.nelem(); i++ )
                 {
                     mass_total += vol[i]*rho[i]*pnd[i];
                     vol_total += vol[i]*pnd[i];
@@ -1196,21 +1199,20 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                 //cout << n_it << ". iteration changing bulk density from "
                 //     << rho_mean << " to " << mass_total/vol_total << "\n";
                 n_it++;
+              }
+              //cout << "fine at p: " << p << " lat: " << lat << " lon" << lon
+              //     << " for PR=" << PR_field ( p, lat, lon )*fac << "mm/hr.\n";
 
-                //cout << "fine at p: " << p << " lat: " << lat << " lon" << lon
-                //     << " for PR=" << PR_field ( p, lat, lon )*fac << "mm/hr.\n";
-                // calculate error of pnd sum and real XWC
-/*FIXME: need to check, whether we're checking against correct precip value here!
-*/
-                chk_pndsum ( pnd, PR_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, prof_type, verbosity );
+              // calculate error of pnd sum and real XWC
+              PWC = rho_mean*PI*N0 / pow(lambda,4.);
+              chk_pndsum ( pnd, PWC, vol, rho,
+                           p, lat, lon, prof_type, verbosity );
 	    
-                // writing pnd vector to wsv pnd_field
-                for ( Index i = 0; i< npart; i++ )
-                {
-                    pnd_field ( intarr[i]+scat_data_start, p-limits[0],
-                                lat-limits[2], lon-limits[4] ) = pnd[i];
-                }
+              // writing pnd vector to wsv pnd_field
+              for ( Index i = 0; i< npart; i++ )
+              {
+                  pnd_field ( intarr[i]+scat_data_start, p-limits[0],
+                              lat-limits[2], lon-limits[4] ) = pnd[i];
               }
             }
             else
@@ -1229,8 +1231,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
     size distribution, namely the continental stratus case. To be used for
     liquid clouds.
 
-    \return pnd_field Particle number density field
-          
+    \param pnd_field Particle number density field
     \param LWC_field mass content (liquid water) field [g/m3]
     \param limits pnd_field boundaries (p, lat, lon)
     \param scat_data_meta_array particle meta data for particles
@@ -1269,9 +1270,6 @@ void pnd_fieldH98 (Tensor4View pnd_field,
       vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
   get_sorted_indexes(intarr, vol_unsorted);
       
-  // convert LWC from kg/m^3 to g/m^3
-  const Numeric convfac = 1e3;
-
   // extract scattering meta data
   for ( Index i=0; i< npart; i++ )
   {
@@ -1281,14 +1279,13 @@ void pnd_fieldH98 (Tensor4View pnd_field,
       // calculate radius from volume [m]
       r[i] = 0.5 * pow (
                ( 6*scat_data_meta_array[pos].V/PI ), ( 1./3. ) );
-      // get density from meta data [g/m^3]
-      rho[i] = scat_data_meta_array[pos].density * 1e3;
+      // get density from meta data [kg/m^3]
+      rho[i] = scat_data_meta_array[pos].density;
   }
 
   if (r.nelem() > 0)
   // r.nelem()=0 implies no selected particles for the respective particle
-  // field. should not occur (once the "ignore" works for particle fields.
-  // up to then we need to catch it here...)
+  // field. should not occur anymore
   {
       // iteration over all atm. levels
       for ( Index p=limits[0]; p<limits[1]; p++ )
@@ -1304,10 +1301,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                 {
                     // calculate particle size distribution for liquid
                     // [# m^-3 m^-1]
-/*FIXME: do we need to pass LWC_Field?
-we do chk_pndsum later on. at least make consistent with H11.
-*/
-                    dN[i] = LWCtopnd ( LWC_field ( p,lat,lon )*convfac, r[i] );
+                    dN[i] = LWCtopnd ( LWC_field ( p,lat,lon ), rho[i], r[i] );
                     //dN2[i] = LWCtopnd2 ( r[i] );  // [# m^-3 m^-1]
                     //dN2[i] = dN[i] * vol[i] * rho[i];
                 }
@@ -1319,7 +1313,7 @@ we do chk_pndsum later on. at least make consistent with H11.
                     pnd = dN;
 	    
                 // calculate error of pnd sum and real XWC
-                chk_pndsum ( pnd, LWC_field ( p,lat,lon )*convfac, vol, rho,
+                chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho,
                              p, lat, lon, prof_type, verbosity );
 
                 // writing pnd vector to wsv pnd_field
@@ -1351,10 +1345,11 @@ we do chk_pndsum later on. at least make consistent with H11.
 
     \return dN particle number density per diameter interval [#/m3*m]
           
-    \param iwc atmospheric ice water content [g/m3]
+    \param iwc atmospheric ice water content [kg/m3]
     \param dm melted diameter of scattering particle [m]
     \param t atmospheric temperature [K]
-    \param density of the scattering particle [g/m3]
+    \param density of the scattering particle [kg/m3]
+    \param perturb PSD parameters according to their error statistics?
   
   \author Daniel Kreyling
   \date 2010-12-06
@@ -1371,6 +1366,10 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   {
     return 0.0;
   }
+
+  //[kg/m3] -> [g/m3] as used by parameterisation
+  Numeric ciwc = iwc*1e3;
+  Numeric cdensity = density*1e3;
 
   Numeric sig_a=0.068, sig_b1=0.054;
   Numeric sig_b2=5.5e-3, sig_m=0.0029;
@@ -1422,8 +1421,8 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   // determine iwc<100um and iwc>100um
   Numeric a=0.252+sig_a; //g/m^3
   Numeric b1=0.837+sig_b1;
-  Numeric IWCs100=min ( iwc,a*pow ( iwc,b1 ) );
-  Numeric IWCl100=iwc-IWCs100;
+  Numeric IWCs100=min ( ciwc,a*pow ( ciwc,b1 ) );
+  Numeric IWCl100=ciwc-IWCs100;
 
 
   //Gamma distribution component
@@ -1436,8 +1435,9 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   // outside the size region gamma distrib is intended for
   if (alphas100>0.)
   {
-    Numeric Ns100=6*IWCs100*pow ( alphas100,5. ) / ( PI*density*gamma_func ( 5. ) );//micron^-5
-    Numeric Nm1=Ns100*Dm*exp ( -alphas100*Dm ); //micron^-4
+    Numeric Ns100 = 6*IWCs100 * pow ( alphas100,5. ) /
+                    ( PI*cdensity*gamma_func ( 5. ) );//micron^-5
+    Numeric Nm1 = Ns100*Dm*exp ( -alphas100*Dm ); //micron^-4
     dN1 = Nm1*1e18; // m^-3 micron^-1
   }
   else
@@ -1473,9 +1473,13 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 
     if ( (mul100>0.) & (sigmal100>0.) )
     {
-      Numeric a1=6*IWCl100; //g/m^3
-      Numeric a2=pow ( PI,3./2. ) *density*sqrt ( 2 ) *exp ( 3*mul100+9./2.*pow ( sigmal100,2 ) ) *sigmal100*pow ( 1.,3 ) *Dm; //g/m^3/micron^4
-      Numeric Nm2=a1/a2*exp ( -0.5*pow ( ( log ( Dm )-mul100 ) /sigmal100,2 ) ); //micron^-4
+      Numeric a1 = 6*IWCl100; //g/m^3
+      Numeric a2 = pow ( PI,3./2. ) * cdensity*sqrt(2) *
+                   exp( 3*mul100+9./2. * pow ( sigmal100,2 ) ) * 
+                   sigmal100 * pow ( 1.,3 ) * Dm; //g/m^3/micron^4
+      Numeric Nm2 = a1/a2 *
+                    exp ( -0.5 * pow ( ( log ( Dm )-mul100 ) /sigmal100,2 ) );
+                    //micron^-4
       dN2 = Nm2*1e18; // m^-3 micron^-1
     }
     else
@@ -1506,7 +1510,7 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
  *  Each diameter of the scattering particles is a node in the distribution.
  *  One call of this function calculates one particle number density.  
 
-    \return dN particle number density per diameter interval [#/m3*m]
+    \return dN particle number density per diameter interval [#/m3/m]
           
     \param d maximum diameter of scattering particle [m]
     \param t atmospheric temperature [K]
@@ -1515,16 +1519,9 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   \date 2011-10-28
 
 */
-Numeric psd_H11 (	const Numeric xwc,
-			const Numeric d,
-			const Numeric t)
+Numeric IWCtopnd_H11 ( const Numeric d,
+                       const Numeric t)
 {  
-  // skip calculation if LWC is 0.0
-  if ( xwc == 0.0 )
-  {
-    return 0.0;
-  }
-
   Numeric dN;
   Numeric la;
   Numeric mu;
@@ -1565,15 +1562,15 @@ Numeric psd_H11 (	const Numeric xwc,
 
 	\return n particle number density per radius interval [#/m3*m]
          
-	\param lwc atmospheric liquid water content [g/m3]
+	\param lwc atmospheric liquid water content [kg/m3]
 	\param r radius of scattering particle [m]
   
   \author Daniel Kreyling
   \date 2010-12-16
 
 */
-Numeric LWCtopnd (const Numeric lwc, //[g/m^3]
-		  //const Numeric density,
+Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
+		  const Numeric density, //[kg/m^3]
 		  const Numeric r // [m]
 		  )
 { 
@@ -1582,14 +1579,15 @@ Numeric LWCtopnd (const Numeric lwc, //[g/m^3]
   {
     return 0.0;
   }
-	Numeric rc = 4.7; //[micron]
+	Numeric rc = 4.7*1e-6; //[um]->[m]
 	Numeric alpha = 5.0;
 	Numeric gam = 1.05;
 	
-	Numeric B=(alpha/gam)/pow(rc,gam); 
-	// factor 1e12 is density of water [1 g/cm^3] in units of [g/micron^3]
-	Numeric A=(((3*lwc*gam*pow(B,((alpha+4)/gam))*1e12)/4)/PI)/gamma_func((alpha+4)/gam); 
-	Numeric n=A*(pow(r*1e6,alpha)*exp(-B*pow(r*1e6,gam)))*1e6; //
+        Numeric a4g = (alpha+4.)/gam;
+	Numeric B = (alpha/gam) / pow(rc,gam); 
+	Numeric A = 0.75/PI * lwc/density * gam * pow(B,a4g) /
+                    gamma_func(a4g);
+	Numeric n = A * (pow(r,alpha) * exp(-B*pow(r,gam)));
 	// n in [# m^-3 m^-1]
 	
 	if (isnan(n)) n = 0.0;
@@ -1695,9 +1693,9 @@ void scale_pnd  (  Vector& w,
 /*! Check sum of pnd vector against total mass density value.
  *  Deviation is calculated and used to adjust the output of vector pnd.
          
-	\param pnd particle number density [g/m3]
-	\param xwc atmospheric massdensity [g/m3]
-	\param density scattering particle density [g/m3]
+	\param pnd particle number density [#/m3]
+	\param xwc atmospheric massdensity [kg/m3]
+	\param density scattering particle density [kg/m3]
 	\param vol scattering particle volume [m3]
   
   \author Daniel Kreyling
@@ -1778,11 +1776,12 @@ void chk_pndsum (Vector& pnd,
     //cout<<"\n"<<x.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
 }
 
+
 /*! The H11 PSD is scaled to the initial 'ice' or 'snow' massdensity, after
  *  the distribution has been evaluated. This function applies the scaling.
          
-      	\param xwc atmospheric massdensity [g/m3]
-	\param density scattering particle density [g/m3]
+      	\param xwc atmospheric massdensity [kg/m3]
+	\param density scattering particle density [kg/m3]
 	\param vol scattering particle volume [m3]
   
   \author Daniel Kreyling

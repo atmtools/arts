@@ -1,3 +1,18 @@
+2012-04-12  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-85
+
+	* src/cloudbox.cc:
+	- use SI units with all pnd calculation functions.
+	- remove (use of) scale_H11. let chk_pndsum do the work, which anyway
+	  did the same plus some warnings.
+	- corrected (?!) scaling in MP48 (we don't have a direct way to check
+	  scaling based on precip rate. need to derive and use mass density
+	  instead).
+	- removed hard coded density of particles in cloud liquid PSD (H98).
+
+	* src/cloudbox.h: adapted.
+
 2012-04-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-84
