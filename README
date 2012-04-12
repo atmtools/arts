@@ -10,7 +10,11 @@ http://www.sat.uni-bremen.de/arts/docs.php
 For documentation, please see the files in the doc subdirectory.
 For building and installation instructions please see the INSTALL file.
 
-Prerequisites for building arts:
+
+BUILDING ARTS
+=============
+
+Build Prerequisites:
 
 gcc (or icc)
 g++ (or icc)
@@ -23,6 +27,10 @@ To build the documentation you also need:
 pdflatex (optional)
 doxygen (optional)
 graphviz (optional)
+
+
+USING CMAKE
+===========
 
 Here are the steps to use cmake to build arts.
 
@@ -43,6 +51,9 @@ make -jX
 Where X is the number of parallel build processes.
 X=(Number of Cores)+1 gives you usually the fastest compilation time.
 
+
+BUILD TYPES
+===========
 To build a release version without assertions or debugging symbols use:
 
 cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -58,7 +69,38 @@ make
 This is also the default configuration if you run cmake without
 options in an empty build directory.
 
-You can also disable certain features:
+
+TESTS
+=====
+
+'make check' will run several test cases to ensure that arts is working
+properly. Use 'make check-all' to run all available controlfiles, including
+computation time-intensive ones. By default, the tests are executed serially.
+If you want to run them concurrently, you can use:
+
+cmake -DTEST_JOBS=X ..
+
+X is the number of tests that should be started in parallel.
+
+You can also use the ctest command directly to run the tests:
+
+ctest --output-on-failure -j4
+
+To run specific tests, use the -R option and specify part of the test case
+name you want to run:
+
+ctest --output-on-failure -R ppath
+
+This will run all tests that have 'ppath' in their name.
+
+If you don't want to pass --output-on-failure every time, you can set the
+CTEST_OUTPUT_ON_FAILURE environment variable.
+
+export CTEST_OUTPUT_ON_FAILURE=1
+
+
+DISABLING FEATURES
+==================
 
 Disable assertions:
 cmake -DNO_ASSERT=1 ..
@@ -76,11 +118,17 @@ Treat warnings as errors:
 cmake -DWERROR=1 ..
 
 
+INTEL COMPILER
+==============
+
 If you want to compile with the Intel compiler, start with an empty build
 directory and run:
 
 CC=icc CXX=icpc cmake ..
 
+
+MAC OS X / XCODE
+================
 
 If you're on a Mac and have the Apple Xcode development environment installed,
 you can generate a project file and use Xcode to build arts:
@@ -89,7 +137,7 @@ cmake -G Xcode ..
 open ARTS.xcodeproj
 
 
-Experimental features (only use if you know what you're doing)
+EXPERIMENTAL FEATURES (ONLY USE IF YOU KNOW WHAT YOU'RE DOING)
 ==============================================================
 
 Enable the disort code:

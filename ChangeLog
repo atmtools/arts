@@ -1,3 +1,21 @@
+2012-04-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-86
+
+	* README: Updated. Add section headings. Add ctest documentation.
+
+	* CMakeLists.txt:
+
+	'make check' only runs quick controlfiles now. 'make check-all' runs
+	all tests.
+
+	Add cmake option TEST_JOBS to let user specify how many tests to be
+	run in parallel. (cmake -DTEST_JOBS=4 ..)
+
+	* cmake/modules/FindNetCDF.cmake:
+
+	Netcdf library might also be called netcdf4/netcdf_c++4.
+
 2012-04-12  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-85

@@ -162,9 +162,11 @@ endif (CMAKE_COMPILER_IS_INTELCXX)
 if (CMAKE_COMPILER_IS_GNUCXX)
   set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wshadow")
 endif (CMAKE_COMPILER_IS_GNUCXX)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"
+    OR CMAKE_GENERATOR STREQUAL "Xcode")
   set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wno-sign-conversion -Wshadow")
-endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"
+       OR CMAKE_GENERATOR STREQUAL "Xcode")
 
 if (WERROR)
   set (WARN_FLAGS "${WARN_FLAGS} -Werror")
@@ -247,11 +249,17 @@ add_custom_command (
 
 add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
 
-add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure DEPENDS arts)
+########### Tests ##########
 
-add_custom_target(check-fast
-  COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -E ".slow." DEPENDS arts)
+if (TEST_JOBS)
+  set (CTEST_JOBS "-j${TEST_JOBS}")
+endif (TEST_JOBS)
+
+add_custom_target(check
+  COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure ${CTEST_JOBS} -E ".slow." DEPENDS arts)
+
+add_custom_target(check-all
+  COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure ${CTEST_JOBS} DEPENDS arts)
 
 ########### subdirectories ###############
 
