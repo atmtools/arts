@@ -1,5 +1,40 @@
 2012-04-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-90
+
+	* Migrating controlfiles from tests to controlfiles/.
+	Starting with controlfiles related to artscomponents.
+
+	* CMakeLists.txt: Add subdirectory controlfiles.
+
+	* tests/CMakeLists.txt: Remove testcases that are now in controlfiles/.
+
+	* controlfiles/CMakeLists.txt: Added. Add testcase definitions.
+
+	* controlfiles/artscomponents/absorption: Moved from tests/Abs.
+
+	* controlfiles/artscomponents/doit: Moved from tests/DOIT.
+
+	* controlfiles/artscomponents/montecarlo: Moved from tests/MonteCarlo.
+
+	* controlfiles/artscomponents/ppath: Moved from tests/Ppath.
+
+	* controlfiles/artscomponents/pencilbeam: Moved from tests/PencilBeam.
+
+	* controlfiles/artscomponents/clearsky: Moved from tests/ClearSky.
+
+	* controlfiles/artscomponents/groundbased: Moved from tests/GroundBased.
+
+	* controlfiles/artscomponents/disort: Moved from tests/DISORT.
+
+	* controlfiles/artscomponents/doitbatch: Moved from tests/DOITBatch.
+
+	* controlfiles/artscomponents/transmission:
+
+	Moved from tests/Transmission.
+
+2012-04-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-89
 
 	* controlfiles/atmosphere_data/:
