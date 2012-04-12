@@ -49,7 +49,7 @@ abs_lines_per_speciesCreateFromLines
 
 # Atmospheric profiles
 # ---
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
 #
 AtmFieldsCalc
 

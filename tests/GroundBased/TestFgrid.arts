@@ -16,7 +16,7 @@ SpeciesSet( abs_species, [ "O3", "H2O" ] )
 VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-                                  "../atmosphere_data/tropical" )
+                                  "atmosphere_data/tropical" )
 AtmFieldsCalc
 
 

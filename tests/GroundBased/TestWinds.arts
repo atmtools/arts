@@ -32,7 +32,7 @@ IndexSet( np, 90 )
 VectorNLogSpace( p_grid, np, 1.013e5, 0.5 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-                                  "../atmosphere_data/tropical" )
+                                  "atmosphere_data/tropical" )
 
 
 

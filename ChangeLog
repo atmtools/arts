@@ -1,5 +1,36 @@
 2012-04-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-89
+
+	* controlfiles/atmosphere_data/:
+
+	Moved here from tests. We might read those from arts-xml-data directly
+	later.
+
+	* tests/Transmission/TestTransmission.arts,
+	tests/GroundBased/TestFgrid.arts,
+	tests/GroundBased/TestWinds.arts,
+	tests/GroundBased/TestGbased.arts,
+	tests/PencilBeam/TestPencilBeam.arts,
+	tests/DOIT/TestDOIT.arts,
+	tests/Wfuns/TestWfuns.arts,
+	tests/MonteCarlo/TestMonteCarloDataPrepare.arts,
+	tests/Abs/TestAbsDoppler.arts,
+	tests/Abs/TestAbs.arts,
+	tests/OdinSMR/TestOdinSMR.arts,
+	tests/OdinSMR/TestOdinSMR_119ghz.arts,
+	tests/OdinSMR/TestOdinSMR_1D.arts,
+	tests/Ppath/TestPpath1D.arts,
+	tests/Ppath/TestPpath2D.arts,
+	tests/Ppath/TestPpath3D.arts,
+	tests/RadioLink/TestRadioLink.arts,
+	tests/ClearSky/TestClearSky.arts:
+
+	Remove ../ prefix from atmosphere_data path.
+
+
+2012-04-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-88
 
 	* Starting to move and rearrange controlfiles from tests/ to

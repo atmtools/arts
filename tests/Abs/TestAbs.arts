@@ -36,10 +36,10 @@ SpeciesSet( abs_species, [ "H2O-PWR98",
                            "N2-SelfContStandardType" ] )
 
 # Alternatively select all species that we can find in the scenario:
-#abs_speciesDefineAllInScenario( abs_species, "../atmosphere_data/tropical" )
+#abs_speciesDefineAllInScenario( abs_species, "atmosphere_data/tropical" )
 
 # Atmospheric profiles
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
 
 # This separates the lines into the different tag groups and creates
 # the workspace variable `abs_lines_per_species':
