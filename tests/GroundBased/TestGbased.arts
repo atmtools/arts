@@ -10,7 +10,7 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
+INCLUDE "general/general.arts"
 
 
 # ---- f_grid ----------------------------------------------------------------

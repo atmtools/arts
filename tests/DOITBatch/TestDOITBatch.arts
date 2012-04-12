@@ -8,9 +8,9 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
-INCLUDE "continua.arts"
-INCLUDE "agendasDOIT.arts"
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendasDOIT.arts"
 
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 

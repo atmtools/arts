@@ -2,8 +2,8 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
-INCLUDE "continua.arts"
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
 INCLUDE "mhs/mhs_fast.arts"
 
 INCLUDE "TestMHS_generic.arts"

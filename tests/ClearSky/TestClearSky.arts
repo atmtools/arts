@@ -7,8 +7,8 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
-INCLUDE "continua.arts"
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
 
 
 # Pick out the lines we want from HITRAN and save to arts line file

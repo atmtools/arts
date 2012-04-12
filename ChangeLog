@@ -1,5 +1,61 @@
 2012-04-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-88
+
+	* Starting to move and rearrange controlfiles from tests/ to
+	controlfiles. I'll do that in several steps to avoid mayhem.
+
+	* CMakeLists.txt:
+
+	Temporarily use includes/ and controlfiles/ as default include path.
+
+	* controlfiles/general/general.arts,
+	controlfiles/general/continua.arts,
+	controlfiles/general/agendasDOIT.arts:
+
+	Moved to here from includes/.
+
+	* controlfiles, controlfiles/artscomponents, controlfiles/general,
+	controlfiles/instruments: Added.
+
+	* src/parameters.cc (get_parameters):
+
+	Temporarily add support for having more than one path in
+	ARTS_DEFAULT_INCLUDE_DIR.
+
+	* tests/AVHRR/TestAVHRR.arts,
+	tests/MHS/TestMHS.arts,
+	tests/MHS/TestMHS_fast.arts,
+	tests/Transmission/TestTransmission.arts,
+	tests/GroundBased/TestFgrid.arts,
+	tests/GroundBased/TestWinds.arts,
+	tests/GroundBased/TestGbased.arts,
+	tests/DOIT/TestDOIT.arts,
+	tests/PencilBeam/TestPencilBeam.arts,
+	tests/DOITBatch/TestDOITBatch.arts,
+	tests/MonteCarlo/TestMonteCarloDataPrepare.arts,
+	tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts,
+	tests/MonteCarlo/TestRteCalcMC.arts,
+	tests/MonteCarlo/TestMonteCarloGeneral.arts,
+	tests/DISORT/TestDISORT.arts,
+	tests/HIRS/TestHIRS.arts,
+	tests/Abs/TestAbsDoppler.arts,
+	tests/Abs/TestAbs.arts,
+	tests/AMSU/TestAMSUB.arts,
+	tests/AMSU/TestAMSUB_fast.arts,
+	tests/Ppath/TestPpath1D.arts,
+	tests/Ppath/TestPpath2D.arts,
+	tests/Ppath/TestPpath3D.arts,
+	tests/RadioLink/TestRadioLink.arts,
+	tests/ClearSky/TestClearSky.arts,
+	includes/odin/odinsmr_544.arts,
+	includes/odin/odinsmr_501_1D.arts,
+	includes/odin/odinsmr_501.arts:
+
+	Prepend general includes with general/.
+
+2012-04-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-87
 
 	* src/parser.cc (ArtsParser::parse_method_args):

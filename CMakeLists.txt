@@ -229,7 +229,7 @@ elseif (WIN)
   set (WINDOWS 1)
 endif (APPLE)
 
-set (ARTS_DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes")
+set (ARTS_DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/controlfiles:${CMAKE_SOURCE_DIR}/includes")
 
 if (WITH_GUI)
   find_package (Qt4)

@@ -2,7 +2,7 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
+INCLUDE "general/general.arts"
 
 
 # ---- Species ---------------------------------------------------------------

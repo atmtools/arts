@@ -4,8 +4,8 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
-INCLUDE "continua.arts"
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
 
 
 # --------------------< A specific method >--------------------

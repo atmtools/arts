@@ -5,7 +5,7 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
+INCLUDE "general/general.arts"
 
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 

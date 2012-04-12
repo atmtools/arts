@@ -12,7 +12,7 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
+INCLUDE "general/general.arts"
 INCLUDE "odin/odinsmr_544_absorption.arts"
 
 

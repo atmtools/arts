@@ -12,8 +12,8 @@
 
 Arts {
 
-INCLUDE "general"
-INCLUDE "continua.arts"
+INCLUDE "general/general"
+INCLUDE "general/continua.arts"
 
 
 # Frequency grid 

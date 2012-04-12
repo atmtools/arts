@@ -14,7 +14,7 @@
 
 Arts2 {
 
-INCLUDE "general.arts"
+INCLUDE "general/general.arts"
 INCLUDE "odin/odinsmr_501_absorption.arts"
 
 
