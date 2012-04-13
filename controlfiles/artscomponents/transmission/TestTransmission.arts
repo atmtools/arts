@@ -68,7 +68,7 @@ cloudbox_checkedCalc
 # Propagation path agendas and variables
 #
 AgendaSet( ppath_step_agenda ){
-  ppath_stepRefractionEuler
+  ppath_stepRefractionBasic
 }
 NumericSet( ppath_lmax, 2e3 )
 NumericSet( ppath_lraytrace, 500 )

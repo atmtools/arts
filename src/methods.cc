@@ -6729,30 +6729,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ppath_stepRefractionEuler" ),
+      ( NAME( "ppath_stepRefractionBasic" ),
         DESCRIPTION
         (
          "Calculates a propagation path step, considering refraction by a\n"
-         "straightforward Euler approach.\n"
+         "basic approach.\n"
          "\n"
          "Refraction is taken into account by probably the simplest approach\n"
          "possible. The path is treated to consist of piece-wise geometric\n"
          "steps. A geometric path step is calculated from each point by\n"
-         "using the local line-of-sight. Except for 1D zenith angles, the\n"
-         "path quantities are propagated by solving the differential\n"
-         "equations by the Euler method. Snell's law for spherical symmetry\n"
-         "is used for 1D to update the zenith angles.\n"
-         "\n"
-         "See further the on-line information for *ppath_stepGeometric*\n"
-         "(type \"arts -d ppath_stepGeometric\" ) and the user guide for more\n"
-         "details on the algorithms used.\n"
+         "using the local line-of-sight. Snell's law for spherical symmetry\n"
+         "is used for 1D to determine the zenith angle at the new point.\n"
+         "For 2D and 3D, the zenith angle is calculated using the average\n"
+         "gradient of the refractive index between the two points. For 3D,\n"
+         "the azimuth angle is treated in the same way as the zenith one.\n"
          "\n"
          "The maximum length of each ray tracing step is given by the WSV\n"
-         "*ppath_lraytrace*. The length will never exceed the\n" 
-         "given maximum value, but can be smaller. The ray tracing steps are\n"
-         "only used to determine the path. Points to describe the path for\n" 
-         "*yCalc* are included as for *ppath_stepGeometric*, this\n"
-         "including the functionality of *ppath_lmax*.\n"
+         "*ppath_lraytrace*. The length will never exceed the given maximum,\n" 
+         "but it can be smaller. The ray tracing steps are only used to\n"
+         "determine the path. Points to describe the path are included as\n"
+         "for *ppath_stepGeometric*, this including the functionality of\n"
+         "*ppath_lmax*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath_step" ),

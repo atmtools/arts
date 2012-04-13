@@ -518,7 +518,7 @@ void ppath_stepGeometric(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_stepRefractionEuler(
+void ppath_stepRefractionBasic(
           Workspace&  ws,
           Ppath&      ppath_step,
     const Agenda&     refr_index_agenda,
@@ -552,7 +552,7 @@ void ppath_stepRefractionEuler(
                               t_field(joker,0,0), vmr_field(joker,joker,0,0), 
                               edensity_field, f_index, refellipsoid, 
                               z_surface(0,0), ppath_lmax, refr_index_agenda, 
-                              "linear_euler", ppath_lraytrace );
+                              "linear_basic", ppath_lraytrace );
         }
       else if( atmosphere_dim == 2 )
         { 
@@ -561,14 +561,14 @@ void ppath_stepRefractionEuler(
                               vmr_field(joker,joker,joker,0), 
                               edensity_field, f_index, refellipsoid, 
                               z_surface(joker,0), ppath_lmax, refr_index_agenda,
-                              "linear_euler", ppath_lraytrace ); 
+                              "linear_basic", ppath_lraytrace ); 
         }
       else if( atmosphere_dim == 3 )
         { 
           ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
                               z_field, t_field, vmr_field, edensity_field, 
                               f_index, refellipsoid, z_surface, ppath_lmax, 
-                              refr_index_agenda, "linear_euler", 
+                              refr_index_agenda, "linear_basic", 
                               ppath_lraytrace ); 
         }
       else

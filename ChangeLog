@@ -1,7 +1,30 @@
+2012-04-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-92
+
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts: Euler
+	-> Basic.
+
+	* controlfiles/artscomponents/ppath/TestPpath1D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath2D.arts:
+	* controlfiles/artscomponents/ppath/TestPpath3D.arts: As above. 
+	And now also making a set of calculations with refraction.
+
+	* src/methods.cc: Improved text for ppath_stepRefractionBasic.
+
+	* src/m_ppath.cc (ppath_stepRefractionBasic): Changed Euler to
+	Basic in WSM name. This as "Euler" is not a totally correct
+	description of the algorithm.
+
+	* src/ppath.cc (ppath_start_stepping): For 3D, "ppath.end_lstep=lt;"
+	was ppath.start_lstep = lt; Changed "euler" to "basic in some
+	function names and variables.
+
 2012-04-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-91
-	
+
 	* Completed moving of testcases from tests/ to controlfiles/.
 	Next up is moving the include files into the appropriate directories
 	in controlfiles/.

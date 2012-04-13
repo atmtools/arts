@@ -59,15 +59,7 @@ basics_checkedCalc
 cloudbox_checkedCalc
 
 
-# Uncomment the calls below to activate refraction 
-#
-#AgendaSet( ppath_step_agenda ){
-#  ppath_stepRefractionEuler
-#}
-#NumericSet( ppath_lraytrace, 2e3 )
-
-
-# Max step length and agenda for the calculation of the propagation path
+# Max step length for the representation of the propagation path
 #
 NumericSet( ppath_lmax, 20e3 )
 
@@ -88,9 +80,9 @@ VectorSet( rte_los, [ 113 ] )
 # Calculate propagation path
 #
 IndexSet( mblock_index, -1 )    # A dummy value!
-IndexSet( f_index, -1 )         # With -1 here refractive index is throughout
-#                               # calculated for a mean frequency (ie. no
-ppathCalc                       # dispersion can occur).
+IndexSet( f_index, -1 )         # With -1 here refractive index is calculated
+#                               # for a mean frequency (ie. no dispersion).
+ppathCalc                       
 
 
 # Print complete ppath
@@ -120,11 +112,23 @@ nrowsGet( ilast, sensor_pos )
 IndexStepDown( ilast, ilast )
 
 AgendaSet( forloop_agenda ){
-  #Print( forloop_index, 0 )
   VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )
   VectorExtractFromMatrix( rte_los, sensor_los, forloop_index, "row" )
   ppathCalc
 }
+
+ForLoop( forloop_agenda, 0, ilast, 1  )
+
+
+
+#
+# Repeat with refraction
+#
+
+AgendaSet( ppath_step_agenda ){
+  ppath_stepRefractionBasic
+}
+NumericSet( ppath_lraytrace, 1e3 )
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
 

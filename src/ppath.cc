@@ -3238,9 +3238,9 @@ void ppath_step_geom_3d(
   === Core functions for refraction *ppath_step* functions
   ===========================================================================*/
 
-//! raytrace_1d_linear_euler
+//! raytrace_1d_linear_basic
 /*! 
-   Performs ray tracing for 1D with linear Euler steps.
+   Performs ray tracing for 1D with linear steps.
 
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
@@ -3286,7 +3286,7 @@ void ppath_step_geom_3d(
    \author Patrick Eriksson
    \date   2002-12-02
 */
-void raytrace_1d_linear_euler(
+void raytrace_1d_linear_basic(
               Workspace&       ws,
               Array<Numeric>&  r_array,
               Array<Numeric>&  lat_array,
@@ -3487,9 +3487,9 @@ void ppath_step_refr_1d(
   Array<Numeric>   r_array, lat_array, za_array, l_array, n_array;
   Index            endface;
   //
-  if( rtrace_method  == "linear_euler" )
+  if( rtrace_method  == "linear_basic" )
     {
-      raytrace_1d_linear_euler( ws, r_array, lat_array, za_array, l_array, 
+      raytrace_1d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
                  n_array, endface, refellipsoid, p_grid, z_field, t_field,
                  vmr_field, edensity_field, f_index, lmax, refr_index_agenda, 
                  lraytrace, ppc, refellipsoid[0] + z_surface, 
@@ -3517,9 +3517,9 @@ void ppath_step_refr_1d(
 
 
 
-//! raytrace_2d_linear_euler
+//! raytrace_2d_linear_basic
 /*! 
-   Performs ray tracing for 2D with linear Euler steps.
+   Performs ray tracing for 2D with linear steps.
 
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
@@ -3567,7 +3567,7 @@ void ppath_step_refr_1d(
    \author Patrick Eriksson
    \date   2002-12-02
 */
-void raytrace_2d_linear_euler(
+void raytrace_2d_linear_basic(
               Workspace&       ws,
               Array<Numeric>&  r_array,
               Array<Numeric>&  lat_array,
@@ -3782,9 +3782,9 @@ void ppath_step_refr_2d(
   Array<Numeric>   r_array, lat_array, za_array, l_array, n_array;
   Index            endface;
   //
-  if( rtrace_method  == "linear_euler" )
+  if( rtrace_method  == "linear_basic" )
     {
-      raytrace_2d_linear_euler( ws, r_array, lat_array, za_array, l_array, 
+      raytrace_2d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
                                 n_array, endface, p_grid, lat_grid, 
                                 refellipsoid, z_field, t_field, vmr_field,
                                 edensity_field, f_index,
@@ -3813,9 +3813,9 @@ void ppath_step_refr_2d(
 
 
 
-//! raytrace_3d_linear_euler
+//! raytrace_3d_linear_basic
 /*! 
-   Performs ray tracing for 3D with linear Euler steps.
+   Performs ray tracing for 3D with linear steps.
 
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
@@ -3877,7 +3877,7 @@ void ppath_step_refr_2d(
    \author Patrick Eriksson
    \date   2003-01-18
 */
-void raytrace_3d_linear_euler(
+void raytrace_3d_linear_basic(
               Workspace&       ws,
               Array<Numeric>&  r_array,
               Array<Numeric>&  lat_array,
@@ -4137,9 +4137,9 @@ void ppath_step_refr_3d(
   Array<Numeric>   l_array, n_array;
   Index            endface;
   //
-  if( rtrace_method  == "linear_euler" )
+  if( rtrace_method  == "linear_basic" )
     {
-      raytrace_3d_linear_euler( ws, r_array, lat_array, lon_array, za_array, 
+      raytrace_3d_linear_basic( ws, r_array, lat_array, lon_array, za_array, 
                            aa_array, l_array, n_array, endface, 
                            refellipsoid, p_grid, lat_grid, lon_grid, 
                            z_field, t_field, vmr_field, edensity_field, 
@@ -4902,7 +4902,7 @@ void ppath_start_stepping(
                   //
                   ppath.pos(0,0) = interp( itwt, z_field(lp,joker,joker), 
                                                             gp_latt, gp_lont );
-                  ppath.start_lstep = lt;
+                  ppath.end_lstep = lt;
 
                   // Here we know the pressure grid position exactly
                   ppath.gp_p[0].idx   = lp-1; 
