@@ -68,7 +68,7 @@ AgendaSet( ppath_agenda ){
   VectorExtractFromMatrix( rte_pos2, transmitter_pos, mblock_index, "row" )
   ppathFromRtePos2
   #Print( ppath, 0 )
-  #PrintTangentPoint( ppath, 0 )
+  #TangentPointPrint( ppath, 0 )
 }
 
 
@@ -84,16 +84,10 @@ AgendaSet( iy_space_agenda ){
 }
 AgendaSet( iy_clearsky_agenda ){
   Ignore( rte_los )
-  iyRadioLink( iy, iy_error, iy_error_type, iy_aux, 
-               diy_dx, iy_agenda_call1, iy_transmission, rte_pos, 
-               jacobian_do, atmosphere_dim, p_grid, lat_grid, lon_grid, 
-               z_field, t_field, vmr_field, wind_u_field, wind_v_field, 
-               wind_w_field, edensity_field, refellipsoid, z_surface, 
-               cloudbox_on, stokes_dim, f_grid, dispersion_do, 
-               mblock_index, ppath_agenda, ppath_step_agenda, 
-               abs_scalar_gas_agenda, iy_space_agenda, 
-               "AtmosphericLoss", "ExtraPathDelay" )
+  iyRadioLink
 }
+StringSet( iy_variable, "AtmosphericLoss" )
+StringSet( iy_aux_variable, "ExtraPathDelay" )
 
 
 # Postion of sensor/receiver and transmitter

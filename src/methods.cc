@@ -4650,20 +4650,18 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_agenda_call1", "iy_transmission", 
-            "rte_pos", "jacobian_do",
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-            "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
-            "wind_w_field", "edensity_field", "refellipsoid", "z_surface",
-            "cloudbox_on", "stokes_dim", "f_grid", "dispersion_do",
-            "mblock_index", "ppath_agenda", "ppath_step_agenda", 
-            "abs_scalar_gas_agenda", "iy_space_agenda" ),
-        GIN( "main_var", "aux_var"),
-        GIN_TYPE( "String", "String" ),
-        GIN_DEFAULT( "TotalLoss", "ExtraPathDelay" ),
-        GIN_DESC( "Name of main variable (iy)", 
-                  "Name of auxilary variable (iy_aux)" )
+        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx","iy_agenda_call1", 
+            "iy_transmission", "rte_pos", "jacobian_do", "atmosphere_dim", 
+            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
+            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field", 
+            "refellipsoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid",
+            "dispersion_do", "mblock_index", "ppath_agenda", 
+            "ppath_step_agenda", "abs_scalar_gas_agenda", "iy_space_agenda", 
+            "iy_variable", "iy_aux_variable" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -6794,30 +6792,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "PrintTangentPoint" ),
-        DESCRIPTION
-        (
-         "Prints information about the tangennt point of a propagation path.\n"
-         "\n"
-         "The tangent point is here defined as the point with the lowest\n"
-         "altitude (which differes from the definition used in the code\n"
-         "where it is the point with the lowest radius, or equally the point\n"
-         "with a zenith angle of 90 deg.)\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath" ),
-        GIN( "level" ),
-        GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Output level to use." )
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
       ( NAME( "PrintWorkspace" ),
         DESCRIPTION
         (
@@ -8452,6 +8426,58 @@ void define_md_data_raw()
                   "Position of angle in *surface_los* inside ranges of zenith "
                   "angle grid. See above."
                   )
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "TangentPointExtract" ),
+        DESCRIPTION
+        (
+         "Finds the tangent point of a propagation path.\n"
+         "\n"
+         "The tangent point is here defined as the point with the lowest\n"
+         "altitude (which differes from the definition used in the code\n"
+         "where it is the point with the lowest radius, or equally the point\n"
+         "with a zenith angle of 90 deg.)\n"
+         "\n"
+         "The tangent point is returned as a vector, with columns matching\n"
+         "e.g. *rte_pos*. If the propagation path has no tangent point, the\n"
+         "vector is set to NaN.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "tan_pos" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "The position vector of the tangent point." ),
+        IN( "ppath" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "TangentPointPrint" ),
+        DESCRIPTION
+        (
+         "Prints information about the tangent point of a propagation path.\n"
+         "\n"
+         "The tangent point is here defined as the point with the lowest\n"
+         "altitude (which differes from the definition used in the code\n"
+         "where it is the point with the lowest radius, or equally the point\n"
+         "with a zenith angle of 90 deg.)\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath" ),
+        GIN( "level" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Output level to use." )
         ));
 
   md_data_raw.push_back

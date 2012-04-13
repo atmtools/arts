@@ -1410,8 +1410,8 @@ void iyRadioLink(
    const Agenda&               ppath_step_agenda,
    const Agenda&               abs_scalar_gas_agenda,
    const Agenda&               iy_space_agenda,
-   const String&               main_var,
-   const String&               aux_var,
+   const String&               iy_var,
+   const String&               iy_aux_var,
    const Verbosity&            verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
@@ -1425,18 +1425,19 @@ void iyRadioLink(
     throw runtime_error( "This method does not yet provide any jacobians and "
                          "*jacobian_do* must be 0." );
 
-  // main_var and aux_var
-  if( main_var ==  aux_var )
-    throw runtime_error("No need to set *main_var* and *aux_var* to be equal.");
-  if( !( main_var=="FreeSpaceLoss"  || main_var=="AtmosphericLoss" ||
-         main_var=="DefocusingLoss" || main_var=="TotalLoss"       ||
-         main_var=="ExtraPathDelay" || main_var=="BendingAngle" ) )
-    throw runtime_error( "Choice for *main_var* not recognised." );
-  if( !( aux_var=="FreeSpaceLoss"  || aux_var=="AtmosphericLoss" ||
-         aux_var=="DefocusingLoss" || aux_var=="TotalLoss"       ||
-         aux_var=="ExtraPathDelay" || aux_var=="BendingAngle"    ||
-         aux_var=="None" ) )
-    throw runtime_error( "Choice for *aux_var* not recognised." );
+  // iy_variable and iy_aux_variable
+  if( iy_var ==  iy_aux_var )
+    throw runtime_error( "No need to set *iy_variable* and *iy_aux_variable* "
+                         "to be equal.");
+  if( !( iy_var=="FreeSpaceLoss"  || iy_var=="AtmosphericLoss" ||
+         iy_var=="DefocusingLoss" || iy_var=="TotalLoss"       ||
+         iy_var=="ExtraPathDelay" || iy_var=="BendingAngle" ) )
+    throw runtime_error( "Choice for *iy_variable* not recognised." );
+  if( !( iy_aux_var=="FreeSpaceLoss"  || iy_aux_var=="AtmosphericLoss" ||
+         iy_aux_var=="DefocusingLoss" || iy_aux_var=="TotalLoss"       ||
+         iy_aux_var=="ExtraPathDelay" || iy_aux_var=="BendingAngle"    ||
+         iy_aux_var=="None" ) )
+    throw runtime_error( "Choice for *iy_aux_variable* not recognised." );
 
   // Determine which variables to compute
   //
@@ -1447,18 +1448,18 @@ void iyRadioLink(
   bool ExtraPathDelay = false;
   bool BendingAngle = false;
   //
-  if( main_var == "FreeSpaceLoss"  ||  aux_var == "FreeSpaceLoss" )
+  if( iy_var == "FreeSpaceLoss"  ||  iy_aux_var == "FreeSpaceLoss" )
     { FreeSpaceLoss = true; }
-  if( main_var == "DefocusingLoss"  ||  aux_var == "DefocusingLoss" )
+  if( iy_var == "DefocusingLoss"  ||  iy_aux_var == "DefocusingLoss" )
     { DefocusingLoss = true; }
-  if( main_var == "AtmosphericLoss"  ||  aux_var == "AtmosphericLoss" )
+  if( iy_var == "AtmosphericLoss"  ||  iy_aux_var == "AtmosphericLoss" )
     { AtmosphericLoss = true; }
-  if( main_var == "TotalLoss"  ||  aux_var == "TotalLoss" )
+  if( iy_var == "TotalLoss"  ||  iy_aux_var == "TotalLoss" )
     { FreeSpaceLoss   = true;   DefocusingLoss = true;
       AtmosphericLoss = true;   TotalLoss      = true; }
-  if( main_var == "ExtraPathDelay"  ||  aux_var == "ExtraPathDelay" )
+  if( iy_var == "ExtraPathDelay"  ||  iy_aux_var == "ExtraPathDelay" )
     { ExtraPathDelay = true; }
-  if( main_var == "BendingAngle"  ||  aux_var == "BendingAngle" )
+  if( iy_var == "BendingAngle"  ||  iy_aux_var == "BendingAngle" )
     { BendingAngle = true; }
 
   // Set up iy and iy_aux (can be redone by e.g. iy_space_agenda)
@@ -1467,7 +1468,7 @@ void iyRadioLink(
   //
   iy.resize( nf, stokes_dim );  
   iy     = 0;  
-  if( aux_var ==" None" ) 
+  if( iy_aux_var ==" None" ) 
     { iy_aux.resize( 0, 0); }
   else
     {
@@ -1659,7 +1660,7 @@ void iyRadioLink(
         { bending_angle1d( ba, ppath ); }
 
       // Atmospheric loss as aux is a special case
-      if( aux_var == "AtmosphericLoss" )
+      if( iy_aux_var == "AtmosphericLoss" )
         { iy_aux(fr,joker) = iy(fr,joker); }
 
       // Total loss
@@ -1667,7 +1668,7 @@ void iyRadioLink(
       if( TotalLoss )
         {
           // A copy of atmospheric loss needed?
-          if( main_var == "AtmosphericLoss" )
+          if( iy_var == "AtmosphericLoss" )
             {  
               atmloss = iy(fr,joker);
             }
@@ -1679,29 +1680,29 @@ void iyRadioLink(
         }
 
       // Fill iy_aux
-      if( aux_var == "None" )
+      if( iy_aux_var == "None" )
         { iy_aux(fr,0) = -999; }
-      else if( aux_var == "FreeSpaceLoss" )
+      else if( iy_aux_var == "FreeSpaceLoss" )
         { iy_aux(fr,0) = fspl; }
-      else if( aux_var == "DefocusingLoss" )
+      else if( iy_aux_var == "DefocusingLoss" )
         { iy_aux(fr,0) = dfl; }
-      else if( aux_var == "TotalLoss" )
+      else if( iy_aux_var == "TotalLoss" )
         { iy_aux(fr,joker) = iy(fr,joker); }
-      else if( aux_var == "ExtraPathDelay" )
+      else if( iy_aux_var == "ExtraPathDelay" )
         { iy_aux(fr,0) = epd; }
-      else if( aux_var == "BendingAngle" )
+      else if( iy_aux_var == "BendingAngle" )
         { iy_aux(fr,0) = ba; }
 
       // Fill iy
-      if( main_var == "FreeSpaceLoss" )
+      if( iy_var == "FreeSpaceLoss" )
         { iy(fr,0) = fspl; }
-      else if( main_var == "DefocusingLoss" )
+      else if( iy_var == "DefocusingLoss" )
         { iy(fr,0) = dfl; }
-      else if( main_var == "AtmosphericLoss"  && TotalLoss )
+      else if( iy_var == "AtmosphericLoss"  && TotalLoss )
         { iy(fr,joker) = atmloss(joker,joker); }
-      else if( main_var == "ExtraPathDelay" )
+      else if( iy_var == "ExtraPathDelay" )
         { iy(fr,0) = epd; }
-      else if( main_var == "BendingAngle" )
+      else if( iy_var == "BendingAngle" )
         { iy(fr,0) = ba; }
     }
 }

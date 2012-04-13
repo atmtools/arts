@@ -1643,6 +1643,26 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Matrix" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iyb" ),
+      DESCRIPTION
+      (
+       "Monochromatic pencil beam data for one measurement block.\n"
+       "\n"
+       "The data for all *iy* of a measurement block appended to a vector,\n"
+       "following the sorting order used for *y*.\n"
+       "\n"
+       "Usage:      Used internally.\n"
+       "\n"
+       "Unit:       W / (m^2 Hz sr) or transmission.\n"
+       "\n"
+       "Dimensions: [ naa*nza*nf*stokes_dim ] where naa is length of\n"
+       "            mblock_aa_grid, za length of mblock_za_grid and nf is\n"
+       "            length of f_grid.\n"
+       ),
+      GROUP( "Vector" )));
+
  wsv_data.push_back
     (WsvRecord
      ( NAME( "iy_agenda_call1" ),
@@ -1664,9 +1684,9 @@ void Workspace::define_wsv_data()
     ( NAME( "iy_aux" ),
       DESCRIPTION
       (
-       "Data auxilary to *iy*.\n"
+       "Data auxiliary to *iy*.\n"
        "\n"
-       "This variable makes it possible to provide auxilary information for\n"
+       "This variable makes it possible to provide auxiliary information for\n"
        "each value in *iy*. The standard usage is to provide transmission,\n"
        "then to complement radiance data. See the relevant WSMs for details.\n"
        "\n"
@@ -1680,6 +1700,24 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
       GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iy_aux_variable" ),
+      DESCRIPTION
+      (
+       "Selection of variable for *iy_aux*.\n"
+       "\n"
+       "Some radiative transfer methods can return several variables. This\n"
+       "string is used for selecting what shall be the auxiliary output, ie.\n"
+       "what quantity to put in *iy_aux*.\n"
+       "\n"
+       "This WSV is not used by all WSMs returning *iy_aux*. And allowed\n"
+       "options vary between the WSM that consider the WSV.\n"
+       "\n"
+       "Usage:   Set by the user.\n"
+       ),
+      GROUP( "String" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -1778,23 +1816,21 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "iyb" ),
+    ( NAME( "iy_variable" ),
       DESCRIPTION
       (
-       "Monochromatic pencil beam data for one measurement block.\n"
+       "Selection of variable for *iy*.\n"
        "\n"
-       "The data for all *iy* of a measurement block appended to a vector,\n"
-       "following the sorting order used for *y*.\n"
+       "Some radiative transfer methods can return several variables. This\n"
+       "string is used for selecting what shall be the main output, ie. what\n"
+       "quantity to put in *iy*.\n"
        "\n"
-       "Usage:      Used internally.\n"
+       "This WSV is not used by all WSMs returning *iy*. And allowed\n"
+       "options vary between the WSM that consider the WSV.\n"
        "\n"
-       "Unit:       W / (m^2 Hz sr) or transmission.\n"
-       "\n"
-       "Dimensions: [ naa*nza*nf*stokes_dim ] where naa is length of\n"
-       "            mblock_aa_grid, za length of mblock_za_grid and nf is\n"
-       "            length of f_grid.\n"
+       "Usage:   Set by the user.\n"
        ),
-      GROUP( "Vector" )));
+      GROUP( "String" )));
 
  wsv_data.push_back
    (WsvRecord

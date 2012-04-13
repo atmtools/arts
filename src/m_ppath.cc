@@ -605,40 +605,6 @@ void ppath_stepRefractionBasic(
 
 
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void PrintTangentPoint(
-    const Ppath&     ppath,
-    const Index&     level,
-    const Verbosity& verbosity)
-{
-  Index it;
-  find_tanpoint( it, ppath );
-
-  ostringstream os;
-
-  if( it < 0 )
-    {
-      os << "Lowest altitude found at the end of the propagation path.\n"
-         << "This indicates that the tangent point is either above the\n"
-         << "top-of-the-atmosphere or below the planet's surface.";
-    }
-  else
-    {
-      os << "    z: " << ppath.pos(it,0)/1e3 << " km\n" 
-         << "  lat: " << ppath.pos(it,1) << " deg";
-        if( ppath.pos.ncols() == 3 )
-          os << "\n   lon: " << ppath.pos(it,2) << " deg";
-    }
-
-  CREATE_OUTS
-  SWITCH_OUTPUT (level, os.str ());  
-}
-
-
-
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losSet(
           Vector&    rte_los,
@@ -659,7 +625,6 @@ void rte_losSet(
     }
   rte_los[0] = za;
 }
-
 
 
 
@@ -734,8 +699,6 @@ void rte_losGeometricFromRtePosToRtePos2(
 
 
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posSet(
           Vector&    rte_pos,
@@ -756,6 +719,64 @@ void rte_posSet(
     { rte_pos[2] = lon; }
 }
 
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void TangentPointExtract(
+          Vector&    tan_pos,
+    const Ppath&     ppath,
+    const Verbosity& )
+{
+  Index it;
+  find_tanpoint( it, ppath );
+
+  tan_pos.resize( ppath.pos.ncols() );
+
+  if( it < 0 )
+    {
+      tan_pos = sqrt( -1 );  // = NaN
+    }
+  else
+    {
+      tan_pos[0] = ppath.pos(it,0);
+      tan_pos[1] = ppath.pos(it,1);
+      if( ppath.pos.ncols() == 3 )
+        { tan_pos[2] = ppath.pos(it,2); }
+    }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void TangentPointPrint(
+    const Ppath&     ppath,
+    const Index&     level,
+    const Verbosity& verbosity)
+{
+  Index it;
+  find_tanpoint( it, ppath );
+
+  ostringstream os;
+
+  if( it < 0 )
+    {
+      os << "Lowest altitude found at the end of the propagation path.\n"
+         << "This indicates that the tangent point is either above the\n"
+         << "top-of-the-atmosphere or below the planet's surface.";
+    }
+  else
+    {
+      os << "    z: " << ppath.pos(it,0)/1e3 << " km\n" 
+         << "  lat: " << ppath.pos(it,1) << " deg";
+        if( ppath.pos.ncols() == 3 )
+          os << "\n   lon: " << ppath.pos(it,2) << " deg";
+    }
+
+  CREATE_OUTS
+  SWITCH_OUTPUT (level, os.str ());  
+}
 
 
 
