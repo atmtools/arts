@@ -1,3 +1,25 @@
+2012-04-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-91
+	
+	* Completed moving of testcases from tests/ to controlfiles/.
+	Next up is moving the include files into the appropriate directories
+	in controlfiles/.
+
+	* controlfiles/artscomponents/wfuns: Moved from tests/Wfuns.
+
+	* controlfiles/artscomponents/radiolink: Moved from tests/RadioLink.
+
+	* controlfiles/instruments/amsu: Moved from tests/AMSU.
+
+	* controlfiles/instruments/mhs: Moved from tests/MHS.
+
+	* controlfiles/instruments/odinsmr: Moved from tests/OdinSMR.
+
+	* controlfiles/CMakeLists.txt: Add moved testcases.
+
+	* tests/CMakeLists.txt: Remove moved testcases.
+
 2012-04-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-90

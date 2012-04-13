@@ -22,6 +22,9 @@ arts_test_run_ctlfile(fast.groundbased
 arts_test_run_ctlfile(fast.transmission
                       artscomponents/transmission/TestTransmission.arts)
 
+arts_test_run_ctlfile(fast.radiolink
+                      artscomponents/radiolink/TestRadioLink.arts)
+
 arts_test_run_ctlfile(fast.absorption
                       artscomponents/absorption/TestAbs.arts)
 
@@ -45,5 +48,18 @@ arts_test_ctlfile_depends(slow.montecarlo.generalgaussian
 arts_test_run_ctlfile(fast.montecarlo.rtecalc
                       artscomponents/montecarlo/TestRteCalcMC.arts)
 arts_test_ctlfile_depends(fast.montecarlo.rtecalc fast.montecarlo.dataprepare)
+
+arts_test_run_ctlfile(slow.wfuns artscomponents/wfuns/TestWfuns.arts)
+
+###################
+### Instruments ###
+
+arts_test_run_ctlfile(fast.odinsmr instruments/odinsmr/TestOdinSMR.arts)
+
+arts_test_run_ctlfile(fast.amsub instruments/amsu/TestAMSUB_fast.arts)
+arts_test_run_ctlfile(slow.amsub instruments/amsu/TestAMSUB.arts)
+
+arts_test_run_ctlfile(fast.mhs instruments/mhs/TestMHS_fast.arts)
+arts_test_run_ctlfile(slow.mhs instruments/mhs/TestMHS.arts)
 
 
