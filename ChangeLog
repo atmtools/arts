@@ -1,3 +1,91 @@
+2012-04-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-93
+
+	* This commit concludes the consolidation of controlfiles and
+	includefiles into the controlfiles/ directory.
+
+	Only open issue is the includes/smr directory. These files do not seem
+	to be used anywhere. I left them in their original location for now.
+
+	* src/file.{h,cc} (find_file):
+
+	Don't go through search paths if filename already contains a full path.
+
+	* src/xml_io.cc (xml_read_from_file,xml_read_arts_catalogue_from_file): 
+
+	Throw runtime error immediately when we know the file doesn't exist
+	instead of later when trying to actually open it.
+
+	* src/parameters.cc (get_parameters): Add . to include and data paths.
+
+	* src/parser.cc (ArtsParser::parse_agenda):
+
+	When including a file with a path, we have to add the file's path
+	temporarily at the beginning of the include path. This is necessary
+	because the included file can include files from the same directory
+	without specifying further path information. This mimics the behaviour
+	how C/C++ compilers deal with include files. Problem is that we have to
+	permanently add this path also to the data search path because include
+	files can contain ReadXML etc. methods which are only executed later on.
+	Not sure what a clean solution for that would be. #49
+
+	* Missed to move two remaining controlfiles from tests/ in previous
+	commit:
+
+	* controlfiles/instruments/hirs: Moved from tests/HIRS.
+
+	* controlfiles/instruments/avhrr: Moved from tests/AVHRR.
+
+	* Moving include files into controlfiles/ sub-directories:
+
+	* includes/amsu/*: Moved to controlfiles/instruments/amsu/.
+
+	* controlfiles/instruments/amsu/*.arts:
+
+	Remove amsu/ prefix for include and data files.
+
+	* includes/mhs/*: Moved to controlfiles/instruments/mhs/.
+
+	* controlfiles/instruments/mhs/*.arts:
+
+	Remove mhs/ prefix for include and data files.
+
+	* includes/odin/*: Moved to controlfiles/instruments/odinsmr/.
+
+	* controlfiles/instruments/odinsmr/*.arts:
+
+	Remove odin/ prefix for include and data files.
+
+	* includes/hirs/*: Moved to controlfiles/instruments/hirs/.
+
+	* controlfiles/instruments/hirs/*.arts:
+
+	Remove hirs/ prefix for include and data files.
+
+	* includes/avhrr/*: Moved to controlfiles/instruments/avhrr/.
+
+	* controlfiles/instruments/avhrr/*.arts:
+
+	Remove hirs/ prefix for include and data files. Change prefix to hirs
+	includes to instruments/hirs/.
+
+	* controlfiles/instruments/avhrr/TestAVHRR.ybatch.xml:
+
+	Remove output file.
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+
+	Change prefix for odin include to instruments/odinsmr/.
+
+	* include/CMakeLists.txt: Remove subdirs.
+
+	* CMakeLists.txt:
+
+	${CMAKE_SOURCE_DIR}/includes from ARTS_DEFAULT_INCLUDE_DIR.
+
+	Remove subdirectory includes/.
+
 2012-04-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-92

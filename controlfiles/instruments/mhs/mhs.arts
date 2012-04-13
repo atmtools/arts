@@ -51,9 +51,9 @@ SpeciesSet( abs_species, [ "H2O-PWR98",
 #                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
 #                             80e9,
 #                             200e9 )
-#WriteXML( "ascii", abs_lines, "mhs/mhs.hitran04_lines.xml" )
+#WriteXML( "ascii", abs_lines, "mhs.hitran04_lines.xml" )
 
-ReadXML( abs_lines, "mhs/mhs.hitran04_lines.xml" )
+ReadXML( abs_lines, "mhs.hitran04_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line
@@ -66,7 +66,7 @@ abs_lines_per_speciesCreateFromLines
 
 # Definition of sensor position and LOS
 # ---
-ReadXML( sensor_los, "mhs/mhs.sensor_los.xml" )
+ReadXML( sensor_los, "mhs.sensor_los.xml" )
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 # MetOp

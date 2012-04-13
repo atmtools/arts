@@ -1,6 +1,11 @@
 #DEFINITIONS:  -*-sh-*-
 
-# ARTS setup file for fast AVHRR simulations.
+# ARTS setup file for AVHRR reference simulations.
+#
+# Based on hirs_reference.arts.
+# 
+# So far this is the only include file for AVHRR, but in the future a fast
+# setup may be added, in analogy to hirs_fast.arts.
 #
 # This expects a number of workspace variables to exist and to be set:
 # 
@@ -21,6 +26,7 @@
 #                            FRAC/LAC, e.g. 1024 views on each side of the
 #                            scan. 
 # hitran_file (String)       Name of HITRAN catalogue file.
+# f_grid_spacing (Numeric)   Frequency grid spacing.
 
 Arts2 {
 
@@ -28,15 +34,15 @@ Arts2 {
 #-----------
 
 # this part is the same as for HIRS
-INCLUDE "hirs/hirs_general.arts"
-INCLUDE "hirs/hirs_spectroscopy.arts"
-INCLUDE "hirs/hirs_hitran.arts"
+INCLUDE "instruments/hirs/hirs_general.arts"
+INCLUDE "instruments/hirs/hirs_spectroscopy.arts"
+INCLUDE "instruments/hirs/hirs_hitran.arts"
 
 # 3. Sensor:
 #-----------
 
-INCLUDE "avhrr/avhrr_sensor_common.arts"
-INCLUDE "avhrr/avhrr_sensor_fast.arts"
+INCLUDE "avhrr_sensor_common.arts"
+INCLUDE "avhrr_sensor_reference.arts"
 
 # See comment in hirs/hirs_reference.arts
 abs_lines_per_speciesCompact

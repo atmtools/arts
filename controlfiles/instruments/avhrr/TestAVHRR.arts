@@ -42,7 +42,7 @@ StringSet(hitran_file,"/storage3/data/catalogue/hitran/hitran2004/HITRAN04.par")
 # ---
 NumericSet(f_grid_spacing, 5e8)
 
-INCLUDE "avhrr/avhrr_reference.arts"
+INCLUDE "avhrr_reference.arts"
 
 
 # Set up absorption

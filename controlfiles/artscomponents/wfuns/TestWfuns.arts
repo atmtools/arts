@@ -18,7 +18,7 @@ Arts2 {
 
 # Select frequency band here:
 #
-INCLUDE "odin/odinsmr_501.arts"
+INCLUDE "instruments/odinsmr/odinsmr_501.arts"
 
 
 

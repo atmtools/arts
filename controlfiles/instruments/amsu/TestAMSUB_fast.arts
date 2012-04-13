@@ -4,7 +4,8 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
-INCLUDE "amsu/amsub_fast.arts"
+
+INCLUDE "amsub_fast.arts"
 
 INCLUDE "TestAMSU_generic.arts"
 

@@ -2,7 +2,7 @@
 Arts2{
 # Channel response functions:
 StringCreate(backend_channel_response_file)
-StringSet(backend_channel_response_file, "avhrr/")
+StringSet(backend_channel_response_file, "./")
 Append(backend_channel_response_file, satellite)
 StringSet(dummy, "_AVHRR.backend_channel_response.xml")
 #

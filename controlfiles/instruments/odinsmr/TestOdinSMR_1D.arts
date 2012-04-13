@@ -10,7 +10,7 @@ Arts2 {
 
 # Select frequency band here:
 #
-INCLUDE "odin/odinsmr_501_1D.arts"
+INCLUDE "odinsmr_501_1D.arts"
 
 
 # Possibility to change considered species

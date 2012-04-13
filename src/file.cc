@@ -376,40 +376,46 @@ bool file_exists(const String& filename)
 
   @author Oliver Lemke
 */
-bool find_file(String& filename, const char* extension, const ArrayOfString& paths)
+bool find_file(String& filename, const String extension, const ArrayOfString& paths)
 {
   bool exists = true;
 
-  if (!file_exists (filename))
+  // filename contains full path
+  if (filename.nelem() && filename[0] == '/')
+  {
+    if (!file_exists(filename))
     {
+      // Full path + extension
       if (file_exists (filename + extension))
-        {
-          filename += extension;
-        }
+        filename += extension;
       else
-        {
-          ArrayOfString::const_iterator path;
-          for (path = paths.begin(); path != paths.end(); path++)
-            {
-              String fullpath;
-              fullpath = expand_path(*path) + "/" + filename;
-              if (file_exists (fullpath))
-                {
-                  filename = fullpath;
-                  break;
-                }
-              else if (file_exists (fullpath + extension))
-                {
-                  filename = fullpath + extension;
-                  break;
-                }
-            }
-          if (path == paths.end())
-            {
-              exists = false;
-            }
-        }
+        exists = false;
     }
+  }
+  // filename contains no or relative path
+  else
+  {
+    ArrayOfString::const_iterator path;
+    for (path = paths.begin(); path != paths.end(); path++)
+    {
+      String fullpath;
+      fullpath = expand_path(*path) + "/" + filename;
+      if (file_exists (fullpath))
+      {
+        filename = fullpath;
+        break;
+      }
+      else if (file_exists (fullpath + extension))
+      {
+        filename = fullpath + extension;
+        break;
+      }
+    }
+    if (path == paths.end())
+    {
+      exists = false;
+    }
+  }
 
   return exists;
 }

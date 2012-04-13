@@ -139,7 +139,7 @@ SpeciesSet( abs_species, [
 # The file includes transitions of O2-66, O2-67, O2-68 and O3-666.
 # I selected the O3 lines that appeared the strongest. Could need a revision.
 #
-abs_linesReadFromArts( abs_lines, "odin/linefile.119ghz.xml", 0, 2e12 )
+abs_linesReadFromArts( abs_lines, "linefile.119ghz.xml", 0, 2e12 )
 
 # Atmospheric scenario
 #
@@ -272,7 +272,7 @@ AntennaSet1D
 #
 # So far just a gaussian response with approximate width (covering +-3si)
 #
-ReadXML( antenna_response, "odin/antenna.119ghz.xml" )
+ReadXML( antenna_response, "antenna.119ghz.xml" )
 
 
 
@@ -291,7 +291,7 @@ VectorAddScalar( f_backend, f_backend, f_shift )
 #
 # Same rectangular response so far assumed for all channels
 #
-ReadXML( backend_channel_response, "odin/filterbank_response.xml" )
+ReadXML( backend_channel_response, "filterbank_response.xml" )
 
 
 

@@ -255,15 +255,26 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
       if (id == -1)
         {
           // Command line parameters which give us the include search path.
-          extern const Parameters parameters;
+          extern Parameters parameters;
 
-          if (!find_file (include_file, ".arts", parameters.includepath))
+          ArrayOfString current_includepath = parameters.includepath;
+          String includedir;
+          get_dirname(includedir, msource.File());
+          if (includedir.nelem())
+          {
+            if (current_includepath.nelem() && current_includepath[0] != includedir)
+              current_includepath.insert(current_includepath.begin(), includedir);
+            if (parameters.datapath.nelem() && parameters.datapath[0] != includedir)
+              parameters.datapath.insert(parameters.datapath.begin(), includedir);
+          }
+          
+          if (!find_file (include_file, ".arts", current_includepath))
             {
               ostringstream os;
               os << "Cannot find include file " << include_file
                 << ".\n";
               os << "File: "   << msource.File() << '\n';
-              os << "Search path was: . " << parameters.includepath
+              os << "Search path was: " << current_includepath
                 << "\n";
               throw runtime_error (os.str());
             }

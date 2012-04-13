@@ -1,6 +1,6 @@
 Arts2 {
 
-INCLUDE "odin/odinsmr.arts"
+INCLUDE "odinsmr.arts"
 
 
 # A number of species with very weak emission are here neglected
@@ -14,6 +14,6 @@ SpeciesSet( abs_species, [
 ] )
 
 # Line file
-abs_linesReadFromArts( abs_lines, "odin/linefile.SM_AC1e.xml", 0, 2e12 )
+abs_linesReadFromArts( abs_lines, "linefile.SM_AC1e.xml", 0, 2e12 )
 
 }

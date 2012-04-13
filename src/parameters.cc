@@ -414,6 +414,9 @@ bool get_parameters(int argc, char **argv)
   }
 #endif
 
+  parameters.includepath.insert(parameters.includepath.begin(), ".");
+  parameters.datapath.insert(parameters.datapath.begin(), ".");
+
   if (parameters.controlfiles.nelem())
   {
     String cfdirname;

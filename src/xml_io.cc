@@ -870,7 +870,15 @@ xml_read_from_file (const String& filename,
 
   found_file = find_file (xml_file, ".xml", allpaths);
   if (!found_file) found_file = find_file (xml_file, ".xml.gz", allpaths);
-  if (!found_file) find_file (xml_file, ".gz", allpaths);
+  if (!found_file) found_file = find_file (xml_file, ".gz", allpaths);
+  
+  if (!found_file)
+  {
+    ostringstream os;
+    os << "Cannot find input file: " << filename << endl;
+    os << "Search path: " << allpaths << endl;
+    throw runtime_error(os.str());
+  }
 
   out2 << "  Reading " << xml_file << '\n';
   
@@ -957,8 +965,16 @@ xml_read_arts_catalogue_from_file (const String&      filename,
 
   found_file = find_file (xml_file, ".xml", allpaths);
   if (!found_file) found_file = find_file (xml_file, ".xml.gz", allpaths);
-  if (!found_file) find_file (xml_file, ".gz", allpaths);
+  if (!found_file) found_file = find_file (xml_file, ".gz", allpaths);
 
+  if (!found_file)
+  {
+    ostringstream os;
+    os << "Cannot find input file: " << filename << endl;
+    os << "Search path: " << allpaths << endl;
+    throw runtime_error(os.str());
+  }
+  
   out2 << "  Reading " << xml_file << '\n';      
 
   // Open input stream:

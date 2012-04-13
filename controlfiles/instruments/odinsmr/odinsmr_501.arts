@@ -4,6 +4,9 @@
 # The simulations are intended to match the operational settings, but there
 # are some differences. See notes below.
 #
+# This file assumes that each tangent altitude is treated as a measurement
+# block. 
+#
 # Input files are found in the folder tests/OdinSMR.
 # See setup_input.m for source of input files.
 #
@@ -13,12 +16,12 @@
 Arts2 {
 
 INCLUDE "general/general.arts"
-INCLUDE "odin/odinsmr_544_absorption.arts"
 
+INCLUDE "odinsmr_501_absorption.arts"
 
 
 # Frequency grid
-ReadXML( f_grid, "odin/f_mono.SM_AC1e.xml" )
+ReadXML( f_grid, "f_mono.SM_AC2ab.xml" )
 
 
 
@@ -28,12 +31,13 @@ ReadXML( f_grid, "odin/f_mono.SM_AC1e.xml" )
 
 IndexSet( sensor_norm, 1 )
 
+
 # Antenna:
 #
 AntennaSet1D
 #
 VectorSet( mblock_za_grid, [
-  -0.2,-0.15,-0.1,-0.05,-0.04,-0.03,-0.02,-0.01,
+ -0.2,-0.15,-0.1,-0.05,-0.04,-0.03,-0.02,-0.01,
   0,0.01,0.02,0.03,0.04,0.05,0.10,0.15,0.20
 ] )
 #
@@ -41,20 +45,20 @@ MatrixSetConstant( antenna_los, 1, 1, 0 )
 
 # The folder contains antenna pattern for different integration times.
 # The pattern for smallest integration time is selected here.
-ReadXML( antenna_response, "odin/antenna.SM_AC1e.875ms.xml" )
+ReadXML( antenna_response, "antenna.SM_AC2ab.875ms.xml" )
 
 
 # Mixer:
 #
-ReadXML( lo, "odin/lo.SM_AC1e.xml" )
-ReadXML( sideband_response, "odin/sideband.SM_AC1e.xml" )
-StringSet( sideband_mode, "lower" )
+ReadXML( lo, "lo.SM_AC2ab.xml" )
+ReadXML( sideband_response, "sideband.SM_AC2ab.xml" )
+StringSet( sideband_mode, "upper" )
 
 
 # Spectrometer:
 #
-ReadXML( f_backend, "odin/f_backend.SM_AC1e.xml" )
-ReadXML( backend_channel_response, "odin/backend_channel_response.xml" )
+ReadXML( f_backend, "f_backend.SM_AC2ab.xml" )
+ReadXML( backend_channel_response, "backend_channel_response.xml" )
 
 
 sensor_responseInit

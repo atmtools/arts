@@ -4,7 +4,8 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
-INCLUDE "mhs/mhs.arts"
+
+INCLUDE "mhs.arts"
 
 INCLUDE "TestMHS_generic.arts"
 
