@@ -80,7 +80,7 @@ void refr_indexFreeElectrons(
 
       // The expression is taken from Rybicki and Lightman (1979), and 
       // considers the group velocity.
-      refr_index += sqrt( 1 - rte_edensity*k/(f*f) ) - 1;
+      refr_index += 1/sqrt( 1 - rte_edensity*k/(f*f) ) - 1;
     }
 }
 

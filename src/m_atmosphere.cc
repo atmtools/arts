@@ -342,9 +342,7 @@ void basics_checkedCalc(
                                                   p_grid, lat_grid, lon_grid );
   chk_atm_field( "t_field", t_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
-  // Ignore vmr_field if abs_species is empty
-  if( abs_species.nelem() )
-    chk_atm_field( "vmr_field", vmr_field, atmosphere_dim, abs_species.nelem(),
+  chk_atm_field( "vmr_field", vmr_field, atmosphere_dim, abs_species.nelem(),
                                                   p_grid, lat_grid, lon_grid );
   chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
 

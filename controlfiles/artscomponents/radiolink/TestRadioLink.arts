@@ -17,9 +17,9 @@ INCLUDE "general/continua.arts"
 VectorSet( f_grid, [10e9] )
 
 
-# A pressure grid rougly matching 0 to 80 km, in steps of 1 km.
+# A pressure grid rougly matching 0 to 80 km, in steps of 250.
 #
-VectorNLogSpace( p_grid, 41, 1013e2, 1 )
+VectorNLogSpace( p_grid, 321, 1013e2, 1 )
 
 
 # Definition of species
@@ -40,7 +40,9 @@ abs_lines_per_speciesSetEmpty
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
             "atmosphere_data/tropical" )
 #
-AtmFieldsCalc
+AtmFieldsCalc( t_field, z_field, vmr_field, p_grid, 
+               lat_grid, lon_grid, t_field_raw, z_field_raw, 
+               vmr_field_raw, atmosphere_dim, 3 )
 
 
 # Surface altitude
@@ -104,9 +106,9 @@ MatrixSet( transmitter_pos, [ 0, 2.3; 10e3, 25.7; 600e3, 48.3 ] )
 # Expected transmissions
 #
 MatrixCreate( iyREFERENCE )
-MatrixSet( iyREFERENCE, [ 0.981436, 0.843776, 0.7138 ] )
+MatrixSet( iyREFERENCE, [ 0.98272, 0.84380, 0.71585 ] )
 MatrixCreate( iy_auxREFERENCE )
-MatrixSet( iy_auxREFERENCE, [ 7.5e-9, 2.04615e-7, 6.36657e-07 ] )
+MatrixSet( iy_auxREFERENCE, [ 7.4e-9, 204.7e-9, 636.8e-09 ] )
 
 
 # Set up the ForLoop agenda to run and check the cases
@@ -124,7 +126,7 @@ AgendaSet( forloop_agenda ){
   VectorExtractFromMatrix( iy_test, iy, 0, "column" )
   VectorCreate( iy_ref )
   VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
-  VectorCompare( iy_test, iy_ref, 0.0001 )
+  VectorCompare( iy_test, iy_ref, 0.001 )
   #
   VectorExtractFromMatrix( iy_test, iy_aux, 0, "column" )
   VectorExtractFromMatrix( iy_ref, iy_auxREFERENCE, mblock_index, "column" )

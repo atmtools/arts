@@ -1,3 +1,28 @@
+2012-04-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-97
+
+	* src/m_refraction.cc (refr_indexFreeElectrons): It was just
+	sqrt(...). Corrected to 1/sqrt(...)
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts: Now
+	finer p_grid and cubic interpolation in AtmFieldsCalc.
+
+	* src/m_ppath.cc:(ppathFromRtePos2): Azimuth angle now also stored
+	in H. Fine-tuning of settings for surface intersections.
+
+	* src/refraction.cc: Full WSV of t_field and vmr_field now used
+	inside functions for refraction (for consistency + to handle empty
+	vmr_field).
+
+	* src/rte.cc (defocusing_sat2sat): Removed a cout.
+
+	* src/check_input.cc (chk_atm_field): Now also handling the case
+	when the Tensor4 is/shall be empty.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Call chk_atm_field
+	even if abs_species is empty.
+
 2012-04-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-96

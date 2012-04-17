@@ -1293,13 +1293,26 @@ void chk_atm_field(
         ConstVectorView lat_grid,
         ConstVectorView lon_grid )
 {
+  const Index nbooks=nspecies;
+  // 
+  if( nbooks == 0 )
+    {
+      if( x.nbooks() )
+        {
+          ostringstream os;
+          os << "The atmospheric field *" << x_name <<  "* should be empty.\n";
+          throw runtime_error( os.str() );
+        }
+      else
+        { return; }
+    }
+
+
   Index npages=p_grid.nelem(), nrows=1, ncols=1;
   if( dim > 1 )
     nrows = lat_grid.nelem();
   if( dim > 2 )
     ncols = lon_grid.nelem();
-
-  const Index nbooks=nspecies;
 
   if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ||
       x.nbooks()!=nbooks ) 

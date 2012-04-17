@@ -698,8 +698,6 @@ void defocusing_sat2sat(
   // Zenith loss term (Eq 18 in Kursinski et al.)
   const Numeric zlt = 1 / ( 1 - dada*lf );
 
-  cout << "Zenith term = " << zlt << endl;
-
   // Total defocusing loss
   dlf = zlt * alt;
 }

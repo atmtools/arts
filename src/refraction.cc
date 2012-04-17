@@ -69,10 +69,10 @@ extern const Numeric RAD2DEG;
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.   
    \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure level
-   \param   t_field             The temperature profile.
-   \param   vmr_field           The VMR profile for each species.
-   \param   edensity_field      As the WSV with the same name (NB. full field)
+   \param   z_field             Geomtrical alrtitudes (1D).
+   \param   t_field             As the WSV with the same name.
+   \param   vmr_field           As the WSV with the same name.
+   \param   edensity_field      As the WSV with the same name.
    \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
 
@@ -86,8 +86,8 @@ void get_refr_index_1d(
     ConstVectorView   p_grid,
     ConstVectorView   refellipsoid,
     ConstVectorView   z_field,
-    ConstVectorView   t_field,
-    ConstMatrixView   vmr_field,
+    ConstTensor3View  t_field,
+    ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
     const Index&      f_index,
     const Numeric&    r )
@@ -109,17 +109,17 @@ void get_refr_index_1d(
   rte_pressure = dummy[0];
 
   // Temperature
-  interp( dummy, itw, t_field, gp );
+  interp( dummy, itw, t_field(joker,0,0), gp );
   rte_temperature = dummy[0];
 
   // VMR
-  const Index   ns = vmr_field.nrows();
+  const Index   ns = vmr_field.nbooks();
   //
   rte_vmr_list.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
-      interp( dummy, itw, vmr_field(is,joker), gp );
+      interp( dummy, itw, vmr_field(is,joker,0,0), gp );
       rte_vmr_list[is] = dummy[0];
     }
 
@@ -155,11 +155,10 @@ void get_refr_index_1d(
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure level
-                                at each latitude.
-   \param   t_field             The temperature 2D field.
-   \param   vmr_field           The VMR 2D field for each species.
-   \param   edensity_field      As the WSV with the same name (NB. full field)
+   \param   z_field             Geomtrical altitudes (2D).
+   \param   t_field             As the WSV with the same name.
+   \param   vmr_field           As the WSV with the same name.
+   \param   edensity_field      As the WSV with the same name.
    \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
    \param   lat                 The latitude of the position of interest.
@@ -175,8 +174,8 @@ void get_refr_index_2d(
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
     ConstMatrixView   z_field,
-    ConstMatrixView   t_field,
-    ConstTensor3View  vmr_field,
+    ConstTensor3View  t_field,
+    ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
     const Index&      f_index,
     const Numeric&    r,
@@ -212,22 +211,22 @@ void get_refr_index_2d(
   // Temperature
   itw.resize(1,4);
   interpweights( itw, gp_p, gp_lat );
-  interp( dummy, itw, t_field, gp_p, gp_lat );
+  interp( dummy, itw, t_field(joker,joker,0), gp_p, gp_lat );
   rte_temperature = dummy[0];
 
   // VMR
-  const Index   ns = vmr_field.npages();
+  const Index   ns = vmr_field.nbooks();
   //
   rte_vmr_list.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
-      interp( dummy, itw, vmr_field(is,joker,joker), gp_p, gp_lat );
+      interp( dummy, itw, vmr_field(is,joker,joker,0), gp_p, gp_lat );
       rte_vmr_list[is] = dummy[0];
     }
 
   // Electron density (initiated to zero above)
-  if( edensity_field.nrows() )
+  if( edensity_field.npages() )
     {
       interp( dummy, itw, edensity_field(joker,joker,0), gp_p, gp_lat );
       rte_edensity = dummy[0];
@@ -331,9 +330,8 @@ void get_refr_index_3d(
       rte_vmr_list[is] = dummy[0];
     }
 
-
   // Electron density (initiated to zero above)
-  if( edensity_field.nrows() )
+  if( edensity_field.npages() )
     {
       interp( dummy, itw, edensity_field, gp_p, gp_lat, gp_lon );
       rte_edensity = dummy[0];
@@ -372,11 +370,10 @@ void get_refr_index_3d(
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   refellipsoid        As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure level
-                                at each latitude.
-   \param   t_field             The temperature 2D field.
-   \param   vmr_field           The VMR 2D field for each species.
-   \param   edensity_field      As the WSV with the same name (NB. full field)
+   \param   z_field             Geometrical altitudes (2D).
+   \param   t_field             As the WSV with the same name.
+   \param   vmr_field           As the WSV with the same name.
+   \param   edensity_field      As the WSV with the same name.
    \param   f_index             As the WSV with the same name.
    \param   r                   The radius of the position of interest.
    \param   lat                 The latitude of the position of interest.
@@ -394,8 +391,8 @@ void refr_gradients_2d(
     ConstVectorView   lat_grid,
     ConstVectorView   refellipsoid,
     ConstMatrixView   z_field,
-    ConstMatrixView   t_field,
-    ConstTensor3View  vmr_field,
+    ConstTensor3View  t_field,
+    ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
     const Index&      f_index,
     const Numeric&    r,

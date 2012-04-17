@@ -3267,10 +3267,10 @@ void ppath_step_geom_3d(
    \param   endface      See do_gridrange_1d.
    \param   refellipsoid As the WSV with the same name.
    \param   p_grid       Pressure grid.
-   \param   z_field      Geometrical altitudes corresponding to p_grid.
-   \param   t_field      Temperatures corresponding to p_grid.
-   \param   vmr_field    VMR values corresponding to p_grid.
-   \param   edensity_field    As the WSV with the same name (NB. full field)
+   \param   z_field      Geometrical altitudes (1D).
+   \param   t_field      As the WSV with the same name.
+   \param   vmr_field    As the WSV with the same name.
+   \param   edensity_field    As the WSV with the same name.
    \param   f_index      As the WSV with the same name.
    \param   lmax         As the WSV ppath_lmax
    \param   refr_index_agenda   As the WSV with the same name.
@@ -3297,8 +3297,8 @@ void raytrace_1d_linear_basic(
         ConstVectorView        refellipsoid,
         ConstVectorView        p_grid,
         ConstVectorView        z_field,
-        ConstVectorView        t_field,
-        ConstMatrixView        vmr_field,
+        ConstTensor3View       t_field,
+        ConstTensor4View       vmr_field,
         ConstTensor3View       edensity_field,
         const Index&           f_index,
         const Numeric&         lmax,
@@ -3421,13 +3421,13 @@ void raytrace_1d_linear_basic(
    \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
    \param   p_grid            Pressure grid.
-   \param   z_field           Geometrical altitudes corresponding to p_grid.
-   \param   t_field           Temperatures corresponding to p_grid.
-   \param   vmr_field         VMR values corresponding to p_grid.
-   \param   edensity_field    As the WSV with the same name (NB. full field)
+   \param   z_field           Geometrical altitudes (1D).
+   \param   t_field           As the WSV with the same name.
+   \param   vmr_field         As the WSV with the same name.
+   \param   edensity_field    As the WSV with the same name.
    \param   f_index           As the WSV with the same name.
-   \param   refellipsoid      As the WSV wit the same name.
-   \param   z_surface         Surface altitude.
+   \param   refellipsoid      As the WSV with the same name.
+   \param   z_surface         Surface altitude (1D).
    \param   lmax              Maximum allowed length between the path points.
    \param   refr_index_agenda The WSV with the same name.
    \param   rtrace_method     String giving which ray tracing method to use.
@@ -3442,8 +3442,8 @@ void ppath_step_refr_1d(
               Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        ConstMatrixView   vmr_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
         ConstTensor3View  edensity_field,
         const Index&      f_index,
         ConstVectorView   refellipsoid,
@@ -3544,10 +3544,10 @@ void ppath_step_refr_1d(
    \param   p_grid          The WSV with the same name.
    \param   lat_grid        The WSV with the same name.
    \param   refellipsoid    The WSV with the same name.
-   \param   z_field         The WSV with the same name.
+   \param   z_field         Geomtrical altitudes (2D).
    \param   t_field         The WSV with the same name.
    \param   vmr_field       The WSV with the same name.
-   \param   edensity_field  As the WSV with the same name (NB. full field)
+   \param   edensity_field  As the WSV with the same name.
    \param   f_index         As the WSV with the same name.
    \param   lmax            As the WSV ppath_lmax
    \param   refr_index_agenda   The WSV with the same name.
@@ -3579,8 +3579,8 @@ void raytrace_2d_linear_basic(
         ConstVectorView        lat_grid,
         ConstVectorView        refellipsoid,
         ConstMatrixView        z_field,
-        ConstMatrixView        t_field,
-        ConstTensor3View       vmr_field,
+        ConstTensor3View       t_field,
+        ConstTensor4View       vmr_field,
         ConstTensor3View       edensity_field,
         const Index&           f_index,
         const Numeric&         lmax,
@@ -3726,10 +3726,10 @@ void raytrace_2d_linear_basic(
    \param   ppath             Out: A Ppath structure.
    \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
-   \param   z_field           Geometrical altitudes.
-   \param   t_field           Atmospheric temperatures.
-   \param   vmr_field         VMR values.
-   \param   edensity_field    As the WSV with the same name (NB. full field)
+   \param   z_field           Geometrical altitudes (2D).
+   \param   t_field           As the WSV with the same name.
+   \param   vmr_field         As the WSV with the same name.
+   \param   edensity_field    As the WSV with the same name.
    \param   f_index           As the WSV with the same name.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
@@ -3748,8 +3748,8 @@ void ppath_step_refr_2d(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
-        ConstMatrixView   t_field,
-        ConstTensor3View  vmr_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
         ConstTensor3View  edensity_field,
         const Index&      f_index,
         ConstVectorView   refellipsoid,

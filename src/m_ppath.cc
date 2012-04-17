@@ -163,15 +163,18 @@ void ppathFromRtePos2(
   // A matrix with "hit data", to keep track of most close tries so far.
   // Row 0 holds data for the closest calculation where end point is at a too
   // high zenith angle. Row 1, the same for too low zenith angle. The columns,
-  // 0: Valid data flag. Below 0, not data yet. Avove 0, valid data.
+  // 0: Valid data flag. Below 0, not data yet. Above 0, valid data.
   // 1: Size of zenith angle deviation for end point
-  // 2: rte_los of this calculation
+  // 2: Zenith angle of this calculation
   // 3: Estimate of path length error
-  // 4. Spatal error.
-  Matrix  H(2,5);
+  // 4. Spatial error.
+  // 5. Azimuth angle.
+  Matrix  H(2,6);
   H(joker,0) = -1; 
   H(0,1) = 99e99;    // A value to indicate infinite error
-  H(1,1) = -99e99;    // A value to indicate infinite error
+  H(1,1) = -99e99;   // A value to indicate infinite error
+  H(0,3) = 99e99;   // A value to indicate infinite error
+  H(1,3) = 99e99;   // A value to indicate infinite error
  
   // Iterate until convergence for rte_los
   rte_los = rte_los_geom;  // We start with geomtrical angles
@@ -233,15 +236,17 @@ void ppathFromRtePos2(
               throw runtime_error( os.str() );
             }
 
-          // Set H, with a relative lare error
-          H(0,0)=1;  H(0,1)=0.5; H(0,2)=rte_los[0]; H(0,3)=99e3; H(0,4)=99e3; 
+          // Set H, with a relative large error
+          H(0,0)=1;  H(0,1)= 1/sqrt(surface_hits) ; 
+          H(0,2)=rte_los[0]; H(0,3)=99e3; H(0,4)=99e3; 
+          if( atmosphere_dim == 3 ) { H(0,5)=rte_los[1]; }
 
           // If an OK lower angle exist, take middle point.
           // Otherwise, make a substantial jump upwards
           if( H(1,0) > 0 )
             { rte_los[0] =  0.5*rte_los[0] + 0.5*H(1,2); }
           else
-            { rte_los[0] -= 0.25; }
+            { rte_los[0] -= 0.5; }
           //cout << "-----\n" << H << "\n-----\n" << endl;
         }
 
@@ -304,23 +309,29 @@ void ppathFromRtePos2(
 
               // Any improvement compared to existing results in H
               if( dza > 0   &&  dza < H(0,1) )
-                { H(0,0)=1;  H(0,1)=dza; H(0,2)=rte_los[0]; 
-                  H(0,3)=dl; H(0,4)=ds; }
+                { 
+                  H(0,0)=1;  H(0,1)=dza; H(0,2)=rte_los[0]; 
+                  H(0,3)=dl; H(0,4)=ds; 
+                  if( atmosphere_dim == 3 ) { H(0,5) = rte_los[1]; }
+                }
               else if( dza < 0   &&  dza > H(1,1) )
-                { H(1,0)=1;  H(1,1)=dza; H(1,2)=rte_los[0]; 
-                  H(1,3)=dl; H(1,4)=ds; } 
-              else // Ending up here means likely "jitter" in ppath calculation
+                { 
+                  H(1,0)=1;  H(1,1)=dza; H(1,2)=rte_los[0]; 
+                  H(1,3)=dl; H(1,4)=ds; 
+                  if( atmosphere_dim == 3 ) { H(1,5) = rte_los[1]; }
+                } 
+              else // Ending up here means "jitter" in ppath calculation
                 { 
                   if( H(0,3) < H(1,3) )  { dl = H(0,3);   ds = H(0,4); }
                   else                   { dl = H(1,3);   ds = H(1,4); }
                   ostringstream os;
                   os << "The smallest path length error achieved is: " << dl
                      << " m\nwhich is above the set accuracy limit of  : " 
-                     << dlmax << " m.\nGeographically, the"
-                     << " closest match with *rte_pos2* is " << ds << " m.\n"
-                     << "This can (hopefully) be improved by decreasing the "
-                     << "value of\n*ppath_lraytrace*, and maybe also the one "
-                     << "of *ppath_lmax*.\n";
+                     << dlmax << " m.\nGeographically, the closest "
+                     << "match with *rte_pos2* is " << ds << " m.\n"
+                     << "This can (hopefully) be improved by decreasing the"
+                     << " value of\n*ppath_lraytrace*, and maybe also the "
+                     << "one of *ppath_lmax*.\n";
                   throw runtime_error( os.str() );
                 }
 
@@ -345,6 +356,7 @@ void ppathFromRtePos2(
         throw runtime_error( "Sorry, but the algorithm is not converging. "
                              "Don't know what to do!" );
     }
+
   out2 << "  Length error: " << dl << " m.\n";
   out2 << "  Spatial miss: " << ds << " m.\n";
 
@@ -549,19 +561,19 @@ void ppath_stepRefractionBasic(
       if( atmosphere_dim == 1 )
         { 
           ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
-                              t_field(joker,0,0), vmr_field(joker,joker,0,0), 
-                              edensity_field, f_index, refellipsoid, 
-                              z_surface(0,0), ppath_lmax, refr_index_agenda, 
-                              "linear_basic", ppath_lraytrace );
+                              t_field, vmr_field, edensity_field, f_index, 
+                              refellipsoid, z_surface(0,0), ppath_lmax, 
+                              refr_index_agenda, "linear_basic", 
+                              ppath_lraytrace );
         }
       else if( atmosphere_dim == 2 )
         { 
           ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
-                              z_field(joker,joker,0), t_field(joker,joker,0), 
-                              vmr_field(joker,joker,joker,0), 
+                              z_field(joker,joker,0), t_field, vmr_field, 
                               edensity_field, f_index, refellipsoid, 
-                              z_surface(joker,0), ppath_lmax, refr_index_agenda,
-                              "linear_basic", ppath_lraytrace ); 
+                              z_surface(joker,0), ppath_lmax, 
+                              refr_index_agenda, "linear_basic", 
+                              ppath_lraytrace ); 
         }
       else if( atmosphere_dim == 3 )
         { 
@@ -581,16 +593,15 @@ void ppath_stepRefractionBasic(
       if( atmosphere_dim == 1 )
         { get_refr_index_1d( ws, ppath_step.nreal[0], refr_index_agenda, 
                              p_grid, refellipsoid, z_field(joker,0,0), 
-                             t_field(joker,0,0), vmr_field(joker,joker,0,0), 
+                             t_field, vmr_field, 
                              edensity_field, f_index, ppath_step.r[0] ); 
         }
       else if( atmosphere_dim == 2 )
         { get_refr_index_2d( ws, ppath_step.nreal[0], refr_index_agenda, 
                              p_grid, lat_grid, refellipsoid, 
-                             z_field(joker,joker,0), t_field(joker,joker,0), 
-                             vmr_field(joker,joker,joker,0),
-                             edensity_field, f_index, 
-                             ppath_step.r[0], ppath_step.pos(0,1) ); 
+                             z_field(joker,joker,0), t_field, vmr_field, 
+                             edensity_field, 
+                             f_index, ppath_step.r[0], ppath_step.pos(0,1) ); 
         }
       else
         { get_refr_index_3d( ws, ppath_step.nreal[0], refr_index_agenda, 
@@ -819,9 +830,8 @@ void VectorZtanToZaRefr1D(
   for( Index i=0; i<ztan_vector.nelem(); i++ ) 
     {
       get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
-                         refellipsoid[0], z_field(joker,0,0), 
-                         t_field(joker,0,0), vmr_field(joker,joker,0,0), 
-                         edensity_field, f_index,
+                         refellipsoid[0], z_field(joker,0,0), t_field, 
+                         vmr_field, edensity_field, f_index,
                          ztan_vector[i] + refellipsoid[0] );
 
     // Calculate zenith angle

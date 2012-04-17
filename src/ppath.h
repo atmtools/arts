@@ -222,8 +222,8 @@ void ppath_step_refr_1d(
               Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        ConstMatrixView   vmr_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
         ConstTensor3View  edensity_field,
         const Index&      f_index,
         ConstVectorView   refellipsoid,
@@ -239,8 +239,8 @@ void ppath_step_refr_2d(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
-        ConstMatrixView   t_field,
-        ConstTensor3View  vmr_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
         ConstTensor3View  edensity_field,
         const Index&      f_index,
         ConstVectorView   refellipsoid,
@@ -248,7 +248,7 @@ void ppath_step_refr_2d(
         const Numeric&    lmax,
         const Agenda&     refr_index_agenda,
         const String&     rtrace_method,
-        const Numeric&    lraytrace);
+        const Numeric&    lraytrace );
 
 void ppath_step_refr_3d(
               Workspace&  ws,
