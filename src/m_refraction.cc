@@ -67,6 +67,9 @@ void refr_indexFreeElectrons(
     const Numeric&   rte_edensity,
     const Verbosity&)
 {
+  // The expression used in found in many textbooks, e.g. Rybicki and Lightman
+  // (1979). Note that the refractive index corresponds to the phase velocity.
+
   static const Numeric k = ELECTRON_CHARGE * ELECTRON_CHARGE / 
                          ( VACUUM_PERMITTIVITY * ELECTRON_MASS * 4 * PI * PI );
 
@@ -78,9 +81,18 @@ void refr_indexFreeElectrons(
       else
         { f = f_grid[f_index]; }
 
-      // The expression is taken from Rybicki and Lightman (1979), and 
-      // considers the group velocity.
-      refr_index += 1/sqrt( 1 - rte_edensity*k/(f*f) ) - 1;
+      const Numeric a = rte_edensity*k/(f*f);
+
+      if( a > 0.25 ) 
+        {
+          ostringstream os;
+          os << "The frequency must at least be twice the plasma frequency.\n"
+             << "For this particular point, the plasma frequency is: " 
+             << sqrt(rte_edensity*k)/1e6 << " MHz.";
+          throw runtime_error( os.str() );
+        }
+
+      refr_index += sqrt( 1 - a ) - 1;
     }
 }
 

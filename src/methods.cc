@@ -7142,13 +7142,16 @@ void define_md_data_raw()
          "To obtain the complete value, *refr_index* should be set to 1\n"
          "before calling this WSM.\n"
          "\n"
+         "The expression applied is n=sqrt(1-wp^2/w^2) where wp is the plasma\n"
+         "frequency, and w is the angular frequency (the function returns\n"
+         "n-1, that here is slightly negative). This expressions is found in\n"
+         "many textbooks, e.g. Rybicki and Lightman (1979)."
+         "\n"
          "The expression is dispersive. The frequency applied is selected as\n"
          "follows. If *f_index* < 0, the mean of first and last element of\n"
          "*f_grid* is selected. Otherwise, *f_index* specifies the element\n"
-         "of *f_grid* to extract.\n"
-         "\n"
-         "The expression applied is taken from Rybicki and Lightman (1979),\n"
-         "and considers the group velocity.\n"
+         "of *f_grid* to extract. The applied frequency must be at least\n"
+         "twice the plasma frequency.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index" ),

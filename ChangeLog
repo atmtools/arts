@@ -1,3 +1,13 @@
+2012-04-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-98
+
+	* src/m_refraction.cc (refr_indexFreeElectrons): Now including a
+	test with respect to the plasma frequency. And now returning the
+	"proper" refractive index (here a value below 1), corresponding to
+	the phase speed which is required for the ray tracing. How to
+	handle path delays is an open question?
+
 2012-04-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-97
