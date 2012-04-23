@@ -1583,8 +1583,8 @@ void iyRadioLink(
               for( Index ip=ppath.np-2; ip>=0; ip-- )
                 {
                   lbg += ppath.lstep[ip];
-                  lba += ppath.lstep[ip] * ( ppath.nreal[ip] + 
-                                             ppath.nreal[ip+1] ) / 2.0;
+                  lba += ppath.lstep[ip] * ( ppath.ngroup[ip] + 
+                                             ppath.ngroup[ip+1] ) / 2.0;
                   if( AtmosphericLoss )
                     {
                       if( dispersion_do )

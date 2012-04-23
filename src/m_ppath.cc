@@ -415,10 +415,11 @@ void ppathFromRtePos2(
       ppath.lstep[i-1] = ll;
       ppath.start_los  = ppath.los(i,joker);
 
-      // nreal by linear interpolation
+      // n by linear interpolation
       assert( ll < ppt.lstep[i-1] );
       const Numeric w = ll/ppt.lstep[i-1];
-      ppath.nreal[i] = (1-w)*ppt.nreal[i-1] + w*ppt.nreal[i];
+      ppath.nreal[i]  = (1-w)*ppt.nreal[i-1]  + w*ppt.nreal[i];
+      ppath.ngroup[i] = (1-w)*ppt.ngroup[i-1] + w*ppt.ngroup[i];
 
       // Grid positions
       Vector z_grid( p_grid.nelem() );
@@ -522,7 +523,8 @@ void ppath_stepGeometric(// WS Output:
   else
     { 
       assert( ppath_step.np == 1 );
-      ppath_step.nreal[0] = 1;
+      ppath_step.nreal[0]  = 1;
+      ppath_step.ngroup[0] = 1;
     }
 }
 
@@ -591,23 +593,23 @@ void ppath_stepRefractionBasic(
     { 
       assert( ppath_step.np == 1 );
       if( atmosphere_dim == 1 )
-        { get_refr_index_1d( ws, ppath_step.nreal[0], refr_index_agenda, 
-                             p_grid, refellipsoid, z_field(joker,0,0), 
-                             t_field, vmr_field, 
+        { get_refr_index_1d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
+                             refr_index_agenda, p_grid, refellipsoid, 
+                             z_field(joker,0,0), t_field, vmr_field, 
                              edensity_field, f_index, ppath_step.r[0] ); 
         }
       else if( atmosphere_dim == 2 )
-        { get_refr_index_2d( ws, ppath_step.nreal[0], refr_index_agenda, 
-                             p_grid, lat_grid, refellipsoid, 
+        { get_refr_index_2d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
+                             refr_index_agenda, p_grid, lat_grid, refellipsoid, 
                              z_field(joker,joker,0), t_field, vmr_field, 
-                             edensity_field, 
-                             f_index, ppath_step.r[0], ppath_step.pos(0,1) ); 
+                             edensity_field, f_index, ppath_step.r[0], 
+                             ppath_step.pos(0,1) ); 
         }
       else
-        { get_refr_index_3d( ws, ppath_step.nreal[0], refr_index_agenda, 
-                             p_grid, lat_grid, lon_grid, refellipsoid, 
-                             z_field, t_field, vmr_field, edensity_field, 
-                             f_index, ppath_step.r[0], 
+        { get_refr_index_3d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
+                             refr_index_agenda, p_grid, lat_grid, lon_grid, 
+                             refellipsoid, z_field, t_field, vmr_field, 
+                             edensity_field, f_index, ppath_step.r[0], 
                              ppath_step.pos(0,1), ppath_step.pos(0,2) ); 
         }
     }
@@ -824,13 +826,13 @@ void VectorZtanToZaRefr1D(
   za_vector.resize( ztan_vector.nelem() );
 
   // Define refraction variables
-  Numeric   refr_index;
+  Numeric   refr_index, refr_index_group;
 
   // Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) 
     {
-      get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
-                         refellipsoid[0], z_field(joker,0,0), t_field, 
+      get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                         p_grid, refellipsoid[0], z_field(joker,0,0), t_field, 
                          vmr_field, edensity_field, f_index,
                          ztan_vector[i] + refellipsoid[0] );
 

@@ -1538,6 +1538,7 @@ void ppath_init_structure(
 
   ppath_set_background( ppath, 0 );
   ppath.nreal.resize( np );
+  ppath.ngroup.resize( np );
 }
 
 
@@ -1680,6 +1681,7 @@ void ppath_copy(
   ppath1.los(Range(0,n),joker) = ppath2.los(Range(0,n),joker);
   ppath1.r[Range(0,n)]         = ppath2.r[Range(0,n)];
   ppath1.nreal[Range(0,n)]     = ppath2.nreal[Range(0,n)];
+  ppath1.ngroup[Range(0,n)]    = ppath2.ngroup[Range(0,n)];
   if( n > 1 )
     { ppath1.lstep[Range(0,n-1)]  = ppath2.lstep[Range(0,n-1)]; }
 
@@ -1707,7 +1709,7 @@ void ppath_copy(
 
    The first point in ppath2 is assumed to be the same as the last in ppath1.
    Only ppath2 fields start_pos, start_los, start_lstep, pos, los, r, lstep,
-   nreal, gp_XXX and background are considered.
+   nreal, ngroup, gp_XXX and background are considered.
 
    \param   ppath1    Output: Ppath structure to be expanded.
    \param   ppath2    The Ppath structure to include in ppath.
@@ -1735,11 +1737,12 @@ void ppath_append(
     { 
       i1 = n1 + i - 1;
 
-      ppath1.pos(i1,0)      = ppath2.pos(i,0);
-      ppath1.pos(i1,1)      = ppath2.pos(i,1);
-      ppath1.los(i1,0)      = ppath2.los(i,0);
-      ppath1.r[i1]          = ppath2.r[i];
-      ppath1.nreal[i1]      = ppath2.nreal[i];
+      ppath1.pos(i1,0)  = ppath2.pos(i,0);
+      ppath1.pos(i1,1)  = ppath2.pos(i,1);
+      ppath1.los(i1,0)  = ppath2.los(i,0);
+      ppath1.r[i1]      = ppath2.r[i];
+      ppath1.nreal[i1]  = ppath2.nreal[i];
+      ppath1.ngroup[i1] = ppath2.ngroup[i];
       gridpos_copy( ppath1.gp_p[i1], ppath2.gp_p[i] );
 
       if( ppath1.dim >= 2 )
@@ -1825,6 +1828,7 @@ void ppath_end_1d(
         ConstVectorView   za_v,
         ConstVectorView   lstep,
         ConstVectorView   n_v,
+        ConstVectorView   ng_v,
         ConstVectorView   z_field,
         ConstVectorView   refellipsoid,
         const Index&      ip,
@@ -1845,11 +1849,12 @@ void ppath_end_1d(
 
   for( Index i=0; i<np; i++ )
     {
-      ppath.r[i]     = r_v[i];
-      ppath.pos(i,0) = r_v[i] - refellipsoid[0];
-      ppath.pos(i,1) = lat_v[i];
-      ppath.los(i,0) = za_v[i];
-      ppath.nreal[i] = n_v[i];
+      ppath.r[i]      = r_v[i];
+      ppath.pos(i,0)  = r_v[i] - refellipsoid[0];
+      ppath.pos(i,1)  = lat_v[i];
+      ppath.los(i,0)  = za_v[i];
+      ppath.nreal[i]  = n_v[i];
+      ppath.ngroup[i] = ng_v[i];
       
       ppath.gp_p[i].idx   = ip;
       ppath.gp_p[i].fd[0] = ( r_v[i] - r1 ) / dr;
@@ -2010,6 +2015,7 @@ void ppath_end_2d(
         ConstVectorView   za_v,
         ConstVectorView   lstep,
         ConstVectorView   n_v,
+        ConstVectorView   ng_v,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   refellipsoid,
@@ -2043,10 +2049,11 @@ void ppath_end_2d(
 
   for( Index i=0; i<np; i++ )
     {
-      ppath.r[i]     = r_v[i];
-      ppath.pos(i,1) = lat_v[i];
-      ppath.los(i,0) = za_v[i];
-      ppath.nreal[i] = n_v[i];
+      ppath.r[i]      = r_v[i];
+      ppath.pos(i,1)  = lat_v[i];
+      ppath.los(i,0)  = za_v[i];
+      ppath.nreal[i]  = n_v[i];
+      ppath.ngroup[i] = ng_v[i];
       
       // Weight in the latitude direction
       Numeric w = ( lat_v[i] - lat_grid[ilat] ) / dlat;
@@ -2295,6 +2302,7 @@ void ppath_end_3d(
         ConstVectorView   aa_v,
         ConstVectorView   lstep,
         ConstVectorView   n_v,
+        ConstVectorView   ng_v,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
         ConstTensor3View  z_field,
@@ -2343,12 +2351,13 @@ void ppath_end_3d(
                                   r15b, r35b, r36b, r16b, lat_v[i], lon_v[i] );
 
       // Position and LOS
-      ppath.r[i]     = r_v[i];
-      ppath.pos(i,1) = lat_v[i];
-      ppath.pos(i,2) = lon_v[i];
-      ppath.los(i,0) = za_v[i];
-      ppath.los(i,1) = aa_v[i];
-      ppath.nreal[i] = n_v[i];
+      ppath.r[i]      = r_v[i];
+      ppath.pos(i,1)  = lat_v[i];
+      ppath.pos(i,2)  = lon_v[i];
+      ppath.los(i,0)  = za_v[i];
+      ppath.los(i,1)  = aa_v[i];
+      ppath.nreal[i]  = n_v[i];
+      ppath.ngroup[i] = ng_v[i];
       
       // Pressure grid index
       ppath.gp_p[i].idx   = ip;
@@ -2581,8 +2590,8 @@ void ppath_step_geom_1d(
 
   // Fill *ppath*
   const Index np = r_v.nelem();
-  ppath_end_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1), 
-                                     z_field, refellipsoid, ip, endface, ppc );
+  ppath_end_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1),
+                Vector(np,1), z_field, refellipsoid, ip, endface, ppc );
 
   // Make part from a tangent point and up to the starting pressure level.
   if( endface == 8 )
@@ -2796,7 +2805,8 @@ void ppath_step_geom_2d(
   // Fill *ppath*
   const Index np = r_v.nelem();
   ppath_end_2d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1), 
-                lat_grid, z_field, refellipsoid, ip, ilat, endface, ppc );
+                Vector(np,1), lat_grid, z_field, refellipsoid, ip, ilat, 
+                endface, ppc );
 
   // Make part from a tangent point and up to the starting pressure level.
   if( endface == 8 )
@@ -3212,8 +3222,8 @@ void ppath_step_geom_3d(
   // Fill *ppath*
   const Index np = r_v.nelem();
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, Vector(np-1,lstep), 
-                Vector(np,1), lat_grid, lon_grid, z_field, refellipsoid, 
-                ip, ilat, ilon, endface, ppc );
+                Vector(np,1), Vector(np,1), lat_grid, lon_grid, z_field, 
+                refellipsoid, ip, ilat, ilon, endface, ppc );
 
   // Make part from a tangent point and up to the starting pressure level.
   if( endface == 8 )
@@ -3264,6 +3274,7 @@ void ppath_step_geom_3d(
    \param   l_array      Out: Distance along the path between ray tracing 
                          points.
    \param   n_array      Out: Refractive index at ray tracing points.
+   \param   ng_array     Out: Group refractive index at ray tracing points.
    \param   endface      See do_gridrange_1d.
    \param   refellipsoid As the WSV with the same name.
    \param   p_grid       Pressure grid.
@@ -3293,6 +3304,7 @@ void raytrace_1d_linear_basic(
               Array<Numeric>&  za_array,
               Array<Numeric>&  l_array,
               Array<Numeric>&  n_array,
+              Array<Numeric>&  ng_array,
               Index&           endface,
         ConstVectorView        refellipsoid,
         ConstVectorView        p_grid,
@@ -3316,14 +3328,15 @@ void raytrace_1d_linear_basic(
   bool ready = false;
 
   // Store first point
-  Numeric refr_index;
-  get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
-                     refellipsoid, z_field, t_field, vmr_field, 
+  Numeric refr_index, refr_index_group;
+  get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                     p_grid, refellipsoid, z_field, t_field, vmr_field, 
                      edensity_field, f_index, r );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
   n_array.push_back( refr_index );
+  ng_array.push_back( refr_index_group );
 
   // Variables for output from do_gridrange_1d
   Vector    r_v, lat_v, za_v;
@@ -3369,8 +3382,8 @@ void raytrace_1d_linear_basic(
         }
 
       // Refractive index at *r*
-      get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
-                         refellipsoid, z_field, t_field, vmr_field, 
+      get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                         p_grid, refellipsoid, z_field, t_field, vmr_field, 
                          edensity_field, f_index, r );
 
       // Calculate LOS zenith angle at found point.
@@ -3400,6 +3413,7 @@ void raytrace_1d_linear_basic(
           lat_array.push_back( lat );
           za_array.push_back( za );
           n_array.push_back( refr_index );
+          ng_array.push_back( refr_index_group );
           l_array.push_back( lcum );
           lcum = 0;
         }
@@ -3470,9 +3484,9 @@ void ppath_step_refr_1d(
   Numeric ppc;
   if( ppath.constant < 0 )
     { 
-      Numeric refr_index;
-      get_refr_index_1d( ws, refr_index, refr_index_agenda, p_grid, 
-                         refellipsoid, z_field, t_field, vmr_field, 
+      Numeric refr_index, refr_index_group;
+      get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                         p_grid, refellipsoid, z_field, t_field, vmr_field, 
                          edensity_field, f_index, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
@@ -3484,35 +3498,36 @@ void ppath_step_refr_1d(
   //
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, za_array, l_array, n_array;
+  Array<Numeric>   r_array, lat_array, za_array, l_array, n_array, ng_array;
   Index            endface;
   //
   if( rtrace_method  == "linear_basic" )
     {
       raytrace_1d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
-                 n_array, endface, refellipsoid, p_grid, z_field, t_field,
-                 vmr_field, edensity_field, f_index, lmax, refr_index_agenda, 
-                 lraytrace, ppc, refellipsoid[0] + z_surface, 
-                 refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
-                 r_start, lat_start, za_start );
+            n_array, ng_array, endface, refellipsoid, p_grid, z_field, t_field,
+            vmr_field, edensity_field, f_index, lmax, refr_index_agenda, 
+            lraytrace, ppc, refellipsoid[0] + z_surface, 
+            refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
+            r_start, lat_start, za_start );
     }
 
   // Fill *ppath*
   //
   const Index np = r_array.nelem();
-  Vector r_v(np), lat_v(np), za_v(np), l_v(np-1), n_v(np);
+  Vector r_v(np), lat_v(np), za_v(np), l_v(np-1), n_v(np), ng_v(np);
   for( Index i=0; i<np; i++ )
     { 
       r_v[i]   = r_array[i];    
       lat_v[i] = lat_array[i];
       za_v[i]  = za_array[i];   
       n_v[i]   = n_array[i];
+      ng_v[i]  = ng_array[i];
       if( i < np-1 )
         { l_v[i] = l_array[i]; }
     }
   //
-  ppath_end_1d( ppath, r_v, lat_v, za_v, l_v, n_v, z_field, refellipsoid, ip, 
-                                                                endface, ppc );
+  ppath_end_1d( ppath, r_v, lat_v, za_v, l_v, n_v, ng_v, z_field, refellipsoid,
+                                                            ip, endface, ppc );
 }
 
 
@@ -3574,6 +3589,7 @@ void raytrace_2d_linear_basic(
               Array<Numeric>&  za_array,
               Array<Numeric>&  l_array,
               Array<Numeric>&  n_array,
+              Array<Numeric>&  ng_array,
               Index&           endface,
         ConstVectorView        p_grid,
         ConstVectorView        lat_grid,
@@ -3602,14 +3618,15 @@ void raytrace_2d_linear_basic(
   bool ready = false;
 
   // Store first point
-  Numeric refr_index;
-  get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                     refellipsoid, z_field, t_field, vmr_field, 
-                     edensity_field, f_index, r, lat );
+  Numeric refr_index, refr_index_group;
+  get_refr_index_2d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                     p_grid, lat_grid, refellipsoid, z_field, t_field, 
+                     vmr_field, edensity_field, f_index, r, lat );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
   n_array.push_back( refr_index );
+  ng_array.push_back( refr_index_group );
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, za_v;
@@ -3664,9 +3681,10 @@ void raytrace_2d_linear_basic(
 
       // Refractive index at new point
       Numeric   dndr, dndlat;
-      refr_gradients_2d( ws, refr_index, dndr, dndlat, refr_index_agenda,
-                         p_grid, lat_grid, refellipsoid, z_field, t_field, 
-                         vmr_field, edensity_field, f_index, r, lat );
+      refr_gradients_2d( ws, refr_index, refr_index_group, dndr, dndlat, 
+                         refr_index_agenda, p_grid, lat_grid, refellipsoid, 
+                         z_field, t_field, vmr_field, edensity_field, f_index, 
+                         r, lat );
 
       // Calculate LOS zenith angle at found point.
       const Numeric   za_rad = DEG2RAD * za;
@@ -3706,6 +3724,7 @@ void raytrace_2d_linear_basic(
           lat_array.push_back( lat );
           za_array.push_back( za );
           n_array.push_back( refr_index );
+          ng_array.push_back( refr_index_group );
           l_array.push_back( lcum );
           lcum = 0;
         }
@@ -3779,16 +3798,16 @@ void ppath_step_refr_2d(
   //
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, za_array, l_array, n_array;
+  Array<Numeric>   r_array, lat_array, za_array, l_array, n_array, ng_array;
   Index            endface;
   //
   if( rtrace_method  == "linear_basic" )
     {
       raytrace_2d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
-                                n_array, endface, p_grid, lat_grid, 
+                                n_array, ng_array, endface, p_grid, lat_grid, 
                                 refellipsoid, z_field, t_field, vmr_field,
-                                edensity_field, f_index,
-                                lmax, refr_index_agenda, lraytrace, lat1, lat3,
+                                edensity_field, f_index, lmax, 
+                                refr_index_agenda, lraytrace, lat1, lat3,
                                 rsurface1, rsurface3, r1a, r3a, r3b, r1b, 
                                 r_start, lat_start, za_start );
     }
@@ -3796,18 +3815,19 @@ void ppath_step_refr_2d(
   // Fill *ppath*
   //
   const Index np = r_array.nelem();
-  Vector r_v(np), lat_v(np), za_v(np), l_v(np-1), n_v(np);
+  Vector r_v(np), lat_v(np), za_v(np), l_v(np-1), n_v(np), ng_v(np);
   for( Index i=0; i<np; i++ )
     { 
       r_v[i]   = r_array[i];    
       lat_v[i] = lat_array[i];
       za_v[i]  = za_array[i];   
       n_v[i]   = n_array[i];
+      ng_v[i]  = ng_array[i];
       if( i < np-1 )
         { l_v[i] = l_array[i]; }
     }
   //
-  ppath_end_2d( ppath, r_v, lat_v, za_v, l_v, n_v, lat_grid, z_field, 
+  ppath_end_2d( ppath, r_v, lat_v, za_v, l_v, n_v, ng_v, lat_grid, z_field, 
                                          refellipsoid, ip, ilat, endface, -1 );
 }
 
@@ -3886,6 +3906,7 @@ void raytrace_3d_linear_basic(
               Array<Numeric>&  aa_array,
               Array<Numeric>&  l_array,
               Array<Numeric>&  n_array,
+              Array<Numeric>&  ng_array,
               Index&           endface,
         ConstVectorView        refellipsoid,
         ConstVectorView        p_grid,
@@ -3925,16 +3946,17 @@ void raytrace_3d_linear_basic(
   bool ready = false;
 
   // Store first point
-  Numeric refr_index;
-  get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid,
-                     lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                     edensity_field, f_index, r, lat, lon );
+  Numeric refr_index, refr_index_group;
+  get_refr_index_3d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                     p_grid, lat_grid, lon_grid, refellipsoid, z_field, t_field,
+                     vmr_field, edensity_field, f_index, r, lat, lon );
   r_array.push_back( r );
   lat_array.push_back( lat );
   lon_array.push_back( lon );
   za_array.push_back( za );
   aa_array.push_back( aa );
   n_array.push_back( refr_index );
+  ng_array.push_back( refr_index_group );
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
@@ -3989,7 +4011,7 @@ void raytrace_3d_linear_basic(
 
       // Refractive index at new point
       Numeric   dndr, dndlat, dndlon;
-      refr_gradients_3d( ws, refr_index, dndr, dndlat, dndlon, 
+      refr_gradients_3d( ws, refr_index, refr_index_group, dndr, dndlat, dndlon,
                          refr_index_agenda, p_grid, lat_grid, lon_grid, 
                          refellipsoid, z_field, t_field, vmr_field, 
                          edensity_field, f_index, r, lat, lon );
@@ -4053,6 +4075,7 @@ void raytrace_3d_linear_basic(
           za_array.push_back( za );
           aa_array.push_back( aa );
           n_array.push_back( refr_index );
+          ng_array.push_back( refr_index_group );
           l_array.push_back( lcum );
           lcum = 0;
         }  
@@ -4134,13 +4157,13 @@ void ppath_step_refr_3d(
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
   Array<Numeric>   r_array, lat_array, lon_array, za_array, aa_array;
-  Array<Numeric>   l_array, n_array;
+  Array<Numeric>   l_array, n_array, ng_array;
   Index            endface;
   //
   if( rtrace_method  == "linear_basic" )
     {
-      raytrace_3d_linear_basic( ws, r_array, lat_array, lon_array, za_array, 
-                           aa_array, l_array, n_array, endface, 
+      raytrace_3d_linear_basic( ws, r_array, lat_array, lon_array, za_array,
+                           aa_array, l_array, n_array, ng_array, endface, 
                            refellipsoid, p_grid, lat_grid, lon_grid, 
                            z_field, t_field, vmr_field, edensity_field, 
                            f_index,lmax, refr_index_agenda, lraytrace, 
@@ -4153,7 +4176,8 @@ void ppath_step_refr_3d(
   // Fill *ppath*
   //
   const Index np = r_array.nelem();
-  Vector r_v(np), lat_v(np), lon_v(np), za_v(np), aa_v(np), l_v(np-1), n_v(np);
+  Vector r_v(np), lat_v(np), lon_v(np), za_v(np), aa_v(np), l_v(np-1);
+  Vector n_v(np), ng_v(np);
   for( Index i=0; i<np; i++ )
     { 
       r_v[i]   = r_array[i];    
@@ -4162,12 +4186,13 @@ void ppath_step_refr_3d(
       za_v[i]  = za_array[i];   
       aa_v[i]  = aa_array[i];   
       n_v[i]   = n_array[i];
+      ng_v[i]  = ng_array[i];
       if( i < np-1 )
         { l_v[i] = l_array[i]; }
     }
   //
   // Fill *ppath*
-  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, l_v, n_v, lat_grid, 
+  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, l_v, n_v, ng_v, lat_grid, 
                 lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, -1 );
 }
 
@@ -4307,8 +4332,9 @@ void ppath_start_stepping(
       // Sensor is outside the model atmosphere:
       else
         {
-          // We can here set ppc and nreal as we are outside the atmosphere
+          // We can here set ppc and n as we are outside the atmosphere
           ppath.nreal    = 1.0;
+          ppath.ngroup   = 1.0;
           ppath.constant = geometrical_ppc( refellipsoid[0] + rte_pos[0], 
                                                               rte_los[0] );
 
@@ -4467,8 +4493,9 @@ void ppath_start_stepping(
               throw runtime_error( os.str() );
             }
 
-          // We can here set ppc and nreal as we are outside the atmosphere
+          // We can here set ppc and n as we are outside the atmosphere
           ppath.nreal    = 1.0;
+          ppath.ngroup   = 1.0;
           const Numeric r_p = r_e + rte_pos[0];
           ppath.constant = geometrical_ppc( r_p, rte_los[0] );
 
@@ -4754,8 +4781,9 @@ void ppath_start_stepping(
               throw runtime_error( os.str() );
             }
 
-          // We can here set ppc and nreal as we are outside the atmosphere
+          // We can here set ppc and n as we are outside the atmosphere
           ppath.nreal    = 1.0;
+          ppath.ngroup   = 1.0;
           const Numeric r_p = r_e + rte_pos[0];
           ppath.constant = geometrical_ppc( r_p, rte_los[0] );
 
@@ -5276,7 +5304,7 @@ void ppath_calc(
   if( na == 0 )    // No path, just the starting point
     {
       ppath_copy( ppath, ppath_step, 1 );
-      // To set nreal for positions inside the atmosphere, ppath_step_agenda
+      // To set n for positions inside the atmosphere, ppath_step_agenda
       // must be called once. The later is not always the case. A fix to handle
       // those cases:  
       if( ppath_what_background(ppath_step) > 1 )
@@ -5285,7 +5313,8 @@ void ppath_calc(
           ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, 
                                     vmr_field, edensity_field, f_index, 
                                     ppath_step_agenda );
-          ppath.nreal[0] = ppath_step.nreal[0];
+          ppath.nreal[0]  = ppath_step.nreal[0];
+          ppath.ngroup[0] = ppath_step.ngroup[0];
         }
     }
  
@@ -5314,6 +5343,8 @@ void ppath_calc(
                                    ppath_array[i].los( Range(i1,n-i1), joker );
           ppath.nreal[ Range(np,n-i1) ] = 
                                         ppath_array[i].nreal[ Range(i1,n-i1) ];
+          ppath.ngroup[ Range(np,n-i1) ] = 
+                                       ppath_array[i].ngroup[ Range(i1,n-i1) ];
           ppath.lstep[ Range(np-i1,n-1) ] = ppath_array[i].lstep; 
 
           // Grid positions must be handled by a loop

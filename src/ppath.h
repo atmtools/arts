@@ -72,6 +72,7 @@ struct Ppath {
   Vector            end_los;
   Numeric           end_lstep;
   Vector            nreal;
+  Vector            ngroup;
   ArrayOfGridPos    gp_p;
   ArrayOfGridPos    gp_lat;
   ArrayOfGridPos    gp_lon;

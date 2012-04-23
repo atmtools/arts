@@ -173,6 +173,8 @@ Print(// WS Generic Input:
   Print( x.end_lstep, level, verbosity );
   SWITCH_OUTPUT (level, "nreal: ")
   Print( x.nreal, level, verbosity );
+  SWITCH_OUTPUT (level, "ngroup: ")
+  Print( x.ngroup, level, verbosity );
   SWITCH_OUTPUT (level, "gp_p: ")
   Print( x.gp_p, level, verbosity );
   if( x.dim >= 2 )

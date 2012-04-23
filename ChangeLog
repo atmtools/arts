@@ -1,3 +1,31 @@
+2012-04-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-99
+
+	* controlfiles/general/general.src: refr_index_group initiated to 1.
+	
+	* arts/m_rte.cc (iyRadioLink): Extra path delay now calculated with
+	ppath.ngroup (all below to fix this).
+
+	* src/refraction.cc: 
+	* src/m_refraction.cc: 
+	* src/ppath.cc: Changes throughout the files to handle 
+	refr_index_group.
+
+	* src/m_ppath.cc (ppathFromRtePos2): 
+	* src/m_ppath.cc (ppath_stepRefractionBasic)
+	(VectorZtanToZaRefr1D): Changes associated with refr_index_group.
+
+	* src/m_general.cc (Print):
+	* src/xml_io_compound_types.cc: Adopted to new Ppath field (again!). 
+
+	* src/ppath.h (struct Ppath): Added ngroup.
+
+	* src/agendas.cc: refr_index_agenda has now also refr_index_group
+	as output.
+
+	* src/workspace.cc: Added refr_index_group. 
+	
 2012-04-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-98

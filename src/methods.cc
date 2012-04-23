@@ -7140,12 +7140,13 @@ void define_md_data_raw()
          "\n"
          "The refractive index of free electrons is added to *refr_index*.\n"
          "To obtain the complete value, *refr_index* should be set to 1\n"
-         "before calling this WSM.\n"
+         "before calling this WSM. This applies also to *refr_index_group*.\n"
          "\n"
          "The expression applied is n=sqrt(1-wp^2/w^2) where wp is the plasma\n"
          "frequency, and w is the angular frequency (the function returns\n"
          "n-1, that here is slightly negative). This expressions is found in\n"
-         "many textbooks, e.g. Rybicki and Lightman (1979)."
+         "many textbooks, e.g. Rybicki and Lightman (1979). The above refers\n"
+         "to *refr_index*. *refr_index_group* is sqrt(1+wp^2/w^2).\n"
          "\n"
          "The expression is dispersive. The frequency applied is selected as\n"
          "follows. If *f_index* < 0, the mean of first and last element of\n"
@@ -7154,11 +7155,12 @@ void define_md_data_raw()
          "twice the plasma frequency.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index" ),
+        OUT( "refr_index", "refr_index_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "f_grid", "f_index", "rte_edensity" ),
+        IN( "refr_index", "refr_index_group", "f_grid", "f_index", 
+            "rte_edensity" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7178,14 +7180,18 @@ void define_md_data_raw()
          "\n"
          "The refractivity of dry air is added to *refr_index*. To obtain\n"
          "the complete value, *refr_index* should be set to 1 before\n"
-         "calling this WSM. The expression used is non-dispersive.\n"
+         "calling this WSM. This applies also to *refr_index_group*.\n"
+         "\n"
+         "The expression used is non-dispersive. Hence, *refr_index* and\n"
+         "*refr_index_group* are identical.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "refr_index" ),
+        OUT( "refr_index", "refr_index_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "rte_pressure", "rte_temperature" ),
+        IN( "refr_index", "refr_index_group", "rte_pressure", 
+            "rte_temperature" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7201,20 +7207,23 @@ void define_md_data_raw()
          "\n"
          "The refractivity of dry air and water vapour is added to\n"
          "*refr_index*. To obtain the complete value, *refr_index* should\n"
-         "be set to 1 before calling this WSM. The expression\n"
-         "used is non-dispersive.\n"
+         "be set to 1 before calling this WSM. This applies also to\n"
+         "*refr_index_group.\n"
+         "\n"
+         "The expression used is non-dispersive. Hence, *refr_index* and\n"
+         "*refr_index_group* are identical.\n"
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
          "pp. 9664).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index" ),
+        OUT( "refr_index", "refr_index_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list", 
-            "abs_species" ),
+        IN( "refr_index", "refr_index_group", "rte_pressure", 
+            "rte_temperature", "rte_vmr_list", "abs_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

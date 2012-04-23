@@ -648,6 +648,7 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ppath.end_los, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.end_lstep, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.nreal, pbifs, verbosity);
+  xml_read_from_stream (is_xml, ppath.ngroup, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_p, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_lat, pbifs, verbosity);
   xml_read_from_stream (is_xml, ppath.gp_lon, pbifs, verbosity);
@@ -702,6 +703,7 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, ppath.end_lstep, pbofs,
                        "EndLstepPropagationPath", verbosity);
   xml_write_to_stream (os_xml, ppath.nreal, pbofs, "RefractiveIndexRealPart", verbosity); 
+  xml_write_to_stream (os_xml, ppath.ngroup, pbofs, "GroupRefractiveIndex", verbosity); 
   xml_write_to_stream (os_xml, ppath.gp_p, pbofs, "PressureGridIndexPosition", verbosity);
   xml_write_to_stream (os_xml, ppath.gp_lat, pbofs,
                        "LatitudeGridIndexPosition", verbosity);

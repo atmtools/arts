@@ -157,6 +157,7 @@ AgendaSet( refr_index_agenda ){
   Ignore( f_index )
   Ignore( rte_edensity )
   NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
   refr_indexThayer
 }
 

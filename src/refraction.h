@@ -43,6 +43,7 @@
 void get_refr_index_1d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
     const Agenda&     refr_index_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   refellipsoid,
@@ -56,6 +57,7 @@ void get_refr_index_1d(
 void get_refr_index_2d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
     const Agenda&     refr_index_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
@@ -71,6 +73,7 @@ void get_refr_index_2d(
 void get_refr_index_3d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
     const Agenda&     refr_index_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
@@ -88,6 +91,7 @@ void get_refr_index_3d(
 void refr_gradients_2d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
           Numeric&    dndr,
           Numeric&    dndlat,
     const Agenda&     refr_index_agenda,
@@ -105,6 +109,7 @@ void refr_gradients_2d(
 void refr_gradients_3d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
           Numeric&    dndr,
           Numeric&    dndlat,
           Numeric&    dndlon,

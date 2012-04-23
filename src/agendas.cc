@@ -592,9 +592,10 @@ void define_agenda_data()
         "Calculation of the refractive index of air.\n"
         "\n"
         "This agenda should calculate the summed refractive index for all\n"
-        "relevant atmospheric constituents.\n"
+        "relevant atmospheric constituents, with respect to both phase and\n"
+        "group velocity.\n"
         ),
-       OUTPUT( "refr_index" ),
+       OUTPUT( "refr_index", "refr_index_group" ),
        INPUT(  "f_index", "rte_pressure", "rte_temperature", "rte_vmr_list", 
                "rte_edensity" )));
 

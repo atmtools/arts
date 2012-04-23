@@ -66,6 +66,7 @@ extern const Numeric RAD2DEG;
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
+   \param   refr_index_group    Output: As the WSV with the same name.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.   
    \param   refellipsoid        As the WSV with the same name.
@@ -82,6 +83,7 @@ extern const Numeric RAD2DEG;
 void get_refr_index_1d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
     const Agenda&     refr_index_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   refellipsoid,
@@ -130,9 +132,9 @@ void get_refr_index_1d(
       rte_edensity = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
-                            rte_temperature, rte_vmr_list, rte_edensity,
-                            refr_index_agenda );
+  refr_index_agendaExecute( ws, refr_index, refr_index_group, f_index, 
+                            rte_pressure, rte_temperature, rte_vmr_list, 
+                            rte_edensity, refr_index_agenda );
 }
 
 
@@ -151,6 +153,7 @@ void get_refr_index_1d(
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
+   \param   refr_index_group    Output: As the WSV with the same name.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
@@ -169,6 +172,7 @@ void get_refr_index_1d(
 void get_refr_index_2d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
     const Agenda&     refr_index_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
@@ -232,9 +236,9 @@ void get_refr_index_2d(
       rte_edensity = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
-                            rte_temperature, rte_vmr_list, rte_edensity,
-                            refr_index_agenda );
+  refr_index_agendaExecute( ws, refr_index, refr_index_group, f_index, 
+                            rte_pressure, rte_temperature, rte_vmr_list, 
+                            rte_edensity, refr_index_agenda );
 }
 
 
@@ -249,6 +253,7 @@ void get_refr_index_2d(
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
+   \param   refr_index_group    Output: As the WSV with the same name.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
@@ -269,6 +274,7 @@ void get_refr_index_2d(
 void get_refr_index_3d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
     const Agenda&     refr_index_agenda,
     ConstVectorView   p_grid,
     ConstVectorView   lat_grid,
@@ -337,9 +343,9 @@ void get_refr_index_3d(
       rte_edensity = dummy[0];
     }
 
-  refr_index_agendaExecute( ws, refr_index, f_index, rte_pressure, 
-                            rte_temperature, rte_vmr_list, rte_edensity,
-                            refr_index_agenda );
+  refr_index_agendaExecute( ws, refr_index, refr_index_group, f_index, 
+                            rte_pressure, rte_temperature, rte_vmr_list, 
+                            rte_edensity, refr_index_agenda );
 }
 
 
@@ -364,6 +370,7 @@ void get_refr_index_3d(
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
+   \param   refr_index_group    Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
    \param   dndlat              Output: Latitude gradient of refractive index.
    \param   refr_index_agenda   As the WSV with the same name.
@@ -384,6 +391,7 @@ void get_refr_index_3d(
 void refr_gradients_2d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
           Numeric&    dndr,
           Numeric&    dndlat,
     const Agenda&     refr_index_agenda,
@@ -398,27 +406,28 @@ void refr_gradients_2d(
     const Numeric&    r,
     const Numeric&    lat )
 { 
-   get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid,
-                      refellipsoid, z_field, t_field, vmr_field, edensity_field,
-                      f_index, r, lat );
+  get_refr_index_2d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                     p_grid, lat_grid, refellipsoid, z_field, t_field, 
+                     vmr_field, edensity_field, f_index, r, lat );
 
-   const Numeric   n0 = refr_index;
+  const Numeric   n0 = refr_index;
+        Numeric   dummy;
 
-   get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, edensity_field,
-                      f_index, r+1, lat );
+  get_refr_index_2d( ws, refr_index, dummy, refr_index_agenda, p_grid, 
+                     lat_grid, refellipsoid, z_field, t_field, vmr_field, 
+                     edensity_field, f_index, r+1, lat );
 
-   dndr = refr_index - n0;
+  dndr = refr_index - n0;
 
-   const Numeric   dlat = 1e-4;
+  const Numeric   dlat = 1e-4;
 
-   get_refr_index_2d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      refellipsoid, z_field, t_field, vmr_field, edensity_field,
-                      f_index, r, lat+dlat );
+  get_refr_index_2d( ws, refr_index, dummy, refr_index_agenda, p_grid, 
+                     lat_grid, refellipsoid, z_field, t_field, vmr_field, 
+                     edensity_field, f_index, r, lat+dlat );
 
-   dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
+  dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
-   refr_index = n0;
+  refr_index = n0;
 }
 
 
@@ -440,6 +449,7 @@ void refr_gradients_2d(
 
    \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
+   \param   refr_index_group    Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
    \param   dndlat              Output: Latitude gradient of refractive index.
    \param   dndlon              Output: Longitude gradient of refractive index.
@@ -463,6 +473,7 @@ void refr_gradients_2d(
 void refr_gradients_3d(
           Workspace&  ws,
           Numeric&    refr_index,
+          Numeric&    refr_index_group,
           Numeric&    dndr,
           Numeric&    dndlat,
           Numeric&    dndlon,
@@ -480,35 +491,36 @@ void refr_gradients_3d(
     const Numeric&    lat,
     const Numeric&    lon )
 { 
-   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      edensity_field, f_index, r, lat, lon );
+  get_refr_index_3d( ws, refr_index, refr_index_group, refr_index_agenda, 
+                     p_grid, lat_grid, lon_grid, refellipsoid, z_field, 
+                     t_field, vmr_field, edensity_field, f_index, r, lat, lon );
 
-   const Numeric   n0 = refr_index;
+  const Numeric   n0 = refr_index;
+        Numeric   dummy;
 
-   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      edensity_field, f_index, r+1, lat, lon );
+  get_refr_index_3d( ws, refr_index, dummy, refr_index_agenda, p_grid, lat_grid,
+                     lon_grid, refellipsoid, z_field, t_field, vmr_field, 
+                     edensity_field, f_index, r+1, lat, lon );
 
-   dndr = refr_index - n0;
+  dndr = refr_index - n0;
 
-   const Numeric   dlat = 1e-4;
+  const Numeric   dlat = 1e-4;
 
-   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      edensity_field, f_index, r, lat+dlat, lon );
+  get_refr_index_3d( ws, refr_index, dummy, refr_index_agenda, p_grid, lat_grid,
+                     lon_grid, refellipsoid, z_field, t_field, vmr_field, 
+                     edensity_field, f_index, r, lat+dlat, lon );
 
-   dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
+  dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
-   const Numeric   dlon = 1e-4;
+  const Numeric   dlon = 1e-4;
 
-   get_refr_index_3d( ws, refr_index, refr_index_agenda, p_grid, lat_grid, 
-                      lon_grid, refellipsoid, z_field, t_field, vmr_field, 
-                      edensity_field, f_index, r, lat, lon+dlon);
+  get_refr_index_3d( ws, refr_index, dummy, refr_index_agenda, p_grid, lat_grid,
+                     lon_grid, refellipsoid, z_field, t_field, vmr_field, 
+                     edensity_field, f_index, r, lat, lon+dlon);
 
-   dndlon = ( refr_index - n0 ) / ( DEG2RAD * dlon * r * cos( DEG2RAD*lat ) ); 
-
-   refr_index = n0;
+  dndlon = ( refr_index - n0 ) / ( DEG2RAD * dlon * r * cos( DEG2RAD*lat ) ); 
+  
+  refr_index = n0;
 }
 
 

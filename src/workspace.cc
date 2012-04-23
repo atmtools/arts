@@ -2839,11 +2839,9 @@ void Workspace::define_wsv_data()
       (
        "Real part of the refractive index of air.\n"
        "\n"
-       "This variable contains the refractive index summed over all relevant\n"
-       "constituents, at one position in the atmosphere. Propagation paths\n"
-       "are calculated for one frequency at the time (or dispersion is\n"
-       "neglected, ie. the path is common for all frequency components) and\n"
-       "this WSV lacks a frequency dimension.\n"
+       "The variable contains the refractive index summed over all relevant\n"
+       "constituents, at one position in the atmosphere. This refractive\n"
+       "is related to the phase velocity. See also *refr_index_group*.\n"
        "\n"
        "Unit: 1\n"
        ),
@@ -2857,6 +2855,22 @@ void Workspace::define_wsv_data()
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "refr_index_group" ),
+      DESCRIPTION
+      (
+       "Group index of refractivity.\n"
+       "\n"
+       "This variable is defined as the ratio between group velocity and the\n"
+       "speed of ligh in vacuum. That is, it is defined as the \"standard\"\n"
+       "refractive index, but refers to the group velocity instead of the\n"
+       "phase velocity. See also *refr_index*.\n"
+       "\n"
+       "Unit: 1\n"
+       ),
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord

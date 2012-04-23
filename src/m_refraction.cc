@@ -62,6 +62,7 @@ extern const Numeric VACUUM_PERMITTIVITY;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexFreeElectrons(
           Numeric&   refr_index,
+          Numeric&   refr_index_group,
     const Vector&    f_grid,
     const Index&     f_index,
     const Numeric&   rte_edensity,
@@ -92,7 +93,10 @@ void refr_indexFreeElectrons(
           throw runtime_error( os.str() );
         }
 
-      refr_index += sqrt( 1 - a ) - 1;
+      const Numeric n = sqrt( 1 - a );
+
+      refr_index       += n - 1;
+      refr_index_group += 1/n - 1;
     }
 }
 
@@ -101,6 +105,7 @@ void refr_indexFreeElectrons(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexIR(
           Numeric&   refr_index,
+          Numeric&   refr_index_group,
     const Numeric&   rte_pressure,
     const Numeric&   rte_temperature,
     const Verbosity&)
@@ -110,8 +115,11 @@ void refr_indexIR(
   static const Numeric bk   = 288.16 * (bn02-1.0) / (1013.25*(bn02+2.0));
 
   // Pa -> hPa
-  refr_index += sqrt( (2.0*bk*rte_pressure/100.0+rte_temperature) / 
-                      ( rte_temperature-bk*rte_pressure/100.0) ) - 1;
+  const Numeric n = sqrt( (2.0*bk*rte_pressure/100.0+rte_temperature) / 
+                          ( rte_temperature-bk*rte_pressure/100.0) ) - 1; 
+
+  refr_index       += n;
+  refr_index_group += n;
 }
 
 
@@ -119,6 +127,7 @@ void refr_indexIR(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexThayer(
           Numeric&   refr_index,
+          Numeric&   refr_index_group,
     const Numeric&   rte_pressure,
     const Numeric&   rte_temperature,
     const Vector&    rte_vmr_list,
@@ -138,7 +147,10 @@ void refr_indexThayer(
 
   const Numeric   e = rte_pressure * rte_vmr_list[firstH2O];
 
-  refr_index += ( 77.6e-8 * ( rte_pressure - e ) + 
+  const Numeric n = ( 77.6e-8 * ( rte_pressure - e ) + 
              ( 64.8e-8 + 3.776e-3 / rte_temperature ) * e ) / rte_temperature;
+
+  refr_index       += n;
+  refr_index_group += n;
 }
 
