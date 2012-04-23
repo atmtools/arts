@@ -893,6 +893,51 @@ void line_sphere_intersect(
 
 
 
+//! latlon_at_aa
+/*! 
+   Destination point given distance and bearing from start point
+
+   Calculates the latitude and longitide, given a position, an azimuth angle
+   and an angular distance.
+
+   \param   lat2  Latitude of end position.
+   \param   lon2  Longitude of end position.
+   \param   lat1  Latitude of start position.
+   \param   lon1  Longitude of start position.
+   \param   aa    Azimuth/bearing at start point.
+   \param   ddeg  Angular distance (in degrees).
+
+   \author Patrick Eriksson
+   \date   2012-04-23
+*/
+void latlon_at_aa(
+         Numeric&   lat2,
+         Numeric&   lon2,
+   const Numeric&   lat1,
+   const Numeric&   lon1,
+   const Numeric&   aa,
+   const Numeric&   ddeg )
+{
+  // Code from http://www.movable-type.co.uk/scripts/latlong.html
+  // (but with short-cuts, such as asin(sin(lat2)) = lat2)
+  // Note that lat1 here is another latitude
+  
+  const Numeric dang   = DEG2RAD * ddeg;
+  const Numeric cosdang= cos( dang );
+  const Numeric sindang= sin( dang );
+  const Numeric latrad = DEG2RAD * lat1;
+  const Numeric coslat = cos( latrad );
+  const Numeric sinlat = sin( latrad );
+  const Numeric aarad  = DEG2RAD * aa;
+
+  lat2   = sinlat*cosdang + coslat*sindang*cos(aarad);
+  lon2   = lon1 + RAD2DEG*( atan2( sin(aarad)*sindang*coslat,
+                                   cosdang-sinlat*lat2 ) );
+  lat2 = RAD2DEG * asin( lat2 );
+}
+
+
+
 //! los2xyz
 /*! 
    Line-of-sight to another position given in cartesian coordinates.

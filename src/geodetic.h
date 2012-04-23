@@ -172,6 +172,14 @@ void geomtanpoint(
        const Numeric&    aa );
 */
 
+void latlon_at_aa(
+         Numeric&   lat2,
+         Numeric&   lon2,
+   const Numeric&   lat1,
+   const Numeric&   lon1,
+   const Numeric&   aa,
+   const Numeric&   ddeg );
+
 void line_sphere_intersect(
          Numeric&   x,
          Numeric&   y,

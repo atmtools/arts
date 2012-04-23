@@ -622,7 +622,7 @@ void cloudbox_checkedCalc(Index&          cloudbox_checked,
               ostringstream os;
               os << "Too small distance between cloudbox and lower end of "
                  << "latitude grid.\n"
-                 << "This distance must be " << llmin << "degrees.\n"
+                 << "This distance must be " << llmin << " degrees.\n"
                  << "Cloudbox ends at " << lat_grid[cloudbox_limits[2]]
                  << " and latitude grid starts at " << lat_grid[0] << ".";
               throw runtime_error( os.str() );
@@ -634,7 +634,7 @@ void cloudbox_checkedCalc(Index&          cloudbox_checked,
               ostringstream os;
               os << "Too small distance between cloudbox and upper end of "
                  << "latitude grid.\n"
-                 << "This distance must be " << llmin << "degrees.\n"
+                 << "This distance must be " << llmin << " degrees.\n"
                  << "Cloudbox ends at " << lat_grid[cloudbox_limits[3]]
                  << " and latitude grid ends at " << lat_grid[n-1] << ".";
               throw runtime_error( os.str() );

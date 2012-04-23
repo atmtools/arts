@@ -714,7 +714,7 @@ void find_tanpoint(
 
 
 /*===========================================================================
-  = Functions related to radius/slope/tilt of the surface and pressure levels
+  = 2D functions for surface and pressure level slope and tilt
   ===========================================================================*/
 
 //! rsurf_at_lat
@@ -740,60 +740,6 @@ Numeric rsurf_at_lat(
        const Numeric&  lat )
 {
   return   r1 + ( lat - lat1 ) * ( r3 - r1 ) / ( lat3 - lat1 );
-}
-
-
-
-//! rsurf_at_latlon
-/*!
-   Determines the radius of a pressure level or the surface given the
-   radius at the corners of a 3D grid cell.
-
-   \return         Radius at the given latitude and longitude.
-   \param   lat1   Lower latitude of grid cell.
-   \param   lat3   Upper latitude of grid cell.
-   \param   lon5   Lower longitude of grid cell.
-   \param   lon6   Upper longitude of grid cell.
-   \param   r15    Radius at crossing of *lat1* and *lon5*.
-   \param   r35    Radius at crossing of *lat3* and *lon5*.
-   \param   r36    Radius at crossing of *lat3* and *lon6*.
-   \param   r16    Radius at crossing of *lat1* and *lon6*.
-   \param   lat    Latitude for which radius shall be determined.
-   \param   lon    Longitude for which radius shall be determined.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-Numeric rsurf_at_latlon(
-       const Numeric&  lat1,
-       const Numeric&  lat3,
-       const Numeric&  lon5,
-       const Numeric&  lon6,
-       const Numeric&  r15,
-       const Numeric&  r35,
-       const Numeric&  r36,
-       const Numeric&  r16,
-       const Numeric&  lat,
-       const Numeric&  lon )
-{
-  // We can't have any assert of *lat* and *lon* here as we can go outside
-  // the ranges when called from *plevel_slope_3d*.
-
-  if( lat == lat1 )
-    { return   r15 + ( lon - lon5 ) * ( r16 - r15 ) / ( lon6 -lon5 ); }
-  else if( lat == lat3 )
-    { return   r35 + ( lon - lon5 ) * ( r36 - r35 ) / ( lon6 -lon5 ); }
-  else if( lon == lon5 )
-    { return   r15 + ( lat - lat1 ) * ( r35 - r15 ) / ( lat3 -lat1 ); }
-  else if( lon == lon6 )
-    { return   r16 + ( lat - lat1 ) * ( r36 - r16 ) / ( lat3 -lat1 ); }
-  else
-    {
-      const Numeric   fdlat = ( lat - lat1 ) / ( lat3 - lat1 );
-      const Numeric   fdlon = ( lon - lon5 ) / ( lon6 - lon5 );
-      return   (1-fdlat)*(1-fdlon)*r15 + fdlat*(1-fdlon)*r35 + 
-                                         (1-fdlat)*fdlon*r16 + fdlat*fdlon*r36;
-    }
 }
 
 
@@ -864,142 +810,6 @@ Numeric plevel_slope_2d(
   const Numeric r1 = refell2r( refellipsoid, lat_grid[i1] ) + z_surf[i1];
   const Numeric r2 = refell2r( refellipsoid, lat_grid[i1+1] ) + z_surf[i1+1];
   return ( r2 - r1 ) / ( lat_grid[i1+1] - lat_grid[i1] );
-}
-
-
-
-//! plevel_slope_3d
-/*!
-   Calculates the local radial slope of the surface or a pressure level 
-   for 3D.
-
-   The function works basically as the non-vector version of
-   *plevel_slope_2d*, but the position and viewing direction must
-   here be specicified as the slope varies inside the cell grid, in
-   constrast to a 2D latitude grid range.
-
-   See further the other version of the function below.
-
-   \return         The radial slope [m/degree]
-   \param   lat1   Lower latitude of grid cell.
-   \param   lat3   Upper latitude of grid cell.
-   \param   lon5   Lower longitude of grid cell.
-   \param   lon6   Upper longitude of grid cell.
-   \param   r15    Radius at crossing of *lat1* and *lon5*.
-   \param   r35    Radius at crossing of *lat3* and *lon5*.
-   \param   r36    Radius at crossing of *lat3* and *lon6*.
-   \param   r16    Radius at crossing of *lat1* and *lon6*.
-   \param   lat    Latitude for which slope shall be determined.
-   \param   lon    Longitude for which slope shall be determined.
-   \param   aa     Azimuth angle for which slope shall be determined.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-Numeric plevel_slope_3d(
-        const Numeric&  lat1,
-        const Numeric&  lat3,
-        const Numeric&  lon5,
-        const Numeric&  lon6,
-        const Numeric&  r15,
-        const Numeric&  r35,
-        const Numeric&  r36,
-        const Numeric&  r16,
-        const Numeric&  lat,
-        const Numeric&  lon,
-        const Numeric&  aa )
-{
-  // Size of test angular distance. Unit is degrees.
-  const Numeric   dang = 1e-5;  // = about 1 m shift horisontally. Smaller 
-                                // values seem to cause numerical problems
-  // Radius at point of interest
-  const Numeric   r0 = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r15, r35, r36, r16, lat, lon );
-
-  // Convert position and an imaginary LOS to cartesian coordinates
-  Numeric   x, y, z, dx, dy, dz;
-  poslos2cart( x, y, z, dx, dy, dz, r0, lat, lon, 90, aa );
-
-  // Calculate the distance corresponding to *dang*
-  const Numeric   l = r0 * DEG2RAD * dang;
-
-  // Calculate radius of the pressure level at the lat/lon, the distance
-  // *l* away.
-  Numeric   r2, lat2, lon2;
-  cart2sph( r2, lat2, lon2, x+dx*l, y+dy*l, z+dz*l, lat, lon, 90, aa );
-  resolve_lon( lon2, lon5, lon6 );              
-  r2 = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15, r35, r36, r16, lat2,lon2);
-
-  // Return slope
-  return   ( r2 - r0 ) / dang;
-}
-
-
-
-//! plevel_slope_3d
-/*!
-   Calculates the radial slope of the surface or a pressure level for 3D.
-
-   The radial slope is here the derivative of the radius with respect
-   to an angular change (in degrees) along the great circle along the
-   given azimuth angle. That is, how much the radius would change for a
-   movement of r*pi/180 in the given azimuth angle (if the
-   slope where constant along the distance). The unit is m/degree.
-
-   For a point exactly on a grid value it is not clear if it is the
-   range below or above that is of interest. The azimuth angle is used
-   to resolve such cases.
-
-   This function is in practice another way to call the non-vector version
-   of the function above.
-
-   \return                 The radial slope [m/degree]
-   \param   lat_grid       The latitude grid.
-   \param   lon_grid       The longitude grid.
-   \param   refellipsoid   As the WSV with the same name.
-   \param   z_surf         Geometrical altitude of the surface, or the pressure
-                           level of interest.
-   \param   gp_lat         Latitude grid position for the position of interest.
-   \param   gp_lon         Longitude grid position for the position of interest.
-   \param   aa             Azimuth angle.
-
-   \author Patrick Eriksson
-   \date   2002-06-03
-*/
-Numeric plevel_slope_3d(
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,  
-        ConstVectorView   refellipsoid,
-        ConstMatrixView   z_surf,
-        const GridPos&    gp_lat,
-        const GridPos&    gp_lon,
-        const Numeric&    aa )
-{
-  Index ilat = gridpos2gridrange( gp_lat, abs( aa ) >= 0 );
-  Index ilon = gridpos2gridrange( gp_lon, aa >= 0 );
-
-  // Restore latitude and longitude values
-  Vector  itw(2);
-  Numeric  lat, lon;
-  interpweights( itw, gp_lat );
-  lat = interp( itw, lat_grid, gp_lat );
-  interpweights( itw, gp_lon );
-  lon = interp( itw, lon_grid, gp_lon );
-
-  // Extract values that defines the grid cell
-  const Numeric   lat1 = lat_grid[ilat];
-  const Numeric   lat3 = lat_grid[ilat+1];
-  const Numeric   lon5 = lon_grid[ilon];
-  const Numeric   lon6 = lon_grid[ilon+1];
-  const Numeric   re1  = refell2r( refellipsoid, lat1 );
-  const Numeric   re3  = refell2r( refellipsoid, lat3 );
-  const Numeric   r15  = re1 + z_surf(ilat,ilon);
-  const Numeric   r35  = re3 + z_surf(ilat+1,ilon);
-  const Numeric   r36  = re3 + z_surf(ilat+1,ilon+1);
-  const Numeric   r16  = re1 + z_surf(ilat,ilon+1);
-
-  return   plevel_slope_3d( lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
-                                                                lat, lon, aa );
 }
 
 
@@ -1125,91 +935,6 @@ void r_crossing_2d(
                    geompath_l_at_r( ppc, r_hit   ) );
           assert( l > 0 );
         }
-    }
-}
-
-
-
-//! r_crossing_3d
-/*!
-   Calculates where a 3D LOS crosses the specified radius
-
-   The solution algorithm is described in ATD. See the
-   chapter on propagation paths.
-
-   The function only looks for crossings in the forward direction of
-   the given zenith angle (neglecting all solutions giving *l* <= 0).
-   Note that the tangent point can be passed.
- 
-   LAT_NOT_FOUND, LON_NOT_FOUND and L_NOT_FOUND are returned if no solution 
-   is found.
-
-   \param   lat       Out: Latitude of found crossing.
-   \param   lon       Out: Longitude of found crossing.
-   \param   l         Out: Length along the path to the crossing.
-   \param   r_hit     Target radius.
-   \param   r_start   Radius of start point.
-   \param   lat_start Latitude of start point.
-   \param   lon_start Longitude of start point.
-   \param   za_start  Zenith angle at start point.
-   \param   ppc       Propagation path constant
-   \param   x         x-coordinate of start position.
-   \param   y         y-coordinate of start position.
-   \param   z         z-coordinate of start position.
-   \param   dx        x-part of LOS unit vector.
-   \param   dy        y-part of LOS unit vector.
-   \param   dz        z-part of LOS unit vector.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void r_crossing_3d(
-             Numeric&   lat,
-             Numeric&   lon,
-             Numeric&   l,
-       const Numeric&   r_hit,
-       const Numeric&   r_start,    
-       const Numeric&   za_start,
-       const Numeric&   ppc,
-       const Numeric&   x,
-       const Numeric&   y,
-       const Numeric&   z,
-       const Numeric&   dx,
-       const Numeric&   dy,
-       const Numeric&   dz )
-{
-  assert( za_start >=   0 );
-  assert( za_start <= 180 );
-
-  // If above and looking upwards or r_hit below tangent point,
-  // we have no crossing:
-  if( ( r_start >= r_hit  &&  za_start <= 90 )  ||  ppc > r_hit )
-    { lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND;   l   = L_NOT_FOUND; }
-
-  else
-    {
-      const Numeric   p  = x*dx + y*dy + z*dz;
-      const Numeric   pp = p * p;
-      const Numeric   q  = x*x + y*y + z*z - r_hit*r_hit;
-      const Numeric   sq = sqrt( pp - q );
-      const Numeric   l1 = -p + sq;
-      const Numeric   l2 = -p - sq;
-
-      const Numeric lmin = min( l1, l2 );
-      const Numeric lmax = max( l1, l2 );
-
-      // If r_start equals r_hit solutions just above zero can appear (that
-      // shall be rejected). So we pick the biggest solution if lmin is
-      // negative or just above zero. 
-      // (Tried to use "if( r_start != r_hit )", but failed occasionally)
-      if( lmin < 1e-6 )
-        { l = lmax; }
-      else
-        { l = lmin; }
-      assert( l > 0 );
-
-      lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
-      lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
     }
 }
 
@@ -1471,6 +1196,686 @@ void plevel_crossing_2d(
                            geompath_l_at_r( ppc, r ) );
                 }
             }  
+        }
+    }
+}
+
+
+
+
+
+/*===========================================================================
+  = 3D functions for level slope and tilt, and lat/lon crossings
+  ===========================================================================*/
+
+//! rsurf_at_latlon
+/*!
+   Determines the radius of a pressure level or the surface given the
+   radius at the corners of a 3D grid cell.
+
+   \return         Radius at the given latitude and longitude.
+   \param   lat1   Lower latitude of grid cell.
+   \param   lat3   Upper latitude of grid cell.
+   \param   lon5   Lower longitude of grid cell.
+   \param   lon6   Upper longitude of grid cell.
+   \param   r15    Radius at crossing of *lat1* and *lon5*.
+   \param   r35    Radius at crossing of *lat3* and *lon5*.
+   \param   r36    Radius at crossing of *lat3* and *lon6*.
+   \param   r16    Radius at crossing of *lat1* and *lon6*.
+   \param   lat    Latitude for which radius shall be determined.
+   \param   lon    Longitude for which radius shall be determined.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+Numeric rsurf_at_latlon(
+       const Numeric&  lat1,
+       const Numeric&  lat3,
+       const Numeric&  lon5,
+       const Numeric&  lon6,
+       const Numeric&  r15,
+       const Numeric&  r35,
+       const Numeric&  r36,
+       const Numeric&  r16,
+       const Numeric&  lat,
+       const Numeric&  lon )
+{
+  // We can't have any assert of *lat* and *lon* here as we can go outside
+  // the ranges when called from *plevel_slope_3d*.
+
+  if( lat == lat1 )
+    { return   r15 + ( lon - lon5 ) * ( r16 - r15 ) / ( lon6 -lon5 ); }
+  else if( lat == lat3 )
+    { return   r35 + ( lon - lon5 ) * ( r36 - r35 ) / ( lon6 -lon5 ); }
+  else if( lon == lon5 )
+    { return   r15 + ( lat - lat1 ) * ( r35 - r15 ) / ( lat3 -lat1 ); }
+  else if( lon == lon6 )
+    { return   r16 + ( lat - lat1 ) * ( r36 - r16 ) / ( lat3 -lat1 ); }
+  else
+    {
+      const Numeric   fdlat = ( lat - lat1 ) / ( lat3 - lat1 );
+      const Numeric   fdlon = ( lon - lon5 ) / ( lon6 - lon5 );
+      return   (1-fdlat)*(1-fdlon)*r15 + fdlat*(1-fdlon)*r35 + 
+                                         (1-fdlat)*fdlon*r16 + fdlat*fdlon*r36;
+    }
+}
+
+
+
+//! plevel_slope_3d
+/*!
+   Calculates the local radial slope of the surface or a pressure level 
+   for 3D.
+
+   The function works basically as the non-vector version of
+   *plevel_slope_2d*, but the position and viewing direction must
+   here be specicified as the slope varies inside the cell grid, in
+   constrast to a 2D latitude grid range.
+
+   See further the other version of the function below.
+
+   \return         The radial slope [m/degree]
+   \param   lat1   Lower latitude of grid cell.
+   \param   lat3   Upper latitude of grid cell.
+   \param   lon5   Lower longitude of grid cell.
+   \param   lon6   Upper longitude of grid cell.
+   \param   r15    Radius at crossing of *lat1* and *lon5*.
+   \param   r35    Radius at crossing of *lat3* and *lon5*.
+   \param   r36    Radius at crossing of *lat3* and *lon6*.
+   \param   r16    Radius at crossing of *lat1* and *lon6*.
+   \param   lat    Latitude for which slope shall be determined.
+   \param   lon    Longitude for which slope shall be determined.
+   \param   aa     Azimuth angle for which slope shall be determined.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+Numeric plevel_slope_3d(
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  lon5,
+        const Numeric&  lon6,
+        const Numeric&  r15,
+        const Numeric&  r35,
+        const Numeric&  r36,
+        const Numeric&  r16,
+        const Numeric&  lat,
+        const Numeric&  lon,
+        const Numeric&  aa )
+{
+  // Save time and avoid numerical problems if all r are equal
+  if( r15==r35 && r15==r36 && r15==r16 && r35==r36 && r35==r16 && r36==r16 )
+    { return 0; }
+
+  else
+    {
+      // Radius at point of interest
+      const Numeric   r0 = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                            r15, r35, r36, r16, lat, lon );
+
+      // Size of test angular distance. Unit is degrees.
+      const Numeric   dang = 1e-5;  // = about 1 m shift horisontally. Smaller 
+                                    // values seem to cause numerical problems
+
+      Numeric lat2, lon2;
+      latlon_at_aa( lat2, lon2, lat, lon, aa, dang );
+      resolve_lon( lon2, lon5, lon6 );
+
+      const Numeric r2 =  rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                           r15, r35, r36, r16, lat2, lon2 );
+
+      // Return slope
+      return   ( r2 - r0 ) / dang;
+    }
+}
+
+
+
+//! plevel_slope_3d
+/*!
+   Calculates the radial slope of the surface or a pressure level for 3D.
+
+   The radial slope is here the derivative of the radius with respect
+   to an angular change (in degrees) along the great circle along the
+   given azimuth angle. That is, how much the radius would change for a
+   movement of r*pi/180 in the given azimuth angle (if the
+   slope where constant along the distance). The unit is m/degree.
+
+   For a point exactly on a grid value it is not clear if it is the
+   range below or above that is of interest. The azimuth angle is used
+   to resolve such cases.
+
+   This function is in practice another way to call the non-vector version
+   of the function above.
+
+   \return                 The radial slope [m/degree]
+   \param   lat_grid       The latitude grid.
+   \param   lon_grid       The longitude grid.
+   \param   refellipsoid   As the WSV with the same name.
+   \param   z_surf         Geometrical altitude of the surface, or the pressure
+                           level of interest.
+   \param   gp_lat         Latitude grid position for the position of interest.
+   \param   gp_lon         Longitude grid position for the position of interest.
+   \param   aa             Azimuth angle.
+
+   \author Patrick Eriksson
+   \date   2002-06-03
+*/
+Numeric plevel_slope_3d(
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,  
+        ConstVectorView   refellipsoid,
+        ConstMatrixView   z_surf,
+        const GridPos&    gp_lat,
+        const GridPos&    gp_lon,
+        const Numeric&    aa )
+{
+  Index ilat = gridpos2gridrange( gp_lat, abs( aa ) >= 0 );
+  Index ilon = gridpos2gridrange( gp_lon, aa >= 0 );
+
+  // Restore latitude and longitude values
+  Vector  itw(2);
+  Numeric  lat, lon;
+  interpweights( itw, gp_lat );
+  lat = interp( itw, lat_grid, gp_lat );
+  interpweights( itw, gp_lon );
+  lon = interp( itw, lon_grid, gp_lon );
+
+  // Extract values that defines the grid cell
+  const Numeric   lat1 = lat_grid[ilat];
+  const Numeric   lat3 = lat_grid[ilat+1];
+  const Numeric   lon5 = lon_grid[ilon];
+  const Numeric   lon6 = lon_grid[ilon+1];
+  const Numeric   re1  = refell2r( refellipsoid, lat1 );
+  const Numeric   re3  = refell2r( refellipsoid, lat3 );
+  const Numeric   r15  = re1 + z_surf(ilat,ilon);
+  const Numeric   r35  = re3 + z_surf(ilat+1,ilon);
+  const Numeric   r36  = re3 + z_surf(ilat+1,ilon+1);
+  const Numeric   r16  = re1 + z_surf(ilat,ilon+1);
+
+  return plevel_slope_3d( lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
+                                                                lat, lon, aa );
+}
+
+
+
+//! r_crossing_3d
+/*!
+   Calculates where a 3D LOS crosses the specified radius
+
+   The solution algorithm is described in ATD. See the
+   chapter on propagation paths.
+
+   The function only looks for crossings in the forward direction of
+   the given zenith angle (neglecting all solutions giving *l* <= 0).
+   Note that the tangent point can be passed.
+ 
+   LAT_NOT_FOUND, LON_NOT_FOUND and L_NOT_FOUND are returned if no solution 
+   is found.
+
+   \param   lat       Out: Latitude of found crossing.
+   \param   lon       Out: Longitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   r_hit     Target radius.
+   \param   r_start   Radius of start point.
+   \param   lat_start Latitude of start point.
+   \param   lon_start Longitude of start point.
+   \param   za_start  Zenith angle at start point.
+   \param   ppc       Propagation path constant
+   \param   x         x-coordinate of start position.
+   \param   y         y-coordinate of start position.
+   \param   z         z-coordinate of start position.
+   \param   dx        x-part of LOS unit vector.
+   \param   dy        y-part of LOS unit vector.
+   \param   dz        z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void r_crossing_3d(
+             Numeric&   lat,
+             Numeric&   lon,
+             Numeric&   l,
+       const Numeric&   r_hit,
+       const Numeric&   r_start,
+       const Numeric&   lat_start,
+       const Numeric&   lon_start,
+       const Numeric&   za_start,
+       const Numeric&   ppc,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz )
+{
+  assert( za_start >=   0 );
+  assert( za_start <= 180 );
+
+  // If above and looking upwards or r_hit below tangent point,
+  // we have no crossing:
+  if( ( r_start >= r_hit  &&  za_start <= 90 )  ||  ppc > r_hit )
+    { lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND;   l   = L_NOT_FOUND; }
+
+  else
+    {
+      // Zenith/nadir
+      if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
+        {
+          l   = abs( r_hit - r_start );
+          lat = lat_start;
+          lon = lon_start;
+        }          
+
+      else
+        {
+          const Numeric   p  = x*dx + y*dy + z*dz;
+          const Numeric   pp = p * p;
+          const Numeric   q  = x*x + y*y + z*z - r_hit*r_hit;
+          const Numeric   sq = sqrt( pp - q );
+          const Numeric   l1 = -p + sq;
+          const Numeric   l2 = -p - sq;
+          
+          const Numeric lmin = min( l1, l2 );
+          const Numeric lmax = max( l1, l2 );
+
+          // If r_start equals r_hit solutions just above zero can appear (that
+          // shall be rejected). So we pick the biggest solution if lmin is
+          // negative or just above zero. 
+          // (Tried to use "if( r_start != r_hit )", but failed occasionally)
+          if( lmin < 1e-6 )
+            { l = lmax; }
+          else
+            { l = lmin; }
+          assert( l > 0 );
+          
+          lat = RAD2DEG * asin( ( z+dz*l ) / r_hit );
+          lon = RAD2DEG * atan2( y+dy*l, x+dx*l );
+        }
+    }
+}
+
+
+
+//! lat_crossing_3d
+/*!
+   Calculates where a 3D LOS crosses the specified latitude
+
+   The solution algorithm is described in ATD. See the
+   chapter on propagation paths.
+
+   The function only looks for crossings in the forward direction of
+   the given zenith angle (neglecting all solutions giving *l* <= 0).
+   Note that the tangent point can be passed.
+ 
+   R_NOT_FOUND, LON_NOT_FOUND and L_NOT_FOUND are returned if no solution 
+   is found.
+
+   \param   r         Out: Radius of found crossing.
+   \param   lon       Out: Longitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   lat_hit   Target latitude.
+   \param   lat_start Latitude of start point.
+   \param   aa_start  Azimuth angle at start point.
+   \param   x         x-coordinate of start position.
+   \param   y         y-coordinate of start position.
+   \param   z         z-coordinate of start position.
+   \param   dx        x-part of LOS unit vector.
+   \param   dy        y-part of LOS unit vector.
+   \param   dz        z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2012-02-29
+*/
+void lat_crossing_3d(
+             Numeric&   r,
+             Numeric&   lon,
+             Numeric&   l,
+       const Numeric&   lat_hit,
+       const Numeric&   lat_start,
+       const Numeric&   za_start,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz )
+{
+  assert( lat_start >= -90 );
+  assert( lat_start <= 90 );
+  assert( lat_hit >= -90 );
+  assert( lat_hit <= 90 );
+
+  // For za=0/180 and lat+-90 there is no solution
+  if( za_start == 0  ||  za_start == 180  ||  abs(lat_hit) == 90 )
+    { l = -1; }
+
+  // The expressions below can not be used for lat=0
+  else if( abs( lat_hit ) < 1e-7 )
+    { l = -z / dz; }
+
+  else
+    {
+      const Numeric   t2     = pow( tan( DEG2RAD * lat_hit ), 2.0 );
+      const Numeric   a      = t2 * ( dx*dx + dy*dy ) - dz*dz;
+      const Numeric   b      = 2 * ( t2 * ( x*dx + y*dy ) - z*dz );
+      const Numeric   c      = t2 * ( x*x + y*y ) - z*z;
+      const Numeric   bb     = b * b;
+      const Numeric   ac4    = 4 * a * c;
+
+      // Check if a real solution is possible
+      if( ac4 > bb )
+        { l = -1; }
+      else
+        {
+          const Numeric   d      = -0.5*b/a;      
+          const Numeric   e      = -0.5*sqrt(b*b-4*a*c)/a;      
+                Numeric   l1     = d + e;
+                Numeric   l2     = d - e;
+
+          // Both lat and -lat can end up as a solution (the sign is lost as
+          // tan(lat) is squared). A correct solution requires that l>=0 and
+          // that z+l*dz has the same sigh as lat. Set l to -1 if this not
+          // fulfilled.
+          const Numeric zsign = sign( lat_hit ); 
+          if( l1 > 0   &&   abs(sign(z+dz*l1)-zsign)>0.01 ) 
+            { l1 = -1;}
+          if( l2 > 0   &&   abs(sign(z+dz*l2)-zsign)>0.01 ) 
+            { l2 = -1;}
+
+          // If both l1 and l2 are > 0, we want theoretically the smallest
+          // value. However, with lat=lat0 the "zero solution" can deviate
+          // slightly from zero due to numerical issues, and it is not just to
+          // pick the smallest positive value. As a solution, don't except a
+          // final l below 1e-6 if not both l1 and l2 are inside [0,1e-6].
+          const Numeric lmin = min( l1, l2 );
+          const Numeric lmax = max( l1, l2 );
+          if( lmin >= 0  && lmax < 1e-6 )
+            { l = lmax; }
+          else
+            {
+              if( lmin > 1e-6 ) 
+                { l = lmin; }
+              else if( lmax > 1e-6 )
+                { l = lmax; }
+              else
+                { l = -1; }
+            }
+        }
+    }
+
+  if( l > 0 )
+    {
+      const Numeric xp = x+dx*l;
+      const Numeric yp = y+dy*l;
+      r   = sqrt( pow(xp,2.0) + pow(yp,2.0) + pow(z+dz*l,2.0) );
+      lon = RAD2DEG * atan2( yp, xp );
+    }
+  else  
+    { r = R_NOT_FOUND;   lon = LON_NOT_FOUND;   l   = L_NOT_FOUND; }
+}
+
+
+
+//! lon_crossing_3d
+/*!
+   Calculates where a 3D LOS crosses the specified longitude.
+
+   The solution algorithm is described in ATD. See the
+   chapter on propagation paths.
+
+   The function only looks for crossings in the forward direction of
+   the given zenith angle (neglecting all solutions giving *l* <= 0).
+   Note that the tangent point can be passed.
+ 
+   R_NOT_FOUND, LAT_NOT_FOUND and L_NOT_FOUND are returned if no solution 
+   is found.
+
+   \param   r         Out: Radius of found crossing.
+   \param   lat       Out: Latitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   lon_hit   Target longitude.
+   \param   x         x-coordinate of start position.
+   \param   y         y-coordinate of start position.
+   \param   z         z-coordinate of start position.
+   \param   dx        x-part of LOS unit vector.
+   \param   dy        y-part of LOS unit vector.
+   \param   dz        z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2012-02-29
+*/
+void lon_crossing_3d(
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   l,
+       const Numeric&   lon_hit,
+       const Numeric&   lon_start,
+       const Numeric&   za_start,
+       const Numeric&   aa_start,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz )
+{
+
+  if( lon_hit == lon_start  ||  za_start == 0  ||  za_start == 180  ||
+                                aa_start == 0  ||  abs(aa_start) == 180 )
+    { l = -1; }
+
+  else
+    {
+      const double   tanlon = tan( DEG2RAD * lon_hit );
+      l = ( y - x*tanlon ) / ( dx*tanlon - dy );
+    }
+
+  if( l <= 0 )
+    { r = R_NOT_FOUND;   lat = LAT_NOT_FOUND;   l   = L_NOT_FOUND; }
+
+  else
+    {
+      const Numeric zp = z + dz*l;
+      r   = sqrt( pow(x+dx*l,2.0) + pow(y+dy*l,2.0) + pow(zp,2.0) );
+      lat = RAD2DEG * asin( zp / r );
+    }
+}
+
+
+
+//! plevel_crossing_3d
+/*!
+   As plevel_crossing_2d but for 3D
+ 
+
+   \param   r           Out: Radius at crossing.
+   \param   lat         Out: Latitude at crossing.
+   \param   lon         Out: Longitude at crossing.
+   \param   l           Out: Distance between start and crossing points.
+   \param   r_start0    In: Radius of start point.
+   \param   lat_start   In: Latitude of start point.
+   \param   lon_start   In: Longitude of start point.
+   \param   za_start    In: LOS zenith angle at start point.
+   \param   aa_start    In: LOS azimuth angle at start point.
+   \param   ppc         In: Propagation path constant.
+   \param   lat1        In: Latitude of lower end.
+   \param   lat3        In: Latitude of upper end.
+   \param   lon5        In: Longitude of lower end.
+   \param   lon6        In: Longitude of upper end.
+   \param   r15         In: Radius at lat1/lon5.
+   \param   r35         In: Radius at lat3/lon5.
+   \param   r36         In: Radius at lat3/lon6.
+   \param   r16         In: Radius at lat1/lon6.
+   \param   x           In: x-coordinate of start position.
+   \param   y           In: y-coordinate of start position.
+   \param   z           In: z-coordinate of start position.
+   \param   dx          In: x-part of LOS unit vector.
+   \param   dy          In: y-part of LOS unit vector.
+   \param   dz          In: z-part of LOS unit vector.
+   \param   above       In: True if ppath start point is above level. 
+                        In: Otherwise false.
+
+   \author Patrick Eriksson
+   \date   2012-02-19
+*/
+void plevel_crossing_3d(
+              Numeric&  r,
+              Numeric&  lat,
+              Numeric&  lon,
+              Numeric&  l,
+        const Numeric&  r_start0,
+        const Numeric&  lat_start,
+        const Numeric&  lon_start,
+        const Numeric&  za_start,
+        const Numeric&  aa_start,
+        const Numeric&  x,
+        const Numeric&  y,
+        const Numeric&  z,
+        const Numeric&  dx,
+        const Numeric&  dy,
+        const Numeric&  dz,
+        const Numeric&  ppc,
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  lon5,
+        const Numeric&  lon6,
+        const Numeric&  r15,
+        const Numeric&  r35,
+        const Numeric&  r36,
+        const Numeric&  r16,
+        const bool&     above )
+{
+  assert( za_start <= 180 );
+  assert( lat_start >=lat1  &&  lat_start <= lat3 );
+  assert( lon_start >=lon5  &&  lon_start <= lon6 );
+
+  const Numeric rmin = min( r15, min( r35, min( r36, r16 ) ) );
+  const Numeric rmax = max( r15, max( r35, max( r36, r16 ) ) );
+
+  // The case of negligible slope
+  if( rmax-rmin < RTOL/10 )
+    {
+      // Set r_start, considering impact of numerical problems
+      Numeric r_start = r_start0;
+              r       = r15;
+      if( above )
+        { if( r_start < rmax ) { r_start = r = rmax; } }
+      else
+        { if( r_start > rmin ) { r_start = r = rmin; } }
+
+      r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
+                     za_start, ppc, x, y, z, dx, dy, dz );
+
+      // Check if inside [lat1,lat3]
+      if( lat > lat3  ||  lat < lat1  || lon > lon6  ||  lon < lon5 )
+        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND; }  
+    }
+
+  // With slope
+  else
+    {
+      // Set r_start, considering impact of numerical problems
+      Numeric r_start = r_start0;
+      if( above )
+        { if( r_start < rmin ) { r_start = rmin; } }
+      else
+        { if( r_start > rmax ) { r_start = rmax; } }
+
+      // Calculate crossing with closest radius
+      if( r_start > rmax )
+        {
+          r = rmax;
+          r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
+                         za_start, ppc, x, y, z, dx, dy, dz );
+        }
+      else if( r_start < rmin )
+        {
+          r = rmin;      
+          r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
+                         za_start, ppc, x, y, z, dx, dy, dz );
+        }
+      else
+        { r = r_start; lat = lat_start; lon = lon_start; l = 0; }
+  
+      // lat/lon must be inside [lat1,lat3]/[lon5,lon6]] if relevant to continue
+      if( lat < lat1  ||  lat > lat3  ||  lon < lon5  ||  lon > lon6 )
+        { r = R_NOT_FOUND; }   // lat and lon already set by r_crossing_3d
+
+      // Otherwise continue from found point, considering the level slope 
+      else
+        {
+          // Level radius at lat/lon
+          const Numeric  rpl = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                                r15, r35, r36, r16, lat, lon );
+          
+          // Make adjustment if numerical problems
+          if( above )
+            { if( r < rpl ) { r = rpl; } }
+          else
+            { if( r > rpl ) { r = rpl; } }
+
+          // za_start = 0
+          if( za_start < ANGTOL )
+            {
+              if( r >= rpl )
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   
+                  l = L_NOT_FOUND;  lon = LON_NOT_FOUND; }
+              else
+                { r = rpl; lat = lat_start; lon = lon_start; l = rpl-r_start; }
+            }
+
+          // za_start = 180
+          else if( za_start > 180-ANGTOL )
+            {
+              if( r <= rpl )
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   
+                  l = L_NOT_FOUND;  lon = LON_NOT_FOUND; }
+              else
+                { r = rpl; lat = lat_start; lon = lon_start; l = r_start-rpl; }
+            }
+
+          else
+            {
+              // Azimuth angle:
+              Numeric d1, d2, d3, za, aa;
+              if( l == 0 )
+                { za = za_start; aa = aa_start; }
+              else
+                { cart2poslos( d1, d2, d3, za, aa, x+dx*l, y+dy*l, z+dz*l, 
+                               dx, dy, dz, ppc, lat_start, lon_start, 
+                               za_start, aa_start ); 
+                  assert( abs(d1-r) < 1e-3 );
+                  assert( abs(d2-lat) < 1e-8 );
+                  assert( abs(d3-lon) < 1e-8 );
+                }
+
+              // Level slope at lat/lon
+              const Numeric  cpl = plevel_slope_3d( lat1, lat3, lon5, lon6, 
+                                            r15, r35, r36, r16, lat, lon, aa );
+              // Angular distance from present point to actual crossing
+              const Numeric dang = rslope_crossing( r, za, rpl, cpl );
+
+              // Lat and lon at dang
+              Numeric lat2, lon2;
+              //
+              latlon_at_aa( lat2, lon2, lat, lon, aa, dang ); 
+              //
+              lat = lat2;
+              lon = lon2;   resolve_lon( lon, lon5, lon6 );
+
+              // lat/lon still inside gridbox? If yes, update r and l
+              if( lat < lat1  ||  lat > lat3  ||  lon < lon5  ||  lon > lon6 )
+                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   
+                  l = L_NOT_FOUND;  lon = LON_NOT_FOUND; }
+              else
+                {
+                  r = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                                r15, r35, r36, r16, lat, lon );
+                  l = abs( geompath_l_at_r( ppc, r_start ) -
+                           geompath_l_at_r( ppc, r ) );
+                }
+            }          
         }
     }
 }
@@ -2259,8 +2664,8 @@ void ppath_start_3d(
           Numeric c4 = plevel_slope_3d( lat1, lat3 ,lon5, lon6, 
                        r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
           Numeric tilt = plevel_angletilt( r_start, c4 );
-          // Negelect very small tilts, likely caused by numerical problems
-          if( abs(tilt) > 1e-4  &&  !is_los_downwards( za_start, tilt ) )
+          //
+          if( !is_los_downwards( za_start, tilt ) )
             {
               ip++;
               r15a = r15b;   r35a = r35b;   r36a = r36b;   r16a = r16b;
@@ -2695,7 +3100,7 @@ void do_gridcell_2d(
     {
       Numeric rt, latt, lt; 
       plevel_crossing_2d( rt, latt, lt, r_start, lat_start, za_start, ppc, 
-                                      lat1, lat3, rsurface1, rsurface3, true );
+                                    lat1, lat3, rsurface1, rsurface3, true );
 
       if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
         { endface = 7;   r = rt;   lat = latt;   l = lt; }
@@ -2832,7 +3237,7 @@ void ppath_step_geom_2d(
     \author Patrick Eriksson
     \date   2002-11-28
 */
-void do_gridcell_3d_byltest(
+void do_gridcell_3d(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
@@ -3152,6 +3557,266 @@ void do_gridcell_3d_byltest(
 
 
 
+//! do_gridcell_3d
+/*!
+   Calculates the geometrical path through a 3D grid cell.
+
+   The function determines the geometrical path from the given start
+   point to the boundary of the grid cell. The face where the path
+   exits the grid cell is denoted as the end face. The same number
+   coding as in *do_gridcell_2d* is used, where the additional longitude
+   end faces are numbered as: <br>
+   5: The face at the lower longitude point. <br>
+   6: The face at the upper longitude point.
+
+   The corner points are numbered as *do_gridcell_2d*, but 5 or 6 is added
+   after the latitude number to indicate the longitude. This means that
+   r16a, is the corner at lat1, lon6 and pressure level a.
+
+   See further *do_gridcell_2d*.
+
+   \param   r_v         Out: Vector with radius of found path points.
+   \param   lat_v       Out: Vector with latitude of found path points.
+   \param   lon_v       Out: Vector with longitude of found path points.
+   \param   za_v        Out: Vector with LOS zenith angle at found path points.
+   \param   aa_v        Out: Vector with LOS azimuth angle at found path points.
+   \param   lstep       Out: Vector with length along the path between points.
+   \param   endface     Out: Number coding for exit face. See above.
+   \param   r_start0    Radius of start point.
+   \param   lat_start0  Latitude of start point.
+   \param   lon_start0  Longitude of start point.
+   \param   za_start    LOS zenith angle at start point.
+   \param   aa_start    LOS azimuth angle at start point.
+   \param   ppc         Propagation path constant.
+   \param   lmax        Maximum allowed length along the path. -1 = no limit.
+   \param   lat1        Latitude of left end face (face 1) of the grid cell.
+   \param   lat3        Latitude of right end face (face 3) of the grid cell.
+   \param   lon5        Lower longitude limit of the grid cell.
+   \param   lon6        Upper longitude limit of the grid cell.
+   \param   r15a        Radius of corner: lower p-level,*lat1* and *lon5*.
+   \param   r35a        Radius of corner: lower p-level,*lat3* and *lon5*.
+   \param   r36a        Radius of corner: lower p-level,*lat3* and *lon6*.
+   \param   r16a        Radius of corner: lower p-level,*lat1* and *lon6*.
+   \param   r15b        Radius of corner: upper p-level,*lat1* and *lon5*.
+   \param   r35b        Radius of corner: upper p-level,*lat3* and *lon5*.
+   \param   r36b        Radius of corner: upper p-level,*lat3* and *lon6*.
+   \param   r16b        Radius of corner: upper p-level,*lat1* and *lon6*.
+   \param   rsurface15   Radius for the surface at *lat1* and *lon5*.
+   \param   rsurface35   Radius for the surface at *lat3* and *lon5*.
+   \param   rsurface36   Radius for the surface at *lat3* and *lon6*.
+   \param   rsurface16   Radius for the surface at *lat1* and *lon6*.
+
+   \author Patrick Eriksson
+   \date   2002-11-28
+*/
+void do_gridcell_3d_new(
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   lon_v,
+              Vector&   za_v,
+              Vector&   aa_v,
+              Numeric&  lstep,
+              Index&    endface,
+        const Numeric&  r_start, 
+        const Numeric&  lat_start,
+        const Numeric&  lon_start,
+        const Numeric&  za_start,
+        const Numeric&  aa_start,
+        const Numeric&  ppc,
+        const Numeric&  lmax,
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  lon5,
+        const Numeric&  lon6,
+        const Numeric&  r15a,
+        const Numeric&  r35a,
+        const Numeric&  r36a,
+        const Numeric&  r16a,
+        const Numeric&  r15b,
+        const Numeric&  r35b,
+        const Numeric&  r36b,
+        const Numeric&  r16b,
+        const Numeric&  rsurface15,
+        const Numeric&  rsurface35,
+        const Numeric&  rsurface36,
+        const Numeric&  rsurface16 )
+{
+  // Radius end latitude of end point
+  Numeric r, lat, lon, l= L_NOT_FOUND;  // l not always calculated/needed
+
+  endface = 0;
+
+  // Sensor pos and LOS in cartesian coordinates
+  Numeric   x, y, z, dx, dy, dz;
+  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
+                                             za_start,  aa_start ); 
+
+  // Check if crossing with lower pressure level
+  plevel_crossing_3d( r, lat, lon, l, r_start, lat_start, lon_start,
+                      za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
+                      lat1, lat3, lon5, lon6, r15a, r35a, r36a, r16a, true );
+  if( r > 0 )
+    { endface = 2; }
+
+  // Check if crossing with surface
+  if( rsurface15 >= r15a  ||  rsurface35 >= r35a  ||
+      rsurface36 >= r36a  ||  rsurface16 >= r16a )
+    {
+      Numeric rt, latt, lont, lt; 
+      plevel_crossing_3d( rt, latt, lont, lt, r_start, lat_start, lon_start,
+                          za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
+                          lat1, lat3, lon5, lon6, rsurface15, rsurface35, 
+                          rsurface36, rsurface16, true );
+
+      if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+        { endface = 7;   r = rt;   lat = latt;   lon = lont;   l = lt; }
+    }
+
+  // If crossing found (r>0) we are ready!
+  // (plevel_crossing_3d checks if crossing is inside grid box)
+
+  // Upper pressure level
+  if( r <= 0 )
+    {
+      plevel_crossing_3d( r, lat, lon, l, r_start, lat_start, lon_start, 
+                          za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
+                          lat1, lat3, lon5, lon6, r15b, r35b, r36b, r16b, 
+                          false );
+      if( r > 0 )
+        { endface = 4; }
+    }
+  
+  // Latitude and longitude endfaces
+  if( r <= 0 )
+    {
+      // Here we test both sides blindly and takes shortest l as solution:
+
+      // Latitude
+      Numeric rlat, latlat = lat1, lonlat, llat;
+      Index   eflat = 1;
+      //
+      lat_crossing_3d( rlat, lonlat, llat, lat1, lat_start, za_start,
+                                                         x, y, z, dx, dy, dz );
+      {
+        Numeric rlat3, lonlat3, llat3;
+        lat_crossing_3d( rlat3, lonlat3, llat3, lat3, lat_start, za_start,
+                                                         x, y, z, dx, dy, dz );
+        if( rlat3 > 0  &&  llat3 < llat )
+          { 
+            eflat = 3; 
+            rlat = rlat3; latlat = lat3; lonlat = lonlat3; llat = llat3; 
+          }
+      }
+ 
+      // Longitude
+      Numeric rlon, latlon, lonlon = lon5, llon;
+      Index   eflon = 5;
+      //
+      lon_crossing_3d( rlon, latlon, llon, lon5, lon_start, za_start, aa_start, 
+                                                         x, y, z, dx, dy, dz );
+      //      
+      {
+        Numeric rlon6, latlon6, llon6;
+        lon_crossing_3d( rlon6, latlon6, llon6, lon6, lon_start, za_start, 
+                                               aa_start, x, y, z, dx, dy, dz );
+        if( rlon6 > 0  &&  llon6 < llon )
+          { 
+            eflon = 6; 
+            rlon = rlon6; latlon = latlon6; lonlon = lon6; llon = llon6; 
+          }        
+      }
+
+      // Pick out solution with shortest l
+      if( llat < llon )
+        { r = rlat; lat = latlat; lon = lonlat; l = llat; endface = eflat; }
+      else
+        { r = rlon; lat = latlon; lon = lonlon; l = llon; endface = eflon; }
+      assert( lat >= lat1 );
+      assert( lat <= lat3 );
+      assert( lon >= lon5 );
+      assert( lon <= lon6 );
+    }
+
+  assert( endface );
+
+  // Check if there is a tangent point inside the grid cell. 
+  if( za_start > 90  )
+    {
+      Numeric ltan = geompath_l_at_r( ppc, r_start);
+      if( l > ltan ) 
+        { 
+          endface = 8; 
+          geompath_tanpos_3d( r, lat, lon, l, r_start, lat_start, lon_start, 
+                                                     za_start, aa_start, ppc );
+        }
+    }
+
+  resolve_lon( lon, lon5, lon6 );              
+
+
+  //--- Create return vectors
+  //
+  Index n = 1;
+  //
+  if( lmax > 0 )
+    {
+      n = Index( ceil( abs( l / lmax ) ) );
+      if( n < 1 )
+        { n = 1; }
+    }
+  //
+  r_v.resize( n+1 );
+  lat_v.resize( n+1 );
+  lon_v.resize( n+1 );
+  za_v.resize( n+1 );
+  aa_v.resize( n+1 );
+  //
+  r_v[0]   = r_start;
+  lat_v[0] = lat_start;
+  lon_v[0] = lon_start;
+  za_v[0]  = za_start;
+  aa_v[0]  = aa_start;
+  //
+  lstep = l / (Numeric)n;
+  // 
+  for( Index j=1; j<=n; j++ )
+    {
+      const Numeric lj  = lstep * (Numeric)j;
+
+      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
+                   x+dx*lj, y+dy*lj, z+dz*lj, dx, dy, dz, ppc,
+                   lat_start, lon_start, za_start, aa_start );
+   }
+
+  //--- Set last point especially, which should improve the accuracy
+  r_v[n]   = r; 
+  lat_v[n] = lat;
+  lon_v[n] = lon;
+
+  //--- Set last zenith angle to be as accurate as possible
+  if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
+    { za_v[n] = za_start; }
+  else if( endface == 8 )
+    { za_v[n] = 90; }
+  else
+    { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
+
+  //--- Set last azimuth angle to be as accurate as possible for
+  //    zenith and nadir observations
+  if( abs( lat_start ) < POLELAT  &&  
+          ( abs(aa_start) < ANGTOL  ||  abs( aa_start) > 180-ANGTOL ) )
+    {  
+      aa_v[n]  = aa_start; 
+      lon_v[n] = lon_start;
+    }
+
+  // Shall lon values be shifted (value 0 and n+1 are already OK)?
+  for( Index j=1; j<n; j++ )
+    { resolve_lon( lon_v[j], lon5, lon6 ); }
+}
+
+
+
 //! ppath_step_geom_3d
 /*! 
    Calculates 3D geometrical propagation path steps.
@@ -3213,11 +3878,11 @@ void ppath_step_geom_3d(
   Numeric   lstep;
   Index    endface;
 
-  do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                          r_start, lat_start, lon_start, za_start, aa_start, 
-                          ppc, lmax, lat1, lat3, lon5, lon6, 
-                          r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                          rsurface15, rsurface35, rsurface36, rsurface16 );
+  do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                  r_start, lat_start, lon_start, za_start, aa_start,
+                  ppc, lmax, lat1, lat3, lon5, lon6, 
+                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                  rsurface15, rsurface35, rsurface36, rsurface16 );
 
   // Fill *ppath*
   const Index np = r_v.nelem();
@@ -3969,10 +4634,10 @@ void raytrace_3d_linear_basic(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                    r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6, 
-                    r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                    rsurface15, rsurface35, rsurface36, rsurface16 );
+      do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                      r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6,
+                      r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                      rsurface15, rsurface35, rsurface36, rsurface16 );
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is <= *lraytrace*, extract the found end point (if not 
@@ -4867,9 +5532,9 @@ void ppath_start_stepping(
                   else
                     {
                       // Calculate lat and lon for entrance point at rt 
-                      r_crossing_3d( latt, lont, lt, rt, r_p, rte_los[0], 
-                                     ppath.constant, x, y, z, dx, dy, dz );
-                      assert( lt < 9e9 );
+                      r_crossing_3d( latt, lont, lt, rt, r_p, rte_pos[1], 
+                                     rte_pos[2], rte_los[0], ppath.constant, 
+                                     x, y, z, dx, dy, dz );
                       resolve_lon( lont, lon_grid[0], lon_grid[llon] ); 
 
                       // Entrance outside range of lat/lon_grids = fail
