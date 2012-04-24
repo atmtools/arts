@@ -966,23 +966,25 @@ void get_iy_of_background(
                 //
                 if( atmosphere_dim == 2 )
                   {
-                    const double rslope = plevel_slope_2d( lat_grid, 
-                        refellipsoid, z_surface(joker,0), rte_gp_lat, los[0] );
+                    Numeric c1; 
+                    plevel_slope_2d( c1, lat_grid, refellipsoid, 
+                                     z_surface(joker,0), rte_gp_lat, los[0] );
                     Vector itw(2); interpweights( itw, rte_gp_lat );
                     const Numeric rv_surface = 
                               refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
                               interp( itw, z_surface(joker,0), rte_gp_lat );
-                    atilt = plevel_angletilt( rv_surface, rslope);
+                    atilt = plevel_angletilt( rv_surface, c1 );
                   }
                 else if ( atmosphere_dim == 3 )
                   {
-                    const double rslope = plevel_slope_3d( lat_grid, lon_grid, 
-                     refellipsoid, z_surface, rte_gp_lat, rte_gp_lon, los[1] );
+                    Numeric c1, c2;
+                    plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, 
+                                     z_surface, rte_gp_lat, rte_gp_lon, los[1]);
                     Vector itw(4); interpweights( itw, rte_gp_lat, rte_gp_lon );
                     const Numeric rv_surface = 
                               refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
                               interp( itw, z_surface, rte_gp_lat, rte_gp_lon );
-                    atilt = plevel_angletilt( rv_surface, rslope);
+                    atilt = plevel_angletilt( rv_surface, c1 );
                   }
 
                 const Numeric zamax = 90 - sign(los[0])*atilt;

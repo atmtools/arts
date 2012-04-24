@@ -748,47 +748,19 @@ Numeric rsurf_at_lat(
 /*!
    Calculates the radial slope of the surface or a pressure level for 2D.
 
-   This function returns the same quantity as the function above, but takes
-   the radius and latitude at two points of the pressure level, instead
-   of vector input. That is, for this function the interesting latitude range
-   is known when calling the function.
-
-   \return         The radial slope [m/degree]
-   \param   lat1   A latitude.
-   \param   lat2   Another latitude.
-   \param   r1     Radius at *lat1*.
-   \param   r2     Radius at *lat2*.
-
-   \author Patrick Eriksson
-   \date   2002-12-21
-*/
-Numeric plevel_slope_2d(
-        const Numeric&  lat1,
-        const Numeric&  lat2,
-        const Numeric&  r1,
-        const Numeric&  r2 )
-{
-  return   ( r2 - r1 ) / ( lat2 - lat1 );
-}
-
-
-
-//! plevel_slope_2d
-/*!
-   Calculates the radial slope of the surface or a pressure level for 2D.
-
    The radial slope is here the derivative of the radius with respect to the
-   latitude. The unit is accordingly m/degree.
+   latitude. The unit is accordingly m/degree. 
 
-   Note that the radius is defined to change linearly between grid points,
-   and the slope is constant between to points of the latitude grid.
+   Note that the radius is defined to change linearly between grid points, and
+   the slope is constant between to points of the latitude grid. The radius can
+   inside the grid range be expressed as r = r0(lat0) + c1*(lat-lat0) .
 
    Note also that the slope is always calculated with respect to increasing
    latitudes, independently of the zenith angle. The zenith angle is
    only used to determine which grid range that is of interest when the
    position is exactly on top of a grid point. 
 
-   \return                 The radial slope [m/degree]
+   \param   c1             Out: The radial slope [m/degree]
    \param   lat_grid       The latitude grid.
    \param   refellipsoid   As the WSV with the same name.
    \param   z_surf         Geometrical altitude of the surface, or the pressure
@@ -799,7 +771,8 @@ Numeric plevel_slope_2d(
    \author Patrick Eriksson
    \date   2002-06-03
 */
-Numeric plevel_slope_2d(
+void plevel_slope_2d(
+               Numeric&   c1,
         ConstVectorView   lat_grid,           
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surf,
@@ -809,8 +782,40 @@ Numeric plevel_slope_2d(
   Index i1 = gridpos2gridrange( gp, abs( za ) >= 0 );
   const Numeric r1 = refell2r( refellipsoid, lat_grid[i1] ) + z_surf[i1];
   const Numeric r2 = refell2r( refellipsoid, lat_grid[i1+1] ) + z_surf[i1+1];
-  return ( r2 - r1 ) / ( lat_grid[i1+1] - lat_grid[i1] );
+  //
+  c1 = ( r2 - r1 ) / ( lat_grid[i1+1] - lat_grid[i1] );
 }
+
+
+
+//! plevel_slope_2d
+/*!
+   Calculates the radial slope of the surface or a pressure level for 2D.
+
+   This function returns the same quantity as the function above, but takes
+   the radius and latitude at two points of the pressure level, instead
+   of vector input. That is, for this function the interesting latitude range
+   is known when calling the function.
+
+   \param   c1             Out: The radial slope [m/degree]
+   \param   lat1   A latitude.
+   \param   lat2   Another latitude.
+   \param   r1     Radius at *lat1*.
+   \param   r2     Radius at *lat2*.
+
+   \author Patrick Eriksson
+   \date   2002-12-21
+*/
+void plevel_slope_2d(
+              Numeric&  c1,
+        const Numeric&  lat1,
+        const Numeric&  lat2,
+        const Numeric&  r1,
+        const Numeric&  r2 )
+{
+  c1 = ( r2 - r1 ) / ( lat2 - lat1 );
+}
+
 
 
 
@@ -823,18 +828,18 @@ Numeric plevel_slope_2d(
 
    \return        The angular tilt.
    \param    r    The radius for the level at the point of interest.
-   \param    c    The radial slope, as returned by e.g. plevel_slope_2d.
+   \param    c1   The radial slope, as returned by e.g. plevel_slope_2d.
 
    \author Patrick Eriksson
    \date   2002-06-03
 */
 Numeric plevel_angletilt(
         const Numeric&  r,
-        const Numeric&  c )
+        const Numeric&  c1 )
 {
-  // The tilt (in radians) is c/r if c is converted to m/radian. So we get
+  // The tilt (in radians) is c1/r if c1 is converted to m/radian. So we get
   // conversion RAD2DEG twice
-  return   RAD2DEG * RAD2DEG * c / r;
+  return   RAD2DEG * RAD2DEG * c1 / r;
 }
 
 
@@ -940,7 +945,7 @@ void r_crossing_2d(
 
 
 
-//! rslope_crossing
+//! rslope_crossing2d
 /*!
    Calculates the angular distance to a crossing with a level having a 
    radial slope.
@@ -974,16 +979,16 @@ void r_crossing_2d(
    \param   za     Zenith angle of the path at rp.
    \param   r0     Radius of the pressure level or the surface at the
                    latitude of rp.
-   \param   c      Linear slope term, as returned by plevel_slope_2d.
+   \param   c1     Linear slope term, as returned by plevel_slope_2d.
 
    \author Patrick Eriksson
    \date   2002-06-07
 */
-Numeric rslope_crossing(
+Numeric rslope_crossing2d(
         const Numeric&  rp,
         const Numeric&  za,
         const Numeric&  r0,
-              Numeric    c )
+              Numeric   c1 )
 {
   // If r0=rp, numerical inaccuracy can give a false solution, very close
   // to 0, that we must throw away.
@@ -997,15 +1002,15 @@ Numeric rslope_crossing(
   const Numeric   sv = sin( beta );
 
   // Convert slope to m/radian and consider viewing direction
-  c *= RAD2DEG;
+  c1 *= RAD2DEG;
   if( za < 0 )
-    { c = -c; }
+    { c1 = -c1; }
 
   // Some repeated terms
   const Numeric r0s = r0*sv;
   const Numeric r0c = r0*cv;
-  const Numeric cs  = c*sv;
-  const Numeric cc  = c*cv;
+  const Numeric cs  = c1*sv;
+  const Numeric cc  = c1*cv;
 
   // The vector of polynomial coefficients
   const Index n = 4;
@@ -1050,67 +1055,7 @@ Numeric rslope_crossing(
 
   return   dlat;
 }
-/*
-Numeric rslope_crossing(
-        const Numeric&  rp,
-        const Numeric&  za,
-        const Numeric&  r0,
-              Numeric    c )
-{
-  // If r0=rp, numerical inaccuracy can give a false solution, very close
-  // to 0, that we must throw away.
-  Numeric   dmin = 0;
-  if( r0 == rp )
-    { dmin = 1e-12; }
 
-  // The nadir angle in radians, and cosine and sine of that angle
-  const Numeric   beta = DEG2RAD * ( 180 - abs(za) );
-  const Numeric   cv = cos( beta );
-  const Numeric   sv = sin( beta );
-
-  // Convert slope to m/radian and consider viewing direction
-  c *= RAD2DEG;
-  if( za < 0 )
-    { c = -c; }
-
-  // The vector of polynomial coefficients
-  Vector p(5);
-  //
-  p[0] = ( r0 - rp ) * sv;
-  p[1] = r0 * cv + c * sv;
-  p[2] = -r0 * sv / 2 + c * cv;
-  p[3] = -r0 * cv / 6 - c * sv / 2;
-  p[4] = -c * cv / 6;
-
-  // Calculate roots of the polynomial
-  Matrix roots(4,2);
-  poly_root_solve( roots, p );
-  
-  // Find the smallest root with imaginary part = 0, and real part > 0.
-  //
-  Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
-  //
-  for( Index i=0; i<4; i++ )
-    {
-      if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
-        { dlat = roots(i,0); }
-    }  
-
-  if( dlat < 1.57 )  // A somewhat smaller value than start one
-    { 
-      // Convert back to degrees
-      dlat = RAD2DEG * dlat; 
-
-      // Change sign if zenith angle is negative
-      if( za < 0 )
-        { dlat = -dlat; }
-    }
-  else
-    { dlat = LAT_NOT_FOUND; }
-
-  return   dlat;
-}
-*/
 
 
 //! plevel_crossing_2d
@@ -1219,7 +1164,8 @@ void plevel_crossing_2d(
       else
         {
           // Level slope and radius at lat
-          const Numeric  cpl = plevel_slope_2d( lat1, lat3, r1, r3 );
+          Numeric  cpl;
+          plevel_slope_2d( cpl, lat1, lat3, r1, r3 );
           const Numeric  rpl = r1 + cpl*(lat-lat1);
 
           // Make adjustment if numerical problems
@@ -1254,7 +1200,7 @@ void plevel_crossing_2d(
                 { za = lat_start + za_start -lat; };
 
               // Latitude distance from present point to actual crossing
-              const Numeric dlat = rslope_crossing( r, za, rpl, cpl );
+              const Numeric dlat = rslope_crossing2d( r, za, rpl, cpl );
 
               // Update lat and check if still inside [lat1,lat3].
               // If yes, determine r
@@ -1336,17 +1282,19 @@ Numeric rsurf_at_latlon(
 
 //! plevel_slope_3d
 /*!
-   Calculates the local radial slope of the surface or a pressure level 
-   for 3D.
+   Calculates the radial slope of the surface or a pressure level for 3D.
 
-   The function works basically as the non-vector version of
-   *plevel_slope_2d*, but the position and viewing direction must
-   here be specicified as the slope varies inside the cell grid, in
-   constrast to a 2D latitude grid range.
+   For 2D where the radius can be expressed as r = r0 + c1*dalpha, where alpha
+   is the latitude. The radius is here for 3D expressed as a second order
+   polynomial: r = r0 + c1*dalpha + c2*dalpha^2, where alpha is the angular
+   change (in degrees) along the great circle along the given azimuth angle.
 
-   See further the other version of the function below.
+   For a point exactly on a grid value it is not clear if it is the
+   range below or above that is of interest. The azimuth angle is used
+   to resolve such cases.
 
-   \return         The radial slope [m/degree]
+   \param   c1             Out: See above. Unit is m/degree.
+   \param   c2             Out: See above. Unit is m/degree^2.
    \param   lat1   Lower latitude of grid cell.
    \param   lat3   Upper latitude of grid cell.
    \param   lon5   Lower longitude of grid cell.
@@ -1362,7 +1310,9 @@ Numeric rsurf_at_latlon(
    \author Patrick Eriksson
    \date   2002-12-30
 */
-Numeric plevel_slope_3d(
+void plevel_slope_3d(
+              Numeric&  c1,
+              Numeric&  c2,
         const Numeric&  lat1,
         const Numeric&  lat3,
         const Numeric&  lon5,
@@ -1377,7 +1327,10 @@ Numeric plevel_slope_3d(
 {
   // Save time and avoid numerical problems if all r are equal
   if( r15==r35 && r15==r36 && r15==r16 && r35==r36 && r35==r16 && r36==r16 )
-    { return 0; }
+    { 
+      c1 = 0;
+      c2 = 0;
+    }
 
   else
     {
@@ -1392,12 +1345,18 @@ Numeric plevel_slope_3d(
       Numeric lat2, lon2;
       latlon_at_aa( lat2, lon2, lat, lon, aa, dang );
       resolve_lon( lon2, lon5, lon6 );
+      const Numeric dr1 =  rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                         r15, r35, r36, r16, lat2, lon2 ) - r0;
 
-      const Numeric r2 =  rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                           r15, r35, r36, r16, lat2, lon2 );
+      latlon_at_aa( lat2, lon2, lat, lon, aa, 2*dang );
+      resolve_lon( lon2, lon5, lon6 );
+      const Numeric dr2 =  rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                         r15, r35, r36, r16, lat2, lon2 ) - r0;
 
-      // Return slope
-      return   ( r2 - r0 ) / dang;
+      // Derive linear and quadratic coefficient
+      c1 = 0.5 * ( 4*dr1 - dr2 );
+      c2 = (dr1-c1)/(dang*dang);
+      c1 /= dang;
     }
 }
 
@@ -1407,20 +1366,17 @@ Numeric plevel_slope_3d(
 /*!
    Calculates the radial slope of the surface or a pressure level for 3D.
 
-   The radial slope is here the derivative of the radius with respect
-   to an angular change (in degrees) along the great circle along the
-   given azimuth angle. That is, how much the radius would change for a
-   movement of r*pi/180 in the given azimuth angle (if the
-   slope where constant along the distance). The unit is m/degree.
+   For 2D where the radius can be expressed as r = r0 + c1*dalpha, where alpha
+   is the latitude. The radius is here for 3D expressed as a second order
+   polynomial: r = r0 + c1*dalpha + c2*dalpha^2, where alpha is the angular
+   change (in degrees) along the great circle along the given azimuth angle.
 
    For a point exactly on a grid value it is not clear if it is the
    range below or above that is of interest. The azimuth angle is used
    to resolve such cases.
 
-   This function is in practice another way to call the non-vector version
-   of the function above.
-
-   \return                 The radial slope [m/degree]
+   \param   c1             Out: See above. Unit is m/degree.
+   \param   c2             Out: See above. Unit is m/degree^2.
    \param   lat_grid       The latitude grid.
    \param   lon_grid       The longitude grid.
    \param   refellipsoid   As the WSV with the same name.
@@ -1433,7 +1389,9 @@ Numeric plevel_slope_3d(
    \author Patrick Eriksson
    \date   2002-06-03
 */
-Numeric plevel_slope_3d(
+void plevel_slope_3d(
+              Numeric&    c1,
+              Numeric&    c2,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,  
         ConstVectorView   refellipsoid,
@@ -1465,8 +1423,91 @@ Numeric plevel_slope_3d(
   const Numeric   r36  = re3 + z_surf(ilat+1,ilon+1);
   const Numeric   r16  = re1 + z_surf(ilat,ilon+1);
 
-  return plevel_slope_3d( lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
+  plevel_slope_3d( c1, c2, lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
                                                                 lat, lon, aa );
+}
+
+
+
+//! rslope_crossing3d
+/*!
+   3D version of rslope_crossing2d.
+
+   \return         The angular distance to the crossing.
+   \param   rp     Radius of a point of the path inside the grid cell
+   \param   za     Zenith angle of the path at rp.
+   \param   r0     Radius of the pressure level or the surface at the
+                   latitude of rp.
+   \param   c1     Linear slope term, as returned by plevel_slope_3d.
+   \param   c2     Quadratic slope term, as returned by plevel_slope_3d.
+
+   \author Patrick Eriksson
+   \date   2012-04-24
+*/
+Numeric rslope_crossing3d(
+        const Numeric&  rp,
+        const Numeric&  za,
+        const Numeric&  r0,
+              Numeric   c1,
+              Numeric   c2 )
+{
+  // If r0=rp, numerical inaccuracy can give a false solution, very close
+  // to 0, that we must throw away.
+  Numeric   dmin = 0;
+  if( r0 == rp )
+    { dmin = 1e-12; }
+
+  // The nadir angle in radians, and cosine and sine of that angle
+  const Numeric   beta = DEG2RAD * ( 180 - za );
+  const Numeric   cv = cos( beta );
+  const Numeric   sv = sin( beta );
+
+  // Convert c1 and c2 from degrees to radians
+  c1 *= RAD2DEG;
+  c2 *= RAD2DEG*RAD2DEG;
+
+  // Some repeated terms
+  const Numeric r0s = r0*sv;
+  const Numeric r0c = r0*cv;
+  const Numeric c1s  = c1*sv;
+  const Numeric c1c  = c1*cv;
+  const Numeric c2s  = c2*sv;
+  const Numeric c2c  = c2*cv;
+
+  // The vector of polynomial coefficients
+  const Index n = 5;
+  Vector p(n+1);
+  //
+  p[0] = r0s - rp*sv;
+  p[1] = r0c + c1s;
+  p[2] = -r0s/2 + c1c +c2s;
+  p[3] = -r0c/6 - c1s/2 + c2c;
+  p[4] = -c1c/6 - c2s/2;
+  p[5] = -c2c/6;
+
+  // Calculate roots of the polynomial
+  Matrix roots(n,2);
+  poly_root_solve( roots, p );
+  
+  // Find the smallest root with imaginary part = 0, and real part > 0.
+  //
+  Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
+  //
+  for( Index i=0; i<n; i++ )
+    {
+      if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
+        { dlat = roots(i,0); }
+    }  
+
+  if( dlat < 1.57 )  // A somewhat smaller value than start one
+    { 
+      // Convert back to degrees
+      dlat = RAD2DEG * dlat; 
+    }
+  else
+    { dlat = LAT_NOT_FOUND; }
+
+  return   dlat;
 }
 
 
@@ -1923,10 +1964,12 @@ void plevel_crossing_3d(
                 }
 
               // Level slope at lat/lon
-              const Numeric  cpl = plevel_slope_3d( lat1, lat3, lon5, lon6, 
-                                            r15, r35, r36, r16, lat, lon, aa );
+              Numeric  c1, c2; 
+              plevel_slope_3d( c1, c2, lat1, lat3, lon5, lon6, 
+                               r15, r35, r36, r16, lat, lon, aa );
+
               // Angular distance from present point to actual crossing
-              const Numeric dang = rslope_crossing( r, za, rpl, cpl );
+              const Numeric dang = rslope_crossing3d( r, za, rpl, c1, c2 );
 
               // Lat and lon at dang
               Numeric lat2, lon2;
@@ -2431,8 +2474,9 @@ void ppath_start_2d(
   }
   
   // Slopes of pressure levels
-  Numeric   c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
-  Numeric   c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
+  Numeric   c2, c4;
+  plevel_slope_2d( c2, lat1, lat3, r1a, r3a );
+  plevel_slope_2d( c4, lat1, lat3, r1b, r3b );
 
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure level (that is, 90 + tilt of pressure level), and in
@@ -2449,7 +2493,7 @@ void ppath_start_2d(
           r1b = r1a;   r3b = r3a;   c4 = c2;
           r1a = re1 + z_field(ip,ilat);
           r3a = re3 + z_field(ip,ilat+1);
-          c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
+          plevel_slope_2d( c2, lat1, lat3, r1a, r3a );
         }
     }
   else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
@@ -2462,7 +2506,7 @@ void ppath_start_2d(
           r1a = r1b;   r3a = r3b;   c2 = c4;
           r3b = re3 + z_field(ip+1,ilat+1);
           r1b = re1 + z_field(ip+1,ilat);    
-          c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
+          plevel_slope_2d( c4, lat1, lat3, r1b, r3b );
         }
     }
 
@@ -2716,9 +2760,10 @@ void ppath_start_3d(
       if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
         {
           // Slope and angular tilt of lower pressure level
-          Numeric c2 = plevel_slope_3d( lat1, lat3, lon5, lon6, 
+          Numeric c2a, c2b;
+          plevel_slope_3d( c2a, c2b, lat1, lat3, lon5, lon6, 
                        r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
-          Numeric tilt = plevel_angletilt( r_start, c2 );
+          Numeric tilt = plevel_angletilt( r_start, c2a );
           // Negelect very small tilts, likely caused by numerical problems
           if( abs(tilt) > 1e-4  &&  is_los_downwards( za_start, tilt ) )
             {
@@ -2733,9 +2778,10 @@ void ppath_start_3d(
       else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
         {
           // Slope and angular tilt of upper pressure level
-          Numeric c4 = plevel_slope_3d( lat1, lat3 ,lon5, lon6, 
+          Numeric c4a, c4b;
+          plevel_slope_3d( c4a, c4b, lat1, lat3 ,lon5, lon6, 
                        r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
-          Numeric tilt = plevel_angletilt( r_start, c4 );
+          Numeric tilt = plevel_angletilt( r_start, c4a );
           //
           if( !is_los_downwards( za_start, tilt ) )
             {
@@ -5181,8 +5227,9 @@ void ppath_start_stepping(
           if( ppath.pos(0,0) <= z_s )
             { 
               // Calculate radial slope of the surface
-              const Numeric rslope = plevel_slope_2d( lat_grid, refellipsoid,
-                                 z_surface(joker,0), gp_lat, ppath.los(0,0) );
+              Numeric rslope;
+              plevel_slope_2d( rslope, lat_grid, refellipsoid,
+                               z_surface(joker,0), gp_lat, ppath.los(0,0) );
 
               // Calculate angular tilt of the surface
               const Numeric atilt = plevel_angletilt( r_e + z_s, rslope );
@@ -5454,11 +5501,12 @@ void ppath_start_stepping(
           if( ppath.pos(0,0) <= z_s )
             { 
               // Calculate radial slope of the surface
-              const Numeric rslope = plevel_slope_3d( lat_grid, lon_grid,
-                    refellipsoid, z_surface, gp_lat, gp_lon, ppath.los(0,1) );
+              Numeric c1, c2;
+              plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, 
+                               z_surface, gp_lat, gp_lon, ppath.los(0,1) );
 
               // Calculate angular tilt of the surface
-              const Numeric atilt = plevel_angletilt( r_e + z_s, rslope );
+              const Numeric atilt = plevel_angletilt( r_e + z_s, c1 );
 
               // Are we looking down into the surface?
               // If yes and the sensor is inside the cloudbox, the background 

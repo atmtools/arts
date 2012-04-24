@@ -1,5 +1,22 @@
 2012-04-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-102
+
+	* src/ppath.cc (rslope_crossing3d): New function.
+	
+	(plevel_crossing_3d): Now using rslope_crossing3d. 
+
+	* src/rte.cc (get_iy_of_background): Adopted to changes below.
+
+	* src/ppath.cc: Changes in several functions to adopt to the
+	changes below.
+	(plevel_slope_2d): Converted c1 from return to out
+	parameter.
+	(plevel_slope_3d): Now fitting local radius as a second order
+	polynomial. Results now retunred by reference. 
+
+2012-04-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-101
 
 	* src/ppath.cc: Introduced the terms r0s etc. to avoid repeating

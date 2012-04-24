@@ -146,14 +146,17 @@ void find_tanpoint(
          Index&   it,
    const Ppath    ppath );
 
-Numeric plevel_slope_2d(
+void plevel_slope_2d(
+               Numeric&   c1,
         ConstVectorView   lat_grid,           
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
         const Numeric&    za );
 
-Numeric plevel_slope_3d(
+void plevel_slope_3d(
+              Numeric&    c1,
+              Numeric&    c2,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,  
         ConstVectorView   refellipsoid,
