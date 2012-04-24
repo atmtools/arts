@@ -1001,6 +1001,78 @@ Numeric rslope_crossing(
   if( za < 0 )
     { c = -c; }
 
+  // Some repeated terms
+  const Numeric r0s = r0*sv;
+  const Numeric r0c = r0*cv;
+  const Numeric cs  = c*sv;
+  const Numeric cc  = c*cv;
+
+  // The vector of polynomial coefficients
+  const Index n = 4;
+  Vector p(n+1);
+  //
+  p[0] = r0s - rp*sv;
+  p[1] = r0c + cs;
+  p[2] = -r0s/2 + cc;
+  p[3] = -r0c/6 - cs/2;
+  p[4] = -cc / 6;
+
+  // If n set to 6:
+  //p[4] = r0s/24 - cc/6;
+  //p[5] = r0c/120 + cs/24;
+  //p[6] = cc/120;
+
+  // Calculate roots of the polynomial
+  Matrix roots(n,2);
+  poly_root_solve( roots, p );
+  
+  // Find the smallest root with imaginary part = 0, and real part > 0.
+  //
+  Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
+  //
+  for( Index i=0; i<n; i++ )
+    {
+      if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
+        { dlat = roots(i,0); }
+    }  
+
+  if( dlat < 1.57 )  // A somewhat smaller value than start one
+    { 
+      // Convert back to degrees
+      dlat = RAD2DEG * dlat; 
+
+      // Change sign if zenith angle is negative
+      if( za < 0 )
+        { dlat = -dlat; }
+    }
+  else
+    { dlat = LAT_NOT_FOUND; }
+
+  return   dlat;
+}
+/*
+Numeric rslope_crossing(
+        const Numeric&  rp,
+        const Numeric&  za,
+        const Numeric&  r0,
+              Numeric    c )
+{
+  // If r0=rp, numerical inaccuracy can give a false solution, very close
+  // to 0, that we must throw away.
+  Numeric   dmin = 0;
+  if( r0 == rp )
+    { dmin = 1e-12; }
+
+  // The nadir angle in radians, and cosine and sine of that angle
+  const Numeric   beta = DEG2RAD * ( 180 - abs(za) );
+  const Numeric   cv = cos( beta );
+  const Numeric   sv = sin( beta );
+
+  // Convert slope to m/radian and consider viewing direction
+  c *= RAD2DEG;
+  if( za < 0 )
+    { c = -c; }
+
   // The vector of polynomial coefficients
   Vector p(5);
   //
@@ -1038,7 +1110,7 @@ Numeric rslope_crossing(
 
   return   dlat;
 }
-
+*/
 
 
 //! plevel_crossing_2d
