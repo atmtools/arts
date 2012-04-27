@@ -49,7 +49,7 @@ specifying the geometrical altitudes (\builtindoc{z\_field}).
   
 \item[Geometrical altitude\index{geometrical altitude}] The term geometrical
   altitude signifies here the difference in radius between a point and the
-  reference ellispoid (Section \ref{sec:fm_defs:geoid}) along the vector to the
+  reference ellipsoid (Section \ref{sec:fm_defs:geoid}) along the vector to the
   centre of the coordinate system (Equation \ref{eq:fm_defs:zsurface}). This is
   consistent with the usage of geocentric latitudes (see below). Hence, the
   altitude is not measured along the local zenith direction.
@@ -115,7 +115,7 @@ dimensionality is most easily set by the functions \wsmindex{AtmosphereSet1D},
   surface constitutes the surface of a sphere. The radial coordinate is
   accordingly sufficient when dealing with atmospheric quantities. The latitude
   and longitude of the sensor are normally of no concern, but when required the
-  sensor is considered to be placed at latitude and lonitude zero
+  sensor is considered to be placed at latitude and longitude zero
   $([\Lat,\Lon]=[0,0])$. The sensor is assumed to by directed towards
   the North pole, corresponding to an azimuth angle of 0\degree. A 1D
   atmosphere is shown in Figure~\ref{fig:fm_defs:1d}.
@@ -246,7 +246,7 @@ point. In the 1D case there is just one row and one column on each page. The
 representation of atmospheric fields, and other quantities, is discussed
 further in Section~\ref{sec:wfuns:basis}, where the concept of basis
 functions\index{basis function} is introduced. In short, the basis functions
-give the mapping from the set of discrete values to the continous
+give the mapping from the set of discrete values to the continuous
 representation of the quantity.
 
 
@@ -275,11 +275,11 @@ values in \wsvindex{z\_field}.
 \label{sec:fm_defs:surf}
 
 Geometrical altitudes are specified as the vertical distance to the reference
-ellipsoid, \wsvindex{refellispoid}). Reference ellipsoids are discussed further
-in Section \ref{sec:fm_defs:geoid}. The lower boundary of the atmosphere is
-denoted as the surface. The surface is specified by its geometrical altitude on
-the latitude and longitude grids. The workspace variable holding these data is
-called \wsvindex{z\_surface}.
+ellipsoid (\wsvindex{refellipsoid}), discussed further in Section
+\ref{sec:fm_defs:geoid}. The lower boundary of the atmosphere is denoted as the
+surface. The surface is specified by its geometrical altitude on the latitude
+and longitude grids. The workspace variable holding these data is called
+\wsvindex{z\_surface}.
 
 It is not allowed that there is an altitude gap between the surface and
 the lowermost pressure level.  That is, the surface pressure must be

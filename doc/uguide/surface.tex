@@ -36,7 +36,7 @@ rotationally symmetric around the north-south axis. That is, the ellipsoid
 radius has no longitude variation, it is only a function of latitude. The
 ellipsoid is described by an equatorial radius, \aRds{e}, and a polar radius,
 \aRds{p}. These radii are indicated in Figure \ref{fig:ppath:lats}. The
-defintion of the ellispoid used in ARTS is based on \aRds{e} and the
+definition of the ellipsoid used in ARTS is based on \aRds{e} and the
 eccentricity, $e$:
 \begin{equation}
  e = \sqrt{1-\aRds{e}^2/\aRds{p}^2}.
@@ -180,21 +180,23 @@ the angle to the normal to the reference ellipsoid is considered here, as
 shown in Figure \ref{fig:ppath:lats}. It could be mentioned that a
 geocentric latitude does not depend on the ellipsoid used, while
 the geodetic latitudes change if another reference ellipsoid is
-selected. An approximative relationship between the geodetic
-($\Lat^*$) and geocentric (\Lat) latitudes is \citep{montenbruck:00}
-\begin{equation}
- \Lat^* = \Lat + f\,\sin(2\Lat)  
- \label{eq:ppath:lats}
-\end{equation}
-where $f$ is the flattening of the ellipse:
-\begin{equation}
- f = \frac{\aRds{e}-\aRds{p}}{\aRds{e}}
- \label{eq:ppath:flattening}
-\end{equation}
-The value of $f$ for the Earth is about 1/298.26. This means that the
-largest differences between \Lat\ and $\Lat^*$ are found at
-mid-latitudes and the maximum value is about 12 arc-minutes.
-
+selected. 
+%An approximate relationship between the geodetic
+%($\Lat^*$) and geocentric (\Lat) latitudes is \citep{montenbruck:00}
+%\begin{equation}
+% \Lat^* = \Lat + f\,\sin(2\Lat)  
+% \label{eq:ppath:lats}
+%\end{equation}
+%where $f$ is the flattening of the ellipse:
+%\begin{equation}
+% f = \frac{\aRds{e}-\aRds{p}}{\aRds{e}}
+% \label{eq:ppath:flattening}
+%\end{equation}
+%The value of $f$ for the Earth is about 1/298.26. This means that the
+%largest differences between \Lat\ and $\Lat^*$ are found at
+%mid-latitudes and the maximum value is about 12 arc-minutes.
+For Earth, the largest difference between geocentric and geodetic latitude is
+found at mid-latitudes, where it reaches 12 arc-minutes.
 There are yet no methods in ARTS for conversion of data between geodetic and
 geocentric latitudes.
 
@@ -220,7 +222,7 @@ geocentric latitudes.
 %===================
 
 The surface altitude, \aAlt{g}, is given as the geometrical altitude above the
-reference ellispoid. The radius for the surface is accordingly
+reference ellipsoid. The radius for the surface is accordingly
 \begin{equation}
   \aRds{s} = \aRds{\odot} + \aAlt{s}
  \label{eq:fm_defs:zsurface}

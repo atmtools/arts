@@ -1013,19 +1013,19 @@ Numeric rslope_crossing2d(
   const Numeric cc  = c1*cv;
 
   // The vector of polynomial coefficients
-  const Index n = 4;
+  const Index n = 6;
   Vector p(n+1);
   //
   p[0] = r0s - rp*sv;
   p[1] = r0c + cs;
   p[2] = -r0s/2 + cc;
   p[3] = -r0c/6 - cs/2;
-  p[4] = -cc / 6;
+  p[4] = r0s/24 - cc/6;
+  p[5] = r0c/120 + cs/24;
+  p[6] = cc/120;
 
-  // If n set to 6:
-  //p[4] = r0s/24 - cc/6;
-  //p[5] = r0c/120 + cs/24;
-  //p[6] = cc/120;
+  // If n set to 4:
+  //  p[4] = -cc / 6;
 
   // Calculate roots of the polynomial
   Matrix roots(n,2);
@@ -1203,13 +1203,16 @@ void plevel_crossing_2d(
               const Numeric dlat = rslope_crossing2d( r, za, rpl, cpl );
 
               // Update lat and check if still inside [lat1,lat3].
-              // If yes, determine r
+              // If yes, determine r and l
               lat += dlat;
               if( lat < lat1  ||  lat > lat3 )
                 { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
               else
                 { 
-                  r = rpl + cpl*dlat;
+                  r = geompath_r_at_lat( ppc, lat_start, za_start, lat );
+                  //cout << za_start << " " << cpl << " " << dlat << " " 
+                  //     << rpl + cpl*dlat - r << endl;
+                  assert( abs( rpl + cpl*dlat - r ) < 1e-2 );
                   l = abs( geompath_l_at_r( ppc, r_start ) -
                            geompath_l_at_r( ppc, r ) );
                 }
@@ -1339,8 +1342,10 @@ void plevel_slope_3d(
                                             r15, r35, r36, r16, lat, lon );
 
       // Size of test angular distance. Unit is degrees.
-      const Numeric   dang = 1e-5;  // = about 1 m shift horisontally. Smaller 
-                                    // values seem to cause numerical problems
+      //  dang = 1e-4 corresponds to about 10 m shift horisontally. 
+      //  Smaller values should probably be avoided. For example, 1e-5 gave
+      //  significant c2 when it should be zero. 
+      const Numeric   dang = 1e-4;  
 
       Numeric lat2, lon2;
       latlon_at_aa( lat2, lon2, lat, lon, aa, dang );
@@ -1451,63 +1456,72 @@ Numeric rslope_crossing3d(
               Numeric   c1,
               Numeric   c2 )
 {
-  // If r0=rp, numerical inaccuracy can give a false solution, very close
-  // to 0, that we must throw away.
-  Numeric   dmin = 0;
-  if( r0 == rp )
-    { dmin = 1e-12; }
-
-  // The nadir angle in radians, and cosine and sine of that angle
-  const Numeric   beta = DEG2RAD * ( 180 - za );
-  const Numeric   cv = cos( beta );
-  const Numeric   sv = sin( beta );
-
-  // Convert c1 and c2 from degrees to radians
-  c1 *= RAD2DEG;
-  c2 *= RAD2DEG*RAD2DEG;
-
-  // Some repeated terms
-  const Numeric r0s = r0*sv;
-  const Numeric r0c = r0*cv;
-  const Numeric c1s  = c1*sv;
-  const Numeric c1c  = c1*cv;
-  const Numeric c2s  = c2*sv;
-  const Numeric c2c  = c2*cv;
-
-  // The vector of polynomial coefficients
-  const Index n = 5;
-  Vector p(n+1);
-  //
-  p[0] = r0s - rp*sv;
-  p[1] = r0c + c1s;
-  p[2] = -r0s/2 + c1c +c2s;
-  p[3] = -r0c/6 - c1s/2 + c2c;
-  p[4] = -c1c/6 - c2s/2;
-  p[5] = -c2c/6;
-
-  // Calculate roots of the polynomial
-  Matrix roots(n,2);
-  poly_root_solve( roots, p );
+  assert( c1 != 0 );
   
-  // Find the smallest root with imaginary part = 0, and real part > 0.
-  //
-  Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
-  //
-  for( Index i=0; i<n; i++ )
-    {
-      if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
-        { dlat = roots(i,0); }
-    }  
+  // poly_root_solve does not handle the case of c2=0
+  if( c2 == 0 )
+    { return rslope_crossing2d( rp, za, r0, c1 ); }
 
-  if( dlat < 1.57 )  // A somewhat smaller value than start one
-    { 
-      // Convert back to degrees
-      dlat = RAD2DEG * dlat; 
-    }
   else
-    { dlat = LAT_NOT_FOUND; }
+    {
+      // If r0=rp, numerical inaccuracy can give a false solution, very close
+      // to 0, that we must throw away.
+      Numeric   dmin = 0;
+      if( r0 == rp )
+        { dmin = 1e-12; }
 
-  return   dlat;
+      // The nadir angle in radians, and cosine and sine of that angle
+      const Numeric   beta = DEG2RAD * ( 180 - za );
+      const Numeric   cv = cos( beta );
+      const Numeric   sv = sin( beta );
+      
+      // Convert c1 and c2 from degrees to radians
+      c1 *= RAD2DEG;
+      c2 *= RAD2DEG*RAD2DEG;
+      
+      // Some repeated terms
+      const Numeric r0s = r0*sv;
+      const Numeric r0c = r0*cv;
+      const Numeric c1s  = c1*sv;
+      const Numeric c1c  = c1*cv;
+      const Numeric c2s  = c2*sv;
+      const Numeric c2c  = c2*cv;
+      
+      // The vector of polynomial coefficients
+      const Index n = 5;
+      Vector p(n+1);
+      //
+      p[0] = r0s - rp*sv;
+      p[1] = r0c + c1s;
+      p[2] = -r0s/2 + c1c +c2s;
+      p[3] = -r0c/6 - c1s/2 + c2c;
+      p[4] = -c1c/6 - c2s/2;
+      p[5] = -c2c/6;
+
+      // Calculate roots of the polynomial
+      Matrix roots(n,2);
+      poly_root_solve( roots, p );
+      
+      // Find the smallest root with imaginary part = 0, and real part > 0.
+      //
+      Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
+      //
+      for( Index i=0; i<n; i++ )
+        {
+          if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
+            { dlat = roots(i,0); }
+        }  
+
+      if( dlat < 1.57 )  // A somewhat smaller value than start one
+        { 
+          // Convert back to degrees
+          dlat = RAD2DEG * dlat; 
+        }
+      else
+        { dlat = LAT_NOT_FOUND; }
+
+      return   dlat;
+    }
 }
 
 
@@ -1987,6 +2001,7 @@ void plevel_crossing_3d(
                 {
                   r = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                                 r15, r35, r36, r16, lat, lon );
+                  //cout << "dr = " << rpl+c1*dang+c2*dang*dang-r << " m\n";
                   l = abs( geompath_l_at_r( ppc, r_start ) -
                            geompath_l_at_r( ppc, r ) );
                 }
@@ -3340,7 +3355,6 @@ void ppath_step_geom_2d(
 
       ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
                                                                         lmax );
-
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
     }
@@ -3719,10 +3733,10 @@ void do_gridcell_3d(
    \param   r35b        Radius of corner: upper p-level,*lat3* and *lon5*.
    \param   r36b        Radius of corner: upper p-level,*lat3* and *lon6*.
    \param   r16b        Radius of corner: upper p-level,*lat1* and *lon6*.
-   \param   rsurface15   Radius for the surface at *lat1* and *lon5*.
-   \param   rsurface35   Radius for the surface at *lat3* and *lon5*.
-   \param   rsurface36   Radius for the surface at *lat3* and *lon6*.
-   \param   rsurface16   Radius for the surface at *lat1* and *lon6*.
+   \param   rsurface15  Radius for the surface at *lat1* and *lon5*.
+   \param   rsurface35  Radius for the surface at *lat3* and *lon5*.
+   \param   rsurface36  Radius for the surface at *lat3* and *lon6*.
+   \param   rsurface16  Radius for the surface at *lat1* and *lon6*.
 
    \author Patrick Eriksson
    \date   2002-11-28

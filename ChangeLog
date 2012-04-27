@@ -1,3 +1,26 @@
+2012-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-103
+
+	* doc/uguide/atmosphere.tex: Some typos fixed.
+	
+	* doc/uguide/surface.tex: Part on geodetic latitude shortened.
+	Spell-checking.
+
+	* doc/uguide/ppath.tex (section{The propagation path data
+	structure}): Updated with ngroup, start_lstep and end_lstep.
+
+	* src/ppath.cc (rslope_crossing3d): Now using 2D version if c2=0.
+	Required by poly_root_solve.
+
+	* src/ppath.cc (rslope_crossing2d): Taylor expansion of cos and
+	sin now includes also the third term. Was found to improve the
+	accuracy significantly with non-spherical ellipsoid.
+
+	(plevel_crossing_2d): New r now calculated by geompath function,
+	instead as r+c*dlat. This looks the path to ppc, which improves
+	the accuracy.
+
 2012-04-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-102

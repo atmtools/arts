@@ -182,12 +182,17 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      
    \item[start\_pos] [Vector] The practical start position of the propagation
      path. This vector equals in general the last row of \shortcode{pos}. The
-     exception if radio link calculations where the transmitter is placed above
+     exception is radio link calculations where the transmitter is placed above
      the model atmosphere, where this field gives the position of the
      transmitter.
 
-   \item[start\_los] [Vector] Line-of-sight at end point of propagation
+   \item[start\_los] [Vector] Line-of-sight at start point of propagation
      path. Set and used in the same way as \shortcode{start\_pos}.
+
+   \item[start\_lstep] [Numeric] The distance between \shortcode{start\_pos}
+     and the last position in \shortcode{pos}. This value is zero, except for a
+     transmitter placed above the top-of-the-atmosphere. Hence, this length
+     corresponds to propgation if free space (n=1).
 
    \item[end\_pos] [Vector] The end position of the propagation path. If
      the point is placed inside the atmosphere, this field is redundant as it
@@ -198,6 +203,11 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      propagation path. Provides additional information if the sensor is placed
      above the top-of-the-atmosphere, and gives then the observation direction
      of the sensor.
+
+   \item[start\_lstep] [Numeric] The distance between \shortcode{end\_pos}
+     and the first position in \shortcode{pos}. This value is non-zero just if
+     the sensor is placed above the top-of-the-atmosphere. Hence, this length
+     corresponds to propgation if free space (n=1).
 
    \item[pos] [Matrix] The position of the propagation path points inside the
      atmosphere. This matrix has \shortcode{np} rows and up to 3 columns. Each
@@ -232,13 +242,11 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      between the positions in \shortcode{pos}. The first value is the
      length between the first and second point etc. 
 
-   \item[lspace] [Numeric] Propagation length through free space above the
-     model atmosphere. Only points inside the atmosphere are stored and the sum
-     of \shortcode{lstep} does not cover the propagation between the top-of-the
-     atmosphere and a sensor placed in space.
-
    \item[nreal] [Vector] The real part of the refractive index at each path
-     position. 
+     position. This index corresponds to the phase velocity.
+
+   \item[ngroup] [Vector] The group index of refraction. This index corresponds
+     to the group velocity.
 
    \item[gp\_p] [ArrayOfGridPos] Index position with respect to the
      pressure grid. The structure for grid positions is described in
