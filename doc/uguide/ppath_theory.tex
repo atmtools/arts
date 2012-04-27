@@ -484,30 +484,33 @@ which can be re-written to
  \label{eq:ppath:psurf1}
 \end{equation}
 This equation has no analytical solution. A first step to find an approximate
-solution is to note that \Lat\ will be limited to relatively small values. For
+solution is to note that \Lat\ is limited to relatively small values. For
 example, if it shall be possible for the angular distance \Lat\ to reach the
 value of 3\degree, the vertical distance between $\aRds{p}$ and $\Rds$ must be
 about 8\,km. For angles $\Lat \leq 3\degree$, the sine and cosine terms can be
-replaced with the two first terms of their Taylor expansions with a relative
-accuracy of $< 4\topowerten{-7}$. That is,
+replaced with the three first terms of their Taylor expansions maintaining a
+high accuracy. That is,
 \begin{eqnarray}
-  \cos \Lat & \approx & 1 - \Lat^2 / 2    \nonumber \\
-  \sin \Lat & \approx & \Lat - \Lat^3 / 6 \nonumber
+  \cos \Lat & \approx & 1 - \Lat^2 / 2 + \Lat^4 / 24  \nonumber \\
+  \sin \Lat & \approx & \Lat - \Lat^3 / 6 + \Lat^5 / 120 \nonumber
 \end{eqnarray}
 Equation \ref{eq:ppath:psurf1} becomes with these replacements a
-polynomial equation of order 4:
+polynomial equation of order 6:
 \begin{eqnarray}
-    0 & = & p_0 + p_1 \Lat + p_2 \Lat^2 + p_3 \Lat^3 + p_4 \Lat^4 \\
-  p_0 & = & (\aRds{0}-\aRds{p}) \sin\Theta_p \nonumber \\ 
-  p_1 & = & \aRds{0}\cos\Theta_p + c \sin\Theta_p \nonumber \\ 
-  p_2 & = & -(\aRds{0}\sin\Theta_p)/2 + c\cos\Theta_p  \nonumber \\ 
-  p_3 & = & -(\aRds{0}\cos\Theta_p)/6 - (c\sin\Theta_p)/2 \nonumber \\ 
-  p_4 & = & -(c \cos\Theta_p)/6  \nonumber 
+    0 & = & p_0 + p_1 \Lat + p_2 \Lat^2 + p_3 \Lat^3 + p_4 \Lat^4 + 
+                  p_5 \Lat^5 + p_6 \Lat^6 \\
+  p_0 & = & (\aRds{0}-\aRds{p}) \sin(\Theta_p) \nonumber \\ 
+  p_1 & = &   \aRds{0}\cos(\Theta_p)    + c \sin(\Theta_p) \nonumber \\ 
+  p_2 & = & -\aRds{0}\sin(\Theta_p)/2   + c \cos(\Theta_p)  \nonumber \\ 
+  p_3 & = & -\aRds{0}\cos(\Theta_p)/6   - c \sin(\Theta_p)/2 \nonumber \\ 
+  p_4 & = &  \aRds{0}\sin(\Theta_p)/24  - c \cos(\Theta_p)/6  \nonumber \\
+  p_5 & = &  \aRds{0}\cos(\Theta_p)/120 + c \sin(\Theta_p)/24  \nonumber \\
+  p_6 & = &                               c \cos(\Theta_p)/120  \nonumber 
   \label{eq:ppath:psurf2}
 \end{eqnarray}
 This equation is solved numerically with the root finding algorithm
 implemented in the function \funcindex{poly\_root\_solve}. Solutions of
-interest shall not be imaginary.
+interest shall not be imaginary. 
 
 \begin{figure}
  \begin{center}

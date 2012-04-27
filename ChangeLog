@@ -1,9 +1,17 @@
+2012-04-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-104
+
+	* doc/uguide/ppath_theory.tex: Updated with respect to change in
+	rslope_crossing2d (now three terms in Taylor expansuion of cos and
+	sin).
+
 2012-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-103
 
 	* doc/uguide/atmosphere.tex: Some typos fixed.
-	
+
 	* doc/uguide/surface.tex: Part on geodetic latitude shortened.
 	Spell-checking.
 
@@ -26,8 +34,8 @@
 	* arts-2-1-102
 
 	* src/ppath.cc (rslope_crossing3d): New function.
-	
-	(plevel_crossing_3d): Now using rslope_crossing3d. 
+
+	(plevel_crossing_3d): Now using rslope_crossing3d.
 
 	* src/rte.cc (get_iy_of_background): Adopted to changes below.
 
@@ -36,7 +44,7 @@
 	(plevel_slope_2d): Converted c1 from return to out
 	parameter.
 	(plevel_slope_3d): Now fitting local radius as a second order
-	polynomial. Results now retunred by reference. 
+	polynomial. Results now returned by reference.
 
 2012-04-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
