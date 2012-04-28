@@ -11,11 +11,6 @@ Arts2{
 INCLUDE "general/general.arts"
 
 
-# Reference ellipsoid
-#
-refellipsoidEarth( refellipsoid, "WGS84" )
-
-
 # A pressure grid rougly matching 0 to 80 km.
 #
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
@@ -114,18 +109,30 @@ MatrixSet( sensor_pos, [ 600e3, 20.2,   23;
                          600e3, 70.3,  -12;
                          600e3, 20.1,  -30; 
                          600e3, 70.2,   11;
+                         600e3,   41,  1.5;
+                         600e3, 37.4,  -20;
+                         600e3,   50,   10;
                            6e3, 40.1, 34.6;
                            6e3, 40.1,  -39;
+                           6e3,   41,  1.5;
+                           6e3, 37.4,  -20;
+                           6e3,   50,   10;
                            500,   41, 0.23;
                            500, 37.6, -1.1 ] )
 MatrixSet( sensor_los, [   45,    15; 
                            95,   135; 
                           113,    12; 
                           113,  -168;
-                           34,  -180;
+                          180,     0;
+                          180,   156;
+                          180,   -29;
+                           34,  -160;
                           156,    90;
-                            0,     0; 
-                           112,   55 ] )
+                            0,     0;
+                            0,   156;
+                            0,   -29;
+                           10,     0; 
+                          112,    55 ] )
 
 IndexCreate( ilast )
 nrowsGet( ilast, sensor_pos )
@@ -142,6 +149,8 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 
 
 
+
+
 #
 # Repeat with refraction
 #
@@ -152,5 +161,29 @@ AgendaSet( ppath_step_agenda ){
 NumericSet( ppath_lraytrace, 1e3 )
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
+
+
+
+
+
+#
+# Repeat all with non-spherical ellipsoid
+#
+
+refellipsoidEarth( refellipsoid, "WGS84" )
+
+AgendaSet( ppath_step_agenda ){
+  Ignore( t_field )
+  Ignore( vmr_field )
+  Ignore( edensity_field )
+  Ignore( f_index )
+  ppath_stepGeometric
+}
+ForLoop( forloop_agenda, 0, ilast, 1  )
+
+AgendaSet( ppath_step_agenda ){
+  ppath_stepRefractionBasic
+}
+#ForLoop( forloop_agenda, 0, ilast, 1  )
 
 }

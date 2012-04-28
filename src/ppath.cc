@@ -997,7 +997,8 @@ Numeric rslope_crossing2d(
     { dmin = 1e-12; }
 
   // The nadir angle in radians, and cosine and sine of that angle
-  const Numeric   beta = DEG2RAD * ( 180 - abs(za) );
+  const Numeric   zaabs = abs(za);
+  const Numeric   beta = DEG2RAD * ( 180 - zaabs );
   const Numeric   cv = cos( beta );
   const Numeric   sv = sin( beta );
 
@@ -1012,8 +1013,20 @@ Numeric rslope_crossing2d(
   const Numeric cs  = c1*sv;
   const Numeric cc  = c1*cv;
 
+  // Tests showed that degree 4 is not sufficient in all situations, and degree
+  // 6 is default. But with exceptions. Close to nadir/zenith degree 6 becomes
+  // numerically unstable and n=4 is instead used inside 2 degrees from
+  // nadir/zenith. The term cc becomes 0 at an zenith angle of 90, and then
+  // also p[6]=0 which is not allows by poly_root_solve (and probably
+  // numerically problematic).
+
   // The vector of polynomial coefficients
-  const Index n = 6;
+  Index n = 6;
+  if( abs( 90 - zaabs ) > 88 )
+    { n = 4; }
+  else if( abs( 90 - zaabs ) < 1 )
+    { n = 5; }
+  //
   Vector p(n+1);
   //
   p[0] = r0s - rp*sv;
@@ -1021,18 +1034,20 @@ Numeric rslope_crossing2d(
   p[2] = -r0s/2 + cc;
   p[3] = -r0c/6 - cs/2;
   p[4] = r0s/24 - cc/6;
-  p[5] = r0c/120 + cs/24;
-  p[6] = cc/120;
-
-  // If n set to 4:
-  //  p[4] = -cc / 6;
+  if( n > 4 )
+    {
+      p[5] = r0c/120 + cs/24;
+      if( n == 6 )
+        {
+          p[6] = cc/120;
+        }
+    }
 
   // Calculate roots of the polynomial
   Matrix roots(n,2);
   poly_root_solve( roots, p );
   
   // Find the smallest root with imaginary part = 0, and real part > 0.
-  //
   Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
   //
   for( Index i=0; i<n; i++ )
@@ -1210,8 +1225,6 @@ void plevel_crossing_2d(
               else
                 { 
                   r = geompath_r_at_lat( ppc, lat_start, za_start, lat );
-                  //cout << za_start << " " << cpl << " " << dlat << " " 
-                  //     << rpl + cpl*dlat - r << endl;
                   assert( abs( rpl + cpl*dlat - r ) < 1e-2 );
                   l = abs( geompath_l_at_r( ppc, r_start ) -
                            geompath_l_at_r( ppc, r ) );
@@ -2001,7 +2014,6 @@ void plevel_crossing_3d(
                 {
                   r = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                                 r15, r35, r36, r16, lat, lon );
-                  //cout << "dr = " << rpl+c1*dang+c2*dang*dang-r << " m\n";
                   l = abs( geompath_l_at_r( ppc, r_start ) -
                            geompath_l_at_r( ppc, r ) );
                 }
@@ -2051,8 +2063,8 @@ void ppath_init_structure(
   const Index npos = max( Index(2), atmosphere_dim );
   const Index nlos = max( Index(1), atmosphere_dim-1 );
 
-  ppath.start_pos.resize( npos );
-  ppath.start_los.resize( nlos );
+  ppath.start_pos.resize( npos );  ppath.start_pos = -999;
+  ppath.start_los.resize( nlos );  ppath.start_los = -999;
   ppath.start_lstep = 0;
   ppath.end_pos.resize( npos );
   ppath.end_los.resize( nlos );

@@ -104,8 +104,8 @@ ppathCalc
 
 # Use sensor_pos/los to store each case
 #
-MatrixSet( sensor_pos, [600e3;600e3;600e3; 3e3; 10e3; 9e3; 500; 500] )
-MatrixSet( sensor_los, [   45;   95;  113;   0;   90; 100;  45; 100] )
+MatrixSet( sensor_pos, [600e3;600e3;600e3;600e3; 3e3; 10e3; 9e3; 500; 500] )
+MatrixSet( sensor_los, [   45;   95;  113;  180;   0;   90; 100;  45; 100] )
 
 IndexCreate( ilast )
 nrowsGet( ilast, sensor_pos )

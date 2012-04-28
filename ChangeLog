@@ -1,9 +1,31 @@
+2012-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-105
+
+	* controlfiles/artscomponents/ppath/TestPpath3D.arts: 
+	* controlfiles/artscomponents/ppath/TestPpath2D.arts: Added several
+	pos/los combinations, particularly for testing ray tracing along
+	lat and lon grid positions. Also, now run with both spherical and
+	non-spherical ellipsoid.
+
+	3D non-spherical ellipsoid + refraction not active as it fails!
+
+	* controlfiles/artscomponents/ppath/TestPpath1D.arts: Added a
+	nadir from space case.
+
+	* src/ppath.cc (ppath_init_structure): Start pos and los set to
+	-999, to more clearly indicate non-valid data.
+	
+	(rslope_crossing2d): Now the polynomial degree is selected
+	according to the zenith angle, to avoid (different) numerical
+	problems around 0, 90 and 180. 
+
 2012-04-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-104
 
 	* doc/uguide/ppath_theory.tex: Updated with respect to change in
-	rslope_crossing2d (now three terms in Taylor expansuion of cos and
+	rslope_crossing2d (now three terms in Taylor expansion of cos and
 	sin).
 
 2012-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
