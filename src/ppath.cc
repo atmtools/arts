@@ -990,17 +990,19 @@ Numeric rslope_crossing2d(
         const Numeric&  r0,
               Numeric   c1 )
 {
+  assert( abs(c1) > 0 );
+
   // If r0=rp, numerical inaccuracy can give a false solution, very close
   // to 0, that we must throw away.
   Numeric   dmin = 0;
-  if( r0 == rp )
+  if( abs(r0-rp) < 1e-9 )  // 1 nm set based on practical experience. 
     { dmin = 1e-12; }
 
   // The nadir angle in radians, and cosine and sine of that angle
   const Numeric   zaabs = abs(za);
-  const Numeric   beta = DEG2RAD * ( 180 - zaabs );
-  const Numeric   cv = cos( beta );
-  const Numeric   sv = sin( beta );
+  const Numeric   beta  = DEG2RAD * ( 180 - zaabs );
+  const Numeric   cv    = cos( beta );
+  const Numeric   sv    = sin( beta );
 
   // Convert slope to m/radian and consider viewing direction
   c1 *= RAD2DEG;
@@ -1013,40 +1015,45 @@ Numeric rslope_crossing2d(
   const Numeric cs  = c1*sv;
   const Numeric cc  = c1*cv;
 
-  // Tests showed that degree 4 is not sufficient in all situations, and degree
-  // 6 is default. But with exceptions. Close to nadir/zenith degree 6 becomes
-  // numerically unstable and n=4 is instead used inside 2 degrees from
-  // nadir/zenith. The term cc becomes 0 at an zenith angle of 90, and then
-  // also p[6]=0 which is not allows by poly_root_solve (and probably
-  // numerically problematic).
-
   // The vector of polynomial coefficients
   Index n = 6;
-  if( abs( 90 - zaabs ) > 88 )
+  //
+  // poly_root_solve does not accept that p[6] is 0. This happens if za=90.
+  // Hence, ignore p[6] for angles around 90 deg. This corresponds to skip the
+  // third Taylor term for sin(alpha).
+  //
+  // For n=6, bad convergence is reported for some cases with za around 0 and
+  // 180. The largest deviation from zenith/nadir found to cause this was 5.6
+  // deg. This is solved by just including two first terms of the Taylor
+  // expansions. Here flagged as n=4;
+  //
+  if( abs( 90 - zaabs ) > 82 )
     { n = 4; }
   else if( abs( 90 - zaabs ) < 1 )
     { n = 5; }
   //
   Vector p(n+1);
   //
-  p[0] = r0s - rp*sv;
-  p[1] = r0c + cs;
-  p[2] = -r0s/2 + cc;
-  p[3] = -r0c/6 - cs/2;
-  p[4] = r0s/24 - cc/6;
-  if( n > 4 )
+  p[0] =  r0s     - rp*sv;
+  p[1] =  r0c     + cs;
+  p[2] = -r0s/2   + cc;
+  p[3] = -r0c/6   - cs/2;
+  p[4] =  - cc/6;  // This corresponds to two terms for both Taylor expansions
+  if( n > 4 )       
     {
-      p[5] = r0c/120 + cs/24;
-      if( n == 6 )
-        {
-          p[6] = cc/120;
-        }
+      p[4] +=  r0s/24;
+      p[5] =  r0c/120 + cs/24;
+      if( n > 5 )
+        { p[6] = cc/120; }
     }
 
   // Calculate roots of the polynomial
   Matrix roots(n,2);
-  poly_root_solve( roots, p );
-  
+  int solutionfailure;
+  solutionfailure = poly_root_solve( roots, p );
+  //
+  assert( !solutionfailure );
+
   // Find the smallest root with imaginary part = 0, and real part > 0.
   Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
   //
@@ -1212,7 +1219,7 @@ void plevel_crossing_2d(
             {
               // Calculate zenith angle at (r,lat) (if <180, already set above)
               if( za > 180 )  // lat+za preserved (also with negative za)
-                { za = lat_start + za_start -lat; };
+                { za = lat_start + za_start - lat; };
 
               // Latitude distance from present point to actual crossing
               const Numeric dlat = rslope_crossing2d( r, za, rpl, cpl );
@@ -1224,10 +1231,13 @@ void plevel_crossing_2d(
                 { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
               else
                 { 
-                  r = geompath_r_at_lat( ppc, lat_start, za_start, lat );
-                  assert( abs( rpl + cpl*dlat - r ) < 1e-2 );
+                  // It was tested to calculate r from geompath functions, but
+                  // appeared to give poorer accuracy around zenith/nadir
+                  r = rpl + cpl*dlat;
                   l = abs( geompath_l_at_r( ppc, r_start ) -
                            geompath_l_at_r( ppc, r ) );
+                  // Check if consistent with ppc
+                  assert( abs( r*sin(DEG2RAD*abs(za-dlat)) - ppc ) < 1e-3 );
                 }
             }  
         }
@@ -5897,7 +5907,7 @@ void ppath_calc(
       // Increase the total number
       np += n - 1;
 
-      if( istep > 10e3 )
+      if( istep > 1e4 )
         throw runtime_error(
           "10 000 path points have been reached. Is this an infinite loop?" );
       

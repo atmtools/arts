@@ -1,3 +1,14 @@
+2012-05-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-106
+
+	* src/ppath.cc (rslope_crossing2d): Setting of dmin adjusted.
+	Added comments to document the selection of some settings.
+
+	(plevel_crossing_2d): Changed back to set r as rpl+cpl*dlat.
+	Bad decision to change. Further tests showed that the numerical
+	problems were on the other side, in geompath.
+
 2012-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-105
