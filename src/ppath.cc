@@ -964,15 +964,12 @@ void r_crossing_2d(
    Both positive and negative zenith angles are handled. 
 
    The function only looks for crossings in the forward direction of
-   the given zenith angle. This means that if rp>r0 and the absolute
-   value of the zenith angle is < 90, no crossing will be found (if
-   not the slope of the pressure level happen to be very strong).
+   the given zenith angle. 
 
    If the given path point is on the pressure level (rp=r0), the solution 0 is
    rejected. The latitude difference is set to 999 if no crossing exists.
 
-   No special action is taken for special cases such as c=0, za=0 and za=180,
-   and for efficieny these cases should be catched by the calling function.
+   The cases c=0, za=0 and za=180 are not allowed.
 
    \return         The angular distance to the crossing.
    \param   rp     Radius of a point of the path inside the grid cell
@@ -990,24 +987,21 @@ Numeric rslope_crossing2d(
         const Numeric&  r0,
               Numeric   c1 )
 {
-  assert( abs(c1) > 0 );
-
-  // If r0=rp, numerical inaccuracy can give a false solution, very close
-  // to 0, that we must throw away.
-  Numeric   dmin = 0;
-  if( abs(r0-rp) < 1e-9 )  // 1 nm set based on practical experience. 
-    { dmin = 1e-12; }
-
-  // The nadir angle in radians, and cosine and sine of that angle
   const Numeric   zaabs = abs(za);
-  const Numeric   beta  = DEG2RAD * ( 180 - zaabs );
-  const Numeric   cv    = cos( beta );
-  const Numeric   sv    = sin( beta );
+
+  assert( za != 0 );
+  assert( zaabs != 180 );
+  assert( abs(c1) > 0 );
 
   // Convert slope to m/radian and consider viewing direction
   c1 *= RAD2DEG;
   if( za < 0 )
     { c1 = -c1; }
+
+  // The nadir angle in radians, and cosine and sine of that angle
+  const Numeric   beta  = DEG2RAD * ( 180 - zaabs );
+  const Numeric   cv    = cos( beta );
+  const Numeric   sv    = sin( beta );
 
   // Some repeated terms
   const Numeric r0s = r0*sv;
@@ -1016,36 +1010,26 @@ Numeric rslope_crossing2d(
   const Numeric cc  = c1*cv;
 
   // The vector of polynomial coefficients
-  Index n = 6;
+  Index n = 5;
   //
-  // poly_root_solve does not accept that p[6] is 0. This happens if za=90.
-  // Hence, ignore p[6] for angles around 90 deg. This corresponds to skip the
-  // third Taylor term for sin(alpha).
+  // The convergence when solving the polynomial gets worse when approaching
+  // 0 and 180 deg. Let the polynomial order decrease when approaching these
+  // angles.  The values below based on practical experience.
   //
-  // For n=6, bad convergence is reported for some cases with za around 0 and
-  // 180. The largest deviation from zenith/nadir found to cause this was 5.6
-  // deg. This is solved by just including two first terms of the Taylor
-  // expansions. Here flagged as n=4;
-  //
-  if( abs( 90 - zaabs ) > 82 )
+  if( abs( 90 - zaabs ) > 89.9 )
+    { n = 1; }
+  else if( abs( 90 - zaabs ) > 80 )
     { n = 4; }
-  else if( abs( 90 - zaabs ) < 1 )
-    { n = 5; }
   //
   Vector p(n+1);
   //
   p[0] =  r0s     - rp*sv;
-  p[1] =  r0c     + cs;
+  p[1] =  r0c     + cs;      if( n > 1 ) {
   p[2] = -r0s/2   + cc;
   p[3] = -r0c/6   - cs/2;
-  p[4] =  - cc/6;  // This corresponds to two terms for both Taylor expansions
-  if( n > 4 )       
-    {
-      p[4] +=  r0s/24;
-      p[5] =  r0c/120 + cs/24;
-      if( n > 5 )
-        { p[6] = cc/120; }
-    }
+  p[4] =  r0s/24  - cc/6;    if( n > 4 ) {
+  p[5] =  r0c/120 + cs/24;
+  }}
 
   // Calculate roots of the polynomial
   Matrix roots(n,2);
@@ -1053,6 +1037,12 @@ Numeric rslope_crossing2d(
   solutionfailure = poly_root_solve( roots, p );
   //
   assert( !solutionfailure );
+
+  // If r0=rp, numerical inaccuracy can give a false solution, very close
+  // to 0, that we must throw away.
+  Numeric   dmin = 0;
+  if( abs(r0-rp) < 1e-9 )  // 1 nm set based on practical experience. 
+    { dmin = 1e-12; }
 
   // Find the smallest root with imaginary part = 0, and real part > 0.
   Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
@@ -1135,7 +1125,7 @@ void plevel_crossing_2d(
   const Numeric rmax = max( r1, r3 );
 
   // The case of negligible slope
-  if( rmax-rmin < RTOL/10 )
+  if( rmax-rmin < 1e-6 )
     {
       // Set r_start and r, considering impact of numerical problems
       Numeric r_start = r_start0;
@@ -3391,7 +3381,7 @@ void ppath_step_geom_2d(
     \author Patrick Eriksson
     \date   2002-11-28
 */
-void do_gridcell_3d(
+void do_gridcell_3d_old(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
@@ -3763,7 +3753,7 @@ void do_gridcell_3d(
    \author Patrick Eriksson
    \date   2002-11-28
 */
-void do_gridcell_3d_new(
+void do_gridcell_3d(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,

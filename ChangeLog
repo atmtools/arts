@@ -1,3 +1,11 @@
+2012-05-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-107
+
+	* src/ppath.cc (rslope_crossing2d): Now n=5 default (with both
+	terms included), and no special treatment of za=90 needed. Now
+	going down to n=1 for za [89.9,90].
+
 2012-05-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-106
