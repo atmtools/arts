@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.221)
+AM_INIT_AUTOMAKE(arts,1.0.222)
 
 AM_MAINTAINER_MODE
 
@@ -105,7 +105,7 @@ fi
 if test x$ac_hdf_support = xno; then
   ac_hdf=no
 else
-  CPPFLAGS="$CPPFLAGS -I${withval}/include/hdf"
+  CPPFLAGS="$CPPFLAGS -I/usr/include/hdf"
   AC_CHECK_LIB(sz, SZ_DecompressInit, , ac_szlib=no, )
   AC_CHECK_LIB(z, gzopen,, ac_hdf=no, )
   AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lz )
