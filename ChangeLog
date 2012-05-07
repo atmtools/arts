@@ -1,3 +1,9 @@
+2012-05-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-220
+
+	* configure.in: Also look in include/hdf subfolder for hdf.h.
+
 2011-03-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-219

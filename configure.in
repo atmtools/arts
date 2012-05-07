@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.219)
+AM_INIT_AUTOMAKE(arts,1.0.220)
 
 AM_MAINTAINER_MODE
 
@@ -94,7 +94,7 @@ AC_ARG_WITH([hdf],
 if test x$ac_hdf_support = xunknown; then
   if test -d "${withval}/lib" -a -d "${withval}/include"; then
     LDFLAGS="$LDFLAGS -L${withval}/lib"
-    CPPFLAGS="$CPPFLAGS -I${withval}/include"
+    CPPFLAGS="$CPPFLAGS -I${withval}/include -I${withval}/include/hdf"
     ac_hdf=yes
   else
     AC_MSG_ERROR(${withval}/lib and/or ${withval}/include not found)
