@@ -3381,7 +3381,7 @@ void ppath_step_geom_2d(
     \author Patrick Eriksson
     \date   2002-11-28
 */
-void do_gridcell_3d_old(
+void do_gridcell_3d(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
@@ -3753,7 +3753,7 @@ void do_gridcell_3d_old(
    \author Patrick Eriksson
    \date   2002-11-28
 */
-void do_gridcell_3d(
+void do_gridcell_3d_new(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
