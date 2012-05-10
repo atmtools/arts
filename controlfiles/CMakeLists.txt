@@ -5,6 +5,16 @@ add_custom_command(
   )
 add_custom_target (clean-cfiles DEPENDS clean-cfiles-cmd)
 
+set (ARTS_CONTROLFILE_DIR share/arts/controlfiles)
+
+install (DIRECTORY artscomponents
+                   atmosphere_data
+                   general
+                   instruments
+         DESTINATION ${ARTS_CONTROLFILE_DIR}
+         PATTERN ".svn" EXCLUDE)
+
+
 #######################
 ### ARTS Components ###
 arts_test_run_ctlfile(fast.ppath1d artscomponents/ppath/TestPpath1D.arts)

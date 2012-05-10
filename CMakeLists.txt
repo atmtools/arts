@@ -266,7 +266,6 @@ add_custom_target(check-all
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)
-add_subdirectory (tests)
 #add_subdirectory (3rdparty)
 
 if (NOT NUMERIC STREQUAL "double")
