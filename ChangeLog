@@ -1,3 +1,11 @@
+2012-05-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-110
+
+	* src/ppath.cc (rslope_crossing2d): Changed dza from 10 to 15 deg
+	as limit for when going down from n=5 to n=4. Found one case of bad
+	convergence for dza=10.7 (after running about 80000 cases).
+
 2012-05-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-109
@@ -13,7 +21,7 @@
 	* arts-2-1-108
 
 	* src/ppath.cc (do_gridcell_3d): Had commited with new test 3D
-	code active. 
+	code active.
 
 2012-05-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
@@ -38,7 +46,7 @@
 
 	* arts-2-1-105
 
-	* controlfiles/artscomponents/ppath/TestPpath3D.arts: 
+	* controlfiles/artscomponents/ppath/TestPpath3D.arts:
 	* controlfiles/artscomponents/ppath/TestPpath2D.arts: Added several
 	pos/los combinations, particularly for testing ray tracing along
 	lat and lon grid positions. Also, now run with both spherical and

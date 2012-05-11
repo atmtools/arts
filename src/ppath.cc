@@ -1018,7 +1018,7 @@ Numeric rslope_crossing2d(
   //
   if( abs( 90 - zaabs ) > 89.9 )
     { n = 1; }
-  else if( abs( 90 - zaabs ) > 80 )
+  else if( abs( 90 - zaabs ) > 75 )
     { n = 4; }
   //
   Vector p(n+1);
