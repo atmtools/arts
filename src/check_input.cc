@@ -1197,6 +1197,7 @@ void chk_atm_field(
          << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
     }
+
   // Special 3D checks:
   if( dim == 3  )
     {
@@ -1500,20 +1501,59 @@ void chk_atm_surface(
          << " while actual size is " << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
     }
-  // If all lons are covered, check if cyclic
-  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+
+  // Special 3D checks:
+  if( dim == 3  )
     {
-      const Index ic = ncols-1;
-      for( Index ir=0; ir<nrows; ir++ )
+      // If all lons are covered, check if cyclic
+      if( (lon_grid[ncols-1]-lon_grid[0]) == 360 )
         {
-          if( fabs(x(ir,ic)-x(ir,0)) > 0 )
+          const Index ic = ncols-1;
+          for( Index ir=0; ir<nrows; ir++ )
             {
-              ostringstream os;
-              os << "The variable *" << x_name <<  "* covers 360 "
-                 << "degrees in the longitude direction, but the data "
-                 << "seems to deviate between first and last longitude "
-                 << "point. The surface must be \"cyclic\".";
-              throw runtime_error( os.str() );
+              if( fabs(x(ir,ic)-x(ir,0)) > 0 )
+                {
+                  ostringstream os;
+                  os << "The variable *" << x_name <<  "* covers 360 "
+                     << "degrees in the longitude direction, but the field "
+                     << "seems to deviate between first and last longitude "
+                     << "point. The field must be \"cyclic\".";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
+
+      // No variation at the South pole!
+      if( lat_grid[0] == -90 )
+        {
+          for( Index ic=1; ic<ncols; ic++ )
+            {
+              if( fabs(x(0,ic)-x(0,ic-1)) > 0 )
+                {
+                  ostringstream os;
+                  os << "The variable *" << x_name <<  "* covers the South "
+                     << "pole. The data corresponding to the pole can not "
+                     << "vary with longitude, but this appears to be the "
+                     << "case.";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
+      // No variation at the North pole!
+      if( lat_grid[nrows-1] == 90 )
+        {
+          const Index ir = nrows-1;
+          for( Index ic=1; ic<ncols; ic++ )
+            {
+              if( fabs(x(ir,ic)-x(ir,ic-1)) > 0 )
+                {
+                  ostringstream os;
+                  os << "The variable *" << x_name <<  "* covers the North "
+                     << "pole. The data corresponding to the pole can not "
+                     << "vary with longitude, but this appears to be the "
+                     << "case.";
+                  throw runtime_error( os.str() );
+                }
             }
         }
     }

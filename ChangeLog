@@ -1,3 +1,17 @@
+2012-05-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-111
+
+	* src/check_input.cc (chk_atm_surface): Checks for 3D cases
+	covering North and South pole were missing. Added.
+
+	* src/ppath.cc (plevel_crossing_2d): Output l was not calculated
+	correctly if the level crossing is on other side of a tangent
+	point. This seems not to happen inside the atmosphere, but can
+	happen with a highly tilted surface. So this bug appeared only if
+	the tangent point is just above a surface with high radial slope.
+	Accordingly, showed up first after +300k of test cases!
+
 2012-05-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-110

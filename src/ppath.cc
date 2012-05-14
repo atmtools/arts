@@ -1029,6 +1029,7 @@ Numeric rslope_crossing2d(
   p[3] = -r0c/6   - cs/2;
   p[4] =  r0s/24  - cc/6;    if( n > 4 ) {
   p[5] =  r0c/120 + cs/24;
+  //p[6] = -r0s/720 + cc/120;
   }}
 
   // Calculate roots of the polynomial
@@ -1224,10 +1225,20 @@ void plevel_crossing_2d(
                   // It was tested to calculate r from geompath functions, but
                   // appeared to give poorer accuracy around zenith/nadir
                   r = rpl + cpl*dlat;
-                  l = abs( geompath_l_at_r( ppc, r_start ) -
-                           geompath_l_at_r( ppc, r ) );
+
+                  // Zenith angle needed to check tangent point
+                  za = lat_start + za_start - lat;
+
+                  // Passage of tangent point requires special attention
+                  if( absza>90 && abs(za)<90 )
+                    { l = geompath_l_at_r( ppc, r_start ) +
+                          geompath_l_at_r( ppc, r ); }
+                  else
+                    { l = abs( geompath_l_at_r( ppc, r_start ) -
+                               geompath_l_at_r( ppc, r ) ); }
+
                   // Check if consistent with ppc
-                  assert( abs( r*sin(DEG2RAD*abs(za-dlat)) - ppc ) < 1e-3 );
+                  assert( abs( r*sin(DEG2RAD*abs(za)) - ppc ) < 1e-3 );
                 }
             }  
         }
