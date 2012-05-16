@@ -588,7 +588,7 @@ gsl_poly_complex_solve (const double *a, size_t n,
 
   if (status)
     {
-      cerr << "root solving qr method failed to converge" << endl;
+      //cerr << "root solving qr method failed to converge" << endl;
 
       return (GSL_FAILURE);
     }

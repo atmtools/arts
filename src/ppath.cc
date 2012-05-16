@@ -1010,34 +1010,41 @@ Numeric rslope_crossing2d(
   const Numeric cc  = c1*cv;
 
   // The vector of polynomial coefficients
-  Index n = 5;
   //
-  // The convergence when solving the polynomial gets worse when approaching
-  // 0 and 180 deg. Let the polynomial order decrease when approaching these
-  // angles.  The values below based on practical experience.
+  Index  n = 6;
+  Vector p0(n+1);
+  //
+  p0[0] =  r0s     - rp*sv;
+  p0[1] =  r0c     + cs;  
+  p0[2] = -r0s/2   + cc;
+  p0[3] = -r0c/6   - cs/2;
+  p0[4] =  r0s/24  - cc/6;
+  p0[5] =  r0c/120 + cs/24;
+  p0[6] = -r0s/720 + cc/120;
+  //
+  // The accuracy when solving the polynomial equation gets worse when
+  // approaching 0 and 180 deg. The solution is to let the start polynomial
+  // order decrease when approaching these angles. The values below based on
+  // practical experience, don't change without making extremly careful tests.
   //
   if( abs( 90 - zaabs ) > 89.9 )
     { n = 1; }
   else if( abs( 90 - zaabs ) > 75 )
     { n = 4; }
-  //
-  Vector p(n+1);
-  //
-  p[0] =  r0s     - rp*sv;
-  p[1] =  r0c     + cs;      if( n > 1 ) {
-  p[2] = -r0s/2   + cc;
-  p[3] = -r0c/6   - cs/2;
-  p[4] =  r0s/24  - cc/6;    if( n > 4 ) {
-  p[5] =  r0c/120 + cs/24;
-  //p[6] = -r0s/720 + cc/120;
-  }}
 
   // Calculate roots of the polynomial
-  Matrix roots(n,2);
-  int solutionfailure;
-  solutionfailure = poly_root_solve( roots, p );
+  Matrix roots;
+  int solutionfailure = 1;
   //
-  assert( !solutionfailure );
+  while( solutionfailure)
+    {
+      roots.resize(n,2);
+      Vector p;
+      p = p0[Range(0,n+1)];
+      solutionfailure = poly_root_solve( roots, p );
+      if( solutionfailure )
+        { n -= 1; assert( n > 0 ); }
+    }
 
   // If r0=rp, numerical inaccuracy can give a false solution, very close
   // to 0, that we must throw away.
@@ -1236,9 +1243,6 @@ void plevel_crossing_2d(
                   else
                     { l = abs( geompath_l_at_r( ppc, r_start ) -
                                geompath_l_at_r( ppc, r ) ); }
-
-                  // Check if consistent with ppc
-                  assert( abs( r*sin(DEG2RAD*abs(za)) - ppc ) < 1e-3 );
                 }
             }  
         }
@@ -3262,17 +3266,14 @@ void do_gridcell_2d(
         { endface = 7;   r = rt;   lat = latt;   l = lt; }
     }
 
-  // If crossing found (r>0) we are ready!
-  // (plevel_crossing_2d checks if crossing is inside grid box)
-  
   // Upper pressure level
-  if( r <= 0 )
-    {
-      plevel_crossing_2d( r, lat, l, r_start, lat_start, za_start, ppc, 
+  {
+    Numeric rt, latt, lt; 
+    plevel_crossing_2d( rt, latt, lt, r_start, lat_start, za_start, ppc, 
                                                  lat1, lat3, r1b, r3b, false );
-      if( r > 0 ) 
-        { endface = 4; }
-    }
+    if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+      { endface = 4;   r = rt;   lat = latt;   l = lt; }
+  }
   
   // Latitude endfaces
   if( r <= 0 )
@@ -4778,7 +4779,7 @@ void raytrace_3d_linear_basic(
   n_array.push_back( refr_index );
   ng_array.push_back( refr_index_group );
 
-  // Variables for output from do_gridcell_2d
+  // Variables for output from do_gridcell_3d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
   Numeric   lstep, lcum = 0;
   Numeric   za_new, aa_new;
