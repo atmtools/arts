@@ -51,8 +51,7 @@
   \param varname variable name
 */
 void
-filename_nc (      String&  filename,
-             const String&  varname )
+filename_nc(String&  filename, const String&  varname )
 {
   if ("" == filename)
     {
@@ -72,10 +71,9 @@ filename_nc (      String&  filename,
   \param[in]  varname    variable name
 */
 void
-filename_nc_with_index (
-                    String&  filename,
-              const Index&   file_index,
-              const String&  varname )
+filename_nc_with_index(String&  filename,
+                       const Index&   file_index,
+                       const String&  varname )
 {
   if ("" == filename)
     {
@@ -94,9 +92,9 @@ filename_nc_with_index (
 
 
 template<typename T> void
-nc_read_from_file (const String& filename,
-                   T& type,
-                   const Verbosity& verbosity)
+nc_read_from_file(const String& filename,
+                  T& type,
+                  const Verbosity& verbosity)
 {
   CREATE_OUT2
   
@@ -119,9 +117,9 @@ nc_read_from_file (const String& filename,
 
 
 template<typename T> void
-nc_write_to_file (const String& filename,
-                  const T& type,
-                  const Verbosity& verbosity)
+nc_write_to_file(const String& filename,
+                 const T& type,
+                 const Verbosity& verbosity)
 {
   CREATE_OUT2
   
@@ -143,7 +141,7 @@ nc_write_to_file (const String& filename,
 }
 
 
-void nc_get_data_int (const int ncid, const String &name, int *data)
+void nc_get_data_int(const int ncid, const String &name, int *data)
 {
   int retval, varid;
   if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
@@ -153,7 +151,7 @@ void nc_get_data_int (const int ncid, const String &name, int *data)
 }
 
 
-void nc_get_data_long (const int ncid, const String &name, long *data)
+void nc_get_data_long(const int ncid, const String &name, long *data)
 {
   int retval, varid;
   if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
@@ -163,7 +161,7 @@ void nc_get_data_long (const int ncid, const String &name, long *data)
 }
 
 
-void nc_get_data_double (const int ncid, const String &name, Numeric *data)
+void nc_get_data_double(const int ncid, const String &name, Numeric *data)
 {
   int retval, varid;
   if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
@@ -173,8 +171,8 @@ void nc_get_data_double (const int ncid, const String &name, Numeric *data)
 }
 
 
-void nc_get_dataa_double (const int ncid, const String &name,
-                          size_t start, size_t count, Numeric *data)
+void nc_get_dataa_double(const int ncid, const String &name,
+                         size_t start, size_t count, Numeric *data)
 {
   int retval, varid;
   if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
@@ -184,16 +182,102 @@ void nc_get_dataa_double (const int ncid, const String &name,
 }
 
 
-Index nc_get_dim (const int ncid, const String &name)
+void nc_get_data_text(const int ncid, const String &name, char *data)
+{
+  int retval, varid;
+  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
+    ncerror (retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_text (ncid, varid, data)))
+    ncerror (retval, "nc_get_var("+name+")");
+}
+
+
+Index nc_get_dim(const int ncid, const String &name, const bool noerror)
 {
   int retval, dimid;
   size_t ndim;
   if ((retval = nc_inq_dimid (ncid, name.c_str(), &dimid)))
-    ncerror (retval, "nc_inq_ndims("+name+")");
+    if (!noerror) ncerror (retval, "nc_inq_ndims("+name+")"); else return 0;
   if ((retval = nc_inq_dimlen (ncid, dimid, &ndim)))
-    ncerror (retval, "nc_inq_dimlen("+name+")");
+    if (!noerror) ncerror (retval, "nc_inq_dimlen("+name+")"); else return 0;
 
   return (Index)ndim;
+}
+
+
+void nc_get_data_ArrayOfIndex(const int ncid, const String &name, ArrayOfIndex &aoi,
+                              const bool noerror)
+{
+  Index nelem = nc_get_dim (ncid, name+"_nelem", noerror);
+  aoi.resize(nelem);
+  if (nelem)
+  {
+    Index *ind_arr = new Index[nelem];
+    nc_get_data_long (ncid, name, ind_arr);
+    Index i = 0;
+    for (ArrayOfIndex::iterator it = aoi.begin(); it != aoi.end(); it++, i++)
+    {
+      *it = ind_arr[i];
+    }
+  }
+}
+
+
+void nc_get_data_ArrayOfArrayOfSpeciesTag(const int ncid, const String &name,
+                                          ArrayOfArrayOfSpeciesTag &aast,
+                                          const bool noerror)
+{
+  ArrayOfIndex species_count;
+  nc_get_data_ArrayOfIndex(ncid, name+"_count", species_count, noerror);
+  aast.resize(species_count.nelem());
+  if (species_count.nelem())
+  {
+    Index species_strings_nelem = nc_get_dim (ncid, name+"_strings_nelem", noerror);
+    Index species_strings_length = nc_get_dim (ncid, name+"_strings_length", noerror);
+    char* species_strings = new char[species_strings_nelem*species_strings_length];
+    if (species_count.nelem()) nc_get_data_text(ncid, name+"_strings", species_strings);
+    
+    Index si = 0;
+    for(Index i=0; i < species_count.nelem(); i++)
+    {
+      aast[i].resize(0);
+      for(Index j=0; j < species_count[i]; j++)
+      {
+        aast[i].push_back(SpeciesTag(&species_strings[si]));
+        si += species_strings_length;
+      }
+    }
+    
+    delete [] species_strings;
+  }
+}
+
+
+void nc_get_data_Vector(const int ncid, const String &name, Vector &v, const bool noerror)
+{
+  Index nelem = nc_get_dim (ncid, name+"_nelem", noerror);
+  v.resize(nelem);
+  if (nelem) nc_get_data_double (ncid, name, v.get_c_array());
+}
+
+
+void nc_get_data_Matrix(const int ncid, const String &name, Matrix &m, const bool noerror)
+{
+  Index nrows = nc_get_dim (ncid, name+"_nrows", noerror);
+  Index ncols = nc_get_dim (ncid, name+"_ncols", noerror);
+  m.resize(nrows, ncols);
+  if (nrows && ncols) nc_get_data_double (ncid, name, m.get_c_array());
+}
+
+
+void nc_get_data_Tensor4(const int ncid, const String &name, Tensor4 &t, const bool noerror)
+{
+  Index nbooks = nc_get_dim (ncid, name+"_nbooks", noerror);
+  Index npages = nc_get_dim (ncid, name+"_npages", noerror);
+  Index nrows = nc_get_dim (ncid, name+"_nrows", noerror);
+  Index ncols = nc_get_dim (ncid, name+"_ncols", noerror);
+  t.resize(nbooks, npages, nrows, ncols);
+  if (nbooks && npages && nrows && ncols) nc_get_data_double (ncid, name, t.get_c_array());
 }
 
 

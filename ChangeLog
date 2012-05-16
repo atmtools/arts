@@ -1,3 +1,17 @@
+2012-05-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-112
+
+	* src/nc_io_compound_types.cc:
+
+	Add NetCDF reading/writing for GasAbsLookup.
+
+	* src/methods.cc: Add GasAbsLookup to Read/WriteNetCDF.
+
+	* src/gas_abs_lookup.h: Some love for abs_lookup by adding friends.
+
+	* src/nc_io.{cc,h}: Add helper functions.
+
 2012-05-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-111

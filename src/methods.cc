@@ -6870,7 +6870,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "v"    ),
         GOUT_TYPE( "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
-                   "ArrayOfMatrix" ),
+                   "ArrayOfMatrix, GasAbsLookup" ),
         GOUT_DESC( "Variable to be read." ),
         IN(),
         GIN(         "filename" ),
@@ -9417,7 +9417,7 @@ void define_md_data_raw()
         GIN(          "v",
                       "filename" ),
         GIN_TYPE(     "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
-                      "ArrayOfMatrix",
+                      "ArrayOfMatrix, GasAbsLookup",
                       "String" ),
         GIN_DEFAULT(  NODEF,
                       "" ),
