@@ -47,10 +47,11 @@
  \param gal     GasAbsLookup
  */
 void
-nc_read_from_file (const int ncid,
-                   GasAbsLookup& gal)
+nc_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&)
 {
   nc_get_data_ArrayOfArrayOfSpeciesTag(ncid, "species", gal.species, true);
+  if (!gal.species.nelem()) throw runtime_error("No species found in lookup table file!");
+  
   nc_get_data_ArrayOfIndex(ncid, "nonlinear_species", gal.nonlinear_species, true);
   nc_get_data_Vector(ncid, "f_grid", gal.f_grid, true);
   nc_get_data_Vector(ncid, "p_grid", gal.p_grid, true);  
@@ -68,8 +69,7 @@ nc_read_from_file (const int ncid,
  \param gal     GasAbsLookup
  */
 void
-nc_write_to_file (const int ncid,
-                  const GasAbsLookup& gal)
+nc_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&)
 {
   int retval;
   
@@ -78,43 +78,49 @@ nc_write_to_file (const int ncid,
   long species_total_nelems = 0;
   Index* per_species_nelem = new Index[gal.species.nelem()];
   Index species_max_strlen = 0;
-  for(Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++)
+  char* species_strings = NULL;
+  if (gal.species.nelem())
   {
-    Index nspecies_nelem = gal.species[nspecies].nelem();
-    species_total_nelems += nspecies_nelem;
-    per_species_nelem[nspecies] = nspecies_nelem;
-    
-    for (ArrayOfSpeciesTag::const_iterator it = gal.species[nspecies].begin();
-         it != gal.species[nspecies].end(); it++)
-      if (it->Name().nelem() > species_max_strlen) species_max_strlen = it->Name().nelem();
-  }
-  species_max_strlen++;
-  
-  char* species_strings = new char[species_total_nelems*species_max_strlen];
-  memset(species_strings, 0, species_total_nelems*species_max_strlen);
-
-  Index str_i = 0;
-  for (ArrayOfArrayOfSpeciesTag::const_iterator it1 = gal.species.begin();
-       it1 != gal.species.end(); it1++)
-    for (ArrayOfSpeciesTag::const_iterator it2 = it1->begin();
-         it2 != it1->end(); it2++)
+    for(Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++)
     {
-      memccpy(&species_strings[str_i], it2->Name().c_str(), 0, species_max_strlen);
-      str_i+=species_max_strlen;
-    }
+      Index nspecies_nelem = gal.species[nspecies].nelem();
+      species_total_nelems += nspecies_nelem;
+      per_species_nelem[nspecies] = nspecies_nelem;
       
-  if ((retval = nc_def_dim (ncid, "species_count_nelem", gal.species.nelem(), &species_nelem_ncdims[0])))
-    ncerror (retval, "nc_def_dim");
-  if ((retval = nc_def_var (ncid, "species_count", NC_LONG, 1, &species_nelem_ncdims[0],
-                            &species_nelem_varid)))
-    ncerror (retval, "nc_def_var");
-  if ((retval = nc_def_dim (ncid, "species_strings_nelem", species_total_nelems, &species_strings_ncdims[0])))
-    ncerror (retval, "nc_def_dim");
-  if ((retval = nc_def_dim (ncid, "species_strings_length", species_max_strlen, &species_strings_ncdims[1])))
-    ncerror (retval, "nc_def_dim");
-  if ((retval = nc_def_var (ncid, "species_strings", NC_CHAR, 2, &species_strings_ncdims[0], &species_strings_varid)))
-    ncerror (retval, "nc_def_var");
-  
+      for (ArrayOfSpeciesTag::const_iterator it = gal.species[nspecies].begin();
+           it != gal.species[nspecies].end(); it++)
+        if (it->Name().nelem() > species_max_strlen) species_max_strlen = it->Name().nelem();
+    }
+    species_max_strlen++;
+    
+    species_strings = new char[species_total_nelems*species_max_strlen];
+    memset(species_strings, 0, species_total_nelems*species_max_strlen);
+    
+    Index str_i = 0;
+    for (ArrayOfArrayOfSpeciesTag::const_iterator it1 = gal.species.begin();
+         it1 != gal.species.end(); it1++)
+      for (ArrayOfSpeciesTag::const_iterator it2 = it1->begin();
+           it2 != it1->end(); it2++)
+      {
+        memccpy(&species_strings[str_i], it2->Name().c_str(), 0, species_max_strlen);
+        str_i+=species_max_strlen;
+      }
+    
+    if ((retval = nc_def_dim (ncid, "species_count_nelem", gal.species.nelem(), &species_nelem_ncdims[0])))
+      ncerror (retval, "nc_def_dim");
+    if ((retval = nc_def_var (ncid, "species_count", NC_LONG, 1, &species_nelem_ncdims[0],
+                              &species_nelem_varid)))
+      ncerror (retval, "nc_def_var");
+    if ((retval = nc_def_dim (ncid, "species_strings_nelem", species_total_nelems, &species_strings_ncdims[0])))
+      ncerror (retval, "nc_def_dim");
+    if ((retval = nc_def_dim (ncid, "species_strings_length", species_max_strlen, &species_strings_ncdims[1])))
+      ncerror (retval, "nc_def_dim");
+    if ((retval = nc_def_var (ncid, "species_strings", NC_CHAR, 2, &species_strings_ncdims[0], &species_strings_varid)))
+      ncerror (retval, "nc_def_var");
+  }
+  else {
+    throw runtime_error("Current lookup table contains no species!");
+  }
   
   
   // Define nonlinear_species dimensions and variable
@@ -210,7 +216,7 @@ nc_write_to_file (const int ncid,
   if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
   
   // Write variables
-  if (species_total_nelems)
+  if (gal.species.nelem())
   {
     if ((retval = nc_put_var_long (ncid, species_nelem_varid, per_species_nelem)))
       ncerror (retval, "nc_put_var");
@@ -287,13 +293,13 @@ nc_write_to_file (const int ncid,
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file (const int, const what&) \
+  void nc_write_to_file(const int, const what&, const Verbosity&) \
   { \
-    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+    throw runtime_error("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file (const int, what&) \
+  void nc_read_from_file(const int, what&, const Verbosity&) \
   { \
-    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+    throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }
 
 //=== Compound Types =======================================================

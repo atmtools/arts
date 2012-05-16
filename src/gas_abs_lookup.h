@@ -152,9 +152,9 @@ public:
                       const Index&                    mc_seed,
                       const Verbosity&                verbosity);
 
-    friend void nc_read_from_file(const int ncid, GasAbsLookup& gal);
+    friend void nc_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&);
   
-    friend void nc_write_to_file(const int ncid, const GasAbsLookup& gal);
+    friend void nc_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&);
   
 private:
 

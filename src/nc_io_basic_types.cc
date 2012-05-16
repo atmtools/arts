@@ -44,8 +44,7 @@
   \param m       Matrix
 */
 void
-nc_read_from_file (const int ncid,
-                   Matrix& m)
+nc_read_from_file(const int ncid, Matrix& m, const Verbosity&)
 {
   Index nrows, ncols;
   nrows  = nc_get_dim (ncid, "nrows");
@@ -62,8 +61,7 @@ nc_read_from_file (const int ncid,
   \param m       Matrix
 */
 void
-nc_write_to_file (const int ncid,
-                  const Matrix& m)
+nc_write_to_file(const int ncid, const Matrix& m, const Verbosity&)
 {
   int retval;
   int ncdims[2], varid;
@@ -86,8 +84,7 @@ nc_write_to_file (const int ncid,
   \param t       Tensor3
 */
 void
-nc_read_from_file (const int ncid,
-                   Tensor3& t)
+nc_read_from_file(const int ncid, Tensor3& t, const Verbosity&)
 {
   Index npages, nrows, ncols;
   npages = nc_get_dim (ncid, "npages");
@@ -105,8 +102,7 @@ nc_read_from_file (const int ncid,
   \param t       Tensor3
 */
 void
-nc_write_to_file (const int ncid,
-                  const Tensor3& t)
+nc_write_to_file(const int ncid, const Tensor3& t, const Verbosity&)
 {
   int retval;
   int ncdims[3], varid;
@@ -131,8 +127,7 @@ nc_write_to_file (const int ncid,
   \param t       Tensor4
 */
 void
-nc_read_from_file (const int ncid,
-                   Tensor4& t)
+nc_read_from_file(const int ncid, Tensor4& t, const Verbosity&)
 {
   Index nbooks, npages, nrows, ncols;
   nbooks = nc_get_dim (ncid, "nbooks");
@@ -151,8 +146,7 @@ nc_read_from_file (const int ncid,
   \param t       Tensor4
 */
 void
-nc_write_to_file (const int ncid,
-                  const Tensor4& t)
+nc_write_to_file(const int ncid, const Tensor4& t, const Verbosity&)
 {
   int retval;
   int ncdims[4], varid;
@@ -179,8 +173,7 @@ nc_write_to_file (const int ncid,
   \param t       Tensor5
 */
 void
-nc_read_from_file (const int ncid,
-                   Tensor5& t)
+nc_read_from_file(const int ncid, Tensor5& t, const Verbosity&)
 {
   Index nshelves, nbooks, npages, nrows, ncols;
   nshelves = nc_get_dim (ncid, "nshelves");
@@ -200,8 +193,7 @@ nc_read_from_file (const int ncid,
   \param t       Tensor5
 */
 void
-nc_write_to_file (const int ncid,
-                  const Tensor5& t)
+nc_write_to_file(const int ncid, const Tensor5& t, const Verbosity&)
 {
   int retval;
   int ncdims[5], varid;
@@ -231,8 +223,7 @@ nc_write_to_file (const int ncid,
   \param v       Vector
 */
 void
-nc_read_from_file (const int ncid,
-                   Vector& v)
+nc_read_from_file(const int ncid, Vector& v, const Verbosity&)
 {
   Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
@@ -248,8 +239,7 @@ nc_read_from_file (const int ncid,
   \param v       Vector
 */
 void
-nc_write_to_file (const int ncid,
-                  const Vector& v)
+nc_write_to_file(const int ncid, const Vector& v, const Verbosity&)
 {
   int retval;
   int ncdim, varid;
@@ -268,13 +258,13 @@ nc_write_to_file (const int ncid,
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file (const int, const what&) \
+  void nc_write_to_file(const int, const what&, const Verbosity&) \
   { \
-    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+    throw runtime_error("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file (const int, what&) \
+  void nc_read_from_file(const int, what&, const Verbosity&) \
   { \
-    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+    throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }
 
 //=== Basic Types ==========================================================

@@ -110,7 +110,14 @@ nc_read_from_file(const String& filename,
       throw runtime_error (os.str());
     }
 
-  nc_read_from_file (ncid, type);
+  try {
+    nc_read_from_file (ncid, type, verbosity);
+  } catch (runtime_error e) {
+    ostringstream os;
+    os << "Error reading file: " << efilename << endl;
+    os << e.what() << endl;
+    throw runtime_error (os.str());
+  }
 
   nc_close (ncid);
 }
@@ -135,7 +142,14 @@ nc_write_to_file(const String& filename,
       throw runtime_error (os.str());
     }
 
-  nc_write_to_file (ncid, type);
+  try {
+    nc_write_to_file (ncid, type, verbosity);
+  } catch (runtime_error e) {
+    ostringstream os;
+    os << "Error writing file: " << efilename << endl;
+    os << e.what() << endl;
+    throw runtime_error (os.str());
+  }
 
   nc_close (ncid);
 }

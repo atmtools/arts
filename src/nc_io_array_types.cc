@@ -43,8 +43,7 @@
   \param aom     ArrayOfMatrix
 */
 void
-nc_read_from_file (const int ncid,
-                   ArrayOfMatrix& aom)
+nc_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
 {
   Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
@@ -74,8 +73,7 @@ nc_read_from_file (const int ncid,
   \param aom     ArrayOfMatrix
 */
 void
-nc_write_to_file (const int ncid,
-                  const ArrayOfMatrix& aom)
+nc_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
 {
   int retval;
   int ncdim, varid_nrows, varid_ncols;
@@ -135,8 +133,7 @@ nc_write_to_file (const int ncid,
   \param aov     ArrayOfVector
 */
 void
-nc_read_from_file (const int ncid,
-                   ArrayOfVector& aov)
+nc_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&)
 {
   Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
@@ -163,8 +160,7 @@ nc_read_from_file (const int ncid,
   \param aov     ArrayOfVector
 */
 void
-nc_write_to_file (const int ncid,
-                  const ArrayOfVector& aov)
+nc_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
 {
   int retval;
   int ncdim, varid_nelem;
@@ -214,13 +210,13 @@ nc_write_to_file (const int ncid,
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file (const int, const what&) \
+  void nc_write_to_file(const int, const what&, const Verbosity&) \
   { \
-    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+    throw runtime_error("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file (const int, what&) \
+  void nc_read_from_file(const int, what&, const Verbosity&) \
   { \
-    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+    throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }
 
 //=== Array Types ==========================================================

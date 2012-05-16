@@ -1,5 +1,29 @@
 2012-05-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-113
+
+	* src/nc_io.cc (nc_read_from_file, nc_write_to_file):
+
+	Add a try-catch-block to the template functions around the actual
+	type-specific read/write function call. Catch exceptions, add current
+	filename and re-throw.
+
+	* src/nc_io_compound_types.cc (nc_read_from_file):
+
+	Throw runtime_error if no species are found in the GasAbsLookup input
+	file.
+
+	(nc_write_to_file): Throw runtime_error no species are in the current
+	GasAbsLookup table.
+
+	* src/gas_abs_lookup.h, src/nc_io_compound_types.cc,
+	src/nc_io_types.h, src/nc_io_basic_types.cc, src/nc_io_array_types.cc,
+	src/nc_io.cc:
+
+	Add Verbosity argument to nc_read_from_file and nc_write_to_file.
+
+2012-05-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-112
 
 	* src/nc_io_compound_types.cc:
