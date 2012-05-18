@@ -38,8 +38,8 @@
 #include "nc_io_types.h"
 
 #define TMPL_NC_READ_WRITE_FILE(what) \
-  template void nc_write_to_file<what> (const String&, const what&, const Verbosity&); \
-  template void nc_read_from_file<what> (const String&, what&, const Verbosity&);
+  template void nca_write_to_file<what> (const String&, const what&, const Verbosity&); \
+  template void nca_read_from_file<what> (const String&, what&, const Verbosity&);
 
 
 ////////////////////////////////////////////////////////////////////////////

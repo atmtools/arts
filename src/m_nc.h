@@ -49,7 +49,7 @@ ReadNetCDF (// WS Generic Input:
             const Verbosity& verbosity)
 
 {
-  nc_read_from_file (f, v, verbosity);
+  nca_read_from_file (f, v, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -66,9 +66,9 @@ WriteNetCDF (// WS Generic Input:
   String filename = f;
 
   // Create default filename if empty
-  filename_nc (filename, v_name);
+  nca_filename (filename, v_name);
 
-  nc_write_to_file (filename, v, verbosity);
+  nca_write_to_file (filename, v, verbosity);
 }
 
 #else // NetCDF not enabled

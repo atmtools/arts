@@ -44,14 +44,14 @@
   \param m       Matrix
 */
 void
-nc_read_from_file(const int ncid, Matrix& m, const Verbosity&)
+nca_read_from_file(const int ncid, Matrix& m, const Verbosity&)
 {
   Index nrows, ncols;
   nrows  = nc_get_dim (ncid, "nrows");
   ncols  = nc_get_dim (ncid, "ncols");
 
   m.resize(nrows, ncols);
-  nc_get_data_double (ncid, "Matrix", m.get_c_array());
+  nca_get_data_double (ncid, "Matrix", m.get_c_array());
 }
 
 
@@ -61,19 +61,19 @@ nc_read_from_file(const int ncid, Matrix& m, const Verbosity&)
   \param m       Matrix
 */
 void
-nc_write_to_file(const int ncid, const Matrix& m, const Verbosity&)
+nca_write_to_file(const int ncid, const Matrix& m, const Verbosity&)
 {
   int retval;
   int ncdims[2], varid;
   if ((retval = nc_def_dim (ncid, "nrows", m.nrows(), &ncdims[0])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "ncols", m.ncols(), &ncdims[1])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_var (ncid, "Matrix", NC_DOUBLE, 2, &ncdims[0], &varid)))
-    ncerror (retval, "nc_def_var");
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+    nca_error (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
   if ((retval = nc_put_var_double (ncid, varid, m.get_c_array())))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 }
 
 //=== Tensor3 ==========================================================
@@ -84,7 +84,7 @@ nc_write_to_file(const int ncid, const Matrix& m, const Verbosity&)
   \param t       Tensor3
 */
 void
-nc_read_from_file(const int ncid, Tensor3& t, const Verbosity&)
+nca_read_from_file(const int ncid, Tensor3& t, const Verbosity&)
 {
   Index npages, nrows, ncols;
   npages = nc_get_dim (ncid, "npages");
@@ -92,7 +92,7 @@ nc_read_from_file(const int ncid, Tensor3& t, const Verbosity&)
   ncols  = nc_get_dim (ncid, "ncols");
 
   t.resize(npages, nrows, ncols);
-  nc_get_data_double (ncid, "Tensor3", t.get_c_array());
+  nca_get_data_double (ncid, "Tensor3", t.get_c_array());
 }
 
 
@@ -102,21 +102,21 @@ nc_read_from_file(const int ncid, Tensor3& t, const Verbosity&)
   \param t       Tensor3
 */
 void
-nc_write_to_file(const int ncid, const Tensor3& t, const Verbosity&)
+nca_write_to_file(const int ncid, const Tensor3& t, const Verbosity&)
 {
   int retval;
   int ncdims[3], varid;
   if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[0])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[1])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[2])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_var (ncid, "Tensor3", NC_DOUBLE, 3, &ncdims[0], &varid)))
-    ncerror (retval, "nc_def_var");
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+    nca_error (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
   if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 }
 
 //=== Tensor4 ==========================================================
@@ -127,7 +127,7 @@ nc_write_to_file(const int ncid, const Tensor3& t, const Verbosity&)
   \param t       Tensor4
 */
 void
-nc_read_from_file(const int ncid, Tensor4& t, const Verbosity&)
+nca_read_from_file(const int ncid, Tensor4& t, const Verbosity&)
 {
   Index nbooks, npages, nrows, ncols;
   nbooks = nc_get_dim (ncid, "nbooks");
@@ -136,7 +136,7 @@ nc_read_from_file(const int ncid, Tensor4& t, const Verbosity&)
   ncols  = nc_get_dim (ncid, "ncols");
 
   t.resize(nbooks, npages, nrows, ncols);
-  nc_get_data_double (ncid, "Tensor4", t.get_c_array());
+  nca_get_data_double (ncid, "Tensor4", t.get_c_array());
 }
 
 
@@ -146,23 +146,23 @@ nc_read_from_file(const int ncid, Tensor4& t, const Verbosity&)
   \param t       Tensor4
 */
 void
-nc_write_to_file(const int ncid, const Tensor4& t, const Verbosity&)
+nca_write_to_file(const int ncid, const Tensor4& t, const Verbosity&)
 {
   int retval;
   int ncdims[4], varid;
   if ((retval = nc_def_dim (ncid, "nbooks", t.nbooks(), &ncdims[0])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[1])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[2])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[3])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_var (ncid, "Tensor4", NC_DOUBLE, 4, &ncdims[0], &varid)))
-    ncerror (retval, "nc_def_var");
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+    nca_error (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
   if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 }
 
 //=== Tensor5 ==========================================================
@@ -173,7 +173,7 @@ nc_write_to_file(const int ncid, const Tensor4& t, const Verbosity&)
   \param t       Tensor5
 */
 void
-nc_read_from_file(const int ncid, Tensor5& t, const Verbosity&)
+nca_read_from_file(const int ncid, Tensor5& t, const Verbosity&)
 {
   Index nshelves, nbooks, npages, nrows, ncols;
   nshelves = nc_get_dim (ncid, "nshelves");
@@ -183,7 +183,7 @@ nc_read_from_file(const int ncid, Tensor5& t, const Verbosity&)
   ncols  = nc_get_dim (ncid, "ncols");
 
   t.resize(nshelves, nbooks, npages, nrows, ncols);
-  nc_get_data_double (ncid, "Tensor5", t.get_c_array());
+  nca_get_data_double (ncid, "Tensor5", t.get_c_array());
 }
 
 
@@ -193,25 +193,25 @@ nc_read_from_file(const int ncid, Tensor5& t, const Verbosity&)
   \param t       Tensor5
 */
 void
-nc_write_to_file(const int ncid, const Tensor5& t, const Verbosity&)
+nca_write_to_file(const int ncid, const Tensor5& t, const Verbosity&)
 {
   int retval;
   int ncdims[5], varid;
   if ((retval = nc_def_dim (ncid, "nshelves", t.nshelves(), &ncdims[0])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "nbooks", t.nbooks(), &ncdims[1])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[2])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[3])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[4])))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_var (ncid, "Tensor5", NC_DOUBLE, 5, &ncdims[0], &varid)))
-    ncerror (retval, "nc_def_var");
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+    nca_error (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
   if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 }
 
 
@@ -223,13 +223,13 @@ nc_write_to_file(const int ncid, const Tensor5& t, const Verbosity&)
   \param v       Vector
 */
 void
-nc_read_from_file(const int ncid, Vector& v, const Verbosity&)
+nca_read_from_file(const int ncid, Vector& v, const Verbosity&)
 {
   Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
 
   v.resize(nelem);
-  nc_get_data_double (ncid, "Vector", v.get_c_array());
+  nca_get_data_double (ncid, "Vector", v.get_c_array());
 }
 
 
@@ -239,17 +239,17 @@ nc_read_from_file(const int ncid, Vector& v, const Verbosity&)
   \param v       Vector
 */
 void
-nc_write_to_file(const int ncid, const Vector& v, const Verbosity&)
+nca_write_to_file(const int ncid, const Vector& v, const Verbosity&)
 {
   int retval;
   int ncdim, varid;
   if ((retval = nc_def_dim (ncid, "nelem", v.nelem(), &ncdim)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_var (ncid, "Vector", NC_DOUBLE, 1, &ncdim, &varid)))
-    ncerror (retval, "nc_def_var");
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+    nca_error (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
   if ((retval = nc_put_var_double (ncid, varid, v.get_c_array())))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -258,11 +258,11 @@ nc_write_to_file(const int ncid, const Vector& v, const Verbosity&)
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file(const int, const what&, const Verbosity&) \
+  void nca_write_to_file(const int, const what&, const Verbosity&) \
   { \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file(const int, what&, const Verbosity&) \
+  void nca_read_from_file(const int, what&, const Verbosity&) \
   { \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }

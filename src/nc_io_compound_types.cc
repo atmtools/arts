@@ -43,49 +43,53 @@
 
 //! Reads a GasAbsLookup table from a NetCDF file
 /*!
- \param ncf     NetCDF file descriptor
- \param gal     GasAbsLookup
- */
-void
-nc_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&)
+ \param[in] ncid    NetCDF file descriptor
+ \param[in] gal     GasAbsLookup
+ 
+ \author Oliver Lemke
+*/
+void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&)
 {
-  nc_get_data_ArrayOfArrayOfSpeciesTag(ncid, "species", gal.species, true);
+  nca_get_data_ArrayOfArrayOfSpeciesTag(ncid, "species", gal.species, true);
   if (!gal.species.nelem()) throw runtime_error("No species found in lookup table file!");
   
-  nc_get_data_ArrayOfIndex(ncid, "nonlinear_species", gal.nonlinear_species, true);
-  nc_get_data_Vector(ncid, "f_grid", gal.f_grid, true);
-  nc_get_data_Vector(ncid, "p_grid", gal.p_grid, true);  
-  nc_get_data_Matrix(ncid, "vmrs_ref", gal.vmrs_ref, true);
-  nc_get_data_Vector(ncid, "t_ref", gal.t_ref, true);
-  nc_get_data_Vector(ncid, "t_pert", gal.t_pert, true);
-  nc_get_data_Vector(ncid, "nls_pert", gal.nls_pert, true);
-  nc_get_data_Tensor4(ncid, "xsec", gal.xsec, true);
+  nca_get_data_ArrayOfIndex(ncid, "nonlinear_species", gal.nonlinear_species, true);
+  nca_get_data_Vector(ncid, "f_grid", gal.f_grid, true);
+  nca_get_data_Vector(ncid, "p_grid", gal.p_grid, true);  
+  nca_get_data_Matrix(ncid, "vmrs_ref", gal.vmrs_ref, true);
+  nca_get_data_Vector(ncid, "t_ref", gal.t_ref, true);
+  nca_get_data_Vector(ncid, "t_pert", gal.t_pert, true);
+  nca_get_data_Vector(ncid, "nls_pert", gal.nls_pert, true);
+  nca_get_data_Tensor4(ncid, "xsec", gal.xsec, true);
 }
 
 
 //! Writes a GasAbsLookup table to a NetCDF file
 /*!
- \param ncf     NetCDF file descriptor
- \param gal     GasAbsLookup
- */
-void
-nc_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&)
+ \param[in]  ncid    NetCDF file descriptor
+ \param[out] gal     GasAbsLookup
+ 
+ \author Oliver Lemke
+*/
+void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&)
 {
   int retval;
   
-  int species_strings_ncdims[2], species_strings_varid;
-  int species_nelem_ncdims[1], species_nelem_varid;
-  long species_total_nelems = 0;
-  Index* per_species_nelem = new Index[gal.species.nelem()];
+  int species_strings_varid;
+  int species_count_varid;
+  
+  ArrayOfIndex species_count(gal.species.nelem());
   Index species_max_strlen = 0;
   char* species_strings = NULL;
+  
   if (gal.species.nelem())
   {
+    long species_total_nelems = 0;
     for(Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++)
     {
       Index nspecies_nelem = gal.species[nspecies].nelem();
       species_total_nelems += nspecies_nelem;
-      per_species_nelem[nspecies] = nspecies_nelem;
+      species_count[nspecies] = nspecies_nelem;
       
       for (ArrayOfSpeciesTag::const_iterator it = gal.species[nspecies].begin();
            it != gal.species[nspecies].end(); it++)
@@ -106,184 +110,49 @@ nc_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&)
         str_i+=species_max_strlen;
       }
     
-    if ((retval = nc_def_dim (ncid, "species_count_nelem", gal.species.nelem(), &species_nelem_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "species_count", NC_LONG, 1, &species_nelem_ncdims[0],
-                              &species_nelem_varid)))
-      ncerror (retval, "nc_def_var");
-    if ((retval = nc_def_dim (ncid, "species_strings_nelem", species_total_nelems, &species_strings_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_dim (ncid, "species_strings_length", species_max_strlen, &species_strings_ncdims[1])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "species_strings", NC_CHAR, 2, &species_strings_ncdims[0], &species_strings_varid)))
-      ncerror (retval, "nc_def_var");
+    species_count_varid = nca_def_ArrayOfIndex(ncid, "species_count", species_count);
+    
+    int species_strings_ncdims[2];
+    nca_def_dim (ncid, "species_strings_nelem", species_total_nelems, &species_strings_ncdims[0]);
+    nca_def_dim (ncid, "species_strings_length", species_max_strlen, &species_strings_ncdims[1]);
+    nca_def_var (ncid, "species_strings", NC_CHAR, 2, &species_strings_ncdims[0],
+                 &species_strings_varid);
   }
   else {
     throw runtime_error("Current lookup table contains no species!");
   }
   
+  // Define dimensions and variables
+  int nonlinear_species_varid = nca_def_ArrayOfIndex(ncid, "nonlinear_species",
+                                                     gal.nonlinear_species);
+  int f_grid_varid = nca_def_Vector(ncid, "f_grid", gal.f_grid);
+  int p_grid_varid = nca_def_Vector(ncid, "p_grid", gal.p_grid);
+  int vmrs_ref_varid = nca_def_Matrix(ncid, "vmrs_ref", gal.vmrs_ref);
+  int t_ref_varid = nca_def_Vector(ncid, "t_ref", gal.t_ref);
+  int t_pert_varid = nca_def_Vector(ncid, "t_pert", gal.t_pert);
+  int nls_pert_varid = nca_def_Vector(ncid, "nls_pert", gal.nls_pert);
+  int xsec_varid = nca_def_Tensor4(ncid, "xsec", gal.xsec);
   
-  // Define nonlinear_species dimensions and variable
-  int nonlinear_species_ncdims[1], nonlinear_species_varid;
-  if (gal.nonlinear_species.nelem())
-  {
-    if ((retval = nc_def_dim (ncid, "nonlinear_species_nelem", gal.nonlinear_species.nelem(),
-                              &nonlinear_species_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "nonlinear_species", NC_LONG, 1,
-                              &nonlinear_species_ncdims[0], &nonlinear_species_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  // Define f_grid dimensions and variable
-  int f_grid_ncdims[1], f_grid_varid;
-  if (gal.f_grid.nelem())
-  {
-    if ((retval = nc_def_dim (ncid, "f_grid_nelem", gal.f_grid.nelem(), &f_grid_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "f_grid", NC_DOUBLE, 1, &f_grid_ncdims[0], &f_grid_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  // Define p_grid dimensions and variable
-  int p_grid_ncdims[1], p_grid_varid;
-  if (gal.p_grid.nelem())
-  {
-    if ((retval = nc_def_dim (ncid, "p_grid_nelem", gal.p_grid.nelem(), &p_grid_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "p_grid", NC_DOUBLE, 1, &p_grid_ncdims[0], &p_grid_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  // Define vmrs_ref dimensions and variable
-  int vmrs_ref_ncdims[2], vmrs_ref_varid;
-  if (gal.vmrs_ref.nrows() && gal.vmrs_ref.ncols())
-  {
-    if ((retval = nc_def_dim (ncid, "vmrs_ref_nrows", gal.vmrs_ref.nrows(), &vmrs_ref_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_dim (ncid, "vmrs_ref_ncols", gal.vmrs_ref.ncols(), &vmrs_ref_ncdims[1])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "vmrs_ref", NC_DOUBLE, 2, &vmrs_ref_ncdims[0], &vmrs_ref_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  // Define t_ref dimensions and variable
-  int t_ref_ncdims[1], t_ref_varid;
-  if (gal.t_ref.nelem())
-  {
-    if ((retval = nc_def_dim (ncid, "t_ref_nelem", gal.t_ref.nelem(), &t_ref_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "t_ref", NC_DOUBLE, 1, &t_ref_ncdims[0], &t_ref_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  // Define t_pert dimensions and variable
-  int t_pert_ncdims[1], t_pert_varid;
-  if (gal.t_pert.nelem())
-  {
-    if ((retval = nc_def_dim (ncid, "t_pert_nelem", gal.t_pert.nelem(), &t_pert_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "t_pert", NC_DOUBLE, 1, &t_pert_ncdims[0], &t_pert_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  // Define nls_pert dimensions and variable
-  int nls_pert_ncdims[1], nls_pert_varid;
-  if (gal.nls_pert.nelem())
-  {
-    if ((retval = nc_def_dim (ncid, "nls_pert_nelem", gal.nls_pert.nelem(), &nls_pert_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "nls_pert", NC_DOUBLE, 1, &nls_pert_ncdims[0], &nls_pert_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  // Define xsec dimensions and variable
-  int xsec_ncdims[4], xsec_varid;
-  if (gal.xsec.nbooks() && gal.xsec.npages() && gal.xsec.nrows() && gal.xsec.ncols())
-  {
-    if ((retval = nc_def_dim (ncid, "xsec_nbooks", gal.xsec.nbooks(), &xsec_ncdims[0])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_dim (ncid, "xsec_npages", gal.xsec.npages(), &xsec_ncdims[1])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_dim (ncid, "xsec_nrows", gal.xsec.nrows(), &xsec_ncdims[2])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_dim (ncid, "xsec_ncols", gal.xsec.ncols(), &xsec_ncdims[3])))
-      ncerror (retval, "nc_def_dim");
-    if ((retval = nc_def_var (ncid, "xsec", NC_DOUBLE, 4, &xsec_ncdims[0], &xsec_varid)))
-      ncerror (retval, "nc_def_var");
-  }
-  
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
   
   // Write variables
+  nca_put_var_ArrayOfIndex(ncid, species_count_varid, species_count);
   if (gal.species.nelem())
   {
-    if ((retval = nc_put_var_long (ncid, species_nelem_varid, per_species_nelem)))
-      ncerror (retval, "nc_put_var");
     if ((retval = nc_put_var_text (ncid, species_strings_varid, species_strings)))
-      ncerror (retval, "nc_put_var");
+      nca_error (retval, "nc_put_var");
   }
 
-  delete [] per_species_nelem;
   delete [] species_strings;
   
-  if (gal.nonlinear_species.nelem())
-  {
-    Index *ind_arr = new Index[10];
-    Index i = 0;
-    for (ArrayOfIndex::const_iterator it = gal.nonlinear_species.begin();
-         it != gal.nonlinear_species.end(); it++, i++)
-    {
-      ind_arr[i] = *it;
-    }
-    
-    if ((retval = nc_put_var_long (ncid, nonlinear_species_varid, ind_arr)))
-      ncerror (retval, "nc_put_var");
-    
-    delete [] ind_arr;
-  }
-  
-  if (gal.f_grid.nelem())
-  {
-    if ((retval = nc_put_var_double (ncid, f_grid_varid, gal.f_grid.get_c_array())))
-      ncerror (retval, "nc_put_var");
-  }
-  
-  if (gal.p_grid.nelem())
-  {
-    if ((retval = nc_put_var_double (ncid, p_grid_varid, gal.p_grid.get_c_array())))
-      ncerror (retval, "nc_put_var");
-  }
-  
-  if (gal.vmrs_ref.nrows() && gal.vmrs_ref.ncols())
-  {
-    if ((retval = nc_put_var_double (ncid, vmrs_ref_varid, gal.vmrs_ref.get_c_array())))
-      ncerror (retval, "nc_put_var");
-  }
-  
-  if (gal.t_ref.nelem())
-  {
-    if ((retval = nc_put_var_double (ncid, t_ref_varid, gal.t_ref.get_c_array())))
-      ncerror (retval, "nc_put_var");
-  }
-  
-  if (gal.t_pert.nelem())
-  {
-    if ((retval = nc_put_var_double (ncid, t_pert_varid, gal.t_pert.get_c_array())))
-      ncerror (retval, "nc_put_var");
-  }
-  
-  if (gal.nls_pert.nelem())
-  {
-    if ((retval = nc_put_var_double (ncid, nls_pert_varid, gal.nls_pert.get_c_array())))
-      ncerror (retval, "nc_put_var");
-  }
-  
-  if (gal.xsec.nbooks() && gal.xsec.npages() && gal.xsec.nrows() && gal.xsec.ncols())
-  {
-    if ((retval = nc_put_var_double (ncid, xsec_varid, gal.xsec.get_c_array())))
-      ncerror (retval, "nc_put_var");
-  }
+  nca_put_var_ArrayOfIndex(ncid, nonlinear_species_varid, gal.nonlinear_species);
+  nca_put_var_Vector(ncid, f_grid_varid, gal.f_grid);
+  nca_put_var_Vector(ncid, p_grid_varid, gal.p_grid);
+  nca_put_var_Matrix(ncid, vmrs_ref_varid, gal.vmrs_ref);
+  nca_put_var_Vector(ncid, t_ref_varid, gal.t_ref);
+  nca_put_var_Vector(ncid, t_pert_varid, gal.t_pert);
+  nca_put_var_Vector(ncid, nls_pert_varid, gal.nls_pert);
+  nca_put_var_Tensor4(ncid, xsec_varid, gal.xsec);
 }
 
 
@@ -293,11 +162,11 @@ nc_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&)
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file(const int, const what&, const Verbosity&) \
+  void nca_write_to_file(const int, const what&, const Verbosity&) \
   { \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file(const int, what&, const Verbosity&) \
+  void nca_read_from_file(const int, what&, const Verbosity&) \
   { \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }

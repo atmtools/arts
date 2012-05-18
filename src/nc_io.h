@@ -45,9 +45,9 @@
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-void filename_nc(String& filename, const String&  varname);
+void nca_filename(String& filename, const String&  varname);
 
-void filename_nc_with_index(String& filename, const Index& file_index, const String& varname);
+void nca_filename_with_index(String& filename, const Index& file_index, const String& varname);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -55,43 +55,63 @@ void filename_nc_with_index(String& filename, const Index& file_index, const Str
 ////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void nc_read_from_file(const String& filename, T& type, const Verbosity& verbosity);
+void nca_read_from_file(const String& filename, T& type, const Verbosity& verbosity);
 
 
 template<typename T>
-void nc_write_to_file(const String&  filename, const T&  type, const Verbosity& verbosity);
+void nca_write_to_file(const String&  filename, const T& type, const Verbosity& verbosity);
 
 
 /*void nc_read_var(const int ncf, const int **ncvar,
                   const Index dims, const String& name);*/
 
-void nc_get_data_int(const int ncid, const String &name, int *data);
+void nca_def_dim(const int ncid, const String& name, const Index nelem, int *ncdim);
+void nca_def_var(const int ncid, const String& name, const nc_type type, const int ndims,
+                 const int* dims, int* varid);
 
-void nc_get_data_long(const int ncid, const String &name, long *data);
+int nca_def_ArrayOfIndex(const int ncid, const String& name, const ArrayOfIndex& a);
 
-void nc_get_data_double(const int ncid, const String &name, Numeric *data);
+int nca_def_Vector(const int ncid, const String& name, const Vector& v);
 
-void nc_get_dataa_double(const int ncid, const String &name,
-                         size_t start, size_t count, Numeric *data);
+int nca_def_Matrix(const int ncid, const String& name, const Matrix& m);
 
-void nc_get_data_text(const int ncid, const String &name, char *data);
+int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t);
 
-Index nc_get_dim(const int ncid, const String &name, const bool noerror = false);
+Index nc_get_dim(const int ncid, const String& name, const bool noerror = false);
 
-void nc_get_data_ArrayOfIndex(const int ncid, const String &name, ArrayOfIndex &aoi,
+void nca_get_data_int(const int ncid, const String& name, int *data);
+
+void nca_get_data_long(const int ncid, const String& name, long *data);
+
+void nca_get_data_double(const int ncid, const String& name, Numeric *data);
+
+void nca_get_dataa_double(const int ncid, const String& name,
+                          size_t start, size_t count, Numeric *data);
+
+void nca_get_data_text(const int ncid, const String& name, char *data);
+
+void nca_get_data_ArrayOfIndex(const int ncid, const String& name, ArrayOfIndex& aoi,
                               const bool noerror);
 
-void nc_get_data_ArrayOfArrayOfSpeciesTag(const int ncid, const String &name,
-                                          ArrayOfArrayOfSpeciesTag &aast,
+void nca_get_data_ArrayOfArrayOfSpeciesTag(const int ncid, const String& name,
+                                          ArrayOfArrayOfSpeciesTag& aast,
                                           const bool noerror);
 
-void nc_get_data_Vector(const int ncid, const String &name, Vector &v, const bool noerror = false);
+void nca_get_data_Vector(const int ncid, const String& name, Vector& v, const bool noerror = false);
 
-void nc_get_data_Matrix(const int ncid, const String &name, Matrix &m, const bool noerror = false);
+void nca_get_data_Matrix(const int ncid, const String& name, Matrix& m, const bool noerror = false);
 
-void nc_get_data_Tensor4(const int ncid, const String &name, Tensor4 &m, const bool noerror = false);
+void nca_get_data_Tensor4(const int ncid, const String& name, Tensor4& m, const bool noerror = false);
 
-void ncerror(const int err, const String msg);
+bool nca_put_var_ArrayOfIndex(const int ncid, const int varid, const ArrayOfIndex& a);
+
+bool nca_put_var_Vector(const int ncid, const int varid, const Vector& v);
+
+bool nca_put_var_Matrix(const int ncid, const int varid, const Matrix& m);
+
+bool nca_put_var_Tensor4(const int ncid, const int varid, const Tensor4& t);
+
+void nca_error(const int err, const String msg);
 
 #endif /* nc_io_h */
 

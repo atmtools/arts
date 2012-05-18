@@ -43,7 +43,7 @@
   \param aom     ArrayOfMatrix
 */
 void
-nc_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
+nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
 {
   Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
@@ -51,13 +51,13 @@ nc_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
   long *vnrows = new long[nelem];
   long *vncols = new long[nelem];
   aom.resize (nelem);
-  nc_get_data_long (ncid, "Matrix_nrows", vnrows);
-  nc_get_data_long (ncid, "Matrix_ncols", vncols);
+  nca_get_data_long (ncid, "Matrix_nrows", vnrows);
+  nca_get_data_long (ncid, "Matrix_ncols", vncols);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++)
     {
       aom[i].resize (vnrows[i], vncols[i]);
-      nc_get_dataa_double (ncid, "ArrayOfMatrix", pos, vnrows[i] * vncols[i],
+      nca_get_dataa_double (ncid, "ArrayOfMatrix", pos, vnrows[i] * vncols[i],
                            aom[i].get_c_array());
       pos += vnrows[i] * vncols[i];
     }
@@ -73,7 +73,7 @@ nc_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
   \param aom     ArrayOfMatrix
 */
 void
-nc_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
+nca_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
 {
   int retval;
   int ncdim, varid_nrows, varid_ncols;
@@ -89,26 +89,26 @@ nc_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
     }
 
   if ((retval = nc_def_dim (ncid, "nelem", aom.nelem(), &ncdim)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
 
   if ((retval = nc_def_var (ncid, "Matrix_nrows", NC_LONG, 1,
                             &ncdim, &varid_nrows)))
-    ncerror (retval, "nc_def_var");
+    nca_error (retval, "nc_def_var");
   if ((retval = nc_def_var (ncid, "Matrix_ncols", NC_LONG, 1,
                             &ncdim, &varid_ncols)))
-    ncerror (retval, "nc_def_var");
+    nca_error (retval, "nc_def_var");
   if ((retval = nc_def_var (ncid, "ArrayOfMatrix", NC_DOUBLE, 1,
                             &ncdim_total, &varid)))
-    ncerror (retval, "nc_def_var");
+    nca_error (retval, "nc_def_var");
 
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
 
   if ((retval = nc_put_var_long (ncid, varid_nrows, vnrows)))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
   if ((retval = nc_put_var_long (ncid, varid_ncols, vncols)))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 
   size_t pos = 0;
   for (Index i = 0; i < aom.nelem(); i++)
@@ -116,7 +116,7 @@ nc_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
       size_t count = aom[i].nrows() * aom[i].ncols();
       if ((retval = nc_put_vara_double (ncid, varid, &pos, &count,
                                         aom[i].get_c_array())))
-        ncerror (retval, "nc_put_var");
+        nca_error (retval, "nc_put_var");
       pos += count;
     }
 
@@ -133,19 +133,19 @@ nc_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
   \param aov     ArrayOfVector
 */
 void
-nc_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&)
+nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&)
 {
   Index nelem;
   nelem = nc_get_dim (ncid, "nelem");
 
   long *vnelem = new long[nelem];
   aov.resize (nelem);
-  nc_get_data_long (ncid, "Vector_nelem", vnelem);
+  nca_get_data_long (ncid, "Vector_nelem", vnelem);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++)
     {
       aov[i].resize (vnelem[i]);
-      nc_get_dataa_double (ncid, "ArrayOfVector", pos, vnelem[i],
+      nca_get_dataa_double (ncid, "ArrayOfVector", pos, vnelem[i],
                            aov[i].get_c_array());
       pos += vnelem[i];
     }
@@ -160,7 +160,7 @@ nc_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&)
   \param aov     ArrayOfVector
 */
 void
-nc_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
+nca_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
 {
   int retval;
   int ncdim, varid_nelem;
@@ -174,21 +174,21 @@ nc_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
     }
 
   if ((retval = nc_def_dim (ncid, "nelem", aov.nelem(), &ncdim)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
 
   if ((retval = nc_def_var (ncid, "Vector_nelem", NC_LONG, 1,
                             &ncdim, &varid_nelem)))
-    ncerror (retval, "nc_def_var");
+    nca_error (retval, "nc_def_var");
   if ((retval = nc_def_var (ncid, "ArrayOfVector", NC_DOUBLE, 1,
                             &ncdim_total, &varid)))
-    ncerror (retval, "nc_def_var");
+    nca_error (retval, "nc_def_var");
 
-  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
 
   if ((retval = nc_put_var_long (ncid, varid_nelem, velems)))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 
   size_t pos = 0;
   for (Index i = 0; i < aov.nelem(); i++)
@@ -196,7 +196,7 @@ nc_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
       size_t count = aov[i].nelem();
       if ((retval = nc_put_vara_double (ncid, varid, &pos, &count,
                                         aov[i].get_c_array())))
-        ncerror (retval, "nc_put_var");
+        nca_error (retval, "nc_put_var");
       pos += count;
     }
 
@@ -210,11 +210,11 @@ nc_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file(const int, const what&, const Verbosity&) \
+  void nca_write_to_file(const int, const what&, const Verbosity&) \
   { \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file(const int, what&, const Verbosity&) \
+  void nca_read_from_file(const int, what&, const Verbosity&) \
   { \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }

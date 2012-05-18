@@ -2273,85 +2273,85 @@ void WriteMolTau(//WS Input
 
   // Open file
   if ((retval = nc_create(filename.c_str(), NC_CLOBBER, &ncid)))
-    ncerror (retval, "nc_create");
+    nca_error (retval, "nc_create");
   
   // Define dimensions
   if ((retval = nc_def_dim(ncid, "nlev", (int) z_field.npages(), &nlev_dimid)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   
   if ((retval = nc_def_dim(ncid, "nlyr", (int) z_field.npages() - 1, &nlyr_dimid)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   
   if ((retval = nc_def_dim(ncid, "nwvl", (int) f_grid.nelem(), &nwvl_dimid)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
   
   if ((retval = nc_def_dim(ncid, "none", 1, &none_dimid)))
-    ncerror (retval, "nc_def_dim");
+    nca_error (retval, "nc_def_dim");
 
   // Define variables
   if ((retval = nc_def_var(ncid, "wvlmin", NC_DOUBLE, 1,  &none_dimid, &wvlmin_varid)))
-    ncerror (retval, "nc_def_var wvlmin");
+    nca_error (retval, "nc_def_var wvlmin");
   
   if ((retval = nc_def_var(ncid, "wvlmax", NC_DOUBLE, 1,  &none_dimid, &wvlmax_varid)))
-    ncerror (retval, "nc_def_var wvlmax");
+    nca_error (retval, "nc_def_var wvlmax");
   
   if ((retval = nc_def_var(ncid, "z", NC_DOUBLE, 1,  &nlev_dimid, &z_varid)))
-    ncerror (retval, "nc_def_var z");
+    nca_error (retval, "nc_def_var z");
   
   if ((retval = nc_def_var(ncid, "wvl", NC_DOUBLE, 1,  &nwvl_dimid, &wvl_varid)))
-    ncerror (retval, "nc_def_var wvl");
+    nca_error (retval, "nc_def_var wvl");
   
   dimids[0]=nlyr_dimid;
   dimids[1]=nwvl_dimid; 
   
   if ((retval = nc_def_var(ncid, "tau", NC_DOUBLE, 2, &dimids[0], &tau_varid)))
-    ncerror (retval, "nc_def_var tau");
+    nca_error (retval, "nc_def_var tau");
   
   // Units
   if ((retval = nc_put_att_text(ncid, wvlmin_varid, "units", 2, "nm")))
-    ncerror (retval, "nc_put_att_text");
+    nca_error (retval, "nc_put_att_text");
 
   if ((retval = nc_put_att_text(ncid, wvlmax_varid, "units", 2, "nm")))
-    ncerror (retval, "nc_put_att_text");
+    nca_error (retval, "nc_put_att_text");
   
   if ((retval = nc_put_att_text(ncid, z_varid, "units", 2, "km")))
-    ncerror (retval, "nc_put_att_text");
+    nca_error (retval, "nc_put_att_text");
 
   if ((retval = nc_put_att_text(ncid, wvl_varid, "units", 2, "nm")))
-     ncerror (retval, "nc_put_att_text");
+     nca_error (retval, "nc_put_att_text");
   
   if ((retval = nc_put_att_text(ncid, tau_varid, "units", 1, "-")))
-     ncerror (retval, "nc_put_att_text");
+     nca_error (retval, "nc_put_att_text");
   
   // End define mode. This tells netCDF we are done defining
   // metadata. 
   if ((retval = nc_enddef(ncid)))
-    ncerror (retval, "nc_enddef");
+    nca_error (retval, "nc_enddef");
   
   // Assign data
   double wvlmin[1];
   wvlmin[0]= SPEED_OF_LIGHT/f_grid[f_grid.nelem()-1]*1e9;
   if ((retval = nc_put_var_double (ncid, wvlmin_varid, &wvlmin[0])))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 
   double wvlmax[1];
   wvlmax[0]= SPEED_OF_LIGHT/f_grid[0]*1e9;
   if ((retval = nc_put_var_double (ncid, wvlmax_varid, &wvlmax[0])))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
   
   double z[z_field.npages()];
   for (int iz=0; iz<z_field.npages(); iz++)
     z[iz]=z_field(z_field.npages()-1-iz, 0, 0)*1e-3;
   
   if ((retval = nc_put_var_double (ncid, z_varid, &z[0])))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
   
   double wvl[f_grid.nelem()];
   for (int iv=0; iv<f_grid.nelem(); iv++)
     wvl[iv]=SPEED_OF_LIGHT/f_grid[f_grid.nelem()-1-iv]*1e9;
   
   if ((retval = nc_put_var_double (ncid, wvl_varid, &wvl[0])))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
 
   double tau[z_field.npages()-1][f_grid.nelem()];
 
@@ -2371,11 +2371,11 @@ void WriteMolTau(//WS Input
   
   
   if ((retval = nc_put_var_double (ncid, tau_varid, &tau[0][0])))
-    ncerror (retval, "nc_put_var");
+    nca_error (retval, "nc_put_var");
   
   // Close the file
   if ((retval = nc_close(ncid)))
-    ncerror (retval, "nc_close");
+    nca_error (retval, "nc_close");
 
 }
 
