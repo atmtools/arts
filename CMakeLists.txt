@@ -32,7 +32,6 @@ endif (NOT CMAKE_BUILD_TYPE)
 include (CheckIncludeFile)
 include (CheckIncludeFileCXX)
 
-include (CheckCXXCompilerFlag)
 include (CheckTypeSize)
 include (CheckFunctionExists)
 
@@ -156,20 +155,20 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 endif (CMAKE_COMPILER_IS_GNUCXX)
 
 ########### Warning flags ##########
+include (ArtsAddCompilerFlag)
+ARTS_ADD_COMPILER_FLAG (W)
+ARTS_ADD_COMPILER_FLAG (Wall)
+ARTS_ADD_COMPILER_FLAG (Wshadow)
+ARTS_ADD_COMPILER_FLAG (Wconversion)
+ARTS_ADD_COMPILER_FLAG (Wno-sign-conversion)
+
 if (CMAKE_COMPILER_IS_INTELCXX)
-  set (WARN_FLAGS "${WARN_FLAGS} -Wall -Wshadow -w1 -diag-disable 383,980,981,1418,1419")
+  ARTS_ADD_COMPILER_FLAG (w1)
+  ARTS_ADD_COMPILER_FLAG (diag-disable 383,980,981,1418,1419)
 endif (CMAKE_COMPILER_IS_INTELCXX)
-if (CMAKE_COMPILER_IS_GNUCXX)
-  set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wshadow")
-endif (CMAKE_COMPILER_IS_GNUCXX)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"
-    OR CMAKE_GENERATOR STREQUAL "Xcode")
-  set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wno-sign-conversion -Wshadow")
-endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"
-       OR CMAKE_GENERATOR STREQUAL "Xcode")
 
 if (WERROR)
-  set (WARN_FLAGS "${WARN_FLAGS} -Werror")
+  ARTS_ADD_COMPILER_FLAG (Werror)
 endif (WERROR)
 
 if (OPENMP_FOUND)
@@ -178,7 +177,7 @@ if (OPENMP_FOUND)
   set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
   set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 else (OPENMP_FOUND)
-  set (WARN_FLAGS "${WARN_FLAGS} -Wno-unknown-pragmas")
+  ARTS_ADD_COMPILER_FLAG (Wno-unknown-pragmas)
 endif (OPENMP_FOUND)
 
 # Workaround for f2c library in Debian/Ubuntu
@@ -189,30 +188,14 @@ endif (ENABLE_DISORT AND CMAKE_COMPILER_IS_GNUCXX AND UNIX)
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
 
-if (CMAKE_COMPILER_IS_INTELCXX)
-  set (COMPILER "Intel C++")
-else (CMAKE_COMPILER_IS_INTELCXX)
-  if (CMAKE_COMPILER_IS_GNUCXX)
-    set (COMPILER "GNU C++")
-  else (CMAKE_COMPILER_IS_GNUCXX)
-    # OLE NOTE: cmake 2.8.1 and earlier identify Clang as GNUCXX!!!
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-      set (CMAKE_COMPILER_IS_CLANG 1)
-      set (COMPILER "LLVM/Clang")
-    else ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-      set (COMPILER "unknown")
-    endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  endif (CMAKE_COMPILER_IS_GNUCXX)
-endif (CMAKE_COMPILER_IS_INTELCXX)
-
-set (COMPILER "${COMPILER} (${CMAKE_CXX_COMPILER})")
+set (COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
 
 if (CMAKE_GENERATOR STREQUAL "Xcode")
   set (COMPILER "Xcode")
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARN_FLAGS}")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARN_FLAGS}")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARTS_C_FLAGS} ${ARTS_FLAGS}")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARTS_CXX_FLAGS} ${ARTS_FLAGS}")
 
 ########### Set Operating System name for config.h ##########
 if (APPLE)
@@ -255,11 +238,16 @@ if (TEST_JOBS)
   set (CTEST_JOBS "-j${TEST_JOBS}")
 endif (TEST_JOBS)
 
+
+if (CMAKE_GENERATOR STREQUAL "Xcode")
+  set (CTEST_MISC_OPTIONS -C \${CONFIGURATION})
+endif (CMAKE_GENERATOR STREQUAL "Xcode")
+
 add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure ${CTEST_JOBS} -E ".slow." DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E ".slow." DEPENDS arts)
 
 add_custom_target(check-all
-  COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure ${CTEST_JOBS} DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} DEPENDS arts)
 
 ########### subdirectories ###############
 

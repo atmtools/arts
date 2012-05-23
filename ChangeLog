@@ -1,3 +1,24 @@
+2012-05-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-116
+
+	* CMakeLists.txt:
+
+	Handle compiler options more gracefully. Instead of hardcoding them
+	for different compilers, check if the current compiler supports the
+	flag. If not, just ignore it.
+
+	Set and check flags separately for C and C++ compiler.
+
+	For Xcode project, pass active configuration name to ctest so it can
+	select the correct executable.
+
+	* cmake/modules/ArtsAddCompilerFlag.cmake: Added.
+
+	* src/libmicrohttpd/CMakeLists.txt, src/CMakeLists.txt:
+
+	Little tweak for clang.
+
 2012-05-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-115

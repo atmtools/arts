@@ -47,7 +47,7 @@ target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
 install (TARGETS arts RUNTIME DESTINATION bin)
 
-if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set_source_files_properties (continua.cc PROPERTIES
                                COMPILE_FLAGS "-fno-strict-aliasing")
   set_source_files_properties (binio.cc PROPERTIES
@@ -56,7 +56,7 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
   set_source_files_properties (partition_function_data.cc PROPERTIES
                                COMPILE_FLAGS "-O0")
   set_source_files_properties (species_data.cc PROPERTIES COMPILE_FLAGS "-O0")
-endif (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
+endif (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
 ########### next target ###############
 
