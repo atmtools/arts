@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2008
+/* Copyright (C) 2002-2012
    Sreerekha Ravi<rekha@sat.physik.uni-bremen.de>
    Stefan Buehler <sbuehler@ltu.se>                  
 

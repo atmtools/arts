@@ -1,4 +1,4 @@
-/* Copyright (C) 2010
+/* Copyright (C) 2012
    Patrick Eriksson <patrick.eriksson@chalmers.se>
                             
    This program is free software; you can redistribute it and/or modify it

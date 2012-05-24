@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2008
+/* Copyright (C) 2000-2012
    Stefan Buehler <sbuehler@uni-bremen.de>
    Patrick Eriksson <patrick.eriksson@chalmers.se>
    Oliver Lemke <olemke@ltu.se>

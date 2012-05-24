@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2008
+/* Copyright (C) 2002-2012
    Claudia Emde <claudia.emde@dlr.de>
    Sreerekha T.R. <rekha@uni-bremen.de>
                            

@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2008
+/* Copyright (C) 2001-2012
    Stefan Buehler <sbuehler@ltu.se>
    Mattias Ekstroem <ekstrom@rss.chalmers.se>
 

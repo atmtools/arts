@@ -1,4 +1,4 @@
-/* Copyright (C) 2008 Stefan Buehler <sbuehler@ltu.se>
+/* Copyright (C) 2012 Stefan Buehler <sbuehler@ltu.se>
                       Oliver Lemke <olemke@core-dump.info>
 
    This program is free software; you can redistribute it and/or modify it

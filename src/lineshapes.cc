@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2008
+/* Copyright (C) 2000-2012
    Axel von Engeln <engeln@uni-bremen.de>
    Stefan Buehler  <sbuehler@ltu.se>
 

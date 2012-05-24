@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2008
+/* Copyright (C) 2000-2012
    Stefan Buehler <sbuehler@ltu.se>,
    Axel von Engeln <engeln@uni-bremen.de>,
    Carmen Verdes <cverdes@uni-bremen.de>

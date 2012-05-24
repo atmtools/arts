@@ -1,4 +1,4 @@
-/* copyright (C) 2003-2010 Cory Davis <cory.davis@metservice.com>
+/* copyright (C) 2003-2012 Cory Davis <cory.davis@metservice.com>
                             
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the

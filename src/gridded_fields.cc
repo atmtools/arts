@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2008
+/* Copyright (C) 2002-2012
    Claudia Emde <claudia.emde@dlr.de>
    Oliver Lemke <olemke@core-dump.info>
      

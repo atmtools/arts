@@ -1,5 +1,11 @@
 2012-05-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-118
+
+	* src/*, doc/uguide/arts*.tex: Update copyright year.
+
+2012-05-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-117
 
 	* src/docserver.* src/nc_io*, src/xml_io*:
