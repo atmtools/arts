@@ -83,44 +83,44 @@ void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&
   char* species_strings = NULL;
   
   if (gal.species.nelem())
-  {
-    long species_total_nelems = 0;
-    for(Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++)
     {
-      Index nspecies_nelem = gal.species[nspecies].nelem();
-      species_total_nelems += nspecies_nelem;
-      species_count[nspecies] = nspecies_nelem;
-      
-      for (ArrayOfSpeciesTag::const_iterator it = gal.species[nspecies].begin();
-           it != gal.species[nspecies].end(); it++)
-        if (it->Name().nelem() > species_max_strlen) species_max_strlen = it->Name().nelem();
+      long species_total_nelems = 0;
+      for (Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++)
+        {
+          Index nspecies_nelem = gal.species[nspecies].nelem();
+          species_total_nelems += nspecies_nelem;
+          species_count[nspecies] = nspecies_nelem;
+
+          for (ArrayOfSpeciesTag::const_iterator it = gal.species[nspecies].begin();
+               it != gal.species[nspecies].end(); it++)
+            if (it->Name().nelem() > species_max_strlen) species_max_strlen = it->Name().nelem();
+        }
+      species_max_strlen++;
+
+      species_strings = new char[species_total_nelems*species_max_strlen];
+      memset(species_strings, 0, species_total_nelems*species_max_strlen);
+
+      Index str_i = 0;
+      for (ArrayOfArrayOfSpeciesTag::const_iterator it1 = gal.species.begin();
+           it1 != gal.species.end(); it1++)
+        for (ArrayOfSpeciesTag::const_iterator it2 = it1->begin();
+             it2 != it1->end(); it2++)
+          {
+            memccpy(&species_strings[str_i], it2->Name().c_str(), 0, species_max_strlen);
+            str_i += species_max_strlen;
+          }
+
+      species_count_varid = nca_def_ArrayOfIndex(ncid, "species_count", species_count);
+
+      int species_strings_ncdims[2];
+      nca_def_dim(ncid, "species_strings_nelem", species_total_nelems, &species_strings_ncdims[0]);
+      nca_def_dim(ncid, "species_strings_length", species_max_strlen, &species_strings_ncdims[1]);
+      nca_def_var(ncid, "species_strings", NC_CHAR, 2, &species_strings_ncdims[0],
+                  &species_strings_varid);
     }
-    species_max_strlen++;
-    
-    species_strings = new char[species_total_nelems*species_max_strlen];
-    memset(species_strings, 0, species_total_nelems*species_max_strlen);
-    
-    Index str_i = 0;
-    for (ArrayOfArrayOfSpeciesTag::const_iterator it1 = gal.species.begin();
-         it1 != gal.species.end(); it1++)
-      for (ArrayOfSpeciesTag::const_iterator it2 = it1->begin();
-           it2 != it1->end(); it2++)
-      {
-        memccpy(&species_strings[str_i], it2->Name().c_str(), 0, species_max_strlen);
-        str_i+=species_max_strlen;
-      }
-    
-    species_count_varid = nca_def_ArrayOfIndex(ncid, "species_count", species_count);
-    
-    int species_strings_ncdims[2];
-    nca_def_dim (ncid, "species_strings_nelem", species_total_nelems, &species_strings_ncdims[0]);
-    nca_def_dim (ncid, "species_strings_length", species_max_strlen, &species_strings_ncdims[1]);
-    nca_def_var (ncid, "species_strings", NC_CHAR, 2, &species_strings_ncdims[0],
-                 &species_strings_varid);
-  }
   else {
-    throw runtime_error("Current lookup table contains no species!");
-  }
+      throw runtime_error("Current lookup table contains no species!");
+    }
   
   // Define dimensions and variables
   int nonlinear_species_varid = nca_def_ArrayOfIndex(ncid, "nonlinear_species",
@@ -133,17 +133,17 @@ void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&
   int nls_pert_varid = nca_def_Vector(ncid, "nls_pert", gal.nls_pert);
   int xsec_varid = nca_def_Tensor4(ncid, "xsec", gal.xsec);
   
-  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
+  if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
   
   // Write variables
   nca_put_var_ArrayOfIndex(ncid, species_count_varid, species_count);
   if (gal.species.nelem())
-  {
-    if ((retval = nc_put_var_text (ncid, species_strings_varid, species_strings)))
-      nca_error (retval, "nc_put_var");
-  }
+    {
+      if ((retval = nc_put_var_text(ncid, species_strings_varid, species_strings)))
+        nca_error(retval, "nc_put_var");
+    }
 
-  delete [] species_strings;
+  delete[] species_strings;
   
   nca_put_var_ArrayOfIndex(ncid, nonlinear_species_varid, gal.nonlinear_species);
   nca_put_var_Vector(ncid, f_grid_varid, gal.f_grid);
@@ -173,20 +173,20 @@ void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&
 
 //=== Compound Types =======================================================
 
-TMPL_NC_READ_WRITE_FILE_DUMMY( Agenda )
-TMPL_NC_READ_WRITE_FILE_DUMMY( GriddedField1 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( GriddedField2 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( GriddedField3 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( GriddedField4 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( GridPos )
-TMPL_NC_READ_WRITE_FILE_DUMMY( IsotopeRecord )
-TMPL_NC_READ_WRITE_FILE_DUMMY( MCAntenna )
-TMPL_NC_READ_WRITE_FILE_DUMMY( Ppath )
-TMPL_NC_READ_WRITE_FILE_DUMMY( RetrievalQuantity )
-TMPL_NC_READ_WRITE_FILE_DUMMY( SLIData2 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( SingleScatteringData )
-TMPL_NC_READ_WRITE_FILE_DUMMY( SpeciesRecord )
-TMPL_NC_READ_WRITE_FILE_DUMMY( SpeciesTag )
+TMPL_NC_READ_WRITE_FILE_DUMMY(Agenda)
+TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField1)
+TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField2)
+TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField3)
+TMPL_NC_READ_WRITE_FILE_DUMMY(GriddedField4)
+TMPL_NC_READ_WRITE_FILE_DUMMY(GridPos)
+TMPL_NC_READ_WRITE_FILE_DUMMY(IsotopeRecord)
+TMPL_NC_READ_WRITE_FILE_DUMMY(MCAntenna)
+TMPL_NC_READ_WRITE_FILE_DUMMY(Ppath)
+TMPL_NC_READ_WRITE_FILE_DUMMY(RetrievalQuantity)
+TMPL_NC_READ_WRITE_FILE_DUMMY(SLIData2)
+TMPL_NC_READ_WRITE_FILE_DUMMY(SingleScatteringData)
+TMPL_NC_READ_WRITE_FILE_DUMMY(SpeciesRecord)
+TMPL_NC_READ_WRITE_FILE_DUMMY(SpeciesTag)
 
 //==========================================================================
 

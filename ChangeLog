@@ -1,3 +1,11 @@
+2012-05-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-117
+
+	* src/docserver.* src/nc_io*, src/xml_io*:
+
+	Reindent. Align & and * with type instead of variable.
+
 2012-05-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-116

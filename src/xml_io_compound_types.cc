@@ -54,28 +54,27 @@
   \param gal     GasAbsLookup return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      GasAbsLookup& gal,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          GasAbsLookup& gal,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("GasAbsLookup");
+  tag.read_from_stream(is_xml);
+  tag.check_name("GasAbsLookup");
 
-  xml_read_from_stream (is_xml, gal.species, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.nonlinear_species, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.f_grid, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.p_grid, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.vmrs_ref, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.t_ref, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.t_pert, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.nls_pert, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gal.xsec, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.species, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.nonlinear_species, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.f_grid, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.p_grid, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.vmrs_ref, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.t_ref, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.t_pert, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.nls_pert, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gal.xsec, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/GasAbsLookup");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GasAbsLookup");
 }
 
 
@@ -86,34 +85,33 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const GasAbsLookup& gal,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const GasAbsLookup& gal,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("GasAbsLookup");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("GasAbsLookup");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream (os_xml, gal.species, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, gal.nonlinear_species, pbofs,
-                       "NonlinearSpecies", verbosity);
-  xml_write_to_stream (os_xml, gal.f_grid, pbofs, "FrequencyGrid", verbosity);
-  xml_write_to_stream (os_xml, gal.p_grid, pbofs, "PressureGrid", verbosity);
-  xml_write_to_stream (os_xml, gal.vmrs_ref, pbofs, "ReferenceVmrProfiles", verbosity);
-  xml_write_to_stream (os_xml, gal.t_ref, pbofs, "ReferenceTemperatureProfile", verbosity);
-  xml_write_to_stream (os_xml, gal.t_pert, pbofs, "TemperaturePertubations", verbosity);
-  xml_write_to_stream (os_xml, gal.nls_pert, pbofs,
-                       "NonlinearSpeciesVmrPertubations", verbosity);
-  xml_write_to_stream (os_xml, gal.xsec, pbofs, "AbsorptionCrossSections", verbosity);
+  xml_write_to_stream(os_xml, gal.species, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, gal.nonlinear_species, pbofs,
+                      "NonlinearSpecies", verbosity);
+  xml_write_to_stream(os_xml, gal.f_grid, pbofs, "FrequencyGrid", verbosity);
+  xml_write_to_stream(os_xml, gal.p_grid, pbofs, "PressureGrid", verbosity);
+  xml_write_to_stream(os_xml, gal.vmrs_ref, pbofs, "ReferenceVmrProfiles", verbosity);
+  xml_write_to_stream(os_xml, gal.t_ref, pbofs, "ReferenceTemperatureProfile", verbosity);
+  xml_write_to_stream(os_xml, gal.t_pert, pbofs, "TemperaturePertubations", verbosity);
+  xml_write_to_stream(os_xml, gal.nls_pert, pbofs,
+                      "NonlinearSpeciesVmrPertubations", verbosity);
+  xml_write_to_stream(os_xml, gal.xsec, pbofs, "AbsorptionCrossSections", verbosity);
 
-  close_tag.set_name ("/GasAbsLookup");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/GasAbsLookup");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -126,56 +124,55 @@ xml_write_to_stream (ostream& os_xml,
   \param gfield  GriddedField return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      GriddedField& gfield,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          GriddedField& gfield,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  for(Index i=0; i < gfield.get_dim(); i++)
+  for (Index i = 0; i < gfield.get_dim(); i++)
     {
-      tag.read_from_stream (is_xml);
+      tag.read_from_stream(is_xml);
       if (tag.get_name() == "Vector")
         {
           String s;
-          tag.get_attribute_value ("name", s);
+          tag.get_attribute_value("name", s);
           if (s.length())
-            gfield.set_grid_name (i, s);
+            gfield.set_grid_name(i, s);
 
           Vector v;
-          xml_parse_from_stream (is_xml, v, pbifs, tag, verbosity);
-          gfield.set_grid (i, v);
-          tag.read_from_stream (is_xml);
-          tag.check_name ("/Vector");
+          xml_parse_from_stream(is_xml, v, pbifs, tag, verbosity);
+          gfield.set_grid(i, v);
+          tag.read_from_stream(is_xml);
+          tag.check_name("/Vector");
         }
       else if (tag.get_name() == "Array")
         {
           String s;
-          tag.get_attribute_value ("name", s);
+          tag.get_attribute_value("name", s);
           if (s.length())
-            gfield.set_grid_name (i, s);
+            gfield.set_grid_name(i, s);
 
-          tag.get_attribute_value ("type", s);
+          tag.get_attribute_value("type", s);
           if (s == "String")
             {
               ArrayOfString as;
-              xml_parse_from_stream (is_xml, as, pbifs, tag, verbosity);
-              gfield.set_grid (i, as);
-              tag.read_from_stream (is_xml);
-              tag.check_name ("/Array");
+              xml_parse_from_stream(is_xml, as, pbifs, tag, verbosity);
+              gfield.set_grid(i, as);
+              tag.read_from_stream(is_xml);
+              tag.check_name("/Array");
 
             }
           else
             {
-              xml_parse_error ("Grids must be of type <Vector> or <ArrayOfString> but <ArrayOf"
-                               + s + "> found.");
+              xml_parse_error("Grids must be of type <Vector> or <ArrayOfString> but <ArrayOf"
+                              + s + "> found.");
             }
         }
       else
         {
-          xml_parse_error ("Grids must be of type <Vector> or <ArrayOfString> but <"
-                           + tag.get_name() + "> found.");
+          xml_parse_error("Grids must be of type <Vector> or <ArrayOfString> but <"
+                          + tag.get_name() + "> found.");
         }
     }
 }
@@ -187,24 +184,23 @@ xml_read_from_stream (istream& is_xml,
   \param gfield  GriddedField with the grids
   \param pbofs   Pointer to binary output stream. NULL in case of ASCII file.
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const GriddedField& gfield,
-                     bofstream *pbofs,
-                     const String& /* name */,
-                     const Verbosity& verbosity)
+void xml_write_to_stream(ostream&            os_xml,
+                         const GriddedField& gfield,
+                         bofstream*          pbofs,
+                         const               String& /* name */,
+                         const Verbosity&    verbosity)
 {
   for (Index i = 0; i < gfield.get_dim(); i++)
     {
       switch (gfield.get_grid_type(i))
         {
         case GRID_TYPE_NUMERIC:
-          xml_write_to_stream (os_xml, gfield.get_numeric_grid(i),
-                               pbofs, gfield.get_grid_name(i), verbosity);
+          xml_write_to_stream(os_xml, gfield.get_numeric_grid(i),
+                              pbofs, gfield.get_grid_name(i), verbosity);
           break;
         case GRID_TYPE_STRING:
-          xml_write_to_stream (os_xml, gfield.get_string_grid(i),
-                               pbofs, gfield.get_grid_name(i), verbosity);
+          xml_write_to_stream(os_xml, gfield.get_string_grid(i),
+                              pbofs, gfield.get_grid_name(i), verbosity);
           break;
         }
     }
@@ -219,29 +215,28 @@ xml_write_to_stream (ostream& os_xml,
   \param gfield  GriddedField1 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      GriddedField1& gfield,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          GriddedField1& gfield,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("GriddedField1");
+  tag.read_from_stream(is_xml);
+  tag.check_name("GriddedField1");
 
   String s;
-  tag.get_attribute_value ("name", s);
+  tag.get_attribute_value("name", s);
   if (s.length())
-    gfield.set_name (s);
+    gfield.set_name(s);
 
-  xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
-  xml_read_from_stream (is_xml, gfield.data, pbifs, verbosity);
+  xml_read_from_stream(is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
+  xml_read_from_stream(is_xml, gfield.data, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/GriddedField1");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GriddedField1");
 
   if (!gfield.checksize())
-    throw runtime_error ("Dimension mismatch between the grids and the data");
+    throw runtime_error("Dimension mismatch between the grids and the data");
 }
 
 
@@ -252,29 +247,28 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const GriddedField1& gfield,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const GriddedField1& gfield,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("GriddedField1");
-  if (!name.length () && (gfield.get_name().length ()))
-    open_tag.add_attribute ("name", gfield.get_name());
-  else if (name.length ())
-    open_tag.add_attribute ("name", name);
+  open_tag.set_name("GriddedField1");
+  if (!name.length() && (gfield.get_name().length()))
+    open_tag.add_attribute("name", gfield.get_name());
+  else if (name.length())
+    open_tag.add_attribute("name", name);
 
-  open_tag.write_to_stream (os_xml);
+  open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, gfield.data, pbofs, "Data", verbosity);
+  xml_write_to_stream(os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, gfield.data, pbofs, "Data", verbosity);
 
-  close_tag.set_name ("/GriddedField1");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/GriddedField1");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -287,29 +281,28 @@ xml_write_to_stream (ostream& os_xml,
   \param gfield  GriddedField2 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      GriddedField2& gfield,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          GriddedField2& gfield,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("GriddedField3");
+  tag.read_from_stream(is_xml);
+  tag.check_name("GriddedField3");
 
   String s;
-  tag.get_attribute_value ("name", s);
+  tag.get_attribute_value("name", s);
   if (s.length())
-    gfield.set_name (s);
+    gfield.set_name(s);
 
-  xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
-  xml_read_from_stream (is_xml, gfield.data, pbifs, verbosity);
+  xml_read_from_stream(is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
+  xml_read_from_stream(is_xml, gfield.data, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/GriddedField3");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GriddedField3");
 
   if (!gfield.checksize())
-    throw runtime_error ("Dimension mismatch between the grids and the data");
+    throw runtime_error("Dimension mismatch between the grids and the data");
 }
 
 
@@ -320,29 +313,28 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const GriddedField2& gfield,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const GriddedField2& gfield,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("GriddedField2");
-  if (!name.length () && (gfield.get_name().length ()))
-    open_tag.add_attribute ("name", gfield.get_name());
-  else if (name.length ())
-    open_tag.add_attribute ("name", name);
+  open_tag.set_name("GriddedField2");
+  if (!name.length() && (gfield.get_name().length()))
+    open_tag.add_attribute("name", gfield.get_name());
+  else if (name.length())
+    open_tag.add_attribute("name", name);
 
-  open_tag.write_to_stream (os_xml);
+  open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, gfield.data, pbofs, "Data", verbosity);
+  xml_write_to_stream(os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, gfield.data, pbofs, "Data", verbosity);
 
-  close_tag.set_name ("/GriddedField2");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/GriddedField2");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -355,29 +347,28 @@ xml_write_to_stream (ostream& os_xml,
   \param gfield  GriddedField3 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      GriddedField3& gfield,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          GriddedField3& gfield,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("GriddedField3");
+  tag.read_from_stream(is_xml);
+  tag.check_name("GriddedField3");
 
   String s;
-  tag.get_attribute_value ("name", s);
+  tag.get_attribute_value("name", s);
   if (s.length())
-    gfield.set_name (s);
+    gfield.set_name(s);
 
-  xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
-  xml_read_from_stream (is_xml, gfield.data, pbifs, verbosity);
+  xml_read_from_stream(is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
+  xml_read_from_stream(is_xml, gfield.data, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/GriddedField3");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GriddedField3");
 
   if (!gfield.checksize())
-    throw runtime_error ("Dimension mismatch between the grids and the data");
+    throw runtime_error("Dimension mismatch between the grids and the data");
 }
 
 
@@ -388,29 +379,28 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const GriddedField3& gfield,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const GriddedField3& gfield,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("GriddedField3");
-  if (!name.length () && (gfield.get_name().length ()))
-    open_tag.add_attribute ("name", gfield.get_name());
-  else if (name.length ())
-    open_tag.add_attribute ("name", name);
+  open_tag.set_name("GriddedField3");
+  if (!name.length() && (gfield.get_name().length()))
+    open_tag.add_attribute("name", gfield.get_name());
+  else if (name.length())
+    open_tag.add_attribute("name", name);
 
-  open_tag.write_to_stream (os_xml);
+  open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, gfield.data, pbofs, "Data", verbosity);
+  xml_write_to_stream(os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, gfield.data, pbofs, "Data", verbosity);
 
-  close_tag.set_name ("/GriddedField3");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/GriddedField3");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -423,26 +413,25 @@ xml_write_to_stream (ostream& os_xml,
   \param gfield  GriddedField4 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      GriddedField4& gfield,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          GriddedField4& gfield,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("GriddedField4");
+  tag.read_from_stream(is_xml);
+  tag.check_name("GriddedField4");
 
   String s;
-  tag.get_attribute_value ("name", s);
+  tag.get_attribute_value("name", s);
   if (s.length())
-    gfield.set_name (s);
+    gfield.set_name(s);
 
-  xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
-  xml_read_from_stream (is_xml, gfield.data, pbifs, verbosity);
+  xml_read_from_stream(is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
+  xml_read_from_stream(is_xml, gfield.data, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/GriddedField4");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GriddedField4");
 }
 
 
@@ -453,29 +442,28 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const GriddedField4& gfield,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const GriddedField4& gfield,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("GriddedField4");
-  if (!name.length () && (gfield.get_name().length ()))
-    open_tag.add_attribute ("name", gfield.get_name());
-  else if (name.length ())
-    open_tag.add_attribute ("name", name);
+  open_tag.set_name("GriddedField4");
+  if (!name.length() && (gfield.get_name().length()))
+    open_tag.add_attribute("name", gfield.get_name());
+  else if (name.length())
+    open_tag.add_attribute("name", name);
 
-  open_tag.write_to_stream (os_xml);
+  open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
   xml_write_to_stream(os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, gfield.data, pbofs, "Data", verbosity);
+  xml_write_to_stream(os_xml, gfield.data, pbofs, "Data", verbosity);
 
-  close_tag.set_name ("/GriddedField4");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/GriddedField4");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -488,23 +476,23 @@ xml_write_to_stream (ostream& os_xml,
   \param gpos    GridPos return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      GridPos& gpos,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          GridPos& gpos,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("GridPos");
+  tag.read_from_stream(is_xml);
+  tag.check_name("GridPos");
 
-  xml_read_from_stream (is_xml, gpos.idx, pbifs, verbosity);
-  xml_read_from_stream (is_xml, gpos.fd[0], pbifs, verbosity);
-  xml_read_from_stream (is_xml, gpos.fd[1], pbifs, verbosity);
+  xml_read_from_stream(is_xml, gpos.idx, pbifs, verbosity);
+  xml_read_from_stream(is_xml, gpos.fd[0], pbifs, verbosity);
+  xml_read_from_stream(is_xml, gpos.fd[1], pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/GridPos");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GridPos");
 }
+
 
 //! Writes GridPos to XML output stream
 /*!
@@ -513,29 +501,28 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const GridPos& gpos,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const GridPos& gpos,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("GridPos");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("GridPos");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream (os_xml, gpos.idx, pbofs,
-                       "OriginalGridIndexBelowInterpolationPoint", verbosity);
-  xml_write_to_stream (os_xml, gpos.fd[0], pbofs,
-                       "FractionalDistanceToNextPoint_1", verbosity);
-  xml_write_to_stream (os_xml, gpos.fd[1], pbofs,
-                       "FractionalDistanceToNextPoint_2", verbosity);
+  xml_write_to_stream(os_xml, gpos.idx, pbofs,
+                      "OriginalGridIndexBelowInterpolationPoint", verbosity);
+  xml_write_to_stream(os_xml, gpos.fd[0], pbofs,
+                      "FractionalDistanceToNextPoint_1", verbosity);
+  xml_write_to_stream(os_xml, gpos.fd[1], pbofs,
+                      "FractionalDistanceToNextPoint_2", verbosity);
 
-  close_tag.set_name ("/GridPos");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/GridPos");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -548,10 +535,9 @@ xml_write_to_stream (ostream& os_xml,
   \param irecord  SpeciesRecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      IsotopeRecord& irecord,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          IsotopeRecord& irecord,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag    tag(verbosity);
   String        name;
@@ -561,21 +547,21 @@ xml_read_from_stream (istream& is_xml,
   Index         hitrantag;
   ArrayOfIndex  jpltags;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("IsotopeRecord");
+  tag.read_from_stream(is_xml);
+  tag.check_name("IsotopeRecord");
 
-  xml_read_from_stream (is_xml, name, pbifs, verbosity);
-  xml_read_from_stream (is_xml, abundance, pbifs, verbosity);
-  xml_read_from_stream (is_xml, mass, pbifs, verbosity);
-  xml_read_from_stream (is_xml, mytrantag, pbifs, verbosity);
-  xml_read_from_stream (is_xml, hitrantag, pbifs, verbosity);
-  xml_read_from_stream (is_xml, jpltags, pbifs, verbosity);
+  xml_read_from_stream(is_xml, name, pbifs, verbosity);
+  xml_read_from_stream(is_xml, abundance, pbifs, verbosity);
+  xml_read_from_stream(is_xml, mass, pbifs, verbosity);
+  xml_read_from_stream(is_xml, mytrantag, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitrantag, pbifs, verbosity);
+  xml_read_from_stream(is_xml, jpltags, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/IsotopeRecord");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/IsotopeRecord");
 
-  irecord = IsotopeRecord (name, abundance, mass, mytrantag, hitrantag,
-                           jpltags);
+  irecord = IsotopeRecord(name, abundance, mass, mytrantag, hitrantag,
+                          jpltags);
 }
 
 
@@ -586,30 +572,29 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const IsotopeRecord& irecord,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const IsotopeRecord& irecord,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("IsotopeRecord");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("IsotopeRecord");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, irecord.Name (), pbofs, "Name", verbosity);
-  xml_write_to_stream (os_xml, irecord.Abundance (), pbofs, "Abundance", verbosity);
-  xml_write_to_stream (os_xml, irecord.Mass (), pbofs, "Mass", verbosity);
-  xml_write_to_stream (os_xml, irecord.MytranTag (), pbofs, "MytranTag", verbosity);
-  xml_write_to_stream (os_xml, irecord.HitranTag (), pbofs, "HitranTag", verbosity);
-  xml_write_to_stream (os_xml, irecord.JplTags (), pbofs, "JplTags", verbosity);
+  xml_write_to_stream(os_xml, irecord.Name(), pbofs, "Name", verbosity);
+  xml_write_to_stream(os_xml, irecord.Abundance(), pbofs, "Abundance", verbosity);
+  xml_write_to_stream(os_xml, irecord.Mass(), pbofs, "Mass", verbosity);
+  xml_write_to_stream(os_xml, irecord.MytranTag(), pbofs, "MytranTag", verbosity);
+  xml_write_to_stream(os_xml, irecord.HitranTag(), pbofs, "HitranTag", verbosity);
+  xml_write_to_stream(os_xml, irecord.JplTags(), pbofs, "JplTags", verbosity);
 
-  close_tag.set_name ("/IsotopeRecord");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/IsotopeRecord");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -623,39 +608,39 @@ xml_write_to_stream (ostream& os_xml,
   \param ppath   Ppath return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      Ppath& ppath,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          Ppath& ppath,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("Ppath");
+  tag.read_from_stream(is_xml);
+  tag.check_name("Ppath");
 
-  xml_read_from_stream (is_xml, ppath.dim, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.np, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.constant, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.background, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.start_pos, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.start_los, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.start_lstep, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.pos, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.los, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.r, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.lstep, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.end_pos, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.end_los, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.end_lstep, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.nreal, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.ngroup, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.gp_p, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.gp_lat, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ppath.gp_lon, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.dim, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.np, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.constant, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.background, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.start_pos, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.start_los, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.start_lstep, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.pos, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.los, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.r, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.lstep, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.end_pos, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.end_los, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.end_lstep, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.nreal, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.ngroup, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.gp_p, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.gp_lat, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ppath.gp_lon, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/Ppath");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Ppath");
 }
+
 
 //! Writes Ppath to XML output stream
 /*!
@@ -664,54 +649,53 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const Ppath& ppath,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const Ppath& ppath,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("Ppath");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("Ppath");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream (os_xml, ppath.dim, pbofs, "AtmosphericDimensionality", verbosity);
-  xml_write_to_stream (os_xml, ppath.np, pbofs,
-                       "NumberOfPositionInPropagationPath", verbosity);
-  xml_write_to_stream (os_xml, ppath.constant, pbofs,
-                       "PropagationPathConstant", verbosity);
-  xml_write_to_stream (os_xml, ppath.background, pbofs, "RadiativeBackground", verbosity);
-  xml_write_to_stream (os_xml, ppath.start_pos, pbofs,
-                       "StartPositionOfPropagationPath", verbosity);
-  xml_write_to_stream (os_xml, ppath.start_los, pbofs,
-                       "StartLOSOfPropagationPath", verbosity);
-  xml_write_to_stream (os_xml, ppath.start_lstep, pbofs,
-                       "StartLstepOfPropagationPath", verbosity);
-  xml_write_to_stream (os_xml, ppath.pos, pbofs,
-                       "PropagationPathPointPositions", verbosity);
-  xml_write_to_stream (os_xml, ppath.los, pbofs, "LineOfSight", verbosity);
-  xml_write_to_stream (os_xml, ppath.r, pbofs, "PropagationPathPointRadii", verbosity);
-  xml_write_to_stream (os_xml, ppath.lstep, pbofs,
-                       "PropagationPathPositionLength", verbosity);
-  xml_write_to_stream (os_xml, ppath.end_pos, pbofs,
-                       "EndPositionOfPropagationPath", verbosity);
-  xml_write_to_stream (os_xml, ppath.end_los, pbofs,
-                       "EndLOSOfPropagationPath", verbosity);
-  xml_write_to_stream (os_xml, ppath.end_lstep, pbofs,
-                       "EndLstepPropagationPath", verbosity);
-  xml_write_to_stream (os_xml, ppath.nreal, pbofs, "RefractiveIndexRealPart", verbosity); 
-  xml_write_to_stream (os_xml, ppath.ngroup, pbofs, "GroupRefractiveIndex", verbosity); 
-  xml_write_to_stream (os_xml, ppath.gp_p, pbofs, "PressureGridIndexPosition", verbosity);
-  xml_write_to_stream (os_xml, ppath.gp_lat, pbofs,
-                       "LatitudeGridIndexPosition", verbosity);
-  xml_write_to_stream (os_xml, ppath.gp_lon, pbofs,
-                       "LongitudeGridIndexPosition", verbosity);
+  xml_write_to_stream(os_xml, ppath.dim, pbofs, "AtmosphericDimensionality", verbosity);
+  xml_write_to_stream(os_xml, ppath.np, pbofs,
+                      "NumberOfPositionInPropagationPath", verbosity);
+  xml_write_to_stream(os_xml, ppath.constant, pbofs,
+                      "PropagationPathConstant", verbosity);
+  xml_write_to_stream(os_xml, ppath.background, pbofs, "RadiativeBackground", verbosity);
+  xml_write_to_stream(os_xml, ppath.start_pos, pbofs,
+                      "StartPositionOfPropagationPath", verbosity);
+  xml_write_to_stream(os_xml, ppath.start_los, pbofs,
+                      "StartLOSOfPropagationPath", verbosity);
+  xml_write_to_stream(os_xml, ppath.start_lstep, pbofs,
+                      "StartLstepOfPropagationPath", verbosity);
+  xml_write_to_stream(os_xml, ppath.pos, pbofs,
+                      "PropagationPathPointPositions", verbosity);
+  xml_write_to_stream(os_xml, ppath.los, pbofs, "LineOfSight", verbosity);
+  xml_write_to_stream(os_xml, ppath.r, pbofs, "PropagationPathPointRadii", verbosity);
+  xml_write_to_stream(os_xml, ppath.lstep, pbofs,
+                      "PropagationPathPositionLength", verbosity);
+  xml_write_to_stream(os_xml, ppath.end_pos, pbofs,
+                      "EndPositionOfPropagationPath", verbosity);
+  xml_write_to_stream(os_xml, ppath.end_los, pbofs,
+                      "EndLOSOfPropagationPath", verbosity);
+  xml_write_to_stream(os_xml, ppath.end_lstep, pbofs,
+                      "EndLstepPropagationPath", verbosity);
+  xml_write_to_stream(os_xml, ppath.nreal, pbofs, "RefractiveIndexRealPart", verbosity);
+  xml_write_to_stream(os_xml, ppath.ngroup, pbofs, "GroupRefractiveIndex", verbosity);
+  xml_write_to_stream(os_xml, ppath.gp_p, pbofs, "PressureGridIndexPosition", verbosity);
+  xml_write_to_stream(os_xml, ppath.gp_lat, pbofs,
+                      "LatitudeGridIndexPosition", verbosity);
+  xml_write_to_stream(os_xml, ppath.gp_lon, pbofs,
+                      "LongitudeGridIndexPosition", verbosity);
 
-  close_tag.set_name ("/Ppath");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/Ppath");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -724,10 +708,9 @@ xml_write_to_stream (ostream& os_xml,
   \param rq      RetrievalQuantity return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      RetrievalQuantity& rq,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          RetrievalQuantity& rq,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag     tag(verbosity);
   String         maintag;
@@ -737,22 +720,23 @@ xml_read_from_stream (istream& is_xml,
   Numeric        perturbation;
   ArrayOfVector  grids;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("RetrievalQuantity");
+  tag.read_from_stream(is_xml);
+  tag.check_name("RetrievalQuantity");
 
-  xml_read_from_stream (is_xml, maintag, pbifs, verbosity);
-  xml_read_from_stream (is_xml, subtag, pbifs, verbosity);
-  xml_read_from_stream (is_xml, mode, pbifs, verbosity);
-  xml_read_from_stream (is_xml, analytical, pbifs, verbosity);
-  xml_read_from_stream (is_xml, perturbation, pbifs, verbosity);
-  xml_read_from_stream (is_xml, grids, pbifs, verbosity);
+  xml_read_from_stream(is_xml, maintag, pbifs, verbosity);
+  xml_read_from_stream(is_xml, subtag, pbifs, verbosity);
+  xml_read_from_stream(is_xml, mode, pbifs, verbosity);
+  xml_read_from_stream(is_xml, analytical, pbifs, verbosity);
+  xml_read_from_stream(is_xml, perturbation, pbifs, verbosity);
+  xml_read_from_stream(is_xml, grids, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/RetrievalQuantity");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/RetrievalQuantity");
 
-  rq = RetrievalQuantity( maintag, subtag, mode, analytical, perturbation,
-                          grids );
+  rq = RetrievalQuantity(maintag, subtag, mode, analytical, perturbation,
+                         grids);
 }
+
 
 //! Writes RetrievalQuantity to XML output stream
 /*!
@@ -761,29 +745,28 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const RetrievalQuantity& rq,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const RetrievalQuantity& rq,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("RetrievalQuantity");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("RetrievalQuantity");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream (os_xml, rq.MainTag(), pbofs, "MainTag", verbosity);
-  xml_write_to_stream (os_xml, rq.Subtag(), pbofs, "Subtag", verbosity);
-  xml_write_to_stream (os_xml, rq.Mode(), pbofs, "Mode", verbosity);
-  xml_write_to_stream (os_xml, rq.Analytical(), pbofs, "Analytical", verbosity);
-  xml_write_to_stream (os_xml, rq.Perturbation(), pbofs, "Perturbation", verbosity);
-  xml_write_to_stream (os_xml, rq.Grids(), pbofs, "Grids", verbosity);
+  xml_write_to_stream(os_xml, rq.MainTag(), pbofs, "MainTag", verbosity);
+  xml_write_to_stream(os_xml, rq.Subtag(), pbofs, "Subtag", verbosity);
+  xml_write_to_stream(os_xml, rq.Mode(), pbofs, "Mode", verbosity);
+  xml_write_to_stream(os_xml, rq.Analytical(), pbofs, "Analytical", verbosity);
+  xml_write_to_stream(os_xml, rq.Perturbation(), pbofs, "Perturbation", verbosity);
+  xml_write_to_stream(os_xml, rq.Grids(), pbofs, "Grids", verbosity);
 
-  close_tag.set_name ("/RetrievalQuantity");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/RetrievalQuantity");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -796,26 +779,25 @@ xml_write_to_stream (ostream& os_xml,
   \param ssdata  SingleScatteringData return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      SingleScatteringData& ssdata,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          SingleScatteringData& ssdata,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
   Index ptype;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("SingleScatteringData");
+  tag.read_from_stream(is_xml);
+  tag.check_name("SingleScatteringData");
 
-  xml_read_from_stream (is_xml, ptype, pbifs, verbosity);
-  ssdata.ptype = ParticleType (ptype);
-  xml_read_from_stream (is_xml, ssdata.description, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ssdata.f_grid, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ssdata.T_grid, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ssdata.za_grid, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ptype, pbifs, verbosity);
+  ssdata.ptype = ParticleType(ptype);
+  xml_read_from_stream(is_xml, ssdata.description, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ssdata.f_grid, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ssdata.T_grid, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ssdata.za_grid, pbifs, verbosity);
   /* Verify that we have a good coverage for the za grid */
-  if ((ssdata.za_grid[0]>1) || ssdata.za_grid[ssdata.za_grid.nelem()-1]<179)
-  {
+  if ((ssdata.za_grid[0] > 1) || ssdata.za_grid[ssdata.za_grid.nelem()-1] < 179)
+    {
       ostringstream os;
       os << "Missing data in xml-stream. Expected za_grid: [0, 180]. "
          << "Found za_grid: [" << ssdata.za_grid[0]
@@ -823,21 +805,21 @@ xml_read_from_stream (istream& is_xml,
          << ssdata.za_grid[ssdata.za_grid.nelem()-1]
          << "]";
       throw runtime_error(os.str());
-  }
-  xml_read_from_stream (is_xml, ssdata.aa_grid, pbifs, verbosity);
+    }
+  xml_read_from_stream(is_xml, ssdata.aa_grid, pbifs, verbosity);
 
-  xml_read_from_stream (is_xml, ssdata.pha_mat_data, pbifs, verbosity);
-  if (ssdata.pha_mat_data.nlibraries () != ssdata.f_grid.nelem ())
+  xml_read_from_stream(is_xml, ssdata.pha_mat_data, pbifs, verbosity);
+  if (ssdata.pha_mat_data.nlibraries() != ssdata.f_grid.nelem())
     {
       throw runtime_error("Number of frequencies in f_grid and pha_mat_data "
                           "not matching!!!");
     }
 
-  xml_read_from_stream (is_xml, ssdata.ext_mat_data, pbifs, verbosity);
-  xml_read_from_stream (is_xml, ssdata.abs_vec_data, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ssdata.ext_mat_data, pbifs, verbosity);
+  xml_read_from_stream(is_xml, ssdata.abs_vec_data, pbifs, verbosity);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/SingleScatteringData");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SingleScatteringData");
 }
 
 
@@ -848,32 +830,31 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const SingleScatteringData& ssdata,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const SingleScatteringData& ssdata,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("SingleScatteringData");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("SingleScatteringData");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream (os_xml, Index (ssdata.ptype), pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.description, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.f_grid, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.T_grid, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.za_grid, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.aa_grid, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.pha_mat_data, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.ext_mat_data, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, ssdata.abs_vec_data, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, Index(ssdata.ptype), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.description, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.f_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.T_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.za_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.aa_grid, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.pha_mat_data, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.ext_mat_data, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, ssdata.abs_vec_data, pbofs, "", verbosity);
 
-  close_tag.set_name ("/SingleScatteringData");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/SingleScatteringData");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -886,31 +867,30 @@ xml_write_to_stream (ostream& os_xml,
   \param smdata  ScatteringMetaData return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      ScatteringMetaData& smdata,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          ScatteringMetaData& smdata,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
   //Index ptype;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("ScatteringMetaData");
+  tag.read_from_stream(is_xml);
+  tag.check_name("ScatteringMetaData");
 
   //xml_read_from_stream (is_xml, ptype, pbifs, verbosity);
   //ssdata.ptype = ParticleType (ptype);
-  xml_read_from_stream (is_xml, smdata.description, pbifs, verbosity);
-  xml_read_from_stream (is_xml, smdata.type, pbifs, verbosity);
-  xml_read_from_stream (is_xml, smdata.shape, pbifs, verbosity);
-  xml_read_from_stream (is_xml, smdata.density, pbifs, verbosity);
-  xml_read_from_stream (is_xml, smdata.d_max, pbifs, verbosity);
-  xml_read_from_stream (is_xml, smdata.V, pbifs, verbosity);
-  xml_read_from_stream (is_xml, smdata.A_projec, pbifs, verbosity);
-  xml_read_from_stream (is_xml, smdata.asratio, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.description, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.type, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.shape, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.density, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.d_max, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.V, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.A_projec, pbifs, verbosity);
+  xml_read_from_stream(is_xml, smdata.asratio, pbifs, verbosity);
 
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/ScatteringMetaData");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ScatteringMetaData");
 }
 
 
@@ -921,31 +901,30 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const ScatteringMetaData& smdata,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const ScatteringMetaData& smdata,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("ScatteringMetaData");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("ScatteringMetaData");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream (os_xml, smdata.description, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, smdata.type, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, smdata.shape, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, smdata.density, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, smdata.d_max, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, smdata.V, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, smdata.A_projec, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, smdata.asratio, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.description, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.type, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.shape, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.density, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.d_max, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.V, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.A_projec, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, smdata.asratio, pbofs, "", verbosity);
 
-  close_tag.set_name ("/ScatteringMetaData");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/ScatteringMetaData");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -959,45 +938,43 @@ xml_write_to_stream (ostream& os_xml,
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 
-void
-xml_read_from_stream (istream& is_xml,
-                      SLIData2& slidata,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          SLIData2& slidata,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
   
-  tag.read_from_stream (is_xml);
-  tag.check_name ("SLIData2");
+  tag.read_from_stream(is_xml);
+  tag.check_name("SLIData2");
 
-  xml_read_from_stream (is_xml, slidata.x1a, pbifs, verbosity);
-  xml_read_from_stream (is_xml, slidata.x2a, pbifs, verbosity);
-  xml_read_from_stream (is_xml, slidata.ya, pbifs, verbosity);
+  xml_read_from_stream(is_xml, slidata.x1a, pbifs, verbosity);
+  xml_read_from_stream(is_xml, slidata.x2a, pbifs, verbosity);
+  xml_read_from_stream(is_xml, slidata.ya, pbifs, verbosity);
   
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/SLIData2");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SLIData2");
 }
 
 
-void
-xml_write_to_stream (ostream& os_xml,
-                     const SLIData2& slidata,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const SLIData2& slidata,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("SLIData2");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("SLIData2");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream (os_xml, slidata.x1a, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, slidata.x2a, pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, slidata.ya, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, slidata.x1a, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, slidata.x2a, pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, slidata.ya, pbofs, "", verbosity);
   
-  close_tag.set_name ("/SLIData2");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/SLIData2");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -1009,27 +986,26 @@ xml_write_to_stream (ostream& os_xml,
   \param srecord  SpeciesRecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
-void
-xml_read_from_stream (istream& is_xml,
-                      SpeciesRecord& srecord,
-                      bifstream *pbifs, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          SpeciesRecord& srecord,
+                          bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
   String sname;
   Index degfr;
   Array<IsotopeRecord> airecord;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("SpeciesRecord");
+  tag.read_from_stream(is_xml);
+  tag.check_name("SpeciesRecord");
 
-  xml_read_from_stream (is_xml, sname, pbifs, verbosity);
-  xml_read_from_stream (is_xml, degfr, pbifs, verbosity);
-  xml_read_from_stream (is_xml, airecord, pbifs, verbosity);
+  xml_read_from_stream(is_xml, sname, pbifs, verbosity);
+  xml_read_from_stream(is_xml, degfr, pbifs, verbosity);
+  xml_read_from_stream(is_xml, airecord, pbifs, verbosity);
 
-  srecord = SpeciesRecord (sname.c_str (), degfr, airecord);
+  srecord = SpeciesRecord(sname.c_str(), degfr, airecord);
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/SpeciesRecord");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SpeciesRecord");
 }
 
 
@@ -1040,27 +1016,26 @@ xml_read_from_stream (istream& is_xml,
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const SpeciesRecord& srecord,
-                     bofstream *pbofs,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const SpeciesRecord& srecord,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("SpeciesRecord");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("SpeciesRecord");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, srecord.Name (), pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, srecord.Degfr (), pbofs, "", verbosity);
-  xml_write_to_stream (os_xml, srecord.Isotope (), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, srecord.Name(), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, srecord.Degfr(), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, srecord.Isotope(), pbofs, "", verbosity);
 
-  close_tag.set_name ("/SpeciesRecord");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/SpeciesRecord");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -1074,55 +1049,53 @@ xml_write_to_stream (ostream& os_xml,
 */
 /*  param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
                  Ignored because SpeciesTag is always stored in ASCII format.*/
-void
-xml_read_from_stream (istream& is_xml,
-                      SpeciesTag& stag,
-                      bifstream * /* pbifs */, const Verbosity& verbosity)
+void xml_read_from_stream(istream& is_xml,
+                          SpeciesTag& stag,
+                          bifstream* /* pbifs */, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
   stringbuf  strbuf;
   char dummy;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("SpeciesTag");
+  tag.read_from_stream(is_xml);
+  tag.check_name("SpeciesTag");
 
   // Skip whitespaces
   bool string_starts_with_quotes = true;
-  do
-    {
+  do {
       is_xml >> dummy;
       switch (dummy)
         {
-      case ' ':
-      case '\"':
-      case '\n':
-      case '\r':
-      case '\t':
-        break;
-      default:
-        string_starts_with_quotes = false;
+        case ' ':
+        case '\"':
+        case '\n':
+        case '\r':
+        case '\t':
+          break;
+        default:
+          string_starts_with_quotes = false;
         }
-    } while (is_xml.good () && dummy != '"' && string_starts_with_quotes);
+    } while (is_xml.good() && dummy != '"' && string_starts_with_quotes);
 
   // Throw exception if first char after whitespaces is not a quote
   if (!string_starts_with_quotes)
     {
-      xml_parse_error ("SpeciesTag must begin with \"");
+      xml_parse_error("SpeciesTag must begin with \"");
     }
 
-  is_xml.get (strbuf, '"');
-  if (is_xml.fail ())
+  is_xml.get(strbuf, '"');
+  if (is_xml.fail())
     {
-      xml_parse_error ("SpeciesTag must end with \"");
+      xml_parse_error("SpeciesTag must end with \"");
     }
 
-  stag = SpeciesTag (strbuf.str ());
+  stag = SpeciesTag(strbuf.str());
 
   // Ignore quote
   is_xml >> dummy;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("/SpeciesTag");
+  tag.read_from_stream(is_xml);
+  tag.check_name("/SpeciesTag");
 }
 
 
@@ -1134,24 +1107,23 @@ xml_read_from_stream (istream& is_xml,
 */
 /*  param pbofs   Pointer to binary file stream. NULL for ASCII output.
                  Ignore because SpeciesTag is always stored in ASCII format. */
-void
-xml_write_to_stream (ostream& os_xml,
-                     const SpeciesTag& stag,
-                     bofstream * /* pbofs */,
-                     const String& name, const Verbosity& verbosity)
+void xml_write_to_stream(ostream& os_xml,
+                         const SpeciesTag& stag,
+                         bofstream* /* pbofs */,
+                         const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name ("SpeciesTag");
-  if (name.length ())
-    open_tag.add_attribute ("name", name);
-  open_tag.write_to_stream (os_xml);
+  open_tag.set_name("SpeciesTag");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
 
-  os_xml << '\"' << stag.Name () << '\"';
+  os_xml << '\"' << stag.Name() << '\"';
 
-  close_tag.set_name ("/SpeciesTag");
-  close_tag.write_to_stream (os_xml);
+  close_tag.set_name("/SpeciesTag");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
@@ -1163,57 +1135,56 @@ xml_write_to_stream (ostream& os_xml,
 
 // FIXME: These should be implemented, sooner or later...
 
-void
-xml_read_from_stream (istream&,
-                      Agenda&,
-                      bifstream * /* pbifs */, const Verbosity&)
+void xml_read_from_stream(istream&,
+                          Agenda&,
+                          bifstream* /* pbifs */, const Verbosity&)
 {
   throw runtime_error("Method not implemented!");
 }
 
-void
-xml_write_to_stream (ostream&,
-                     const Agenda&,
-                     bofstream * /* pbofs */,
-                     const String& /* name */, const Verbosity&)
+
+void xml_write_to_stream(ostream&,
+                         const Agenda&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */, const Verbosity&)
 {
   throw runtime_error("Method not implemented!");
 }
+
 
 //=== MCAntenna ================================================
 
-void
-xml_read_from_stream (istream&,
-                      MCAntenna&,
-                      bifstream * /* pbifs */, const Verbosity&)
+void xml_read_from_stream(istream&,
+                          MCAntenna&,
+                          bifstream* /* pbifs */, const Verbosity&)
 {
   throw runtime_error("Method not implemented!");
 }
 
-void
-xml_write_to_stream (ostream&,
-                     const MCAntenna&,
-                     bofstream * /* pbofs */,
-                     const String& /* name */, const Verbosity&)
+
+void xml_write_to_stream(ostream&,
+                         const MCAntenna&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */, const Verbosity&)
 {
   throw runtime_error("Method not implemented!");
 }
+
 
 //=== Verbosity ================================================
 
-void
-xml_read_from_stream (istream&,
-                      Verbosity&,
-                      bifstream * /* pbifs */, const Verbosity&)
+void xml_read_from_stream(istream&,
+                          Verbosity&,
+                          bifstream* /* pbifs */, const Verbosity&)
 {
   throw runtime_error("Method not implemented!");
 }
 
-void
-xml_write_to_stream (ostream&,
-                     const Verbosity&,
-                     bofstream * /* pbofs */,
-                     const String& /* name */, const Verbosity&)
+
+void xml_write_to_stream(ostream&,
+                         const Verbosity&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */, const Verbosity&)
 {
   throw runtime_error("Method not implemented!");
 }

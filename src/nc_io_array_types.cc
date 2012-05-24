@@ -42,28 +42,27 @@
   \param ncid    NetCDF file descriptor
   \param aom     ArrayOfMatrix
 */
-void
-nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
+void nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
 {
   Index nelem;
-  nelem = nc_get_dim (ncid, "nelem");
+  nelem = nc_get_dim(ncid, "nelem");
 
-  long *vnrows = new long[nelem];
-  long *vncols = new long[nelem];
-  aom.resize (nelem);
-  nca_get_data_long (ncid, "Matrix_nrows", vnrows);
-  nca_get_data_long (ncid, "Matrix_ncols", vncols);
+  long* vnrows = new long[nelem];
+  long* vncols = new long[nelem];
+  aom.resize(nelem);
+  nca_get_data_long(ncid, "Matrix_nrows", vnrows);
+  nca_get_data_long(ncid, "Matrix_ncols", vncols);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++)
     {
-      aom[i].resize (vnrows[i], vncols[i]);
-      nca_get_dataa_double (ncid, "ArrayOfMatrix", pos, vnrows[i] * vncols[i],
+      aom[i].resize(vnrows[i], vncols[i]);
+      nca_get_dataa_double(ncid, "ArrayOfMatrix", pos, vnrows[i] * vncols[i],
                            aom[i].get_c_array());
       pos += vnrows[i] * vncols[i];
     }
 
-  delete [] vnrows;
-  delete [] vncols;
+  delete[] vnrows;
+  delete[] vncols;
 }
 
 
@@ -72,15 +71,14 @@ nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&)
   \param ncf     NetCDF file descriptor
   \param aom     ArrayOfMatrix
 */
-void
-nca_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
+void nca_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
 {
   int retval;
   int ncdim, varid_nrows, varid_ncols;
   int ncdim_total, varid;
   long nelem_total = 0;
-  long *vncols = new long[aom.nelem()];
-  long *vnrows = new long[aom.nelem()];
+  long* vncols = new long[aom.nelem()];
+  long* vnrows = new long[aom.nelem()];
   for (Index i = 0; i < aom.nelem(); i++)
     {
       vnrows[i] = aom[i].nrows();
@@ -88,40 +86,40 @@ nca_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
       nelem_total += vnrows[i] * vncols[i];
     }
 
-  if ((retval = nc_def_dim (ncid, "nelem", aom.nelem(), &ncdim)))
-    nca_error (retval, "nc_def_dim");
-  if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
-    nca_error (retval, "nc_def_dim");
+  if ((retval = nc_def_dim(ncid, "nelem", aom.nelem(), &ncdim)))
+    nca_error(retval, "nc_def_dim");
+  if ((retval = nc_def_dim(ncid, "nelem_total", nelem_total, &ncdim_total)))
+    nca_error(retval, "nc_def_dim");
 
-  if ((retval = nc_def_var (ncid, "Matrix_nrows", NC_LONG, 1,
-                            &ncdim, &varid_nrows)))
-    nca_error (retval, "nc_def_var");
-  if ((retval = nc_def_var (ncid, "Matrix_ncols", NC_LONG, 1,
-                            &ncdim, &varid_ncols)))
-    nca_error (retval, "nc_def_var");
-  if ((retval = nc_def_var (ncid, "ArrayOfMatrix", NC_DOUBLE, 1,
-                            &ncdim_total, &varid)))
-    nca_error (retval, "nc_def_var");
+  if ((retval = nc_def_var(ncid, "Matrix_nrows", NC_LONG, 1,
+                           &ncdim, &varid_nrows)))
+    nca_error(retval, "nc_def_var");
+  if ((retval = nc_def_var(ncid, "Matrix_ncols", NC_LONG, 1,
+                           &ncdim, &varid_ncols)))
+    nca_error(retval, "nc_def_var");
+  if ((retval = nc_def_var(ncid, "ArrayOfMatrix", NC_DOUBLE, 1,
+                           &ncdim_total, &varid)))
+    nca_error(retval, "nc_def_var");
 
-  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
+  if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
 
-  if ((retval = nc_put_var_long (ncid, varid_nrows, vnrows)))
-    nca_error (retval, "nc_put_var");
-  if ((retval = nc_put_var_long (ncid, varid_ncols, vncols)))
-    nca_error (retval, "nc_put_var");
+  if ((retval = nc_put_var_long(ncid, varid_nrows, vnrows)))
+    nca_error(retval, "nc_put_var");
+  if ((retval = nc_put_var_long(ncid, varid_ncols, vncols)))
+    nca_error(retval, "nc_put_var");
 
   size_t pos = 0;
   for (Index i = 0; i < aom.nelem(); i++)
     {
       size_t count = aom[i].nrows() * aom[i].ncols();
-      if ((retval = nc_put_vara_double (ncid, varid, &pos, &count,
-                                        aom[i].get_c_array())))
-        nca_error (retval, "nc_put_var");
+      if ((retval = nc_put_vara_double(ncid, varid, &pos, &count,
+                                       aom[i].get_c_array())))
+        nca_error(retval, "nc_put_var");
       pos += count;
     }
 
-  delete [] vnrows;
-  delete [] vncols;
+  delete[] vnrows;
+  delete[] vncols;
 }
 
 
@@ -132,25 +130,24 @@ nca_write_to_file(const int ncid, const ArrayOfMatrix& aom, const Verbosity&)
   \param ncid    NetCDF file descriptor
   \param aov     ArrayOfVector
 */
-void
-nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&)
+void nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&)
 {
   Index nelem;
-  nelem = nc_get_dim (ncid, "nelem");
+  nelem = nc_get_dim(ncid, "nelem");
 
-  long *vnelem = new long[nelem];
-  aov.resize (nelem);
-  nca_get_data_long (ncid, "Vector_nelem", vnelem);
+  long* vnelem = new long[nelem];
+  aov.resize(nelem);
+  nca_get_data_long(ncid, "Vector_nelem", vnelem);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++)
     {
-      aov[i].resize (vnelem[i]);
-      nca_get_dataa_double (ncid, "ArrayOfVector", pos, vnelem[i],
+      aov[i].resize(vnelem[i]);
+      nca_get_dataa_double(ncid, "ArrayOfVector", pos, vnelem[i],
                            aov[i].get_c_array());
       pos += vnelem[i];
     }
 
-  delete [] vnelem;
+  delete[] vnelem;
 }
 
 
@@ -159,48 +156,47 @@ nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&)
   \param ncid    NetCDF file descriptor
   \param aov     ArrayOfVector
 */
-void
-nca_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
+void nca_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
 {
   int retval;
   int ncdim, varid_nelem;
   int ncdim_total, varid;
   long nelem_total = 0;
-  long *velems = new long[aov.nelem()];
+  long* velems = new long[aov.nelem()];
   for (Index i = 0; i < aov.nelem(); i++)
     {
       velems[i] = aov[i].nelem();
       nelem_total += velems[i];
     }
 
-  if ((retval = nc_def_dim (ncid, "nelem", aov.nelem(), &ncdim)))
-    nca_error (retval, "nc_def_dim");
-  if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
-    nca_error (retval, "nc_def_dim");
+  if ((retval = nc_def_dim(ncid, "nelem", aov.nelem(), &ncdim)))
+    nca_error(retval, "nc_def_dim");
+  if ((retval = nc_def_dim(ncid, "nelem_total", nelem_total, &ncdim_total)))
+    nca_error(retval, "nc_def_dim");
 
-  if ((retval = nc_def_var (ncid, "Vector_nelem", NC_LONG, 1,
-                            &ncdim, &varid_nelem)))
-    nca_error (retval, "nc_def_var");
-  if ((retval = nc_def_var (ncid, "ArrayOfVector", NC_DOUBLE, 1,
-                            &ncdim_total, &varid)))
-    nca_error (retval, "nc_def_var");
+  if ((retval = nc_def_var(ncid, "Vector_nelem", NC_LONG, 1,
+                           &ncdim, &varid_nelem)))
+    nca_error(retval, "nc_def_var");
+  if ((retval = nc_def_var(ncid, "ArrayOfVector", NC_DOUBLE, 1,
+                           &ncdim_total, &varid)))
+    nca_error(retval, "nc_def_var");
 
-  if ((retval = nc_enddef (ncid))) nca_error (retval, "nc_enddef");
+  if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
 
-  if ((retval = nc_put_var_long (ncid, varid_nelem, velems)))
-    nca_error (retval, "nc_put_var");
+  if ((retval = nc_put_var_long(ncid, varid_nelem, velems)))
+    nca_error(retval, "nc_put_var");
 
   size_t pos = 0;
   for (Index i = 0; i < aov.nelem(); i++)
     {
       size_t count = aov[i].nelem();
-      if ((retval = nc_put_vara_double (ncid, varid, &pos, &count,
-                                        aov[i].get_c_array())))
-        nca_error (retval, "nc_put_var");
+      if ((retval = nc_put_vara_double(ncid, varid, &pos, &count,
+                                       aov[i].get_c_array())))
+        nca_error(retval, "nc_put_var");
       pos += count;
     }
 
-  delete [] velems;
+  delete[] velems;
 }
 
 
@@ -221,37 +217,37 @@ nca_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity&)
 
 //=== Array Types ==========================================================
 
-TMPL_NC_READ_WRITE_FILE_DUMMY( Array<IsotopeRecord> )
-TMPL_NC_READ_WRITE_FILE_DUMMY( Array<SpeciesRecord> )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfArrayOfArrayOfGridPos )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfGriddedField1 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfGriddedField3 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfGridPos )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfArrayOfGridPos )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfIndex )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfLineRecord )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfMatrix )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfSpeciesTag )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfTensor3 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfTensor6 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGriddedField1 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGriddedField2 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGriddedField3 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGriddedField4 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGridPos )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfIndex )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfLineRecord )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfLineshapeSpec )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfPpath )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfRetrievalQuantity )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfSingleScatteringData )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfSpeciesTag )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfString )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfSparse )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor3 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor4 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor6 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor7 )
+TMPL_NC_READ_WRITE_FILE_DUMMY(Array<IsotopeRecord> )
+TMPL_NC_READ_WRITE_FILE_DUMMY(Array<SpeciesRecord> )
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfArrayOfArrayOfGridPos)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGriddedField1)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGriddedField3)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGridPos)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfArrayOfGridPos)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfIndex)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfLineRecord)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfMatrix)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfSpeciesTag)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfTensor3)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfTensor6)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField1)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField2)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField3)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGriddedField4)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfGridPos)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfIndex)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfLineRecord)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfLineshapeSpec)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfPpath)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfRetrievalQuantity)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfSingleScatteringData)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfSpeciesTag)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfString)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfSparse)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor3)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor4)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor6)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfTensor7)
 
 //==========================================================================
 

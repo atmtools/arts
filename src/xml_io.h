@@ -35,10 +35,10 @@
 #include "mystring.h"
 #include "absorption.h"
 
-enum FileType {
-  FILE_TYPE_ASCII,
-  FILE_TYPE_ZIPPED_ASCII,
-  FILE_TYPE_BINARY
+enum FileType{
+  FILE_TYPE_ASCII        = 0,
+  FILE_TYPE_ZIPPED_ASCII = 1,
+  FILE_TYPE_BINARY = 2
 };
 
 enum NumericType { NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE };
@@ -49,37 +49,32 @@ enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-void
-filename_xml (String&  filename,
-              const String&  varname);
+void filename_xml(String& filename, const String& varname);
 
-void
-filename_xml_with_index (
-                    String&  filename,
-              const Index&   file_index,
-              const String&  varname );
+void filename_xml_with_index(String&       filename,
+                             const Index&  file_index,
+                             const String& varname);
 
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
-template<typename T> void
-xml_read_from_file (const String& filename,
-                          T&      type,
-                    const Verbosity& verbosity);
+template<typename T>
+void xml_read_from_file(const String&    filename,
+                        T&               type,
+                        const Verbosity& verbosity);
 
-void
-xml_read_arts_catalogue_from_file (const String&      filename,
-                                   ArrayOfLineRecord& type,
-                                   const Numeric&     fmin,
-                                   const Numeric&     fmax,
-                                   const Verbosity&   verbosity);
+void xml_read_arts_catalogue_from_file(const String&      filename,
+                                       ArrayOfLineRecord& type,
+                                       const Numeric&     fmin,
+                                       const Numeric&     fmax,
+                                       const Verbosity&   verbosity);
 
-template<typename T> void
-xml_write_to_file (const String& filename,
-                   const T&  type,
-                   const FileType ftype,
-                   const Verbosity& verbosity);
+template<typename T>
+void xml_write_to_file(const String&    filename,
+                       const T&         type,
+                       const FileType   ftype,
+                       const Verbosity& verbosity);
 
 #endif

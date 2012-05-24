@@ -53,15 +53,10 @@
 
   \param expected_name Expected tag name
 */
-void
-ArtsXMLTag::check_name (const String& expected_name)
+void ArtsXMLTag::check_name(const String& expected_name)
 {
   if (name != expected_name)
-    {
-      xml_parse_error ("Tag <" + expected_name + "> expected but <"
-                       + name + "> found.");
-    }
-
+    xml_parse_error("Tag <" + expected_name + "> expected but <" + name + "> found.");
 }
 
 
@@ -71,14 +66,13 @@ ArtsXMLTag::check_name (const String& expected_name)
   \param aname Attribute name
   \param value Attribute value
 */
-void
-ArtsXMLTag::add_attribute (const String& aname, const String& value)
+void ArtsXMLTag::add_attribute(const String& aname, const String& value)
 {
   XMLAttribute attr;
 
   attr.name = aname;
   attr.value = value;
-  attribs.push_back (attr);
+  attribs.push_back(attr);
 }
 
 
@@ -88,13 +82,12 @@ ArtsXMLTag::add_attribute (const String& aname, const String& value)
   \param aname Attribute name
   \param value Attribute value
 */
-void
-ArtsXMLTag::add_attribute (const String& aname, const Index& value)
+void ArtsXMLTag::add_attribute(const String& aname, const Index& value)
 {
   ostringstream v;
 
   v << value;
-  add_attribute (aname, v.str ());
+  add_attribute(aname, v.str());
 }
 
 
@@ -107,23 +100,21 @@ ArtsXMLTag::add_attribute (const String& aname, const Index& value)
   \param aname Attribute name
   \param value Expected value
 */
-void
-ArtsXMLTag::check_attribute (const String& aname, const String& value)
+void ArtsXMLTag::check_attribute(const String& aname, const String& value)
 {
   String actual_value;
 
-  get_attribute_value (aname, actual_value);
+  get_attribute_value(aname, actual_value);
 
   if (actual_value == "*not found*")
     {
-      xml_parse_error ("Required attribute " + aname
-                       + " does not exist");
+      xml_parse_error("Required attribute " + aname  + " does not exist");
     }
   else if (actual_value != value)
     {
-      xml_parse_error ("Attribute " + aname + " has value \""
-                       + actual_value + "\" but \""
-                       + value + "\" was expected.");
+      xml_parse_error("Attribute " + aname + " has value \""
+                      + actual_value + "\" but \""
+                      + value + "\" was expected.");
     }
 }
 
@@ -137,18 +128,17 @@ ArtsXMLTag::check_attribute (const String& aname, const String& value)
   \param aname Attribute name
   \param value Return value
 */
-void
-ArtsXMLTag::get_attribute_value (const String& aname, String& value)
+void ArtsXMLTag::get_attribute_value(const String& aname, String& value)
 {
   value = "";
 
-  Array<XMLAttribute>::iterator it = attribs.begin ();
-  while (it != attribs.end ())
+  Array<XMLAttribute>::iterator it = attribs.begin();
+  while (it != attribs.end())
     {
       if (it->name == aname)
         {
           value = it->value;
-          it = attribs.end ();
+          it = attribs.end();
         }
       else
         {
@@ -167,19 +157,18 @@ ArtsXMLTag::get_attribute_value (const String& aname, String& value)
   \param aname Attribute name
   \param value Return value
 */
-void
-ArtsXMLTag::get_attribute_value (const String& aname, Index& value)
+void ArtsXMLTag::get_attribute_value(const String& aname, Index& value)
 {
   String attribute_value;
-  istringstream strstr ("");
+  istringstream strstr("");
 
-  get_attribute_value (aname, attribute_value);
-  strstr.str (attribute_value);
+  get_attribute_value(aname, attribute_value);
+  strstr.str(attribute_value);
   strstr >> value;
-  if (strstr.fail ())
+  if (strstr.fail())
     {
-      xml_parse_error ("Error while parsing value of " + aname
-                       + " from <" + name + ">");
+      xml_parse_error("Error while parsing value of " + aname
+                      + " from <" + name + ">");
     }
 }
 
@@ -191,22 +180,21 @@ ArtsXMLTag::get_attribute_value (const String& aname, Index& value)
 
   \param is Input stream
 */
-void
-ArtsXMLTag::read_from_stream (istream& is)
+void ArtsXMLTag::read_from_stream(istream& is)
 {
   CREATE_OUT3
   
   String        token;
   stringbuf     tag;
-  istringstream sstr ("");
+  istringstream sstr("");
   XMLAttribute  attr;
   char          ch;
 
-  attribs.clear ();
+  attribs.clear();
 
-  while (is.good () && isspace (is.peek ()))
+  while (is.good() && isspace(is.peek()))
     {
-      is.get ();
+      is.get();
     }
 
   is >> ch;
@@ -216,32 +204,32 @@ ArtsXMLTag::read_from_stream (istream& is)
       is >> token;
       token = ch + token;
 
-      xml_parse_error ("'<' expected but " + token + " found.");
+      xml_parse_error("'<' expected but " + token + " found.");
     }
 
-  is.get (tag, '>');
+  is.get(tag, '>');
 
   // Hit EOF while looking for '>'
-  if (is.bad () || is.eof ())
+  if (is.bad() || is.eof())
     {
-      xml_parse_error ("Unexpected end of file while looking for '>'");
+      xml_parse_error("Unexpected end of file while looking for '>'");
     }
 
-  if (is.get () != '>')
+  if (is.get() != '>')
     {
-      xml_parse_error ("Closing > not found in tag: " + tag.str ());
+      xml_parse_error("Closing > not found in tag: " + tag.str());
     }
 
-  sstr.str (tag.str () + '>');
-  out3 << "Read: " << sstr.str () << '\n';
+  sstr.str(tag.str() + '>');
+  out3 << "Read: " << sstr.str() << '\n';
 
   sstr >> name;
 
-  if (name [name.length () - 1] == '>')
+  if (name[name.length() - 1] == '>')
     {
       // Because closin > was found, the tag for sure has no
       // attributes, set token to ">" to skip reading of attributes
-      name.erase (name.length () - 1, 1);
+      name.erase(name.length() - 1, 1);
       token = ">";
     }
   else
@@ -253,73 +241,73 @@ ArtsXMLTag::read_from_stream (istream& is)
 
   //extract attributes
   while (token != ">")
-  {
-    String::size_type pos;
+    {
+      String::size_type pos;
 
-    pos = token.find ("=", 0);
-    if (pos == String::npos)
-      {
-        xml_parse_error ("Syntax error in tag: " + tag.str ());
-      }
+      pos = token.find("=", 0);
+      if (pos == String::npos)
+        {
+          xml_parse_error("Syntax error in tag: " + tag.str());
+        }
 
-    attr.name = token.substr (0, pos);
-    token.erase (0, pos + 1);
+      attr.name = token.substr(0, pos);
+      token.erase(0, pos + 1);
 
-    if (token[0] != '\"')
-      {
-        xml_parse_error ("Missing \" in tag: " + tag.str ());
-      }
+      if (token[0] != '\"')
+        {
+          xml_parse_error("Missing \" in tag: " + tag.str());
+        }
 
-    while ((pos = token.find ("\"", 1)) == (String::size_type)String::npos && token != ">")
-      {
-        String ntoken;
-        sstr >> ntoken;
-        if (!ntoken.length()) break;
-        token += " " + ntoken;
-      }
+      while ((pos = token.find("\"", 1)) == (String::size_type)String::npos && token != ">")
+        {
+          String ntoken;
+          sstr >> ntoken;
+          if (!ntoken.length()) break;
+          token += " " + ntoken;
+        }
 
-    if (pos == (String::size_type)String::npos)
-      {
-        xml_parse_error ("Missing \" in tag: " + sstr.str ());
-      }
+      if (pos == (String::size_type)String::npos)
+        {
+          xml_parse_error("Missing \" in tag: " + sstr.str());
+        }
 
-    if (pos == 1)
-      attr.value = "";
-    else
-      attr.value = token.substr (1, pos - 1);
+      if (pos == 1)
+        attr.value = "";
+      else
+        attr.value = token.substr(1, pos - 1);
 
-    attribs.push_back (attr);
+      attribs.push_back(attr);
 
-    out3 << "Attr: " << attr.name << '\n';
-    out3 << "Value: " << attr.value << '\n';
+      out3 << "Attr: " << attr.name << '\n';
+      out3 << "Value: " << attr.value << '\n';
 
-    if (token[token.length () - 1] == '>')
-      {
-        token = ">";
-      }
-    else
-      {
-        sstr >> token;
-      }
-  }
+      if (token[token.length() - 1] == '>')
+        {
+          token = ">";
+        }
+      else
+        {
+          sstr >> token;
+        }
+    }
 
   out3 << '\n';
 
   // Skip comments
   if (name == "comment")
     {
-      is.get (tag, '<');
+      is.get(tag, '<');
 
       // Hit EOF while looking for '<'
-      if (is.bad () || is.eof ())
+      if (is.bad() || is.eof())
         {
-          xml_parse_error ("Unexpected end of file while looking for "
-                           "comment tag");
+          xml_parse_error("Unexpected end of file while looking for "
+                          "comment tag");
         }
 
-      read_from_stream (is);
-      check_name ("/comment");
-      read_from_stream (is);
+      read_from_stream(is);
+      check_name("/comment");
+      read_from_stream(is);
     }
 }
 
@@ -330,15 +318,13 @@ ArtsXMLTag::read_from_stream (istream& is)
 
   \param os Output stream
 */
-void
-ArtsXMLTag::write_to_stream (ostream& os)
+void ArtsXMLTag::write_to_stream(ostream& os)
 {
-
   os << "<" << name;
 
-  Array<XMLAttribute>::iterator it = attribs.begin ();
+  Array<XMLAttribute>::iterator it = attribs.begin();
 
-  while (it != attribs.end ())
+  while (it != attribs.end())
     {
       os << ' ' << it->name
          << "=\"" << it->value << '\"';
@@ -361,9 +347,8 @@ ArtsXMLTag::write_to_stream (ostream& os)
   \param filename filename
   \param varname variable name
 */
-void
-filename_xml (String&  filename,
-              const String&  varname )
+void filename_xml(String&       filename,
+                  const String& varname)
 {
   if ("" == filename)
     {
@@ -382,11 +367,9 @@ filename_xml (String&  filename,
   \param[in]  file_index Index appended to the filename
   \param[in]  varname    variable name
 */
-void
-filename_xml_with_index (
-                    String&  filename,
-              const Index&   file_index,
-              const String&  varname )
+void filename_xml_with_index(String&       filename,
+                             const Index&  file_index,
+                             const String& varname)
 {
   if ("" == filename)
     {
@@ -416,8 +399,7 @@ filename_xml_with_index (
   \param file Output filestream
   \param name Filename
 */
-void
-xml_open_output_file (ofstream& file, const String& name)
+void xml_open_output_file(ofstream& file, const String& name)
 {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted, failbit means
@@ -428,15 +410,18 @@ xml_open_output_file (ofstream& file, const String& name)
                   ios::failbit);
 
   // c_str explicitly converts to c String.
-  try {
-    file.open (name.c_str());
-  } catch (ios::failure) {
-    ostringstream os;
-    os << "Cannot open output file: " << name << '\n'
-      << "Maybe you don't have write access "
-      << "to the directory or the file?";
-    throw runtime_error(os.str());
-  }
+  try
+    {
+      file.open(name.c_str());
+    }
+  catch (ios::failure)
+    {
+      ostringstream os;
+      os << "Cannot open output file: " << name << '\n'
+         << "Maybe you don't have write access "
+         << "to the directory or the file?";
+      throw runtime_error(os.str());
+    }
 
 
   // See if the file is ok.
@@ -463,8 +448,7 @@ xml_open_output_file (ofstream& file, const String& name)
   \param file Output filestream
   \param name Filename
 */
-void
-xml_open_output_file (ogzstream& file, const String& name)
+void xml_open_output_file(ogzstream& file, const String& name)
 {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted, failbit means
@@ -477,20 +461,23 @@ xml_open_output_file (ogzstream& file, const String& name)
   // c_str explicitly converts to c String.
   String nname = name;
   
-  if (nname.substr (nname.length()-3, 3) != ".gz")
+  if (nname.substr(nname.length()-3, 3) != ".gz")
     {
       nname += ".gz";
     }
 
-  try {
-    file.open (nname.c_str());
-  } catch (ios::failure) {
-    ostringstream os;
-    os << "Cannot open output file: " << nname << '\n'
-      << "Maybe you don't have write access "
-      << "to the directory or the file?";
-    throw runtime_error(os.str());
-  }
+  try
+    {
+      file.open(nname.c_str());
+    }
+  catch (ios::failure)
+    {
+      ostringstream os;
+      os << "Cannot open output file: " << nname << '\n'
+         << "Maybe you don't have write access "
+         << "to the directory or the file?";
+      throw runtime_error(os.str());
+    }
 
 
   // See if the file is ok.
@@ -517,8 +504,7 @@ xml_open_output_file (ogzstream& file, const String& name)
   \param ifs   Input filestream
   \param name  Filename
 */
-void
-xml_open_input_file (ifstream& ifs, const String& name, const Verbosity& verbosity)
+void xml_open_input_file(ifstream& ifs, const String& name, const Verbosity& verbosity)
 {
   CREATE_OUT3
   
@@ -526,19 +512,19 @@ xml_open_input_file (ifstream& ifs, const String& name, const Verbosity& verbosi
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  ifs.exceptions (ios::badbit);
+  ifs.exceptions(ios::badbit);
 
   // c_str explicitly converts to c String.
   try
     {
-      ifs.open (name.c_str ());
+      ifs.open(name.c_str());
     }
   catch (ios::failure)
     {
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
-        << "Maybe the file does not exist?";
-      throw runtime_error (os.str ());
+         << "Maybe the file does not exist?";
+      throw runtime_error(os.str());
     }
 
   // See if the file is ok.
@@ -549,7 +535,7 @@ xml_open_input_file (ifstream& ifs, const String& name, const Verbosity& verbosi
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
          << "Maybe the file does not exist?";
-      throw runtime_error (os.str ());
+      throw runtime_error(os.str());
     }
 
   out3 << "- Reading input file " << name << "\n";
@@ -565,8 +551,7 @@ xml_open_input_file (ifstream& ifs, const String& name, const Verbosity& verbosi
   \param ifs   Input filestream
   \param name  Filename
 */
-void
-xml_open_input_file (igzstream& ifs, const String& name, const Verbosity& verbosity)
+void xml_open_input_file(igzstream& ifs, const String& name, const Verbosity& verbosity)
 {
   CREATE_OUT3
   
@@ -574,19 +559,19 @@ xml_open_input_file (igzstream& ifs, const String& name, const Verbosity& verbos
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  ifs.exceptions (ios::badbit);
+  ifs.exceptions(ios::badbit);
 
   // c_str explicitly converts to c String.
   try
     {
-      ifs.open (name.c_str ());
+      ifs.open(name.c_str());
     }
   catch (ios::failure)
     {
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
-        << "Maybe the file does not exist?";
-      throw runtime_error (os.str ());
+         << "Maybe the file does not exist?";
+      throw runtime_error(os.str());
     }
 
   // See if the file is ok.
@@ -597,7 +582,7 @@ xml_open_input_file (igzstream& ifs, const String& name, const Verbosity& verbos
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
          << "Maybe the file does not exist?";
-      throw runtime_error (os.str ());
+      throw runtime_error(os.str());
     }
 
   out3 << "- Reading input file " << name << "\n";
@@ -617,13 +602,12 @@ xml_open_input_file (igzstream& ifs, const String& name, const Verbosity& verbos
 
   \param str_error Error description
 */
-void
-xml_parse_error (const String& str_error)
+void xml_parse_error(const String& str_error)
 {
   ostringstream os;
   os << "XML parse error: " << str_error << '\n'
      << "Check syntax of XML file\n";
-  throw runtime_error (os.str ());
+  throw runtime_error(os.str());
 }
 
 
@@ -635,16 +619,15 @@ xml_parse_error (const String& str_error)
   \param tag        ArtsXMLTag
   \param str_error  Error description
 */
-void
-xml_data_parse_error (ArtsXMLTag& tag, String str_error)
+void xml_data_parse_error(ArtsXMLTag& tag, String str_error)
 {
   ostringstream os;
   os << "XML data parse error: Error reading ";
-  tag.write_to_stream (os);
+  tag.write_to_stream(os);
   os << str_error << "\n"
-    << "Check syntax of XML file. A possible cause is that the file "
-    << "contains NaN or Inf values.\n";
-  throw runtime_error (os.str ());
+     << "Check syntax of XML file. A possible cause is that the file "
+     << "contains NaN or Inf values.\n";
+  throw runtime_error(os.str());
 }
 
 
@@ -658,38 +641,38 @@ xml_data_parse_error (ArtsXMLTag& tag, String str_error)
   \param ntype  Numeric type
   \param etype  Endian type
 */
-void
-xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
-                             EndianType& etype, const Verbosity& verbosity)
+void xml_read_header_from_stream(istream& is, FileType& ftype, NumericType& ntype,
+                                 EndianType& etype, const Verbosity& verbosity)
 {
   char str[6];
   stringbuf strbuf;
   ArtsXMLTag tag(verbosity);
   String strtype;
 
-  while (!is.fail () && isspace (is.peek())) is.get();
+  while (!is.fail() && isspace(is.peek()))
+    is.get();
 
-  is.get (str, 6, ' ');
+  is.get(str, 6, ' ');
 
   if (string(str) != "<?xml")
     {
-      xml_parse_error ("Input file is not a valid xml file "
-                       "(<?xml not found)");
+      xml_parse_error("Input file is not a valid xml file "
+                      "(<?xml not found)");
     }
 
-  is.get (strbuf, '>');
-  is.get ();
+  is.get(strbuf, '>');
+  is.get();
 
-  if (is.fail ())
+  if (is.fail())
     {
-      xml_parse_error ("Input file is not a valid xml file");
+      xml_parse_error("Input file is not a valid xml file");
     }
 
-  tag.read_from_stream (is);
-  tag.check_name ("arts");
+  tag.read_from_stream(is);
+  tag.check_name("arts");
 
   // Check file format
-  tag.get_attribute_value ("format", strtype);
+  tag.get_attribute_value("format", strtype);
   if (strtype == "binary")
     {
       ftype = FILE_TYPE_BINARY;
@@ -700,7 +683,7 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
     }
 
   // Check endian type
-  tag.get_attribute_value ("endian_type", strtype);
+  tag.get_attribute_value("endian_type", strtype);
   if (strtype == "little")
     {
       etype = ENDIAN_TYPE_LITTLE;
@@ -711,20 +694,20 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
     }
   if (strtype == "")
     {
-/*      out1 << "  Warning: Endian type not specified in XML file, "
-        <<    "assuming little endian (PC)\n";*/
+      /*      out1 << "  Warning: Endian type not specified in XML file, "
+              <<    "assuming little endian (PC)\n";*/
       etype = ENDIAN_TYPE_LITTLE;
     }
   else
     {
       ostringstream os;
       os << "  Error: Unknown endian type \"" << strtype
-        <<  "\" specified in XML file.\n";
-        throw runtime_error(os.str());
+         <<  "\" specified in XML file.\n";
+      throw runtime_error(os.str());
     }
 
   // Check numeric type
-  tag.get_attribute_value ("numeric_type", strtype);
+  tag.get_attribute_value("numeric_type", strtype);
   if (strtype == "float")
     {
       ntype = NUMERIC_TYPE_FLOAT;
@@ -735,16 +718,16 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
     }
   else if (strtype == "")
     {
-/*      out1 << "  Warning: Numeric type not specified in XML file, "
-        <<    "assuming double\n";*/
+      /*      out1 << "  Warning: Numeric type not specified in XML file, "
+              <<    "assuming double\n";*/
       ntype = NUMERIC_TYPE_DOUBLE;
     }
   else
     {
       ostringstream os;
       os << "  Error: Unknown numeric type \"" << strtype
-        <<  "\" specified in XML file.\n";
-        throw runtime_error(os.str());
+         <<  "\" specified in XML file.\n";
+      throw runtime_error(os.str());
     }
 
 }
@@ -756,13 +739,12 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
 
   \param is  Input stream
 */
-void
-xml_read_footer_from_stream (istream& is, const Verbosity& verbosity)
+void xml_read_footer_from_stream(istream& is, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.read_from_stream (is);
-  tag.check_name ("/arts");
+  tag.read_from_stream(is);
+  tag.check_name("/arts");
 }
 
 
@@ -771,29 +753,28 @@ xml_read_footer_from_stream (istream& is, const Verbosity& verbosity)
   \param os     Output stream
   \param ftype  File type
 */
-void
-xml_write_header_to_stream (ostream& os, FileType ftype, const Verbosity& verbosity)
+void xml_write_header_to_stream(ostream& os, FileType ftype, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
   os << "<?xml version=\"1.0\"?>"
      << '\n';
 
-  tag.set_name ("arts");
+  tag.set_name("arts");
   switch (ftype)
     {
-  case FILE_TYPE_ASCII:
-  case FILE_TYPE_ZIPPED_ASCII:
-    tag.add_attribute ("format", "ascii");
-    break;
-  case FILE_TYPE_BINARY:
-    tag.add_attribute ("format", "binary");
-    break;
+    case FILE_TYPE_ASCII:
+    case FILE_TYPE_ZIPPED_ASCII:
+      tag.add_attribute("format", "ascii");
+      break;
+    case FILE_TYPE_BINARY:
+      tag.add_attribute("format", "binary");
+      break;
     }
 
-  tag.add_attribute ("version", "1");
+  tag.add_attribute("version", "1");
 
-  tag.write_to_stream (os);
+  tag.write_to_stream(os);
 
   os << '\n';
 
@@ -804,19 +785,18 @@ xml_write_header_to_stream (ostream& os, FileType ftype, const Verbosity& verbos
 /*!
   \param os Output stream
 */
-void
-xml_write_footer_to_stream (ostream& os, const Verbosity& verbosity)
+void xml_write_footer_to_stream(ostream& os, const Verbosity& verbosity)
 {
   ArtsXMLTag tag(verbosity);
 
-  tag.set_name ("/arts");
-  tag.write_to_stream (os);
+  tag.set_name("/arts");
+  tag.write_to_stream(os);
 
   os << endl;
 }
 
-void
-xml_set_stream_precision (ostream& os)
+
+void xml_set_stream_precision(ostream& os)
 {
   // Determine the precision, depending on whether Numeric is double
   // or float:
@@ -831,7 +811,7 @@ xml_set_stream_precision (ostream& os)
 #endif
 #endif
 
-  os << setprecision (precision);
+  os << setprecision(precision);
 }
 
 
@@ -847,10 +827,10 @@ xml_set_stream_precision (ostream& os)
   \param filename XML filename
   \param type Generic return value
 */
-template<typename T> void
-xml_read_from_file (const String& filename,
-                    T&            type,
-                    const Verbosity& verbosity)
+template<typename T>
+void xml_read_from_file(const String&    filename,
+                        T&               type,
+                        const Verbosity& verbosity)
 {
   CREATE_OUT2
   
@@ -868,38 +848,38 @@ xml_read_from_file (const String& filename,
                   parameters.datapath.begin(),
                   parameters.datapath.end());
 
-  found_file = find_file (xml_file, ".xml", allpaths);
-  if (!found_file) found_file = find_file (xml_file, ".xml.gz", allpaths);
-  if (!found_file) found_file = find_file (xml_file, ".gz", allpaths);
+  found_file = find_file(xml_file, ".xml", allpaths);
+  if (!found_file) found_file = find_file(xml_file, ".xml.gz", allpaths);
+  if (!found_file) found_file = find_file(xml_file, ".gz", allpaths);
   
   if (!found_file)
-  {
-    ostringstream os;
-    os << "Cannot find input file: " << filename << endl;
-    os << "Search path: " << allpaths << endl;
-    throw runtime_error(os.str());
-  }
+    {
+      ostringstream os;
+      os << "Cannot find input file: " << filename << endl;
+      os << "Search path: " << allpaths << endl;
+      throw runtime_error(os.str());
+    }
 
   out2 << "  Reading " << xml_file << '\n';
   
   // Open input stream:
-  if (xml_file.substr (xml_file.length () - 3, 3) == ".gz")
+  if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
     {
       ifs = new igzstream();
-      xml_open_input_file (*(igzstream *)ifs, xml_file, verbosity);
+      xml_open_input_file(*(igzstream*)ifs, xml_file, verbosity);
     }
 #else
     {
-      throw runtime_error (
-        "This arts version was compiled without zlib support.\n"
-        "Thus zipped xml files cannot be read.");
+      throw runtime_error(
+              "This arts version was compiled without zlib support.\n"
+              "Thus zipped xml files cannot be read.");
     }
 #endif /* ENABLE_ZLIB */
   else
     {
       ifs = new ifstream();
-      xml_open_input_file (*(ifstream *)ifs, xml_file, verbosity);
+      xml_open_input_file(*(ifstream*)ifs, xml_file, verbosity);
     }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -914,38 +894,37 @@ xml_read_from_file (const String& filename,
       NumericType ntype;
       EndianType etype;
 
-      xml_read_header_from_stream (*ifs, ftype, ntype, etype, verbosity);
+      xml_read_header_from_stream(*ifs, ftype, ntype, etype, verbosity);
       if (ftype == FILE_TYPE_ASCII)
         {
-          xml_read_from_stream (*ifs, type, NULL, verbosity);
+          xml_read_from_stream(*ifs, type, NULL, verbosity);
         }
       else
         {
           String bfilename = xml_file + ".bin";
-          bifstream bifs (bfilename.c_str ());
-          xml_read_from_stream (*ifs, type, &bifs, verbosity);
+          bifstream bifs(bfilename.c_str());
+          xml_read_from_stream(*ifs, type, &bifs, verbosity);
         }
-      xml_read_footer_from_stream (*ifs, verbosity);
+      xml_read_footer_from_stream(*ifs, verbosity);
     }
   catch (runtime_error e)
     {
       delete ifs;
       ostringstream os;
       os << "Error reading file: " << xml_file << '\n'
-         << e.what ();
-      throw runtime_error (os.str ());
+         << e.what();
+      throw runtime_error(os.str());
     }
 
   delete ifs;
 }
 
 
-void
-xml_read_arts_catalogue_from_file (const String&      filename,
-                                   ArrayOfLineRecord& type,
-                                   const Numeric&     fmin,
-                                   const Numeric&     fmax,
-                                   const Verbosity&   verbosity)
+void xml_read_arts_catalogue_from_file(const String&      filename,
+                                       ArrayOfLineRecord& type,
+                                       const Numeric&     fmin,
+                                       const Numeric&     fmax,
+                                       const Verbosity&   verbosity)
 {
   CREATE_OUT2
   
@@ -963,38 +942,38 @@ xml_read_arts_catalogue_from_file (const String&      filename,
                   parameters.datapath.begin(),
                   parameters.datapath.end());
 
-  found_file = find_file (xml_file, ".xml", allpaths);
-  if (!found_file) found_file = find_file (xml_file, ".xml.gz", allpaths);
-  if (!found_file) found_file = find_file (xml_file, ".gz", allpaths);
+  found_file = find_file(xml_file, ".xml", allpaths);
+  if (!found_file) found_file = find_file(xml_file, ".xml.gz", allpaths);
+  if (!found_file) found_file = find_file(xml_file, ".gz", allpaths);
 
   if (!found_file)
-  {
-    ostringstream os;
-    os << "Cannot find input file: " << filename << endl;
-    os << "Search path: " << allpaths << endl;
-    throw runtime_error(os.str());
-  }
+    {
+      ostringstream os;
+      os << "Cannot find input file: " << filename << endl;
+      os << "Search path: " << allpaths << endl;
+      throw runtime_error(os.str());
+    }
   
   out2 << "  Reading " << xml_file << '\n';      
 
   // Open input stream:
-  if (xml_file.substr (xml_file.length () - 3, 3) == ".gz")
+  if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
     {
       ifs = new igzstream();
-      xml_open_input_file (*(igzstream *)ifs, xml_file, verbosity);
+      xml_open_input_file(*(igzstream*)ifs, xml_file, verbosity);
     }
 #else
     {
-      throw runtime_error (
-        "This arts version was compiled without zlib support.\n"
-        "Thus zipped xml files cannot be read.");
+      throw runtime_error(
+              "This arts version was compiled without zlib support.\n"
+              "Thus zipped xml files cannot be read.");
     }
 #endif /* ENABLE_ZLIB */
   else
     {
       ifs = new ifstream();
-      xml_open_input_file (*(ifstream *)ifs, xml_file, verbosity);
+      xml_open_input_file(*(ifstream*)ifs, xml_file, verbosity);
     }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -1009,26 +988,26 @@ xml_read_arts_catalogue_from_file (const String&      filename,
       NumericType ntype;
       EndianType etype;
 
-      xml_read_header_from_stream (*ifs, ftype, ntype, etype, verbosity);
+      xml_read_header_from_stream(*ifs, ftype, ntype, etype, verbosity);
       if (ftype == FILE_TYPE_ASCII)
         {
-          xml_read_from_stream (*ifs, type, fmin, fmax, NULL, verbosity);
+          xml_read_from_stream(*ifs, type, fmin, fmax, NULL, verbosity);
         }
       else
         {
           String bfilename = xml_file + ".bin";
-          bifstream bifs (bfilename.c_str ());
-          xml_read_from_stream (*ifs, type, fmin, fmax, &bifs, verbosity);
+          bifstream bifs(bfilename.c_str());
+          xml_read_from_stream(*ifs, type, fmin, fmax, &bifs, verbosity);
         }
-      xml_read_footer_from_stream (*ifs, verbosity);
+      xml_read_footer_from_stream(*ifs, verbosity);
     }
   catch (runtime_error e)
     {
       delete ifs;
       ostringstream os;
       os << "Error reading file: " << xml_file << '\n'
-         << e.what ();
-      throw runtime_error (os.str ());
+         << e.what();
+      throw runtime_error(os.str());
     }
 
   delete ifs;
@@ -1044,11 +1023,11 @@ xml_read_arts_catalogue_from_file (const String&      filename,
   \param type      Generic input value
   \param ftype     File type
 */
-template<typename T> void
-xml_write_to_file (const String&  filename,
-                   const T&       type,
-                   const FileType ftype,
-                   const Verbosity& verbosity)
+template<typename T>
+void xml_write_to_file(const String&    filename,
+                       const T&         type,
+                       const FileType   ftype,
+                       const Verbosity& verbosity)
 {
   CREATE_OUT2
   
@@ -1061,45 +1040,45 @@ xml_write_to_file (const String&  filename,
 #ifdef ENABLE_ZLIB
     {
       ofs = new ogzstream();
-      xml_open_output_file(*(ogzstream *)ofs, efilename);
+      xml_open_output_file(*(ogzstream*)ofs, efilename);
     }
 #else
     {
-      throw runtime_error (
-        "This arts version was compiled without zlib support.\n"
-        "Thus zipped xml files cannot be written.");
+      throw runtime_error(
+              "This arts version was compiled without zlib support.\n"
+              "Thus zipped xml files cannot be written.");
     }
 #endif /* ENABLE_ZLIB */
   else
     {
       ofs = new ofstream();
-      xml_open_output_file(*(ofstream *)ofs, efilename);
+      xml_open_output_file(*(ofstream*)ofs, efilename);
     }
 
 
   try
     {
-      xml_write_header_to_stream (*ofs, ftype, verbosity);
+      xml_write_header_to_stream(*ofs, ftype, verbosity);
       if (ftype == FILE_TYPE_ASCII || ftype == FILE_TYPE_ZIPPED_ASCII)
         {
-          xml_write_to_stream (*ofs, type, NULL, "", verbosity);
+          xml_write_to_stream(*ofs, type, NULL, "", verbosity);
         }
       else
         {
           String bfilename = efilename + ".bin";
-          bofstream bofs (bfilename.c_str ());
-          xml_write_to_stream (*ofs, type, &bofs, "", verbosity);
+          bofstream bofs(bfilename.c_str());
+          xml_write_to_stream(*ofs, type, &bofs, "", verbosity);
         }
 
-      xml_write_footer_to_stream (*ofs, verbosity);
+      xml_write_footer_to_stream(*ofs, verbosity);
     }
   catch (runtime_error e)
     {
       delete ofs;
       ostringstream os;
       os << "Error writing file: " << efilename << '\n'
-         << e.what ();
-      throw runtime_error (os.str ());
+         << e.what();
+      throw runtime_error(os.str());
     }
 
   delete ofs;

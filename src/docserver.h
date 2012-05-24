@@ -32,9 +32,9 @@
 #ifdef ENABLE_DOCSERVER
 class Docserver {
 private:
-  string mbaseurl;
-  Index mport;
-  ostream *mos;
+  string         mbaseurl;
+  Index          mport;
+  ostream*       mos;
   vector<string> tokens;
   
   void begin_page(string title);
@@ -42,10 +42,10 @@ private:
   void begin_content();
   void end_content();
   
-  String insert_agenda_link(const String &aname);
-  String insert_group_link(const String &gname);
-  String insert_wsm_link(const String &mname);
-  String insert_wsv_link(const String &vname);
+  String insert_agenda_link(const String& aname);
+  String insert_group_link(const String& gname);
+  String insert_wsm_link(const String& mname);
+  String insert_wsv_link(const String& vname);
 
   void insert_title(const string& title = "");
   void insert_breadcrumb_token(size_t token_id);
@@ -77,14 +77,14 @@ private:
   string html_escape_char(const char ch);
   string html_escape_string(const string& s);
 
-  void split_tokens(const string &s);
+  void split_tokens(const string& s);
 
   void limit_line_length(ostringstream& curline,
                          ostringstream& token,
-                         const String& indent,
-                         size_t linelen);
+                         const String&  indent,
+                         size_t         linelen);
 
-  ostream &get_os()
+  ostream& get_os()
   {
     if (!mos) throw runtime_error("Output stream for docserver is NULL.");
     return *mos;
@@ -93,12 +93,12 @@ private:
 public:
   Docserver(const Index port, const string& baseurl = "");
 
-  string new_page(const string &url);
+  string new_page(const string& url);
   
-  void set_ostream(ostream &os) { mos = &os; }
+  void set_ostream(ostream& os) { mos = &os; }
   void clear_ostream() { mos = NULL; }
   
-  const string &get_baseurl() { return mbaseurl; }
+  const string& get_baseurl() { return mbaseurl; }
   int launch(bool daemon);
 };
 

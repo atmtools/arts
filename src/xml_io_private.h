@@ -51,11 +51,9 @@
 //   Functions to open and read XML files
 ////////////////////////////////////////////////////////////////////////////
 
-void
-xml_open_output_file (ostream& file, const String& name);
+void xml_open_output_file(ostream& file, const String& name);
 
-void
-xml_open_input_file (ifstream& file, const String& name, const Verbosity& verbosity);
+void xml_open_input_file(ifstream& file, const String& name, const Verbosity& verbosity);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -67,8 +65,7 @@ xml_open_input_file (ifstream& file, const String& name, const Verbosity& verbos
   Holds the name and value of an XML attribute.
 */
 
-class XMLAttribute
-{
+class XMLAttribute {
 public:
   String name;                  /*!< Attribute name */
   String value;                 /*!< Attribute value */
@@ -79,44 +76,33 @@ public:
 /*!
   Handles reading, writing and constructing of XML tags.
 */
-class ArtsXMLTag
-{
+class ArtsXMLTag {
 public:
   ArtsXMLTag(const Verbosity& rverbosity) : verbosity(rverbosity) {};
 
-  String&
-  get_name () { return (name); }
+  String& get_name() { return name; }
 
-  void
-  check_name (const String& expected_name);
+  void check_name(const String& expected_name);
 
-  void
-  set_name (const String& new_name) { name = new_name; }
+  void set_name(const String& new_name) { name = new_name; }
 
-  void
-  add_attribute (const String& aname, const String& value);
+  void add_attribute(const String& aname, const String& value);
 
-  void
-  add_attribute (const String& aname, const Index& value);
+  void add_attribute(const String& aname, const Index& value);
 
-  void
-  check_attribute (const String& aname, const String& value);
+  void check_attribute(const String& aname, const String& value);
 
-  void
-  get_attribute_value (const String& aname, String& value);
+  void get_attribute_value(const String& aname, String& value);
 
-  void
-  get_attribute_value (const String& aname, Index& value);
+  void get_attribute_value(const String& aname, Index& value);
 
-  void
-  read_from_stream (istream& is);
+  void read_from_stream(istream& is);
 
-  void
-  write_to_stream (ostream& os);
+  void write_to_stream(ostream& os);
 
 private:
   String name;                  /*!< Tag name */
-  Array<XMLAttribute> attribs;  /*!< List of attributes */
+  Array<XMLAttribute> attribs;   /*!< List of attributes */
   const Verbosity& verbosity;
 };
 
@@ -125,28 +111,21 @@ private:
 //   General XML handling routines
 ////////////////////////////////////////////////////////////////////////////
 
-void
-xml_parse_error (const String& str_error);
+void xml_parse_error(const String& str_error);
 
-void
-xml_data_parse_error (ArtsXMLTag& tag, String str_error);
+void xml_data_parse_error(ArtsXMLTag& tag, String str_error);
 
-void
-xml_read_header_from_stream (istream& is, FileType& ftype,
-                             NumericType& ntype, EndianType& etype,
-                             const Verbosity& verbosity);
+void xml_read_header_from_stream(istream& is, FileType& ftype,
+                                 NumericType& ntype, EndianType& etype,
+                                 const Verbosity& verbosity);
 
-void
-xml_read_footer_from_stream (istream& is, const Verbosity& verbosity);
+void xml_read_footer_from_stream(istream& is, const Verbosity& verbosity);
 
-void
-xml_write_header_to_stream (ostream& os, FileType ftype, const Verbosity& verbosity);
+void xml_write_header_to_stream(ostream& os, FileType ftype, const Verbosity& verbosity);
 
-void
-xml_write_footer_to_stream (ostream& os, const Verbosity& verbosity);
+void xml_write_footer_to_stream(ostream& os, const Verbosity& verbosity);
 
-void
-xml_set_stream_precision (ostream& os);
+void xml_set_stream_precision(ostream& os);
 
 
 #endif  /* xml_io_private_h */

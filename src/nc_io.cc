@@ -52,8 +52,7 @@
  
  \author Oliver Lemke
 */
-void
-nca_filename(String&  filename, const String&  varname )
+void nca_filename(String& filename, const String&  varname)
 {
   if ("" == filename)
     {
@@ -74,10 +73,9 @@ nca_filename(String&  filename, const String&  varname )
  
  \author Oliver Lemke
 */
-void
-nca_filename_with_index(String&  filename,
-                       const Index&   file_index,
-                       const String&  varname )
+void nca_filename_with_index(String&       filename,
+                             const Index&  file_index,
+                             const String& varname)
 {
   if ("" == filename)
     {
@@ -103,10 +101,10 @@ nca_filename_with_index(String&  filename,
  
  \author Oliver Lemke
 */
-template<typename T> void
-nca_read_from_file(const String& filename,
-                  T& type,
-                  const Verbosity& verbosity)
+template<typename T>
+void nca_read_from_file(const String&    filename,
+                        T&               type,
+                        const Verbosity& verbosity)
 {
   CREATE_OUT2
   
@@ -115,23 +113,26 @@ nca_read_from_file(const String& filename,
   out2 << "  Reading " << efilename << '\n';
 
   int ncid;
-  if (nc_open (efilename.c_str(), NC_NOWRITE, &ncid))
+  if (nc_open(efilename.c_str(), NC_NOWRITE, &ncid))
     {
       ostringstream os;
       os << "Error reading file: " << efilename << endl;
-      throw runtime_error (os.str());
+      throw runtime_error(os.str());
     }
 
-  try {
-    nca_read_from_file (ncid, type, verbosity);
-  } catch (runtime_error e) {
-    ostringstream os;
-    os << "Error reading file: " << efilename << endl;
-    os << e.what() << endl;
-    throw runtime_error (os.str());
-  }
+  try
+    {
+      nca_read_from_file(ncid, type, verbosity);
+    }
+  catch (runtime_error e)
+    {
+      ostringstream os;
+      os << "Error reading file: " << efilename << endl;
+      os << e.what() << endl;
+      throw runtime_error(os.str());
+    }
 
-  nc_close (ncid);
+  nc_close(ncid);
 }
 
 
@@ -143,10 +144,10 @@ nca_read_from_file(const String& filename,
  
  \author Oliver Lemke
 */
-template<typename T> void
-nca_write_to_file(const String& filename,
-                 const T& type,
-                 const Verbosity& verbosity)
+template<typename T>
+void nca_write_to_file(const String&    filename,
+                       const T&         type,
+                       const Verbosity& verbosity)
 {
   CREATE_OUT2
   
@@ -155,23 +156,26 @@ nca_write_to_file(const String& filename,
   out2 << "  Writing " << efilename << '\n';
 
   int ncid;
-  if (nc_create (efilename.c_str(), NC_CLOBBER, &ncid))
+  if (nc_create(efilename.c_str(), NC_CLOBBER, &ncid))
     {
       ostringstream os;
       os << "Error writing file: " << efilename << endl;
-      throw runtime_error (os.str());
+      throw runtime_error(os.str());
     }
 
-  try {
-    nca_write_to_file (ncid, type, verbosity);
-  } catch (runtime_error e) {
-    ostringstream os;
-    os << "Error writing file: " << efilename << endl;
-    os << e.what() << endl;
-    throw runtime_error (os.str());
-  }
+  try
+    {
+      nca_write_to_file(ncid, type, verbosity);
+    }
+  catch (runtime_error e)
+    {
+      ostringstream os;
+      os << "Error writing file: " << efilename << endl;
+      os << e.what() << endl;
+      throw runtime_error(os.str());
+    }
 
-  nc_close (ncid);
+  nc_close(ncid);
 }
 
 
@@ -184,11 +188,11 @@ nca_write_to_file(const String& filename,
  
  \author Oliver Lemke
  */
-void nca_def_dim(const int ncid, const String& name, const Index nelem, int *ncdim)
+void nca_def_dim(const int ncid, const String& name, const Index nelem, int* ncdim)
 {
   int retval;
-  if ((retval = nc_def_dim (ncid, name.c_str(), nelem, ncdim)))
-    nca_error (retval, "nc_def_dim");
+  if ((retval = nc_def_dim(ncid, name.c_str(), nelem, ncdim)))
+    nca_error(retval, "nc_def_dim");
 }
 
 
@@ -207,8 +211,8 @@ void nca_def_var(const int ncid, const String& name, const nc_type type, const i
                  const int* dims, int* varid)
 {
   int retval;
-  if ((retval = nc_def_var (ncid, name.c_str(), type, ndims, dims, varid)))
-    nca_error (retval, "nc_def_var");
+  if ((retval = nc_def_var(ncid, name.c_str(), type, ndims, dims, varid)))
+    nca_error(retval, "nc_def_var");
 }
 
 
@@ -225,10 +229,10 @@ int nca_def_ArrayOfIndex(const int ncid, const String& name, const ArrayOfIndex&
 {
   int ncdims[1], varid;
   if (a.nelem())
-  {
-    nca_def_dim (ncid, name+"_nelem", a.nelem(), &ncdims[0]);
-    nca_def_var (ncid, name, NC_INT, 1, &ncdims[0], &varid);
-  }
+    {
+      nca_def_dim(ncid, name+"_nelem", a.nelem(), &ncdims[0]);
+      nca_def_var(ncid, name, NC_INT, 1, &ncdims[0], &varid);
+    }
   else
     varid = -1;
   
@@ -249,10 +253,10 @@ int nca_def_Vector(const int ncid, const String& name, const Vector& v)
 {
   int ncdims[1], varid;
   if (v.nelem())
-  {
-    nca_def_dim (ncid, name+"_nelem", v.nelem(), &ncdims[0]);
-    nca_def_var (ncid, name, NC_DOUBLE, 1, &ncdims[0], &varid);
-  }
+    {
+      nca_def_dim(ncid, name+"_nelem", v.nelem(), &ncdims[0]);
+      nca_def_var(ncid, name, NC_DOUBLE, 1, &ncdims[0], &varid);
+    }
   else
     varid = -1;
   
@@ -273,11 +277,11 @@ int nca_def_Matrix(const int ncid, const String& name, const Matrix& m)
 {
   int ncdims[2], varid;
   if (m.nrows() && m.ncols())
-  {
-    nca_def_dim (ncid, name+"_nrows", m.nrows(), &ncdims[0]);
-    nca_def_dim (ncid, name+"_ncols", m.ncols(), &ncdims[1]);
-    nca_def_var (ncid, name, NC_DOUBLE, 2, &ncdims[0], &varid);
-  }
+    {
+      nca_def_dim(ncid, name+"_nrows", m.nrows(), &ncdims[0]);
+      nca_def_dim(ncid, name+"_ncols", m.ncols(), &ncdims[1]);
+      nca_def_var(ncid, name, NC_DOUBLE, 2, &ncdims[0], &varid);
+    }
   else
     varid = -1;
   
@@ -298,13 +302,13 @@ int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t)
 {
   int ncdims[4], varid;
   if (t.nbooks() && t.npages() && t.nrows() && t.ncols())
-  {
-    nca_def_dim (ncid, name+"_nbooks", t.nbooks(), &ncdims[0]);
-    nca_def_dim (ncid, name+"_npages", t.npages(), &ncdims[1]);
-    nca_def_dim (ncid, name+"_nrows", t.nrows(), &ncdims[2]);
-    nca_def_dim (ncid, name+"_ncols", t.ncols(), &ncdims[3]);
-    nca_def_var (ncid, name, NC_DOUBLE, 4, &ncdims[0], &varid);
-  }
+    {
+      nca_def_dim(ncid, name+"_nbooks", t.nbooks(), &ncdims[0]);
+      nca_def_dim(ncid, name+"_npages", t.npages(), &ncdims[1]);
+      nca_def_dim(ncid, name+"_nrows", t.nrows(), &ncdims[2]);
+      nca_def_dim(ncid, name+"_ncols", t.ncols(), &ncdims[3]);
+      nca_def_var(ncid, name, NC_DOUBLE, 4, &ncdims[0], &varid);
+    }
   else
     varid = -1;
   
@@ -321,18 +325,20 @@ int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t)
  
  \author Oliver Lemke
  */
-Index nc_get_dim(const int ncid, const String &name, const bool noerror)
+Index nc_get_dim(const int ncid, const String& name, const bool noerror)
 {
   int retval, dimid;
   size_t ndim;
-  if ((retval = nc_inq_dimid (ncid, name.c_str(), &dimid)))
-  {
-    if (!noerror) nca_error (retval, "nc_inq_ndims("+name+")"); else return 0;
-  }
-  if ((retval = nc_inq_dimlen (ncid, dimid, &ndim)))
-  {
-    if (!noerror) nca_error (retval, "nc_inq_dimlen("+name+")"); else return 0;
-  }
+  if ((retval = nc_inq_dimid(ncid, name.c_str(), &dimid)))
+    {
+      if (!noerror) nca_error(retval, "nc_inq_ndims("+name+")");
+      else return 0;
+    }
+  if ((retval = nc_inq_dimlen(ncid, dimid, &ndim)))
+    {
+      if (!noerror) nca_error(retval, "nc_inq_dimlen("+name+")");
+      else return 0;
+    }
   
   return (Index)ndim;
 }
@@ -346,13 +352,13 @@ Index nc_get_dim(const int ncid, const String &name, const bool noerror)
  
  \author Oliver Lemke
  */
-void nca_get_data_int(const int ncid, const String &name, int *data)
+void nca_get_data_int(const int ncid, const String& name, int* data)
 {
   int retval, varid;
-  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
-    nca_error (retval, "nc_inq_varid("+name+")");
-  if ((retval = nc_get_var_int (ncid, varid, data)))
-    nca_error (retval, "nc_get_var("+name+")");
+  if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
+    nca_error(retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_int(ncid, varid, data)))
+    nca_error(retval, "nc_get_var("+name+")");
 }
 
 
@@ -364,13 +370,13 @@ void nca_get_data_int(const int ncid, const String &name, int *data)
  
  \author Oliver Lemke
  */
-void nca_get_data_long(const int ncid, const String &name, long *data)
+void nca_get_data_long(const int ncid, const String& name, long* data)
 {
   int retval, varid;
-  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
-    nca_error (retval, "nc_inq_varid("+name+")");
-  if ((retval = nc_get_var_long (ncid, varid, data)))
-    nca_error (retval, "nc_get_var("+name+")");
+  if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
+    nca_error(retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_long(ncid, varid, data)))
+    nca_error(retval, "nc_get_var("+name+")");
 }
 
 
@@ -382,13 +388,13 @@ void nca_get_data_long(const int ncid, const String &name, long *data)
  
  \author Oliver Lemke
  */
-void nca_get_data_double(const int ncid, const String &name, Numeric *data)
+void nca_get_data_double(const int ncid, const String& name, Numeric* data)
 {
   int retval, varid;
-  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
-    nca_error (retval, "nc_inq_varid("+name+")");
-  if ((retval = nc_get_var_double (ncid, varid, data)))
-    nca_error (retval, "nc_get_var("+name+")");
+  if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
+    nca_error(retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_double(ncid, varid, data)))
+    nca_error(retval, "nc_get_var("+name+")");
 }
 
 
@@ -400,14 +406,14 @@ void nca_get_data_double(const int ncid, const String &name, Numeric *data)
  
  \author Oliver Lemke
  */
-void nca_get_dataa_double(const int ncid, const String &name,
-                         size_t start, size_t count, Numeric *data)
+void nca_get_dataa_double(const int ncid, const String& name,
+                          size_t start, size_t count, Numeric* data)
 {
   int retval, varid;
-  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
-    nca_error (retval, "nc_inq_varid("+name+")");
-  if ((retval = nc_get_vara_double (ncid, varid, &start, &count, data)))
-    nca_error (retval, "nc_get_var("+name+")");
+  if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
+    nca_error(retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_vara_double(ncid, varid, &start, &count, data)))
+    nca_error(retval, "nc_get_var("+name+")");
 }
 
 
@@ -419,13 +425,13 @@ void nca_get_dataa_double(const int ncid, const String &name,
  
  \author Oliver Lemke
  */
-void nca_get_data_text(const int ncid, const String &name, char *data)
+void nca_get_data_text(const int ncid, const String& name, char* data)
 {
   int retval, varid;
-  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
-    nca_error (retval, "nc_inq_varid("+name+")");
-  if ((retval = nc_get_var_text (ncid, varid, data)))
-    nca_error (retval, "nc_get_var("+name+")");
+  if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
+    nca_error(retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_text(ncid, varid, data)))
+    nca_error(retval, "nc_get_var("+name+")");
 }
 
 
@@ -439,21 +445,19 @@ void nca_get_data_text(const int ncid, const String &name, char *data)
  
  \author Oliver Lemke
  */
-void nca_get_data_ArrayOfIndex(const int ncid, const String &name, ArrayOfIndex &aoi,
+void nca_get_data_ArrayOfIndex(const int ncid, const String& name, ArrayOfIndex& aoi,
                                const bool noerror)
 {
-  Index nelem = nc_get_dim (ncid, name+"_nelem", noerror);
+  Index nelem = nc_get_dim(ncid, name+"_nelem", noerror);
   aoi.resize(nelem);
   if (nelem)
-  {
-    Index *ind_arr = new Index[nelem];
-    nca_get_data_long (ncid, name, ind_arr);
-    Index i = 0;
-    for (ArrayOfIndex::iterator it = aoi.begin(); it != aoi.end(); it++, i++)
     {
-      *it = ind_arr[i];
+      Index* ind_arr = new Index[nelem];
+      nca_get_data_long(ncid, name, ind_arr);
+      Index i = 0;
+      for (ArrayOfIndex::iterator it = aoi.begin(); it != aoi.end(); it++, i++)
+        *it = ind_arr[i];
     }
-  }
 }
 
 
@@ -467,33 +471,34 @@ void nca_get_data_ArrayOfIndex(const int ncid, const String &name, ArrayOfIndex 
  
  \author Oliver Lemke
  */
-void nca_get_data_ArrayOfArrayOfSpeciesTag(const int ncid, const String &name,
-                                          ArrayOfArrayOfSpeciesTag &aast,
-                                          const bool noerror)
+void nca_get_data_ArrayOfArrayOfSpeciesTag(const int                 ncid,
+                                           const String&             name,
+                                           ArrayOfArrayOfSpeciesTag& aast,
+                                           const bool                noerror)
 {
   ArrayOfIndex species_count;
   nca_get_data_ArrayOfIndex(ncid, name+"_count", species_count, noerror);
   aast.resize(species_count.nelem());
   if (species_count.nelem())
-  {
-    Index species_strings_nelem = nc_get_dim (ncid, name+"_strings_nelem", noerror);
-    Index species_strings_length = nc_get_dim (ncid, name+"_strings_length", noerror);
-    char* species_strings = new char[species_strings_nelem*species_strings_length];
-    if (species_count.nelem()) nca_get_data_text(ncid, name+"_strings", species_strings);
-    
-    Index si = 0;
-    for(Index i=0; i < species_count.nelem(); i++)
     {
-      aast[i].resize(0);
-      for(Index j=0; j < species_count[i]; j++)
-      {
-        aast[i].push_back(SpeciesTag(&species_strings[si]));
-        si += species_strings_length;
-      }
-    }
+      Index species_strings_nelem = nc_get_dim(ncid, name+"_strings_nelem", noerror);
+      Index species_strings_length = nc_get_dim(ncid, name+"_strings_length", noerror);
+      char* species_strings = new char[species_strings_nelem*species_strings_length];
+      if (species_count.nelem()) nca_get_data_text(ncid, name+"_strings", species_strings);
+
+      Index si = 0;
+      for (Index i = 0; i < species_count.nelem(); i++)
+        {
+          aast[i].resize(0);
+          for (Index j = 0; j < species_count[i]; j++)
+            {
+              aast[i].push_back(SpeciesTag(&species_strings[si]));
+              si += species_strings_length;
+            }
+        }
     
-    delete [] species_strings;
-  }
+      delete[] species_strings;
+    }
 }
 
 
@@ -507,11 +512,11 @@ void nca_get_data_ArrayOfArrayOfSpeciesTag(const int ncid, const String &name,
  
  \author Oliver Lemke
  */
-void nca_get_data_Vector(const int ncid, const String &name, Vector &v, const bool noerror)
+void nca_get_data_Vector(const int ncid, const String& name, Vector& v, const bool noerror)
 {
-  Index nelem = nc_get_dim (ncid, name+"_nelem", noerror);
+  Index nelem = nc_get_dim(ncid, name+"_nelem", noerror);
   v.resize(nelem);
-  if (nelem) nca_get_data_double (ncid, name, v.get_c_array());
+  if (nelem) nca_get_data_double(ncid, name, v.get_c_array());
 }
 
 
@@ -525,12 +530,12 @@ void nca_get_data_Vector(const int ncid, const String &name, Vector &v, const bo
  
  \author Oliver Lemke
  */
-void nca_get_data_Matrix(const int ncid, const String &name, Matrix &m, const bool noerror)
+void nca_get_data_Matrix(const int ncid, const String& name, Matrix& m, const bool noerror)
 {
-  Index nrows = nc_get_dim (ncid, name+"_nrows", noerror);
-  Index ncols = nc_get_dim (ncid, name+"_ncols", noerror);
+  Index nrows = nc_get_dim(ncid, name+"_nrows", noerror);
+  Index ncols = nc_get_dim(ncid, name+"_ncols", noerror);
   m.resize(nrows, ncols);
-  if (nrows && ncols) nca_get_data_double (ncid, name, m.get_c_array());
+  if (nrows && ncols) nca_get_data_double(ncid, name, m.get_c_array());
 }
 
 
@@ -544,14 +549,14 @@ void nca_get_data_Matrix(const int ncid, const String &name, Matrix &m, const bo
  
  \author Oliver Lemke
  */
-void nca_get_data_Tensor4(const int ncid, const String &name, Tensor4 &t, const bool noerror)
+void nca_get_data_Tensor4(const int ncid, const String& name, Tensor4& t, const bool noerror)
 {
-  Index nbooks = nc_get_dim (ncid, name+"_nbooks", noerror);
-  Index npages = nc_get_dim (ncid, name+"_npages", noerror);
-  Index nrows = nc_get_dim (ncid, name+"_nrows", noerror);
-  Index ncols = nc_get_dim (ncid, name+"_ncols", noerror);
+  Index nbooks = nc_get_dim(ncid, name+"_nbooks", noerror);
+  Index npages = nc_get_dim(ncid, name+"_npages", noerror);
+  Index nrows = nc_get_dim(ncid, name+"_nrows", noerror);
+  Index ncols = nc_get_dim(ncid, name+"_ncols", noerror);
   t.resize(nbooks, npages, nrows, ncols);
-  if (nbooks && npages && nrows && ncols) nca_get_data_double (ncid, name, t.get_c_array());
+  if (nbooks && npages && nrows && ncols) nca_get_data_double(ncid, name, t.get_c_array());
 }
 
 
@@ -568,18 +573,18 @@ bool nca_put_var_ArrayOfIndex(const int ncid, const int varid, const ArrayOfInde
 {
   bool fail = true;
   if (a.nelem())
-  {
-    Index *ind_arr = new Index[a.nelem()];
-    for (Index i=0; i < a.nelem(); i++)
-      ind_arr[i] = a[i];
-    
-    int retval;
-    if ((retval = nc_put_var_long (ncid, varid, ind_arr)))
-      nca_error (retval, "nc_put_var");
-    
-    delete [] ind_arr;
-    fail = false;
-  }
+    {
+      Index* ind_arr = new Index[a.nelem()];
+      for (Index i = 0; i < a.nelem(); i++)
+        ind_arr[i] = a[i];
+
+      int retval;
+      if ((retval = nc_put_var_long(ncid, varid, ind_arr)))
+        nca_error(retval, "nc_put_var");
+
+      delete[] ind_arr;
+      fail = false;
+    }
   return fail;
 }
 
@@ -597,11 +602,11 @@ bool nca_put_var_Vector(const int ncid, const int varid, const Vector& v)
 {
   bool fail = true;
   if (v.nelem())
-  {
-    int retval;
-    if ((retval = nc_put_var_double (ncid, varid, v.get_c_array())))
-      nca_error (retval, "nc_put_var");
-  }
+    {
+      int retval;
+      if ((retval = nc_put_var_double(ncid, varid, v.get_c_array())))
+        nca_error(retval, "nc_put_var");
+    }
   return fail;
 }
 
@@ -619,11 +624,11 @@ bool nca_put_var_Matrix(const int ncid, const int varid, const Matrix& m)
 {
   bool fail = true;
   if (m.nrows() && m.ncols())
-  {
-    int retval;
-    if ((retval = nc_put_var_double (ncid, varid, m.get_c_array())))
-      nca_error (retval, "nc_put_var");
-  }
+    {
+      int retval;
+      if ((retval = nc_put_var_double(ncid, varid, m.get_c_array())))
+        nca_error(retval, "nc_put_var");
+    }
   return fail;
 }
 
@@ -641,11 +646,11 @@ bool nca_put_var_Tensor4(const int ncid, const int varid, const Tensor4& t)
 {
   bool fail = true;
   if (t.nbooks() && t.npages() && t.nrows() && t.ncols())
-  {
-    int retval;
-    if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
-      nca_error (retval, "nc_put_var");
-  }
+    {
+      int retval;
+      if ((retval = nc_put_var_double(ncid, varid, t.get_c_array())))
+        nca_error(retval, "nc_put_var");
+    }
   return fail;
 }
 
@@ -657,11 +662,11 @@ bool nca_put_var_Tensor4(const int ncid, const int varid, const Tensor4& t)
  \author Oliver Lemke
  */
 
-void nca_error (const int e, const String s)
+void nca_error(const int e, const String s)
 {
   ostringstream os;
   os << "NetCDF error: " << s << ", " << e;
-  throw runtime_error (os.str());
+  throw runtime_error(os.str());
 }
 
 
