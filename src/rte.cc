@@ -67,7 +67,7 @@ extern const Numeric RAD2DEG;
 
 //! adjust_los
 /*!
-    Ensures that the zenitha nd azimuth angles of a line-of-sight vector are
+    Ensures that the zenith and azimuth angles of a line-of-sight vector are
     inside defined ranges.
 
     This function should not be used blindly, just when you know that the

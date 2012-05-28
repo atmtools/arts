@@ -108,7 +108,7 @@ For further details, see the code.
 
 Example on workspace methods to calculate propagation path steps are
 \wsmindex{ppath\_stepGeometric} and
-\wsmindex{ppath\_stepRefractionEuler}. All such methods adapt
+\wsmindex{ppath\_stepRefractionBasic}. All such methods adapt
 automatically to the atmospheric dimensionality, but the different
 dimensionalities are handled by separate internal functions. For
 example, the sub-functions to \builtindoc{ppath\_stepGeometric} are
@@ -488,10 +488,10 @@ solution is to note that \Lat\ is limited to relatively small values. For
 example, if it shall be possible for the angular distance \Lat\ to reach the
 value of 3\degree, the vertical distance between $\aRds{p}$ and $\Rds$ must be
 about 8\,km. For angles $\Lat \leq 3\degree$, the sine and cosine terms can be
-replaced with the three first terms of their Taylor expansions maintaining a
-high accuracy. That is,
+replaced with the three first (non-constant) terms of their Taylor expansions
+maintaining a high accuracy. That is,
 \begin{eqnarray}
-  \cos \Lat & \approx & 1 - \Lat^2 / 2 + \Lat^4 / 24  \nonumber \\
+  \cos \Lat & \approx & 1 - \Lat^2 / 2 + \Lat^4 / 24 + \Lat^6 / 720 \nonumber\\
   \sin \Lat & \approx & \Lat - \Lat^3 / 6 + \Lat^5 / 120 \nonumber
 \end{eqnarray}
 Equation \ref{eq:ppath:psurf1} becomes with these replacements a
@@ -505,12 +505,13 @@ polynomial equation of order 6:
   p_3 & = & -\aRds{0}\cos(\Theta_p)/6   - c \sin(\Theta_p)/2 \nonumber \\ 
   p_4 & = &  \aRds{0}\sin(\Theta_p)/24  - c \cos(\Theta_p)/6  \nonumber \\
   p_5 & = &  \aRds{0}\cos(\Theta_p)/120 + c \sin(\Theta_p)/24  \nonumber \\
-  p_6 & = &                               c \cos(\Theta_p)/120  \nonumber 
+  p_6 & = & -\aRds{0}\sin(\Theta_p)/720 + c \cos(\Theta_p)/120  \nonumber 
   \label{eq:ppath:psurf2}
 \end{eqnarray}
 This equation is solved numerically with the root finding algorithm
 implemented in the function \funcindex{poly\_root\_solve}. Solutions of
-interest shall not be imaginary. 
+interest shall not be imaginary. Several issues associated with numerical
+accuracy must be considered, see the code for details.
 
 \begin{figure}
  \begin{center}
@@ -542,7 +543,6 @@ direction) that is of interest (Figure \ref{fig:ppath:ex3}).
 \subsection{3D}
 %===================
 \label{sec:ppath:3Dgeom}
-
 \subsubsection{Conversion between polar and Cartesian coordinates}
 %-
 \label{sec:ppath:cart2sph}
@@ -726,8 +726,7 @@ solution ($\tan(90\degree)=\infty$), and is instead assumed to be picked up as
 a crossing with one of the two longitudes defining the grid box. Another
 complication is that, as the $\tan$-term is squared, both $\pm\Lat$ can show up
 as possible solutions, and it must be tested that the found length gives a
-\Lat\ with the correct sign.\footnote{This function is presently not used. The
-  implementation is found in \texttt{ppath\_NotUsed.cc}.}
+\Lat\ with the correct sign.
 
 For a given longitude, the x- and y-equations can be combined to give:
 \begin{equation}
@@ -735,99 +734,91 @@ For a given longitude, the x- and y-equations can be combined to give:
 \end{equation}
 This case is handled by \funcindex{lon\_crossing\_3d}. If the zenith or azimuth
 angle equals 0\degree\ or 180\degree, or if the start and target longitudes are
-equal, there is no valid solution.\footnote{Same as in prevoius footnote.}
+equal, there is no valid solution.
 
 
 
-\subsubsection{A first 3D algorithm}
-%-
-\label{sec:ppath:3dgeom}
+% \subsubsection{A first 3D algorithm}
+% %-
+% \label{sec:ppath:3dgeom}
 
-\begin{figure}
- \begin{center}
-  \includegraphics*[width=0.80\hsize]{ppath_3Dsearch}
-  \caption{Schematic of Algorithm \ref{alg:ppath:dogridcell3d}. The
-    figure shows two iterations of the algorithm to search for the
-    total length of the path step. The asterisk $(\ast)$ gives the
-    start point for the calculations and the circles $(\circ)$ are the
-    final end points of the path step. The plus signs $(+)$ shows the
-    position of the different lengths tested during the iterations.}
-  \label{fig:ppath:3Dsearch}  
- \end{center}
-\end{figure}
-% This figure was produced by the Matlab function mkfigs_ppath
+% \begin{figure}
+%  \begin{center}
+%   \includegraphics*[width=0.80\hsize]{ppath_3Dsearch}
+%   \caption{Schematic of Algorithm \ref{alg:ppath:dogridcell3d}. The
+%     figure shows two iterations of the algorithm to search for the
+%     total length of the path step. The asterisk $(\ast)$ gives the
+%     start point for the calculations and the circles $(\circ)$ are the
+%     final end points of the path step. The plus signs $(+)$ shows the
+%     position of the different lengths tested during the iterations.}
+%   \label{fig:ppath:3Dsearch}  
+%  \end{center}
+% \end{figure}
+% % This figure was produced by the Matlab function mkfigs_ppath
 
-It was first tested to use the analytical expressions above to calculate the
-length between a point and the crossing of some radius, latitude or longitude.
-However, the expressions include the trigonometric functions and the
-squaring of radii, which results in a high sensitivity to numerical
-inaccuracy. A second, less advanced, algorithm was then implemented and tested,
-that is described below. It turned out that the two algorithms gave similar
-calculation speed for non-spherical cases and the second, more stable,
-algorithm was the selected.
 
-\begin{algorithm}
- \begin{algorithmic}
-  \STATE{calculate the spherical position $(x_0,y_0,z_0)$ and LOS vector 
-         $(\DiffD x,\DiffD y,\DiffD z)$}
-  \STATE{calculate $(\Rds_c,\Lat_c,\Lon_c)=S(x_0,y_0,z_0)-(\Rds_0,\Lat_0,\Lon_0)$, the position correction term}
-  \STATE{set $l_{in} = 0$} 
-  \STATE{set $l_{out}$ to a start value}
-  \IF{LOS is downwards}
-   \STATE{calculate length to the tangent point, $l_{tan}$}
-  \ELSE
-   \STATE{set $l_{tan} = 99\topowerten{6}$ m}
-  \ENDIF
-  \WHILE{$S(x_0+l_{out}\DiffD x,y_0+l_{out}\DiffD y,z_0+l_{out}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$ is inside grid cell}
-   \IF{$l_{out}<l_{tan}$ and $10l_{out}>l_{tan}$}
-    \STATE{$l_{out} = l_{tan}$}
-    \COMMENT{to assure that tangent point is included in search}
-   \ELSE
-    \STATE{$l_{out} \gets 10 * l_{out}$ }
-   \ENDIF
-  \ENDWHILE
-  \STATE{set $l_{end} = (l_{in}+l_{out})/2$}
-  \STATE{set accuracy flag to false}
-  \WHILE{accuracy flag is false}
-   \STATE{calculate $(\Rds,\Lat,\Lon)=S(x_0+l_{end}\DiffD x,y_0+l_{end}\DiffD y,z_0+l_{end}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$}
-   \IF{$(\Rds,\Lat,\Lon)$ is inside grid cell}
-    \STATE{$l_{in} = l_{end}$}
-   \ELSE
-    \STATE{$l_{out} = l_{end}$}
-   \ENDIF
-   \IF{$(l_{out}-l_{in})$ smaller than specified accuracy}
-    \STATE{set accuracy flag to true}
-   \ELSE
-    \STATE{$l_{end} = (l_{in}+l_{out})/2$}
-   \ENDIF
-  \ENDWHILE
-  \STATE{$(\Rds,\Lat,\Lon)\gets(\Rds,\Lat,\Lon)+(\Rds_c,\Lat_c,\Lon_c)$}
- \end{algorithmic}
- \caption{The method applied in \shortcode{do\_gridcell\_3d} to find the 
-          total length of the path step to be calculated.
-          The symbol $S$ signifies here conversion from Cartesian to
-          spherical coordinates (Equation \ref{eq:ppath:cart2sph}).}
- \label{alg:ppath:dogridcell3d}
-\end{algorithm}
+% \begin{algorithm}
+%  \begin{algorithmic}
+%   \STATE{calculate the spherical position $(x_0,y_0,z_0)$ and LOS vector 
+%          $(\DiffD x,\DiffD y,\DiffD z)$}
+%   \STATE{calculate $(\Rds_c,\Lat_c,\Lon_c)=S(x_0,y_0,z_0)-(\Rds_0,\Lat_0,\Lon_0)$, the position correction term}
+%   \STATE{set $l_{in} = 0$} 
+%   \STATE{set $l_{out}$ to a start value}
+%   \IF{LOS is downwards}
+%    \STATE{calculate length to the tangent point, $l_{tan}$}
+%   \ELSE
+%    \STATE{set $l_{tan} = 99\topowerten{6}$ m}
+%   \ENDIF
+%   \WHILE{$S(x_0+l_{out}\DiffD x,y_0+l_{out}\DiffD y,z_0+l_{out}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$ is inside grid cell}
+%    \IF{$l_{out}<l_{tan}$ and $10l_{out}>l_{tan}$}
+%     \STATE{$l_{out} = l_{tan}$}
+%     \COMMENT{to assure that tangent point is included in search}
+%    \ELSE
+%     \STATE{$l_{out} \gets 10 * l_{out}$ }
+%    \ENDIF
+%   \ENDWHILE
+%   \STATE{set $l_{end} = (l_{in}+l_{out})/2$}
+%   \STATE{set accuracy flag to false}
+%   \WHILE{accuracy flag is false}
+%    \STATE{calculate $(\Rds,\Lat,\Lon)=S(x_0+l_{end}\DiffD x,y_0+l_{end}\DiffD y,z_0+l_{end}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$}
+%    \IF{$(\Rds,\Lat,\Lon)$ is inside grid cell}
+%     \STATE{$l_{in} = l_{end}$}
+%    \ELSE
+%     \STATE{$l_{out} = l_{end}$}
+%    \ENDIF
+%    \IF{$(l_{out}-l_{in})$ smaller than specified accuracy}
+%     \STATE{set accuracy flag to true}
+%    \ELSE
+%     \STATE{$l_{end} = (l_{in}+l_{out})/2$}
+%    \ENDIF
+%   \ENDWHILE
+%   \STATE{$(\Rds,\Lat,\Lon)\gets(\Rds,\Lat,\Lon)+(\Rds_c,\Lat_c,\Lon_c)$}
+%  \end{algorithmic}
+%  \caption{The method applied in \shortcode{do\_gridcell\_3d} to find the 
+%           total length of the path step to be calculated.
+%           The symbol $S$ signifies here conversion from Cartesian to
+%           spherical coordinates (Equation \ref{eq:ppath:cart2sph}).}
+%  \label{alg:ppath:dogridcell3d}
+% \end{algorithm}
 
-Geometrical 3D propagation path steps are determined by the function
-\funcindex{do\_gridcell\_3d\_byltest}. It applies a straightforward
-``length-search'' algorithm (Algorithm
-\ref{alg:ppath:dogridcell3d} and Figure \ref{fig:ppath:3Dsearch}). The main
-advantage of the algorithm is that a correction for the shift in position
-caused by the transformations back and fourth to a Cartesian coordinate system
-can be applied. The correction term assures that the position is not changed
-for a step of zero length, and is not moved outside the grid cell due to the
-numerical problems. The algorithm was further found to be sufficiently fast to
-be accepted. A simple bisection search to find the length of the propagation
-path step is used. Both the position and the line-of-sight for the other end
-point of the path step are calculated using a transformation to Cartesian
-coordinates.
+% Geometrical 3D propagation path steps are determined by the function
+% \funcindex{do\_gridcell\_3d\_byltest}. It applies a straightforward
+% ``length-search'' algorithm (Algorithm
+% \ref{alg:ppath:dogridcell3d} and Figure \ref{fig:ppath:3Dsearch}). The main
+% advantage of the algorithm is that a correction for the shift in position
+% caused by the transformations back and fourth to a Cartesian coordinate system
+% can be applied. The correction term assures that the position is not changed
+% for a step of zero length, and is not moved outside the grid cell due to the
+% numerical problems. The algorithm was further found to be sufficiently fast to
+% be accepted. A simple bisection search to find the length of the propagation
+% path step is used. Both the position and the line-of-sight for the other end
+% point of the path step are calculated using a transformation to Cartesian
+% coordinates.
 
 
 
 
-\section{Refraction with simple Euler scheme}
+\section{Basic treatment of refraction}
 %===================
 \label{sec:ppath:refreuler}
 
@@ -856,8 +847,7 @@ importance but for 2D and 3D calculations this effect must be
 considered. For limb sounding and a fixed zenith angle, the tangent
 point is moved downwards compared to the pure geometrical case
 (Figure \ref{fig:ppath:ppath_refr1}), resulting in that inclusion of
-refraction in general gives higher intensities. However, the
-propagation path is still symmetric around tangent points.
+refraction in general gives higher intensities. 
 
 The refraction causes a bending of the path, which gives a deviation
 from the geometrical approximation of propagation along a straight
@@ -875,35 +865,30 @@ perpendicular to the path. See further Section 9.4 in
 \begin{figure}[tb!]
  \begin{center}
   \includegraphics*{euler}
-  \caption{Schematic of the Euler ray tracing scheme. The ray tracing step 
+  \caption{Schematic of the ``basic'' ray tracing scheme. The ray tracing step 
     length is $l_r$. }
   \label{fig:ppath:euler}  
  \end{center}
 \end{figure}
 
-The workspace method \wsmindex{ppath\_stepRefractionEuler} takes
+The workspace method \wsmindex{ppath\_stepRefractionBasic} takes
 refraction into consideration by probably the most simple (from the
-viewpoint of implementation) algorithm possible. This does not mean
-that it is the best way to consider refraction, it is rather
-inefficient regarding computational burden.
+viewpoint of implementation) algorithm possible. 
 
-The approach taken in \builtindoc{ppath\_stepRefractionEuler} is to
-take a geometrical ray tracing step from the present point of the path
-(and in the direction of present line-of-sight). Refraction is
-considered only when the line-of-sight at the new point is determined
-(Figure \ref{fig:ppath:euler}). The found line-of-sight is used to
-calculate the next ray tracing step etc. This can be seen as an Euler
-solution to the differential problem given by
-Equation \ref{eq:ppath:refrbend}. The main difference between handling
-1D, 2D or 3D cases is how the line-of-sight for the new point is
-corrected to compensate for the bending due to refraction. The
-calculation of propagation paths including the effect of refraction is
+The approach taken in \builtindoc{ppath\_stepRefractionBasic} is to take a
+geometrical ray tracing step from the present point of the path (and in the
+direction of present line-of-sight). Refraction is considered only when the
+line-of-sight at the new point is determined (Figure \ref{fig:ppath:euler}).
+The found line-of-sight is used to calculate the next ray tracing step etc. The
+main difference between handling 1D, 2D or 3D cases is how the line-of-sight
+for the new point is corrected to compensate for the bending due to refraction.
+The calculation of propagation paths including the effect of refraction is
 often denoted as \textindex{ray tracing}.
 
 The length of the calculation steps is set by the generic input
 \shortcode{lraytrace}. This length shall not be confused with the
 final distance between the points that define the path, which is
-controlled by the generic input \shortcode{lmax}. The path is first
+controlled by \shortcode{lmax}. The path is first
 determined in steps of \shortcode{lraytrace}. The normal situation
 is that the ray tracing step length is considerably shorter than the
 final spacing between the path points. Suitable values for
@@ -958,7 +943,7 @@ atmosphere (that is, 1D cases) is derived
   p_c = \aRds{i} n_i \sin(\aZntAng{i}) = \aRds{i+1} n_{i+1}\sin(\aZntAng{i+1}) 
  \label{eq:ppath:snellspherical}
 \end{equation}
-where $c$ is a constant. With other words, the Snell's law for
+where $p_c$ is a constant. With other words, the Snell's law for
 spherical atmospheres states that the product of $n$, \Rds\ and
 $\sin(\ZntAng)$ is constant along the propagation path. It is
 noteworthy that with $n=1$, Equations \ref{eq:ppath:geomconst} and

@@ -184,6 +184,6 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 AgendaSet( ppath_step_agenda ){
   ppath_stepRefractionBasic
 }
-#ForLoop( forloop_agenda, 0, ilast, 1  )
+ForLoop( forloop_agenda, 0, ilast, 1  )
 
 }

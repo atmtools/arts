@@ -57,6 +57,7 @@
 #include "poly_roots.h"
 #include "ppath.h"
 #include "refraction.h"
+#include "rte.h"
 #include "special_interp.h"
 
 extern const Numeric DEG2RAD;
@@ -1129,92 +1130,100 @@ void plevel_crossing_2d(
   assert( absza <= 180 );
   assert( lat_start >=lat1  &&  lat_start <= lat3 );
 
-  const Numeric rmin = min( r1, r3 );
-  const Numeric rmax = max( r1, r3 );
-
-  // The case of negligible slope
-  if( rmax-rmin < 1e-6 )
+  // Zenith case
+  if( absza < ANGTOL )
     {
-      // Set r_start and r, considering impact of numerical problems
-      Numeric r_start = r_start0;
-              r       = r1;
       if( above )
-        { if( r_start < rmax ) { r_start = r = rmax; } }
+        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
       else
-        { if( r_start > rmin ) { r_start = r = rmin; } }
-
-      r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
-
-      // Check if inside [lat1,lat3]
-      if( lat > lat3  ||  lat < lat1 )
-        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+        {
+          lat = lat_start;
+          r   = rsurf_at_lat( lat1, lat3, r1, r3, lat );
+          l   = max( 1e-9, r - r_start0 ); // Max to ensure a small positive
+        }                                  // step, to handle numerical issues
     }
 
-  // With slope
+  // Nadir case
+  else if( absza > 180-ANGTOL )
+    {
+      if( above )
+        {
+          lat = lat_start;
+          r   = rsurf_at_lat( lat1, lat3, r1, r3, lat );
+          l   = max( 1e-9, r_start0 - r ); // As above
+        }  
+      else
+        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
+    }
+
+  // The general case
   else
     {
-      // Set r_start, considering impact of numerical problems
-      Numeric r_start = r_start0;
-      if( above )
-        { if( r_start < rmin ) { r_start = rmin; } }
-      else
-        { if( r_start > rmax ) { r_start = rmax; } }
+      const Numeric rmin = min( r1, r3 );
+      const Numeric rmax = max( r1, r3 );
 
-      Numeric za=999;
-
-      // Calculate crossing with closest radius
-      if( r_start > rmax )
+      // The case of negligible slope
+      if( rmax-rmin < 1e-6 )
         {
-          r = rmax;
-          r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
-        }
-      else if( r_start < rmin )
-        {
-          r = rmin;      
-          r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
-        }
-      else
-        { r = r_start; lat = lat_start; l = 0; za = za_start; }
-  
-      // lat must be inside [lat1,lat3] if relevant to continue
-      if( lat < lat1  ||  lat > lat3 )
-        { r = R_NOT_FOUND; }   // lat already set by r_crossing_2d
-
-      // Otherwise continue from found point, considering the level slope 
-      else
-        {
-          // Level slope and radius at lat
-          Numeric  cpl;
-          plevel_slope_2d( cpl, lat1, lat3, r1, r3 );
-          const Numeric  rpl = r1 + cpl*(lat-lat1);
-
-          // Make adjustment if numerical problems
+          // Set r_start and r, considering impact of numerical problems
+          Numeric r_start = r_start0;
+                  r       = r1;
           if( above )
-            { if( r < rpl ) { r = rpl; } }
+            { if( r_start < rmax ) { r_start = r = rmax; } }
           else
-            { if( r > rpl ) { r = rpl; } }
-
-          // za_start = 0
-          if( absza < ANGTOL )
-            {
-              if( r >= rpl )
-                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
-              else
-                { r = rpl;   lat = lat_start;   l = rpl - r_start; }
-            }
-
-          // za_start = 180
-          else if( absza > 180-ANGTOL )
-            {
-              if( r <= rpl )
-                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   l = L_NOT_FOUND; }
-              else
-                { r = rpl;   lat = lat_start;   l = r_start - rpl; }
-            }
+            { if( r_start > rmin ) { r_start = r = rmin; } }
           
-          // Not nadir or zenith
+          r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
+          
+          // Check if inside [lat1,lat3]
+          if( lat > lat3  ||  lat < lat1 )
+            { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; }  
+        }
+
+      // With slope
+      else
+        {
+          // Set r_start, considering impact of numerical problems
+          Numeric r_start = r_start0;
+          if( above )
+            { if( r_start < rmin ) { r_start = rmin; } }
+          else
+            { if( r_start > rmax ) { r_start = rmax; } }
+
+          Numeric za=999;
+
+          // Calculate crossing with closest radius
+          if( r_start > rmax )
+            {
+              r = rmax;
+              r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
+            }
+          else if( r_start < rmin )
+            {
+              r = rmin;      
+              r_crossing_2d( lat, l, r, r_start, lat_start, za_start, ppc );
+            }
+          else
+            { r = r_start; lat = lat_start; l = 0; za = za_start; }
+  
+          // lat must be inside [lat1,lat3] if relevant to continue
+          if( lat < lat1  ||  lat > lat3 )
+            { r = R_NOT_FOUND; }   // lat already set by r_crossing_2d
+
+          // Otherwise continue from found point, considering the level slope 
           else
             {
+              // Level slope and radius at lat
+              Numeric  cpl;
+              plevel_slope_2d( cpl, lat1, lat3, r1, r3 );
+              const Numeric  rpl = r1 + cpl*(lat-lat1);
+
+              // Make adjustment if numerical problems
+              if( above )
+                { if( r < rpl ) { r = rpl; } }
+              else
+                { if( r > rpl ) { r = rpl; } }
+
               // Calculate zenith angle at (r,lat) (if <180, already set above)
               if( za > 180 )  // lat+za preserved (also with negative za)
                 { za = lat_start + za_start - lat; };
@@ -1315,17 +1324,13 @@ Numeric rsurf_at_latlon(
 /*!
    Calculates the radial slope of the surface or a pressure level for 3D.
 
-   For 2D where the radius can be expressed as r = r0 + c1*dalpha, where alpha
+   For 2D the radius can be expressed as r = r0 + c1*dalpha, where alpha
    is the latitude. The radius is here for 3D expressed as a second order
    polynomial: r = r0 + c1*dalpha + c2*dalpha^2, where alpha is the angular
    change (in degrees) along the great circle along the given azimuth angle.
 
-   For a point exactly on a grid value it is not clear if it is the
-   range below or above that is of interest. The azimuth angle is used
-   to resolve such cases.
-
-   \param   c1             Out: See above. Unit is m/degree.
-   \param   c2             Out: See above. Unit is m/degree^2.
+   \param   c1     Out: See above. Unit is m/degree.
+   \param   c2     Out: See above. Unit is m/degree^2.
    \param   lat1   Lower latitude of grid cell.
    \param   lat3   Upper latitude of grid cell.
    \param   lon5   Lower longitude of grid cell.
@@ -1484,51 +1489,72 @@ Numeric rslope_crossing3d(
               Numeric   c1,
               Numeric   c2 )
 {
-  assert( c1 != 0 );
-  
   // poly_root_solve does not handle the case of c2=0
   if( c2 == 0 )
     { return rslope_crossing2d( rp, za, r0, c1 ); }
 
   else
     {
-      // If r0=rp, numerical inaccuracy can give a false solution, very close
-      // to 0, that we must throw away.
-      Numeric   dmin = 0;
-      if( r0 == rp )
-        { dmin = 1e-12; }
-
+      // Convert c1 and c2 from degrees to radians
+      c1 *= RAD2DEG;
+      c2 *= RAD2DEG*RAD2DEG;
+      
       // The nadir angle in radians, and cosine and sine of that angle
       const Numeric   beta = DEG2RAD * ( 180 - za );
       const Numeric   cv = cos( beta );
       const Numeric   sv = sin( beta );
       
-      // Convert c1 and c2 from degrees to radians
-      c1 *= RAD2DEG;
-      c2 *= RAD2DEG*RAD2DEG;
-      
       // Some repeated terms
       const Numeric r0s = r0*sv;
       const Numeric r0c = r0*cv;
-      const Numeric c1s  = c1*sv;
-      const Numeric c1c  = c1*cv;
-      const Numeric c2s  = c2*sv;
-      const Numeric c2c  = c2*cv;
+      const Numeric c1s = c1*sv;
+      const Numeric c1c = c1*cv;
+      const Numeric c2s = c2*sv;
+      const Numeric c2c = c2*cv;
       
       // The vector of polynomial coefficients
-      const Index n = 5;
-      Vector p(n+1);
       //
-      p[0] = r0s - rp*sv;
-      p[1] = r0c + c1s;
-      p[2] = -r0s/2 + c1c +c2s;
-      p[3] = -r0c/6 - c1s/2 + c2c;
-      p[4] = -c1c/6 - c2s/2;
-      p[5] = -c2c/6;
-
+      Index n = 6;
+      Vector p0(n+1);
+      //
+      p0[0] =  r0s     - rp*sv;
+      p0[1] =  r0c     + c1s;  
+      p0[2] = -r0s/2   + c1c     + c2s;
+      p0[3] = -r0c/6   - c1s/2   + c2c;
+      p0[4] =  r0s/24  - c1c/6   - c2s/2;
+      p0[5] =  r0c/120 + c1s/24  - c2c/6;
+      p0[6] = -r0s/720 + c1c/120 + c2s/24;
+      //
+      // The accuracy when solving the polynomial equation gets worse when
+      // approaching 0 and 180 deg. The solution is to let the start polynomial
+      // order decrease when approaching these angles. The values below based
+      // on practical experience, don't change without making extremly careful
+      // tests.
+      //
+      if( abs( 90 - za ) > 89.9 )
+        { n = 1; }
+      else if( abs( 90 - za ) > 75 )
+        { n = 4; }
+      
       // Calculate roots of the polynomial
-      Matrix roots(n,2);
-      poly_root_solve( roots, p );
+      Matrix roots;
+      int solutionfailure = 1;
+      //
+      while( solutionfailure)
+        {
+          roots.resize(n,2);
+          Vector p;
+          p = p0[Range(0,n+1)];
+          solutionfailure = poly_root_solve( roots, p );
+          if( solutionfailure )
+            { n -= 1; assert( n > 0 ); }
+        }
+
+      // If r0=rp, numerical inaccuracy can give a false solution, very close
+      // to 0, that we must throw away.
+      Numeric   dmin = 0;
+      if( r0 == rp )
+        { dmin = 1e-12; }
       
       // Find the smallest root with imaginary part = 0, and real part > 0.
       //
@@ -1741,7 +1767,7 @@ void lat_crossing_3d(
           // If both l1 and l2 are > 0, we want theoretically the smallest
           // value. However, with lat=lat0 the "zero solution" can deviate
           // slightly from zero due to numerical issues, and it is not just to
-          // pick the smallest positive value. As a solution, don't except a
+          // pick the smallest positive value. As a solution, don't accept a
           // final l below 1e-6 if not both l1 and l2 are inside [0,1e-6].
           const Numeric lmin = min( l1, l2 );
           const Numeric lmax = max( l1, l2 );
@@ -1905,93 +1931,106 @@ void plevel_crossing_3d(
   assert( lat_start >=lat1  &&  lat_start <= lat3 );
   assert( lon_start >=lon5  &&  lon_start <= lon6 );
 
-  const Numeric rmin = min( r15, min( r35, min( r36, r16 ) ) );
-  const Numeric rmax = max( r15, max( r35, max( r36, r16 ) ) );
-
-  // The case of negligible slope
-  if( rmax-rmin < RTOL/10 )
+  // Zenith case
+  if( za_start < ANGTOL )
     {
-      // Set r_start, considering impact of numerical problems
-      Numeric r_start = r_start0;
-              r       = r15;
       if( above )
-        { if( r_start < rmax ) { r_start = r = rmax; } }
+        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; 
+          l = L_NOT_FOUND;  lon = LON_NOT_FOUND; } 
       else
-        { if( r_start > rmin ) { r_start = r = rmin; } }
-
-      r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
-                     za_start, ppc, x, y, z, dx, dy, dz );
-
-      // Check if inside [lat1,lat3]
-      if( lat > lat3  ||  lat < lat1  || lon > lon6  ||  lon < lon5 )
-        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND; }  
+        {
+          lat = lat_start;
+          lon = lon_start;
+          r   = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15, r35, r36, r16,
+                                                                    lat, lon );
+          l   = max( 1e-9, r - r_start0 ); // Max to ensure a small positive
+        }                                  // step, to handle numerical issues
     }
 
-  // With slope
+  // Nadir case
+  else if( za_start > 180-ANGTOL )
+    {
+      if( above )
+        {
+          lat = lat_start;
+          lon = lon_start;
+          r   = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15, r35, r36, r16,
+                                                                    lat, lon );
+          l   = max( 1e-9, r_start0 - r ); // As above
+        }  
+      else
+        { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND; 
+          l = L_NOT_FOUND;  lon = LON_NOT_FOUND; } 
+    }
+
+  // The general case
   else
     {
-      // Set r_start, considering impact of numerical problems
-      Numeric r_start = r_start0;
-      if( above )
-        { if( r_start < rmin ) { r_start = rmin; } }
-      else
-        { if( r_start > rmax ) { r_start = rmax; } }
+      const Numeric rmin = min( r15, min( r35, min( r36, r16 ) ) );
+      const Numeric rmax = max( r15, max( r35, max( r36, r16 ) ) );
 
-      // Calculate crossing with closest radius
-      if( r_start > rmax )
+      // The case of negligible slope
+      if( rmax-rmin < RTOL/10 )
         {
-          r = rmax;
+          // Set r_start, considering impact of numerical problems
+          Numeric r_start = r_start0;
+                  r       = r15;
+          if( above )
+            { if( r_start < rmax ) { r_start = r = rmax; } }
+          else
+            { if( r_start > rmin ) { r_start = r = rmin; } }
+
           r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
                          za_start, ppc, x, y, z, dx, dy, dz );
+
+          // Check if inside [lat1,lat3]
+          if( lat > lat3  ||  lat < lat1  || lon > lon6  ||  lon < lon5 )
+            { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   lon = LON_NOT_FOUND; }  
         }
-      else if( r_start < rmin )
-        {
-          r = rmin;      
-          r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
-                         za_start, ppc, x, y, z, dx, dy, dz );
-        }
+
+      // With slope
       else
-        { r = r_start; lat = lat_start; lon = lon_start; l = 0; }
+        {
+          // Set r_start, considering impact of numerical problems
+          Numeric r_start = r_start0;
+          if( above )
+            { if( r_start < rmin ) { r_start = rmin; } }
+          else
+            { if( r_start > rmax ) { r_start = rmax; } }
+
+          // Calculate crossing with closest radius
+          if( r_start > rmax )
+            {
+              r = rmax;
+              r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
+                             za_start, ppc, x, y, z, dx, dy, dz );
+            }
+          else if( r_start < rmin )
+            {
+              r = rmin;      
+              r_crossing_3d( lat, lon, l, r, r_start, lat_start, lon_start,
+                             za_start, ppc, x, y, z, dx, dy, dz );
+            }
+          else
+            { r = r_start; lat = lat_start; lon = lon_start; l = 0; }
   
-      // lat/lon must be inside [lat1,lat3]/[lon5,lon6]] if relevant to continue
-      if( lat < lat1  ||  lat > lat3  ||  lon < lon5  ||  lon > lon6 )
-        { r = R_NOT_FOUND; }   // lat and lon already set by r_crossing_3d
+          // lat/lon must be inside if relevant to continue
+          if( lat < lat1  ||  lat > lat3  ||  lon < lon5  ||  lon > lon6 )
+            { r = R_NOT_FOUND; }   // lat and lon already set by r_crossing_3d
 
-      // Otherwise continue from found point, considering the level slope 
-      else
-        {
-          // Level radius at lat/lon
-          const Numeric  rpl = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+          // Otherwise continue from found point, considering the level slope 
+          else
+            {
+              // Level radius at lat/lon
+              const Numeric  rpl = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                                 r15, r35, r36, r16, lat, lon );
           
-          // Make adjustment if numerical problems
-          if( above )
-            { if( r < rpl ) { r = rpl; } }
-          else
-            { if( r > rpl ) { r = rpl; } }
-
-          // za_start = 0
-          if( za_start < ANGTOL )
-            {
-              if( r >= rpl )
-                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   
-                  l = L_NOT_FOUND;  lon = LON_NOT_FOUND; }
+              // Make adjustment if numerical problems
+              if( above )
+                { if( r < rpl ) { r = rpl; } }
               else
-                { r = rpl; lat = lat_start; lon = lon_start; l = rpl-r_start; }
-            }
+                { if( r > rpl ) { r = rpl; } }
 
-          // za_start = 180
-          else if( za_start > 180-ANGTOL )
-            {
-              if( r <= rpl )
-                { r = R_NOT_FOUND;  lat = LAT_NOT_FOUND;   
-                  l = L_NOT_FOUND;  lon = LON_NOT_FOUND; }
-              else
-                { r = rpl; lat = lat_start; lon = lon_start; l = r_start-rpl; }
-            }
-
-          else
-            {
               // Azimuth angle:
               Numeric d1, d2, d3, za, aa;
               if( l == 0 )
@@ -2029,8 +2068,7 @@ void plevel_crossing_3d(
                 {
                   r = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                                 r15, r35, r36, r16, lat, lon );
-                  l = abs( geompath_l_at_r( ppc, r_start ) -
-                           geompath_l_at_r( ppc, r ) );
+                  distance3D( l, r_start, lat_start, lon_start, r, lat, lon );
                 }
             }          
         }
@@ -3828,69 +3866,54 @@ void do_gridcell_3d_new(
         { endface = 7;   r = rt;   lat = latt;   lon = lont;   l = lt; }
     }
 
-  // If crossing found (r>0) we are ready!
-  // (plevel_crossing_3d checks if crossing is inside grid box)
 
   // Upper pressure level
-  if( r <= 0 )
-    {
-      plevel_crossing_3d( r, lat, lon, l, r_start, lat_start, lon_start, 
+  {
+    Numeric rt, latt, lont, lt;     
+    plevel_crossing_3d( rt, latt, lont, lt, r_start, lat_start, lon_start, 
                           za_start, aa_start, x, y, z, dx, dy, dz, ppc, 
                           lat1, lat3, lon5, lon6, r15b, r35b, r36b, r16b, 
-                          false );
-      if( r > 0 )
-        { endface = 4; }
-    }
-  
-  // Latitude and longitude endfaces
-  if( r <= 0 )
+                          false ); 
+    if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+      { endface = 4;   r = rt;   lat = latt;   lon = lont;   l = lt; }
+  }
+
+  // Latitude 1
+  {
+    Numeric rt, lont, lt;     
+    lat_crossing_3d( rt, lont, lt, lat1, lat_start, za_start,
+                                                         x, y, z, dx, dy, dz );
+    if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+      { endface = 1;   r = rt;   lat = lat1;   lon = lont;   l = lt; }
+  }
+
+  // Latitude 3
+  {
+    Numeric rt, lont, lt;     
+    lat_crossing_3d( rt, lont, lt, lat3, lat_start, za_start,
+                                                         x, y, z, dx, dy, dz );
+    if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+      { endface = 3;   r = rt;   lat = lat3;   lon = lont;   l = lt; }
+  }
+
+  // Longitude 5 (only done if solution is lacking)
+  if( !( r>0 && lat>=lat1 && lat<=lat3 && lon>=lon5 && lon<=lon6 ) )
     {
-      // Here we test both sides blindly and takes shortest l as solution:
+      Numeric rt, latt, lt;     
+      lon_crossing_3d( rt, latt, lt, lon5, lon_start, za_start, aa_start,
+                                                         x, y, z, dx, dy, dz );
+      if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+        { endface = 5;   r = rt;   lat = latt;   lon = lon5;   l = lt; }
+    }
 
-      // Latitude
-      Numeric rlat, latlat = lat1, lonlat, llat;
-      Index   eflat = 1;
-      //
-      lat_crossing_3d( rlat, lonlat, llat, lat1, lat_start, za_start,
+  // Longitude 6 (only done if solution is lacking)
+  if( !( r>0 && lat>=lat1 && lat<=lat3 && lon>=lon5 && lon<=lon6 ) )
+    {
+      Numeric rt, latt, lt;     
+      lon_crossing_3d( rt, latt, lt, lon6, lat_start, za_start, aa_start,
                                                          x, y, z, dx, dy, dz );
-      {
-        Numeric rlat3, lonlat3, llat3;
-        lat_crossing_3d( rlat3, lonlat3, llat3, lat3, lat_start, za_start,
-                                                         x, y, z, dx, dy, dz );
-        if( rlat3 > 0  &&  llat3 < llat )
-          { 
-            eflat = 3; 
-            rlat = rlat3; latlat = lat3; lonlat = lonlat3; llat = llat3; 
-          }
-      }
- 
-      // Longitude
-      Numeric rlon, latlon, lonlon = lon5, llon;
-      Index   eflon = 5;
-      //
-      lon_crossing_3d( rlon, latlon, llon, lon5, lon_start, za_start, aa_start, 
-                                                         x, y, z, dx, dy, dz );
-      //      
-      {
-        Numeric rlon6, latlon6, llon6;
-        lon_crossing_3d( rlon6, latlon6, llon6, lon6, lon_start, za_start, 
-                                               aa_start, x, y, z, dx, dy, dz );
-        if( rlon6 > 0  &&  llon6 < llon )
-          { 
-            eflon = 6; 
-            rlon = rlon6; latlon = latlon6; lonlon = lon6; llon = llon6; 
-          }        
-      }
-
-      // Pick out solution with shortest l
-      if( llat < llon )
-        { r = rlat; lat = latlat; lon = lonlat; l = llat; endface = eflat; }
-      else
-        { r = rlon; lat = latlon; lon = lonlon; l = llon; endface = eflon; }
-      assert( lat >= lat1 );
-      assert( lat <= lat3 );
-      assert( lon >= lon5 );
-      assert( lon <= lon6 );
+      if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+        { endface = 6;   r = rt;   lat = latt;   lon = lon6;   l = lt; }
     }
 
   assert( endface );
@@ -4838,50 +4861,43 @@ void raytrace_3d_linear_basic(
                          edensity_field, f_index, r, lat, lon );
 
       // Calculate LOS zenith angle at found point.
-      const Numeric   aterm = RAD2DEG * lstep / refr_index;
+      const Numeric   aterm  = RAD2DEG * lstep / refr_index;
       const Numeric   za_rad = DEG2RAD * za;
       const Numeric   aa_rad = DEG2RAD * aa;
-      const Numeric   sinza = sin( za_rad );
-      const Numeric   sinaa = sin( aa_rad );
-      const Numeric   cosaa = cos( aa_rad );
-          
+      const Numeric   sinza  = sin( za_rad );
+      const Numeric   sinaa  = sin( aa_rad );
+      const Numeric   cosaa  = cos( aa_rad );
+      //
+      Vector los(2);   los[0] = za_new;   los[1] = aa_new;
+      //
       if( za < ANGTOL  ||  za > 180-ANGTOL )
         { 
-          za_new += aterm * ( cos(za_rad) * 
+          los[0] += aterm * ( cos(za_rad) * 
                                          ( cosaa * dndlat + sinaa * dndlon ) );
-          aa_new = RAD2DEG * atan2( dndlon, dndlat); 
+          los[1]  = RAD2DEG * atan2( dndlon, dndlat); 
         }
       else
         { 
-          za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
+          los[0] += aterm * ( -sinza * dndr + cos(za_rad) * 
                               ( cosaa * dndlat + sinaa * dndlon ) );
-          aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
+          los[1] += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
         }
-          
-      // Make sure that obtained angles are inside valid ranges
-      if( za_new > 180 )
-        { za_new = 180 - za_new; }
-      else if( za_new < 0 )
-        { za_new = -za_new; }
       //
-      if( aa_new > 180 )
-        { aa_new -= 360; }
-      else if( aa_new < -180 )
-        { aa_new += 360; }
-      
-      za  = za_new;
-      aa  = aa_new;
+      adjust_los( los, 3 );
+      //
+      za  = los[0];
+      aa  = los[1];
 
       // For some cases where the path goes along an end face, 
       // it could be the case that the refraction bends the path out 
       // of the grid cell.
-      if( lon == lon5  &&  aa < 0 )
-        { endface = 5;   ready = 1; }
-      else if( lon == lon6  &&  aa > 0 )
-        { endface = 6;   ready = 1; }
-      else if( za > 0  &&  za < 180 )
+      if( za > 0  &&  za < 180 )
         {
-          if( lat == lat1  &&  lat != -90  &&  abs( aa ) > 90 ) 
+          if( lon == lon5  &&  aa < 0 )
+            { endface = 5;   ready = 1; }
+          else if( lon == lon6  &&  aa > 0 )
+            { endface = 6;   ready = 1; }
+          else if( lat == lat1  &&  lat != -90  &&  abs( aa ) > 90 ) 
             { endface = 1;   ready = 1; }
           else if( lat == lat3  &&  lat != 90  &&  abs( aa ) < 90 ) 
             { endface = 3;   ready = 1; }
@@ -5867,7 +5883,7 @@ void ppath_calc(
                         cloudbox_on, cloudbox_limits, ppath_inside_cloudbox_do, 
                         rte_pos, rte_los, verbosity );
   // For debugging:
-  //Print( ppath_step, 0, verbosity );
+  // Print( ppath_step, 0, verbosity );
 
   // The only data we need to store from this initial ppath_step is
   // end_pos/los/lstep
@@ -5901,7 +5917,7 @@ void ppath_calc(
       ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
                                 edensity_field, f_index, ppath_step_agenda );
       // For debugging:
-      //Print( ppath_step, 0, verbosity );
+      // Print( ppath_step, 0, verbosity );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;

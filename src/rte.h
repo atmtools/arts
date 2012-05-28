@@ -66,6 +66,10 @@
   === Functions in rte.cc
   ===========================================================================*/
 
+void adjust_los( 
+         VectorView   los, 
+   const Index &      atmosphere_dim );
+
 void apply_y_unit( 
             MatrixView   iy, 
          const String&   y_unit, 
