@@ -1816,6 +1816,9 @@ void lat_crossing_3d(
    \param   lat       Out: Latitude of found crossing.
    \param   l         Out: Length along the path to the crossing.
    \param   lon_hit   Target longitude.
+   \param   lon_start Longitude of start position.
+   \param   za_start  Zenith angle at start position.
+   \param   aa_start  Azimuth angle at start position.
    \param   x         x-coordinate of start position.
    \param   y         y-coordinate of start position.
    \param   z         z-coordinate of start position.
@@ -1841,7 +1844,6 @@ void lon_crossing_3d(
        const Numeric&   dy,
        const Numeric&   dz )
 {
-
   if( lon_hit == lon_start  ||  za_start == 0  ||  za_start == 180  ||
                                 aa_start == 0  ||  abs(aa_start) == 180 )
     { l = -1; }
@@ -3910,7 +3912,7 @@ void do_gridcell_3d_new(
   if( !( r>0 && lat>=lat1 && lat<=lat3 && lon>=lon5 && lon<=lon6 ) )
     {
       Numeric rt, latt, lt;     
-      lon_crossing_3d( rt, latt, lt, lon6, lat_start, za_start, aa_start,
+      lon_crossing_3d( rt, latt, lt, lon6, lon_start, za_start, aa_start,
                                                          x, y, z, dx, dy, dz );
       if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
         { endface = 6;   r = rt;   lat = latt;   lon = lon6;   l = lt; }
