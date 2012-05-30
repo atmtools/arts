@@ -2928,7 +2928,6 @@ void ppath_end_3d(
   //
   ppath.constant = ppc;
 
-
   // Help variables that are common for all points.
   const Numeric   lat1  = lat_grid[ilat];
   const Numeric   lat3  = lat_grid[ilat+1];
@@ -2954,7 +2953,6 @@ void ppath_end_3d(
                                   r15a, r35a, r36a, r16a, lat_v[i], lon_v[i] );
       const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                   r15b, r35b, r36b, r16b, lat_v[i], lon_v[i] );
-
       // Position and LOS
       ppath.r[i]      = r_v[i];
       ppath.pos(i,1)  = lat_v[i];
@@ -3433,7 +3431,7 @@ void ppath_step_geom_2d(
     \author Patrick Eriksson
     \date   2002-11-28
 */
-void do_gridcell_3d(
+void do_gridcell_3d_byltest(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
@@ -3805,7 +3803,7 @@ void do_gridcell_3d(
    \author Patrick Eriksson
    \date   2002-11-28
 */
-void do_gridcell_3d_new(
+void do_gridcell_3d(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
@@ -4541,7 +4539,7 @@ void raytrace_2d_linear_basic(
                                                         cos(za_rad) * dndlat );
 
       // Make sure that we don't get stuck in an infinite loop at a
-      // tanbent point
+      // tangent point
       if( endface == 8  &&  abs(za)> 90  &&  lstep < 1e-3 )
         {
           if( za > 0 )
@@ -5008,7 +5006,7 @@ void ppath_step_refr_3d(
                            f_index,lmax, refr_index_agenda, lraytrace, 
                            lat1, lat3, lon5, lon6, 
                            rsurface15, rsurface35, rsurface36, rsurface16,
-                           r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
+                           r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                            r_start, lat_start, lon_start, za_start, aa_start );
     }
 
@@ -5029,7 +5027,7 @@ void ppath_step_refr_3d(
       if( i < np-1 )
         { l_v[i] = l_array[i]; }
     }
-  //
+  // 
   // Fill *ppath*
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, l_v, n_v, ng_v, lat_grid, 
                 lon_grid, z_field, refellipsoid, ip, ilat, ilon, endface, -1 );
@@ -5919,7 +5917,7 @@ void ppath_calc(
       ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
                                 edensity_field, f_index, ppath_step_agenda );
       // For debugging:
-      // Print( ppath_step, 0, verbosity );
+      //Print( ppath_step, 0, verbosity );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;

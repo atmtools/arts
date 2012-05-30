@@ -1,9 +1,21 @@
 2012-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-121
+
+	* src/ppath.cc: New 3D code now made active. Now yet fully tested
+	for non-spherical conditions (but no known loophole as for old
+	scheme). Tell me if you run into some problems.
+
+	* src/ppath.cc (ppath_step_refr_3d): Finally managed to track down
+	another bug. Again a stupid typo. r16a and and r16b were written
+	as r15a and r15b.
+
+2012-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-120
 
 	* src/ppath.cc (do_gridcell_3d): Fixed a typo. Had written lat in
-	one function call where it should have been lon. 
+	one function call where it should have been lon.
 
 2012-05-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
