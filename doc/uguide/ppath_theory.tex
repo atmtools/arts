@@ -287,7 +287,7 @@ propagation path is shown in Figure \ref{fig:ppath:1d2dgeom}.
 The law of sines gives that the product must $\Rds\sin(\ZntAng)$ be
 constant along the propagation path:
 \begin{equation}
-  p_c = \Rds\sin(\ZntAng)
+  p_c = \Rds\sin(\ZntAng),
   \label{eq:ppath:geomconst}
 \end{equation}
 where the absolute value is taken for 2D zenith angles as they can for
@@ -327,7 +327,7 @@ expressions for the geometrical factor are
 \begin{equation}
   g = \frac{\DiffD l}{\DiffD r} 
            = \frac{1}{\cos(\ZntAng)} = \frac{1}{\sqrt{1-\sin^2(\ZntAng)}}
-                                            = \frac{\Rds}{\sqrt{\Rds^2-p_c^2}}
+                                            = \frac{\Rds}{\sqrt{\Rds^2-p_c^2}}.
   \label{eq:ppath:g_geom}
 \end{equation}
 For the radiative transfer calculations, only the distance between the
@@ -337,7 +337,7 @@ or imaginary), \PpathLng, is used. By integrating
 Equation \ref{eq:ppath:g_geom}, we get that
 (\funcindex{geomppath\_l\_at\_r})
 \begin{equation}
-  \PpathLng(\Rds) = \sqrt{\Rds^2-p_c^2} 
+  \PpathLng(\Rds) = \sqrt{\Rds^2-p_c^2}.
   \label{eq:ppath:r2l}
 \end{equation}
 As refraction is here neglected, the tangent point, the point of
@@ -350,13 +350,13 @@ radii.
 
 The radius for a given \PpathLng\ is simply (\funcindex{geomppath\_r\_at\_l})
 \begin{equation}
-  \Rds(\PpathLng) = \sqrt{\PpathLng^2+p_c^2} 
+  \Rds(\PpathLng) = \sqrt{\PpathLng^2+p_c^2}.
   \label{eq:ppath:l2r}
 \end{equation}
 The radius for a given zenith angle is simply obtained by rearranging 
 Equation \ref{eq:ppath:geomconst} (\funcindex{geomppath\_r\_at\_za})
 \begin{equation}
-  \Rds(\ZntAng) = \frac{p_c}{sin(\ZntAng)}
+  \Rds(\ZntAng) = \frac{p_c}{sin(\ZntAng)}.
   \label{eq:ppath:za2r}
 \end{equation}
 The zenith angle for a given radius is (\funcindex{geomppath\_za\_at\_r})
@@ -364,13 +364,13 @@ The zenith angle for a given radius is (\funcindex{geomppath\_za\_at\_r})
   \ZntAng(\Rds) = \left\{
    \begin{array}{ll}
     180 - \sin^{-1}(p_c/\Rds) & 
-                   \textrm{for}\quad 90\degree < \aZntAng{a} \leq 180\degree\\
+                   \textrm{for}\quad 90\degree < \aZntAng{a} \leq 180\degree,\\
     \sin^{-1}(p_c/\Rds) & 
-                   \textrm{for}\quad 0\degree \leq \aZntAng{a} \leq 90\degree\\
+                   \textrm{for}\quad 0\degree \leq \aZntAng{a} \leq 90\degree,\\
     -\sin^{-1}(p_c/\Rds) & 
-                   \textrm{for}\quad -90\degree \leq \aZntAng{a} < 0\degree\\
+                   \textrm{for}\quad -90\degree \leq \aZntAng{a} < 0\degree,\\
     \sin^{-1}(p_c/\Rds) - 180 & 
-                  \textrm{for}\quad -180\degree \leq \aZntAng{a} < -90\degree\\
+                  \textrm{for}\quad -180\degree \leq \aZntAng{a} < -90\degree,\\
    \end{array}   \right.
   \label{eq:ppath:r2psi}
 \end{equation}
@@ -459,7 +459,7 @@ The law of sine gives the following relationship for the crossing
 point:
 \begin{equation}
   \frac{\sin\Theta_p}{\aRds{0}+c\Lat} = 
-                                \frac{\sin(\pi-\Lat-\Theta_p)}{\aRds{p}}
+                                \frac{\sin(\pi-\Lat-\Theta_p)}{\aRds{p}},
 \end{equation}
 which can be re-written to
 
@@ -480,7 +480,7 @@ which can be re-written to
 
 \begin{equation}
    \aRds{p} \sin(\Theta_p) = (\aRds{0}+c\Lat) 
-           (\sin\Theta_p \cos\Lat + \cos\Theta_p \sin\Lat)
+           (\sin\Theta_p \cos\Lat + \cos\Theta_p \sin\Lat).
  \label{eq:ppath:psurf1}
 \end{equation}
 This equation has no analytical solution. A first step to find an approximate
@@ -494,24 +494,24 @@ maintaining a high accuracy. That is,
   \cos \Lat & \approx & 1 - \Lat^2 / 2 + \Lat^4 / 24 + \Lat^6 / 720 \nonumber\\
   \sin \Lat & \approx & \Lat - \Lat^3 / 6 + \Lat^5 / 120 \nonumber
 \end{eqnarray}
-Equation \ref{eq:ppath:psurf1} becomes with these replacements a
-polynomial equation of order 6:
+Equation \ref{eq:ppath:psurf1} becomes with these replacements a polynomial
+equation of order 6:
 \begin{eqnarray}
     0 & = & p_0 + p_1 \Lat + p_2 \Lat^2 + p_3 \Lat^3 + p_4 \Lat^4 + 
-                  p_5 \Lat^5 + p_6 \Lat^6 \\
+                  p_5 \Lat^5 + p_6 \Lat^6, \\
   p_0 & = & (\aRds{0}-\aRds{p}) \sin(\Theta_p) \nonumber \\ 
-  p_1 & = &   \aRds{0}\cos(\Theta_p)    + c \sin(\Theta_p) \nonumber \\ 
-  p_2 & = & -\aRds{0}\sin(\Theta_p)/2   + c \cos(\Theta_p)  \nonumber \\ 
-  p_3 & = & -\aRds{0}\cos(\Theta_p)/6   - c \sin(\Theta_p)/2 \nonumber \\ 
-  p_4 & = &  \aRds{0}\sin(\Theta_p)/24  - c \cos(\Theta_p)/6  \nonumber \\
-  p_5 & = &  \aRds{0}\cos(\Theta_p)/120 + c \sin(\Theta_p)/24  \nonumber \\
-  p_6 & = & -\aRds{0}\sin(\Theta_p)/720 + c \cos(\Theta_p)/120  \nonumber 
+  p_1 & = &   \aRds{0}\cos(\Theta_p)    + c \sin(\Theta_p), \nonumber \\ 
+  p_2 & = & -\aRds{0}\sin(\Theta_p)/2   + c \cos(\Theta_p),  \nonumber \\ 
+  p_3 & = & -\aRds{0}\cos(\Theta_p)/6   - c \sin(\Theta_p)/2, \nonumber \\ 
+  p_4 & = &  \aRds{0}\sin(\Theta_p)/24  - c \cos(\Theta_p)/6,  \nonumber \\
+  p_5 & = &  \aRds{0}\cos(\Theta_p)/120 + c \sin(\Theta_p)/24,  \nonumber \\
+  p_6 & = & -\aRds{0}\sin(\Theta_p)/720 + c \cos(\Theta_p)/120.  \nonumber 
   \label{eq:ppath:psurf2}
 \end{eqnarray}
-This equation is solved numerically with the root finding algorithm
-implemented in the function \funcindex{poly\_root\_solve}. Solutions of
-interest shall not be imaginary. Several issues associated with numerical
-accuracy must be considered, see the code for details.
+This equation is solved numerically with the root finding algorithm implemented
+in the function \funcindex{poly\_root\_solve}. Solutions of interest shall not
+be imaginary. Several issues associated with numerical accuracy must be
+considered, see the code (\funcindex{rslope\_crossing2d}) for details.
 
 \begin{figure}
  \begin{center}
@@ -687,9 +687,9 @@ code).
 The starting point in for all three cases is the following
 equation system:
 \begin{eqnarray}
-  \Rds \cos(\Lat) \cos(\Lon)  & = & x+l\DiffD x \nonumber \\
-  \Rds \cos(\Lat) \sin(\Lon)  & = & y+l\DiffD y           \\
-  \Rds \sin(\Lat)             & = & z+l\DiffD z \nonumber 
+  \Rds \cos(\Lat) \cos(\Lon)  & = & x+l\DiffD x, \nonumber \\
+  \Rds \cos(\Lat) \sin(\Lon)  & = & y+l\DiffD y,           \\
+  \Rds \sin(\Lat)             & = & z+l\DiffD z, \nonumber 
   \label{eq:ppath:rcoss3Da}
 \end{eqnarray}
 where $(x,y,z)$ is the position of the sensor, $(\DiffD x,\DiffD
@@ -735,6 +735,51 @@ For a given longitude, the x- and y-equations can be combined to give:
 This case is handled by \funcindex{lon\_crossing\_3d}. If the zenith or azimuth
 angle equals 0\degree\ or 180\degree, or if the start and target longitudes are
 equal, there is no valid solution.
+
+
+
+\subsubsection{Finding the crossing with a pressure level}
+%-
+\label{sec:ppath:3dplevel}
+
+The same approach as for 2D is applied. The difference is that for 3D the
+additional dimension gives a more complex variation of the radius of the
+pressure level. For 2D, the variation can be expressed as a first order
+polynomial ($r=\aRds{0}+c\Lat$), while for 3D a second order polynomial must be
+used
+\begin{equation}
+  r = \aRds{0}+c_1\Lat+c_2\Lat^2.
+\end{equation}
+The coefficients $c_1$ and $c_2$ are detwermined in a purely numerical way, by
+\funcindex{plevel\_slope\_3d}. The change in radius, $\Delta r_1$ and
+$\Delta r_2$, at a distance of $\Delta\Lat$ and $2\Delta\Lat$, respectively, are
+determined. These values give
+\begin{equation}
+  c_1 = \frac{4\Delta r_1 - \Delta r_2}{2\Delta\Lat}
+\end{equation}
+and
+\begin{equation}
+  c_2 = \frac{4\Delta r_1 - c_1\Delta\Lat}{(\Delta\Lat)^2}.
+\end{equation}
+The polynomial to solve becomes (cf.\ Eq.~\ref{eq:ppath:psurf2})
+\begin{eqnarray}
+    0 & = & p_0 + p_1 \Lat + p_2 \Lat^2 + p_3 \Lat^3 + p_4 \Lat^4 + 
+                  p_5 \Lat^5 + p_6 \Lat^6, \\
+  p_0 & = & (\aRds{0}-\aRds{p}) \sin(\Theta_p),                    \nonumber \\ 
+  p_1 & = &   \aRds{0}\cos(\Theta_p)    + c_1 \sin(\Theta_p),      \nonumber \\ 
+  p_2 & = & -\aRds{0}\sin(\Theta_p)/2   + c_1 \cos(\Theta_p)  
+                                        + c_2 \sin(\Theta_p),      \nonumber \\ 
+  p_3 & = & -\aRds{0}\cos(\Theta_p)/6   - c_1 \sin(\Theta_p)/2    
+                                        + c_2 \cos(\Theta_p),      \nonumber \\ 
+  p_4 & = &  \aRds{0}\sin(\Theta_p)/24  - c_1 \cos(\Theta_p)/6
+                                        - c_2 \sin(\Theta_p)/2,    \nonumber \\
+  p_5 & = &  \aRds{0}\cos(\Theta_p)/120 + c_1 \sin(\Theta_p)/24   
+                                        - c_2 \cos(\Theta_p)/6,    \nonumber \\
+  p_6 & = & -\aRds{0}\sin(\Theta_p)/720 + c_1 \cos(\Theta_p)/120  
+                                        + c_2 \sin(\Theta_p)/24.   \nonumber
+  \label{eq:ppath:psurf2}
+\end{eqnarray}
+The solution of this polynomial is handled by \funcindex{rslope\_crossing3d}.
 
 
 
@@ -822,22 +867,6 @@ equal, there is no valid solution.
 %===================
 \label{sec:ppath:refreuler}
 
-\begin{figure}[tb!]
- \begin{center}
-  \includegraphics*[width=0.70\hsize]{ppath_refr1}
-  \caption{Comparison of propagation paths calculated geometrically and 
-    with refraction considered, for the same zenith angle of the
-    sensor line-of-sight. The figure include two pair of paths, with
-    refracted tangent altitude of about 0 and 10\,km, respectively.
-    The horizontal coordinate is the latitude distance from the point
-    where the path exits the model atmosphere (at 80\,km). The model
-    atmosphere used had a spherical symmetry (that is, 1 D case, but
-    the calculations were performed in 2D mode).}
-  \label{fig:ppath:ppath_refr1}  
- \end{center}
-\end{figure}
-% This figure was produced by the Matlab function mkfigs_refraction
-
 Refraction affects the radiative transfer in several ways. The
 distance through a layer of a fixed vertical thickness will be
 changed, and for a limb sounding observation the tangent point is
@@ -862,7 +891,24 @@ path, $n$ the refractive index\footnote{The refractive index is here
 perpendicular to the path. See further Section 9.4 in
 \citet{rodgers:00}.
 
-\begin{figure}[tb!]
+\begin{figure}[!p]
+ \begin{center}
+  \includegraphics*[width=0.70\hsize]{ppath_refr1}
+  \caption{Comparison of propagation paths calculated geometrically and 
+    with refraction considered, for the same zenith angle of the
+    sensor line-of-sight. The figure include two pair of paths, with
+    refracted tangent altitude of about 0 and 10\,km, respectively.
+    The horizontal coordinate is the latitude distance from the point
+    where the path exits the model atmosphere (at 80\,km). The model
+    atmosphere used had a spherical symmetry (that is, 1 D case, but
+    the calculations were performed in 2D mode).}
+  \label{fig:ppath:ppath_refr1}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_refraction
+
+
+\begin{figure}[!p]
  \begin{center}
   \includegraphics*{euler}
   \caption{Schematic of the ``basic'' ray tracing scheme. The ray tracing step 
@@ -910,17 +956,6 @@ calculations.
     \label{fig:ppath:snell} 
   \end{center} 
 \end{figure}
-\begin{figure}[tb!]
- \begin{center}
-  \includegraphics*[width=0.7\hsize]{ppath_N}
-  \caption{Vertical variation of refractivity $(n-1)\topowerten{6}$.
-     Calculated for a mid-latitude summer climatology (FASCODE), where
-     the dashed line is for a completely dry atmosphere, and the solid line
-     includes also contribution from water vapour.}
-  \label{fig:ppath:N}  
- \end{center}
-\end{figure}
-% This figure was produced by the Matlab function mkfigs_refraction
 
 When determining the propagation path through the atmosphere
 geometrical optics can be applied because the change of the refractive
@@ -949,6 +984,18 @@ $\sin(\ZntAng)$ is constant along the propagation path. It is
 noteworthy that with $n=1$, Equations \ref{eq:ppath:geomconst} and
 \ref{eq:ppath:snellspherical} are identical.
 
+\begin{figure}[tb!]
+ \begin{center}
+  \includegraphics*[width=0.7\hsize]{ppath_N}
+  \caption{Vertical variation of refractivity $(n-1)\topowerten{6}$.
+     Calculated for a mid-latitude summer climatology (FASCODE), where
+     the dashed line is for a completely dry atmosphere, and the solid line
+     includes also contribution from water vapour.}
+  \label{fig:ppath:N}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_refraction
+
 The Snell's law for a spherical atmosphere makes it very easy to
 determine the zenith angle of the path for a given radius. A
 rearrangement of Equation \ref{eq:ppath:snellspherical} gives
@@ -970,9 +1017,9 @@ refractive index.
 \subsection{2D}
 \label{sec:ppath:refr2D}
 %-----------------------
-\begin{figure}[tb!]
+\begin{figure}[!p]
  \begin{center}
-  \includegraphics*[width=0.7\hsize]{ppath_dndr}
+  \includegraphics*[width=0.65\hsize]{ppath_dndr}
   \caption{Vertical gradient of the refractive index.
      Calculated for a mid-latitude summer climatology (FASCODE), where
      the dashed line is for a completely dry atmosphere, and the solid line
@@ -982,9 +1029,9 @@ refractive index.
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_refraction
 
-\begin{figure}[tb!]
+\begin{figure}[!p]
  \begin{center}
-  \includegraphics*[width=0.7\hsize]{ppath_dndlat}
+  \includegraphics*[width=0.65\hsize]{ppath_dndlat}
   \caption{Latitude gradient of the refractive index due to varying radius 
     of the geoid. The gradient is given as the change in refractive
     index over 1\,m, which allows direct comparison with the values in
