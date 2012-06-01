@@ -1,3 +1,10 @@
+2012-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-124
+
+	* src/ppath.cc (rslope_crossing3d): The function now allows that
+	both c1 and c2 to be zero.
+
 2012-06-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-123

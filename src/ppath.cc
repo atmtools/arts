@@ -992,7 +992,7 @@ Numeric rslope_crossing2d(
 
   assert( za != 0 );
   assert( zaabs != 180 );
-  assert( abs(c1) > 0 );
+  assert( abs(c1) > 0 ); // c1=0 should work, but unnecessary to use this func.
 
   // Convert slope to m/radian and consider viewing direction
   c1 *= RAD2DEG;
@@ -1489,93 +1489,89 @@ Numeric rslope_crossing3d(
               Numeric   c1,
               Numeric   c2 )
 {
-  // poly_root_solve does not handle the case of c2=0
-  if( c2 == 0 )
-    { return rslope_crossing2d( rp, za, r0, c1 ); }
+  // Even if the four corner radii of the grid cell differ, both c1 and c2 can
+  // turn up to be 0. So in contrast to the 2D version, here we accept zero c.
 
-  else
+  // Convert c1 and c2 from degrees to radians
+  c1 *= RAD2DEG;
+  c2 *= RAD2DEG*RAD2DEG;
+  
+  // The nadir angle in radians, and cosine and sine of that angle
+  const Numeric   beta = DEG2RAD * ( 180 - za );
+  const Numeric   cv = cos( beta );
+  const Numeric   sv = sin( beta );
+  
+  // Some repeated terms
+  const Numeric r0s = r0*sv;
+  const Numeric r0c = r0*cv;
+  const Numeric c1s = c1*sv;
+  const Numeric c1c = c1*cv;
+  const Numeric c2s = c2*sv;
+  const Numeric c2c = c2*cv;
+  
+  // The vector of polynomial coefficients
+  //
+  Index n = 6;
+  Vector p0(n+1);
+  //
+  p0[0] =  r0s     - rp*sv;
+  p0[1] =  r0c     + c1s;  
+  p0[2] = -r0s/2   + c1c     + c2s;
+  p0[3] = -r0c/6   - c1s/2   + c2c;
+  p0[4] =  r0s/24  - c1c/6   - c2s/2;
+  p0[5] =  r0c/120 + c1s/24  - c2c/6;
+  p0[6] = -r0s/720 + c1c/120 + c2s/24;
+  //
+  // The accuracy when solving the polynomial equation gets worse when
+  // approaching 0 and 180 deg. The solution is to let the start polynomial
+  // order decrease when approaching these angles. The values below based
+  // on practical experience, don't change without making extremly careful
+  // tests.
+  //
+  if( abs( 90 - za ) > 89.9 )
+    { n = 1; }
+  else if( abs( 90 - za ) > 75 )
+    { n = 4; }
+  
+  // Calculate roots of the polynomial
+  Matrix roots;
+  int solutionfailure = 1;
+  //
+  while( solutionfailure)
     {
-      // Convert c1 and c2 from degrees to radians
-      c1 *= RAD2DEG;
-      c2 *= RAD2DEG*RAD2DEG;
-      
-      // The nadir angle in radians, and cosine and sine of that angle
-      const Numeric   beta = DEG2RAD * ( 180 - za );
-      const Numeric   cv = cos( beta );
-      const Numeric   sv = sin( beta );
-      
-      // Some repeated terms
-      const Numeric r0s = r0*sv;
-      const Numeric r0c = r0*cv;
-      const Numeric c1s = c1*sv;
-      const Numeric c1c = c1*cv;
-      const Numeric c2s = c2*sv;
-      const Numeric c2c = c2*cv;
-      
-      // The vector of polynomial coefficients
-      //
-      Index n = 6;
-      Vector p0(n+1);
-      //
-      p0[0] =  r0s     - rp*sv;
-      p0[1] =  r0c     + c1s;  
-      p0[2] = -r0s/2   + c1c     + c2s;
-      p0[3] = -r0c/6   - c1s/2   + c2c;
-      p0[4] =  r0s/24  - c1c/6   - c2s/2;
-      p0[5] =  r0c/120 + c1s/24  - c2c/6;
-      p0[6] = -r0s/720 + c1c/120 + c2s/24;
-      //
-      // The accuracy when solving the polynomial equation gets worse when
-      // approaching 0 and 180 deg. The solution is to let the start polynomial
-      // order decrease when approaching these angles. The values below based
-      // on practical experience, don't change without making extremly careful
-      // tests.
-      //
-      if( abs( 90 - za ) > 89.9 )
-        { n = 1; }
-      else if( abs( 90 - za ) > 75 )
-        { n = 4; }
-      
-      // Calculate roots of the polynomial
-      Matrix roots;
-      int solutionfailure = 1;
-      //
-      while( solutionfailure)
-        {
-          roots.resize(n,2);
-          Vector p;
-          p = p0[Range(0,n+1)];
-          solutionfailure = poly_root_solve( roots, p );
-          if( solutionfailure )
-            { n -= 1; assert( n > 0 ); }
-        }
-
-      // If r0=rp, numerical inaccuracy can give a false solution, very close
-      // to 0, that we must throw away.
-      Numeric   dmin = 0;
-      if( r0 == rp )
-        { dmin = 1e-12; }
-      
-      // Find the smallest root with imaginary part = 0, and real part > 0.
-      //
-      Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
-      //
-      for( Index i=0; i<n; i++ )
-        {
-          if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
-            { dlat = roots(i,0); }
-        }  
-
-      if( dlat < 1.57 )  // A somewhat smaller value than start one
-        { 
-          // Convert back to degrees
-          dlat = RAD2DEG * dlat; 
-        }
-      else
-        { dlat = LAT_NOT_FOUND; }
-
-      return   dlat;
+      roots.resize(n,2);
+      Vector p;
+      p = p0[Range(0,n+1)];
+      solutionfailure = poly_root_solve( roots, p );
+      if( solutionfailure )
+        { n -= 1; assert( n > 0 ); }
     }
+
+  // If r0=rp, numerical inaccuracy can give a false solution, very close
+  // to 0, that we must throw away.
+  Numeric   dmin = 0;
+  if( r0 == rp )
+    { dmin = 1e-12; }
+  
+  // Find the smallest root with imaginary part = 0, and real part > 0.
+  //
+  Numeric dlat = 1.571;  // Not interested in solutions above 90 deg!
+  //
+  for( Index i=0; i<n; i++ )
+    {
+      if( roots(i,1) == 0  &&  roots(i,0) > dmin  &&  roots(i,0) < dlat )
+        { dlat = roots(i,0); }
+    }  
+
+  if( dlat < 1.57 )  // A somewhat smaller value than start one
+    { 
+      // Convert back to degrees
+      dlat = RAD2DEG * dlat; 
+    }
+  else
+    { dlat = LAT_NOT_FOUND; }
+
+  return   dlat;
 }
 
 
@@ -3921,7 +3917,7 @@ void do_gridcell_3d(
   // Check if there is a tangent point inside the grid cell. 
   if( za_start > 90  )
     {
-      Numeric ltan = geompath_l_at_r( ppc, r_start);
+      Numeric ltan = geompath_l_at_r( ppc, r_start );
       if( l > ltan ) 
         { 
           endface = 8; 
