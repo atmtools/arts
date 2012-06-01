@@ -1,3 +1,31 @@
+2012-06-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-123
+
+	* src/parameters.{cc,h}:
+
+	Add outdir parameter and commandline option -o/--outdir.
+
+	Change commandline argument -B to -U.
+
+	* src/file.{cc,h}:
+
+	Add add_basedir function.
+
+	(open_output_file): Catch file exceptions and rethrow as runtime_error
+	with additional info about the filename.
+
+	* src/main.cc:
+
+	No need to catch ios_base exception anymore. Handled in
+	open_output_file now.
+
+	* src/xml_io.cc, src/nc_io.cc:
+
+	Use add_basedir in writing functions.
+
+	* src/arts.cc (arts_exit): Use add_basedir for report file path.
+
 2012-05-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-122

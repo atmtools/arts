@@ -46,7 +46,7 @@ void arts_exit(int status)
   ostringstream report_file_ext;
   
   report_file_ext << ".rep";
-  cleanup_output_file(report_file, out_basename + report_file_ext.str());
+  cleanup_output_file(report_file, add_basedir(out_basename + report_file_ext.str()));
   
   exit (status);
 }

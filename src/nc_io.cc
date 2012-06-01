@@ -151,7 +151,7 @@ void nca_write_to_file(const String&    filename,
 {
   CREATE_OUT2
   
-  String efilename = expand_path(filename);
+  String efilename = add_basedir(filename);
   
   out2 << "  Writing " << efilename << '\n';
 

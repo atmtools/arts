@@ -64,8 +64,6 @@ void read_text_from_stream(ArrayOfString& text, istream& is);
 
 void read_text_from_file(ArrayOfString& text, const String& name);
 
-String expand_path(const String& path);
-
 void replace_all(String& s, const String& what, const String& with);
 
 int check_newline(const String& s);
@@ -73,6 +71,10 @@ int check_newline(const String& s);
 bool file_exists(const String& filename);
 
 bool find_file(String& filename, const String extension, const ArrayOfString& paths);
+
+String expand_path(const String& path);
+
+String add_basedir(const String& path);
 
 void get_dirname(String& dirname, const String& path);
 

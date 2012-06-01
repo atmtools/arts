@@ -49,6 +49,7 @@ public:
     help(false),
     version(false),
     basename(""),
+    outdir(""),
     controlfiles(),
     reporting(-1),
     methods(""),
@@ -65,6 +66,7 @@ public:
     daemon(false),
     gui(false)
   { /* Nothing to be done here */ }
+  
   /** Short message how to call the program. */
   String usage;
   /** Longer message explaining the options. */
@@ -77,6 +79,11 @@ public:
       as the base name for the report file and for other output
       files. */ 
   String basename;
+  /** If this is specified (with the -o --outdir option), it is used
+   as the base directory for the report file and for other output
+   files. If a full path is given for an output file it will not
+   be affected by this. */ 
+  String outdir;
   /** The filenames of the controlfiles. Can be only one or as many as
       you want. */
   ArrayOfString controlfiles;

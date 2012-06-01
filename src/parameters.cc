@@ -134,6 +134,7 @@ bool get_parameters(int argc, char **argv)
     { "input",              required_argument, NULL, 'i' },
     { "methods",            required_argument, NULL, 'm' },
     { "numthreads",         required_argument, NULL, 'n' },
+    { "outdir",             required_argument, NULL, 'o' },
     { "plain",              no_argument,       NULL, 'p' },
     { "reporting",          required_argument, NULL, 'r' },
 #ifdef ENABLE_DOCSERVER
@@ -160,6 +161,7 @@ bool get_parameters(int argc, char **argv)
     "       [--input <variable>]\n"
     "       [--methods all|<variable>]\n"
     "       [--numthreads <#>\n"
+    "       [--outdir <name>]\n"
     "       [--plain]\n"
     "       [--reporting <xyz>]\n"
 #ifdef ENABLE_DOCSERVER
@@ -205,6 +207,9 @@ bool get_parameters(int argc, char **argv)
     "-n, --numthreads    If arts was compiled with OpenMP support this option\n"
     "                    can be used to set the maximum number of threads.\n"
     "                    By default OpenMP uses all processors/cores.\n"
+    "-o, --outdir        Set the output directory for the report\n"
+    "                    file and for other output files with relative paths.\n"
+    "                    Default is the current directory.\n"
     "-p  --plain         Generate plain help output suitable for\n"
     "                    script processing.\n"
     "-r, --reporting     Three digit integer. Sets the reporting\n"
@@ -220,6 +225,7 @@ bool get_parameters(int argc, char **argv)
     "                    the port number the server should listen on.\n"
     "                    Default is 9000.\n"
     "-S, --docdaemon     Start documentation server in the background.\n"
+    "-U, --baseurl       Base URL for the documentation server.\n"
 #endif
     "-v, --version       Show version information.\n"
     "-w, --workspacevariables  If this is given the argument 'all',\n"
@@ -278,9 +284,6 @@ bool get_parameters(int argc, char **argv)
         case 'b':
           parameters.basename = optarg;
           break;
-        case 'B':
-          parameters.baseurl = optarg;
-          break;
         case 'd':
           parameters.describe = optarg;
           break;
@@ -313,6 +316,9 @@ bool get_parameters(int argc, char **argv)
           }
           break;
         }
+        case 'o':
+          parameters.outdir = optarg;
+          break;
         case 'p':
           parameters.plain = true;
           break;
@@ -367,6 +373,9 @@ bool get_parameters(int argc, char **argv)
             parameters.daemon = true;
             break;
           }
+        case 'U':
+          parameters.baseurl = optarg;
+          break;
         case 'v':
           parameters.version = true;
           break;
@@ -416,6 +425,9 @@ bool get_parameters(int argc, char **argv)
 
   parameters.includepath.insert(parameters.includepath.begin(), ".");
   parameters.datapath.insert(parameters.datapath.begin(), ".");
+  
+  if (parameters.outdir.nelem()) 
+    parameters.datapath.insert(parameters.datapath.begin(), parameters.outdir);
 
   if (parameters.controlfiles.nelem())
   {

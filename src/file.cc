@@ -56,7 +56,6 @@
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-//// filename_ascii ////////////////////////////////////////////////////////
 /**
    Gives the default file name for the ASCII formats.
 
@@ -84,7 +83,6 @@ void filename_ascii(
 //   Functions to open and read ASCII files
 ////////////////////////////////////////////////////////////////////////////
 
-//// open_output_file //////////////////////////////////////////////////////
 /**
    Open a file for writing. If the file cannot be opened, the
    exception IOError is thrown. 
@@ -96,36 +94,38 @@ void filename_ascii(
                       directory is read only. */
 void open_output_file(ofstream& file, const String& name)
 {
-  String ename = expand_path(name);
-
-  // Tell the stream that it should throw exceptions.
-  // Badbit means that the entire stream is corrupted, failbit means
-  // that the last operation has failed, but the stream is still
-  // valid. We don't want either to happen!
-  // FIXME: This does not yet work in  egcs-2.91.66, try again later.
-  file.exceptions(ios::badbit |
-                  ios::failbit);
+  String ename = add_basedir(name);
   
-  // c_str explicitly converts to c String.
-  file.open(ename.c_str() );
-
-  // See if the file is ok.
-  // FIXME: This should not be necessary anymore in the future, when
-  // g++ stream exceptions work properly. (In that case we would not
-  // get here if there really was a problem, because of the exception
-  // thrown by open().)
-  if (!file)
-    {
-      ostringstream os;
-      os << "Cannot open output file: " << ename << '\n'
-         << "Maybe you don't have write access "
-         << "to the directory or the file?";
-      throw runtime_error(os.str());
-    }
+  try
+  {
+    // Tell the stream that it should throw exceptions.
+    // Badbit means that the entire stream is corrupted, failbit means
+    // that the last operation has failed, but the stream is still
+    // valid. We don't want either to happen!
+    // FIXME: This does not yet work in  egcs-2.91.66, try again later.
+    file.exceptions(ios::badbit |
+                    ios::failbit);
+    
+    // c_str explicitly converts to c String.
+    file.open(ename.c_str() );
+    
+    // See if the file is ok.
+    // FIXME: This should not be necessary anymore in the future, when
+    // g++ stream exceptions work properly. (In that case we would not
+    // get here if there really was a problem, because of the exception
+    // thrown by open().)
+  }
+  catch (exception e)
+  {
+    ostringstream os;
+    os << "Cannot open output file: " << ename << '\n'
+    << "Maybe you don't have write access "
+    << "to the directory or the file?";
+    throw runtime_error(os.str());
+  }
 }
 
 
-//// cleanup_output_file //////////////////////////////////////////////////////
 /**
  Closes the file. If it is empty, the file is deleted.
  @param     file File pointer 
@@ -147,8 +147,6 @@ void cleanup_output_file(ofstream&, const String&) {}
 #endif
 
 
-
-//// open_input_file ///////////////////////////////////////////////////////
 /**
    Open a file for reading. If the file cannot be opened, the
    exception IOError is thrown. 
@@ -183,8 +181,6 @@ void open_input_file(ifstream& file, const String& name)
 }
 
 
-
-//// read_text_from_stream /////////////////////////////////////////////////
 /**
    Read an ASCII stream and append the contents to the String array
    text.  TEXT IS NOT OVERWRITTEN, BUT APPENDED!
@@ -223,8 +219,6 @@ void read_text_from_stream(ArrayOfString& text, istream& is)
 }
 
 
-
-//// read_text_from_file ////////////////////////////////////////////////////
 /**
    Reads an ASCII file and appends the contents to the String vector
    text. This uses the function @see read_text_from_stream. TEXT IS
@@ -260,31 +254,7 @@ void read_text_from_file(ArrayOfString& text, const String& name)
     }
 }
 
-//// expand_path ///////////////////////////////////////////////////////////
-/*!
- Expands the ~ to home directory location in given path.
- 
- \param[in] path  String with path
- 
- \return Expanded path.
- 
- \author Oliver Lemke              
- \date   2010-04-30
- */
-String expand_path(const String& path)
-{
-  if ((path.nelem() == 1 && path[0] == '~')
-      || (path.nelem() > 1 && path[0] == '~' && path[1] == '/'))
-  {
-    return String(getenv ("HOME")) + String(path, 1);
-  }
-  else
-  {
-    return path;
-  }
-}
 
-//// replace_all //////////////////////////////////////////////////////////
 /**
     Replace all occurances of `what' in `s' with `with'.
 
@@ -303,7 +273,7 @@ void replace_all(String& s, const String& what, const String& with)
     }
 }
 
-//// check newline //////////////////////////////////////////////////////////
+
 /**
   Checks if there is exactly one newline character
   at the end of the string.
@@ -340,7 +310,7 @@ int check_newline(const String& s)
 }
 
 
-//// check if file exists //////////////////////////////////////////////
+
 /**
   Checks if the given file exists.
 
@@ -364,7 +334,6 @@ bool file_exists(const String& filename)
 }
 
 
-//// find file in includepath //////////////////////////////////////////////
 /**
   Find the given file. If it doesn't exist in the current directory, also
   search the include path.
@@ -418,6 +387,54 @@ bool find_file(String& filename, const String extension, const ArrayOfString& pa
   }
 
   return exists;
+}
+
+
+/*!
+ Expands the ~ to home directory location in given path.
+ 
+ \param[in] path  String with path
+ 
+ \return Expanded path.
+ 
+ \author Oliver Lemke              
+ \date   2010-04-30
+ */
+String expand_path(const String& path)
+{
+  if ((path.nelem() == 1 && path[0] == '~')
+      || (path.nelem() > 1 && path[0] == '~' && path[1] == '/'))
+  {
+    return String(getenv ("HOME")) + String(path, 1);
+  }
+  else
+  {
+    return path;
+  }
+}
+
+
+/*!
+ Adds base direcotry to the given path if it is a relative path.
+ 
+ \param[in] path  String with path
+ 
+ \return Expanded path.
+ 
+ \author Oliver Lemke              
+ \date   2012-05-01
+ */
+String add_basedir(const String& path)
+{
+  extern Parameters parameters;
+  String expanded_path = expand_path(path);
+  
+  if (parameters.outdir.nelem() && path.nelem() && path[0] != '/')
+  {
+    expanded_path = parameters.outdir + '/' + expanded_path;
+  }
+  
+  return expanded_path;
 }
 
 
