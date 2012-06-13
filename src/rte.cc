@@ -843,7 +843,7 @@ void get_iy_of_background(
   const Agenda&           iy_cloudbox_agenda,
   const Verbosity&        verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -1040,7 +1040,7 @@ void get_iy_of_background(
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
-            CREATE_OUT1
+            CREATE_OUT1;
             out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
             out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
             throw runtime_error( "The size of *iy* returned from "
@@ -1768,7 +1768,7 @@ void iyb_calc(
 
       catch (runtime_error e)
         {
-          CREATE_OUT0
+          CREATE_OUT0;
           exit_or_rethrow(e.what(), out0);
         }
     }  // End za loop

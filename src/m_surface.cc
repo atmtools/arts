@@ -80,7 +80,7 @@ void InterpSurfaceFieldToRteGps(Numeric&         outvalue,
                                 const Matrix&    field,
                                 const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Interpolate
   outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, 
@@ -99,7 +99,7 @@ void InterpSurfaceEmissivityFieldIncLatLon(Numeric&         outvalue,
                                            const GriddedField3& gfield,
                                            const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -131,7 +131,7 @@ void surfaceBlackbody(Matrix&          surface_los,
                       const Numeric&   surface_skin_t,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
@@ -164,8 +164,8 @@ void surfaceFlatReflectivity(Matrix&          surface_los,
                              const Vector&    surface_scalar_reflectivity,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
@@ -232,8 +232,8 @@ void surfaceFlatRefractiveIndex(Matrix&          surface_los,
                                 const Matrix&    complex_n,
                                 const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   const Index   nf = f_grid.nelem();
 
@@ -298,8 +298,8 @@ void surfaceFlatVaryingEmissivity(Matrix&          surface_los,
                                   const Vector&    surface_emissivity,
                                   const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );

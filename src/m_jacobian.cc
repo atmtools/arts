@@ -194,8 +194,8 @@ void jacobianAddAbsSpecies(
   const Numeric&                    dx,
   const Verbosity&                  verbosity )
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // Check that this species is not already included in the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )
@@ -1291,7 +1291,7 @@ void jacobianAddTemperature(
   const Numeric&                  dx,
   const Verbosity&                verbosity )
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.

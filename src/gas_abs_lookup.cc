@@ -49,7 +49,7 @@ void find_new_grid_in_old_grid( ArrayOfIndex& pos,
                                 ConstVectorView new_grid,
                                 const Verbosity& verbosity )
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   const Index n_new_grid = new_grid.nelem();
   const Index n_old_grid = old_grid.nelem();
@@ -121,8 +121,8 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
                           ConstVectorView current_f_grid,
                           const Verbosity& verbosity )
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // Some constants we will need:
   const Index n_current_species = current_species.nelem();

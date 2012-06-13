@@ -89,7 +89,7 @@ void Rng::seed(unsigned long int n, const Verbosity& verbosity)
       // start over.
       if (n == n_orig)
       {
-        CREATE_OUT0
+        CREATE_OUT0;
         out0 << "Rng Warning: Couldn't find an unused seed. Clearing seed pool.\n";
         seeds.empty();
         break;

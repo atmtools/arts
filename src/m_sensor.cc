@@ -194,7 +194,7 @@ void AntennaOff(// WS Output:
                 Vector& mblock_aa_grid,
                 const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   out2 << "  Sets the antenna dimensionality to 1.\n";
   antenna_dim = 1;
@@ -215,8 +215,8 @@ void AntennaSet1D(// WS Output:
                   Vector&  mblock_aa_grid,
                   const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2 << "  Sets the antenna dimensionality to 1.\n";
   out3 << "    antenna_dim = 1\n";
@@ -234,8 +234,8 @@ void AntennaSet2D(// WS Output:
                   const Index&   atmosphere_dim,
                   const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   if( atmosphere_dim != 3 )
     throw runtime_error("Antenna dimensionality 2 is only allowed when the "
@@ -336,8 +336,8 @@ void f_gridFromSensorAMSU(// WS Output:
                           const Numeric& spacing,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // Find out how many channels we have in total:
   // f_backend is an array of vectors, containing the band frequencies for each Mixer.
@@ -474,8 +474,8 @@ void f_gridFromSensorHIRS(// WS Output:
                           const Numeric& spacing,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // Check input
   if (spacing <= 0) {
@@ -559,7 +559,7 @@ void sensor_responseAntenna(// WS Output:
                             const Index&   sensor_norm,
                             const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Basic checks
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -824,7 +824,7 @@ void sensor_responseBackend(// WS Output:
                             const Index&   sensor_norm,
                             const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
@@ -1053,7 +1053,7 @@ void sensor_responseBeamSwitching(// WS Output:
                                   const Numeric&   w2,
                                   const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   if( sensor_response_za_grid.nelem() != 2 )
     throw runtime_error( 
@@ -1126,7 +1126,7 @@ void sensor_responseFrequencySwitching(// WS Output:
                                        const Vector&   sensor_response_aa_grid,
                                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   if( sensor_response_za_grid.nelem() != 1 )
     throw runtime_error( 
@@ -1301,7 +1301,7 @@ void sensor_responseFillFgrid(// WS Output:
                               const Index&    nfill,
                               const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
@@ -1446,8 +1446,8 @@ void sensor_responseInit(// WS Output:
                          const Index&    sensor_norm,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // Check input
 
@@ -1575,7 +1575,7 @@ void sensor_responseMixer(// WS Output:
                           const Index&    sensor_norm,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
@@ -2249,8 +2249,8 @@ void WMRFSelectChannels(// WS Output:
                         const ArrayOfIndex& wmrf_channels,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // For error messages:
   ostringstream os;
@@ -2389,7 +2389,7 @@ void sensor_responseWMRF(// WS Output:
                          const Vector& f_backend,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
@@ -2561,8 +2561,8 @@ void sensor_responsePolarisation(// WS Output:
                                  const Index&     stokes_dim,
                                  const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
  
   Index n_aa;
   if( sensor_response_aa.nelem()==0 )
@@ -2664,8 +2664,8 @@ void sensor_responseRotation(// WS Output:
                              const Vector&  sensor_response_za,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
  
   // Check that at least 3 stokes components are simulated. This since no 2
   // and 3 are weighted together.

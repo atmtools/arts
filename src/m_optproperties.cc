@@ -87,7 +87,7 @@ void pha_mat_sptFromData( // Output:
                          const Verbosity& verbosity
                          )
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   out3 << "Calculate *pha_mat_spt* from database\n";
 
@@ -658,7 +658,7 @@ void ext_matInit(Tensor3&         ext_mat,
                  const Index&     f_index,
                  const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   Index freq_dim;
 
@@ -727,7 +727,7 @@ void abs_vecInit(Matrix&       abs_vec,
                  const Index&  f_index,
                  const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   Index freq_dim;
 
@@ -911,7 +911,7 @@ void scat_data_rawCheck(//Input:
                         const ArrayOfSingleScatteringData& scat_data_raw,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT1
+  CREATE_OUT1;
 
   xml_write_to_file("SingleScatteringData", scat_data_raw, FILE_TYPE_ASCII,
                     verbosity);
@@ -1342,7 +1342,7 @@ void pha_mat_sptFromMonoData(// Output:
                              const Index& scat_lon_index,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   out3 << "Calculate *pha_mat_spt* from scat_data_mono. \n";
   

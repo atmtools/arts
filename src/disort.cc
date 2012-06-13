@@ -294,7 +294,7 @@ void pmomCalc(//Output
       if (pint != 0){
         if (abs(2.-pint) > 1e-4)
         {
-          CREATE_OUT1
+          CREATE_OUT1;
           out1 << "Warning: The phase function is not normalized to 2\n"
                << "The value is:" << pint << "\n";
         }

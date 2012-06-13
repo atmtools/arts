@@ -182,7 +182,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname, Index& value)
 */
 void ArtsXMLTag::read_from_stream(istream& is)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   String        token;
   stringbuf     tag;
@@ -506,7 +506,7 @@ void xml_open_output_file(ogzstream& file, const String& name)
 */
 void xml_open_input_file(ifstream& ifs, const String& name, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
@@ -553,7 +553,7 @@ void xml_open_input_file(ifstream& ifs, const String& name, const Verbosity& ver
 */
 void xml_open_input_file(igzstream& ifs, const String& name, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
@@ -832,7 +832,7 @@ void xml_read_from_file(const String&    filename,
                         T&               type,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   String efilename = expand_path(filename);
   
@@ -926,7 +926,7 @@ void xml_read_arts_catalogue_from_file(const String&      filename,
                                        const Numeric&     fmax,
                                        const Verbosity&   verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   String efilename = expand_path(filename);
   
@@ -1029,7 +1029,7 @@ void xml_write_to_file(const String&    filename,
                        const FileType   ftype,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   String efilename = add_basedir(filename);
   

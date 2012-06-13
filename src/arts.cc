@@ -63,15 +63,13 @@ void arts_exit(int status)
 */
 void arts_exit_with_error_message(const String& m, ArtsOut &out)
 {
-  {
-    ostringstream os;
-    os << m << "\n"
-    << "Stopping ARTS execution.\n"
-    << "Goodbye.\n";
-    out << os.str();
-    
-    arts_exit();              // No argument means failure.
-  }
+  ostringstream os;
+  os << m << "\n"
+     << "Stopping ARTS execution.\n"
+     << "Goodbye.\n";
+  out << os.str();
+  
+  arts_exit();              // No argument means failure.
 }
 
 //! Exit ARTS or re-throw error.

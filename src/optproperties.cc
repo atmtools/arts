@@ -104,7 +104,7 @@ void abs_vecTransform(//Output and Input
       
     case PARTICLE_TYPE_GENERAL:
     {
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
       break;
     }
@@ -158,7 +158,7 @@ void abs_vecTransform(//Output and Input
     }
     default:
     {
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Not all particle type cases are implemented\n";
     }
   }  
@@ -209,7 +209,7 @@ void ext_matTransform(//Output and Input
       
     case PARTICLE_TYPE_GENERAL:
     {
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
       break;
     }
@@ -311,7 +311,7 @@ void ext_matTransform(//Output and Input
     }
     default:
     {
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Not all particle type cases are implemented\n";
     }
   }
@@ -373,7 +373,7 @@ void pha_matTransform(//Output
       
     case PARTICLE_TYPE_GENERAL:
     {
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
       break;
     }
@@ -528,7 +528,7 @@ void pha_matTransform(//Output
     }  
     default:
     {
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Not all particle type cases are implemented\n";
     }
   }

@@ -57,8 +57,8 @@ void ArtsParser::parse_tasklist ()
 */
 void ArtsParser::parse_main()
 {
-  CREATE_OUT0
-  CREATE_OUT3
+  CREATE_OUT0;
+  CREATE_OUT3;
   
   try 
     {
@@ -224,8 +224,8 @@ void ArtsParser::parse_main()
 */
 void ArtsParser::parse_agenda( Agenda& tasklist )
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   extern const Array<MdRecord> md_data;
 
@@ -379,7 +379,7 @@ void ArtsParser::parse_method(Index&         id,
                               String&        include_file,
                               bool           no_eot)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   String methodname;            // We need this out here, since it is
                                 // set once and later modified.

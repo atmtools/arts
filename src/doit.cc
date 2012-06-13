@@ -98,7 +98,7 @@ void cloud_fieldsCalc(Workspace& ws,
                       ConstTensor4View pnd_field,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
@@ -607,7 +607,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           const Verbosity& verbosity
                           )
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   Ppath ppath_step;
   const Index stokes_dim = doit_i_field.ncols();
@@ -876,7 +876,7 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& scat_aa_index,
                             const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   const Index N_species = vmr_list_int.nrows();
   const Index stokes_dim = doit_i_field.ncols();
@@ -1108,7 +1108,7 @@ void interp_cloud_coeff1D(//Output
                           const Index& scat_za_interp,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Stokes dimension
   const Index stokes_dim = doit_i_field.ncols();
@@ -1305,7 +1305,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         ConstTensor4View abs_vec_field,
                                         const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = doit_i_field.ncols();
@@ -1949,7 +1949,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                               const String&         interpmeth,
                               const Verbosity&      verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //--- Check input -----------------------------------------------------------
   if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )

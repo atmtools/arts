@@ -140,7 +140,7 @@ void Select(// WS Generic Output:
             const ArrayOfIndex& needleind,
             const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same

@@ -151,7 +151,7 @@ void chk_if_pnd_zero_p(const Index& i_p,
         {
           if ( pnd_field_raw.data(i_p, i, j) != 0. )
             {
-              CREATE_OUT1
+              CREATE_OUT1;
               ostringstream os;
               os << "Warning: \n"
                  << "The particle number density field contained in the file '"
@@ -197,7 +197,7 @@ void chk_if_pnd_zero_lat(const Index& i_lat,
         {
           if ( pnd_field_raw.data(i, i_lat, j) != 0. )
             {
-              CREATE_OUT1
+              CREATE_OUT1;
               ostringstream os;
               os << "Warning: \n" 
                  << "The particle number density field contained in the file '"
@@ -243,7 +243,7 @@ void chk_if_pnd_zero_lon(const Index& i_lon,
         {
           if ( pnd_field_raw.data(i, j, i_lon) != 0. )
             {
-              CREATE_OUT1
+              CREATE_OUT1;
               ostringstream os;
               os << "Warning: \n" 
                  << "The particle number density field contained in the file '"
@@ -293,7 +293,7 @@ void chk_pnd_data(
                   const ArrayOfIndex& cloudbox_limits,
                   const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
@@ -405,7 +405,7 @@ void chk_pnd_raw_data(
                       const Verbosity& verbosity
                       )
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   for( Index i = 0; i < pnd_field_raw.nelem(); i++)
     {
@@ -458,7 +458,7 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta,
                               const String& scat_data_meta_file,
                               const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   out2 << "  Check scattering meta properties file "<< scat_data_meta_file << "\n";
   
   if  (scat_data_meta.type != "Ice" && scat_data_meta.type != "Water" && scat_data_meta.type != "Aerosol")
@@ -491,7 +491,7 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
                                 ConstVectorView f_grid,
                                 const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
 
@@ -1713,7 +1713,7 @@ void chk_pndsum (Vector& pnd,
                  const Verbosity& verbosity)
 
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   // set vector x to pnd size
   Vector x ( pnd.nelem(), 0.0 );
@@ -1757,7 +1757,7 @@ void chk_pndsum (Vector& pnd,
   // give warning if deviations are more than 10%
     if ( error > 1.10 || error < 0.90 )
     {
-      CREATE_OUT1
+      CREATE_OUT1;
       //ostringstream os;
       out1<< "WARNING: in WSM chk_pndsum in pnd_fieldSetup!\n" 
       << "The deviation of the sum of nodes in the particle size distribution\n"

@@ -540,7 +540,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
         }
       catch (runtime_error e)
         {
-          CREATE_OUT0
+          CREATE_OUT0;
           exit_or_rethrow(e.what(), out0);
         }
     }    
@@ -679,8 +679,8 @@ void AtmosphereSet1D(// WS Output:
                      Vector&   lon_grid,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2 << "  Sets the atmospheric dimensionality to 1.\n";
   out3 << "    atmosphere_dim = 1\n";
@@ -700,8 +700,8 @@ void AtmosphereSet2D(// WS Output:
                      Vector&   lon_grid,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2 << "  Sets the atmospheric dimensionality to 2.\n";
   out3 << "    atmosphere_dim = 2\n";
@@ -717,8 +717,8 @@ void AtmosphereSet3D(// WS Output:
                      Index&    atmosphere_dim,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2 << "  Sets the atmospheric dimensionality to 3.\n";
   out3 << "    atmosphere_dim = 3\n";
@@ -745,7 +745,7 @@ void AtmFieldsCalc(//WS Output:
                    const Index& interp_order,
                    const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   const ConstVectorView tfr_p_grid   = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const ConstVectorView tfr_lat_grid = t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
@@ -1423,7 +1423,7 @@ void AtmRawRead(//WS Output:
                 const String&    basename,
                 const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Read the temperature field:
   String file_name = basename + ".t.xml";
@@ -1474,7 +1474,7 @@ void InterpAtmFieldToRteGps(Numeric&   outvalue,
                             const Tensor3&   field,
                             const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Interpolate
   outvalue = interp_atmfield_by_gp( atmosphere_dim, field, 

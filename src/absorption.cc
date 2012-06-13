@@ -254,7 +254,7 @@ const IsotopeRecord& LineRecord::IsotopeData() const {
 //
 bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Global species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -443,7 +443,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
                                    warned_missing.end(),
                                    mo) )
                 {
-                  CREATE_OUT0
+                  CREATE_OUT0;
                   out0 << "Error: HITRAN mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
@@ -707,7 +707,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
 //
 bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Global species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -896,7 +896,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
                                    warned_missing.end(),
                                    mo) )
                 {
-                  CREATE_OUT1
+                  CREATE_OUT1;
                   out1 << "Warning: HITRAN molecule number mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
@@ -1176,7 +1176,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
 
 bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Global species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1343,7 +1343,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
                                    warned_missing.end(),
                                    mo) )
                 {
-                  CREATE_OUT0
+                  CREATE_OUT0;
                   out0 << "Error: MYTRAN mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
@@ -1578,7 +1578,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
 
 bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Global species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1824,7 +1824,7 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
 
 bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
  
   // Global species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -2019,7 +2019,7 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
 
 bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Global species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -2734,7 +2734,7 @@ void xsec_species( MatrixView               xsec,
             } // end of try block
           catch (runtime_error e)
             {
-              CREATE_OUT0
+              CREATE_OUT0;
               exit_or_rethrow(e.what(), out0);
             }
 

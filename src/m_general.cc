@@ -83,8 +83,8 @@ void Print(Workspace& ws _U_,
 {
   ostringstream os;
   os << "     " << x << "\n";
-  CREATE_OUTS
-  SWITCH_OUTPUT (level, os.str ())
+  CREATE_OUTS;
+  SWITCH_OUTPUT (level, os.str ());
 }
 
 
@@ -99,8 +99,8 @@ void Print(// WS Generic Input:
   for( Index i=0; i<x.nelem(); i++ )
     os << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1]
          << "\n";
-  CREATE_OUTS
-  SWITCH_OUTPUT (level, os.str ())
+  CREATE_OUTS;
+  SWITCH_OUTPUT (level, os.str ());
 }
 
 
@@ -114,8 +114,8 @@ void Print(// WS Generic Input:
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i] << " ";
-  CREATE_OUTS
-  SWITCH_OUTPUT (level, os.str () << '\n')
+  CREATE_OUTS;
+  SWITCH_OUTPUT (level, os.str () << '\n');
 }
 
 
@@ -129,8 +129,8 @@ void Print(// WS Generic Input:
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i] << '\n';
-  CREATE_OUTS
-  SWITCH_OUTPUT (level, os.str ())
+  CREATE_OUTS;
+  SWITCH_OUTPUT (level, os.str ());
 }
 
 
@@ -142,49 +142,49 @@ Print(// WS Generic Input:
       const Index&     level,
       const Verbosity& verbosity)
 {
-  CREATE_OUTS
-  SWITCH_OUTPUT (level, "dim: ")
+  CREATE_OUTS;
+  SWITCH_OUTPUT (level, "dim: ");
   Print( x.dim, level, verbosity );
-  SWITCH_OUTPUT (level, "np: ")
+  SWITCH_OUTPUT (level, "np: ");
   Print( x.np, level, verbosity );
-  SWITCH_OUTPUT (level, "constant: ")
+  SWITCH_OUTPUT (level, "constant: ");
   Print( x.constant, level, verbosity );
-  SWITCH_OUTPUT (level, "background: ")
+  SWITCH_OUTPUT (level, "background: ");
   Print( x.background, level, verbosity );
-  SWITCH_OUTPUT (level, "start_pos: ")
+  SWITCH_OUTPUT (level, "start_pos: ");
   Print( x.start_pos, level, verbosity );
-  SWITCH_OUTPUT (level, "start_los: ")
+  SWITCH_OUTPUT (level, "start_los: ");
   Print( x.start_los, level, verbosity );
-  SWITCH_OUTPUT (level, "start_lstep: ")
+  SWITCH_OUTPUT (level, "start_lstep: ");
   Print( x.start_lstep, level, verbosity );
-  SWITCH_OUTPUT (level, "pos: ")
+  SWITCH_OUTPUT (level, "pos: ");
   Print( x.pos, level, verbosity );
-  SWITCH_OUTPUT (level, "los: ")
+  SWITCH_OUTPUT (level, "los: ");
   Print( x.los, level, verbosity );
-  SWITCH_OUTPUT (level, "r: ")
+  SWITCH_OUTPUT (level, "r: ");
   Print( x.r, level, verbosity );
-  SWITCH_OUTPUT (level, "lstep: ")
+  SWITCH_OUTPUT (level, "lstep: ");
   Print( x.lstep, level, verbosity );
-  SWITCH_OUTPUT (level, "end_pos: ")
+  SWITCH_OUTPUT (level, "end_pos: ");
   Print( x.end_pos, level, verbosity );
-  SWITCH_OUTPUT (level, "end_los: ")
+  SWITCH_OUTPUT (level, "end_los: ");
   Print( x.end_los, level, verbosity );
-  SWITCH_OUTPUT (level, "end_lstep: ")
+  SWITCH_OUTPUT (level, "end_lstep: ");
   Print( x.end_lstep, level, verbosity );
-  SWITCH_OUTPUT (level, "nreal: ")
+  SWITCH_OUTPUT (level, "nreal: ");
   Print( x.nreal, level, verbosity );
-  SWITCH_OUTPUT (level, "ngroup: ")
+  SWITCH_OUTPUT (level, "ngroup: ");
   Print( x.ngroup, level, verbosity );
-  SWITCH_OUTPUT (level, "gp_p: ")
+  SWITCH_OUTPUT (level, "gp_p: ");
   Print( x.gp_p, level, verbosity );
   if( x.dim >= 2 )
     {
-      SWITCH_OUTPUT (level, "gp_lat: ")
+      SWITCH_OUTPUT (level, "gp_lat: ");
       Print( x.gp_lat, level, verbosity );
     }
   if( x.dim == 3 )
     {
-      SWITCH_OUTPUT (level, "gp_lon: ")
+      SWITCH_OUTPUT (level, "gp_lon: ");
       Print( x.gp_lon, level, verbosity );
     }
 }
@@ -197,12 +197,12 @@ void Print(// WS Generic Input:
            const Index&        level,
            const Verbosity&    verbosity)
 {
-  CREATE_OUTS
+  CREATE_OUTS;
   for( Index i=0; i<x.nelem(); i++ )
     {
       ostringstream os;
       os << "Ppath element " << i << ": ";
-      SWITCH_OUTPUT (level, os.str ())
+      SWITCH_OUTPUT (level, os.str ());
       Print( x[i], level, verbosity );
     }
 }
@@ -216,12 +216,12 @@ void Print(// WS Generic Input:
            const Verbosity&)
 {
 /*  ostringstream os;
-  CREATE_OUTS
+  CREATE_OUTS;
   cout << "  *" << x_name <<"* =";
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
+  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n");
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i] << '\n';
-  SWITCH_OUTPUT (level, os.str ()) */
+  SWITCH_OUTPUT (level, os.str ()); */
 }
 
 
@@ -255,7 +255,7 @@ void PrintWorkspace(// Workspace reference
           os << "\n";
         }
     }
-  CREATE_OUTS
+  CREATE_OUTS;
   SWITCH_OUTPUT (level, os.str ());
 }
 
@@ -288,7 +288,7 @@ timerStop (// WS Input
            const Timer& starttime,
            const Verbosity& verbosity)
 {
-  CREATE_OUT1
+  CREATE_OUT1;
   
   Timer endtime;
   static long clktck = 0;
@@ -338,7 +338,7 @@ timerStop (// WS Input
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Error(const String& msg, const Verbosity& verbosity)
 {
-  CREATE_OUT0
+  CREATE_OUT0;
   out0 << msg << "\n";
   arts_exit();
 }
@@ -348,7 +348,7 @@ void Error(const String& msg, const Verbosity& verbosity)
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Exit(const Verbosity& verbosity)
 {
-  CREATE_OUT1
+  CREATE_OUT1;
   out1 << "  Forced exit.\n";
   arts_exit (EXIT_SUCCESS);
 }

@@ -1319,7 +1319,7 @@ void opt_propExtract(
     {
       // This is only included to remove warnings about unused variables 
       // during compilation
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
       break;
     }
@@ -1444,7 +1444,7 @@ void opt_propExtract(
     }
   default:
     {
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Not all particle type cases are implemented\n";
     }
     
@@ -1540,7 +1540,7 @@ void pha_mat_singleExtract(
     case PARTICLE_TYPE_GENERAL:
     {
       // to remove warnings during compilation.
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
       break;
     }
@@ -1697,7 +1697,7 @@ void pha_mat_singleExtract(
       
     }  
   default:
-      CREATE_OUT0
+      CREATE_OUT0;
       out0 << "Not all particle type cases are implemented\n";
     
   }

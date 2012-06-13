@@ -1027,7 +1027,7 @@ int main (int argc, char **argv)
   verbosity = verbosity_at_launch;
   verbosity.set_main_agenda(true);
   
-  CREATE_OUTS
+  CREATE_OUTS;
 
   //--------------------< Open report file >--------------------
   // This one needs its own little try block, because we have to

@@ -77,8 +77,8 @@ void abs_lookupCreate(// WS Output:
                       const ArrayOfVector&            abs_cont_parameters,
                       const Verbosity&                verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // We need this to restore the original setting of omp_nested at the
   // end.
@@ -482,7 +482,7 @@ void abs_lookupCreate(// WS Output:
                 } // end of try block
               catch (runtime_error e)
                 {
-                  CREATE_OUT0
+                  CREATE_OUT0;
                   exit_or_rethrow(e.what(), out0);
                 }
             } // end of parallel for loop
@@ -520,7 +520,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   cont.resize(0);
   
@@ -608,7 +608,7 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
                     const ArrayOfArrayOfSpeciesTag& abs_species,
                     const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   abs_nls.resize(0);
 
@@ -671,8 +671,8 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
                        const Index&    t_interp_order,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // The code to find out the range for perturbation is a bit
   // complicated. The problem is that, since we use higher order
@@ -751,8 +751,8 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
                          const Index&    nls_interp_order,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // The code to find out the range for perturbation is a bit
   // complicated. The problem is that, since we use higher order
@@ -1158,8 +1158,8 @@ void abs_lookupSetupBatch(// WS Output:
                           const Vector&  extremes,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
@@ -1709,7 +1709,7 @@ void abs_lookupSetupWide(// WS Output:
                          const Numeric& h2o_max,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
@@ -1839,7 +1839,7 @@ void abs_lookupSetupWide(// WS Output:
     }
   else
     {
-      CREATE_OUT1
+      CREATE_OUT1;
       out1 << "  WARNING:\n"
            << "  You have no species that require H2O variations.\n"
            << "  This case might work, but it has never been tested.\n"
@@ -1855,7 +1855,7 @@ void abs_speciesAdd(// WS Output:
                     const ArrayOfString& names,
                     const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Size of initial array
   Index n_gs = abs_species.nelem();
@@ -1907,7 +1907,7 @@ void abs_speciesAdd2(// WS Output:
                      const Numeric&            dx,
                      const Verbosity&          verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Add species to *abs_species*
   ArrayOfSpeciesTag tags;
@@ -1946,7 +1946,7 @@ void SpeciesSet(// WS Generic Output:
                 const ArrayOfString& names,
                 const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   abs_species.resize(names.nelem());
 
@@ -2002,7 +2002,7 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                                       const Numeric&      extpolfac,
                                       const Verbosity&    verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Check if the table has been adapted:
   if ( 1!=abs_lookup_is_adapted )
@@ -2116,8 +2116,8 @@ void abs_fieldCalc(Workspace& ws,
                    const Vector&  doppler,
                    const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   Matrix  asg;
   Vector  a_vmr_list;
@@ -2302,7 +2302,7 @@ void abs_fieldCalc(Workspace& ws,
         }
       catch (runtime_error e)
         {
-          CREATE_OUT0
+          CREATE_OUT0;
           exit_or_rethrow(e.what(), out0);
         }
     }
@@ -2483,7 +2483,7 @@ void abs_lookupTestAccuracy(// WS Input:
                             const ArrayOfVector&            abs_cont_parameters,
                             const Verbosity&                verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   const GasAbsLookup& al = abs_lookup;
 
@@ -2870,8 +2870,8 @@ void abs_lookupTestAccMC(// WS Input:
                          const Index&                    mc_seed,
                          const Verbosity&                verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   const GasAbsLookup& al = abs_lookup;
   

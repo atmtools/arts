@@ -262,7 +262,7 @@ void MatrixCompare(const Matrix&    matrix1,
       throw runtime_error(os.str());
     }
 
-  CREATE_OUT2
+  CREATE_OUT2;
   out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
 }
 
@@ -396,7 +396,7 @@ void NumericCompare(const Numeric&   n1,
     throw runtime_error(os.str());
   }
   
-  CREATE_OUT2
+  CREATE_OUT2;
   out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
 }
 
@@ -505,8 +505,8 @@ void Tensor3SetConstant(Tensor3&   x,
                         const Numeric&   value,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   x.resize( npages, nrows, ncols );
   x = value;
@@ -547,8 +547,8 @@ void Tensor4SetConstant(Tensor4&   x,
                         const Numeric&   value,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   x.resize( nbooks, npages, nrows, ncols );
   x = value;
@@ -592,8 +592,8 @@ void Tensor5SetConstant(Tensor5&   x,
                         const Numeric&   value,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   x.resize( nshelves, nbooks, npages, nrows, ncols );
   x = value;
@@ -639,8 +639,8 @@ void Tensor6SetConstant(Tensor6&   x,
                         const Numeric&   value,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   x.resize( nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
@@ -688,8 +688,8 @@ void Tensor7SetConstant(Tensor7&   x,
                         const Numeric&   value,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   x.resize( nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
@@ -759,7 +759,7 @@ void VectorCompare(const Vector&    vector1,
     throw runtime_error(os.str());
   }
   
-  CREATE_OUT2
+  CREATE_OUT2;
   out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
 }
 
@@ -798,8 +798,8 @@ void VectorInsertGridPoints(// WS Generic Output:
                             const Vector& points,        // Points to insert
                             const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // First make duplikates of the input vectors, in case one of them
   // happens to be identical to the output vector. Also, we can fool
@@ -925,8 +925,8 @@ void VectorLinSpace(Vector&    x,
                     const Numeric&   step,
                     const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   linspace(x,start,stop,step);
   
@@ -948,8 +948,8 @@ void VectorLogSpace(Vector&    x,
                     const Numeric&   step,
                     const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   linspace(x,log(start),log(stop),step);
   transform(x,exp,x);
@@ -1000,8 +1000,8 @@ void VectorNLinSpace(Vector&    x,
                      const Numeric&   stop,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   if ( n<2 ) 
     throw runtime_error("The number of points must be > 1."); 
@@ -1026,8 +1026,8 @@ void VectorNLogSpace(Vector&    x,
                      const Numeric&   stop,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   if ( n<2 )
     throw runtime_error("The number of points must be > 1."); 
@@ -1074,8 +1074,8 @@ void VectorSetConstant(Vector&    x,
                        const Numeric&   value,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   x.resize(n);
   x = value;            

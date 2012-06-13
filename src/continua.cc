@@ -449,7 +449,7 @@ void MPM87H2OAbsModel (MatrixView        pxsec,
                        ConstVectorView   vmr,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe, Radio Science, 20(5), 1985, 1069
@@ -635,7 +635,7 @@ void MPM89H2OAbsModel (MatrixView        pxsec,
                        ConstVectorView   vmr,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
@@ -839,7 +839,7 @@ void MPM02H2OAbsModel (MatrixView        pxsec,
                        ConstVectorView   vmr,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   /*
@@ -1099,7 +1099,7 @@ void MPM93H2OAbsModel (MatrixView        pxsec,
                        ConstVectorView   vmr,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -1325,7 +1325,7 @@ void PWR98H2OAbsModel (MatrixView       pxsec,
                       ConstVectorView   vmr,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //   REFERENCES:
   //   LINE INTENSITIES FROM HITRAN92 (SELECTION THRESHOLD=
@@ -1535,7 +1535,7 @@ void CP98H2OAbsModel (MatrixView        pxsec,
                       ConstVectorView   vmr,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the CP98 model (S. L. Cruz-Pol et al., Radio Science, 33(5), 1319, 1998):
@@ -1666,7 +1666,7 @@ void Standard_H2O_self_continuum (MatrixView        pxsec,
                                   ConstVectorView   vmr,
                                   const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
@@ -1790,7 +1790,7 @@ void Standard_H2O_foreign_continuum (MatrixView        pxsec,
                                      ConstVectorView   vmr,
                                      const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Radio Science, 33(4), 919, 1998):
@@ -1914,7 +1914,7 @@ void MaTipping_H2O_foreign_continuum (MatrixView        pxsec,
                                       ConstVectorView   vmr,
                                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for Q. Ma and R. H. Tipping, J. Chem. Phys., 117(23), 10581, 2002:
@@ -2128,7 +2128,7 @@ void CKD_222_self_h2o (MatrixView          pxsec,
                        ConstVectorView     abs_n2 _U_,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD222"))
@@ -2416,7 +2416,7 @@ void CKD_222_foreign_h2o (MatrixView          pxsec,
                           ConstVectorView     abs_n2 _U_,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD222"))
@@ -2642,7 +2642,7 @@ void CKD_242_self_h2o (MatrixView          pxsec,
                        ConstVectorView     abs_n2 _U_,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD242"))
@@ -2943,7 +2943,7 @@ void CKD_242_foreign_h2o (MatrixView          pxsec,
                           ConstVectorView     abs_n2 _U_,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD242"))
@@ -3188,7 +3188,7 @@ void CKD_mt_100_self_h2o (MatrixView          pxsec,
                           ConstVectorView     abs_n2 _U_,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -3447,7 +3447,7 @@ void CKD_mt_100_foreign_h2o (MatrixView          pxsec,
                              ConstVectorView     abs_n2 _U_,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -3647,7 +3647,7 @@ void CKD_241_co2 (MatrixView         pxsec,
                   ConstVectorView     vmr _U_,
                   const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKD241"))
@@ -3845,7 +3845,7 @@ void CKD_mt_co2 (MatrixView          pxsec,
                  ConstVectorView     vmr _U_,
                  const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4058,7 +4058,7 @@ void CKD_mt_CIArot_n2 (MatrixView         pxsec,
                        ConstVectorView     vmr,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4311,7 +4311,7 @@ void CKD_mt_CIAfun_n2 (MatrixView          pxsec,
                        ConstVectorView     vmr,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4526,7 +4526,7 @@ void CKD_mt_CIAfun_o2 (MatrixView         pxsec,
                        ConstVectorView     vmr _U_,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4750,7 +4750,7 @@ void CKD_mt_v0v0_o2 (MatrixView          pxsec,
                      ConstVectorView     abs_n2,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -4955,7 +4955,7 @@ void CKD_mt_v1v0_o2 (MatrixView          pxsec,
                      ConstVectorView     vmr,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // check the model name about consistency
   if ((model != "user") &&  (model != "CKDMT100"))
@@ -5179,7 +5179,7 @@ void CKD24_H20 (MatrixView          pxsec,
                 ConstVectorView     abs_n2,
                 const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   //
@@ -5361,7 +5361,7 @@ void Pardo_ATM_H2O_ForeignContinuum (MatrixView          pxsec,
                                      ConstVectorView     vmr,
                                      const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Pardo et al. model (IEEE, Trans. Ant. Prop.,
@@ -5483,7 +5483,7 @@ void MPM93_H2O_continuum (MatrixView          pxsec,
                           ConstVectorView     vmr,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 H2O continuum model
@@ -5620,7 +5620,7 @@ void MPM85O2AbsModel (MatrixView          pxsec,
                       ConstVectorView     vmr,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -5905,7 +5905,7 @@ void MPM87O2AbsModel (MatrixView          pxsec,
                       ConstVectorView     vmr,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -6182,7 +6182,7 @@ void MPM89O2AbsModel (MatrixView          pxsec,
                       ConstVectorView     vmr,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -6454,7 +6454,7 @@ void MPM92O2AbsModel (MatrixView          pxsec,
                       ConstVectorView     vmr,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -6725,7 +6725,7 @@ void MPM93O2AbsModel (MatrixView          pxsec,
                       ConstVectorView     vmr,        // VMR of O2
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -7024,7 +7024,7 @@ void PWR93O2AbsModel (MatrixView        pxsec,
                       ConstVectorView   vmr,
                       const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   const Index n_lines = 40; // all O2 lines in this model (range: 50-850 GHz)
   //
@@ -7392,7 +7392,7 @@ void MPM93_O2_continuum (MatrixView          pxsec,
                          ConstVectorView     vmr,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -7540,7 +7540,7 @@ void Rosenkranz_O2_continuum (MatrixView        pxsec,
                               ConstVectorView   vmr _U_,      // O2 VMR
                               const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
@@ -7674,7 +7674,7 @@ void Standard_O2_continuum (MatrixView        pxsec,        // cross section
                             ConstVectorView   vmr _U_,      // VMR O2  profile
                             const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
@@ -7833,7 +7833,7 @@ void BF86_CIA_N2 (MatrixView          pxsec,
                   ConstVectorView     vmr,
                   const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //
   //
@@ -7963,7 +7963,7 @@ void MPM93_N2_continuum (MatrixView          pxsec,
                          ConstVectorView     vmr,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 H2O continuum model
@@ -8094,7 +8094,7 @@ void Pardo_ATM_N2_dry_continuum (MatrixView          pxsec,
                                  ConstVectorView     h2ovmr,
                                  const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Pardo et al. model (IEEE, Trans. Ant. Prop.,
@@ -8199,7 +8199,7 @@ void Rosenkranz_N2_self_continuum (MatrixView          pxsec,
                                    ConstVectorView     vmr,
                                    const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model (Chapter 2, pp 74, in M. A. Janssen,
@@ -8307,7 +8307,7 @@ void Standard_N2_self_continuum (MatrixView          pxsec,
                                  ConstVectorView     vmr,
                                  const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Rosenkranz model, Chapter 2, pp 74, in M. A. Janssen,
@@ -8419,7 +8419,7 @@ void Rosenkranz_CO2_self_continuum (MatrixView          pxsec,
                                     ConstVectorView     vmr,
                                     const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen,
@@ -8521,7 +8521,7 @@ void Rosenkranz_CO2_foreign_continuum (MatrixView          pxsec,
                                        ConstVectorView     vmr _U_,
                                        const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
@@ -8627,7 +8627,7 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
                            ConstVectorView    vmr,    // suspended water droplet density vector
                            const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -8805,7 +8805,7 @@ void MPM93IceCrystalAbs (MatrixView        pxsec,
                                                    // valid range: 0-10.0e-3 kg/m³
                          const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model (J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -8967,7 +8967,7 @@ void MPM93RainExt (MatrixView         pxsec,
                    ConstVectorView    vmr,    // rain rate profile [mm/h]
                    const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 model based on Olsen, R.L.,
@@ -9493,7 +9493,7 @@ void xsec_continuum_tag (MatrixView             xsec,
                          ConstVectorView        vmr,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   /* In the following all the possible tags are listed here and
      after a first consistency check about the input parameters the

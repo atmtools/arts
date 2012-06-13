@@ -88,7 +88,7 @@ void DoitAngularGridsSet(// WS Output:
     throw runtime_error("N_za_grid must be greater than 15 for accurate results");
   else if (N_za_grid > 100)
   {
-    CREATE_OUT1
+    CREATE_OUT1;
     out1 << "Warning: N_za_grid is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 19.\n";
   }
@@ -97,7 +97,7 @@ void DoitAngularGridsSet(// WS Output:
     throw runtime_error("N_aa_grid must be greater than 5 for accurate results");
   else if (N_aa_grid > 100)
   {
-    CREATE_OUT1
+    CREATE_OUT1;
     out1 << "Warning: N_aa_grid is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 10.\n";
   }
@@ -129,8 +129,8 @@ void doit_conv_flagAbs(//WS Input and Output:
                        const Vector& epsilon,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT1
-  CREATE_OUT2
+  CREATE_OUT1;
+  CREATE_OUT2;
   
   //------------Check the input---------------------------------------
   if( doit_conv_flag != 0 )
@@ -243,8 +243,8 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                          const Vector& epsilon,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT1
-  CREATE_OUT2
+  CREATE_OUT1;
+  CREATE_OUT2;
   
    //------------Check the input---------------------------------------
   
@@ -365,8 +365,8 @@ void doit_conv_flagLsq(//WS Output:
                        const Vector& epsilon,
                        const Verbosity& verbosity)
 {
-  CREATE_OUT1
-  CREATE_OUT2
+  CREATE_OUT1;
+  CREATE_OUT2;
   
   //------------Check the input---------------------------------------
   
@@ -489,7 +489,7 @@ void doit_i_fieldIterate(Workspace& ws,
                          const Agenda& doit_conv_test_agenda,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   //---------------Check input---------------------------------
   chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
@@ -578,8 +578,8 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      const Verbosity& verbosity
                    )
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2 << "  doit_i_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
@@ -746,8 +746,8 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Index& doit_za_interp,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2<<"  doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
@@ -982,8 +982,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                         const Index& doit_za_interp,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2<<"  doit_i_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "  ------------------------------------------------------------- \n";
@@ -1279,8 +1279,8 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                           const Index& f_index,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
 
   out2 << "  doit_i_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
   out2 << "  --------------------------------------------------------------------- \n";
@@ -1442,7 +1442,7 @@ void DoitInit(//WS Output
 {
   if (!cloudbox_on)
   {
-    CREATE_OUT0
+    CREATE_OUT0;
     doit_is_initialized = 0;
     out0 << "  Cloudbox is off, DOIT calculation will be skipped.\n";
     return;
@@ -1474,7 +1474,7 @@ void DoitInit(//WS Output
      "*doit_za_grid_size* must be greater than 15 for accurate results");
   else if (doit_za_grid_size > 100)
   {
-    CREATE_OUT1
+    CREATE_OUT1;
     out1 << "Warning: doit_za_grid_size is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 19.\n";
   }
@@ -1609,8 +1609,8 @@ doit_scat_fieldCalc(Workspace& ws,
                     const Verbosity& verbosity)
   
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // ------------ Check the input -------------------------------
 
@@ -1909,8 +1909,8 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                         const Index& doit_za_interp,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   // ------------ Check the input -------------------------------
    
@@ -1990,7 +1990,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                         "accurate results");
   else if (doit_za_grid_size > 100)
   {
-    CREATE_OUT1
+    CREATE_OUT1;
     out1 << "Warning: doit_za_grid_size is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 19.\n";
   }
@@ -2377,7 +2377,7 @@ void ScatteringDoit(Workspace& ws,
                     const Verbosity& verbosity)
                   
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   //-------- Check input -------------------------------------------
  
@@ -2500,7 +2500,7 @@ void DoitCloudboxFieldPut(//WS Output:
           if(sensor_pos(i, 0) >= z_field(cloudbox_limits[0], 0, 0) &&
              sensor_pos(i, 0) <= z_field(cloudbox_limits[1], 0, 0) )
             {
-              CREATE_OUT2
+              CREATE_OUT2;
               in_cloudbox = true;
               out2 << "  Sensor position in cloudbox, store radiation field\n"
                    << "  in cloudbox for all frequencies. \n"; 
@@ -3152,7 +3152,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                              const Index& all_frequencies,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   out2 << "  Interpolate boundary clearsky field to obtain the initial field.\n";
   
@@ -3508,8 +3508,8 @@ void doit_i_fieldSetConst(//WS Output:
                           const Vector& doit_i_field_values,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   out2 << "  Set initial field to constant values: " << doit_i_field_values << "\n"; 
 

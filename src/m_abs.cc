@@ -105,7 +105,7 @@ void abs_linesReadFromHitran(// WS Output:
                              const Numeric& fmax,
                              const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   ifstream is;
 
@@ -149,7 +149,7 @@ void abs_linesReadFromHitran2004(// WS Output:
                                  const Numeric& fmax,
                                  const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   ifstream is;
 
@@ -193,7 +193,7 @@ void abs_linesReadFromMytran2(// WS Output:
                               const Numeric& fmax,
                               const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   ifstream is;
 
@@ -234,7 +234,7 @@ void abs_linesReadFromJpl(// WS Output:
                           const Numeric& fmax,
                           const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   ifstream is;
 
@@ -320,7 +320,7 @@ void abs_linesReadFromSplitArtscat(// WS Output:
                                    const Numeric& fmax,
                                    const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   extern const Array<SpeciesRecord> species_data;
  
   // Build a set of species indices. Duplicates are ignored.
@@ -381,7 +381,7 @@ void abs_linesReadFromArtsObsolete(// WS Output:
                                    const Numeric& fmax,
                                    const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   // The input stream:
   ifstream is;
@@ -466,7 +466,7 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
                                              const Vector& fmax,
                                              const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   const Index n_tg   = tgs.nelem();     // # tag groups
   const Index n_cat = filenames.nelem();        // # tag Catalogues
@@ -672,7 +672,7 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
                                           const ArrayOfArrayOfSpeciesTag& tgs,
                                           const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -781,7 +781,7 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
           // species are only partly covered by tags.
           if ( species_used[this_line.Species()] )
             {
-              CREATE_OUT2
+              CREATE_OUT2;
               out2 << "  Your tags include other lines of species "
                    << this_line.SpeciesData().Name()
                    << ",\n"
@@ -946,7 +946,7 @@ void abs_speciesDefineAllInScenario(// WS Output:
                                     const String& basename,
                                     const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1010,7 +1010,7 @@ void abs_lineshapeDefine(// WS Output:
                          const Numeric&           cutoff,
                          const Verbosity&         verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   // Make lineshape and normalization factor data visible:
   extern const Array<LineshapeRecord> lineshape_data;
@@ -1080,7 +1080,7 @@ void abs_lineshape_per_tgDefine(// WS Output:
                                 const Vector&         cutoff,
                                 const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   // Make lineshape and normalization factor data visible:
   extern const Array<LineshapeRecord> lineshape_data;
@@ -1302,7 +1302,7 @@ void abs_coefCalcSaveMemory(// WS Output:
                             const ArrayOfVector&   abs_cont_parameters,
                             const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Dimension checks are performed in the executed functions
 
@@ -1407,7 +1407,7 @@ void abs_coefCalcFromXsec(// WS Output:
                           const Vector&        abs_t,
                           const Verbosity&     verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Check that abs_vmrs and abs_xsec_per_species really have compatible
   // dimensions. In abs_vmrs there should be one row for each tg:
@@ -1486,7 +1486,7 @@ void abs_xsec_per_speciesInit(// WS Output:
                               const Verbosity& verbosity
                               )
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
@@ -1523,7 +1523,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
                                   const Verbosity&                 verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Check that all temperatures are at least 0 K. (Negative Kelvin
   // temperatures are unphysical.)  
@@ -1756,7 +1756,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                   const ArrayOfString&             abs_cont_models,
                                   const Verbosity&                 verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
@@ -2030,7 +2030,7 @@ void abs_cont_descriptionInit(// WS Output:
                               ArrayOfVector& parameters,
                               const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   names.resize(0);
   options.resize(0);
@@ -2124,7 +2124,7 @@ void abs_scalar_gasCalcLBL(// WS Output:
                            const Numeric& rte_doppler,
                            const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   // Output of AbsInputFromRteScalars:
   Vector        abs_p;

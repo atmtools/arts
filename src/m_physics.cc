@@ -68,8 +68,8 @@ void complex_nWaterLiebe93(Matrix&         complex_n,
                            const Numeric&  t,
                            const Verbosity& verbosity)
 {
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
   
   chk_if_in_range( "t", t, TEMP_0_C, TEMP_0_C+100 );
   chk_if_in_range( "min of f_grid", min(f_grid), 10e9, 1000e9 );
@@ -153,7 +153,7 @@ void MatrixPlanck(// WS Output:
                   const Numeric&  t,
                   const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   const Index n = f.nelem();
 
@@ -181,7 +181,7 @@ void MatrixUnitIntensity(// WS Output:
                          const Vector&   f,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   const Index n = f.nelem();
 

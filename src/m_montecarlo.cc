@@ -284,7 +284,7 @@ void MCGeneral(Workspace&            ws,
       throw runtime_error(os.str());
     }
 
-  CREATE_OUT2
+  CREATE_OUT2;
   Ppath ppath_step;
   Rng rng;                      //Random Number generator
   time_t start_time=time(NULL);

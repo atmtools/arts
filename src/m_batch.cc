@@ -74,7 +74,7 @@ void ForLoop(Workspace& ws,
              const Index& step,
              const Verbosity& verbosity)
 {
-  CREATE_OUT1
+  CREATE_OUT1;
   
   for (Index i=start; i<=stop; i+=step)
     {
@@ -153,7 +153,7 @@ void ybatchCalc(Workspace&      ws,
                 const Index& robust,
                 const Verbosity& verbosity)
 {
-  CREATE_OUTS
+  CREATE_OUTS;
   
   Vector y;
   Matrix jacobian;

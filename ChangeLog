@@ -1,3 +1,20 @@
+2012-06-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-125
+
+	* src/messages.h:
+
+	Remove ; from the end of the CREATE_OUT* macros. This forces a ; to be
+	added when the macro is used to make it look like a statement (which
+	it is). Also fixes automatic indentation in some editors that get
+	confused if a statement doesn't end with a semicolon.
+
+	* src/*.{cc,h}: Add semicolons to CREATE_OUT* calls.
+
+	* src/agenda_{class,record}.{cc,h}: Reindent.
+
+	* src/arts.cc (arts_exit_with_error_message): Remove extra block.
+
 2012-06-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-124

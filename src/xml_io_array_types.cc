@@ -2073,7 +2073,7 @@ void xml_read_from_stream(istream&           is_xml,
                           bifstream* pbifs   _U_,
                           const Verbosity&   verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   ArtsXMLTag tag(verbosity);
   Index nelem;

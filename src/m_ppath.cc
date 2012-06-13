@@ -129,8 +129,8 @@ void ppathFromRtePos2(
   chk_rte_pos( atmosphere_dim, rte_pos2, 1 );
   //---------------------------------------------------------------------------
 
-  CREATE_OUT2
-  CREATE_OUT3
+  CREATE_OUT2;
+  CREATE_OUT3;
 
   // Radius of rte_pos and rte_pos2
   const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
@@ -787,7 +787,7 @@ void TangentPointPrint(
           os << "\n   lon: " << ppath.pos(it,2) << " deg";
     }
 
-  CREATE_OUTS
+  CREATE_OUTS;
   SWITCH_OUTPUT (level, os.str ());  
 }
 

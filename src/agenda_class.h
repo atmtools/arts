@@ -67,19 +67,18 @@ public:
   inline void resize(Index n);
   inline Index nelem() const;
   inline Agenda& operator=(const Agenda& x);
-  const Array<MRecord>& Methods () const { return mml; }
-  void set_methods (const Array<MRecord>& ml) { mml = ml; mchecked = false; }
-  void set_outputs_to_push_and_dup (const Verbosity& verbosity);
+  const Array<MRecord>& Methods() const { return mml; }
+  void set_methods(const Array<MRecord>& ml) { mml = ml; mchecked = false; }
+  void set_outputs_to_push_and_dup(const Verbosity& verbosity);
   bool is_input(Workspace& ws, Index var) const;
   bool is_output(Index var) const;
   void set_name(const String& nname);
   String name() const;
   const ArrayOfIndex& get_output2push() const { return moutput_push; }
   const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
-  void print( ostream& os,
-              const String& indent ) const;
-  void set_main_agenda() {main_agenda = true; mchecked = true;}
-  bool is_main_agenda() const {return main_agenda;}
+  void print(ostream& os, const String& indent) const;
+  void set_main_agenda() { main_agenda = true; mchecked = true; }
+  bool is_main_agenda() const { return main_agenda; }
   void find_unused_variables();
 
 private:
@@ -122,17 +121,17 @@ public:
                               minput(x.minput),
                               msetvalue(x.msetvalue),
                               mtasks(x.mtasks)
-    { /* Nothing to do here */ }
+  { /* Nothing to do here */ }
 
-  MRecord(const Index id,
+  MRecord(const Index         id,
           const ArrayOfIndex& output,
           const ArrayOfIndex& input,
           const TokVal&       setvalue,
           const Agenda&       tasks) : mid(id),
-                                              moutput(output),
-                                              minput(input),
-                                              msetvalue(setvalue),
-                                              mtasks(tasks)
+                                       moutput(output),
+                                       minput(input),
+                                       msetvalue(setvalue),
+                                       mtasks(tasks)
   { /* Nothing to do here */ }
 
   Index               Id()       const { return mid;       }
@@ -163,22 +162,22 @@ public:
     \date   2002-12-02
     */
   MRecord& operator=(const MRecord& x)
-    {
-      mid = x.mid;
+  {
+    mid = x.mid;
 
-      msetvalue = x.msetvalue;
+    msetvalue = x.msetvalue;
 
-      moutput.resize(x.moutput.nelem());
-      moutput = x.moutput;
+    moutput.resize(x.moutput.nelem());
+    moutput = x.moutput;
 
-      minput.resize(x.minput.nelem());
-      minput = x.minput;
+    minput.resize(x.minput.nelem());
+    minput = x.minput;
 
-      mtasks.resize(x.mtasks.nelem());
-      mtasks = x.mtasks;
+    mtasks.resize(x.mtasks.nelem());
+    mtasks = x.mtasks;
 
-      return *this;
-    }
+    return *this;
+  }
 
   //! Get list of generic input only WSVs.
   /*!
@@ -190,25 +189,24 @@ public:
     \author Oliver Lemke
     \date   2008-02-27
   */
-  void ginput_only (ArrayOfIndex& ginonly) const
-    {
-      ginonly = minput;    // Input
-      for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j)
-        for (ArrayOfIndex::iterator k=ginonly.begin(); k<ginonly.end(); ++k)
-          if ( *j == *k )
-            {
-              //              erase_vector_element(vi,k);
-              k = ginonly.erase(k) - 1;
-              // We need the -1 here, otherwise due to the
-              // following increment we would miss the element
-              // behind the erased one, which is now at the
-              // position of the erased one.
-            }
-    }
+  void ginput_only(ArrayOfIndex& ginonly) const
+  {
+    ginonly = minput;      // Input
+    for (ArrayOfIndex::const_iterator j = moutput.begin(); j < moutput.end(); ++j)
+      for (ArrayOfIndex::iterator k = ginonly.begin(); k < ginonly.end(); ++k)
+        if (*j == *k)
+          {
+            //              erase_vector_element(vi,k);
+            k = ginonly.erase(k) - 1;
+            // We need the -1 here, otherwise due to the
+            // following increment we would miss the element
+            // behind the erased one, which is now at the
+            // position of the erased one.
+          }
+  }
 
   // Output operator:
-  void                 print( ostream& os,
-                              const String& indent ) const;
+  void print(ostream& os, const String& indent) const;
 
 private:
   /** Method id. */

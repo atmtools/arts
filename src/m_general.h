@@ -67,7 +67,7 @@ Print(
       const Index&     level,
       const Verbosity& verbosity)
 {
-  CREATE_OUTS
+  CREATE_OUTS;
   SWITCH_OUTPUT (level, x)
 }
 

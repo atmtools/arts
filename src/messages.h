@@ -202,15 +202,15 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
   return aos;
 }
 
-#define CREATE_OUT0 ArtsOut0 out0(verbosity);
-#define CREATE_OUT1 ArtsOut1 out1(verbosity);
-#define CREATE_OUT2 ArtsOut2 out2(verbosity);
-#define CREATE_OUT3 ArtsOut3 out3(verbosity);
+#define CREATE_OUT0 ArtsOut0 out0(verbosity)
+#define CREATE_OUT1 ArtsOut1 out1(verbosity)
+#define CREATE_OUT2 ArtsOut2 out2(verbosity)
+#define CREATE_OUT3 ArtsOut3 out3(verbosity)
 
 #define CREATE_OUTS \
 ArtsOut0 out0(verbosity); \
 ArtsOut1 out1(verbosity); \
 ArtsOut2 out2(verbosity); \
-ArtsOut3 out3(verbosity);
+ArtsOut3 out3(verbosity)
 
 #endif // messages_h

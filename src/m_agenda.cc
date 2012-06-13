@@ -37,7 +37,7 @@ void AgendaExecute(Workspace& ws,
                    const Agenda& this_agenda,
                    const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   out3 << "  Manual agenda execution\n";
   this_agenda.execute(ws);
 }
@@ -98,7 +98,7 @@ void Arts(Workspace&,
            const Agenda&,
            const Verbosity& verbosity)
 {
-  CREATE_OUT0
+  CREATE_OUT0;
   arts_exit_with_error_message("The 'Arts' method is obsolete. Arts1 controlfiles are no longer supported.",
                                out0);
 }
@@ -117,7 +117,7 @@ void Arts2(Workspace& ws,
   // from inside a controlfile by the user. That is not permitted.
   if (v == &verbosity)
   {
-    CREATE_OUT0
+    CREATE_OUT0;
     arts_exit_with_error_message("The 'Arts2' method can't be called directly.", out0);
   }
   (*v) = verbosity;

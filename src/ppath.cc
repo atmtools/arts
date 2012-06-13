@@ -5098,7 +5098,7 @@ void ppath_start_stepping(
     ConstVectorView       rte_los,
     const Verbosity&      verbosity)
 {
-  CREATE_OUT1
+  CREATE_OUT1;
   
   // This function contains no checks or asserts as it is only a sub-function.
 

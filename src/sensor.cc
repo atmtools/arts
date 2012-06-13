@@ -1082,7 +1082,7 @@ void find_effective_channel_boundaries(// Output:
                                        const Numeric& delta,
                                        const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   // How many channels in total:
   const Index n_chan = f_backend.nelem();

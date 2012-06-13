@@ -284,7 +284,7 @@ void cloudboxSetAutomatically (// WS Output:
   // if cloudbox reaches to the upper most pressure level
   if ( p2 >= massdensity_field.npages()-1)
   {
-    CREATE_OUT2
+    CREATE_OUT2;
     out2<<"The cloud reaches to TOA!\n"
     <<"Check massdensity_field data, if realistic!\n";
   }
@@ -296,7 +296,7 @@ void cloudboxSetAutomatically (// WS Output:
   // than switch cloudbox off, skipping scattering calculations
   if ( !x )
   {
-    CREATE_OUT0
+    CREATE_OUT0;
     //cloudboxOff ( cloudbox_on, cloudbox_limits, iy_cloudbox_agenda );
     cloudbox_on = 0;
     out0<<"Cloudbox is switched off!\n";
@@ -729,7 +729,7 @@ void ParticleSpeciesSet (// WS Generic Output:
                          const ArrayOfString& names,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   part_species.resize ( names.nelem() );
   //assign input strings to part_species
@@ -772,7 +772,7 @@ void ParticleTypeAddAll (//WS Output:
                          const String& pnd_field_file,
                          const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   //--- Check input ---------------------------------------------------------
 
@@ -828,7 +828,7 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
                                         const String& filename_scat_meta_data,
                                         const Verbosity& verbosity)
 {
-  CREATE_OUT3
+  CREATE_OUT3;
   
   //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
@@ -880,8 +880,8 @@ void ScatteringParticlesSelect (//WS Output:
                                 const ArrayOfString& part_species,
                                 const Verbosity& verbosity)
 { 
-  CREATE_OUT1
-  CREATE_OUT3
+  CREATE_OUT1;
+  CREATE_OUT3;
   //--- Adjusting data to user specified input (part_species)-------------------
   
   Index intarr_total = 0;
@@ -1012,7 +1012,7 @@ void ParticleTypeAdd( //WS Output:
                      const String& pnd_field_file,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT2
+  CREATE_OUT2;
   
   //--- Check input ---------------------------------------------------------
   
@@ -1052,7 +1052,7 @@ void ParticleTypeAdd( //WS Output:
   out2 << "  Read particle number density field\n";
   if (pnd_field_file.nelem() < 1)
   {
-    CREATE_OUT1
+    CREATE_OUT1;
     out1 << "Warning: No pnd_field_file specified. Ignored. \n";
   }
   else
@@ -1347,7 +1347,7 @@ void pnd_fieldSetup (//WS Output:
                      const ArrayOfIndex& scat_data_nelem,
                      const Verbosity& verbosity)
 {
-  CREATE_OUT1
+  CREATE_OUT1;
 
   // Cloudbox on/off?
   if ( !cloudbox_on )
