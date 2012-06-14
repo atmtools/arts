@@ -1,5 +1,11 @@
 2012-06-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-127
+
+	* src/parameters.cc: Fix baseurl parameter.
+
+2012-06-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-126
 
 	* src/xml_io_compound_types.cc: Reading of GriddedField2 was broken.

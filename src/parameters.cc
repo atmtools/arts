@@ -140,7 +140,7 @@ bool get_parameters(int argc, char **argv)
 #ifdef ENABLE_DOCSERVER
     { "docserver",          optional_argument, NULL, 's' },
     { "docdaemon",          optional_argument, NULL, 'S' },
-    { "baseurl",            required_argument, NULL, 'B' },
+    { "baseurl",            required_argument, NULL, 'U' },
 #endif
     { "workspacevariables", required_argument, NULL, 'w' },
     { "version",            no_argument,       NULL, 'v' },
