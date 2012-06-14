@@ -295,7 +295,7 @@ xml_read_from_stream (istream& is_xml,
   ArtsXMLTag tag(verbosity);
 
   tag.read_from_stream (is_xml);
-  tag.check_name ("GriddedField3");
+  tag.check_name ("GriddedField2");
 
   String s;
   tag.get_attribute_value ("name", s);
@@ -306,7 +306,7 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, gfield.data, pbifs, verbosity);
 
   tag.read_from_stream (is_xml);
-  tag.check_name ("/GriddedField3");
+  tag.check_name ("/GriddedField2");
 
   if (!gfield.checksize())
     throw runtime_error ("Dimension mismatch between the grids and the data");
@@ -316,7 +316,7 @@ xml_read_from_stream (istream& is_xml,
 //! Writes GriddedField2 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param gfield  GriddedField3
+  \param gfield  GriddedField2
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
@@ -449,7 +449,7 @@ xml_read_from_stream (istream& is_xml,
 //! Writes GriddedField4 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param gfield  GriddedField3
+  \param gfield  GriddedField4
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
