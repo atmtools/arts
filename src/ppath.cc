@@ -3961,33 +3961,17 @@ void do_gridcell_3d(
       cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
                    x+dx*lj, y+dy*lj, z+dz*lj, dx, dy, dz, ppc,
                    lat_start, lon_start, za_start, aa_start );
+      resolve_lon( lon_v[j], lon5, lon6 );
    }
 
   //--- Set last point especially, which should improve the accuracy
   r_v[n]   = r; 
   lat_v[n] = lat;
   lon_v[n] = lon;
-
-  //--- Set last zenith angle to be as accurate as possible
-  if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
-    { za_v[n] = za_start; }
-  else if( endface == 8 )
+  if( endface == 8 )
     { za_v[n] = 90; }
   else
     { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
-
-  //--- Set last azimuth angle to be as accurate as possible for
-  //    zenith and nadir observations
-  if( abs( lat_start ) < POLELAT  &&  
-          ( abs(aa_start) < ANGTOL  ||  abs( aa_start) > 180-ANGTOL ) )
-    {  
-      aa_v[n]  = aa_start; 
-      lon_v[n] = lon_start;
-    }
-
-  // Shall lon values be shifted (value 0 and n+1 are already OK)?
-  for( Index j=1; j<n; j++ )
-    { resolve_lon( lon_v[j], lon5, lon6 ); }
 }
 
 
@@ -5879,7 +5863,7 @@ void ppath_calc(
                         cloudbox_on, cloudbox_limits, ppath_inside_cloudbox_do, 
                         rte_pos, rte_los, verbosity );
   // For debugging:
-  // Print( ppath_step, 0, verbosity );
+  //Print( ppath_step, 0, verbosity );
 
   // The only data we need to store from this initial ppath_step is
   // end_pos/los/lstep

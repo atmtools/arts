@@ -1066,7 +1066,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       -\n"
         "\n"
-        "Dimensions: [f_grid or 1,2]\n"
+        "Dimensions: [f_grid or 2]\n"
         ),
        GROUP( "Matrix" ) ));
 
@@ -4057,10 +4057,8 @@ void Workspace::define_wsv_data()
         DESCRIPTION
         ( "The emission from the surface.\n"
           "\n"
-          "See specific methods generating *surface_emission* and the user guide\n"
-          "for more information.\n"
-          "\n"
-          "Unit:       W / (m^2 Hz sr)\n"
+          "See specific methods generating *surface_emission* and the user\n"
+          "guide for more information.\n"
           "\n"
           "Dimensions: [ f_grid, stokes_dim ]\n"
          ), 
@@ -4085,7 +4083,7 @@ void Workspace::define_wsv_data()
      ( NAME( "surface_los" ),
        DESCRIPTION
        (
-        "Directions for which to calculate downwelling radiation when \n"
+        "Directions for which to calculate downwelling radiation when\n"
         "considering a surface reflection.\n"
         "\n"
         "See further the user guide.\n"
@@ -4146,17 +4144,38 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
    (WsvRecord
+    ( NAME( "surface_reflectivity" ),
+      DESCRIPTION
+      (
+       "Surface reflectivity, for a given position and angle.\n"
+       "\n"
+       "This variable describes the surface reflectivity at one position\n"
+       "and one incidence angle. It works as *surface_scalar_reflectivity*\n"
+       "but is also defined for vector radiative transfer.\n"
+       "\n"
+       "The first dimension of the variable shall either match *f_grid* or\n"
+       "be 1. The later case is interpreted as the reflectivity is the same\n"
+       "for all frequencies.\n"
+       "\n"
+       "Usage:   Input to some surface properties methods.\n"
+       "\n"
+       "Dimensions: [ f_grid or 1, stkes_dim, stokes_dim]\n"
+       ),
+      GROUP( "Tensor3" )));
+
+   wsv_data.push_back
+   (WsvRecord
     ( NAME( "surface_scalar_reflectivity" ),
       DESCRIPTION
       (
        "Surface reflectivity, assuming it can be described as a scalar value.\n"
        "\n"
-       "This variable describes the surface reflectivity at one position.\n"
+       "This variable describes the surface reflectivity at one position\n"
+       "and one incidence angle.\n"
        "\n"
-       "The variable is primarily intended for scalar radiative transfer.\n"
-       "The assumptions made, when using this variable with values of\n"
-       "*stokes_dim* above 1, are described in the methods using this\n"
-       "variable as input.\n"
+       "The variable can only be used for scalar radiative transfer, that\n"
+       "is, *stokes_dim* equals 1. Use *surface_reflectivity* for vector\n"
+       "radiative transfer.\n"
        "\n"
        "The length of the vector shall either match *f_grid* or be 1. The \n"
        "later case is interpreted as the reflectivity is the same for all\n"

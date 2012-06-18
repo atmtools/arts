@@ -8274,47 +8274,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceFlatReflectivity" ),
-        DESCRIPTION
-        (
-         "Creates variables to mimic specular reflection by a (flat) surface\n"
-         "where the reflectivity is specified.\n"
-         "\n"
-         "The surface is treated to be flat, and the same (amplitude)\n"
-         "reflectivity is assumed for vertical and horisontal polarisation.\n"
-         "This assumption results in a pure diagonal *surface_rmatrix* (see\n"
-         "surface chapter in AUG).\n"
-         "\n"
-         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
-         "that reflectivity and emissivity add up to 1. The\n"
-         "emission is unpolarised here.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t", "surface_scalar_reflectivity" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "surfaceFlatRefractiveIndex" ),
         DESCRIPTION
         (
          "Creates variables to mimic specular reflection by a (flat) surface\n"
-         "where the refracive index is specified.\n"
+         "where the refractive index is specified.\n"
          "\n"
          "The dielectric properties of the surface are described by\n"
-         "*complex_n*. The Fresnel eqiuations are used to calculate\n"
+         "*complex_n*. The Fresnel equations are used to calculate\n"
          "amplitude reflection coefficients. The method can thus result\n"
          "in that the reflection properties differ between frequencies\n"
-         "and polarizations."
+         "and polarisations."
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
          "that the reflection and emission coefficients add up to 1.\n"
@@ -8334,17 +8304,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceFlatSingleEmissivity" ),
+      ( NAME( "surfaceFlatReflectivity" ),
         DESCRIPTION
         (
          "Creates variables to mimic specular reflection by a (flat) surface\n"
-         "where the emissivity is specified.\n"
+         "where *surface_reflectivity* is specified.\n"
          "\n"
-         "As *surfaceFlatVaryingEmissivity*, but assumes that the emissivity\n"
-         "does not vary with frequency. The emissivity can be defined with a\n"
-         "a varying degree of complexity and there is no specific workspace\n"
-         "variable defined to hold the emissivity. You have to define the\n"
-         "'surface_emissivity' to match your needs.\n"
+         "Works basically as *surfaceFlatScalarReflectivity* buit is more\n"
+         "general as all also vector radiative transfer is calculated. See\n"
+         "the ARTS theory document (ATD) for deatils around how\n"
+         "*surface_emission* is determined. In the nomenclature of ATD,\n"
+         "*surface_reflectivity* gives R.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -8352,33 +8322,24 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t" ),
-        GIN(         "surface_emissivity" ),
-        GIN_TYPE(    "Numeric"            ),
-        GIN_DEFAULT( NODEF                ),
-        GIN_DESC( "The emissivity, a value between 0 and 1." )
+            "surface_skin_t", "surface_reflectivity" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceFlatVaryingEmissivity" ),
+      ( NAME( "surfaceFlatScalarReflectivity" ),
         DESCRIPTION
         (
          "Creates variables to mimic specular reflection by a (flat) surface\n"
-         "where the emissivity is specified.\n"
+         "where *surface_scalar_reflectivity* is specified.\n"
          "\n"
-         "The usage of emissivity does not provide any polarisation\n"
-         "information and it is only formally correct to use this method\n"
-         "for *stokes_dim* = 1 (but there is no hard-coded restriction).\n"
-         "\n"
-         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
-         "that the reflection and emission coefficients add up to 1.\n"
-         "\n"
-         "As *surfaceFlatSingleEmissivity*, but assumes that the emissivity\n"
-         "varies with frequency. The emissivity can be defined with a\n"
-         "a varying degree of complexity and there is no specific workspace\n"
-         "variable defined to hold the emissivity. You have to define the\n"
-         "'surface_emissivity' to match your needs.\n"
+         "The method can only be used for *stokes_dim* equal to 1. Local\n"
+         "thermodynamic equilibrium is assumed, which corresponds to that\n"
+         "reflectivity and emissivity add up to 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -8386,13 +8347,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t" ),
-        GIN(      "surface_emissivity" ),
-        GIN_TYPE( "Vector"             ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "The emissivity, for each frequency in *f_grid*. Values "
-                  "between 0 and 1." 
-                  )
+            "surface_skin_t", "surface_scalar_reflectivity" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -8403,7 +8362,7 @@ void define_md_data_raw()
         "Creates variables to mimic a Lambertian surface, ignoring the\n"
         "azimuthal dimension.\n"
         "\n"
-        "A lambertian surface can be characterised solely by its\n"
+        "A Lambertian surface can be characterised solely by its\n"
         "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
         "\n"
         "The down-welling radiation field is estimated by making calculations\n"
@@ -8418,7 +8377,7 @@ void define_md_data_raw()
         "*za_pos*. This variable specifies the fractional distance inside the\n"
         "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"
         "7, 17, ..., 87.\n"
-        "Any aziumuth angle in *sensor_los* is set to 0.\n"
+        "Any azimuth angle in *sensor_los* is set to 0.\n"
         "\n"
         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
         "that the reflection and emission coefficients \"add up to 1\".\n"

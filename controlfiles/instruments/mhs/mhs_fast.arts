@@ -45,7 +45,7 @@ AgendaSet( surface_prop_agenda ){
   Ignore(rte_gp_p)
   InterpSurfaceFieldToRteGps( surface_skin_t, atmosphere_dim, 
                               rte_gp_lat, rte_gp_lon, t_surface )
-  surfaceFlatReflectivity( surface_los, surface_rmatrix, surface_emission,
+  surfaceFlatScalarReflectivity( surface_los, surface_rmatrix, surface_emission,
 	                   f_grid, stokes_dim, atmosphere_dim, rte_los,
 	                   surface_skin_t, surface_scalar_reflectivity )
 } 

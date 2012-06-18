@@ -123,13 +123,14 @@ void InterpSurfaceEmissivityFieldIncLatLon(Numeric&         outvalue,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceBlackbody(Matrix&          surface_los,
-                      Tensor4&         surface_rmatrix,
-                      Matrix&          surface_emission,
-                      const Vector&    f_grid,
-                      const Index&     stokes_dim,
-                      const Numeric&   surface_skin_t,
-                      const Verbosity& verbosity)
+void surfaceBlackbody(
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+          Matrix&    surface_emission,
+    const Vector&    f_grid,
+    const Index&     stokes_dim,
+    const Numeric&   surface_skin_t,
+    const Verbosity& verbosity)
 {
   CREATE_OUT2;
   
@@ -153,84 +154,17 @@ void surfaceBlackbody(Matrix&          surface_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceFlatReflectivity(Matrix&          surface_los,
-                             Tensor4&         surface_rmatrix,
-                             Matrix&          surface_emission,
-                             const Vector&    f_grid,
-                             const Index&     stokes_dim,
-                             const Index&     atmosphere_dim,
-                             const Vector&    rte_los,
-                             const Numeric&   surface_skin_t,
-                             const Vector&    surface_scalar_reflectivity,
-                             const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  CREATE_OUT3;
-  
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_not_negative( "surface_skin_t", surface_skin_t );
-
-  const Index   nf = f_grid.nelem();
-
-  if( surface_scalar_reflectivity.nelem() != nf  &&  
-      surface_scalar_reflectivity.nelem() != 1 )
-    {
-      ostringstream os;
-      os << "The number of elements in *surface_scalar_reflectivity* should\n"
-         << "match length of *f_grid* or be 1."
-         << "\n length of *f_grid* : " << nf 
-         << "\n length of *surface_scalar_reflectivity* : " 
-         << surface_scalar_reflectivity.nelem()
-         << "\n";
-      throw runtime_error( os.str() );
-    }
-
-  if( min(surface_scalar_reflectivity) < 0  ||  
-      max(surface_scalar_reflectivity) > 1 )
-    {
-      throw runtime_error( 
-         "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
-    }
-
-  out2 << "  Sets variables to model a flat surface\n";
-  out3 << "     surface temperature: " << surface_skin_t << " K.\n";
-
-  surface_los.resize( 1, rte_los.nelem() );
-  surface_los(0,joker) = rte_los;
-  surface_specular_los( surface_los(0, joker) , atmosphere_dim );
-
-  surface_emission.resize( nf, stokes_dim );
-  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
-  surface_rmatrix = 0.0;
-  surface_emission = 0.0;
-
-  Numeric r = 0.0;
-
-  for( Index iv=0; iv<nf; iv++ )
-    { 
-      if( iv == 0  || surface_scalar_reflectivity.nelem() > 1 )
-        { r = surface_scalar_reflectivity[iv]; }
-
-      surface_emission(iv,0) = (1.0-r) * planck( f_grid[iv], surface_skin_t );
-      for( Index is=0; is<stokes_dim; is++ )
-        { surface_rmatrix(0,iv,is,is) = r; }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceFlatRefractiveIndex(Matrix&          surface_los,
-                                Tensor4&         surface_rmatrix,
-                                Matrix&          surface_emission,
-                                const Vector&    f_grid,
-                                const Index&     stokes_dim,
-                                const Index&     atmosphere_dim,
-                                const Vector&    rte_los,
-                                const Numeric&   surface_skin_t,
-                                const Matrix&    complex_n,
-                                const Verbosity& verbosity)
+void surfaceFlatRefractiveIndex(
+         Matrix&    surface_los,
+         Tensor4&   surface_rmatrix,
+         Matrix&    surface_emission,
+   const Vector&    f_grid,
+   const Index&     stokes_dim,
+   const Index&     atmosphere_dim,
+   const Vector&    rte_los,
+   const Numeric&   surface_skin_t,
+   const Matrix&    complex_n,
+   const Verbosity& verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
@@ -287,19 +221,19 @@ void surfaceFlatRefractiveIndex(Matrix&          surface_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceFlatVaryingEmissivity(Matrix&          surface_los,
-                                  Tensor4&         surface_rmatrix,
-                                  Matrix&          surface_emission,
-                                  const Vector&    f_grid,
-                                  const Index&     stokes_dim,
-                                  const Index&     atmosphere_dim,
-                                  const Vector&    rte_los,
-                                  const Numeric&   surface_skin_t,
-                                  const Vector&    surface_emissivity,
-                                  const Verbosity& verbosity)
+void surfaceFlatReflectivity(
+         Matrix&    surface_los,
+         Tensor4&   surface_rmatrix,
+         Matrix&    surface_emission,
+   const Vector&    f_grid,
+   const Index&     stokes_dim,
+   const Index&     atmosphere_dim,
+   const Vector&    rte_los,
+   const Numeric&   surface_skin_t,
+   const Tensor3&   surface_reflectivity,
+   const Verbosity& verbosity)
 {
   CREATE_OUT2;
-  CREATE_OUT3;
   
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
@@ -307,21 +241,112 @@ void surfaceFlatVaryingEmissivity(Matrix&          surface_los,
 
   const Index   nf = f_grid.nelem();
 
-  if( surface_emissivity.nelem() != nf )
+  if( surface_reflectivity.nrows() != stokes_dim  &&  
+      surface_reflectivity.ncols() != stokes_dim )
     {
       ostringstream os;
-      os << "The number of elements in *surface_emissivity* should match\n"
-         << "length of *f_grid*."
-         << "\n length of *f_grid* : " << nf 
-         << "\n length of *surface_emissivity* : " << surface_emissivity.nelem()
+      os << "The number of rows and columnss in *surface_reflectivity* must\n"
+         << "match *sokes_dim*."
+         << "\n sokes_dim : " << stokes_dim 
+         << "\n number of rows in *surface_reflectivity* : " 
+         << surface_reflectivity.nrows()
+         << "\n number of columns in *surface_reflectivity* : " 
+         << surface_reflectivity.ncols()
          << "\n";
       throw runtime_error( os.str() );
     }
 
-  if( min(surface_emissivity) < 0  ||  max(surface_emissivity) > 1 )
+  if( surface_reflectivity.npages() != nf  &&  
+      surface_reflectivity.npages() != 1 )
+    {
+      ostringstream os;
+      os << "The number of pages in *surface_reflectivity* should\n"
+         << "match length of *f_grid* or be 1."
+         << "\n length of *f_grid* : " << nf 
+         << "\n dimension of *surface_reflectivity* : " 
+         << surface_reflectivity.npages()
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  out2 << "  Sets variables to model a flat surface\n";
+
+  surface_los.resize( 1, rte_los.nelem() );
+  surface_los(0,joker) = rte_los;
+  surface_specular_los( surface_los(0, joker), atmosphere_dim );
+
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+
+  Matrix R, IR(stokes_dim,stokes_dim); 
+  Vector b(stokes_dim,0);
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      if( iv == 0  || surface_reflectivity.npages() > 1 )
+        { 
+          R = surface_reflectivity(iv,joker,joker); 
+          for( Index i=0; i<stokes_dim; i++ )
+            {
+              for( Index j=0; j<stokes_dim; j++ )
+                {
+                  if( i== j )
+                    { IR(i,j) = 1 - R(i,j); }
+                  else
+                    { IR(i,j) = -R(i,j); }
+                }
+            }
+        }
+
+      surface_rmatrix(0,iv,joker,joker) = R;
+
+      b[0] = planck( f_grid[iv], surface_skin_t );
+      mult( surface_emission(iv,joker), IR, b );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceFlatScalarReflectivity(
+         Matrix&    surface_los,
+         Tensor4&   surface_rmatrix,
+         Matrix&    surface_emission,
+   const Vector&    f_grid,
+   const Index&     stokes_dim,
+   const Index&     atmosphere_dim,
+   const Vector&    rte_los,
+   const Numeric&   surface_skin_t,
+   const Vector&    surface_scalar_reflectivity,
+   const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  CREATE_OUT3;
+  
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
+
+  const Index   nf = f_grid.nelem();
+
+  if( surface_scalar_reflectivity.nelem() != nf  &&  
+      surface_scalar_reflectivity.nelem() != 1 )
+    {
+      ostringstream os;
+      os << "The number of elements in *surface_scalar_reflectivity* should\n"
+         << "match length of *f_grid* or be 1."
+         << "\n length of *f_grid* : " << nf 
+         << "\n length of *surface_scalar_reflectivity* : " 
+         << surface_scalar_reflectivity.nelem()
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( min(surface_scalar_reflectivity) < 0  ||  
+      max(surface_scalar_reflectivity) > 1 )
     {
       throw runtime_error( 
-                  "All values in *surface_emissivity* must be inside [0,1]." );
+         "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
     }
 
   out2 << "  Sets variables to model a flat surface\n";
@@ -329,43 +354,23 @@ void surfaceFlatVaryingEmissivity(Matrix&          surface_los,
 
   surface_los.resize( 1, rte_los.nelem() );
   surface_los(0,joker) = rte_los;
-  surface_specular_los( surface_los(0, joker) , atmosphere_dim );
+  surface_specular_los( surface_los(0, joker), atmosphere_dim );
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
-  surface_rmatrix = 0.0;
-  surface_emission = 0.0;
+  //surface_rmatrix = 0.0;   Not needed when stojkes_dim forced to be 1
+  //surface_emission = 0.0;
+
+  Numeric r = 0.0;
 
   for( Index iv=0; iv<nf; iv++ )
     { 
-      surface_emission(iv,0) = surface_emissivity[iv] * 
-                                          planck( f_grid[iv], surface_skin_t );
-      for( Index is=0; is<stokes_dim; is++ )
-        { surface_rmatrix(0,iv,is,is) = 1 - surface_emissivity[iv]; }
+      if( iv == 0  || surface_scalar_reflectivity.nelem() > 1 )
+        { r = surface_scalar_reflectivity[iv]; }
+
+      surface_emission(iv,0) = (1.0-r) * planck( f_grid[iv], surface_skin_t );
+      surface_rmatrix(0,iv,0,0) = r;
     }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceFlatSingleEmissivity(Matrix&          surface_los,
-                                 Tensor4&         surface_rmatrix,
-                                 Matrix&          surface_emission,
-                                 const Vector&    f_grid,
-                                 const Index&     stokes_dim,
-                                 const Index&     atmosphere_dim,
-                                 const Vector&    rte_los,
-                                 const Numeric&   surface_skin_t,
-                                 const Numeric&   surface_emissivity,
-                                 const Verbosity& verbosity)
-{
-  chk_if_in_range( "surface_emissivity", surface_emissivity, 0., 1. );
-
-  Vector a_vector( f_grid.nelem(), surface_emissivity );
-
-  surfaceFlatVaryingEmissivity(surface_los, surface_rmatrix, surface_emission, 
-                               f_grid, stokes_dim, atmosphere_dim, rte_los, 
-                               surface_skin_t, a_vector, verbosity);
 }
 
 
