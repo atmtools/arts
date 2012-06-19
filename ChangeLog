@@ -1,3 +1,13 @@
+2012-06-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-129
+
+	* src/m_surface.cc (InterpSurfaceEmissivityFieldIncLatLon): Removed.
+
+	(surface_scalar_reflectivityFromGriddedField4): Just a start ...
+
+	* src/m_surface.cc: Removed .h-files and "extern const" not used.
+
 2012-06-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-128

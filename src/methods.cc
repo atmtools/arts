@@ -4223,39 +4223,6 @@ void define_md_data_raw()
   
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "InterpSurfaceEmissivityFieldIncLatLon" ),
-        DESCRIPTION
-        (
-         "Interpolation of surface emissivity specified as a function of\n"
-         "incidence angle, latitude and longitude.\n"
-         "\n"
-         "The surface emissivity field has here three dimension, with\n"
-         "incidence angle as first/column dimension, latitude as second/row\n"
-         "dimension and longitude as third/page dimension. Grid names must\n"
-         "be set exactly to \"Incidence angle\", \"Latitude\" and\n"
-         "\"Longitude\". No extrapolation is allowed.\n"
-         "\n"
-         "For 1D cases it is expected that the latitude and longitude grids\n"
-         "have both a length of 1. For 2D the same applies to the longitude\n"
-         "grid.\n"
-         "\n"
-         "This method can be used together with e.g.\n"
-         "*surfaceFlatSingleEmissivity*.\n" 
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "outvalue" ),
-        GOUT_TYPE( "Numeric"  ),
-        GOUT_DESC( "Value obtained by interpolation" ),
-        IN( "atmosphere_dim", "rte_pos", "rte_los" ),
-        GIN(      "gfield"  ),
-        GIN_TYPE( "GriddedField3" ),
-        GIN_DEFAULT( NODEF  ),
-        GIN_DESC( "Gridded field to be interpolated." )
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
       ( NAME( "InterpSurfaceFieldToRteGps" ),
         DESCRIPTION
         (

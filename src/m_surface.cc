@@ -42,28 +42,16 @@
   ===========================================================================*/
 
 #include <cmath>
-//#include <stdexcept>
 #include "arts.h"
 #include "check_input.h"
 #include "complex.h"          
-#include "matpackIII.h"
 #include "messages.h"
 #include "special_interp.h"
-#include "absorption.h"
 #include "interpolation.h"
-//#include "fastem.h"
-#include "gridded_fields.h"
 #include "physics_funcs.h"
 #include "surface.h"
 
 extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric EARTH_RADIUS;
-
-extern const Index GFIELD4_IA_GRID;
-extern const Index GFIELD4_F_GRID;
-extern const Index GFIELD4_LAT_GRID;
-extern const Index GFIELD4_LON_GRID;
 
 
 
@@ -73,49 +61,19 @@ extern const Index GFIELD4_LON_GRID;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpSurfaceFieldToRteGps(Numeric&         outvalue,
-                                const Index&     atmosphere_dim,
-                                const GridPos&   rte_gp_lat,
-                                const GridPos&   rte_gp_lon,
-                                const Matrix&    field,
-                                const Verbosity& verbosity)
+void InterpSurfaceFieldToRteGps(
+          Numeric&   outvalue,
+    const Index&     atmosphere_dim,
+    const GridPos&   rte_gp_lat,
+    const GridPos&   rte_gp_lon,
+    const Matrix&    field,
+    const Verbosity& verbosity)
 {
   CREATE_OUT3;
   
   // Interpolate
   outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, 
                                       rte_gp_lat, rte_gp_lon );
-
-  out3 << "    Result = " << outvalue << "\n";
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void InterpSurfaceEmissivityFieldIncLatLon(Numeric&         outvalue,
-                                           const Index&     atmosphere_dim,
-                                           const Vector&    rte_pos,
-                                           const Vector&    rte_los,
-                                           const GriddedField3& gfield,
-                                           const Verbosity& verbosity)
-{
-  CREATE_OUT3;
-  
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  if( rte_pos.nelem() != atmosphere_dim )
-    throw runtime_error( "Length of *rte_pos* must match *atmoshere_dim*." );
-    
-  // Interpolate
-  //
-  Numeric lat = 0, lon = 0;
-  if( atmosphere_dim >= 2 )
-    lat = rte_pos[1];
-  if( atmosphere_dim == 3 )
-    lon = rte_pos[2];
-  //
-  interp_gfield3( outvalue, gfield, atmosphere_dim, 180-abs(rte_los[0]), lat, 
-                  lon, "Incidence angle", "Latitude", "Longitude" );
 
   out3 << "    Result = " << outvalue << "\n";
 }
@@ -155,16 +113,16 @@ void surfaceBlackbody(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatRefractiveIndex(
-         Matrix&    surface_los,
-         Tensor4&   surface_rmatrix,
-         Matrix&    surface_emission,
-   const Vector&    f_grid,
-   const Index&     stokes_dim,
-   const Index&     atmosphere_dim,
-   const Vector&    rte_los,
-   const Numeric&   surface_skin_t,
-   const Matrix&    complex_n,
-   const Verbosity& verbosity)
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+          Matrix&    surface_emission,
+    const Vector&    f_grid,
+    const Index&     stokes_dim,
+    const Index&     atmosphere_dim,
+    const Vector&    rte_los,
+    const Numeric&   surface_skin_t,
+    const Matrix&    complex_n,
+    const Verbosity& verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
@@ -222,16 +180,16 @@ void surfaceFlatRefractiveIndex(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatReflectivity(
-         Matrix&    surface_los,
-         Tensor4&   surface_rmatrix,
-         Matrix&    surface_emission,
-   const Vector&    f_grid,
-   const Index&     stokes_dim,
-   const Index&     atmosphere_dim,
-   const Vector&    rte_los,
-   const Numeric&   surface_skin_t,
-   const Tensor3&   surface_reflectivity,
-   const Verbosity& verbosity)
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+          Matrix&    surface_emission,
+    const Vector&    f_grid,
+    const Index&     stokes_dim,
+    const Index&     atmosphere_dim,
+    const Vector&    rte_los,
+    const Numeric&   surface_skin_t,
+    const Tensor3&   surface_reflectivity,
+    const Verbosity& verbosity)
 {
   CREATE_OUT2;
   
@@ -309,16 +267,16 @@ void surfaceFlatReflectivity(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatScalarReflectivity(
-         Matrix&    surface_los,
-         Tensor4&   surface_rmatrix,
-         Matrix&    surface_emission,
-   const Vector&    f_grid,
-   const Index&     stokes_dim,
-   const Index&     atmosphere_dim,
-   const Vector&    rte_los,
-   const Numeric&   surface_skin_t,
-   const Vector&    surface_scalar_reflectivity,
-   const Verbosity& verbosity)
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+          Matrix&    surface_emission,
+    const Vector&    f_grid,
+    const Index&     stokes_dim,
+    const Index&     atmosphere_dim,
+    const Vector&    rte_los,
+    const Numeric&   surface_skin_t,
+    const Vector&    surface_scalar_reflectivity,
+    const Verbosity& verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
@@ -376,18 +334,19 @@ void surfaceFlatScalarReflectivity(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceLambertianSimple(Matrix&          surface_los,
-                             Tensor4&         surface_rmatrix,
-                             Matrix&          surface_emission,
-                             const Vector&    f_grid,
-                             const Index&     stokes_dim,
-                             const Index&     atmosphere_dim,
-                             const Vector&    rte_los,
-                             const Numeric&   surface_skin_t,
-                             const Vector&    surface_scalar_reflectivity,
-                             const Index&     np,
-                             const Numeric&   za_pos,
-                             const Verbosity&)
+void surfaceLambertianSimple(
+          Matrix&    surface_los,
+          Tensor4&   surface_rmatrix,
+          Matrix&    surface_emission,
+    const Vector&    f_grid,
+    const Index&     stokes_dim,
+    const Index&     atmosphere_dim,
+    const Vector&    rte_los,
+    const Numeric&   surface_skin_t,
+    const Vector&    surface_scalar_reflectivity,
+    const Index&     np,
+    const Numeric&   za_pos,
+    const Verbosity&)
 {
   const Index   nf = f_grid.nelem();
 
@@ -458,3 +417,27 @@ void surfaceLambertianSimple(Matrix&          surface_los,
     }
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void surface_scalar_reflectivityFromGriddedField4(
+          Vector&          surface_scalar_reflectivity,
+    const Vector&          f_grid,
+    const Index&           stokes_dim,
+    const Index&           atmosphere_dim,
+    const Vector&          rte_pos,
+    const Vector&          rte_los,
+    const GriddedField4&   r_field,
+    const Verbosity&)
+{
+  // Basic checks and sizes
+  //
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
+
+  // Check r_field
+  
+
+}
+*/
