@@ -198,19 +198,38 @@ Index get_wsv_group_id(const String& name)
     return it->second;
 }
 
-String get_array_groups_as_string()
+String get_array_groups_as_string(bool basetype_is_group, bool return_basetype_only)
 {
   String arraygroups;
-
+  
   bool first = true;
   for (Index i = 0; i < wsv_group_names.nelem(); i++)
+  {
+    if (wsv_group_names[i].substr(0, String("ArrayOf").length()) == "ArrayOf")
     {
-      if (wsv_group_names[i].substr(0, String("ArrayOf").length()) == "ArrayOf")
+      const String basetype = wsv_group_names[i].substr(String("ArrayOf").length(),
+                                                        wsv_group_names[i].length());
+      bool basetype_exists = (get_wsv_group_id(basetype) != -1);
+      
+      if (return_basetype_only)
+      {
+        // Return only the basetype of the array,
+        // skip arrays whose basetype is not a WSV group
+        if (basetype_exists)
+        {
+          if (!first) arraygroups += ", "; else first = false;
+          arraygroups += basetype;
+        }
+      }
+      else
+      {
+        if (!basetype_is_group || (basetype_is_group && basetype_exists))
         {
           if (!first) arraygroups += ", "; else first = false;
           arraygroups += wsv_group_names[i];
         }
+      }
     }
+  }
   return arraygroups;
 }
-

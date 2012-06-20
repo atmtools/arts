@@ -126,7 +126,12 @@ void define_md_data_raw()
   // Initialise to zero, just in case:
   md_data_raw.resize(0);
 
+  // String with all array groups
   const String ARRAY_GROUPS = get_array_groups_as_string();
+  // String with all groups that also exist as an array type
+  const String GROUPS_WITH_ARRAY_TYPE = get_array_groups_as_string(true, true);
+  // String with all array types whose element type is also available as a group
+  const String ARRAY_GROUPS_WITH_BASETYPE = get_array_groups_as_string(true, false);
 
   extern const ArrayOfString wsv_group_names;
   
@@ -1911,29 +1916,37 @@ void define_md_data_raw()
       ( NAME( "Append" ),
         DESCRIPTION
         (
-         "Append a workspace *out* variable to another workspace variable.\n"
+         "Append a workspace variable to another workspace variable.\n"
          "\n"
-         "This method can append a workspace variable\n"
-         "to another workspace variable of the same group. (E.g., a *Matrix* to\n"
-         "another *Matrix*.)\n"
+         "This method can append an array to an array of the same type,\n"
+         "e.g. ArrayOfIndex to ArrayOfIndex. Or a single element to an array\n"
+         "such as a Tensor3 to an ArrayOfTensor3.\n"
+         "\n"
+         "In addition to that Vector and Matrices are also supported.\n"
+         "For Matrices the third argument indicates the dimension to\n"
+         "append to. 'leading' means to append to the leftmost dimension\n"
+         "(row-wise for Matrix), 'trailing' to the rightmost dimension\n"
+         "(right-most for matrices).\n"
          "\n"
          "This method is not implemented for all types, just for those where an\n"
-         "append makes sense. (See variable list below.).\n"         
-         "\n"
-         "As always, output comes first in the argument list!\n"
+         "append makes sense. (See variable list below.).\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
+        AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT(),
-        GOUT(      "out"    ),
-        GOUT_TYPE( ARRAY_GROUPS + ", Vector" + ", String" +
-                   ", ArrayOfSingleScatteringData" + ", ArrayOfScatteringMetaData" ),
+        GOUT( "out" ),
+        GOUT_TYPE( "Vector, Matrix, String, " +
+                   ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE ),
         GOUT_DESC( "The variable to append to." ),
         IN(),
-        GIN(    "in"    ),
-        GIN_TYPE( ARRAY_GROUPS + ", Vector" + ", String" +
-                  ", SingleScatteringData" + ", ScatteringMetaData" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "The variable to append." ),
+        GIN( "in",
+             "dimension" ),
+        GIN_TYPE( "Vector, Matrix, String, " +
+                  ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE,
+                  "String" ),
+        GIN_DEFAULT( NODEF,
+                     "leading" ),
+        GIN_DESC( "The variable to append.",
+                  "Where to append. Could be either the \"leading\" or \"trailing\" dimension." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )

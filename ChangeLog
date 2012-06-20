@@ -1,3 +1,26 @@
+2012-06-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-131
+
+	* src/methods.cc
+
+	Add generic input 'dimension' to append functions. Passing in
+	'leading' means to append to the leftmost dimension (e.g. rows for
+	Matrix), 'trailing' to the rightmost (==cols).
+
+	Add support to append single elements to arrays.
+
+	Add support for Matrix.
+
+	* src/groups.cc, src/wsv_aux.h (get_array_groups_as_string):
+
+	Extend to return only Arrays whose basetype is a group and to return
+	names of the basetypes of arrays only.
+
+	* src/m_append.h:
+
+	Implement append for Matrix.
+
 2012-06-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-130

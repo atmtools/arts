@@ -32,10 +32,15 @@
 #include "array.h"
 #include "exceptions.h"
 
-// Global functions
+
+//! Returns list of ids of the given group names
 void get_wsv_group_ids(ArrayOfIndex& ids, String name);
+
+//! Returns the id of the given group
 Index get_wsv_group_id(const String& name);
-String get_array_groups_as_string();
+
+//! Return string list of array types
+String get_array_groups_as_string(bool basetype_is_group = false, bool return_basetype_only = false);
 
 
 /** This class contains all static information for one workspace

@@ -42,6 +42,7 @@ void Append(// WS Generic Output:
             Array<T>& out,
             // WS Generic Input:
             const Array<T>& in,
+            const String& direction _U_,
             const Verbosity&)
 {
   // Reserve memory in advance to avoid reallocations:
@@ -57,6 +58,7 @@ void Append(// WS Generic Output:
             Array<T>& out,
             // WS Generic Input:
             const T& in,
+            const String& direction _U_,
             const Verbosity&)
 {
   // Append in to end of out:
@@ -68,6 +70,7 @@ void Append(// WS Generic Output:
             Vector& out,
             // WS Generic Input:
             const Vector& in,
+            const String& direction _U_,
             const Verbosity&)
 {
   // Get backup of out:
@@ -83,11 +86,44 @@ void Append(// WS Generic Output:
   out[Range(dummy.nelem(),in.nelem())] = in;
 }
 
+/* Implementation for Matrix */
+void Append(// WS Generic Output:
+            Matrix& out,
+            // WS Generic Input:
+            const Matrix& in,
+            const String& direction,
+            const Verbosity&)
+{
+  // Get backup of out:
+  Matrix dummy = out;
+
+  if (direction == "leading")
+  {
+    if (out.ncols() != in.ncols())
+      throw runtime_error("Input and output matrix must have the same number of columns.");
+
+    out.resize(dummy.nrows() + in.nrows(), dummy.ncols());
+    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+    out(Range(dummy.nrows(), in.nrows()), Range(0, in.ncols())) = in;
+  }
+  else if (direction == "trailing")
+  {
+    if (out.nrows() != in.nrows())
+      throw runtime_error("Input and output matrix must have the same number of rows.");
+    
+    out.resize(dummy.nrows(), dummy.ncols() + in.ncols());
+    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+    out(Range(0, in.nrows()), Range(dummy.ncols(), in.ncols())) = in;
+  }
+  else throw runtime_error("Dimension must be either \"leading\" or \"trailing\".");
+}
+
 /* Implementation for String */
 void Append(// WS Generic Output:
             String& out,
             // WS Generic Input:
             const String& in,
+            const String& direction _U_,
             const Verbosity&)
 {
   // String stream for easy string operations:
