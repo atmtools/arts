@@ -1,3 +1,23 @@
+2012-06-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-130
+
+	* src/gridded_fields.h:
+
+	Add checksize_strict member function that throws a runtime error with
+	additional information on the grid and data sizes.
+
+	Make checksize pure virtual in abstract base class.
+
+	Remove redundant function documentation from subclasses. Doxygen
+	automatically uses the docs from the base class.
+
+	* src/gridded_fields.{cc,h}: Fix copyright header. Formatting.
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream):
+
+	Use checksize_strict for GriddedFields.
+
 2012-06-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-129

@@ -1,6 +1,4 @@
-/* Copyright (C) 2002-2012
-   Claudia Emde <claudia.emde@dlr.de>
-   Oliver Lemke <olemke@core-dump.info>
+/* Copyright (C) 2008-2012 Oliver Lemke <olemke@core-dump.info>
      
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -56,7 +54,7 @@
 
   \param[in] gf Source gridded field
 */
-void GriddedField::copy_grids (const GriddedField& gf)
+void GriddedField::copy_grids(const GriddedField& gf)
 {
   assert(gf.get_dim() == dim);
 
@@ -88,7 +86,7 @@ void GriddedField::copy_grids (const GriddedField& gf)
   \param[in]  i  Grid index.
   \return        Numeric grid.
 */
-ConstVectorView GriddedField::get_numeric_grid (Index i) const
+ConstVectorView GriddedField::get_numeric_grid(Index i) const
 {
   assert (i < dim);
   if (mgridtypes[i] != GRID_TYPE_NUMERIC)
@@ -121,7 +119,7 @@ ConstVectorView GriddedField::get_numeric_grid (Index i) const
   \param[in]  i  Grid index.
   \return        Numeric grid.
 */
-VectorView GriddedField::get_numeric_grid (Index i)
+VectorView GriddedField::get_numeric_grid(Index i)
 {
   assert (i < dim);
   if (mgridtypes[i] != GRID_TYPE_NUMERIC)
@@ -154,7 +152,7 @@ VectorView GriddedField::get_numeric_grid (Index i)
   \param[in]  i  Grid index.
   \return        String grid.
 */
-const ArrayOfString& GriddedField::get_string_grid (Index i) const
+const ArrayOfString& GriddedField::get_string_grid(Index i) const
 {
   assert (i < dim);
   if (mgridtypes[i] != GRID_TYPE_STRING)
@@ -188,7 +186,7 @@ const ArrayOfString& GriddedField::get_string_grid (Index i) const
   \param[in]  i  Grid index.
   \return        String grid.
 */
-ArrayOfString& GriddedField::get_string_grid (Index i)
+ArrayOfString& GriddedField::get_string_grid(Index i)
 {
   assert (i < dim);
   if (mgridtypes[i] != GRID_TYPE_STRING)
@@ -220,7 +218,7 @@ ArrayOfString& GriddedField::get_string_grid (Index i)
   \param[in]  i  Grid index.
   \param[in]  g  New grid.
 */
-void GriddedField::set_grid (Index i, const Vector& g)
+void GriddedField::set_grid(Index i, const Vector& g)
 {
   assert (i < dim);
   mgridtypes[i] = GRID_TYPE_NUMERIC;
@@ -236,7 +234,7 @@ void GriddedField::set_grid (Index i, const Vector& g)
   \param[in] i Grid index.
   \param[in] g New grid.
 */
-void GriddedField::set_grid (Index i, const ArrayOfString& g)
+void GriddedField::set_grid(Index i, const ArrayOfString& g)
 {
   assert (i < dim);
   mgridtypes[i] = GRID_TYPE_STRING;
