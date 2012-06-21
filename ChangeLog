@@ -1,6 +1,6 @@
 2012-06-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-	* arts-2-1-133
+	* arts-2-1-134
 
 	* src/workspace.cc: Added that lon_grid can max span 360 deg. 
 
