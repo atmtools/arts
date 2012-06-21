@@ -313,11 +313,8 @@ void chk_atm_field(
         ConstVectorView lon_grid );
 
 void chk_latlon_true(
-        Vector&      lat,
-        Vector&      lon,  
    const Index&      atmosphere_dim,
    ConstVectorView   lat_grid,
-   ConstVectorView   lon_grid,
    ConstVectorView   lat_true,
    ConstVectorView   lon_true );
 

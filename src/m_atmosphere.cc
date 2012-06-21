@@ -45,18 +45,19 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "auto_md.h"
+#include "absorption.h"
+#include "abs_species_tags.h"
 #include "check_input.h"
+#include "cloudbox.h"
 #include "geodetic.h"
 #include "matpackIII.h"
 #include "messages.h"
-#include "special_interp.h"
-#include "absorption.h"
-#include "abs_species_tags.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "interpolation_poly.h"
+#include "rte.h"
+#include "special_interp.h"
 #include "xml_io.h"
-#include "cloudbox.h"
 
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
@@ -1566,11 +1567,7 @@ void z_fieldFromHSE(
   if( z_hse_accuracy <= 0 )
     { throw runtime_error( "The value of *z_hse_accuracy* must be > 0." ); }
   //
-  // Check lat_true and lon_true. The function returns also the lat and lon
-  // grid to apply:
-  Vector latgr, longr;
-  chk_latlon_true( latgr, longr, atmosphere_dim, lat_grid, lon_grid, 
-                                                 lat_true, lon_true );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
 
 
   // Determine interpolation weights for p_hse
@@ -1585,7 +1582,7 @@ void z_fieldFromHSE(
   const Numeric mw = 18.016;   
 
   // mw/molarmass_dry_air matches eps in Eq. 3.14 in Wallace&Hobbs:
-  const Numeric k  = 1- mw/molarmass_dry_air; 
+  const Numeric k  = 1 - mw/molarmass_dry_air; 
 
   // Gas constant for 1kg dry air:
   const Numeric rd = 1e3*GAS_CONSTANT/molarmass_dry_air; 
@@ -1594,14 +1591,34 @@ void z_fieldFromHSE(
   //
   for( Index ilat=0; ilat<nlat; ilat++ )
     {
-      // As always on top of the lat. grid positions, OK to call refell2r:
-      const Numeric re = refell2r( refellipsoid, latgr[ilat] );
+      // The reference ellipsoid shall be adjusted to "1D or 2D views", and
+      // here lat_grid is the relevant grid for 2D. On the other hand,
+      // extraction of g0 requires that the true position is determined.
+
+      // Radius of reference ellipsoid
+      Numeric re;
+      if( atmosphere_dim == 1 )
+        { re = refellipsoid[0]; }
+      else
+        { re = refell2r( refellipsoid, lat_grid[ilat] ); }
 
       for( Index ilon=0; ilon<nlon; ilon++ )
         {
+          // Determine true latitude and longitude
+          Numeric lat, lon;
+          Vector  pos(atmosphere_dim);    // pos[0] can be a dummy value
+          if( atmosphere_dim >= 2 )
+            {
+              pos[1] = lat_grid[ilat];
+              if( atmosphere_dim == 3 )
+                { pos[2] = lon_grid[ilon]; }
+            }
+          pos2true_latlon( lat, lon, atmosphere_dim, lat_grid, lat_true, 
+                                                               lon_true, pos );
+
           // Get g0
           Numeric g0;
-          g0_agendaExecute( ws, g0, latgr[ilat], longr[ilon], g0_agenda );
+          g0_agendaExecute( ws, g0, lat, lon, g0_agenda );
 
           // Determine altitude for p_hse
           Vector z_hse(1);

@@ -277,6 +277,15 @@ void mirror_los(
   ConstVectorView   los, 
   const Index&      atmosphere_dim );
 
+void pos2true_latlon( 
+          Numeric&     lat,
+          Numeric&     lon,
+    const Index&       atmosphere_dim,
+    ConstVectorView    lat_grid,
+    ConstVectorView    lat_true,
+    ConstVectorView    lon_true,
+    ConstVectorView    pos );
+
 void rte_step_std(
          //Output and Input:
          VectorView stokes_vec,

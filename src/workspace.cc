@@ -1964,7 +1964,7 @@ void Workspace::define_wsv_data()
        "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
-
+ 
  wsv_data.push_back
    (WsvRecord
     ( NAME( "lat_true" ),
@@ -1972,17 +1972,24 @@ void Workspace::define_wsv_data()
       (
        "Latitudinal geolocation for 1D and 2D data.\n"
        "\n"
-       "The \"true\" latitude is not specified by *lat_grid* for 1D and 2D\n"
-       "and this WSV gives that information. For 1D *lat_true* shall be left\n"
-       "emmpty, or have length 1. For 2D, the allowed cases are empty or set\n"
-       "to have the same length as *lat_grid*.\n"
+       "The variables *lat_grid* and *lon_grid* contain true positions only\n"
+       "for 3D. For 1D and 2D, the geographical position is given by\n"
+       "*lat_true* and *lon_true*. Can be left empty when not used.\n"
+       "Otherwise:\n"
+       "\n"
+       "   1D: *lat_true* shall have length 1\n"
+       "\n"
+       "   2D: Both *lat_true* and *lon_true* shall have a length matching\n"
+       "       *lat_grid*. That is, *lat_true* and *lon_true* shall not be\n"
+       "       seen as grids, they are vectors giving the actual lat or lon\n"
+       "       for each point corresponding to *lat_grid*.\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"
        "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
-
+ 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "lo" ),
@@ -2061,10 +2068,17 @@ void Workspace::define_wsv_data()
       (
        "Longitudinal geolocation for 1D and 2D data.\n"
        "\n"
-       "The \"true\" longitude is not specified by *lon_grid* for 1D and 2D\n"
-       "and this WSV gives that information. For 1D *lon_true* shall be left\n"
-       "emmpty, or have length 1. For 2D, the allowed cases are empty or set\n"
-       "to have the same length as *lat_grid*.\n"
+       "The variables *lat_grid* and *lon_grid* contain true positions only\n"
+       "for 3D. For 1D and 2D, the geographical position is given by\n"
+       "*lat_true* and *lon_true*. Can be left empty when not used.\n"
+       "Otherwise:\n"
+       "\n"
+       "   1D: *lon_true* shall have length 1\n"
+       "\n"
+       "   2D: Both *lat_true* and *lon_true* shall have a length matching\n"
+       "       *lat_grid*. That is, *lat_true* and *lon_true* shall not be\n"
+       "       seen as grids, they are vectors giving the actual lat or lon\n"
+       "       for each point corresponding to *lat_grid*.\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"
@@ -2890,8 +2904,9 @@ void Workspace::define_wsv_data()
        "The eccentricity must be 0 for 1D calculations, as a spherical Earth\n"
        "is implied by setting *atmosphere_dim* to 1. For 2D, the selected\n"
        "ellipsoid parameters should be selected according to cross-section\n"
-       "between the real ellipsoid and the 2D plane considered. For 3D,\n"
-       "models can be used, such as WGS84.\n"
+       "between the real ellipsoid and the 2D plane considered. That is\n"
+       "the applied ellipsoid shall have een converted to match the internal\n"
+       "treatment of 2D cases. For 3D, models can be used, such as WGS84.\n"
        "\n"
        "Usage:  Set by the user.\n"
        "\n"

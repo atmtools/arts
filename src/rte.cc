@@ -1956,6 +1956,64 @@ void mirror_los(
 
 
 
+//! pos2true_latlon
+/*!
+    Determines the true alt and lon for an "ARTS position"
+
+    The function disentangles if the geographical position shall be taken from
+    lat_grid and lon_grid, or lat_true and lon_true.
+
+    \param   lat              Out: True latitude.
+    \param   lon              Out: True longitude.
+    \param   atmosphere_dim   As the WSV.
+    \param   lat_grid         As the WSV.
+    \param   lat_true         As the WSV.
+    \param   lon_true         As the WSV.
+    \param   pos              A position, as defined for rt calculations.
+
+    \author Patrick Eriksson 
+    \date   2011-07-15
+*/
+void pos2true_latlon( 
+          Numeric&     lat,
+          Numeric&     lon,
+    const Index&       atmosphere_dim,
+    ConstVectorView    lat_grid,
+    ConstVectorView    lat_true,
+    ConstVectorView    lon_true,
+    ConstVectorView    pos )
+{
+  assert( pos.nelem() == atmosphere_dim );
+
+  if( atmosphere_dim == 1 )
+    {
+      assert( lat_true.nelem() == 1 );
+      assert( lon_true.nelem() == 1 );
+      //
+      lat = lat_true[0];
+      lon = lon_true[0];
+    }
+
+  else if( atmosphere_dim == 2 )
+    {
+      assert( lat_true.nelem() == lat_grid.nelem() );
+      assert( lon_true.nelem() == lat_grid.nelem() );
+      GridPos   gp;
+      Vector    itw(2);
+      gridpos( gp, lat_grid, pos[1] );
+      interpweights( itw, gp );
+      lat = interp( itw, lat_true, gp );
+      lon = interp( itw, lon_true, gp );
+    }
+
+  else 
+    {
+      lat = pos[1];
+      lon = pos[2];
+    }
+}
+
+
 //! rte_step_std
 /*!
     Solves monochromatic VRTE for an atmospheric slab with constant 

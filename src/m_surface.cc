@@ -49,6 +49,7 @@
 #include "special_interp.h"
 #include "interpolation.h"
 #include "physics_funcs.h"
+#include "rte.h"
 #include "surface.h"
 
 extern const Numeric DEG2RAD;
@@ -420,24 +421,92 @@ void surfaceLambertianSimple(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
 void surface_scalar_reflectivityFromGriddedField4(
           Vector&          surface_scalar_reflectivity,
-    const Vector&          f_grid,
     const Index&           stokes_dim,
+    const Vector&          f_grid,
     const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lat_true,
+    const Vector&          lon_true,
     const Vector&          rte_pos,
     const Vector&          rte_los,
     const GriddedField4&   r_field,
     const Verbosity&)
 {
   // Basic checks and sizes
-  //
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  r_field.checksize_strict();
+  //
+  const Index nf_in = r_field.data.nbooks();
+  const Index nza   = r_field.data.npages();
+  const Index nlat  = r_field.data.nrows();
+  const Index nlon  = r_field.data.ncols();
+  //
+  if( nlat < 2  ||  nlon < 2 )
+    {
+      ostringstream os;
+      os << "The data in *r_field* must span a geographical region. That is,\n"
+         << "the latitude and longitude grids must have a length >= 2.";
+    } 
+  //
+  if( nza < 2 )
+    {
+      ostringstream os;
+      os << "The data in *r_field* must span a range of zenith angles. That\n"
+         << "is the zenith angle grid must have a length >= 2.";
+    } 
 
-  // Check r_field
+  // Determine true geographical position
+  Vector lat(1), lon(1);
+  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
+                                                           lon_true, rte_pos );
+
+  // Interpolate in lat and lon
+  // Later use GriddedFieldLatLonRegrid
+  // As temporary solution, just pick out first point
+  Matrix r_f_za;
+  r_f_za = r_field.data(joker,joker,0,0);
   
+  // Interpolate in incidence angle, cubic if possible
+  Vector r_f( nf_in );
+  Index order = 3;
+  if( nza < 4 )
+    { order = 1; }
+  {
+    ArrayOfGridPosPoly   gp(1);
+    Matrix               itw(1,order+1);
+    Vector               tmp(1);
+    gridpos_poly( gp, r_field.get_numeric_grid(1), Vector(1,180-rte_los[0]), 
+                                                                       order );
+    interpweights( itw, gp );
+    //
+    for( Index i=0; i<nf_in; i++ )
+      { 
+        interp( tmp, itw, r_f_za(i,joker), gp );
+        r_f[i] = tmp[0];
+      }
+  }
 
+  // Expand or interpolate in frequency
+  //
+  if( nf_in == 1 )
+    {
+      surface_scalar_reflectivity.resize( 1 );
+      surface_scalar_reflectivity[0] = r_f[0];
+    }
+  else
+    {
+      const Index nf_out = f_grid.nelem();
+      surface_scalar_reflectivity.resize( nf_out );
+      //
+      ArrayOfGridPos gp( nf_out );
+      Matrix         itw( nf_out, 2 );
+      gridpos( gp, r_field.get_numeric_grid(0), f_grid );
+      interpweights( itw, gp );
+      interp( surface_scalar_reflectivity, itw, r_f, gp );
+    }     
 }
-*/
+

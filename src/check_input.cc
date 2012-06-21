@@ -1411,14 +1411,10 @@ void chk_atm_field(
 //! chk_latlon_true
 /*! 
     Checks that *lat_true* and *lon_true* have the correct size for 1D and 2D
-    cases (they are not used for 3D). The functions returns also the lat and
-    lon grids to apply for geopositioning data.
+    cases (they are not used for 3D). 
 
-    \param   lat              Set to lat_true for 1D and 2D, lat_grid for 3D
-    \param   lon              Set to lon_true for 1D and 2D, lon_grid for 3D
     \param   atmosphere_dim   As the WSV with the same name
     \param   lat_grid         As the WSV with the same name
-    \param   lon_grid         As the WSV with the same name
     \param   lat_true         As the WSV with the same name
     \param   lon_true         As the WSV with the same name
 
@@ -1426,11 +1422,8 @@ void chk_atm_field(
     \date   2012-03-19
 */
 void chk_latlon_true(
-        Vector&      lat,
-        Vector&      lon,  
    const Index&      atmosphere_dim,
    ConstVectorView   lat_grid,
-   ConstVectorView   lon_grid,
    ConstVectorView   lat_true,
    ConstVectorView   lon_true )
 {
@@ -1441,26 +1434,16 @@ void chk_latlon_true(
           throw runtime_error( "For 1D, the method requires that *lat_true* "
                                               "and *lon_true* have length 1." );
         }
-      lat = lat_true;
-      lon = lon_true;
     }
   //
   else if( atmosphere_dim == 2 ) 
     {
       if( lat_true.nelem() != lat_grid.nelem()   ||  
-          lon_true.nelem() != lon_grid.nelem() )
+          lon_true.nelem() != lat_grid.nelem() )
         { 
           throw runtime_error( "For 2D, the method requires that *lat_true* "
                          "and *lon_true* have the same length as *lat_grid*." );
         }
-      lat = lat_true;   
-      lon = lon_true;
-    }
-  //
-  else
-    {
-      lat = lat_grid;
-      lon = lon_grid;
     }
 }
 
