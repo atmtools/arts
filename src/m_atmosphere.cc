@@ -1591,9 +1591,10 @@ void z_fieldFromHSE(
   //
   for( Index ilat=0; ilat<nlat; ilat++ )
     {
-      // The reference ellipsoid shall be adjusted to "1D or 2D views", and
-      // here lat_grid is the relevant grid for 2D. On the other hand,
-      // extraction of g0 requires that the true position is determined.
+      // The reference ellipsoid is already adjusted to internal 1D or 2D
+      // views, and lat_grid is the relevant grid for *refellipsoid*, also
+      // for 2D. On the other hand, extraction of g0 requires that the true
+      // position is determined.
 
       // Radius of reference ellipsoid
       Numeric re;

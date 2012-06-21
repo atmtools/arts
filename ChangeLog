@@ -1,5 +1,11 @@
 2012-06-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-133
+
+	* src/m_atmosphere.cc (z_fieldFromHSE): Improved a comment.
+
+2012-06-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-132
 
 	* src/m_surface.cc (surface_scalar_reflectivityFromGriddedField4):
