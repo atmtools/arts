@@ -2,6 +2,12 @@
 
 	* arts-2-1-133
 
+	* src/workspace.cc: Added that lon_grid can max span 360 deg. 
+
+2012-06-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-133
+
 	* src/m_atmosphere.cc (z_fieldFromHSE): Improved a comment.
 
 2012-06-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
