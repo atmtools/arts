@@ -1,3 +1,12 @@
+2012-06-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-135
+
+	* cmake/modules/ArtsTestcases.cmake:
+
+	Add fix for compatibility with cmake 2.6.4. Test dependency
+	declaration failed.
+
 2012-06-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-134
