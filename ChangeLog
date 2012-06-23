@@ -1,3 +1,64 @@
+2012-06-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-136
+
+	* Backup commit for work in progress (but checks run OK).
+	
+	* src/m_surface.cc (iyFromSurfaceRtpropAgenda): Created (but not
+	tested or active).
+
+	* src/agendas.cc: Added iy_surface_agenda. 
+
+ 	* src/interpolation.cc (is_gridpos_at_index_i): Added the strict
+	argument.
+	
+	* src/ppath.cc: Adopted call of chk_rte_pos 
+	* src/ppath.cc (ppath_start_stepping): Code replaced by rte_pos2gridpos.
+	
+	* src/m_ppath.cc: Adopted call of chk_rte_pos 
+	* src/m_ppath.cc (ppathFromRtePos2): Code replaced by rte_pos2gridpos.
+
+	* src/check_input.cc (chk_rte_pos): Converted is_rte_pos2 to bool
+	and set false to default.
+
+	* src/special_interp.cc (interp_gfield3): Removed. Not used. And
+	used special definitions. In addition, should have been implemented
+	as a class function.
+	(rte_pos2gridpos): Created.
+
+	* src/interpolation.cc (gridpos_1to1): Created.
+
+	* src/m_doit.cc (iyInterpCloudboxField):
+	(iyInterpCloudboxPolyField): Adopted to removal of rte_gp_p/lat/lon.
+		
+	* controlfiles/instruments/odinsmr/TestOdinSMR_119ghz.arts:
+	* controlfiles/instruments/mhs/mhs.arts:
+	* controlfiles/instruments/hirs/TestHIRS.arts:
+	* controlfiles/instruments/amsu/amsub.arts:
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	* controlfiles/general/general.arts: Adopted to changes below.
+
+	* src/m_surface.cc (InterpSurfaceFieldToRteGps): Removed.
+	(InterpSurfaceFieldToRtePos): New method.
+	
+	* src/m_atmosphere.cc (InterpAtmFieldToRteGps): Removed.
+	(InterpAtmFieldToRtePos): New method.
+
+	* src/doit.cc:
+	* src/m_jacobian.cc:
+	* src/m_doit.cc:
+	* src/m_montecarlo.cc:
+	* src/m_rte.cc:
+	* src/rte.cc:
+	* src/methods.cc:
+	* src/workspace.cc:
+	* src/agendas.cc: surface_prop_agenda renamed to surface_rtprop_agenda. 
+	And rte_gp_p, rte_gp_lat and  rte_gp_lon removed as input.
+	The later also done for iy_cloudbox_agenda.
+
+	* src/workspace.cc: Removed rte_gp_p, rte_gp_lat and  rte_gp_lon.
+	
 2012-06-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-135

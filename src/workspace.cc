@@ -1791,6 +1791,15 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_surface_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "iy_transmission" ),
@@ -2981,51 +2990,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rte_gp_p" ),
-      DESCRIPTION
-      (
-       "The pressure grid position of *rte_pos*.\n"
-       "\n"
-       "This variable is used to give the grid position for an end point\n"
-       "of the propagation path to some workspace method part of the\n"
-       "radiative transfer calculations.\n"
-       "\n"
-       "Usage:   Set internally.\n"
-       ),
-      GROUP( "GridPos" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "rte_gp_lat" ),
-      DESCRIPTION
-      (
-       "The latitude grid position of *rte_pos*.\n"
-       "\n"
-       "This variable is used to give the grid position for an end point\n"
-       "of the propagation path to some workspace method part of the\n"
-       "radiative transfer calculations.\n"
-       "\n"
-       "Usage:   Set internally.\n"
-       ),
-      GROUP( "GridPos" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "rte_gp_lon" ),
-      DESCRIPTION
-      (
-       "The longitude grid position of *rte_pos*.\n"
-       "\n"
-       "This variable is used to give the grid position for an end point\n"
-       "of the propagation path to some workspace method part of the\n"
-       "radiative transfer calculations.\n"
-       "\n"
-       "Usage:   Set internally.\n"
-       ),
-      GROUP( "GridPos" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "rte_los" ),
       DESCRIPTION
       (
@@ -4114,7 +4078,7 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "surface_prop_agenda" ),
+     ( NAME( "surface_rtprop_agenda" ),
        DESCRIPTION
        (
         "See agendas.cc.\n"
@@ -4137,7 +4101,7 @@ void Workspace::define_wsv_data()
         "See specific methods generating *surface_rmatrix* and the user guide\n"
         "for more information.\n"
         "\n"
-        "Usage:      Input to methods for *surface_prop_agenda*."
+        "Usage:      Input to methods for *surface_rtprop_agenda*."
         "\n"
         "Units:      -\n"
         "\n"
@@ -4156,7 +4120,7 @@ void Workspace::define_wsv_data()
        "properties of the surface, and can differ from the \"bulk\"\n"
        "temperature.\n"
        "\n"
-       "Usage:   Input to methods for *surface_prop_agenda*.\n"
+       "Usage:   Input to methods for *surface_rtprop_agenda*.\n"
        ),
       GROUP( "Numeric" )));
 

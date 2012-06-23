@@ -434,6 +434,7 @@ void gridpos( ArrayOfGridPos& gp,
 }
 
 
+
 //! gridpos
 /*!
    Creates a grid position structure.
@@ -467,6 +468,40 @@ void gridpos( GridPos& gp,
   gridpos_copy( gp,  agp[0] );  
 }
 
+
+
+//! gridpos_1to1
+/*!
+   Creates a position array for a 1-to-1 mapping.
+
+   This function treats interpolaton back to the same grid. The function
+   matches: gridpos( gp, grid, grid ), but is faster.
+
+   The function gives gp correct size.
+
+   \retval  gp         Array of GridPos structure. 
+   \param   old_grid   The grid.
+
+   \author Patrick Eriksson
+   \date   2012-06-22
+*/
+void gridpos_1to1( 
+   ArrayOfGridPos& gp,
+   ConstVectorView grid )
+{
+  const Index n = grid.nelem();
+  gp.resize( n );
+  
+  for( Index i=0; i<n-1; i++ )
+    {
+      gp[i].idx   = i;
+      gp[i].fd[0] = 0;
+      gp[i].fd[1] = 1;
+    }
+  gp[n-1].idx   = n-2;
+  gp[n-1].fd[0] = 1;
+  gp[n-1].fd[1] = 0;
+}
 
 
 //! gridpos_copy
@@ -655,25 +690,36 @@ void gridpos_upperend_check(
 /*!
    Determines if a grid position is at a given grid index.
 
-   \return         True if at index i, else false.
-   \param   gp     Grid position structure.
-   \param   i      The grid index of interest.
+   \return           True if at index i, else false.
+   \param   gp       Grid position structure.
+   \param   i        The grid index of interest.
+   \param   strict   If true, fractional distances are demanded to be exactly 0
+                     or 1. Otherwise FD_TOL is considered. 
 
    \author Patrick Eriksson
    \date   2002-05-22
 */
 bool is_gridpos_at_index_i(  
        const GridPos&   gp,
-       const Index&     i )
+       const Index&     i,
+       const bool&      strict )
 {
-  // Assume that gridpos_force_end_fd has been used. The expression 0==0 should
-  // be safer than 1==1. 
-
-  if( gp.idx == i  &&  gp.fd[0] == 0 )
-    { return true; }
-  else if( gp.idx == i-1  &&  gp.fd[1] == 0 )
-    { return true; }
-
+  if( strict )
+    {
+      // Assume that gridpos_force_end_fd has been used. The expression 0==0
+      // should be safer than 1==1. 
+      if( gp.idx == i  &&  gp.fd[0] == 0 )
+        { return true; }
+      else if( gp.idx == i-1  &&  gp.fd[1] == 0 )
+        { return true; }
+    }
+  else
+    {
+      if( gp.idx == i  &&  gp.fd[0] < FD_TOL )
+        { return true; }
+      else if( gp.idx == i-1  &&  gp.fd[1] < FD_TOL )
+        { return true; }
+    }  
   return false; 
 }
 

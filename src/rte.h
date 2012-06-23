@@ -151,7 +151,7 @@ void get_iy_of_background(
   ConstVectorView         f_grid,
   const Agenda&           iy_clearsky_agenda,
   const Agenda&           iy_space_agenda,
-  const Agenda&           surface_prop_agenda,
+  const Agenda&           surface_rtprop_agenda,
   const Agenda&           iy_cloudbox_agenda,
   const Verbosity&        verbosity);
 

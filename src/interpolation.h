@@ -101,6 +101,10 @@ void gridpos( GridPos& gp,
               const Numeric&  new_grid,
               const Numeric&  extpolfac=0.5 );
 
+void gridpos_1to1( 
+   ArrayOfGridPos& gp,
+   ConstVectorView grid );
+
 void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old );
 
 Numeric fractional_gp( const GridPos&   gp );
@@ -121,7 +125,8 @@ void gridpos_upperend_check(
 
 bool is_gridpos_at_index_i(  
        const GridPos&   gp,
-       const Index&     i );
+       const Index&     i,
+       const bool&      strict=true );
 
 Index gridpos2gridrange(
        const GridPos&   gp,

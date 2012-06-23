@@ -573,7 +573,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      const Tensor3& edensity_field,
                      const Vector& f_grid,
                      const Index& f_index,
-                     const Agenda& surface_prop_agenda,
+                     const Agenda& surface_rtprop_agenda,
                      const Index& doit_za_interp,
                      const Verbosity& verbosity
                    )
@@ -706,7 +706,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
                                      t_field, edensity_field,
                                      f_grid, f_index, ext_mat_field, 
                                      abs_vec_field,
-                                     surface_prop_agenda, doit_za_interp,
+                                     surface_rtprop_agenda, doit_za_interp,
                                      verbosity);
             }
         }
@@ -742,7 +742,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Tensor3& edensity_field,
                         const Vector& f_grid,
                         const Index& f_index,
-                        const Agenda& surface_prop_agenda, //STR
+                        const Agenda& surface_rtprop_agenda, //STR
                         const Index& doit_za_interp,
                         const Verbosity& verbosity)
 {
@@ -886,7 +886,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                    p_grid,  z_field, refellipsoid,
                                    t_field, edensity_field, f_grid, f_index, 
                                    ext_mat_field, abs_vec_field, 
-                                   surface_prop_agenda, doit_za_interp,
+                                   surface_rtprop_agenda, doit_za_interp,
                                    verbosity); 
             }
         }
@@ -906,7 +906,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                    p_grid,  z_field, refellipsoid,
                                    t_field, edensity_field, f_grid, f_index, 
                                    ext_mat_field, abs_vec_field, 
-                                   surface_prop_agenda, doit_za_interp,
+                                   surface_rtprop_agenda, doit_za_interp,
                                    verbosity); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
@@ -939,7 +939,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                        p_grid,  z_field, refellipsoid, 
                                        t_field, edensity_field, f_grid, f_index,
                                        ext_mat_field, abs_vec_field,
-                                       surface_prop_agenda, doit_za_interp,
+                                       surface_rtprop_agenda, doit_za_interp,
                                        verbosity);
                 }
             }
@@ -3018,14 +3018,16 @@ void iyInterpCloudboxField(Matrix&         iy,
                            const Tensor7&  scat_i_lat,
                            const Tensor7&  scat_i_lon,
                            const Tensor4&  doit_i_field1D_spectrum,
-                           const GridPos&  rte_gp_p,
-                           const GridPos&  rte_gp_lat,
-                           const GridPos&  rte_gp_lon,
+                           const Vector&   rte_pos,
                            const Vector&   rte_los,
                            const Index&    jacobian_do,
                            const Index&    cloudbox_on,
                            const ArrayOfIndex&   cloudbox_limits,
                            const Index&    atmosphere_dim,
+                           const Vector&    p_grid,
+                           const Vector&    lat_grid,
+                           const Vector&    lon_grid,
+                           const Tensor3&   z_field,
                            const Index&    stokes_dim,
                            const Vector&   scat_za_grid,
                            const Vector&   scat_aa_grid,
@@ -3040,10 +3042,15 @@ void iyInterpCloudboxField(Matrix&         iy,
 
   const Index nf = f_grid.nelem();
 
+  // Convert rte_pos to grid positions
+  GridPos gp_p, gp_lat, gp_lon;
+  rte_pos2gridpos( gp_p, gp_lat, gp_lon, atmosphere_dim, 
+                   p_grid, lat_grid, lon_grid, z_field, rte_pos );
+
   // iy
   iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
-                            doit_i_field1D_spectrum, rte_gp_p, 
-                            rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
+                            doit_i_field1D_spectrum, gp_p, gp_lat, gp_lon, 
+                            rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "linear",
                             verbosity );
@@ -3083,14 +3090,16 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
                                const Tensor7&  scat_i_lat,
                                const Tensor7&  scat_i_lon,
                                const Tensor4&  doit_i_field1D_spectrum,      
-                               const GridPos&  rte_gp_p,
-                               const GridPos&  rte_gp_lat,
-                               const GridPos&  rte_gp_lon,
+                               const Vector&   rte_pos,
                                const Vector&   rte_los,
                                const Index&    jacobian_do,
                                const Index&    cloudbox_on,
                                const ArrayOfIndex&   cloudbox_limits,
                                const Index&    atmosphere_dim,
+                               const Vector&    p_grid,
+                               const Vector&    lat_grid,
+                               const Vector&    lon_grid,
+                               const Tensor3&   z_field,
                                const Index&    stokes_dim,
                                const Vector&   scat_za_grid,
                                const Vector&   scat_aa_grid,
@@ -3105,11 +3114,16 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
 
   const Index nf = f_grid.nelem();
 
+  // Convert rte_pos to grid positions
+  GridPos gp_p, gp_lat, gp_lon;
+  rte_pos2gridpos( gp_p, gp_lat, gp_lon, atmosphere_dim, 
+                   p_grid, lat_grid, lon_grid, z_field, rte_pos );
+
   // iy
   iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
-                            doit_i_field1D_spectrum, rte_gp_p, 
-                            rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
-                            cloudbox_limits, atmosphere_dim, stokes_dim, 
+                            doit_i_field1D_spectrum, gp_p, gp_lat, gp_lon, 
+                            rte_los, cloudbox_on, cloudbox_limits, 
+                            atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial",
                             verbosity );
 

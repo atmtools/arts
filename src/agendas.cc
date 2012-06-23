@@ -320,14 +320,13 @@ void define_agenda_data()
         "performed. Another option is to start backward Monte Carlo \n"
         "calculations from this point.\n"
         "\n"
-        "A function calling this agenda shall set *rte_pos*, *rte_los* and\n"
-        "*rte_gp_...* variables to the position and line-of-sight for which\n"
-        "the scattered radiation shall be determined.\n"
+        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "the position and line-of-sight for which the scattered radiation\n"
+        "shall be determined.\n"
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
        INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx", 
-              "iy_transmission", "rte_pos", "rte_los", "rte_gp_p", 
-              "rte_gp_lat", "rte_gp_lon" )));
+              "iy_transmission", "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -346,6 +345,27 @@ void define_agenda_data()
         ),
        OUTPUT( "iy" ),
        INPUT( "rte_pos", "rte_los", "f_grid" )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "iy_surface_agenda" ),
+       DESCRIPTION
+       (
+        "Upwelling radiation from the surface.\n"
+        "\n"
+        "The task of the agenda is to determine the upwelling intensity from\n"
+        "the surface, for given point and direction.\n"
+        "\n"
+        "The standard choice should be to make use of *surface_rtprop_agenda*\n"
+        "throught the WSM *iyFromSurfaceRtpropAgenda*.\n"
+        "\n"
+        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "the position and line-of-sight for which the upwelling radiation\n"
+        "shall be determined.\n"
+        ),
+       OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+       INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx", 
+              "iy_transmission", "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -635,17 +655,17 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "surface_prop_agenda" ),
+     ( NAME( "surface_rtprop_agenda" ),
        DESCRIPTION
        (
         "Surface radiative properties. \n"
         "\n"
         "See the user guide for closer definitions of the variables \n"
-        "that describe the surface properties. These variables are:\n"
+        "that describe the surface radiative properties. These variables are:\n"
         "   *surface_emission*, *surface_los* and *surface_rmatrix* \n"
         ),
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" )));
+       INPUT( "rte_pos", "rte_los" )));
 
  agenda_data.push_back
     (AgRecord

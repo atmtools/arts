@@ -1774,7 +1774,7 @@ void jacobianCalcTemperaturePerturbations(
 //      const Agenda&                     ppath_step_agenda,
 //      const Agenda&                     rte_agenda,
 //      const Agenda&                     iy_space_agenda,
-//      const Agenda&                     surface_prop_agenda,
+//      const Agenda&                     surface_rtprop_agenda,
 //      const Agenda&                     iy_cloudbox_agenda,
 //      const Index&                      atmosphere_dim,
 //      const Vector&                     p_grid,
@@ -1967,7 +1967,7 @@ void jacobianCalcTemperaturePerturbations(
             
 //                       // Calculate the perturbed spectrum  
 //                       yCalc( ws, yp, ppath_step_agenda, rte_agenda, 
-//                              iy_space_agenda, surface_prop_agenda, 
+//                              iy_space_agenda, surface_rtprop_agenda, 
 //                              iy_cloudbox_agenda, atmosphere_dim,
 //                              p_grid, lat_grid, lon_grid, z_field, t_field, 
 //                              vmr_field, refellipsoid, z_surface, cloudbox_on, 

@@ -111,21 +111,21 @@ Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( edensity_field, 0, 0, 0, 0.0 )
 
 
-# Surface emissivity
+#
+# Surface, upwelling radiation
 # 
 # The default model is a blackbody surface. This is a good choice only
 # if your sensor operates at a frequency where the troposphere is
 # opaque, but it is the fastest option.
 #
 # Warning: If you want to do calculations with something other than a
-# blackbody surface, you have to re-define the surface_prop_agenda. It
+# blackbody surface, you have to re-define the surface_rtprop_agenda. It
 # is not enough to just set e.g. surface_scalar_reflectivity! 
 # 
-AgendaSet( surface_prop_agenda ){
-   Ignore( rte_pos )
+AgendaSet( surface_rtprop_agenda ){
    Ignore( rte_los )
-   InterpAtmFieldToRteGps( surface_skin_t, atmosphere_dim, rte_gp_p, 
-                           rte_gp_lat, rte_gp_lon, t_field )
+   InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
+                           lon_grid, z_field, rte_pos, t_field )
    surfaceBlackbody
 } 
 

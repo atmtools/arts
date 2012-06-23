@@ -1467,20 +1467,41 @@ void AtmRawRead(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpAtmFieldToRteGps(Numeric&   outvalue,
-                            const Index&     atmosphere_dim,
-                            const GridPos&   rte_gp_p,
-                            const GridPos&   rte_gp_lat,
-                            const GridPos&   rte_gp_lon,
-                            const Tensor3&   field,
-                            const Verbosity& verbosity)
+void InterpAtmFieldToRtePos(
+          Numeric&   outvalue,
+    const Index&     atmosphere_dim,
+    const Vector&    p_grid,
+    const Vector&    lat_grid,
+    const Vector&    lon_grid,
+    const Tensor3&   z_field,
+    const Vector&    pos,
+    const Tensor3&   field,
+    const Verbosity& verbosity)
 {
-  CREATE_OUT3;
-  
-  // Interpolate
-  outvalue = interp_atmfield_by_gp( atmosphere_dim, field, 
-                                    rte_gp_p, rte_gp_lat, rte_gp_lon );
+  // Input checks
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "input argument *field*", field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+  chk_rte_pos( atmosphere_dim, pos );
+  //
+  chk_interpolation_grids( "Pressure interpolation", p_grid, pos[0] );
+  if( atmosphere_dim >= 2 )
+    {
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, pos[1] );
+      if( atmosphere_dim == 3 )
+        chk_interpolation_grids( "Longitude interpolation", lon_grid, pos[2] );
+    }
 
+  // Determine grid positions
+  GridPos gp_p, gp_lat, gp_lon;
+  rte_pos2gridpos( gp_p, gp_lat, gp_lon, atmosphere_dim, 
+                   p_grid, lat_grid, lon_grid, z_field, pos );
+
+  // Interpolate
+  outvalue = interp_atmfield_by_gp( atmosphere_dim, field, gp_p, gp_lat, 
+                                                                 gp_lon );
+
+  CREATE_OUT3;
   out3 << "    Result = " << outvalue << "\n";
 }
 

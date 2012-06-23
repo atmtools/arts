@@ -555,183 +555,6 @@ Numeric interp_atmsurface_by_gp(
 
 
 
-//! interp_gfield3
-/*!
-    Single point interpolation of a GriddedField3.
-
-    Data where not all dimensions are effectively used can be
-    handled. For example, if the last dimension is not ysed,
-    *effective_dim* is set to 2.
-
-    "First dimension" refers to the left-most dimension. 
-
-    \param   value           Output: Obtained value.
-    \param   gfield3         Field to interpolate
-    \param   effective_dim   Effective dimension of gfield. See above.
-    \param   x               First dimension position of interpolation point.
-    \param   y               Second dimension position of interpolation point.
-    \param   z               Third dimension position of interpolation point.
-    \param   dim0            Expected name of grid for first dimension
-    \param   dim1            Expected name of grid for second dimension
-    \param   dim2            Expected name of grid for third dimension
-
-    \author Patrick Eriksson 
-    \date   2008-10-01
-*/
-void interp_gfield3( 
-                 Numeric&   value,
-           const GriddedField3&   gfield3,
-           const Index&     effective_dim,
-           const Numeric&   x,
-           const Numeric&   y,
-           const Numeric&   z,
-           const String&    dim0,
-           const String&    dim1,
-           const String&    dim2 )
-{
-  chk_if_in_range( "effective_dim", effective_dim, 1, 3 );
-
-  ArrayOfGridPos gp0(1), gp1(1), gp2(1);
-
-  // Check and grid position, dimension 0
-  //
-    {
-      const String gridname = gfield3.get_grid_name(0);
-      const ConstVectorView grid = gfield3.get_numeric_grid(0);
-      //
-      if( dim0 != gridname )
-        {
-          ostringstream os;
-          os << "Wrong quantity found for grid of first dimension:\n"
-             << "  expected quantity  : " << dim0 << "\n"
-             << "  quantity in gfield : " << gridname << "\n";
-          throw runtime_error( os.str() );
-          }
-      //
-      chk_if_increasing( "first grid of gfield3", grid );
-      //
-      if( x < grid[0]  ||  x > last(grid) )
-        {
-          ostringstream os;
-          os << "Interpolation outside covered range for first dimension:\n"
-             << "  interpolation point : " << x << "\n"
-             << "  gfield grid range   : [" << grid[0] << "," << last(grid) 
-             << "]\n";
-          throw runtime_error( os.str() );
-        }       
-      //
-      gridpos( gp0, grid, Vector(1,x) );
-    }
-
-  // Check and grid position, dimension 2
-  //
-  if( effective_dim >= 2 )
-    {
-      const String gridname = gfield3.get_grid_name(1);
-      const ConstVectorView grid = gfield3.get_numeric_grid(1);
-      //
-      if( dim1 != gridname )
-        {
-          ostringstream os;
-          os << "Wrong quantity found for grid of second dimension:\n"
-             << "  expected quantity  : " << dim1 << "\n"
-             << "  quantity in gfield : " << gridname << "\n";
-          throw runtime_error( os.str() );
-          }
-      //
-      chk_if_increasing( "second grid of gfield3", grid );
-      //
-      if( y < grid[0]  ||  y > last(grid) )
-        {
-          ostringstream os;
-          os << "Interpolation outside covered range for second dimension:\n"
-             << "  interpolation point : " << y << "\n"
-             << "  gfield grid range   : [" << grid[0] << "," << last(grid) 
-             << "]\n";
-          throw runtime_error( os.str() );
-        }       
-      //
-      gridpos( gp1, grid, Vector(1,y) );
-    }
-
-  // Check and grid position, dimension 2
-  //
-  if( effective_dim >= 3 )
-    {
-      const String gridname = gfield3.get_grid_name(2);
-      const ConstVectorView grid = gfield3.get_numeric_grid(2);
-      //
-      if( dim2 != gridname )
-        {
-          ostringstream os;
-          os << "Wrong quantity found for grid of third dimension:\n"
-             << "  expected quantity  : " << dim2 << "\n"
-             << "  quantity in gfield : " << gridname << "\n";
-          throw runtime_error( os.str() );
-          }
-      //
-      chk_if_increasing( "third grid of gfield3", grid );
-      //
-      if( z < grid[0]  ||  z > last(grid) )
-        {
-          ostringstream os;
-          os << "Interpolation outside covered range for second dimension:\n"
-             << "  interpolation point : " << z << "\n"
-             << "  gfield grid range   : [" << grid[0] << "," << last(grid) 
-             << "]\n";
-          throw runtime_error( os.str() );
-        }       
-      //
-      gridpos( gp2, grid, Vector(1,z) );
-    }
-
-  // Perform interpolation
-  //
-  Vector result( 1 );
-  //
-  if( effective_dim == 1 )
-    {
-      if( gfield3.data.nrows() > 1  ||  gfield3.data.ncols() > 1 )
-        {
-          ostringstream os;
-          os << "A 1D interpolation requested, but the provided gridded field "
-             << "has an effective dimension of 2D or 3D.";
-          throw runtime_error( os.str() );
-        }       
-        
-      Matrix itw(1,2);
-      interpweights( itw, gp0 );
-      interp( result, itw, gfield3.data(joker,0,0), gp0 );
-    }
-  //
-  else if( effective_dim == 2 )
-    {
-      if( gfield3.data.ncols() > 1 )
-        {
-          ostringstream os;
-          os << "A 2D interpolation requested, but the provided gridded field "
-             << "has an effective dimension of 3D.";
-          throw runtime_error( os.str() );
-        }       
-
-      Matrix itw(1,4);
-      interpweights( itw, gp0, gp1 );
-      interp( result, itw, gfield3.data(joker,joker,0), gp0, gp1 );
-    }
-  //
-  else if( effective_dim == 3 )
-    {
-      Matrix itw(1,8);
-      interpweights( itw, gp0, gp1, gp2 );
-      interp( result, itw, gfield3.data, gp0, gp1, gp2 );
-    }
-
-  value = result[0];
-}
-
-
-
-
 
 
 /*===========================================================================
@@ -822,6 +645,8 @@ void p2gridpos( ArrayOfGridPos& gp,
   gridpos( gp, logold, lognew, extpolfac );
 }
 
+
+
 //! p2gridpos_poly
 /*!
  Calculates grid positions for pressure values - higher order interpolation.
@@ -857,9 +682,87 @@ void p2gridpos_poly( ArrayOfGridPosPoly& gp,
 }
 
 
-/*===========================================================================
-  === Various functions connected to the atmospheric fields
-  ===========================================================================*/
+
+//! rte_pos2gridpos
+/*!
+   Converts a geographical position (rte_pos) to grid positions for p, 
+   lat and lon. 
+
+   The function calculates the altitude, latitude and longitude in *rte_pos* to
+   matching grid positions. The conversion is straightforwatd for latitude and
+   longitude. The altitude shall be converted pressure grid position which
+   requires an interpolation of z_field.
+
+   Handles 1D, 2D and 3D (gp_lat and gp_lon untouched if not used).
+
+   \param   gp_p        Output: Pressure grid position.
+   \param   gp_lat      Output: Latitude grid position.
+   \param   gp_lon      Output: Longitude grid position.
+   \param   atmosphere_dim  As the WSV with the same name.
+   \param   p_grid      As the WSV with the same name.
+   \param   lat_grid    As the WSV with the same name.
+   \param   lon_grid    As the WSV with the same name.
+   \param   z_field     As the WSV with the same name.
+   \param   rte_pos     As the WSV with the same name.
+
+   \author Patrick Eriksson
+   \date   2012-06-22
+*/
+void rte_pos2gridpos(
+         GridPos&     gp_p,
+         GridPos&     gp_lat,
+         GridPos&     gp_lon,
+   const Index&       atmosphere_dim,
+   ConstVectorView    p_grid,
+   ConstVectorView    lat_grid,
+   ConstVectorView    lon_grid,
+   ConstTensor3View   z_field,
+   ConstVectorView    rte_pos )
+{
+  assert( rte_pos.nelem() == atmosphere_dim );
+
+  if( atmosphere_dim == 1 )
+    { gridpos( gp_p, z_field(joker,0,0), rte_pos[0] ); }
+  else
+    {
+      // Determine z at lat/lon (z_grid) by blue interpolation
+      const Index np = p_grid.nelem();
+      Vector z_grid( np );
+      ArrayOfGridPos agp_z, agp_lat(np);
+      //
+      gridpos_1to1( agp_z, p_grid );
+      //
+      gridpos( gp_lat, lat_grid, rte_pos[1] );
+
+      if( atmosphere_dim == 2 )
+        {
+          for( Index i=0; i<np; i++ )
+            { agp_lat[i] = gp_lat; }
+          Matrix itw( np, 4 );
+          interpweights( itw, agp_z, agp_lat );
+          interp( z_grid, itw, z_field(joker,joker,0), agp_z, agp_lat );
+        }
+      else
+        {
+          gridpos( gp_lon, lon_grid, rte_pos[2] );
+          ArrayOfGridPos agp_lon(np);
+          for( Index i=0; i<np; i++ )
+            { 
+              agp_lat[i] = gp_lat;  
+              agp_lon[i] = gp_lon; 
+            }
+          Matrix itw( np, 8 );
+          interpweights( itw, agp_z, agp_lat, agp_lon );
+          interp( z_grid, itw, z_field, agp_z, agp_lat, agp_lon );
+
+        }
+
+      // And use z_grid to get gp_p (gp_al and gp_lon determined above)
+      gridpos( gp_p, z_grid, rte_pos[0] );
+    }
+}
+
+
 
 //! z_at_lat_2d
 /*!

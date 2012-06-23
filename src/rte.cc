@@ -810,7 +810,7 @@ void ext2trans(//Output and Input:
     \param   f_grid                As the WSV.
     \param   iy_clearsky_agenda    As the WSV or iy_clearsky_basic_agenda.
     \param   iy_space_agenda       As the WSV.
-    \param   surface_prop_agenda   As the WSV.
+    \param   surface_rtprop_agenda   As the WSV.
     \param   iy_cloudbox_agenda    As the WSV.
 
     \author Patrick Eriksson 
@@ -839,7 +839,7 @@ void get_iy_of_background(
   ConstVectorView         f_grid,
   const Agenda&           iy_clearsky_agenda,
   const Agenda&           iy_space_agenda,
-  const Agenda&           surface_prop_agenda,
+  const Agenda&           surface_rtprop_agenda,
   const Agenda&           iy_cloudbox_agenda,
   const Verbosity&        verbosity)
 {
@@ -858,14 +858,12 @@ void get_iy_of_background(
   //
   Vector rte_pos;
   Vector rte_los;
-  GridPos rte_gp_p;
   GridPos rte_gp_lat;
   GridPos rte_gp_lon;
   rte_pos.resize( atmosphere_dim );
   rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
   rte_los.resize( ppath.los.ncols() );
   rte_los = ppath.los(np-1,joker);
-  gridpos_copy( rte_gp_p, ppath.gp_p[np-1] );
   if( atmosphere_dim > 1 )
     { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
   if( atmosphere_dim > 2 )
@@ -898,18 +896,17 @@ void get_iy_of_background(
 
     case 2:   //--- The surface -----------------------------------------------
       {
-        // Call *surface_prop_agenda*
+        // Call *surface_rtprop_agenda*
         //
         Matrix    surface_los;
         Tensor4   surface_rmatrix;
         Matrix    surface_emission;
         //
-        surface_prop_agendaExecute( ws, surface_emission, surface_los, 
+        surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
                                     surface_rmatrix, rte_pos, rte_los, 
-                                    rte_gp_p, rte_gp_lat, rte_gp_lon,
-                                    surface_prop_agenda );
+                                    surface_rtprop_agenda );
 
-        // Check output of *surface_prop_agenda*
+        // Check output of *surface_rtprop_agenda*
         //
         const Index   nlos = surface_los.nrows();
         //
@@ -1035,8 +1032,7 @@ void get_iy_of_background(
       {
         iy_cloudbox_agendaExecute( ws, iy, iy_error, iy_error_type,
                                    iy_aux, diy_dx, iy_transmission,
-                                   rte_pos, rte_los, rte_gp_p, rte_gp_lat, 
-                                   rte_gp_lon, iy_cloudbox_agenda );
+                                   rte_pos, rte_los, iy_cloudbox_agenda );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {

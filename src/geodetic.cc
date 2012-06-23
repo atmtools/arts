@@ -1173,7 +1173,7 @@ Numeric pos2refell_r(
     the lat_grid. A linear interpolation is applied between these points. This
     is handled by other functions. For 2D and 3D and the grid position is
     known, use *refell2d*. The function pos2refell_r handles all this in a
-    general way (but not always the fastet option).
+    general way (but not always the fastest option).
 
     \return                 Ellispoid radius
     \param  refellipsoid    In: As the WSV with same name.

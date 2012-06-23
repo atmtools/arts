@@ -336,7 +336,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
 void chk_rte_pos( 
         const Index&      atmosphere_dim,
         ConstVectorView   rte_pos,
-        const Index&      is_rte_pos2 );
+        const bool&       is_rte_pos2=false );
 
 void chk_rte_los( 
         const Index&      atmosphere_dim,

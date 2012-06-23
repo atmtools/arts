@@ -346,7 +346,7 @@ void iyBeerLambertStandardClearsky(
    const Agenda&               abs_scalar_gas_agenda,
    const Agenda&               iy_clearsky_agenda,
    const Agenda&               iy_space_agenda,
-   const Agenda&               surface_prop_agenda,
+   const Agenda&               surface_rtprop_agenda,
    const Agenda&               iy_cloudbox_agenda,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&  jacobian_indices,
@@ -435,7 +435,7 @@ void iyBeerLambertStandardClearsky(
                         lat_grid, lon_grid, t_field, z_field, 
                         vmr_field, refellipsoid, z_surface, cloudbox_on, 
                         stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
-                        surface_prop_agenda, iy_cloudbox_agenda, verbosity );
+                        surface_rtprop_agenda, iy_cloudbox_agenda, verbosity );
   
   // Do RT calculations
   //
@@ -795,7 +795,7 @@ void iyEmissionStandardClearsky(
    const Agenda&                     abs_scalar_gas_agenda,
    const Agenda&                     iy_clearsky_agenda,
    const Agenda&                     iy_space_agenda,
-   const Agenda&                     surface_prop_agenda,
+   const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     iy_cloudbox_agenda,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -894,7 +894,7 @@ void iyEmissionStandardClearsky(
                         lat_grid, lon_grid, t_field, z_field, 
                         vmr_field, refellipsoid, z_surface, cloudbox_on, 
                         stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
-                        surface_prop_agenda, iy_cloudbox_agenda, verbosity);
+                        surface_rtprop_agenda, iy_cloudbox_agenda, verbosity);
   
   // Do RT calculations
   //
@@ -1161,7 +1161,7 @@ void iyEmissionStandardClearskyBasic(
    const Agenda&        abs_scalar_gas_agenda,
    const Agenda&        iy_clearsky_basic_agenda,
    const Agenda&        iy_space_agenda,
-   const Agenda&        surface_prop_agenda,
+   const Agenda&        surface_rtprop_agenda,
    const Agenda&        iy_cloudbox_agenda,
    const Verbosity&     verbosity )
 {
@@ -1223,7 +1223,7 @@ void iyEmissionStandardClearskyBasic(
                         t_field, z_field, vmr_field, refellipsoid, z_surface, 
                         cloudbox_on, stokes_dim, f_grid, 
                         iy_clearsky_basic_agenda, iy_space_agenda, 
-                        surface_prop_agenda, iy_cloudbox_agenda, verbosity );
+                        surface_rtprop_agenda, iy_cloudbox_agenda, verbosity );
 
   // Do RT calculations
   //
@@ -1280,7 +1280,7 @@ void iyMC(
    const Vector&                     f_grid,
    const ArrayOfSingleScatteringData&   scat_data_raw,
    const Agenda&                     iy_space_agenda,
-   const Agenda&                     surface_prop_agenda,
+   const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     abs_scalar_gas_agenda, 
    const Agenda&                     opt_prop_gas_agenda,
    const Tensor4&                    pnd_field,
@@ -1348,7 +1348,7 @@ void iyMC(
                   
       MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna, 
                  f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
-                 iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda,
+                 iy_space_agenda, surface_rtprop_agenda, opt_prop_gas_agenda,
                  abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
                  refellipsoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 

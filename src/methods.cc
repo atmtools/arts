@@ -3294,7 +3294,7 @@ void define_md_data_raw()
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
             "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
             "t_field", "edensity_field", "f_grid", "f_index", 
-            "surface_prop_agenda", "doit_za_interp" ),
+            "surface_rtprop_agenda", "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3325,7 +3325,7 @@ void define_md_data_raw()
             "opt_prop_part_agenda", "opt_prop_gas_agenda",
             "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
             "t_field", "edensity_field", "f_grid", "f_index", 
-            "surface_prop_agenda", "doit_za_interp" ),
+            "surface_rtprop_agenda", "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3605,7 +3605,7 @@ void define_md_data_raw()
          "\n"
          "This method can be placed in agendas that must be specified, but\n"
          "are expected not to be used for the particular case. An inclusion\n"
-         "in *surface_prop_agenda* could look like:\n   "
+         "in *surface_rtprop_agenda* could look like:\n   "
          "Error{\"Surface interceptions of propagation path not expected.\"}\n"
          "\n"
          "Ignore and other dummy method calls must still be included.\n"
@@ -4214,46 +4214,48 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "InterpAtmFieldToRteGps" ),
+      ( NAME( "InterpAtmFieldToRtePos" ),
         DESCRIPTION
         (
-         "Scalar interpolation of atmospheric fields.\n" 
+         "Point interpolation of atmospheric fields.\n" 
          "\n"
-         "The position is specified by the combination of *rte_gp_p*,\n"
-         "*rte_gp_lat* and *rte_gp_lon*.\n"
+         "The standard choice for *pos* should be *rte_pos*.\n"
+         "\n"
+         "Linear interpolation is applied.\n"         
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "x"       ),
         GOUT_TYPE( "Numeric" ),
         GOUT_DESC( "Value obtained by the interpolation." ),
-        IN( "atmosphere_dim", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
-        GIN(      "field"   ),
-        GIN_TYPE( "Tensor3" ),
-        GIN_DEFAULT( NODEF     ),
-        GIN_DESC( "Field to interpolate." )
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field" ),
+        GIN(      "pos",    "field"   ),
+        GIN_TYPE( "Vector", "Tensor3" ),
+        GIN_DEFAULT( NODEF, NODEF     ),
+        GIN_DESC( "Position vector.", "Field to interpolate." )
         ));
   
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "InterpSurfaceFieldToRteGps" ),
+      ( NAME( "InterpSurfaceFieldToRtePos" ),
         DESCRIPTION
         (
-         "Scalar interpolation of surface fields.\n" 
+         "Point interpolation of surface fields.\n" 
          "\n"
-         "The position is specified by the combination of *rte_gp_lat* and\n"
-         "*rte_gp_lon*.\n"
+         "The standard choice for *pos* should be *rte_pos*.\n"
+         "\n"
+         "Linear interpolation is applied.\n"         
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "x"       ),
         GOUT_TYPE( "Numeric" ),
         GOUT_DESC( "Value obtained by interpolation." ),
-        IN( "atmosphere_dim", "rte_gp_lat", "rte_gp_lon" ),
-        GIN(      "gin1"   ),
-        GIN_TYPE( "Matrix" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Field to interpolate." )
+        IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
+        GIN(      "pos",    "field"   ),
+        GIN_TYPE( "Vector", "Matrix" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Position vector.", "Field to interpolate." )
         ));
   
   md_data_raw.push_back
@@ -4292,7 +4294,7 @@ void define_md_data_raw()
             "wind_w_field", "edensity_field", "refellipsoid", "z_surface", 
             "cloudbox_on", "stokes_dim", "f_grid", "abs_species", 
             "mblock_index", "ppath_agenda", "abs_scalar_gas_agenda", 
-            "iy_clearsky_agenda", "iy_space_agenda", "surface_prop_agenda", 
+            "iy_clearsky_agenda", "iy_space_agenda", "surface_rtprop_agenda", 
             "iy_cloudbox_agenda", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -4408,7 +4410,7 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", "f_grid", "abs_species", 
             "mblock_index", "ppath_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
-            "surface_prop_agenda", "iy_cloudbox_agenda",
+            "surface_rtprop_agenda", "iy_cloudbox_agenda",
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -4438,7 +4440,7 @@ void define_md_data_raw()
             "refellipsoid", "z_surface", "cloudbox_on", "stokes_dim", 
             "f_grid", "ppath_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
-            "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda" ),
+            "iy_space_agenda", "surface_rtprop_agenda", "iy_cloudbox_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4535,7 +4537,7 @@ void define_md_data_raw()
             "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "cloudbox_checked",
             "stokes_dim", "f_grid", "scat_data_raw", 
-            "iy_space_agenda", "surface_prop_agenda", "abs_scalar_gas_agenda", 
+            "iy_space_agenda", "surface_rtprop_agenda", "abs_scalar_gas_agenda", 
             "opt_prop_gas_agenda", "pnd_field", "y_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter"),
         GIN(),
@@ -4555,8 +4557,8 @@ void define_md_data_raw()
          "the scattering inside the cloud box is handled by the DOIT method.\n"
          "\n"
          "The intensity field is interpolated to the position (specified by\n"
-         "*rte_gp_p/lat/lon*) and direction (specified by *scat_za/aa_grid*)\n"
-         "given. A linear interpolation is used for all dimensions.\n"
+         "*rte_pos*) and direction (specified by *rte_los*) given. A linear\n"
+         "interpolation is used for all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
          "*scat_i_p/lat/lon* and these variables are interpolated if the\n"
@@ -4578,8 +4580,9 @@ void define_md_data_raw()
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
             "iy_transmission", 
             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
-            "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los", "jacobian_do",
-            "cloudbox_on", "cloudbox_limits", "atmosphere_dim", "stokes_dim", 
+            "rte_pos", "rte_los", "jacobian_do","cloudbox_on", 
+            "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "stokes_dim", 
             "scat_za_grid", "scat_aa_grid", "f_grid" ),
         GIN(),
         GIN_TYPE(),
@@ -4608,10 +4611,10 @@ void define_md_data_raw()
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
             "iy_transmission", 
             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
-            "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los", "jacobian_do",
-            "cloudbox_on", "cloudbox_limits",
-            "atmosphere_dim", "stokes_dim", "scat_za_grid", "scat_aa_grid", 
-            "f_grid" ),
+            "rte_pos", "rte_los", "jacobian_do", "cloudbox_on", 
+            "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "stokes_dim", "scat_za_grid", 
+            "scat_aa_grid", "f_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -5145,7 +5148,7 @@ void define_md_data_raw()
             IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
             "jacobian_particle_update_agenda",
             "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
-            "surface_prop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
+            "surface_rtprop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "refellipsoid", "z_surface", 
             "cloudbox_on", "cloudbox_limits", "pnd_field",
@@ -5703,7 +5706,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
-            "stokes_dim", "atmosphere_dim", "iy_space_agenda", "surface_prop_agenda", 
+            "stokes_dim", "atmosphere_dim", "iy_space_agenda", "surface_rtprop_agenda", 
             "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
@@ -5730,7 +5733,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
             "stokes_dim", "atmosphere_dim", "iy_space_agenda", 
-            "surface_prop_agenda", "opt_prop_gas_agenda", 
+            "surface_rtprop_agenda", "opt_prop_gas_agenda", 
             "abs_scalar_gas_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
             "lon_grid", "z_field", "refellipsoid", "z_surface", "t_field", 
             "vmr_field", "edensity_field", "cloudbox_limits", "pnd_field", 
@@ -8236,7 +8239,7 @@ void define_md_data_raw()
          "Creates variables to mimic a blackbody surface.\n"
          "\n"
          "This method sets up *surface_los*, *surface_rmatrix* and\n"
-         "*surface_emission* for *surface_prop_agenda*. Here, *surface_los*\n"
+         "*surface_emission* for *surface_rtprop_agenda*. Here, *surface_los*\n"
          "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
          "to hold blackbody radiation for a temperature of *surface_skin_t*.\n"
          ),

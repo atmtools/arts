@@ -5243,16 +5243,11 @@ void ppath_start_stepping(
           ppath.r[0]         = r_e + rte_pos[0];
           ppath.los(0,joker) = ppath.end_los;
 
-          // Create a vector with the geometrical altitude of the pressure 
-          // levels for the sensor latitude and use it to get ppath.gp_p.
-          Vector z_grid(lp+1);
-          z_at_lat_2d( z_grid, p_grid, lat_grid, z_field(joker,joker,0), 
-                                                                      gp_lat );
-          gridpos( ppath.gp_p, z_grid, rte_pos[0] );
+          // Determine gp_p (gp_lat is recalculated, but ...)
+          GridPos gp_lon_dummy;
+          rte_pos2gridpos( ppath.gp_p[0], ppath.gp_lat[0], gp_lon_dummy,
+                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, rte_pos );
           gridpos_check_fd( ppath.gp_p[0] );
-
-          // Latitude grid position
-          gridpos_copy( ppath.gp_lat[0], gp_lat );
           gridpos_check_fd( ppath.gp_lat[0] );
 
           // Is the sensor on the surface looking down?
@@ -5515,17 +5510,10 @@ void ppath_start_stepping(
           ppath.r[0]         = r_e + rte_pos[0];
           ppath.los(0,joker) = ppath.end_los;
 
-          // Create a vector with the geometrical altitude of the pressure 
-          // levels for the sensor latitude and use it to get ppath.gp_p.
-          Vector z_grid(lp+1);
-          z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, gp_lat,
-                                                                    gp_lon );
-          gridpos( ppath.gp_p, z_grid, rte_pos[0] );
+          // Determine gp_p (gp_lat and gp_lon are recalculated, but ...)
+          rte_pos2gridpos( ppath.gp_p[0], ppath.gp_lat[0], ppath.gp_lon[0], 
+                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, rte_pos );
           gridpos_check_fd( ppath.gp_p[0] );
-
-          // Latitude and longitude grid positions
-          gridpos_copy( ppath.gp_lat[0], gp_lat );
-          gridpos_copy( ppath.gp_lon[0], gp_lon );
           gridpos_check_fd( ppath.gp_lat[0] );
           gridpos_check_fd( ppath.gp_lon[0] );
 
@@ -5839,7 +5827,7 @@ void ppath_calc(
   // position and LOS.
 
   //--- Check input -----------------------------------------------------------
-  chk_rte_pos( atmosphere_dim, rte_pos, 0 );
+  chk_rte_pos( atmosphere_dim, rte_pos );
   chk_rte_los( atmosphere_dim, rte_los );
   if( ppath_inside_cloudbox_do  &&  !cloudbox_on )
     throw runtime_error( "The WSV *ppath_inside_cloudbox_do* can only be set "

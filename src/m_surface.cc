@@ -43,8 +43,10 @@
 
 #include <cmath>
 #include "arts.h"
+#include "auto_md.h"
 #include "check_input.h"
 #include "complex.h"          
+#include "math_funcs.h"
 #include "messages.h"
 #include "special_interp.h"
 #include "interpolation.h"
@@ -62,22 +64,195 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpSurfaceFieldToRteGps(
+void InterpSurfaceFieldToRtePos(
           Numeric&   outvalue,
     const Index&     atmosphere_dim,
-    const GridPos&   rte_gp_lat,
-    const GridPos&   rte_gp_lon,
+    const Vector&    lat_grid,
+    const Vector&    lon_grid,
+    const Vector&    pos,
     const Matrix&    field,
     const Verbosity& verbosity)
 {
-  CREATE_OUT3;
+  // Input checks (dummy p_grid)
+  chk_atm_grids( atmosphere_dim, Vector(2,2,-1), lat_grid, lon_grid );
+  chk_atm_surface( "input argument *field*", field, atmosphere_dim, lat_grid, 
+                                                                    lon_grid );
+  chk_rte_pos( atmosphere_dim, pos );
+
+  if( atmosphere_dim == 1 )
+    { outvalue = field(0,0); }
+  else
+    {      
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, pos[1] );
+      GridPos gp_lat, gp_lon;
+      gridpos( gp_lat, lat_grid, pos[1] );
+      if( atmosphere_dim == 3 )
+        { 
+          chk_interpolation_grids( "Longitude interpolation", lon_grid, pos[2]);
+          gridpos( gp_lon, lon_grid, pos[2] );
+        }
+      //
+      outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, gp_lat, 
+                                                                 gp_lon );
+    }
   
   // Interpolate
-  outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, 
-                                      rte_gp_lat, rte_gp_lon );
-
+  CREATE_OUT3;
   out3 << "    Result = " << outvalue << "\n";
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyFromSurfaceRtpropAgenda(
+          Workspace&        ws,
+          Matrix&           iy,
+          Matrix&           iy_error,
+          Index&            iy_error_type,
+          Matrix&           iy_aux,
+          ArrayOfTensor3&   diy_dx,  
+    const Tensor3&          iy_transmission,
+    const Index&            jacobian_do,
+    const Index&            atmosphere_dim,
+    const Tensor3&          t_field,
+    const Tensor3&          z_field,
+    const Tensor4&          vmr_field,
+    const Index&            cloudbox_on,
+    const Index&            stokes_dim,
+    const Vector&           f_grid,
+    const Vector&           rte_pos,
+    const Vector&           rte_los,
+    const Agenda&           iy_clearsky_agenda,
+    const Agenda&           surface_rtprop_agenda )
+{
+  // Call *surface_rtprop_agenda*
+  Matrix    surface_los;
+  Tensor4   surface_rmatrix;
+  Matrix    surface_emission;
+  //
+  surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
+                                surface_rmatrix, rte_pos, rte_los, 
+                                surface_rtprop_agenda );
+
+  // Check output of *surface_rtprop_agenda*
+  const Index   nlos = surface_los.nrows();
+  const Index   nf   = f_grid.nelem();
+  //
+  if( nlos )   // if 0, blackbody ground and not all checks are needed
+    {
+      if( surface_los.ncols() != rte_los.nelem() )
+        throw runtime_error( 
+                        "Number of columns in *surface_los* is not correct." );
+      if( nlos != surface_rmatrix.nbooks() )
+        throw runtime_error( 
+                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
+      if( surface_rmatrix.npages() != nf )
+        throw runtime_error( 
+                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
+      if( surface_rmatrix.nrows() != stokes_dim  ||  
+          surface_rmatrix.ncols() != stokes_dim ) 
+        throw runtime_error( 
+              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
+    }
+  if( surface_emission.ncols() != stokes_dim )
+    throw runtime_error( 
+             "Mismatch between size of *surface_emission* and *stokes_dim*." );
+  if( surface_emission.nrows() != nf )
+    throw runtime_error( 
+                       "Mismatch in size of *surface_emission* and f_grid*." );
+
+  // Variable to hold down-welling radiation
+  Tensor3   I( nlos, nf, stokes_dim );
+ 
+  // Loop *surface_los*-es. If no such LOS, we are ready.
+  if( nlos > 0 )
+    {
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
+          Vector los = surface_los(ilos,joker);
+
+          // Include surface reflection matrix in *iy_transmission*
+          // If iy_transmission is empty, this is interpreted as the
+          // variable is not needed.
+          //
+          Tensor3 iy_trans_new;
+          //
+          if( iy_transmission.npages() )
+            {
+              iy_transmission_mult(  iy_trans_new, iy_transmission, 
+                                     surface_rmatrix(ilos,joker,joker,joker) );
+            }
+
+          // Calculate angular tilt of the surface
+          // (sign(los[0]) to handle negative za for 2D)
+          //
+          Numeric atilt = 0.0;
+          //
+          /* Will be revised
+          if( atmosphere_dim == 2 )
+            {
+              Numeric c1; 
+              plevel_slope_2d( c1, lat_grid, refellipsoid, 
+                               z_surface(joker,0), rte_gp_lat, los[0] );
+              Vector itw(2); interpweights( itw, rte_gp_lat );
+              const Numeric rv_surface = 
+                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
+                              interp( itw, z_surface(joker,0), rte_gp_lat );
+              atilt = plevel_angletilt( rv_surface, c1 );
+            }
+          else if ( atmosphere_dim == 3 )
+            {
+              Numeric c1, c2;
+              plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, 
+                               z_surface, rte_gp_lat, rte_gp_lon, los[1]);
+              Vector itw(4); interpweights( itw, rte_gp_lat, rte_gp_lon );
+              const Numeric rv_surface = 
+                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
+                              interp( itw, z_surface, rte_gp_lat, rte_gp_lon );
+              atilt = plevel_angletilt( rv_surface, c1 );
+            }
+          */
+          const Numeric zamax = 90 - sign(los[0])*atilt;
+
+          // I considered to add a check that surface_los is above the
+          // horizon, but that would force e.g. surface_specular_los to
+          // actually calculate the surface tilt, which causes
+          // unnecessary calculation overhead. The angles are now moved
+          // to be just above the horizon, which should be acceptable.
+          
+          // Make sure that we have some margin to the "horizon"
+          // (otherwise numerical problems can create an infinite loop)
+          if( atmosphere_dim == 2  && los[0]<0 ) //2D with za<0
+            { los[0] = max( -zamax+0.1, los[0] ); }
+          else
+            { los[0] = min( zamax-0.1, los[0] ); }
+
+          // Calculate downwelling radiation for LOS ilos 
+          //
+          // The variable iy_clearsky_agenda can in fact be 
+          // iy_clearsky_BASIC_agenda
+          //
+          if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
+            {
+              iy_clearsky_basic_agendaExecute( ws, iy, rte_pos, los,
+                                              cloudbox_on, iy_clearsky_agenda);
+            }
+          else
+            {
+              iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+                                  iy_aux, diy_dx, 0, iy_trans_new, rte_pos, 
+                                  los, cloudbox_on, jacobian_do, t_field,
+                                  z_field, vmr_field, -1, iy_clearsky_agenda );
+            }
+
+          I(ilos,joker,joker) = iy;
+        }
+    }
+  
+  // Add up
+  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+}
+
 
 
 

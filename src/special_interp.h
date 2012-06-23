@@ -106,17 +106,6 @@ Numeric interp_atmsurface_by_gp(
         const GridPos&          gp_lat,
         const GridPos&          gp_lon );
 
-void interp_gfield3( 
-                 Numeric&   value,
-           const GriddedField3&   gfield3,
-           const Index&     effective_dim,
-           const Numeric&   x,
-           const Numeric&   y,
-           const Numeric&   z,
-           const String&    dim0,
-           const String&    dim1,
-           const String&    dim2 );
-
 void itw2p(
               VectorView       p_values,
         ConstVectorView        p_grid,
@@ -135,6 +124,17 @@ void p2gridpos_poly(
                ConstVectorView       new_pgrid,   
                const Index           order,
                const Numeric&        extpolfac=0.5 );
+
+void rte_pos2gridpos(
+         GridPos&     gp_p,
+         GridPos&     gp_lat,
+         GridPos&     gp_lon,
+   const Index&       atmosphere_dim,
+   ConstVectorView    p_grid,
+   ConstVectorView    lat_grid,
+   ConstVectorView    lon_grid,
+   ConstTensor3View   z_field,
+   ConstVectorView    rte_pos );
 
 void z_at_lat_2d(
              VectorView   z,

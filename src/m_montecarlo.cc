@@ -199,7 +199,7 @@ void MCGeneral(Workspace&            ws,
                const Index&          stokes_dim,
                const Index&          atmosphere_dim,
                const Agenda&         iy_space_agenda,
-               const Agenda&         surface_prop_agenda,
+               const Agenda&         surface_rtprop_agenda,
                const Agenda&         opt_prop_gas_agenda,
                const Agenda&         abs_scalar_gas_agenda, 
                const Vector&         p_grid,
@@ -394,11 +394,9 @@ void MCGeneral(Workspace&            ws,
           else if (termination_flag==2)
             {
               //Calculate surface properties
-              surface_prop_agendaExecute( ws, local_surface_emission, 
+              surface_rtprop_agendaExecute( ws, local_surface_emission, 
                 local_surface_los, local_surface_rmatrix, 
-                local_rte_pos, local_rte_los, ppath_step.gp_p[np-1],
-                ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],
-                surface_prop_agenda );
+                local_rte_pos, local_rte_los, surface_rtprop_agenda );
 
               if( local_surface_los.nrows() > 1 )
                 {
@@ -540,7 +538,7 @@ void MCIPA(Workspace&            ws,
            const Index&          stokes_dim,
            const Index&          atmosphere_dim,
            const Agenda&         iy_space_agenda,
-           const Agenda&         surface_prop_agenda,
+           const Agenda&         surface_rtprop_agenda,
            const Agenda&         opt_prop_gas_agenda,
            const Agenda&         abs_scalar_gas_agenda, 
            const Agenda&         ppath_step_agenda,
@@ -704,10 +702,10 @@ void MCIPA(Workspace&            ws,
                   gridpos(longp,lon_grid,lont);
                 }
               //decide whether we have reflection or emission
-              surface_prop_agendaExecute(ws,
+              surface_rtprop_agendaExecute(ws,
                     local_surface_emission, local_surface_los, 
                     local_surface_rmatrix, local_rte_pos, local_rte_los,
-                    ppath.gp_p[np-1],latgp,longp, surface_prop_agenda);
+                    surface_rtprop_agenda );
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {

@@ -125,8 +125,8 @@ void ppathFromRtePos2(
   if( !basics_checked )
     throw runtime_error( "The atmosphere and basic control variables must be "
             "flagged to have passed a consistency check (basics_checked=1)." );
-  chk_rte_pos( atmosphere_dim, rte_pos, 0 );
-  chk_rte_pos( atmosphere_dim, rte_pos2, 1 );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_pos( atmosphere_dim, rte_pos2, true );
   //---------------------------------------------------------------------------
 
   CREATE_OUT2;
@@ -411,9 +411,9 @@ void ppathFromRtePos2(
                        ppt.pos(ip,1), ppt.pos(ip,2), 
                        ppt.los(ip,0), ppt.los(ip,1) ); }
       //
-      ppath.pos(i,0)   = posc[0];
-      ppath.lstep[i-1] = ll;
-      ppath.start_los  = ppath.los(i,joker);
+      ppath.pos(i,joker) = posc;
+      ppath.lstep[i-1]   = ll;
+      ppath.start_los    = ppath.los(i,joker);
 
       // n by linear interpolation
       assert( ll < ppt.lstep[i-1] );
@@ -422,23 +422,16 @@ void ppathFromRtePos2(
       ppath.ngroup[i] = (1-w)*ppt.ngroup[i-1] + w*ppt.ngroup[i];
 
       // Grid positions
-      Vector z_grid( p_grid.nelem() );
-      if( atmosphere_dim == 1 )
-        { z_grid = z_field(joker,0,0); }
-      else if( atmosphere_dim == 2 )
+      GridPos gp_lat, gp_lon;
+      rte_pos2gridpos( ppath.gp_p[i], gp_lat, gp_lon, 
+                       atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                       ppath.pos(i,Range(0,atmosphere_dim)) );
+      if( atmosphere_dim >= 2 )
         { 
-          gridpos( ppath.gp_lat[i], lat_grid, ppath.pos(i,1) ); 
-          z_at_lat_2d( z_grid, p_grid, lat_grid, z_field(joker,joker,0), 
-                                                             ppath.gp_lat[i] );
+          gridpos_copy( ppath.gp_lat[i], gp_lat );
+          if( atmosphere_dim == 3 )
+            { gridpos_copy( ppath.gp_lon[i], gp_lon ); }
         }
-      else if( atmosphere_dim == 3 )
-        { 
-          gridpos( ppath.gp_lat[i], lat_grid, ppath.pos(i,1) ); 
-          gridpos( ppath.gp_lon[i], lon_grid, ppath.pos(i,2) ); 
-          z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
-                                            ppath.gp_lat[i], ppath.gp_lon[i] );
-        }
-      gridpos( ppath.gp_p[i], z_grid, ppath.pos(i,0) );
     }
 
   // Common stuff
@@ -654,8 +647,8 @@ void rte_losGeometricFromRtePosToRtePos2(
     const Verbosity& )
 {
   // Check input
-  chk_rte_pos( atmosphere_dim, rte_pos, 0 );
-  chk_rte_pos( atmosphere_dim, rte_pos2, 1 );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_pos( atmosphere_dim, rte_pos2, true );
 
   // Radius of rte_pos and rte_pos2
   const Numeric r1  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 

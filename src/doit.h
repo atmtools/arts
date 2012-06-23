@@ -81,7 +81,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           //particle opticla properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Agenda& surface_prop_agenda,
+                          const Agenda& surface_rtprop_agenda,
                           const Index& scat_za_interp,
                           const Verbosity& verbosity);
 
@@ -114,7 +114,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 //particle optical properties
                                 ConstTensor5View ext_mat_field,
                                 ConstTensor4View abs_vec_field,
-                                const Agenda& surface_prop_agenda,
+                                const Agenda& surface_rtprop_agenda,
                                 const Index& scat_za_interp,
                                 const Verbosity& verbosity);
 
@@ -208,7 +208,7 @@ void cloud_RT_surface(Workspace& ws,
                       //Output
                       Tensor6View doit_i_field,
                       //Input
-                      const Agenda& surface_prop_agenda,
+                      const Agenda& surface_rtprop_agenda,
                       const Index& f_index,
                       const Index& stokes_dim,
                       const Ppath& ppath_step,

@@ -239,7 +239,7 @@ void cloud_fieldsCalc(Workspace& ws,
   Optical properties of particles
   \param ext_mat_field
   \param abs_vec_field
-  \param surface_prop_agenda
+  \param surface_rtprop_agenda
   \param scat_za_interp
 
   \author Claudia Emde
@@ -272,8 +272,8 @@ void cloud_ppath_update1D(Workspace& ws,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Agenda& surface_prop_agenda,
-                          //const Agenda& surface_prop_agenda, 
+                          const Agenda& surface_rtprop_agenda,
+                          //const Agenda& surface_rtprop_agenda, 
                           const Index& scat_za_interp,
                           const Verbosity& verbosity)
 {
@@ -369,7 +369,7 @@ void cloud_ppath_update1D(Workspace& ws,
         {
           // cout << "hit surface "<< ppath_step.gp_p << endl;
           cloud_RT_surface(ws,
-                           doit_i_field, surface_prop_agenda, 
+                           doit_i_field, surface_rtprop_agenda, 
                            f_index, stokes_dim, ppath_step, cloudbox_limits, 
                            scat_za_grid, scat_za_index); 
           
@@ -415,7 +415,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 //particle optical properties
                                 ConstTensor5View ext_mat_field,
                                 ConstTensor4View abs_vec_field,
-                                const Agenda& surface_prop_agenda,
+                                const Agenda& surface_rtprop_agenda,
                                 const Index& scat_za_interp,
                                 const Verbosity& verbosity)
 {
@@ -512,7 +512,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
       if (bkgr == 2)
         {
           cloud_RT_surface(ws,
-                         doit_i_field, surface_prop_agenda, 
+                         doit_i_field, surface_rtprop_agenda, 
                          f_index, stokes_dim, ppath_step, cloudbox_limits, 
                          scat_za_grid, scat_za_index); 
         
@@ -995,12 +995,14 @@ void cloud_RT_no_background(Workspace& ws,
 
 }
 
+
+
 //! cloud_RT_surface
 /*
   This function calculates RT in the cloudbox if the next intersected 
   level is the surface. 
 
-  CE (2006-05-29) Included surface_prop_agenda here.  
+  CE (2006-05-29) Included surface_rtprop_agenda here.  
 
   \author Claudia Emde
   \date 2005-05-13
@@ -1009,7 +1011,7 @@ void cloud_RT_surface(Workspace& ws,
                       //Output
                       Tensor6View doit_i_field,
                       //Input
-                      const Agenda& surface_prop_agenda,
+                      const Agenda& surface_rtprop_agenda,
                       const Index& f_index,
                       const Index& stokes_dim,
                       const Ppath& ppath_step,
@@ -1018,11 +1020,11 @@ void cloud_RT_surface(Workspace& ws,
                       const Index& scat_za_index
                      )
 {
-  chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
+  chk_not_empty( "surface_rtprop_agenda", surface_rtprop_agenda );
 
   Matrix iy; 
   
-  // Local output of surface_prop_agenda.
+  // Local output of surface_rtprop_agenda.
   Matrix surface_emission;
   Matrix surface_los; 
   Tensor4 surface_rmatrix;
@@ -1033,24 +1035,20 @@ void cloud_RT_surface(Workspace& ws,
   
   Index np = ppath_step.np;
   
-  Vector rte_pos; 
-  rte_pos.resize( ppath_step.pos.ncols() );
-  rte_pos = ppath_step.pos(np-1,joker);
+  Vector rte_pos;    // ppath_step.pos contains two columns for 1D
+  rte_pos.resize( ppath_step.dim );
+  rte_pos = ppath_step.pos(np-1,Range(0,ppath_step.dim));
 
   Vector rte_los; 
   rte_los.resize( ppath_step.los.ncols() );
   rte_los = ppath_step.los(np-1,joker);
   
-  GridPos dummy_ppath_step_gp_lat;
-  GridPos dummy_ppath_step_gp_lon;
-  
-  //Execute the surface_prop_agenda which gives the surface 
+  //Execute the surface_rtprop_agenda which gives the surface 
   //parameters.
   
-  surface_prop_agendaExecute(ws, surface_emission, surface_los, 
-                             surface_rmatrix, rte_pos, rte_los, 
-                             ppath_step.gp_p[np-1], dummy_ppath_step_gp_lat, 
-                             dummy_ppath_step_gp_lon, surface_prop_agenda);
+  surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
+                                surface_rmatrix, rte_pos, rte_los, 
+                                surface_rtprop_agenda );
   
   iy = surface_emission;
 
@@ -1595,7 +1593,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
           // Executes the surface agenda
           // FIXME: Convert to new agenda scheme before using
-          // surface_prop_agenda.execute();
+          // surface_rtprop_agenda.execute();
 
       throw runtime_error( 
                      "Surface reflections inside cloud box not yet handled." );
@@ -1983,19 +1981,19 @@ void iy_interp_cloudbox_field(Matrix&               iy,
   Index  border  = 999;
   //
   //- Check if at any border
-  if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[0] ) )
+  if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[0], false ) )
     { border = 0; }
-  else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[1] ) )
+  else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[1], false ) )
     { border = 1; }
   if( atmosphere_dim == 3  &&  border > 100 )
     {
-      if( is_gridpos_at_index_i( rte_gp_lat, cloudbox_limits[2] ) )
+      if( is_gridpos_at_index_i( rte_gp_lat, cloudbox_limits[2], false ) )
         { border = 2; }
-      else if( is_gridpos_at_index_i( rte_gp_lat, cloudbox_limits[3] ) )
+      else if( is_gridpos_at_index_i( rte_gp_lat, cloudbox_limits[3], false ) )
         { border = 3; }
-      else if( is_gridpos_at_index_i( rte_gp_lon, cloudbox_limits[4] ) )
+      else if( is_gridpos_at_index_i( rte_gp_lon, cloudbox_limits[4], false ) )
         { border = 4; }
-      else if( is_gridpos_at_index_i( rte_gp_lon, cloudbox_limits[5] ) )
+      else if( is_gridpos_at_index_i( rte_gp_lon, cloudbox_limits[5], false ) )
         { border = 5; }
     }
 
@@ -2034,7 +2032,6 @@ void iy_interp_cloudbox_field(Matrix&               iy,
   // If outside, something is wrong
   if( border > 100 )
     {
-      
       throw runtime_error( 
                  "Given position has been found to be outside the cloudbox." );
     }
