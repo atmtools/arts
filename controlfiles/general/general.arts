@@ -136,8 +136,8 @@ AgendaSet( surface_rtprop_agenda ){
 #
 # Default is to include emission in source term
 # 
-AgendaSet( emission_agenda ){
-  emissionPlanck
+AgendaSet( blackbody_radiation_agenda ){
+  blackbody_radiationPlanck
 }
 
 

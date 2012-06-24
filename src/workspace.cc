@@ -968,6 +968,41 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "blackbody_radiation" ),
+      DESCRIPTION
+      (
+       "The blackbody radiation for a given temperature.\n"
+       "\n"
+       "This variable can be seen as the source term for thermal emission.\n"
+       "Normally, this variable should match the Planck function. The version\n"
+       "of the Planck function taking frequency as input is considered as\n"
+       "default for ARTS. The unit for radiance is then W / [m2 Hz sr].\n"
+       "For frequencies where the Rayleigh-Jeans approximation is valid\n"
+       "(but not recommended) option is to set this variable to be equal\n"
+       "to the physical temperature, resulting in K as unit.\n"
+       "\n"
+       "Inside some methods, such as DOIT, the calculation of this source\n"
+       "term can be hard-coded.\n"
+       "\n"
+       "Usage:      Set by *blackbody_radiation_agenda*.\n"
+       "\n"
+       "Unit:       See above.\n"
+       "\n"
+       "Dimensions: [ f_grid ]\n"
+       ),
+      GROUP( "Vector" )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "blackbody_radiation_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "cloudbox_checked" ),
       DESCRIPTION
       (
@@ -1066,7 +1101,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       -\n"
         "\n"
-        "Dimensions: [f_grid or 2]\n"
+        "Dimensions: [f_grid or 1, 2]\n"
         ),
        GROUP( "Matrix" ) ));
 
@@ -1335,34 +1370,6 @@ void Workspace::define_wsv_data()
        "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
        ),
       GROUP( "Tensor3" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "emission" ),
-      DESCRIPTION
-      (
-       "Thermal emission source term.\n"
-       "\n"
-       "This variable holds the emission at one position along the\n"
-       " propagation path. Inside scattering methods, such as DOIT, the\n"
-       "calculation of this source term can be hard coded.\n"
-       "\n"
-       "Usage:      Set by *emission_agenda*.\n"
-       "\n"
-       "Unit:       W / (m^2 Hz sr) or optical thickness \n"
-       "\n"
-       "Dimensions: [ f_grid ]\n"
-       ),
-      GROUP( "Vector" )));
-
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "emission_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc.\n"
-        ),
-       GROUP( "Agenda" )));
 
   wsv_data.push_back
     (WsvRecord

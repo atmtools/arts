@@ -901,7 +901,7 @@ void get_iy_of_background(
       ostringstream os;
       os << "The size of *iy* returned from *" << agenda_name << "* is\n"
          << "not correct:\n"
-         << "  expected size = [" << stokes_dim << "," << nf << "]\n"
+         << "  expected size = [" << nf << "," << stokes_dim << "]\n"
          << "  size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
       throw runtime_error( os.str() );      
     }
@@ -1070,7 +1070,7 @@ void get_ppath_pnd(
     \param   total_tau         Out: Total optical thickness of path
     \param   ppath_emission    Out: Emission source term at each ppath point 
     \param   abs_scalar_gas_agenda As the WSV.    
-    \param   emission_agenda   As the WSV.    
+    \param   blackbody_radiation_agenda   As the WSV.    
     \param   ppath_p           Pressure for each ppath point.
     \param   ppath_t           Temperature for each ppath point.
     \param   ppath_vmr         VMR values for each ppath point.
@@ -1093,7 +1093,7 @@ void get_ppath_rtvars(
         Vector&      total_tau,
         Matrix&      ppath_emission, 
   const Agenda&      abs_scalar_gas_agenda,
-  const Agenda&      emission_agenda,
+  const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_p, 
   ConstVectorView    ppath_t, 
@@ -1183,11 +1183,11 @@ void get_ppath_rtvars(
       if( emission_do )
         {
           if( f_index < 0 )
-            { emission_agendaExecute( ws, evector, ppath_t[ip], f_grid,
-                                      emission_agenda ); }
+            { blackbody_radiation_agendaExecute( ws, evector, ppath_t[ip], 
+                                        f_grid, blackbody_radiation_agenda ); }
           else
-            { emission_agendaExecute( ws, evector, ppath_t[ip], 
-                                Vector(1,f_grid[f_index]), emission_agenda ); }
+            { blackbody_radiation_agendaExecute( ws, evector, ppath_t[ip], 
+                     Vector(1,f_grid[f_index]), blackbody_radiation_agenda ); }
           ppath_emission(joker,ip) = evector;
         }
 
@@ -1225,7 +1225,7 @@ void get_ppath_rtvars(
     \param   scat_data           Out: Extracted scattering data. Length of
                                       array affected by *use_mean_scat_data*.
     \param   abs_scalar_gas_agenda As the WSV.    
-    \param   emission_agenda     As the WSV.    
+    \param   blackbody_radiation_agenda     As the WSV.    
     \param   opt_prop_gas_agenda As the WSV.    
     \param   ppath_p             Pressure for each ppath point.
     \param   ppath_t             Temperature for each ppath point.
@@ -1256,7 +1256,7 @@ void get_ppath_cloudrtvars(
         Matrix&                        ppath_emission, 
   Array<ArrayOfSingleScatteringData>&  scat_data,
   const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        emission_agenda,
+  const Agenda&                        blackbody_radiation_agenda,
   const Agenda&                        opt_prop_gas_agenda,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_p, 
@@ -1330,8 +1330,8 @@ void get_ppath_cloudrtvars(
       if( emission_do )
         {
           Vector   evector;   // Agenda must be free to resize
-          emission_agendaExecute( ws, evector, ppath_t[ip], f_grid,
-                                  emission_agenda );
+          blackbody_radiation_agendaExecute( ws, evector, ppath_t[ip], f_grid,
+                                  blackbody_radiation_agenda );
           ppath_emission(joker,ip) = evector;
         }
 

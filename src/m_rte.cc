@@ -782,7 +782,7 @@ void iyEmissionStandardClearsky(
    const ArrayOfArrayOfSpeciesTag&   abs_species,
    const Index&                      mblock_index,
    const Agenda&                     ppath_agenda,
-   const Agenda&                     emission_agenda,
+   const Agenda&                     blackbody_radiation_agenda,
    const Agenda&                     abs_scalar_gas_agenda,
    const Agenda&                     iy_clearsky_agenda,
    const Agenda&                     iy_space_agenda,
@@ -860,9 +860,10 @@ void iyEmissionStandardClearsky(
 
       // Get emission, absorption and optical thickness for each step
       get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                   ppath_emission, abs_scalar_gas_agenda, emission_agenda, 
-                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
-                   ppath_wind_v, ppath_wind_w, f_grid, -1, atmosphere_dim, 1 );
+                        ppath_emission, abs_scalar_gas_agenda, 
+                        blackbody_radiation_agenda, ppath, ppath_p, ppath_t, 
+                        ppath_vmr, ppath_wind_u, ppath_wind_v, ppath_wind_w, 
+                        f_grid, -1, atmosphere_dim, 1 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     { 
@@ -926,7 +927,8 @@ void iyEmissionStandardClearsky(
               t2 += dt;
               get_ppath_rtvars( ws, ppath_as2, tau_dummy, total_tau_dummy, 
                                 ppath_e2, abs_scalar_gas_agenda, 
-                                emission_agenda, ppath, ppath_p, t2, ppath_vmr, 
+                                blackbody_radiation_agenda, ppath, ppath_p, 
+                                t2, ppath_vmr, 
                                 ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                                 f_grid, -1, atmosphere_dim, 1 );
             }
@@ -1143,7 +1145,7 @@ void iyEmissionStandardClearskyBasic(
    const Index&         stokes_dim,
    const Vector&        f_grid,
    const Agenda&        ppath_agenda,
-   const Agenda&        emission_agenda,
+   const Agenda&        blackbody_radiation_agenda,
    const Agenda&        abs_scalar_gas_agenda,
    const Agenda&        iy_clearsky_basic_agenda,
    const Agenda&        iy_space_agenda,
@@ -1192,9 +1194,10 @@ void iyEmissionStandardClearskyBasic(
 
       // Get emission, absorption and optical thickness for each step
       get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                   ppath_emission, abs_scalar_gas_agenda, emission_agenda, 
-                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
-                   ppath_wind_v, ppath_wind_w, f_grid, -1, atmosphere_dim, 1 );
+                        ppath_emission, abs_scalar_gas_agenda, 
+                        blackbody_radiation_agenda, ppath, ppath_p, ppath_t, 
+                        ppath_vmr, ppath_wind_u, ppath_wind_v, ppath_wind_w, 
+                        f_grid, -1, atmosphere_dim, 1 );
     }
 
   // Radiative background

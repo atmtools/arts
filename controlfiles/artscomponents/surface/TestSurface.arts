@@ -1,0 +1,157 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# ARTS control file for basic testing of iy_surface_agenda and
+# surface_rtprop_agenda. 
+#
+# 2012-06-24 Patrick Eriksson
+
+Arts2{
+
+#
+# Basic settings
+#
+AtmosphereSet1D
+cloudboxOff
+jacobianOff
+VectorSet( f_grid, [10e9] )
+VectorSet( rte_pos, [0] )
+VectorSet( rte_los, [140] )
+NumericSet( surface_skin_t, 300 )
+
+
+#
+# Dummy variables
+#
+Touch( t_field )
+Touch( z_field )
+Touch( vmr_field )
+Touch( iy_transmission )
+Touch( iy_aux )
+Touch( diy_dx )
+Touch( iy_error )
+Touch( iy_error_type )
+
+
+
+#
+# "Background" agendas:
+#
+
+AgendaSet( iy_surface_agenda ){
+  iySurfaceRtpropAgenda
+} 
+
+AgendaSet( iy_clearsky_agenda ){
+  Ignore( iy_error )
+  Ignore( iy_error_type )
+  Ignore( iy_aux )
+  Ignore( diy_dx )
+  Ignore( iy_agenda_call1 )
+  Ignore( iy_transmission )
+  Ignore( rte_pos )
+  Ignore( rte_los ) 
+  Ignore( cloudbox_on ) 
+  Ignore( jacobian_do )
+  Ignore( t_field ) 
+  Ignore( z_field ) 
+  Ignore( vmr_field ) 
+  Ignore( mblock_index )
+  Touch( iy_error )
+  Touch( iy_error_type )
+  Touch( iy_aux )
+  Touch( diy_dx )
+  MatrixUnitIntensity( iy, stokes_dim, f_grid )
+  MatrixScale( iy, iy, 100 )
+} 
+
+AgendaSet( blackbody_radiation_agenda ){
+  IndexCreate( nf )
+  nelemGet( nf, f_grid )
+  VectorSetConstant( blackbody_radiation, nf, rte_temperature )
+}
+
+
+
+#
+# Test different versions of surface_rtprop_agenda
+#
+
+MatrixCreate( iy_correct )
+
+#
+# Scalar RT
+#
+IndexSet( stokes_dim, 1 )
+
+# Scalar r = 0.8
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
+MatrixSet( iy_correct, [140] )
+
+AgendaSet( surface_rtprop_agenda ){
+   Ignore( rte_pos )
+   surfaceFlatScalarReflectivity
+} 
+AgendaExecute( iy_surface_agenda )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
+AgendaSet( surface_rtprop_agenda ){
+   Ignore( rte_pos )
+   surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
+       f_grid, stokes_dim, atmosphere_dim, rte_los, surface_skin_t, 
+       surface_scalar_reflectivity, blackbody_radiation_agenda, 5, 0.5 )
+} 
+AgendaExecute( iy_surface_agenda )
+Print( iy )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
+
+
+#
+# Vector RT
+#
+IndexSet( stokes_dim, 4 )
+
+# Blackbody surface in two diffferent ways
+MatrixSet( iy_correct, [300,0,0,0] )
+
+AgendaSet( surface_rtprop_agenda ){
+   Ignore( rte_los )
+   Ignore( rte_pos )
+   surfaceBlackbody
+} 
+AgendaExecute( iy_surface_agenda )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
+AgendaSet( surface_rtprop_agenda ){
+   Ignore( rte_pos )
+   Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0 )
+   surfaceFlatReflectivity
+} 
+AgendaExecute( iy_surface_agenda )
+Print(iy)
+MatrixCompare( iy, iy_correct, 1e-9 )
+
+
+# r=0.8 for all elements (not realistic)
+MatrixSet( iy_correct, [140,-160,-160,-160] )
+
+AgendaSet( surface_rtprop_agenda ){
+   Ignore( rte_pos )
+   Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0.8 )
+   surfaceFlatReflectivity
+} 
+AgendaExecute( iy_surface_agenda )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
+
+# n = 3
+MatrixSet( complex_n, [3,0] )
+
+AgendaSet( surface_rtprop_agenda ){
+   Ignore( rte_pos )
+   surfaceFlatRefractiveIndex
+} 
+AgendaExecute( iy_surface_agenda )
+# No "compare" here, just checks that run
+
+}

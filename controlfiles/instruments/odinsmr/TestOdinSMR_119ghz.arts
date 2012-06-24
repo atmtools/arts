@@ -230,8 +230,8 @@ AgendaSet( iy_space_agenda ){
 
 # Emission
 #
-AgendaSet( emission_agenda ){
-  emissionPlanck
+AgendaSet( blackbody_radiation_agenda ){
+  blackbody_radiationPlanck
 }
 
 # Standard method for RT 

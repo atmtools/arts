@@ -17,6 +17,10 @@ install (DIRECTORY artscomponents
 
 #######################
 ### ARTS Components ###
+arts_test_run_ctlfile(fast.absorption artscomponents/absorption/TestAbs.arts)
+
+arts_test_run_ctlfile(fast.surface artscomponents/surface/TestSurface.arts)
+
 arts_test_run_ctlfile(fast.ppath1d artscomponents/ppath/TestPpath1D.arts)
 arts_test_run_ctlfile(fast.ppath2d artscomponents/ppath/TestPpath2D.arts)
 arts_test_run_ctlfile(fast.ppath3d artscomponents/ppath/TestPpath3D.arts)
@@ -34,9 +38,6 @@ arts_test_run_ctlfile(fast.transmission
 
 arts_test_run_ctlfile(fast.radiolink
                       artscomponents/radiolink/TestRadioLink.arts)
-
-arts_test_run_ctlfile(fast.absorption
-                      artscomponents/absorption/TestAbs.arts)
 
 arts_test_run_ctlfile(fast.doit artscomponents/doit/TestDOIT.arts)
 

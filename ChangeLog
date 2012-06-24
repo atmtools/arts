@@ -1,13 +1,61 @@
 2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-139
+
+	* Further work on the surface. emission_agenda renamed to
+	blackbody_radiation_agenda. Sufrace methods now use this agenda.
+	This means that clearsky calculations now really work with the
+	emission source term set to T (instead of B), or alternative
+	version of Planck. (Standard Planck still hard-coded inside DOIT
+	and MC).
+	
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	* controlfiles/instruments/mhs/mhs.arts: 
+	* controlfiles/instruments/mhs/mhs_fast.arts: 
+	* controlfiles/instruments/amsu/amsub.arts: 
+	* controlfiles/instruments/amsu/amsub_fast.arts: Call of
+	surfaceFlatScalarReflectivity adopted (by removing all
+	arguments, not needed as standard WSVs are used).
+
+	* controlfiles/CMakeLists.txt: Added surface test. Moved
+	absorption to top as most basic test (among Components).
+
+	* controlfiles/artscomponents/surface/TestSurface.arts: New.
+	(Testing without any real atmospheric RT calculations!)
+
+	* src/workspace.cc: Fixed typo for complex_n.
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda): Added check that iy
+	for down-welling radiation has correct size.
+	
+	* src/m_surface.cc (surfaceBlackbody, surfaceFlatRefractiveIndex,
+	surfaceFlatReflectivity, surfaceFlatScalarReflectivity, 
+	surfaceLambertianSimple): 
+
+	* src/surface.cc (surface_specular_R_and_b): Now using
+	blackbody_radiation_agenda.
+
+	* controlfiles/instruments/odinsmr/TestOdinSMR_119ghz.arts:
+	* src/m_physics.cc (blackbody_radiationPlanck):
+	* src/m_fos.cc:
+	* src/m_rte.cc:
+	* src/rte.cc:
+	* src/methods.cc: Adopted to changes below. 
+	
+	* src/agendas.cc: emission_agenda renamed to blackbody_radiation_agenda.
+
+	* src/workspace.cc: emission renamed to blackbody_radiation. 
+
+2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-138
 
-	* src/m_rte.cc: Adopåted call of get_iy_of_background inside
+	* src/m_rte.cc: Adopted call of get_iy_of_background inside
 	several methods.
 
 	* src/rte.cc (get_iy_of_background): Now using iy_surface_agenda,
 	instead of surface_rtprop_agenda.
-
+	
 2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-137

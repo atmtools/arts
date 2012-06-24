@@ -63,6 +63,22 @@ extern const Numeric TEMP_0_C;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void blackbody_radiationPlanck(
+           Vector&   blackbody_radiation,
+     const Vector&   f,
+     const Numeric&  t,
+     const Verbosity&)
+{
+  const Index   n = f.nelem();
+
+  blackbody_radiation.resize(n);
+
+  for( Index i=0; i<n; i++ )
+    { blackbody_radiation[i] = planck( f[i], t ); }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void complex_nWaterLiebe93(Matrix&         complex_n,
                            const Vector&   f_grid,
                            const Numeric&  t,
@@ -103,21 +119,6 @@ void complex_nWaterLiebe93(Matrix&         complex_n,
       complex_n(iv,0) = eps.real();
       complex_n(iv,1) = eps.imag();
     }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void emissionPlanck(Vector&         emission,
-                    const Vector&   f,
-                    const Numeric&  t,
-                    const Verbosity&)
-{
-  const Index   n = f.nelem();
-
-  emission.resize(n);
-
-  for( Index i=0; i<n; i++ )
-    { emission[i] = planck( f[i], t ); }
 }
 
 

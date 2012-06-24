@@ -43,9 +43,7 @@ NumericSet( ppath_lmax, 250 )
 AgendaSet( surface_rtprop_agenda ){
   InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
       lon_grid, rte_pos, t_surface )
-  surfaceFlatScalarReflectivity( surface_los, surface_rmatrix, 
-      surface_emission, f_grid, stokes_dim, atmosphere_dim, rte_los, 
-      surface_skin_t, surface_scalar_reflectivity )
+  surfaceFlatScalarReflectivity
 } 
 
 

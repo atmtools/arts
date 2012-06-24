@@ -78,6 +78,19 @@ void define_agenda_data()
        INPUT(  "f_index", "rte_doppler", "rte_pressure", "rte_temperature", 
                "rte_vmr_list" )));
   
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "blackbody_radiation_agenda" ),
+       DESCRIPTION
+       (
+        "Returns *blackbody_radiation*.\n"
+        "\n"
+        "The task of this agenda is to return *blackbody_radiation* for the\n"
+        "given temperature (*rte_temperature*).\n"
+        ),
+       OUTPUT( "blackbody_radiation" ),
+       INPUT( "rte_temperature", "f_grid" )));
+ 
  agenda_data.push_back
     (AgRecord
      ( NAME( "doit_conv_test_agenda" ),
@@ -184,21 +197,6 @@ void define_agenda_data()
         ),
         OUTPUT( "doit_i_field" ),
        INPUT(   "doit_i_field", "doit_scat_field" )));
- 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "emission_agenda" ),
-       DESCRIPTION
-       (
-        "Thermal emission source term.\n"
-        "\n"
-        "This agenda shall return the emission at one position along\n"
-        "the propagation path. The source term equals the Planck function as\n"
-        "long as thermodynamic equilibrium (LTE) can be assumed, while for\n"
-        "non-LTE conditions much more complex calculations are required.\n"
-        ),
-       OUTPUT( "emission" ),
-       INPUT( "rte_temperature", "f_grid" )));
  
   agenda_data.push_back
     (AgRecord

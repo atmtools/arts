@@ -2641,6 +2641,29 @@ void define_md_data_raw()
                   "Constant values of additional fields.")
         ));
     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "blackbody_radiationPlanck" ),
+        DESCRIPTION
+        (
+         "The Planck function (frequency version).\n"
+         "\n"
+         "The standard function for *blackbody_radiation_agenda*.\n"
+         "\n"
+         "The is considered as the standard version inside ARTS of the Planck\n"
+         "function. The unit of the returned data is W/(m^2 Hz sr).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "blackbody_radiation" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "f_grid", "rte_temperature" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
     
   md_data_raw.push_back
     ( MdRecord
@@ -3574,30 +3597,6 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "emissionPlanck" ),
-        DESCRIPTION
-        (
-         "Emission source term for LTE.\n"
-         "\n"
-         "Sets *emission* for cases when emission is considered and local\n"
-         "thermodynamic equilibrium is valid. The standard definition, in\n"
-         "ARTS, of the Planck function is followed and the unit of the\n"
-         "returned data is W/(m^2 Hz sr).\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "emission" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid", "rte_temperature" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "Error" ),
         DESCRIPTION
         (
@@ -3880,7 +3879,7 @@ void define_md_data_raw()
         IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid", "z_field", 
             "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "emission_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_transmission", "pnd_field", "scat_data_raw", 
             "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
             "use_mean_scat_data", "fos_n", "fos_i" ),
@@ -4269,7 +4268,7 @@ void define_md_data_raw()
          "outside the cloudbox (no scattering or polarised absorption).\n"
          "\n"
          "This method works exactly as *iyEmissionStandardClearsky*, but does\n"
-         "add any emission. In fact, the latter method with *emission_agenda*\n"
+         "add any emission. In fact, the latter method with *blackbody_radiation_agenda*\n"
          "set to return zero would give exactly the same result as this WSM.\n"
          "For propagation paths above the surface, the result is the output\n"
          "of *iy_space_agenda* times the (vector) transmission through the\n"
@@ -4407,7 +4406,7 @@ void define_md_data_raw()
             "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
             "wind_w_field", "edensity_field",
             "cloudbox_on", "stokes_dim", "f_grid", "abs_species", 
-            "mblock_index", "ppath_agenda", "emission_agenda", 
+            "mblock_index", "ppath_agenda", "blackbody_radiation_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
             "iy_surface_agenda", "iy_cloudbox_agenda",
             "jacobian_quantities", "jacobian_indices" ),
@@ -4437,7 +4436,7 @@ void define_md_data_raw()
             "z_field", "t_field", "vmr_field", 
             "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
             "cloudbox_on", "stokes_dim", 
-            "f_grid", "ppath_agenda", "emission_agenda", 
+            "f_grid", "ppath_agenda", "blackbody_radiation_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda" ),
         GIN(),
@@ -4484,7 +4483,7 @@ void define_md_data_raw()
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "emission_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
             "fos_angles", "use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
@@ -8277,7 +8276,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "surface_skin_t" ),
+        IN( "f_grid", "stokes_dim", "surface_skin_t", 
+            "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8307,7 +8307,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t", "complex_n" ),
+            "surface_skin_t", "complex_n", "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8334,7 +8334,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t", "surface_reflectivity" ),
+            "surface_skin_t", "surface_reflectivity", 
+            "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8359,7 +8360,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t", "surface_scalar_reflectivity" ),
+            "surface_skin_t", "surface_scalar_reflectivity",
+            "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8445,7 +8447,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t", "surface_scalar_reflectivity" ),
+            "surface_skin_t", "surface_scalar_reflectivity",
+            "blackbody_radiation_agenda" ),
         GIN(         "np",    "za_pos"  ),
         GIN_TYPE(    "Index", "Numeric" ),
         GIN_DEFAULT( NODEF,   "0.5"     ),
