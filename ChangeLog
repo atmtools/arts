@@ -1,5 +1,15 @@
 2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-138
+
+	* src/m_rte.cc: Adopåted call of get_iy_of_background inside
+	several methods.
+
+	* src/rte.cc (get_iy_of_background): Now using iy_surface_agenda,
+	instead of surface_rtprop_agenda.
+
+2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-137
 
 	* controlfiles/general/general.arts: Now includes a definition of

@@ -799,18 +799,15 @@ void ext2trans(//Output and Input:
     \param   jacobian_do           As the WSV.
     \param   ppath                 As the WSV.
     \param   atmosphere_dim        As the WSV.
-    \param   p_grid                As the WSV.
-    \param   lat_grid              As the WSV.
-    \param   lon_grid              As the WSV.
     \param   t_field               As the WSV.
     \param   z_field               As the WSV.
     \param   vmr_field             As the WSV.
     \param   cloudbox_on           As the WSV.
     \param   stokes_dim            As the WSV.
     \param   f_grid                As the WSV.
-    \param   iy_clearsky_agenda    As the WSV or iy_clearsky_basic_agenda.
+    \param   iy_clearsky_agenda    As the WSV.
     \param   iy_space_agenda       As the WSV.
-    \param   surface_rtprop_agenda   As the WSV.
+    \param   iy_surface_agenda     As the WSV.
     \param   iy_cloudbox_agenda    As the WSV.
 
     \author Patrick Eriksson 
@@ -827,19 +824,15 @@ void get_iy_of_background(
   const Index&            jacobian_do,
   const Ppath&            ppath,
   const Index&            atmosphere_dim,
-  ConstVectorView         lat_grid,
-  ConstVectorView         lon_grid,
   ConstTensor3View        t_field,
   ConstTensor3View        z_field,
   ConstTensor4View        vmr_field,
-  ConstVectorView         refellipsoid,
-  ConstMatrixView         z_surface,
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
   const Agenda&           iy_clearsky_agenda,
   const Agenda&           iy_space_agenda,
-  const Agenda&           surface_rtprop_agenda,
+  const Agenda&           iy_surface_agenda,
   const Agenda&           iy_cloudbox_agenda,
   const Verbosity&        verbosity)
 {
@@ -856,198 +849,61 @@ void get_iy_of_background(
   // than expected by most functions. Only the first atmosphere_dim values
   // shall be copied.
   //
-  Vector rte_pos;
-  Vector rte_los;
-  GridPos rte_gp_lat;
-  GridPos rte_gp_lon;
+  Vector rte_pos, rte_los;
   rte_pos.resize( atmosphere_dim );
   rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
   rte_los.resize( ppath.los.ncols() );
   rte_los = ppath.los(np-1,joker);
-  if( atmosphere_dim > 1 )
-    { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
-  if( atmosphere_dim > 2 )
-    { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
 
   out3 << "Radiative background: " << ppath.background << "\n";
 
 
   // Handle the different background cases
   //
+  String agenda_name;
+  // 
   switch( ppath_what_background( ppath ) )
     {
 
     case 1:   //--- Space ---------------------------------------------------- 
       {
+        agenda_name = "iy_space_agenda";
         iy_space_agendaExecute( ws, iy, rte_pos, rte_los, f_grid,
                                 iy_space_agenda );
-        
-        if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
-          {
-            ostringstream os;
-            os << "expected size = [" << stokes_dim << "," << nf << "]\n"
-               << "size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n"
-               << "The size of *iy* returned from *iy_space_agenda* is "
-               << "not correct.";
-            throw runtime_error( os.str() );      
-          }
       }
       break;
 
     case 2:   //--- The surface -----------------------------------------------
       {
-        // Call *surface_rtprop_agenda*
-        //
-        Matrix    surface_los;
-        Tensor4   surface_rmatrix;
-        Matrix    surface_emission;
-        //
-        surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
-                                    surface_rmatrix, rte_pos, rte_los, 
-                                    surface_rtprop_agenda );
-
-        // Check output of *surface_rtprop_agenda*
-        //
-        const Index   nlos = surface_los.nrows();
-        //
-        if( nlos )   // if 0, blackbody ground and some checks are not needed
-          {
-            if( surface_los.ncols() != rte_los.nelem() )
-              throw runtime_error( 
-                        "Number of columns in *surface_los* is not correct." );
-            if( nlos != surface_rmatrix.nbooks() )
-              throw runtime_error( 
-                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
-            if( surface_rmatrix.npages() != nf )
-              throw runtime_error( 
-                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
-            if( surface_rmatrix.nrows() != stokes_dim  ||  
-                surface_rmatrix.ncols() != stokes_dim ) 
-              throw runtime_error( 
-              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
-          }
-        if( surface_emission.ncols() != stokes_dim )
-          throw runtime_error( 
-             "Mismatch between size of *surface_emission* and *stokes_dim*." );
-        if( surface_emission.nrows() != nf )
-          throw runtime_error( 
-                       "Mismatch in size of *surface_emission* and f_grid*." );
-        //---------------------------------------------------------------------
-
-        // Variable to hold down-welling radiation
-        Tensor3   I( nlos, nf, stokes_dim );
- 
-        // Loop *surface_los*-es. If no such LOS, we are ready.
-        if( nlos > 0 )
-          {
-            for( Index ilos=0; ilos<nlos; ilos++ )
-              {
-                Vector los = surface_los(ilos,joker);
-
-                // Include surface reflection matrix in *iy_transmission*
-                // If iy_transmission is empty, this is interpreted as the
-                // variable is not needed.
-                //
-                Tensor3 iy_trans_new;
-                //
-                if( iy_transmission.npages() )
-                  {
-                    iy_transmission_mult(  iy_trans_new, iy_transmission, 
-                                     surface_rmatrix(ilos,joker,joker,joker) );
-                  }
-
-                // Calculate angular tilt of the surface
-                // (sign(los[0]) to handle negative za for 2D)
-                //
-                Numeric atilt = 0.0;
-                //
-                if( atmosphere_dim == 2 )
-                  {
-                    Numeric c1; 
-                    plevel_slope_2d( c1, lat_grid, refellipsoid, 
-                                     z_surface(joker,0), rte_gp_lat, los[0] );
-                    Vector itw(2); interpweights( itw, rte_gp_lat );
-                    const Numeric rv_surface = 
-                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
-                              interp( itw, z_surface(joker,0), rte_gp_lat );
-                    atilt = plevel_angletilt( rv_surface, c1 );
-                  }
-                else if ( atmosphere_dim == 3 )
-                  {
-                    Numeric c1, c2;
-                    plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, 
-                                     z_surface, rte_gp_lat, rte_gp_lon, los[1]);
-                    Vector itw(4); interpweights( itw, rte_gp_lat, rte_gp_lon );
-                    const Numeric rv_surface = 
-                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
-                              interp( itw, z_surface, rte_gp_lat, rte_gp_lon );
-                    atilt = plevel_angletilt( rv_surface, c1 );
-                  }
-
-                const Numeric zamax = 90 - sign(los[0])*atilt;
-
-                // I considered to add a check that surface_los is above the
-                // horizon, but that would force e.g. surface_specular_los to
-                // actually calculate the surface tilt, which causes
-                // unnecessary calculation overhead. The angles are now moved
-                // to be just above the horizon, which should be acceptable.
-
-                // Make sure that we have some margin to the "horizon"
-                // (otherwise numerical problems can create an infinite loop)
-                if( atmosphere_dim == 2  && los[0]<0 ) //2D with za<0
-                  { los[0] = max( -zamax+0.1, los[0] ); }
-                else
-                  { los[0] = min( zamax-0.1, los[0] ); }
-
-                // Calculate downwelling radiation for LOS ilos 
-                //
-                // The variable iy_clearsky_agenda can in fact be 
-                // iy_clearsky_BASIC_agenda
-                //
-                if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
-                  {
-                    iy_clearsky_basic_agendaExecute( ws, iy, rte_pos, los,
-                                              cloudbox_on, iy_clearsky_agenda);
-                  }
-                else
-                  {
-                    iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                                  iy_aux, diy_dx, 0, iy_trans_new, rte_pos, 
-                                  los, cloudbox_on, jacobian_do, t_field,
-                                  z_field, vmr_field, -1, iy_clearsky_agenda );
-                  }
-
-                I(ilos,joker,joker) = iy;
-              }
-          }
-
-        // Add up
-        surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+        agenda_name = "iy_surface_agenda";
+        iy_surface_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, 
+          diy_dx, iy_transmission, rte_pos, rte_los, cloudbox_on, jacobian_do, 
+          t_field, z_field, vmr_field, iy_clearsky_agenda, iy_surface_agenda );
       }
       break;
-
 
     case 3:   //--- Cloudbox boundary or interior ------------------------------
     case 4:
       {
-        iy_cloudbox_agendaExecute( ws, iy, iy_error, iy_error_type,
-                                   iy_aux, diy_dx, iy_transmission,
-                                   rte_pos, rte_los, iy_cloudbox_agenda );
-
-        if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
-          {
-            CREATE_OUT1;
-            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
-            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
-            throw runtime_error( "The size of *iy* returned from "
-                                      "*iy_cloudbox_agenda* is not correct." );
-          }
+        agenda_name = "iy_cloudbox_agenda";
+        iy_cloudbox_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, 
+          diy_dx, iy_transmission, rte_pos, rte_los, iy_cloudbox_agenda );
       }
       break;
 
     default:  //--- ????? ----------------------------------------------------
       // Are we here, the coding is wrong somewhere
       assert( false );
+    }
+
+  if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+    {
+      ostringstream os;
+      os << "The size of *iy* returned from *" << agenda_name << "* is\n"
+         << "not correct:\n"
+         << "  expected size = [" << stokes_dim << "," << nf << "]\n"
+         << "  size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+      throw runtime_error( os.str() );      
     }
 }
 
