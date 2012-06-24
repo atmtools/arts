@@ -104,7 +104,7 @@ void InterpSurfaceFieldToRtePos(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyFromSurfaceRtpropAgenda(
+void iySurfaceRtpropAgenda(
           Workspace&        ws,
           Matrix&           iy,
           Matrix&           iy_error,
@@ -123,7 +123,8 @@ void iyFromSurfaceRtpropAgenda(
     const Vector&           rte_pos,
     const Vector&           rte_los,
     const Agenda&           iy_clearsky_agenda,
-    const Agenda&           surface_rtprop_agenda )
+    const Agenda&           surface_rtprop_agenda,
+    const Verbosity& )
 {
   // Call *surface_rtprop_agenda*
   Matrix    surface_los;

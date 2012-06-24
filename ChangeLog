@@ -1,3 +1,15 @@
+2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-137
+
+	* controlfiles/general/general.arts: Now includes a definition of
+	iy_surface_agenda.
+
+	* src/agendas.cc: Several input WSVs were missing, to handle
+	perturbation jacobians.
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda): Completed.
+
 2012-06-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-136

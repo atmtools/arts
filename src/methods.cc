@@ -4649,6 +4649,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iySurfaceRtpropAgenda" ),
+        DESCRIPTION
+        (
+         "Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.\n"
+         "\n"
+         "This method is designed to be part of *iy_surface_agenda*. It\n"
+         "determines the radiative properties of the surface by\n"
+         "*surface_rtprop_agenda* and calculates the downwelling radiation\n"
+         "by *iy_clearsky_agenda*, and sums up the terms as described in AUG.\n"
+         "That is, this WSM uses the output from *surface_rtprop_agenda*\n"
+         "in a straightforward fashion.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+            "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
+            "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
+            "rte_pos", "rte_los", "iy_clearsky_agenda", "surface_rtprop_agenda"
+          ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianAddAbsSpecies" ),
         DESCRIPTION
         (

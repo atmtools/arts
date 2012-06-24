@@ -365,7 +365,9 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
        INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx", 
-              "iy_transmission", "rte_pos", "rte_los" )));
+              "iy_transmission", "rte_pos", "rte_los","cloudbox_on", 
+              "jacobian_do", "t_field", "z_field", "vmr_field", 
+              "iy_clearsky_agenda" )));
 
   agenda_data.push_back
     (AgRecord
