@@ -82,7 +82,9 @@ void Print(Workspace& ws _U_,
            const Verbosity& verbosity)
 {
   ostringstream os;
-  os << "     " << x << "\n";
+  os << "    " << x.name() << " {\n";
+  x.print(os, "        ");
+  os << "    " << "}";
   CREATE_OUTS;
   SWITCH_OUTPUT (level, os.str ());
 }

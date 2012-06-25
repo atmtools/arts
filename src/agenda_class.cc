@@ -673,6 +673,7 @@ void Agenda::print(ostream&      os,
     }
 }
 
+
 //! Output operator for Agenda.
 /*! 
   This is useful for debugging.
@@ -688,9 +689,10 @@ void Agenda::print(ostream&      os,
 ostream& operator<<(ostream& os, const Agenda& a)
 {
   // Print agenda as it would apear in a controlfile.
-  a.print(os, "");
+  a.print(os, "    ");
   return os;
 }
+
 
 //--------------------------------
 //     Functions for MRecord:
@@ -732,14 +734,14 @@ void MRecord::print(ostream& os, const String& indent) const
       // First entry needs no leading comma:
       bool first = true;
 
-      os << '(';
+      os << "(";
 
       for (Index i = 0; i < Out().nelem(); ++i)
         {
           if (first) first = false;
           else os << ",";
 
-          os << Workspace::wsv_data[Out()[i]];
+          os << Workspace::wsv_data[Out()[i]].Name();
         }
 
       for (Index i = 0; i < In().nelem(); ++i)
@@ -747,20 +749,19 @@ void MRecord::print(ostream& os, const String& indent) const
           if (first) first = false;
           else os << ",";
 
-          os << Workspace::wsv_data[In()[i]];
+          os << Workspace::wsv_data[In()[i]].Name();
         }
 
-      os << ')';
+      os << ")";
     }
-
-  os << "{\n";
 
   if (0 != Tasks().nelem())
     {
-      Tasks().print(os, indent+"   ");
+      os << " {\n";
+      Tasks().print(os, indent+"    ");
+      os << indent << "}\n";
     }
-
-  os << indent << "}";
+  else os << "\n";
 }
 
 //! Output operator for MRecord.
