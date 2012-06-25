@@ -64,6 +64,94 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void complex_nFromGriddedField4(
+          Matrix&          complex_n,
+    const Index&           stokes_dim,
+    const Vector&          f_grid,
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lat_true,
+    const Vector&          lon_true,
+    const Vector&          rte_pos,
+    const Vector&          rte_los,
+    const GriddedField4&   n_field,
+    const Verbosity&)
+{
+  // Basic checks and sizes
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_los( atmosphere_dim, rte_los );
+  n_field.checksize_strict();
+  //
+  const Index nf_in = n_field.data.nbooks();
+  const Index nn    = n_field.data.npages();
+  const Index nlat  = n_field.data.nrows();
+  const Index nlon  = n_field.data.ncols();
+  //
+  if( nlat < 2  ||  nlon < 2 )
+    {
+      ostringstream os;
+      os << "The data in *n_field* must span a geographical region. That is,\n"
+         << "the latitude and longitude grids must have a length >= 2.";
+    } 
+  //
+  if( nn != 2 )
+    {
+      ostringstream os;
+      os << "The data in *n_field* must hace exactly two pages. One page each\n"
+         << "for the real and complex part of the refractive index.";
+    } 
+
+  // Determine true geographical position
+  Vector lat(1), lon(1);
+  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
+                                                           lon_true, rte_pos );
+
+  // Later replace below with "GriddedFieldLatLonRegrid"
+
+  // Interpolate in lat and lon
+  // As temporary solution, just pick out first point
+  Matrix n_f( nf_in, nn );
+  {
+    GridPos gp_lat, gp_lon;
+    gridpos( gp_lat, n_field.get_numeric_grid(2), lat[0] );
+    gridpos( gp_lon, n_field.get_numeric_grid(3), lon[0] );
+    Vector itw(4);
+    interpweights( itw, gp_lat, gp_lon );
+    for( Index iv=0; iv<nf_in; iv++ )
+      {
+        for( Index in=0; in<nn; in++ )
+          { 
+            n_f(iv,in) = interp( itw, n_field.data(iv,in,joker,joker), 
+                                                              gp_lat, gp_lon );
+          }
+      } 
+
+  }    
+  
+  // Extract or interpolate in frequency
+  //
+  if( nf_in == 1 )
+    { complex_n = n_f; }
+  else
+    {
+      const Index nf_out = f_grid.nelem();
+      complex_n.resize( nf_out, 2 );
+      //
+      ArrayOfGridPos gp( nf_out );
+      Matrix         itw( nf_out, 2 );
+      gridpos( gp, n_field.get_numeric_grid(0), f_grid );
+      interpweights( itw, gp );
+      interp( complex_n(joker,0), itw, n_f(joker,0), gp );
+      interp( complex_n(joker,1), itw, n_f(joker,1), gp );
+    }     
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToRtePos(
           Numeric&   outvalue,
     const Index&     atmosphere_dim,
@@ -639,8 +727,9 @@ void surfaceLambertianSimple(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_scalar_reflectivityFromGriddedField4(
-          Vector&          surface_scalar_reflectivity,
+/*
+void surface_reflectivityFromGriddedField6(
+          Tensor3&         surface_reflectivity,
     const Index&           stokes_dim,
     const Vector&          f_grid,
     const Index&           atmosphere_dim,
@@ -654,11 +743,15 @@ void surface_scalar_reflectivityFromGriddedField4(
 {
   // Basic checks and sizes
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_los( atmosphere_dim, rte_los );
   r_field.checksize_strict();
   //
-  const Index nf_in = r_field.data.nbooks();
+  const Index nf_in = r_field.data.nvitrine();
+  const Index ns2   = r_field.data.nshelfs();
+  const Index ns1   = r_field.data.nbooks();
   const Index nza   = r_field.data.npages();
   const Index nlat  = r_field.data.nrows();
   const Index nlon  = r_field.data.ncols();
@@ -668,6 +761,7 @@ void surface_scalar_reflectivityFromGriddedField4(
       ostringstream os;
       os << "The data in *r_field* must span a geographical region. That is,\n"
          << "the latitude and longitude grids must have a length >= 2.";
+      throw runtime_error( os.str() );      
     } 
   //
   if( nza < 2 )
@@ -675,6 +769,15 @@ void surface_scalar_reflectivityFromGriddedField4(
       ostringstream os;
       os << "The data in *r_field* must span a range of zenith angles. That\n"
          << "is the zenith angle grid must have a length >= 2.";
+      throw runtime_error( os.str() );      
+
+    } 
+  if( ns1 < stokes_dim  ||  ns2 < stokes_dim  ||  ns1 > 4  ||  ns2 > 4 )
+    {
+      ostringstream os;
+      os << "The \"Stokes dimensions\" must have a size that is >= "
+         << "*stokes_dim* (but not exceeding 4).";
+      throw runtime_error( os.str() );      
     } 
 
   // Determine true geographical position
@@ -682,11 +785,27 @@ void surface_scalar_reflectivityFromGriddedField4(
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
                                                            lon_true, rte_pos );
 
+  // Later replace below with "GriddedFieldLatLonRegrid"
+
   // Interpolate in lat and lon
-  // Later use GriddedFieldLatLonRegrid
   // As temporary solution, just pick out first point
-  Matrix r_f_za;
-  r_f_za = r_field.data(joker,joker,0,0);
+Tensor4 r_f_za( nf_in, stokes_dim, stokes_dim, nza );
+  {
+    GridPos gp_lat, gp_lon;
+    gridpos( gp_lat, r_field.get_numeric_grid(2), lat[0] );
+    gridpos( gp_lon, r_field.get_numeric_grid(3), lon[0] );
+    Vector itw(4);
+    interpweights( itw, gp_lat, gp_lon );
+    for( Index iv=0; iv<nf_in; iv++ )
+      {
+        for( Index iz=0; iz<nza; iz++ )
+          { 
+            r_f_za(iv,iz) = interp( itw, r_field.data(iv,iz,joker,joker), 
+                                                              gp_lat, gp_lon );
+          }
+      } 
+
+  }    
   
   // Interpolate in incidence angle, cubic if possible
   Vector r_f( nf_in );
@@ -708,7 +827,120 @@ void surface_scalar_reflectivityFromGriddedField4(
       }
   }
 
-  // Expand or interpolate in frequency
+  // Extract or interpolate in frequency
+  //
+  if( nf_in == 1 )
+    {
+      surface_scalar_reflectivity.resize( 1 );
+      surface_scalar_reflectivity[0] = r_f[0];
+    }
+  else
+    {
+      const Index nf_out = f_grid.nelem();
+      surface_scalar_reflectivity.resize( nf_out );
+      //
+      ArrayOfGridPos gp( nf_out );
+      Matrix         itw( nf_out, 2 );
+      gridpos( gp, r_field.get_numeric_grid(0), f_grid );
+      interpweights( itw, gp );
+      interp( surface_scalar_reflectivity, itw, r_f, gp );
+    }     
+}
+*/
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_scalar_reflectivityFromGriddedField4(
+          Vector&          surface_scalar_reflectivity,
+    const Index&           stokes_dim,
+    const Vector&          f_grid,
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lat_true,
+    const Vector&          lon_true,
+    const Vector&          rte_pos,
+    const Vector&          rte_los,
+    const GriddedField4&   r_field,
+    const Verbosity&)
+{
+  // Basic checks and sizes
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
+  chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_los( atmosphere_dim, rte_los );
+  r_field.checksize_strict();
+  //
+  const Index nf_in = r_field.data.nbooks();
+  const Index nza   = r_field.data.npages();
+  const Index nlat  = r_field.data.nrows();
+  const Index nlon  = r_field.data.ncols();
+  //
+  if( nlat < 2  ||  nlon < 2 )
+    {
+      ostringstream os;
+      os << "The data in *r_field* must span a geographical region. That is,\n"
+         << "the latitude and longitude grids must have a length >= 2.";
+      throw runtime_error( os.str() );      
+
+    } 
+  //
+  if( nza < 2 )
+    {
+      ostringstream os;
+      os << "The data in *r_field* must span a range of zenith angles. That\n"
+         << "is the zenith angle grid must have a length >= 2.";
+      throw runtime_error( os.str() );      
+    } 
+
+  // Determine true geographical position
+  Vector lat(1), lon(1);
+  pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
+                                                           lon_true, rte_pos );
+
+  // Later replace below with "GriddedFieldLatLonRegrid"
+
+  // Interpolate in lat and lon
+  // As temporary solution, just pick out first point
+  Matrix r_f_za( nf_in, nza );
+  {
+    GridPos gp_lat, gp_lon;
+    gridpos( gp_lat, r_field.get_numeric_grid(2), lat[0] );
+    gridpos( gp_lon, r_field.get_numeric_grid(3), lon[0] );
+    Vector itw(4);
+    interpweights( itw, gp_lat, gp_lon );
+    for( Index iv=0; iv<nf_in; iv++ )
+      {
+        for( Index iz=0; iz<nza; iz++ )
+          { 
+            r_f_za(iv,iz) = interp( itw, r_field.data(iv,iz,joker,joker), 
+                                                              gp_lat, gp_lon );
+          }
+      } 
+
+  }    
+  
+  // Interpolate in incidence angle, cubic if possible
+  Vector r_f( nf_in );
+  Index order = 3;
+  if( nza < 4 )
+    { order = 1; }
+  {
+    ArrayOfGridPosPoly   gp(1);
+    Matrix               itw(1,order+1);
+    Vector               tmp(1);
+    gridpos_poly( gp, r_field.get_numeric_grid(1), Vector(1,180-rte_los[0]), 
+                                                                       order );
+    interpweights( itw, gp );
+    //
+    for( Index i=0; i<nf_in; i++ )
+      { 
+        interp( tmp, itw, r_f_za(i,joker), gp );
+        r_f[i] = tmp[0];
+      }
+  }
+
+  // Extract or interpolate in frequency
   //
   if( nf_in == 1 )
     {

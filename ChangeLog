@@ -1,3 +1,15 @@
+2012-06-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-144
+
+	* controlfiles/artscomponents/surface/create_gfields.m: Created.
+	Generates test data for TestSurface.arts.
+
+	* controlfiles/artscomponents/surface/TestSurface.arts: Extended
+	to cover more cases, including the new WSM below.
+
+	* src/m_surface.cc (complex_nFromGriddedField4): Created.
+
 2012-06-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-143
@@ -56,11 +68,11 @@
 	emission source term set to T (instead of B), or alternative
 	version of Planck. (Standard Planck still hard-coded inside DOIT
 	and MC).
-	
+
 	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
-	* controlfiles/instruments/mhs/mhs.arts: 
-	* controlfiles/instruments/mhs/mhs_fast.arts: 
-	* controlfiles/instruments/amsu/amsub.arts: 
+	* controlfiles/instruments/mhs/mhs.arts:
+	* controlfiles/instruments/mhs/mhs_fast.arts:
+	* controlfiles/instruments/amsu/amsub.arts:
 	* controlfiles/instruments/amsu/amsub_fast.arts: Call of
 	surfaceFlatScalarReflectivity adopted (by removing all
 	arguments, not needed as standard WSVs are used).
@@ -75,10 +87,10 @@
 
 	* src/m_surface.cc (iySurfaceRtpropAgenda): Added check that iy
 	for down-welling radiation has correct size.
-	
+
 	* src/m_surface.cc (surfaceBlackbody, surfaceFlatRefractiveIndex,
-	surfaceFlatReflectivity, surfaceFlatScalarReflectivity, 
-	surfaceLambertianSimple): 
+	surfaceFlatReflectivity, surfaceFlatScalarReflectivity,
+	surfaceLambertianSimple):
 
 	* src/surface.cc (surface_specular_R_and_b): Now using
 	blackbody_radiation_agenda.
@@ -88,11 +100,11 @@
 	* src/m_fos.cc:
 	* src/m_rte.cc:
 	* src/rte.cc:
-	* src/methods.cc: Adopted to changes below. 
-	
+	* src/methods.cc: Adopted to changes below.
+
 	* src/agendas.cc: emission_agenda renamed to blackbody_radiation_agenda.
 
-	* src/workspace.cc: emission renamed to blackbody_radiation. 
+	* src/workspace.cc: emission renamed to blackbody_radiation.
 
 2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
@@ -103,7 +115,7 @@
 
 	* src/rte.cc (get_iy_of_background): Now using iy_surface_agenda,
 	instead of surface_rtprop_agenda.
-	
+
 2012-06-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-137

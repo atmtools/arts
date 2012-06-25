@@ -2930,6 +2930,50 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "complex_nFromGriddedField4" ),
+        DESCRIPTION
+        (
+         "Extracts complex refractive index from a field of such data.\n"
+         "\n"
+         "This method allows to specify a field of *complex_n* for\n"
+         "automatic interpolation to points of interest. The position and\n"
+         "direction for which the reflectivity shall be extracted are given\n"
+         "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
+         "be stored as:\n"
+         "   GriddedField4:\n"
+         "      Vector f_grid[N_f]\n"
+         "      Vector dummy[2]\n"
+         "      Vector lat_grid[N_lat]\n"
+         "      Vector lon_grid[N_lon]\n"
+         "      Tensor4 data[N_f][2][N_lat][N_lon]\n"
+         "\n"
+         "Grids for latitude and longitude must have a length of >= 2 (ie.\n"
+         "no automatic expansion). If the frequency grid has length 1, this\n"
+         "is taken as the refractive index is constant, following the\n"
+         "definition of *complex_n*. The remaining dimension must have size\n"
+         "two, where the first element corresponds to the real part and the\n"
+         "second elemt to the the imaginary part.\n"
+         "\n"
+         "The interpolation is done in steps:\n"
+         "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
+         "   2. Linear interpolation if frequency (if input data have more\n"
+         "      than one frequency).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "complex_n" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
+            "lon_true", "rte_pos", "rte_los" ),
+        GIN( "n_field" ),
+        GIN_TYPE( "GriddedField4" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A field of complex refractive index." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "complex_nWaterLiebe93" ),
         DESCRIPTION
         (

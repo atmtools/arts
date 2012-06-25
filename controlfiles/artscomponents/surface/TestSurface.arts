@@ -16,6 +16,8 @@ jacobianOff
 VectorSet( f_grid, [10e9] )
 VectorSet( rte_pos, [0] )
 VectorSet( rte_los, [140] )
+VectorSet( lat_true, [54] )     # 0.8 point between South and North poles 
+VectorSet( lon_true, [23] )
 NumericSet( surface_skin_t, 300 )
 
 
@@ -75,33 +77,49 @@ AgendaSet( blackbody_radiation_agenda ){
 #
 # Test different versions of surface_rtprop_agenda
 #
-
 MatrixCreate( iy_correct )
+
+
 
 #
 # Scalar RT
 #
 IndexSet( stokes_dim, 1 )
 
-# Scalar r = 0.8
+# r=0.8 for all scalar cases below 
+
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
 MatrixSet( iy_correct, [140] )
 
 AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_pos )
-   surfaceFlatScalarReflectivity
+  Ignore( rte_pos )
+  surfaceFlatScalarReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
 MatrixCompare( iy, iy_correct, 1e-9 )
 
 AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_pos )
-   surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
-       f_grid, stokes_dim, atmosphere_dim, rte_los, surface_skin_t, 
-       surface_scalar_reflectivity, blackbody_radiation_agenda, 5, 0.5 )
+  Ignore( rte_pos )
+  surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
+      f_grid, stokes_dim, atmosphere_dim, rte_los, surface_skin_t, 
+      surface_scalar_reflectivity, blackbody_radiation_agenda, 5, 0.5 )
 } 
 AgendaExecute( iy_surface_agenda )
-Print( iy )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
+GriddedField4Create( r_gfield4 ) 
+ReadXML( r_gfield4, "scalar_r_field_2angles.xml" )
+AgendaSet( surface_rtprop_agenda ){
+  surface_scalar_reflectivityFromGriddedField4( surface_scalar_reflectivity, 
+      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
+      rte_pos, rte_los, r_gfield4 )
+  surfaceFlatScalarReflectivity
+} 
+AgendaExecute( iy_surface_agenda )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
+ReadXML( r_gfield4, "scalar_r_field_10angles.xml" )
+AgendaExecute( iy_surface_agenda )
 MatrixCompare( iy, iy_correct, 1e-9 )
 
 
@@ -115,20 +133,19 @@ IndexSet( stokes_dim, 4 )
 MatrixSet( iy_correct, [300,0,0,0] )
 
 AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_los )
-   Ignore( rte_pos )
-   surfaceBlackbody
+  Ignore( rte_los )
+  Ignore( rte_pos )
+  surfaceBlackbody
 } 
 AgendaExecute( iy_surface_agenda )
 MatrixCompare( iy, iy_correct, 1e-9 )
 
 AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_pos )
-   Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0 )
-   surfaceFlatReflectivity
+  Ignore( rte_pos )
+  Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0 )
+  surfaceFlatReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
-Print(iy)
 MatrixCompare( iy, iy_correct, 1e-9 )
 
 
@@ -136,22 +153,33 @@ MatrixCompare( iy, iy_correct, 1e-9 )
 MatrixSet( iy_correct, [140,-160,-160,-160] )
 
 AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_pos )
-   Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0.8 )
-   surfaceFlatReflectivity
+  Ignore( rte_pos )
+  Tensor3SetConstant( surface_reflectivity, 1, stokes_dim, stokes_dim, 0.8 )
+  surfaceFlatReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
 MatrixCompare( iy, iy_correct, 1e-9 )
 
 
-# n = 3
+# n = (3,0) in two different ways
 MatrixSet( complex_n, [3,0] )
 
 AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_pos )
-   surfaceFlatRefractiveIndex
+  Ignore( rte_pos )
+  surfaceFlatRefractiveIndex
 } 
 AgendaExecute( iy_surface_agenda )
-# No "compare" here, just checks that run
+Copy( iy_correct, iy )
+
+ReadXML( r_gfield4, "complex_n_field.xml" )
+AgendaSet( surface_rtprop_agenda ){
+  complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim, 
+      lat_grid, lat_true, lon_true, rte_pos, rte_los, r_gfield4 )
+  Print( complex_n )
+  surfaceFlatRefractiveIndex
+} 
+AgendaExecute( iy_surface_agenda )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
 
 }
