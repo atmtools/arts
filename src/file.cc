@@ -350,7 +350,7 @@ bool find_file(String& filename, const String extension, const ArrayOfString& pa
   bool exists = true;
 
   // filename contains full path
-  if (filename.nelem() && filename[0] == '/')
+  if (!paths.nelem() || (filename.nelem() && filename[0] == '/'))
   {
     if (!file_exists(filename))
     {

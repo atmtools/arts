@@ -253,6 +253,7 @@ add_library (matpack STATIC
 
 add_library (methods STATIC
 	agendas.cc
+	agenda_record.cc
 	methods.cc
 	methods_aux.cc
 	groups.cc
