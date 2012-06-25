@@ -34,7 +34,7 @@
 #define gridded_fields_h
 
 #include <stdexcept>
-#include "matpackIV.h"
+#include "matpackVI.h"
 #include "array.h"
 #include "mystring.h"
 
@@ -80,7 +80,7 @@ protected:
     Constructs a GriddedField with the given dimension and name.
 
     The constructor for GriddedField is protected because it is only used internally
-    by the derived classed.
+    by the derived classes.
 
     \param[in] d Dimension.
     \param[in] s Name.
@@ -435,6 +435,144 @@ public:
 };
 
 
+class GriddedField5 : public GriddedField {
+public:
+  //! Construct an empty GriddedField5
+  GriddedField5() : GriddedField(5, "") {}
+  //! Construct an empty GriddedField5 with the given name
+  /*! \param[in] s Name. */
+  GriddedField5(const String& s) : GriddedField(5, s) {}
+
+  virtual bool checksize() const
+  {
+    return ((!get_grid_size(4) && data.ncols() == 1)
+            || data.ncols() == get_grid_size(4))
+           && ((!get_grid_size(3) && data.nrows() == 1)
+               || data.nrows() == get_grid_size(3))
+           && ((!get_grid_size(2) && data.npages() == 1)
+               || data.npages() == get_grid_size(2))
+           && ((!get_grid_size(1) && data.nbooks() == 1)
+               || data.nbooks() == get_grid_size(1))
+           && ((!get_grid_size(0) && data.nshelves() == 1)
+               || data.nshelves() == get_grid_size(0));
+  }
+
+  virtual void checksize_strict() const
+  {
+    if (!checksize())
+      {
+        ostringstream os;
+        os << "GriddedField5 ";
+        if (get_name().length()) os << "(" << get_name() << ") ";
+        os << CHECK_ERROR_BOILERPLATE;
+        for (Index i = 0; i < 5; i++)
+          {
+            os << "Grid " << i;
+            if (get_grid_name(i).nelem()) os << " (" << get_grid_name(i) << ")";
+            os << " = " << get_grid_size(i) << "\n";
+          }
+        os << "Data";
+        os << " = " << data.nshelves() << ", " << data.nbooks() << ", ";
+        os << data.npages() << ", " << data.nrows()  << ", " << data.ncols();
+        throw runtime_error(os.str());
+      }
+  }
+
+  //! Make this GriddedField5 the same size as the given one.
+  /*! \param[in] gf Source gridded field. */
+  void resize(const GriddedField5& gf)
+  {
+    data.resize(gf.get_grid_size(0),
+                gf.get_grid_size(1),
+                gf.get_grid_size(2),
+                gf.get_grid_size(3),
+                gf.get_grid_size(4));
+  }
+
+  //! Resize the data tensor.
+  /*! \see Tensor5::resize */
+  void resize(Index s, Index b, Index p, Index r, Index c)
+  {
+    data.resize(s, b, p, r, c);
+  }
+
+  friend ostream& operator<<(ostream& os, const GriddedField5& gf);
+
+  Tensor5 data;
+};
+
+
+class GriddedField6 : public GriddedField {
+public:
+  //! Construct an empty GriddedField6
+  GriddedField6() : GriddedField(6, "") {}
+  //! Construct an empty GriddedField6 with the given name
+  /*! \param[in] s Name. */
+  GriddedField6(const String& s) : GriddedField(6, s) {}
+
+  virtual bool checksize() const
+  {
+    return ((!get_grid_size(5) && data.ncols() == 1)
+            || data.ncols() == get_grid_size(5))
+           && ((!get_grid_size(4) && data.nrows() == 1)
+               || data.nrows() == get_grid_size(4))
+           && ((!get_grid_size(3) && data.npages() == 1)
+               || data.npages() == get_grid_size(3))
+           && ((!get_grid_size(2) && data.nbooks() == 1)
+               || data.nbooks() == get_grid_size(2))
+           && ((!get_grid_size(1) && data.nshelves() == 1)
+               || data.nshelves() == get_grid_size(1))
+           && ((!get_grid_size(0) && data.nvitrines() == 1)
+               || data.nvitrines() == get_grid_size(0));
+  }
+
+  virtual void checksize_strict() const
+  {
+    if (!checksize())
+      {
+        ostringstream os;
+        os << "GriddedField6 ";
+        if (get_name().length()) os << "(" << get_name() << ") ";
+        os << CHECK_ERROR_BOILERPLATE;
+        for (Index i = 0; i < 5; i++)
+          {
+            os << "Grid " << i;
+            if (get_grid_name(i).nelem()) os << " (" << get_grid_name(i) << ")";
+            os << " = " << get_grid_size(i) << "\n";
+          }
+        os << "Data";
+        os << " = " << data.nvitrines() << data.nshelves() << ", " << data.nbooks() << ", ";
+        os << data.npages() << ", " << data.nrows()  << ", " << data.ncols();
+        throw runtime_error(os.str());
+      }
+  }
+
+  //! Make this GriddedField6 the same size as the given one.
+  /*! \param[in] gf Source gridded field. */
+  void resize(const GriddedField6& gf)
+  {
+    data.resize(gf.get_grid_size(0),
+                gf.get_grid_size(1),
+                gf.get_grid_size(2),
+                gf.get_grid_size(3),
+                gf.get_grid_size(4),
+                gf.get_grid_size(5));
+  }
+
+  //! Resize the data tensor.
+  /*! \see Tensor6::resize */
+  void resize(Index v, Index s, Index b, Index p, Index r, Index c)
+  {
+    data.resize(v, s, b, p, r, c);
+  }
+
+  friend ostream& operator<<(ostream& os, const GriddedField6& gf);
+
+  Tensor6 data;
+};
+
+
+
 /********** Output operators **********/
 
 ostream& operator<<(ostream& os, const GriddedField& gf);
@@ -442,15 +580,17 @@ ostream& operator<<(ostream& os, const GriddedField1& gf);
 ostream& operator<<(ostream& os, const GriddedField2& gf);
 ostream& operator<<(ostream& os, const GriddedField3& gf);
 ostream& operator<<(ostream& os, const GriddedField4& gf);
+ostream& operator<<(ostream& os, const GriddedField5& gf);
+ostream& operator<<(ostream& os, const GriddedField6& gf);
 
-/**************************************/
-
+/************ Array types *************/
 
 typedef Array<GriddedField1> ArrayOfGriddedField1;
 typedef Array<GriddedField2> ArrayOfGriddedField2;
 typedef Array<GriddedField3> ArrayOfGriddedField3;
 typedef Array<GriddedField4> ArrayOfGriddedField4;
 typedef Array< Array<GriddedField1> > ArrayOfArrayOfGriddedField1;
+typedef Array< Array<GriddedField2> > ArrayOfArrayOfGriddedField2;
 typedef Array< Array<GriddedField3> > ArrayOfArrayOfGriddedField3;
 
 #undef CHECK_ERROR_BOILERPLATE

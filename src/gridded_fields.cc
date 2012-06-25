@@ -245,11 +245,11 @@ void GriddedField::set_grid(Index i, const ArrayOfString& g)
 
 //! Output operator for GriddedField
 /*!
-  Outputs the grids for the given GriddedField.
+ Outputs the grids for the given GriddedField.
 
-  \param[in,out]  os  Output stream.
-  \param[in]      gf  GriddedField.
-*/
+ \param[in,out]  os  Output stream.
+ \param[in]      gf  GriddedField.
+ */
 ostream& operator<<(ostream& os, const GriddedField& gf)
 {
   if (gf.mname.size()) os << gf.mname << ":" << endl;
@@ -275,53 +275,43 @@ ostream& operator<<(ostream& os, const GriddedField& gf)
 }
 
 
-//! Output operator for GriddedField1
-/*!
-  Outputs the given GriddedField1.
-
-  \param[in,out]  os  Output stream.
-  \param[in]      gf  GriddedField1.
-*/
+//! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField1& gf)
 {
   return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data << endl;
 }
 
 
-//! Output operator for GriddedField2
-/*!
-  Outputs the given GriddedField2.
-
-  \param[in,out]  os  Output stream.
-  \param[in]      gf  GriddedField2.
-*/
+//! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField2& gf)
 {
   return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
 }
 
 
-//! Output operator for GriddedField3
-/*!
-  Outputs the given GriddedField3.
-
-  \param[in,out]  os  Output stream.
-  \param[in]      gf  GriddedField3.
-*/
+//! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField3& gf)
 {
   return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
 }
 
 
-//! Output operator for GriddedField4
-/*!
-  Outputs the given GriddedField4.
-
-  \param[in,out]  os  Output stream.
-  \param[in]      gf  GriddedField4.
-*/
+//! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField4& gf)
+{
+  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
+}
+
+
+//! See GriddedField::operator<<
+ostream& operator<<(ostream& os, const GriddedField5& gf)
+{
+  return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
+}
+
+
+//! See GriddedField::operator<<
+ostream& operator<<(ostream& os, const GriddedField6& gf)
 {
   return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data;
 }

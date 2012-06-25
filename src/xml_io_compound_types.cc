@@ -467,6 +467,136 @@ void xml_write_to_stream(ostream& os_xml,
 }
 
 
+//=== GriddedField5 ===========================================================
+
+//! Reads GriddedField5 from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GriddedField5 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          GriddedField5& gfield,
+                          bifstream* pbifs, const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("GriddedField5");
+
+  String s;
+  tag.get_attribute_value("name", s);
+  if (s.length())
+    gfield.set_name(s);
+
+  xml_read_from_stream(is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
+  xml_read_from_stream(is_xml, gfield.data, pbifs, verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GriddedField5");
+
+  gfield.checksize_strict();
+}
+
+
+//! Writes GriddedField5 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField5
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const GriddedField5& gfield,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("GriddedField5");
+  if (!name.length() && (gfield.get_name().length()))
+    open_tag.add_attribute("name", gfield.get_name());
+  else if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, gfield.data, pbofs, "Data", verbosity);
+
+  close_tag.set_name("/GriddedField5");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+//=== GriddedField6 ===========================================================
+
+//! Reads GriddedField6 from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GriddedField6 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          GriddedField6& gfield,
+                          bifstream* pbifs, const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("GriddedField6");
+
+  String s;
+  tag.get_attribute_value("name", s);
+  if (s.length())
+    gfield.set_name(s);
+
+  xml_read_from_stream(is_xml, *((GriddedField*)&gfield), pbifs, verbosity);
+  xml_read_from_stream(is_xml, gfield.data, pbifs, verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/GriddedField6");
+
+  gfield.checksize_strict();
+}
+
+
+//! Writes GriddedField6 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField6
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const GriddedField6& gfield,
+                         bofstream* pbofs,
+                         const String& name, const Verbosity& verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("GriddedField6");
+  if (!name.length() && (gfield.get_name().length()))
+    open_tag.add_attribute("name", gfield.get_name());
+  else if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(os_xml, *((GriddedField*)&gfield), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, gfield.data, pbofs, "Data", verbosity);
+
+  close_tag.set_name("/GriddedField6");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
 //=== GridPos =====================================================
 
 //! Reads GridPos from XML input stream
