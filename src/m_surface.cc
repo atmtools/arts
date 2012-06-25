@@ -109,10 +109,7 @@ void complex_nFromGriddedField4(
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
                                                            lon_true, rte_pos );
 
-  // Later replace below with "GriddedFieldLatLonRegrid"
-
   // Interpolate in lat and lon
-  // As temporary solution, just pick out first point
   Matrix n_f( nf_in, nn );
   {
     GridPos gp_lat, gp_lon;
@@ -727,7 +724,6 @@ void surfaceLambertianSimple(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
 void surface_reflectivityFromGriddedField6(
           Tensor3&         surface_reflectivity,
     const Index&           stokes_dim,
@@ -738,7 +734,7 @@ void surface_reflectivityFromGriddedField6(
     const Vector&          lon_true,
     const Vector&          rte_pos,
     const Vector&          rte_los,
-    const GriddedField4&   r_field,
+    const GriddedField6&   r_field,
     const Verbosity&)
 {
   // Basic checks and sizes
@@ -749,8 +745,8 @@ void surface_reflectivityFromGriddedField6(
   chk_rte_los( atmosphere_dim, rte_los );
   r_field.checksize_strict();
   //
-  const Index nf_in = r_field.data.nvitrine();
-  const Index ns2   = r_field.data.nshelfs();
+  const Index nf_in = r_field.data.nvitrines();
+  const Index ns2   = r_field.data.nshelves();
   const Index ns1   = r_field.data.nbooks();
   const Index nza   = r_field.data.npages();
   const Index nlat  = r_field.data.nrows();
@@ -785,30 +781,25 @@ void surface_reflectivityFromGriddedField6(
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
                                                            lon_true, rte_pos );
 
-  // Later replace below with "GriddedFieldLatLonRegrid"
-
   // Interpolate in lat and lon
-  // As temporary solution, just pick out first point
-Tensor4 r_f_za( nf_in, stokes_dim, stokes_dim, nza );
+  Tensor4 r_f_za( nf_in, stokes_dim, stokes_dim, nza );
   {
     GridPos gp_lat, gp_lon;
-    gridpos( gp_lat, r_field.get_numeric_grid(2), lat[0] );
-    gridpos( gp_lon, r_field.get_numeric_grid(3), lon[0] );
+    gridpos( gp_lat, r_field.get_numeric_grid(4), lat[0] );
+    gridpos( gp_lon, r_field.get_numeric_grid(5), lon[0] );
     Vector itw(4);
     interpweights( itw, gp_lat, gp_lon );
     for( Index iv=0; iv<nf_in; iv++ )
-      {
-        for( Index iz=0; iz<nza; iz++ )
-          { 
-            r_f_za(iv,iz) = interp( itw, r_field.data(iv,iz,joker,joker), 
-                                                              gp_lat, gp_lon );
-          }
-      } 
-
-  }    
+      { for( Index iz=0; iz<nza; iz++ )
+          { for( Index is1=0; is1<stokes_dim; is1++ )
+              { for( Index is2=0; is2<stokes_dim; is2++ )
+                  { 
+                    r_f_za(iv,is1,is2,iz) = interp( itw, 
+                     r_field.data(iv,is1,is2,iz,joker,joker), gp_lat, gp_lon );
+  }   }   }   }   }
   
   // Interpolate in incidence angle, cubic if possible
-  Vector r_f( nf_in );
+  Tensor3 r_f( nf_in, stokes_dim, stokes_dim );
   Index order = 3;
   if( nza < 4 )
     { order = 1; }
@@ -816,37 +807,39 @@ Tensor4 r_f_za( nf_in, stokes_dim, stokes_dim, nza );
     ArrayOfGridPosPoly   gp(1);
     Matrix               itw(1,order+1);
     Vector               tmp(1);
-    gridpos_poly( gp, r_field.get_numeric_grid(1), Vector(1,180-rte_los[0]), 
+    gridpos_poly( gp, r_field.get_numeric_grid(3), Vector(1,180-rte_los[0]), 
                                                                        order );
     interpweights( itw, gp );
     //
     for( Index i=0; i<nf_in; i++ )
-      { 
-        interp( tmp, itw, r_f_za(i,joker), gp );
-        r_f[i] = tmp[0];
-      }
-  }
+      { for( Index is1=0; is1<stokes_dim; is1++ )
+          { for( Index is2=0; is2<stokes_dim; is2++ )
+              { 
+                interp( tmp, itw, r_f_za(i,is1,is2,joker), gp );
+                r_f(i,is1,is2) = tmp[0];
+  }   }   }   }
 
   // Extract or interpolate in frequency
   //
   if( nf_in == 1 )
-    {
-      surface_scalar_reflectivity.resize( 1 );
-      surface_scalar_reflectivity[0] = r_f[0];
-    }
+    { surface_reflectivity = r_f; }
   else
     {
       const Index nf_out = f_grid.nelem();
-      surface_scalar_reflectivity.resize( nf_out );
+      surface_reflectivity.resize( nf_out, stokes_dim, stokes_dim );
       //
       ArrayOfGridPos gp( nf_out );
       Matrix         itw( nf_out, 2 );
       gridpos( gp, r_field.get_numeric_grid(0), f_grid );
       interpweights( itw, gp );
-      interp( surface_scalar_reflectivity, itw, r_f, gp );
-    }     
+      for( Index is1=0; is1<stokes_dim; is1++ )
+        { for( Index is2=0; is2<stokes_dim; is2++ )
+            { 
+              interp( surface_reflectivity(joker,is1,is2), itw, 
+                                       r_f(joker,is1,is2), gp );
+    }   }   }     
 }
-*/
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -898,10 +891,7 @@ void surface_scalar_reflectivityFromGriddedField4(
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
                                                            lon_true, rte_pos );
 
-  // Later replace below with "GriddedFieldLatLonRegrid"
-
   // Interpolate in lat and lon
-  // As temporary solution, just pick out first point
   Matrix r_f_za( nf_in, nza );
   {
     GridPos gp_lat, gp_lon;

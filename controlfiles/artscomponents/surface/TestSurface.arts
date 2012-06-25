@@ -160,6 +160,21 @@ AgendaSet( surface_rtprop_agenda ){
 AgendaExecute( iy_surface_agenda )
 MatrixCompare( iy, iy_correct, 1e-9 )
 
+# Diagonal r, with 0.8 on the diagonal
+MatrixSet( iy_correct, [140,0,0,0] )
+
+GriddedField6Create( r_gfield6 ) 
+ReadXML( r_gfield6, "r_field_2angles.xml" )
+
+AgendaSet( surface_rtprop_agenda ){
+  surface_reflectivityFromGriddedField6( surface_reflectivity, 
+      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
+      rte_pos, rte_los, r_gfield6 )
+  surfaceFlatReflectivity
+} 
+AgendaExecute( iy_surface_agenda )
+MatrixCompare( iy, iy_correct, 1e-9 )
+
 
 # n = (3,0) in two different ways
 MatrixSet( complex_n, [3,0] )
@@ -175,7 +190,6 @@ ReadXML( r_gfield4, "complex_n_field.xml" )
 AgendaSet( surface_rtprop_agenda ){
   complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim, 
       lat_grid, lat_true, lon_true, rte_pos, rte_los, r_gfield4 )
-  Print( complex_n )
   surfaceFlatRefractiveIndex
 } 
 AgendaExecute( iy_surface_agenda )

@@ -2942,7 +2942,7 @@ void define_md_data_raw()
          "be stored as:\n"
          "   GriddedField4:\n"
          "      Vector f_grid[N_f]\n"
-         "      Vector dummy[2]\n"
+         "      Vector real/imaginary[2]\n"
          "      Vector lat_grid[N_lat]\n"
          "      Vector lon_grid[N_lon]\n"
          "      Tensor4 data[N_f][2][N_lat][N_lon]\n"
@@ -8414,51 +8414,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surface_scalar_reflectivityFromGriddedField4" ),
-        DESCRIPTION
-        (
-         "Extracts scalar surface reflectivities from a field of such data.\n"
-         "\n"
-         "This method allows to specify a field of surface reflectivity for\n"
-         "automatic interpolation to points of interest. The position and\n"
-         "direction for which the reflectivity shall be extracted are given\n"
-         "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
-         "be stored as:\n"
-         "   GriddedField4:\n"
-         "      Vector f_grid[N_f]\n"
-         "      Vector incidence_angle_grid[N_ia]\n"
-         "      Vector lat_grid[N_lat]\n"
-         "      Vector lon_grid[N_lon]\n"
-         "      Tensor4 data[N_f][N_ia][N_lat][N_lon]\n"
-         "\n"
-         "Grids for incidence angle, latitude and longitude must have a\n"
-         "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
-         "has length 1, this is taken as the reflectivity is constant,\n"
-         "following the definition of *surface_scalar_reflectivity*\n"
-         "\n"
-         "The interpolation is done in steps:\n"
-         "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
-         "   2: Interpolation in incidence angle (std. extrapolation).\n"
-         "      If the grid has a length of >= 4, cubic interpolation is\n"
-         "      applied. Otherwise linear interpolation.\n"
-         "   3. Linear interpolation if frequency (if input data have more\n"
-         "      than one frequency).\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "surface_scalar_reflectivity" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
-            "lon_true", "rte_pos", "rte_los" ),
-        GIN( "r_field" ),
-        GIN_TYPE( "GriddedField4" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "A field of scalar surface reflectivities" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "surfaceLambertianSimple" ),
         DESCRIPTION
         (
@@ -8501,6 +8456,102 @@ void define_md_data_raw()
                   "Position of angle in *surface_los* inside ranges of zenith "
                   "angle grid. See above."
                   )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surface_reflectivityFromGriddedField6" ),
+        DESCRIPTION
+        (
+         "Extracts surface reflectivities from a field of such data.\n"
+         "\n"
+         "This method allows to specify a field of surface reflectivity for\n"
+         "automatic interpolation to points of interest. The position and\n"
+         "direction for which the reflectivity shall be extracted are given\n"
+         "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
+         "be stored as:\n"
+         "   GriddedField4:\n"
+         "      Vector f_grid[N_f]\n"
+         "      Vector stokes_elements[N_s1]\n"
+         "      Vector stokes_elements[N_s2]\n"
+         "      Vector incidence_angle_grid[N_ia]\n"
+         "      Vector lat_grid[N_lat]\n"
+         "      Vector lon_grid[N_lon]\n"
+         "      Tensor4 data[N_f][N_s1][N_s1][N_ia][N_lat][N_lon]\n"
+         "\n"
+         "Grids for incidence angle, latitude and longitude must have a\n"
+         "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
+         "has length 1, this is taken as the reflectivity is constant,\n"
+         "following the definition of *surface_scalar_reflectivity*.\n"
+         "The data can cover higher Stokes dimensionalities than set by\n"
+         "*stokes_dim*. Data for non-used Stokes elements are just cropped.\n"
+         "The order between the two Stokes dimensions is the same as in\n"
+         "*surface_reflectivity* and surface_rmatrix*.\n"
+         "\n"
+         "The interpolation is done in steps:\n"
+         "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
+         "   2: Interpolation in incidence angle (std. extrapolation).\n"
+         "      If the grid has a length of >= 4, cubic interpolation is\n"
+         "      applied. Otherwise linear interpolation.\n"
+         "   3. Linear interpolation if frequency (if input data have more\n"
+         "      than one frequency).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_reflectivity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
+            "lon_true", "rte_pos", "rte_los" ),
+        GIN( "r_field" ),
+        GIN_TYPE( "GriddedField6" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A field of surface reflectivities" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surface_scalar_reflectivityFromGriddedField4" ),
+        DESCRIPTION
+        (
+         "Extracts scalar surface reflectivities from a field of such data.\n"
+         "\n"
+         "This method allows to specify a field of surface reflectivity for\n"
+         "automatic interpolation to points of interest. The position and\n"
+         "direction for which the reflectivity shall be extracted are given\n"
+         "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
+         "be stored as:\n"
+         "   GriddedField4:\n"
+         "      Vector f_grid[N_f]\n"
+         "      Vector incidence_angle_grid[N_ia]\n"
+         "      Vector lat_grid[N_lat]\n"
+         "      Vector lon_grid[N_lon]\n"
+         "      Tensor4 data[N_f][N_ia][N_lat][N_lon]\n"
+         "\n"
+         "Grids for incidence angle, latitude and longitude must have a\n"
+         "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
+         "has length 1, this is taken as the reflectivity is constant,\n"
+         "following the definition of *surface_scalar_reflectivity*.\n"
+         "\n"
+         "The interpolation is done in steps:\n"
+         "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
+         "   2: Interpolation in incidence angle (std. extrapolation).\n"
+         "      If the grid has a length of >= 4, cubic interpolation is\n"
+         "      applied. Otherwise linear interpolation.\n"
+         "   3. Linear interpolation if frequency (if input data have more\n"
+         "      than one frequency).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_scalar_reflectivity" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
+            "lon_true", "rte_pos", "rte_los" ),
+        GIN( "r_field" ),
+        GIN_TYPE( "GriddedField4" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "A field of scalar surface reflectivities" )
         ));
 
   md_data_raw.push_back     

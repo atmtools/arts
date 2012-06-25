@@ -42,11 +42,11 @@ xmlStore( 'scalar_r_field_10angles.xml', G, 'GriddedField4' );
 G.name      = 'Surface reflectivity';
 G.gridnames = { 'Frequency', 'Incidence angle', 'Latitude', 'Longitude',...
                 'Stokes element', 'Stokes element' };
-G.grids     = { {'1'}, [0 90], [-90 90], [-360 360], 1:4, 1:4 };
+G.grids     = { {'1'}, 1:4, 1:4, [0 90], [-90 90], [-360 360] };
 G.dataname  = 'Reflectivity';
-r              = zeros( [1 1 1 1 4 4] );
-r(1,1,1,1,:,:) = 0.8*eye(4);
-G.data         = repmat( r, [1 2 2 2 1 1] );
+r              = zeros( [1 4 4 1 1 1] );
+r(1,:,:,1,1,1) = 0.8*eye(4);
+G.data         = repmat( r, [1 1 1 2 2 2] );
 %
 xmlStore( 'r_field_2angles.xml', G, 'GriddedField6' );
 

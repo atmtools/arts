@@ -127,11 +127,14 @@ void define_wsv_group_names()
   wsv_group_names.push_back("GriddedField2");
   wsv_group_names.push_back("GriddedField3");
   wsv_group_names.push_back("GriddedField4");
+  wsv_group_names.push_back("GriddedField5");
+  wsv_group_names.push_back("GriddedField6");
   wsv_group_names.push_back("ArrayOfGriddedField1");
   wsv_group_names.push_back("ArrayOfGriddedField2");
   wsv_group_names.push_back("ArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfGriddedField4");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField1");
+  wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
   wsv_group_names.push_back("MCAntenna");

@@ -1,5 +1,28 @@
 2012-06-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-145
+
+	* This commit finishes what I plan regarding inputting and
+	restructuring around surface RT-properties. (To fix handling of
+	surface topography remains. That is, surface roughness can be
+	incorporated, but overall angular tilt of the surface is not
+	considered.)
+
+	* controlfiles/artscomponents/surface/create_gfields.m: Data for
+	test below had incorrect dimensions.
+
+	* controlfiles/artscomponents/surface/TestSurface.arts: Now
+	includes test of WSM below.
+
+	* src/m_surface.cc (surface_reflectivityFromGriddedField6): New WSM.
+
+	* src/xml_io_instantiation.h: 
+	* src/xml_io_types.h:
+	* src/groups.cc (define_wsv_group_names): Added definition for
+	GriddedField5/6 and ArrayOfGriddedField2.
+
+2012-06-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-144
 
 	* controlfiles/artscomponents/surface/create_gfields.m: Created.

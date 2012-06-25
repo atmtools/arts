@@ -4148,7 +4148,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:   Input to some surface properties methods.\n"
        "\n"
-       "Dimensions: [ f_grid or 1, stkes_dim, stokes_dim]\n"
+       "Dimensions: [ f_grid or 1, stokes_dim, stokes_dim]\n"
        ),
       GROUP( "Tensor3" )));
 
