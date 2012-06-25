@@ -741,6 +741,11 @@ void MRecord::print(ostream& os, const String& indent) const
           if (first) first = false;
           else os << ",";
 
+          // FIXME: OLE Stupid temporary workaround for linker errors
+          // in test_binaryio and friends
+          ostringstream dummy;
+          dummy << Workspace::wsv_data[Out()[i]];
+
           os << Workspace::wsv_data[Out()[i]].Name();
         }
 
@@ -748,6 +753,11 @@ void MRecord::print(ostream& os, const String& indent) const
         {
           if (first) first = false;
           else os << ",";
+
+          // FIXME: OLE Stupid temporary workaround for linker errors
+          // in test_binaryio and friends
+          ostringstream dummy;
+          dummy << Workspace::wsv_data[In()[i]];
 
           os << Workspace::wsv_data[In()[i]].Name();
         }

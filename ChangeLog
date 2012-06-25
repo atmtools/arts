@@ -1,5 +1,14 @@
 2012-06-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-142
+
+	* src/agenda_class.cc:
+
+	Add temporary workaround to (hopefully) fix crazy linker errors
+	in test_binaryio and friends on Ubuntu.
+
+2012-06-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-141
 
 	* src/agenda_class.cc, src/m_general.cc:
