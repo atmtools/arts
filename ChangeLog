@@ -1,5 +1,17 @@
 2012-06-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-147
+
+	* src/make_auto_md_h.cc:
+
+	Temporary fix for automatic header generation for supergeneric
+	methods with explicit type. Proper fix is to get rid of the
+	SUPPRESSHEADER macro in methods.cc compeletely and automatically
+	determine with headers to generate. Will implement this as soon time
+	permits.
+
+2012-06-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-146
 
 	* src/check_input.cc (chk_griddedfield_gridname):
