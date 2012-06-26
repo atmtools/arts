@@ -1,0 +1,9 @@
+% Grid names for GriddedField variables.
+% Keep the description short and on one line.
+% Sort alphabetically.
+
+Frequency       Frequency dimension for spectral dependent fields.
+Latitude        Latitude dimension for atmospheric fields.
+Longitude       Longitude dimension for atmospheric fields.
+Pressure        Pressure dimension for atmospheric fields.
+

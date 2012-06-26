@@ -1,5 +1,22 @@
 2012-06-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-149
+
+	* doc/uguide/gridded_field_gridnames.txt:
+
+	Add file with grid naming conventions.
+
+	* doc/uguide/concept.tex:
+
+	Add section Data formats with subsections XML files, NetCDF files and
+	Gridded fields.
+
+	Include the grid naming conventions here.
+
+	* doc/uguide/CMakeLists.txt: Add dependency on g_f_gn.txt.
+
+2012-06-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-148
 
 	* ChangeLog: Too many typos in previous log message to let it slide.

@@ -568,6 +568,31 @@ The default setting for ARTS (if you do not use the command line flag)
 is `010', i.e., only the important messages to the screen, nothing to
 the report file, and no sub-agenda output.
 
+\section{Data formats}
+
+\subsection{XML files}
+
+% FIXME: OLE: Extend this
+XML is the default file format for exchanging data with ARTS. Two flavors are
+supported: Plain text and binary. In the plain format all data is stored in
+the XML file. For binary, the structure of the data is stored in the XML file
+and the data itself in binary format in a separate file.
+
+\subsection{NetCDF files}
+
+% FIXME: OLE: Extend this
+NetCDF input and output is supported for a subset of the data types available
+in ARTS.
+
+\subsection{Gridded fields}
+
+\subsubsection{Naming convention for grids}
+
+% FIXME: OLE: Extend this
+\begin{alltt}
+\small
+\input{gridded_field_gridnames.txt}
+\end{alltt}
 
 %%% Local Variables: 
 %%% mode: latex
