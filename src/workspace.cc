@@ -1362,7 +1362,7 @@ void Workspace::define_wsv_data()
        "between the grid crossings is obtained by multi-linear interpolation\n"
        "of the field.\n"
        "\n"
-       "Can be set to be empty, which is interpreted as zero wind speed\n"
+       "Can be set to be empty, which is interpreted as zero electrons\n"
        "everywhere.\n"
        "\n"
        "Unit:       1/m3\n"
@@ -2104,6 +2104,62 @@ void Workspace::define_wsv_data()
        "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "mag_u_field" ),
+      DESCRIPTION
+      (
+       "Zonal component of the magnetic field.\n"
+       "\n"
+       "The East-West magnetic field component. Positive values, when pointing\n"
+       "eastward.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero field strength\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       T\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
+       ),
+      GROUP( "Tensor3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "mag_v_field" ),
+      DESCRIPTION
+      (
+       "Meridional component of the magnetic field.\n"
+       "\n"
+       "The North-South magnetic field component. Positive values, when pointing\n"
+       "northward.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero field strength\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       T\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
+       ),
+      GROUP( "Tensor3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "mag_w_field" ),
+      DESCRIPTION
+      (
+       "Vertical component of the magnetic field.\n"
+       "\n"
+       "Positive values, when pointing upward.\n"
+       "\n"       
+       "Can be set to be empty, which is interpreted as zero field strength\n"
+       "everywhere.\n"
+       "\n"
+       "Unit:       T\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"
+       ),
+      GROUP( "Tensor3" ))); 
 
   wsv_data.push_back
    (WsvRecord
@@ -4405,9 +4461,9 @@ void Workspace::define_wsv_data()
     ( NAME( "wind_u_field" ),
       DESCRIPTION
       (
-       "Meridional (second horizontal wind) component field for 3D.\n"
+       "Zonal (second horizontal wind) component field for 3D.\n"
        "\n"
-       "The east-west wind component. Air moving towards higher\n"
+       "The East-West wind component. Air moving towards higher\n"
        "longitudes is a positive wind.\n"
        "\n"       
        "Can be set to be empty, which is interpreted as zero wind speed\n"
@@ -4429,16 +4485,16 @@ void Workspace::define_wsv_data()
        "This wind component is defined differently for the atmospheric\n"
        "dimensionalities.\n"
        "\n"       
-       " 1D: Complete vertical wind. The wind is treated to always be aligned\n"
-       "azimuthally with the observation direction. That is, the vertical\n"
-       "winds converge/start at geographical position of the sensor. A wind\n"
+       " 1D: Total horizontal wind. The wind is treated to always be aligned\n"
+       "azimuthally with the observation direction. That is, the horizontal\n"
+       "winds converge/start at geographical position of the sensor. Wind\n"
        "going away from the sensor is treated as positive.\n"
        "\n"       
-       " 2D: Complete vertical wind. The wind is treated to be aligned with\n"
+       " 2D: Total horizontal wind. The wind is treated to be aligned with\n"
        "the 2D cross-section the atmosphere represents. Air moving towards\n"
        "higher latitudes is considered as a positive wind.\n"
        "\n"       
-       " 3D: The north-south wind component. Air moving towards higher\n"
+       " 3D: The North-South wind component. Air moving towards higher\n"
        "latitudes is a positive wind.\n"
        "\n"       
        "Can be set to be empty, which is interpreted as zero wind speed\n"

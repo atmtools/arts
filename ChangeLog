@@ -1,3 +1,13 @@
+2012-04-12  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-150
+
+	* src/workspace.cc:
+	Introduced magnetic field components (mag_[u,v,w]_field).
+
+	* src/m_atmosphere.cc, src/methods.cc (basics_checkedCalc):
+	Added mag_[u,v,w]_field to checks.
+
 2012-06-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-149
