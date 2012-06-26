@@ -1774,5 +1774,45 @@ void chk_rte_los(
 }
 
 
+/*===========================================================================
+ === Functions related to GriddedFields.
+ ===========================================================================*/
 
+//! Check name of grid in GriddedField.
+/**
+ Does a case-insensitive check to verify that the name of the grid at the
+ given index in the GriddedField has the expected name.
 
+ \param gf         GriddedField to check.
+                   Can be a GriddedField of any dimension.
+ \param gridindex  Index of grid.
+ \param gridname   Expected name of grid.
+ */
+void chk_griddedfield_gridname(const GriddedField& gf,
+                               const Index gridindex,
+                               const String& gridname)
+{
+  if (gf.get_dim()-1 < gridindex)
+  {
+    ostringstream os;
+    os << "Grid index " << gridindex << " exceeds dimension of GriddedField";
+    if (gf.get_name().nelem()) os << " \"" << gf.get_name() << "\"";
+    throw runtime_error(os.str());
+  }
+
+  String gfgridnameupper = gf.get_grid_name(gridindex);
+  gfgridnameupper.toupper();
+
+  String gridnameupper = gridname;
+  gridnameupper.toupper();
+
+  if (gfgridnameupper != gridnameupper)
+  {
+    ostringstream os;
+    os << "Name of grid " << gridindex << " in GriddedField";
+    if (gf.get_name().nelem()) os << " \"" << gf.get_name() << "\"";
+    os << " is \"" << gf.get_grid_name(gridindex) << "\", "
+    << "expected to be \"" << gridname << "\".";
+    throw runtime_error(os.str());
+  }
+}

@@ -342,4 +342,8 @@ void chk_rte_los(
         const Index&      atmosphere_dim,
         ConstVectorView   rte_los );
 
+void chk_griddedfield_gridname(const GriddedField& gf,
+                               const Index gridindex,
+                               const String& gridname);
+
 #endif  // checkinput_h
