@@ -1,4 +1,10 @@
-2012-04-12  Jana Mendrok <jana.mendrok@ltu.se>
+2012-06-26  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-151
+
+	* controlfiles/general/general.arts: initialize mag_[u,v,w]_field.
+
+2012-06-26  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-150
 

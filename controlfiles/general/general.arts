@@ -106,6 +106,14 @@ Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
 
 
 # 
+# Magnetic field (all components set to be empty, shorthand for no magnetic field)
+#
+Tensor3SetConstant( mag_u_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( mag_v_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
+
+
+# 
 # Field of free electrons (empty is shorthand for no free electrons)
 #
 Tensor3SetConstant( edensity_field, 0, 0, 0, 0.0 )
