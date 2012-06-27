@@ -100,8 +100,8 @@ void complex_nFromGriddedField4(
   if( nn != 2 )
     {
       ostringstream os;
-      os << "The data in *n_field* must hace exactly two pages. One page each\n"
-         << "for the real and complex part of the refractive index.";
+      os << "The data in *n_field* must have exactly two pages. One page each\n"
+         << "for the real and the imaginary part of the complex refractive index.";
     } 
 
   // Determine true geographical position

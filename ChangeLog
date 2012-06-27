@@ -1,5 +1,11 @@
 2012-06-27  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-158
+
+	* src/m_surface.cc (complex_nFromGriddedField4): misspelling corrected.
+
+2012-06-27  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-157
 
 	* doc/uguide/gridded_field_gridnames.txt: Added Complex.
