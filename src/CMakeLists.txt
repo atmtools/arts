@@ -377,11 +377,11 @@ endif (WITH_GUI)
 
 ########### tests ###############
 
-add_test("arts.cmdline.describe" arts -d Copy)
-add_test("arts.cmdline.groups" arts -g)
-add_test("arts.cmdline.help" arts -h)
-add_test("arts.cmdline.input" arts -i Index)
-add_test("arts.cmdline.methods" arts -m all)
-add_test("arts.cmdline.version" arts -v)
-add_test("arts.cmdline.workspacevariables" arts -w all)
+arts_test_cmdline("describe" -d Copy)
+arts_test_cmdline("groups"   -g)
+arts_test_cmdline("help" -h)
+arts_test_cmdline("input" -i Index)
+arts_test_cmdline("methods" -m all)
+arts_test_cmdline("version" -v)
+arts_test_cmdline("workspacevariables" -w all)
 
