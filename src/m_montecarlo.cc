@@ -386,7 +386,8 @@ void MCGeneral(Workspace&            ws,
             {
               iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
                                      Vector(1,f_grid[f_index]),iy_space_agenda);
-              mult(vector1,evol_op,local_iy(f_index,joker));
+
+              mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
               keepgoing=false; //stop here. New photon.
