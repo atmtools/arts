@@ -4060,6 +4060,28 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "FieldFromGriddedField" ),
+        DESCRIPTION
+        (
+         "FIXME: OLE\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "field" ),
+        GOUT_TYPE( "Matrix, Tensor3, Tensor4, Tensor4" ),
+        GOUT_DESC( "Extracted field." ),
+        IN( "p_grid", "lat_true", "lon_true" ),
+        GIN( "gfield" ),
+        GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Raw input gridded field." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( false  )
+        ));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "g0Earth" ),
@@ -4079,6 +4101,78 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "GriddedFieldLatLonExpand" ),
+        DESCRIPTION
+        (
+         "FIXME: OLE\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "gfield_raw_out" ),
+        GOUT_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
+        GOUT_DESC( "Expanded gridded field." ),
+        IN(),
+        GIN( "gfield_raw_in" ),
+        GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Raw input gridded field." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( false  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "GriddedFieldLatLonPRegrid" ),
+        DESCRIPTION
+        (
+         "FIXME: OLE\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "gfield_raw_out" ),
+        GOUT_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
+        GOUT_DESC( "Regridded gridded field." ),
+        IN( "p_grid" ),
+        GIN( "gfield_raw_in", "interp_order", "zeropadding" ),
+        GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3",
+                  "Index",
+                  "Index" ),
+        GIN_DEFAULT( NODEF, "1", "0" ),
+        GIN_DESC( "Raw input gridded field.",
+                  "Interpolation order.",
+                  "Apply zero-padding." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( false  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "GriddedFieldLatLonRegrid" ),
+        DESCRIPTION
+        (
+         "FIXME: OLE\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "gfield_raw_out" ),
+        GOUT_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
+        GOUT_DESC( "Regridded gridded field." ),
+        IN( "lat_true", "lon_true" ),
+        GIN( "gfield_raw_in", "interp_order" ),
+        GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3",
+                  "Index" ),
+        GIN_DEFAULT( NODEF, "1" ),
+        GIN_DESC( "Raw input gridded field.",
+                  "Interpolation order." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( false  )
         ));
 
   md_data_raw.push_back

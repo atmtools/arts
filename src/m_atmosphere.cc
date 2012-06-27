@@ -134,6 +134,246 @@ void atm_fields_compactExpand(GriddedField4& af,
   ===========================================================================*/
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FieldFromGriddedField(// WS Generic Output:
+                           Matrix& field_out _U_,
+                           // WS Input:
+                           const Vector& p_grid _U_,
+                           const Vector& lat_true _U_,
+                           const Vector& lon_true _U_,
+                           // WS Generic Input:
+                           const GriddedField2& gfraw_in _U_,
+                           const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FieldFromGriddedField(// WS Generic Output:
+                           Tensor3& field_out _U_,
+                           // WS Input:
+                           const Vector& p_grid _U_,
+                           const Vector& lat_true _U_,
+                           const Vector& lon_true _U_,
+                           // WS Generic Input:
+                           const GriddedField3& gfraw_in _U_,
+                           const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FieldFromGriddedField(// WS Generic Output:
+                           Tensor4& field_out _U_,
+                           // WS Input:
+                           const Vector& p_grid _U_,
+                           const Vector& lat_true _U_,
+                           const Vector& lon_true _U_,
+                           // WS Generic Input:
+                           const GriddedField4& gfraw_in _U_,
+                           const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void FieldFromGriddedField(// WS Generic Output:
+                           Tensor4& field_out _U_,
+                           // WS Input:
+                           const Vector& p_grid _U_,
+                           const Vector& lat_true _U_,
+                           const Vector& lon_true _U_,
+                           // WS Generic Input:
+                           const ArrayOfGriddedField3& gfraw_in _U_,
+                           const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonExpand(// WS Generic Output:
+                              GriddedField2& gfraw_out _U_,
+                              // WS Generic Input:
+                              const GriddedField2& gfraw_in _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonExpand(// WS Generic Output:
+                              GriddedField3& gfraw_out _U_,
+                              // WS Generic Input:
+                              const GriddedField3& gfraw_in _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonExpand(// WS Generic Output:
+                              GriddedField4& gfraw_out _U_,
+                              // WS Generic Input:
+                              const GriddedField4& gfraw_in _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonExpand(// WS Generic Output:
+                              ArrayOfGriddedField3& gfraw_out _U_,
+                              // WS Generic Input:
+                              const ArrayOfGriddedField3& gfraw_in _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonPRegrid(// WS Generic Output:
+                              GriddedField2& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& p_grid _U_,
+                              // WS Generic Input:
+                              const GriddedField2& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Index& zeropadding _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonPRegrid(// WS Generic Output:
+                              GriddedField3& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& p_grid _U_,
+                              // WS Generic Input:
+                              const GriddedField3& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Index& zeropadding _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonPRegrid(// WS Generic Output:
+                              GriddedField4& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& p_grid _U_,
+                              // WS Generic Input:
+                              const GriddedField4& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Index& zeropadding _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonPRegrid(// WS Generic Output:
+                              ArrayOfGriddedField3& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& p_grid _U_,
+                              // WS Generic Input:
+                              const ArrayOfGriddedField3& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Index& zeropadding _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonRegrid(// WS Generic Output:
+                              GriddedField2& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& lat_true _U_,
+                              const Vector& lon_true _U_,
+                              // WS Generic Input:
+                              const GriddedField2& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonRegrid(// WS Generic Output:
+                              GriddedField3& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& lat_true _U_,
+                              const Vector& lon_true _U_,
+                              // WS Generic Input:
+                              const GriddedField3& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonRegrid(// WS Generic Output:
+                              GriddedField4& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& lat_true _U_,
+                              const Vector& lon_true _U_,
+                              // WS Generic Input:
+                              const GriddedField4& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GriddedFieldLatLonRegrid(// WS Generic Output:
+                              ArrayOfGriddedField3& gfraw_out _U_,
+                              // WS Input:
+                              const Vector& lat_true _U_,
+                              const Vector& lon_true _U_,
+                              // WS Generic Input:
+                              const ArrayOfGriddedField3& gfraw_in _U_,
+                              const Index& interp_order _U_,
+                              const Verbosity&)
+{
+  // FIXME: OLE Implement this
+  throw runtime_error("Not yet implemented");
+}
+
+
 // Workspace method, doxygen header will be auto-generated.
 // 2007-07-25 Stefan Buehler
 void atm_fields_compactFromMatrix(// WS Output:
