@@ -1,5 +1,15 @@
 2012-06-27  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-155
+
+	* src/m_atmosphere.cc:
+
+	(GriddedFieldLatLonRegrid): First try for GriddedField3.
+
+	(AtmFieldsCalc): Fix bug in 2D and 3D interpolation. ^ is not power.
+
+2012-06-27  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-154
 
 	* src/methods.cc, src/m_atmosphere.cc:
