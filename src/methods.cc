@@ -4127,7 +4127,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "GriddedFieldLatLonPRegrid" ),
+      ( NAME( "GriddedFieldPRegrid" ),
         DESCRIPTION
         (
          "FIXME: OLE\n"

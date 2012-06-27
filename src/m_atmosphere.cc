@@ -247,7 +247,7 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GriddedFieldLatLonPRegrid(// WS Generic Output:
+void GriddedFieldPRegrid(// WS Generic Output:
                               GriddedField2& gfraw_out _U_,
                               // WS Input:
                               const Vector& p_grid _U_,
@@ -263,7 +263,7 @@ void GriddedFieldLatLonPRegrid(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GriddedFieldLatLonPRegrid(// WS Generic Output:
+void GriddedFieldPRegrid(// WS Generic Output:
                               GriddedField3& gfraw_out _U_,
                               // WS Input:
                               const Vector& p_grid _U_,
@@ -279,7 +279,7 @@ void GriddedFieldLatLonPRegrid(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GriddedFieldLatLonPRegrid(// WS Generic Output:
+void GriddedFieldPRegrid(// WS Generic Output:
                               GriddedField4& gfraw_out _U_,
                               // WS Input:
                               const Vector& p_grid _U_,
@@ -295,7 +295,7 @@ void GriddedFieldLatLonPRegrid(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GriddedFieldLatLonPRegrid(// WS Generic Output:
+void GriddedFieldPRegrid(// WS Generic Output:
                               ArrayOfGriddedField3& gfraw_out _U_,
                               // WS Input:
                               const Vector& p_grid _U_,
