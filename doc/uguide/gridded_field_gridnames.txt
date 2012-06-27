@@ -2,6 +2,7 @@
 % Keep the description short and on one line.
 % Sort alphabetically.
 
+Complex         Complex number "grid" (i.e. exactly 2 elements: real and imaginary)
 Frequency       Frequency dimension for spectral dependent fields.
 Latitude        Latitude dimension for atmospheric fields.
 Longitude       Longitude dimension for atmospheric fields.
