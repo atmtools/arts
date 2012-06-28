@@ -78,6 +78,12 @@ void complex_nFromGriddedField4(
     const GriddedField4&   n_field,
     const Verbosity&)
 {
+  // Set expected order of grids
+  Index gfield_fID = 0;
+  Index gfield_compID = 1;
+  Index gfield_latID = 2;
+  Index gfield_lonID = 3;
+
   // Basic checks and sizes
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
@@ -85,6 +91,11 @@ void complex_nFromGriddedField4(
   chk_rte_pos( atmosphere_dim, rte_pos );
   chk_rte_los( atmosphere_dim, rte_los );
   n_field.checksize_strict();
+  //
+  chk_griddedfield_gridname( n_field, gfield_fID, "Frequency" );
+  chk_griddedfield_gridname( n_field, gfield_compID, "Complex" );
+  chk_griddedfield_gridname( n_field, gfield_latID, "Latitude" );
+  chk_griddedfield_gridname( n_field, gfield_lonID, "Longitude" );
   //
   const Index nf_in = n_field.data.nbooks();
   const Index nn    = n_field.data.npages();
@@ -105,17 +116,30 @@ void complex_nFromGriddedField4(
          << "for the real and the imaginary part of the complex refractive index.";
     } 
 
+  const Vector& GFlat=n_field.get_numeric_grid(gfield_latID);
+  const Vector& GFlon=n_field.get_numeric_grid(gfield_lonID);
+
   // Determine true geographical position
   Vector lat(1), lon(1);
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
                                                            lon_true, rte_pos );
 
+  // Ensure correct coverage of lon grid
+  Vector lon_shifted;
+  lon_shiftgrid( lon_shifted, GFlon, lon[0] );
+
+  // Check if lat/lon we need are actually covered
+  chk_if_in_range( "rte_pos.lat", lat[0], GFlat[0],
+                    GFlat[nlat-1] );
+  chk_if_in_range( "rte_pos.lon", lon[0], lon_shifted[0],
+                    lon_shifted[nlon-1] );
+
   // Interpolate in lat and lon
   Matrix n_f( nf_in, nn );
   {
     GridPos gp_lat, gp_lon;
-    gridpos( gp_lat, n_field.get_numeric_grid(2), lat[0] );
-    gridpos( gp_lon, n_field.get_numeric_grid(3), lon[0] );
+    gridpos( gp_lat, GFlat, lat[0] );
+    gridpos( gp_lon, lon_shifted, lon[0] );
     Vector itw(4);
     interpweights( itw, gp_lat, gp_lon );
     for( Index iv=0; iv<nf_in; iv++ )
@@ -140,7 +164,7 @@ void complex_nFromGriddedField4(
       //
       ArrayOfGridPos gp( nf_out );
       Matrix         itw( nf_out, 2 );
-      gridpos( gp, n_field.get_numeric_grid(0), f_grid );
+      gridpos( gp, n_field.get_numeric_grid(gfield_fID), f_grid );
       interpweights( itw, gp );
       interp( complex_n(joker,0), itw, n_f(joker,0), gp );
       interp( complex_n(joker,1), itw, n_f(joker,1), gp );

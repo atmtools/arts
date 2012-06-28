@@ -1320,5 +1320,36 @@ void sph2cart(
 
 
 
+/*===========================================================================
+  === coordinate transformations
+  ===========================================================================*/
 
+//! lon_shiftgrid
+/*! 
+   Shifting longitude grid by +/- 360 to the same region as a given longitude.
+
+   Longitudes are allowed to be in [-360,360], but only covering at maximum
+   360 degrees at once. Different variables might be specified in different
+   spaces of the allowed range. lon_shiftgrid shifts the longitude grid to the
+   same space as the lon value. However, no check is done that lon is indeed
+   within the range of longrid_out (only same region).
+
+   \param   longrid_out Out: shifted longitude grid.
+   \param   longrid_in  Original longitude grid.
+   \param   lon         A longitude value.
+
+   \author Jana Mendrok
+   \date   2012-06-28
+*/
+void lon_shiftgrid(
+            Vector&    longrid_out,
+      ConstVectorView  longrid_in,
+      const Numeric    lon )
+{
+    longrid_out = longrid_in;
+    if (longrid_in[longrid_in.nelem()-1] >= lon+360.)
+      longrid_out += -360.;
+    else if (longrid_in[0] <= lon-360.)
+      longrid_out += 360.;
+}
 

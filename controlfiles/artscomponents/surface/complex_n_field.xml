@@ -4,7 +4,7 @@
 <Vector name="Frequency" nelem="1">
 1.0000000e+10
 </Vector>
-<Vector name="Real/Imaginary" nelem="2">
+<Vector name="Complex" nelem="2">
 1.0000000e+00
 2.0000000e+00
 </Vector>

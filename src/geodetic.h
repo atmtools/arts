@@ -251,4 +251,13 @@ void sph2cart(
       const Numeric&   lat,
       const Numeric&   lon );
 
+
+
+// coord transform
+
+void lon_shiftgrid(
+            Vector&    longrid_out,
+      ConstVectorView  longrid_in,
+      const Numeric    lon );
+
 #endif  // geodetic_h
