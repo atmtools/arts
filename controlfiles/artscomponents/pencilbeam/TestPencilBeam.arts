@@ -1,6 +1,8 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration and test of a single monochromatic pencil beam calculation.
+# Demonstration and test of performing a single monochromatic pencil beam 
+# calculation, without involving any sensor characteristics. That is, how to
+# calculate monochromatic pencil beam spectra without using yCalc.
 #
 # The case treats 1D limb sounding. The result is converted to a measurement
 # vector, y, holding brightness temperatures. 

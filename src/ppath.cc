@@ -780,7 +780,7 @@ void plevel_slope_2d(
         const GridPos&    gp,
         const Numeric&    za )
 {
-  Index i1 = gridpos2gridrange( gp, abs( za ) >= 0 );
+  Index i1 = gridpos2gridrange( gp, za >= 0 );
   const Numeric r1 = refell2r( refellipsoid, lat_grid[i1] ) + z_surf[i1];
   const Numeric r2 = refell2r( refellipsoid, lat_grid[i1+1] ) + z_surf[i1+1];
   //

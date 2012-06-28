@@ -19,6 +19,8 @@ VectorSet( rte_los, [140] )
 VectorSet( lat_true, [54] )     # 0.8 point between South and North poles 
 VectorSet( lon_true, [23] )
 NumericSet( surface_skin_t, 300 )
+refellipsoidEarth( refellipsoid, "Sphere" )
+MatrixSet( z_surface, [0] )
 
 
 #

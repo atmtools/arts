@@ -4804,7 +4804,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
+            "iy_transmission", "jacobian_do", "atmosphere_dim", "lat_grid",
+            "lon_grid", "refellipsoid", "z_surface", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
             "rte_pos", "rte_los", "iy_clearsky_agenda", "surface_rtprop_agenda"
           ),

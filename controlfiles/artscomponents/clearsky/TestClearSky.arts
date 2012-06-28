@@ -1,8 +1,16 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration of a simple ARTS clear sky calculation
+# Demonstration and test of simple ARTS 1D, 2D and 3D clear sky calculations.
 #
-# Author: Stefan Buehler and Patrick Eriksson
+# Observations from a satellite is treated, with three viewing directions:
+#   1: Cold space (ie. above the model atmosphere)
+#   2: Limb sounding
+#   3: Downward observation.
+#
+# For the test sequence (ie. "make check") this is a first test on that the
+# full chain around yCalc is working. 
+#
+# Author: Patrick Eriksson
 
 
 Arts2 {
@@ -11,29 +19,15 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 
 
-# Pick out the lines we want from HITRAN and save to arts line file
-# ---
-#abs_linesReadFromHitran2004( abs_lines,
-#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
-#                             310e9,
-#                             340e9 )
-#WriteXML( output_file_format, abs_lines )
-
-
-# Read line file
+# Read a line file and a matching small frequency grid
 # ---
 ReadXML( abs_lines, "abs_lines.xml" )
+VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
 
 
-# Frequency grid 
-# Note: Should be covered by line catalog.
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
 # ---
-#VectorSet( f_grid, [320e9] )
-VectorNLinSpace( f_grid, 4, 320e9, 322e9 )
-
-# Pressure grid
-# ---
-ReadXML( p_grid, "p_grid.xml" )
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 
 
 # Definition of species
@@ -43,30 +37,16 @@ SpeciesSet( abs_species,
              "N2-SelfContStandardType",
              "O3"] )
 
+
 # Sort the line file according to species
 # ---
 abs_lines_per_speciesCreateFromLines
 
-# Atmospheric profiles
+
+# Atmospheric scenario
 # ---
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
-#
-AtmFieldsCalc
-
-
-# get ground altitude (z_surface) from z_field
-Extract( z_surface, z_field, 0 )
-
-
-# Definition of sensor position and LOS
-# ---
-MatrixSetConstant( sensor_pos, 2, 1, 600e3 )
-#
-VectorCreate( los )
-VectorNLinSpace( los, 2, 113, 113.5 )
-Matrix1ColFromVector( sensor_los, los )
-
-#IndexSet( stokes_dim, 2 )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "atmosphere_data/tropical" )
 
 
 # No sensor properties
@@ -78,91 +58,58 @@ sensorOff
 # ---
 StringSet( y_unit, "RJBT" )
 
+
+
+
+#########################################################################
+# 1D
+#########################################################################
+
+# Atmosphere and surface
+# ---
+AtmFieldsCalc
+Extract( z_surface, z_field, 0 )
+
+# Definition of sensor position and LOS
+# ---
+MatrixSetConstant( sensor_pos, 3, 1, 600e3 )
+MatrixSet( sensor_los, [ 95; 113; 135] )
+
+
 # Perform RT calculations
 # ---
 basics_checkedCalc
 cloudbox_checkedCalc
 yCalc
 
-VectorCreate(y1)
-Copy(y1,y)
 
-# Checks
+
+
+
+#########################################################################
+# 2D
+#########################################################################
+
+# Atmosphere and surface
 # ---
+AtmosphereSet2D
+VectorLinSpace( lat_grid, -45, 45, 1 )
+AtmFieldsCalcExpand1D
+Extract( z_surface, z_field, 0 )
 
-NumericCreate(y_0)
-Extract(y_0, y, 0)
-NumericCompare(y_0, 112.36, 0.01,
-               "Total radiance y[0] should be close to 112.36 K")
-
-# Write the result for the python test script
-output_file_formatSetAscii
-WriteXML( output_file_format, y, "TestClearSky.y1.xml" )
-
-
-# Do the same calculation again, but with lookup table absorption
-# and Jacobian calculations.
-
-# Redefine abs_scalar_gas_agenda to use the lookup table
+# Definition of sensor position and LOS
 # ---
-AgendaSet( abs_scalar_gas_agenda ){
-   abs_scalar_gasExtractFromLookup
-}
+MatrixCreate( zeros )
+MatrixSetConstant( zeros, 3, 1, 0 )
+Append( sensor_pos, zeros, "trailing" )
 
-# Set parameters for absorption lookup table generation
+# Perform RT calculations
 # ---
-# Arguments omitted for better maintainability of this test file.
-abs_lookupSetup
-
-# Generate absorption lookup table
-# ---
-abs_lookupCreate
+basics_checkedCalc
+cloudbox_checkedCalc
+#yCalc
 
 
-# Define Jacobian
-#---
- 
-jacobianInit
-
-# Species
-#---
-# Atmospheric grids used here as retrieval grids
-
-jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
-    "O3", "analytical", "rel", 0.01 )
-
-nrowsGet( nrows, sensor_pos )
-VectorNLinSpace( sensor_time, nrows, 0, 1 )
-
-jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
-                       sensor_pos, sensor_time, 0, "recalc", 0.01 )
-
-# Another test of jacobianAddFreqShiftAndStretch is found in Groundbased
-jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
-                                f_grid, "interp", 50e3, 1 )
-
-jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
-    sensor_response_pol_grid, sensor_response_f_grid, 
-    sensor_response_za_grid, sensor_pos, 1, 0, 0, 0 )
-
-jacobianClose
-
-
-# Redo RT calculation and save
-# ---
-yCalc
-
-output_file_formatSetAscii
-WriteXML( output_file_format, y, "TestClearSky.y2.xml" )
-
-WriteXML( output_file_format, jacobian )
-
-# Check
-# ---
-
-VectorCompare(y1, y, 0.01,
-              "Difference between on-the-fly and lookup table should be below 0.01 K")
 
 } # End of Main
  

@@ -1,3 +1,28 @@
+2012-06-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-159
+
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts: Started
+	to reformulate this test. Before it did a bit of everything,
+	including some jacobians and absorption lookup table. The aim now
+	is to make a basic general test of yCalc for for 1D, 2D and 3D.
+	Work in progress.
+
+	* controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts:
+	Extended the header text somewhat, to better express the aim of
+	the cfile.
+
+	* controlfiles/artscomponents/surface/TestSurface.arts: Adopted to
+	cnew input of iySurfaceRtpropAgenda.
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda): Started to implement
+	calculation of surface normal. Had re-introduce some input arguments.
+
+	* src/ppath.cc (plevel_slope_2d): Calculation of upward argument
+	for gridpos2gridrange was incorrect. Always generated true!
+	However, this could in fact have been an OK definition. So nothing
+	was terribly wrong.
+
 2012-06-27  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-158

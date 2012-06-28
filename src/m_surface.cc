@@ -46,6 +46,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "complex.h"          
+#include "geodetic.h"          
 #include "math_funcs.h"
 #include "messages.h"
 #include "special_interp.h"
@@ -199,6 +200,10 @@ void iySurfaceRtpropAgenda(
     const Tensor3&          iy_transmission,
     const Index&            jacobian_do,
     const Index&            atmosphere_dim,
+    const Vector&           lat_grid,
+    const Vector&           lon_grid,
+    const Vector&           refellipsoid,
+    const Matrix&           z_surface,          
     const Tensor3&          t_field,
     const Tensor3&          z_field,
     const Tensor4&          vmr_field,
@@ -211,6 +216,34 @@ void iySurfaceRtpropAgenda(
     const Agenda&           surface_rtprop_agenda,
     const Verbosity& )
 {
+  // Input checks
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_los( atmosphere_dim, rte_los );
+
+  // Calculate surface normal
+  Vector surface_normal( max(Index(1),atmosphere_dim-1) );
+  if( atmosphere_dim == 1 )
+    { surface_normal[0] = 0; }
+  else if( atmosphere_dim == 2 )
+    { 
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
+      GridPos gp_lat;
+      gridpos( gp_lat, lat_grid, rte_pos[1] );
+      Numeric c1;         // Radial slope of the surface
+      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
+                                                          gp_lat, rte_los[0] );
+      Vector itw(2); interpweights( itw, gp_lat );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                + interp( itw, z_surface(joker,0), gp_lat );
+      surface_normal[0] = plevel_angletilt( rv_surface, c1 );
+    }
+  else if( atmosphere_dim == 3 )
+    { 
+      surface_normal[0] = 0;  
+      surface_normal[1] = 0; 
+   }
+
   // Call *surface_rtprop_agenda*
   Matrix    surface_los;
   Tensor4   surface_rmatrix;
@@ -268,50 +301,6 @@ void iySurfaceRtpropAgenda(
               iy_transmission_mult(  iy_trans_new, iy_transmission, 
                                      surface_rmatrix(ilos,joker,joker,joker) );
             }
-
-          // Calculate angular tilt of the surface
-          // (sign(los[0]) to handle negative za for 2D)
-          //
-          Numeric atilt = 0.0;
-          //
-          /* Will be revised
-          if( atmosphere_dim == 2 )
-            {
-              Numeric c1; 
-              plevel_slope_2d( c1, lat_grid, refellipsoid, 
-                               z_surface(joker,0), rte_gp_lat, los[0] );
-              Vector itw(2); interpweights( itw, rte_gp_lat );
-              const Numeric rv_surface = 
-                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
-                              interp( itw, z_surface(joker,0), rte_gp_lat );
-              atilt = plevel_angletilt( rv_surface, c1 );
-            }
-          else if ( atmosphere_dim == 3 )
-            {
-              Numeric c1, c2;
-              plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, 
-                               z_surface, rte_gp_lat, rte_gp_lon, los[1]);
-              Vector itw(4); interpweights( itw, rte_gp_lat, rte_gp_lon );
-              const Numeric rv_surface = 
-                              refell2d( refellipsoid, lat_grid, rte_gp_lat ) +
-                              interp( itw, z_surface, rte_gp_lat, rte_gp_lon );
-              atilt = plevel_angletilt( rv_surface, c1 );
-            }
-          */
-          const Numeric zamax = 90 - sign(los[0])*atilt;
-
-          // I considered to add a check that surface_los is above the
-          // horizon, but that would force e.g. surface_specular_los to
-          // actually calculate the surface tilt, which causes
-          // unnecessary calculation overhead. The angles are now moved
-          // to be just above the horizon, which should be acceptable.
-          
-          // Make sure that we have some margin to the "horizon"
-          // (otherwise numerical problems can create an infinite loop)
-          if( atmosphere_dim == 2  && los[0]<0 ) //2D with za<0
-            { los[0] = max( -zamax+0.1, los[0] ); }
-          else
-            { los[0] = min( zamax-0.1, los[0] ); }
 
           // Calculate downwelling radiation for LOS ilos 
           //
