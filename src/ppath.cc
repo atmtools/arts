@@ -2562,7 +2562,7 @@ void ppath_start_2d(
   // start point is on a pressure level.
   //
   if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
-    {
+    {  
       Numeric tilt = plevel_angletilt( r_start, c2 );
 
       if( is_los_downwards( za_start, tilt ) )
@@ -3296,7 +3296,7 @@ void do_gridcell_2d(
       plevel_crossing_2d( rt, latt, lt, r_start, lat_start, za_start, ppc, 
                                     lat1, lat3, rsurface1, rsurface3, true );
 
-      if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+      if( rt > 0  &&  lt <= l )  // lt<=l to resolve the closest crossing
         { endface = 7;   r = rt;   lat = latt;   l = lt; }
     }
 
@@ -3858,7 +3858,7 @@ void do_gridcell_3d(
                           lat1, lat3, lon5, lon6, rsurface15, rsurface35, 
                           rsurface36, rsurface16, true );
 
-      if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
+      if( rt > 0  &&  lt <= l )  // lt<=l to resolve the closest crossing
         { endface = 7;   r = rt;   lat = latt;   lon = lont;   l = lt; }
     }
 

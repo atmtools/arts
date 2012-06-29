@@ -1,3 +1,18 @@
+2012-06-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-162
+
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts: A
+	complete test designed. The "compare" calls not activated as
+	radiances will change when surface tilt will be considered in
+	surface part.
+
+	* src/ppath.cc (do_gridcell_2d,do_gridcell_3d): For surface
+	crossing part, changed to lt<l to lt<=l. The surface should be
+	selected instead of lower pressure surface, if they are on top of
+	each other. (Good to make new test cfiles, discovered after
+	modifying TestClearSky.arts).
+
 2012-06-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-161
