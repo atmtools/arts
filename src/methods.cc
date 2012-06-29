@@ -3033,7 +3033,9 @@ void define_md_data_raw()
         GIN_DESC( "Source variable." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
         ));
 
   md_data_raw.push_back

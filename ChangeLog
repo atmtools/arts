@@ -1,3 +1,41 @@
+2012-06-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-161
+
+	* src/agenda_class.cc (Agenda::check):
+
+	Delay check for custom-defined agendas.
+
+	(Agenda::execute): Adapt runtime error message if the user tries
+	to execute an agenda that was created by AgendaCreate.
+
+	* methods.cc (define_md_data_raw):
+
+	Set PASSWSVNAMES to true for Copy.
+
+	* src/m_copy.cc (Copy):
+
+	When copying an agenda set the name of the output agenda to its
+	variable name.
+
+	* ChangeLog: Reconstruct missing entry for arts-2-1-160 from svn log.
+
+2012-06-28  Jana Mendrok <jana.mendrok@ltu.se>
+
+        * arts-2-1-160
+
+        * src/m_surface.cc (complex_nFromGriddedField4):
+        More checks (GF grid names, requested lat/lon covered), use grid
+        position indices, shift field.lon by +/-360deg if requested lon is off.
+
+        * src/geodetic.[cc,h] (lon_shiftgrid):
+        Added function for shifting longitude grid to cover the 'space' of a
+        given longitude (providing a fix to the issue that lon and lon+360 refer
+        to same meridian, but both can occur as valid values in ARTS)
+
+        * controlfiles/artscomponents/surface/complex_n_field.xml:
+        Adapted to changed requirements on grid names.
+
 2012-06-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-159

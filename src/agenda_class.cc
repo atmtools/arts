@@ -100,9 +100,14 @@ void Agenda::check(Workspace& ws, const Verbosity& verbosity)
 
   map<String, Index>::const_iterator mi = AgendaMap.find(mname);
 
-  // Find return end() if the string is not found. This means that the
-  // lookup data for this agenda is missing!
-  assert(mi != AgendaMap.end());
+  // Find return end() if the string is not found. This means we deal with
+  // agenda defined in the control file and therefore we don't check its
+  // consistency. Custom agendas can't be executed and we delay the check
+  // until it is copied to a predefined agenda.
+  if (mi == AgendaMap.end()) {
+    mchecked = false;
+    return;
+  }
 
   const AgRecord& this_data = agenda_data[mi->second];
 
@@ -168,15 +173,16 @@ void Agenda::execute(Workspace& ws) const
   if (!mchecked)
     {
       ostringstream os;
-      os << "Agenda *" << mname << "* hasn't been checked for consistency yet."
-         << endl
-         << "This check is usually done by AgendaSet or AgendaAppend."
-         << endl
-         << "However, if you have written code that modifies an Agenda directly"
-         << endl
-         << "(changing its name or altering its method list), it's up to you to"
-         << endl
-         << "call Agenda::check after your modifications.";
+      os << "Agenda *" << mname << "* hasn't been checked for consistency yet." << endl
+         << "This check is usually done by AgendaSet or AgendaAppend." << endl
+         << "There are two possible causes for this:" << endl
+         << "1) You're trying to execute an agenda that has been created in" << endl
+         << "   the controlfile with AgendaCreate. This is not allowed. You have" << endl
+         << "   to use *Copy* to store it into one of the predefined agendas and" << endl
+         << "   execute that one." << endl
+         << "2) Developer error: If you have written code that modifies an Agenda" << endl
+         << "   directly (changing its name or altering its method list), it's up" << endl
+         << "   to you to call Agenda::check in your code after your modifications.";
       throw runtime_error(os.str());
     }
 

@@ -39,8 +39,10 @@
 template< class T >
 void Copy(// WS Generic Output:
           T& out,
+          const String& /* out_name */,
           // WS Generic Input:
           const T& in,
+          const String& /* in_name */,
           const Verbosity&)
 {
   // The use of CloneSize should not be necessary anymore, thanks to
@@ -50,17 +52,21 @@ void Copy(// WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Copy(Workspace& ws _U_,
+void Copy(Workspace& ws,
           // WS Generic Output:
           Agenda& out,
+          const String& out_name,
           // WS Generic Input:
           const Agenda& in,
-          const Verbosity&)
+          const String& /* in_name */,
+          const Verbosity& verbosity)
 {
   // The use of CloneSize should not be necessary anymore, thanks to
   // the new copy semantics.  
   // CloneSize( out, outname, in, inname );
   out = in;
+  out.set_name(out_name);
+  out.check(ws, verbosity);
 }
 
 #endif // m_copy_h
