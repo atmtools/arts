@@ -301,7 +301,8 @@ void chk_atm_field(
         const Index&      dim,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid );
+        ConstVectorView   lon_grid,
+        const bool&       chk_lat90 = 0);
 
 void chk_atm_field( 
         const String&   x_name,
@@ -311,6 +312,15 @@ void chk_atm_field(
         ConstVectorView p_grid,
         ConstVectorView lat_grid,
         ConstVectorView lon_grid );
+
+void chk_atm_vecfield_lat90( 
+        const String&     x1_name,
+        ConstTensor3View  x1, 
+        const String&     x2_name,
+        ConstTensor3View  x2, 
+        const Index&      dim,
+        ConstVectorView   lat_grid,
+        const Numeric&    threshold = 1e-4 );
 
 void chk_latlon_true(
    const Index&      atmosphere_dim,

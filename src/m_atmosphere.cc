@@ -688,15 +688,42 @@ void basics_checkedCalc(
       chk_atm_field( "wind_w_field", wind_w_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
     }
-  if( wind_v_field.npages() > 0 )
+  if( atmosphere_dim < 3  && wind_v_field.npages() > 0 )
     { 
       chk_atm_field( "wind_v_field", wind_v_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
+  // if( dim < 3 && wind_u_field.npages() > 0 )
+  //   { warning that wind_u not be used for dim<3D} ???
     }
-  if( atmosphere_dim > 2  &&  wind_u_field.npages() > 0 )
-    { 
-      chk_atm_field( "wind_u_field", wind_u_field, atmosphere_dim, 
+  if( atmosphere_dim > 2 )
+    {
+      if( wind_u_field.npages() > 0 )
+        { 
+          if( wind_v_field.npages() > 0 )
+            {
+              bool chk_poles = false;
+              chk_atm_field( "wind_u_field", wind_u_field, atmosphere_dim, 
+                                        p_grid, lat_grid, lon_grid, chk_poles);
+              chk_atm_field( "wind_v_field", wind_v_field, atmosphere_dim, 
+                                        p_grid, lat_grid, lon_grid, chk_poles);
+              chk_atm_vecfield_lat90( "wind_v_field", wind_v_field,
+                                      "wind_u_field", wind_u_field,
+                                                     atmosphere_dim, lat_grid);
+            }
+          else
+            {
+              chk_atm_field( "wind_u_field", wind_u_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
+            }
+        }
+      else
+        {
+          if( wind_v_field.npages() > 0 )
+            {
+              chk_atm_field( "wind_v_field", wind_v_field, atmosphere_dim, 
+                                                   p_grid, lat_grid, lon_grid);
+            }
+        }
     }
 
   // Magnetic field
@@ -705,15 +732,32 @@ void basics_checkedCalc(
       chk_atm_field( "mag_w_field", mag_w_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
     }
-  if( mag_v_field.npages() > 0 )
-    { 
-      chk_atm_field( "mag_v_field", mag_v_field, atmosphere_dim, 
-                                                  p_grid, lat_grid, lon_grid );
-    }
   if( mag_u_field.npages() > 0 )
     { 
-      chk_atm_field( "mag_u_field", mag_u_field, atmosphere_dim, 
+      if( mag_v_field.npages() > 0 )
+        {
+          bool chk_poles = false;
+          chk_atm_field( "mag_v_field", mag_v_field, atmosphere_dim, 
+                                       p_grid, lat_grid, lon_grid, chk_poles );
+          chk_atm_field( "mag_u_field", mag_u_field, atmosphere_dim, 
+                                       p_grid, lat_grid, lon_grid, chk_poles );
+          chk_atm_vecfield_lat90( "mag_v_field", mag_v_field,
+                                  "mag_u_field", mag_u_field,
+                                                     atmosphere_dim, lat_grid);
+        }
+      else
+        {
+          chk_atm_field( "mag_u_field", mag_u_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
+        }
+    }
+  else
+    {
+      if( mag_v_field.npages() > 0 )
+        {
+          chk_atm_field( "mag_v_field", mag_v_field, atmosphere_dim, 
+                                                   p_grid, lat_grid, lon_grid);
+        }
     }
 
   // Free electrons

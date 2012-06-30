@@ -1,6 +1,21 @@
+2012-06-30  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-164
+
+	* src/check_input.[cc,h]
+	(chk_atm_field): Added flag to switch off no-variation-with-longitude-
+	at-poles check (cause this requirement does not apply for fields that
+	are part of a vector fields with N&E components).
+	(chk_atm_vecfield_lat90): Added. Does no-variation-with-longitude-
+	at-poles check for total vector length of fields with N&E components.
+	Allows some deviation (1e-2%) to avoid numerics causing a failed check.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Adapted atm_field checks
+	for wind and magnetic field fields to above changes.
+
 2012-06-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-	* arts-2-1-162
+	* arts-2-1-163
 
 	* controlfiles/artscomponents/clearsky/TestClearSky.arts: A
 	complete test designed. The "compare" calls not activated as
@@ -13,7 +28,22 @@
 	each other. (Good to make new test cfiles, discovered after
 	modifying TestClearSky.arts).
 
-2012-06-24  Oliver Lemke  <olemke@core-dump.info>
+2012-06-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-162
+
+	* src/check_input.[cc,h]
+	(chk_atm_field): Added flag to switch off no-variation-with-longitude-
+	at-poles check (cause this requirement does not apply for fields that
+	are part of a vector fields with N&E components).
+	(chk_atm_vecfield_lat90): Added. Does no-variation-with-longitude-
+	at-poles check for total vector length of fields with N&E components.
+	Allows some deviation (1e-2%) to avoid numerics causing a failed check.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Adapted atm_field checks
+	for wind and magnetic field fields to above changes.
+
+2012-06-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-161
 
@@ -37,19 +67,19 @@
 
 2012-06-28  Jana Mendrok <jana.mendrok@ltu.se>
 
-        * arts-2-1-160
+	* arts-2-1-160
 
-        * src/m_surface.cc (complex_nFromGriddedField4):
-        More checks (GF grid names, requested lat/lon covered), use grid
-        position indices, shift field.lon by +/-360deg if requested lon is off.
+	* src/m_surface.cc (complex_nFromGriddedField4):
+	More checks (GF grid names, requested lat/lon covered), use grid
+	position indices, shift field.lon by +/-360deg if requested lon is off.
 
-        * src/geodetic.[cc,h] (lon_shiftgrid):
-        Added function for shifting longitude grid to cover the 'space' of a
-        given longitude (providing a fix to the issue that lon and lon+360 refer
-        to same meridian, but both can occur as valid values in ARTS)
+	* src/geodetic.[cc,h] (lon_shiftgrid):
+	Added function for shifting longitude grid to cover the 'space' of a
+	given longitude (providing a fix to the issue that lon and lon+360 refer
+	to same meridian, but both can occur as valid values in ARTS)
 
-        * controlfiles/artscomponents/surface/complex_n_field.xml:
-        Adapted to changed requirements on grid names.
+	* controlfiles/artscomponents/surface/complex_n_field.xml:
+	Adapted to changed requirements on grid names.
 
 2012-06-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

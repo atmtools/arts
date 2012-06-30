@@ -1170,6 +1170,8 @@ void chk_atm_grids(
     \param    p_grid       The pressure grid.
     \param    lat_grid     The latitude grid.
     \param    lon_grid     The longitude grid.
+    \param    chk_lat90    Flag whether pole consistency check to be done (only
+                           relevant for dim==3.
 
     \author Patrick Eriksson 
     \date   2002-04-15
@@ -1180,7 +1182,8 @@ void chk_atm_field(
         const Index&      dim,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid )
+        ConstVectorView   lon_grid,
+        const bool&       chk_lat90)
 {
   // It is assumed that grids OK-ed through chk_atm_grids
   Index npages=p_grid.nelem(), nrows=1, ncols=1;
@@ -1222,41 +1225,45 @@ void chk_atm_field(
             }
         }
 
-      // No variation at the South pole!
-      if( lat_grid[0] == -90 )
+      chk_if_bool("chk_lat90", chk_lat90);
+      if( chk_lat90 )
         {
-          for( Index ip=0; ip<npages; ip++ )
+          // No variation at the South pole!
+          if( lat_grid[0] == -90 )
             {
-              for( Index ic=1; ic<ncols; ic++ )
+              for( Index ip=0; ip<npages; ip++ )
                 {
-                  if( fabs(x(ip,0,ic)-x(ip,0,ic-1)) > 0 )
+                  for( Index ic=1; ic<ncols; ic++ )
                     {
-                      ostringstream os;
-                      os << "The variable *" << x_name <<  "* covers the South "
-                         << "pole. The data corresponding to the pole can not "
-                         << "vary with longitude, but this appears to be the "
-                         << "case.";
-                      throw runtime_error( os.str() );
+                      if( fabs(x(ip,0,ic)-x(ip,0,ic-1)) > 0 )
+                        {
+                          ostringstream os;
+                          os << "The variable *" << x_name <<  "* covers the South "
+                             << "pole. The data corresponding to the pole can not "
+                             << "vary with longitude, but this appears to be the "
+                             << "case.";
+                          throw runtime_error( os.str() );
+                        }
                     }
                 }
             }
-        }
-      // No variation at the North pole!
-      if( lat_grid[nrows-1] == 90 )
-        {
-          const Index ir = nrows-1;
-          for( Index ip=0; ip<npages; ip++ )
+          // No variation at the North pole!
+          if( lat_grid[nrows-1] == 90 )
             {
-              for( Index ic=1; ic<ncols; ic++ )
+              const Index ir = nrows-1;
+              for( Index ip=0; ip<npages; ip++ )
                 {
-                  if( fabs(x(ip,ir,ic)-x(ip,ir,ic-1)) > 0 )
+                  for( Index ic=1; ic<ncols; ic++ )
                     {
-                      ostringstream os;
-                      os << "The variable *" << x_name <<  "* covers the North "
-                         << "pole. The data corresponding to the pole can not "
-                         << "vary with longitude, but this appears to be the "
-                         << "case.";
-                      throw runtime_error( os.str() );
+                      if( fabs(x(ip,ir,ic)-x(ip,ir,ic-1)) > 0 )
+                        {
+                          ostringstream os;
+                          os << "The variable *" << x_name <<  "* covers the North "
+                             << "pole. The data corresponding to the pole can not "
+                             << "vary with longitude, but this appears to be the "
+                             << "case.";
+                          throw runtime_error( os.str() );
+                        }
                     }
                 }
             }
@@ -1401,6 +1408,136 @@ void chk_atm_field(
                     }
                 }
             }
+            }
+        }
+    }
+}
+
+
+
+//! chk_atm_vecfield_lat90
+/*! 
+    Checks if a two-compnent vector atmospheric field is consistant at the poles.
+
+    Similar to the field-constant at poles check of chk_atm_field, but checking
+    the total vector instead of each component to be constant (since this
+    involves some numerics, we allow a deviation threshold instead of perfect
+    match).
+    Note that each component of the vector is stored in a separate atmospheric
+    field. Intended for variables that are supposed to be two horizontal components of
+    a 3D vector field (e.g., winds, magnetic field).
+    It is assumed that individual fields have passed chk_atm_field.
+    The function gives an error message if a mismatch is encountered.
+
+    \param    x1_name      The name of the atmospheric field.
+    \param    x1           A variable holding an atmospheric field.
+    \param    x2_name      The name of the atmospheric field.
+    \param    x2           A variable holding an atmospheric field.
+    \param    dim          The atmospheric dimensionality.
+    \param    lat_grid     The latitude grid.
+    \param    threshold    The percentage threshold the total vector lengths
+                           along the pole are allowed to deviate.
+
+    \author Jana Mendrok
+    \date   2012-06-29
+*/
+void chk_atm_vecfield_lat90( 
+        const String&     x1_name,
+        ConstTensor3View  x1, 
+        const String&     x2_name,
+        ConstTensor3View  x2, 
+        const Index&      dim,
+        ConstVectorView   lat_grid,
+        const Numeric&    threshold)
+{
+  // It is assumed that grids OK-ed through chk_atm_grids and fields
+  // individually OK-ed.
+
+  // We only need to check 3D cases. Else there is no variation in longitude
+  // anyways.
+  if( dim == 3  )
+    {
+      Index npages= x1.npages();
+      Index nrows = x1.nrows();
+      Index ncols = x1.ncols();
+
+      // For safety check that both fields have identical dimensions 
+      if( x2.ncols()!=ncols || x2.nrows()!=nrows || x2.npages()!=npages ) 
+        {
+          ostringstream os;
+          os << "The atmospheric fields *" << x1_name <<  "* and *"
+             << x2_name <<  "* do not match in size.\n"
+             << "*" << x1_name <<  "*'s size is " << npages << " x " << nrows
+             << " x " << ncols << ", while *" << x1_name <<  "*'s size is "
+             << x2.npages() << " x " << x2.nrows() << " x " << x2.ncols() << ".";
+          throw runtime_error( os.str() );
+        }
+
+      // redefine ratio deviation threshold of vector lengths to ratio of
+      // squared vector lengths, cause don't want to calc squareroot everytime.
+      // (vec1**2/vec2**2 - 1) / (vec1/vec2 - 1) = vec1/vec2 + 1
+      // and with vec1~vec2                      = 2
+      Numeric th = threshold * 2.;
+
+      // No variation at the South pole!
+      if( lat_grid[0] == -90 )
+        {
+          Numeric vec1, vec2;
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ic=1; ic<ncols; ic++ )
+                {
+                  vec1 = x1(ip,0,ic)*x1(ip,0,ic)+x2(ip,0,ic)*x2(ip,0,ic);
+                  vec2 =
+                    x1(ip,0,ic-1)*x1(ip,0,ic-1)+x2(ip,0,ic-1)*x2(ip,0,ic-1);
+                  if( fabs( vec1/vec2-1. ) > th )
+                    {
+                      ostringstream os;
+                      os << "The variables *" << x1_name <<  "* and *" << x2_name
+                         << "* are assumed to be two horizontal components of a "
+                         << "vector field. They cover the South pole. "
+                         << "At the pole, the data (here: the total length of "
+                         << "the horizontal vector) can not "
+                         << "vary with longitude, but this appears to be the "
+                         << "case.";
+/*                      os << " Difference found at p-level " << ip
+                         << " between longitude grid points " << ic-1 << " and "
+                         << ic << ". values are " << vec1 << " and " << vec2
+                         << ", a deviation of " << fabs((vec1/vec2-1.)*1e2) << "%.";*/
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+        }
+      // No variation at the North pole!
+      if( lat_grid[nrows-1] == 90 )
+        {
+          Numeric vec1, vec2;
+          const Index ir = nrows-1;
+          for( Index ip=0; ip<npages; ip++ )
+            {
+              for( Index ic=1; ic<ncols; ic++ )
+                {
+                  vec1 = x1(ip,ir,ic)*x1(ip,ir,ic)+x2(ip,ir,ic)*x2(ip,ir,ic);
+                    vec2 =
+                    x1(ip,ir,ic-1)*x1(ip,ir,ic-1)+x2(ip,ir,ic-1)*x2(ip,ir,ic-1);
+                  if( fabs( vec1/vec2-1. ) > th )
+                    {
+                      ostringstream os;
+                      os << "The variables *" << x1_name <<  "* and *" << x1_name
+                         << "* are assumed to be two horizontal components of a"
+                         << "vector field. They cover the North pole."
+                         << "At the pole, the data (here: the total length of"
+                         << "the horizontal vector) can not "
+                         << "vary with longitude, but this appears to be the "
+                         << "case.";
+/*                      os << " Difference found at p-level " << ip
+                         << " between longitude grid points " << ic-1 << " and "
+                         << ic << ". values are " << vec1 << " and " << vec2
+                         << ", a deviation of " << fabs((vec1/vec2-1.)*1e2) << "%.";*/
+                      throw runtime_error( os.str() );
+                    }
+                }
             }
         }
     }
