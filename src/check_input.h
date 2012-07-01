@@ -302,7 +302,7 @@ void chk_atm_field(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
-        const bool&       chk_lat90 = 0);
+        const bool&       chk_lat90 = 1);
 
 void chk_atm_field( 
         const String&   x_name,

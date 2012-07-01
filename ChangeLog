@@ -1,3 +1,11 @@
+2012-07-01  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-165
+
+	* src/check_input.h (chk_atm_field):
+	Corrected default value of chk_lat90 flag (of course, as default we DO
+	want to check consistency at poles!).
+
 2012-06-30  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-164
