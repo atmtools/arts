@@ -1,3 +1,20 @@
+2012-07-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-166
+
+	* ChangeLog: Cleanup.
+
+	Remove arts-2-1-162 attributed to me (but not done by me) which was a
+	duplicate entry of arts-2-1-164.
+
+	Restore version number arts-2-1-162 of Patrick's last commit which was
+	falsely changed to arts-2-1-163.
+
+	Restore the commit date for arts-2-1-161 to 2012-06-24.
+
+	Add a dummy entry for the now non-existent arts-2-1-163 to get the
+	version numbering back in line.
+
 2012-07-01  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-165
@@ -21,9 +38,15 @@
 	* src/m_atmosphere.cc (basics_checkedCalc): Adapted atm_field checks
 	for wind and magnetic field fields to above changes.
 
-2012-06-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+2012-07-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-163
+
+	* Bump.
+
+2012-06-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-162
 
 	* controlfiles/artscomponents/clearsky/TestClearSky.arts: A
 	complete test designed. The "compare" calls not activated as
@@ -36,22 +59,7 @@
 	each other. (Good to make new test cfiles, discovered after
 	modifying TestClearSky.arts).
 
-2012-06-29  Oliver Lemke  <olemke@core-dump.info>
-
-	* arts-2-1-162
-
-	* src/check_input.[cc,h]
-	(chk_atm_field): Added flag to switch off no-variation-with-longitude-
-	at-poles check (cause this requirement does not apply for fields that
-	are part of a vector fields with N&E components).
-	(chk_atm_vecfield_lat90): Added. Does no-variation-with-longitude-
-	at-poles check for total vector length of fields with N&E components.
-	Allows some deviation (1e-2%) to avoid numerics causing a failed check.
-
-	* src/m_atmosphere.cc (basics_checkedCalc): Adapted atm_field checks
-	for wind and magnetic field fields to above changes.
-
-2012-06-29  Oliver Lemke  <olemke@core-dump.info>
+2012-06-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-161
 
