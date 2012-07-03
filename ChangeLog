@@ -1,3 +1,20 @@
+2012-07-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-167
+
+	* doc/doxygen/CMakeLists.txt:
+
+	Rebuild of the documentation was not triggered after source changes.
+	Add dependencies to all source files. Remove target apidoc_forced.
+
+	Remove latex related code because we don't build it anyway.
+
+	* doc/doxygen/Doxyfile.in: Update config file to doxygen 1.7.
+	
+	Add MARKDOWN_SUPPORT=NO. On doxygen 1.8, the tags on
+	the mainpage are not substituted properly. Currently commented out
+	because it generates a warning on earlier doxygen versions.
+
 2012-07-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-166
