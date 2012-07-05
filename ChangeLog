@@ -1,5 +1,15 @@
 2012-07-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-169
+
+	* src/absorption.{cc,h}:
+
+	Store lower/upper state global/local quanta in LineRecord.
+
+	(LineRecord::ReadFromHitran2004Stream): Store the quantas.
+
+2012-07-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-168
 
 	* CMakeLists.txt, README:

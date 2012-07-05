@@ -757,7 +757,20 @@ public:
   
   /** F Pressure shift He in <b> Hz/Pa </b>: */
   Numeric Delta_He() const { return mdelta_he; }
-  
+
+  /** Upper state global quanta index */
+  const String& Upper_GQuanta() const { return mupper_gquanta; }
+
+  /** Lower state global quanta index */
+  const String& Lower_GQuanta() const { return mlower_gquanta; }
+
+  /** Upper state local quanta index */
+  const String& Upper_LQuanta() const { return mupper_lquanta; }
+
+  /** Lower state local quanta index */
+  const String& Lower_LQuanta() const { return mlower_lquanta; }
+
+
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):
 
@@ -1161,7 +1174,16 @@ private:
   Numeric mdelta_h2;
   // F Pressure shift He in Hz/Pa:
   Numeric mdelta_he;
-  
+
+  /** Upper state global quanta index */
+  String mupper_gquanta;
+  /** Lower state global quanta index */
+  String mlower_gquanta;
+  /** Upper state local quanta index */
+  String mupper_lquanta;
+  /** Lower state local quanta index */
+  String mlower_lquanta;
+
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts

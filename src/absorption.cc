@@ -1075,24 +1075,28 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
 
   //Skip upper state global quanta index
   {
+    mupper_gquanta = line.substr(0,15);
     Index eu;
     extract(eu,line,15);
   }
 
   //Skip lower state global quanta index
   {
+    mlower_gquanta = line.substr(0,15);
     Index el;
     extract(el,line,15);
   }
 
   //Skip upper state local quanta
   {
+    mupper_lquanta = line.substr(0,15);
     Index eul;
     extract(eul,line,15);
   }
 
   //Skip lower state local quanta
   {
+    mlower_lquanta = line.substr(0,15);
     Index ell;
     extract(ell,line,15);
   }
