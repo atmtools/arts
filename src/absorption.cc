@@ -1073,28 +1073,28 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // Set the accuracies using the definition of HITRAN
   // indices. If some are missing, they are set to -1.
 
-  //Skip upper state global quanta index
+  // Upper state global quanta
   {
     mupper_gquanta = line.substr(0,15);
     Index eu;
     extract(eu,line,15);
   }
 
-  //Skip lower state global quanta index
+  // Lower state global quanta
   {
     mlower_gquanta = line.substr(0,15);
     Index el;
     extract(el,line,15);
   }
 
-  //Skip upper state local quanta
+  // Upper state local quanta
   {
     mupper_lquanta = line.substr(0,15);
     Index eul;
     extract(eul,line,15);
   }
 
-  //Skip lower state local quanta
+  // Lower state local quanta
   {
     mlower_lquanta = line.substr(0,15);
     Index ell;

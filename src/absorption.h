@@ -758,16 +758,16 @@ public:
   /** F Pressure shift He in <b> Hz/Pa </b>: */
   Numeric Delta_He() const { return mdelta_he; }
 
-  /** Upper state global quanta index */
+  /** Upper state global quanta */
   const String& Upper_GQuanta() const { return mupper_gquanta; }
 
-  /** Lower state global quanta index */
+  /** Lower state global quanta */
   const String& Lower_GQuanta() const { return mlower_gquanta; }
 
-  /** Upper state local quanta index */
+  /** Upper state local quanta */
   const String& Upper_LQuanta() const { return mupper_lquanta; }
 
-  /** Lower state local quanta index */
+  /** Lower state local quanta */
   const String& Lower_LQuanta() const { return mlower_lquanta; }
 
 
@@ -1175,13 +1175,13 @@ private:
   // F Pressure shift He in Hz/Pa:
   Numeric mdelta_he;
 
-  /** Upper state global quanta index */
+  /** Upper state global quanta */
   String mupper_gquanta;
-  /** Lower state global quanta index */
+  /** Lower state global quanta */
   String mlower_gquanta;
-  /** Upper state local quanta index */
+  /** Upper state local quanta */
   String mupper_lquanta;
-  /** Lower state local quanta index */
+  /** Lower state local quanta */
   String mlower_lquanta;
 
 };
