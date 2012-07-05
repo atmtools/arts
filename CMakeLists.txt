@@ -107,8 +107,7 @@ check_type_size("double" SIZEOF_DOUBLE)
 ########### Check functions ##########
 check_function_exists(unlink HAVE_REMOVE)
 
-########### Enable timer support, if we have all ##########
-########### necessary header files               ##########
+######## Enable timer support, if we have all necessary header files #######
 if (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
     AND HAVE_SYS_TIMES_H)
   set (TIME_SUPPORT 1)
@@ -119,10 +118,10 @@ endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
 include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND})
 
-########### NetCDF support ##########
+########## NetCDF support #########
 include (FindNetCDF)
 
-########### OpenMP support ##########
+########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
 endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
@@ -190,18 +189,34 @@ set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
 
 set (COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
 
+
+########### Xcode specific settings ##########
 if (CMAKE_GENERATOR STREQUAL "Xcode")
   set (COMPILER "Xcode")
   set (CMAKE_OSX_SYSROOT "")
-  SET (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/build CACHE PATH
-    "Single output directory for building all libraries.")
-  SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/build CACHE PATH
-    "Single output directory for building all executables.")
-  MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
+  set (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/build CACHE PATH
+       "Single output directory for building all libraries.")
+  set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/build CACHE PATH
+       "Single output directory for building all executables.")
+  mark_as_advanced (LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
+  set (CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+  mark_as_advanced (CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT)
+
+  ######### Enable C++11 and link against the new libc++ ##########
+  if (WITH_XCODE_LIBCPP)
+    set (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
+    set (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+    set (CMAKE_XCODE_ATTRIBUTE_OBJROOT ${CMAKE_BINARY_DIR}/build/\${CONFIGURATION})
+    set (CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvm.clang.1_0")
+    mark_as_advanced (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD
+                      CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY
+                      CMAKE_XCODE_ATTRIBUTE_GCC_VERSION)
+  endif (WITH_XCODE_LIBCPP)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARTS_C_FLAGS} ${ARTS_FLAGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARTS_CXX_FLAGS} ${ARTS_FLAGS}")
+
 
 ########### Set Operating System name for config.h ##########
 if (APPLE)
@@ -238,8 +253,8 @@ add_custom_command (
 
 add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
 
-########### Tests ##########
 
+########### Tests ##########
 if (TEST_JOBS)
   set (CTEST_JOBS "-j${TEST_JOBS}")
 endif (TEST_JOBS)

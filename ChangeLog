@@ -1,3 +1,14 @@
+2012-07-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-168
+
+	* CMakeLists.txt, README:
+
+	Add option WITH_XCODE_LIBCPP to enable C++11 and libc++ in Xcode.
+
+	Use dwarf-with-dsym debug format in Xcode to get the static libraries
+	properly symbolized for debugging.
+
 2012-07-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-167
