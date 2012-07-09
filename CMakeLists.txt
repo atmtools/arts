@@ -164,6 +164,7 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wshadow)
   ARTS_ADD_COMPILER_FLAG (Wconversion)
   ARTS_ADD_COMPILER_FLAG (Wno-sign-conversion)
+  ARTS_ADD_COMPILER_FLAG (Wno-unknown-pragmas)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 if (CMAKE_COMPILER_IS_INTELCXX)
@@ -180,8 +181,6 @@ if (OPENMP_FOUND)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
   set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
-elseif (OPENMP_FOUND AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
-    ARTS_ADD_COMPILER_FLAG (Wno-unknown-pragmas)
 endif (OPENMP_FOUND)
 
 # Workaround for f2c library in Debian/Ubuntu
