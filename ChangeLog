@@ -1,5 +1,18 @@
 2012-07-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-173
+
+	* src/m_atmosphere.cc:
+
+	(GriddedFieldLatLonRegridHelper): Add common function for calculation
+	of gp_lat, gp_lon and interpolation weights shared among all
+	GriddedFieldLatLonRegrid functions.
+
+	(GriddedFieldLatLonRegrid): Add overloaded versions for GriddedField2
+	and GriddedField4. Use new helper for GriddedField3 version.
+
+2012-07-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-172
 
 	* CMakeLists.txt: Always set Wno-unknown-pragmas.

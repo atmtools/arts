@@ -310,19 +310,99 @@ void GriddedFieldPRegrid(// WS Generic Output:
 }
 
 
+//! Calculate grid positions and interpolations weights for GriddedFieldLatLonRegrid
+/*
+ This helper function is used by all GriddedFieldLatLonRegrid WSMs to do the common
+ calculation of the grid positions and interpolation weights for latitudes and longitudes.
+
+ \param[out]    gp_lat        Latitude grid positions
+ \param[out]    gp_lon        Longitude grid positions
+ \param[out]    itw           Interpolation weights
+ \param[in,out] gfraw_out     Output GriddedField
+ \param[in]     gfraw_in      Input GriddedField
+ \param[in]     lat_true      New latitude grid
+ \param[in]     lon_true      New longitude grid
+ \param[in]     interp_order  Interpolation order
+ \param[in]     Verbosity     Verbosity levels
+ */
+void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
+                                    ArrayOfGridPosPoly& gp_lon,
+                                    Tensor3& itw,
+                                    GriddedField& gfraw_out,
+                                    const GriddedField& gfraw_in,
+                                    const Index lat_grid_index,
+                                    const Index lon_grid_index,
+                                    ConstVectorView lat_true,
+                                    ConstVectorView lon_true,
+                                    const Index& interp_order,
+                                    const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    chk_griddedfield_gridname(gfraw_in, lat_grid_index, "Latitude");
+    chk_griddedfield_gridname(gfraw_in, lon_grid_index, "Longitude");
+    if (gfraw_in.get_grid_size(lat_grid_index) == 1 || gfraw_in.get_grid_size(lon_grid_index) == 1)
+        throw runtime_error("Raw data has to be true 3D data (nlat>1 and nlon>1).");
+
+    out2 << "  Interpolation order: " << interp_order << "\n";
+
+    gp_lat.resize(lat_true.nelem());
+    gp_lon.resize(lon_true.nelem());
+
+    const ConstVectorView in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+    const ConstVectorView in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
+
+    // Initialize output field. Set grids and copy grid names
+    gfraw_out.set_grid(lat_grid_index, lat_true);
+    gfraw_out.set_grid_name(lat_grid_index, gfraw_in.get_grid_name(lat_grid_index));
+    gfraw_out.set_grid(lon_grid_index, lon_true);
+    gfraw_out.set_grid_name(lon_grid_index, gfraw_in.get_grid_name(lon_grid_index));
+
+    chk_interpolation_grids("Raw field to lat_grid, 3D case",
+                            in_lat_grid,
+                            lat_true,
+                            interp_order);
+
+    // Calculate grid positions:
+    gridpos_poly(gp_lat, in_lat_grid, lat_true, interp_order);
+
+    gridpos_poly_longitudinal("Raw field to lon_grid, 3D case",
+                              gp_lon, in_lon_grid, lon_true, interp_order);
+
+    // Interpolation weights:
+    itw.resize(lat_true.nelem(), lon_true.nelem(), (interp_order+1)*(interp_order+1));
+    interpweights(itw, gp_lat, gp_lon);
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonRegrid(// WS Generic Output:
-                              GriddedField2& gfraw_out _U_,
+                              GriddedField2& gfraw_out,
                               // WS Input:
-                              const Vector& lat_true _U_,
-                              const Vector& lon_true _U_,
+                              const Vector& lat_true,
+                              const Vector& lon_true,
                               // WS Generic Input:
-                              const GriddedField2& gfraw_in _U_,
-                              const Index& interp_order _U_,
-                              const Verbosity&)
+                              const GriddedField2& gfraw_in,
+                              const Index& interp_order,
+                              const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    const Index lat_grid_index = 0;
+    const Index lon_grid_index = 1;
+
+    // Resize output GriddedField
+    gfraw_out.resize(lat_true.nelem(), lon_true.nelem());
+
+    ArrayOfGridPosPoly gp_lat;
+    ArrayOfGridPosPoly gp_lon;
+    Tensor3 itw;
+
+    GriddedFieldLatLonRegridHelper(gp_lat, gp_lon, itw, gfraw_out,
+                                   gfraw_in, lat_grid_index, lon_grid_index,
+                                   lat_true, lon_true, interp_order,
+                                   verbosity);
+
+    // Interpolate:
+    interp(gfraw_out.data, itw, gfraw_in.data, gp_lat, gp_lon);
 }
 
 
@@ -337,44 +417,23 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
-    CREATE_OUT2;
+    const Index lat_grid_index = 1;
+    const Index lon_grid_index = 2;
 
-    chk_griddedfield_gridname(gfraw_in, 1, "Latitude");
-    chk_griddedfield_gridname(gfraw_in, 2, "Longitude");
-    if (gfraw_in.get_grid_size(1) == 1 || gfraw_in.get_grid_size(1) == 1)
-        throw runtime_error("Raw data has to be true 3D data (nlat>1 and nlon>1).");
-
-    out2 << "  Interpolation order: " << interp_order << "\n";
-
-    ArrayOfGridPosPoly gp_lat(lat_true.nelem());
-    ArrayOfGridPosPoly gp_lon(lon_true.nelem());
-
-    const ConstVectorView in_lat_grid = gfraw_in.get_numeric_grid(1);
-    const ConstVectorView in_lon_grid = gfraw_in.get_numeric_grid(2);
-
-    // Initialize output field. Set grids and copy grid names
+    // Resize output GriddedField and copy all non-latitude/longitude grids
     gfraw_out.resize(gfraw_in.data.npages(), lat_true.nelem(), lon_true.nelem());
     gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
-    gfraw_out.set_grid(1, lat_true);
-    gfraw_out.set_grid(2, lon_true);
     gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
-    gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
-    gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
 
-    chk_interpolation_grids("Raw field to lat_grid, 3D case",
-                            in_lat_grid,
-                            lat_true,
-                            interp_order);
+    ArrayOfGridPosPoly gp_lat;
+    ArrayOfGridPosPoly gp_lon;
+    Tensor3 itw;
 
-    // Calculate grid positions:
-    gridpos_poly(gp_lat, in_lat_grid, lat_true, interp_order);
+    GriddedFieldLatLonRegridHelper(gp_lat, gp_lon, itw, gfraw_out,
+                                   gfraw_in, lat_grid_index, lon_grid_index,
+                                   lat_true, lon_true, interp_order,
+                                   verbosity);
 
-    gridpos_poly_longitudinal("Raw field to lon_grid, 3D case",
-                              gp_lon, in_lon_grid, lon_true, interp_order);
-
-    // Interpolation weights:
-    Tensor3 itw(lat_true.nelem(), lon_true.nelem(), (interp_order+1)*(interp_order+1));
-    interpweights(itw, gp_lat, gp_lon);
 
     // Interpolate:
     for (Index i = 0; i < gfraw_in.data.npages(); i++)
@@ -385,17 +444,41 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonRegrid(// WS Generic Output:
-                              GriddedField4& gfraw_out _U_,
+                              GriddedField4& gfraw_out,
                               // WS Input:
-                              const Vector& lat_true _U_,
-                              const Vector& lon_true _U_,
+                              const Vector& lat_true,
+                              const Vector& lon_true,
                               // WS Generic Input:
-                              const GriddedField4& gfraw_in _U_,
-                              const Index& interp_order _U_,
-                              const Verbosity&)
+                              const GriddedField4& gfraw_in,
+                              const Index& interp_order,
+                              const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    const Index lat_grid_index = 2;
+    const Index lon_grid_index = 3;
+
+    // Resize output GriddedField and copy all non-latitude/longitude grids
+    gfraw_out.resize(gfraw_in.data.nbooks(), gfraw_in.data.npages(),
+                     lat_true.nelem(), lon_true.nelem());
+    gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
+    gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
+    gfraw_out.set_grid(1, gfraw_in.get_numeric_grid(1));
+    gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
+
+    ArrayOfGridPosPoly gp_lat;
+    ArrayOfGridPosPoly gp_lon;
+    Tensor3 itw;
+
+    GriddedFieldLatLonRegridHelper(gp_lat, gp_lon, itw, gfraw_out,
+                                   gfraw_in, lat_grid_index, lon_grid_index,
+                                   lat_true, lon_true, interp_order,
+                                   verbosity);
+
+
+    // Interpolate:
+    for (Index i = 0; i < gfraw_in.data.nbooks(); i++)
+        for (Index j = 0; j < gfraw_in.data.npages(); i++)
+            interp(gfraw_out.data(i, j, joker, joker),
+                   itw, gfraw_in.data(i, j, joker, joker), gp_lat, gp_lon);
 }
 
 
