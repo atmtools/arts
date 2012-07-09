@@ -37,10 +37,13 @@
 */
 
 #include <iostream>
+#include <cmath>
 #include "interpolation_poly.h"
 #include "interpolation.h"
 #include "logic.h"
+#include "check_input.h"
 #include "arts_omp.h"
+
 
 //! Return the maximum of two integer numbers.
 /*! 
@@ -233,7 +236,108 @@ void gridpos_poly( GridPosPoly&    gp,
 }
 
 
+//! Set up grid positions for higher order interpolation on longitudes.
+/*!
+ This function performs the same task as gridpos, but for arbitrary
+ orders of interpolation. It is especially for interpolation of longitudes.
+ If necessary, it will shift the given longitudes up or down by 360 degrees.
+ For a global longitude grid, it will do cyclic interpolation.
 
+ The formula for calculating the weights w is taken from Numerical
+ Recipes, 2nd edition, section 3.1, eq. 3.1.1.
+
+ \param[in]  error_msg  Message for potential runtime error
+ \param[out] gp         An array of grid positions.
+ \param[in]  old_grid   Original grid.
+ \param[in]  new_grid   New grid.
+ \param[in]  order      Interpolation order.
+                        1 = linear, 2 = quadratic, etc..
+                        The number of points used in the
+                        interpolation will be order+1.
+ \param[in]  extpolfac  Extrapolation fraction. Should normally not be
+                        specified, then the default of 0.5 is used.
+ */
+void gridpos_poly_longitudinal(const String&   error_msg,
+                               ArrayOfGridPosPoly& gp,
+                               ConstVectorView old_grid,
+                               ConstVectorView new_grid,
+                               const Index     order,
+                               const Numeric&  extpolfac)
+{
+    bool global_lons = is_same_within_epsilon(old_grid[old_grid.nelem()-1] - old_grid[0],
+                                              360., 0.001);
+
+    if (global_lons)
+        gridpos_poly_cyclic_longitudinal(gp, old_grid, new_grid, order, extpolfac);
+    else
+    {
+        if (old_grid[0] > new_grid[new_grid.nelem()-1])
+        {
+            Vector shifted_old_grid = old_grid;
+            shifted_old_grid -= 360;
+            chk_interpolation_grids(error_msg, shifted_old_grid, new_grid, order, extpolfac);
+
+            gridpos_poly(gp, shifted_old_grid, new_grid, order, extpolfac);
+        }
+        else if (old_grid[old_grid.nelem()-1] < new_grid[0])
+        {
+            Vector shifted_old_grid = old_grid;
+            shifted_old_grid += 360;
+            chk_interpolation_grids(error_msg, shifted_old_grid, new_grid, order, extpolfac);
+            gridpos_poly(gp, shifted_old_grid, new_grid, order, extpolfac);
+        }
+        else
+            gridpos_poly(gp, old_grid, new_grid, order, extpolfac);
+    }
+}
+
+
+//! Set up grid positions for higher order interpolation.
+/*!
+ This function performs the same task as gridpos, but for arbitrary
+ orders of interpolation. It is especially for cyclic interpolation of longitudes.
+ The distance between the first and the last point in the original grid
+ has to span 360 degrees.
+
+ \param[out] gp         An array of grid positions.
+ \param[in]  old_grid   Original grid.
+ \param[in]  new_grid   New grid.
+ \param[in]  order      Interpolation order.
+                        1 = linear, 2 = quadratic, etc..
+                        The number of points used in the
+                        interpolation will be order+1.
+ \param[in]  extpolfac  Extrapolation fraction. Should normally not be
+                        specified, then the default of 0.5 is used.
+ */
+void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
+                                      ConstVectorView old_grid,
+                                      ConstVectorView new_grid,
+                                      const Index     order,
+                                      const Numeric&  extpolfac)
+{
+    assert(is_same_within_epsilon(old_grid[old_grid.nelem()-1] - old_grid[0], 360., 0.001));
+
+    Index new_n = old_grid.nelem() - 1;
+    ConstVectorView old_grid_n1 = old_grid[Range(0, new_n)];
+    Range r_left = Range(0, new_n);
+    Range r_right = Range(new_n*2, new_n);
+
+    Vector large_grid(new_n*3);
+
+    large_grid[r_left] = old_grid_n1;
+    large_grid[r_left] -= 360.;
+
+    large_grid[Range(new_n, new_n)] = old_grid_n1;
+
+    large_grid[r_right] = old_grid_n1;
+    large_grid[r_right] += 360.;
+
+    gridpos_poly(gp, large_grid, new_grid, order, extpolfac);
+
+    for (ArrayOfGridPosPoly::iterator itgp = gp.begin(); itgp != gp.end(); itgp++)
+        for (ArrayOfIndex::iterator iti = itgp->idx.begin(); iti != itgp->idx.end(); iti++)
+            *iti %= new_n;
+}
 
 
 

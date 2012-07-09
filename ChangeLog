@@ -1,3 +1,23 @@
+2012-07-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-171
+
+	* src/interpolation_poly.{cc,h}:
+
+	Add gridpos_poly_longitudinal and gridpos_poly_cyclic_longitudinal for
+	longitude interpolation with support for shifting the original grid by
+	+360 / -360 if necessary and cyclic interpolation for global grids.
+
+	* src/m_atmosphere.cc (GriddedFieldLatLonRegrid):
+
+	Use gridpos_poly_longitudinal.
+
+	* CMakeLists.txt:
+
+	Set Xcode compiler flags via attribute.
+
+	Remove unnecessary mark_as_advanced.
+
 2012-07-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-170

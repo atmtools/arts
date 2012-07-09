@@ -365,14 +365,12 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                             in_lat_grid,
                             lat_true,
                             interp_order);
-    chk_interpolation_grids("Raw field to lon_grid, 3D case",
-                            in_lon_grid,
-                            lon_true,
-                            interp_order);
 
     // Calculate grid positions:
-    gridpos_poly( gp_lat, in_lat_grid, lat_true, interp_order );
-    gridpos_poly( gp_lon, in_lon_grid, lon_true, interp_order );
+    gridpos_poly(gp_lat, in_lat_grid, lat_true, interp_order);
+
+    gridpos_poly_longitudinal("Raw field to lon_grid, 3D case",
+                              gp_lon, in_lon_grid, lon_true, interp_order);
 
     // Interpolation weights:
     Tensor3 itw(lat_true.nelem(), lon_true.nelem(), (interp_order+1)*(interp_order+1));
