@@ -246,6 +246,57 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 }
 
 
+//! Calculate grid positions and interpolations weights for GriddedFieldPRegrid
+/*
+ This helper function is used by all GriddedFieldLatLonRegrid WSMs to do the common
+ calculation of the grid positions and interpolation weights for latitudes and longitudes.
+
+ \param[out]    gp_p          Pressure grid positions
+ \param[out]    itw           Interpolation weights
+ \param[in,out] gfraw_out     Output GriddedField
+ \param[in]     gfraw_in      Input GriddedField
+ \param[in]     p_grid_index  Index of pressure grid
+ \param[in]     p_grid        New pressure grid
+ \param[in]     interp_order  Interpolation order
+ \param[in]     verbosity     Verbosity levels
+ */
+void GriddedFieldPRegridHelper(ArrayOfGridPosPoly& gp_p,
+                               Matrix& itw,
+                               GriddedField& gfraw_out,
+                               const GriddedField& gfraw_in,
+                               const Index p_grid_index,
+                               ConstVectorView p_grid,
+                               const Index& interp_order,
+                               const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    chk_griddedfield_gridname(gfraw_in, p_grid_index, "Pressure");
+
+    out2 << "  Interpolation order: " << interp_order << "\n";
+
+    gp_p.resize(p_grid.nelem());
+
+    const ConstVectorView in_p_grid = gfraw_in.get_numeric_grid(p_grid_index);
+
+    // Initialize output field. Set grids and copy grid names
+    gfraw_out.set_grid(p_grid_index, p_grid);
+    gfraw_out.set_grid_name(p_grid_index, gfraw_in.get_grid_name(p_grid_index));
+
+    chk_interpolation_grids("Raw field to p_grid",
+                            in_p_grid,
+                            p_grid,
+                            interp_order);
+
+    // Calculate grid positions:
+    p2gridpos_poly(gp_p, in_p_grid, p_grid, interp_order);
+
+    // Interpolation weights:
+    itw.resize(p_grid.nelem(), interp_order+1);
+    interpweights(itw, gp_p);
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldPRegrid(// WS Generic Output:
                               GriddedField2& gfraw_out _U_,
@@ -264,17 +315,40 @@ void GriddedFieldPRegrid(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldPRegrid(// WS Generic Output:
-                              GriddedField3& gfraw_out _U_,
+                              GriddedField3& gfraw_out,
                               // WS Input:
-                              const Vector& p_grid _U_,
+                              const Vector& p_grid,
                               // WS Generic Input:
-                              const GriddedField3& gfraw_in _U_,
-                              const Index& interp_order _U_,
-                              const Index& zeropadding _U_,
-                              const Verbosity&)
+                              const GriddedField3& gfraw_in,
+                              const Index& interp_order,
+                              const Index& zeropadding,
+                              const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    if (zeropadding) throw runtime_error("No padding yet");
+
+    const Index p_grid_index = 0;
+
+    // Resize output GriddedField and copy all non-latitude/longitude grids
+    gfraw_out.resize(p_grid.nelem(), gfraw_in.data.nrows(), gfraw_in.data.ncols());
+    gfraw_out.set_grid(1, gfraw_in.get_numeric_grid(1));
+    gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
+    gfraw_out.set_grid(2, gfraw_in.get_numeric_grid(2));
+    gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
+
+    ArrayOfGridPosPoly gp_p;
+    Matrix itw;
+
+    GriddedFieldPRegridHelper(gp_p, itw, gfraw_out,
+                              gfraw_in, p_grid_index,
+                              p_grid, interp_order,
+                              verbosity);
+
+
+    // Interpolate:
+    for (Index i = 0; i < gfraw_in.data.nrows(); i++)
+        for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+            interp(gfraw_out.data(joker, i, j),
+                   itw, gfraw_in.data(joker, i, j), gp_p);
 }
 
 
@@ -315,15 +389,17 @@ void GriddedFieldPRegrid(// WS Generic Output:
  This helper function is used by all GriddedFieldLatLonRegrid WSMs to do the common
  calculation of the grid positions and interpolation weights for latitudes and longitudes.
 
- \param[out]    gp_lat        Latitude grid positions
- \param[out]    gp_lon        Longitude grid positions
- \param[out]    itw           Interpolation weights
- \param[in,out] gfraw_out     Output GriddedField
- \param[in]     gfraw_in      Input GriddedField
- \param[in]     lat_true      New latitude grid
- \param[in]     lon_true      New longitude grid
- \param[in]     interp_order  Interpolation order
- \param[in]     Verbosity     Verbosity levels
+ \param[out]    gp_lat          Latitude grid positions
+ \param[out]    gp_lon          Longitude grid positions
+ \param[out]    itw             Interpolation weights
+ \param[in,out] gfraw_out       Output GriddedField
+ \param[in]     gfraw_in        Input GriddedField
+ \param[in]     lat_grid_index  Index of latitude grid
+ \param[in]     lon_grid_index  Index of longitude grid
+ \param[in]     lat_true        New latitude grid
+ \param[in]     lon_true        New longitude grid
+ \param[in]     interp_order    Interpolation order
+ \param[in]     verbosity       Verbosity levels
  */
 void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
                                     ArrayOfGridPosPoly& gp_lon,
@@ -484,17 +560,44 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonRegrid(// WS Generic Output:
-                              ArrayOfGriddedField3& gfraw_out _U_,
+                              ArrayOfGriddedField3& agfraw_out,
                               // WS Input:
-                              const Vector& lat_true _U_,
-                              const Vector& lon_true _U_,
+                              const Vector& lat_true,
+                              const Vector& lon_true,
                               // WS Generic Input:
-                              const ArrayOfGriddedField3& gfraw_in _U_,
-                              const Index& interp_order _U_,
-                              const Verbosity&)
+                              const ArrayOfGriddedField3& agfraw_in,
+                              const Index& interp_order,
+                              const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    const Index lat_grid_index = 1;
+    const Index lon_grid_index = 2;
+
+    agfraw_out.resize(agfraw_in.nelem());
+
+    for (Index gfi = 0; gfi < agfraw_in.nelem(); gfi++)
+    {
+        const GriddedField3& gfraw_in = agfraw_in[gfi];
+        GriddedField3& gfraw_out = agfraw_out[gfi];
+
+        // Resize output GriddedField and copy all non-latitude/longitude grids
+        gfraw_out.resize(gfraw_in.data.npages(), lat_true.nelem(), lon_true.nelem());
+        gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
+        gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
+
+        ArrayOfGridPosPoly gp_lat;
+        ArrayOfGridPosPoly gp_lon;
+        Tensor3 itw;
+
+        GriddedFieldLatLonRegridHelper(gp_lat, gp_lon, itw, gfraw_out,
+                                       gfraw_in, lat_grid_index, lon_grid_index,
+                                       lat_true, lon_true, interp_order,
+                                       verbosity);
+
+        // Interpolate:
+        for (Index i = 0; i < gfraw_in.data.npages(); i++)
+            interp(gfraw_out.data(i, joker, joker),
+                   itw, gfraw_in.data(i, joker, joker), gp_lat, gp_lon);
+    }
 }
 
 

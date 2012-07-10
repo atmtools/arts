@@ -1,3 +1,20 @@
+2012-07-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-174
+
+	* src/m_atmosphere.cc:
+
+	Add GriddedFieldPRegridHelper for pressure grid interpolations.
+
+	Implement GriddedFieldPRegrid for GriddedField3.
+
+	Implement GriddedFieldLatLonRegrid for ArrayOfGriddedField3.
+
+	* CMakeLists.txt:
+
+	Add GCC_WARN_SHADOW and CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION flags
+	for Xcode.
+
 2012-07-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-173
