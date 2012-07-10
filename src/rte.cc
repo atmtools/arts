@@ -1760,6 +1760,44 @@ void iy_transmission_mult_scalar_tau(
 
 
 
+//! los3d
+/*!
+    Converts any LOS vector to the implied 3D LOS vector.
+
+    The output argument, *los3d*, is a vector with length 2, with azimuth angle
+    set and zenith angle always >= 0. 
+
+    \param   los3d             Out: The line-of-sight in 3D
+    \param   los               A line-of-sight
+    \param   atmosphere_dim    As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2012-07-10
+*/
+void los3d(
+        Vector&     los3d,
+  ConstVectorView   los, 
+  const Index&      atmosphere_dim )
+{
+  los3d.resize(2);
+  //
+  los3d[0] = abs( los[0] ); 
+  //
+  if( atmosphere_dim == 1 )
+    { los3d[1] = 0; }
+  else if( atmosphere_dim == 2 )
+    {
+      if( los[0] >= 0 )
+        { los3d[1] = 0; }
+      else
+        { los3d[1] = 180; }
+    }
+  else if( atmosphere_dim == 3 )
+    { los3d[1] = los[1]; }
+}    
+
+
+
 //! mirror_los
 /*!
     Determines the backward direction for a given line-of-sight.
@@ -2133,4 +2171,35 @@ void trans_step_std(//Output and Input:
 
   mult( stokes_vec, trans_mat, tmp );
 }
+
+
+
+//! vectorfield2los
+/*!
+    Calculates the size and direction of a vector field defined as u, v and w
+    components.
+
+    \param   l      Size/magnitude of the vector.
+    \param   los    Out: The direction, as a LOS vector
+    \param   u      Zonal component of the vector field
+    \param   v      N-S component of the vector field
+    \param   w      Vertical component of the vector field
+
+    \author Patrick Eriksson 
+    \date   2012-07-10
+*/
+void vectorfield2los(
+        Numeric&    l,
+        Vector&     los,
+  const Numeric&    u,
+  const Numeric&    v,
+  const Numeric&    w )
+{
+  l= sqrt( u*u + v*v + w*w );
+  //
+  los.resize(2);
+  //
+  los[0] = acos( w / l );
+  los[1] = atan2( u, v );   
+}    
 

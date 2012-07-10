@@ -268,6 +268,8 @@ void iySurfaceRtpropAgenda(
       surface_normal[1] = 0; 
    }
 
+  cout << "surface normal = " << surface_normal << endl;
+
   // Call *surface_rtprop_agenda*
   Matrix    surface_los;
   Tensor4   surface_rmatrix;
