@@ -796,23 +796,23 @@ void chk_not_empty(
  not have to cover the whole new grid. The returned ing_min and ing_max give
  the positions in the new grid of the first values that are outside the old grid.
  This is only allowed if the boundary value in the input data is 0.
- 
+
  \param[out] ing_min             Index in the new grid with first value covered
                                  by the old grid.
  \param[out] ing_max             Index in the new grid with last value covered
                                  by the old grid.
  \param[in]  which_interpolation A string describing the interpolation for
-                                 which the grids are intended. 
+                                 which the grids are intended.
  \param[in]  old_grid            The original grid.
  \param[in]  new_grid            The new grid.
  \param[in]  data                The data for the interpolation.
  \param[in]  order               Interpolation order. (Default value is 1.)
  \param[in]  extpolfac           The extrapolation fraction. See gridpos function
                                  for details. Has a default value, which is
-                                 consistent with gridpos.  
- 
- \author Oliver Lemke (based on chk_interpolation_grids by Stefan)
- \date   2012-03-28
+                                 consistent with gridpos.
+
+ \author Oliver Lemke
+ \date   2012-07-11
  */
 void chk_interpolation_grids_loose(Index&          ing_min,
                                    Index&          ing_max,
@@ -822,6 +822,46 @@ void chk_interpolation_grids_loose(Index&          ing_min,
                                    ConstVectorView data,
                                    const Index     order,
                                    const Numeric&  extpolfac )
+{
+    chk_interpolation_grids_loose_no_data_check(ing_min, ing_max, which_interpolation,
+                                                old_grid, new_grid, order, extpolfac);
+
+    chk_interpolation_grids_loose_check_data(ing_min, ing_max, which_interpolation,
+                                             old_grid, new_grid, data);
+}
+
+
+//! Check interpolation grids
+/*!
+ This function checks if old and new grid for an interpolation are
+ ok. If not, it throws a detailed runtime error message. This is
+ intended for workspace method input variable checking. The original grid does
+ not have to cover the whole new grid. The returned ing_min and ing_max give
+ the positions in the new grid of the first values that are outside the old grid.
+ 
+ \param[out] ing_min             Index in the new grid with first value covered
+                                 by the old grid.
+ \param[out] ing_max             Index in the new grid with last value covered
+                                 by the old grid.
+ \param[in]  which_interpolation A string describing the interpolation for
+                                 which the grids are intended. 
+ \param[in]  old_grid            The original grid.
+ \param[in]  new_grid            The new grid.
+ \param[in]  order               Interpolation order. (Default value is 1.)
+ \param[in]  extpolfac           The extrapolation fraction. See gridpos function
+                                 for details. Has a default value, which is
+                                 consistent with gridpos.  
+ 
+ \author Oliver Lemke (based on chk_interpolation_grids by Stefan)
+ \date   2012-03-28
+ */
+void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
+                                                 Index&          ing_max,
+                                                 const String&   which_interpolation,
+                                                 ConstVectorView old_grid,
+                                                 ConstVectorView new_grid,
+                                                 const Index     order,
+                                                 const Numeric&  extpolfac )
 {
   const Index n_old = old_grid.nelem();
   
@@ -891,6 +931,9 @@ void chk_interpolation_grids_loose(Index&          ing_min,
   const Index iog_min = ascending?old_grid.nelem()-1:0;
   const Index iog_max = ascending?0:old_grid.nelem()-1;
   
+  ing_min = 0;
+  ing_max = new_grid.nelem()-1;
+
   if (ng_min < og_min)
   {
     while (ing_max > 0 && new_grid[ing_max] < old_grid[iog_max])
@@ -903,10 +946,102 @@ void chk_interpolation_grids_loose(Index&          ing_min,
       ing_min++;
   }
   
+  // If we get here, than everything should be fine.
+}
+
+
+//! Check log pressure interpolation grids
+/*!
+ This function checks if old and new grid for an interpolation are
+ ok. If not, it throws a detailed runtime error message. This is
+ intended for workspace method input variable checking. The original grid does
+ not have to cover the whole new grid. The returned ing_min and ing_max give
+ the positions in the new grid of the first values that are outside the old grid.
+
+ \param[out] ing_min             Index in the new grid with first value covered
+                                 by the old grid.
+ \param[out] ing_max             Index in the new grid with last value covered
+                                 by the old grid.
+ \param[in]  which_interpolation A string describing the interpolation for
+                                 which the grids are intended.
+ \param[in]  old_grid            The original grid.
+ \param[in]  new_grid            The new grid.
+ \param[in]  order               Interpolation order. (Default value is 1.)
+ \param[in]  extpolfac           The extrapolation fraction. See gridpos function
+                                 for details. Has a default value, which is
+                                 consistent with gridpos.
+
+ \author Oliver Lemke (based on chk_interpolation_grids by Stefan)
+ \date   2012-03-28
+ */
+void chk_interpolation_pgrids_loose_no_data_check(Index&          ing_min,
+                                                  Index&          ing_max,
+                                                  const String&   which_interpolation,
+                                                  ConstVectorView old_pgrid,
+                                                  ConstVectorView new_pgrid,
+                                                  const Index     order,
+                                                  const Numeric&  extpolfac )
+{
+    // Local variable to store log of the pressure grids
+    Vector logold( old_pgrid.nelem() );
+    Vector lognew( new_pgrid.nelem() );
+
+    transform( logold, log, old_pgrid );
+    transform( lognew, log, new_pgrid );
+
+    chk_interpolation_grids_loose_no_data_check(ing_min, ing_max,
+                                                which_interpolation,
+                                                logold, lognew,
+                                                order, extpolfac);
+}
+
+
+//! Check interpolation grids
+/*!
+ This function checks if old and new grid for an interpolation are
+ ok. If not, it throws a detailed runtime error message. This is
+ intended for workspace method input variable checking. If the original grid does
+ not have to cover the whole new grid. The returned ing_min and ing_max give
+ the positions in the new grid of the first values that are outside the old grid.
+ This is only allowed if the boundary value in the input data is 0.
+
+ \param[out] ing_min             Index in the new grid with first value covered
+                                 by the old grid.
+ \param[out] ing_max             Index in the new grid with last value covered
+                                 by the old grid.
+ \param[in]  which_interpolation A string describing the interpolation for
+                                 which the grids are intended.
+ \param[in]  old_grid            The original grid.
+ \param[in]  new_grid            The new grid.
+ \param[in]  data                The data for the interpolation.
+
+ \author Oliver Lemke
+ \date   2012-03-28
+ */
+void chk_interpolation_grids_loose_check_data(Index&          ing_min,
+                                              Index&          ing_max,
+                                              const String&   which_interpolation,
+                                              ConstVectorView old_grid,
+                                              ConstVectorView new_grid,
+                                              ConstVectorView data )
+{
+  ostringstream os;
+  os << "There is a problem with the grids for the\n"
+     << "following interpolation: " << which_interpolation << ".\n";
+
+  // Decide whether we have an ascending or descending grid:
+  const bool ascending = ( old_grid[0] <= old_grid[1] );
+
+  // If new grid is not inside old grid, determine the indexes of the range
+  // that is.
+
+  const Index iog_min = ascending?old_grid.nelem()-1:0;
+  const Index iog_max = ascending?0:old_grid.nelem()-1;
+
   if (ing_min > 0 && data[iog_min] != 0)
   {
     os << "\nThe new grid is not fully inside the original grid.\n"
-    << "This is allowed if the corresponding boundary value of Raw VMR is 0.\n"
+    << "This is allowed if the corresponding boundary value of raw data is 0.\n"
     << "Boundary value: " << data[iog_min];
     throw runtime_error(os.str());
   }
@@ -914,12 +1049,10 @@ void chk_interpolation_grids_loose(Index&          ing_min,
   if (ing_max < new_grid.nelem()-1 && data[iog_max] != 0)
   {
     os << "\nThe new grid is not fully inside the original grid.\n"
-    << "This is allowed if the corresponding boundary value of Raw VMR is 0.\n"
+    << "This is allowed if the corresponding boundary value of raw data is 0.\n"
     << "Boundary value: " << data[iog_max];
     throw runtime_error(os.str());
   }
-  
-  // If we get here, than everything should be fine.
 }
 
 
@@ -1071,6 +1204,41 @@ void chk_interpolation_grids(const String&   which_interpolation,
                           v,
                           order,
                           extpolfac );
+}
+
+
+//! Check log pressure interpolation grids
+/*!
+ This function checks if old and new grid for an interpolation are
+ ok. If not, it throws a detailed runtime error message. This is
+ intended for workspace method input variable checking.
+
+ \param[in] which_interpolation A string describing the interpolation for
+ which the grids are intended.
+ \param[in] old_pgrid            The original grid.
+ \param[in] new_pgrid            The new grid.
+ \param[in] order               Interpolation order. (Default value is 1.)
+ \param[in] extpolfac           The extrapolation fraction. See gridpos function
+ for details. Has a default value, which is
+ consistent with gridpos.
+
+ \author Oliver Lemke
+ \date   2012-07-11
+ */
+void chk_interpolation_pgrids(const String&   which_interpolation,
+                              ConstVectorView old_pgrid,
+                              ConstVectorView new_pgrid,
+                              const Index     order,
+                              const Numeric&  extpolfac )
+{
+    // Local variable to store log of the pressure grids
+    Vector logold( old_pgrid.nelem() );
+    Vector lognew( new_pgrid.nelem() );
+
+    transform( logold, log, old_pgrid );
+    transform( lognew, log, new_pgrid );
+
+    chk_interpolation_grids(which_interpolation, logold, lognew, order, extpolfac);
 }
 
 

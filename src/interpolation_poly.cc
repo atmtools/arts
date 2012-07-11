@@ -256,6 +256,9 @@ void gridpos_poly( GridPosPoly&    gp,
                         interpolation will be order+1.
  \param[in]  extpolfac  Extrapolation fraction. Should normally not be
                         specified, then the default of 0.5 is used.
+
+ \author Oliver Lemke
+ \date 12-07-10
  */
 void gridpos_poly_longitudinal(const String&   error_msg,
                                ArrayOfGridPosPoly& gp,
@@ -271,7 +274,7 @@ void gridpos_poly_longitudinal(const String&   error_msg,
         gridpos_poly_cyclic_longitudinal(gp, old_grid, new_grid, order, extpolfac);
     else
     {
-        if (old_grid[0] > new_grid[new_grid.nelem()-1])
+        if (old_grid[0] >= new_grid[new_grid.nelem()-1])
         {
             Vector shifted_old_grid = old_grid;
             shifted_old_grid -= 360;
@@ -279,7 +282,7 @@ void gridpos_poly_longitudinal(const String&   error_msg,
 
             gridpos_poly(gp, shifted_old_grid, new_grid, order, extpolfac);
         }
-        else if (old_grid[old_grid.nelem()-1] < new_grid[0])
+        else if (old_grid[old_grid.nelem()-1] <= new_grid[0])
         {
             Vector shifted_old_grid = old_grid;
             shifted_old_grid += 360;
@@ -308,6 +311,9 @@ void gridpos_poly_longitudinal(const String&   error_msg,
                         interpolation will be order+1.
  \param[in]  extpolfac  Extrapolation fraction. Should normally not be
                         specified, then the default of 0.5 is used.
+
+ \author Oliver Lemke
+ \date 12-07-10
  */
 void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
                                       ConstVectorView old_grid,

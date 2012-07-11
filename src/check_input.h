@@ -277,6 +277,29 @@ void chk_interpolation_grids_loose(Index&          ing_min,
                                    const Index     order=1,
                                    const Numeric&  extpolfac=0.5 );
 
+void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
+                                                 Index&          ing_max,
+                                                 const String&   which_interpolation,
+                                                 ConstVectorView old_grid,
+                                                 ConstVectorView new_grid,
+                                                 const Index     order=1,
+                                                 const Numeric&  extpolfac=0.5 );
+
+void chk_interpolation_pgrids_loose_no_data_check(Index&          ing_min,
+                                                  Index&          ing_max,
+                                                  const String&   which_interpolation,
+                                                  ConstVectorView old_pgrid,
+                                                  ConstVectorView new_pgrid,
+                                                  const Index     order=1,
+                                                  const Numeric&  extpolfac=0.5 );
+
+void chk_interpolation_grids_loose_check_data(Index&          ing_min,
+                                              Index&          ing_max,
+                                              const String&   which_interpolation,
+                                              ConstVectorView old_grid,
+                                              ConstVectorView new_grid,
+                                              ConstVectorView data );
+
 void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView old_grid,
                              ConstVectorView new_grid,
@@ -289,7 +312,13 @@ void chk_interpolation_grids(const String&   which_interpolation,
                              const Index     order=1,
                              const Numeric&  extpolfac=0.5 );
 
-void chk_atm_grids( 
+void chk_interpolation_pgrids(const String&   which_interpolation,
+                              ConstVectorView old_pgrid,
+                              ConstVectorView new_pgrid,
+                              const Index     order=1,
+                              const Numeric&  extpolfac=0.5 );
+
+void chk_atm_grids(
         const Index&      dim,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,

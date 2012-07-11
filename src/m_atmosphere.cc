@@ -258,15 +258,19 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
  \param[in]     p_grid_index  Index of pressure grid
  \param[in]     p_grid        New pressure grid
  \param[in]     interp_order  Interpolation order
+ \param[in]     zeropadding   Allow zero padding
  \param[in]     verbosity     Verbosity levels
  */
-void GriddedFieldPRegridHelper(ArrayOfGridPosPoly& gp_p,
+void GriddedFieldPRegridHelper(Index& ing_min,
+                               Index& ing_max,
+                               ArrayOfGridPosPoly& gp_p,
                                Matrix& itw,
                                GriddedField& gfraw_out,
                                const GriddedField& gfraw_in,
                                const Index p_grid_index,
                                ConstVectorView p_grid,
                                const Index& interp_order,
+                               const Index& zeropadding,
                                const Verbosity& verbosity)
 {
     CREATE_OUT2;
@@ -275,24 +279,35 @@ void GriddedFieldPRegridHelper(ArrayOfGridPosPoly& gp_p,
 
     out2 << "  Interpolation order: " << interp_order << "\n";
 
-    gp_p.resize(p_grid.nelem());
-
     const ConstVectorView in_p_grid = gfraw_in.get_numeric_grid(p_grid_index);
 
     // Initialize output field. Set grids and copy grid names
     gfraw_out.set_grid(p_grid_index, p_grid);
     gfraw_out.set_grid_name(p_grid_index, gfraw_in.get_grid_name(p_grid_index));
 
-    chk_interpolation_grids("Raw field to p_grid",
-                            in_p_grid,
-                            p_grid,
-                            interp_order);
+    if (zeropadding)
+        chk_interpolation_pgrids_loose_no_data_check(ing_min, ing_max,
+                                                     "Raw field to p_grid",
+                                                     in_p_grid,
+                                                     p_grid,
+                                                     interp_order);
+    else
+    {
+        ing_min = 0;
+        ing_max = p_grid.nelem();
+        chk_interpolation_pgrids("Raw field to p_grid",
+                                 in_p_grid,
+                                 p_grid,
+                                 interp_order);
+    }
+    Index nelem_in_range = ing_max - ing_min;
 
     // Calculate grid positions:
-    p2gridpos_poly(gp_p, in_p_grid, p_grid, interp_order);
+    gp_p.resize(nelem_in_range);
+    p2gridpos_poly(gp_p, in_p_grid, p_grid[Range(ing_min, nelem_in_range)], interp_order);
 
     // Interpolation weights:
-    itw.resize(p_grid.nelem(), interp_order+1);
+    itw.resize(nelem_in_range, interp_order+1);
     interpweights(itw, gp_p);
 }
 
@@ -324,8 +339,6 @@ void GriddedFieldPRegrid(// WS Generic Output:
                               const Index& zeropadding,
                               const Verbosity& verbosity)
 {
-    if (zeropadding) throw runtime_error("No padding yet");
-
     const Index p_grid_index = 0;
 
     // Resize output GriddedField and copy all non-latitude/longitude grids
@@ -338,17 +351,34 @@ void GriddedFieldPRegrid(// WS Generic Output:
     ArrayOfGridPosPoly gp_p;
     Matrix itw;
 
-    GriddedFieldPRegridHelper(gp_p, itw, gfraw_out,
+    Index ing_min, ing_max;
+
+    GriddedFieldPRegridHelper(ing_min, ing_max,
+                              gp_p, itw, gfraw_out,
                               gfraw_in, p_grid_index,
-                              p_grid, interp_order,
+                              p_grid, interp_order, zeropadding,
                               verbosity);
 
-
     // Interpolate:
-    for (Index i = 0; i < gfraw_in.data.nrows(); i++)
-        for (Index j = 0; j < gfraw_in.data.ncols(); j++)
-            interp(gfraw_out.data(joker, i, j),
-                   itw, gfraw_in.data(joker, i, j), gp_p);
+    if (ing_max - ing_min < gfraw_in.get_numeric_grid(p_grid_index).nelem())
+    {
+        gfraw_out.data = 0.;
+        for (Index i = 0; i < gfraw_in.data.nrows(); i++)
+            for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+            {
+                chk_interpolation_grids_loose_check_data(ing_min, ing_max,
+                                                         "Raw field to p_grid",
+                                                         gfraw_in.get_numeric_grid(p_grid_index),
+                                                         p_grid, gfraw_in.data(joker, i, j));
+                interp(gfraw_out.data(Range(ing_min, ing_max-ing_min), i, j),
+                       itw, gfraw_in.data(joker, i, j), gp_p);
+            }
+    }
+    else
+        for (Index i = 0; i < gfraw_in.data.nrows(); i++)
+            for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+                interp(gfraw_out.data(joker, i, j),
+                       itw, gfraw_in.data(joker, i, j), gp_p);
 }
 
 
@@ -422,9 +452,6 @@ void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
 
     out2 << "  Interpolation order: " << interp_order << "\n";
 
-    gp_lat.resize(lat_true.nelem());
-    gp_lon.resize(lon_true.nelem());
-
     const ConstVectorView in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
     const ConstVectorView in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
 
@@ -440,6 +467,8 @@ void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
                             interp_order);
 
     // Calculate grid positions:
+    gp_lat.resize(lat_true.nelem());
+    gp_lon.resize(lon_true.nelem());
     gridpos_poly(gp_lat, in_lat_grid, lat_true, interp_order);
 
     gridpos_poly_longitudinal("Raw field to lon_grid, 3D case",
@@ -1330,10 +1359,10 @@ void AtmFieldsCalc(//WS Output:
       
       // Check that interpolation grids are ok (and throw a detailed
       // error message if not):
-      chk_interpolation_grids("Raw temperature to p_grid, 1D case",
-                              tfr_p_grid,
-                              p_grid,
-                              interp_order);
+      chk_interpolation_pgrids("Raw temperature to p_grid, 1D case",
+                               tfr_p_grid,
+                               p_grid,
+                               interp_order);
  
       // Calculate grid positions:
       p2gridpos_poly( gp_p, tfr_p_grid, p_grid, interp_order );
@@ -1352,10 +1381,10 @@ void AtmFieldsCalc(//WS Output:
       
       // Check that interpolation grids are ok (and throw a detailed
       // error message if not):
-      chk_interpolation_grids("Raw z to p_grid, 1D case",
-                              zfr_p_grid,
-                              p_grid,
-                              interp_order);
+      chk_interpolation_pgrids("Raw z to p_grid, 1D case",
+                               zfr_p_grid,
+                               p_grid,
+                               interp_order);
 
       // Calculate grid positions:
       p2gridpos_poly( gp_p, zfr_p_grid, p_grid, interp_order );
@@ -1443,10 +1472,10 @@ void AtmFieldsCalc(//WS Output:
       
       // Check that interpolation grids are ok (and throw a detailed
       // error message if not):
-      chk_interpolation_grids("Raw temperature to p_grid, 2D case",
-                              tfr_p_grid,
-                              p_grid,
-                              interp_order);
+      chk_interpolation_pgrids("Raw temperature to p_grid, 2D case",
+                               tfr_p_grid,
+                               p_grid,
+                               interp_order);
       chk_interpolation_grids("Raw temperature to lat_grid, 2D case",
                               tfr_lat_grid,
                               lat_grid,
@@ -1470,10 +1499,10 @@ void AtmFieldsCalc(//WS Output:
 
       // Check that interpolation grids are ok (and throw a detailed
       // error message if not):
-      chk_interpolation_grids("Raw z to p_grid, 2D case",
-                              zfr_p_grid,
-                              p_grid,
-                              interp_order);
+      chk_interpolation_pgrids("Raw z to p_grid, 2D case",
+                               zfr_p_grid,
+                               p_grid,
+                               interp_order);
       chk_interpolation_grids("Raw z to lat_grid, 2D case",
                               zfr_lat_grid,
                               lat_grid,
@@ -1508,10 +1537,10 @@ void AtmFieldsCalc(//WS Output:
           // Check that interpolation grids are ok (and throw a detailed
           // error message if not):
           os << "Raw VMR[" << gas_i << "] to p_grid, 2D case";
-          chk_interpolation_grids(os.str(),
-                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                  p_grid,
-                                  interp_order);
+          chk_interpolation_pgrids(os.str(),
+                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+                                   p_grid,
+                                   interp_order);
           os.str("");
           os << "Raw VMR[" << gas_i << "] to lat_grid, 2D case";
           chk_interpolation_grids(os.str(),
@@ -1563,10 +1592,10 @@ void AtmFieldsCalc(//WS Output:
       
       // Check that interpolation grids are ok (and throw a detailed
       // error message if not):
-      chk_interpolation_grids("Raw temperature to p_grid, 3D case",
-                              tfr_p_grid,
-                              p_grid,
-                              interp_order);
+      chk_interpolation_pgrids("Raw temperature to p_grid, 3D case",
+                               tfr_p_grid,
+                               p_grid,
+                               interp_order);
       chk_interpolation_grids("Raw temperature to lat_grid, 3D case",
                               tfr_lat_grid,
                               lat_grid,
@@ -1595,10 +1624,10 @@ void AtmFieldsCalc(//WS Output:
       
       // Check that interpolation grids are ok (and throw a detailed
       // error message if not):
-      chk_interpolation_grids("Raw z to p_grid, 3D case",
-                              zfr_p_grid,
-                              p_grid,
-                              interp_order);
+      chk_interpolation_pgrids("Raw z to p_grid, 3D case",
+                               zfr_p_grid,
+                               p_grid,
+                               interp_order);
       chk_interpolation_grids("Raw z to lat_grid, 3D case",
                               zfr_lat_grid,
                               lat_grid,
@@ -1637,10 +1666,10 @@ void AtmFieldsCalc(//WS Output:
           // Check that interpolation grids are ok (and throw a detailed
           // error message if not):
           os << "Raw VMR[" << gas_i << "] to p_grid, 3D case";
-          chk_interpolation_grids(os.str(),
-                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                  p_grid,
-                                  interp_order);
+          chk_interpolation_pgrids(os.str(),
+                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+                                   p_grid,
+                                   interp_order);
           os.str("");
           os << "Raw VMR[" << gas_i << "] to lat_grid, 3D case";
           chk_interpolation_grids(os.str(),
