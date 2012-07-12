@@ -136,65 +136,106 @@ void atm_fields_compactExpand(GriddedField4& af,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FieldFromGriddedField(// WS Generic Output:
-                           Matrix& field_out _U_,
+                           Matrix& field_out,
                            // WS Input:
                            const Vector& p_grid _U_,
-                           const Vector& lat_true _U_,
-                           const Vector& lon_true _U_,
+                           const Vector& lat_true,
+                           const Vector& lon_true,
                            // WS Generic Input:
-                           const GriddedField2& gfraw_in _U_,
+                           const GriddedField2& gfraw_in,
                            const Verbosity&)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    chk_griddedfield_gridname(gfraw_in, 0, "Latitude");
+    chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in.get_numeric_grid(0));
+
+    chk_griddedfield_gridname(gfraw_in, 1, "Longitude");
+    chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in.get_numeric_grid(1));
+
+    field_out = gfraw_in.data;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FieldFromGriddedField(// WS Generic Output:
-                           Tensor3& field_out _U_,
+                           Tensor3& field_out,
                            // WS Input:
-                           const Vector& p_grid _U_,
-                           const Vector& lat_true _U_,
-                           const Vector& lon_true _U_,
+                           const Vector& p_grid,
+                           const Vector& lat_true,
+                           const Vector& lon_true,
                            // WS Generic Input:
-                           const GriddedField3& gfraw_in _U_,
+                           const GriddedField3& gfraw_in,
                            const Verbosity&)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    chk_griddedfield_gridname(gfraw_in, 0, "Pressure");
+    chk_if_equal("p_grid", "raw p_grid", p_grid, gfraw_in.get_numeric_grid(0));
+
+    chk_griddedfield_gridname(gfraw_in, 1, "Latitude");
+    chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in.get_numeric_grid(1));
+
+    chk_griddedfield_gridname(gfraw_in, 2, "Longitude");
+    chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in.get_numeric_grid(2));
+
+    field_out = gfraw_in.data;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FieldFromGriddedField(// WS Generic Output:
-                           Tensor4& field_out _U_,
+                           Tensor4& field_out,
                            // WS Input:
-                           const Vector& p_grid _U_,
-                           const Vector& lat_true _U_,
-                           const Vector& lon_true _U_,
+                           const Vector& p_grid,
+                           const Vector& lat_true,
+                           const Vector& lon_true,
                            // WS Generic Input:
-                           const GriddedField4& gfraw_in _U_,
+                           const GriddedField4& gfraw_in,
                            const Verbosity&)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    chk_griddedfield_gridname(gfraw_in, 1, "Pressure");
+    chk_if_equal("p_grid", "raw p_grid", p_grid, gfraw_in.get_numeric_grid(1));
+
+    chk_griddedfield_gridname(gfraw_in, 2, "Latitude");
+    chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in.get_numeric_grid(2));
+
+    chk_griddedfield_gridname(gfraw_in, 3, "Longitude");
+    chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in.get_numeric_grid(3));
+
+    field_out = gfraw_in.data;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FieldFromGriddedField(// WS Generic Output:
-                           Tensor4& field_out _U_,
+                           Tensor4& field_out,
                            // WS Input:
-                           const Vector& p_grid _U_,
-                           const Vector& lat_true _U_,
-                           const Vector& lon_true _U_,
+                           const Vector& p_grid,
+                           const Vector& lat_true,
+                           const Vector& lon_true,
                            // WS Generic Input:
-                           const ArrayOfGriddedField3& gfraw_in _U_,
-                           const Verbosity&)
+                           const ArrayOfGriddedField3& gfraw_in,
+                           const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    if (!gfraw_in.nelem())
+    {
+        CREATE_OUT1;
+        out1 << "   Warning: gfraw_in is empty, proceeding anyway\n";
+        field_out.resize(0, 0, 0, 0);
+    }
+
+    field_out.resize(gfraw_in.nelem(), p_grid.nelem(), lat_true.nelem(), lon_true.nelem());
+
+    for (Index i = 0; i < gfraw_in.nelem(); i++)
+    {
+        chk_griddedfield_gridname(gfraw_in[i], 0, "Pressure");
+        chk_if_equal("p_grid", "raw p_grid", p_grid, gfraw_in[i].get_numeric_grid(0));
+
+        chk_griddedfield_gridname(gfraw_in[i], 1, "Latitude");
+        chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in[i].get_numeric_grid(1));
+
+        chk_griddedfield_gridname(gfraw_in[i], 2, "Longitude");
+        chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in[i].get_numeric_grid(2));
+
+        field_out(i, joker, joker, joker) = gfraw_in[i].data;
+    }
 }
 
 

@@ -1,5 +1,14 @@
 2012-07-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-178
+
+	* src/m_atmosphere.cc (FieldFromGriddedField):
+
+	Implement for GriddedField2->Matrix, GriddedField3->Tensor3,
+	GriddedField4->Tensor4 and ArrayOfGriddedField3->Tensor4.
+
+2012-07-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-177
 
 	* src/methods.cc, src/m_atmosphere.cc:
