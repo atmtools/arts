@@ -241,49 +241,108 @@ void FieldFromGriddedField(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonExpand(// WS Generic Output:
-                              GriddedField2& gfraw_out _U_,
+                              GriddedField2& gfraw_out,
                               // WS Generic Input:
-                              const GriddedField2& gfraw_in _U_,
+                              const GriddedField2& gfraw_in,
                               const Verbosity&)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    chk_size("Raw GriddedField", gfraw_in.data, 1, 1);
+
+    chk_griddedfield_gridname(gfraw_in, 0, "Latitude");
+    chk_griddedfield_gridname(gfraw_in, 1, "Longitude");
+
+    Vector v(2);
+    v[0] = -90; v[1] = 90;
+    gfraw_out.set_grid(0, v);
+    gfraw_out.set_grid_name(0, "Latitude");
+
+    v[0] = 0; v[1] = 360;
+    gfraw_out.set_grid(0, v);
+    gfraw_out.set_grid_name(0, "Longitude");
+
+    gfraw_out.resize(2, 2);
+    gfraw_out.data = gfraw_in.data(0, 0);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonExpand(// WS Generic Output:
-                              GriddedField3& gfraw_out _U_,
+                              GriddedField3& gfraw_out,
                               // WS Generic Input:
-                              const GriddedField3& gfraw_in _U_,
+                              const GriddedField3& gfraw_in,
                               const Verbosity&)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    chk_size("Raw GriddedField", gfraw_in.data, gfraw_in.data.npages(), 1, 1);
+
+    chk_griddedfield_gridname(gfraw_in, 1, "Latitude");
+    chk_griddedfield_gridname(gfraw_in, 2, "Longitude");
+
+    gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
+    gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
+
+    Vector v(2);
+    v[0] = -90; v[1] = 90;
+    gfraw_out.set_grid(1, v);
+    gfraw_out.set_grid_name(1, "Latitude");
+
+    v[0] = 0; v[1] = 360;
+    gfraw_out.set_grid(2, v);
+    gfraw_out.set_grid_name(2, "Longitude");
+
+    gfraw_out.resize(gfraw_in.data.npages(), 2, 2);
+
+    for (Index i = 0; i < gfraw_in.data.npages(); i++)
+        gfraw_out.data(i, joker, joker) = gfraw_in.data(i, 0, 0);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonExpand(// WS Generic Output:
-                              GriddedField4& gfraw_out _U_,
+                              GriddedField4& gfraw_out,
                               // WS Generic Input:
-                              const GriddedField4& gfraw_in _U_,
+                              const GriddedField4& gfraw_in,
                               const Verbosity&)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    chk_size("Raw GriddedField", gfraw_in.data,
+             gfraw_in.data.nbooks(), gfraw_in.data.npages(), 1, 1);
+
+    chk_griddedfield_gridname(gfraw_in, 2, "Latitude");
+    chk_griddedfield_gridname(gfraw_in, 3, "Longitude");
+
+    gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
+    gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
+
+    gfraw_out.set_grid(1, gfraw_in.get_numeric_grid(1));
+    gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
+
+    Vector v(2);
+    v[0] = -90; v[1] = 90;
+    gfraw_out.set_grid(2, v);
+    gfraw_out.set_grid_name(2, "Latitude");
+
+    v[0] = 0; v[1] = 360;
+    gfraw_out.set_grid(3, v);
+    gfraw_out.set_grid_name(3, "Longitude");
+
+    gfraw_out.resize(gfraw_in.data.nbooks(), gfraw_in.data.npages(), 2, 2);
+
+    for (Index i = 0; i < gfraw_in.data.nbooks(); i++)
+        for (Index j = 0; j < gfraw_in.data.npages(); j++)
+            gfraw_out.data(i, j, joker, joker) = gfraw_in.data(i, j, 0, 0);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonExpand(// WS Generic Output:
-                              ArrayOfGriddedField3& gfraw_out _U_,
+                              ArrayOfGriddedField3& gfraw_out,
                               // WS Generic Input:
-                              const ArrayOfGriddedField3& gfraw_in _U_,
-                              const Verbosity&)
+                              const ArrayOfGriddedField3& gfraw_in,
+                              const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    gfraw_out.resize(gfraw_in.nelem());
+
+    for (Index i = 0; i < gfraw_in.nelem(); i++)
+        GriddedFieldLatLonExpand(gfraw_out[i], gfraw_in[i], verbosity);
 }
 
 

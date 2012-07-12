@@ -1,5 +1,14 @@
 2012-07-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-179
+
+	* src/m_atmosphere.cc (GriddedFieldLatLonExpand):
+
+	Implement for GriddedField2, GriddedField3, GriddedField4 and
+	ArrayOfGriddedField3.
+
+2012-07-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-178
 
 	* src/m_atmosphere.cc (FieldFromGriddedField):
