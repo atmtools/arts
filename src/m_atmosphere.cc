@@ -351,6 +351,10 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
  This helper function is used by all GriddedFieldLatLonRegrid WSMs to do the common
  calculation of the grid positions and interpolation weights for latitudes and longitudes.
 
+ \param[out]    ing_min       Index in the new grid with first value covered
+                              by the old grid.
+ \param[out]    ing_max       Index in the new grid with last value covered
+                              by the old grid.
  \param[out]    gp_p          Pressure grid positions
  \param[out]    itw           Interpolation weights
  \param[in,out] gfraw_out     Output GriddedField

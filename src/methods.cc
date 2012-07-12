@@ -4110,7 +4110,10 @@ void define_md_data_raw()
       ( NAME( "GriddedFieldLatLonExpand" ),
         DESCRIPTION
         (
-         "FIXME: OLE\n"
+         "Expands the latitude and longitude grid of the GriddedField to\n"
+         "[-90, 90] and [0,360]. Lat and lon input grids must have size 1.\n"
+         "The values from the input data will be duplicated to accomodate\n"
+         "for the larger size of the output field.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -4132,7 +4135,7 @@ void define_md_data_raw()
       ( NAME( "GriddedFieldPRegrid" ),
         DESCRIPTION
         (
-         "FIXME: OLE\n"
+         "Interpolates the input field along the pressure dimension to *p_grid*.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -4158,7 +4161,11 @@ void define_md_data_raw()
       ( NAME( "GriddedFieldLatLonRegrid" ),
         DESCRIPTION
         (
-         "FIXME: OLE\n"
+         "Interpolates the input field along the latitude and longitude dimensions\n"
+         "to *lat_true* and *lon_true*. If the input longitude grid is outside\n"
+         "of *lon_true* it will be shifted left or right by 360.\n"
+         "If the input longitude grid covers 360 degrees, a cyclic interpolation\n"
+         "will be performed.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
