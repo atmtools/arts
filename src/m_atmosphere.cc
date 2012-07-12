@@ -314,22 +314,6 @@ void GriddedFieldPRegridHelper(Index& ing_min,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldPRegrid(// WS Generic Output:
-                              GriddedField2& gfraw_out _U_,
-                              // WS Input:
-                              const Vector& p_grid _U_,
-                              // WS Generic Input:
-                              const GriddedField2& gfraw_in _U_,
-                              const Index& interp_order _U_,
-                              const Index& zeropadding _U_,
-                              const Verbosity&)
-{
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void GriddedFieldPRegrid(// WS Generic Output:
                               GriddedField3& gfraw_out,
                               // WS Input:
                               const Vector& p_grid,
@@ -384,33 +368,82 @@ void GriddedFieldPRegrid(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldPRegrid(// WS Generic Output:
-                              GriddedField4& gfraw_out _U_,
+                              GriddedField4& gfraw_out,
                               // WS Input:
-                              const Vector& p_grid _U_,
+                              const Vector& p_grid,
                               // WS Generic Input:
-                              const GriddedField4& gfraw_in _U_,
-                              const Index& interp_order _U_,
-                              const Index& zeropadding _U_,
-                              const Verbosity&)
+                              const GriddedField4& gfraw_in,
+                              const Index& interp_order,
+                              const Index& zeropadding,
+                              const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    const Index p_grid_index = 1;
+
+    // Resize output GriddedField and copy all non-latitude/longitude grids
+    gfraw_out.resize(gfraw_in.data.nbooks(), p_grid.nelem(),
+                     gfraw_in.data.nrows(), gfraw_in.data.ncols());
+    gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
+    gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
+    gfraw_out.set_grid(2, gfraw_in.get_numeric_grid(2));
+    gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
+    gfraw_out.set_grid(3, gfraw_in.get_numeric_grid(3));
+    gfraw_out.set_grid_name(3, gfraw_in.get_grid_name(3));
+
+    ArrayOfGridPosPoly gp_p;
+    Matrix itw;
+
+    Index ing_min, ing_max;
+
+    GriddedFieldPRegridHelper(ing_min, ing_max,
+                              gp_p, itw, gfraw_out,
+                              gfraw_in, p_grid_index,
+                              p_grid, interp_order, zeropadding,
+                              verbosity);
+
+    // Interpolate:
+    if (ing_max - ing_min < gfraw_in.get_numeric_grid(p_grid_index).nelem())
+    {
+        gfraw_out.data = 0.;
+        for (Index b = 0; b < gfraw_in.data.nbooks(); b++)
+            for (Index i = 0; i < gfraw_in.data.nrows(); i++)
+                for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+                {
+                    chk_interpolation_grids_loose_check_data(ing_min, ing_max,
+                                                             "Raw field to p_grid",
+                                                             gfraw_in.get_numeric_grid(p_grid_index),
+                                                             p_grid, gfraw_in.data(b, joker, i, j));
+                    interp(gfraw_out.data(b, Range(ing_min, ing_max-ing_min), i, j),
+                           itw, gfraw_in.data(b, joker, i, j), gp_p);
+                }
+    }
+    else
+        for (Index b = 0; b < gfraw_in.data.nbooks(); b++)
+            for (Index i = 0; i < gfraw_in.data.nrows(); i++)
+                for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+                    interp(gfraw_out.data(b, joker, i, j),
+                           itw, gfraw_in.data(b, joker, i, j), gp_p);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldPRegrid(// WS Generic Output:
-                              ArrayOfGriddedField3& gfraw_out _U_,
+                              ArrayOfGriddedField3& agfraw_out,
                               // WS Input:
-                              const Vector& p_grid _U_,
+                              const Vector& p_grid,
                               // WS Generic Input:
-                              const ArrayOfGriddedField3& gfraw_in _U_,
-                              const Index& interp_order _U_,
-                              const Index& zeropadding _U_,
-                              const Verbosity&)
+                              const ArrayOfGriddedField3& agfraw_in,
+                              const Index& interp_order,
+                              const Index& zeropadding,
+                              const Verbosity& verbosity)
 {
-  // FIXME: OLE Implement this
-  throw runtime_error("Not yet implemented");
+    agfraw_out.resize(agfraw_in.nelem());
+
+    for (Index i = 0; i < agfraw_in.nelem(); i++)
+    {
+        GriddedFieldPRegrid(agfraw_out[i], p_grid, agfraw_in[i],
+                            interp_order, zeropadding,
+                            verbosity);
+    }
 }
 
 
@@ -539,7 +572,6 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                                    lat_true, lon_true, interp_order,
                                    verbosity);
 
-
     // Interpolate:
     for (Index i = 0; i < gfraw_in.data.npages(); i++)
         interp(gfraw_out.data(i, joker, joker),
@@ -578,10 +610,9 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                                    lat_true, lon_true, interp_order,
                                    verbosity);
 
-
     // Interpolate:
     for (Index i = 0; i < gfraw_in.data.nbooks(); i++)
-        for (Index j = 0; j < gfraw_in.data.npages(); i++)
+        for (Index j = 0; j < gfraw_in.data.npages(); j++)
             interp(gfraw_out.data(i, j, joker, joker),
                    itw, gfraw_in.data(i, j, joker, joker), gp_lat, gp_lon);
 }
@@ -598,34 +629,12 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
-    const Index lat_grid_index = 1;
-    const Index lon_grid_index = 2;
-
     agfraw_out.resize(agfraw_in.nelem());
 
-    for (Index gfi = 0; gfi < agfraw_in.nelem(); gfi++)
+    for (Index i = 0; i < agfraw_in.nelem(); i++)
     {
-        const GriddedField3& gfraw_in = agfraw_in[gfi];
-        GriddedField3& gfraw_out = agfraw_out[gfi];
-
-        // Resize output GriddedField and copy all non-latitude/longitude grids
-        gfraw_out.resize(gfraw_in.data.npages(), lat_true.nelem(), lon_true.nelem());
-        gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
-        gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
-
-        ArrayOfGridPosPoly gp_lat;
-        ArrayOfGridPosPoly gp_lon;
-        Tensor3 itw;
-
-        GriddedFieldLatLonRegridHelper(gp_lat, gp_lon, itw, gfraw_out,
-                                       gfraw_in, lat_grid_index, lon_grid_index,
-                                       lat_true, lon_true, interp_order,
-                                       verbosity);
-
-        // Interpolate:
-        for (Index i = 0; i < gfraw_in.data.npages(); i++)
-            interp(gfraw_out.data(i, joker, joker),
-                   itw, gfraw_in.data(i, joker, joker), gp_lat, gp_lon);
+        GriddedFieldLatLonRegrid(agfraw_out[i], lat_true, lon_true, agfraw_in[i],
+                                 interp_order, verbosity);
     }
 }
 

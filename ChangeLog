@@ -1,3 +1,22 @@
+2012-07-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-177
+
+	* src/methods.cc, src/m_atmosphere.cc:
+
+	No GriddedFieldPRegrid for GriddedField2, of course...
+
+	* src/m_atmosphere.cc:
+
+	Implement GriddedFieldPGrid for GriddedField4 and
+	ArrayOfGriddedField3.
+
+	(GriddedFieldLatLonRegrid):
+
+	Fix typo bug in implementation for GriddedField4.
+
+	Simplify the implementation for ArrayOfGriddedField3.
+
 2012-07-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-176
