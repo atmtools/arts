@@ -154,8 +154,12 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
       << " " << lr.Delta_H2O()
       << " " << lr.Delta_CO2()
       << " " << lr.Delta_H2()
-      << " " << lr.Delta_He();
-      
+      << " " << lr.Delta_He()
+      << " " << lr.Upper_GQuanta()
+      << " " << lr.Lower_GQuanta()
+      << " " << lr.Upper_LQuanta()
+      << " " << lr.Lower_LQuanta();
+
       break;
       
     default:
@@ -2957,9 +2961,11 @@ void convMytranIER(
   mdh=mdh/100;              
 }
 
-ostream& operator<< (ostream &os, const LineshapeSpec &/*lsspec*/)
+ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
 {
-    os << "LineshapeSpec: Output operator not implemented";
-      return os;
+    os << "LineshapeSpec Index: " << lsspec.Ind_ls() << ", NormIndex: " << lsspec.Ind_lsn()
+    << ", Cutoff: " << lsspec.Cutoff() << endl;
+
+    return os;
 }
 

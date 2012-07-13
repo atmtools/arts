@@ -38,10 +38,7 @@
 
 #include "matpackI.h"
 
-void cross( 
-           Vector& c, 
-   ConstVectorView a,
-   ConstVectorView b );
+void cross3(Vector& c, ConstVectorView a, ConstVectorView b);
 
 Numeric fac(const Index n);
 

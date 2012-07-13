@@ -67,10 +67,7 @@ extern const Numeric PI;
     \author Patrick Eriksson
     \date   2012-02-12
 */
-void cross( 
-           Vector& c, 
-   ConstVectorView a,
-   ConstVectorView b )
+void cross3(Vector& c, ConstVectorView a, ConstVectorView b)
 {
   assert( a.nelem() == 3 );
   assert( b.nelem() == 3 );
