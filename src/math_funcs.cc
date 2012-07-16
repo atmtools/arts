@@ -53,7 +53,7 @@ extern const Numeric PI;
  *** The functions (in alphabetical order)
  *****************************************************************************/
 
-//! cross
+//! cross3
 /*!
     Calculates the cross product between two vectors of length 3.
 
@@ -67,7 +67,7 @@ extern const Numeric PI;
     \author Patrick Eriksson
     \date   2012-02-12
 */
-void cross3(Vector& c, ConstVectorView a, ConstVectorView b)
+void cross3(Vector& c, ConstVectorView a, ConstVectorView b )
 {
   assert( a.nelem() == 3 );
   assert( b.nelem() == 3 );

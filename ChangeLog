@@ -1,3 +1,19 @@
+2012-07-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-182
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda): Some further work on
+	including surface tilt in calculation of specular direction. The
+	code has still no practical impact.
+
+	* src/math_funcs.cc (cross3): Renamed the function also in header
+	text.
+
+	* src/ppath.cc (do_gridcell_3d): Now using LACC for comparison
+	between l and ltan. This solved a case that failed. The problem
+	was linked to the fact that the tangent point was exactly on top
+	of a lat/lon crossing. This change fixed it.	
+
 2012-07-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-181

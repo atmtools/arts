@@ -83,7 +83,7 @@ const Numeric   RTOL = 1e-3;
 const Numeric   LATLONTOL = 1e-8;
 
 
-// Accuarcy for algorithms applying a length search
+// Accuarcy for length comparisons.
 //
 const Numeric   LACC = 1e-5;
 
@@ -3918,7 +3918,7 @@ void do_gridcell_3d(
   if( za_start > 90  )
     {
       Numeric ltan = geompath_l_at_r( ppc, r_start );
-      if( l > ltan ) 
+      if( l-ltan > LACC ) 
         { 
           endface = 8; 
           geompath_tanpos_3d( r, lat, lon, l, r_start, lat_start, lon_start, 
@@ -4049,7 +4049,7 @@ void ppath_step_geom_3d(
                 Vector(np,1), Vector(np,1), lat_grid, lon_grid, z_field, 
                 refellipsoid, ip, ilat, ilon, endface, ppc );
 
-  // Make part from a tangent point and up to the starting pressure level.
+  // Make part after a tangent point 
   if( endface == 8 )
     {
       Ppath ppath2;

@@ -245,10 +245,13 @@ void iySurfaceRtpropAgenda(
   chk_rte_pos( atmosphere_dim, rte_pos );
   chk_rte_los( atmosphere_dim, rte_los );
 
-  // Calculate surface normal
-  Vector surface_normal( max(Index(1),atmosphere_dim-1) );
+  // Calculate specular direction
+  Vector specular_los( max(Index(1),atmosphere_dim-1) );
   if( atmosphere_dim == 1 )
-    { surface_normal[0] = 0; }
+    { 
+      chk_if_in_range( "1D rte_los zenith angle", rte_los[0], 90, 180 );
+      specular_los[0] = 180 - rte_los[0];
+    }
   else if( atmosphere_dim == 2 )
     { 
       chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
@@ -260,15 +263,34 @@ void iySurfaceRtpropAgenda(
       Vector itw(2); interpweights( itw, gp_lat );
       const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
                                 + interp( itw, z_surface(joker,0), gp_lat );
-      surface_normal[0] = plevel_angletilt( rv_surface, c1 );
+      specular_los[0] = 180-rte_los[0]-2*plevel_angletilt( rv_surface, c1 );
     }
   else if( atmosphere_dim == 3 )
     { 
-      surface_normal[0] = 0;  
-      surface_normal[1] = 0; 
+      // Calculate surface normal in South-North direction
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
+      chk_interpolation_grids( "Longitude interpolation", lon_grid, rte_pos[2]);
+      GridPos gp_lat, gp_lon;
+      gridpos( gp_lat, lat_grid, rte_pos[1] );
+      gridpos( gp_lon, lon_grid, rte_pos[2] );
+      Numeric c1, c2;
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 0 );
+      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                 + interp( itw, z_surface, gp_lat, gp_lon );
+      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
+      // The same for East-West
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 90 );
+      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
+      // Convert to Cartesian, and determine normal by cross-product
+      Vector tangentSN(3), tangentEW(3), normal(3);
+      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
+      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
+      cross3( normal, tangentSN, tangentEW );
    }
 
-  cout << "surface normal = " << surface_normal << endl;
 
   // Call *surface_rtprop_agenda*
   Matrix    surface_los;
