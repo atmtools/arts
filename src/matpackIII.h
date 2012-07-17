@@ -389,4 +389,6 @@ Numeric debug_tensor3view_get_elem (Tensor3View& tv,
 #endif
 ////////////////////////////////
 
+void mult(Tensor3View A, const ConstVectorView B, const ConstMatrixView C);
+
 #endif    // matpackIII_h

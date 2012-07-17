@@ -1004,3 +1004,30 @@ Numeric debug_tensor3view_get_elem (Tensor3View& tv,
 #endif
 ////////////////////////////////
 
+//! mult Tensor3
+/*!
+    Pointwise multiplication of a vector element and matrix.
+
+    mult(Tensor3& A, const ConstVectorView B, const ConstMatrixView C) for multiplying vector pointwise with matrix.
+        Useful, e.g., for frequency gridded absorption
+        vector multiplied by normalized Stokes extinction
+        matrix to get extinction matrix as a function of frequency.
+
+    \param   A   Out: Tensor3 with N pages, M rows and L columns
+    \param   B   In: A Vector of length N.
+    \param   C   In: A Matrix of size M x L.
+
+    \author Richard Larsson
+    \date   2012-07-17
+*/
+void mult(Tensor3View A,
+          const ConstVectorView B, const ConstMatrixView C){
+    assert(A.npages() == B.nelem());
+    assert(A.nrows()  == C.nrows());
+    assert(A.ncols()  == C.ncols());
+
+    for(Index ii = 0; ii < B.nelem(); ii++){
+        A(ii,joker,joker)  = C;
+        A(ii,joker,joker) *= B[ii];
+    }
+}

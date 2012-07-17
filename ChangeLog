@@ -1,3 +1,13 @@
+2012-07-17  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-183
+
+	* src/matpackIII.{h,cc} (mult): Elementwise vector multiplied
+	with Matrix to create Tensor 3. Useful, e.g., for frequency
+	gridded absorption vector multiplied by normalized Stokes
+	extinction matrix to get extinction matrix as a function 
+	of frequency.
+
 2012-07-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-182
