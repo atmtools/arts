@@ -53,33 +53,6 @@ extern const Numeric PI;
  *** The functions (in alphabetical order)
  *****************************************************************************/
 
-//! cross3
-/*!
-    Calculates the cross product between two vectors of length 3.
-
-    c = a x b, for 3D vectors. The vector c must have length 3 and can not be
-    the same variable as a or b.
-
-    param    c   Out: The cross product vector
-    \param   a   In: A vector of length 3.
-    \param   b   In: A vector of length 3.
-
-    \author Patrick Eriksson
-    \date   2012-02-12
-*/
-void cross3(Vector& c, ConstVectorView a, ConstVectorView b )
-{
-  assert( a.nelem() == 3 );
-  assert( b.nelem() == 3 );
-  assert( c.nelem() == 3 );
-
-  c[0] = a[1]*b[2] - a[2]*b[1];
-  c[1] = a[2]*b[0] - a[0]*b[2];
-  c[2] = a[0]*b[1] - a[1]*b[0];
-}
-
-
-
 //! fac
 /*!
     Calculates the factorial.

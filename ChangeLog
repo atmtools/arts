@@ -1,5 +1,14 @@
 2012-07-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-185
+
+	* src/math_funcs.{cc,h}, src/matpackI.{cc,h} (cross3):
+
+	Promote cross3 to matpackI as it is quite general. Adapt argument
+	types to fit with the other functions.
+
+2012-07-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-184
 
 	* src/methods_aux.cc, src/methods.h (MdRecord):

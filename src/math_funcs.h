@@ -38,8 +38,6 @@
 
 #include "matpackI.h"
 
-void cross3(Vector& c, ConstVectorView a, ConstVectorView b);
-
 Numeric fac(const Index n);
 
 Index integer_div( const Index& x, const Index& y );

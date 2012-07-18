@@ -814,6 +814,10 @@ void mult( MatrixView A,
            const ConstMatrixView& B,
            const ConstMatrixView& C );
 
+void cross3(VectorView c,
+            const ConstVectorView& a,
+            const ConstVectorView& b);
+
 ConstMatrixView transpose(ConstMatrixView m);
 
 MatrixView transpose(MatrixView m);
