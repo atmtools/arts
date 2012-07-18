@@ -39,8 +39,14 @@
 
 
 void surface_specular_los(
-              VectorView   los,
-        const Index&       atmosphere_dim );
+         Vector&     specular_los,
+   ConstVectorView   rte_pos,
+   ConstVectorView   rte_los,
+   const Index&      atmosphere_dim,
+   ConstVectorView   lat_grid,
+   ConstVectorView   lon_grid,
+   ConstVectorView   refellipsoid,
+   ConstMatrixView   z_surface );
 
 
 void surface_specular_R_and_b(

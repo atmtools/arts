@@ -224,10 +224,6 @@ void iySurfaceRtpropAgenda(
     const Tensor3&          iy_transmission,
     const Index&            jacobian_do,
     const Index&            atmosphere_dim,
-    const Vector&           lat_grid,
-    const Vector&           lon_grid,
-    const Vector&           refellipsoid,
-    const Matrix&           z_surface,          
     const Tensor3&          t_field,
     const Tensor3&          z_field,
     const Tensor4&          vmr_field,
@@ -244,53 +240,6 @@ void iySurfaceRtpropAgenda(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_rte_pos( atmosphere_dim, rte_pos );
   chk_rte_los( atmosphere_dim, rte_los );
-
-  // Calculate specular direction
-  Vector specular_los( max(Index(1),atmosphere_dim-1) );
-  if( atmosphere_dim == 1 )
-    { 
-      chk_if_in_range( "1D rte_los zenith angle", rte_los[0], 90, 180 );
-      specular_los[0] = 180 - rte_los[0];
-    }
-  else if( atmosphere_dim == 2 )
-    { 
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
-      GridPos gp_lat;
-      gridpos( gp_lat, lat_grid, rte_pos[1] );
-      Numeric c1;         // Radial slope of the surface
-      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
-                                                          gp_lat, rte_los[0] );
-      Vector itw(2); interpweights( itw, gp_lat );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                + interp( itw, z_surface(joker,0), gp_lat );
-      specular_los[0] = 180-rte_los[0]-2*plevel_angletilt( rv_surface, c1 );
-    }
-  else if( atmosphere_dim == 3 )
-    { 
-      // Calculate surface normal in South-North direction
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
-      chk_interpolation_grids( "Longitude interpolation", lon_grid, rte_pos[2]);
-      GridPos gp_lat, gp_lon;
-      gridpos( gp_lat, lat_grid, rte_pos[1] );
-      gridpos( gp_lon, lon_grid, rte_pos[2] );
-      Numeric c1, c2;
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 0 );
-      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                 + interp( itw, z_surface, gp_lat, gp_lon );
-      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
-      // The same for East-West
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 90 );
-      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
-      // Convert to Cartesian, and determine normal by cross-product
-      Vector tangentSN(3), tangentEW(3), normal(3);
-      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
-      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
-      cross3( normal, tangentSN, tangentEW );
-   }
-
 
   // Call *surface_rtprop_agenda*
   Matrix    surface_los;
@@ -440,6 +389,11 @@ void surfaceFlatRefractiveIndex(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
+    const Vector&    lat_grid,
+    const Vector&    lon_grid,
+    const Vector&    refellipsoid,
+    const Matrix&    z_surface,
+    const Vector&    rte_pos,
     const Vector&    rte_los,
     const Numeric&   surface_skin_t,
     const Matrix&    complex_n,
@@ -470,9 +424,11 @@ void surfaceFlatRefractiveIndex(
   out2 << "  Sets variables to model a flat surface\n";
   out3 << "     surface temperature: " << surface_skin_t << " K.\n";
 
+  Vector specular_los;
+  surface_specular_los( specular_los,  rte_pos, rte_los, atmosphere_dim, 
+                        lat_grid, lon_grid, refellipsoid, z_surface );
   surface_los.resize( 1, rte_los.nelem() );
-  surface_los(0,joker) = rte_los;
-  surface_specular_los( surface_los(0,joker), atmosphere_dim );
+  surface_los(0,joker) = specular_los;
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
@@ -510,6 +466,11 @@ void surfaceFlatReflectivity(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
+    const Vector&    lat_grid,
+    const Vector&    lon_grid,
+    const Vector&    refellipsoid,
+    const Matrix&    z_surface,
+    const Vector&    rte_pos,
     const Vector&    rte_los,
     const Numeric&   surface_skin_t,
     const Tensor3&   surface_reflectivity,
@@ -554,9 +515,11 @@ void surfaceFlatReflectivity(
 
   out2 << "  Sets variables to model a flat surface\n";
 
+  Vector specular_los;
+  surface_specular_los( specular_los,  rte_pos, rte_los, atmosphere_dim, 
+                        lat_grid, lon_grid, refellipsoid, z_surface );
   surface_los.resize( 1, rte_los.nelem() );
-  surface_los(0,joker) = rte_los;
-  surface_specular_los( surface_los(0, joker), atmosphere_dim );
+  surface_los(0,joker) = specular_los;
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
@@ -603,6 +566,11 @@ void surfaceFlatScalarReflectivity(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
+    const Vector&    lat_grid,
+    const Vector&    lon_grid,
+    const Vector&    refellipsoid,
+    const Matrix&    z_surface,
+    const Vector&    rte_pos,
     const Vector&    rte_los,
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
@@ -641,14 +609,14 @@ void surfaceFlatScalarReflectivity(
   out2 << "  Sets variables to model a flat surface\n";
   out3 << "     surface temperature: " << surface_skin_t << " K.\n";
 
+  Vector specular_los;
+  surface_specular_los( specular_los,  rte_pos, rte_los, atmosphere_dim, 
+                        lat_grid, lon_grid, refellipsoid, z_surface );
   surface_los.resize( 1, rte_los.nelem() );
-  surface_los(0,joker) = rte_los;
-  surface_specular_los( surface_los(0, joker), atmosphere_dim );
+  surface_los(0,joker) = specular_los;
 
   surface_emission.resize( nf, stokes_dim );
-  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
-  //surface_rmatrix = 0.0;   Not needed when stojkes_dim forced to be 1
-  //surface_emission = 0.0;
+  surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
 
   Vector b;
   blackbody_radiation_agendaExecute( ws, b, surface_skin_t, f_grid, 
