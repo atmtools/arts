@@ -59,7 +59,7 @@ public:
     mset_method(false),
     magenda_method(false),
     msupergeneric(false),
-    msuppress_header(false),
+    muses_templates(false),
     mpass_workspace(true),
     mpass_wsv_names(false),
     mactual_groups("")
@@ -80,7 +80,7 @@ public:
            const MakeArray<String>&     gindesc,
            bool                         set_method      = false,
            bool                         agenda_method   = false,
-           bool                         suppress_header = false,
+           bool                         uses_templates  = false,
            bool                         pass_workspace  = false,
            bool                         pass_wsv_names  = false
            );
@@ -106,7 +106,7 @@ public:
   bool                     SetMethod()      const { return mset_method; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
-  bool                     SuppressHeader() const { return msuppress_header; }
+  bool                     UsesTemplates()  const { return muses_templates; }
   bool                     PassWorkspace()  const { return mpass_workspace; }
   bool                     PassWsvNames()   const { return mpass_wsv_names; }
   const String&            ActualGroups()   const { return mactual_groups; }
@@ -219,12 +219,12 @@ private:
   */ 
   bool msupergeneric;
 
-  //! Flag, whether method header should be suppressed.
+  //! Flag, whether method implementation relies on templates.
   /*!
     If we want to implement a supergeneric method by a template
-    function, we must not include method headers in auto_md.h.
+    function, we must not generate explicit method headers in auto_md.h.
   */ 
-  bool msuppress_header;
+  bool muses_templates;
 
   //! Flag, whether a workspace reference should be passed to the WSM.
   /*!

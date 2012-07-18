@@ -332,7 +332,7 @@ void write_method_header( ofstream& ofs,
   // vector as generic output, this does not mean that it is
   // the same vector!
 
-  if (mdd.Supergeneric () && mdd.SuppressHeader())
+  if (mdd.Supergeneric() && mdd.UsesTemplates())
     {
       ofs << "template <typename T>" << endl;
     }
@@ -673,7 +673,7 @@ int main()
       for (Index i=0; i<n_md; ++i)
         {
           const MdRecord& mdd = md_data[i];
-          if ( !mdd.SuppressHeader() )
+          if ( !mdd.UsesTemplates() )
             {
               write_method_header_documentation( ofs, mdd );
               write_method_header( ofs, mdd );
@@ -685,7 +685,7 @@ int main()
       for (Index i=0; i<md_data_raw.nelem (); ++i)
         {
           const MdRecord& mdd = md_data_raw[i];
-          if ( mdd.Supergeneric() && mdd.SuppressHeader() )
+          if ( mdd.Supergeneric() && mdd.UsesTemplates() )
             {
               write_method_header_documentation( ofs, mdd );
               write_method_header( ofs, mdd );

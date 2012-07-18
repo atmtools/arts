@@ -1,3 +1,27 @@
+2012-07-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-184
+
+	* src/methods_aux.cc, src/methods.h (MdRecord):
+
+	msuppress_header -> muses_templates
+	SupressHeader() -> UsesTemplates()
+
+	(MdRecord::MdRecord):
+
+	Throw runtime_error if supergeneric methods use type "Any" but
+	muses_templates is set to false.
+
+	* src/make_auto_md_h.cc (write_method_header):
+
+	mdd.SuppressHeader() -> mdd.UsesTemplates()
+
+	* src/methods.cc: SUPPRESSHEADER > USES_TEMPLATES
+
+	(define_md_data_raw): Remove unnecessary arguments from methods that
+	use the defaults anyway such as SETMETHOD(false), AGENDAMETHOD(false),
+	USES_TEMPLATES(false)
+
 2012-07-17  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-183

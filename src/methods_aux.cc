@@ -60,7 +60,7 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<String>&     gindesc,
                    bool                         set_method,
                    bool                         agenda_method,
-                   bool                         suppress_header,
+                   bool                         uses_templates,
                    bool                         pass_workspace,
                    bool                         pass_wsv_names ) :
     mname(            name                ),
@@ -78,7 +78,7 @@ MdRecord::MdRecord(const char                   name[],
     mset_method(      set_method          ),
     magenda_method(   agenda_method       ),
     msupergeneric(    false               ),
-    msuppress_header( suppress_header     ),
+    muses_templates(  uses_templates      ),
     mpass_workspace(  pass_workspace      ),
     mpass_wsv_names(  pass_wsv_names      ),
     mactual_groups(   ""                  )
@@ -134,6 +134,14 @@ MdRecord::MdRecord(const char                   name[],
         {
           mgouttype[j] = types[0];
           mgoutspectype[j].resize(0);
+          if (types[0] == get_wsv_group_id("Any") && !muses_templates)
+          {
+              ostringstream os;
+              os << "WSM " << mname << " takes \"Any\" as input and\n"
+              << "therefore must be implemented as a template function.\n"
+              << "Pass USES_TEMPLATES(true) in methods.cc!";
+              throw runtime_error(os.str());
+          }
         }
       else if (types.nelem() > 1)
         {
@@ -161,6 +169,14 @@ MdRecord::MdRecord(const char                   name[],
         {
           mgintype[j] = get_wsv_group_id (gintype[j]);
           mginspectype[j].resize(0);
+          if (types[0] == get_wsv_group_id("Any") && !muses_templates)
+          {
+              ostringstream os;
+              os << "WSM " << mname << " defines \"Any\" as output and\n"
+              << "therefore must be implemented as a template function.\n"
+              << "Pass USES_TEMPLATES(true) in methods.cc!";
+              throw runtime_error(os.str());
+          }
         }
       else if (types.nelem() > 1)
         {

@@ -50,7 +50,7 @@
 #define GIN_DESC    MakeArray<String>
 #define SETMETHOD(x) x
 #define AGENDAMETHOD(x) x
-#define SUPPRESSHEADER(x) x
+#define USES_TEMPLATES(x) x
 #define PASSWORKSPACE(x) x
 #define PASSWSVNAMES(x) x
 
@@ -1451,7 +1451,7 @@ void define_md_data_raw()
                   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false  ),
-        SUPPRESSHEADER( false ),
+        USES_TEMPLATES( false ),
         PASSWORKSPACE(  true )
         ));
  
@@ -1699,7 +1699,7 @@ void define_md_data_raw()
         GIN_DESC(    "Source agenda." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   true  ),
-        SUPPRESSHEADER( false ),
+        USES_TEMPLATES( false ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
@@ -1734,7 +1734,7 @@ void define_md_data_raw()
         GIN_DESC(),
         SETMETHOD(      false ),
         AGENDAMETHOD(   true  ),
-        SUPPRESSHEADER( false ),
+        USES_TEMPLATES( false ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
@@ -1949,7 +1949,7 @@ void define_md_data_raw()
                   "Where to append. Could be either the \"leading\" or \"trailing\" dimension." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back
@@ -3033,7 +3033,7 @@ void define_md_data_raw()
         GIN_DESC( "Source variable." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
@@ -3060,7 +3060,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to be deleted." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE(  true  ),
         PASSWSVNAMES(   true  )
         ));
@@ -3723,7 +3723,7 @@ void define_md_data_raw()
                   "Position of the element which should be extracted." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back
@@ -3825,10 +3825,7 @@ void define_md_data_raw()
         GIN( "wavelength"),
         GIN_TYPE("Numeric, Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("wavelength [m]" ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        GIN_DESC("wavelength [m]" )
         ));
 
   md_data_raw.push_back     
@@ -4078,10 +4075,7 @@ void define_md_data_raw()
         GIN( "gfield" ),
         GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Raw input gridded field." ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false  )
+        GIN_DESC( "Raw input gridded field." )
         ));
 
   md_data_raw.push_back     
@@ -4124,10 +4118,7 @@ void define_md_data_raw()
         GIN( "gfield_raw_in" ),
         GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Raw input gridded field." ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false  )
+        GIN_DESC( "Raw input gridded field." )
         ));
 
   md_data_raw.push_back
@@ -4150,10 +4141,7 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF, "1", "0" ),
         GIN_DESC( "Raw input gridded field.",
                   "Interpolation order.",
-                  "Apply zero-padding." ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false  )
+                  "Apply zero-padding." )
         ));
 
   md_data_raw.push_back
@@ -4178,10 +4166,7 @@ void define_md_data_raw()
                   "Index" ),
         GIN_DEFAULT( NODEF, "1" ),
         GIN_DESC( "Raw input gridded field.",
-                  "Interpolation order." ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false  )
+                  "Interpolation order." )
         ));
 
   md_data_raw.push_back
@@ -4248,7 +4233,7 @@ void define_md_data_raw()
         GIN_DESC( "Variable to be ignored." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -4872,7 +4857,7 @@ void define_md_data_raw()
                   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( false ),
+        USES_TEMPLATES( false ),
         PASSWORKSPACE(  true  )
         ));
          
@@ -6059,7 +6044,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of elements from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6082,7 +6067,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of columns from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6105,7 +6090,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of rows from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6128,7 +6113,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of pages from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6151,7 +6136,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of books from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6174,7 +6159,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of shelves from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6197,7 +6182,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of vitrines from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6220,7 +6205,7 @@ void define_md_data_raw()
         GIN_DESC(    "Variable to get the number of libraries from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back
@@ -6947,7 +6932,7 @@ void define_md_data_raw()
                      "Output level to use." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back     
@@ -6971,7 +6956,7 @@ void define_md_data_raw()
                   "Output level to use." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE( true  )
         ));
 
@@ -7039,7 +7024,7 @@ void define_md_data_raw()
         GIN_DESC(    "Name of the NetCDF file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
@@ -7068,7 +7053,7 @@ void define_md_data_raw()
         GIN_DESC(    "Name of the XML file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
@@ -7673,7 +7658,7 @@ void define_md_data_raw()
                   "The elements to select (zero based indexing, as always.)" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
  
   md_data_raw.push_back
@@ -9050,7 +9035,7 @@ void define_md_data_raw()
         GIN_DESC(),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )
+        USES_TEMPLATES( true  )
         ));
 
   md_data_raw.push_back
@@ -9644,7 +9629,7 @@ void define_md_data_raw()
                       "Name of the NetCDF file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
@@ -9677,7 +9662,7 @@ void define_md_data_raw()
                      "Name of the XML file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
@@ -9710,7 +9695,7 @@ void define_md_data_raw()
                   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  ),
+        USES_TEMPLATES( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
         ));
