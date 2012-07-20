@@ -1,3 +1,13 @@
+2012-07-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-187
+
+	* src/m_surface.cc (surfaceLambertianSimple): Can now only be used
+	for 1D. Anyhow quite strange for 2D and 3D. And not obvious how to
+	consider surface topography for 3D.
+
+	(This finishes this revision of the surface part.)
+
 2012-07-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-186

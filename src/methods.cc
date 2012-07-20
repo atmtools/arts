@@ -8509,8 +8509,9 @@ void define_md_data_raw()
       ( NAME( "surfaceLambertianSimple" ),
         DESCRIPTION
         (
-        "Creates variables to mimic a Lambertian surface, ignoring the\n"
-        "azimuthal dimension.\n"
+        "Creates variables to mimic a Lambertian surface.\n"
+        "\n"
+        "The method can only be used for 1D calculations.\n"        
         "\n"
         "A Lambertian surface can be characterised solely by its\n"
         "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
@@ -8527,7 +8528,6 @@ void define_md_data_raw()
         "*za_pos*. This variable specifies the fractional distance inside the\n"
         "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"
         "7, 17, ..., 87.\n"
-        "Any azimuth angle in *sensor_los* is set to 0.\n"
         "\n"
         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
         "that the reflection and emission coefficients \"add up to 1\".\n"

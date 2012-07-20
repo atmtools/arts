@@ -655,7 +655,7 @@ void surfaceLambertianSimple(
 {
   const Index   nf = f_grid.nelem();
 
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 1 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
   chk_if_in_range( "za_pos", za_pos, 0, 1 );
@@ -717,7 +717,7 @@ void surfaceLambertianSimple(
       for( Index ip=0; ip<np; ip++ )
         {
           const Numeric w = r * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
-                                         cos(2*DEG2RAD*za_lims[ip+1]) );
+                                        cos(2*DEG2RAD*za_lims[ip+1]) );
           surface_rmatrix(ip,iv,0,0) = w;
         }
 
