@@ -1078,7 +1078,8 @@ void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView old_grid,
                              ConstVectorView new_grid,
                              const Index     order,
-                             const Numeric&  extpolfac )
+                             const Numeric&  extpolfac,
+                             const bool      islog)
 {
   const Index n_old = old_grid.nelem();
 
@@ -1148,9 +1149,12 @@ void chk_interpolation_grids(const String&   which_interpolation,
       os << "The minimum of the new grid must be inside\n"
          << "the original grid. (We allow a bit of extrapolation,\n"
          << "but not so much).\n"
-         << "Minimum of original grid:           " << min(old_grid) << "\n"
-         << "Minimum allowed value for new grid: " << og_min << "\n"
-         << "Actual minimum of new grid:         " << ng_min;
+         << "Minimum of original grid:           " << min(old_grid);
+      if (islog) os << " (" << exp(min(old_grid)) << ")";
+      os << "\nMinimum allowed value for new grid: " << og_min;
+      if (islog) os << " (" << exp(og_min) << ")";
+      os << "\nActual minimum of new grid:         " << ng_min;
+      if (islog) os << " (" << exp(ng_min) << ")";
       throw runtime_error( os.str() );
     }
 
@@ -1159,9 +1163,12 @@ void chk_interpolation_grids(const String&   which_interpolation,
       os << "The maximum of the new grid must be inside\n"
          << "the original grid. (We allow a bit of extrapolation,\n"
          << "but not so much).\n"
-         << "Maximum of original grid:           " << max(old_grid) << "\n"
-         << "Maximum allowed value for new grid: " << og_max << "\n"
-         << "Actual maximum of new grid:         " << ng_max;
+         << "Maximum of original grid:           " << max(old_grid);
+      if (islog) os << " (" << exp(max(old_grid)) << ")";
+      os << "\nMaximum allowed value for new grid: " << og_max;
+      if (islog) os << " (" << exp(og_max) << ")";
+      os << "\nActual maximum of new grid:         " << ng_max;
+      if (islog) os << " (" << exp(ng_max) << ")";
       throw runtime_error( os.str() );
     }
 
@@ -1238,7 +1245,7 @@ void chk_interpolation_pgrids(const String&   which_interpolation,
     transform( logold, log, old_pgrid );
     transform( lognew, log, new_pgrid );
 
-    chk_interpolation_grids(which_interpolation, logold, lognew, order, extpolfac);
+    chk_interpolation_grids(which_interpolation, logold, lognew, order, extpolfac, true);
 }
 
 

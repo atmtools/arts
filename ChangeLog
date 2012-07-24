@@ -1,5 +1,17 @@
 2012-07-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-189
+
+	* src/check_input.{cc,h} (chk_interpolation_grids):
+
+	Add bool flag to indicate that this interpolation is in log space. In
+	case of error, also output the original non-log values for
+	user-friendliness.
+
+	(chk_interpolation_pgrids): Pass true for log flag to chk_i_g.
+
+2012-07-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-188
 
 	* src/m_atmosphere.cc (GriddedFieldLatLonExpand,GriddedFieldPRegrid,
