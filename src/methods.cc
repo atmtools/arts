@@ -4108,6 +4108,7 @@ void define_md_data_raw()
          "[-90, 90] and [0,360]. Lat and lon input grids must have size 1.\n"
          "The values from the input data will be duplicated to accomodate\n"
          "for the larger size of the output field.\n"
+         "gfield_raw_out and gfield_raw_in can be the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -4127,6 +4128,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Interpolates the input field along the pressure dimension to *p_grid*.\n"
+         "gfield_raw_out and gfield_raw_in can be the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -4154,6 +4156,7 @@ void define_md_data_raw()
          "of *lon_true* it will be shifted left or right by 360.\n"
          "If the input longitude grid covers 360 degrees, a cyclic interpolation\n"
          "will be performed.\n"
+         "gfield_raw_out and gfield_raw_in can be the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),

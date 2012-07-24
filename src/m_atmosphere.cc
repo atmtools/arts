@@ -243,9 +243,22 @@ void FieldFromGriddedField(// WS Generic Output:
 void GriddedFieldLatLonExpand(// WS Generic Output:
                               GriddedField2& gfraw_out,
                               // WS Generic Input:
-                              const GriddedField2& gfraw_in,
+                              const GriddedField2& gfraw_in_orig,
                               const Verbosity&)
 {
+    const GriddedField2* gfraw_in_pnt;
+    GriddedField2 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField2 &gfraw_in = *gfraw_in_pnt;
+
     chk_size("Raw GriddedField", gfraw_in.data, 1, 1);
 
     chk_griddedfield_gridname(gfraw_in, 0, "Latitude");
@@ -269,9 +282,22 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 void GriddedFieldLatLonExpand(// WS Generic Output:
                               GriddedField3& gfraw_out,
                               // WS Generic Input:
-                              const GriddedField3& gfraw_in,
+                              const GriddedField3& gfraw_in_orig,
                               const Verbosity&)
 {
+    const GriddedField3* gfraw_in_pnt;
+    GriddedField3 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField3 &gfraw_in = *gfraw_in_pnt;
+
     chk_size("Raw GriddedField", gfraw_in.data, gfraw_in.data.npages(), 1, 1);
 
     chk_griddedfield_gridname(gfraw_in, 1, "Latitude");
@@ -300,9 +326,22 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 void GriddedFieldLatLonExpand(// WS Generic Output:
                               GriddedField4& gfraw_out,
                               // WS Generic Input:
-                              const GriddedField4& gfraw_in,
+                              const GriddedField4& gfraw_in_orig,
                               const Verbosity&)
 {
+    const GriddedField4* gfraw_in_pnt;
+    GriddedField4 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField4 &gfraw_in = *gfraw_in_pnt;
+
     chk_size("Raw GriddedField", gfraw_in.data,
              gfraw_in.data.nbooks(), gfraw_in.data.npages(), 1, 1);
 
@@ -422,11 +461,24 @@ void GriddedFieldPRegrid(// WS Generic Output:
                               // WS Input:
                               const Vector& p_grid,
                               // WS Generic Input:
-                              const GriddedField3& gfraw_in,
+                              const GriddedField3& gfraw_in_orig,
                               const Index& interp_order,
                               const Index& zeropadding,
                               const Verbosity& verbosity)
 {
+    const GriddedField3* gfraw_in_pnt;
+    GriddedField3 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField3 &gfraw_in = *gfraw_in_pnt;
+
     const Index p_grid_index = 0;
 
     // Resize output GriddedField and copy all non-latitude/longitude grids
@@ -476,11 +528,24 @@ void GriddedFieldPRegrid(// WS Generic Output:
                               // WS Input:
                               const Vector& p_grid,
                               // WS Generic Input:
-                              const GriddedField4& gfraw_in,
+                              const GriddedField4& gfraw_in_orig,
                               const Index& interp_order,
                               const Index& zeropadding,
                               const Verbosity& verbosity)
 {
+    const GriddedField4* gfraw_in_pnt;
+    GriddedField4 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField4 &gfraw_in = *gfraw_in_pnt;
+
     const Index p_grid_index = 1;
 
     // Resize output GriddedField and copy all non-latitude/longitude grids
@@ -624,10 +689,23 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Vector& lat_true,
                               const Vector& lon_true,
                               // WS Generic Input:
-                              const GriddedField2& gfraw_in,
+                              const GriddedField2& gfraw_in_orig,
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
+    const GriddedField2* gfraw_in_pnt;
+    GriddedField2 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField2 &gfraw_in = *gfraw_in_pnt;
+
     const Index lat_grid_index = 0;
     const Index lon_grid_index = 1;
 
@@ -655,10 +733,23 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Vector& lat_true,
                               const Vector& lon_true,
                               // WS Generic Input:
-                              const GriddedField3& gfraw_in,
+                              const GriddedField3& gfraw_in_orig,
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
+    const GriddedField3* gfraw_in_pnt;
+    GriddedField3 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField3 &gfraw_in = *gfraw_in_pnt;
+
     const Index lat_grid_index = 1;
     const Index lon_grid_index = 2;
 
@@ -690,10 +781,23 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                               const Vector& lat_true,
                               const Vector& lon_true,
                               // WS Generic Input:
-                              const GriddedField4& gfraw_in,
+                              const GriddedField4& gfraw_in_orig,
                               const Index& interp_order,
                               const Verbosity& verbosity)
 {
+    const GriddedField4* gfraw_in_pnt;
+    GriddedField4 gfraw_in_copy;
+
+    if (&gfraw_in_orig == &gfraw_out)
+    {
+        gfraw_in_copy = gfraw_in_orig;
+        gfraw_in_pnt = &gfraw_in_copy;
+    }
+    else
+        gfraw_in_pnt = &gfraw_in_orig;
+
+    const GriddedField4 &gfraw_in = *gfraw_in_pnt;
+
     const Index lat_grid_index = 2;
     const Index lon_grid_index = 3;
 
