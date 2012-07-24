@@ -194,15 +194,22 @@ matrix_exp(MatrixView F,
            ConstMatrixView A,
            const Index& q)
 {
-  Numeric A_norm_inf, c;
-  Numeric j;
-  const Index n = A.ncols(); 
-  Matrix D(n,n), N(n,n), X(n,n), cX(n,n,0.0), B(n,n,0.0);
-  Vector N_col_vec(n,0.), F_col_vec(n,0.);
+  const Index n = A.ncols();
 
-  /*Check if A and F are a quadratic and of the same dimension. */
+  /* Check if A and F are a quadratic and of the same dimension. */
   assert(is_size(A,n,n));
   assert(is_size(F,n,n));
+
+  if (n == 1)
+    {
+      F(0, 0) = exp(A(0, 0));
+      return;
+    }
+
+  Numeric A_norm_inf, c;
+  Numeric j;
+  Matrix D(n,n), N(n,n), X(n,n), cX(n,n,0.0), B(n,n,0.0);
+  Vector N_col_vec(n,0.), F_col_vec(n,0.);
 
   A_norm_inf = norm_inf(A);
 

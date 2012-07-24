@@ -51,7 +51,7 @@ lubacksub(VectorView x,
 void 
 matrix_exp(MatrixView F,
            ConstMatrixView A, 
-           const Index& q);
+           const Index& q=10);
 
 
 // Maximum absolute row sum norm 
