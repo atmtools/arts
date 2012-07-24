@@ -2260,15 +2260,6 @@ void InterpAtmFieldToRtePos(
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   chk_atm_field( "input argument *field*", field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
-  chk_rte_pos( atmosphere_dim, pos );
-  //
-  chk_interpolation_grids( "Pressure interpolation", p_grid, pos[0] );
-  if( atmosphere_dim >= 2 )
-    {
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, pos[1] );
-      if( atmosphere_dim == 3 )
-        chk_interpolation_grids( "Longitude interpolation", lon_grid, pos[2] );
-    }
 
   // Determine grid positions
   GridPos gp_p, gp_lat, gp_lon;

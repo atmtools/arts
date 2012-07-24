@@ -695,6 +695,8 @@ void p2gridpos_poly( ArrayOfGridPosPoly& gp,
 
    Handles 1D, 2D and 3D (gp_lat and gp_lon untouched if not used).
 
+   Note that the function performs several checks of runtime error type.
+
    \param   gp_p        Output: Pressure grid position.
    \param   gp_lat      Output: Latitude grid position.
    \param   gp_lon      Output: Longitude grid position.
@@ -719,10 +721,14 @@ void rte_pos2gridpos(
    ConstTensor3View   z_field,
    ConstVectorView    rte_pos )
 {
-  assert( rte_pos.nelem() == atmosphere_dim );
+  chk_rte_pos( atmosphere_dim, rte_pos );
 
   if( atmosphere_dim == 1 )
-    { gridpos( gp_p, z_field(joker,0,0), rte_pos[0] ); }
+    { 
+      chk_interpolation_grids( "Altitude interpolation", z_field(joker,0,0), 
+                                                                  rte_pos[0] );
+      gridpos( gp_p, z_field(joker,0,0), rte_pos[0] ); 
+    }
   else
     {
       // Determine z at lat/lon (z_grid) by blue interpolation
@@ -732,6 +738,7 @@ void rte_pos2gridpos(
       //
       gridpos_1to1( agp_z, p_grid );
       //
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
       gridpos( gp_lat, lat_grid, rte_pos[1] );
 
       if( atmosphere_dim == 2 )
@@ -744,6 +751,8 @@ void rte_pos2gridpos(
         }
       else
         {
+          chk_interpolation_grids( "Longitude interpolation", lon_grid, 
+                                                                  rte_pos[2] );
           gridpos( gp_lon, lon_grid, rte_pos[2] );
           ArrayOfGridPos agp_lon(np);
           for( Index i=0; i<np; i++ )
@@ -758,6 +767,7 @@ void rte_pos2gridpos(
         }
 
       // And use z_grid to get gp_p (gp_al and gp_lon determined above)
+      chk_interpolation_grids( "Altitude interpolation", z_grid, rte_pos[0] );
       gridpos( gp_p, z_grid, rte_pos[0] );
     }
 }
