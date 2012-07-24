@@ -2286,18 +2286,37 @@ void InterpAtmFieldToRtePos(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void p_gridFromAtmRaw(//WS Output
+void p_gridFromZRaw(//WS Output
                       Vector& p_grid,
                       //WS Input
                       const GriddedField3& z_field_raw,
                       const Verbosity&)
 {
-  
-  Index i=0; 
-  while ( z_field_raw.data(i,0,0)< 0.0 ) i++;
-
   Vector p_grid_raw=z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  p_grid=p_grid_raw[Range(i,p_grid_raw.nelem()-1)];
+
+  Index i;
+  if (is_increasing(z_field_raw.data(joker,0,0)))
+    {
+      i=0;
+  // not clear, why we exclude negative z (but that is prob curently an ARTS
+  // convention... - SHOULD BE CHECKED & FIXED!
+      while ( z_field_raw.data(i,0,0)< 0.0 ) i++;
+      p_grid=p_grid_raw[Range(i,joker)];
+    }
+  else if (is_decreasing(z_field_raw.data(joker,0,0)))
+    {
+      i=z_field_raw.data.npages()-1;
+  // not clear, why we exclude negative z (but that is prob curently an ARTS
+  // convention... - SHOULD BE CHECKED & FIXED!
+      while ( z_field_raw.data(i,0,0)< 0.0 ) i--;
+      p_grid=p_grid_raw[Range(i,joker,-1)];
+    }
+  else
+    {
+       ostringstream os;
+       os << "z_field_raw needs to be monotonous, but this is not the case.\n";
+       throw runtime_error( os.str() );
+    }
 }
 
 

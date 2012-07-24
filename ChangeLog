@@ -1,3 +1,26 @@
+2012-07-24  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-191
+
+	* src/m_abs.cc:
+	- Renamed abs_linesReadFromHitran -> abs_linesReadFromHitranPre2004,
+	abs_linesReadFromHitran2004 -> abs_linesReadFromHitran
+	- (abs_speciesDefineAllInScenario):
+	Allow file extensions [.xml,.xml.gz,.gz]. Search also in include paths.
+
+	* src/m_atmosphere.cc:
+	- Renamed p_gridFromAtmRaw -> p_gridFromZRaw (as z_field_raw is the
+	actual data p_grid is expected to be taken from). Bugfixed (extract
+	correct extend) and made robust (also allow z_field_raw with decreasing
+	z values). open issue: why are levels with z<0 removed, is that
+	necessary for any module of ARTS?
+
+	* src/methods.cc: Updated/corrected according to above.
+
+	* src/workspace.cc: spell fixes reciever->receiver.
+
+	* doc/uguide/gridded_field_gridnames.txt: some additions.
+
 2012-07-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-190

@@ -556,13 +556,13 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_linesReadFromHitran" ),
+      ( NAME( "abs_linesReadFromHitranPre2004" ),
         DESCRIPTION
         (
          "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
          "the given frequency range. Otherwise a runtime error will be\n"
-         "thrown. For HITRAN 2004 line data use the workspace method\n"
-         "*abs_linesReadFromHitran2004*.\n"
+         "thrown. For HITRAN 2004 and later line data use the workspace\n"
+         "method *abs_linesReadFromHitran*.\n"
          "\n"
          "Please note that all lines must correspond to legal\n"
          "species / isotope combinations and that the line data\n"
@@ -586,11 +586,11 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_linesReadFromHitran2004" ),
+      ( NAME( "abs_linesReadFromHitran" ),
         DESCRIPTION
         (
-         "Read all the lines from a HITRAN 2004 catalogue file in the\n"
-         "given frequency range. Otherwise a runtime error is thrown.\n"
+         "Read all the lines from HITRAN 2004 and later catalogue file in\n"
+         "the given frequency range. Otherwise a runtime error is thrown.\n"
          "\n"
          "Records of molecules unknown to ARTS are ignored but a\n"
          "warning is issued. In particular this happens for CH3OH\n"
@@ -602,7 +602,7 @@ void define_md_data_raw()
          "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
          "\n"
          "For data in the Hitran 1986-2001 format use the workspace\n"
-         "method: abs_linesReadFromHitran\n"
+         "method: abs_linesReadFromHitranPre2004\n"
          ),
         AUTHORS( "Hermann Berg", "Thomas Kuhn" ),
         OUT( "abs_lines" ),
@@ -1463,7 +1463,7 @@ void define_md_data_raw()
          "Define one tag group for each species known to ARTS and included in an\n"
          "atmospheric scenario.\n"
          "\n"
-         "You can use this as an alternative to tgsDefine if you want to make an\n"
+         "You can use this as an alternative to *SpeciesSet* if you want to make an\n"
          "absorption calculation that is as complete as possible. The method\n"
          "goes through all defined species and tries to open the VMR file. If\n"
          "this works the tag is included, otherwise it is skipped.\n"
@@ -6964,11 +6964,12 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "p_gridFromAtmRaw" ),
+      ( NAME( "p_gridFromZRaw" ),
         DESCRIPTION
         (
-         "Sets *p_grid* according to input atmosphere defined using *AtmRawRead*.\n"
-         "Only pressure values corresponding to altitudes >= 0 are extracted.\n"
+         "Sets *p_grid* according to input atmosphere's raw z_field, derived\n"
+         "e.g. from *AtmRawRead*.\n"
+         "Attention: only pressure values for altitudes >= 0 are extracted.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "p_grid" ),
@@ -6987,7 +6988,7 @@ void define_md_data_raw()
       ( NAME( "p_gridFromGasAbsLookup" ),
         DESCRIPTION
         (
-         "Sets *p_grid* to the frequency grid of *abs_lookup*.\n"
+         "Sets *p_grid* to the pressure grid of *abs_lookup*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "p_grid" ),

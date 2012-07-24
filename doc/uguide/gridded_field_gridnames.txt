@@ -8,3 +8,11 @@ Latitude        Latitude dimension for atmospheric fields.
 Longitude       Longitude dimension for atmospheric fields.
 Pressure        Pressure dimension for atmospheric fields.
 
+
+
+% Data field names
+% mere suggestions and not tested anywhere in ARTS
+Temperature     Temperature field
+VMR             Volume mixing ratio field
+Altitude        Altitude/height field
+

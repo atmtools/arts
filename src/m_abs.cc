@@ -46,6 +46,7 @@
 #include "make_vector.h"
 #include "check_input.h"
 #include "xml_io.h"
+#include "parameters.h"
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
@@ -97,7 +98,8 @@ void abs_lines_per_speciesSetEmpty(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesReadFromHitran(// WS Output:
+void abs_linesReadFromHitranPre2004(
+                             // WS Output:
                              ArrayOfLineRecord& abs_lines,
                              // Control Parameters:
                              const String& filename,
@@ -141,13 +143,13 @@ void abs_linesReadFromHitran(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesReadFromHitran2004(// WS Output:
-                                 ArrayOfLineRecord& abs_lines,
-                                 // Control Parameters:
-                                 const String& filename,
-                                 const Numeric& fmin,
-                                 const Numeric& fmax,
-                                 const Verbosity& verbosity)
+void abs_linesReadFromHitran(// WS Output:
+                             ArrayOfLineRecord& abs_lines,
+                             // Control Parameters:
+                             const String& filename,
+                             const Numeric& fmin,
+                             const Numeric& fmax,
+                             const Verbosity& verbosity)
 {
   CREATE_OUT2;
   
@@ -616,11 +618,11 @@ void abs_lines_per_speciesReadFromCatalogues(// WS Output:
 
       if ( "HITRAN96"==real_formats[i] )
         {
-          abs_linesReadFromHitran( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
+          abs_linesReadFromHitranPre2004( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
         }
       else if ( "HITRAN04"==real_formats[i] )
         {
-          abs_linesReadFromHitran2004( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
+          abs_linesReadFromHitran( abs_lines, real_filenames[i], real_fmin[i], real_fmax[i], verbosity );
         }
       else if ( "MYTRAN2"==real_formats[i] )
         {
@@ -953,22 +955,28 @@ void abs_speciesDefineAllInScenario(// WS Output:
 
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
+  bool found_file;
+
+  // Command line parameters which give us the include search path.
+  extern const Parameters parameters;
+  ArrayOfString allpaths = parameters.includepath;
+  allpaths.insert(allpaths.end(),
+                  parameters.datapath.begin(),
+                  parameters.datapath.end());
 
   tgs.resize(0);
 
   for ( Index i=0; i<species_data.nelem(); ++i )
     {
       const String specname = species_data[i].Name();
-      const String filename = basename + "." + specname + ".xml";
+      String filename = basename + "." + specname;
 
-      // Try to open VMR file:
-      try
+      found_file = find_file(filename, ".xml", allpaths);
+      if (!found_file) found_file = find_file(filename, ".xml.gz", allpaths);
+      if (!found_file) found_file = find_file(filename, ".gz", allpaths);
+
+      if (found_file)
         {
-          ifstream file;
-          open_input_file(file, filename);
-
-          // Ok, if we get here the file was found.
-
           // Add to included list:
           included.push_back(specname);
 
@@ -983,9 +991,9 @@ void abs_speciesDefineAllInScenario(// WS Output:
           // Add this tag group to tgs:
           tgs.push_back(this_group);
         }
-      catch (runtime_error)
+      else
         {
-          // Ok, the file for the species could not be found.
+          // The file for the species could not be found.
           excluded.push_back(specname);
         }
     }

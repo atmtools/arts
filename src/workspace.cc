@@ -894,7 +894,7 @@ void Workspace::define_wsv_data()
        DESCRIPTION
        (
         "As *backend_channel_response* but describes an instrument with\n"
-        "muliple mixer/reciever chains.\n"
+        "muliple mixer/receiver chains.\n"
         "\n"
         "See *f_backend_multi* for when to use this variable and size\n"
         "constraints.\n"
@@ -1468,13 +1468,13 @@ void Workspace::define_wsv_data()
        DESCRIPTION
        (
         "As *f_backend* but describes an instrument with muliple\n"
-        "mixer/reciever chains.\n"
+        "mixer/receiver chains.\n"
         "\n"
-        "This variable is needed when e.g. the reciever has several mixers\n"
-        "or the the reciever measures several polarisation and the channels\n"
+        "This variable is needed when e.g. the receiver has several mixers\n"
+        "or the the receiver measures several polarisation and the channels\n"
         "differ in position or response function. \n"
         "\n"
-        "The array has one element for each \"reciever chain\". The array\n"
+        "The array has one element for each \"receiver chain\". The array\n"
         "length must match *backend_channel_response_multi*, and possibly\n"
         "also *lo_multi*.\n"
         "\n"
@@ -3990,7 +3990,7 @@ void Workspace::define_wsv_data()
     ( NAME( "sideband_mode_multi" ),
       DESCRIPTION
       (
-        "Description of target sideband for a multiple LO reciever.\n"
+        "Description of target sideband for a multiple LO receiver.\n"
         "\n"
         "As *sideband_mode* but handles an instrument with several LO chains.\n"
         "See further *lo_multi* and *sideband_response_multi*. This length of\n"
@@ -4258,7 +4258,7 @@ void Workspace::define_wsv_data()
        "Transmitter positions.\n"
        "\n"
        "Used for radio link calculations and gives then the position of the\n"
-       "transmitting device. The corresponding positions of the reciever are\n"
+       "transmitting device. The corresponding positions of the receiver are\n"
        "given by *sensor_pos. The number of rows in *transitter_pos* and\n"
        "*sensor_pos* must be equal.\n"
        "\n" 
