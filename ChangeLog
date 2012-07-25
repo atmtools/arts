@@ -1,5 +1,20 @@
 2012-07-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-194
+
+	* check_input.{h,cc}:
+
+	(chk_interpolation_grids_loose),
+	(chk_interpolation_grids_loose_no_data_check):
+
+	No extrapolation for zeropadded case.
+
+	* src/m_atmosphere.cc (GriddedFieldPRegridHelper,GriddedFieldPRegrid):
+
+	Fix grid length off-by-one bug.
+
+2012-07-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-193
 
 	* src/abs_species_tags.{cc,h} (SpeciesTag):

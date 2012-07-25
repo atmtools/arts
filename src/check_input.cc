@@ -820,11 +820,10 @@ void chk_interpolation_grids_loose(Index&          ing_min,
                                    ConstVectorView old_grid,
                                    ConstVectorView new_grid,
                                    ConstVectorView data,
-                                   const Index     order,
-                                   const Numeric&  extpolfac )
+                                   const Index     order)
 {
     chk_interpolation_grids_loose_no_data_check(ing_min, ing_max, which_interpolation,
-                                                old_grid, new_grid, order, extpolfac);
+                                                old_grid, new_grid, order);
 
     chk_interpolation_grids_loose_check_data(ing_min, ing_max, which_interpolation,
                                              old_grid, new_grid, data);
@@ -860,8 +859,7 @@ void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
                                                  const String&   which_interpolation,
                                                  ConstVectorView old_grid,
                                                  ConstVectorView new_grid,
-                                                 const Index     order,
-                                                 const Numeric&  extpolfac )
+                                                 const Index     order)
 {
   const Index n_old = old_grid.nelem();
   
@@ -897,10 +895,8 @@ void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
     }
     
     // Limits of extrapolation. 
-    og_min = old_grid[0] - 
-    extpolfac * ( old_grid[1] - old_grid[0] );
-    og_max = old_grid[n_old-1] + 
-    extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    og_min = old_grid[0];
+    og_max = old_grid[n_old-1];
   }
   else
   {
@@ -915,10 +911,8 @@ void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
     
     // The max is now the first point, the min the last point!
     // I think the sign is right here...
-    og_max = old_grid[0] - 
-    extpolfac * ( old_grid[1] - old_grid[0] );
-    og_min = old_grid[n_old-1] + 
-    extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    og_max = old_grid[0];
+    og_min = old_grid[n_old-1];
   }
   
   // Min and max of new grid:
@@ -979,8 +973,7 @@ void chk_interpolation_pgrids_loose_no_data_check(Index&          ing_min,
                                                   const String&   which_interpolation,
                                                   ConstVectorView old_pgrid,
                                                   ConstVectorView new_pgrid,
-                                                  const Index     order,
-                                                  const Numeric&  extpolfac )
+                                                  const Index     order)
 {
     // Local variable to store log of the pressure grids
     Vector logold( old_pgrid.nelem() );
@@ -992,7 +985,7 @@ void chk_interpolation_pgrids_loose_no_data_check(Index&          ing_min,
     chk_interpolation_grids_loose_no_data_check(ing_min, ing_max,
                                                 which_interpolation,
                                                 logold, lognew,
-                                                order, extpolfac);
+                                                order);
 }
 
 
@@ -1023,7 +1016,7 @@ void chk_interpolation_grids_loose_check_data(Index&          ing_min,
                                               const String&   which_interpolation,
                                               ConstVectorView old_grid,
                                               ConstVectorView new_grid,
-                                              ConstVectorView data )
+                                              ConstVectorView data)
 {
   ostringstream os;
   os << "There is a problem with the grids for the\n"
@@ -1042,14 +1035,18 @@ void chk_interpolation_grids_loose_check_data(Index&          ing_min,
   {
     os << "\nThe new grid is not fully inside the original grid.\n"
     << "This is allowed if the corresponding boundary value of raw data is 0.\n"
+    << "New grid point: " << new_grid[ing_min] << "\n"
+    << "Old grid point: " << old_grid[iog_min] << "\n"
     << "Boundary value: " << data[iog_min];
     throw runtime_error(os.str());
   }
   
   if (ing_max < new_grid.nelem()-1 && data[iog_max] != 0)
   {
-    os << "\nThe new grid is not fully inside the original grid.\n"
+    os << "\nThe the new grid is not fully inside the original grid.\n"
     << "This is allowed if the corresponding boundary value of raw data is 0.\n"
+    << "New grid point: " << new_grid[ing_max] << "\n"
+    << "Old grid point: " << old_grid[iog_max] << "\n"
     << "Boundary value: " << data[iog_max];
     throw runtime_error(os.str());
   }

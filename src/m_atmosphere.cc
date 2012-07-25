@@ -437,13 +437,13 @@ void GriddedFieldPRegridHelper(Index& ing_min,
     else
     {
         ing_min = 0;
-        ing_max = p_grid.nelem();
+        ing_max = p_grid.nelem()-1;
         chk_interpolation_pgrids("Raw field to p_grid",
                                  in_p_grid,
                                  p_grid,
                                  interp_order);
     }
-    Index nelem_in_range = ing_max - ing_min;
+    Index nelem_in_range = ing_max - ing_min + 1;
 
     // Calculate grid positions:
     gp_p.resize(nelem_in_range);
@@ -510,7 +510,7 @@ void GriddedFieldPRegrid(// WS Generic Output:
                                                          "Raw field to p_grid",
                                                          gfraw_in.get_numeric_grid(p_grid_index),
                                                          p_grid, gfraw_in.data(joker, i, j));
-                interp(gfraw_out.data(Range(ing_min, ing_max-ing_min), i, j),
+                interp(gfraw_out.data(Range(ing_min, ing_max-ing_min+1), i, j),
                        itw, gfraw_in.data(joker, i, j), gp_p);
             }
     }
