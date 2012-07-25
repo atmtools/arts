@@ -48,7 +48,8 @@ public:
   SpeciesTag() : mspecies(-1),
                  misotope(-1),
                  mlf(0.),
-                 muf(0.) 
+                 muf(0.),
+                 mzeeman(false)
   { /* Nothing to be done here. */ }
 
   // Documentation is with implementation.
@@ -72,6 +73,10 @@ public:
   /** The upper line center frequency in Hz:
       If this is <0 it means no upper limit. */
   Numeric Uf() const { return muf; }
+
+  /** Zeeman flag:
+      If true, calculate Zeeman for this tag. */
+  bool Zeeman() const { return mzeeman; }
 
   //! Comparison operator for species tags.
   /*!
@@ -113,6 +118,10 @@ private:
   //! The upper line center frequency in Hz.
   /*! If this is <0 it means no upper limit. */
   Numeric muf;
+
+  //! Zeeman flag.
+  /*! True if Zeeman calculation should be done for this tag. */
+  bool mzeeman;
 };
 
 

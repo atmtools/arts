@@ -57,6 +57,9 @@ SpeciesTag::SpeciesTag(String def)
   mlf = -1;
   muf = -1;
 
+  // Turn Zeeman off by default
+  mzeeman = false;
+
   // We cannot set a default value for the isotope, because the
   // default should be `ALL' and the value for `ALL' depends on the
   // species. 
@@ -103,12 +106,32 @@ SpeciesTag::SpeciesTag(String def)
       return;
     }
     
-  // Extract the isotope name:
+  // Extract the isotope name/Zeeman flag:
   n    = def.find('-');    // find the '-'
   if (n != def.npos )
     {
-      isoname = def.substr(0,n);          // Extract before '-'
+      isoname = def.substr(0,n);    // Extract before '-'
       def.erase(0,n+1);             // Remove from def
+
+      if ("Z" == isoname)
+        {
+          mzeeman = true;
+          // Zeeman flag was present, now extract the isotope name:
+          n    = def.find('-');    // find the '-'
+          if (n != def.npos )
+            {
+              isoname = def.substr(0,n);    // Extract before '-'
+              def.erase(0,n+1);             // Remove from def
+            }
+          else
+            {
+              // n==def.npos means that def does not contain a '-'. In that
+              // case we assume that it contains just the isotope name and
+              // nothing else.
+              isoname = def;
+              def  = "";
+            }
+        }
     }
   else
     {
@@ -235,6 +258,9 @@ String SpeciesTag::Name() const
 
   // First the species name:
   os << spr.Name() << "-";
+
+  // Zeeman flag.
+  if (mzeeman) os << "Z-";
 
   // Now the isotope. Can be "nl", a single isotope or ALL.
   if ( misotope == spr.Isotope().nelem() )

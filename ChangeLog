@@ -1,3 +1,16 @@
+2012-07-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-193
+
+	* src/abs_species_tags.{cc,h} (SpeciesTag):
+
+	Add Zeeman flag. To turn on Zeeman calculation for a species, "-Z"
+	can be appended to it's name: "O2-Z" or "O2-Z-66".
+
+	(SpeciesTag::Name): Add Z to name if Zeeman is true.
+
+	* src/methods.cc: Update doc for SpeciesSet.
+
 2012-07-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-192
