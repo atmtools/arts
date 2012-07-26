@@ -1,3 +1,13 @@
+2012-07-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-195
+
+	* src/m_atmosphere.cc (GriddedFieldPRegrid):
+
+	Turn off 0 boundary condition for zeropadding.
+
+	Fix bug in condition for selection of interpolation loop.
+
 2012-07-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-194

@@ -500,16 +500,16 @@ void GriddedFieldPRegrid(// WS Generic Output:
                               verbosity);
 
     // Interpolate:
-    if (ing_max - ing_min < gfraw_in.get_numeric_grid(p_grid_index).nelem())
+    if (ing_max - ing_min + 1 != p_grid.nelem())
     {
         gfraw_out.data = 0.;
         for (Index i = 0; i < gfraw_in.data.nrows(); i++)
             for (Index j = 0; j < gfraw_in.data.ncols(); j++)
             {
-                chk_interpolation_grids_loose_check_data(ing_min, ing_max,
-                                                         "Raw field to p_grid",
-                                                         gfraw_in.get_numeric_grid(p_grid_index),
-                                                         p_grid, gfraw_in.data(joker, i, j));
+//                chk_interpolation_grids_loose_check_data(ing_min, ing_max,
+//                                                         "Raw field to p_grid",
+//                                                         gfraw_in.get_numeric_grid(p_grid_index),
+//                                                         p_grid, gfraw_in.data(joker, i, j));
                 interp(gfraw_out.data(Range(ing_min, ing_max-ing_min+1), i, j),
                        itw, gfraw_in.data(joker, i, j), gp_p);
             }
@@ -570,17 +570,17 @@ void GriddedFieldPRegrid(// WS Generic Output:
                               verbosity);
 
     // Interpolate:
-    if (ing_max - ing_min < gfraw_in.get_numeric_grid(p_grid_index).nelem())
+    if (ing_max - ing_min + 1 != p_grid.nelem())
     {
         gfraw_out.data = 0.;
         for (Index b = 0; b < gfraw_in.data.nbooks(); b++)
             for (Index i = 0; i < gfraw_in.data.nrows(); i++)
                 for (Index j = 0; j < gfraw_in.data.ncols(); j++)
                 {
-                    chk_interpolation_grids_loose_check_data(ing_min, ing_max,
-                                                             "Raw field to p_grid",
-                                                             gfraw_in.get_numeric_grid(p_grid_index),
-                                                             p_grid, gfraw_in.data(b, joker, i, j));
+//                    chk_interpolation_grids_loose_check_data(ing_min, ing_max,
+//                                                             "Raw field to p_grid",
+//                                                             gfraw_in.get_numeric_grid(p_grid_index),
+//                                                             p_grid, gfraw_in.data(b, joker, i, j));
                     interp(gfraw_out.data(b, Range(ing_min, ing_max-ing_min), i, j),
                            itw, gfraw_in.data(b, joker, i, j), gp_p);
                 }
