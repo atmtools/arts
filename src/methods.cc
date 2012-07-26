@@ -4071,7 +4071,7 @@ void define_md_data_raw()
         GOUT( "field" ),
         GOUT_TYPE( "Matrix, Tensor3, Tensor4, Tensor4" ),
         GOUT_DESC( "Extracted field." ),
-        IN( "p_grid", "lat_true", "lon_true" ),
+        IN( "p_grid", "lat_grid", "lon_grid" ),
         GIN( "gfield" ),
         GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
         GIN_DEFAULT( NODEF ),

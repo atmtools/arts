@@ -469,9 +469,9 @@ void chk_size( const String&    x_name,
       ostringstream os;
       os << "The object *" << x_name
          << "* does not have the right size.\n"
-         << "Dimensions should be:"
+         << "Dimension should be:"
          << " " << c 
-         << ",\nbut they are:         "
+         << ",\nbut it is:          "
          << " " << x.nelem()      
          << ".";
       throw runtime_error( os.str() );

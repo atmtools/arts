@@ -133,23 +133,54 @@ void atm_fields_compactExpand(GriddedField4& af,
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! Check for correct grid dimensions
+/*
+ Helper function for FieldFromGriddedField functions to ensure correct
+ dimension and values of latitude/longitude grids
+
+ \param[in]  lat_grid   Latitude grid
+ \param[in]  lon_grid   Longitude grid
+ \param[in]  ilat       Latitude grid index in gfield
+ \param[in]  ilon       Longitude grid index in gfield
+ \param[in]  gfield     GriddedField
+ */
+void FieldFromGriddedFieldCheckLatLonHelper(const Vector& lat_grid,
+                                            const Vector& lon_grid,
+                                            const Index ilat,
+                                            const Index ilon,
+                                            const GriddedField& gfield)
+{
+    chk_griddedfield_gridname(gfield, ilat, "Latitude");
+    chk_griddedfield_gridname(gfield, ilon, "Longitude");
+
+    if (lon_grid.nelem() == 0)
+    {
+        chk_size("gfield.lon_grid", gfield.get_numeric_grid(ilon), 1);
+
+        if (lat_grid.nelem() == 0)
+            chk_size("gfield.lat_grid", gfield.get_numeric_grid(ilat), 1);
+        else
+            chk_if_equal("lat_grid", "gfield.lat_grid", lat_grid, gfield.get_numeric_grid(ilat));
+    }
+    else
+    {
+        chk_if_equal("lat_grid", "gfield.lat_grid", lat_grid, gfield.get_numeric_grid(ilon));
+        chk_if_equal("lon_grid", "gfield.lon_grid", lon_grid, gfield.get_numeric_grid(ilat));
+    }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FieldFromGriddedField(// WS Generic Output:
                            Matrix& field_out,
                            // WS Input:
                            const Vector& p_grid _U_,
-                           const Vector& lat_true,
-                           const Vector& lon_true,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
                            // WS Generic Input:
                            const GriddedField2& gfraw_in,
                            const Verbosity&)
 {
-    chk_griddedfield_gridname(gfraw_in, 0, "Latitude");
-    chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in.get_numeric_grid(0));
-
-    chk_griddedfield_gridname(gfraw_in, 1, "Longitude");
-    chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in.get_numeric_grid(1));
+    FieldFromGriddedFieldCheckLatLonHelper(lat_grid, lon_grid, 0, 1, gfraw_in);
 
     field_out = gfraw_in.data;
 }
@@ -160,20 +191,16 @@ void FieldFromGriddedField(// WS Generic Output:
                            Tensor3& field_out,
                            // WS Input:
                            const Vector& p_grid,
-                           const Vector& lat_true,
-                           const Vector& lon_true,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
                            // WS Generic Input:
                            const GriddedField3& gfraw_in,
                            const Verbosity&)
 {
     chk_griddedfield_gridname(gfraw_in, 0, "Pressure");
-    chk_if_equal("p_grid", "raw p_grid", p_grid, gfraw_in.get_numeric_grid(0));
+    chk_if_equal("p_grid", "gfield.p_grid", p_grid, gfraw_in.get_numeric_grid(0));
 
-    chk_griddedfield_gridname(gfraw_in, 1, "Latitude");
-    chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in.get_numeric_grid(1));
-
-    chk_griddedfield_gridname(gfraw_in, 2, "Longitude");
-    chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in.get_numeric_grid(2));
+    FieldFromGriddedFieldCheckLatLonHelper(lat_grid, lon_grid, 1, 2, gfraw_in);
 
     field_out = gfraw_in.data;
 }
@@ -184,20 +211,16 @@ void FieldFromGriddedField(// WS Generic Output:
                            Tensor4& field_out,
                            // WS Input:
                            const Vector& p_grid,
-                           const Vector& lat_true,
-                           const Vector& lon_true,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
                            // WS Generic Input:
                            const GriddedField4& gfraw_in,
                            const Verbosity&)
 {
     chk_griddedfield_gridname(gfraw_in, 1, "Pressure");
-    chk_if_equal("p_grid", "raw p_grid", p_grid, gfraw_in.get_numeric_grid(1));
+    chk_if_equal("p_grid", "gfield.p_grid", p_grid, gfraw_in.get_numeric_grid(0));
 
-    chk_griddedfield_gridname(gfraw_in, 2, "Latitude");
-    chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in.get_numeric_grid(2));
-
-    chk_griddedfield_gridname(gfraw_in, 3, "Longitude");
-    chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in.get_numeric_grid(3));
+    FieldFromGriddedFieldCheckLatLonHelper(lat_grid, lon_grid, 2, 3, gfraw_in);
 
     field_out = gfraw_in.data;
 }
@@ -208,8 +231,8 @@ void FieldFromGriddedField(// WS Generic Output:
                            Tensor4& field_out,
                            // WS Input:
                            const Vector& p_grid,
-                           const Vector& lat_true,
-                           const Vector& lon_true,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
                            // WS Generic Input:
                            const ArrayOfGriddedField3& gfraw_in,
                            const Verbosity& verbosity)
@@ -220,19 +243,18 @@ void FieldFromGriddedField(// WS Generic Output:
         out1 << "   Warning: gfraw_in is empty, proceeding anyway\n";
         field_out.resize(0, 0, 0, 0);
     }
-
-    field_out.resize(gfraw_in.nelem(), p_grid.nelem(), lat_true.nelem(), lon_true.nelem());
+    else
+    {
+        field_out.resize(gfraw_in.nelem(), p_grid.nelem(),
+                         gfraw_in[0].data.nrows(), gfraw_in[0].data.ncols());
+    }
 
     for (Index i = 0; i < gfraw_in.nelem(); i++)
     {
         chk_griddedfield_gridname(gfraw_in[i], 0, "Pressure");
-        chk_if_equal("p_grid", "raw p_grid", p_grid, gfraw_in[i].get_numeric_grid(0));
+        chk_if_equal("p_grid", "gfield.p_grid", p_grid, gfraw_in[i].get_numeric_grid(0));
 
-        chk_griddedfield_gridname(gfraw_in[i], 1, "Latitude");
-        chk_if_equal("lat_true", "raw lat grid", lat_true, gfraw_in[i].get_numeric_grid(1));
-
-        chk_griddedfield_gridname(gfraw_in[i], 2, "Longitude");
-        chk_if_equal("lon_true", "raw lon grid", lon_true, gfraw_in[i].get_numeric_grid(2));
+        FieldFromGriddedFieldCheckLatLonHelper(lat_grid, lon_grid, 1, 2, gfraw_in[i]);
 
         field_out(i, joker, joker, joker) = gfraw_in[i].data;
     }
