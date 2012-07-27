@@ -1,5 +1,13 @@
 2012-07-27  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-200
+
+	* src/m_atmosphere.cc (AtmFieldsCalc):
+
+	Use new regridding functions for 3D case.
+
+2012-07-27  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-199
 
 	* controlfiles/atmosphere_data/tropical.*.xml: Add grid names.

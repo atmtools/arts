@@ -1722,129 +1722,20 @@ void AtmFieldsCalc(//WS Output:
                             "AtmFieldsCalcExpand1D instead of AtmFieldsCalc."
                             );
 
-      //Resize variables
-      t_field.resize(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
-      z_field.resize(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
-      vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
-                       lon_grid.nelem());
-      
-      
-      // Gridpositions:
-      ArrayOfGridPosPoly gp_p(p_grid.nelem());
-      ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
-      ArrayOfGridPosPoly gp_lon(lon_grid.nelem());
-      
-      
-      // Interpolate t_field:
-      
-      // Check that interpolation grids are ok (and throw a detailed
-      // error message if not):
-      chk_interpolation_pgrids("Raw temperature to p_grid, 3D case",
-                               tfr_p_grid,
-                               p_grid,
-                               interp_order);
-      chk_interpolation_grids("Raw temperature to lat_grid, 3D case",
-                              tfr_lat_grid,
-                              lat_grid,
-                              interp_order);
-      chk_interpolation_grids("Raw temperature to lon_grid, 3D case",
-                              tfr_lon_grid,
-                              lon_grid,
-                              interp_order);
+      GriddedField3 temp_gfield3;
 
-      // Calculate grid positions:
-      p2gridpos_poly( gp_p, tfr_p_grid, p_grid, interp_order );
-      gridpos_poly( gp_lat, tfr_lat_grid, lat_grid, interp_order );
-      gridpos_poly( gp_lon, tfr_lon_grid, lon_grid, interp_order );
-      
-      // Interpolation weights:
-      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(),
-                  (interp_order+1)*(interp_order+1)*(interp_order+1));
-      // (8 interpolation weights are required for example for linear 3D interpolation)
-      interpweights( itw, gp_p, gp_lat, gp_lon );
-      
-      // Interpolate:
-      interp( t_field, itw, t_field_raw.data,  gp_p, gp_lat, gp_lon);
-      
-      
-      // Interpolate z_field:
-      
-      // Check that interpolation grids are ok (and throw a detailed
-      // error message if not):
-      chk_interpolation_pgrids("Raw z to p_grid, 3D case",
-                               zfr_p_grid,
-                               p_grid,
-                               interp_order);
-      chk_interpolation_grids("Raw z to lat_grid, 3D case",
-                              zfr_lat_grid,
-                              lat_grid,
-                              interp_order);
-      chk_interpolation_grids("Raw z to lon_grid, 3D case",
-                              zfr_lon_grid,
-                              lon_grid,
-                              interp_order);
+      GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, t_field_raw, interp_order, verbosity);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 1, verbosity);
+      t_field = temp_gfield3.data;
 
-      // Calculate grid positions:
-      p2gridpos_poly( gp_p, zfr_p_grid, p_grid, interp_order );
-      gridpos_poly( gp_lat, zfr_lat_grid, lat_grid, interp_order );
-      gridpos_poly( gp_lon, zfr_lon_grid, lon_grid, interp_order );
-      
-      // Interpolation weights:
-      interpweights( itw, gp_p, gp_lat, gp_lon );
-      
-      // Interpolate:
-      interp( z_field, itw, z_field_raw.data, gp_p, gp_lat, gp_lon);
-      
-      
-      // Interpolate vmr_field. 
-      // Loop over the gaseous species:
-      for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
-        {
-          ostringstream os; 
+      GriddedFieldLatLonRegrid(temp_gfield3, lat_grid, lon_grid, z_field_raw, interp_order, verbosity);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+      z_field = temp_gfield3.data;
 
-          if( !( vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
-                 vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() != 1 ))
-            {
-              os << "VMR data of the " << gas_i << "th species has "
-                 << "wrong dimension (1D or 2D). \n";
-              throw runtime_error( os.str() );
-            }
-
-          // Check that interpolation grids are ok (and throw a detailed
-          // error message if not):
-          os << "Raw VMR[" << gas_i << "] to p_grid, 3D case";
-          chk_interpolation_pgrids(os.str(),
-                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                   p_grid,
-                                   interp_order);
-          os.str("");
-          os << "Raw VMR[" << gas_i << "] to lat_grid, 3D case";
-          chk_interpolation_grids(os.str(),
-                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
-                                  lat_grid,
-                                  interp_order);
-          os.str("");
-          os << "Raw VMR[" << gas_i << "] to lon_grid, 3D case";
-          chk_interpolation_grids(os.str(),
-                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID),
-                                  lon_grid,
-                                  interp_order);
-
-          // Calculate grid positions:
-          p2gridpos_poly(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
-                         p_grid, interp_order);
-          gridpos_poly(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), 
-                       lat_grid, interp_order);
-          gridpos_poly(gp_lon, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID), 
-                       lon_grid, interp_order);
-          
-          // Interpolation weights:
-          interpweights( itw, gp_p, gp_lat, gp_lon );
-          
-          // Interpolate:
-          interp( vmr_field(gas_i, joker, joker, joker),
-                  itw, vmr_field_raw[gas_i].data, gp_p, gp_lat, gp_lon);
-        }
+      ArrayOfGriddedField3 temp_agfield3;
+      GriddedFieldLatLonRegrid(temp_agfield3, lat_grid, lon_grid, vmr_field_raw, interp_order, verbosity);
+      GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3, interp_order, 1, verbosity);
+      FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
     }
   else
   {
