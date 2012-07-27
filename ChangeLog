@@ -1,5 +1,17 @@
 2012-07-27  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-198
+
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts:
+
+	Compare to reference calculation.
+
+	* controlfiles/artscomponents/clearsky/yREFERENCE_{1,2,3}D.xml:
+
+	Add reference values for y.
+
+2012-07-27  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-197
 
 	* src/abs_species_tags.cc (SpeciesTag::SpeciesTag):

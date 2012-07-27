@@ -100,9 +100,9 @@ yCalc
 # OK?
 # ---
 #WriteXML( "ascii", y, "yREFERENCE_1D.xml" )
-#VectorCreate( yREFERENCE )
-#ReadXML( yREFERENCE, "yREFERENCE_1D.xml" )
-#VectorCompare( y, yREFERENCE, 1e-2 )
+VectorCreate( yREFERENCE )
+ReadXML( yREFERENCE, "yREFERENCE_1D.xml" )
+VectorCompare( y, yREFERENCE, 1e-2 )
 
 
 
@@ -133,8 +133,8 @@ yCalc
 # OK?
 # ---
 #WriteXML( "ascii", y, "yREFERENCE_2D.xml" )
-#ReadXML( yREFERENCE, "yREFERENCE_2D.xml" )
-#VectorCompare( y, yREFERENCE, 1e-2 )
+ReadXML( yREFERENCE, "yREFERENCE_2D.xml" )
+VectorCompare( y, yREFERENCE, 1e-2 )
 
 
 
@@ -165,8 +165,8 @@ yCalc
 # OK?
 # ---
 #WriteXML( "ascii", y, "yREFERENCE_3D.xml" )
-#ReadXML( yREFERENCE, "yREFERENCE_3D.xml" )
-#VectorCompare( y, yREFERENCE, 1e-2 )
+ReadXML( yREFERENCE, "yREFERENCE_3D.xml" )
+VectorCompare( y, yREFERENCE, 1e-2 )
 
 
 
