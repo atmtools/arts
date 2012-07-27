@@ -1,5 +1,15 @@
 2012-07-27  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-199
+
+	* controlfiles/atmosphere_data/tropical.*.xml: Add grid names.
+
+	* src/m_atmosphere.cc (AtmFieldsCalc):
+
+	Use new regridding functions for 1D case.
+
+2012-07-27  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-198
 
 	* controlfiles/artscomponents/clearsky/TestClearSky.arts:

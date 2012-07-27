@@ -1563,12 +1563,6 @@ void AtmFieldsCalc(//WS Output:
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   
 
-  // Note that we are using the special function p2gridpos_poly below for
-  // all pressure interpolations. This does the usual ARTS pressure
-  // interpolation in log(p). We don't have to take logs here
-  // explicitly, since it is done by p2gridpos.
-
-
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
@@ -1586,103 +1580,17 @@ void AtmFieldsCalc(//WS Output:
                             "(2D or 3D).\n"
                             );
 
-      //Resize variables
-      t_field.resize(p_grid.nelem(), 1, 1);
-      z_field.resize(p_grid.nelem(), 1, 1);
-      vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), 1, 1);
+      GriddedField3 temp_gfield3;
 
-      // Gridpositions:
-      ArrayOfGridPosPoly gp_p(p_grid.nelem());
-  
-      // Interpolate t_field:
-      
-      // Check that interpolation grids are ok (and throw a detailed
-      // error message if not):
-      chk_interpolation_pgrids("Raw temperature to p_grid, 1D case",
-                               tfr_p_grid,
-                               p_grid,
-                               interp_order);
- 
-      // Calculate grid positions:
-      p2gridpos_poly( gp_p, tfr_p_grid, p_grid, interp_order );
+      GriddedFieldPRegrid(temp_gfield3, p_grid, t_field_raw, interp_order, 1, verbosity);
+      t_field = temp_gfield3.data;
 
-      // Interpolation weights:
-      Matrix itw(p_grid.nelem(), interp_order+1);
-      // (2 interpolation weights are required for 1D interpolation)
-      interpweights( itw, gp_p);
-  
-      // Interpolate:
-      interp( t_field(joker, 0, 0), itw, 
-              t_field_raw.data(joker, 0, 0),  gp_p);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, z_field_raw, interp_order, 0, verbosity);
+      z_field = temp_gfield3.data;
 
-  
-      // Interpolate z_field:
-      
-      // Check that interpolation grids are ok (and throw a detailed
-      // error message if not):
-      chk_interpolation_pgrids("Raw z to p_grid, 1D case",
-                               zfr_p_grid,
-                               p_grid,
-                               interp_order);
-
-      // Calculate grid positions:
-      p2gridpos_poly( gp_p, zfr_p_grid, p_grid, interp_order );
-     
-      // Interpolation weights:
-      interpweights( itw, gp_p );
-      
-      // Interpolate:
-      interp( z_field(joker, 0, 0), itw,
-              z_field_raw.data(joker, 0, 0), gp_p);
-      
-  
-      // Interpolate vmr_field. 
-      // Loop over the gaseous species:
-      for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
-        {
-          ostringstream os; 
-
-          if( !( vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() == 1 &&
-                 vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
-            {
-              os << "VMR data of the " << gas_i << "th species has "
-                 << "wrong dimension (2D or 3D). \n";
-              throw runtime_error( os.str() );
-            }
-          
-          Index ing_min, ing_max;
-
-          // Check that interpolation grids are ok (and throw a detailed
-          // error message if not):
-          os << "Raw VMR[" << gas_i << "] to p_grid, 1D case";
-          chk_interpolation_grids_loose(ing_min,
-                                        ing_max,
-                                        os.str(),
-                                        vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                        p_grid,
-                                        vmr_field_raw[gas_i].data(joker, 0, 0),
-                                        interp_order);
-
-          Range vmr_range(ing_min, ing_max-ing_min+1);
-          
-          ArrayOfGridPosPoly vmr_gp_p;
-          for(Index i = ing_min; i <= ing_max; i++)
-            vmr_gp_p.push_back(gp_p[i]);
-          
-          // Calculate grid positions:
-          p2gridpos_poly(vmr_gp_p, 
-                         vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
-                         p_grid[vmr_range], 
-                         interp_order);
-          
-          // Interpolation weights:
-          interpweights( itw(vmr_range, joker), vmr_gp_p);
-          
-          vmr_field(gas_i, joker, 0, 0) = 0;
-          // Interpolate:
-          interp( vmr_field(gas_i, vmr_range, 0, 0),
-                  itw(vmr_range, joker), vmr_field_raw[gas_i].data(joker, 0, 0), vmr_gp_p);
-        }
+      ArrayOfGriddedField3 temp_agfield3;
+      GriddedFieldPRegrid(temp_agfield3, p_grid, vmr_field_raw, interp_order, 1, verbosity);
+      FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
     }
 
   //=========================================================================
