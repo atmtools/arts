@@ -136,10 +136,18 @@ SpeciesTag::SpeciesTag(String def)
   else
     {
       // n==def.npos means that def does not contain a '-'. In that
-      // case we assume that it contains just the isotope name and
-      // nothing else.
+      // case we assume that it contains just the isotope name or
+      // Zeeman flag and nothing else.
       isoname = def;
       def  = "";
+      if ("Z" == isoname)
+        {
+          mzeeman = true;
+          // This means that there is nothing else to parse. Apparently
+          // the user wants all isotopes and no frequency limits.
+          misotope = spr.Isotope().nelem();
+          return;
+        }
     }
     
   // Check for joker:
