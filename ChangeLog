@@ -1,3 +1,15 @@
+2012-07-31  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-201
+
+	* src/m_atmosphere.cc
+	(p_gridFromZRaw): Downgraded do-not-include-negative-altitudes to only
+	be an option (for backward consistency, default: DO exclude).
+
+	(FieldFromGriddedFieldCheckLatLonHelper): bugfix in chk_if_equal calls.
+
+	* src/methids.cc (p_gridFromZRaw): Documentation adapted.
+
 2012-07-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-200

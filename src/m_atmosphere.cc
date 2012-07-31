@@ -164,8 +164,10 @@ void FieldFromGriddedFieldCheckLatLonHelper(const Vector& lat_grid,
     }
     else
     {
-        chk_if_equal("lat_grid", "gfield.lat_grid", lat_grid, gfield.get_numeric_grid(ilon));
-        chk_if_equal("lon_grid", "gfield.lon_grid", lon_grid, gfield.get_numeric_grid(ilat));
+        chk_if_equal("lat_grid", "gfield.lat_grid", lat_grid,
+                     gfield.get_numeric_grid(ilat));
+        chk_if_equal("lon_grid", "gfield.lon_grid", lon_grid,
+                     gfield.get_numeric_grid(ilon));
     }
 }
 
@@ -1123,7 +1125,10 @@ void basics_checkedCalc(
             {
               ostringstream os;
               os << "The surface altitude (*z_surface*) cannot be outside "
-                 << "of the altitudes in *z_field*.";
+                 << "of the altitudes in *z_field*.\n"
+                 << "z_surface: " << z_surface(row,col) << "\n"
+                 << "z_field(0): " << z_field(0,row,col) << "\n"
+                 << "z_field(-1): " << z_field(z_field.npages()-1,row,col) << "\n";
               if( atmosphere_dim > 1 )
                 os << "\nThis was found to be the case for:\n"
                    << "latitude " << lat_grid[row];
@@ -2102,25 +2107,32 @@ void p_gridFromZRaw(//WS Output
                       Vector& p_grid,
                       //WS Input
                       const GriddedField3& z_field_raw,
+                      const Index& no_negZ,
                       const Verbosity&)
 {
+  // original version excludes negative z. not clear, why this is. maybe is
+  // currently a convention somehwere in ARTS (DOIT?). negative z seem, however,
+  // to work fine for clear-sky cases. so we make the negative z exclude an
+  // option (for consistency until unclarities solved, default: do exclude)
   Vector p_grid_raw=z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
 
   Index i;
   if (is_increasing(z_field_raw.data(joker,0,0)))
     {
       i=0;
-  // not clear, why we exclude negative z (but that is prob curently an ARTS
-  // convention... - SHOULD BE CHECKED & FIXED!
-      while ( z_field_raw.data(i,0,0)< 0.0 ) i++;
+      if (no_negZ)
+        {
+          while ( z_field_raw.data(i,0,0)< 0.0 ) i++;
+        }
       p_grid=p_grid_raw[Range(i,joker)];
     }
   else if (is_decreasing(z_field_raw.data(joker,0,0)))
     {
       i=z_field_raw.data.npages()-1;
-  // not clear, why we exclude negative z (but that is prob curently an ARTS
-  // convention... - SHOULD BE CHECKED & FIXED!
-      while ( z_field_raw.data(i,0,0)< 0.0 ) i--;
+      if (no_negZ)
+        {
+          while ( z_field_raw.data(i,0,0)< 0.0 ) i--;
+        }
       p_grid=p_grid_raw[Range(i,joker,-1)];
     }
   else

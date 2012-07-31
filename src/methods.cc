@@ -6857,7 +6857,7 @@ void define_md_data_raw()
          "*ppath_lmax* is set to <= 0.\n"
          "\n"
          "For further information, type see the on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\" ).\n"
+         "*ppath_step_agenda*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath_step" ),
@@ -6969,18 +6969,19 @@ void define_md_data_raw()
         (
          "Sets *p_grid* according to input atmosphere's raw z_field, derived\n"
          "e.g. from *AtmRawRead*.\n"
-         "Attention: only pressure values for altitudes >= 0 are extracted.\n"
+         "Attention: as default only pressure values for altitudes >= 0 are\n"
+         "extracted. If negative altitudes shall also be selected, set no_neg=0.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde, Jana Mendrok" ),
         OUT( "p_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "z_field_raw" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(         "no_negZ" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC(    "Exclude negative altitudes." )
         ));
  
   md_data_raw.push_back     
