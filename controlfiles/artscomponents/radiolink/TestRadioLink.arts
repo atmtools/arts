@@ -88,8 +88,6 @@ AgendaSet( iy_clearsky_agenda ){
   Ignore( rte_los )
   iyRadioLink
 }
-StringSet( iy_variable, "AtmosphericLoss" )
-StringSet( iy_aux_variable, "ExtraPathDelay" )
 
 
 # Postion of sensor/receiver and transmitter

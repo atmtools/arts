@@ -1708,24 +1708,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Matrix" )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iy_aux_variable" ),
-      DESCRIPTION
-      (
-       "Selection of variable for *iy_aux*.\n"
-       "\n"
-       "Some radiative transfer methods can return several variables. This\n"
-       "string is used for selecting what shall be the auxiliary output, ie.\n"
-       "what quantity to put in *iy_aux*.\n"
-       "\n"
-       "This WSV is not used by all WSMs returning *iy_aux*. And allowed\n"
-       "options vary between the WSM that consider the WSV.\n"
-       "\n"
-       "Usage:   Set by the user.\n"
-       ),
-      GROUP( "String" )));
-
  wsv_data.push_back
     (WsvRecord
      ( NAME( "iy_clearsky_agenda" ),
@@ -1793,24 +1775,6 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, stokes_dim, stokes_dim ]\n"
        ),
       GROUP( "Tensor3" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iy_variable" ),
-      DESCRIPTION
-      (
-       "Selection of variable for *iy*.\n"
-       "\n"
-       "Some radiative transfer methods can return several variables. This\n"
-       "string is used for selecting what shall be the main output, ie. what\n"
-       "quantity to put in *iy*.\n"
-       "\n"
-       "This WSV is not used by all WSMs returning *iy*. And allowed\n"
-       "options vary between the WSM that consider the WSV.\n"
-       "\n"
-       "Usage:   Set by the user.\n"
-       ),
-      GROUP( "String" )));
 
  wsv_data.push_back
    (WsvRecord

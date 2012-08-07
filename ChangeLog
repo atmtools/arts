@@ -1,5 +1,15 @@
 2012-08-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-203
+
+	* src/workspace.cc: iy_variable and iy_aux_variable removed.
+
+	* src/m_rte.cc (iyRadioLink):
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	Adopted to change above.
+
+2012-08-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-202
 
 	* controlfiles/artscomponents/doit/TestDOIT.arts:
@@ -16,7 +26,7 @@
 	and y_error.
 
 	* src/workspace.cc: Removed iy_error, iy_error_type and y_error.
-	The error wiill be part of iy_aux and y_aux. 
+	The error wiill be part of iy_aux and y_aux.
 
 2012-07-31  Jana Mendrok <jana.mendrok@ltu.se>
 

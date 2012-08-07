@@ -748,6 +748,150 @@ void iyBeerLambertStandardCloudbox(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void iyEmissionStandardClearskyTest(
+         Workspace&                  ws,
+         Matrix&                     iy,
+         ArrayOfMatrix&              iy_aux,
+         ArrayOfTensor3&             diy_dx,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Tensor4&                    vmr_field,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Tensor3&                    wind_u_field,
+   const Tensor3&                    wind_v_field,
+   const Tensor3&                    wind_w_field,
+   const Tensor3&                    edensity_field,
+   const Vector&                     rte_pos,      
+   const Vector&                     rte_los,      
+   const Index&                      cloudbox_on,
+   const Index&                      mblock_index,
+   const Index&                      iy_agenda_call1,
+   const Tensor3&                    iy_transmission,
+   const ArrayOfString&              y_aux_vars,
+   const Index&                      jacobian_do,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const Agenda&                     ppath_agenda,
+   const Agenda&                     blackbody_radiation_agenda,
+   const Agenda&                     abs_scalar_gas_agenda,
+   const Agenda&                     iy_clearsky_agenda,
+   const Agenda&                     iy_space_agenda,
+   const Agenda&                     iy_surface_agenda,
+   const Agenda&                     iy_cloudbox_agenda,
+   const Verbosity&                  verbosity )
+{
+  // Determine propagation path
+  //
+  Ppath  ppath;
+  //
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0, 
+                       mblock_index, t_field, z_field, vmr_field, 
+                       edensity_field, -1, ppath_agenda );
+
+  // Some basic sizes
+  //
+  const Index np = ppath.np;
+  const Index nf = f_grid.nelem();
+  const Index nq = jacobian_quantities.nelem();
+
+  // If primary call, check and allocate iy_aux
+  //
+  Index aux_abs_sum       = -1,
+        aux_trans_total   = -1,
+        aux_trans_partial = -1;
+  //
+  if( iy_agenda_call1 )
+    {
+      const Index naux = y_aux_vars.nelem();
+      iy_aux.resize( naux );
+      //
+      for( Index i=0; i<naux; i++ )
+        {
+          if( y_aux_vars[i] == "Absorption, summed" )
+            { aux_abs_sum = i;         iy_aux[i].resize( nf, np ); }
+          else if( y_aux_vars[i] == "Transmission, total" )
+            { aux_trans_total = i;     iy_aux[i].resize( nf, 1 );  }
+          else if( y_aux_vars[i] == "Transmission, partial" )
+            { aux_trans_partial = i;   iy_aux[i].resize( nf, np ); }
+          else
+            {
+              ostringstream os;
+              os << "You have in *y_aux_vars* stated: " << y_aux_vars[i]
+                 << "\nThis choice is not recognised.";
+              throw runtime_error( os.str() );
+            }
+        }
+    }
+    
+  // Determine if there are any analytical jacobians to handle, and if primary
+  // call, resize diy_dx.
+  //
+  Index j_analytical_do = 0;
+  //
+  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
+  //
+  if( iy_agenda_call1 && j_analytical_do )
+    {
+      diy_dx.resize( nq ); 
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO( 
+        diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0]+1,
+                           nf, stokes_dim ); 
+        diy_dx[iq] = 0.0;
+      )
+    }
+
+
+  // Get atmospheric and RT quantities for each ppath point/step
+  //
+  // If np = 1, we only need to determine the radiative background
+  //
+  // "atmvars"
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Matrix    ppath_vmr;
+  // "rtvars"
+  Vector    total_tau;
+  Matrix    ppath_emission, ppath_tau;
+  Tensor3   ppath_abs_scalar, iy_trans_new;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_u_field, wind_v_field, wind_w_field );
+
+      // Get emission, absorption and optical thickness for each step
+      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                        ppath_emission, abs_scalar_gas_agenda, 
+                        blackbody_radiation_agenda, ppath, ppath_p, ppath_t, 
+                        ppath_vmr, ppath_wind_u, ppath_wind_v, ppath_wind_w, 
+                        f_grid, -1, atmosphere_dim, 1 );
+    }
+  else // To handle cases inside the cloudbox, or totally outside the atmosphere
+    { 
+      total_tau.resize( nf );
+      total_tau = 0;
+    }
+
+  // iy_transmission
+  //
+  if( iy_agenda_call1 )
+    { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, total_tau ); }
+  else
+    { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
+                                                                total_tau ); }
+}
+*/
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardClearsky(
@@ -1384,10 +1528,12 @@ void iyRadioLink(
    const Agenda&               ppath_step_agenda,
    const Agenda&               abs_scalar_gas_agenda,
    const Agenda&               iy_space_agenda,
-   const String&               iy_var,
-   const String&               iy_aux_var,
    const Verbosity&            verbosity )
 {
+  String   iy_var = "AtmosphericLoss";
+  String   iy_aux_var = "ExtraPathDelay";
+
+
   // See initial comments of iyEmissionStandardClearsky
 
   if( !iy_agenda_call1 )
@@ -1912,7 +2058,7 @@ void yCalc(
       )
     }
   else
-    { jacobian.resize(0, 0); }
+    { jacobian.resize( 0, 0 ); }
 
 
   //---------------------------------------------------------------------------
