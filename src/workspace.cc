@@ -1753,42 +1753,6 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iy_error" ),
-      DESCRIPTION
-      (
-       "Estimation of calculation errors in *iy*.\n"
-       "\n"
-       "As *y_error*, but treats *iy* and can be left empty if\n"
-       "*iy_error_type* is 0.\n"
-       "\n"
-       "Usage:      Used by radiative transfer methods.\n"
-       "\n"
-       "Unit:       W / (m^2 Hz sr) or transmission.\n"
-       "\n"
-       "Dimensions: [ f_grid, stokes_dim ]\n"
-       ),
-      GROUP( "Matrix" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iy_error_type" ),
-      DESCRIPTION
-      (
-       "Characteristics of error values in *iy_error*.\n"
-       "\n"
-       "These options are defined:\n"
-       "   0: The error is zero. *iy_error* can then be left undefined or\n"
-       "      empty.\n"
-       "   1: The error values are totally uncorrelated.\n"
-       "   2: The error values are totally correlated.\n"
-       "The distinction between case 1 and 2 is important, as the weighting\n"
-       "with sensor response data must be performed differently for the two\n"
-       "cases.\n"
-       ),
-      GROUP( "Index" )));
-
  wsv_data.push_back
     (WsvRecord
      ( NAME( "iy_space_agenda" ),
@@ -4592,22 +4556,6 @@ void Workspace::define_wsv_data()
        "If created through *yCalc*, the weighting with *sensor_response*\n"
        "is included. A value of 999 indicates that no data have been\n"
        "provided by the agenda methods.\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "y_error" ),
-      DESCRIPTION
-      (
-       "Estimate of calculation errors in *y*.\n"
-       "\n"
-       "This variable is used for providing an error estimate. The estimate\n"
-       "covers only the actual calculation approach, and e.g. uncertainties\n"
-       "in spectroscopic data or representation errors due to coarse grids\n"
-       "are not considered. This means that the error should normally be\n"
-       "zero for clear-sky cases where calculations are performed for the\n"
-       "complete propagation path.\n"
        ),
       GROUP( "Vector" )));
 

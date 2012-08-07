@@ -93,8 +93,6 @@ IndexSet(   mc_max_iter,      100 )
 IndexSet(   mc_z_field_is_1D, 1 )
 
 AgendaSet( iy_clearsky_agenda ){
-  Ignore( iy_error )
-  Ignore( iy_error_type )
   Ignore( mblock_index )
   iyMC
 }
@@ -109,23 +107,22 @@ output_file_formatSetAscii
 
 WriteXML( output_file_format, y )
 
-WriteXML( output_file_format, y_error )
 
 #### Tests ########################
 
 # Radiance test
-NumericCreate( y_error_0 )
-Extract( y_error_0, y_error, 0 )
-NumericScale( y_error_0, y_error_0, 4. )
+#NumericCreate( y_error_0 )
+#Extract( y_error_0, y_error, 0 )
+#NumericScale( y_error_0, y_error_0, 4. )
 
-VectorCreate( y_0 )
-Select( y_0, y, [ 0 ] )
+#VectorCreate( y_0 )
+#Select( y_0, y, [ 0 ] )
 
-VectorCreate( y_ref )
-VectorSetConstant( y_ref, 1, 199.5 )
+#VectorCreate( y_ref )
+#VectorSetConstant( y_ref, 1, 199.5 )
 
-VectorCompare( y_0, y_ref, y_error_0,
-               "Total radiance should be close to 199.5 K" )
+#VectorCompare( y_0, y_ref, y_error_0,
+#               "Total radiance should be close to 199.5 K" )
 
 }
 

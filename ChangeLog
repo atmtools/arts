@@ -1,3 +1,23 @@
+2012-08-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-202
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
+	* controlfiles/instruments/odinsmr/TestOdinSMR.arts:
+	* controlfiles/artscomponents/surface/TestSurface.arts:
+	* src/rte.cc:
+	* src/m_rte.cc:
+	* src/m_doit.cc:
+	* src/m_fos.cc:
+	* src/m_surface.cc:
+	* src/methods.cc:
+	* src/agendas.cc: Adopted to removal of iy_error, iy_error_type
+	and y_error.
+
+	* src/workspace.cc: Removed iy_error, iy_error_type and y_error.
+	The error wiill be part of iy_aux and y_aux. 
+
 2012-07-31  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-201

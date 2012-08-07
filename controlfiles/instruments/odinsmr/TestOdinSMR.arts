@@ -116,7 +116,6 @@ WriteXML( output_file_format, y_f )
 WriteXML( output_file_format, y_pol )
 WriteXML( output_file_format, y_pos )
 WriteXML( output_file_format, y_los )
-WriteXML( output_file_format, y_error )
 WriteXML( output_file_format, y_aux )
 
 }

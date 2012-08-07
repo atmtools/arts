@@ -255,7 +255,6 @@ yCalc
 
 WriteXML( "ascii", y )
 WriteXML( "ascii", y_aux )
-WriteXML( "ascii", y_error )
 
 #==================stop==========================
 

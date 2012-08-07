@@ -791,8 +791,6 @@ void ext2trans(//Output and Input:
 
     \param   ws                    Out: The workspace
     \param   iy                    Out: As the WSV.
-    \param   iy_error              Out: As the WSV.
-    \param   iy_error_type         Out: As the WSV.
     \param   iy_aux                Out: As the WSV.
     \param   diy_aux               Out: As the WSV.
     \param   iy_transmission       As the WSV.
@@ -816,8 +814,6 @@ void ext2trans(//Output and Input:
 void get_iy_of_background(
         Workspace&        ws,
         Matrix&           iy,
-        Matrix&           iy_error,
-        Index&            iy_error_type,
         Matrix&           iy_aux,
         ArrayOfTensor3&   diy_dx,
   ConstTensor3View        iy_transmission,
@@ -876,7 +872,7 @@ void get_iy_of_background(
     case 2:   //--- The surface -----------------------------------------------
       {
         agenda_name = "iy_surface_agenda";
-        iy_surface_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, 
+        iy_surface_agendaExecute( ws, iy, iy_aux, 
           diy_dx, iy_transmission, rte_pos, rte_los, cloudbox_on, jacobian_do, 
           t_field, z_field, vmr_field, iy_clearsky_agenda, iy_surface_agenda );
       }
@@ -886,7 +882,7 @@ void get_iy_of_background(
     case 4:
       {
         agenda_name = "iy_cloudbox_agenda";
-        iy_cloudbox_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, 
+        iy_cloudbox_agendaExecute( ws, iy, iy_aux, 
           diy_dx, iy_transmission, rte_pos, rte_los, iy_cloudbox_agenda );
       }
       break;
@@ -1460,8 +1456,6 @@ Range get_rowindex_for_mblock(
 void iyb_calc(
         Workspace&                  ws,
         Vector&                     iyb,
-        Vector&                     iyb_error,
-        Index&                      iy_error_type,
         Vector&                     iyb_aux,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      mblock_index,
@@ -1495,11 +1489,8 @@ void iyb_calc(
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
   iyb.resize( niyb );
-  iyb_error.resize( niyb );
   iyb_aux.resize( niyb );
   Index aux_set = 0;
-  //
-  iyb_error = 0;
   //
   if( j_analytical_do )
     {
@@ -1558,10 +1549,10 @@ void iyb_calc(
 
               // Calculate iy and associated variables
               //
-              Matrix         iy, iy_error, iy_aux;
+              Matrix         iy, iy_aux;
               ArrayOfTensor3 diy_dx;
               //
-              iyCalc( l_ws, iy, iy_aux, iy_error, iy_error_type, diy_dx, 
+              iyCalc( l_ws, iy, iy_aux, diy_dx, 
                       1, t_field, z_field, vmr_field, cloudbox_on, 1, 
                       sensor_pos(mblock_index,joker), los, j_analytical_do, 
                       mblock_index, l_iy_clearsky_agenda, verbosity );
@@ -1591,23 +1582,13 @@ void iyb_calc(
                 }
 
               // iy       : unit conversion and copy to iyb
-              // iy_error : unit conversion and copy to iyb_error
               // iy_aux   : copy to iyb_aux (if iy_aux filled)
-              //
-              if( iy_error_type > 0 )
-                { apply_y_unit2( iy_error, iy, y_unit, f_grid, i_pol ); }
               //
               apply_y_unit( iy, y_unit, f_grid, i_pol );
               //
               for( Index is=0; is<stokes_dim; is++ )
                 { 
                   iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
-                  //
-                  if( iy_error_type > 0 )
-                    { 
-                      iyb_error[Range(row0+is,nf,stokes_dim)] = 
-                                                            iy_error(joker,is); 
-                    }
                   //
                   if( iy_aux.nrows() )
                     {

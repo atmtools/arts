@@ -3916,7 +3916,7 @@ void define_md_data_raw()
          "This method is used by Patrick for testing a new scattering scheme.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "fos_y", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "fos_y", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -4418,11 +4418,11 @@ void define_md_data_raw()
          "*iy_aux* is not set.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx","iy_agenda_call1", 
+        IN( "iy_aux", "diy_dx","iy_agenda_call1", 
             "iy_transmission", "rte_pos", "rte_los", "jacobian_do", 
             "atmosphere_dim", "p_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
@@ -4457,11 +4457,11 @@ void define_md_data_raw()
          "manner.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
+        IN( "iy_aux", "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
@@ -4493,7 +4493,7 @@ void define_md_data_raw()
          "incorporated by using *yCalc*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "iy_error", "iy_error_type", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -4520,8 +4520,7 @@ void define_md_data_raw()
          "\n"
          "The overall strategy is to take the average of the absorption and\n"
          "the emission source function at the end points of each step of\n"
-         "the propagation path. See further the user guide. *iy_error*\n"
-         "is considered to be 0.\n" 
+         "the propagation path. See further the user guide.\n" 
          "\n"
          "The WSV *iy_aux* is set to hold the transmission, if the radiative\n"
          "background is space or the surface. That is, as long as there is no\n"
@@ -4532,11 +4531,11 @@ void define_md_data_raw()
          "method selected.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+        IN( "iy_aux", "diy_dx",
             "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
@@ -4611,11 +4610,11 @@ void define_md_data_raw()
          "manner.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
+        IN( "iy_aux", "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
@@ -4660,11 +4659,11 @@ void define_md_data_raw()
          "*iy_aux* is not set.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+        IN( "iy_aux", "diy_dx",
             "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", 
             "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid",
@@ -4701,18 +4700,14 @@ void define_md_data_raw()
          "Interpolation of the internal field is not yet possible.\n"
          "\n"
          "Further, *iy_aux* is set to the transmission to the boundary of the\n"
-         "cloudbox. *iy_error* is so far set to a constant value of\n"
-         "[0.5 0.1 0.1 0.1] K (the RJBT for each Stokes element). These\n"
-         "values are valid at the cloudbox boundary, and weighted with the\n"
-         "transmission to the sensor. *iy_error_type* is set to 2.\n"
+         "cloudbox. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_transmission", 
+        IN( "iy_aux", "diy_dx", "iy_transmission", 
             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
             "rte_pos", "rte_los", "jacobian_do","cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
@@ -4733,17 +4728,13 @@ void define_md_data_raw()
          "\n"
          "Works so far only for 1D cases, and accordingly a cubic\n"
          "interpolation along *scat_za_grid* is performed.\n"
-         "\n"
-         "*iy_aux*, *iy_error* and *iy_error_type* treated as by|n"
-         "*iyInterpPolyCloudboxField*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
-            "iy_transmission", 
+        IN( "iy_aux", "diy_dx", "iy_transmission", 
             "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
             "rte_pos", "rte_los", "jacobian_do", "cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
@@ -4763,11 +4754,11 @@ void define_md_data_raw()
          "Method in development ...\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx","iy_agenda_call1", 
+        IN( "iy_aux", "diy_dx","iy_agenda_call1", 
             "iy_transmission", "rte_pos", "jacobian_do", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field", 
@@ -4796,11 +4787,11 @@ void define_md_data_raw()
          "in a straightforward fashion.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+        IN( "iy_aux", "diy_dx",
             "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
             "rte_pos", "rte_los", "iy_clearsky_agenda", "surface_rtprop_agenda"
@@ -9885,7 +9876,7 @@ void define_md_data_raw()
          "*y_aux*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", 
              "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
@@ -9921,14 +9912,13 @@ void define_md_data_raw()
          "match the format of \"measurement data\".\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", 
              "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "jacobian_do", "jacobian_indices", 
-            "rte_pos", "rte_los", "iy", "iy_aux", "iy_error", "iy_error_type",
-            "diy_dx" ),
+            "rte_pos", "rte_los", "iy", "iy_aux", "diy_dx" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9960,7 +9950,7 @@ void define_md_data_raw()
          "*y_aux*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", 
              "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
@@ -9989,7 +9979,7 @@ void define_md_data_raw()
          "*yCalc*. This method makes it possible to also make this conversion\n"
          "after *yCalc*, but with restrictions for *jacobian*.\n"
          "\n"
-         "The method handles *y*, *y_error* and *jacobian* in parallel, where\n"
+         "The method handles *y* and *jacobian* in parallel, where\n"
          "the two last variables are only considered if they are set. The\n"
          "input data must be in original radiance units. A completely\n"
          "stringent check of this can not be performed.\n"
@@ -10004,11 +9994,11 @@ void define_md_data_raw()
          "See further *y_unit*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_error", "jacobian" ),
+        OUT( "y", "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "y_error", "jacobian", "y_f", "y_pol", "y_unit" ),
+        IN( "y", "jacobian", "y_f", "y_pol", "y_unit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

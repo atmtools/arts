@@ -315,8 +315,6 @@ void get_pointers_for_analytical_jacobians(
 void iyBeerLambertStandardClearsky(
          Workspace&            ws,
          Matrix&               iy,
-         Matrix&               iy_error,
-         Index&                iy_error_type,
          Matrix&               iy_aux,
          ArrayOfTensor3&       diy_dx,
    const Index&                iy_agenda_call1,
@@ -426,7 +424,7 @@ void iyBeerLambertStandardClearsky(
 
   // Radiative background
   //
-  get_iy_of_background( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
+  get_iy_of_background( ws, iy, iy_aux, diy_dx, 
                         iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
                         t_field, z_field, vmr_field,  cloudbox_on, 
                         stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
@@ -620,8 +618,6 @@ void iyBeerLambertStandardClearsky(
 void iyBeerLambertStandardCloudbox(
          Workspace&                     ws,
          Matrix&                        iy,
-         Matrix&                        iy_error,
-         Index&                         iy_error_type,
          Matrix&                        iy_aux,
          ArrayOfTensor3&                diy_dx,
    const Tensor3&                       iy_transmission,
@@ -735,7 +731,7 @@ void iyBeerLambertStandardCloudbox(
     rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
     rte_los2 = ppath.los(ppath.np-1,joker);
     //
-    iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+    iy_clearsky_agendaExecute( ws, iy, 
                                iy_aux, diy_dx, 0, iy_trans_new,
                                rte_pos2, rte_los2, 0, jacobian_do, t_field, 
                                z_field, vmr_field, -1, iy_clearsky_agenda );
@@ -753,13 +749,10 @@ void iyBeerLambertStandardCloudbox(
 
 
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardClearsky(
          Workspace&                  ws,
          Matrix&                     iy,
-         Matrix&                     iy_error,
-         Index&                      iy_error_type,
          Matrix&                     iy_aux,
          ArrayOfTensor3&             diy_dx,
    const Index&                      iy_agenda_call1,
@@ -796,7 +789,7 @@ void iyEmissionStandardClearsky(
   // reasons we skip all checks needed to handle such usage. Those checks are
   // done by yCalc.
 
-  // iy_error, iy_error_type, iy_aux and diy_dx are initiated by iyb_calc
+  // iy_aux and diy_dx are initiated by iyb_calc
   // to be empty/zero. Accordingly, if any radiative background wants
   // to flag an error, iy_error must be resized. No subsequent scaling of the
   // error is made. Thus the iy_transmission should be considered when adding
@@ -881,7 +874,7 @@ void iyEmissionStandardClearsky(
 
   // Radiative background
   //
-  get_iy_of_background( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
+  get_iy_of_background( ws, iy, iy_aux, diy_dx, 
                         iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
                         t_field, z_field, vmr_field, cloudbox_on, 
                         stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda,
@@ -1202,12 +1195,11 @@ void iyEmissionStandardClearskyBasic(
 
   // Radiative background
   //
-  Matrix          dummy1, dummy3;
-  Index           dummy2;
+  Matrix          dummy3;
   ArrayOfTensor3  dummy4;
   Tensor3         dummy5;
   //  
-  get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
+  get_iy_of_background( ws, iy, dummy3, dummy4, dummy5,  
                         0, ppath, atmosphere_dim, t_field, z_field, vmr_field, 
                         cloudbox_on, stokes_dim, f_grid, 
                         iy_clearsky_basic_agenda, iy_space_agenda, 
@@ -1243,8 +1235,6 @@ void iyEmissionStandardClearskyBasic(
 void iyMC(
          Workspace&                  ws,
          Matrix&                     iy,
-         Matrix&                     iy_error,
-         Index&                      iy_error_type,
          Matrix&                     iy_aux,
          ArrayOfTensor3&             diy_dx,
    const Index&                      iy_agenda_call1,
@@ -1301,8 +1291,6 @@ void iyMC(
   const Index   nf  = f_grid.nelem();
   //
   iy.resize( nf, stokes_dim );
-  iy_error.resize( nf, stokes_dim );
-  iy_error_type = 1;
 
   // To avoid warning about unused variables
   iy_aux.resize(0,0);
@@ -1356,7 +1344,7 @@ void iyMC(
         }
      
       iy(f_index,joker) = y;
-      iy_error(f_index,joker) = mc_error;
+      //iy_error(f_index,joker) = mc_error;
     }
 }
 
@@ -1368,8 +1356,6 @@ void iyMC(
 void iyRadioLink(
          Workspace&            ws,
          Matrix&               iy,
-         Matrix&               iy_error _U_,
-         Index&                iy_error_type _U_,
          Matrix&               iy_aux,
          ArrayOfTensor3&       diy_dx _U_,
    const Index&                iy_agenda_call1,
@@ -1703,8 +1689,6 @@ void iyCalc(
          Workspace&   ws,
          Matrix&      iy,
          Matrix&      iy_aux,
-         Matrix&      iy_error,
-         Index&       iy_error_type,
    ArrayOfTensor3&    diy_dx,
    const Index&       basics_checked,
    const Tensor3&     t_field,
@@ -1731,14 +1715,12 @@ void iyCalc(
   // Make sure that output is empty if not set by the agenda
   iy.resize(0,0);
   iy_aux.resize(0,0);
-  iy_error.resize(0,0);
-  iy_error_type = 0;
   diy_dx.resize(0);
 
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
 
-  iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
+  iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx, 
                              1, iy_transmission, rte_pos, rte_los, cloudbox_on,
                              jacobian_do, t_field, z_field, vmr_field, 
                              mblock_index, iy_clearsky_agenda );
@@ -1756,7 +1738,6 @@ void yCalc(
          ArrayOfIndex&               y_pol,
          Matrix&                     y_pos,
          Matrix&                     y_los,
-         Vector&                     y_error,
          Vector&                     y_aux,
          Matrix&                     jacobian,
    const Index&                      basics_checked,
@@ -1912,10 +1893,8 @@ void yCalc(
   y_pol.resize( nmblock*n1y );
   y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
-  y_error.resize( nmblock*n1y );
   y_aux.resize( nmblock*n1y );
   //
-  y_error = 0;
   y_aux = 999;
 
   // Jacobian variables
@@ -1961,10 +1940,9 @@ void yCalc(
       // Calculate monochromatic pencil beam data for 1 measurement block
       //
       Vector          iyb, iyb_aux, iyb_error, yb(n1y);
-      Index           iy_error_type;
       ArrayOfMatrix   diyb_dx;      
       //
-      iyb_calc( l_ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
+      iyb_calc( l_ws, iyb, iyb_aux, diyb_dx, 
                 mblock_index, atmosphere_dim, t_field, 
                 z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
@@ -1981,25 +1959,6 @@ void yCalc(
       mult( yb, sensor_response, iyb );
       //
       y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
-
-      // Apply sensor response matrix on iyb_error, and put into y_error
-      // (nothing to do if type is 0).
-      if( iy_error_type == 1 )
-        { 
-          for( Index i=0; i<n1y; i++ )
-            {
-              const Index ithis = row0+i;
-              y_error[ithis] = 0;
-              for( Index icol=0; icol<niyb; icol++ )
-                { 
-                  y_error[ithis] += pow( 
-                       sensor_response(i,icol)*iyb_error[icol], (Numeric)2.0 ); 
-                }
-              y_error[ithis] = sqrt( y_error[ithis] );              
-            }
-        }
-      else if( iy_error_type == 2 )
-        { mult( y_error[rowind], sensor_response, iyb_error ); }
 
       // Apply sensor response matrix on iyb_aux, and put into y_aux
       // (if filled)
@@ -2056,7 +2015,6 @@ void yCalc2(
          ArrayOfIndex&               y_pol,
          Matrix&                     y_pos,
          Matrix&                     y_los,
-         Vector&                     y_error,
          Vector&                     y_aux,
          Matrix&                     jacobian,
    const Index&                      basics_checked,
@@ -2216,10 +2174,9 @@ void yCalc2(
       // Calculate monochromatic pencil beam data for 1 measurement block
       //
       Vector          iyb, iyb_aux, iyb_error;
-      Index           iy_error_type;
       ArrayOfMatrix   diyb_dx;      
       //
-      iyb_calc( l_ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
+      iyb_calc( l_ws, iyb, iyb_aux, diyb_dx, 
                 mblock_index, atmosphere_dim, t_field, 
                 z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
@@ -2281,26 +2238,6 @@ void yCalc2(
       //
       mult( ya[mblock_index], sensor_response, iyb );
 
-      // Apply sensor response matrix on iyb_error, and put into yerror
-      //
-      if( iy_error_type == 0 )
-        { yerror[mblock_index] = 0; }
-      else if( iy_error_type == 1 )
-        { 
-          for( Index i=0; i<yl; i++ )
-            {
-              yerror[mblock_index][i] = 0;
-              for( Index icol=0; icol<niyb; icol++ )
-                { 
-                  yerror[mblock_index][i] += pow( 
-                       sensor_response(i,icol)*iyb_error[icol], (Numeric)2.0 ); 
-                }
-              yerror[mblock_index][i] = sqrt( yerror[mblock_index][i] );              
-            }
-        }
-      else if( iy_error_type == 2 )
-        { mult( yerror[mblock_index], sensor_response, iyb_error ); }
-
       // Apply sensor response matrix on iyb_aux, and put into y_aux
       // (if filled)
       if( iyb_aux.nelem() )
@@ -2358,7 +2295,6 @@ void yCalc2(
   y_pol.resize( n );
   y_pos.resize( n, sensor_pos.ncols() );
   y_los.resize( n, sensor_los.ncols() );
-  y_error.resize( n );
   y_aux.resize( n ); 
   if( jacobian_do )
     { jacobian.resize( n, jacobian_indices[jacobian_indices.nelem()-1][1]+1 );}
@@ -2373,7 +2309,6 @@ void yCalc2(
           y_pol[r]          = ypol[m][i];
           y_pos(r,joker)    = ypos[m](i,joker);
           y_los(r,joker)    = ylos[m](i,joker);
-          y_error[r]        = yerror[m][i];
           y_aux[r]          = yaux[m][i];
           if( jacobian_do )
             { jacobian(r,joker) = ja[m](i,joker); }
@@ -2393,7 +2328,6 @@ void yFromIy(
          ArrayOfIndex&   y_pol,
          Matrix&         y_pos,
          Matrix&         y_los,
-         Vector&         y_error,
          Vector&         y_aux,
          Matrix&         jacobian,
    const Index&          stokes_dim,
@@ -2404,8 +2338,6 @@ void yFromIy(
    const Vector&         rte_los,
    const Matrix&         iy,
    const Matrix&         iy_aux,
-   const Matrix&         iy_error,
-   const Index&          iy_error_type,
    const ArrayOfTensor3& diy_dx,
    const Verbosity& )
 {
@@ -2420,7 +2352,6 @@ void yFromIy(
   y.resize( n );
   y_f.resize( n );
   y_aux.resize( n );     y_aux = 999;
-  y_error.resize( n );   y_error = 0;
   y_pol.resize( n );
   y_pos.resize( n, rte_pos.nelem() );
   y_los.resize( n, rte_los.nelem() );
@@ -2447,8 +2378,6 @@ void yFromIy(
           y[ii]       = iy(i,j);
           y_f[ii]     = f_grid[i];
           y_pol[ii]   = j+1;
-          if( iy_error_type )  // Nothing to do if 0
-            { y_error[ii] = iy_error(i,j); }
           if( iy_aux.nrows() )
             { y_aux[ii]   = iy_aux(i,j); }
 
@@ -2480,7 +2409,6 @@ void yFromIy(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void y_unitApply(
          Vector&         y,
-         Vector&         y_error,
          Matrix&         jacobian,
    const Vector&         y_f,
    const ArrayOfIndex&   y_pol,
@@ -2500,12 +2428,11 @@ void y_unitApply(
       throw runtime_error( os.str() );      
     }
 
-  // Are jacobian and y_error set?
+  // Is jacobian set?
   //
   const Index ny = y.nelem();
   //
   const bool do_j = jacobian.nrows() == ny;
-  const bool do_e = y_error.nelem() == ny;
 
   // Some jacobian quantities can not be handled
   if( do_j  &&  max(jacobian) > 1e-3 )
@@ -2559,7 +2486,7 @@ void y_unitApply(
           // Index of elements to convert
           Range ii( i0, n );
 
-          if( do_e || do_j )
+          if( do_j )
             {
               if( any_quv  &&  i_pol[0] != 1 )
                 {
@@ -2569,15 +2496,6 @@ void y_unitApply(
                      << "element) is at hand and that the data are sorted in "
                      << "such way that I comes first for each frequency.";
                   throw runtime_error( os.str() );      
-                }
-
-              // y_error
-              if( do_e )
-                {
-                  Tensor3 e(1,1,n);
-                  e(0,0,joker) = y_error[ii];
-                  apply_y_unit2( e, yv, y_unit, y_f[i0], i_pol ); 
-                  y_error[ii] = e(0,0,joker);
                 }
 
               // Jacobian
@@ -2612,13 +2530,6 @@ void y_unitApply(
         {
           yv(0,0)  = y[i];      // To avoid repeated telescoping
           i_pol[0] = y_pol[i];
-
-          // y_error
-          if( do_e )
-            {
-              apply_y_unit2( MatrixView(VectorView( y_error[i] )), yv, 
-                             y_unit, y_f[i], i_pol ); 
-            }
 
           // Jacobian
           if( do_j )

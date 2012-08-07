@@ -32,8 +32,6 @@ Touch( vmr_field )
 Touch( iy_transmission )
 Touch( iy_aux )
 Touch( diy_dx )
-Touch( iy_error )
-Touch( iy_error_type )
 
 
 
@@ -46,8 +44,6 @@ AgendaSet( iy_surface_agenda ){
 } 
 
 AgendaSet( iy_clearsky_agenda ){
-  Ignore( iy_error )
-  Ignore( iy_error_type )
   Ignore( iy_aux )
   Ignore( diy_dx )
   Ignore( iy_agenda_call1 )
@@ -60,8 +56,6 @@ AgendaSet( iy_clearsky_agenda ){
   Ignore( z_field ) 
   Ignore( vmr_field ) 
   Ignore( mblock_index )
-  Touch( iy_error )
-  Touch( iy_error_type )
   Touch( iy_aux )
   Touch( diy_dx )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )

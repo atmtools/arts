@@ -3009,8 +3009,6 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(Matrix&         iy,
-                           Matrix&         iy_error,
-                           Index&          iy_error_type,
                            Matrix&         iy_aux,
                            ArrayOfTensor3& diy_dx,
                            const Tensor3&  iy_transmission,
@@ -3062,18 +3060,15 @@ void iyInterpCloudboxField(Matrix&         iy,
   Vector eps(4,e/10);
   eps[0] = e/2;
 
-  // iy_aux and iy_error
+  // iy_aux
   //
   iy_aux.resize( nf, stokes_dim ); 
-  iy_error.resize( nf, stokes_dim ); 
-  iy_error_type = 2;
   //
   for( Index iv=0; iv<nf; iv++ )
     { 
       for( Index is=0; is<stokes_dim; is++ )
         { 
           iy_aux( iv, is ) = iy_transmission( iv, is, is ); 
-          iy_error( iv, is ) = iy_aux( iv, is ) * eps[is];
         }
     }
 }
@@ -3081,8 +3076,6 @@ void iyInterpCloudboxField(Matrix&         iy,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpPolyCloudboxField(Matrix&         iy,
-                               Matrix&         iy_error,
-                               Index&          iy_error_type,
                                Matrix&         iy_aux,
                                ArrayOfTensor3& diy_dx,
                                const Tensor3&  iy_transmission,
@@ -3134,21 +3127,19 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
   Vector eps(4,e/10);
   eps[0] = e/2;
 
-  // iy_aux and iy_error
+  // iy_aux
   //
   iy_aux.resize( nf, stokes_dim ); 
-  iy_error.resize( nf, stokes_dim ); 
-  iy_error_type = 2;
   //
   for( Index iv=0; iv<nf; iv++ )
     { 
       for( Index is=0; is<stokes_dim; is++ )
         { 
           iy_aux( iv, is ) = iy_transmission( iv, is, is ); 
-          iy_error( iv, is ) = iy_aux( iv, is ) * eps[is];
         }
     }
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetClearsky(Tensor6& doit_i_field,

@@ -496,11 +496,10 @@ void jacobianCalcAbsSpeciesPerturbations(
         
               // Calculate the perturbed spectrum  
               //
-              Index         dummy2 = 0;
-              Vector        iybp, dummy1, dummy3;
+              Vector        iybp, dummy3;
               ArrayOfMatrix dummy4;      
               //
-              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, mblock_index, 
+              iyb_calc( ws, iybp, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, 
                         t_field, z_field, vmr_p, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
@@ -1028,14 +1027,13 @@ void jacobianCalcPointingZaRecalc(
   const Index    n1y = sensor_response.nrows();
         Vector   dy( n1y );
   {
-        Index         iyet;
-        Vector        iyb2, iye, iyb_aux;
+        Vector        iyb2, iyb_aux;
         Matrix        los = sensor_los;
         ArrayOfMatrix diyb_dx;      
 
     los(joker,0) += rq.Perturbation();
 
-    iyb_calc( ws, iyb2, iye, iyet, iyb_aux, diyb_dx, mblock_index, 
+    iyb_calc( ws, iyb2, iyb_aux, diyb_dx, mblock_index, 
               atmosphere_dim, 
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
@@ -1578,11 +1576,10 @@ void jacobianCalcTemperaturePerturbations(
                 }
        
               // Calculate the perturbed spectrum  
-              Index         dummy2 = 0;
-              Vector        iybp, dummy1, dummy3;
+              Vector        iybp, dummy3;
               ArrayOfMatrix dummy4;      
               //
-              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, mblock_index, 
+              iyb_calc( ws, iybp, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, 
                         t_p, z, vmr_field, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 

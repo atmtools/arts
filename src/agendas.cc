@@ -281,8 +281,8 @@ void define_agenda_data()
         "direction specified by *rte_los*. This includes cases when the\n"
         "propagation path intersects with the surface or the cloudbox.\n"
         ),
-       OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
-       INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx",
+       OUTPUT( "iy", "iy_aux", "diy_dx" ),
+       INPUT( "iy_aux", "diy_dx",
               "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
               "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
               "mblock_index" )));  
@@ -322,8 +322,8 @@ void define_agenda_data()
         "the position and line-of-sight for which the scattered radiation\n"
         "shall be determined.\n"
         ),
-       OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
-       INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx", 
+       OUTPUT( "iy", "iy_aux", "diy_dx" ),
+       INPUT( "iy_aux", "diy_dx", 
               "iy_transmission", "rte_pos", "rte_los" )));
 
   agenda_data.push_back
@@ -361,8 +361,8 @@ void define_agenda_data()
         "the position and line-of-sight for which the upwelling radiation\n"
         "shall be determined.\n"
         ),
-       OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
-       INPUT( "iy_error", "iy_error_type", "iy_aux", "diy_dx", 
+       OUTPUT( "iy", "iy_aux", "diy_dx" ),
+       INPUT( "iy_aux", "diy_dx", 
               "iy_transmission", "rte_pos", "rte_los","cloudbox_on", 
               "jacobian_do", "t_field", "z_field", "vmr_field", 
               "iy_clearsky_agenda" )));

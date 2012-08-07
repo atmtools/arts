@@ -63,8 +63,6 @@ extern const Numeric PI;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void fos_yStandard(Workspace&          ws,
                    Tensor3&            fos_y,
-                   Matrix&             iy_error,
-                   Index&              iy_error_type,
                    Matrix&             iy_aux,
                    ArrayOfTensor3&     diy_dx,
                    const Vector&       rte_pos,
@@ -127,7 +125,7 @@ void fos_yStandard(Workspace&          ws,
                 }
               else
                 {
-                  iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
+                  iy_clearsky_agendaExecute( ws, tmp, 
                                              iy_aux, diy_dx, 0, iy_transmission,
                                              rte_pos, fos_angles(ia,Range(0,1)),
                                              0, jacobian_do, t_field, z_field, 
@@ -193,7 +191,7 @@ void fos_yStandard(Workspace&          ws,
                   throw runtime_error( "2D FOS can not be used presently "
                        "as the \"lat-stretch\" approach not can be handled!" );
 
-                  iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
+                  iy_clearsky_agendaExecute( ws, tmp, 
                                              iy_aux, diy_dx, 0, iy_transmission,
                                              rte_pos, rte_los, 0, jacobian_do, 
                                              t_field, z_field, vmr_field, -1, 
@@ -207,7 +205,7 @@ void fos_yStandard(Workspace&          ws,
         {
           for( Index ia=0; ia<nfosa; ia++ )
             { 
-              iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
+              iy_clearsky_agendaExecute( ws, tmp, 
                                          iy_aux, diy_dx, 0, iy_transmission, 
                                          rte_pos, fos_angles(ia,Range(0,2)),
                                          0, jacobian_do, t_field, z_field, 
@@ -229,7 +227,7 @@ void fos_yStandard(Workspace&          ws,
 
       for( Index ia=0; ia<nfosa; ia++ )
         { 
-          iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
+          iyFOS( ws, tmp, iy_aux, diy_dx,
                  iy_transmission, rte_pos, fos_angles(ia,Range(0,nlos)), 
                  jacobian_do, atmosphere_dim, p_grid, 
                  z_field, t_field, vmr_field, edensity_field,
@@ -249,8 +247,6 @@ void fos_yStandard(Workspace&          ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyFOS(Workspace&          ws,
            Matrix&             iy,
-           Matrix&             iy_error,
-           Index&              iy_error_type,
            Matrix&             iy_aux,
            ArrayOfTensor3&     diy_dx,
            const Tensor3&      iy_transmission,
@@ -379,7 +375,7 @@ void iyFOS(Workspace&          ws,
     rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
     rte_los2 = ppath.los(ppath.np-1,joker);
     //
-    iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+    iy_clearsky_agendaExecute( ws, iy, 
                                iy_aux, diy_dx, 0, iy_trans_new,
                                rte_pos2, rte_los2, 0, jacobian_do, t_field, 
                                z_field, vmr_field, -1, iy_clearsky_agenda );

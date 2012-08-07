@@ -217,8 +217,6 @@ void InterpSurfaceFieldToRtePos(
 void iySurfaceRtpropAgenda(
           Workspace&        ws,
           Matrix&           iy,
-          Matrix&           iy_error,
-          Index&            iy_error_type,
           Matrix&           iy_aux,
           ArrayOfTensor3&   diy_dx,  
     const Tensor3&          iy_transmission,
@@ -311,7 +309,7 @@ void iySurfaceRtpropAgenda(
             }
           else
             {
-              iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+              iy_clearsky_agendaExecute( ws, iy, 
                                   iy_aux, diy_dx, 0, iy_trans_new, rte_pos, 
                                   los, cloudbox_on, jacobian_do, t_field,
                                   z_field, vmr_field, -1, iy_clearsky_agenda );

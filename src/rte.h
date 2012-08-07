@@ -131,8 +131,6 @@ void ext2trans(
 void get_iy_of_background(
         Workspace&        ws,
         Matrix&           iy,
-        Matrix&           iy_error,
-        Index&            iy_error_type,
         Matrix&           iy_aux,
         ArrayOfTensor3&   diy_dx,
   ConstTensor3View        iy_transmission,
@@ -244,8 +242,6 @@ void iy_transmission_mult_scalar_tau(
 void iyb_calc(
         Workspace&                  ws,
         Vector&                     iyb,
-        Vector&                     iyb_error,
-        Index&                      iy_error_type,
         Vector&                     iyb_aux,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
