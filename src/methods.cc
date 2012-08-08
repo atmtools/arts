@@ -2686,9 +2686,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_clearsky_basic_agenda", "atmosphere_dim", "lat_grid", 
-            "lon_grid", "z_field", "cloudbox_on", "cloudbox_limits", 
-            "basics_checked", "cloudbox_checked", 
+        IN( "iy_clearsky_agenda", "atmosphere_dim", "lat_grid", 
+            "lon_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_limits", "basics_checked", "cloudbox_checked", 
             "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
@@ -2715,9 +2715,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_clearsky_basic_agenda", "atmosphere_dim", "lat_grid", 
-            "lon_grid", "z_field", "cloudbox_on", "cloudbox_limits", 
-            "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
+        IN( "iy_clearsky_agenda", "atmosphere_dim", "lat_grid", 
+            "lon_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_limits", "f_grid", "stokes_dim", 
+            "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4588,34 +4589,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyEmissionStandardClearskyBasic" ),
-        DESCRIPTION
-        (
-         "As *iyEmissionStandardClearsky*, but lacking support for auxilary\n"
-         "variables and jacobian calculations.\n"
-         "\n"
-         "Designed to be part of *iy_clearsky_basic_agenda*. See further\n"
-         "*iyEmissionStandardClearsky*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
-            "z_field", "t_field", "vmr_field", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
-            "cloudbox_on", "stokes_dim", 
-            "f_grid", "ppath_agenda", "blackbody_radiation_agenda", 
-            "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
-            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
   /*
   md_data_raw.push_back
     ( MdRecord

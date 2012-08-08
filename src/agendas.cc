@@ -288,23 +288,6 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "iy_clearsky_basic_agenda" ),
-       DESCRIPTION
-       (
-        "As *iy_clearsky_agenda*, but lacks all support for jacobian and\n"
-        "auxiliary variables.\n"
-        "\n"
-        "This agenda is used by scattering methods without support for the\n"
-        "jacobian and auxilary parts, in order to calculate unscattered\n"
-        "radiation for the speciefied position and line-of-sight. As this\n"
-        "agenda has much fewer input variables, this simplifies the interface\n"
-        "and maintaince of those scattering methods.\n"
-        ),
-       OUTPUT( "iy" ),
-       INPUT( "rte_pos", "rte_los", "cloudbox_on" )));
-
-  agenda_data.push_back
-    (AgRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (

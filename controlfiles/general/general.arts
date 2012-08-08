@@ -209,9 +209,6 @@ AgendaSet( iy_space_agenda ){
 AgendaSet( iy_clearsky_agenda ){
   iyEmissionStandardClearsky
 }
-AgendaSet( iy_clearsky_basic_agenda ){
-  iyEmissionStandardClearskyBasic
-}
 
 
 #

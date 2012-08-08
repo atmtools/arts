@@ -1715,15 +1715,6 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "iy_clearsky_basic_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc.\n"
-        ),
-       GROUP( "Agenda" )));
-
- wsv_data.push_back
-    (WsvRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (

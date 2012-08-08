@@ -775,6 +775,52 @@ void ext2trans(//Output and Input:
 
 
 
+
+
+//! get_iy
+/*!
+    Basic call of *iy_clearsky_agenda*.
+
+    This function is an interface to *iy_clearsky_agenda* that can be used when
+    only *iy* is of interest. That is, jacobian and auxilary parts are
+    deactivated/ignored.
+
+    \param   ws                    Out: The workspace
+    \param   iy                    Out: As the WSV.
+    \param   t_field               As the WSV.
+    \param   z_field               As the WSV.
+    \param   vmr_field             As the WSV.
+    \param   cloudbox_on           As the WSV.
+    \param   rte_pos               As the WSV.
+    \param   rte_los               As the WSV.
+    \param   iy_clearsky_agenda    As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2012-08-08
+*/
+void get_iy(
+         Workspace&   ws,
+         Matrix&      iy,
+   ConstTensor3View   t_field,
+   ConstTensor3View   z_field,
+   ConstTensor4View   vmr_field,
+   const Index&       cloudbox_on,
+   ConstVectorView    rte_pos,
+   ConstVectorView    rte_los,
+   const Agenda&      iy_clearsky_agenda )
+{
+  ArrayOfTensor3    iy_aux;
+  ArrayOfTensor3    diy_dx;
+  Tensor3           iy_transmission(0,0,0);
+
+  iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx, 1, iy_transmission, 
+                             cloudbox_on, 0, t_field, z_field, vmr_field, -1, 
+                             rte_pos, rte_los, iy_clearsky_agenda );
+}
+
+
+
+
 //! get_iy_of_background
 /*!
     Determines iy of the "background" of a propgation path.
@@ -1500,8 +1546,6 @@ void iyb_calc(
     { diyb_dx.resize( 0 ); }
 
   // Polarisation index variable
-  // If some kind of modified Stokes vector will be introduced, this must be
-  // made to a WSV
   ArrayOfIndex i_pol(stokes_dim);
   for( Index is=0; is<stokes_dim; is++ )
     { i_pol[is] = is + 1; }
@@ -1547,11 +1591,14 @@ void iyb_calc(
               //
               Matrix         iy;
               ArrayOfTensor3 iy_aux, diy_dx;
+              Tensor3        iy_transmission(0,0,0);
               //
-              iyCalc( l_ws, iy, iy_aux, diy_dx, 
-                      1, t_field, z_field, vmr_field, cloudbox_on, 1, 
-                      sensor_pos(mblock_index,joker), los, j_analytical_do, 
-                      mblock_index, l_iy_clearsky_agenda, verbosity );
+              iy_clearsky_agendaExecute( l_ws, iy, iy_aux, diy_dx, 1, 
+                                         iy_transmission, cloudbox_on, 
+                                         j_analytical_do, t_field, z_field, 
+                                         vmr_field, mblock_index, 
+                                         sensor_pos(mblock_index,joker), los, 
+                                         l_iy_clearsky_agenda );
 
               // Start row in iyb etc. for present LOS
               //
@@ -2167,4 +2214,6 @@ void vectorfield2los(
   los[0] = acos( w / l );
   los[1] = atan2( u, v );   
 }    
+
+
 

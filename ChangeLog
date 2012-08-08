@@ -1,5 +1,27 @@
 2012-08-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-205
+
+	* src/m_fos.cc: FOS WSM deactivated. Will later be revised and
+	re-activated.
+
+	* src/m_doit.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm):
+	Now using get_iy.
+
+	* src/rte.cc (get_iy): New. A replacement for iy_clearsky_basic_agenda.
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda): Removed part
+	associated with iy_clearsky_basic_agenda.
+
+	* src/m_rte.cc (iyEmissionStandardClearskyBasic): Removed.
+
+	* src/agendas.cc: Removed iy_clearsky_basic_agenda.
+
+	* src/rte.cc (iyb_calc): Now calling iy_clearsky_agenda directly,
+	instead if using iyCalc (gives better overview of code).
+
+2012-08-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-204
 
 	* Changes in many files around iy_aux. Largely

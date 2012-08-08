@@ -2638,11 +2638,13 @@ void CloudboxGetIncoming(Workspace&      ws,
                          Tensor7&        scat_i_p,
                          Tensor7&        scat_i_lat,
                          Tensor7&        scat_i_lon,
-                         const Agenda&   iy_clearsky_basic_agenda,
+                         const Agenda&   iy_clearsky_agenda,
                          const Index&    atmosphere_dim,
                          const Vector&   lat_grid,
                          const Vector&   lon_grid,
                          const Tensor3&  z_field,
+                         const Tensor3&  t_field,
+                         const Tensor4&  vmr_field,
                          const Index&    cloudbox_on,
                          const ArrayOfIndex&   cloudbox_limits,
                          const Index&    basics_checked,
@@ -2700,8 +2702,8 @@ void CloudboxGetIncoming(Workspace&      ws,
             {
               los[0] =  scat_za_grid[scat_za_index];
 
-              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 0, 
-                                               iy_clearsky_basic_agenda );
+              get_iy( ws, iy, t_field, z_field, vmr_field, 0, pos, los, 
+                      iy_clearsky_agenda );
 
               scat_i_p( joker, boundary, 0, 0, scat_za_index, 0, joker ) = iy;
             }
@@ -2770,8 +2772,8 @@ void CloudboxGetIncoming(Workspace&      ws,
                                 scat_za_index != (Nza-1) )  ||  
                                  scat_aa_index == 0 )
                             {
-                              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 
-                                                  0, iy_clearsky_basic_agenda );
+                              get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
+                                      pos, los, iy_clearsky_agenda );
                             }
 
                           scat_i_p( joker, boundary, lat_index, lon_index, 
@@ -2810,8 +2812,8 @@ void CloudboxGetIncoming(Workspace&      ws,
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 
-                                                  0, iy_clearsky_basic_agenda );
+                              get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
+                                      pos, los, iy_clearsky_agenda );
                             }
 
                           scat_i_lat( joker, p_index, boundary, lon_index, 
@@ -2850,8 +2852,8 @@ void CloudboxGetIncoming(Workspace&      ws,
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 
-                                                  0, iy_clearsky_basic_agenda );
+                              get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
+                                      pos, los, iy_clearsky_agenda );
                             }
 
                           scat_i_lon( joker, p_index, lat_index, boundary, 
@@ -2871,11 +2873,13 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
                               Tensor7&        scat_i_lat,
                               Tensor7&        scat_i_lon,
                               Index&          cloudbox_on,
-                              const Agenda&   iy_clearsky_basic_agenda,
+                              const Agenda&   iy_clearsky_agenda,
                               const Index&    atmosphere_dim,
                               const Vector&   lat_grid,
                               const Vector&   lon_grid,
                               const Tensor3&  z_field,
+                              const Tensor3&  t_field,
+                              const Tensor4&  vmr_field,
                               const ArrayOfIndex&   cloudbox_limits,
                               const Vector&   f_grid,
                               const Index&    stokes_dim,
@@ -2949,8 +2953,8 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
         {
           los[0] = scat_za_grid[scat_za_index];
 
-          iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 0, 
-                                               iy_clearsky_basic_agenda );
+          get_iy( ws, iy, t_field, z_field, vmr_field, 0, pos, los, 
+                  iy_clearsky_agenda );
           
           for (Index aa = 0; aa < Naa; aa ++)
             {

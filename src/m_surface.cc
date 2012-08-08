@@ -298,21 +298,12 @@ void iySurfaceRtpropAgenda(
 
           // Calculate downwelling radiation for LOS ilos 
           //
-          // The variable iy_clearsky_agenda can in fact be 
-          // iy_clearsky_BASIC_agenda
-          //
-          if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
-            {
-              iy_clearsky_basic_agendaExecute( ws, iy, rte_pos, los,
-                                              cloudbox_on, iy_clearsky_agenda);
-            }
-          else
-            {
-              ArrayOfTensor3   iy_aux;
-              iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx, 0, 
+          {
+            ArrayOfTensor3   iy_aux;
+            iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx, 0, 
                       iy_trans_new, cloudbox_on, jacobian_do, t_field, z_field, 
                       vmr_field, -1, rte_pos, los, iy_clearsky_agenda );
-            }
+          }
 
           if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
             {

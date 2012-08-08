@@ -128,6 +128,17 @@ void ext2trans(
    ConstMatrixView    ext_mat_av,
    const Numeric&     l_step );
 
+void get_iy(
+         Workspace&   ws,
+         Matrix&      iy,
+   ConstTensor3View   t_field,
+   ConstTensor3View   z_field,
+   ConstTensor4View   vmr_field,
+   const Index&       cloudbox_on,
+   ConstVectorView    rte_pos,
+   ConstVectorView    rte_los,
+   const Agenda&      iy_clearsky_agenda );
+
 void get_iy_of_background(
         Workspace&        ws,
         Matrix&           iy,
