@@ -3009,9 +3009,6 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(Matrix&         iy,
-                           Matrix&         iy_aux,
-                           ArrayOfTensor3& diy_dx,
-                           const Tensor3&  iy_transmission,
                            const Tensor7&  scat_i_p,
                            const Tensor7&  scat_i_lat,
                            const Tensor7&  scat_i_lon,
@@ -3036,9 +3033,6 @@ void iyInterpCloudboxField(Matrix&         iy,
   if( jacobian_do )
     throw runtime_error( 
         "This method does not provide any jacobians (jacobian_do must be 0)" );
-  diy_dx.resize(0);
-
-  const Index nf = f_grid.nelem();
 
   // Convert rte_pos to grid positions
   GridPos gp_p, gp_lat, gp_lon;
@@ -3052,33 +3046,11 @@ void iyInterpCloudboxField(Matrix&         iy,
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "linear",
                             verbosity );
-
-  // As a temporary solution, create an "epsilon vector" matching
-  // [0.5,0.1,0.1,0.1] K. This shall be replaced with the epsilion vector
-  // inputted to doit_conv_flag (then must be made to a WSV).
-  const Numeric e = rayjean( (f_grid[0]+f_grid[nf-1])/2.0, 1 );
-  Vector eps(4,e/10);
-  eps[0] = e/2;
-
-  // iy_aux
-  //
-  iy_aux.resize( nf, stokes_dim ); 
-  //
-  for( Index iv=0; iv<nf; iv++ )
-    { 
-      for( Index is=0; is<stokes_dim; is++ )
-        { 
-          iy_aux( iv, is ) = iy_transmission( iv, is, is ); 
-        }
-    }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpPolyCloudboxField(Matrix&         iy,
-                               Matrix&         iy_aux,
-                               ArrayOfTensor3& diy_dx,
-                               const Tensor3&  iy_transmission,
                                const Tensor7&  scat_i_p,
                                const Tensor7&  scat_i_lat,
                                const Tensor7&  scat_i_lon,
@@ -3103,9 +3075,6 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
   if( jacobian_do )
     throw runtime_error( 
         "This method does not provide any jacobians (jacobian_do must be 0)" );
-  diy_dx.resize(0);
-
-  const Index nf = f_grid.nelem();
 
   // Convert rte_pos to grid positions
   GridPos gp_p, gp_lat, gp_lon;
@@ -3119,25 +3088,6 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
                             atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial",
                             verbosity );
-
-  // As a temporary solution, create an "epsilon vector" matching
-  // [0.5,0.1,0.1,0.1] K. This shall be replaced with the epsilion vector
-  // inputted to doit_conv_flag (then must be made to a WSV).
-  const Numeric e = rayjean( (f_grid[0]+f_grid[nf-1])/2.0, 1 );
-  Vector eps(4,e/10);
-  eps[0] = e/2;
-
-  // iy_aux
-  //
-  iy_aux.resize( nf, stokes_dim ); 
-  //
-  for( Index iv=0; iv<nf; iv++ )
-    { 
-      for( Index is=0; is<stokes_dim; is++ )
-        { 
-          iy_aux( iv, is ) = iy_transmission( iv, is, is ); 
-        }
-    }
 }
 
 

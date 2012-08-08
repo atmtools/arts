@@ -282,10 +282,9 @@ void define_agenda_data()
         "propagation path intersects with the surface or the cloudbox.\n"
         ),
        OUTPUT( "iy", "iy_aux", "diy_dx" ),
-       INPUT( "iy_aux", "diy_dx",
-              "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
+       INPUT( "iy_agenda_call1", "iy_transmission",
               "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "mblock_index" )));  
+              "mblock_index", "rte_pos", "rte_los" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -312,7 +311,7 @@ void define_agenda_data()
         "Intensity at cloudbox boundary or interior.\n"
         "\n"
         "The task of the agenda is to determine the intensity at some point\n"
-        "at the boundary of inside the cloudbox.  The actual calculations\n"
+        "at the boundary of inside the cloudbox. The actual calculations\n"
         "inside the agenda differ depending on scattering solution method.\n"
         "If DOIT is used, an interpolating of the intensity field should be\n"
         "performed. Another option is to start backward Monte Carlo \n"
@@ -322,9 +321,8 @@ void define_agenda_data()
         "the position and line-of-sight for which the scattered radiation\n"
         "shall be determined.\n"
         ),
-       OUTPUT( "iy", "iy_aux", "diy_dx" ),
-       INPUT( "iy_aux", "diy_dx", 
-              "iy_transmission", "rte_pos", "rte_los" )));
+       OUTPUT( "iy" ),
+       INPUT( "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -361,11 +359,10 @@ void define_agenda_data()
         "the position and line-of-sight for which the upwelling radiation\n"
         "shall be determined.\n"
         ),
-       OUTPUT( "iy", "iy_aux", "diy_dx" ),
-       INPUT( "iy_aux", "diy_dx", 
-              "iy_transmission", "rte_pos", "rte_los","cloudbox_on", 
+       OUTPUT( "iy", "diy_dx" ),
+       INPUT( "iy_transmission", "cloudbox_on", 
               "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "iy_clearsky_agenda" )));
+              "iy_clearsky_agenda", "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -384,23 +381,6 @@ void define_agenda_data()
        ),
        OUTPUT( "jacobian" ),
        INPUT( "jacobian", "mblock_index", "iyb", "yb" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "jacobian_y_agenda" ),
-       DESCRIPTION
-       (
-        "Agenda providing recalculated *y* after some perturbation.\n"
-        "\n"
-        "The purpose of this agenda is to determine some jacobians through\n"
-        "perturbation calculations. Accordingly, the agenda shall return *y*\n"
-        "for the perturbed input (without doing any unnecessary operations,\n"
-        "for efficiency reasons). If unperturbed spectra (and analytical\n"
-        "jacobians) are calculated with *RteCalc*, the standard choice for\n"
-        "this agenda should be *RteCalcNoJacobians*.\n"
-       ),
-       OUTPUT( "y" ),
-       INPUT( "f_grid", "vmr_field", "t_field", "sensor_los" )));
 
   agenda_data.push_back
     (AgRecord

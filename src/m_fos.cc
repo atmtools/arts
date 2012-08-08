@@ -61,6 +61,7 @@ extern const Numeric PI;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void fos_yStandard(Workspace&          ws,
                    Tensor3&            fos_y,
                    Matrix&             iy_aux,
@@ -241,10 +242,11 @@ void fos_yStandard(Workspace&          ws,
         }
     }
 }
-
+*/
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void iyFOS(Workspace&          ws,
            Matrix&             iy,
            Matrix&             iy_aux,
@@ -495,4 +497,4 @@ void iyFOS(Workspace&          ws,
         } 
     }
 }
-
+*/

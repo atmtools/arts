@@ -82,7 +82,6 @@ y_unitApply
 #output_file_formatSetAscii
 #WriteXML( output_file_format, f_grid, "f_grid.xml" )
 #WriteXML( output_file_format, y, "yREFERENCE.xml" )
-#WriteXML( output_file_format, y_aux, "y_auxREFERENCE.xml" )
 
 
 # Check that results are OK with respect to an older reference calculation
@@ -91,9 +90,6 @@ VectorCreate( y0 )
 #
 ReadXML( y0, "yREFERENCE.xml" )
 VectorCompare( y, y0 )
-#
-ReadXML( y0, "y_auxREFERENCE.xml" )
-VectorCompare( y_aux, y0, 0.001 )
 
 }
  

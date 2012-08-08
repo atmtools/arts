@@ -30,9 +30,6 @@ Touch( t_field )
 Touch( z_field )
 Touch( vmr_field )
 Touch( iy_transmission )
-Touch( iy_aux )
-Touch( diy_dx )
-
 
 
 #
@@ -44,8 +41,6 @@ AgendaSet( iy_surface_agenda ){
 } 
 
 AgendaSet( iy_clearsky_agenda ){
-  Ignore( iy_aux )
-  Ignore( diy_dx )
   Ignore( iy_agenda_call1 )
   Ignore( iy_transmission )
   Ignore( rte_pos )

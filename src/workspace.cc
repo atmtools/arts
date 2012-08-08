@@ -1693,20 +1693,16 @@ void Workspace::define_wsv_data()
       (
        "Data auxiliary to *iy*.\n"
        "\n"
-       "This variable makes it possible to provide auxiliary information for\n"
-       "each value in *iy*. The standard usage is to provide transmission,\n"
-       "then to complement radiance data. See the relevant WSMs for details.\n"
+       "To be written ...\n"
        "\n"
-       "The data are not used for any calculations. The data are just passed\n"
-       "on to create *y_aux*. A possibility here is to set *iy_aux* to e.g.\n"
-       "-1000 inside *iy_cloudbox_agenda*, to obtain a way to catch\n"
-       "interceptions with the cloudbox.\n"
+       "The quantities to be stored in this variable are selected by\n"
+       "*y_aux_vars*.\n"
        "\n"
-       "Usage:      Used by radiative transfer methods.\n"
+       "Usage:      Provided by some radiative transfer methods.\n"
        "\n"
-       "Dimensions: [ f_grid, stokes_dim ]\n"
+       "Dimensions: [quantity][ f_grid, stokes_dim, propgation path point ]\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "ArrayOfTensor3" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -1857,15 +1853,6 @@ void Workspace::define_wsv_data()
        "Usage: Quantities are added by the jacobianAdd WSMs.\n"
       ),
       GROUP( "ArrayOfRetrievalQuantity" )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "jacobian_y_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4507,21 +4494,29 @@ void Workspace::define_wsv_data()
     ( NAME( "y_aux" ),
       DESCRIPTION
       (
-       "Data auxilary to *y*\n"
+       "Data auxilary to *y*.\n"
        "\n"
-       "A general variable to provide data auxilary to *y*. The content of\n"
-       "this variable depends on method selected for *iy_clearsky_agenda*\n"
-       "and *iy_cloudbox_agenda*. For methods dealing with radiance data,\n"
-       "this variable is used to report the transmission of the atmosphere.\n"
-       "This transmission can be calculated in a simplified manner, or be\n"
-       "set to special values to indicate e.g. an interception with the\n"
-       "cloudbox. See the relevant WSMs for details, and also *iy_aux*. \n"
+       "To be written ...\n"
        "\n"
-       "If created through *yCalc*, the weighting with *sensor_response*\n"
-       "is included. A value of 999 indicates that no data have been\n"
-       "provided by the agenda methods.\n"
+       "The quantities to be stored in this variable are selected by\n"
+       "*y_aux_vars*.\n"
+       "\n"
+       "Usage:      Provided by some radiative transfer methods.\n"
+       "\n"
+       "Dimensions: [quantity][ element of y, propgation path point ]\n"
        ),
-      GROUP( "Vector" )));
+      GROUP( "ArrayOfMatrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_aux_vars" ),
+      DESCRIPTION
+      (
+       "Selection of quantities for *iy_aux* and *y_aux*.\n"
+       "\n"
+       "To be written ...\n"
+       ),
+      GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
    (WsvRecord

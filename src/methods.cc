@@ -3905,7 +3905,7 @@ void define_md_data_raw()
                   "End value.",
                   "Step size." )
         ));
-
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "fos_yStandard" ),
@@ -3916,7 +3916,7 @@ void define_md_data_raw()
          "This method is used by Patrick for testing a new scattering scheme.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "fos_y", "iy_aux", "diy_dx" ),
+        OUT( "fos_y", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -3932,6 +3932,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  */
 
   md_data_raw.push_back     
     ( MdRecord
@@ -4414,15 +4415,13 @@ void define_md_data_raw()
          "variables are used as for *iyEmissionStandardClearsky*, and \n"
          "*surface_emission* should probably be set to 0. Multiple-beams\n"
          "will be followed if *surface_los* has length > 1.\n"
-         "\n"
-         "*iy_aux* is not set.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx","iy_agenda_call1", 
+        IN( "iy_agenda_call1", 
             "iy_transmission", "rte_pos", "rte_los", "jacobian_do", 
             "atmosphere_dim", "p_grid", "z_field", 
             "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
@@ -4436,7 +4435,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyBeerLambertStandardCloudbox" ),
@@ -4457,11 +4456,11 @@ void define_md_data_raw()
          "manner.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx", "iy_transmission",
+        IN( "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
@@ -4472,6 +4471,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -4509,6 +4509,44 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyEmissionStandardClearskyNew" ),
+        DESCRIPTION
+        (
+         "Standard method for radiative transfer calculations with emission.\n"
+         "\n"
+         "Designed to be part of *iy_clearsky_agenda*. That is, only valid\n"
+         "outside the cloudbox (no scattering or polarised absorption).\n"
+         "Assumes local thermodynamic equilibrium for emission.\n"
+         "\n"
+         "The overall strategy is to take the average of the absorption and\n"
+         "the emission source function at the end points of each step of\n"
+         "the propagation path. See further the user guide.\n" 
+         "\n"
+         "The WSV *iy_aux* ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
+            "t_field", "vmr_field", "abs_species", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
+            "cloudbox_on", "jacobian_do", 
+            "jacobian_quantities", "jacobian_indices", "y_aux_vars", 
+            "ppath_agenda", "blackbody_radiation_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
+            "iy_agenda_call1", "iy_transmission", "mblock_index", 
+            "rte_pos", "rte_los" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyEmissionStandardClearsky" ),
         DESCRIPTION
         (
@@ -4535,8 +4573,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx",
-            "iy_agenda_call1", "iy_transmission", 
+        IN( "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
             "wind_w_field", "edensity_field",
@@ -4579,7 +4616,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyFOS" ),
@@ -4610,11 +4647,11 @@ void define_md_data_raw()
          "manner.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx", "iy_transmission",
+        IN( "diy_dx", "iy_transmission",
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
@@ -4626,6 +4663,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -4655,16 +4693,13 @@ void define_md_data_raw()
          "MC control arguments (mc_std_err, mc_max_time, mc_max_iter and\n"
          "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
-         "\n"
-         "*iy_aux* is not set.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx",
-            "iy_agenda_call1", "iy_transmission", 
+        IN( "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", 
             "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid", 
@@ -4698,17 +4733,13 @@ void define_md_data_raw()
          "given position is at any boundary.\n"
          "\n"
          "Interpolation of the internal field is not yet possible.\n"
-         "\n"
-         "Further, *iy_aux* is set to the transmission to the boundary of the\n"
-         "cloudbox. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx", "iy_transmission", 
-            "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
+        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
             "rte_pos", "rte_los", "jacobian_do","cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", 
@@ -4730,12 +4761,11 @@ void define_md_data_raw()
          "interpolation along *scat_za_grid* is performed.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx", "iy_transmission", 
-            "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
+        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
             "rte_pos", "rte_los", "jacobian_do", "cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", "scat_za_grid", 
@@ -4758,7 +4788,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx","iy_agenda_call1", 
+        IN( "iy_agenda_call1", 
             "iy_transmission", "rte_pos", "jacobian_do", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field", 
@@ -4786,12 +4816,11 @@ void define_md_data_raw()
          "in a straightforward fashion.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_aux", "diy_dx",
-            "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
+        IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
             "rte_pos", "rte_los", "iy_clearsky_agenda", "surface_rtprop_agenda"
           ),
@@ -9871,12 +9900,10 @@ void define_md_data_raw()
          "conversion is applied on monochromatic pencil beam values. That\n"
          "is, before any sensor responses have been included.\n"
          "The frequency, polarisation etc. for each measurement value is\n" 
-         "given by *y_f*, *y_pol* etc. No unit conversion is applied for\n"
-         "*y_aux*.\n"
+         "given by *y_f*, *y_pol* etc..\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", 
-             "jacobian" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -9911,56 +9938,13 @@ void define_md_data_raw()
          "match the format of \"measurement data\".\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", 
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", 
              "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "jacobian_do", "jacobian_indices", 
-            "rte_pos", "rte_los", "iy", "iy_aux", "diy_dx" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "yCalc2" ),
-        DESCRIPTION
-        (
-         "Calculation of complete measurement vectors (y).\n"
-         "\n"
-         "The method performs radiative transfer calculations from a sensor\n"
-         "perspective. Radiative transfer calculations are performed for\n"
-         "monochromatic pencil beams, following *iy_clearsky_agenda* and\n"
-         "associated agendas. Obtained radiances are weighted together by\n"
-         "*sensor_response*, to include the characteristics of the sensor.\n"
-         "The measurement vector obtained can contain anything from a single\n"
-         "frequency value to a series of measurement scans (each consisting\n"
-         "of a series of spectra), all depending on the settings. Spectra\n"
-         "and jacobians are calculated in parallel.\n"
-         "\n"
-         "The unit of output radiances and jacobians follow *y_unit*. The\n"
-         "conversion is applied on monochromatic pencil beam values. That\n"
-         "is, before any sensor responses have been included.\n"
-         "The frequency, polarisation etc. for each measurement value is\n" 
-         "given by *y_f*, *y_pol* etc. No unit conversion is applied for\n"
-         "*y_aux*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", 
-             "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "basics_checked", "atmosphere_dim", 
-            "t_field", "z_field", "vmr_field", "cloudbox_on", 
-            "cloudbox_checked", "stokes_dim", "f_grid", "sensor_pos", 
-            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response_agenda", "iy_clearsky_agenda", "y_unit", 
-            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
-            "jacobian_indices" ),
+            "rte_pos", "rte_los", "iy", "diy_dx" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

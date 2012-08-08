@@ -1,3 +1,17 @@
+2012-08-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-204
+
+	* Changes in many files around iy_aux. Largely
+	removed/de-activated, to simplify the introduction of a new
+	approach. Also some cleaning around diy_dx.
+	
+	* src/workspace.cc: Type of iy_aux and y_aux changed, y_aux_vars
+	introduced.
+
+	* src/agendas.cc: jacobian_y_agenda removed (obselete since some
+	time!). 
+
 2012-08-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-203
@@ -26,7 +40,7 @@
 	and y_error.
 
 	* src/workspace.cc: Removed iy_error, iy_error_type and y_error.
-	The error wiill be part of iy_aux and y_aux.
+	The error will be part of iy_aux and y_aux.
 
 2012-07-31  Jana Mendrok <jana.mendrok@ltu.se>
 
