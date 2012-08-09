@@ -1693,16 +1693,43 @@ void Workspace::define_wsv_data()
       (
        "Data auxiliary to *iy*.\n"
        "\n"
-       "To be written ...\n"
+       "Different data beside the direct result of the radiative transfer\n"
+       "calculations can be obtained by this variable. These auxilary data\n"
+       "are selected by *iy_aux_vars*.\n"
        "\n"
-       "The quantities to be stored in this variable are selected by\n"
-       "*y_aux_vars*.\n"
+       "The size of the data is made as compact as possible (in contrast to\n"
+       "*y_aux*). For example, the frequency and Stokes dimensions are set to\n"
+       "1 when along-the-path temperature is stored. Further, for overall\n"
+       "radiative transfer character, such as total ransmission, the column\n"
+       "dimension is set to have size 1.\n"
+       "\n"
+       "See also *iy_aux_vars*.\n"
        "\n"
        "Usage:      Provided by some radiative transfer methods.\n"
        "\n"
-       "Dimensions: [quantity][ f_grid, stokes_dim, propgation path point ]\n"
+       "Dimensions: [quantity][ 1 or f_grid, 1 or stokes_dim, \n"
+       "                        1 or propgation path point ]\n"
        ),
       GROUP( "ArrayOfTensor3" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iy_aux_vars" ),
+      DESCRIPTION
+      (
+       "Selection of quantities for *iy_aux* and when applicable also *y_aux*.\n"
+       "\n"
+       "Each element of this string array determines the quantity for the\n"
+       "corresponding element in *iy_aux* and *y_aux* (ie. the quantities\n"
+       "are stored in the order given in *iy_aux_vars*).\n"
+       "\n"
+       "The possible choices vary between the methods. See the WSM you select\n"
+       "for *iy_clearsky_agenda* for the complete set of choices. However,\n"
+       "if the calculations are done through *yCalc*, you can not select\n"
+       "along-the-path variables (but e.g. \"Transmission, total\" is a\n"
+       "valid option).\n"
+       ),
+      GROUP( "ArrayOfString" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -4487,27 +4514,22 @@ void Workspace::define_wsv_data()
       (
        "Data auxilary to *y*.\n"
        "\n"
-       "To be written ...\n"
+       "Different data beside the direct result of the radiative transfer\n"
+       "calculations can be obtained by this variable. These auxilary data\n"
+       "are selected by *iy_aux_vars*.\n"
        "\n"
-       "The quantities to be stored in this variable are selected by\n"
-       "*y_aux_vars*.\n"
+       "In contrast to *iy_aux*, this variable can only hold quantities such\n"
+       "as total transmission, and other quantites that could be the result\n"
+       "ofg a complete radiative transfer calculation. The data are weighted\n"
+       "with sensor properties in the same way as for *y*.\n"
        "\n"
-       "Usage:      Provided by some radiative transfer methods.\n"
+       "See also *iy_aux_vars*.\n"
        "\n"
-       "Dimensions: [quantity][ element of y, propgation path point ]\n"
+       "Usage:      Output of *yCalc*.\n"
+       "\n"
+       "Dimensions: [quantity][ element of y ]\n"
        ),
-      GROUP( "ArrayOfMatrix" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "y_aux_vars" ),
-      DESCRIPTION
-      (
-       "Selection of quantities for *iy_aux* and *y_aux*.\n"
-       "\n"
-       "To be written ...\n"
-       ),
-      GROUP( "ArrayOfString" )));
+      GROUP( "ArrayOfVector" )));
 
   wsv_data.push_back
    (WsvRecord

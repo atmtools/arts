@@ -210,7 +210,7 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Convert the measurement from radiance units to Planck Tb:
   StringSet( y_unit, "PlanckBT" )
-  y_unitApply
+  yApplyYunit
 }
 
 

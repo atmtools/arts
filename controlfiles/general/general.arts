@@ -212,6 +212,12 @@ AgendaSet( iy_clearsky_agenda ){
 
 
 #
+# No auxiliary variables as default
+#
+ArrayOfStringSet( iy_aux_vars, [] )
+
+
+#
 # No unit conversion 
 #
 StringSet( y_unit, "1" )

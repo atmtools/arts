@@ -1,3 +1,43 @@
+2012-08-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-206
+
+	* Core functionality for new iy_aux in place, as well as basic
+	documentation and control file examples.
+	
+	* controlfiles/instruments/avhrr/TestAVHRR.arts: *
+	controlfiles/instruments/hirs/TestHIRS.arts: y_unitApply ->
+	yApplyYunit.
+
+	* controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts:
+	Updated. Includes demonstration of new iy_aux.
+
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts: Extended
+	to also test new y_aux functionality.
+
+	* src/array.h: Defined ArrayOfArrayOfVector.
+
+	* controlfiles/general/general.arts: iy_aux_vars set to be empty.
+
+	* src/rte.cc (iyb_calc):  Now handles new version of iy_aux.
+
+	* src/m_rte.cc (yFromIy): Removed. Realised that this method
+	implies strong restrictions for y_aux, which makes the method of
+	little interest. The users need to learn the distinction between y
+	and iy variables ;-)
+
+	(iyEmissionStandardClearsky): Modified version of the method. 
+	Handling some first aux variables.
+
+	(yCalc): Now handles new version of y_aux.
+
+	(yApplyYunit): y_unitApply renamed.
+	
+	(iyApplyYunit): New WSM.
+	
+	* src/workspace.cc (define_wsv_data): Changed y_aux_vars to
+	iy_aux_vars.
+
 2012-08-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-205

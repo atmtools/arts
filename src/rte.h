@@ -252,6 +252,7 @@ void iy_transmission_mult_scalar_tau(
 void iyb_calc(
         Workspace&                  ws,
         Vector&                     iyb,
+        ArrayOfVector&              iyb_aux,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,

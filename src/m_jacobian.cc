@@ -496,10 +496,11 @@ void jacobianCalcAbsSpeciesPerturbations(
         
               // Calculate the perturbed spectrum  
               //
-              Vector        iybp, dummy3;
+              Vector        iybp;
+              ArrayOfVector dummy3;      
               ArrayOfMatrix dummy4;      
               //
-              iyb_calc( ws, iybp, dummy4, mblock_index, 
+              iyb_calc( ws, iybp, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, 
                         t_field, z_field, vmr_p, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
@@ -1029,11 +1030,12 @@ void jacobianCalcPointingZaRecalc(
   {
         Vector        iyb2;
         Matrix        los = sensor_los;
+        ArrayOfVector iyb_aux;      
         ArrayOfMatrix diyb_dx;      
 
     los(joker,0) += rq.Perturbation();
 
-    iyb_calc( ws, iyb2, diyb_dx, mblock_index, 
+    iyb_calc( ws, iyb2, iyb_aux, diyb_dx, mblock_index, 
               atmosphere_dim, 
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
@@ -1577,9 +1579,10 @@ void jacobianCalcTemperaturePerturbations(
        
               // Calculate the perturbed spectrum  
               Vector        iybp;
+              ArrayOfVector dummy3;      
               ArrayOfMatrix dummy4;      
               //
-              iyb_calc( ws, iybp, dummy4, mblock_index, 
+              iyb_calc( ws, iybp, dummy3, dummy4, mblock_index, 
                         atmosphere_dim, 
                         t_p, z, vmr_field, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 

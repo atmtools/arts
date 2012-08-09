@@ -4397,6 +4397,37 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyApplyYunit" ),
+        DESCRIPTION
+        (
+         "Conversion of *iy* to other spectral units.\n"
+         "\n"
+         "No automatic unit conversion is applied on the iy-variables, but\n"
+         "this method allows for a seperate conversion of *iy* and *iy_aux*\n"
+         "to the unit selected by *y_unit*.\n"
+         "\n"
+         "Only elements for which the conversion makes sense are modified.\n"
+         "\n"
+         "Please note that *diy*dx* is not handled and it is demanded that\n"
+         "*jacobian_do* is 0.\n"
+         "\n"
+         "See further *y_unit*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy", "iy_aux", "stokes_dim", "f_grid", "jacobian_do", 
+            "iy_aux_vars", "y_unit" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyBeerLambertStandardClearsky" ),
         DESCRIPTION
         (
@@ -4510,44 +4541,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyEmissionStandardClearskyNew" ),
-        DESCRIPTION
-        (
-         "Standard method for radiative transfer calculations with emission.\n"
-         "\n"
-         "Designed to be part of *iy_clearsky_agenda*. That is, only valid\n"
-         "outside the cloudbox (no scattering or polarised absorption).\n"
-         "Assumes local thermodynamic equilibrium for emission.\n"
-         "\n"
-         "The overall strategy is to take the average of the absorption and\n"
-         "the emission source function at the end points of each step of\n"
-         "the propagation path. See further the user guide.\n" 
-         "\n"
-         "The WSV *iy_aux* ...\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
-            "t_field", "vmr_field", "abs_species", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
-            "cloudbox_on", "jacobian_do", 
-            "jacobian_quantities", "jacobian_indices", "y_aux_vars", 
-            "ppath_agenda", "blackbody_radiation_agenda", 
-            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
-            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
-            "iy_agenda_call1", "iy_transmission", "mblock_index", 
-            "rte_pos", "rte_los" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "iyEmissionStandardClearsky" ),
         DESCRIPTION
         (
@@ -4561,28 +4554,32 @@ void define_md_data_raw()
          "the emission source function at the end points of each step of\n"
          "the propagation path. See further the user guide.\n" 
          "\n"
-         "The WSV *iy_aux* is set to hold the transmission, if the radiative\n"
-         "background is space or the surface. That is, as long as there is no\n"
-         "intersection with a cloudbox, the method sets *iy_aux*  to the\n"
-         "transmission through the atmosphere either down to the surface, or\n"
-         "to the top of the atmosphere. The treatment of *iy_aux* if there\n"
-         "is an interesection with the cloudbox depends on the scattering\n"
-         "method selected.\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Temperature\": The temperature along the propagation path.\n"
+         "  \"Radiance\": The radiance at each point along the path.\n"
+         "* \"Transmission, total\": The transmission between the observation\n"
+         "    point and the end of the (primary) propagation path (ie. the\n"
+         "    transmission to the surface, cloudbox or space.)\n"
+         "The auxiliary data are returned in *iy_aux* with qunatities\n"
+         "selected by *iy_aux_vars*. Most variables require that the method\n"
+         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
+         "the selection is restricted to the variables marked with *.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_agenda_call1", "iy_transmission", 
-            "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
-            "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
-            "wind_w_field", "edensity_field",
-            "cloudbox_on", "stokes_dim", "f_grid", "abs_species", 
-            "mblock_index", "ppath_agenda", "blackbody_radiation_agenda", 
-            "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
-            "iy_surface_agenda", "iy_cloudbox_agenda",
-            "jacobian_quantities", "jacobian_indices" ),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
+            "t_field", "vmr_field", "abs_species", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
+            "cloudbox_on", "jacobian_do", 
+            "jacobian_quantities", "jacobian_indices", "iy_aux_vars", 
+            "ppath_agenda", "blackbody_radiation_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
+            "iy_agenda_call1", "iy_transmission", "mblock_index", 
+            "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9704,6 +9701,87 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "yApplyYunit" ),
+        DESCRIPTION
+        (
+         "Conversion of *y* to other spectral units.\n"
+         "\n"
+         "Any conversion to brightness temperature is normally made inside\n"
+         "*yCalc*. This method makes it possible to also make this conversion\n"
+         "after *yCalc*, but with restrictions for *jacobian*.\n"
+         "\n"
+         "The method handles *y* and *jacobian* in parallel, where\n"
+         "the last variable is only considered if it is set. The\n"
+         "input data must be in original radiance units. A completely\n"
+         "stringent check of this can not be performed.\n"
+         "\n"
+         "The method can not be used with jacobian quantities that are not\n"
+         "obtained through radiative transfer calculations. One example on\n"
+         "quantity that can not be handled is *jacobianAddPolyfit*. There\n"
+         "are no automatic checks warning for incorrect usage!\n"
+         "\n" 
+         "If you are using this method, *y_unit* should be set to \"1\" when\n"
+         "calling *yCalc*, and be changed before calling this method.\n"
+         "\n"         
+         "See further *y_unit*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "y", "jacobian", "y_f", "y_pol", "y_unit" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yCalc" ),
+        DESCRIPTION
+        (
+         "Calculation of complete measurement vectors (y).\n"
+         "\n"
+         "The method performs radiative transfer calculations from a sensor\n"
+         "perspective. Radiative transfer calculations are performed for\n"
+         "monochromatic pencil beams, following *iy_clearsky_agenda* and\n"
+         "associated agendas. Obtained radiances are weighted together by\n"
+         "*sensor_response*, to include the characteristics of the sensor.\n"
+         "The measurement vector obtained can contain anything from a single\n"
+         "frequency value to a series of measurement scans (each consisting\n"
+         "of a series of spectra), all depending on the settings. Spectra\n"
+         "and jacobians are calculated in parallel.\n"
+         "\n"
+         "The unit of output radiances and jacobians follow *y_unit*. The\n"
+         "conversion is applied on monochromatic pencil beam values. That\n"
+         "is, before any sensor responses have been included.\n"
+         "The frequency, polarisation etc. for each measurement value is\n" 
+         "given by *y_f*, *y_pol* etc..\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "basics_checked", "atmosphere_dim",
+            "t_field", "z_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_checked", "stokes_dim", "f_grid", "sensor_pos", 
+            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
+            "iy_clearsky_agenda", "y_unit", 
+            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
+            "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ybatchCalc" ),
         DESCRIPTION
         (
@@ -9850,115 +9928,6 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF,          NODEF ),
         GIN_DESC( "FIXME DOC",
                   "FIXME DOC" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "yCalc" ),
-        DESCRIPTION
-        (
-         "Calculation of complete measurement vectors (y).\n"
-         "\n"
-         "The method performs radiative transfer calculations from a sensor\n"
-         "perspective. Radiative transfer calculations are performed for\n"
-         "monochromatic pencil beams, following *iy_clearsky_agenda* and\n"
-         "associated agendas. Obtained radiances are weighted together by\n"
-         "*sensor_response*, to include the characteristics of the sensor.\n"
-         "The measurement vector obtained can contain anything from a single\n"
-         "frequency value to a series of measurement scans (each consisting\n"
-         "of a series of spectra), all depending on the settings. Spectra\n"
-         "and jacobians are calculated in parallel.\n"
-         "\n"
-         "The unit of output radiances and jacobians follow *y_unit*. The\n"
-         "conversion is applied on monochromatic pencil beam values. That\n"
-         "is, before any sensor responses have been included.\n"
-         "The frequency, polarisation etc. for each measurement value is\n" 
-         "given by *y_f*, *y_pol* etc..\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "basics_checked", "atmosphere_dim",
-            "t_field", "z_field", "vmr_field", "cloudbox_on", 
-            "cloudbox_checked", "stokes_dim", "f_grid", "sensor_pos", 
-            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "sensor_response_f",
-            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "iy_clearsky_agenda", "y_unit", 
-            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
-            "jacobian_indices" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "yFromIy" ),
-        DESCRIPTION
-        (
-         "Converts monochromatic pencil beam data to measurement data.\n"
-         "\n"
-         "The method takes the output from *iyCalc* and converts the data\n"
-         "to match the output that should be obtained by *yCalc* for the\n"
-         "same conditions (a single monochromatic pencil beam calculation\n"
-         "and no sensor applied).\n"
-         "\n"
-         "In short, the method converts monochromatic pencil beam data to\n"
-         "match the format of \"measurement data\".\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", 
-             "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "jacobian_do", "jacobian_indices", 
-            "rte_pos", "rte_los", "iy", "diy_dx" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "y_unitApply" ),
-        DESCRIPTION
-        (
-         "Conversion to other spectral units.\n"
-         "\n"
-         "Any conversion to brightness temperature is normally made inside\n"
-         "*yCalc*. This method makes it possible to also make this conversion\n"
-         "after *yCalc*, but with restrictions for *jacobian*.\n"
-         "\n"
-         "The method handles *y* and *jacobian* in parallel, where\n"
-         "the two last variables are only considered if they are set. The\n"
-         "input data must be in original radiance units. A completely\n"
-         "stringent check of this can not be performed.\n"
-         "\n"
-         "The method can not be used with jacobian quantities that are not\n"
-         "obtained through radiative transfer calculations. One example on\n"
-         "quantity that can not be handled is *jacobianAddPolyfit*.\n"
-         "\n"         
-         "If you are using this method, *y_unit* should be set to \"1\" when\n"
-         "calling *yCalc*, and be changed before calling this method.\n"
-         "\n"         
-         "See further *y_unit*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "y", "jacobian", "y_f", "y_pol", "y_unit" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
         ));
 
   md_data_raw.push_back

@@ -115,7 +115,7 @@ void adjust_los(
 /*!
     Performs conversion from radiance to other units.
 
-    Use *apply_y_unit_jac* for conversion of jacobian data.
+    Use *apply_y_unit2* for conversion of jacobian data.
 
     \param   iy       In/Out: Tensor3 with data to be converted, where 
                       column dimension corresponds to Stokes dimensionality
@@ -215,9 +215,6 @@ void apply_y_unit(
 
     The associated spectrum data *iy* must be in radiance. That is, the
     spectrum can only be converted to Tb after the jacobian data. 
-
-    *iy* must be a single spectrum, and is accordingly here a matrix (and not a
-    *Tensor3 as for apply_y_unit).
 
     \param   J        In/Out: Tensor3 with data to be converted, where 
                       column dimension corresponds to Stokes dimensionality
@@ -1501,6 +1498,7 @@ Range get_rowindex_for_mblock(
 void iyb_calc(
         Workspace&                  ws,
         Vector&                     iyb,
+        ArrayOfVector&              iyb_aux,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      mblock_index,
   const Index&                      atmosphere_dim,
@@ -1545,6 +1543,10 @@ void iyb_calc(
   else
     { diyb_dx.resize( 0 ); }
 
+  // For iy_aux we don't know the number of quantities, and we have to store
+  // all outout
+  ArrayOfArrayOfTensor3  iy_aux_array( nza*naa );
+
   // Polarisation index variable
   ArrayOfIndex i_pol(stokes_dim);
   for( Index is=0; is<stokes_dim; is++ )
@@ -1556,7 +1558,7 @@ void iyb_calc(
   Agenda l_iy_clearsky_agenda (iy_clearsky_agenda);
   
   // Start of actual calculations
-/*#pragma omp parallel for                                          \
+/*#pragma omp parallel for                                        \
   if(!arts_omp_in_parallel() && nza>1)                            \
   default(none)                                                   \
   firstprivate(l_ws, l_iy_clearsky_agenda)                        \
@@ -1583,26 +1585,36 @@ void iyb_calc(
               //
               if( antenna_dim == 2 )  // map_daa handles also "adjustment"
                 { map_daa( los[0], los[1], los[0], los[1], 
-                                                    mblock_aa_grid[iaa] ); }
+                                                       mblock_aa_grid[iaa] ); }
               else 
                 { adjust_los( los, atmosphere_dim ); }
 
               // Calculate iy and associated variables
               //
               Matrix         iy;
-              ArrayOfTensor3 iy_aux, diy_dx;
+              ArrayOfTensor3 diy_dx;
               Tensor3        iy_transmission(0,0,0);
+              Index          iang = iza*naa + iaa;
               //
-              iy_clearsky_agendaExecute( l_ws, iy, iy_aux, diy_dx, 1, 
-                                         iy_transmission, cloudbox_on, 
+              iy_clearsky_agendaExecute( l_ws, iy, iy_aux_array[iang], diy_dx, 
+                                         1, iy_transmission, cloudbox_on, 
                                          j_analytical_do, t_field, z_field, 
                                          vmr_field, mblock_index, 
                                          sensor_pos(mblock_index,joker), los, 
                                          l_iy_clearsky_agenda );
 
+              // Check that aux data can be handled
+              for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
+                {
+                  if( iy_aux_array[iang][q].ncols() > 1 )
+                    { throw runtime_error( "For calculations using yCalc, "
+                                           "*iy_aux_vars* can not include "
+                                           "along-the-path variables." ); }
+                }              
+
               // Start row in iyb etc. for present LOS
               //
-              const Index row0 = ( iza*naa + iaa ) * nf * stokes_dim;
+              const Index row0 = iang * nf * stokes_dim;
 
               // Jacobian part (must be converted to Tb before iy for PlanckBT)
               // 
@@ -1624,7 +1636,7 @@ void iyb_calc(
                   )
                 }
 
-              // iy       : unit conversion and copy to iyb
+              // iy : unit conversion and copy to iyb
               //
               apply_y_unit( iy, y_unit, f_grid, i_pol );
               //
@@ -1640,6 +1652,36 @@ void iyb_calc(
           exit_or_rethrow(e.what(), out0);
         }
     }  // End za loop
+
+
+  // Compile iyb_aux
+  //
+  const Index nq = iy_aux_array[0].nelem();
+  iyb_aux.resize( nq );
+  //
+  for( Index q=0; q<nq; q++ )
+    {
+      iyb_aux[q].resize( niyb );
+      //
+      for( Index iza=0; iza<nza; iza++ )
+        {
+          for( Index iaa=0; iaa<naa; iaa++ )
+            {
+              const Index iang = iza*naa + iaa;
+              const Index row0 = iang * nf * stokes_dim;
+              for( Index iv=0; iv<nf; iv++ )
+                { 
+                  const Index row1 = row0 + iv*stokes_dim;
+                  const Index i1 = min( iv, iy_aux_array[iang][q].npages()-1 );
+                  for( Index is=0; is<stokes_dim; is++ )
+                    { 
+                      Index i2 = min( is, iy_aux_array[iang][q].nrows()-1 );
+                      iyb_aux[q][row1+is] = iy_aux_array[iang][q](i1,i2,0);
+                    }
+                }
+            }
+        }
+    }
 }
 
 

@@ -55,41 +55,41 @@ VectorSet( rte_pos, [ 600e3 ] )
 VectorSet( rte_los, [ 113.3 ] )
 
 
+# Other RT varaibles
+# 
+IndexSet( mblock_index, -1 )   # In this case just a dummy value
+ArrayOfStringSet( iy_aux_vars, 
+    [ "Temperature", "Radiance", "Transmission, total" ] )
+
+
 # Perform RT calculations
 # 
 basics_checkedCalc
 cloudbox_checkedCalc
-IndexSet( mblock_index, -1 )   # A dummy value
 iyCalc
-
-
-# The standard choice is to use yCalc, and for conversion to Tb and other 
-# later operations, the simplest is to convert the output from iyCalc to 
-# the variables returned by yCalc:
-#
-yFromIy
 
 
 # Convert to Tb
 #
 StringSet( y_unit, "RJBT" )
 #
-y_unitApply
+iyApplyYunit
 
 
 # To save calculated spectrum and transmission
 #
 #output_file_formatSetAscii
 #WriteXML( output_file_format, f_grid, "f_grid.xml" )
-#WriteXML( output_file_format, y, "yREFERENCE.xml" )
+#WriteXML( output_file_format, iy, "iyREFERENCE.xml" )
+#WriteXML( output_file_format, iy_aux, "iy_auxREFERENCE.xml" )
 
 
 # Check that results are OK with respect to an older reference calculation
 #
-VectorCreate( y0 )
+MatrixCreate( iy0 )
 #
-ReadXML( y0, "yREFERENCE.xml" )
-VectorCompare( y, y0 )
+ReadXML( iy0, "iyREFERENCE.xml" )
+MatrixCompare( iy, iy0, 0.01 )
 
 }
  

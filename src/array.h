@@ -60,6 +60,8 @@ class Tensor7;
 /** An array of vectors. */
 typedef Array<Vector> ArrayOfVector;
 
+typedef Array<ArrayOfVector> ArrayOfArrayOfVector;
+
 /** An array of matrices. */
 typedef Array<Matrix> ArrayOfMatrix;
 
