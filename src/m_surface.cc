@@ -300,9 +300,12 @@ void iySurfaceRtpropAgenda(
           //
           {
             ArrayOfTensor3   iy_aux;
-            iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx, 0, 
-                      iy_trans_new, cloudbox_on, jacobian_do, t_field, z_field, 
-                      vmr_field, -1, rte_pos, los, iy_clearsky_agenda );
+            Ppath            ppath;
+            iy_clearsky_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
+                                       iy_trans_new, ArrayOfString(0), 
+                                       cloudbox_on, jacobian_do, t_field, 
+                                       z_field, vmr_field, -1, rte_pos, los, 
+                                       iy_clearsky_agenda );
           }
 
           if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )

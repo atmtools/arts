@@ -43,6 +43,7 @@ AgendaSet( iy_surface_agenda ){
 AgendaSet( iy_clearsky_agenda ){
   Ignore( iy_agenda_call1 )
   Ignore( iy_transmission )
+  Ignore( iy_aux_vars )
   Ignore( rte_pos )
   Ignore( rte_los ) 
   Ignore( cloudbox_on ) 
@@ -52,6 +53,7 @@ AgendaSet( iy_clearsky_agenda ){
   Ignore( vmr_field ) 
   Ignore( mblock_index )
   Touch( iy_aux )
+  Touch( ppath )
   Touch( diy_dx )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
   MatrixScale( iy, iy, 100 )

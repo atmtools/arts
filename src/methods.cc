@@ -4449,7 +4449,7 @@ void define_md_data_raw()
          "will be followed if *surface_los* has length > 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -4461,7 +4461,8 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", "f_grid", "abs_species", 
             "mblock_index", "ppath_agenda", "abs_scalar_gas_agenda", 
             "iy_clearsky_agenda", "iy_space_agenda", "iy_surface_agenda", 
-            "iy_cloudbox_agenda", "jacobian_quantities", "jacobian_indices" ),
+            "iy_cloudbox_agenda", "iy_aux_vars", 
+            "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4525,11 +4526,11 @@ void define_md_data_raw()
          "incorporated by using *yCalc*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "basics_checked", "t_field", 
+        IN( "basics_checked", "iy_aux_vars", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
             "rte_pos", "rte_los", "jacobian_do", "mblock_index", 
             "iy_clearsky_agenda" ),
@@ -4556,25 +4557,36 @@ void define_md_data_raw()
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Temperature\": The temperature along the propagation path.\n"
+         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
+         "     For example, adding the string \"VMR, species 0\" extracts the\n"
+         "     VMR of the first species.\n"
+         "  \"Absorption, summed\": The total absorption along the path.\n"
+         "     If stokes_dim>1, the absorption vector is stored.\n"
+         "  \"Absorption, species X\": The absorption vector along the path\n"
+         "     for an individual species (X works as for VMR).\n"
+         "* \"Radiative background\": Index value flagging the radiative\n"
+         "     backround. The following coding is used: 0=space, 1=surface\n"
+         "     and 2=cloudbox.\n"
          "  \"Radiance\": The radiance at each point along the path.\n"
          "* \"Transmission, total\": The transmission between the observation\n"
-         "    point and the end of the (primary) propagation path (ie. the\n"
-         "    transmission to the surface, cloudbox or space.)\n"
+         "     point and the end of the (primary) propagation path (ie. the\n"
+         "     transmission to the surface, cloudbox or space.)\n"
+         "\n"
          "The auxiliary data are returned in *iy_aux* with qunatities\n"
          "selected by *iy_aux_vars*. Most variables require that the method\n"
          "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
          "the selection is restricted to the variables marked with *.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
             "t_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
-            "cloudbox_on", "jacobian_do", 
-            "jacobian_quantities", "jacobian_indices", "iy_aux_vars", 
+            "cloudbox_on", "iy_aux_vars", "jacobian_do", 
+            "jacobian_quantities", "jacobian_indices", 
             "ppath_agenda", "blackbody_radiation_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
@@ -4670,7 +4682,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_agenda_call1", "iy_transmission", 
-            "rte_pos", "rte_los", 
+            "rte_pos", "rte_los", "iy_aux_vars",  
             "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "cloudbox_checked",
@@ -4754,12 +4766,12 @@ void define_md_data_raw()
          "Method in development ...\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_agenda_call1", 
-            "iy_transmission", "rte_pos", "jacobian_do", "atmosphere_dim", 
+        IN( "iy_agenda_call1", "iy_transmission", "rte_pos", "iy_aux_vars", 
+            "jacobian_do", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
             "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field", 
             "refellipsoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid",
@@ -9759,6 +9771,10 @@ void define_md_data_raw()
          "is, before any sensor responses have been included.\n"
          "The frequency, polarisation etc. for each measurement value is\n" 
          "given by *y_f*, *y_pol* etc..\n"
+         "\n"
+         "See the method selected for *iy_clearsky_agenda* for quantities\n"
+         "that can be obtained by *y_aux*. However, in no case data of\n"
+         "along-the-path type can be extracted.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
@@ -9773,7 +9789,7 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_clearsky_agenda", "y_unit", 
             "jacobian_agenda", "jacobian_do", "jacobian_quantities",
-            "jacobian_indices" ),
+            "jacobian_indices", "iy_aux_vars" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

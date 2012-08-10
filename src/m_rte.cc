@@ -355,6 +355,7 @@ void iyBeerLambertStandardClearsky(
          Workspace&            ws,
          Matrix&               iy,
          ArrayOfTensor3&       iy_aux,
+         Ppath&                ppath,
          ArrayOfTensor3&       diy_dx,
    const Index&                iy_agenda_call1,
    const Tensor3&              iy_transmission,
@@ -381,13 +382,14 @@ void iyBeerLambertStandardClearsky(
    const Agenda&               iy_space_agenda,
    const Agenda&               iy_surface_agenda,
    const Agenda&               iy_cloudbox_agenda,
+   const ArrayOfString&              iy_aux_vars,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&  jacobian_indices,
    const Verbosity&            verbosity )
 {
   // See initial comments of iyEmissionStandardClearsky
 
-  iy_aux.resize(0); // !!!
+  iy_aux.resize(iy_aux_vars.nelem()); // !!!
 
   // Sizes
   //
@@ -413,8 +415,6 @@ void iyBeerLambertStandardClearsky(
     }
 
   //- Determine propagation path
-  //
-  Ppath  ppath;
   //
   ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0,
                        mblock_index, t_field, z_field, vmr_field, 
@@ -792,6 +792,7 @@ void iyEmissionStandardClearsky(
          Workspace&                  ws,
          Matrix&                     iy,
          ArrayOfTensor3&             iy_aux,
+         Ppath&                      ppath,
          ArrayOfTensor3&             diy_dx,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
@@ -806,10 +807,10 @@ void iyEmissionStandardClearsky(
    const Tensor3&                    wind_w_field,
    const Tensor3&                    edensity_field,
    const Index&                      cloudbox_on,
+   const ArrayOfString&              iy_aux_vars,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
-   const ArrayOfString&              iy_aux_vars,
    const Agenda&                     ppath_agenda,
    const Agenda&                     blackbody_radiation_agenda,
    const Agenda&                     abs_scalar_gas_agenda,
@@ -826,8 +827,6 @@ void iyEmissionStandardClearsky(
 {
   // Determine propagation path
   //
-  Ppath  ppath;
-  //
   ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0, 
                        mblock_index, t_field, z_field, vmr_field, 
                        edensity_field, -1, ppath_agenda );
@@ -841,8 +840,12 @@ void iyEmissionStandardClearsky(
   // Initialise iy_aux
   //
   Index aux_temperature = -1,
+        aux_abs_sum     = -1,
+        aux_background  = -1,
         aux_radiance    = -1,
         aux_trans_total = -1;
+  ArrayOfIndex aux_abs_species(0), aux_abs_isp(0);
+  ArrayOfIndex aux_vmr_species(0), aux_vmr_isp(0);
   //
   if( !iy_agenda_call1 )
     { iy_aux.resize( 0 ); }
@@ -855,6 +858,62 @@ void iyEmissionStandardClearsky(
         {
           if( iy_aux_vars[i] == "Temperature" )
             { aux_temperature = i;    iy_aux[i].resize( 1, 1, np ); }
+          else if( iy_aux_vars[i].substr(0,13) == "VMR, species " )
+            { 
+              Index ispecies;
+              istringstream is(iy_aux_vars[i].substr(13,2));
+              is >> ispecies;
+              if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
+                {
+                  ostringstream os;
+                  os << "You have selected VMR of species with index "
+                     << ispecies << ".\nThis species does not exist!";
+                  throw runtime_error( os.str() );
+                }
+              for( Index j=0; j<aux_vmr_isp.nelem(); j++ )
+                {
+                  if( ispecies ==  aux_vmr_isp[j] )
+                    {
+                      ostringstream os;
+                      os << "You have selected VMR of species with index "
+                         << ispecies << " twice!";
+                      throw runtime_error( os.str() );
+                    }
+                }
+              aux_vmr_species.push_back(i);
+              aux_vmr_isp.push_back(ispecies);
+              iy_aux[i].resize( 1, 1, np );               
+            }
+          else if( iy_aux_vars[i] == "Absorption, summed" )
+            { aux_abs_sum = i;       iy_aux[i].resize( nf, stokes_dim, np ); }
+          else if( iy_aux_vars[i].substr(0,20) == "Absorption, species " )
+            { 
+              Index ispecies;
+              istringstream is(iy_aux_vars[i].substr(20,2));
+              is >> ispecies;
+              if( ispecies < 0  ||  ispecies>=abs_species.nelem() )
+                {
+                  ostringstream os;
+                  os << "You have selected absorption species with index "
+                     << ispecies << ".\nThis species does not exist!";
+                  throw runtime_error( os.str() );
+                }
+              for( Index j=0; j<aux_abs_isp.nelem(); j++ )
+                {
+                  if( ispecies ==  aux_abs_isp[j] )
+                    {
+                      ostringstream os;
+                      os << "You have selected absorption species with index "
+                         << ispecies << " twice!";
+                      throw runtime_error( os.str() );
+                    }
+                }
+              aux_abs_species.push_back(i);
+              aux_abs_isp.push_back(ispecies);
+              iy_aux[i].resize( nf, stokes_dim, np );               
+            }
+          else if( iy_aux_vars[i] == "Radiative background" )
+            { aux_background = i;     iy_aux[i].resize( 1, 1, 1 ); }
           else if( iy_aux_vars[i] == "Radiance" )
             { aux_radiance = i;       iy_aux[i].resize( nf, stokes_dim, np ); }
           else if( iy_aux_vars[i] == "Transmission, total" )
@@ -862,14 +921,14 @@ void iyEmissionStandardClearsky(
           else
             {
               ostringstream os;
-              os << "In *iy_aux_vars* you have included: " << iy_aux_vars[i]
-                 << "\nThis choice is not recognised.";
+              os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
+                 << "\"\nThis choice is not recognised.";
               throw runtime_error( os.str() );
             }
         }
     }
     
-  // Initialise analytical jacobians + diy_dx.
+  // Initialise analytical jacobians (diy_dx)
   //
   Index j_analytical_do = 0;
   //
@@ -939,6 +998,10 @@ void iyEmissionStandardClearsky(
 
   // Fill some parts of iy_aux
   // Radiance 
+  if( aux_background >= 0 ) 
+    { iy_aux[aux_background](0,0,0) = min( Index(2),
+                                           ppath_what_background(ppath)-1); }
+  // Radiance 
   if( aux_radiance >= 0 ) 
     { iy_aux[aux_radiance](joker,joker,np-1) = iy; }
   // Transmission, total
@@ -997,6 +1060,19 @@ void iyEmissionStandardClearsky(
       // Temperature
       if( aux_temperature >= 0 ) 
         { iy_aux[aux_temperature](0,0,np-1) = ppath_t[np-1]; }
+      // VMR
+      for( Index j=0; j<aux_vmr_species.nelem(); j++ )
+        { iy_aux[aux_vmr_species[j]](0,0,np-1) = 
+                                              ppath_vmr(aux_vmr_isp[j],np-1); }
+      // Absorption (change to store "absorption vector")
+      if( aux_abs_sum >= 0 ) 
+        { for( Index iv=0; iv<nf; iv++ ) {
+            iy_aux[aux_abs_sum](iv,0,np-1) = 
+                                     ppath_abs_scalar(iv,joker,np-1).sum(); } }
+      for( Index j=0; j<aux_abs_species.nelem(); j++ )
+        { for( Index iv=0; iv<nf; iv++ ) {
+            iy_aux[aux_abs_species[j]](iv,0,np-1) = 
+                                  ppath_abs_scalar(iv,aux_abs_isp[j],np-1); } }
 
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
@@ -1142,6 +1218,19 @@ void iyEmissionStandardClearsky(
           // Temperature
           if( aux_temperature >= 0 ) 
             { iy_aux[aux_temperature](0,0,ip) = ppath_t[ip]; }
+          // VMR
+          for( Index j=0; j<aux_vmr_species.nelem(); j++ )
+            { iy_aux[aux_vmr_species[j]](0,0,ip) = 
+                                                ppath_vmr(aux_vmr_isp[j],ip); }
+          // Absorption (change to store "absorption vector")
+          if( aux_abs_sum >= 0 ) 
+            { for( Index iv=0; iv<nf; iv++ ) {
+              iy_aux[aux_abs_sum](iv,0,ip) = 
+                                       ppath_abs_scalar(iv,joker,ip).sum(); } }
+          for( Index j=0; j<aux_abs_species.nelem(); j++ )
+            { for( Index iv=0; iv<nf; iv++ ) {
+              iy_aux[aux_abs_species[j]](iv,0,ip) = 
+                                    ppath_abs_scalar(iv,aux_abs_isp[j],ip); } }
           // Radiance 
           if( aux_radiance >= 0 ) 
             { iy_aux[aux_radiance](joker,joker,ip) = iy_new; }
@@ -1547,6 +1636,7 @@ void iyMC(
    const Tensor3&                    iy_transmission,
    const Vector&                     rte_pos,      
    const Vector&                     rte_los,      
+   const ArrayOfString&              iy_aux_vars,
    const Index&                      jacobian_do,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
@@ -1574,6 +1664,8 @@ void iyMC(
    const Index&                      mc_max_iter,
    const Verbosity&                  verbosity)
 {
+  iy_aux.resize(iy_aux_vars.nelem()); // !!!
+
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 3 )
     throw runtime_error( 
@@ -1662,10 +1754,12 @@ void iyRadioLink(
          Workspace&            ws,
          Matrix&               iy,
          ArrayOfTensor3&       iy_aux,
+         Ppath&                ppath,
          ArrayOfTensor3&       diy_dx,
    const Index&                iy_agenda_call1,
    const Tensor3&              iy_transmission _U_,
    const Vector&               rte_pos,      
+   const ArrayOfString&        iy_aux_vars,
    const Index&                jacobian_do,
    const Index&                atmosphere_dim,
    const Vector&               p_grid,
@@ -1691,11 +1785,12 @@ void iyRadioLink(
    const Agenda&               iy_space_agenda,
    const Verbosity&            verbosity )
 {
-  String   iy_var = "AtmosphericLoss";
-  String   iy_aux_var = "ExtraPathDelay";
-
+  iy_aux.resize(iy_aux_vars.nelem()); // !!!
   iy_aux.resize(0);
   diy_dx.resize(0);
+
+  String   iy_var = "AtmosphericLoss";
+  String   iy_aux_var_old = "ExtraPathDelay";
 
   // See initial comments of iyEmissionStandardClearsky
 
@@ -1709,17 +1804,17 @@ void iyRadioLink(
                          "*jacobian_do* must be 0." );
 
   // iy_variable and iy_aux_variable
-  if( iy_var ==  iy_aux_var )
+  if( iy_var ==  iy_aux_var_old )
     throw runtime_error( "No need to set *iy_variable* and *iy_aux_variable* "
                          "to be equal.");
   if( !( iy_var=="FreeSpaceLoss"  || iy_var=="AtmosphericLoss" ||
          iy_var=="DefocusingLoss" || iy_var=="TotalLoss"       ||
          iy_var=="ExtraPathDelay" || iy_var=="BendingAngle" ) )
     throw runtime_error( "Choice for *iy_variable* not recognised." );
-  if( !( iy_aux_var=="FreeSpaceLoss"  || iy_aux_var=="AtmosphericLoss" ||
-         iy_aux_var=="DefocusingLoss" || iy_aux_var=="TotalLoss"       ||
-         iy_aux_var=="ExtraPathDelay" || iy_aux_var=="BendingAngle"    ||
-         iy_aux_var=="None" ) )
+  if( !( iy_aux_var_old=="FreeSpaceLoss"  || iy_aux_var_old=="AtmosphericLoss" ||
+         iy_aux_var_old=="DefocusingLoss" || iy_aux_var_old=="TotalLoss"       ||
+         iy_aux_var_old=="ExtraPathDelay" || iy_aux_var_old=="BendingAngle"    ||
+         iy_aux_var_old=="None" ) )
     throw runtime_error( "Choice for *iy_aux_variable* not recognised." );
 
   // Determine which variables to compute
@@ -1731,18 +1826,18 @@ void iyRadioLink(
   bool ExtraPathDelay = false;
   bool BendingAngle = false;
   //
-  if( iy_var == "FreeSpaceLoss"  ||  iy_aux_var == "FreeSpaceLoss" )
+  if( iy_var == "FreeSpaceLoss"  ||  iy_aux_var_old == "FreeSpaceLoss" )
     { FreeSpaceLoss = true; }
-  if( iy_var == "DefocusingLoss"  ||  iy_aux_var == "DefocusingLoss" )
+  if( iy_var == "DefocusingLoss"  ||  iy_aux_var_old == "DefocusingLoss" )
     { DefocusingLoss = true; }
-  if( iy_var == "AtmosphericLoss"  ||  iy_aux_var == "AtmosphericLoss" )
+  if( iy_var == "AtmosphericLoss"  ||  iy_aux_var_old == "AtmosphericLoss" )
     { AtmosphericLoss = true; }
-  if( iy_var == "TotalLoss"  ||  iy_aux_var == "TotalLoss" )
+  if( iy_var == "TotalLoss"  ||  iy_aux_var_old == "TotalLoss" )
     { FreeSpaceLoss   = true;   DefocusingLoss = true;
       AtmosphericLoss = true;   TotalLoss      = true; }
-  if( iy_var == "ExtraPathDelay"  ||  iy_aux_var == "ExtraPathDelay" )
+  if( iy_var == "ExtraPathDelay"  ||  iy_aux_var_old == "ExtraPathDelay" )
     { ExtraPathDelay = true; }
-  if( iy_var == "BendingAngle"  ||  iy_aux_var == "BendingAngle" )
+  if( iy_var == "BendingAngle"  ||  iy_aux_var_old == "BendingAngle" )
     { BendingAngle = true; }
 
   // Set up iy and iy_aux (can be redone by e.g. iy_space_agenda)
@@ -1752,7 +1847,7 @@ void iyRadioLink(
   iy.resize( nf, stokes_dim );  
   iy     = 0;  
   /*
-  if( iy_aux_var ==" None" ) 
+  if( iy_aux_var_old ==" None" ) 
     { iy_aux.resize( 0, 0); }
   else
     {
@@ -1777,7 +1872,6 @@ void iyRadioLink(
 
   
   // Different ppath variables
-  Ppath  ppath;
   Numeric lbg=0;  // Bent geometrical length of ray path
   Numeric lba=0;  // Bent apparent length of ray path
 
@@ -1945,7 +2039,7 @@ void iyRadioLink(
 
       // Atmospheric loss as aux is a special case
       /*
-      if( iy_aux_var == "AtmosphericLoss" )
+      if( iy_aux_var_old == "AtmosphericLoss" )
         { iy_aux(fr,joker) = iy(fr,joker); }
       */
 
@@ -1967,17 +2061,17 @@ void iyRadioLink(
 
       // Fill iy_aux
       /*
-      if( iy_aux_var == "None" )
+      if( iy_aux_var_old == "None" )
         { iy_aux(fr,0) = -999; }
-      else if( iy_aux_var == "FreeSpaceLoss" )
+      else if( iy_aux_var_old == "FreeSpaceLoss" )
         { iy_aux(fr,0) = fspl; }
-      else if( iy_aux_var == "DefocusingLoss" )
+      else if( iy_aux_var_old == "DefocusingLoss" )
         { iy_aux(fr,0) = dfl; }
-      else if( iy_aux_var == "TotalLoss" )
+      else if( iy_aux_var_old == "TotalLoss" )
         { iy_aux(fr,joker) = iy(fr,joker); }
-      else if( iy_aux_var == "ExtraPathDelay" )
+      else if( iy_aux_var_old == "ExtraPathDelay" )
         { iy_aux(fr,0) = epd; }
-      else if( iy_aux_var == "BendingAngle" )
+      else if( iy_aux_var_old == "BendingAngle" )
         { iy_aux(fr,0) = ba; }
       */
 
@@ -2003,8 +2097,10 @@ void iyCalc(
          Workspace&   ws,
          Matrix&      iy,
    ArrayOfTensor3&    iy_aux,
+         Ppath&       ppath,
    ArrayOfTensor3&    diy_dx,
    const Index&       basics_checked,
+   const ArrayOfString&  iy_aux_vars,
    const Tensor3&     t_field,
    const Tensor3&     z_field,
    const Tensor4&     vmr_field,
@@ -2029,9 +2125,9 @@ void iyCalc(
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
 
-  iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx, 1, iy_transmission, 
-                             cloudbox_on, jacobian_do, t_field, z_field, 
-                             vmr_field, mblock_index, rte_pos, rte_los, 
+  iy_clearsky_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
+                             iy_aux_vars, cloudbox_on, jacobian_do, t_field, 
+                             z_field, vmr_field, mblock_index, rte_pos, rte_los,
                              iy_clearsky_agenda );
 }
 
@@ -2074,6 +2170,7 @@ void yCalc(
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
+   const ArrayOfString&              iy_aux_vars,
    const Verbosity&                  verbosity )
 {
   // Some sizes
@@ -2257,7 +2354,7 @@ void yCalc(
                 z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
                 l_iy_clearsky_agenda, y_unit, j_analytical_do, 
-                jacobian_quantities, jacobian_indices, verbosity );
+                jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity );
 
 
       // Apply sensor response matrix on iyb, and put into y

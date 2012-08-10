@@ -1,3 +1,31 @@
+2012-08-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-207
+
+	* Basic changes for extraction of additional data ready, and 
+	iyEmissionStandardClearsky modified accordingly. Aux feature 
+	presently lacking for other iy_clearsky_agenda methods.
+
+	* controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts:
+	Updated. Includes new aux variables and shows that ppath is
+	directly avaliable for saving.
+
+	* src/m_jacobian.cc: Adopted several methods to change of iyb_calc.
+
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
+	* controlfiles/artscomponents/surface/TestSurface.arts:
+	* src/m_surface.cc (iySurfaceRtpropAgenda):
+	* src/rte.cc (iyb_calc): Adopted to change of iy_clearsky_agenda.
+
+	* src/m_rte.cc: Adopted several methods to change of
+	iy_clearsky_agenda.
+	
+	(iyEmissionStandardClearsky): Added VMR, absorption and radiative
+	background as auxilary variables.
+
+	* src/agendas.cc: For iy_clearsky_agenda, added ppath as output
+	and iy_aux_vars as input.
+
 2012-08-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-206

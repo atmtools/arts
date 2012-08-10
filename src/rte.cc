@@ -806,13 +806,14 @@ void get_iy(
    ConstVectorView    rte_los,
    const Agenda&      iy_clearsky_agenda )
 {
-  ArrayOfTensor3    iy_aux;
-  ArrayOfTensor3    diy_dx;
+  ArrayOfTensor3    iy_aux, diy_dx;;
+  Ppath             ppath;
   Tensor3           iy_transmission(0,0,0);
 
-  iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx, 1, iy_transmission, 
-                             cloudbox_on, 0, t_field, z_field, vmr_field, -1, 
-                             rte_pos, rte_los, iy_clearsky_agenda );
+  iy_clearsky_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
+                             ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
+                             vmr_field, -1, rte_pos, rte_los, 
+                             iy_clearsky_agenda );
 }
 
 
@@ -1518,6 +1519,7 @@ void iyb_calc(
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
+  const ArrayOfString&              iy_aux_vars,
   const Verbosity&                  verbosity )
 {
   // Sizes
@@ -1593,11 +1595,13 @@ void iyb_calc(
               //
               Matrix         iy;
               ArrayOfTensor3 diy_dx;
+              Ppath          ppath;
               Tensor3        iy_transmission(0,0,0);
               Index          iang = iza*naa + iaa;
               //
-              iy_clearsky_agendaExecute( l_ws, iy, iy_aux_array[iang], diy_dx, 
-                                         1, iy_transmission, cloudbox_on, 
+              iy_clearsky_agendaExecute( l_ws, iy, iy_aux_array[iang], ppath,
+                                         diy_dx, 1, iy_transmission, 
+                                         iy_aux_vars, cloudbox_on, 
                                          j_analytical_do, t_field, z_field, 
                                          vmr_field, mblock_index, 
                                          sensor_pos(mblock_index,joker), los, 

@@ -506,7 +506,7 @@ void jacobianCalcAbsSpeciesPerturbations(
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
-                        ArrayOfArrayOfIndex(), verbosity );
+                        ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //
               mult( dy, sensor_response, iybp );
 
@@ -1041,7 +1041,7 @@ void jacobianCalcPointingZaRecalc(
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
               antenna_dim, iy_clearsky_agenda, y_unit, 
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(),
-              verbosity );
+              ArrayOfString(), verbosity );
 
     // Apply sensor and take difference
     //
@@ -1588,7 +1588,7 @@ void jacobianCalcTemperaturePerturbations(
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
-                        ArrayOfArrayOfIndex(), verbosity );
+                        ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //
               mult( dy, sensor_response, iybp );
 

@@ -55,11 +55,17 @@ VectorSet( rte_pos, [ 600e3 ] )
 VectorSet( rte_los, [ 113.3 ] )
 
 
-# Other RT varaibles
+# Other RT variables
 # 
 IndexSet( mblock_index, -1 )   # In this case just a dummy value
 ArrayOfStringSet( iy_aux_vars, 
-    [ "Temperature", "Radiance", "Transmission, total" ] )
+    [ "Temperature", 
+      "Absorption, summed", 
+      "Absorption, species 0",
+      "VMR, species 0",
+      "Radiative background", 
+      "Radiance", 
+      "Transmission, total" ] )
 
 
 # Perform RT calculations
@@ -82,6 +88,7 @@ iyApplyYunit
 #WriteXML( output_file_format, f_grid, "f_grid.xml" )
 #WriteXML( output_file_format, iy, "iyREFERENCE.xml" )
 #WriteXML( output_file_format, iy_aux, "iy_auxREFERENCE.xml" )
+#WriteXML( output_file_format, ppath, "ppath.xml" )
 
 
 # Check that results are OK with respect to an older reference calculation

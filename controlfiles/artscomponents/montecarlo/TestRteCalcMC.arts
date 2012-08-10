@@ -95,6 +95,7 @@ IndexSet(   mc_z_field_is_1D, 1 )
 AgendaSet( iy_clearsky_agenda ){
   Ignore( mblock_index )
   iyMC
+  Touch( ppath )
 }
 
 yCalc
