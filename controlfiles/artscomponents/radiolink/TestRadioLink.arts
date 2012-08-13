@@ -79,12 +79,12 @@ AgendaSet( ppath_agenda ){
 VectorSet( rte_los, [] )   # Dummy value
 FlagOff( dispersion_do )
 #
-AgendaSet( iy_space_agenda ){
+AgendaSet( iy_transmitter_agenda ){
   Ignore( rte_pos )
   Ignore( rte_los )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
 }
-AgendaSet( iy_clearsky_agenda ){
+AgendaSet( iy_main_agenda ){
   Ignore( rte_los )
   iyRadioLink
 }

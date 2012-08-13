@@ -2686,7 +2686,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_clearsky_agenda", "atmosphere_dim", "lat_grid", 
+        IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", 
             "lon_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
             "cloudbox_limits", "basics_checked", "cloudbox_checked", 
             "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
@@ -2715,7 +2715,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_clearsky_agenda", "atmosphere_dim", "lat_grid", 
+        IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", 
             "lon_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
             "cloudbox_limits", "f_grid", "stokes_dim", 
             "scat_za_grid", "scat_aa_grid" ),
@@ -3924,7 +3924,7 @@ void define_md_data_raw()
         IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid", "z_field", 
             "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_main_agenda", 
             "iy_transmission", "pnd_field", "scat_data_raw", 
             "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
             "use_mean_scat_data", "fos_n", "fos_i" ),
@@ -4428,86 +4428,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyBeerLambertStandardClearsky" ),
-        DESCRIPTION
-        (
-         "Standard method for handling transmission measurements.\n"
-         "\n"
-         "Designed to be part of *iy_clearsky_agenda*. That is, only valid\n"
-         "outside the cloudbox (no scattering or polarised absorption).\n"
-         "\n"
-         "This method works exactly as *iyEmissionStandardClearsky*, but does\n"
-         "add any emission. In fact, the latter method with *blackbody_radiation_agenda*\n"
-         "set to return zero would give exactly the same result as this WSM.\n"
-         "For propagation paths above the surface, the result is the output\n"
-         "of *iy_space_agenda* times the (vector) transmission through the\n"
-         "atmosphere (i.e. standard Beer-Lambert). \n"
-         "\n"
-         "If the propagation paths intercepts with the surface, the surface\n"
-         "variables are used as for *iyEmissionStandardClearsky*, and \n"
-         "*surface_emission* should probably be set to 0. Multiple-beams\n"
-         "will be followed if *surface_los* has length > 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "iy_agenda_call1", 
-            "iy_transmission", "rte_pos", "rte_los", "jacobian_do", 
-            "atmosphere_dim", "p_grid", "z_field", 
-            "t_field", "vmr_field", "wind_u_field", "wind_v_field", 
-            "wind_w_field", "edensity_field",
-            "cloudbox_on", "stokes_dim", "f_grid", "abs_species", 
-            "mblock_index", "ppath_agenda", "abs_scalar_gas_agenda", 
-            "iy_clearsky_agenda", "iy_space_agenda", "iy_surface_agenda", 
-            "iy_cloudbox_agenda", "iy_aux_vars", 
-            "jacobian_quantities", "jacobian_indices" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-  /*
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyBeerLambertStandardCloudbox" ),
-        DESCRIPTION
-        (
-         "Standard method for handling transmission measurements.\n"
-         "\n"
-         "Designed to be part of *iy_cloudbox_agenda*, and is thus a\n"
-         "complement to *iyBeerLambertStandardClearsky*.\n"
-         "\n"
-         "Only scattering out of the propagation path is considered. Thus,\n"
-         "this method could be used for direct solar occultation measurements\n"
-         "but clearly not for observations of scattered solar radiation.\n"
-         "\n"
-         "For regions of no scattering there is a marginal difference between\n"
-         "running this method and the corresponding pure clear-sky agenda,\n"
-         "and there is not critical to set the cloudbox limits in a \"tight\"\n"
-         "manner.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "diy_dx", "iy_transmission",
-            "rte_pos", "rte_los", "jacobian_do", "atmosphere_dim", "p_grid", 
-            "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
-            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "abs_scalar_gas_agenda", "iy_clearsky_agenda", "pnd_field", 
-            "use_mean_scat_data", "scat_data_raw", "opt_prop_gas_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-  */
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "iyCalc" ),
         DESCRIPTION
         (
@@ -4533,7 +4453,7 @@ void define_md_data_raw()
         IN( "basics_checked", "iy_aux_vars", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
             "rte_pos", "rte_los", "jacobian_do", "mblock_index", 
-            "iy_clearsky_agenda" ),
+            "iy_main_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4542,12 +4462,12 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyEmissionStandardClearsky" ),
+      ( NAME( "iyEmissionStandard" ),
         DESCRIPTION
         (
          "Standard method for radiative transfer calculations with emission.\n"
          "\n"
-         "Designed to be part of *iy_clearsky_agenda*. That is, only valid\n"
+         "Designed to be part of *iy_main_agenda*. That is, only valid\n"
          "outside the cloudbox (no scattering or polarised absorption).\n"
          "Assumes local thermodynamic equilibrium for emission.\n"
          "\n"
@@ -4565,14 +4485,14 @@ void define_md_data_raw()
          "  \"Absorption, species X\": The absorption vector along the path\n"
          "     for an individual species (X works as for VMR).\n"
          "* \"Radiative background\": Index value flagging the radiative\n"
-         "     backround. The following coding is used: 0=space, 1=surface\n"
+         "     background. The following coding is used: 0=space, 1=surface\n"
          "     and 2=cloudbox.\n"
          "  \"Radiance\": The radiance at each point along the path.\n"
-         "* \"Transmission, total\": The transmission between the observation\n"
+         "* \"Transmission\": The transmission between the observation\n"
          "     point and the end of the (primary) propagation path (ie. the\n"
          "     transmission to the surface, cloudbox or space.)\n"
          "\n"
-         "The auxiliary data are returned in *iy_aux* with qunatities\n"
+         "The auxiliary data are returned in *iy_aux* with quantities\n"
          "selected by *iy_aux_vars*. Most variables require that the method\n"
          "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
          "the selection is restricted to the variables marked with *.\n"
@@ -4588,7 +4508,7 @@ void define_md_data_raw()
             "cloudbox_on", "iy_aux_vars", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", 
             "ppath_agenda", "blackbody_radiation_agenda", 
-            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "abs_scalar_gas_agenda", "iy_main_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
             "iy_agenda_call1", "iy_transmission", "mblock_index", 
             "rte_pos", "rte_los" ),
@@ -4637,7 +4557,7 @@ void define_md_data_raw()
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_main_agenda", 
             "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
             "fos_angles", "use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
@@ -4652,7 +4572,7 @@ void define_md_data_raw()
       ( NAME( "iyMC" ),
         DESCRIPTION
         (
-         "Interface to Monte Carlo part for *iy_clearsky_agenda*.\n"
+         "Interface to Monte Carlo part for *iy_main_agenda*.\n"
          "\n"
          "Basically an interface to *MCGeneral* for doing monochromatic\n"
          "pencil beam calculations. This functions allows Monte Carlo (MC)\n"
@@ -4776,7 +4696,8 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field", 
             "refellipsoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid",
             "dispersion_do", "mblock_index", "ppath_agenda", 
-            "ppath_step_agenda", "abs_scalar_gas_agenda", "iy_space_agenda" ),
+            "ppath_step_agenda", "abs_scalar_gas_agenda", 
+            "iy_transmitter_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4793,7 +4714,7 @@ void define_md_data_raw()
          "This method is designed to be part of *iy_surface_agenda*. It\n"
          "determines the radiative properties of the surface by\n"
          "*surface_rtprop_agenda* and calculates the downwelling radiation\n"
-         "by *iy_clearsky_agenda*, and sums up the terms as described in AUG.\n"
+         "by *iy_main_agenda*, and sums up the terms as described in AUG.\n"
          "That is, this WSM uses the output from *surface_rtprop_agenda*\n"
          "in a straightforward fashion.\n"
          ),
@@ -4804,8 +4725,62 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
-            "rte_pos", "rte_los", "iy_clearsky_agenda", "surface_rtprop_agenda"
+            "rte_pos", "rte_los", "iy_main_agenda", "surface_rtprop_agenda"
           ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyTransmissionStandard" ),
+        DESCRIPTION
+        (
+         "Standard method for handling (direct) transmission measurements.\n"
+         "\n"
+         "Designed to be part of *iy_main_agenda*. For cases with no\n"
+         "cloudbox, this method works basically as *iyEmissionStandard*,\n"
+         "beside that no emission is generated.\n"
+         "\n"         
+         "For propagation paths above the surface, the result is the output\n"
+         "of *iy_space_agenda* times the transmission through the atmosphere.\n"
+         "That is, a standard Beer-Lambert calculation.\n"
+         "\n"
+         "If the propagation paths intercepts with the surface, the surface\n"
+         "variables are used as for *iyEmissionStandard*, and \n"
+         "*surface_emission* should probably be set to 0. Multiple-beams\n"
+         "will be followed if *surface_los* has length > 1.\n"
+         "\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Temperature\": The temperature along the propagation path.\n"
+         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
+         "     For example, adding the string \"VMR, species 0\" extracts the\n"
+         "     VMR of the first species.\n"
+         "  \"Absorption, summed\": The total absorption along the path.\n"
+         "     If stokes_dim>1, the absorption vector is stored.\n"
+         "  \"Absorption, species X\": The absorption vector along the path\n"
+         "     for an individual species (X works as for VMR).\n"
+         "  \"Radiance\": The state of *iy* at each point along the path.\n"
+         "\n"
+         "The auxiliary data are returned in *iy_aux* with quantities\n"
+         "selected by *iy_aux_vars*. All variables require that the method\n"
+         "is called directly or by *iyCalc*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field", 
+            "t_field", "vmr_field", "abs_species", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
+            "cloudbox_on", "cloudbox_limits", "iy_aux_vars", 
+            "jacobian_do", "jacobian_quantities", "jacobian_indices", 
+            "ppath_agenda", "abs_scalar_gas_agenda", "iy_transmitter_agenda", 
+            "iy_agenda_call1", "iy_transmission", "mblock_index", 
+            "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -5115,7 +5090,7 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", 
             "f_grid", "sensor_pos", "sensor_los", "mblock_za_grid", 
             "mblock_aa_grid", "antenna_dim", "sensor_response",
-            "iy_clearsky_agenda", "y_unit", "jacobian_quantities",
+            "iy_main_agenda", "y_unit", "jacobian_quantities",
             "jacobian_indices" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
@@ -5203,7 +5178,7 @@ void define_md_data_raw()
             "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_time", 
-            "iy_clearsky_agenda", "y_unit", "jacobian_quantities",
+            "iy_main_agenda", "y_unit", "jacobian_quantities",
             "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -5284,7 +5259,7 @@ void define_md_data_raw()
             "vmr_field", "abs_species", "refellipsoid", "z_surface", 
             "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "iy_clearsky_agenda", "y_unit", "g0_agenda", 
+            "sensor_response", "iy_main_agenda", "y_unit", "g0_agenda", 
             "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
@@ -9758,7 +9733,7 @@ void define_md_data_raw()
          "\n"
          "The method performs radiative transfer calculations from a sensor\n"
          "perspective. Radiative transfer calculations are performed for\n"
-         "monochromatic pencil beams, following *iy_clearsky_agenda* and\n"
+         "monochromatic pencil beams, following *iy_main_agenda* and\n"
          "associated agendas. Obtained radiances are weighted together by\n"
          "*sensor_response*, to include the characteristics of the sensor.\n"
          "The measurement vector obtained can contain anything from a single\n"
@@ -9772,7 +9747,7 @@ void define_md_data_raw()
          "The frequency, polarisation etc. for each measurement value is\n" 
          "given by *y_f*, *y_pol* etc..\n"
          "\n"
-         "See the method selected for *iy_clearsky_agenda* for quantities\n"
+         "See the method selected for *iy_main_agenda* for quantities\n"
          "that can be obtained by *y_aux*. However, in no case data of\n"
          "along-the-path type can be extracted.\n"
          ),
@@ -9787,7 +9762,7 @@ void define_md_data_raw()
             "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "iy_clearsky_agenda", "y_unit", 
+            "iy_main_agenda", "y_unit", 
             "jacobian_agenda", "jacobian_do", "jacobian_quantities",
             "jacobian_indices", "iy_aux_vars" ),
         GIN(),

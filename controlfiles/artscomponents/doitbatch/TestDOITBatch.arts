@@ -158,12 +158,6 @@ ScatteringParticlesSelect
 # overwrite them by re-setting the agendas here.------------------------
 
 
-# This agenda is already specified in general.arts
-AgendaSet( iy_clearsky_agenda ){
-#  radiative transfer calculations with emission
-   iyEmissionStandardClearsky
-}
-
 # Select zenith angle interpolation method ('linear' or 'polynomial'):
 # --------------------------------------------------------------------
 # If "polynomial" is selected one has to use an optimized grid. Please     

@@ -1,3 +1,40 @@
+2012-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-208
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/transmission/TestTransmission.arts: 
+	* src/m_rte.cc (iyTransmissionStandard, iyRadioLink):
+	iy_space_agenda replaced by iy_transmitter_agenda. 
+
+	* src/agendas.cc: Added iy_transmitter_agenda. 
+	
+	* controlfiles/instruments/odinsmr/TestOdinSMR_119ghz.arts: Removed.
+
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts:
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/surface/TestSurface.arts:
+	* controlfiles/general/general.arts:
+	* src/workspace.cc:
+	* src/rte.cc: 
+	* src/m_surface.cc: 
+	* src/m_rte.cc:
+	* src/m_fos.cc:
+	* src/m_jacobian.cc: 
+	* src/m_doit.cc: Adopted to changes below.
+
+	* src/m_rte.cc (iyTransmissionStandard): iyBeerLamberStandard
+	renamed and extended to handle new iy_aux.
+
+	* src/m_rte.cc (iyEmissionStandard): Removed Clearsky from name,
+	following change of iy_clearsky_agenda.
+
+	* src/agendas.cc: Renamed iy_clearsky_agenda to iy_main_agenda. 
+	This as not all WSM for this agenda are striclty clearsky, and to
+	indicate that this is "the entry point" for RT calculations.
+
 2012-08-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-207

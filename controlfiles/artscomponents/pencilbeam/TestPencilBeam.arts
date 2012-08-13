@@ -65,7 +65,7 @@ ArrayOfStringSet( iy_aux_vars,
       "VMR, species 0",
       "Radiative background", 
       "Radiance", 
-      "Transmission, total" ] )
+      "Transmission" ] )
 
 
 # Perform RT calculations

@@ -71,7 +71,7 @@ StringSet( y_unit, "RJBT" )
 
 # Extract transmission as only auxilary variable
 # ---
-ArrayOfStringSet( iy_aux_vars, [ "Transmission, total" ] )
+ArrayOfStringSet( iy_aux_vars, [ "Transmission" ] )
 # Create vector container for the transmission
 VectorCreate( trans )
 

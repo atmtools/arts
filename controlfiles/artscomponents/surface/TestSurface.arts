@@ -40,7 +40,7 @@ AgendaSet( iy_surface_agenda ){
   iySurfaceRtpropAgenda
 } 
 
-AgendaSet( iy_clearsky_agenda ){
+AgendaSet( iy_main_agenda ){
   Ignore( iy_agenda_call1 )
   Ignore( iy_transmission )
   Ignore( iy_aux_vars )

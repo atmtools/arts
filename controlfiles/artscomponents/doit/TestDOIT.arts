@@ -234,9 +234,6 @@ AgendaSet( iy_cloudbox_agenda ){
 #==================start==========================
 
 # Perform scattering calculation 
-AgendaSet( iy_clearsky_agenda ){
-  iyEmissionStandardClearsky
-}
 basics_checkedCalc
 cloudbox_checkedCalc
 CloudboxGetIncoming

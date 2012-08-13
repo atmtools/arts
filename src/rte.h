@@ -137,7 +137,7 @@ void get_iy(
    const Index&       cloudbox_on,
    ConstVectorView    rte_pos,
    ConstVectorView    rte_los,
-   const Agenda&      iy_clearsky_agenda );
+   const Agenda&      iy_main_agenda );
 
 void get_iy_of_background(
         Workspace&        ws,
@@ -153,7 +153,7 @@ void get_iy_of_background(
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
-  const Agenda&           iy_clearsky_agenda,
+  const Agenda&           iy_main_agenda,
   const Agenda&           iy_space_agenda,
   const Agenda&           iy_surface_agenda,
   const Agenda&           iy_cloudbox_agenda,
@@ -267,7 +267,7 @@ void iyb_calc(
   ConstVectorView                   mblock_za_grid,
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
-  const Agenda&                     iy_clearsky_agenda,
+  const Agenda&                     iy_main_agenda,
   const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,

@@ -229,7 +229,7 @@ void iySurfaceRtpropAgenda(
     const Vector&           f_grid,
     const Vector&           rte_pos,
     const Vector&           rte_los,
-    const Agenda&           iy_clearsky_agenda,
+    const Agenda&           iy_main_agenda,
     const Agenda&           surface_rtprop_agenda,
     const Verbosity& )
 {
@@ -301,18 +301,18 @@ void iySurfaceRtpropAgenda(
           {
             ArrayOfTensor3   iy_aux;
             Ppath            ppath;
-            iy_clearsky_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
+            iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
                                        iy_trans_new, ArrayOfString(0), 
                                        cloudbox_on, jacobian_do, t_field, 
                                        z_field, vmr_field, -1, rte_pos, los, 
-                                       iy_clearsky_agenda );
+                                       iy_main_agenda );
           }
 
           if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
             {
               ostringstream os;
               os << "The size of *iy* returned from *" 
-                 << iy_clearsky_agenda.name() << "* is\n"
+                 << iy_main_agenda.name() << "* is\n"
                  << "not correct:\n"
                  << "  expected size = [" << nf << "," << stokes_dim << "]\n"
                  << "  size of iy    = [" << iy.nrows() << "," << iy.ncols()

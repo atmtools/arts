@@ -206,8 +206,8 @@ AgendaSet( iy_space_agenda ){
   MatrixCBR( iy, stokes_dim, f_grid )
 }
 #
-AgendaSet( iy_clearsky_agenda ){
-  iyEmissionStandardClearsky
+AgendaSet( iy_main_agenda ){
+  iyEmissionStandard
 }
 
 

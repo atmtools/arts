@@ -271,23 +271,6 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "iy_clearsky_agenda" ),
-       DESCRIPTION
-       (
-        "Calculation of a single monochromatic pencil beam spectrum.\n"
-        "\n"
-        "The task of the agenda is to calculate the monochromatic pencil beam\n"
-        "spectrum for the position specified by *rte_pos* and the viewing\n"
-        "direction specified by *rte_los*. This includes cases when the\n"
-        "propagation path intersects with the surface or the cloudbox.\n"
-        ),
-       OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-       INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
-              "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "mblock_index", "rte_pos", "rte_los" )));  
-
-  agenda_data.push_back
-    (AgRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
@@ -306,6 +289,26 @@ void define_agenda_data()
         ),
        OUTPUT( "iy" ),
        INPUT( "rte_pos", "rte_los" )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "iy_main_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of a single monochromatic pencil beam spectrum.\n"
+        "\n"
+        "The task of the agenda is to calculate the monochromatic pencil beam\n"
+        "spectrum for the position specified by *rte_pos* and the viewing\n"
+        "direction specified by *rte_los*.\n"
+        "\n"
+        "Methods for this agenda can either handle the complete calculation,\n"
+        "make use of e.g. *iy_cloudbox_agenda* or be restricted to special\n"
+        "cases. See the documentation for the different methods.\n"
+        ),
+       OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+       INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
+              "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
+              "mblock_index", "rte_pos", "rte_los" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -345,7 +348,22 @@ void define_agenda_data()
        OUTPUT( "iy", "diy_dx" ),
        INPUT( "iy_transmission", "cloudbox_on", 
               "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "iy_clearsky_agenda", "rte_pos", "rte_los" )));
+              "iy_main_agenda", "rte_pos", "rte_los" )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "iy_transmitter_agenda" ),
+       DESCRIPTION
+       (
+        "Transmitted signal.\n"
+        "\n"
+        "This agenda describes the signal at the start of the propagation\n"
+        "path for calculations of transmission type. That is, the agenda\n"
+        "describes a transmitter, which either can be a natural source or\n"
+        "an artificial device.\n"
+        ),
+       OUTPUT( "iy" ),
+       INPUT( "rte_pos", "rte_los", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord

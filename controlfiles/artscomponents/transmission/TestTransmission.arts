@@ -82,13 +82,13 @@ VectorSet( rte_los, [ 80, 24 ] )
 
 # Radiative transfer agendas
 #
-AgendaSet( iy_space_agenda ){
+AgendaSet( iy_transmitter_agenda ){
   Ignore( rte_pos )
   Ignore( rte_los )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
 }
-AgendaSet( iy_clearsky_agenda ){
-  iyBeerLambertStandardClearsky
+AgendaSet( iy_main_agenda ){
+  iyTransmissionStandard
 }
 
 

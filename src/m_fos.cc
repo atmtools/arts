@@ -81,7 +81,7 @@ void fos_yStandard(Workspace&          ws,
                    const Agenda&       ppath_agenda,
                    const Agenda&       blackbody_radiation_agenda,
                    const Agenda&       abs_scalar_gas_agenda,
-                   const Agenda&       iy_clearsky_agenda,
+                   const Agenda&       iy_main_agenda,
                    const Tensor3&      iy_transmission,
                    const Tensor4&      pnd_field,
                    const ArrayOfSingleScatteringData&   scat_data_raw,
@@ -126,12 +126,12 @@ void fos_yStandard(Workspace&          ws,
                 }
               else
                 {
-                  iy_clearsky_agendaExecute( ws, tmp, 
+                  iy_main_agendaExecute( ws, tmp, 
                                              iy_aux, diy_dx, 0, iy_transmission,
                                              rte_pos, fos_angles(ia,Range(0,1)),
                                              0, jacobian_do, t_field, z_field, 
                                              vmr_field, -1,
-                                             iy_clearsky_agenda );
+                                             iy_main_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -192,11 +192,11 @@ void fos_yStandard(Workspace&          ws,
                   throw runtime_error( "2D FOS can not be used presently "
                        "as the \"lat-stretch\" approach not can be handled!" );
 
-                  iy_clearsky_agendaExecute( ws, tmp, 
+                  iy_main_agendaExecute( ws, tmp, 
                                              iy_aux, diy_dx, 0, iy_transmission,
                                              rte_pos, rte_los, 0, jacobian_do, 
                                              t_field, z_field, vmr_field, -1, 
-                                             iy_clearsky_agenda );
+                                             iy_main_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -206,11 +206,11 @@ void fos_yStandard(Workspace&          ws,
         {
           for( Index ia=0; ia<nfosa; ia++ )
             { 
-              iy_clearsky_agendaExecute( ws, tmp, 
+              iy_main_agendaExecute( ws, tmp, 
                                          iy_aux, diy_dx, 0, iy_transmission, 
                                          rte_pos, fos_angles(ia,Range(0,2)),
                                          0, jacobian_do, t_field, z_field, 
-                                         vmr_field, -1, iy_clearsky_agenda );
+                                         vmr_field, -1, iy_main_agenda );
               fos_y(ia,joker,joker) = tmp;
             }
         }
@@ -234,7 +234,7 @@ void fos_yStandard(Workspace&          ws,
                  z_field, t_field, vmr_field, edensity_field,
                  cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
                  ppath_agenda, blackbody_radiation_agenda, 
-                 abs_scalar_gas_agenda, iy_clearsky_agenda, 
+                 abs_scalar_gas_agenda, iy_main_agenda, 
                  pnd_field, scat_data_raw, opt_prop_gas_agenda, fos_y_agenda, 
                  fos_angles, use_mean_scat_data, fos_n, fos_i+1, verbosity);
 
@@ -268,7 +268,7 @@ void iyFOS(Workspace&          ws,
            const Agenda&       ppath_agenda,
            const Agenda&       blackbody_radiation_agenda,
            const Agenda&       abs_scalar_gas_agenda,
-           const Agenda&       iy_clearsky_agenda,
+           const Agenda&       iy_main_agenda,
            const Tensor4&      pnd_field,
            const ArrayOfSingleScatteringData&   scat_data_raw,
            const Agenda&       opt_prop_gas_agenda,
@@ -377,10 +377,10 @@ void iyFOS(Workspace&          ws,
     rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
     rte_los2 = ppath.los(ppath.np-1,joker);
     //
-    iy_clearsky_agendaExecute( ws, iy, 
+    iy_main_agendaExecute( ws, iy, 
                                iy_aux, diy_dx, 0, iy_trans_new,
                                rte_pos2, rte_los2, 0, jacobian_do, t_field, 
-                               z_field, vmr_field, -1, iy_clearsky_agenda );
+                               z_field, vmr_field, -1, iy_main_agenda );
   }
 
   // RT for part inside cloudbox

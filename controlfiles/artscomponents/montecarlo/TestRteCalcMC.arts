@@ -92,7 +92,7 @@ IndexSet(   mc_max_time,      -1 )
 IndexSet(   mc_max_iter,      100 )
 IndexSet(   mc_z_field_is_1D, 1 )
 
-AgendaSet( iy_clearsky_agenda ){
+AgendaSet( iy_main_agenda ){
   Ignore( mblock_index )
   iyMC
   Touch( ppath )

@@ -776,9 +776,9 @@ void ext2trans(//Output and Input:
 
 //! get_iy
 /*!
-    Basic call of *iy_clearsky_agenda*.
+    Basic call of *iy_main_agenda*.
 
-    This function is an interface to *iy_clearsky_agenda* that can be used when
+    This function is an interface to *iy_main_agenda* that can be used when
     only *iy* is of interest. That is, jacobian and auxilary parts are
     deactivated/ignored.
 
@@ -790,7 +790,7 @@ void ext2trans(//Output and Input:
     \param   cloudbox_on           As the WSV.
     \param   rte_pos               As the WSV.
     \param   rte_los               As the WSV.
-    \param   iy_clearsky_agenda    As the WSV.
+    \param   iy_main_agenda    As the WSV.
 
     \author Patrick Eriksson 
     \date   2012-08-08
@@ -804,16 +804,16 @@ void get_iy(
    const Index&       cloudbox_on,
    ConstVectorView    rte_pos,
    ConstVectorView    rte_los,
-   const Agenda&      iy_clearsky_agenda )
+   const Agenda&      iy_main_agenda )
 {
   ArrayOfTensor3    iy_aux, diy_dx;;
   Ppath             ppath;
   Tensor3           iy_transmission(0,0,0);
 
-  iy_clearsky_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
+  iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
                              ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
                              vmr_field, -1, rte_pos, rte_los, 
-                             iy_clearsky_agenda );
+                             iy_main_agenda );
 }
 
 
@@ -829,9 +829,9 @@ void get_iy(
     the agendas.
 
     Each background is handled by an agenda. Several of these agandes
-    can involve recursive calls of *iy_clearsky_agenda*. It is also
+    can involve recursive calls of *iy_main_agenda*. It is also
     allowed to input *iy_clearsky_basic_agenda* instead of
-    *iy_clearsky_agenda*.
+    *iy_main_agenda*.
 
     \param   ws                    Out: The workspace
     \param   iy                    Out: As the WSV.
@@ -846,7 +846,7 @@ void get_iy(
     \param   cloudbox_on           As the WSV.
     \param   stokes_dim            As the WSV.
     \param   f_grid                As the WSV.
-    \param   iy_clearsky_agenda    As the WSV.
+    \param   iy_main_agenda    As the WSV.
     \param   iy_space_agenda       As the WSV.
     \param   iy_surface_agenda     As the WSV.
     \param   iy_cloudbox_agenda    As the WSV.
@@ -868,7 +868,7 @@ void get_iy_of_background(
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
-  const Agenda&           iy_clearsky_agenda,
+  const Agenda&           iy_main_agenda,
   const Agenda&           iy_space_agenda,
   const Agenda&           iy_surface_agenda,
   const Agenda&           iy_cloudbox_agenda,
@@ -916,7 +916,7 @@ void get_iy_of_background(
         agenda_name = "iy_surface_agenda";
         iy_surface_agendaExecute( ws, iy, diy_dx, iy_transmission, cloudbox_on,
                                   jacobian_do, t_field, z_field, vmr_field,
-                                  iy_clearsky_agenda, rte_pos, rte_los, 
+                                  iy_main_agenda, rte_pos, rte_los, 
                                   iy_surface_agenda );
       }
       break;
@@ -1514,7 +1514,7 @@ void iyb_calc(
   ConstVectorView                   mblock_za_grid,
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
-  const Agenda&                     iy_clearsky_agenda,
+  const Agenda&                     iy_main_agenda,
   const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -1557,19 +1557,19 @@ void iyb_calc(
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
-  Agenda l_iy_clearsky_agenda (iy_clearsky_agenda);
+  Agenda l_iy_main_agenda (iy_main_agenda);
   
   // Start of actual calculations
 /*#pragma omp parallel for                                        \
   if(!arts_omp_in_parallel() && nza>1)                            \
   default(none)                                                   \
-  firstprivate(l_ws, l_iy_clearsky_agenda)                        \
+  firstprivate(l_ws, l_iy_main_agenda)                        \
   shared(sensor_los, mblock_za_grid, mblock_aa_grid, vmr_field,   \
          t_field, f_grid, sensor_pos, \
          joker, naa) */
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && nza>1)                            \
-  firstprivate(l_ws, l_iy_clearsky_agenda)
+  firstprivate(l_ws, l_iy_main_agenda)
   for( Index iza=0; iza<nza; iza++ )
     {
       // The try block here is necessary to correctly handle
@@ -1599,13 +1599,13 @@ void iyb_calc(
               Tensor3        iy_transmission(0,0,0);
               Index          iang = iza*naa + iaa;
               //
-              iy_clearsky_agendaExecute( l_ws, iy, iy_aux_array[iang], ppath,
+              iy_main_agendaExecute( l_ws, iy, iy_aux_array[iang], ppath,
                                          diy_dx, 1, iy_transmission, 
                                          iy_aux_vars, cloudbox_on, 
                                          j_analytical_do, t_field, z_field, 
                                          vmr_field, mblock_index, 
                                          sensor_pos(mblock_index,joker), los, 
-                                         l_iy_clearsky_agenda );
+                                         l_iy_main_agenda );
 
               // Check that aux data can be handled
               for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
