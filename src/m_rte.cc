@@ -1365,7 +1365,7 @@ void iyRadioLink(
          Ppath&                ppath,
          ArrayOfTensor3&       diy_dx,
    const Index&                iy_agenda_call1,
-   const Tensor3&              iy_transmission _U_,
+   const Tensor3&              ,//iy_transmission
    const Vector&               rte_pos,      
    const ArrayOfString&        iy_aux_vars,
    const Index&                jacobian_do,
@@ -1393,76 +1393,49 @@ void iyRadioLink(
    const Agenda&               iy_transmitter_agenda,
    const Verbosity&            verbosity )
 {
-  iy_aux.resize(iy_aux_vars.nelem()); // !!!
-  iy_aux.resize(0);
-  diy_dx.resize(0);
-
-  String   iy_var = "AtmosphericLoss";
-  String   iy_aux_var_old = "ExtraPathDelay";
-
-  // See initial comments of iyEmissionStandardClearsky
-
+  // Method used correctly? 
   if( !iy_agenda_call1 )
     throw runtime_error( 
-                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
-
-  // Jacobians not yet handled. Set vars to be empty.
+                 "Recursive usage not possible (iy_agenda_call1 must be 1)." );
+  //
   if( jacobian_do )
     throw runtime_error( "This method does not yet provide any jacobians and "
                          "*jacobian_do* must be 0." );
+  diy_dx.resize(0);
 
-  // iy_variable and iy_aux_variable
-  if( iy_var ==  iy_aux_var_old )
-    throw runtime_error( "No need to set *iy_variable* and *iy_aux_variable* "
-                         "to be equal.");
-  if( !( iy_var=="FreeSpaceLoss"  || iy_var=="AtmosphericLoss" ||
-         iy_var=="DefocusingLoss" || iy_var=="TotalLoss"       ||
-         iy_var=="ExtraPathDelay" || iy_var=="BendingAngle" ) )
-    throw runtime_error( "Choice for *iy_variable* not recognised." );
-  if( !( iy_aux_var_old=="FreeSpaceLoss"  || iy_aux_var_old=="AtmosphericLoss" ||
-         iy_aux_var_old=="DefocusingLoss" || iy_aux_var_old=="TotalLoss"       ||
-         iy_aux_var_old=="ExtraPathDelay" || iy_aux_var_old=="BendingAngle"    ||
-         iy_aux_var_old=="None" ) )
-    throw runtime_error( "Choice for *iy_aux_variable* not recognised." );
-
-  // Determine which variables to compute
-  //
-  bool FreeSpaceLoss = false;
-  bool AtmosphericLoss = false;
-  bool DefocusingLoss = false;
-  bool TotalLoss = false;
-  bool ExtraPathDelay = false;
-  bool BendingAngle = false;
-  //
-  if( iy_var == "FreeSpaceLoss"  ||  iy_aux_var_old == "FreeSpaceLoss" )
-    { FreeSpaceLoss = true; }
-  if( iy_var == "DefocusingLoss"  ||  iy_aux_var_old == "DefocusingLoss" )
-    { DefocusingLoss = true; }
-  if( iy_var == "AtmosphericLoss"  ||  iy_aux_var_old == "AtmosphericLoss" )
-    { AtmosphericLoss = true; }
-  if( iy_var == "TotalLoss"  ||  iy_aux_var_old == "TotalLoss" )
-    { FreeSpaceLoss   = true;   DefocusingLoss = true;
-      AtmosphericLoss = true;   TotalLoss      = true; }
-  if( iy_var == "ExtraPathDelay"  ||  iy_aux_var_old == "ExtraPathDelay" )
-    { ExtraPathDelay = true; }
-  if( iy_var == "BendingAngle"  ||  iy_aux_var_old == "BendingAngle" )
-    { BendingAngle = true; }
-
-  // Set up iy and iy_aux (can be redone by e.g. iy_transmitter_agenda)
+  // Some basic sizes
   //
   Index nf = f_grid.nelem();
+
+  // Initialise iy_aux --------------------------------------------------------
   //
-  iy.resize( nf, stokes_dim );  
-  iy     = 0;  
-  /*
-  if( iy_aux_var_old ==" None" ) 
-    { iy_aux.resize( 0, 0); }
-  else
+  Index aux_FreeSpaceLoss = -1,
+        aux_AtmosphericLoss = -1,
+        aux_DefocusingLoss = -1,
+        aux_TotalLoss = -1,
+        aux_ExtraPathDelay = -1,
+        aux_BendingAngle = -1;
+  //
+  const Index naux = iy_aux_vars.nelem();
+  iy_aux.resize( naux );
+  //
+  for( Index i=0; i<naux; i++ )
     {
-      iy_aux.resize( nf, stokes_dim ); 
-      iy_aux = 0;
-    }  
-  */
+      if( iy_aux_vars[i] == "Free space loss" )
+        { aux_FreeSpaceLoss = i;     iy_aux[i].resize( nf, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Atmospheric loss" )
+        { aux_AtmosphericLoss = i;   iy_aux[i].resize( nf, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Defocusing loss" )
+        { aux_DefocusingLoss = i;    iy_aux[i].resize( nf, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Total loss" )
+        { aux_TotalLoss = i;         iy_aux[i].resize( nf, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Extra path delay" )
+        { aux_ExtraPathDelay = i;    iy_aux[i].resize( nf, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Bending angle" )
+        { aux_BendingAngle = i;      iy_aux[i].resize( nf, 1, 1 ); }      
+    }
+  //---------------------------------------------------------------------------
+
   // Variables to handle dispersion
   Index nloops, f_index; 
   Range fr(0,0);
@@ -1478,11 +1451,7 @@ void iyRadioLink(
       f_index = -1;
     }
 
-  
-  // Different ppath variables
-  Numeric lbg=0;  // Bent geometrical length of ray path
-  Numeric lba=0;  // Bent apparent length of ray path
-
+  // Frequency loop  
   for( Index i=0; i<nloops; i++ )
     {
       if( dispersion_do )
@@ -1501,123 +1470,128 @@ void iyRadioLink(
         { throw runtime_error( "Radiative background not set to \"space\" by "
                       "*ppath_agenda*. Is correct WSM used in the agenda?" ); }
 
-      Matrix    ppath_tau;
-
-      if( AtmosphericLoss )
+      // Get atmospheric and RT quantities for each ppath point/step
+      // "atmvars":
+      Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+      Matrix    ppath_vmr;
+      // "rtvars":
+      Vector    total_tau;
+      Matrix    emission_dummy, ppath_tau;
+      Tensor3   ppath_abs_scalar, iy_trans_new;
+      Agenda    agenda_dummy;
+      //
+      if( ppath.np > 1 )
         {
-          // Get atmospheric and RT quantities for each ppath point/step
-          // "atmvars":
-          Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
-          Matrix    ppath_vmr;
-          // "rtvars":
-          Vector    total_tau;
-          Matrix    emission_dummy;
-          Tensor3   ppath_abs_scalar, iy_trans_new;
-          Agenda    agenda_dummy;
-          //
-          if( ppath.np > 1 )
-            {
-              // Get pressure, temperature and VMRs
-              get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
-                                 ppath_wind_v, ppath_wind_w, ppath, 
-                                 atmosphere_dim, p_grid, t_field, vmr_field,
-                                 wind_u_field, wind_v_field, wind_w_field );
+          // Get pressure, temperature and VMRs
+          get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
+                             ppath_wind_v, ppath_wind_w, ppath, 
+                             atmosphere_dim, p_grid, t_field, vmr_field,
+                             wind_u_field, wind_v_field, wind_w_field );
 
-              // Absorption and optical thickness for each step
-              get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                                emission_dummy,  abs_scalar_gas_agenda, 
-                                agenda_dummy, ppath, ppath_p, ppath_t, 
-                                ppath_vmr, ppath_wind_u, ppath_wind_v, 
-                                ppath_wind_w, f_grid, f_index, atmosphere_dim, 
-                                0 );
-            }
+          // Absorption and optical thickness for each step
+          get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
+                            emission_dummy,  abs_scalar_gas_agenda, 
+                            agenda_dummy, ppath, ppath_p, ppath_t, 
+                            ppath_vmr, ppath_wind_u, ppath_wind_v, 
+                            ppath_wind_w, f_grid, f_index, atmosphere_dim, 0 );
+        }
 
-          // Radiative background
-          //
-          if( dispersion_do )
-            { 
-              Matrix iy1;  // Single frequency version of iy
-              iy_transmitter_agendaExecute( ws, iy1, rte_pos, rte_los, 
-                                      Vector(1,f_grid[f_index]), 
-                                      iy_transmitter_agenda ); 
+      // Transmitted signal
+      //
+      if( dispersion_do )
+        { 
+          Matrix iy1;  // Single frequency version of iy
+          iy_transmitter_agendaExecute( ws, iy1, rte_pos, rte_los, 
+                                        Vector(1,f_grid[f_index]), 
+                                        iy_transmitter_agenda ); 
               
-              if( iy1.ncols() != stokes_dim  ||  iy1.nrows() != 1 )
-                { throw runtime_error( "The size of *iy* returned from "
-                                  "*iy_transmitteragenda* is not correct." ); }
+          if( iy1.ncols() != stokes_dim  ||  iy1.nrows() != 1 )
+            { throw runtime_error( "The size of *iy* returned from "
+                                 "*iy_transmitter_agenda* is not correct." ); }
               iy(f_index,joker) = iy1(0,joker);
-            }
-          else
-            { 
-              iy_transmitter_agendaExecute( ws, iy, rte_pos, rte_los, f_grid,
-                                                       iy_transmitter_agenda ); 
-              if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
-                { throw runtime_error( "The size of *iy* returned from "
-                                  "*iy_transmitteragenda* is not correct." ); }
-            }
-        }  // if( AtmosphericLoss )
+        }
+      else
+        { 
+          iy_transmitter_agendaExecute( ws, iy, rte_pos, rte_los, f_grid,
+                                        iy_transmitter_agenda ); 
+          if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+            { throw runtime_error( "The size of *iy* returned from "
+                                 "*iy_transmitter_agenda* is not correct." ); }
+        }
 
-      // Lengts and RT calculations
-      if( FreeSpaceLoss || AtmosphericLoss || ExtraPathDelay )
+      // Different ppath variables
+      //
+      Numeric lbg;  // Bent geometrical length of ray path
+      Numeric lba;  // Bent apparent length of ray path
+      //
+      lbg = ppath.start_lstep + ppath.end_lstep;
+      lba = lbg;
+
+      // Loop path points
+      if( ppath.np > 1 )
         {
-          //
-          lbg = ppath.start_lstep + ppath.end_lstep;
-          lba = lbg;
-          //
-          if( ppath.np > 1 )
+          // Loop ppath steps
+          for( Index ip=ppath.np-2; ip>=0; ip-- )
             {
-              // Loop ppath steps
-              for( Index ip=ppath.np-2; ip>=0; ip-- )
+              lbg += ppath.lstep[ip];
+              lba += ppath.lstep[ip] * ( ppath.ngroup[ip] + 
+                                         ppath.ngroup[ip+1] ) / 2.0;
+              // Include atmospheric loss
+              if( dispersion_do )
                 {
-                  lbg += ppath.lstep[ip];
-                  lba += ppath.lstep[ip] * ( ppath.ngroup[ip] + 
-                                             ppath.ngroup[ip+1] ) / 2.0;
-                  if( AtmosphericLoss )
+                  const Numeric step_tr = exp( -ppath_tau(0,ip) );
+                  for( Index is=0; is<stokes_dim; is++ )
+                    { iy(f_index,is) *= step_tr; }
+                }
+              else
+                {
+                  // Loop frequencies
+                  for( Index iv=0; iv<nf; iv++ )
                     {
-                      if( dispersion_do )
-                        {
-                          const Numeric step_tr = exp( -ppath_tau(0,ip) );
-                          for( Index is=0; is<stokes_dim; is++ )
-                            { iy(f_index,is) *= step_tr; }
-                        }
-                      else
-                        {
-                          // Loop frequencies
-                          for( Index iv=0; iv<nf; iv++ )
-                            {
-                              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-                              for( Index is=0; is<stokes_dim; is++ )
-                                { iy(iv,is) *= step_tr; }
-                            }
-                        }
+                      const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+                      for( Index is=0; is<stokes_dim; is++ )
+                        { iy(iv,is) *= step_tr; }
                     }
                 }
             } 
         }
 
-      // Free space loss
-      Numeric fspl = 1;
-      if( FreeSpaceLoss )
-        { fspl = 1 / ( 4 * PI * lbg*lbg ); }
+      // Determine free space loss
+      Numeric fspl = 1 / ( 4 * PI * lbg*lbg ); 
 
-      // Defocusing loss
+      // Determine defocusing loss
       Numeric dfl = 1;
-      if( DefocusingLoss )
+      if( 0 )
+        { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
+                              p_grid, lat_grid, lon_grid, t_field, z_field, 
+                              vmr_field, edensity_field, f_index, 
+                              refellipsoid, z_surface, ppath, verbosity ); 
+        }
+      else
         {
-          if( 0 )
-            { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
-                                  p_grid, lat_grid, lon_grid, t_field, z_field, 
-                                  vmr_field, edensity_field, f_index, 
-                                  refellipsoid, z_surface, ppath, verbosity ); 
-            }
-          else
-            {
-              defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
-                                  p_grid, lat_grid, lon_grid, t_field, z_field, 
-                                  vmr_field, edensity_field, f_index, 
-                                  refellipsoid, z_surface, ppath, verbosity ); 
-            }
+          defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
+                              p_grid, lat_grid, lon_grid, t_field, z_field, 
+                              vmr_field, edensity_field, f_index, 
+                              refellipsoid, z_surface, ppath, verbosity ); 
         }
 
+      // Include loss the two last loss terms
+      if( dispersion_do )
+        { for( Index is=0; is<stokes_dim; is++ )
+            { iy(f_index,is) *= fspl*dfl; } }
+      else
+        { iy *= fspl*dfl; }
+
+      // Fill parts of iy_aux
+      if( aux_FreeSpaceLoss >= 0 )
+        { iy_aux[aux_FreeSpaceLoss](fr,0,0) = fspl; }
+      if( aux_DefocusingLoss >= 0 )
+        { iy_aux[aux_DefocusingLoss](fr,0,0) = dfl; }
+      if( aux_AtmosphericLoss >= 0 )
+        { iy_aux[aux_DefocusingLoss](fr,0,0) = dfl; }
+
+
+      /*
       // Extra path delay
       Numeric epd = -999;
       if( ExtraPathDelay )
@@ -1644,6 +1618,7 @@ void iyRadioLink(
       Numeric ba = -999;
       if( BendingAngle )
         { bending_angle1d( ba, ppath ); }
+      */
 
       // Atmospheric loss as aux is a special case
       /*
@@ -1651,49 +1626,6 @@ void iyRadioLink(
         { iy_aux(fr,joker) = iy(fr,joker); }
       */
 
-      // Total loss
-      Matrix atmloss(0,0);
-      if( TotalLoss )
-        {
-          // A copy of atmospheric loss needed?
-          if( iy_var == "AtmosphericLoss" )
-            {  
-              atmloss = iy(fr,joker);
-            }
-          if( dispersion_do )
-            { for( Index is=0; is<stokes_dim; is++ )
-                { iy(f_index,is) *= fspl*dfl; } }
-          else
-            { iy *= fspl*dfl; }
-        }
-
-      // Fill iy_aux
-      /*
-      if( iy_aux_var_old == "None" )
-        { iy_aux(fr,0) = -999; }
-      else if( iy_aux_var_old == "FreeSpaceLoss" )
-        { iy_aux(fr,0) = fspl; }
-      else if( iy_aux_var_old == "DefocusingLoss" )
-        { iy_aux(fr,0) = dfl; }
-      else if( iy_aux_var_old == "TotalLoss" )
-        { iy_aux(fr,joker) = iy(fr,joker); }
-      else if( iy_aux_var_old == "ExtraPathDelay" )
-        { iy_aux(fr,0) = epd; }
-      else if( iy_aux_var_old == "BendingAngle" )
-        { iy_aux(fr,0) = ba; }
-      */
-
-      // Fill iy
-      if( iy_var == "FreeSpaceLoss" )
-        { iy(fr,0) = fspl; }
-      else if( iy_var == "DefocusingLoss" )
-        { iy(fr,0) = dfl; }
-      else if( iy_var == "AtmosphericLoss"  && TotalLoss )
-        { iy(fr,joker) = atmloss(joker,joker); }
-      else if( iy_var == "ExtraPathDelay" )
-        { iy(fr,0) = epd; }
-      else if( iy_var == "BendingAngle" )
-        { iy(fr,0) = ba; }
     }
 }
 

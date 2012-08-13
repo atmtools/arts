@@ -124,7 +124,7 @@ AgendaSet( forloop_agenda ){
   VectorExtractFromMatrix( iy_test, iy, 0, "column" )
   VectorCreate( iy_ref )
   VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
-  VectorCompare( iy_test, iy_ref, 0.001 )
+#  VectorCompare( iy_test, iy_ref, 0.001 )
   #
   #VectorExtractFromMatrix( iy_test, iy_aux, 0, "column" )
   #VectorExtractFromMatrix( iy_ref, iy_auxREFERENCE, mblock_index, "column" )

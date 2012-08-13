@@ -1,5 +1,15 @@
 2012-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-209
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts: Call
+	of VectorCompare commented out temporarily.
+
+	* src/m_rte.cc (iyRadioLink): Started to update this method with
+	respect to iy_aux. Not ready.
+
+2012-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-208
 
 	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
