@@ -818,6 +818,10 @@ void cross3(VectorView c,
             const ConstVectorView& a,
             const ConstVectorView& b);
 
+Numeric vector_angle(ConstVectorView a, ConstVectorView b);
+
+void proj(Vector& c, ConstVectorView a, ConstVectorView b);
+
 ConstMatrixView transpose(ConstMatrixView m);
 
 MatrixView transpose(MatrixView m);

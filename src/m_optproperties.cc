@@ -681,7 +681,7 @@ void ext_matInit(Tensor3&         ext_mat,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddGas(Tensor3&      ext_mat,
-                   const Matrix& abs_scalar_gas,
+                   const Tensor4& abs_mat_per_species,
                    const Verbosity&)
 {
   // Number of Stokes parameters:
@@ -691,32 +691,36 @@ void ext_matAddGas(Tensor3&      ext_mat,
   // Stokes parameters:
   if ( stokes_dim != ext_mat.nrows() )
     throw runtime_error("Row dimension of ext_mat inconsistent with "
-                        "column dimension."); 
+                        "column dimension.");
+  if ( stokes_dim != abs_mat_per_species.ncols() )
+    throw runtime_error("Col dimension of abs_mat_per_species "
+                        "inconsistent with col dimension in ext_mat.");
 
   // Number of frequencies:
   const Index f_dim = ext_mat.npages();
 
   // This must be consistent with the first dimension of
   // abs_scalar_gas. Check this:
-  if ( f_dim != abs_scalar_gas.nrows() )
-    throw runtime_error("Frequency dimension of ext_mat and abs_scalar_gas\n"
+  if ( f_dim != abs_mat_per_species.npages() )
+    throw runtime_error("Frequency dimension of ext_mat and abs_mat_per_species\n"
                         "are inconsistent in ext_matAddGas.");
 
   // Sum up absorption over all species.
   // This gives us an absorption vector for all frequencies. Of course
   // this includes the special case that there is only one frequency.
-  Vector abs_total(f_dim);
-  for ( Index i=0; i<f_dim; ++i )
-    abs_total[i] = abs_scalar_gas(i,joker).sum();
-
-  for ( Index i=0; i<stokes_dim; ++i )
-    {
-      // Add the absorption value to all the diagonal elements:
-      ext_mat(joker,i,i) += abs_total[joker];
+  Tensor3 abs_total(f_dim,stokes_dim,stokes_dim);
+  abs_total = 0;
+  
+//   for ( Index i=0; i<f_dim; ++i )
+//     abs_total[i] = abs_scalar_gas(i,joker).sum();
+  for ( Index iv=0; iv<f_dim; ++iv )
+        for ( Index is1=0; is1<stokes_dim; ++is1 )
+              for ( Index is2=0; is2<stokes_dim; ++is2 )
+                    abs_total(iv,is1,is2) += abs_mat_per_species(joker,iv,is1,is2).sum();
+  
+    // Add the absorption value to all the elements:
+      ext_mat += abs_total;
       
-      // We don't have to do anything about the off-diagonal
-      // elements! 
-    }
 }
 
 
@@ -748,25 +752,30 @@ void abs_vecInit(Matrix&       abs_vec,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecAddGas(Matrix&       abs_vec,
-                   const Matrix& abs_scalar_gas,
+                   const Tensor4& abs_mat_per_species,
                    const Verbosity&)
 {
   // Number of frequencies:
   const Index f_dim = abs_vec.nrows();
-
+  const Index stokes_dim = abs_vec.ncols();
+  
   // This must be consistent with the first dimension of
   // abs_scalar_gas. Check this:
-  if ( f_dim != abs_scalar_gas.nrows() )
+  if ( f_dim != abs_mat_per_species.npages() )
     throw runtime_error("Frequency dimension of abs_vec and abs_scalar_gas\n"
                         "are inconsistent in abs_vecAddGas.");
-
+  if ( stokes_dim != abs_mat_per_species.ncols() )
+    throw runtime_error("Stokes dimension of abs_vec and abs_scalar_gas\n"
+                        "are inconsistent in abs_vecAddGas.");
+    
   // Loop all frequencies. Of course this includes the special case
   // that there is only one frequency.
   for ( Index i=0; i<f_dim; ++i )
     {
       // Sum up the columns of abs_scalar_gas and add to the first
       // element of abs_vec.
-      abs_vec(i,0) += abs_scalar_gas(i,joker).sum();
+      for(Index is = 0; is < stokes_dim;is++)
+        abs_vec(i,is) += abs_mat_per_species(joker,i,is,0).sum();
     }
 
   // We don't have to do anything about higher elements of abs_vec,

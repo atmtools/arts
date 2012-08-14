@@ -73,10 +73,12 @@ Delete( arrayofmatrix_1 )
 abs_lookupSetupBatch
 abs_lookupCreate
 
-# Set abs_scalar_gas_agenda to use lookup table
+# Set abs_mat_per_species_agenda to use lookup table
 # ---
-AgendaSet( abs_scalar_gas_agenda ){
-  abs_scalar_gasExtractFromLookup
+AgendaSet( abs_mat_per_species_agenda ){
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesExtractFromLookup
 }
 
 # Set up RT calculation

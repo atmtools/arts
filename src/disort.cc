@@ -69,7 +69,7 @@ void dtauc_ssalbCalc(Workspace& ws,
                      VectorView dtauc,
                      VectorView ssalb,
                      const Agenda& opt_prop_part_agenda,
-                     const Agenda& abs_scalar_gas_agenda,
+                     const Agenda& abs_mat_per_species_agenda,
                      const Agenda& spt_calc_agenda,
                      ConstTensor4View pnd_field,
                      ConstTensor3View t_field,
@@ -95,13 +95,13 @@ void dtauc_ssalbCalc(Workspace& ws,
   Tensor3 ext_mat_local;
   Numeric rte_temperature_local; 
   Numeric rte_pressure_local;
-  Matrix abs_scalar_gas_local;
+  Tensor4 abs_mat_per_species_local;
   Vector ext_vector(Np_cloud); 
   Vector abs_vector(Np_cloud); 
   Vector rte_vmr_list_local(vmr_field.nbooks());
   // Calculate ext_mat, abs_vec and sca_vec for all pressure points. 
 
-  abs_scalar_gas_local = 0.;   
+  abs_mat_per_species_local = 0.;
   
 
  for(Index scat_p_index_local = 0; scat_p_index_local < Np_cloud; 
@@ -155,17 +155,19 @@ void dtauc_ssalbCalc(Workspace& ws,
        rte_vmr_list_local[j] = 0.5 * (vmr_field(j, i, 0, 0) +
                                       vmr_field(j, i+1, 0, 0));
    
-  
-     abs_scalar_gas_agendaExecute(ws,
-                                  abs_scalar_gas_local, 
+    Vector rte_mag_dummy(1,-1.);
+    
+     abs_mat_per_species_agendaExecute(ws,
+                                  abs_mat_per_species_local,
                                   f_index,  // monochromatic calculation
                                   0,
+                                  rte_mag_dummy,
                                   rte_pressure_local, 
                                   rte_temperature_local, 
                                   rte_vmr_list_local,
-                                  abs_scalar_gas_agenda);
+                                  abs_mat_per_species_agenda);
      
-     Numeric abs_total = abs_scalar_gas_local(0,joker).sum();
+     Numeric abs_total = abs_mat_per_species_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
 
      dtauc[Np_cloud-2-i]=(ext+abs+abs_total)*
        (z_field(i+1, 0, 0)-z_field(i, 0, 0));

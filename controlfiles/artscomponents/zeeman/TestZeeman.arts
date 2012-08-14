@@ -1,0 +1,151 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Author: Richard Larsson
+
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+
+IndexSet( stokes_dim, 4 )
+
+AgendaSet( abs_mat_per_species_agenda ){
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddZeeman
+}
+
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+# ---
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+
+# Definition of species
+# ---
+SpeciesSet( abs_species, ["O2-Z"] )
+
+abs_linesReadFromHitran(abs_lines, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par", 62.3e9, 62.6e9)
+VectorSet(f_grid, [ 62.417e9, 62.448e9, 62.47e9, 62.486e9])
+
+# Sort the line file according to species
+abs_lines_per_speciesCreateFromLines
+
+
+# Atmospheric scenario
+# ---
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "../../atmosphere_data/tropical" )
+
+
+# Weakly reflecting surface (surface_skin_t set below in 1D part)
+# ---
+Tensor3SetConstant( surface_reflectivity, 1,4,4, 0.8 )
+AgendaSet( surface_rtprop_agenda ){
+  Ignore( rte_pos )
+  surfaceFlatReflectivity
+} 
+
+
+# No sensor properties
+# ---
+sensorOff
+
+
+# We select here to use Rayleigh-Jean brightness temperatures
+# ---
+StringSet( y_unit, "RJBT" )
+
+#########################################################################
+# 1D
+#########################################################################
+
+# Atmosphere and surface
+# ---
+AtmFieldsCalc
+Extract( z_surface, z_field, 0 )
+
+# *surface_skin_t*
+# ---
+Extract( t_surface, t_field, 0 )
+VectorCreate( t_surface1D )
+VectorExtractFromMatrix( t_surface1D, t_surface, 0, "row" )
+Extract( surface_skin_t, t_surface1D, 0 )
+
+# Definition of sensor position and LOS
+# ---
+MatrixSetConstant( sensor_pos, 1, 1, 600e3 )
+MatrixSet( sensor_los, [ 113 ] )
+
+#########################################################################
+# 2D
+#########################################################################
+
+# Atmosphere and surface
+# ---
+AtmosphereSet2D
+VectorLinSpace( lat_grid, -45, 45, 1 )
+AtmFieldsCalcExpand1D
+Extract( z_surface, z_field, 0 )
+refellipsoidEarth( refellipsoid, "WGS84" )
+
+# Definition of sensor position and LOS
+# ---
+MatrixCreate( zeros )
+MatrixSetConstant( zeros, 1, 1, 0 )
+Append( sensor_pos, zeros, "trailing" )
+
+#########################################################################
+# 3D
+#########################################################################
+
+# Atmosphere and surface
+# ---
+AtmosphereSet3D
+VectorLinSpace( lon_grid, -45, 45, 1 )
+AtmFieldsCalcExpand1D
+Extract( z_surface, z_field, 0 )
+
+# Definition of sensor position and LOS
+# ---
+Append( sensor_pos, zeros, "trailing" )
+Append( sensor_los, zeros, "trailing" )
+
+# Set magnetic field
+GriddedField3Create(B_W)
+ReadXML(B_W,"IGRF11_2010_200km-5deg-5deg.B_w.xml.gz")
+GriddedField3Create(B_V)
+ReadXML(B_V,"IGRF11_2010_200km-5deg-5deg.B_v.xml.gz")
+GriddedField3Create(B_U)
+ReadXML(B_U,"IGRF11_2010_200km-5deg-5deg.B_u.xml.gz")
+
+GriddedFieldLatLonRegrid( B_U, lat_grid, lon_grid, B_U )
+GriddedFieldLatLonRegrid( B_V, lat_grid, lon_grid, B_V )
+GriddedFieldLatLonRegrid( B_W, lat_grid, lon_grid, B_W )
+
+GriddedFieldPRegrid( B_W, p_grid, B_W )
+GriddedFieldPRegrid( B_U, p_grid, B_U )
+GriddedFieldPRegrid( B_V, p_grid, B_V )
+
+FieldFromGriddedField( mag_v_field, p_grid, lat_grid, lon_grid, B_V )
+FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, B_W )
+FieldFromGriddedField( mag_u_field, p_grid, lat_grid, lon_grid, B_U )
+
+
+# Perform RT calculations
+# ---
+basics_checkedCalc
+cloudbox_checkedCalc
+yCalc
+
+# OK?
+# ---
+WriteXML( "ascii", y, "yZeeman_3D.xml")
+VectorCreate(yREFERENCE)
+ReadXML( yREFERENCE, "yREFERENCE_3D.xml" )
+VectorCompare( y, yREFERENCE, 1e-2 )
+
+
+
+} # End of Main
+ 

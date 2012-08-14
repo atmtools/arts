@@ -64,10 +64,18 @@ abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 # Another option is to create an absorption table, which could save
 # (considerable) time, especially for batch calculations.
 # 
-AgendaSet( abs_scalar_gas_agenda ){
-  abs_scalar_gasCalcLBL
+
+AgendaSet( abs_mat_per_species_agenda ){
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesCalcLBL
   # To use the absorption lookup table, replace by:
-  #abs_scalar_gasExtractFromLookup
+  #abs_mat_per_speciesInit
+  #abs_mat_per_speciesExtractFromLookup
+  # To get absorption from Zeeman tag,
+  # uncomment this:
+  #abs_mat_per_speciesAddZeeman
+  # and comment out Ignore(rte_mag):
 }
 
 
@@ -148,16 +156,6 @@ AgendaSet( blackbody_radiation_agenda ){
   blackbody_radiationPlanck
 }
 
-
-#
-# Set opt_prop_gas_agenda
-# 
-AgendaSet( opt_prop_gas_agenda ){
-  ext_matInit
-  abs_vecInit
-  ext_matAddGas
-  abs_vecAddGas
-}
 
 
 #

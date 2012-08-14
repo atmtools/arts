@@ -93,10 +93,12 @@ abs_lookupCreate
 #MCSetSeedFromTime
 #abs_lookupTestAccMC
 
-# Set abs_scalar_gas_agenda to use lookup table
+# Set abs_mat_per_species_agenda to use lookup table
 # ---
-AgendaSet( abs_scalar_gas_agenda ){
-  abs_scalar_gasExtractFromLookup
+AgendaSet( abs_mat_per_species_agenda ){
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesExtractFromLookup
 }
 
 
@@ -147,16 +149,16 @@ AgendaSet( ybatch_calc_agenda ){
   # Optionally set Jacobian parameters. You can comment out this block 
   # if you do not want Jacobians in order to speed up the calculation. 
   # Also, you can add other Jacobians here, for example for temperature.
-  jacobianInit
-  jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-                         atmosphere_dim,
-                         p_grid, lat_grid, lon_grid, 
-                         p_grid, lat_grid, lon_grid,
-                         "H2O-PWR98",
-                         "analytical",
-                         "rel",
-                         0.01 )
-  jacobianClose
+#  jacobianInit
+#  jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+#                         atmosphere_dim,
+#                         p_grid, lat_grid, lon_grid, 
+#                         p_grid, lat_grid, lon_grid,
+#                         "H2O-PWR98",
+#                         "analytical",
+#                         "rel",
+#                         0.01 )
+#  jacobianClose
 
   # get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )

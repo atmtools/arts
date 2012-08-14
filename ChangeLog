@@ -1,3 +1,78 @@
+2012-08-14  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-210
+
+	* Changes to remove abs_scalar_gas_agenda, and
+	opt_prop_add_gas_agenda. Replaced these by internal function
+	and abs_mat_per_species_agenda. This in turn means changes in
+	several test cases.
+
+	* src/doit.cc, src/montecarlo.cc, src/disort.cc:
+	Unresolved issue: How to handle magnetic fields in these
+	methods? Current solution: rte_mag = [-1], i.e. [Ignore flag].
+
+	* src/m_rte.cc: Changes how the extinction matrix is handled
+	in the radiative transfer equation.
+	Unresolved issues: (1) Jacobians are in this version treated 
+	as per the scalar case. (2) Some aux-variables are ignored
+	due to changes in how iy is calculated --- and because I do
+	not fully understand how to handle iy_aux.
+
+	* src/rte.cc: get_ppath_atmvars now demands and returns 
+	magnetic field variables. In get_ppath_rtvars ppath_abs,
+	ppath_tau, total_tau replaces their scalar counterparts.
+	Dimensions are also changed so that ppath_abs have dimensions:
+	[ppath_vmr.nrows(), f_grid.nelem(), stokes_dim, stokes_dim,
+	ppath.np]. In get_ppath_cloudrtvars the magnetic field is
+	treated as for wind and rte_mag = [Ignore flag].
+	iy_transmission_for_scalar_tau →
+	iy_transmission_for_tensor3_tau.
+	iy_transmission_mult_scalar_tau →
+	iy_transmission_mult_tensor3_tau.
+	Warning: naming convention is confusing with both
+	iy_transmission_mult and iy_transmission_mult_tensor3_tau
+	taking arguments (Tensor3, ConstTensor3View, ConstTensor3View).
+
+	* src/workspace.cc: added "abs_mat_field" for lookup and
+	"abs_mat_per_species" because it is important for all 
+	other changes made.
+
+	* src/methods.cc: Added "abs_mat_per_speciesAddZeeman". 
+	Changed relevant things from scalar absorption to matrix
+	absorption.
+
+	* src/agendas.cc: Removed opt_prop_add_gas_agenda. Changed
+	abs_scalar_gas_agenda to abs_mat_per_species_agenda.
+
+	* src/optproperties.cc: Added opt_prop_add_abs_mat_per_species
+	to replace pot_prop_add_gas_agenda.
+
+	* src/m_abs.cc: abs_mat_per_speciesInit method to initiate
+	abs_mat_per_species to the correct size with values of 0.
+	abs_mat_per_speciesCalcLBL now gets the extinction matrix
+	for all non-Zeeman species. Warning: using this and only
+	this method for absorption when Zeeman species are present
+	will result in ignorance of all Zeeman species.
+
+	* src/m_zeeman.cc: abs_mat_per_speciesAddZeeman works just
+	like abs_mat_per_speciesCalcLBL though only for Zeeman species.
+	If rte_mag = [Ignore flag], the Zeeman species will be treated
+	as per the scalar case.
+
+	* src/m_abs_lookup.cc: Changed abs_lookupCreate to completely
+	ignore Zeeman species for now. Added
+	abs_mat_per_speciesExtractFromLookup to extract scalar
+	absorption and fit it with abs_mat_per_species for now.
+	Changed abs_fieldCalc to use the new agenda. This file
+	completely ignores the Zeeman effect for now with
+	rte_mag = [Ignore flag].
+
+	* Small changes in: src/gas_abs_lookup.cc, src/m_doit.cc, 
+	src/m_montecarlo.cc and m_optproperties.cc.
+
+	* doc/uguide/polarization.tex: Changed e_v in theory chapter
+	to reflect Mishchenko.
+
 2012-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-209

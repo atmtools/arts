@@ -159,13 +159,16 @@ void get_iy_of_background(
   const Agenda&           iy_cloudbox_agenda,
   const Verbosity&        verbosity);
 
-void get_ppath_atmvars( 
-        Vector&      ppath_p, 
-        Vector&      ppath_t, 
-        Matrix&      ppath_vmr, 
-        Vector&      ppath_wind_u, 
-        Vector&      ppath_wind_v, 
-        Vector&      ppath_wind_w, 
+void get_ppath_atmvars(
+        Vector&      ppath_p,
+        Vector&      ppath_t,
+        Matrix&      ppath_vmr,
+        Vector&      ppath_wind_u,
+        Vector&      ppath_wind_v,
+        Vector&      ppath_wind_w,
+        Vector&      ppath_mag_u,
+        Vector&      ppath_mag_v,
+        Vector&      ppath_mag_w,
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
@@ -173,35 +176,41 @@ void get_ppath_atmvars(
   ConstTensor4View   vmr_field,
   ConstTensor3View   wind_u_field,
   ConstTensor3View   wind_v_field,
-  ConstTensor3View   wind_w_field );
+  ConstTensor3View   wind_w_field,
+  ConstTensor3View   mag_u_field,
+  ConstTensor3View   mag_v_field,
+  ConstTensor3View   mag_w_field );
 
-void get_ppath_cloudrtvars(Workspace&       ws,
-                           Tensor3&         ppath_asp_abs_vec, 
-                           Tensor4&         ppath_asp_ext_mat, 
-                           Tensor3&         ppath_pnd_abs_vec, 
-                           Tensor4&         ppath_pnd_ext_mat, 
-                           Tensor4&         ppath_transmission,
-                           Tensor3&         total_transmission,
-                           Matrix&          ppath_emission, 
-                           Array<ArrayOfSingleScatteringData>&  scat_data,
-                           const Agenda&    abs_scalar_gas_agenda,
-                           const Agenda&    emission_agenda,
-                           const Agenda&    opt_prop_gas_agenda,
-                           const Ppath&     ppath,
-                           ConstVectorView  ppath_p, 
-                           ConstVectorView  ppath_t, 
-                           ConstMatrixView  ppath_vmr, 
-                           ConstVectorView  ppath_wind_u, 
-                           ConstVectorView  ppath_wind_v, 
-                           ConstVectorView  ppath_wind_w, 
-                           ConstMatrixView  ppath_pnd, 
-                           const Index&     use_mean_scat_data,
-                           const ArrayOfSingleScatteringData&   scat_data_raw,
-                           const Index&     stokes_dim,
-                           ConstVectorView  f_grid, 
-                           const Index&     atmosphere_dim,
-                           const Index&     emission_do,
-                           const Verbosity& verbosity);
+void get_ppath_cloudrtvars(
+        Workspace&                     ws,
+        Tensor3&                       ppath_asp_abs_vec,
+        Tensor4&                       ppath_asp_ext_mat,
+        Tensor3&                       ppath_pnd_abs_vec,
+        Tensor4&                       ppath_pnd_ext_mat,
+        Tensor4&                       ppath_transmission,
+        Tensor3&                       total_transmission,
+        Matrix&                        ppath_emission,
+  Array<ArrayOfSingleScatteringData>&  scat_data,
+  const Agenda&                        abs_mat_per_species_agenda,
+  const Agenda&                        blackbody_radiation_agenda,
+  const Ppath&                         ppath,
+  ConstVectorView                      ppath_p,
+  ConstVectorView                      ppath_t,
+  ConstMatrixView                      ppath_vmr,
+  ConstVectorView                      ppath_wind_u,
+  ConstVectorView                      ppath_wind_v,
+  ConstVectorView                      ppath_wind_w,
+  ConstVectorView                      ppath_mag_u,
+  ConstVectorView                      ppath_mag_v,
+  ConstVectorView                      ppath_mag_w,
+  ConstMatrixView                      ppath_pnd,
+  const Index&                         use_mean_scat_data,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Index&                         stokes_dim,
+  ConstVectorView                      f_grid,
+  const Index&                         atmosphere_dim,
+  const Index&                         emission_do,
+  const Verbosity&                     verbosity);
 
 void get_ppath_pnd( 
         Matrix&         ppath_pnd, 
@@ -210,23 +219,27 @@ void get_ppath_pnd(
   const ArrayOfIndex&   cloudbox_limits,
   ConstTensor4View      pnd_field );
 
-void get_ppath_rtvars( 
+void get_ppath_rtvars(
         Workspace&   ws,
-        Tensor3&     ppath_abs_scalar, 
-        Matrix&      ppath_tau,
-        Vector&      total_tau,
-        Matrix&      ppath_emission, 
-  const Agenda&      abs_scalar_agenda,
-  const Agenda&      emission_agenda,
+        Tensor5&     ppath_abs,
+        Tensor4&     ppath_tau,
+        Tensor3&     total_tau,
+        Matrix&      ppath_emission,
+  const Agenda&      abs_mat_per_species_agenda,
+  const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
-  ConstVectorView    ppath_p, 
-  ConstVectorView    ppath_t, 
-  ConstMatrixView    ppath_vmr, 
-  ConstVectorView    ppath_wind_u, 
-  ConstVectorView    ppath_wind_v, 
-  ConstVectorView    ppath_wind_w, 
-  ConstVectorView    f_grid, 
+  ConstVectorView    ppath_p,
+  ConstVectorView    ppath_t,
+  ConstMatrixView    ppath_vmr,
+  ConstVectorView    ppath_wind_u,
+  ConstVectorView    ppath_wind_v,
+  ConstVectorView    ppath_wind_w,
+  ConstVectorView    ppath_mag_u,
+  ConstVectorView    ppath_mag_v,
+  ConstVectorView    ppath_mag_w,
+  ConstVectorView    f_grid,
   const Index&       f_index,
+  const Index&       stokes_dim,
   const Index&       atmosphere_dim,
   const Index&       emission_do );
 
@@ -234,20 +247,20 @@ Range get_rowindex_for_mblock(
   const Sparse&   sensor_response, 
   const Index&    imblock );
 
-void iy_transmission_for_scalar_tau( 
+void iy_transmission_for_tensor3_tau(
        Tensor3&     iy_transmission,
   const Index&      stokes_dim,
-  ConstVectorView   tau );
+  ConstTensor3View  tau );
 
 void iy_transmission_mult( 
        Tensor3&      iy_trans_new,
   ConstTensor3View   iy_transmission,
   ConstTensor3View   trans );
 
-void iy_transmission_mult_scalar_tau( 
+void iy_transmission_mult_tensor3_tau(
        Tensor3&      iy_trans_new,
   ConstTensor3View   iy_transmission,
-  ConstVectorView    tau );
+  ConstTensor3View   tau );
 
 void iyb_calc(
         Workspace&                  ws,

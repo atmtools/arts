@@ -125,9 +125,11 @@ ReadXML( abs_lookup, "abs_lookupBatch.xml" )
 # Check if lookup table is fitting input
 abs_lookupAdapt
 
-# Set abs_scalar_gas_agenda to use lookup table
-AgendaSet( abs_scalar_gas_agenda ){ 
-  abs_scalar_gasExtractFromLookup 
+# Set abs_mat_per_species_agenda to use lookup table
+AgendaSet( abs_mat_per_species_agenda ){ 
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesExtractFromLookup 
 }
 
 

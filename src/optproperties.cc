@@ -912,3 +912,55 @@ ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& /*assd*/)
   os << "ArrayOfScatteringMetaData: Output operator not implemented";
   return os;
 }
+
+
+//! Get optical properties from abs_mat_per_species
+/*!
+  This turns abs_mat_per_species into the extinction matrix
+  and absorption vector for use when these are important.
+
+  Internal function to replace the old opt_prop_gas_agenda.
+  
+  Output and Input:
+  \param ext_mat Extinction matrix.
+  \param abs_vec Absorption vector.
+  Input:
+  \param abs_mat_per_species as the WSV.
+  \param f_index as the WSV.
+
+  \author Richard Larsson
+  \date   2012-07-24
+*/
+void opt_prop_add_abs_mat_per_species(//Output:
+                                      Tensor3&         ext_mat,
+                                      Matrix&          abs_vec,
+                                      //Input:
+                                      const Tensor4    abs_mat_per_species,
+                                      const Index&     f_index)
+{
+
+    Index stokes_dim = abs_mat_per_species.ncols();
+    
+    Index freq_dim = 1;
+
+    if( f_index != -1 ){ freq_dim = abs_mat_per_species.npages(); }
+
+
+
+    // old abs_vecInit
+    abs_vec.resize( freq_dim, stokes_dim );
+    abs_vec = 0;                  // Initialize to zero!
+
+    // old ext_matInit
+    ext_mat.resize( freq_dim, stokes_dim, stokes_dim );
+    ext_mat = 0;                  // Initialize to zero!
+
+   // old ext_matAddGas and abs_vecAddGas for 0 vector and matrix
+    for ( Index iv=0; iv<freq_dim; ++iv )
+        for ( Index is1=0; is1<stokes_dim; ++is1 )
+        {
+            abs_vec(iv,is1) += abs_mat_per_species(joker,iv,is1,0).sum();
+            for ( Index is2=0; is2<stokes_dim; ++is2 )
+                ext_mat(iv,is1,is2) += abs_mat_per_species(joker,iv,is1,is2).sum();
+        }
+}

@@ -26,20 +26,20 @@ Arts2 {
 # 1. General
 #-----------
 
-INCLUDE "hirs/hirs_general.arts"
+INCLUDE "hirs_general.arts"
 
 # 2. Spectroscopy
 #----------------
 
-INCLUDE "hirs/hirs_spectroscopy.arts"
+INCLUDE "hirs_spectroscopy.arts"
 # hitran separate because one might want to use a lookup table
-INCLUDE "hirs/hirs_hitran.arts"
+INCLUDE "hirs_hitran.arts"
 
 # 3. Sensor:
 #-----------
 
-INCLUDE "hirs/hirs_sensor_common.arts"
-INCLUDE "hirs/hirs_sensor_fast.arts"
+INCLUDE "hirs_sensor_common.arts"
+INCLUDE "hirs_sensor_fast.arts"
 
 # see comment in hirs_reference.arts
 abs_lines_per_speciesCompact

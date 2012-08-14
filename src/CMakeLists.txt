@@ -190,6 +190,7 @@ add_library (artscore STATIC
   m_rte.cc
   m_sensor.cc
   m_surface.cc
+  m_zeeman.cc
   math_funcs.cc
   mc_antenna.cc
   mc_interp.cc

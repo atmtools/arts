@@ -2,7 +2,7 @@
 Arts2{
 # Definition of sensor position and LOS
 # ---
-ReadXML( sensor_los, "hirs/hirs.sensor_los.xml" )
+ReadXML( sensor_los, "hirs.sensor_los.xml" )
 
 # Select those views that are requested by the user
 Select( sensor_los, sensor_los, views )
@@ -31,7 +31,7 @@ AntennaOff
  
 # Nominal channel frequencies:
 StringCreate( f_backend_file)
-StringSet(    f_backend_file, "hirs/")
+StringSet(    f_backend_file, "")
 Append(       f_backend_file, satellite)
 StringCreate( dummy )
 StringSet(    dummy,          "_HIRS.f_backend.xml")

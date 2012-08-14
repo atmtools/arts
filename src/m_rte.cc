@@ -383,6 +383,7 @@ void iyCalc(
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
 
+
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
                              iy_aux_vars, cloudbox_on, jacobian_do, t_field, 
                              z_field, vmr_field, mblock_index, rte_pos, rte_los,
@@ -411,6 +412,9 @@ void iyEmissionStandard(
    const Tensor3&                    wind_u_field,
    const Tensor3&                    wind_v_field,
    const Tensor3&                    wind_w_field,
+   const Tensor3&                    mag_u_field,
+   const Tensor3&                    mag_v_field,
+   const Tensor3&                    mag_w_field,
    const Tensor3&                    edensity_field,
    const Index&                      cloudbox_on,
    const ArrayOfString&              iy_aux_vars,
@@ -419,7 +423,7 @@ void iyEmissionStandard(
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     ppath_agenda,
    const Agenda&                     blackbody_radiation_agenda,
-   const Agenda&                     abs_scalar_gas_agenda,
+   const Agenda&                     abs_mat_per_species_agenda,
    const Agenda&                     iy_main_agenda,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     iy_surface_agenda,
@@ -442,7 +446,7 @@ void iyEmissionStandard(
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
   const Index nq = jacobian_quantities.nelem();
-
+  
   // Initialise iy_aux --------------------------------------------------------
   //
   Index aux_temperature = -1,
@@ -559,41 +563,47 @@ void iyEmissionStandard(
   // If np = 1, we only need to determine the radiative background
   //
   // "atmvars"
-  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                               ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
   Matrix    ppath_vmr;
   // "rtvars"
-  Vector    total_tau;
-  Matrix    ppath_emission, ppath_tau;
-  Tensor3   ppath_abs_scalar, iy_trans_new;
+  Tensor3    total_tau;
+  Matrix    ppath_emission;
+  Tensor4   ppath_tau;
+  Tensor5   ppath_abs;
+  Tensor3   iy_trans_new;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
                          ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
                          ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field );
-
+                         wind_u_field, wind_v_field, wind_w_field ,
+                         mag_u_field, mag_v_field, mag_w_field );
+      
       // Get emission, absorption and optical thickness for each step
-      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                        ppath_emission, abs_scalar_gas_agenda, 
-                        blackbody_radiation_agenda, ppath, ppath_p, ppath_t, 
-                        ppath_vmr, ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                        f_grid, -1, atmosphere_dim, 1 );
+      get_ppath_rtvars( ws, ppath_abs, ppath_tau, total_tau,
+                        ppath_emission,  abs_mat_per_species_agenda, blackbody_radiation_agenda,
+                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
+                        ppath_wind_v, ppath_wind_w, ppath_mag_u, ppath_mag_v,
+                        ppath_mag_w, 
+                        f_grid, -1, stokes_dim, atmosphere_dim, 1 );
+
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     { 
-      total_tau.resize( nf );
+      total_tau.resize( nf, stokes_dim, stokes_dim );
       total_tau = 0;
     }
 
   // iy_transmission
   //
   if( iy_agenda_call1 )
-    { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, total_tau ); }
+    { iy_transmission_for_tensor3_tau( iy_trans_new, stokes_dim, total_tau ); }
   else
-    { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
-                                                                total_tau ); }
+    { iy_transmission_mult_tensor3_tau( iy_trans_new, iy_transmission, total_tau ); }
 
   // Radiative background
   //
@@ -606,8 +616,8 @@ void iyEmissionStandard(
   // Fill some parts of iy_aux
   // Radiative background
   if( aux_background >= 0 ) 
-    { iy_aux[aux_background](0,0,0) = min( Index(2),
-                                           ppath_what_background(ppath)-1); }
+    { iy_aux[aux_background](0,0,0) = (Numeric)min((Index)2,
+                                                   ppath_what_background(ppath)-1); }
   // Radiance 
   if( aux_radiance >= 0 ) 
     { iy_aux[aux_radiance](joker,joker,np-1) = iy; }
@@ -629,7 +639,7 @@ void iyEmissionStandard(
       //
       const Numeric   dt = 0.1;
             Matrix    ppath_e2;
-            Tensor3   ppath_as2;
+            Tensor5   ppath_as2_tensor5;
       //
       if( j_analytical_do )
         { 
@@ -651,18 +661,20 @@ void iyEmissionStandard(
             { if( is_t[iq] ) { do_t = 1; } }
           if( do_t )
             {
-              Matrix tau_dummy; 
-              Vector total_tau_dummy, t2 = ppath_t;
+              Tensor4 tau_dummy;
+              Tensor3 total_tau_dummy;
+              Vector t2 = ppath_t;
               t2 += dt;
-              get_ppath_rtvars( ws, ppath_as2, tau_dummy, total_tau_dummy, 
-                                ppath_e2, abs_scalar_gas_agenda, 
-                                blackbody_radiation_agenda, ppath, ppath_p, 
-                                t2, ppath_vmr, 
-                                ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                                f_grid, -1, atmosphere_dim, 1 );
+              get_ppath_rtvars( ws, ppath_as2_tensor5, tau_dummy, total_tau_dummy,
+                                ppath_e2, abs_mat_per_species_agenda, blackbody_radiation_agenda,
+                                ppath, ppath_p, t2, ppath_vmr, ppath_wind_u,
+                                ppath_wind_v, ppath_wind_w, ppath_mag_u, ppath_mag_v,
+                                ppath_mag_w, 
+                                f_grid, -1, stokes_dim, atmosphere_dim, 1 );
             }
         }
 
+      Tensor3View ppath_abs_scalar = ppath_abs(joker, joker, 0, 0, joker);
       // iy_aux for point np-1:
       // Temperature
       if( aux_temperature >= 0 ) 
@@ -675,43 +687,59 @@ void iyEmissionStandard(
       if( aux_abs_sum >= 0 ) 
         { for( Index iv=0; iv<nf; iv++ ) {
             iy_aux[aux_abs_sum](iv,0,np-1) = 
-                                     ppath_abs_scalar(iv,joker,np-1).sum(); } }
+                                     ppath_abs_scalar(joker, iv,np-1).sum(); } }
       for( Index j=0; j<aux_abs_species.nelem(); j++ )
         { for( Index iv=0; iv<nf; iv++ ) {
             iy_aux[aux_abs_species[j]](iv,0,np-1) = 
-                                  ppath_abs_scalar(iv,aux_abs_isp[j],np-1); } }
-
+                                  ppath_abs_scalar(aux_abs_isp[j],iv,np-1); } }
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
-          Vector esource(nf);            // B-bar
-          Matrix iy_new(nf,stokes_dim);  // Intensity at end of step
+          Vector esource(nf,0.);  // B-bar
 
-          // Spectrum at end of ppath step 
-          // (iy updated to iy_new at end of ip-loop)
+          // Spectrum at end of ppath step )
           for( Index iv=0; iv<nf; iv++ )  
             {
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-              //
-              // First Stokes element:
-              esource[iv] = 0.5 * ( ppath_emission(iv,ip) + 
-                                    ppath_emission(iv,ip+1) );    
-              iy_new(iv,0) = iy(iv,0) * step_tr + esource[iv] * (1-step_tr); 
-              //
-              // Higher Stokes:
-              for( Index is=1; is<stokes_dim; is++ )
-                { iy_new(iv,is) = step_tr * iy(iv,is); }
+                esource[iv] = 0.5 * ( ppath_emission(iv,ip) +
+                                    ppath_emission(iv,ip+1) );
+                // compare rte_step_std ... this function is not used to
+                // avoid calling the LU-functions, which are unstable in
+                // this case
+                if( stokes_dim == 1 )
+                    iy(iv,0)  = iy(iv,0) * exp(-ppath_tau(iv,0,0,ip)) +
+                            esource[iv] * (1 - exp(-ppath_tau(iv,0,0,ip)));
+                else
+                {
+                    Matrix trans_mat(stokes_dim, stokes_dim), temp = ppath_tau(iv,joker,joker,ip);
+                        temp *= -1;
+
+                    Vector planck(stokes_dim, 0.), term1(stokes_dim), term2(stokes_dim);
+                        planck[0] = esource[iv]; //K⁻¹(a*B+S) = [B,0,0,0] when a from K and S = 0
+
+                    matrix_exp( trans_mat, temp, 10);
+
+                    id_mat(temp);
+                        temp -= trans_mat;
+                    mult(term1, trans_mat, iy(iv,joker) );
+                    mult(term2, temp, planck);
+
+                    iy(iv,joker)  = term1;
+                    iy(iv,joker) += term2;
+                }
             }
 
+          //Debugging variables
           // Jacobian quantities
           if( j_analytical_do )
             {
+              VectorView total_tau_vector = total_tau(joker, 0, 0);
+              MatrixView ppath_tau_matrix = ppath_tau(joker,0,0,joker);
               // Common terms introduced for efficiency and clarity
               Vector X(nf), Y(nf);   // See AUG
               //
               for( Index iv=0; iv<nf; iv++ )
                 {
-                  X[iv] = 0.5 * ppath.lstep[ip] * exp( -total_tau[iv] );
+                  X[iv] = 0.5 * ppath.lstep[ip] * exp( -total_tau_vector[iv] );
                   Y[iv] = X[iv] * ( esource[iv] - iy(iv,0) );
                 }
 
@@ -740,17 +768,17 @@ void iyEmissionStandard(
                             {
                               // Stokes component 1
                               diy_dpath[iq](ip  ,iv,0) += Y[iv] * unitscf1 *
-                                                 ppath_abs_scalar(iv,isp,ip);
+                                                 ppath_abs_scalar(isp,iv,ip);
                               diy_dpath[iq](ip+1,iv,0) += Y[iv] * unitscf2 * 
-                                                 ppath_abs_scalar(iv,isp,ip+1);
+                                                 ppath_abs_scalar(isp,iv,ip+1);
                               // Higher stokes components
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
                                   const Numeric Z = -X[iv] * iy(iv,is); 
                                   diy_dpath[iq](ip  ,iv,is) += Z * unitscf1 *
-                                                 ppath_abs_scalar(iv,isp,ip);
+                                                 ppath_abs_scalar(isp,iv,ip);
                                   diy_dpath[iq](ip+1,iv,is) += Z * unitscf2 *
-                                                 ppath_abs_scalar(iv,isp,ip+1);
+                                                 ppath_abs_scalar(isp,iv,ip+1);
                                 }
                             }
                         }
@@ -758,17 +786,18 @@ void iyEmissionStandard(
                       // Temperature
                       else if( is_t[iq] )
                         {
+                          Tensor3View ppath_as2 = ppath_as2_tensor5(joker, joker, 0, 0, joker);
                           for( Index iv=0; iv<nf; iv++ )
                             {
                               // The terms associated with Dtau/Dk:
                               const Numeric k1 = 
-                                         ppath_abs_scalar(iv,joker,ip  ).sum();
+                                         ppath_abs_scalar(joker,iv,ip  ).sum();
                               const Numeric k2 = 
-                                         ppath_abs_scalar(iv,joker,ip+1).sum();
+                                         ppath_abs_scalar(joker,iv,ip+1).sum();
                               const Numeric dkdt1 =
-                                  ( ppath_as2(iv,joker,ip  ).sum() - k1 ) / dt;
+                                  ( ppath_as2(joker,iv,ip  ).sum() - k1 ) / dt;
                               const Numeric dkdt2 =
-                                  ( ppath_as2(iv,joker,ip+1).sum() - k2 ) / dt;
+                                  ( ppath_as2(joker,iv,ip+1).sum() - k2 ) / dt;
                               // Stokes 1:
                               diy_dpath[iq](ip  ,iv,0) += Y[iv] * dkdt1;
                               diy_dpath[iq](ip+1,iv,0) += Y[iv] * dkdt2;
@@ -782,8 +811,8 @@ void iyEmissionStandard(
                               //
                               // The terms associated with B-bar:
                               const Numeric V = 0.5 * 
-                                      exp(-(total_tau[iv]-ppath_tau(iv,ip))) *
-                                              ( 1.0 - exp(-ppath_tau(iv,ip)) );
+                                      exp(-(total_tau_vector[iv]-ppath_tau_matrix(iv,ip))) *
+                                              ( 1.0 - exp(-ppath_tau_matrix(iv,ip)) );
                               diy_dpath[iq](ip  ,iv,0) += V *
                                               ( ppath_e2(iv,ip) -
                                                 ppath_emission(iv,ip) ) / dt;
@@ -818,12 +847,13 @@ void iyEmissionStandard(
               
               // Update total_tau (not used for spectrum calculation)
               for( Index iv=0; iv<nf; iv++ )
-                { total_tau[iv] -= ppath_tau(iv,ip); }
+                { total_tau_vector[iv] -= ppath_tau_matrix(iv,ip); }
             }
 
           // --- iy_aux: ------------------------------------------------------
           // Temperature
-          if( aux_temperature >= 0 ) 
+// FIXME: Richard: iy calculated directly at l. 1147
+/*          if( aux_temperature >= 0 ) 
             { iy_aux[aux_temperature](0,0,ip) = ppath_t[ip]; }
           // VMR
           for( Index j=0; j<aux_vmr_species.nelem(); j++ )
@@ -845,7 +875,7 @@ void iyEmissionStandard(
 
           // Update iy
           iy = iy_new;
-        } 
+*/        } 
 
       // Map jacobians from ppath to retrieval grids
       // (this operation corresponds to the term Dx_i/Dx)
@@ -965,29 +995,35 @@ void iyEmissionStandardClearsky(
   // If np = 1, we only need to determine the radiative background
   //
   // "atmvars"
-  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                               ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
   Matrix    ppath_vmr;
   // "rtvars"
-  Vector    total_tau;
-  Matrix    ppath_emission, ppath_tau;
-  Tensor3   ppath_abs_scalar, iy_trans_new;
+  Tensor3   total_tau;
+  Matrix    ppath_emission;
+  Tensor4   ppath_tau;
+  Tensor5   ppath_abs;
+  Tensor3   iy_trans_new;
   //
   const Index np  = ppath.np;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
                          ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
                          ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field );
+                         wind_u_field, wind_v_field, wind_w_field ,
+                         mag_u_field, mag_v_field, mag_w_field );
 
       // Get emission, absorption and optical thickness for each step
-      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                        ppath_emission, abs_scalar_gas_agenda, 
-                        blackbody_radiation_agenda, ppath, ppath_p, ppath_t, 
-                        ppath_vmr, ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                        f_grid, -1, atmosphere_dim, 1 );
+      get_ppath_rtvars( ws, ppath_abs, ppath_tau, total_tau,
+                        ppath_emission, abs_mat_per_species_agenda, blackbody_radiation_agenda,
+                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
+                        ppath_wind_v, ppath_wind_w, ppath_mag_u, ppath_mag_v,
+                        ppath_mag_w, 
+                        f_grid, -1, stokes_dim, atmosphere_dim, 1 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
     { 
@@ -1068,16 +1104,32 @@ void iyEmissionStandardClearsky(
           // (iy updated to iy_new at end of ip-loop)
           for( Index iv=0; iv<nf; iv++ )  
             {
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-              //
-              // First Stokes element:
-              esource[iv] = 0.5 * ( ppath_emission(iv,ip) + 
-                                    ppath_emission(iv,ip+1) );    
-              iy_new(iv,0) = iy(iv,0) * step_tr + esource[iv] * (1-step_tr); 
-              //
-              // Higher Stokes:
-              for( Index is=1; is<stokes_dim; is++ )
-                { iy_new(iv,is) = step_tr * iy(iv,is); }
+
+                if( stokes_dim == 1 )
+                    iy(iv,0)  = iy(iv,0) * exp(-ppath_tau(iv,0,0,ip)) +
+                    0.5 * ( ppath_emission(iv,ip) +  ppath_emission(iv,ip+1) ) *
+                    (1 - exp(-ppath_tau(iv,0,0,ip)));
+                else
+                {
+                    Matrix trans_mat(stokes_dim, stokes_dim), temp = ppath_tau(iv,joker,joker,ip);
+                        temp *= -1;
+
+                    Vector planck(stokes_dim, 0.), term1(stokes_dim), term2(stokes_dim);
+                        planck[0] = 0.5 * ( ppath_emission(iv,ip) +
+                                    ppath_emission(iv,ip+1) ); //K⁻¹(a*B+S) = [B,0,0,0] when a from K and S = 0
+
+                    matrix_exp( trans_mat, temp, 10);
+
+                    id_mat(temp);
+                        temp -= trans_mat;
+
+                    mult(term1, trans_mat, iy(iv,joker) );
+                    mult(term2, temp, planck);
+
+                    iy(iv,joker)  = term1;
+                    iy(iv,joker) += term2;
+                }
+
             }
 
           // Jacobian quantities
@@ -1263,8 +1315,7 @@ void iyMC(
    const ArrayOfSingleScatteringData&   scat_data_raw,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     surface_rtprop_agenda,
-   const Agenda&                     abs_scalar_gas_agenda, 
-   const Agenda&                     opt_prop_gas_agenda,
+   const Agenda&                     abs_mat_per_species_agenda, 
    const Tensor4&                    pnd_field,
    const String&                     y_unit,
    const Numeric&                    mc_std_err,
@@ -1329,8 +1380,8 @@ void iyMC(
                   
       MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna, 
                  f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
-                 iy_space_agenda, surface_rtprop_agenda, opt_prop_gas_agenda,
-                 abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
+                 iy_space_agenda, surface_rtprop_agenda,
+                 abs_mat_per_species_agenda, p_grid, lat_grid, lon_grid, z_field, 
                  refellipsoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
                  pnd_field, scat_data_mono, 1, cloudbox_checked,
@@ -1379,6 +1430,9 @@ void iyRadioLink(
    const Tensor3&              wind_u_field,
    const Tensor3&              wind_v_field,
    const Tensor3&              wind_w_field,
+   const Tensor3&              mag_u_field,
+   const Tensor3&              mag_v_field,
+   const Tensor3&              mag_w_field,
    const Tensor3&              edensity_field,
    const Vector&               refellipsoid,
    const Matrix&               z_surface,
@@ -1389,7 +1443,7 @@ void iyRadioLink(
    const Index&                mblock_index,
    const Agenda&               ppath_agenda,
    const Agenda&               ppath_step_agenda,
-   const Agenda&               abs_scalar_gas_agenda,
+   const Agenda&               abs_mat_per_species_agenda,
    const Agenda&               iy_transmitter_agenda,
    const Verbosity&            verbosity )
 {
@@ -1470,30 +1524,33 @@ void iyRadioLink(
         { throw runtime_error( "Radiative background not set to \"space\" by "
                       "*ppath_agenda*. Is correct WSM used in the agenda?" ); }
 
-      // Get atmospheric and RT quantities for each ppath point/step
-      // "atmvars":
-      Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
-      Matrix    ppath_vmr;
-      // "rtvars":
-      Vector    total_tau;
-      Matrix    emission_dummy, ppath_tau;
-      Tensor3   ppath_abs_scalar, iy_trans_new;
-      Agenda    agenda_dummy;
-      //
+     // if( AtmosphericLoss )
+          // Get atmospheric and RT quantities for each ppath point/step
+          // "atmvars":
+          Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                                       ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
+          Matrix    ppath_vmr, emission_dummy;
+          // "rtvars":
+          Tensor3   total_tau, iy_trans_new;
+          Tensor4   ppath_tau;
+          Tensor5   ppath_abs;
+          Agenda    agenda_dummy;
       if( ppath.np > 1 )
         {
-          // Get pressure, temperature and VMRs
-          get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind_u, 
-                             ppath_wind_v, ppath_wind_w, ppath, 
-                             atmosphere_dim, p_grid, t_field, vmr_field,
-                             wind_u_field, wind_v_field, wind_w_field );
-
-          // Absorption and optical thickness for each step
-          get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, 
-                            emission_dummy,  abs_scalar_gas_agenda, 
-                            agenda_dummy, ppath, ppath_p, ppath_t, 
-                            ppath_vmr, ppath_wind_u, ppath_wind_v, 
-                            ppath_wind_w, f_grid, f_index, atmosphere_dim, 0 );
+            // Get pressure, temperature and VMRs
+            get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
+                        ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                        ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
+                        ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                        wind_u_field, wind_v_field, wind_w_field,
+                        mag_u_field, mag_v_field, mag_w_field );
+            // Absorption and optical thickness for each step
+            get_ppath_rtvars( ws, ppath_abs, ppath_tau, total_tau,
+                            emission_dummy,  abs_mat_per_species_agenda, agenda_dummy,
+                            ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
+                            ppath_wind_v, ppath_wind_w, ppath_mag_u, ppath_mag_v,
+                            ppath_mag_w,
+                            f_grid, f_index, stokes_dim, atmosphere_dim, 0 );
         }
 
       // Transmitted signal
@@ -1539,20 +1596,36 @@ void iyRadioLink(
               // Include atmospheric loss
               if( dispersion_do )
                 {
-                  const Numeric step_tr = exp( -ppath_tau(0,ip) );
-                  for( Index is=0; is<stokes_dim; is++ )
-                    { iy(f_index,is) *= step_tr; }
+                    Matrix step_tr(stokes_dim, stokes_dim);
+                    Matrix temp = ppath_tau(0,joker,joker,ip);
+                    temp *= -1;
+                    matrix_exp(step_tr, temp, 10);
+
+                    Vector iy_temp = iy(f_index,joker);
+                    mult(iy(f_index,joker), step_tr, iy_temp);
+
+                    /*for( Index is=0; is<stokes_dim; is++ )
+                    { iy(f_index,is) *= step_tr; }*/
                 }
               else
                 {
                   // Loop frequencies
                   for( Index iv=0; iv<nf; iv++ )
                     {
-                      const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-                      for( Index is=0; is<stokes_dim; is++ )
-                        { iy(iv,is) *= step_tr; }
+                        Matrix step_tr(stokes_dim, stokes_dim);
+                        Matrix temp = ppath_tau(iv,joker,joker,ip);
+                        temp *= -1;
+                        matrix_exp(step_tr, temp, 10);
+
+                        Vector iy_temp = iy(iv,joker);
+                        mult(iy(iv,joker), step_tr, iy_temp);
+                        /*
+                        const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+                        for( Index is=0; is<stokes_dim; is++ )
+                        { iy(iv,is) *= step_tr; }*/
                     }
                 }
+                
             } 
         }
 
@@ -1650,6 +1723,9 @@ void iyTransmissionStandard(
    const Tensor3&                    wind_u_field,
    const Tensor3&                    wind_v_field,
    const Tensor3&                    wind_w_field,
+   const Tensor3&                    mag_u_field,
+   const Tensor3&                    mag_v_field,
+   const Tensor3&                    mag_w_field,
    const Tensor3&                    edensity_field,
    const Index&                      cloudbox_on,
    const ArrayOfIndex&               cloudbox_limits,
@@ -1658,7 +1734,7 @@ void iyTransmissionStandard(
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     ppath_agenda,
-   const Agenda&                     abs_scalar_gas_agenda,
+   const Agenda&                     abs_mat_per_species_agenda,
    const Agenda&                     iy_transmitter_agenda,
    const Index&                      iy_agenda_call1,
    const Tensor3&                 ,//iy_transmission,
@@ -1789,42 +1865,50 @@ void iyTransmissionStandard(
   // If np = 1, we only need to determine the radiative background
   //
   // "atmvars"
-  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                               ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
   Matrix    ppath_vmr;
   // "rtvars"
-  Vector    total_tau;
-  Matrix    edummy, ppath_tau;
-  Tensor3   ppath_abs_scalar, iy_trans_new;
+  Tensor3   total_tau;
+  Matrix    emission_dummy;
+  Tensor4   ppath_tau;
+  Tensor5   ppath_abs;
+  Tensor3   iy_trans_new;
+  Agenda    agenda_dummy;
   //
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
                          ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
                          ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field );
+                         wind_u_field, wind_v_field, wind_w_field,
+                         mag_u_field, mag_v_field, mag_w_field );
 
       // Absorption and optical thickness for each step
-      get_ppath_rtvars( ws, ppath_abs_scalar, ppath_tau, total_tau, edummy, 
-                        abs_scalar_gas_agenda, Agenda(), ppath, ppath_p, 
-                        ppath_t, ppath_vmr, ppath_wind_u, ppath_wind_v, 
-                        ppath_wind_w, f_grid, -1, atmosphere_dim, 0 );
+      get_ppath_rtvars( ws, ppath_abs, ppath_tau, total_tau,
+                   emission_dummy,  abs_mat_per_species_agenda, agenda_dummy,
+                   ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
+                   ppath_wind_v, ppath_wind_w, ppath_mag_u, ppath_mag_v,
+                   ppath_mag_w,
+                   f_grid, -1, stokes_dim, atmosphere_dim, 0 );
     }
+    Tensor3View ppath_abs_scalar = ppath_abs(joker,joker,0,0,joker);
+    // Get transmitted signal
+    //
+    iy_transmitter_agendaExecute( ws, iy, ppath.pos(np-1,Range(0,atmosphere_dim)),
+                            ppath.los(np-1,joker), f_grid, iy_transmitter_agenda );
 
-  // Get transmitted signal
-  //
-  iy_transmitter_agendaExecute( ws, iy, ppath.pos(np-1,Range(0,atmosphere_dim)),
-                         ppath.los(np-1,joker), f_grid, iy_transmitter_agenda );
-
-  // Fill some parts of iy_aux
-  // Radiance 
-  if( aux_radiance >= 0 ) 
-    { iy_aux[aux_radiance](joker,joker,np-1) = iy; }
+    // Fill some parts of iy_aux
+    // Radiance
+    if( aux_radiance >= 0 )
+        { iy_aux[aux_radiance](joker,joker,np-1) = iy; }
 
 
-  // Do RT calculations
-  //
-  if( np > 1 )
+    // Do RT calculations
+    //
+    if( np > 1 )
     {
       // Create container for the derivatives with respect to changes
       // at each ppath point. And find matching abs_species-index and 
@@ -1834,7 +1918,7 @@ void iyTransmissionStandard(
       ArrayOfIndex    abs_species_i, is_t; 
       //
       const Numeric   dt = 0.1;
-            Tensor3   ppath_as2;
+            Tensor5   ppath_as2_tensor5;
       //
       if( j_analytical_do )
         { 
@@ -1856,17 +1940,19 @@ void iyTransmissionStandard(
             { if( is_t[iq] ) { do_t = 1; } }
           if( do_t )
             {
-              Matrix tau_dummy; 
-              Vector total_tau_dummy, t2 = ppath_t;
+              Tensor4 tau_dummy;
+              Tensor3 total_tau_dummy;
+              Vector t2 = ppath_t;
               t2 += dt;
-              get_ppath_rtvars( ws, ppath_as2, tau_dummy, total_tau_dummy,
-                                edummy, abs_scalar_gas_agenda, 
-                                Agenda(), ppath, ppath_p, t2, ppath_vmr, 
-                                ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                                f_grid, -1, atmosphere_dim, 0 );
+              get_ppath_rtvars( ws, ppath_as2_tensor5, tau_dummy, total_tau_dummy,
+                                emission_dummy,  abs_mat_per_species_agenda, agenda_dummy,
+                                ppath, ppath_p, t2, ppath_vmr, ppath_wind_u,
+                                ppath_wind_v, ppath_wind_w, ppath_mag_u, ppath_mag_v,
+                                ppath_mag_w,
+                                f_grid, -1, stokes_dim, atmosphere_dim, 0 );
             }
         }
-
+      
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
@@ -1879,7 +1965,7 @@ void iyTransmissionStandard(
               //
               for( Index iv=0; iv<nf; iv++ )
                 {
-                  X[iv] = 0.5 * ppath.lstep[ip] * exp( -total_tau[iv] );
+                  X[iv] = 0.5 * ppath.lstep[ip] * exp( -total_tau(iv,0,0) );
                 }
 
               // Loop quantities
@@ -1911,32 +1997,32 @@ void iyTransmissionStandard(
                                 { 
                                   const Numeric Z = -X[iv] * iy(iv,is);
                                   diy_dpath[iq](ip  ,iv,is) += Z * unitscf1 *
-                                                 ppath_abs_scalar(iv,isp,ip);
+                                                 ppath_abs_scalar(isp,iv,ip);
                                   diy_dpath[iq](ip+1,iv,is) += Z * unitscf2 *
-                                                 ppath_abs_scalar(iv,isp,ip+1);
+                                                 ppath_abs_scalar(isp,iv,ip+1);
                                 }
                             }
                         }
-
-                      // Temperature
+                       // Temperature
                       else if( is_t[iq] )
                         {
+                          Tensor3View ppath_as2 = ppath_as2_tensor5(joker, joker, 0, 0, joker);
                           for( Index iv=0; iv<nf; iv++ )
                             {
                               // The terms associated with Dtau/Dk:
                               const Numeric k1 = 
-                                         ppath_abs_scalar(iv,joker,ip  ).sum();
+                                         ppath_abs_scalar(joker,iv,ip  ).sum();
                               const Numeric k2 = 
-                                         ppath_abs_scalar(iv,joker,ip+1).sum();
+                                         ppath_abs_scalar(joker,iv,ip+1).sum();
                               const Numeric dkdt1 =
-                                  ( ppath_as2(iv,joker,ip  ).sum() - k1 ) / dt;
+                                  ( ppath_as2(joker,iv,ip  ).sum() - k1 ) / dt;
                               const Numeric dkdt2 =
-                                  ( ppath_as2(iv,joker,ip+1).sum() - k2 ) / dt;
+                                  ( ppath_as2(joker,iv,ip+1).sum() - k2 ) / dt;
                               for( Index is=0; is<stokes_dim; is++ )
                                 { 
                                   const Numeric Z = -X[iv] * iy(iv,is);
-                                  diy_dpath[iq](ip  ,iv,is) += Z * dkdt1;
-                                  diy_dpath[iq](ip+1,iv,is) += Z * dkdt2;
+                                  diy_dpath[iq](ip, iv, is) += Z * dkdt1;
+                                  diy_dpath[iq](ip+1, iv, is) += Z * dkdt2;
                                 }
                               //
                               // The terms associated with Delta-s:
@@ -1959,18 +2045,22 @@ void iyTransmissionStandard(
               
               // Update total_tau (not used for spectrum calculation)
               for( Index iv=0; iv<nf; iv++ )
-                { total_tau[iv] -= ppath_tau(iv,ip); }
+                { total_tau(iv,joker,joker) -= ppath_tau(iv,joker,joker,ip); }
             }
 
           // Spectrum
           //
+          Matrix temp_ppath_tau, temp(stokes_dim, stokes_dim);
+          Vector temp_iy;
           for( Index iv=0; iv<nf; iv++ )
             {
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
               //
-              for( Index is=0; is<stokes_dim; is++ )
-                { iy(iv,is) *= step_tr; }
-            }
+                temp_ppath_tau  = ppath_tau(iv, joker, joker, ip);
+                temp_ppath_tau *= -1;
+                temp_iy         = iy(iv, joker);
+                matrix_exp(temp, temp_ppath_tau, 10);
+                mult(iy(iv,joker), temp , temp_iy);
+            } 
 
           // --- iy_aux: ------------------------------------------------------
           // Temperature
@@ -2572,9 +2662,3 @@ void yApplyYunit(
         }
     }
 }
-
-
-
-
-
-

@@ -2,14 +2,14 @@
 Arts2{
 # Fast frequency grid
 StringCreate( f_grid_file)
-StringSet(    f_grid_file, "hirs/")
+StringSet(    f_grid_file, "")
 Append(       f_grid_file, satellite)
 StringSet(    dummy,          "_HIRS.f_grid_fast.xml")
 Append(       f_grid_file, dummy)
 
 # Weights associated with each frequency
 StringCreate( weights_file)
-StringSet(    weights_file, "hirs/")
+StringSet(    weights_file, "")
 Append(	      weights_file, satellite)
 StringSet(    dummy,          "_HIRS.W_fast.xml")
 Append(	      weights_file, dummy)

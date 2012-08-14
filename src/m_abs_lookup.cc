@@ -296,7 +296,9 @@ void abs_lookupCreate(// WS Output:
   // Loop species:
   for ( Index i=0,spec=0; i<n_species; ++i )
     {
-      // spec is the index for the second dimension of abs_lookup.xsec.
+        if ( abs_species[i][0].Zeeman() ) { continue; } //FIXME: Richard... Is this the right place to tell Create to ignore Zeeman? Needs more work?
+
+        // spec is the index for the second dimension of abs_lookup.xsec.
       
       // Prepare absorption agenda input for this species:
       out2 << "  Doing species " << i+1 << " of " << n_species << ": "
@@ -2082,44 +2084,79 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
       interpweights(itw,gp);
 
       // Do interpolation.
-      Vector abs_interpolated(abs_scalar_gas.nrows()); 
+      Vector abs_interpolated(abs_scalar_gas.ncols());
       // The vector temporarily holds interpolated absorption for each gas species.
-      for (Index i=0; i<abs_scalar_gas.ncols(); ++i)
+      for (Index i=0; i<abs_scalar_gas.nrows(); ++i)
         {
           interp(abs_interpolated, 
                  itw, 
-                 abs_scalar_gas(Range(joker),i), 
+                 abs_scalar_gas(i,joker),
                  gp);
           // Copy interpolated absorption to abs_scalar_gas.
-          abs_scalar_gas(Range(joker),i) = abs_interpolated;
+          abs_scalar_gas(i,joker) = abs_interpolated;
         }
 
     }
 }
 
+void abs_mat_per_speciesExtractFromLookup( Tensor4&       abs_mat_per_species,
+                                      const GasAbsLookup& abs_lookup,
+                                      const Index&        abs_lookup_is_adapted,
+                                      const Index&        abs_p_interp_order,
+                                      const Index&        abs_t_interp_order,
+                                      const Index&        abs_nls_interp_order,
+                                      const Index&        f_index,
+                                      const Numeric&      a_pressure,
+                                      const Numeric&      a_temperature,
+                                      const Vector&       a_vmr_list,
+                                      const Numeric&      a_doppler,
+                                      const Index&        stokes_dim,
+                                      const Numeric&      extpolfac,
+                                      const Verbosity&    verbosity)
+{
+    Matrix abs_scalar_gas;
+    abs_scalar_gasExtractFromLookup(abs_scalar_gas,
+                                    abs_lookup,
+                                    abs_lookup_is_adapted,
+                                    abs_p_interp_order,
+                                    abs_t_interp_order,
+                                    abs_nls_interp_order,
+                                    f_index,
+                                    a_pressure,
+                                    a_temperature,
+                                    a_vmr_list,
+                                    a_doppler,
+                                    extpolfac,
+                                    verbosity);
+    
+    for(Index ii = 0; ii < stokes_dim; ii++){abs_mat_per_species(joker,joker,ii, ii) = abs_scalar_gas;}
+    
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_fieldCalc(Workspace& ws,
-                   // WS Output:
-                   Tensor5& asg_field,
-                   // WS Input:
-                   const Agenda&  sga_agenda,
-                   const Index&   f_index,
-                   const Vector&  f_grid,
-                   const Index&   atmosphere_dim,
-                   const Vector&  p_grid,
-                   const Vector&  lat_grid,
-                   const Vector&  lon_grid,
-                   const Tensor3& t_field,
-                   const Tensor4& vmr_field,
-                   // WS Generic Input:
-                   const Vector&  doppler,
-                   const Verbosity& verbosity)
+void abs_mat_fieldCalc( Workspace& ws,
+                        // WS Output:
+                        Tensor7& amps_field,
+                        // WS Input:
+                        const Agenda&  amps_agenda,
+                        const Index&   f_index,
+                        const Vector&  f_grid,
+                        const Index&   atmosphere_dim,
+                        const Vector&  p_grid,
+                        const Vector&  lat_grid,
+                        const Vector&  lon_grid,
+                        const Tensor3& t_field,
+                        const Tensor4& vmr_field,
+                        // WS Generic Input:
+                        const Vector&  doppler,
+                        const Index& stokes_dim,
+                        const Verbosity& verbosity )
 {
   CREATE_OUT2;
   CREATE_OUT3;
   
-  Matrix  asg;
+  Tensor4  amps;
   Vector  a_vmr_list;
 
   // Get the number of species from the leading dimension of vmr_field:
@@ -2207,8 +2244,10 @@ void abs_fieldCalc(Workspace& ws,
        << "    " << n_latitudes << "  latitudes,\n"
        << "    " << n_longitudes << " longitudes.\n";
 
-  asg_field.resize( n_species,
+  amps_field.resize( n_species,
                     f_extent,
+                    stokes_dim,
+                    stokes_dim,
                     n_pressures,
                     n_latitudes,
                     n_longitudes );
@@ -2217,7 +2256,7 @@ void abs_fieldCalc(Workspace& ws,
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
-  Agenda l_sga_agenda (sga_agenda);
+  Agenda l_amps_agenda (amps_agenda);
 
 
   // Now we have to loop all points in the atmosphere:
@@ -2230,8 +2269,8 @@ void abs_fieldCalc(Workspace& ws,
   private(asg, a_vmr_list) */
 #pragma omp parallel for                                                 \
   if(!arts_omp_in_parallel() && n_pressures>=arts_omp_get_max_threads()) \
-  firstprivate(l_ws, l_sga_agenda)                                       \
-  private(asg, a_vmr_list) 
+  firstprivate(l_ws, l_amps_agenda)                                       \
+  private(amps, a_vmr_list)
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
       // The try block here is necessary to correctly handle
@@ -2256,36 +2295,40 @@ void abs_fieldCalc(Workspace& ws,
                 a_vmr_list    = vmr_field( Range(joker),
                                            ipr, ila, ilo );
 
+                Vector rte_mag_dummy(1,-1.);
+                
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
                 // Agenda output: asg
-                abs_scalar_gas_agendaExecute(l_ws,
-                                             asg,
-                                             f_index, a_doppler, a_pressure,
+                abs_mat_per_species_agendaExecute(l_ws,
+                                             amps,
+                                             f_index, a_doppler,
+                                             rte_mag_dummy,
+                                             a_pressure,
                                              a_temperature, a_vmr_list,
-                                             l_sga_agenda);
+                                             l_amps_agenda);
 
                 // Verify, that the number of species in asg is
                 // constistent with vmr_field:
-                if ( n_species != asg.ncols() )
+                if ( n_species != amps.nbooks() )
                   {
                     ostringstream os;
                     os << "The number of gas species in vmr_field is "
                        << n_species << ",\n"
                        << "but the number of species returned by the agenda is "
-                       << asg.ncols() << ".";
+                       << amps.nbooks() << ".";
                     throw runtime_error( os.str() );
                   }
 
                 // Verify, that the number of frequencies in asg is
                 // constistent with f_extent:
-                if ( f_extent != asg.nrows() )
+                if ( f_extent !=amps.npages() )
                   {
                     ostringstream os;
                     os << "The number of frequencies desired is "
                        << n_frequencies << ",\n"
                        << "but the number of frequencies returned by the agenda is "
-                       << asg.nrows() << ".";
+                       << amps.npages() << ".";
                     throw runtime_error( os.str() );
                   }
 
@@ -2294,9 +2337,11 @@ void abs_fieldCalc(Workspace& ws,
                 // two variables are:
                 // asg_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
                 // asg:       [ f_grid, abs_species ]
-                asg_field( Range(joker),
-                           Range(joker),
-                           ipr, ila, ilo ) = transpose( asg );
+                amps_field( joker,
+                            joker,
+                            joker,
+                            joker,
+                           ipr, ila, ilo ) = amps ;
             
               }
         }

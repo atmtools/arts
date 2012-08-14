@@ -51,11 +51,11 @@ VectorNLinSpace( f_grid, 500, 50e9, 150e9 )
 IndexSet( f_index, -1 )
 
 # Calculate field of absorption coefficients:
-abs_fieldCalc
+abs_mat_fieldCalc
 
 # Write out:
-Tensor5Create(abs_field_nodoppler)
-Copy(abs_field_nodoppler, abs_field)
+Tensor7Create(abs_field_nodoppler)
+Copy(abs_field_nodoppler, abs_mat_field)
 WriteXML( output_file_format, abs_field_nodoppler )
 
 
@@ -69,31 +69,33 @@ nelemGet( nelem, p_grid )
 VectorNLinSpace( doppler, nelem, 0, 1e9 )
 
 # Calculate field of absorption coefficients:
-abs_fieldCalc( abs_field, abs_scalar_gas_agenda, f_index, f_grid, 
+abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_index, f_grid, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                vmr_field, doppler )
 
 # Write out:
-Tensor5Create(abs_field_doppler)
-Copy(abs_field_doppler, abs_field)
+Tensor7Create(abs_field_doppler)
+Copy(abs_field_doppler, abs_mat_field)
 WriteXML( output_file_format, abs_field_doppler )
 
 
 # Now with Doppler and lookup table!
 abs_lookupSetup
 abs_lookupCreate
-AgendaSet( abs_scalar_gas_agenda ){
-  abs_scalar_gasExtractFromLookup
+AgendaSet( abs_mat_per_species_agenda ){
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesExtractFromLookup
 }
 
 # Calculate field of absorption coefficients:
-abs_fieldCalc( abs_field, abs_scalar_gas_agenda, f_index, f_grid, 
+abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_index, f_grid, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                vmr_field, doppler )
 
 # Write out:
-Tensor5Create(abs_field_doppler_lookup)
-Copy(abs_field_doppler_lookup, abs_field)
+Tensor7Create(abs_field_doppler_lookup)
+Copy(abs_field_doppler_lookup, abs_mat_field)
 WriteXML( output_file_format, abs_field_doppler_lookup )
 
 

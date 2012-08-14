@@ -497,6 +497,36 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+    ( NAME( "abs_mat_per_species" ),
+      DESCRIPTION
+      (
+       "FIXME: Richard Scalar gas absorption coefficients.\n"
+       "\n"
+       "This contains the absorption coefficients for one point in the\n"
+       "atmosphere (one set of pressure, temperature, and VMR values). There\n"
+       "are two distinct cases:\n"
+       "\n"
+       "Case a:    For all frequencies and all species:\n"
+       "Dimension: [ f_grid, abs_species ]\n"
+       "\n"
+       "Case b:    For a single frequency for all species:\n"
+       "Dimension: [ 1,      abs_species ]\n"
+       "\n"
+       "Unit: 1/m\n"
+       ),
+      GROUP( "Tensor4" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_mat_per_species_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+  wsv_data.push_back
+    (WsvRecord
      (NAME( "abs_n2" ),
       DESCRIPTION
       (
@@ -545,23 +575,14 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Matrix" )));
 
-  wsv_data.push_back
+     wsv_data.push_back
    (WsvRecord
-    ( NAME( "abs_scalar_gas_agenda" ),
+    ( NAME( "abs_mat_field" ),
       DESCRIPTION
       (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-  
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_field" ),
-      DESCRIPTION
-      (
-       "Scalar gas absorption field.\n"
+       "Gas absorption field.\n"
        "\n"
-       "Contains the scalar gas absorption for all species as a function of\n"
+       "Contains the gas absorption for all species as a function of\n"
        "*f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
        "\n"
        "This is mainly for testing and plotting gas absorption. For RT\n"
@@ -571,9 +592,9 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       1/m\n"
        "\n"
-       "Dimensions: [species, f_grid, p_grid, lat_grid, lon_grid]\n"
+       "Dimensions: [species, f_grid, stokes_dim, stokes_dim, p_grid, lat_grid, lon_grid]\n"
         ),
-      GROUP( "Tensor5" ))); 
+      GROUP( "Tensor7" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2480,14 +2501,14 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Numeric" )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "opt_prop_gas_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "opt_prop_gas_agenda" ),
+//       DESCRIPTION
+//       (
+//         "See agendas.cc.\n"
+//        ),
+//       GROUP( "Agenda" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -3016,7 +3037,24 @@ void Workspace::define_wsv_data()
        "Size:  [ 1 or 2 ]\n"
        ),
       GROUP( "Vector" )));
-
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_mag" ),
+      DESCRIPTION
+      (
+       "The magnetic field .\n"
+       "\n"
+       "The main purpose of this WSV is for the Zeeman effect."
+       "If this set to length 1 and a value of -1.0 (within a margin),"
+       "then the Zeeman effect will be ignored."
+       "\n"
+       "Units: [ T_x, T_y, T_z ] or [ flag ]\n"
+       "\n"
+       "Size:  [ 3 ] or [ 1 ]\n"
+       ),
+      GROUP( "Vector" )));
+   
   wsv_data.push_back
    (WsvRecord
     ( NAME( "rte_pos" ),

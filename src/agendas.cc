@@ -53,16 +53,14 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "abs_scalar_gas_agenda" ),
+     ( NAME( "abs_mat_per_species_agenda" ),
        DESCRIPTION
        (
-        "Calculation of scalar gas absorption.\n"
-        "\n"
         "This agenda calculates absorption coefficients for all gas species\n"
         "as a function of the given atmospheric state for one point in the\n"
-        "atmosphere. The result is returned in *abs_scalar_gas*, the\n"
+        "atmosphere. The result is returned in *abs_mat_per_species*, the\n"
         "atmospheric state has to be specified by *rte_pressure*,\n"
-        "*rte_temperature*, and *rte_vmr_list*.\n"
+        "*rte_temperature*, *rte_mag*, and *rte_vmr_list*.\n"
         "\n"
         "A mandatory input parameter is f_index, which is used as follows:\n"
         "\n"
@@ -74,8 +72,8 @@ void define_agenda_data()
         "The methods inside this agenda may require a lot of additional\n"
         "input variables, such as *f_grid*, *abs_species*, etc.\n"
         ),
-       OUTPUT( "abs_scalar_gas" ),
-       INPUT(  "f_index", "rte_doppler", "rte_pressure", "rte_temperature", 
+       OUTPUT( "abs_mat_per_species" ),
+       INPUT(  "f_index", "rte_doppler", "rte_mag", "rte_pressure", "rte_temperature",
                "rte_vmr_list" )));
   
   agenda_data.push_back
@@ -422,44 +420,6 @@ void define_agenda_data()
        INPUT("t_field_raw", "vmr_field_raw", "z_field_raw", "pnd_field_raw",
              "p_grid", "sensor_los", "cloudbox_on", "cloudbox_limits",
              "z_surface")));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "opt_prop_gas_agenda" ),
-       DESCRIPTION
-       (
-        "Calculate the optical properties (absorption vector and extinction.\n"
-        "matrix) of gaseous species at a given grid point.\n"
-        "\n"
-        "This agenda, for example, can be defined in the following manner:\n"
-        "\n"
-        "*ext_matAddGas* : This method calculates the extinction \n"
-        "                  matrix for the gaseous species and adds it to \n"
-        "                  the workspace variable *ext_mat*.\n"
-        "*abs_vecAddGas* : This method calculates the absorption\n"
-        "                  vector for the gaseous species and adds it to\n"
-        "                  the workspace variables abs_vec.\n"     
-        "If the Zeeman effect should be included the following methods have \n"
-        "to be added: \n"
-        "*ext_matAddZeeman* \n"
-        "*abs_vecAddZeeman* \n"
-        " \n"
-        "Note that the initialization of *abs_vec* is not done inside the\n"
-        "agenda, so *abs_vec* has to be initialize before executing the \n"
-        "agenda.\n"
-        "\n"
-        "Output :\n"
-        "   ext_mat     : Extinction matrix.\n"
-        "   abs_vec     : Absorption vector.\n"
-        "\n"
-        "Input:\n"
-        "   ext_mat     : Extinction matrix.\n"
-        "   abs_vec     : Absorption vector. \n"
-        "   abs_scalar_gas : Scalar gas absorption. \n"
-        ),
-       OUTPUT( "ext_mat", "abs_vec" ),
-       INPUT( "ext_mat", "abs_vec", "f_index", "abs_scalar_gas" )));
-
 
  agenda_data.push_back
     (AgRecord

@@ -204,11 +204,9 @@ void define_md_data_raw()
          "\n"
          "The purpose of this method is to allow an explicit line-by-line\n"
          "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
-         "*abs_scalar_gas_agenda*. What the method does is to prepare absorption\n"
+         "*abs_mat_per_species_agenda*. What the method does is to prepare absorption\n"
          "input parameters (pressure, temperature, VMRs), from the input\n"
-         "parameters to *abs_scalar_gas_agenda*.  There is a matching method to\n"
-         "turn the output of *abs_coefCalc* into what the agenda expects\n"
-         "(*abs_scalar_gasFromAbsCoef*).\n"
+         "parameters to *abs_mat_per_species_agenda*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
@@ -1228,7 +1226,7 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_scalar_gasCalcLBL" ),
         DESCRIPTION
@@ -1270,7 +1268,7 @@ void define_md_data_raw()
             "abs_cont_names",
             "abs_cont_models",
             "abs_cont_parameters",
-            "f_index", 
+            "f_index",
             "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
         GIN(),
         GIN_TYPE(),
@@ -1278,12 +1276,90 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_scalar_gasExtractFromLookup" ),
+      ( NAME( "abs_mat_per_speciesCalcLBL" ),
         DESCRIPTION
         (
-         "Extract scalar gas absorption coefficients from lookup table.\n"
+         "Calculates gas absorption coefficients line-by-line.\n"
+         "\n"
+         "This method can be used inside *abs_mat_per_species_agenda* just like\n"
+         "*abs_scalar_gasExtractFromLookup*. It is a shortcut for putting in some\n"
+         "other methods explicitly, namely:\n"
+         "\n"
+         "  1. *f_gridSelectFIndex*\n"
+         "  2. *NumericScale*( rte_doppler, rte_doppler, -1 )\n"
+         "  3. *VectorAddScalar*( f_grid, f_grid, rte_doppler )\n"
+         "  4. *AbsInputFromRteScalars*\n"
+         "  5. *abs_h2oSet*\n"
+         "  6. *abs_coefCalc*\n"
+         "  7. *abs_mat_per_speciesFromAbsCoef*\n"
+         "\n"
+         "Sub-methods 2 and 3 are called only if rte_doppler is not zero.\n"
+         "The treatment of the Doppler-shift here is exact, since the underlying\n"
+         "frequency grid is shifted.\n"
+         "\n"
+         "The calculation is for one specific atmospheric condition, i.e., a set\n"
+         "of pressure, temperature, VMR values, and Doppler shift. It can be\n"
+         "either for a single frequency (f_index>=0), or for all frequencies\n"
+         "(f_index<0). The dimension of the output abs_mat_per_species is adjusted\n"
+         "accordingly.\n"
+         ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "abs_mat_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_mat_per_species",
+            "f_grid",
+            "abs_species",
+            "abs_n2",
+            "abs_lines_per_species",
+            "abs_lineshape",
+            "abs_cont_names",
+            "abs_cont_models",
+            "abs_cont_parameters",
+            "f_index",
+            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler"
+           ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_mat_per_speciesInit" ),
+        DESCRIPTION
+        (
+         "Initialize stokes dim gas absorption coefficients line-by-line.\n"
+         "\n"
+         "This method must be used inside *abs_mat_per_species_agenda*\n"
+         ),
+        AUTHORS( "Oliver Lemke, Richard Larsson" ),
+        OUT( "abs_mat_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species",
+            "f_grid",
+            "f_index",
+            "stokes_dim"
+        ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_mat_per_speciesExtractFromLookup" ),
+        DESCRIPTION
+        (
+            //FIXME: Richard
+         "Extract gas absorption coefficients from lookup table.\n"
          "\n"
          "This extracts the absorption coefficient for all species in the\n"
          "current calculation from the lookup table. Extraction is for one\n"
@@ -1292,7 +1368,7 @@ void define_md_data_raw()
          "\n"
          "Extraction can be either for a single frequency (f_index>=0), or for\n"
          "all frequencies (f_index<0). The dimension of the output\n"
-         "abs_scalar_gas is adjusted accordingly.\n"
+         "abs_mat_per_species is adjusted accordingly.\n"
          "\n"
          "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
          "and *abs_nls_interp_order*, respectively.\n"
@@ -1304,50 +1380,29 @@ void define_md_data_raw()
          "Use extpolfac to control how much extrapolation to tolerate before throwing\n"
          "a runtime error. Default is to allow ten times the outermost grid distance.\n"
          "\n"
-         "See also: *abs_scalar_gasCalcLBL*.\n"
+         "See also: *abs_mat_per_speciesCalcLBL*.\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_scalar_gas" ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "abs_mat_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_lookup", "abs_lookup_is_adapted",
-            "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order", 
-            "f_index", 
-            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
+        IN( "abs_mat_per_species", "abs_lookup", "abs_lookup_is_adapted",
+            "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
+            "f_index",
+            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler", "stokes_dim" ),
         GIN("extpolfac"),
         GIN_TYPE("Numeric"),
         GIN_DEFAULT("10"),
         GIN_DESC("Extrapolation factor (for grid edge).")
         ));
-
+    
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "abs_scalar_gasFromAbsCoef" ),
+      ( NAME( "abs_mat_fieldCalc" ),
         DESCRIPTION
         (
-         "Copy *abs_scalar_gas* from *abs_coef*. This is handy for putting an\n"
-         "explicit line-by-line calculation into the\n"
-         "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_scalar_gas" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_coef_per_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "abs_fieldCalc" ),
-        DESCRIPTION
-        (
-         "Calculate scalar gas absorption for all points in the atmosphere.\n"
+         "Calculate gas absorption for all points in the atmosphere.\n"
          "\n"
          "This is useful in two different contexts:\n"
          "\n"
@@ -1364,24 +1419,24 @@ void define_md_data_raw()
          "for the frequency indicated by f_index (f_index>=0).\n"
          "\n"
          "The calculation itself is performed by the\n"
-         "*abs_scalar_gas_agenda*.\n"
+         "*abs_mat_per_species_agenda*.\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_field" ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "abs_mat_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_scalar_gas_agenda",
+        IN( "abs_mat_per_species_agenda",
             "f_index",
             "f_grid",
             "atmosphere_dim",
             "p_grid", "lat_grid", "lon_grid",
             "t_field", "vmr_field" ),
-        GIN("doppler"),
-        GIN_TYPE("Vector"),
-        GIN_DEFAULT("[]"),
+        GIN("doppler", "stokes_dim"),
+        GIN_TYPE("Vector", "Index"),
+        GIN_DEFAULT("[]", "1"),
         GIN_DESC("A vector of doppler shift values in Hz. Must either be\n"
-                 "empty or have same dimension as p_grid\n")
+                 "empty or have same dimension as p_grid\n", "stokes_dim since scalar case is treated differently.")
         ));
 
   md_data_raw.push_back
@@ -1516,7 +1571,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_vec", "abs_scalar_gas" ),
+        IN( "abs_vec", "abs_mat_per_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3360,9 +3415,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field_old", "doit_scat_field", "cloudbox_limits", 
-            "abs_scalar_gas_agenda",
+            "abs_mat_per_species_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
-            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "opt_prop_part_agenda", 
             "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
             "t_field", "edensity_field", "f_grid", "f_index", 
             "surface_rtprop_agenda", "doit_za_interp" ),
@@ -3391,9 +3446,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field", "doit_scat_field", "cloudbox_limits", 
-            "abs_scalar_gas_agenda",
+            "abs_mat_per_species_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field",
-            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "opt_prop_part_agenda", 
             "ppath_step_agenda", "p_grid", "z_field", "refellipsoid", 
             "t_field", "edensity_field", "f_grid", "f_index", 
             "surface_rtprop_agenda", "doit_za_interp" ),
@@ -3425,9 +3480,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_scat_field", "cloudbox_limits", 
-            "abs_scalar_gas_agenda",
+            "abs_mat_per_species_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
-            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "opt_prop_part_agenda",
             "p_grid", "z_field", "t_field", "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
@@ -3456,10 +3511,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field", "doit_scat_field", "cloudbox_limits", 
-            "abs_scalar_gas_agenda",
+            "abs_mat_per_species_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid",
             "pnd_field",
-            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "opt_prop_part_agenda", 
             "ppath_step_agenda", "p_grid", "lat_grid", "lon_grid", "z_field",
             "refellipsoid", "t_field", "edensity_field",
             "f_grid", "f_index", "doit_za_interp" ),
@@ -3742,7 +3797,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ext_mat", "abs_scalar_gas" ),
+        IN( "ext_mat", "abs_mat_per_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3924,9 +3979,9 @@ void define_md_data_raw()
         IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid", "z_field", 
             "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_main_agenda", 
+            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_main_agenda",
             "iy_transmission", "pnd_field", "scat_data_raw", 
-            "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
+            "fos_y_agenda", "fos_angles",
             "use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
         GIN_TYPE(),
@@ -4043,11 +4098,11 @@ void define_md_data_raw()
          "Reduce f_grid to the frequency given by f_index.\n"
          "\n"
          "This is one of the methods necessary to do line by line absorption\n"
-         "calculations inside *abs_scalar_gas_agenda*.\n"
+         "calculations inside *abs_mat_per_species_agenda*.\n"
          "\n"
          "It reduces the f_grid to only one frequency, the one given by\n"
          "f_index. If f_index is -1, then all frequencies are kept. This\n"
-         "behavior is consistent with *abs_scalar_gasExtractFromLookup*.\n"
+         "behavior is consistent with *abs_mat_per_speciesExtractFromLookup*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "f_grid" ),
@@ -4428,6 +4483,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+
       ( NAME( "iyCalc" ),
         DESCRIPTION
         (
@@ -4504,11 +4560,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
             "t_field", "vmr_field", "abs_species", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
+            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
+            "mag_v_field", "mag_w_field", "edensity_field",
             "cloudbox_on", "iy_aux_vars", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", 
-            "ppath_agenda", "blackbody_radiation_agenda", 
-            "abs_scalar_gas_agenda", "iy_main_agenda", 
+            "ppath_agenda", "blackbody_radiation_agenda",
+            "abs_mat_per_species_agenda", "iy_main_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
             "iy_agenda_call1", "iy_transmission", "mblock_index", 
             "rte_pos", "rte_los" ),
@@ -4557,7 +4614,7 @@ void define_md_data_raw()
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_main_agenda", 
+            "blackbody_radiation_agenda", "abs_mat_per_species_agenda", "iy_main_agenda",
             "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
             "fos_angles", "use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
@@ -4607,8 +4664,8 @@ void define_md_data_raw()
             "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "cloudbox_checked",
             "stokes_dim", "f_grid", "scat_data_raw", 
-            "iy_space_agenda", "surface_rtprop_agenda", "abs_scalar_gas_agenda", 
-            "opt_prop_gas_agenda", "pnd_field", "y_unit",
+            "iy_space_agenda", "surface_rtprop_agenda", "abs_mat_per_species_agenda",
+            "pnd_field", "y_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter"),
         GIN(),
         GIN_TYPE(),
@@ -4693,11 +4750,11 @@ void define_md_data_raw()
         IN( "iy_agenda_call1", "iy_transmission", "rte_pos", "iy_aux_vars", 
             "jacobian_do", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
-            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
+            "mag_v_field", "mag_w_field", "edensity_field", 
             "refellipsoid", "z_surface", "cloudbox_on", "stokes_dim", "f_grid",
             "dispersion_do", "mblock_index", "ppath_agenda", 
-            "ppath_step_agenda", "abs_scalar_gas_agenda", 
-            "iy_transmitter_agenda" ),
+            "ppath_step_agenda", "abs_mat_per_species_agenda", "iy_transmitter_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4775,10 +4832,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field", 
             "t_field", "vmr_field", "abs_species", 
-            "wind_u_field", "wind_v_field", "wind_w_field", "edensity_field",
+            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
+            "mag_v_field", "mag_w_field", "edensity_field",
             "cloudbox_on", "cloudbox_limits", "iy_aux_vars", 
             "jacobian_do", "jacobian_quantities", "jacobian_indices", 
-            "ppath_agenda", "abs_scalar_gas_agenda", "iy_transmitter_agenda", 
+            "ppath_agenda", "abs_mat_per_species_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "mblock_index", 
             "rte_pos", "rte_los" ),
         GIN(),
@@ -5847,7 +5905,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
             "stokes_dim", "atmosphere_dim", "iy_space_agenda", "surface_rtprop_agenda", 
-            "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", 
+            "abs_mat_per_species_agenda", "p_grid",
             "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
             "pnd_field", "scat_data_mono", "basics_checked", "cloudbox_checked",
@@ -5873,8 +5931,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
             "stokes_dim", "atmosphere_dim", "iy_space_agenda", 
-            "surface_rtprop_agenda", "opt_prop_gas_agenda", 
-            "abs_scalar_gas_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
+            "surface_rtprop_agenda",  
+            "abs_mat_per_species_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
             "lon_grid", "z_field", "refellipsoid", "z_surface", "t_field", 
             "vmr_field", "edensity_field", "cloudbox_limits", "pnd_field", 
             "scat_data_mono", "mc_seed", "y_unit",
@@ -7444,7 +7502,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
-            "abs_scalar_gas_agenda", "spt_calc_agenda", "pnd_field", "t_field", 
+            "abs_mat_per_species_agenda", "spt_calc_agenda", "pnd_field", "t_field",
             "z_field", "p_grid", "vmr_field", "scat_data_raw", "f_grid", 
             "scat_za_grid", "surface_emissivity_DISORT" ),
         GIN(),
@@ -8952,6 +9010,49 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_mat_per_speciesAddZeeman" ),
+        DESCRIPTION
+        (
+        "This function will, for each Zeeman species, make a local\n"
+        "ArrayOfLineRecord for the various transition types with Zeeman\n"
+        "altered LineRecord(s).  These are then composed into a single\n"
+        "ArrayOfArrayOfLineRecord which is processed as per the scalar case.\n"
+        "\n"
+        "The line broadened absorption coefficients are finally multiplied with\n"
+        "the transition type rotation matrix and the new variable is inserted into\n"
+        "the out variable. Only -Z- species are treated.\n"
+        "\n"
+        "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
+        "however, when this Zeeman splitting method is used, the number of\n"
+        "lines is increased to about 45,000. This is a time consuming method.\n"
+        "\n"
+        "If rte_mag is of length 1 and contains -1.0 scalar calculations will follow.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT("abs_mat_per_species"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("abs_mat_per_species",
+           "f_grid",
+           "abs_species",
+           "abs_n2",
+           "abs_lines_per_species",
+           "abs_lineshape",
+           "abs_cont_names",
+           "abs_cont_models",
+           "abs_cont_parameters",
+           "f_index",
+           "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
+           "rte_los", "rte_mag"),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "timerStart" ),
         DESCRIPTION
         (
@@ -9579,7 +9680,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("f_grid", "z_field", "abs_field", "atmosphere_dim" ),
+        IN("f_grid", "z_field", "abs_mat_field", "atmosphere_dim" ),
         GIN("filename"),
         GIN_TYPE("String"),
         GIN_DEFAULT( NODEF),

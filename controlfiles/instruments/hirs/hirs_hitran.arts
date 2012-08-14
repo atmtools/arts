@@ -5,10 +5,10 @@ Arts2{
 #                             hitran_file,
 #                             2.0022234e+12,
 #                             2.01e+12 )
-abs_linesReadFromHitran2004( abs_lines,
-                             hitran_file,
-                             2.0022234e+12,
-                             7.9855733e+14 )
+abs_linesReadFromHitran( abs_lines,
+                         hitran_file,
+                         2.0022234e+12,
+                         7.9855733e+14 )
 
 abs_lines_per_speciesCreateFromLines
 

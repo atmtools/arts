@@ -23,6 +23,7 @@
 */
 
 #include <cstring>
+#include <cmath>
 #include "matpackI.h"
 #include "exceptions.h"
 
@@ -30,6 +31,7 @@
 // Define the global joker object:
 extern const Joker joker = Joker();
 
+static const Numeric RAD2DEG = 57.295779513082323;
 
 // Functions for Range:
 // --------------------
@@ -1709,6 +1711,46 @@ void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b)
   c[1] = a[2]*b[0] - a[0]*b[2];
   c[2] = a[0]*b[1] - a[1]*b[0];
 }
+
+/*!
+    Returns numeric angle between two vectors in degrees.
+
+    \param  a   In:  A vector of length N.
+    \param  b   In:  A vector of length N.
+
+    \author Richard Larsson
+    \date   2012-07-10
+*/
+Numeric vector_angle(ConstVectorView a, ConstVectorView b)
+{
+    assert( a.nelem() == b.nelem() );
+
+    return acos( (a*b) / sqrt(a*a) / sqrt(b*b) ) * RAD2DEG;
+}
+
+
+/*!
+    Calculates the projection of two vectors of equal length.
+
+    c = proj_a(b). Projecting b on a. The vector c must have the same length
+    but can not be the same variable as a or b.
+
+    \param   c   Out: The projection of b on a.
+    \param   a   In:  A vector of length N.
+    \param   b   In:  A vector of length N.
+
+    \author Richard Larsson
+    \date   2012-07-10
+*/
+void proj(Vector& c, ConstVectorView a, ConstVectorView b)
+{
+    assert( a.nelem() == b.nelem() );
+    assert( a.nelem() == c.nelem() );
+
+    const Numeric C = (a*b) / (a*a);
+        c  = a;
+        c *= C;
+};
 
 
 /** Const version of transpose. */

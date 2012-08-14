@@ -63,4 +63,6 @@ norm_inf(ConstMatrixView A);
 void
 id_mat(MatrixView I);
 
+Numeric det(ConstMatrixView A);
+
 #endif    // linalg_h

@@ -743,7 +743,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // To store the interpolated result for the p_interp_order+1
   // pressure levels:
   Tensor3 xsec_pre_interpolated;
-  xsec_pre_interpolated.resize( p_interp_order+1, f_extent, n_species );
+  xsec_pre_interpolated.resize( p_interp_order+1, n_species, f_extent );
 
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
@@ -898,7 +898,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // For interpolation result.
           // Fixed pressure level and species.
           // Free dimension is frequency.
-          VectorView res(xsec_pre_interpolated(pi,Range(joker),si));
+          VectorView res(xsec_pre_interpolated(pi,si,Range(joker)));
 
           if (do_T)
             if (do_VMR)
@@ -1041,7 +1041,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // (But for a matrix in frequency and species.) Doing a loop over
   // frequency and species with an interp call inside would be
   // unefficient, so we do this by hand here.
-  sga.resize(f_extent, n_species);
+  sga.resize(n_species, f_extent);
   sga = 0;
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
@@ -1057,7 +1057,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // with the total number density n, times the VMR of the
   // species: 
   for ( Index si=0; si<n_species; ++si )
-    sga(Range(joker),si) *= ( n * abs_vmrs[si] );
+    sga(si,Range(joker)) *= ( n * abs_vmrs[si] );
 
   // That's it, we're done!
 }

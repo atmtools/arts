@@ -29,7 +29,6 @@
    \author Stefan Buehler
    \date   2001-03-12
 */
-
 #include <cmath>
 #include <algorithm>
 #include "arts.h"
@@ -1454,7 +1453,6 @@ void abs_coefCalcFromXsec(// WS Output:
   abs_coef_per_species.resize( abs_xsec_per_species.nelem() );
 
   out3 << "  Computing abs_coef and abs_coef_per_species from abs_xsec_per_species.\n";
-
   // Loop through all tag groups
   for ( Index i=0; i<abs_xsec_per_species.nelem(); ++i )
     {
@@ -2104,11 +2102,11 @@ void abs_scalar_gasFromAbsCoef(// WS Output:
       throw runtime_error(os.str());
     }
   
-  abs_scalar_gas.resize(n_f,n_species);
+  abs_scalar_gas.resize(n_species,n_f);
 
   // Loop species:
   for ( Index si=0; si<n_species; ++si )
-    abs_scalar_gas(Range(joker),si) = abs_coef_per_species[si](Range(joker),0);
+    abs_scalar_gas(si,joker) = abs_coef_per_species[si](joker,0);
 
 }
 
@@ -2229,6 +2227,108 @@ void abs_scalar_gasCalcLBL(// WS Output:
                             verbosity);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_mat_per_speciesInit(//WS Output
+                             Tensor4&                        abs_mat_per_species,
+                             //WS Input
+                             const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const Vector&                   f_grid,
+                             const Index&                    f_index,
+                             const Index&                    stokes_dim,
+                             const Verbosity&                
+                            )
+{
+    
+    Index nf = (f_index>=0)?1:f_grid.nelem();
+    
+    if(abs_species.nelem() > 0 )
+    {
+        if(nf > 0)
+        {
+            if(stokes_dim > 0)
+            {
+                abs_mat_per_species.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
+                abs_mat_per_species = 0;
+            }
+            else throw  runtime_error("stokes_dim = 0");
+        }
+        else throw runtime_error("nf = 0");
+    }
+    else throw runtime_error("abs_species.nelem() = 0");
+
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_mat_per_speciesCalcLBL(// WS Output:
+                           Tensor4& abs_mat_per_species,
+                           // WS Input:
+                           const Vector& f_grid,
+                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                           const Vector& abs_n2,
+                           const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                           const ArrayOfLineshapeSpec& abs_lineshape,
+                           const ArrayOfString& abs_cont_names,
+                           const ArrayOfString& abs_cont_models,
+                           const ArrayOfVector& abs_cont_parameters,
+                           const Index& f_index,
+                           const Numeric& rte_pressure,
+                           const Numeric& rte_temperature,
+                           const Vector& rte_vmr_list,
+                           //const Vector& rte_mag,
+                           const Numeric& rte_doppler,
+                           //const Vector& rte_los,
+                           const Verbosity& verbosity)
+{
+
+    Matrix abs_scalar_gas;
+    ArrayOfIndex index_no_Zeeman;
+        
+    for(Index II = 0; II < abs_species.nelem(); II++)
+    {
+        if( !abs_species[0][0].Zeeman() )
+        {
+            index_no_Zeeman.push_back(II);
+        }
+    }
+
+    Index inz_N =            index_no_Zeeman.nelem();
+    ArrayOfArrayOfSpeciesTag temp_abs_species(inz_N);
+    ArrayOfArrayOfLineRecord temp_abs_lines_per_species(inz_N);
+    Vector                   temp_rte_vmr_list(inz_N);
+
+    for(Index II = 0; II < index_no_Zeeman.nelem(); II++)
+    {
+        temp_abs_species[II]            = abs_species[index_no_Zeeman[II]];
+        temp_abs_lines_per_species[II]  = abs_lines_per_species[index_no_Zeeman[II]];
+        temp_rte_vmr_list[II]           = rte_vmr_list[index_no_Zeeman[II]];
+    }
+
+    abs_scalar_gasCalcLBL(//Output:
+                          abs_scalar_gas,
+                          //Input:
+                          f_grid,
+                          temp_abs_species,
+                          abs_n2,
+                          temp_abs_lines_per_species,
+                          abs_lineshape,
+                          abs_cont_names,
+                          abs_cont_models,
+                          abs_cont_parameters,
+                          f_index,
+                          rte_pressure,
+                          rte_temperature,
+                          temp_rte_vmr_list,
+                          rte_doppler,
+                          verbosity);
+    
+    for(Index ii = 0; ii<abs_mat_per_species.ncols(); ii++)
+        for(Index II = 0; II < index_no_Zeeman.nelem(); II++)
+        {
+            abs_mat_per_species(index_no_Zeeman[II],joker,ii, ii) = abs_scalar_gas(index_no_Zeeman[II],joker);
+        }
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridSelectFIndex(// WS Output:
@@ -2264,16 +2364,16 @@ void f_gridSelectFIndex(// WS Output:
 void WriteMolTau(//WS Input
                  const Vector& f_grid, 
                  const Tensor3& z_field,
-                 const Tensor5& abs_field,
+                 const Tensor7& abs_mat_field,
                  const Index& atmosphere_dim,
                  //Keyword
                  const String& filename,
                  const Verbosity&)
 {
-
+  
   int retval, ncid;
-  int nlev_dimid, nlyr_dimid, nwvl_dimid, none_dimid;
-  int dimids[2];
+  int nlev_dimid, nlyr_dimid, nwvl_dimid, stokes_dimid, none_dimid;
+  int dimids[4];
   int wvlmin_varid, wvlmax_varid, z_varid, wvl_varid, tau_varid;
   
   if (atmosphere_dim != 1)
@@ -2296,6 +2396,9 @@ void WriteMolTau(//WS Input
   if ((retval = nc_def_dim(ncid, "none", 1, &none_dimid)))
     nca_error (retval, "nc_def_dim");
 
+  if ((retval = nc_def_dim(ncid, "nstk", (int) abs_mat_field.nbooks(), &stokes_dimid)))
+    nca_error (retval, "nc_def_dim");
+
   // Define variables
   if ((retval = nc_def_var(ncid, "wvlmin", NC_DOUBLE, 1,  &none_dimid, &wvlmin_varid)))
     nca_error (retval, "nc_def_var wvlmin");
@@ -2311,8 +2414,10 @@ void WriteMolTau(//WS Input
   
   dimids[0]=nlyr_dimid;
   dimids[1]=nwvl_dimid; 
-  
-  if ((retval = nc_def_var(ncid, "tau", NC_DOUBLE, 2, &dimids[0], &tau_varid)))
+  dimids[2]=stokes_dimid;
+  dimids[3]=stokes_dimid;
+
+  if ((retval = nc_def_var(ncid, "tau", NC_DOUBLE, 4, &dimids[0], &tau_varid)))
     nca_error (retval, "nc_def_var tau");
   
   // Units
@@ -2361,24 +2466,28 @@ void WriteMolTau(//WS Input
   if ((retval = nc_put_var_double (ncid, wvl_varid, &wvl[0])))
     nca_error (retval, "nc_put_var");
 
-  double tau[z_field.npages()-1][f_grid.nelem()];
+  double tau[z_field.npages()-1][f_grid.nelem()][abs_mat_field.nbooks()][abs_mat_field.nbooks()];
 
   // Initialize tau
-  for (int iz=0; iz<z_field.npages()-1; iz++)
-    for (int iv=0; iv<f_grid.nelem(); iv++)
-      tau[iz][iv] = 0.0;
+    for (int iz=0; iz<z_field.npages()-1; iz++)
+        for (int iv=0; iv<f_grid.nelem(); iv++)
+            for (int is1=0; iv<abs_mat_field.nbooks(); iv++)
+                for (int is2=0; iv<abs_mat_field.nbooks(); iv++)
+                    tau[iz][iv][is1][is2] = 0.0;
 
   // Calculate average tau for layers
-  for (int is=0; is<abs_field.nshelves(); is++)
+  for (int is=0; is<abs_mat_field.nlibraries(); is++)
     for (int iz=0; iz<z_field.npages()-1; iz++)
       for (int iv=0; iv<f_grid.nelem(); iv++)
-        // sum up all species
-        tau[iz][iv] += 0.5 * (abs_field(is,f_grid.nelem()-1-iv,z_field.npages()-1-iz,0,0)+
-                              abs_field(is,f_grid.nelem()-1-iv,z_field.npages()-2-iz,0,0))
-          *(z_field(z_field.npages()-1-iz,0,0)-z_field(z_field.npages()-2-iz,0,0));
+          for (int is1=0; iv<abs_mat_field.nbooks(); iv++)
+              for (int is2=0; iv<abs_mat_field.nbooks(); iv++)
+                // sum up all species
+                tau[iz][iv][is1][is2] += 0.5 * (abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-1-iz,0,0)+
+                                    abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-2-iz,0,0))
+                *(z_field(z_field.npages()-1-iz,0,0)-z_field(z_field.npages()-2-iz,0,0));
   
   
-  if ((retval = nc_put_var_double (ncid, tau_varid, &tau[0][0])))
+  if ((retval = nc_put_var_double (ncid, tau_varid, &tau[0][0][0][0])))
     nca_error (retval, "nc_put_var");
   
   // Close the file
@@ -2392,7 +2501,7 @@ void WriteMolTau(//WS Input
 void WriteMolTau(//WS Input
                  const Vector& f_grid _U_,
                  const Tensor3& z_field _U_,
-                 const Tensor5& abs_field _U_,
+                 const Tensor7& abs_mat_field _U_,
                  const Index& atmosphere_dim _U_,
                  //Keyword
                  const String& filename _U_,

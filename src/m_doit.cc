@@ -554,7 +554,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      const Tensor6& doit_scat_field,
                      const ArrayOfIndex& cloudbox_limits,
                      // Calculate scalar gas absorption:
-                     const Agenda& abs_scalar_gas_agenda,
+                     const Agenda& abs_mat_per_species_agenda,
                      const Tensor4& vmr_field,
                      // Optical properties for single particle type:
                      const Agenda& spt_calc_agenda,
@@ -562,7 +562,6 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      const Tensor4& pnd_field,
                      // Optical properties for gases and particles:
                      const Agenda& opt_prop_part_agenda,
-                     const Agenda& opt_prop_gas_agenda,
                      // Propagation path calculation:
                      const Agenda& ppath_step_agenda,
                      const Vector& p_grid,
@@ -589,7 +588,6 @@ doit_i_fieldUpdate1D(Workspace& ws,
   // Agendas
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
-  chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
   
   if (cloudbox_limits.nelem() != 2)
@@ -700,8 +698,8 @@ doit_i_fieldUpdate1D(Workspace& ws,
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
                                      doit_scat_field,
-                                     abs_scalar_gas_agenda, vmr_field,
-                                     opt_prop_gas_agenda, ppath_step_agenda,
+                                     abs_mat_per_species_agenda, vmr_field,
+                                     ppath_step_agenda,
                                      p_grid,  z_field, refellipsoid,
                                      t_field, edensity_field,
                                      f_grid, f_index, ext_mat_field, 
@@ -723,7 +721,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Tensor6& doit_scat_field,
                         const ArrayOfIndex& cloudbox_limits,
                         // Calculate scalar gas absorption:
-                        const Agenda& abs_scalar_gas_agenda,
+                        const Agenda& abs_mat_per_species_agenda,
                         const Tensor4& vmr_field,
                         // Optical properties for single particle type:
                         const Agenda& spt_calc_agenda,
@@ -731,7 +729,6 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Tensor4& pnd_field, 
                         // Optical properties for gases and particles:
                         const Agenda& opt_prop_part_agenda,
-                        const Agenda& opt_prop_gas_agenda,
                         // Propagation path calculation:
                         const Agenda& ppath_step_agenda,
                         const Vector& p_grid,
@@ -755,10 +752,9 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
  // ---------- Check the input ----------------------------------------
   
   // Agendas
-  chk_not_empty( "abs_scalar_gas_agenda", abs_scalar_gas_agenda);
+  chk_not_empty( "abs_mat_per_species_agenda", abs_mat_per_species_agenda);
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
-  chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
   
   if (cloudbox_limits.nelem() != 2)
@@ -881,8 +877,8 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
               cloud_ppath_update1D(ws, doit_i_field, 
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
-                                   abs_scalar_gas_agenda, vmr_field,
-                                   opt_prop_gas_agenda, ppath_step_agenda,
+                                   abs_mat_per_species_agenda, vmr_field,
+                                   ppath_step_agenda,
                                    p_grid,  z_field, refellipsoid,
                                    t_field, edensity_field, f_grid, f_index, 
                                    ext_mat_field, abs_vec_field, 
@@ -901,8 +897,8 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
               cloud_ppath_update1D(ws, doit_i_field,  
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
-                                   abs_scalar_gas_agenda, vmr_field,
-                                   opt_prop_gas_agenda, ppath_step_agenda,
+                                   abs_mat_per_species_agenda, vmr_field,
+                                   ppath_step_agenda,
                                    p_grid,  z_field, refellipsoid,
                                    t_field, edensity_field, f_grid, f_index, 
                                    ext_mat_field, abs_vec_field, 
@@ -934,8 +930,8 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                        p_index, scat_za_index_local,
                                        scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
-                                       abs_scalar_gas_agenda, vmr_field,
-                                       opt_prop_gas_agenda, ppath_step_agenda,
+                                       abs_mat_per_species_agenda, vmr_field,
+                                       ppath_step_agenda,
                                        p_grid,  z_field, refellipsoid, 
                                        t_field, edensity_field, f_grid, f_index,
                                        ext_mat_field, abs_vec_field,
@@ -957,7 +953,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                         const Tensor6& doit_scat_field,
                         const ArrayOfIndex& cloudbox_limits,
                         // Calculate scalar gas absorption:
-                        const Agenda& abs_scalar_gas_agenda,
+                        const Agenda& abs_mat_per_species_agenda,
                         const Tensor4& vmr_field,
                         // Optical properties for single particle type:
                         const Agenda& spt_calc_agenda,
@@ -966,7 +962,6 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                         const Tensor4& pnd_field,
                         // Optical properties for gases and particles:
                         const Agenda& opt_prop_part_agenda,
-                        const Agenda& opt_prop_gas_agenda,
                         // Propagation path calculation:
                         const Agenda& ppath_step_agenda,
                         const Vector& p_grid,
@@ -991,10 +986,9 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
   // ---------- Check the input ----------------------------------------
 
    // Agendas
-  chk_not_empty( "abs_scalar_gas_agenda", abs_scalar_gas_agenda);
+  chk_not_empty( "abs_mat_per_species_agenda",abs_mat_per_species_agenda);
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
-  chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
   
   if (cloudbox_limits.nelem() != 6)
@@ -1142,9 +1136,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
                                                doit_scat_field, 
-                                               abs_scalar_gas_agenda,
+                                               abs_mat_per_species_agenda,
                                                vmr_field, 
-                                               opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
                                                refellipsoid, t_field,
@@ -1175,9 +1168,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
                                                doit_scat_field, 
-                                               abs_scalar_gas_agenda,
+                                               abs_mat_per_species_agenda,
                                                vmr_field, 
-                                               opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
                                                refellipsoid, t_field,
@@ -1223,9 +1215,8 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                                                    scat_aa_grid,
                                                    cloudbox_limits, 
                                                    doit_scat_field, 
-                                                   abs_scalar_gas_agenda,
+                                                   abs_mat_per_species_agenda,
                                                    vmr_field, 
-                                                   opt_prop_gas_agenda,
                                                    ppath_step_agenda, p_grid, 
                                                    lat_grid, lon_grid,
                                                    z_field, 
@@ -1261,7 +1252,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                           const Tensor6& doit_scat_field,
                           const ArrayOfIndex& cloudbox_limits,
                           // Calculate scalar gas absorption:
-                          const Agenda& abs_scalar_gas_agenda,
+                          const Agenda& abs_mat_per_species_agenda,
                           const Tensor4& vmr_field,
                           // Optical properties for single particle type:
                           const Agenda& spt_calc_agenda,
@@ -1269,7 +1260,6 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                           const Tensor4& pnd_field,
                           // Optical properties for gases and particles:
                           const Agenda& opt_prop_part_agenda,
-                          const Agenda& opt_prop_gas_agenda,
                           // Propagation path calculation:
                           const Vector& p_grid,
                           const Tensor3& z_field,
@@ -1379,9 +1369,8 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                                                  scat_za_grid,
                                                  cloudbox_limits,
                                                  doit_scat_field,
-                                                 abs_scalar_gas_agenda,
+                                                 abs_mat_per_species_agenda,
                                                  vmr_field,
-                                                 opt_prop_gas_agenda,
                                                  p_grid, z_field,
                                                  t_field, 
                                                  f_grid, f_index,
@@ -1403,9 +1392,8 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
                                                  scat_za_grid,
                                                  cloudbox_limits,
                                                  doit_scat_field,
-                                                 abs_scalar_gas_agenda,
+                                                 abs_mat_per_species_agenda,
                                                  vmr_field,
-                                                 opt_prop_gas_agenda,
                                                  p_grid, z_field,
                                                  t_field, 
                                                  f_grid, f_index,

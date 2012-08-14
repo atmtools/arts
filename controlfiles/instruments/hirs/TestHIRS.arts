@@ -57,7 +57,7 @@ StringSet(hitran_file,"/storage3/data/catalogue/hitran/hitran2004/HITRAN04.par")
 # ---
 NumericSet(f_grid_spacing, 5e8)
 
-INCLUDE "hirs/hirs_fast.arts"
+INCLUDE "hirs_fast.arts"
 
 
 # Set up absorption
@@ -145,10 +145,12 @@ abs_lookupCreate
 # lookup table generation, perhaps even more. So, it is not cheap!
 #abs_lookupTestAccuracy
 
-# Set abs_scalar_gas_agenda to use lookup table
+# Set abs_mat_per_species_agenda to use lookup table
 # ---
-AgendaSet( abs_scalar_gas_agenda ){
-  abs_scalar_gasExtractFromLookup
+AgendaSet( abs_mat_per_species_agenda ){
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesExtractFromLookup
 }
 
 

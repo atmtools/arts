@@ -2,7 +2,7 @@
 Arts2{
 # Channel response functions:
 StringCreate( backend_channel_response_file)
-StringSet(    backend_channel_response_file, "hirs/")
+StringSet(    backend_channel_response_file, "")
 Append(	      backend_channel_response_file, satellite)
 # FIXME: Remove this when using constant in Append works:
 StringSet(    dummy,          "_HIRS.backend_channel_response.xml")
