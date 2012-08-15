@@ -200,11 +200,15 @@ matrix_exp(MatrixView F,
   assert(is_size(A,n,n));
   assert(is_size(F,n,n));
 
-  if (n == 1)
-    {
-      F(0, 0) = exp(A(0, 0));
+  if ( is_diagonal(A) )
+  {
+      F = 0.;
+      for(Index ii = 0; ii < n; ii++)
+      {
+          F(ii, ii) = exp(A(ii, ii));
+      }
       return;
-    }
+  }
 
   Numeric A_norm_inf, c;
   Numeric j;
