@@ -1,3 +1,27 @@
+2012-08-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-213
+
+	* src/lineshapes.cc:
+
+	Remove redundant parameter nf from lineshape and normalization
+	functions.
+
+	Add const to input parameters of lineshape and normalization functions.
+
+	Make local variables const where possible. Might help the compiler to
+	do better optimizations.
+
+	(lineshape_norm_no_norm): Remove unnecessary loop.
+
+	* src/absorption.h:
+
+	Make input parameters of lsf_type and lsnf_type const.
+
+	Remove redundant argument nf from lsf_type and lsnf_type.
+
+	* src/absorption.cc (xsec_species): Remove redundant parameter nfls.
+
 2012-08-15  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-212

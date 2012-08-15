@@ -39,11 +39,10 @@
     functions.  */
 typedef void (*lsf_type)(Vector&,
                          Vector&,
-                         Numeric,
-                         Numeric,
-                         Numeric,
-                         VectorView,
-                         const Index);
+                         const Numeric,
+                         const Numeric,
+                         const Numeric,
+                         ConstVectorView);
 
 /** Lineshape related information. There is one LineshapeRecord for
     each available lineshape function.
@@ -83,10 +82,9 @@ private:
 /** The type that is used to store pointers to lineshape
     normalization functions.  */
 typedef void (*lsnf_type)(Vector&,
-                          Numeric,
-                          VectorView,
                           const Numeric,
-                          const Index);
+                          ConstVectorView,
+                          const Numeric);
 
 /** Lineshape related normalization function information. There is one
     LineshapeNormRecord for each available lineshape normalization
