@@ -804,7 +804,8 @@ void get_iy(
    ConstVectorView    rte_los,
    const Agenda&      iy_main_agenda )
 {
-  ArrayOfTensor3    iy_aux, diy_dx;;
+  ArrayOfTensor3    diy_dx;
+  ArrayOfTensor4    iy_aux;
   Ppath             ppath;
   Tensor3           iy_transmission(0,0,0);
 
@@ -1625,7 +1626,7 @@ void iyb_calc(
 
   // For iy_aux we don't know the number of quantities, and we have to store
   // all outout
-  ArrayOfArrayOfTensor3  iy_aux_array( nza*naa );
+  ArrayOfArrayOfTensor4  iy_aux_array( nza*naa );
 
   // Polarisation index variable
   ArrayOfIndex i_pol(stokes_dim);
@@ -1688,10 +1689,11 @@ void iyb_calc(
               // Check that aux data can be handled
               for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
                 {
-                  if( iy_aux_array[iang][q].ncols() > 1 )
+                  if( iy_aux_array[iang][q].ncols() > 1  ||  
+                      iy_aux_array[iang][q].nrows() > 1 )
                     { throw runtime_error( "For calculations using yCalc, "
-                                           "*iy_aux_vars* can not include "
-                                           "along-the-path variables." ); }
+                       "*iy_aux_vars* can not include varaibles of "
+                       "along-the-path variables or extinction matrix type."); }
                 }              
 
               // Start row in iyb etc. for present LOS
@@ -1754,11 +1756,11 @@ void iyb_calc(
               for( Index iv=0; iv<nf; iv++ )
                 { 
                   const Index row1 = row0 + iv*stokes_dim;
-                  const Index i1 = min( iv, iy_aux_array[iang][q].npages()-1 );
+                  const Index i1 = min( iv, iy_aux_array[iang][q].nbooks()-1 );
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
-                      Index i2 = min( is, iy_aux_array[iang][q].nrows()-1 );
-                      iyb_aux[q][row1+is] = iy_aux_array[iang][q](i1,i2,0);
+                      Index i2 = min( is, iy_aux_array[iang][q].npages()-1 );
+                      iyb_aux[q][row1+is] = iy_aux_array[iang][q](i1,i2,0,0);
                     }
                 }
             }

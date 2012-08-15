@@ -1715,23 +1715,23 @@ void Workspace::define_wsv_data()
        "Data auxiliary to *iy*.\n"
        "\n"
        "Different data beside the direct result of the radiative transfer\n"
-       "calculations can be obtained by this variable. These auxilary data\n"
-       "are selected by *iy_aux_vars*.\n"
+       "calculations (*iy*)can be obtained by this variable. These auxilary\n"
+       "data are selected by *iy_aux_vars*.\n"
        "\n"
        "The size of the data is made as compact as possible (in contrast to\n"
        "*y_aux*). For example, the frequency and Stokes dimensions are set to\n"
        "1 when along-the-path temperature is stored. Further, for overall\n"
-       "radiative transfer character, such as total ransmission, the column\n"
+       "radiative transfer character, such as total ransmission, the last\n"
        "dimension is set to have size 1.\n"
        "\n"
        "See also *iy_aux_vars*.\n"
        "\n"
        "Usage:      Provided by some radiative transfer methods.\n"
        "\n"
-       "Dimensions: [quantity][ 1 or f_grid, 1 or stokes_dim, \n"
+       "Dimensions: [quantity][ 1 or f_grid, 1 or stokes_dim, 1 or stokes_dim,\n"
        "                        1 or propgation path point ]\n"
        ),
-      GROUP( "ArrayOfTensor3" )));
+      GROUP( "ArrayOfTensor4" )));
 
   wsv_data.push_back
    (WsvRecord

@@ -78,6 +78,8 @@ typedef Array<ArrayOfTensor3> ArrayOfArrayOfTensor3;
 /** An array of Tensor4. */
 typedef Array<Tensor4> ArrayOfTensor4;
 
+typedef Array<ArrayOfTensor4> ArrayOfArrayOfTensor4;
+
 /** An array of Tensor5. */
 typedef Array<Tensor5> ArrayOfTensor5;
 

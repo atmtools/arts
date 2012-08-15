@@ -8,7 +8,7 @@
 #   3: Downward observation.
 #
 # For the test sequence (ie. "make check") this is a first test on that the
-# full chain around yCalc is working. Calculation of transmission as an
+# full chain around yCalc is working. Calculation of optical depth as an
 # auxilary variable is included and tested.
 #
 # Author: Patrick Eriksson
@@ -69,11 +69,11 @@ sensorOff
 StringSet( y_unit, "RJBT" )
 
 
-# Extract transmission as only auxilary variable
+# Extract optical depth as only auxilary variable
 # ---
-ArrayOfStringSet( iy_aux_vars, [ "Transmission" ] )
-# Create vector container for the transmission
-VectorCreate( trans )
+ArrayOfStringSet( iy_aux_vars, [ "Optical depth" ] )
+# Create vector container for the optical depth
+VectorCreate( odepth )
 
 
 
@@ -106,14 +106,14 @@ yCalc
 
 # OK?
 # ---
-Extract( trans, y_aux, 0 )
+Extract( odepth, y_aux, 0 )
 #WriteXML( "ascii", y, "yREFERENCE_1D.xml" )
-#WriteXML( "ascii", trans, "y_auxREFERENCE_1D.xml" )
+#WriteXML( "ascii", odepth, "y_auxREFERENCE_1D.xml" )
 VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE_1D.xml" )
 VectorCompare( y, yREFERENCE, 1e-2 )
 ReadXML( yREFERENCE, "y_auxREFERENCE_1D.xml" )
-VectorCompare( trans, yREFERENCE, 1e-3 )
+VectorCompare( odepth, yREFERENCE, 1e-3 )
 
 
 
@@ -143,13 +143,13 @@ yCalc
 
 # OK?
 # ---
-Extract( trans, y_aux, 0 )
+Extract( odepth, y_aux, 0 )
 #WriteXML( "ascii", y, "yREFERENCE_2D.xml" )
-#WriteXML( "ascii", trans, "y_auxREFERENCE_2D.xml" )
+#WriteXML( "ascii", odepth, "y_auxREFERENCE_2D.xml" )
 ReadXML( yREFERENCE, "yREFERENCE_2D.xml" )
 VectorCompare( y, yREFERENCE, 1e-2 )
 ReadXML( yREFERENCE, "y_auxREFERENCE_2D.xml" )
-VectorCompare( trans, yREFERENCE, 1e-3 )
+VectorCompare( odepth, yREFERENCE, 1e-3 )
 
 
 
@@ -179,13 +179,13 @@ yCalc
 
 # OK?
 # ---
-Extract( trans, y_aux, 0 )
+Extract( odepth, y_aux, 0 )
 #WriteXML( "ascii", y, "yREFERENCE_3D.xml" )
-#WriteXML( "ascii", trans, "y_auxREFERENCE_3D.xml" )
+#WriteXML( "ascii", odepth, "y_auxREFERENCE_3D.xml" )
 ReadXML( yREFERENCE, "yREFERENCE_3D.xml" )
 VectorCompare( y, yREFERENCE, 1e-2 )
 ReadXML( yREFERENCE, "y_auxREFERENCE_3D.xml" )
-VectorCompare( trans, yREFERENCE, 1e-3 )
+VectorCompare( odepth, yREFERENCE, 1e-3 )
 
 } # End of Main
  

@@ -299,7 +299,7 @@ void iySurfaceRtpropAgenda(
           // Calculate downwelling radiation for LOS ilos 
           //
           {
-            ArrayOfTensor3   iy_aux;
+            ArrayOfTensor4   iy_aux;
             Ppath            ppath;
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
                                        iy_trans_new, ArrayOfString(0), 

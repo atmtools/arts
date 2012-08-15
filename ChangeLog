@@ -1,3 +1,17 @@
+2012-08-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-211
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda):
+	* src/rte.cc:
+	* src/m_rte.cc: In short, changed iy_aux to be a ArrayOfTensor4
+	(to allow storage of complete extinction matrices).
+
+	(iyEmissionStandard): Changed iy_aux_vars Radiance and
+	Transmission to iy and Optical depth, respectively.
+
+	* src/array.h: Defined ArrayOfArrayOfTensor4.
+
 2012-08-14  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-210

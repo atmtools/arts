@@ -64,8 +64,8 @@ ArrayOfStringSet( iy_aux_vars,
       "Absorption, species 0",
       "VMR, species 0",
       "Radiative background", 
-      "Radiance", 
-      "Transmission" ] )
+      "iy", 
+      "Optical depth" ] )
 
 
 # Perform RT calculations
