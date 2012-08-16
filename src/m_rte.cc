@@ -2350,7 +2350,9 @@ void yCalc(
            vmr_field, t_field, lon_grid, lat_grid, p_grid, f_grid,      \
            sensor_pos, joker, naa)*/
 #pragma omp parallel for                                          \
-  if(!arts_omp_in_parallel() && nmblock>1 && nmblock>=nza)        \
+  if(!arts_omp_in_parallel() && \
+     nmblock>=arts_omp_get_max_threads() && \
+     nmblock>=nza)        \
   firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {

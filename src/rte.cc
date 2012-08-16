@@ -1222,7 +1222,14 @@ void get_ppath_rtvars(
     { ppath_emission.resize( nf, np ); }
   else
     { ppath_emission.resize( 0, 0 ); }
+
+  Workspace l_ws (ws);
+  Agenda l_abs_mat_per_species_agenda (abs_mat_per_species_agenda);
+  Agenda l_blackbody_radiation_agenda (blackbody_radiation_agenda);
     
+#pragma omp parallel for \
+  if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
+  firstprivate(l_ws, l_abs_mat_per_species_agenda, l_blackbody_radiation_agenda)
   for( Index ip=0; ip<np; ip++ )
     {
         // Doppler shift
@@ -1264,7 +1271,7 @@ void get_ppath_rtvars(
         Vector rte_mag(1,-1.);
          if( ppath_mag_v[ip]!=0 || ppath_mag_u[ip]!=0 || ppath_mag_w[ip]!=0 )
          {
-        rte_mag.resize(3); //FIXME: email Patrick about u,v,w order
+            rte_mag.resize(3); //FIXME: email Patrick about u,v,w order
             rte_mag[0] = ppath_mag_u[ip];
             rte_mag[1] = ppath_mag_v[ip];
             rte_mag[2] = ppath_mag_w[ip];
@@ -1276,9 +1283,9 @@ void get_ppath_rtvars(
         Tensor4  sgtensor4;
         //
         
-        abs_mat_per_species_agendaExecute(ws, sgtensor4, f_index, rte_doppler, rte_mag,
-                                            ppath_p[ip], ppath_t[ip], ppath_vmr(joker,ip),
-                                            abs_mat_per_species_agenda );
+        abs_mat_per_species_agendaExecute(l_ws, sgtensor4, f_index, rte_doppler, rte_mag,
+                                          ppath_p[ip], ppath_t[ip], ppath_vmr(joker,ip),
+                                          l_abs_mat_per_species_agenda );
 
         ppath_abs(joker,joker,joker,joker,ip) = sgtensor4;
 
@@ -1286,29 +1293,27 @@ void get_ppath_rtvars(
         if( emission_do )
             {
             if( f_index < 0 )
-                { blackbody_radiation_agendaExecute( ws, evector, ppath_t[ip],
-                                            f_grid, blackbody_radiation_agenda ); }
+                blackbody_radiation_agendaExecute( l_ws, evector, ppath_t[ip],
+                                            f_grid, l_blackbody_radiation_agenda );
             else
-                { blackbody_radiation_agendaExecute( ws, evector, ppath_t[ip],
-                        Vector(1,f_grid[f_index]), blackbody_radiation_agenda ); }
+                blackbody_radiation_agendaExecute( l_ws, evector, ppath_t[ip],
+                        Vector(1,f_grid[f_index]), l_blackbody_radiation_agenda );
             ppath_emission(joker,ip) = evector;
             }
-    
-        // Partial and total tau
-        //
-        if( ip > 0 ){
-            for( Index is1=0; is1<stokes_dim; is1++ ){
-                for( Index is2=0; is2<stokes_dim; is2++ ){
-                    for( Index iv=0; iv<nf; iv++ ){
-                        ppath_tau(iv,is1,is2,ip-1) = 0.5 * ppath.lstep[ip-1] * (
-                                                    ppath_abs(joker, iv, is1, is2, ip-1).sum() +
-                                                    ppath_abs(joker, iv, is1, is2, ip).sum() );
-                        total_tau(iv,is1,is2) += ppath_tau(iv, is1, is2, ip-1);
-                    }
-                }
-            }
-        }
     }
+
+    // Partial and total tau
+    //
+    for( Index ip=1; ip<np; ip++ )
+        for( Index is1=0; is1<stokes_dim; is1++ )
+            for( Index is2=0; is2<stokes_dim; is2++ )
+                for( Index iv=0; iv<nf; iv++ )
+                {
+                    ppath_tau(iv,is1,is2,ip-1) = 0.5 * ppath.lstep[ip-1] * (
+                                       ppath_abs(joker, iv, is1, is2, ip-1).sum() +
+                                       ppath_abs(joker, iv, is1, is2, ip).sum() );
+                    total_tau(iv,is1,is2) += ppath_tau(iv, is1, is2, ip-1);
+                }
 }
 
 
@@ -1647,7 +1652,7 @@ void iyb_calc(
          t_field, f_grid, sensor_pos, \
          joker, naa) */
 #pragma omp parallel for                                          \
-  if(!arts_omp_in_parallel() && nza>1)                            \
+  if(!arts_omp_in_parallel() && nza>=arts_omp_get_max_threads())                            \
   firstprivate(l_ws, l_iy_main_agenda)
   for( Index iza=0; iza<nza; iza++ )
     {
