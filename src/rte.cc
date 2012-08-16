@@ -949,8 +949,8 @@ void get_iy_of_background(
 
 //! get_ppath_atmvars
 /*!
-    Determines pressure, temperature, VMR and winds for each propgataion path
-    point.
+    Determines pressure, temperature, VMR, winds and magnetic field for each
+    propgataion path point.
 
     The output variables are sized inside the function. For VMR the
     dimensions are [ species, propagation path point ].
@@ -1044,7 +1044,7 @@ void get_ppath_atmvars(
   if( wind_v_field.npages() > 0 ) 
     { 
       interp_atmfield_by_itw( ppath_wind_v,  atmosphere_dim, wind_v_field, 
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
   else
     { ppath_wind_v = 0; }
@@ -1055,7 +1055,7 @@ void get_ppath_atmvars(
       if( wind_u_field.npages() > 0 ) 
         { 
           interp_atmfield_by_itw( ppath_wind_u,  atmosphere_dim, wind_u_field, 
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
       else
         { ppath_wind_u = 0; }
@@ -1069,7 +1069,7 @@ void get_ppath_atmvars(
   if( mag_w_field.npages() > 0 )
     {
       interp_atmfield_by_itw( ppath_mag_w,  atmosphere_dim, mag_w_field,
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
   else
     { ppath_mag_w = 0; }
@@ -1078,7 +1078,7 @@ void get_ppath_atmvars(
   if( mag_v_field.npages() > 0 )
     {
       interp_atmfield_by_itw( ppath_mag_v,  atmosphere_dim, mag_v_field,
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
   else
     { ppath_mag_v = 0; }
@@ -1089,7 +1089,7 @@ void get_ppath_atmvars(
       if( mag_u_field.npages() > 0 )
         {
           interp_atmfield_by_itw( ppath_mag_u,  atmosphere_dim, mag_u_field,
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
       else
         { ppath_mag_u = 0; }
@@ -1097,6 +1097,7 @@ void get_ppath_atmvars(
   else
     { ppath_mag_u = 0; }
 }
+
 
 
 //! get_ppath_pnd
@@ -1137,6 +1138,299 @@ void get_ppath_pnd(
                               gpc_p, gpc_lat, gpc_lon, itw_field );
     }
 }
+
+
+
+//! get_ppath_abs
+/*!
+    Determines the absorption along a propagation path.
+
+    The output variable is sized inside the function. The dimension order is 
+       [ absorption species, frequency, stokes, stokes, ppath point ]
+
+    \param   ws                  Out: The workspace
+    \param   ppath_abs_mat       Out: Absorption matrix at each ppath point
+    \param   abs_mat_per_species_agenda As the WSV.    
+    \param   ppath               As the WSV.    
+    \param   ppath_p             Pressure for each ppath point.
+    \param   ppath_t             Temperature for each ppath point.
+    \param   ppath_vmr           VMR values for each ppath point.
+    \param   ppath_wind_u        U-wind for each ppath point.
+    \param   ppath_wind_v        V-wind for each ppath point.
+    \param   ppath_wind_w        W-wind for each ppath point.
+    \param   ppath_mag_u         U-mag for each ppath point.
+    \param   ppath_mag_v         V-mag for each ppath point.
+    \param   ppath_mag_w         W-mag for each ppath point.
+    \param   f_grid              As the WSV.    
+    \param   f_index             As the WSV.
+    \param   stokes_dim          As the WSV.
+    \param   atmosphere_dim      As the WSV.    
+
+    \author Patrick Eriksson 
+    \date   2012-08-15
+*/
+void get_ppath_abs( 
+        Workspace&      ws,
+        Tensor5&        ppath_abs,
+  const Agenda&         abs_mat_per_species_agenda,
+  const Ppath&          ppath,
+  ConstVectorView       ppath_p, 
+  ConstVectorView       ppath_t, 
+  ConstMatrixView       ppath_vmr, 
+  ConstVectorView       ppath_wind_u, 
+  ConstVectorView       ppath_wind_v, 
+  ConstVectorView       ppath_wind_w,
+  ConstVectorView       ppath_mag_u,
+  ConstVectorView       ppath_mag_v,
+  ConstVectorView       ppath_mag_w,
+  ConstVectorView       f_grid, 
+  const Index&          f_index, 
+  const Index&          stokes_dim,
+  const Index&          atmosphere_dim )
+{
+  // Sizes
+  const Index   np   = ppath.np;
+  const Index   nabs = ppath_vmr.nrows();
+
+  // Frequencies
+  Numeric f_doppler;  // Frequency to apply for Doppler shift
+  Index   nf;
+  if( f_index < 0 )
+    { 
+      nf        = f_grid.nelem(); 
+      f_doppler = ( f_grid[0] + f_grid[nf-1] ) / 2.0;
+    }
+  else
+    { 
+      nf        = 1; 
+      f_doppler = f_grid[f_index];
+    }
+    
+  // Size variable
+  ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
+
+  // Loop ppath points
+  //
+  Workspace l_ws (ws);
+  Agenda l_abs_mat_per_species_agenda (abs_mat_per_species_agenda);
+  //
+#pragma omp parallel for \
+  if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
+  firstprivate(l_ws, l_abs_mat_per_species_agenda)
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Doppler shift
+      //
+      Numeric rte_doppler = 0;
+      //
+      if( ppath_wind_v[ip]!=0 || ppath_wind_u[ip]!=0 || ppath_wind_w[ip]!=0 )
+        {
+          // za and aa of winds and LOS
+          const Numeric v = sqrt( ppath_wind_u[ip]*ppath_wind_u[ip] +
+                                  ppath_wind_v[ip]*ppath_wind_v[ip] +
+                                  ppath_wind_w[ip]*ppath_wind_w[ip] );
+
+          Numeric aa_w = 0, aa_p = 0; // Azimuth for wind and ppath-los [rad]
+          if( atmosphere_dim < 3 )
+            {
+              if( ppath_wind_v[ip]<0 )
+                { aa_w = PI; }  // Negative v-winds for 1 and 2D
+              if( atmosphere_dim == 2  &&  ppath.los(ip,0) < 0 )
+                { aa_p = PI; }  // Negative sensor za for 2D
+            }
+          else //3D
+            {
+              aa_w = atan2( ppath_wind_u[ip], ppath_wind_v[ip] );
+              aa_p = DEG2RAD * ppath.los(ip,1);
+            }
+          const Numeric za_w = acos( ppath_wind_w[ip] / v );
+          const Numeric za_p = DEG2RAD * fabs( ppath.los(ip,0) );
+          //
+          // Actual shift
+          const Numeric costerm = cos(za_w) * cos(za_p) +
+                                  sin(za_w) * sin(za_p)*cos(aa_w-aa_p);
+
+          rte_doppler = -v * f_doppler * costerm / SPEED_OF_LIGHT;
+        }
+        
+      // Magnetic field
+      //
+      Vector rte_mag(1,-1.);
+      if( ppath_mag_v[ip]!=0 || ppath_mag_u[ip]!=0 || ppath_mag_w[ip]!=0 )
+        {
+          rte_mag.resize(3); //FIXME: email Patrick about u,v,w order
+          rte_mag[0] = ppath_mag_u[ip];
+          rte_mag[1] = ppath_mag_v[ip];
+          rte_mag[2] = ppath_mag_w[ip];
+        }
+
+      // Call agenda
+      //
+      Tensor4  abs_mat_per_species;
+      //
+      abs_mat_per_species_agendaExecute( ws, abs_mat_per_species, f_index, 
+                                         rte_doppler, rte_mag, ppath_p[ip], 
+                                         ppath_t[ip], ppath_vmr(joker,ip),
+                                         abs_mat_per_species_agenda );
+
+      // Copy to output argument
+      //
+      ppath_abs(joker,joker,joker,joker,ip) = abs_mat_per_species;
+    }
+}
+
+
+
+//! get_ppath_trans
+/*!
+    Determines the transmission in different ways for a clear-sky RT
+    integration.
+
+    The argument trans_partial holds the transmission for each propagation path
+    step. It has np-1 columns.
+
+    The argument trans_cumalat holds the transmission between the path point
+    with index 1 and each propagation path point. The transmission is valid for
+    the photon travelling direction. It has np columns.
+
+    The output variables are sized inside the function. The dimension order is 
+       [ frequency, stokes, stokes, ppath point ]
+
+    The scalar optical thickness is calculated in parellel.
+
+    \param   trans_partial Out: Transmission for each path step.
+    \param   trans_cumulat Out: Transmission to each path point.
+    \param   scalar_tau    Out: Total (scalar) optical thickness of path
+    \param   ppath         As the WSV.    
+    \param   ppath_abs     See get_ppath_abs.
+    \param   f_grid        As the WSV.    
+    \param   f_index       As the WSV.
+    \param   stokes_dim    As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2012-08-15
+*/
+void get_ppath_trans( 
+        Tensor4&        trans_partial,
+        Tensor4&        trans_cumulat,
+        Vector&         scalar_tau,
+  const Ppath&          ppath,
+  ConstTensor5View&     ppath_abs,
+  ConstVectorView       f_grid, 
+  const Index&          f_index, 
+  const Index&          stokes_dim )
+{
+  // Sizes
+  const Index   np = ppath.np;
+        Index   nf = 1;
+  if( f_index < 0 )
+    { nf = f_grid.nelem(); }
+
+  // Init variables
+  //
+  trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
+  trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
+  //
+  scalar_tau.resize( nf );
+  scalar_tau  = 0;
+  
+  // Loop ppath points (in the anti-direction of photons)  
+  //
+  Tensor3 abssum_old, abssum_this( nf, stokes_dim, stokes_dim );
+  //
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // If first point, calculate sum of absorption and set transmission
+      // to identity matrix.
+      if( ip == 0 )
+        { 
+          for( Index iv=0; iv<nf; iv++ ) 
+            {
+              for( Index is1=0; is1<stokes_dim; is1++ ) {
+                for( Index is2=0; is2<stokes_dim; is2++ ) {
+                  abssum_this(iv,is1,is2) = 
+                                          ppath_abs(joker,iv,is1,is2,ip).sum();
+                } } 
+              id_mat( trans_cumulat(iv,joker,joker,ip) );
+            }
+        }
+
+      else
+        {
+          for( Index iv=0; iv<nf; iv++ ) 
+            {
+              Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
+              for( Index is1=0; is1<stokes_dim; is1++ ) {
+                for( Index is2=0; is2<stokes_dim; is2++ ) {
+                  abssum_this(iv,is1,is2) = 
+                                          ppath_abs(joker,iv,is1,is2,ip).sum();
+                  ntau(is1,is2) = -0.5 * ppath.lstep[ip-1] *
+                          ( abssum_old(iv,is1,is2) + abssum_this(iv,is1,is2) );
+                } }
+              scalar_tau[iv] -= ntau(0,0); 
+              matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
+              // Note that multiplication below depends on ppath loop order
+              mult( trans_cumulat(iv,joker,joker,ip), 
+                    trans_cumulat(iv,joker,joker,ip-1), 
+                    trans_partial(iv,joker,joker,ip-1) );
+            }
+        }
+
+      abssum_old = abssum_this;
+    }
+}
+
+
+
+//! get_ppath_blackrad
+/*!
+    Determines blackbody radiation along the propagation path.
+
+    The output variable is sized inside the function. The dimension order is 
+       [ frequency, ppath point ]
+
+    \param   ws                Out: The workspace
+    \param   ppath_blackrad    Out: Emission source term at each ppath point 
+    \param   blackbody_radiation_agenda   As the WSV.    
+    \param   ppath_t           Temperature for each ppath point.
+    \param   f_grid            As the WSV.    
+    \param   f_index           As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2012-08-15
+*/
+void get_ppath_blackrad( 
+        Workspace&   ws,
+        Matrix&      ppath_blackrad,
+  const Agenda&      blackbody_radiation_agenda,
+  const Ppath&       ppath,
+  ConstVectorView    ppath_t, 
+  ConstVectorView    f_grid, 
+  const Index&       f_index )
+{
+  // Sizes
+  const Index   np = ppath.np;
+        Index   nf = 1;
+  if( f_index < 0 )
+    { nf = f_grid.nelem(); }
+
+  // Loop path and call agenda
+  //
+  ppath_blackrad.resize( nf, np ); 
+  //
+  for( Index ip=0; ip<np; ip++ )
+    {
+      Vector   bvector;
+      if( f_index < 0 )
+        { blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
+                                        f_grid, blackbody_radiation_agenda ); }
+      else
+        { blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
+                     Vector(1,f_grid[f_index]), blackbody_radiation_agenda ); }
+      ppath_blackrad(joker,ip) = bvector;
+    }
+}
+
 
 
 //! get_ppath_rtvars
@@ -1775,39 +2069,6 @@ void iyb_calc(
 
 
 
-//! iy_transmission_for_scalar_tau
-/*!
-    Sets *iy_transmission* to match scalar optical thicknesses.
-
-    *iy_transmission* is sized by the function.
-
-    \param   iy_transmission   Out: As the WSV.
-    \param   stokes_dim        As the WSV.
-    \param   tau               Vector with the optical thickness for each 
-                               frequency.
-
-    \author Patrick Eriksson 
-    \date   2009-10-06
-*/
-void iy_transmission_for_tensor3_tau(
-       Tensor3&     iy_transmission,
-  const Index&      stokes_dim,
-  ConstTensor3View  tau )
-{
-  Matrix temp_tau;
-  iy_transmission.resize( tau.npages(), stokes_dim, stokes_dim );
-  iy_transmission = 0;
-  
-  for( Index iv=0; iv<tau.npages(); iv++ )
-    { 
-        temp_tau  = tau(iv, joker, joker);
-        temp_tau *= -1;
-        matrix_exp(iy_transmission(iv, joker, joker), temp_tau, 10 ); //Note that 10 is just taken from another place this was called.
-    }
-}
-
-
-
 //! iy_transmission_mult
 /*!
     Multiplicates iy_transmission with (vector) transmissions.
@@ -1826,89 +2087,38 @@ void iy_transmission_for_tensor3_tau(
 
     *iy_trans_new* is sized by the function.
 
-    \param   iy_trans_new      Out: Updated version of *iy_transmission*
-    \param   iy_transmission   As the WSV.
-    \param   trans             A variable matching *iy_transmission.
+    \param   iy_trans_total    Out: Updated version of *iy_transmission*
+    \param   iy_trans_old      A variable matching *iy_transmission.
+    \param   iy_trans_new      A variable matching *iy_transmission.
 
     \author Patrick Eriksson 
     \date   2009-10-06
 */
 void iy_transmission_mult( 
-       Tensor3&      iy_trans_new,
-  ConstTensor3View   iy_transmission,
-  ConstTensor3View   trans )
+       Tensor3&      iy_trans_total,
+  ConstTensor3View   iy_trans_old,
+  ConstTensor3View   iy_trans_new )
 {
-  const Index nf = iy_transmission.npages();
-  const Index ns = iy_transmission.ncols();
+  const Index nf = iy_trans_old.npages();
+  const Index ns = iy_trans_old.ncols();
 
-  assert( ns == iy_transmission.nrows() );
-  assert( nf == trans.npages() );
-  assert( ns == trans.nrows() );
-  assert( ns == trans.ncols() );
+  assert( ns == iy_trans_old.nrows() );
+  assert( nf == iy_trans_new.npages() );
+  assert( ns == iy_trans_new.nrows() );
+  assert( ns == iy_trans_new.ncols() );
 
-  iy_trans_new.resize( nf, ns, ns );
+  iy_trans_total.resize( nf, ns, ns );
 
   for( Index iv=0; iv<nf; iv++ )
     {
-      mult( iy_trans_new(iv,joker,joker), iy_transmission(iv,joker,joker),
-                                                    trans(iv,joker,joker) );
+      mult( iy_trans_total(iv,joker,joker), iy_trans_old(iv,joker,joker),
+                                            iy_trans_new(iv,joker,joker) );
     } 
 }
 
 
 
 //! iy_transmission_mult_scalar_tau
-/*!
-    Multiplicates iy_transmission with scalar optical thicknesses.
-
-    The functions can incorporate the transmission of a clear-sky
-    path. That is, the transmission can be described by a single value
-    The transmission of this path is gives as the optical depth for
-    each frequency.
-
-    The "new path" is assumed to be further away from the sensor than 
-    the propagtion path already included in iy_transmission. That is,
-    the operation can be written as:
-    
-       Ttotal = Told * Tnew
-
-    where Told is the transmission corresponding to *iy_transmission*
-    and Tnew corresponds to *tau*.
-
-    *iy_trans_new* is sized by the function.
-
-    \param   iy_trans_new      Out: Updated version of *iy_transmission*
-    \param   iy_transmission   As the WSV.
-    \param   tau               Vector with the optical thickness for each 
-                               frequency.
-
-    \author Patrick Eriksson 
-    \date   2009-10-06
-*/
-void iy_transmission_mult_tensor3_tau(
-       Tensor3&      iy_trans_new,
-  ConstTensor3View   iy_transmission,
-  ConstTensor3View   tau )
-{
-  const Index nf = iy_transmission.npages();
-  Matrix temp_trans(tau.nrows(), tau.ncols(), 0.0), temp_tau;
-  assert( iy_transmission.ncols() == iy_transmission.nrows() );
-  assert( nf == tau.npages() );
-
-  iy_trans_new = iy_transmission;
-
-  for( Index iv=0; iv<nf; iv++ )
-  {
-      temp_tau  = tau(iv, joker, joker);
-      temp_tau *= -1;
-      matrix_exp(temp_trans, temp_tau, 10 ); //Note that 10 is just taken from one other place this was called.
-      iy_trans_new(iv,joker,joker) *= temp_trans;
-  }
-  
-}
-
-
-
 //! los3d
 /*!
     Converts any LOS vector to the implied 3D LOS vector.

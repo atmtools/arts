@@ -181,6 +181,44 @@ void get_ppath_atmvars(
   ConstTensor3View   mag_v_field,
   ConstTensor3View   mag_w_field );
 
+void get_ppath_abs( 
+        Workspace&      ws,
+        Tensor5&        ppath_abs,
+  const Agenda&         abs_mat_per_species_agenda,
+  const Ppath&          ppath,
+  ConstVectorView       ppath_p, 
+  ConstVectorView       ppath_t, 
+  ConstMatrixView       ppath_vmr, 
+  ConstVectorView       ppath_wind_u, 
+  ConstVectorView       ppath_wind_v, 
+  ConstVectorView       ppath_wind_w,
+  ConstVectorView       ppath_mag_u,
+  ConstVectorView       ppath_mag_v,
+  ConstVectorView       ppath_mag_w,
+  ConstVectorView       f_grid, 
+  const Index&          f_index, 
+  const Index&          stokes_dim,
+  const Index&          atmosphere_dim );
+
+void get_ppath_trans( 
+        Tensor4&        trans_partial,
+        Tensor4&        trans_cumulat,
+        Vector&         scalar_tau,
+  const Ppath&          ppath,
+  ConstTensor5View&     ppath_abs,
+  ConstVectorView       f_grid, 
+  const Index&          f_index, 
+  const Index&          stokes_dim );
+
+void get_ppath_blackrad( 
+        Workspace&   ws,
+        Matrix&      ppath_blackrad,
+  const Agenda&      blackbody_radiation_agenda,
+  const Ppath&       ppath,
+  ConstVectorView    ppath_t, 
+  ConstVectorView    f_grid, 
+  const Index&       f_index );
+
 void get_ppath_cloudrtvars(
         Workspace&                     ws,
         Tensor3&                       ppath_asp_abs_vec,
@@ -247,20 +285,10 @@ Range get_rowindex_for_mblock(
   const Sparse&   sensor_response, 
   const Index&    imblock );
 
-void iy_transmission_for_tensor3_tau(
-       Tensor3&     iy_transmission,
-  const Index&      stokes_dim,
-  ConstTensor3View  tau );
-
 void iy_transmission_mult( 
-       Tensor3&      iy_trans_new,
-  ConstTensor3View   iy_transmission,
-  ConstTensor3View   trans );
-
-void iy_transmission_mult_tensor3_tau(
-       Tensor3&      iy_trans_new,
-  ConstTensor3View   iy_transmission,
-  ConstTensor3View   tau );
+       Tensor3&      iy_trans_total,
+  ConstTensor3View   iy_trans_old,
+  ConstTensor3View   iy_trans_new );
 
 void iyb_calc(
         Workspace&                  ws,

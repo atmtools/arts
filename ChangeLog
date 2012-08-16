@@ -1,3 +1,25 @@
+2012-08-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-216
+
+	* src/m_rte.cc (iyEmissionStandard): Extensive changes, following
+	modifications in rte.cc. Jacobians should now be fully OK again
+	(but only for unpol. absorption, there is a runtime error if
+	absorption is polarised).
+
+	* src/rte.cc: Cleaning and restructuring of get_ppath_XXX and
+	iy_transmission_XXX:
+
+	(iy_transmission_mult): Now only function of this type. 
+
+	(iy_transmission_for_scalar_tau, iy_transmission_mult_scalar_tau):
+	Removed.
+
+	(get_ppath_abs, get_ppath_trans, get_ppath_blackrad): New
+	functions, that will replace get_ppath_rtvars.
+
+	* src/logic.cc: A few cosmetic changes.
+
 2012-08-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-215
@@ -39,12 +61,13 @@
 
 	* src/absorption.cc (xsec_species): Remove redundant parameter nfls.
 
+>>>>>>> .r7773
 2012-08-15  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-212
 
 	* src/lin_alg.cc (matrix_exp): Optimized for diagonal matrices.
-	
+
 2012-08-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-211

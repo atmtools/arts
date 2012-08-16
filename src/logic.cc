@@ -45,6 +45,7 @@
 #define precision 0.
 
 
+
 //! Checks if a variable equals 0 or 1.
 /*!
   \return       True if the variable is 0 or 1. Otherwise false.
@@ -93,6 +94,8 @@ bool is_size( ConstVectorView   x,
   return( n == x.nelem() );
 }
 
+
+
 //! Verifies that the size of x is r by c.
 /*! 
   \param  x The Matrix to check.
@@ -107,6 +110,8 @@ bool is_size( ConstMatrixView   x,
   return( r == x.nrows() &&
           c == x.ncols()     );
 }
+
+
 
 //! Verifies that the size of x is [p,r,c].
 /*! 
@@ -125,6 +130,8 @@ bool is_size( ConstTensor3View  x,
           r == x.nrows()      &&
           c == x.ncols()     );
 }
+
+
 
 //! Verifies that the size of x is [b,p,r,c].
 /*! 
@@ -146,6 +153,8 @@ bool is_size( ConstTensor4View  x,
           r == x.nrows()      &&
           c == x.ncols()     );
 }
+
+
 
 //! Verifies that the size of x is [s,b,p,r,c].
 /*! 
@@ -170,6 +179,8 @@ bool is_size( ConstTensor5View  x,
           r == x.nrows()      &&
           c == x.ncols()     );
 }
+
+
 
 //! Verifies that the size of x is [v,s,b,p,r,c].
 /*! 
@@ -197,6 +208,8 @@ bool is_size( ConstTensor6View  x,
           r == x.nrows()      &&
           c == x.ncols()     );
 }
+
+
 
 //! Verifies that the size of x is [l,v,s,b,p,r,c].
 /*! 
@@ -228,6 +241,8 @@ bool is_size( ConstTensor7View  x,
           c == x.ncols()     );
 }
 
+
+
 //! Checks if a vector is sorted in ascending order.
 /*!
   Duplicated values are allowed.
@@ -248,6 +263,8 @@ bool is_sorted( ConstVectorView   x )
   return true;
 }
 
+
+
 //! Checks if a vector is sorted and strictly increasing. 
 /*! 
     Duplicated values are not allowed.
@@ -267,6 +284,8 @@ bool is_increasing( ConstVectorView   x )
     }
   return true;
 }
+
+
 
 //! Checks if an ArrayOfIndex is sorted and strictly increasing. 
 /*! 
@@ -293,6 +312,8 @@ bool is_increasing( const ArrayOfIndex&   x )
   return true;
 }
 
+
+
 //! Checks if a vector is sorted in reversed order and is strictly decreasing.
 /*! 
     Duplicated values are not allowed.
@@ -312,6 +333,7 @@ bool is_decreasing( ConstVectorView   x )
     }
   return true;
 }
+
 
 
 //! Checks if an ArrayOfIndex is unique, i.e., has no duplicate values
@@ -339,6 +361,8 @@ bool is_unique( const ArrayOfIndex&   x )
   
   return true;
 }
+
+
 
 //! Checks if a square matrix is singular.
 /*! 
@@ -386,19 +410,21 @@ bool is_singular( ConstMatrixView A )
 */
 bool is_diagonal( ConstMatrixView A )
 {
- assert( A.nrows() == A.ncols() );
+  assert( A.nrows() == A.ncols() );
  
- for( Index i=1; i<A.ncols(); i++ )
+  for( Index i=1; i<A.ncols(); i++ )
+    {
+      for( Index j=0; j<i; j++ )
         {
-          for( Index j=0; j<i; j++ )
-            {
-              if( fabs(A(i,j)) > precision ||  
-                  fabs(A(j,i)) > precision )
-                return false;
-            }
+          if( fabs(A(i,j)) > precision ||  
+              fabs(A(j,i)) > precision )
+            return false;
         }
- return true;
+    }
+  return true;
 }
+
+
 
 //! Check, if two numbers agree within a given epsilon.
 /*! 
