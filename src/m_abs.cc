@@ -2274,9 +2274,7 @@ void abs_mat_per_speciesCalcLBL(// WS Output:
                            const Numeric& rte_pressure,
                            const Numeric& rte_temperature,
                            const Vector& rte_vmr_list,
-                           //const Vector& rte_mag,
                            const Numeric& rte_doppler,
-                           //const Vector& rte_los,
                            const Verbosity& verbosity)
 {
 

@@ -1,3 +1,10 @@
+2012-08-16  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-214
+
+	* src/workspace.cc, src/agendas.cc and src/methods.cc: Updated
+	documentation regarding the abs_mat_per_species implementation.
+
 2012-08-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-213
