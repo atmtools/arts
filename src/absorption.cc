@@ -1105,6 +1105,17 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     extract(ell,line,15);
   }
 
+  // Assign the local quantum numbers.
+  if (mlower_lquanta.nelem() == 15)
+  {
+      mlower_n = atoi(mlower_lquanta.substr(2,3).c_str());
+      mlower_j = atoi(mlower_lquanta.substr(6,3).c_str());
+      const Index DJ =  -  mlower_lquanta.compare(5,1,"Q");
+      const Index DN =  -  mlower_lquanta.compare(1,1,"Q");
+      mupper_n = mlower_n - DN;
+      mupper_j = mlower_j - DJ;
+  }
+
   // Accuracy index for frequency
   {
     Index df;
@@ -2185,7 +2196,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       icecream >> mn_co2;
       icecream >> mn_h2;
       icecream >> mn_he;
-      
+
       // Extract F pressure shifts:
       icecream >> mdelta_n2;
       icecream >> mdelta_o2;

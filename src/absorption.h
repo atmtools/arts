@@ -508,7 +508,11 @@ public:
       mdsgam   (-1.    ),
       mdnair   (-1.    ),
       mdnself  (-1.    ),
-      mdpsf    (-1.    )
+      mdpsf    (-1.    ),
+      mupper_n (-1     ),
+      mupper_j (-1     ),
+      mlower_n (-1     ),
+      mlower_j (-1     )
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -555,7 +559,11 @@ public:
       mdsgam   (-1.    ),
       mdnair   (-1.    ),
       mdnself  (-1.    ),
-      mdpsf    (-1.    )
+      mdpsf    (-1.    ),
+      mupper_n (-1     ),
+      mupper_j (-1     ),
+      mlower_n (-1     ),
+      mlower_j (-1     )
   {
     // Thanks to Matpack, initialization of misotope with isotope
     // should now work correctly.  
@@ -767,6 +775,18 @@ public:
 
   /** Lower state local quanta */
   const String& Lower_LQuanta() const { return mlower_lquanta; }
+
+  /** Upper state local quanta N */
+  Index Upper_N() const { return mupper_n; }
+
+  /** Upper state local quanta J */
+  Index Upper_J() const { return mupper_j; }
+
+  /** Lower state local quanta N */
+  Index Lower_N() const { return mlower_n; }
+
+  /** Lower state local quanta J */
+  Index Lower_J() const { return mlower_j; }
 
 
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
@@ -1181,7 +1201,14 @@ private:
   String mupper_lquanta;
   /** Lower state local quanta */
   String mlower_lquanta;
-
+  /** Upper state local N quanta */
+  Index mupper_n;
+  /** Upper state local J quanta */
+  Index mupper_j;
+  /** Lower state local N quanta */
+  Index mlower_n;
+  /** Lower state local J quanta */
+  Index mlower_j;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts

@@ -478,22 +478,19 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
             {
                 // local LineRecord
                 LineRecord temp_LR = abs_lines_per_species[II][ii];
-
+                const Index J  = temp_LR.Lower_J();
+                const Index N  = temp_LR.Lower_N();
+                const Index DJ = J - temp_LR.Upper_J();
+                
                 // Only look at lines which have no change in the main rotational number
-                if (temp_LR.Lower_LQuanta().nelem() > 0)
+                if (J != -1 && N != -1)
                 {
-                    if (temp_LR.Lower_LQuanta().compare(1,1,"Q") == 0)
+                    if ( temp_LR.Upper_N() == N )
                     {
-
-                        // Assign the local quantum numbers.
-                        const Index N = atoi(temp_LR.Lower_LQuanta().substr(2,3).c_str());
-                        const Index J = atoi(temp_LR.Lower_LQuanta().substr(6,3).c_str());
-                        const Index DJ =  -  temp_LR.Lower_LQuanta().compare(5,1,"Q");
-
                         // Begin TEST(s)
-                        if ( N == 0 )
+                        if ( N <= 0 )
                             throw runtime_error("The main quantum number cannot be nil!?");
-                        if (abs(DJ) != 1){ temp_abs_lines_dt.push_back(temp_LR); continue; } //FIXME: default K?
+                        if (abs(DJ) != 1){ temp_abs_lines_dt.push_back(temp_LR); continue; }
                         if ( J-DJ != N ) //FIXME: default K??? throw runtime_error?
                         { // Since Hitran12 beta version, this does no longer apply
                             out3 << "Physics ERROR: J-DJ = " << J - DJ << " and N = "
