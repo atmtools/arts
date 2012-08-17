@@ -855,8 +855,8 @@ void iyEmissionStandard(
           if( stokes_dim == 1 )
             {
               for( Index iv=0; iv<nf; iv++ )  
-                { iy(iv,0)  = iy(iv,0) * trans_partial(iv,0,0,ip) +
-                        bbar[iv] * ( 1 - trans_partial(iv,0,0,ip) ); }
+                { iy(iv,0) = iy(iv,0) * trans_partial(iv,0,0,ip) +
+                       bbar[iv] * ( 1 - trans_partial(iv,0,0,ip) ); }
             }
           else
             {
@@ -864,26 +864,38 @@ void iyEmissionStandard(
               Vector b(ns,0.0);
               // Identity matrix
               Matrix I(ns,ns); id_mat(I);
-
+              //
               for( Index iv=0; iv<nf; iv++ )  
                 {
-                  // Transmitted term
-                  Vector t1(ns);
-                  mult( t1, trans_partial(iv,joker,joker,ip), iy(iv,joker) );
-                  // Emission term
-                  Vector t2(ns);
-                  b[0] = bbar[iv];
-                  Matrix ImT(ns,ns);
-                  for( Index is1=0; is1<ns; is1++ ) {
-                    for( Index is2=0; is2<ns; is2++ ) {
-                      ImT(is1,is2) = I(is1,is2) - 
-                                              trans_partial(iv,is1,is2,ip); } }
-                  mult( t2, ImT, b );
-                  // Sum up
-                  for( Index is=0; is<ns; is++ )
-                    { iy(iv,is) = t1[is] + t2[is]; }
+                  // Unpolarised absorption:
+                  if( is_diagonal( trans_partial(iv,joker,joker,ip) ) )
+                    {
+                      iy(iv,0) = iy(iv,0) * trans_partial(iv,0,0,ip) +
+                           bbar[iv] * ( 1 - trans_partial(iv,0,0,ip) );
+                      for( Index is=1; is<ns; is++ )
+                        { iy(iv,is) = iy(iv,is) * trans_partial(iv,is,is,ip); }
+                    }
+                  // The general case:
+                  else
+                    {
+                      // Transmitted term
+                      Vector t1(ns);
+                      mult( t1, trans_partial(iv,joker,joker,ip), iy(iv,joker));
+                      // Emission term
+                      Vector t2(ns);
+                      b[0] = bbar[iv];
+                      Matrix ImT(ns,ns);
+                      for( Index is1=0; is1<ns; is1++ ) {
+                        for( Index is2=0; is2<ns; is2++ ) {
+                          ImT(is1,is2) = I(is1,is2) - 
+                                               trans_partial(iv,is1,is2,ip); } }
+                      mult( t2, ImT, b );
+                      // Sum up
+                      for( Index is=0; is<ns; is++ )
+                        { iy(iv,is) = t1[is] + t2[is]; }
+                    }
                 }
-              /*
+              /* Richard's version:
               Matrix trans_mat(ns, ns), temp = ppath_tau(iv,joker,joker,ip);
                         temp *= -1;
 
@@ -962,383 +974,6 @@ void iyEmissionStandard(
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void iyEmissionStandardClearsky(
-         Workspace&                  ws,
-         Matrix&                     iy,
-         ArrayOfTensor3&             iy_aux,
-         ArrayOfTensor3&             diy_dx,
-   const Index&                      iy_agenda_call1,
-   const Tensor3&                    iy_transmission,
-   const Vector&                     rte_pos,      
-   const Vector&                     rte_los,      
-   const Index&                      jacobian_do,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Tensor3&                    z_field,
-   const Tensor3&                    t_field,
-   const Tensor4&                    vmr_field,
-   const Tensor3&                    wind_u_field,
-   const Tensor3&                    wind_v_field,
-   const Tensor3&                    wind_w_field,
-   const Tensor3&                    edensity_field,
-   const Index&                      cloudbox_on,
-   const Index&                      stokes_dim,
-   const Vector&                     f_grid,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Index&                      mblock_index,
-   const Agenda&                     ppath_agenda,
-   const Agenda&                     blackbody_radiation_agenda,
-   const Agenda&                     abs_scalar_gas_agenda,
-   const Agenda&                     iy_main_agenda,
-   const Agenda&                     iy_space_agenda,
-   const Agenda&                     iy_surface_agenda,
-   const Agenda&                     iy_cloudbox_agenda,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices,
-   const Verbosity&                  verbosity )
-{
-  iy_aux.resize(0);
-
-  // The method can in principle be used "stand-alone", but for efficiency
-  // reasons we skip all checks needed to handle such usage. Those checks are
-  // done by yCalc.
-
-  // iy_aux and diy_dx are initiated by iyb_calc
-  // to be empty/zero. Accordingly, if any radiative background wants
-  // to flag an error, iy_error must be resized. No subsequent scaling of the
-  // error is made. Thus the iy_transmission should be considered when adding
-  // a term to the error. A setting of iy_aux must also include a resizing. 
-
-  // The WSV *iy_transmission* holds the transmission between the sensor
-  // and the end of the propagation path.
-
-  // Sizes
-  //
-  const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.nelem();
-
-  // Determine if there are any analytical jacobians to handle, and if primary
-  // call, resize diy_dx.
-  //
-  Index j_analytical_do = 0;
-  //
-  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-  //
-  if( iy_agenda_call1 && j_analytical_do )
-    {
-      diy_dx.resize( nq ); 
-      //
-      FOR_ANALYTICAL_JACOBIANS_DO( 
-        diy_dx[iq].resize( jacobian_indices[iq][1] - jacobian_indices[iq][0] +
-                           1, nf, stokes_dim ); 
-        diy_dx[iq] = 0.0;
-      )
-    }
-
-  //- Determine propagation path
-  //
-  Ppath  ppath;
-  //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0, 
-                       mblock_index, t_field, z_field, vmr_field, 
-                       edensity_field, -1, ppath_agenda );
-
-  // Get atmospheric and RT quantities for each ppath point/step
-  //
-  // If np = 1, we only need to determine the radiative background
-  //
-  // "atmvars"
-  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                               ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
-  Matrix    ppath_vmr;
-  // "rtvars"
-  Tensor3   total_tau;
-  Matrix    ppath_emission;
-  Tensor4   ppath_tau;
-  Tensor5   ppath_abs;
-  Tensor3   iy_trans_new;
-  //
-  const Index np  = ppath.np;
-  //
-  if( np > 1 )
-    {
-      // Get pressure, temperature and VMRs
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
-                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                         ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field ,
-                         mag_u_field, mag_v_field, mag_w_field );
-
-      // Get emission, absorption and optical thickness for each step
-      get_ppath_rtvars( ws, ppath_abs, ppath_tau, total_tau,
-                        ppath_emission, abs_mat_per_species_agenda, blackbody_radiation_agenda,
-                        ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,
-                        ppath_wind_v, ppath_wind_w, ppath_mag_u, ppath_mag_v,
-                        ppath_mag_w, 
-                        f_grid, -1, stokes_dim, atmosphere_dim, 1 );
-    }
-  else // To handle cases inside the cloudbox, or totally outside the atmosphere
-    { 
-      total_tau.resize( nf );
-      total_tau = 0;
-    }
-
-  // iy_transmission
-  //
-  if( iy_agenda_call1 )
-    { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, total_tau ); }
-  else
-    { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
-                                                                total_tau ); }
-
-  // Radiative background
-  //
-  get_iy_of_background( ws, iy, diy_dx, 
-                        iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
-                        t_field, z_field, vmr_field, cloudbox_on, 
-                        stokes_dim, f_grid, iy_main_agenda, iy_space_agenda,
-                        iy_surface_agenda, iy_cloudbox_agenda, verbosity);
-  
-  // Do RT calculations
-  //
-  if( np > 1 )
-    {
-      // Create container for the derivatives with respect to changes
-      // at each ppath point. And find matching abs_species-index and 
-      // "temperature flag" (for analytical jacobians).
-      //
-      ArrayOfTensor3  diy_dpath; 
-      ArrayOfIndex    abs_species_i, is_t; 
-      //
-      const Numeric   dt = 0.1;
-            Matrix    ppath_e2;
-            Tensor3   ppath_as2;
-      //
-      if( j_analytical_do )
-        { 
-          diy_dpath.resize( nq ); 
-          abs_species_i.resize( nq ); 
-          is_t.resize( nq ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dpath[iq].resize( np, nf, stokes_dim ); 
-            diy_dpath[iq] = 0.0;
-          )
-          get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
-                                            jacobian_quantities, abs_species );
-          //
-          // Determine if temperature is among the analytical jac. quantities.
-          // If yes, get emission and absorption for disturbed temperature
-          Index do_t = 0;
-          for( Index iq=0; iq<is_t.nelem() && do_t==0; iq++ )
-            { if( is_t[iq] ) { do_t = 1; } }
-          if( do_t )
-            {
-              Matrix tau_dummy; 
-              Vector total_tau_dummy, t2 = ppath_t;
-              t2 += dt;
-              get_ppath_rtvars( ws, ppath_as2, tau_dummy, total_tau_dummy, 
-                                ppath_e2, abs_scalar_gas_agenda, 
-                                blackbody_radiation_agenda, ppath, ppath_p, 
-                                t2, ppath_vmr, 
-                                ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                                f_grid, -1, atmosphere_dim, 1 );
-            }
-        }
-
-      // Loop ppath steps
-      for( Index ip=np-2; ip>=0; ip-- )
-        {
-          Vector esource(nf);            // B-bar
-          Matrix iy_new(nf,stokes_dim);  // Intensity at end of step
-
-          // Spectrum at end of ppath step 
-          // (iy updated to iy_new at end of ip-loop)
-          for( Index iv=0; iv<nf; iv++ )  
-            {
-
-                if( stokes_dim == 1 )
-                    iy(iv,0)  = iy(iv,0) * exp(-ppath_tau(iv,0,0,ip)) +
-                    0.5 * ( ppath_emission(iv,ip) +  ppath_emission(iv,ip+1) ) *
-                    (1 - exp(-ppath_tau(iv,0,0,ip)));
-                else
-                {
-                    Matrix trans_mat(stokes_dim, stokes_dim), temp = ppath_tau(iv,joker,joker,ip);
-                        temp *= -1;
-
-                    Vector planck(stokes_dim, 0.), term1(stokes_dim), term2(stokes_dim);
-                        planck[0] = 0.5 * ( ppath_emission(iv,ip) +
-                                    ppath_emission(iv,ip+1) ); //K⁻¹(a*B+S) = [B,0,0,0] when a from K and S = 0
-
-                    matrix_exp( trans_mat, temp, 10);
-
-                    id_mat(temp);
-                        temp -= trans_mat;
-
-                    mult(term1, trans_mat, iy(iv,joker) );
-                    mult(term2, temp, planck);
-
-                    iy(iv,joker)  = term1;
-                    iy(iv,joker) += term2;
-                }
-
-            }
-
-          // Jacobian quantities
-          if( j_analytical_do )
-            {
-              // Common terms introduced for efficiency and clarity
-              Vector X(nf), Y(nf);   // See AUG
-              //
-              for( Index iv=0; iv<nf; iv++ )
-                {
-                  X[iv] = 0.5 * ppath.lstep[ip] * exp( -total_tau[iv] );
-                  Y[iv] = X[iv] * ( esource[iv] - iy(iv,0) );
-                }
-
-              // Loop quantities
-              for( Index iq=0; iq<nq; iq++ ) 
-                {
-                  if( jacobian_quantities[iq].Analytical() )
-                    {
-                      // Absorbing species
-                      const Index isp = abs_species_i[iq]; 
-                      if( isp >= 0 )
-                        {
-                          // Scaling factors to handle retrieval unit
-                          // (gives the cross-section to apply)
-                          Numeric unitscf1, unitscf2;
-                          vmrunitscf( unitscf1, 
-                                      jacobian_quantities[iq].Mode(), 
-                                      ppath_vmr(isp,ip), ppath_p[ip], 
-                                      ppath_t[ip] );
-                          vmrunitscf( unitscf2, 
-                                      jacobian_quantities[iq].Mode(), 
-                                      ppath_vmr(isp,ip+1), ppath_p[ip+1], 
-                                      ppath_t[ip+1] );
-                          //
-                          for( Index iv=0; iv<nf; iv++ )
-                            {
-                              // Stokes component 1
-                              diy_dpath[iq](ip  ,iv,0) += Y[iv] * unitscf1 *
-                                                 ppath_abs_scalar(iv,isp,ip);
-                              diy_dpath[iq](ip+1,iv,0) += Y[iv] * unitscf2 * 
-                                                 ppath_abs_scalar(iv,isp,ip+1);
-                              // Higher stokes components
-                              for( Index is=1; is<stokes_dim; is++ )
-                                { 
-                                  const Numeric Z = -X[iv] * iy(iv,is); 
-                                  diy_dpath[iq](ip  ,iv,is) += Z * unitscf1 *
-                                                 ppath_abs_scalar(iv,isp,ip);
-                                  diy_dpath[iq](ip+1,iv,is) += Z * unitscf2 *
-                                                 ppath_abs_scalar(iv,isp,ip+1);
-                                }
-                            }
-                        }
-
-                      // Temperature
-                      else if( is_t[iq] )
-                        {
-                          for( Index iv=0; iv<nf; iv++ )
-                            {
-                              // The terms associated with Dtau/Dk:
-                              const Numeric k1 = 
-                                         ppath_abs_scalar(iv,joker,ip  ).sum();
-                              const Numeric k2 = 
-                                         ppath_abs_scalar(iv,joker,ip+1).sum();
-                              const Numeric dkdt1 =
-                                  ( ppath_as2(iv,joker,ip  ).sum() - k1 ) / dt;
-                              const Numeric dkdt2 =
-                                  ( ppath_as2(iv,joker,ip+1).sum() - k2 ) / dt;
-                              // Stokes 1:
-                              diy_dpath[iq](ip  ,iv,0) += Y[iv] * dkdt1;
-                              diy_dpath[iq](ip+1,iv,0) += Y[iv] * dkdt2;
-                              // Higher Stokes
-                              for( Index is=1; is<stokes_dim; is++ )
-                                { 
-                                  const Numeric Z = -X[iv] * iy(iv,is);
-                                  diy_dpath[iq](ip  ,iv,is) += Z * dkdt1;
-                                  diy_dpath[iq](ip+1,iv,is) += Z * dkdt2;
-                                }
-                              //
-                              // The terms associated with B-bar:
-                              const Numeric V = 0.5 * 
-                                      exp(-(total_tau[iv]-ppath_tau(iv,ip))) *
-                                              ( 1.0 - exp(-ppath_tau(iv,ip)) );
-                              diy_dpath[iq](ip  ,iv,0) += V *
-                                              ( ppath_e2(iv,ip) -
-                                                ppath_emission(iv,ip) ) / dt;
-                              diy_dpath[iq](ip+1,iv,0) += V * 
-                                              ( ppath_e2(iv,ip+1) -
-                                                ppath_emission(iv,ip+1) ) / dt;
-                              // Zero for higher Stokes
-                              //
-                              // The terms associated with Delta-s:
-                              if( jacobian_quantities[iq].Subtag() == "HSE on" )
-                                {
-                                  // Stokes 1:
-                                  const Numeric kbar = 0.5 * ( k1 + k2 );
-                                  diy_dpath[iq](ip  ,iv,0) += Y[iv] * kbar /
-                                                                  ppath_t[ip];
-                                  diy_dpath[iq](ip+1,iv,0) += Y[iv] * kbar /
-                                                                 ppath_t[ip+1];
-                                  // Higher Stokes
-                                  for( Index is=1; is<stokes_dim; is++ )
-                                    { 
-                                      const Numeric Z = -X[iv] * iy(iv,is);
-                                      diy_dpath[iq](ip  ,iv,is) += Z * kbar /
-                                                                  ppath_t[ip];
-                                      diy_dpath[iq](ip+1,iv,is) += Z * kbar /
-                                                                 ppath_t[ip+1];
-                                    }
-                                } //hse
-                            }  // frequency
-                        }  // if is_t
-                    } // if analytical
-                } // for iq
-              
-              // Update total_tau (not used for spectrum calculation)
-              for( Index iv=0; iv<nf; iv++ )
-                { total_tau[iv] -= ppath_tau(iv,ip); }
-            }
-
-          // Update iy
-          iy = iy_new;
-        } 
-
-      // Map jacobians from ppath to retrieval grids
-      // (this operation corresponds to the term Dx_i/Dx)
-      if( j_analytical_do )
-        { 
-          // Weight with iy_transmission
-          if( !iy_agenda_call1 )
-            {
-              Matrix X, Y(stokes_dim,diy_dpath[0].npages()); 
-              //
-              FOR_ANALYTICAL_JACOBIANS_DO( 
-                for( Index iv=0; iv<nf; iv++ )
-                  { 
-                    X = transpose( diy_dpath[iq](joker,iv,joker) );
-                    mult( Y, iy_transmission(iv,joker,joker), X );
-                    diy_dpath[iq](joker,iv,joker) = transpose( Y );
-                  }
-               )
-            }
-
-          // Map to retrieval grids
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
-                               diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
-          )
-        }
-    } // if np>1
-}
-*/
-
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1396,7 +1031,6 @@ void iyMC(
   if( iy_transmission.ncols() )
     throw runtime_error( "*iy_transmission* must be empty" );
 
-  // See initial comments of iyEmissionStandardClearsky
 
   // Size output variables
   //

@@ -1,3 +1,24 @@
+2012-08-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-218
+
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts: Added
+	"Radiative background" as aux var.
+
+	* controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts:
+	Added some new variables to iy_aux_vars.
+
+	* src/m_rte.cc (iyEmissionStandard): Added special code for vector
+	unpolarised case (only for radiance, no change for jac.).
+
+	* src/rte.cc (trans_step_std): Removed (was not used).
+
+	* src/lin_alg.cc (matrix_exp): Extended header text (to make clear
+	that diagonal case is handled efficiently).
+
+	(rte_step_std): In header text, removed suggestion to use for
+	"clearsky" (following test by Richard).
+
 2012-08-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-217

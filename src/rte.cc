@@ -1368,6 +1368,7 @@ void get_ppath_trans(
                           ( abssum_old(iv,is1,is2) + abssum_this(iv,is1,is2) );
                 } }
               scalar_tau[iv] -= ntau(0,0); 
+              // The function below checks if ntau ir diagonal or not
               matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
               // Note that multiplication below depends on ppath loop order
               mult( trans_cumulat(iv,joker,joker,ip), 
@@ -2268,7 +2269,7 @@ void pos2true_latlon(
     Solves monochromatic VRTE for an atmospheric slab with constant 
     conditions.
 
-    The function can be used for clearsky and cloudbox calculations.
+    The function can be used for cloudbox calculations.
 
     The function is best explained by considering a homogenous layer. That is,
     the physical conditions inside the layer are constant. In reality they
@@ -2329,9 +2330,6 @@ void rte_step_std(//Output and Input:
   assert( rte_planck_value >= 0 );
   assert( lstep >= 0 );
   assert (!is_singular( ext_mat_av ));
-
-  // Any changes here associated with the extinction matrix should also be
-  // implemented in ext2mat.
 
   // Check, if only the first component of abs_vec is non-zero:
   bool unpol_abs_vec = true;
@@ -2490,46 +2488,6 @@ void surface_calc(
             }
         }
     }
-}
-
-
-
-//! trans_step_std
-/*!
-    Solves monochromatic (vector) Beer-Lambert for one step
-
-    The function can be used for clearsky and cloudbox calculations.
-
-    (As rte_step_std, but without emission and scattering source term)
-
-    When calling the function, the vector *stokes_vec* shall contain the
-    Stokes vector for the incoming radiation. The function returns this
-    vector, then containing the outgoing radiation on the other side of the 
-    layer.
-
-    Transmission calculated by *ext2trans*.
-
-    \param   stokes_vec         Input/Output: A Stokes vector.
-    \param   trans_mat          Input/Output: Transmission matrix of slab.
-    \param   ext_mat            Input: Averaged extinction matrix.
-    \param   lstep             Input: The length of the RTE step.
-
-    \author Claudia Emde and Patrick Eriksson, 
-    \date   2010-10-15
-*/
-void trans_step_std(//Output and Input:
-              VectorView stokes_vec,
-              MatrixView trans_mat,
-              //Input
-              ConstMatrixView ext_mat_av,
-              const Numeric& lstep )
-{
-  // Checks made in *ext2trans*.
-  ext2trans( trans_mat, ext_mat_av, lstep );  
-
-  Vector tmp = stokes_vec;
-
-  mult( stokes_vec, trans_mat, tmp );
 }
 
 
