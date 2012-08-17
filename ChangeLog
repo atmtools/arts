@@ -1,3 +1,17 @@
+2012-08-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-220
+
+	* Some unfinished work around aux vars and y_unit.
+
+	* src/rte.cc (iyb_calc): Extended.
+
+	* src/m_rte.cc (iyMC): iy_aux introduced. Only one option: Error.
+	(iyApplyYunit): Extended.
+
+	* src/methods.cc: Added text for MCGeneral around y_unit and
+	mc_error. For yCalc some explanation around y_unit and y_aux.
+
 2012-08-17  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-219

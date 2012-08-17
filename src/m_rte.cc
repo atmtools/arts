@@ -338,10 +338,12 @@ void iyApplyYunit(
   
   for( Index i=0; i<iy_aux_vars.nelem(); i++ )
     {
-      if( iy_aux_vars[i] == "iy" )
+      if( iy_aux_vars[i] == "iy"  ||  iy_aux_vars[i] == "Error"  || 
+          iy_aux_vars[i] == "Error (uncorrelated)" )
         {
           if( iy_aux[i].nrows() > 1 )
-            throw runtime_error( "Data marked as \"iy\" have incorrect size." );
+            throw runtime_error( "Data marked as \"iy\" or \"Error\" "
+                                 "have incorrect size." );
           for( Index j=0; j<iy_aux[i].ncols(); j++ )
             { apply_y_unit( iy_aux[i](joker,joker,0,j), y_unit, f_grid, 
                                                                       i_pol ); }
@@ -485,16 +487,6 @@ void iyEmissionStandard(
                      << ispecies << ".\nThis species does not exist!";
                   throw runtime_error( os.str() );
                 }
-              for( Index j=0; j<auxVmrIsp.nelem(); j++ )
-                {
-                  if( ispecies ==  auxVmrIsp[j] )
-                    {
-                      ostringstream os;
-                      os << "You have selected VMR of species with index "
-                         << ispecies << " twice!";
-                      throw runtime_error( os.str() );
-                    }
-                }
               auxVmrSpecies.push_back(i);
               auxVmrIsp.push_back(ispecies);
               iy_aux[i].resize( 1, 1, 1, np );               
@@ -513,23 +505,13 @@ void iyEmissionStandard(
                      << ispecies << ".\nThis species does not exist!";
                   throw runtime_error( os.str() );
                 }
-              for( Index j=0; j<auxAbsIsp.nelem(); j++ )
-                {
-                  if( ispecies ==  auxAbsIsp[j] )
-                    {
-                      ostringstream os;
-                      os << "You have selected absorption species with index "
-                         << ispecies << " twice!";
-                      throw runtime_error( os.str() );
-                    }
-                }
               auxAbsSpecies.push_back(i);
               auxAbsIsp.push_back(ispecies);
               iy_aux[i].resize( nf, ns, ns, np );               
             }
           else if( iy_aux_vars[i] == "Radiative background" )
             { auxBackground = i;   iy_aux[i].resize( nf, 1, 1, 1 ); }
-          else if( iy_aux_vars[i] == "iy" )
+          else if( iy_aux_vars[i] == "iy"   &&  auxIy < 0 )
             { auxIy = i;           iy_aux[i].resize( nf, ns, 1, np ); }
           else if( iy_aux_vars[i] == "Optical depth" )
             { auxOptDepth = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
@@ -895,22 +877,6 @@ void iyEmissionStandard(
                         { iy(iv,is) = t1[is] + t2[is]; }
                     }
                 }
-              /* Richard's version:
-              Matrix trans_mat(ns, ns), temp = ppath_tau(iv,joker,joker,ip);
-                        temp *= -1;
-
-                    Vector planck(ns, 0.), term1(ns), term2(ns);
-                        planck[0] = esource[iv]; //K⁻¹(a*B+S) = [B,0,0,0] when a from K and S = 0
-
-                    matrix_exp( trans_mat, temp, 10);
-
-                    id_mat(temp);
-                        temp -= trans_mat;
-                    mult(term2, temp, planck);
-
-                    iy(iv,joker)  = term1;
-                    iy(iv,joker) += term2;
-              */
             }
 
           //=== iy_aux part ===================================================
@@ -1013,8 +979,6 @@ void iyMC(
    const Index&                      mc_max_iter,
    const Verbosity&                  verbosity)
 {
-  iy_aux.resize(iy_aux_vars.nelem()); // !!!
-
   // Throw error if unsupported features are requested
   if( atmosphere_dim != 3 )
     throw runtime_error( 
@@ -1037,9 +1001,28 @@ void iyMC(
   const Index   nf  = f_grid.nelem();
   //
   iy.resize( nf, stokes_dim );
-  //
-  iy_aux.resize(0);
   diy_dx.resize(0);
+  //
+  //=== iy_aux part ===========================================================
+  Index auxError = -1;
+  {
+    const Index naux = iy_aux_vars.nelem();
+    iy_aux.resize( naux );
+    //
+    for( Index i=0; i<naux; i++ )
+      {
+        if( iy_aux_vars[i] == "Error (uncorrelated)" )
+          { auxError = i;      iy_aux[i].resize( nf, stokes_dim, 1, 1 ); }
+        else
+          {
+            ostringstream os;
+            os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
+               << "\"\nThis choice is not recognised.";
+            throw runtime_error( os.str() );
+          }
+      }
+  }
+  //===========================================================================
 
   // Some MC variables are only local here
   Tensor3  mc_points;
@@ -1070,8 +1053,8 @@ void iyMC(
       MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna, 
                  f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
                  iy_space_agenda, surface_rtprop_agenda,
-                 abs_mat_per_species_agenda, p_grid, lat_grid, lon_grid, z_field, 
-                 refellipsoid, z_surface, t_field, vmr_field, 
+                 abs_mat_per_species_agenda, p_grid, lat_grid, lon_grid, 
+                 z_field, refellipsoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
                  pnd_field, scat_data_mono, 1, cloudbox_checked,
                  mc_seed, y_unit, mc_std_err, mc_max_time, mc_max_iter,
@@ -1080,7 +1063,7 @@ void iyMC(
 
       assert( y.nelem() == stokes_dim );
 
-      // Data returned can not be in Tb
+      // Output data must be converted back to radiance
       if ( y_unit == "RJBT" )
         { 
           const Numeric scfac = invrayjean( 1, f_grid[f_index] );
@@ -1089,7 +1072,9 @@ void iyMC(
         }
      
       iy(f_index,joker) = y;
-      //iy_error(f_index,joker) = mc_error;
+
+      if( auxError >= 0 ) 
+        { iy_aux[auxError](f_index,joker,0,0) = mc_error; }
     }
 }
 

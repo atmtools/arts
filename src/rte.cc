@@ -1986,7 +1986,8 @@ void iyb_calc(
                                          sensor_pos(mblock_index,joker), los, 
                                          l_iy_main_agenda );
 
-              // Check that aux data can be handled
+              // Check that aux data can be handled and apply y_unit for 
+              // the quantities where it makes sense
               for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
                 {
                   if( iy_aux_array[iang][q].ncols() > 1  ||  
@@ -1994,6 +1995,10 @@ void iyb_calc(
                     { throw runtime_error( "For calculations using yCalc, "
                        "*iy_aux_vars* can not include varaibles of "
                        "along-the-path variables or extinction matrix type."); }
+                  if( iy_aux_vars[q] == "iy" || iy_aux_vars[q] == "Error" ||
+                      iy_aux_vars[q] == "Error (uncorrelated)" )
+                    { apply_y_unit( iy_aux_array[iang][q](joker,joker,0,0), 
+                                                      y_unit, f_grid, i_pol ); }
                 }              
 
               // Start row in iyb etc. for present LOS

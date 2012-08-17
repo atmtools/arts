@@ -4461,7 +4461,8 @@ void define_md_data_raw()
          "this method allows for a seperate conversion of *iy* and *iy_aux*\n"
          "to the unit selected by *y_unit*.\n"
          "\n"
-         "Only elements for which the conversion makes sense are modified.\n"
+         "Only these auxilary quantities are modified:\n"
+         "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
          "\n"
          "Please note that *diy*dx* is not handled and it is demanded that\n"
          "*jacobian_do* is 0.\n"
@@ -4662,6 +4663,17 @@ void define_md_data_raw()
          "MC control arguments (mc_std_err, mc_max_time, mc_max_iter and\n"
          "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
+         "As or *MCGeneral*, the value of *mc_error* shall be adopted to\n"
+         "*y_unit*. However, to be consistent with other iy_methods, this\n"
+         "method returns radiance data (*y_unit*) is applied inside yCalc).\n"
+         "\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Error (uncorrelated)\": Calculation error. Size: [nf,ns,1,1].\n"
+         "    (The later part of the text string is required. It is used as\n"
+         "    a flag to yCalc for how to apply the sensor data.)\n"
+         "where\n"
+         "  nf: Number of freqiencies.\n"
+         "  ns: Number of Stokes elements.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx" ),
@@ -5903,11 +5915,16 @@ void define_md_data_raw()
           "the maximum allowed number of seconds for MCGeneral. The method\n"
           "will terminate once any of the max_iter, std_err, max_time\n"
           "criteria are met. If negative values are given for these\n"
-          " parameters then it isignored.\n"
+          "parameters then it isignored.\n"
           "\n"
           "Negative values of *mc_seed* seed the random number generator\n"
           "according to system time, positive *mc_seed* values are taken\n"
-          "literally.\n" ),
+          "literally.\n"
+          "\n"
+          "Only \"1\" and \"RJBT\" are allowed for *y_unit*. The value of\n"
+          "*mc_error* follows the selection for *y_unit* (both for in- and\n"
+          "output.\n"
+          ),
         AUTHORS( "Cory Davis" ),
         OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
         GOUT(),
@@ -9856,11 +9873,13 @@ void define_md_data_raw()
          "conversion is applied on monochromatic pencil beam values. That\n"
          "is, before any sensor responses have been included.\n"
          "The frequency, polarisation etc. for each measurement value is\n" 
-         "given by *y_f*, *y_pol* etc..\n"
+         "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
          "\n"
          "See the method selected for *iy_main_agenda* for quantities\n"
          "that can be obtained by *y_aux*. However, in no case data of\n"
-         "along-the-path type can be extracted.\n"
+         "along-the-path type can be extracted. *y_unit* is applied on the\n"
+         "following aux data:\n"
+         "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
