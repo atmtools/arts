@@ -257,30 +257,6 @@ void get_ppath_pnd(
   const ArrayOfIndex&   cloudbox_limits,
   ConstTensor4View      pnd_field );
 
-void get_ppath_rtvars(
-        Workspace&   ws,
-        Tensor5&     ppath_abs,
-        Tensor4&     ppath_tau,
-        Tensor3&     total_tau,
-        Matrix&      ppath_emission,
-  const Agenda&      abs_mat_per_species_agenda,
-  const Agenda&      blackbody_radiation_agenda,
-  const Ppath&       ppath,
-  ConstVectorView    ppath_p,
-  ConstVectorView    ppath_t,
-  ConstMatrixView    ppath_vmr,
-  ConstVectorView    ppath_wind_u,
-  ConstVectorView    ppath_wind_v,
-  ConstVectorView    ppath_wind_w,
-  ConstVectorView    ppath_mag_u,
-  ConstVectorView    ppath_mag_v,
-  ConstVectorView    ppath_mag_w,
-  ConstVectorView    f_grid,
-  const Index&       f_index,
-  const Index&       stokes_dim,
-  const Index&       atmosphere_dim,
-  const Index&       emission_do );
-
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 
   const Index&    imblock );

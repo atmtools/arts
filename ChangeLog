@@ -1,3 +1,27 @@
+2012-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-221
+
+	* src/rte.cc (get_ppath_rtvars): Obselete and removed.
+
+	* src/m_rte.cc (iyRadioLink): Now using new get_ppath_XX
+	functions. Some features reactivated. No proper tests performed.
+
+	* controlfiles/artscomponents/transmission/TestTransmission.arts:
+	Demonstration of iy_aux added.
+
+	* src/m_rte.cc (iyTransmissionStandard): Code now synced with last
+	changes in iyEmissionStandard. Set of aux vars extended.
+
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts: Check
+	of radiance reactivated, now using error extracted from y_aux.
+
+	* src/m_rte.cc (iyMC): Error now exported as part of iy_aux. This
+	done by setting iy_aux_vars to: [ "Error (uncorrelated)" ]
+
+	(yCalc): Uncorrelated error in y_aux detected automatically and
+	sensor response applied correspondingly.
+
 2012-08-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-220

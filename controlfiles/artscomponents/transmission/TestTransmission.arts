@@ -92,6 +92,13 @@ AgendaSet( iy_main_agenda ){
 }
 
 
+# Auxilariary varaibles
+#
+ArrayOfStringSet( iy_aux_vars, 
+    [ "Pressure", "Temperature", "VMR, species 0", "Absorption, summed",
+      "Absorption, species 1", "iy", "Transmission", "Optical depth" ] )
+
+
 # Calculate
 #
 IndexSet( mblock_index, -1 )  # Dummy value
@@ -103,8 +110,7 @@ iyCalc
 #
 #output_file_formatSetAscii
 #WriteXML( output_file_format, iy, "iyREFERENCE.xml" )
-
-
+#WriteXML( output_file_format, iy_aux, "iy_auxREFERENCE.xml" )
 
 # Check that results are OK with respect to an older reference calculation
 #
