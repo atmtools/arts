@@ -2204,7 +2204,22 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       icecream >> mdelta_co2;
       icecream >> mdelta_h2;
       icecream >> mdelta_he;
-      
+
+      {
+          String qstr1 = line.substr(288,      12);
+          String qstr2 = line.substr(288+12+1, 12);
+          ArrayOfIndex q(6);
+          for (Index qi=0; qi<3; qi++)
+              extract(q[qi], qstr1, 4);
+          for (Index qi=3; qi<6; qi++)
+              extract(q[qi], qstr2, 4);
+
+          if (q[0] > 0) mupper_n = q[0];
+          if (q[1] > 0) mlower_n = q[1];
+          if (q[3] > 0) mupper_j = q[3];
+          if (q[4] > 0) mlower_j = q[4];
+      }
+
       // Resize aux array to 0, not used in ARTSCAT-4
       maux.resize(0);
 
@@ -2217,6 +2232,10 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       mdnself  = -1;
       mdpsf    = -1;            
     }
+
+  // FIXME: OLE: Is it okay to set this to the same value as for HITRAN?
+  // Reference temperature for AGAM and SGAM in K.
+  mtgam = 296.0;
 
   // That's it!
   return false;
