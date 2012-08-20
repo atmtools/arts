@@ -2594,27 +2594,64 @@ void xsec_species( MatrixView               xsec,
                   intensity     = intensity * mafac / sinh(mafac);
                 }
 
+              Numeric Tgam;
+              Numeric Nair;
+              Numeric Agam;
+              Numeric Sgam;
+              Numeric Nself;
+              Numeric Psf;
+
+              if (l_l.Version() == 3)
+              {
+                Tgam = l_l.Tgam();
+                Agam = l_l.Agam();
+                Nair = l_l.Nair();
+                Sgam = l_l.Sgam();
+                Nself = l_l.Nself();
+                Psf = l_l.Psf();
+              }
+              else
+              {
+                static bool warn = false;
+                if (!warn)
+                {
+                  CREATE_OUT0;
+                  warn = true;
+                  out0 << "  WARNING: Using artscat version 4 for calculations is currently\n"
+                       << "           just a hack and results are most likely wrong!!!\n";
+                }
+                Tgam = l_l.Tgam();
+                // Use hardcoded mixing ratios for air
+                Agam = l_l.Gamma_N2() * 0.79 + l_l.Gamma_O2() * 0.21;
+                Nair = l_l.Gam_N_N2() * 0.79 + l_l.Gam_N_O2() * 0.21;
+                Sgam = l_l.Gamma_self();
+                Nself = l_l.Gam_N_self();
+                Psf = l_l.Delta_N2() * 0.79 + l_l.Delta_O2() * 0.21;
+              }
 
               // 2. Get pressure broadened line width:
               // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
-              const Numeric theta = l_l.Tgam() / t_i;
-              const Numeric theta_Nair = pow(theta, l_l.Nair());
+              const Numeric theta = Tgam / t_i;
+              const Numeric theta_Nair = pow(theta, Nair);
 
-              Numeric gamma
-                = l_l.Agam() * theta_Nair  * (p_i - p_partial)
-                + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
+              const Numeric gamma
+                = Agam * theta_Nair  * (p_i - p_partial)
+                + Sgam * pow(theta, Nself) * p_partial;
 
               // 3. Doppler broadening without the sqrt(ln(2)) factor, which
               // seems to be redundant FIXME: verify .
-              Numeric sigma = F0 * doppler_const * 
+              const Numeric sigma = F0 * doppler_const *
                 sqrt( t_i / l_l.IsotopeData().Mass());
+
+//              cout << l_l.IsotopeData().Name() << " " << l_l.F() << " "
+//                   << Nair << " " << Agam << " " << Sgam << " " << Nself << endl;
 
               // 3.a. Put in pressure shift.
               // The T dependence is connected to that of agam by:
               // n_shift = .25 + 1.5 * n_agam
               // Theta has been initialized above.
-              F0 += l_l.Psf() * p_i * 
-                std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
+              F0 += Psf * p_i *
+                std::pow( theta , (Numeric).25 + (Numeric)1.5*Nair );
 
               // 4. the rosenkranz lineshape for oxygen calculates the
               // pressure broadening, overlap, ... differently. Therefore
@@ -2632,8 +2669,8 @@ void xsec_species( MatrixView               xsec,
               aux[2] = p_i;
               aux[3] = vmr_i;
               aux[4] = abs_h2o_i;
-              aux[5] = l_l.Agam();
-              aux[6] = l_l.Nair();
+              aux[5] = Agam;
+              aux[6] = Nair;
               // is overlap available, otherwise pass zero
               if (l_l.Naux() > 1)
                 {

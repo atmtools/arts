@@ -1,5 +1,18 @@
 2012-08-20  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-223
+
+	* src/absorption.cc (xsec_species):
+
+	Initial hack to support calculation with an artscat version 4.
+	Air broading is currently calculated by weighting N2 and O2 by
+	0.79/0.21. The weighting is applied to width, temperature exponent
+	and pressure shift. Most likely not the correct way to do it, but
+	results are surprisingly close to calculations based on Hitran
+	(ClearSky test case within 0.004 K).
+
+2012-08-20  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-222
 
 	* src/absorption.cc (LineRecord::ReadFromArtscat4Stream):
