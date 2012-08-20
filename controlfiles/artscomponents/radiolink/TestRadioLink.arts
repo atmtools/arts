@@ -2,9 +2,7 @@
 #
 # Demonstration and test of a single radio link calculation.
 #
-# Three different 1D cases are calculated.
-#
-# 2012-04-02, Patrick Eriksson
+# 2012-08-20, Patrick Eriksson
 
 Arts2 {
 
@@ -14,7 +12,7 @@ INCLUDE "general/continua.arts"
 
 # Frequency grid 
 #
-VectorSet( f_grid, [10e9] )
+VectorSet( f_grid, [ 1e9, 5e9, 10e9 ] )
 
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 250.
@@ -67,16 +65,13 @@ AgendaSet( ppath_agenda ){
   Ignore( rte_los )
   Ignore( cloudbox_on )
   Ignore( ppath_inside_cloudbox_do )
-  VectorExtractFromMatrix( rte_pos2, transmitter_pos, mblock_index, "row" )
+  Ignore( mblock_index )
   ppathFromRtePos2
-  #Print( ppath, 0 )
-  #TangentPointPrint( ppath, 0 )
 }
 
 
 # Radiative transfer agendas and variables
 #
-VectorSet( rte_los, [] )   # Dummy value
 FlagOff( dispersion_do )
 #
 AgendaSet( iy_transmitter_agenda ){
@@ -90,67 +85,62 @@ AgendaSet( iy_main_agenda ){
 }
 
 
-# Postion of sensor/receiver and transmitter
+# Calculations here done through yCalc as it is then easier to extract
+# auxiliary data. For this we need some additional and dummy settings, 
+# compared to use iyCalc.
+
+
+# Sensor/receiver and transmitter
 #
-# The transmisster cases are defined:
-#   1: Ground-based
-#   2: Air-borne (behind a tangent point)
-#   3: Satellite
-# 
-VectorSet( rte_pos, [ 600e3 ] )
-MatrixSet( transmitter_pos, [ 0, 2.3; 10e3, 25.7; 600e3, 48.3 ] )
-
-
-# Expected transmissions
+MatrixSet( sensor_pos, [ 600e3 ] )
+MatrixSet( sensor_los, [     0 ] )    # Dummy value
+VectorSet( rte_pos2, [ 600e3, 48.3 ] )
 #
-MatrixCreate( iyREFERENCE )
-MatrixSet( iyREFERENCE, [ 0.98272, 0.84380, 0.71585 ] )
-#MatrixCreate( iy_auxREFERENCE )
-#MatrixSet( iy_auxREFERENCE, [ 7.4e-9, 204.7e-9, 636.8e-09 ] )
+sensorOff
 
 
-# Set up the ForLoop agenda to run and check the cases
+# Auxilary variables
 #
-IndexCreate( ilast )
-nrowsGet( ilast, transmitter_pos )
-IndexStepDown( ilast, ilast )
+# Other aux variables either path of iy (total loss) or can not be obtained
+# through yCalc.
 #
-AgendaSet( forloop_agenda ){
-  Copy( mblock_index, forloop_index )
-  iyCalc
-  #Print( iy, 0 )
-  #Print( iy_aux, 0 )
-  VectorCreate( iy_test)
-  VectorExtractFromMatrix( iy_test, iy, 0, "column" )
-  VectorCreate( iy_ref )
-  VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
-#  VectorCompare( iy_test, iy_ref, 0.001 )
-  #
-  #VectorExtractFromMatrix( iy_test, iy_aux, 0, "column" )
-  #VectorExtractFromMatrix( iy_ref, iy_auxREFERENCE, mblock_index, "column" )
-  #VectorCompare( iy_test, iy_ref, 1e-9 )
-}
+ArrayOfStringSet( iy_aux_vars, [ "Bending angle", "Extra path delay" ] )
 
 
-# Better version if free space loss included
-#AgendaSet( forloop_agenda ){
-#  Copy( mblock_index, forloop_index )
-#  iyCalc
-#  Print( iy, 0 )
-#  VectorCreate( iy_test)
-#  VectorExtractFromMatrix( iy_test, iy, 0, "column" )
-#  VectorCreate( iy_ref )
-#  VectorExtractFromMatrix( iy_ref, iyREFERENCE, mblock_index, "column" )
-#  NumericCreate( accuracy )
-#  Extract( accuracy, iy_ref, 0 )
-#  NumericScale( accuracy, accuracy, 0.001 )
-#  VectorCompare( iy_test, iy_ref, accuracy )
-#}
 
-
-# Calculate
+# Expected results
 #
-ForLoop( forloop_agenda, 0, ilast, 1  )
+VectorCreate( yREFERENCE )
+NumericCreate( bending_angleREFERENCE )
+NumericCreate( extra_pdREFERENCE )
+#
+VectorSet( yREFERENCE, [ 5.44894e-16, 5.27306e-16, 4.99902e-16 ] )
+NumericSet( bending_angleREFERENCE, 0.6921 )
+NumericSet( extra_pdREFERENCE, 636.838e-09 )
+
+
+# Calculate and check iy
+#
+yCalc
+#
+VectorCompare( y, yREFERENCE, 1e-18 )
+
+
+# Bending angle
+#
+VectorCreate( vdummy )
+NumericCreate( bending_angle )
+Extract( vdummy, y_aux, 0 )
+Extract( bending_angle, vdummy, 0 )
+NumericCompare( bending_angle, bending_angleREFERENCE, 1e-4 )
+
+
+# Extra path delay
+#
+NumericCreate( extra_pd )
+Extract( vdummy, y_aux, 1 )
+Extract( extra_pd, vdummy, 0 )
+NumericCompare( extra_pd, extra_pdREFERENCE, 1e-10 )
 
 
 }

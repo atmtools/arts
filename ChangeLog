@@ -1,3 +1,16 @@
+2012-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-224
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink_Old.arts:
+	To temporary get a copy of old version of file below.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts: Partly
+	rewritten to use yCalc and check some aux vars.
+
+	* src/m_rte.cc (iyRadioLink): Fixed two bugs associated with
+	dispersion.
+
 2012-08-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-223

@@ -1164,11 +1164,12 @@ void iyRadioLink(
   //===========================================================================
 
 
-  // Variables to handle dispersion
+  // Variables/operations to handle dispersion
   Index nloops, f_index; 
   Range fr(0,0);
   if( dispersion_do )
     { 
+      iy.resize( nf, stokes_dim );
       nloops  = nf; 
       nf      = 1;
     }  
@@ -1239,7 +1240,7 @@ void iyRadioLink(
           if( iy1.ncols() != stokes_dim  ||  iy1.nrows() != 1 )
             { throw runtime_error( "The size of *iy* returned from "
                                  "*iy_transmitter_agenda* is not correct." ); }
-              iy(f_index,joker) = iy1(0,joker);
+          iy(f_index,joker) = iy1(0,joker);
         }
       else
         { 
@@ -1271,8 +1272,8 @@ void iyRadioLink(
               if( dispersion_do )
                 {
                     Vector iy_temp = iy(f_index,joker);
-                    mult( iy(f_index,joker), 
-                          trans_partial(f_index,joker,joker,ip), iy_temp );
+                    mult( iy(f_index,joker), trans_partial(0,joker,joker,ip), 
+                                                                     iy_temp );
                 }
               else
                 {
