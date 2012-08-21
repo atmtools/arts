@@ -1,3 +1,16 @@
+2012-08-21  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-227
+
+	* src/m_atmosphere.cc (AtmFieldsCalc): remove zeropadding for
+	temperature profile (zeropadding still done for VMR and only VMR).
+
+	* src/methods.cc  (AtmFieldsCalc):
+	Documented zeropadding/extrapolation behaviour.
+
+	* src/absorption.h (CalculatePartitionFctRatio):
+	Improved error message (runtime error when partition function negative).
+
 2012-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-226

@@ -2122,7 +2122,7 @@ void define_md_data_raw()
       ( NAME( "AtmFieldsCalc" ),
         DESCRIPTION
         (
-         "Interpolation of raw atmospheric fields.\n"
+         "Interpolation of raw atmospheric T, z, and VMR fields to calculation grids.\n"
          "\n"
          "An atmospheric scenario includes the following data for each\n"
          "position (pressure, latitude, longitude) in the atmosphere:\n"
@@ -2130,8 +2130,15 @@ void define_md_data_raw()
          "   2. the corresponding altitude field\n"
          "   3. vmr fields for the gaseous species\n"
          "This method interpolates the fields of raw data (*t_field_raw*,\n"
-         "*z_field_raw*) which can be stored on arbitrary\n"
+         "*z_field_raw*, *vmr_field_raw*) which can be stored on arbitrary\n"
          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
+         "\n"
+         "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
+         "*GriddedFieldLatLonRegrid*. VMRs at *p_grid* levels exceeding the\n"
+         "raw VMR's pressure grid are set to 0 (using the *zeropadding* padding\n"
+         "option of *GriddedFieldPRegrid*). For all other data (T,z) and in other\n"
+         "dimensions (latitude, longitude) default 'half-grid-step' extrapolation\n"
+         "is allowed and applied.\n"
          "\n"
          "With parameter interp_order you can control the order of \n"
          "interpolation. The default is 1 (linear interpolation).\n"

@@ -276,8 +276,9 @@ public:
       {
         ostringstream os;
         os << "Partition function of "
-           << "Isotope = " << mname
-           << "is unknown.";
+           << "Isotope " << mname
+//           << " is unknown.";
+           << " at T=" << actual_temperature << "K is negative.";
         throw runtime_error(os.str());
       }
     return qcoeff_at_t_ref / qtemp;

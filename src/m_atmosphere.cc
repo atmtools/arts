@@ -1592,7 +1592,7 @@ void AtmFieldsCalc(//WS Output:
 
       GriddedField3 temp_gfield3;
 
-      GriddedFieldPRegrid(temp_gfield3, p_grid, t_field_raw, interp_order, 1, verbosity);
+      GriddedFieldPRegrid(temp_gfield3, p_grid, t_field_raw, interp_order, 0, verbosity);
       t_field = temp_gfield3.data;
 
       GriddedFieldPRegrid(temp_gfield3, p_grid, z_field_raw, interp_order, 0, verbosity);
