@@ -1,3 +1,22 @@
+2012-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-225
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts: A
+	version using iyCalc. All aux vars included. So far just used for
+	manual tests.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	Adopted and header slightly expanded.
+
+	* src/m_rte.cc (iyRadioLink): Dispersion functionality removed.
+	Added handling of pressure, temperature, VMR and absorption aux data.
+
+	* src/rte.cc (iyb_calc): Corrected error messagge around iy_aux.
+
+	* src/workspace.cc: Removed dispersion_do (the idea is to later add
+	dispersion in a general way (if possible?)).
+
 2012-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-224

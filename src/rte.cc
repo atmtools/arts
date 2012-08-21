@@ -1814,8 +1814,8 @@ void iyb_calc(
                   if( iy_aux_array[iang][q].ncols() > 1  ||  
                       iy_aux_array[iang][q].nrows() > 1 )
                     { throw runtime_error( "For calculations using yCalc, "
-                       "*iy_aux_vars* can not include varaibles of "
-                       "along-the-path variables or extinction matrix type."); }
+                       "*iy_aux_vars* can not include\nvariables of "
+                       "along-the-path or extinction matrix type."); }
                   if( iy_aux_vars[q] == "iy" || iy_aux_vars[q] == "Error" ||
                       iy_aux_vars[q] == "Error (uncorrelated)" )
                     { apply_y_unit( iy_aux_array[iang][q](joker,joker,0,0), 

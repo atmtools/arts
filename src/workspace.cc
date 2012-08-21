@@ -1141,25 +1141,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfTensor3" )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "dispersion_do" ),
-      DESCRIPTION
-      (
-       "Flag to consider dispersion.\n"
-       "\n"
-       "Inside ARTS, the general assumption is that all frequency components\n"
-       "share a common propagation path, i.e. no dispersion. If a WSM has\n"
-       "this variable as input, it is possible to override this assumption.\n"
-       "In that case a propagation path is calculated for each frequency\n"
-       "component. A correct treatment of dispersion requires further that\n"
-       "*refr_index_agenda* contains methods returning a frequency dependent\n"
-       "refractive index.\n"
-       "\n"
-       "Usage:   Set by the user..\n"
-       ),
-      GROUP( "Index" )));
-
  wsv_data.push_back
    (WsvRecord
     ( NAME( "doit_conv_flag" ),

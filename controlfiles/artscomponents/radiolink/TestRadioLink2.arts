@@ -1,10 +1,10 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration and test of a single radio link calculation, using yCalc.
+# Demonstration and test of a single radio link calculations, using iyCalc.
 #
-# The link between two satellites is simulated.
+# The link between a satellite and a surface point is simulated.
 #
-# 2012-08-20, Patrick Eriksson
+# 2012-08-21, Patrick Eriksson
 
 Arts2 {
 
@@ -74,6 +74,9 @@ AgendaSet( ppath_agenda ){
 
 # Radiative transfer agendas and variables
 #
+VectorSet( rte_los, [] )   # Dummy value
+IndexSet( mblock_index, -1 )   # Dummy value
+#
 AgendaSet( iy_transmitter_agenda ){
   Ignore( rte_pos )
   Ignore( rte_los )
@@ -85,62 +88,25 @@ AgendaSet( iy_main_agenda ){
 }
 
 
-# Calculations here done through yCalc as it is then easier to extract
-# auxiliary data. For this we need some additional and dummy settings, 
-# compared to use iyCalc.
-
-
-# Sensor/receiver and transmitter
+# Postion of sensor/receiver and transmitter
 #
-MatrixSet( sensor_pos, [ 600e3 ] )
-MatrixSet( sensor_los, [     0 ] )    # Dummy value
-VectorSet( rte_pos2, [ 600e3, 48.3 ] )
-#
-sensorOff
+VectorSet( rte_pos, [ 600e3 ] )
+VectorSet( rte_pos2, [ 0, 8.3 ] )
 
 
 # Auxilary variables
 #
-# Other aux variables either path of iy (total loss) or can not be obtained
-# through yCalc.
+ArrayOfStringSet( iy_aux_vars, [ 
+    "Pressure", "Temperature", "VMR, species 0", "Absorption, summed", 
+    "Absorption, species 1", "Free space loss", "Atmospheric loss",
+    "Defocusing loss", "Extra path delay", "Bending angle" ] )
+
+# Run and save
 #
-ArrayOfStringSet( iy_aux_vars, [ "Bending angle", "Extra path delay" ] )
+iyCalc
 
-
-
-# Expected results
-#
-VectorCreate( yREFERENCE )
-NumericCreate( bending_angleREFERENCE )
-NumericCreate( extra_pdREFERENCE )
-#
-VectorSet( yREFERENCE, [ 5.44894e-16, 5.27306e-16, 4.99902e-16 ] )
-NumericSet( bending_angleREFERENCE, 0.6921 )
-NumericSet( extra_pdREFERENCE, 636.838e-09 )
-
-
-# Calculate and check iy
-#
-yCalc
-#
-VectorCompare( y, yREFERENCE, 1e-18 )
-
-
-# Bending angle
-#
-VectorCreate( vdummy )
-NumericCreate( bending_angle )
-Extract( vdummy, y_aux, 0 )
-Extract( bending_angle, vdummy, 0 )
-NumericCompare( bending_angle, bending_angleREFERENCE, 1e-4 )
-
-
-# Extra path delay
-#
-NumericCreate( extra_pd )
-Extract( vdummy, y_aux, 1 )
-Extract( extra_pd, vdummy, 0 )
-NumericCompare( extra_pd, extra_pdREFERENCE, 1e-10 )
+WriteXML( "ascii", iy, "iy.xml" )
+WriteXML( "ascii", iy_aux, "iy_aux.xml" )
 
 }
  
