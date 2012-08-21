@@ -1,3 +1,17 @@
+2012-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-228
+
+	* src/rte.cc (get_ppath_partext): Started (not finished, not yet
+	used).
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Changed
+	function to operate on GridPos, instead of ArrayOfGridPos.
+
+	* src/physics_funcs.cc (barometric_heightformula): Moved the
+	function from cloudbox.cc. This function has hard-coded parameters
+	that also are defined in constants.cc. Should be fixed!
+
 2012-08-21  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-227

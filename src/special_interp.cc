@@ -271,12 +271,12 @@ Numeric interp_atmfield_by_gp(
 
 //! interp_cloudfield_gp2itw
 /*!
-    Converts atmospheric grid positions to weights for interpolation of a
+    Converts atmospheric a grid position to weights for interpolation of a
     field defined ONLY inside the cloudbox.
 
     That is, as interp_atmfield_gp2itw, but for cloudbox only variables.
 
-    The input grid positions shall be with respect to total grids. If grid
+    The input grid position shall be with respect to total grids. If grid
     positions already refer to grid parts inside the cloudbox, you can use 
     interp_atmfield_gp2itw.
 
@@ -284,13 +284,14 @@ Numeric interp_atmfield_by_gp(
     cloudbox field, and can be used for later calls of e.g.
     interp_atmfield_by_itw
 
-    \param   itw                Output: Interpolation weights.
-    \param   gp_p_out           Output: Pressure cloudbox grid positions.
-    \param   gp_lat_out         Output: Latitude cloudbox grid positions.
-    \param   gp_lon_out         Output: Longitude cloudbox grid positions.
-    \param   gp_p_in            Pressure grid positions.
-    \param   gp_lat_in          Latitude grid positions.
-    \param   gp_lon_in          Longitude grid positions.
+    \param   itw                Output: Interpolation weights. Vector must be 
+                                given correct size before call of function.
+    \param   gp_p_out           Output: Pressure cloudbox grid position.
+    \param   gp_lat_out         Output: Latitude cloudbox grid positionn.
+    \param   gp_lon_out         Output: Longitude cloudbox grid position.
+    \param   gp_p_in            Pressure grid position.
+    \param   gp_lat_in          Latitude grid position.
+    \param   gp_lon_in          Longitude grid position.
     \param   atmosphere_dim     As the WSV with the same name.
     \param   cloudbiox_limits   As the WSV with the same name.
 
@@ -298,74 +299,48 @@ Numeric interp_atmfield_by_gp(
     \date   2010-02-12
 */
 void interp_cloudfield_gp2itw( 
-              Matrix&           itw, 
-              ArrayOfGridPos&   gp_p_out,
-              ArrayOfGridPos&   gp_lat_out,
-              ArrayOfGridPos&   gp_lon_out,
-        const ArrayOfGridPos&   gp_p_in,
-        const ArrayOfGridPos&   gp_lat_in,
-        const ArrayOfGridPos&   gp_lon_in,
-        const Index&            atmosphere_dim,
-        const ArrayOfIndex&     cloudbox_limits )
+              VectorView      itw, 
+              GridPos&        gp_p_out,
+              GridPos&        gp_lat_out,
+              GridPos&        gp_lon_out,
+        const GridPos&        gp_p_in,
+        const GridPos&        gp_lat_in,
+        const GridPos&        gp_lon_in,
+        const Index&          atmosphere_dim,
+        const ArrayOfIndex&   cloudbox_limits )
 {
-  const Index n = gp_p_in.nelem();
-
   // Shift grid positions to cloud box grids
   if( atmosphere_dim == 1 )
     {
-      gp_p_out.resize(n);
-      for (Index i = 0; i < n; i++ ) 
-        { 
-          gridpos_copy( gp_p_out[i], gp_p_in[i] ); 
-          gp_p_out[i].idx -= cloudbox_limits[0]; 
-        }
-      const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
-      gridpos_upperend_check( gp_p_out, n1 );
-      //
-      itw.resize(n,2);
+      gridpos_copy( gp_p_out, gp_p_in ); 
+      gp_p_out.idx -= cloudbox_limits[0]; 
+      gridpos_upperend_check( gp_p_out, cloudbox_limits[1]-cloudbox_limits[0] );
+      assert(itw.nelem() == 2 );
       interpweights( itw, gp_p_out );
     }
   else if( atmosphere_dim == 2 )
     {
-      gp_p_out.resize(n);
-      gp_lat_out.resize(n);
-      for (Index i = 0; i < n; i++ ) 
-        { 
-          gridpos_copy( gp_p_out[i], gp_p_in[i] ); 
-          gridpos_copy( gp_lat_out[i], gp_lat_in[i] ); 
-          gp_p_out[i].idx   -= cloudbox_limits[0]; 
-          gp_lat_out[i].idx -= cloudbox_limits[2]; 
-        }
-      const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
-      const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
-      gridpos_upperend_check( gp_p_out,   n1 );
-      gridpos_upperend_check( gp_lat_out, n2 );
-      //
-      itw.resize(n,4);
+      gridpos_copy( gp_p_out, gp_p_in ); 
+      gridpos_copy( gp_lat_out, gp_lat_in ); 
+      gp_p_out.idx   -= cloudbox_limits[0]; 
+      gp_lat_out.idx -= cloudbox_limits[2]; 
+      gridpos_upperend_check( gp_p_out,  cloudbox_limits[1]-cloudbox_limits[0]);
+      gridpos_upperend_check( gp_lat_out,cloudbox_limits[3]-cloudbox_limits[2]);
+      assert(itw.nelem() == 4 );
       interpweights( itw, gp_p_out, gp_lat_out );
     }
   else 
     {
-      gp_p_out.resize(n);
-      gp_lat_out.resize(n);
-      gp_lon_out.resize(n);
-      for (Index i = 0; i < n; i++ ) 
-        { 
-          gridpos_copy( gp_p_out[i], gp_p_in[i] ); 
-          gridpos_copy( gp_lat_out[i], gp_lat_in[i] ); 
-          gridpos_copy( gp_lon_out[i], gp_lon_in[i] ); 
-          gp_p_out[i].idx   -= cloudbox_limits[0]; 
-          gp_lat_out[i].idx -= cloudbox_limits[2]; 
-          gp_lon_out[i].idx -= cloudbox_limits[4];
-        }
-      const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
-      const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
-      const Index n3 = cloudbox_limits[5] - cloudbox_limits[4];
-      gridpos_upperend_check( gp_p_out,   n1 );
-      gridpos_upperend_check( gp_lat_out, n2 );
-      gridpos_upperend_check( gp_lon_out, n3 );
-      //
-      itw.resize(n,8);
+      gridpos_copy( gp_p_out, gp_p_in ); 
+      gridpos_copy( gp_lat_out, gp_lat_in ); 
+      gridpos_copy( gp_lon_out, gp_lon_in ); 
+      gp_p_out.idx   -= cloudbox_limits[0]; 
+      gp_lat_out.idx -= cloudbox_limits[2]; 
+      gp_lon_out.idx -= cloudbox_limits[4];
+      gridpos_upperend_check( gp_p_out,  cloudbox_limits[1]-cloudbox_limits[0]);
+      gridpos_upperend_check( gp_lat_out,cloudbox_limits[3]-cloudbox_limits[2]);
+      gridpos_upperend_check( gp_lon_out,cloudbox_limits[5]-cloudbox_limits[4]);
+      assert(itw.nelem() == 8 );
       interpweights( itw, gp_p_out, gp_lat_out, gp_lon_out );
     }
 }

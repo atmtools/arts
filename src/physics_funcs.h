@@ -49,6 +49,9 @@
   === Functions in physics_funcs.h
   ===========================================================================*/
 
+Numeric barometric_heightformula (const Numeric& p,
+                                  const Numeric& dh);
+
 Numeric dinvplanckdI(
         const Numeric&  i,
         const Numeric&  f );

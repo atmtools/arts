@@ -200,6 +200,15 @@ void get_ppath_abs(
   const Index&          stokes_dim,
   const Index&          atmosphere_dim );
 
+void get_ppath_blackrad( 
+        Workspace&   ws,
+        Matrix&      ppath_blackrad,
+  const Agenda&      blackbody_radiation_agenda,
+  const Ppath&       ppath,
+  ConstVectorView    ppath_t, 
+  ConstVectorView    f_grid, 
+  const Index&       f_index );
+
 void get_ppath_trans( 
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
@@ -210,14 +219,12 @@ void get_ppath_trans(
   const Index&          f_index, 
   const Index&          stokes_dim );
 
-void get_ppath_blackrad( 
-        Workspace&   ws,
-        Matrix&      ppath_blackrad,
-  const Agenda&      blackbody_radiation_agenda,
-  const Ppath&       ppath,
-  ConstVectorView    ppath_t, 
-  ConstVectorView    f_grid, 
-  const Index&       f_index );
+void get_ppath_pnd( 
+        Matrix&         ppath_pnd, 
+  const Ppath&          ppath,
+  const Index&          atmosphere_dim,
+  const ArrayOfIndex&   cloudbox_limits,
+  ConstTensor4View      pnd_field );
 
 void get_ppath_cloudrtvars(
         Workspace&                     ws,
@@ -249,13 +256,6 @@ void get_ppath_cloudrtvars(
   const Index&                         atmosphere_dim,
   const Index&                         emission_do,
   const Verbosity&                     verbosity);
-
-void get_ppath_pnd( 
-        Matrix&         ppath_pnd, 
-  const Ppath&          ppath,
-  const Index&          atmosphere_dim,
-  const ArrayOfIndex&   cloudbox_limits,
-  ConstTensor4View      pnd_field );
 
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 

@@ -777,44 +777,6 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 }
 
 
-/*! barometric heightformula for isothermal earth atmosphere 
-    \return p1 pressure in displacement level [Pa]
-          
-    \param p atmospheric pressure at starting level [Pa]
-    \param dh vertical displacement to starting pressure level [m]
-    
-  
-  \author Daniel Kreyling
-  \date 2011-01-20
-*/
-Numeric barometric_heightformula ( //output is p1
-				   //input
-				   const Numeric& p, 
-				   const Numeric& dh
-				   )
-
-{
- /* taken from: Seite „Barometrische Höhenformel“. In: Wikipedia, 
- * Die freie Enzyklopädie. Bearbeitungsstand: 3. April 2011, 20:28 UTC.
- * URL: http://de.wikipedia.org/w/index.php?title=Barometrische_H%C3%B6henformel&oldid=87257486 
- * (Abgerufen: 15. April 2011, 15:41 UTC) 
- */
-
-  
-  //barometric height formula
-  Numeric M = 0.02896; //mean molar mass of air [kg mol^-1]
-  Numeric g = 9.807; //earth acceleration [kg m s^-1]
-  Numeric R = 8.314; //universal gas constant [J K^−1 mol^−1]
-  Numeric T = 253; //median tropospheric reference temperature [K]
-    
-  // calculation
-  Numeric p1 = p * exp(-(-dh)/(R*T/(M*g)));
-  
-  return p1;
-  
-}
-
-
 /*! Calculates the particle number density field for McFarquhar and Heymsfield
     (1997) size distribution. To be used for cloud ice.
 

@@ -93,10 +93,6 @@ bool is_inside_cloudbox (const Ppath& ppath_step,
                          const bool include_boundaries);
 
 
-Numeric barometric_heightformula (const Numeric& p,
-                                  const Numeric& dh);
-
-
 void pnd_fieldMH97 (Tensor4View pnd_field,
                     const Tensor3& IWC_field,
                     const Tensor3& t_field,
