@@ -1100,6 +1100,11 @@ void basics_checkedCalc(
     throw runtime_error( "For 1D, the second element of *refellispoid* (the "
                          "eccentricity) must be 0." );
 
+  // More for t_field.
+  if( min(t_field) <= 0 )
+    throw runtime_error( "All temperatures in *t_field* must be > 0." );
+
+
   // Check that z_field has strictly increasing pages.
   for( Index row=0; row<z_field.nrows(); row++ )
     {

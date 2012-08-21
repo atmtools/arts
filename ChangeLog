@@ -1,5 +1,13 @@
 2012-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-226
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Added check that all
+	temperatures > 0. A zero temperature not catced elsewhere. For
+	example, I got a segementation fault for MC!
+
+2012-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-225
 
 	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts: A
@@ -190,7 +198,6 @@
 
 	* src/absorption.cc (xsec_species): Remove redundant parameter nfls.
 
->>>>>>> .r7773
 2012-08-15  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-212
