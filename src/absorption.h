@@ -415,7 +415,9 @@ private:
     i.e., it does not contain the isotope ratio. This is similar to
     JPL, but different to HITRAN.
 
-    The line format is:
+    Currently, ARTS is capable of handling ARTSCAT versions 3 and 4. Different
+    versions can be handled simultaneously.
+    The line format of ARTSCAT-3 (for ARTSCAT-4 see further below) is:
 
     \verbatim
     Col  Variable                Label    Unit     Comment
@@ -449,7 +451,7 @@ private:
 
     For the error fields (15-21), a -1 means that no value exist.
 
-    A valid ARTS line file would be:
+    A valid ARTS (CAT-3) line file would be:
     \verbatim
     <?xml version="1.0"?>
     <arts format="ascii" version="1">
@@ -468,6 +470,54 @@ private:
     other species, e.g., methane, may need more coefficients. The
     default for \c N_AUX is zero. In that case, no further
     \c AUX fields are present. [FIXME: Check Oxygen.]
+
+    The line format of ARTSCAT-4 is:
+
+    \verbatim
+    Col  Variable                    Label        Unit    Comment
+    ------------------------------------------------------------------      
+    00   `@'                         ENTRY        -       marks start of entry
+    01   species\&isotope tag        NAME         -       e.g. O3-666
+    02   center frequency            F            Hz      e.g. 501.12345e9 
+    03   line intensity              I0           Hz*m^2  per isotope, not per species
+    04   reference temp. for I0      T_I0         K
+    05   lower state energy          ELOW         J   
+    06   Einstein A-coefficient      A            1/s     where available from HITRAN 
+    07   Upper state stat. weight    G_upper      -       where available from HITRAN 
+    08   Lower state stat. weight    G_lower      -       where available from HITRAN 
+
+    09   broadening parameter self   GAMMA_self   Hz/Pa   GAM have values around 20000 Hz/Pa
+    10   broadening parameter N2     GAMMA_N2     Hz/Pa
+    11   broadening parameter O2     GAMMA_O2     Hz/Pa
+    12   broadening parameter H2O    GAMMA_H2O    Hz/Pa
+    13   broadening parameter CO2    GAMMA_CO2    Hz/Pa
+    14   broadening parameter H2     GAMMA_H2     Hz/Pa
+    15   broadening parameter He     GAMMA_He     Hz/Pa
+
+    16   GAM temp. exponent self     N_self       -       N have values around .5
+    17   GAM temp. exponent N2       N_N2         -       
+    18   GAM temp. exponent O2       N_O2         -       
+    19   GAM temp. exponent H2O      N_H2O        -       
+    20   GAM temp. exponent CO2      N_CO2        -       
+    21   GAM temp. exponent H2       N_H2         -       
+    22   GAM temp. exponent He       N_He         -       
+
+    23   F pressure shift N2         DELTA_N2     Hz/Pa   DELTA have values around 0 Hz/Pa
+    24   F pressure shift O2         DELTA_O2     Hz/Pa    
+    25   F pressure shift H2O        DELTA_H2O    Hz/Pa    
+    26   F pressure shift CO2        DELTA_CO2    Hz/Pa    
+    27   F pressure shift H2         DELTA_H2     Hz/Pa    
+    28   F pressure shift He         DELTA_He     Hz/Pa    
+
+    29   Vibrational and rotational  VRA          -       contains (coded) quantum numbers.
+         assignments                                     
+------------------------------------------------------------------      
+\endverbatim
+
+    Parameters 0-28 must be present.
+    Coding conventions of parameter 29 are species specific. The definition is
+    given in arts-xml-data/spectroscopy/perrin/ARTSCAT-4_Col29_Conventions.txt.
+
 
     The names of the private members and public access functions of
     this data structure follow the above table. The only difference is

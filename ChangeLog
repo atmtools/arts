@@ -1,3 +1,9 @@
+2012-08-23  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-229
+
+	* src/absorption.h (LineRecord): Added info on ARTSCAT-4 format.
+
 2012-08-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-228
