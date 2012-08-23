@@ -1,8 +1,5 @@
 # Right now used more for notes, than TODO
 
-2012-03-23, Patrick
-Are rte_gp_XXX really needed?
-
 2012-02-21, Patrick
 Add sinefit weighting functions.
 
@@ -12,11 +9,6 @@ Fix bug for mc_antenna (azimuth distance varies with za)
 2012-02-20, Patrick
 Regarding Doppler: Update AUG Information in methods.cc correct?
 Add Doppler shift also to emission/Planck?
-
-2012-02-08, Patrick 
-Revise surface tilt and calculation of specular direction,
-and inside get_iy_of_background. In the later case, also make use of other
-version of plevel_slope_3d and remove this version used now.
 
 2012-02-08, Patrick
 Revise usage of sensor_response_agenda, and resolve yCalc/yCalc2.
@@ -31,6 +23,4 @@ As far as I understand, DOIT assumes that emission is always given
 as W/m3/Hz/sr. The question is then if DOIT shall use emission_agenda, as there
 is no flexibility in selecting the source term.
 
-2011-07-15, Patrick
-Maybe MC and DOIT could use some of the more general functions developed for
-FOS and BL-scat. For example, mirror_los should be of general interest.
+
