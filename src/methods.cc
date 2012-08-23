@@ -2795,11 +2795,15 @@ void define_md_data_raw()
          "Deactivates the cloud box.\n"
          "\n"
          "Use this method if no scattering calculations shall be performed.\n"
-         "The function sets *cloudbox_on* to 0, *cloudbox_limits* to be an\n"
-         "empty vector and *iy_cloudbox_agenda* to an empty agenda.\n"
+         "\n"
+         "The function sets *cloudbox_on* to 0, *cloudbox_limits*,\n"
+         "*pnd_field* and *scat_data_raw and *iy_cloudbox_agenda* to be\n"
+         "empty and *use_mean_scat_data* to -999.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
+        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda",
+             "pnd_field", "use_mean_scat_data", "scat_data_raw"
+           ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -4850,6 +4854,8 @@ void define_md_data_raw()
          "  \"Absorption, species X\": The absorption matrix along the path\n"
          "     for an individual species (X works as for VMR).\n"
          "     Size: [nf,ns,ns,np].\n"
+         "  \"Particle extinction, summed\": The total particle extinction\n"
+         "       matrix along the path. Size: [nf,ns,ns,np].\n"
          "* \"Radiative background\": Index value flagging the radiative\n"
          "     background. The following coding is used: 0=space, 1=surface\n"
          "     and 2=cloudbox. Size: [nf,1,1,1].\n"
@@ -4881,11 +4887,12 @@ void define_md_data_raw()
             "t_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "edensity_field",
-            "cloudbox_on", "cloudbox_limits", "iy_aux_vars", 
-            "jacobian_do", "jacobian_quantities", "jacobian_indices", 
-            "ppath_agenda", "abs_mat_per_species_agenda", "iy_transmitter_agenda",
-            "iy_agenda_call1", "iy_transmission", "mblock_index", 
-            "rte_pos", "rte_los" ),
+            "cloudbox_on", "cloudbox_limits", "pnd_field", 
+            "use_mean_scat_data", "scat_data_raw",
+            "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
+            "jacobian_indices", "ppath_agenda", "abs_mat_per_species_agenda",
+            "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
+            "mblock_index", "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

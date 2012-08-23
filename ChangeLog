@@ -1,3 +1,36 @@
+2012-08-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-230
+
+	* New version of transmission WSM appears ready. The approach has
+	been changed. Treatment of cloudbox built-in. This should be more
+	efficient calculation-wise, and also makes the iy_aux feature more
+	useful (as data for the complete path through the atmosphere are
+	returned).
+
+	* src/m_rte.cc (iyTransmissionStandard): The method handles now
+	also paths going through the cloudbox. Added particle extinction
+	as aux var.
+
+	(iyTransmissionStandardCloudbox): Code has been inactive. Now
+	completely removed.
+
+	* src/cloudbox.cc (is_gp_inside_cloudbox): atmosphere_dim is now
+	an input argument. Default is 3, as previously assumed by the
+	function.
+
+	(is_inside_cloudbox): Also this function assumes 3D (without any
+	warning). Added comment in header and assert to warn about this.
+
+	* src/m_cloudbox.cc (cloudboxOff): The method now also "touches"
+	pnd_field, use_mean_scat_data and scat_data_raw (to handle all
+	cloud variables that can be input to a iy_main_agenda-method).
+
+	* src/rte.cc (get_ppath_trans2): New.
+
+	* src/rte.cc (get_ppath_pnd, get_ppath_cloudrtvars): Both
+	functions replaced by other methods. Removed.
+
 2012-08-23  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-229

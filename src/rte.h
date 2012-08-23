@@ -209,6 +209,22 @@ void get_ppath_blackrad(
   ConstVectorView    f_grid, 
   const Index&       f_index );
 
+void get_ppath_ext( 
+        ArrayOfIndex&                  clear2cloudbox,
+        Tensor3&                       pnd_abs_vec, 
+        Tensor4&                       pnd_ext_mat, 
+  Array<ArrayOfSingleScatteringData>&  scat_data,
+  const Ppath&                         ppath,
+  ConstVectorView                      ppath_t, 
+  const Index&                         stokes_dim,
+  ConstVectorView                      f_grid, 
+  const Index&                         atmosphere_dim,
+  const ArrayOfIndex&                  cloudbox_limits,
+  const Tensor4&                       pnd_field,
+  const Index&                         use_mean_scat_data,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Verbosity&                     verbosity );
+
 void get_ppath_trans( 
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
@@ -219,43 +235,17 @@ void get_ppath_trans(
   const Index&          f_index, 
   const Index&          stokes_dim );
 
-void get_ppath_pnd( 
-        Matrix&         ppath_pnd, 
+void get_ppath_trans2( 
+        Tensor4&        trans_partial,
+        Tensor4&        trans_cumulat,
+        Vector&         scalar_tau,
   const Ppath&          ppath,
-  const Index&          atmosphere_dim,
-  const ArrayOfIndex&   cloudbox_limits,
-  ConstTensor4View      pnd_field );
-
-void get_ppath_cloudrtvars(
-        Workspace&                     ws,
-        Tensor3&                       ppath_asp_abs_vec,
-        Tensor4&                       ppath_asp_ext_mat,
-        Tensor3&                       ppath_pnd_abs_vec,
-        Tensor4&                       ppath_pnd_ext_mat,
-        Tensor4&                       ppath_transmission,
-        Tensor3&                       total_transmission,
-        Matrix&                        ppath_emission,
-  Array<ArrayOfSingleScatteringData>&  scat_data,
-  const Agenda&                        abs_mat_per_species_agenda,
-  const Agenda&                        blackbody_radiation_agenda,
-  const Ppath&                         ppath,
-  ConstVectorView                      ppath_p,
-  ConstVectorView                      ppath_t,
-  ConstMatrixView                      ppath_vmr,
-  ConstVectorView                      ppath_wind_u,
-  ConstVectorView                      ppath_wind_v,
-  ConstVectorView                      ppath_wind_w,
-  ConstVectorView                      ppath_mag_u,
-  ConstVectorView                      ppath_mag_v,
-  ConstVectorView                      ppath_mag_w,
-  ConstMatrixView                      ppath_pnd,
-  const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Index&                         stokes_dim,
-  ConstVectorView                      f_grid,
-  const Index&                         atmosphere_dim,
-  const Index&                         emission_do,
-  const Verbosity&                     verbosity);
+  ConstTensor5View&     ppath_abs,
+  ConstVectorView       f_grid, 
+  const Index&          f_index, 
+  const Index&          stokes_dim,
+  const ArrayOfIndex&   clear2cloudbox,
+  ConstTensor4View      pnd_ext_mat );
 
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 

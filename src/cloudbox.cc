@@ -689,68 +689,76 @@ void chk_single_scattering_data(const SingleScatteringData& scat_data_raw,
   \date 2003-06-06
 
 */
-bool is_gp_inside_cloudbox(const GridPos& gp_p,
-                           const GridPos& gp_lat,
-                           const GridPos& gp_lon,
-                           const ArrayOfIndex& cloudbox_limits,
-                           const bool include_boundaries)
+bool is_gp_inside_cloudbox(
+   const GridPos&      gp_p,
+   const GridPos&      gp_lat,
+   const GridPos&      gp_lon,
+   const ArrayOfIndex& cloudbox_limits,
+   const bool&         include_boundaries,
+   const Index&        atmosphere_dim )
                         
 {
-  bool result=true;
-  // Pressure dimension
-  double ipos = fractional_gp( gp_p );
-  if (include_boundaries){
-    if( ipos < double( cloudbox_limits[0] )  ||
-        ipos > double( cloudbox_limits[1] ) )
-      { result=false; }
+  if (include_boundaries)
+    {
+      // Pressure dimension
+      double ipos = fractional_gp( gp_p );
+      if( ipos < double( cloudbox_limits[0] )  ||
+          ipos > double( cloudbox_limits[1] ) )
+        { return false; }
     
-    else {
-      // Latitude dimension
-      ipos = fractional_gp( gp_lat );
-      if( ipos < double( cloudbox_limits[2] )  || 
-          ipos > double( cloudbox_limits[3] ) )
-        { result=false; }
-      
-      else
+      else if( atmosphere_dim >= 2 )
         {
-          // Longitude dimension
-          ipos = fractional_gp( gp_lon );
-          if( ipos < double( cloudbox_limits[4] )  || 
-              ipos > double( cloudbox_limits[5] ) )
-            { result=false; } 
+          // Latitude dimension
+          ipos = fractional_gp( gp_lat );
+          if( ipos < double( cloudbox_limits[2] )  || 
+              ipos > double( cloudbox_limits[3] ) )
+            { return false; }
+      
+          else if( atmosphere_dim == 3 )
+            {
+              // Longitude dimension
+              ipos = fractional_gp( gp_lon );
+              if( ipos < double( cloudbox_limits[4] )  || 
+                  ipos > double( cloudbox_limits[5] ) )
+                { return false; } 
+            } 
         }
+      return true;
     }
-  }
   else
     {
+      // Pressure dimension
+      double ipos = fractional_gp( gp_p );
       if( ipos <= double( cloudbox_limits[0] )  ||
           ipos >= double( cloudbox_limits[1] ) )
-        { result=false; }
+        { return false; }
       
-      else {
-        // Latitude dimension
-        ipos = fractional_gp( gp_lat );
-        if( ipos <= double( cloudbox_limits[2] )  || 
-            ipos >= double( cloudbox_limits[3] ) )
-          { result=false; }
+      else if( atmosphere_dim >= 2 )
+        {
+          // Latitude dimension
+          ipos = fractional_gp( gp_lat );
+          if( ipos <= double( cloudbox_limits[2] )  || 
+              ipos >= double( cloudbox_limits[3] ) )
+            { return false; }
         
-        else
-          {
-            // Longitude dimension
-            ipos = fractional_gp( gp_lon );
-            if( ipos <= double( cloudbox_limits[4] )  || 
-                ipos >= double( cloudbox_limits[5] ) )
-              { result=false; }           
-          }
-      }
+          else if( atmosphere_dim == 3 )
+            {
+              // Longitude dimension
+              ipos = fractional_gp( gp_lon );
+              if( ipos <= double( cloudbox_limits[4] )  || 
+                  ipos >= double( cloudbox_limits[5] ) )
+                { return false; }           
+            }
+        }
+      return true;
     }
-  return result;
-  
 }
 
 
 /*! Checks, whether the last point of a propagation path 
   is inside the cloudbox.
+
+  Works only for 3D !!!
 
     \return true is returned if the point is inside the 
           cloudbox.
@@ -769,6 +777,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
                         const bool include_boundaries)
                         
 {
+  assert( cloudbox_limits.nelem() == 6 );
   const Index np=ppath_step.np;
   
   return is_gp_inside_cloudbox(ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],

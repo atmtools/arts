@@ -1291,6 +1291,154 @@ void get_ppath_blackrad(
 
 
 
+//! get_ppath_ext
+/*!
+    Determines the particle extinction along a propagation path.
+
+    Note that the extinction for all particle types is summed.
+
+    \param   ws                  Out: The workspace
+    \param   clear2cloudbox      Out: Mapping of index. See code for details. 
+    \param   pnd_abs_vec         Out: Absorption vectors for particles
+    \param   pnd_ext_vec         Out: Extinction matrices for particles
+    \param   scat_data           Out: Extracted scattering data. Length of
+                                      array affected by *use_mean_scat_data*.
+    \param   ppath               As the WSV.    
+    \param   ppath_t             Temperature for each ppath point.
+    \param   stokes_dim          As the WSV.    
+    \param   f_grid              As the WSV.    
+    \param   cloubox_limits      As the WSV.    
+    \param   pnd_field           As the WSV.    
+    \param   use_mean_scat_data  As the WSV.    
+    \param   scat_data_raw       As the WSV.    
+
+    \author Patrick Eriksson 
+    \date   2012-08-23
+*/
+void get_ppath_ext( 
+        ArrayOfIndex&                  clear2cloudbox,
+        Tensor3&                       pnd_abs_vec, 
+        Tensor4&                       pnd_ext_mat, 
+  Array<ArrayOfSingleScatteringData>&  scat_data,
+  const Ppath&                         ppath,
+  ConstVectorView                      ppath_t, 
+  const Index&                         stokes_dim,
+  ConstVectorView                      f_grid, 
+  const Index&                         atmosphere_dim,
+  const ArrayOfIndex&                  cloudbox_limits,
+  const Tensor4&                       pnd_field,
+  const Index&                         use_mean_scat_data,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Verbosity&                     verbosity )
+{
+  const Index nf = f_grid.nelem();
+  const Index np = ppath.np;
+
+  // Create variable for pnd along the ppath
+  Matrix ppath_pnd( pnd_field.nbooks(), np, 0 );
+
+  // A variable that maps from total ppath to extension data index.
+  // If outside cloudbox or all pnd=0, this variable holds -1.
+  // Otherwise it gives the index in pnd_ext_mat etc.
+  clear2cloudbox.resize( np );
+
+  // Determine ppath_pnd
+  Index nin = 0;
+  for( Index ip=0; ip<np; ip++ )
+    {
+      Matrix itw( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
+
+      ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
+      GridPos gp_lat, gp_lon;
+      if( atmosphere_dim >= 2 ) { gridpos_copy( gp_lat, ppath.gp_lat[ip] ); } 
+      if( atmosphere_dim == 3 ) { gridpos_copy( gp_lon, ppath.gp_lon[ip] ); }
+      if( is_gp_inside_cloudbox( ppath.gp_p[ip], gp_lat, gp_lon, 
+                                 cloudbox_limits, true, atmosphere_dim ) )
+        { 
+          interp_cloudfield_gp2itw( itw(0,joker), 
+                                    gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                                    ppath.gp_p[ip], gp_lat, gp_lon,
+                                    atmosphere_dim, cloudbox_limits );
+          for( Index i=0; i<pnd_field.nbooks(); i++ )
+            {
+              interp_atmfield_by_itw( ppath_pnd(i,ip), atmosphere_dim,
+                                      pnd_field(i,joker,joker,joker), 
+                                      gpc_p, gpc_lat, gpc_lon, itw );
+            }
+          if( max(ppath_pnd(joker,ip)) > 0 )
+            { clear2cloudbox[ip] = nin;   nin++; }
+          else
+            { clear2cloudbox[ip] = -1; }
+        }
+      else
+        { clear2cloudbox[ip] = -1; }
+    }
+
+  // Particle single scattering properties (are independent of position)
+  //
+  if( use_mean_scat_data )
+    {
+      const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
+      scat_data.resize( 1 );
+      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f0), 0, 
+                          verbosity );
+    }
+  else
+    {
+      scat_data.resize( nf );
+      for( Index iv=0; iv<nf; iv++ )
+        { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv, 
+                              verbosity ); 
+        }
+    }
+
+  // Resize absorption and extension tensors
+  pnd_abs_vec.resize( nf, stokes_dim, nin ); 
+  pnd_ext_mat.resize( nf, stokes_dim, stokes_dim, nin ); 
+
+  // Loop ppath points
+  //
+  for( Index ip=0; ip<np; ip++ )
+    {
+      const Index i = clear2cloudbox[ip];
+      if( i>=0 )
+        {
+          // Direction of outgoing scattered radiation (which is reversed to
+          // LOS). Note that rte_los2 is only used for extracting scattering
+          // properties.
+          Vector rte_los2;
+          mirror_los( rte_los2, ppath.los(ip,joker), atmosphere_dim );
+
+          // Extinction and absorption
+          if( use_mean_scat_data )
+            {
+              Vector   abs_vec( stokes_dim );
+              Matrix   ext_mat( stokes_dim, stokes_dim );
+              opt_propCalc( ext_mat, abs_vec, rte_los2[0], rte_los2[1], 
+                            scat_data[0], stokes_dim, ppath_pnd(joker,ip), 
+                            ppath_t[ip], verbosity);
+              for( Index iv=0; iv<nf; iv++ )
+                { 
+                  pnd_ext_mat(iv,joker,joker,i) = ext_mat;
+                  pnd_abs_vec(iv,joker,i)       = abs_vec;
+                }
+            }
+          else
+            {
+              for( Index iv=0; iv<nf; iv++ )
+                { 
+                  opt_propCalc( pnd_ext_mat(iv,joker,joker,i), 
+                                pnd_abs_vec(iv,joker,i), rte_los2[0], 
+                                rte_los2[1], scat_data[iv], stokes_dim,
+                                ppath_pnd(joker,ip), ppath_t[ip], verbosity );
+                }
+            }
+        }
+    }
+}
+
+
+
 //! get_ppath_trans
 /*!
     Determines the transmission in different ways for a clear-sky RT
@@ -1393,439 +1541,112 @@ void get_ppath_trans(
 
 
 
-//! get_ppath_partext
+//! get_ppath_trans2
 /*!
-    Determines the particle extinction along a propagation path
+    Determines the transmission in different ways for a cloudy RT integration.
 
-    See code for details about dimensions etc.
+    This function works as get_ppath_trans, but considers also particle
+    extinction. See get_ppath_trans for format of output data.
 
-    \param   ws                  Out: The workspace
-    \param   ppath_asp_abs_vec   Out: Absorption vectors for absorption species
-    \param   ppath_asp_ext_vec   Out: Extinction matrices for absorption species
-    \param   ppath_pnd_abs_vec   Out: Absorption vectors for particles
-    \param   ppath_pnd_ext_vec   Out: Extinction matrices for particles
-    \param   ppath_transmission  Out: Transmissions of each ppath step 
-    \param   total_transmission  Out: Total transmission of path
-    \param   ppath_emission      Out: Emission source term at each ppath point 
-    \param   scat_data           Out: Extracted scattering data. Length of
-                                      array affected by *use_mean_scat_data*.
-    \param   abs_mat_per_species_agenda As the WSV.
-    \param   blackbody_radiation_agenda     As the WSV
-    \param   ppath_p             Pressure for each ppath point.
-    \param   ppath_t             Temperature for each ppath point.
-    \param   ppath_vmr           VMR values for each ppath point.
-    \param   ppath_wind_u        U-wind for each ppath point.
-    \param   ppath_wind_v        V-wind for each ppath point.
-    \param   ppath_wind_w        W-wind for each ppath point.
-    \param   ppath_wind_u        U-mag for each ppath point.
-    \param   ppath_wind_v        V-mag for each ppath point.
-    \param   ppath_wind_w        W-mag for each ppath point.
-    \param   ppath_pnd           Particle number densities for each ppath point.
-    \param   use_mean_scat_data  As the WSV.    
-    \param   scat_data_raw       As the WSV.    
-    \param   stokes_dim          As the WSV.    
-    \param   f_grid              As the WSV.    
-    \param   atmosphere_dim      As the WSV.    
-    \param   emission_do         Flag for calculation of emission. Should be
-                                 set to 0 for pure transmission calculations.
+    \param   trans_partial    Out: Transmission for each path step.
+    \param   trans_cumulat    Out: Transmission to each path point.
+    \param   scalar_tau       Out: Total (scalar) optical thickness of path
+    \param   ppath            As the WSV.    
+    \param   ppath_abs        See get_ppath_abs.
+    \param   f_grid           As the WSV.    
+    \param   f_index          As the WSV.
+    \param   stokes_dim       As the WSV.
+    \param   clear2cloudbox   See get_ppath_ext.
+    \param   pnd_ext_mat      See get_ppath_ext.
 
     \author Patrick Eriksson 
-    \date   2011-07-14
+    \date   2012-08-23
 */
-void get_ppath_partext( 
-        ArrayOfIndex&                  clear2cloudbox,
-        Tensor3&                       pnd_abs_vec, 
-        Tensor4&                       pnd_ext_mat, 
-  Array<ArrayOfSingleScatteringData>&  scat_data,
-  const Ppath&                         ppath,
-  ConstVectorView                      ppath_t, 
-  const Index&                         stokes_dim,
-  ConstVectorView                      f_grid, 
-  const Index&                         atmosphere_dim,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Tensor4&                       pnd_field,
-  const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Verbosity&                     verbosity )
-{
-  const Index nf = f_grid.nelem();
-  const Index np = ppath.np;
-
-  // Create variable for pnd along the ppath
-  Matrix ppath_pnd( pnd_field.nbooks(), np, 0 );
-
-  // A variable that maps from total ppath to extension data index.
-  // If outside cloudbox or all pnd=0, this variable holds -1.
-  // Otherwise it gives the index in pnd_ext_mat etc.
-  clear2cloudbox.resize( np );
-
-  // Determine ppath_pnd
-  Index nin = 0;
-  for( Index ip=0; ip<np; ip++ )
-    {
-      Matrix itw( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
-      ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
-      if( is_gp_inside_cloudbox( ppath.gp_p[ip], ppath.gp_lat[ip], 
-                                 ppath.gp_lon[ip], cloudbox_limits, false ) )
-        { 
-          interp_cloudfield_gp2itw( itw(0,joker), gpc_p[0], gpc_lat[0], 
-                                    gpc_lon[0], ppath.gp_p[ip], 
-                                    ppath.gp_lat[ip], ppath.gp_lon[ip], 
-                                    atmosphere_dim, cloudbox_limits );
-          for( Index i=0; i<pnd_field.nbooks(); i++ )
-            {
-              interp_atmfield_by_itw( ppath_pnd(i,ip), atmosphere_dim,
-                                      pnd_field(i,joker,joker,joker), 
-                                      gpc_p, gpc_lat, gpc_lon, itw );
-            }
-          if( max(ppath_pnd(joker,ip)) > 0 )
-            { clear2cloudbox[ip] = nin;   nin++; }
-          else
-            { clear2cloudbox[ip] = -1; }
-        }
-      else
-        { clear2cloudbox[ip] = -1; }
-    }
-
-  // Particle single scattering properties (are independent of position)
-  //
-  if( use_mean_scat_data )
-    {
-      const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
-      scat_data.resize( 1 );
-      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f0), 0, 
-                          verbosity );
-    }
-  else
-    {
-      scat_data.resize( nf );
-      for( Index iv=0; iv<nf; iv++ )
-        { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv, 
-                              verbosity ); 
-        }
-    }
-
-  // Resize absorption and extension tensors
-  pnd_abs_vec.resize( nf, stokes_dim, nin ); 
-  pnd_ext_mat.resize( nf, stokes_dim, stokes_dim, nin ); 
-
-  // Loop ppath points
-  //
-  for( Index ip=0; ip<np; ip++ )
-    {
-      const Index i = clear2cloudbox[ip];
-      if( i>=0 )
-        {
-          // Direction of outgoing scattered radiation (which is reversed to
-          // LOS). Note that rte_los2 is only used for extracting scattering
-          // properties.
-          Vector rte_los2;
-          mirror_los( rte_los2, ppath.los(ip,joker), atmosphere_dim );
-
-          // Extinction and absorption
-          if( use_mean_scat_data )
-            {
-              Vector   abs_vec( stokes_dim );
-              Matrix   ext_mat( stokes_dim, stokes_dim );
-              opt_propCalc( ext_mat, abs_vec, rte_los2[0], rte_los2[1], 
-                            scat_data[0], stokes_dim, ppath_pnd(joker,ip), 
-                            ppath_t[ip], verbosity);
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  pnd_ext_mat(iv,joker,joker,i) = ext_mat;
-                  pnd_abs_vec(iv,joker,i)       = abs_vec;
-                }
-            }
-          else
-            {
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  opt_propCalc( pnd_ext_mat(iv,joker,joker,i), 
-                                pnd_abs_vec(iv,joker,i), rte_los2[0], 
-                                rte_los2[1], scat_data[iv], stokes_dim,
-                                ppath_pnd(joker,ip), ppath_t[ip], verbosity );
-                }
-            }
-        }
-    }
-}
-
-
-
-//! get_ppath_pnd
-/*!
-    Determines particle number densities for each propgataion path
-    point.
-
-    The output variable is sized inside the function as
-    [ particle type, propagation path point ].
-
-    \param   ppath_pnd         Out: PND for each ppath point.
-    \param   ppath             As the WSV.
-    \param   atmosphere_dim    As the WSV.
-    \param   pnd_field         As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2011-07-14
-*/
-void get_ppath_pnd( 
-        Matrix&         ppath_pnd, 
+void get_ppath_trans2( 
+        Tensor4&        trans_partial,
+        Tensor4&        trans_cumulat,
+        Vector&         scalar_tau,
   const Ppath&          ppath,
-  const Index&          atmosphere_dim,
-  const ArrayOfIndex&   cloudbox_limits,
-  ConstTensor4View      pnd_field )
-{
-  const Index np = ppath.np;
-  ppath_pnd.resize( pnd_field.nbooks(), np );
-
-  Matrix           itw_field( np, Index(pow(2.0,Numeric(atmosphere_dim))) );
-  ArrayOfGridPos   gpc_p(np), gpc_lat(np), gpc_lon(np);
-  //
-  for( Index i=0; i<np; i++ )
-    {
-      interp_cloudfield_gp2itw( itw_field(i,joker), 
-                                gpc_p[i], gpc_lat[i], gpc_lon[i], 
-                                ppath.gp_p[i], ppath.gp_lat[i], ppath.gp_lon[i],
-                                atmosphere_dim, cloudbox_limits );
-    }
-  for( Index ip=0; ip<pnd_field.nbooks(); ip++ )
-    {
-      interp_atmfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
-                              pnd_field(ip,joker,joker,joker), 
-                              gpc_p, gpc_lat, gpc_lon, itw_field );
-    }
-}
-
-
-
-//! get_ppath_cloudrtvars
-/*!
-    Determines variables for each step of "standard" RT integration
-
-    See code for details about dimensions etc.
-
-    \param   ws                  Out: The workspace
-    \param   ppath_asp_abs_vec   Out: Absorption vectors for absorption species
-    \param   ppath_asp_ext_vec   Out: Extinction matrices for absorption species
-    \param   ppath_pnd_abs_vec   Out: Absorption vectors for particles
-    \param   ppath_pnd_ext_vec   Out: Extinction matrices for particles
-    \param   ppath_transmission  Out: Transmissions of each ppath step 
-    \param   total_transmission  Out: Total transmission of path
-    \param   ppath_emission      Out: Emission source term at each ppath point 
-    \param   scat_data           Out: Extracted scattering data. Length of
-                                      array affected by *use_mean_scat_data*.
-    \param   abs_mat_per_species_agenda As the WSV.
-    \param   blackbody_radiation_agenda     As the WSV
-    \param   ppath_p             Pressure for each ppath point.
-    \param   ppath_t             Temperature for each ppath point.
-    \param   ppath_vmr           VMR values for each ppath point.
-    \param   ppath_wind_u        U-wind for each ppath point.
-    \param   ppath_wind_v        V-wind for each ppath point.
-    \param   ppath_wind_w        W-wind for each ppath point.
-    \param   ppath_wind_u        U-mag for each ppath point.
-    \param   ppath_wind_v        V-mag for each ppath point.
-    \param   ppath_wind_w        W-mag for each ppath point.
-    \param   ppath_pnd           Particle number densities for each ppath point.
-    \param   use_mean_scat_data  As the WSV.    
-    \param   scat_data_raw       As the WSV.    
-    \param   stokes_dim          As the WSV.    
-    \param   f_grid              As the WSV.    
-    \param   atmosphere_dim      As the WSV.    
-    \param   emission_do         Flag for calculation of emission. Should be
-                                 set to 0 for pure transmission calculations.
-
-    \author Patrick Eriksson 
-    \date   2011-07-14
-*/
-void get_ppath_cloudrtvars( 
-        Workspace&                     ws,
-        Tensor3&                       ppath_asp_abs_vec, 
-        Tensor4&                       ppath_asp_ext_mat, 
-        Tensor3&                       ppath_pnd_abs_vec, 
-        Tensor4&                       ppath_pnd_ext_mat, 
-        Tensor4&                       ppath_transmission,
-        Tensor3&                       total_transmission,
-        Matrix&                        ppath_emission, 
-  Array<ArrayOfSingleScatteringData>&  scat_data,
-  const Agenda&                        abs_mat_per_species_agenda,
-  const Agenda&                        blackbody_radiation_agenda,
-  const Ppath&                         ppath,
-  ConstVectorView                      ppath_p, 
-  ConstVectorView                      ppath_t, 
-  ConstMatrixView                      ppath_vmr, 
-  ConstVectorView                      ppath_wind_u, 
-  ConstVectorView                      ppath_wind_v, 
-  ConstVectorView                      ppath_wind_w,
-  ConstVectorView                      ppath_mag_u,
-  ConstVectorView                      ppath_mag_v,
-  ConstVectorView                      ppath_mag_w,
-  ConstMatrixView                      ppath_pnd, 
-  const Index&                         use_mean_scat_data,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Index&                         stokes_dim,
-  ConstVectorView                      f_grid, 
-  const Index&                         atmosphere_dim,
-  const Index&                         emission_do,
-  const Verbosity&                     verbosity)
+  ConstTensor5View&     ppath_abs,
+  ConstVectorView       f_grid, 
+  const Index&          f_index, 
+  const Index&          stokes_dim,
+  const ArrayOfIndex&   clear2cloudbox,
+  ConstTensor4View      pnd_ext_mat )
 {
   // Sizes
-  const Index   np   = ppath.np;
-  const Index   nf   = f_grid.nelem();
+  const Index   np = ppath.np;
+        Index   nf = 1;
+  if( f_index < 0 )
+    { nf = f_grid.nelem(); }
 
   // Init variables
-  ppath_asp_abs_vec.resize( nf, stokes_dim, np );
-  ppath_asp_ext_mat.resize( nf, stokes_dim, stokes_dim, np );
-  ppath_pnd_abs_vec.resize( nf, stokes_dim, np );
-  ppath_pnd_ext_mat.resize( nf, stokes_dim, stokes_dim, np );
-  ppath_transmission.resize( nf, stokes_dim, stokes_dim, np-1 );
-  total_transmission.resize( nf, stokes_dim, stokes_dim );
   //
-  if( emission_do )
-    { ppath_emission.resize( nf, np ); }
-  else
-    { ppath_emission.resize( 0, 0 ); }
-
-  // Mean of extreme frequencies
-  const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
-
-
-  // Particle single scattering properties (are independent of position)
+  trans_partial.resize( nf, stokes_dim, stokes_dim, np-1 );
+  trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
   //
-  if( use_mean_scat_data )
-    {
-      scat_data.resize( 1 );
-      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f0), 0, 
-                          verbosity );
-    }
-  else
-    {
-      scat_data.resize( nf );
-      for( Index iv=0; iv<nf; iv++ )
-        { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv, 
-                              verbosity ); 
-        }
-    }
-
-
-  // Loop ppath points
+  scalar_tau.resize( nf );
+  scalar_tau  = 0;
+  
+  // Loop ppath points (in the anti-direction of photons)  
+  //
+  Tensor3 extsum_old, extsum_this( nf, stokes_dim, stokes_dim );
   //
   for( Index ip=0; ip<np; ip++ )
     {
-      // Doppler shift 
-      // 
-      assert( ppath_wind_u[ip] == 0 );
-      assert( ppath_wind_v[ip] == 0 );
-      assert( ppath_wind_w[ip] == 0 );
-      //
-      const Numeric rte_doppler = 0;
-
-      // Magnetic field
-      //
-      assert( ppath_mag_u[ip] == 0 );
-      assert( ppath_mag_v[ip] == 0 );
-      assert( ppath_mag_w[ip] == 0 );
-      //
-      const Vector rte_mag(1,-1.);
-
-      // Emission source term
-      //
-      if( emission_do )
-        {
-          Vector   evector;   // Agenda must be free to resize
-          blackbody_radiation_agendaExecute( ws, evector, ppath_t[ip], f_grid,
-                                  blackbody_radiation_agenda );
-          ppath_emission(joker,ip) = evector;
-        }
-
-      // Absorption species properties 
-        {
-          Tensor4  asgtensor4;   // Agendas must be free to resize
-          Matrix   abs_vec( nf, stokes_dim, 0 );
-          Tensor3  ext_mat( nf, stokes_dim, stokes_dim, 0 );
-          //
-          abs_mat_per_species_agendaExecute( ws, asgtensor4, -1, rte_doppler,
-                                             rte_mag,
-                                             ppath_p[ip], ppath_t[ip], 
-                                             ppath_vmr(joker,ip),
-                                             abs_mat_per_species_agenda );
-
-        opt_prop_add_abs_mat_per_species(ext_mat, abs_vec, asgtensor4, -1);
-         
-          ppath_asp_ext_mat(joker,joker,joker,ip) = ext_mat;
-          ppath_asp_abs_vec(joker,joker,ip)       = abs_vec;
-        }
-
-      // Particle properties 
-        {
-          // Direction of outgoing scattered radiation (which is reversed to
-          // LOS). Note that rte_los2 is only used for extracting scattering
-          // properties.
-          Vector rte_los2;
-          mirror_los( rte_los2, ppath.los(ip,joker), atmosphere_dim );
-
-          // Extinction and absorption
-          if( use_mean_scat_data )
+      // If first point, calculate sum of absorption and set transmission
+      // to identity matrix.
+      if( ip == 0 )
+        { 
+          for( Index iv=0; iv<nf; iv++ ) 
             {
-              Vector   abs_vec( stokes_dim, 0 );
-              Matrix   ext_mat( stokes_dim, stokes_dim, 0 );
-              opt_propCalc( ext_mat, abs_vec,
-                            rte_los2[0], rte_los2[1], scat_data[0], 
-                            stokes_dim, ppath_pnd(joker,ip), ppath_t[ip],
-                            verbosity);
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  ppath_pnd_ext_mat(iv,joker,joker,ip) = ext_mat;
-                  ppath_pnd_abs_vec(iv,joker,ip)       = abs_vec;
-                }
+              for( Index is1=0; is1<stokes_dim; is1++ ) {
+                for( Index is2=0; is2<stokes_dim; is2++ ) {
+                  extsum_this(iv,is1,is2) = 
+                                          ppath_abs(joker,iv,is1,is2,ip).sum();
+                } } 
+              id_mat( trans_cumulat(iv,joker,joker,ip) );
             }
-          else
+          // First point should not be "cloudy", but just in case:
+          if( clear2cloudbox[ip] >= 0 )
             {
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  Vector   abs_vec( stokes_dim, 0 );
-                  Matrix   ext_mat( stokes_dim, stokes_dim, 0 );
-                  opt_propCalc( ext_mat, abs_vec,
-                                rte_los2[0], rte_los2[1], scat_data[iv], 
-                                stokes_dim, ppath_pnd(joker,ip), ppath_t[ip],
-                                verbosity );
-                  ppath_pnd_ext_mat(iv,joker,joker,ip) = ext_mat;
-                  ppath_pnd_abs_vec(iv,joker,ip)       = abs_vec;
-                }
+              const Index ic = clear2cloudbox[ip];
+              for( Index iv=0; iv<nf; iv++ ) {
+                for( Index is1=0; is1<stokes_dim; is1++ ) {
+                  for( Index is2=0; is2<stokes_dim; is2++ ) {
+                    extsum_this(iv,is1,is2) += pnd_ext_mat(iv,is1,is2,ic);
+                } } }
             }
         }
-       
-      // Transmission
-      //
-      if( ip == 0 )   // Set total_transmission to identity matrices
-        {
-          for( Index iv=0; iv<nf; iv++ )
-            { id_mat( total_transmission(iv,joker,joker) ); } 
-        }
+
       else
         {
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              // Average extinction matrix
-              Matrix  ext_mat_av( stokes_dim, stokes_dim,0 );
-              for( Index is1=0; is1<stokes_dim; is1++ )
-                { 
-                  for( Index is2=0; is2<stokes_dim; is2++ )
-                    {
-                      ext_mat_av(is1,is2) = 0.5 * (
-                                          ppath_asp_ext_mat(iv,is1,is2,ip-1) +
-                                          ppath_asp_ext_mat(iv,is1,is2,ip)   +
-                                          ppath_pnd_ext_mat(iv,is1,is2,ip-1) +
-                                          ppath_pnd_ext_mat(iv,is1,is2,ip) );
-                    }
-                }
-              // Transmission
-              ext2trans( ppath_transmission(iv,joker,joker,ip-1),
-                         ext_mat_av, ppath.lstep[ip-1] );  
-              const Matrix tmp = total_transmission(iv,joker,joker);
-              mult( total_transmission(iv,joker,joker), tmp,
-                    ppath_transmission(iv,joker,joker,ip-1) );
+          const Index ic = clear2cloudbox[ip];
+          //
+          for( Index iv=0; iv<nf; iv++ ) 
+            {
+              Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
+              for( Index is1=0; is1<stokes_dim; is1++ ) {
+                for( Index is2=0; is2<stokes_dim; is2++ ) {
+                  extsum_this(iv,is1,is2) = 
+                                          ppath_abs(joker,iv,is1,is2,ip).sum();
+                  if( ic >= 0 )
+                    { extsum_this(iv,is1,is2) += pnd_ext_mat(iv,is1,is2,ic); }
+
+                  ntau(is1,is2) = -0.5 * ppath.lstep[ip-1] *
+                          ( extsum_old(iv,is1,is2) + extsum_this(iv,is1,is2) );
+                } }
+              scalar_tau[iv] -= ntau(0,0); 
+              // The function below checks if ntau ir diagonal or not
+              matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
+              // Note that multiplication below depends on ppath loop order
+              mult( trans_cumulat(iv,joker,joker,ip), 
+                    trans_cumulat(iv,joker,joker,ip-1), 
+                    trans_partial(iv,joker,joker,ip-1) );
             }
         }
+
+      extsum_old = extsum_this;
     }
 }
 

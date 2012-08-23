@@ -1409,45 +1409,46 @@ void iyRadioLink(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyTransmissionStandard(
-         Workspace&                  ws,
-         Matrix&                     iy,
-         ArrayOfTensor4&             iy_aux,
-         Ppath&                      ppath,
-         ArrayOfTensor3&             diy_dx,
-   const Index&                      stokes_dim,
-   const Vector&                     f_grid,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Tensor3&                    z_field,
-   const Tensor3&                    t_field,
-   const Tensor4&                    vmr_field,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Tensor3&                    wind_u_field,
-   const Tensor3&                    wind_v_field,
-   const Tensor3&                    wind_w_field,
-   const Tensor3&                    mag_u_field,
-   const Tensor3&                    mag_v_field,
-   const Tensor3&                    mag_w_field,
-   const Tensor3&                    edensity_field,
-   const Index&                      cloudbox_on,
-   const ArrayOfIndex&               cloudbox_limits,
-   const ArrayOfString&              iy_aux_vars,
-   const Index&                      jacobian_do,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices,
-   const Agenda&                     ppath_agenda,
-   const Agenda&                     abs_mat_per_species_agenda,
-   const Agenda&                     iy_transmitter_agenda,
-   const Index&                      iy_agenda_call1,
-   const Tensor3&                    iy_transmission,
-   const Index&                      mblock_index,
-   const Vector&                     rte_pos,      
-   const Vector&                     rte_los,      
-   const Verbosity&  )
+         Workspace&                   ws,
+         Matrix&                      iy,
+         ArrayOfTensor4&              iy_aux,
+         Ppath&                       ppath,
+         ArrayOfTensor3&              diy_dx,
+   const Index&                       stokes_dim,
+   const Vector&                      f_grid,
+   const Index&                       atmosphere_dim,
+   const Vector&                      p_grid,
+   const Tensor3&                     z_field,
+   const Tensor3&                     t_field,
+   const Tensor4&                     vmr_field,
+   const ArrayOfArrayOfSpeciesTag&    abs_species,
+   const Tensor3&                     wind_u_field,
+   const Tensor3&                     wind_v_field,
+   const Tensor3&                     wind_w_field,
+   const Tensor3&                     mag_u_field,
+   const Tensor3&                     mag_v_field,
+   const Tensor3&                     mag_w_field,
+   const Tensor3&                     edensity_field,
+   const Index&                       cloudbox_on,
+   const ArrayOfIndex&                cloudbox_limits,
+   const Tensor4&                     pnd_field,
+   const Index&                       use_mean_scat_data,
+   const ArrayOfSingleScatteringData& scat_data_raw,
+   const ArrayOfString&               iy_aux_vars,
+   const Index&                       jacobian_do,
+   const ArrayOfRetrievalQuantity&    jacobian_quantities,
+   const ArrayOfArrayOfIndex&         jacobian_indices,
+   const Agenda&                      ppath_agenda,
+   const Agenda&                      abs_mat_per_species_agenda,
+   const Agenda&                      iy_transmitter_agenda,
+   const Index&                       iy_agenda_call1,
+   const Tensor3&                     iy_transmission,
+   const Index&                       mblock_index,
+   const Vector&                      rte_pos,      
+   const Vector&                      rte_los,      
+   const Verbosity&                   verbosity )
 {
   // Throw error if unsupported features are requested
-  if( cloudbox_on  || cloudbox_limits.nelem() )
-    throw runtime_error( "Cloudbox not yet handled." );
   if( !iy_agenda_call1 )
     throw runtime_error( 
                   "Recursive usage not possible (iy_agenda_call1 must be 1)" );
@@ -1489,6 +1490,7 @@ void iyTransmissionStandard(
   Index auxPressure    = -1,
         auxTemperature = -1,
         auxAbsSum      = -1,
+        auxPartExt     = -1,
         auxIy          = -1,
         auxTrans       = -1,
         auxOptDepth    = -1;
@@ -1522,6 +1524,12 @@ void iyTransmissionStandard(
         }
       else if( iy_aux_vars[i] == "Absorption, summed" )
         { auxAbsSum = i;   iy_aux[i].resize( nf, ns, ns, np ); }
+      else if( iy_aux_vars[i] == "Particle extinction, summed" )
+        { 
+          auxPartExt = i;   
+          iy_aux[i].resize( nf, ns, ns, np ); 
+          iy_aux[i] = 0;
+        }
       else if( iy_aux_vars[i].substr(0,20) == "Absorption, species " )
         { 
           Index ispecies;
@@ -1564,6 +1572,9 @@ void iyTransmissionStandard(
   //
   if( j_analytical_do )
     {
+      if( cloudbox_on )
+        throw runtime_error( "The combination of active ckloudbox and "
+                             "analytical jacibians is not yet handled." );
       diy_dx.resize( jacobian_indices.nelem() ); 
       //
       FOR_ANALYTICAL_JACOBIANS_DO( 
@@ -1581,26 +1592,45 @@ void iyTransmissionStandard(
                               ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
   Matrix    ppath_vmr;
   Tensor5   ppath_abs;
-  Tensor4   trans_partial, trans_cumulat;
+  Tensor4   trans_partial, trans_cumulat, pnd_ext_mat;
   Vector    scalar_tau;
+  ArrayOfIndex clear2cloudbox;
   //
   if( np > 1 )
     {
       const Index f_index = -1;
       
-      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
-                          ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                          ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
-                          ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                          wind_u_field, wind_v_field, wind_w_field ,
-                          mag_u_field, mag_v_field, mag_w_field );      
-      get_ppath_abs(      ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
-                          ppath_p, ppath_t, ppath_vmr, 
-                          ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                          ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                          f_grid, f_index, stokes_dim, atmosphere_dim );
-      get_ppath_trans(    trans_partial, trans_cumulat,scalar_tau, 
-                          ppath, ppath_abs, f_grid, f_index, stokes_dim );
+      get_ppath_atmvars(   ppath_p, ppath_t, ppath_vmr,
+                           ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                           ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
+                           ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                           wind_u_field, wind_v_field, wind_w_field ,
+                           mag_u_field, mag_v_field, mag_w_field );      
+      get_ppath_abs(       ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+                           ppath_p, ppath_t, ppath_vmr, 
+                           ppath_wind_u, ppath_wind_v, ppath_wind_w, 
+                           ppath_mag_u, ppath_mag_v, ppath_mag_w, 
+                           f_grid, f_index, stokes_dim, atmosphere_dim );
+      if( !cloudbox_on )
+        { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
+                           ppath, ppath_abs, f_grid, f_index, stokes_dim );
+        }
+      else
+        {
+          Tensor3      pnd_abs_vec;
+          Array<ArrayOfSingleScatteringData> scat_data;
+          //
+          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data, 
+                         ppath, ppath_t, stokes_dim, f_grid, atmosphere_dim,
+                         cloudbox_limits, pnd_field, use_mean_scat_data, 
+                         scat_data_raw, verbosity );
+          // *scat_data* not used. Free the memory.
+          scat_data.resize( 0 );   pnd_abs_vec.resize(0,0,0);
+          //
+          get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, 
+                            ppath, ppath_abs, f_grid, f_index, stokes_dim,
+                            clear2cloudbox, pnd_ext_mat );
+        }
     }
 
 
@@ -1704,6 +1734,16 @@ void iyTransmissionStandard(
               for( Index is2=0; is2<stokes_dim; is2++ ){
                 iy_aux[auxAbsSpecies[j]](iv,is1,is2,np-1) = 
                                ppath_abs(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
+      // Particle extinction
+      if( auxPartExt >= 0  && cloudbox_on  &&  clear2cloudbox[np-1] >= 0 ) 
+        { 
+          const Index ic = clear2cloudbox[np-1];
+          for( Index iv=0; iv<nf; iv++ ) {
+            for( Index is1=0; is1<ns; is1++ ){
+              for( Index is2=0; is2<ns; is2++ ){
+                iy_aux[auxPartExt](iv,is1,is2,np-1) = 
+                                              pnd_ext_mat(iv,is1,is2,ic); } } } 
+        } 
       // Radiance for this point is handled above
       //=======================================================================
 
@@ -1832,7 +1872,7 @@ void iyTransmissionStandard(
           // VMR
           for( Index j=0; j<auxVmrSpecies.nelem(); j++ )
             { iy_aux[auxVmrSpecies[j]](0,0,0,ip) =  ppath_vmr(auxVmrIsp[j],ip);}
-          // Absorption (change to store "absorption vector")
+          // Absorption
           if( auxAbsSum >= 0 ) 
             { for( Index iv=0; iv<nf; iv++ ) {
                 for( Index is1=0; is1<ns; is1++ ){
@@ -1845,6 +1885,16 @@ void iyTransmissionStandard(
                   for( Index is2=0; is2<stokes_dim; is2++ ){
                     iy_aux[auxAbsSpecies[j]](iv,is1,is2,ip) = 
                                  ppath_abs(auxAbsIsp[j],iv,is1,is2,ip); } } } }
+          // Particle extinction
+          if( auxPartExt >= 0  && cloudbox_on  &&  clear2cloudbox[np-1] >= 0 ) 
+            { 
+              const Index ic = clear2cloudbox[ip];
+              for( Index iv=0; iv<nf; iv++ ) {
+                for( Index is1=0; is1<ns; is1++ ){
+                  for( Index is2=0; is2<ns; is2++ ){
+                    iy_aux[auxPartExt](iv,is1,is2,ip) = 
+                                              pnd_ext_mat(iv,is1,is2,ic); } } }
+            }
           // Radiance 
           if( auxIy >= 0 ) 
             { iy_aux[auxIy](joker,joker,0,ip) = iy; }
@@ -1864,142 +1914,6 @@ void iyTransmissionStandard(
       //#######################################################################
     } // if np>1
 }
-
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void iyTransmissionStandardCloudbox(
-         Workspace&                     ws,
-         Matrix&                        iy,
-         ArrayOfTensor3&                diy_dx,
-   const Tensor3&                       iy_transmission,
-   const Vector&                        rte_pos,
-   const Vector&                        rte_los,
-   const Index&                         jacobian_do,
-   const Index&                         atmosphere_dim,
-   const Vector&                        p_grid,
-   const Tensor3&                       z_field,
-   const Tensor3&                       t_field,
-   const Tensor4&                       vmr_field,
-   const Tensor3&                       edensity_field,
-   const Index&                         cloudbox_on,
-   const ArrayOfIndex&                  cloudbox_limits,
-   const Index&                         stokes_dim,
-   const Vector&                        f_grid,
-   const Agenda&                        ppath_agenda,
-   const Agenda&                        abs_scalar_gas_agenda,
-   const Agenda&                        iy_main_agenda,
-   const Tensor4&                       pnd_field,
-   const Index&                         use_mean_scat_data,
-   const ArrayOfSingleScatteringData&   scat_data_raw,
-   const Agenda&                        opt_prop_gas_agenda,
-   const Verbosity&                     verbosity)
-{
-  // Input checks
-  if( !cloudbox_on )
-    throw runtime_error( "The cloudbox must be defined to use this method." );
-  if( jacobian_do )
-    throw runtime_error( 
-       "This method does not provide any jacobians (jacobian_do must be 0)." );
-
-  // Sizes
-  //
-  const Index nf = f_grid.nelem();
-
-  // Determine ppath through the cloudbox
-  //
-  Ppath  ppath;
-  //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 1, -1,
-                       t_field, z_field, vmr_field, edensity_field, -1,
-                       ppath_agenda );
-
-  // Check radiative background
-  const Index bkgr = ppath_what_background( ppath );
-  if( bkgr == 2 )
-    throw runtime_error( "Observations where (unscattered) propagation path "
-                         "hits the surface inside the cloudbox are not yet "
-                         "handled by this method." );
-  assert( bkgr == 3 );
-
-  // Get atmospheric and RT quantities for each ppath point/step (inside box)
-  // 
-  // If np = 1, we only need to determine the radiative background
-  //
-  // "atmvars"
-  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w;
-  Matrix    ppath_vmr, ppath_pnd;
-  // "rtvars"
-  Matrix    emission_dummy, ppath_tau;
-  Tensor3   wind_field_dummy(0,0,0), iy_trans_new;
-  Tensor3   ppath_asp_abs_vec, ppath_pnd_abs_vec, total_transmission;
-  Tensor4   ppath_asp_ext_mat, ppath_pnd_ext_mat, ppath_transmission;
-  Agenda    agenda_dummy;
-  Array<ArrayOfSingleScatteringData>  scat_data;
-  //
-  const Index np  = ppath.np;
-  //
-  if( np > 1 )
-    {
-      // Get pressure, temperature and VMRs
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
-                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_field_dummy, wind_field_dummy, wind_field_dummy );
-
-      // Particle number densities
-      get_ppath_pnd( ppath_pnd, ppath, atmosphere_dim, cloudbox_limits, 
-                     pnd_field );
-
-      // Absorption and optical thickness for each step
-      get_ppath_cloudrtvars( ws, ppath_asp_abs_vec, ppath_asp_ext_mat,  
-                             ppath_pnd_abs_vec, ppath_pnd_ext_mat, 
-                             ppath_transmission, total_transmission, 
-                             emission_dummy, scat_data, abs_scalar_gas_agenda, 
-                             agenda_dummy, opt_prop_gas_agenda,
-                             ppath, ppath_p, ppath_t, ppath_vmr, ppath_wind_u,  
-                             ppath_wind_v, ppath_wind_w, ppath_pnd, 
-                             use_mean_scat_data, scat_data_raw, stokes_dim, 
-                             f_grid, atmosphere_dim, 0, verbosity );
-
-      // *scat_data* not used. Free the memory.
-      scat_data.resize( 0 );
-    }
-  else // Just in case, should not happen
-    { assert( 0 ); }
-
-  // iy_transmission
-  //
-  iy_transmission_mult( iy_trans_new, iy_transmission, total_transmission );
-
-  // Get iy for unscattered direction
-  //
-  // Note that the Ppath positions (ppath.pos) for 1D have one column more
-  // than expected by most functions. Only the first atmosphere_dim values
-  // shall be copied.
-  //
-  {
-    Vector  rte_pos2, rte_los2;
-    rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
-    rte_los2 = ppath.los(ppath.np-1,joker);
-    //
-    iy_main_agendaExecute( ws, iy, iy_aux, diy_dx, 0, iy_trans_new,
-                               0, jacobian_do, t_field, z_field, vmr_field, 
-                               -1, rte_pos2, rte_los2, iy_main_agenda );
-  }
-
-  // Without jacobians the complete RT calculations are just multiplication
-  // with *total_transmission*
-  for( Index iv=0; iv<nf; iv++ )
-    {
-      const Vector tmp = iy(iv,joker);
-      mult( iy(iv,joker), total_transmission(iv,joker,joker), tmp );
-    }
-}
-*/
 
 
 

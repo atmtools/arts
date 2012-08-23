@@ -82,11 +82,13 @@ void chk_single_scattering_data (const SingleScatteringData& scat_data_raw,
                                  ConstVectorView f_grid,
                                  const Verbosity& verbosity);
 
-bool is_gp_inside_cloudbox (const GridPos& gp_p,
-                            const GridPos& gp_lat,
-                            const GridPos& gp_lon,
-                            const ArrayOfIndex& cloudbox_limits,
-                            const bool include_boundaries);
+bool is_gp_inside_cloudbox(
+   const GridPos&      gp_p,
+   const GridPos&      gp_lat,
+   const GridPos&      gp_lon,
+   const ArrayOfIndex& cloudbox_limits,
+   const bool&         include_boundaries,
+   const Index&        atmosphere_dim=3 );
 
 bool is_inside_cloudbox (const Ppath& ppath_step,
                          const ArrayOfIndex& cloudbox_limits,
