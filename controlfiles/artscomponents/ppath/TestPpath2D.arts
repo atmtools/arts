@@ -73,11 +73,10 @@ NumericSet( ppath_lmax, 20e3 )
 #
 VectorSet( rte_pos, [ 600e3, 70.1 ] )
 VectorSet( rte_los, [ -113 ] )
+VectorSet( rte_pos2, [] )                  # No transmitter involved
 
 
 # Calculate propagation path
-#
-IndexSet( mblock_index, -1 )    # A dummy value!
 #
 ppathCalc
 

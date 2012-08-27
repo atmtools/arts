@@ -1,9 +1,44 @@
 2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-234
+
+	* transmitter_pos now input to yCalc and converted to rte_pos2,
+	following sensor_pos/rte_pos. This allowed that mblock_index now
+	is completely invisible for the user.
+
+	* controlfiles: Many cfiles had to be adopted.
+
+	* src/m_doit.cc: Adopted to changes below. rte_pos2 consistently
+	set to an empty vector (no transmitter can be involved for DOIT).
+
+	* src/m_ppath.cc (ppathCalc):
+	* src/m_rte.cc (iyCalc, iyEmissionStandard, iyRadioLink)
+	(iyTransmissionStandard): Basically replaced mblcok_index with
+	rte_pos2.
+
+	* src/m_jacobian.cc (jacobianCalcAbsSpeciesPerturbations)
+	(jacobianCalcPointingZaRecalc)
+	(jacobianCalcTemperaturePerturbations): Added transmitter_pos as
+	input argument and passed on to iyb_calc.
+
+	* src/rte.cc (iyb_calc): Now using transmitter_pos.
+
+	* src/m_rte.cc (yCalc): Now using transmitter_pos (and checks that
+	size is empty or match sensor_pos).
+
+	* src/agendas.cc: Replaced mblock_index with rte_pos2 for
+	iy_main_agenda and ppath_agenda. And added rte_pos2 for
+	iy_surface_agenda.
+
+	* src/workspace.cc: Updated/extended text for transmitter_pos and
+	rte_pos2.
+
+2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-233
 
 	* Removed everything associated with the idea of having
-	senesor_response_array. 
+	senesor_response_array.
 
 	* src/m_sensor.cc (sensor_responseFromArrayData): Removed.
 	(sensor_response_arraySingle): Removed.

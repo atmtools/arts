@@ -189,7 +189,7 @@ AgendaSet( ppath_step_agenda ){
 NumericSet( ppath_lmax, 10e3 )
 #
 AgendaSet( ppath_agenda ){
-  Ignore( mblock_index )
+  Ignore( rte_pos2 )
   ppathStepByStep
 }
 FlagOff( ppath_inside_cloudbox_do )
@@ -234,11 +234,16 @@ ParticleSpeciesSet( part_species, [] )
 jacobianOff
 
 
-
 #
 # Batch calculations start at index 0 by default
 #
 IndexSet( ybatch_start, 0 )
+
+
+#
+# Default is that no transmitter is involved
+#
+MatrixSet( transmitter_pos, [] )
 
 
 #

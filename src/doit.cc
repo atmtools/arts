@@ -1036,7 +1036,7 @@ void cloud_RT_surface(Workspace& ws,
   //parameters.
   
   surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
-                                surface_rmatrix, rte_pos, rte_los, 
+                                surface_rmatrix, rte_pos, rte_los,
                                 surface_rtprop_agenda );
   
   iy = surface_emission;

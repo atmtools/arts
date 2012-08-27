@@ -78,6 +78,7 @@ NumericSet( ppath_lraytrace, 500 )
 # 
 VectorSet( rte_pos, [ 0, 5.1, -13.82 ] )
 VectorSet( rte_los, [ 80, 24 ] )
+VectorSet( rte_pos2, [] )                  # No transmitter position defined
 
 
 # Radiative transfer agendas
@@ -100,8 +101,6 @@ ArrayOfStringSet( iy_aux_vars,
 
 
 # Calculate
-#
-IndexSet( mblock_index, -1 )  # Dummy value
 #
 iyCalc
 

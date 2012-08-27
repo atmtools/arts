@@ -306,7 +306,7 @@ void define_agenda_data()
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
        INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
               "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "mblock_index", "rte_pos", "rte_los" )));  
+              "rte_pos", "rte_los", "rte_pos2" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -346,7 +346,7 @@ void define_agenda_data()
        OUTPUT( "iy", "diy_dx" ),
        INPUT( "iy_transmission", "cloudbox_on", 
               "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "iy_main_agenda", "rte_pos", "rte_los" )));
+              "iy_main_agenda", "rte_pos", "rte_los", "rte_pos2" )));
 
   agenda_data.push_back
     (AgRecord
@@ -495,8 +495,8 @@ void define_agenda_data()
         "for radio link calculations).\n"
         ),
        OUTPUT( "ppath" ),
-       INPUT( "rte_pos", "rte_los", "cloudbox_on", "ppath_inside_cloudbox_do", 
-              "mblock_index", "t_field", "z_field", "vmr_field",
+       INPUT( "rte_pos", "rte_los", "rte_pos2", "cloudbox_on", 
+              "ppath_inside_cloudbox_do", "t_field", "z_field", "vmr_field",
               "edensity_field", "f_grid" )));
 
   agenda_data.push_back

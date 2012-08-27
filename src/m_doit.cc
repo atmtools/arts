@@ -2691,7 +2691,7 @@ void CloudboxGetIncoming(Workspace&      ws,
               los[0] =  scat_za_grid[scat_za_index];
 
               get_iy( ws, iy, t_field, z_field, vmr_field, 0, pos, los, 
-                      iy_main_agenda );
+                      Vector(0), iy_main_agenda );
 
               scat_i_p( joker, boundary, 0, 0, scat_za_index, 0, joker ) = iy;
             }
@@ -2761,7 +2761,7 @@ void CloudboxGetIncoming(Workspace&      ws,
                                  scat_aa_index == 0 )
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
-                                      pos, los, iy_main_agenda );
+                                      pos, los, Vector(0), iy_main_agenda );
                             }
 
                           scat_i_p( joker, boundary, lat_index, lon_index, 
@@ -2801,7 +2801,7 @@ void CloudboxGetIncoming(Workspace&      ws,
                                  scat_aa_index == 0 ) )
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
-                                      pos, los, iy_main_agenda );
+                                      pos, los, Vector(0), iy_main_agenda );
                             }
 
                           scat_i_lat( joker, p_index, boundary, lon_index, 
@@ -2841,7 +2841,7 @@ void CloudboxGetIncoming(Workspace&      ws,
                                  scat_aa_index == 0 ) )
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
-                                      pos, los, iy_main_agenda );
+                                      pos, los, Vector(0), iy_main_agenda );
                             }
 
                           scat_i_lon( joker, p_index, lat_index, boundary, 
@@ -2941,7 +2941,7 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
         {
           los[0] = scat_za_grid[scat_za_index];
 
-          get_iy( ws, iy, t_field, z_field, vmr_field, 0, pos, los, 
+          get_iy( ws, iy, t_field, z_field, vmr_field, 0, pos, los, Vector(0), 
                   iy_main_agenda );
           
           for (Index aa = 0; aa < Naa; aa ++)

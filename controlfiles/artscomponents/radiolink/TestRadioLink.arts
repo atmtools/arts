@@ -67,7 +67,6 @@ AgendaSet( ppath_agenda ){
   Ignore( rte_los )
   Ignore( cloudbox_on )
   Ignore( ppath_inside_cloudbox_do )
-  Ignore( mblock_index )
   ppathFromRtePos2
 }
 
@@ -94,7 +93,7 @@ AgendaSet( iy_main_agenda ){
 #
 MatrixSet( sensor_pos, [ 600e3 ] )
 MatrixSet( sensor_los, [     0 ] )    # Dummy value
-VectorSet( rte_pos2, [ 600e3, 48.3 ] )
+MatrixSet( transmitter_pos, [ 600e3, 48.3 ] )
 #
 sensorOff
 

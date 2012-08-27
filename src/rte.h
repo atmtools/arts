@@ -137,6 +137,7 @@ void get_iy(
    const Index&       cloudbox_on,
    ConstVectorView    rte_pos,
    ConstVectorView    rte_los,
+   ConstVectorView    rte_pos2,
    const Agenda&      iy_main_agenda );
 
 void get_iy_of_background(
@@ -146,6 +147,7 @@ void get_iy_of_background(
   ConstTensor3View        iy_transmission,
   const Index&            jacobian_do,
   const Ppath&            ppath,
+  ConstVectorView         rte_pos2,
   const Index&            atmosphere_dim,
   ConstTensor3View        t_field,
   ConstTensor3View        z_field,
@@ -267,6 +269,7 @@ void iyb_calc(
   ConstVectorView                   f_grid,
   ConstMatrixView                   sensor_pos,
   ConstMatrixView                   sensor_los,
+  ConstMatrixView                   transmitter_pos,
   ConstVectorView                   mblock_za_grid,
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,

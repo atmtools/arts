@@ -53,6 +53,7 @@ Extract( z_surface, z_field, 0 )
 # 
 VectorSet( rte_pos, [ 600e3 ] )
 VectorSet( rte_los, [ 113.3 ] )
+VectorSet( rte_pos2, [] )                  # No transmitter involved
 
 
 # Define auxiliary data (the order between the quantities is free)
@@ -68,11 +69,6 @@ ArrayOfStringSet( iy_aux_vars,
       "Radiative background", 
       "iy", 
       "Optical depth" ] )
-
-
-# Other RT variables
-# 
-IndexSet( mblock_index, -1 )   # In this case just a dummy value
 
 
 # Perform RT calculations

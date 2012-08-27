@@ -67,7 +67,6 @@ AgendaSet( ppath_agenda ){
   Ignore( rte_los )
   Ignore( cloudbox_on )
   Ignore( ppath_inside_cloudbox_do )
-  Ignore( mblock_index )
   ppathFromRtePos2
 }
 
@@ -75,7 +74,6 @@ AgendaSet( ppath_agenda ){
 # Radiative transfer agendas and variables
 #
 VectorSet( rte_los, [] )   # Dummy value
-IndexSet( mblock_index, -1 )   # Dummy value
 #
 AgendaSet( iy_transmitter_agenda ){
   Ignore( rte_pos )

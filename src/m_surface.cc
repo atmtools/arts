@@ -229,6 +229,7 @@ void iySurfaceRtpropAgenda(
     const Vector&           f_grid,
     const Vector&           rte_pos,
     const Vector&           rte_los,
+    const Vector&           rte_pos2,
     const Agenda&           iy_main_agenda,
     const Agenda&           surface_rtprop_agenda,
     const Verbosity& )
@@ -244,7 +245,7 @@ void iySurfaceRtpropAgenda(
   Matrix    surface_emission;
   //
   surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
-                                surface_rmatrix, rte_pos, rte_los, 
+                                surface_rmatrix, rte_pos, rte_los,
                                 surface_rtprop_agenda );
 
   // Check output of *surface_rtprop_agenda*
@@ -302,10 +303,10 @@ void iySurfaceRtpropAgenda(
             ArrayOfTensor4   iy_aux;
             Ppath            ppath;
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
-                                       iy_trans_new, ArrayOfString(0), 
-                                       cloudbox_on, jacobian_do, t_field, 
-                                       z_field, vmr_field, -1, rte_pos, los, 
-                                       iy_main_agenda );
+                                   iy_trans_new, ArrayOfString(0), 
+                                   cloudbox_on, jacobian_do, t_field, 
+                                   z_field, vmr_field, rte_pos, los, rte_pos2, 
+                                   iy_main_agenda );
           }
 
           if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )

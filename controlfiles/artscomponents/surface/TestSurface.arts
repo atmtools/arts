@@ -16,6 +16,7 @@ jacobianOff
 VectorSet( f_grid, [10e9] )
 VectorSet( rte_pos, [0] )
 VectorSet( rte_los, [140] )
+VectorSet( rte_pos2, [] )       # No transmitter involved
 VectorSet( lat_true, [54] )     # 0.8 point between South and North poles 
 VectorSet( lon_true, [23] )
 NumericSet( surface_skin_t, 300 )
@@ -46,12 +47,12 @@ AgendaSet( iy_main_agenda ){
   Ignore( iy_aux_vars )
   Ignore( rte_pos )
   Ignore( rte_los ) 
+  Ignore( rte_pos2 )
   Ignore( cloudbox_on ) 
   Ignore( jacobian_do )
   Ignore( t_field ) 
   Ignore( z_field ) 
   Ignore( vmr_field ) 
-  Ignore( mblock_index )
   Touch( iy_aux )
   Touch( ppath )
   Touch( diy_dx )

@@ -370,8 +370,8 @@ void iyCalc(
    const Index&            cloudbox_checked,
    const Vector&           rte_pos,
    const Vector&           rte_los,
+   const Vector&           rte_pos2,
    const Index&            jacobian_do,
-   const Index&            mblock_index,
    const Agenda&           iy_main_agenda,
    const Verbosity& )
 {
@@ -389,9 +389,9 @@ void iyCalc(
 
 
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
-                             iy_aux_vars, cloudbox_on, jacobian_do, t_field, 
-                             z_field, vmr_field, mblock_index, rte_pos, rte_los,
-                             iy_main_agenda );
+                         iy_aux_vars, cloudbox_on, jacobian_do, t_field, 
+                         z_field, vmr_field, rte_pos, rte_los, rte_pos2,
+                         iy_main_agenda );
 }
 
 
@@ -434,16 +434,16 @@ void iyEmissionStandard(
    const Agenda&                     iy_cloudbox_agenda,
    const Index&                      iy_agenda_call1,
    const Tensor3&                    iy_transmission,
-   const Index&                      mblock_index,
    const Vector&                     rte_pos,      
    const Vector&                     rte_los,      
+   const Vector&                     rte_pos2,      
    const Verbosity&                  verbosity )
 {
   // Determine propagation path
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0, 
-                       mblock_index, t_field, z_field, vmr_field, 
-                       edensity_field, f_grid, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, rte_pos2, cloudbox_on, 0, 
+                       t_field, z_field, vmr_field, edensity_field, f_grid, 
+                       ppath_agenda );
 
   // Some basic sizes
   //
@@ -601,10 +601,11 @@ void iyEmissionStandard(
   // Radiative background
   //
   get_iy_of_background( ws, iy, diy_dx, 
-                        iy_trans_new, jacobian_do, ppath, atmosphere_dim, 
-                        t_field, z_field, vmr_field, cloudbox_on, 
-                        stokes_dim, f_grid, iy_main_agenda, iy_space_agenda,
-                        iy_surface_agenda, iy_cloudbox_agenda, verbosity);
+                        iy_trans_new, jacobian_do, ppath, rte_pos2, 
+                        atmosphere_dim, t_field, z_field, vmr_field, 
+                        cloudbox_on, stokes_dim, f_grid, iy_main_agenda, 
+                        iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda,
+                        verbosity );
 
 
   //=== iy_aux part ===========================================================
@@ -1115,8 +1116,8 @@ void iyRadioLink(
    const Agenda&                     iy_transmitter_agenda,
    const Index&                      iy_agenda_call1,
    const Tensor3&                    iy_transmission,
-   const Index&                      mblock_index,
    const Vector&                     rte_pos,      
+   const Vector&                     rte_pos2,      
    const Verbosity&                  verbosity )
 {
   // Throw error if unsupported features are requested
@@ -1134,9 +1135,9 @@ void iyRadioLink(
 
 
   //- Determine propagation path
-  ppath_agendaExecute( ws, ppath, rte_pos, Vector(0), cloudbox_on, 0,
-                       mblock_index, t_field, z_field, vmr_field,
-                       edensity_field, f_grid, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, Vector(0), rte_pos2, cloudbox_on, 0,
+                       t_field, z_field, vmr_field, edensity_field, f_grid, 
+                       ppath_agenda );
   if( ppath_what_background(ppath) > 2 )
     { throw runtime_error( "Radiative background not set to \"space\" by "
                       "*ppath_agenda*. Is correct WSM used in the agenda?" ); }
@@ -1438,9 +1439,9 @@ void iyTransmissionStandard(
    const Agenda&                      iy_transmitter_agenda,
    const Index&                       iy_agenda_call1,
    const Tensor3&                     iy_transmission,
-   const Index&                       mblock_index,
    const Vector&                      rte_pos,      
    const Vector&                      rte_los,      
+   const Vector&                      rte_pos2,      
    const Verbosity&                   verbosity )
 {
   // Throw error if unsupported features are requested
@@ -1453,9 +1454,9 @@ void iyTransmissionStandard(
 
   // Determine propagation path
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, 0, 0,
-                       mblock_index, t_field, z_field, vmr_field, 
-                       edensity_field, f_grid, ppath_agenda );
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, rte_pos2, 0, 0,
+                       t_field, z_field, vmr_field, edensity_field, f_grid, 
+                       ppath_agenda );
 
   // Some basic sizes
   //
@@ -1932,6 +1933,7 @@ void yCalc(
    const Vector&                     f_grid,
    const Matrix&                     sensor_pos,
    const Matrix&                     sensor_los,
+   const Matrix&                     transmitter_pos,
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid,
    const Index&                      antenna_dim,
@@ -2008,6 +2010,17 @@ void yCalc(
   if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
     throw runtime_error( 
     "Second column of *sensor_los* is not allowed to have values above 180." );
+
+  // Transmission position.
+  if( transmitter_pos.ncols() > 0  &&  transmitter_pos.nrows() > 0 )
+    {
+      if( transmitter_pos.nrows() != sensor_pos.nrows() )
+        throw runtime_error( "*transmitter_pos* must either be empty or have "
+                             "the same number of rows as *sensor_pos*." );
+      if( transmitter_pos.ncols() != max(Index(2),atmosphere_dim) )
+        throw runtime_error( "*transmitter_pos* must either be empty, have "
+                             "2 for 1D/2D or 3 columns for 3D." );
+    }
 
   // Antenna
   //
@@ -2128,9 +2141,9 @@ void yCalc(
       ArrayOfMatrix   diyb_dx;      
       //
       iyb_calc( l_ws, iyb, iyb_aux_array[mblock_index], diyb_dx, 
-                mblock_index, atmosphere_dim, t_field, 
-                z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
-                sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
+                mblock_index, atmosphere_dim, t_field, z_field, vmr_field, 
+                cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los, 
+                transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim, 
                 l_iy_main_agenda, y_unit, j_analytical_do, 
                 jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity );
 

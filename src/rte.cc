@@ -802,6 +802,7 @@ void get_iy(
    const Index&       cloudbox_on,
    ConstVectorView    rte_pos,
    ConstVectorView    rte_los,
+   ConstVectorView    rte_pos2,
    const Agenda&      iy_main_agenda )
 {
   ArrayOfTensor3    diy_dx;
@@ -810,9 +811,9 @@ void get_iy(
   Tensor3           iy_transmission(0,0,0);
 
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
-                             ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
-                             vmr_field, -1, rte_pos, rte_los, 
-                             iy_main_agenda );
+                         ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
+                         vmr_field, rte_pos, rte_los, rte_pos2,
+                         iy_main_agenda );
 }
 
 
@@ -860,6 +861,7 @@ void get_iy_of_background(
   ConstTensor3View        iy_transmission,
   const Index&            jacobian_do,
   const Ppath&            ppath,
+  ConstVectorView         rte_pos2,
   const Index&            atmosphere_dim,
   ConstTensor3View        t_field,
   ConstTensor3View        z_field,
@@ -915,7 +917,7 @@ void get_iy_of_background(
         agenda_name = "iy_surface_agenda";
         iy_surface_agendaExecute( ws, iy, diy_dx, iy_transmission, cloudbox_on,
                                   jacobian_do, t_field, z_field, vmr_field,
-                                  iy_main_agenda, rte_pos, rte_los, 
+                                  iy_main_agenda, rte_pos, rte_los, rte_pos2,
                                   iy_surface_agenda );
       }
       break;
@@ -1670,6 +1672,7 @@ void iyb_calc(
   ConstVectorView                   f_grid,
   ConstMatrixView                   sensor_pos,
   ConstMatrixView                   sensor_los,
+  ConstMatrixView                   transmitter_pos,
   ConstVectorView                   mblock_za_grid,
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
@@ -1749,6 +1752,14 @@ void iyb_calc(
               else 
                 { adjust_los( los, atmosphere_dim ); }
 
+              //--- rte_pos 1 and 2
+              //
+              Vector rte_pos, rte_pos2(0);
+              //
+              rte_pos = sensor_pos( mblock_index, joker );              
+              if( transmitter_pos.nrows() )
+                { rte_pos2 = transmitter_pos( mblock_index, joker ); }
+
               // Calculate iy and associated variables
               //
               Matrix         iy;
@@ -1758,12 +1769,10 @@ void iyb_calc(
               Index          iang = iza*naa + iaa;
               //
               iy_main_agendaExecute( l_ws, iy, iy_aux_array[iang], ppath,
-                                         diy_dx, 1, iy_transmission, 
-                                         iy_aux_vars, cloudbox_on, 
-                                         j_analytical_do, t_field, z_field, 
-                                         vmr_field, mblock_index, 
-                                         sensor_pos(mblock_index,joker), los, 
-                                         l_iy_main_agenda );
+                                     diy_dx, 1, iy_transmission, iy_aux_vars, 
+                                     cloudbox_on, j_analytical_do, t_field, 
+                                     z_field, vmr_field, rte_pos, los, rte_pos2,
+                                     l_iy_main_agenda );
 
               // Check that aux data can be handled and apply y_unit for 
               // the quantities where it makes sense

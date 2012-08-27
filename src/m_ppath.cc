@@ -77,9 +77,9 @@ void ppathCalc(
     const Index&          cloudbox_on, 
     const Index&          cloudbox_checked,
     const Index&          ppath_inside_cloudbox_do,
-    const Index&          mblock_index,
     const Vector&         rte_pos,
     const Vector&         rte_los,
+    const Vector&         rte_pos2,
     const Verbosity&  )
 {
   //--- Check input -----------------------------------------------------------
@@ -90,8 +90,8 @@ void ppathCalc(
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
 
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 
-                       ppath_inside_cloudbox_do, mblock_index, t_field, z_field,
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, rte_pos2, cloudbox_on, 
+                       ppath_inside_cloudbox_do, t_field, z_field,
                        vmr_field, edensity_field, f_grid, ppath_agenda );
 }
 
