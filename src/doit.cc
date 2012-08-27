@@ -366,7 +366,7 @@ void cloud_ppath_update1D(Workspace& ws,
         {
           // cout << "hit surface "<< ppath_step.gp_p << endl;
           cloud_RT_surface(ws,
-                           doit_i_field, surface_rtprop_agenda, 
+                           doit_i_field, surface_rtprop_agenda, f_grid,
                            f_index, stokes_dim, ppath_step, cloudbox_limits, 
                            scat_za_grid, scat_za_index); 
           
@@ -507,10 +507,10 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
 
       if (bkgr == 2)
         {
-          cloud_RT_surface(ws,
-                         doit_i_field, surface_rtprop_agenda, 
-                         f_index, stokes_dim, ppath_step, cloudbox_limits, 
-                         scat_za_grid, scat_za_index); 
+          cloud_RT_surface( ws,
+                            doit_i_field, surface_rtprop_agenda, f_grid,
+                            f_index, stokes_dim, ppath_step, cloudbox_limits, 
+                            scat_za_grid, scat_za_index); 
         
         }
     }//end if inside cloudbox
@@ -1001,6 +1001,7 @@ void cloud_RT_surface(Workspace& ws,
                       Tensor6View doit_i_field,
                       //Input
                       const Agenda& surface_rtprop_agenda,
+                      ConstVectorView f_grid,
                       const Index& f_index,
                       const Index& stokes_dim,
                       const Ppath& ppath_step,
@@ -1036,7 +1037,8 @@ void cloud_RT_surface(Workspace& ws,
   //parameters.
   
   surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
-                                surface_rmatrix, rte_pos, rte_los,
+                                surface_rmatrix, Vector(1,f_grid[f_index]),
+                                rte_pos, rte_los,
                                 surface_rtprop_agenda );
   
   iy = surface_emission;
@@ -1049,16 +1051,13 @@ void cloud_RT_surface(Workspace& ws,
       for( Index ilos=0; ilos<nlos; ilos++ )
         {
           
-          mult( rtmp, 
-                surface_rmatrix(ilos,f_index,joker,joker), 
-                doit_i_field(cloudbox_limits[0], 0, 0,
-                             (scat_za_grid.nelem() -1 - scat_za_index), 0,
-                             joker) );
-          iy(f_index,joker) += rtmp;
+          mult( rtmp, surface_rmatrix(ilos,0,joker,joker), 
+                doit_i_field( cloudbox_limits[0], 0, 0,
+                      (scat_za_grid.nelem() -1 - scat_za_index), 0, joker) );
+          iy(0,joker) += rtmp;
           
-          doit_i_field(cloudbox_limits[0], 0, 0,
-                       scat_za_index, 0,
-                       joker) = iy(f_index, joker);
+          doit_i_field( cloudbox_limits[0], 0, 0, scat_za_index, 0, joker ) = 
+                                                                iy( 0, joker );
         }
     }  
 }

@@ -384,8 +384,9 @@ void MCGeneral(Workspace&            ws,
             }
           else if (termination_flag==1)
             {
-              iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
-                                     Vector(1,f_grid[f_index]),iy_space_agenda);
+              iy_space_agendaExecute( ws, local_iy, Vector(1,f_grid[f_index]), 
+                                      local_rte_pos,local_rte_los,
+                                      iy_space_agenda);
 
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
@@ -396,8 +397,9 @@ void MCGeneral(Workspace&            ws,
             {
               //Calculate surface properties
               surface_rtprop_agendaExecute( ws, local_surface_emission, 
-                local_surface_los, local_surface_rmatrix, 
-                local_rte_pos, local_rte_los, surface_rtprop_agenda );
+                         local_surface_los, local_surface_rmatrix, 
+                         Vector(1,f_grid[f_index]),
+                         local_rte_pos, local_rte_los, surface_rtprop_agenda );
 
               if( local_surface_los.nrows() > 1 )
                 {
@@ -408,7 +410,7 @@ void MCGeneral(Workspace&            ws,
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {
-                  mult(vector1,evol_op,local_surface_emission(f_index,joker));
+                  mult(vector1,evol_op,local_surface_emission(0,joker));
                   mult(I_i,Q,vector1);
                   I_i/=g;
                   keepgoing=false;
@@ -416,7 +418,7 @@ void MCGeneral(Workspace&            ws,
               else
                 //decide between reflection and emission
                 {
-                  Numeric R11=local_surface_rmatrix(0,f_index,0,0);
+                  Numeric R11=local_surface_rmatrix(0,0,0,0);
                   if (rng.draw()>R11)
                     {
                       //then we have emission
@@ -425,7 +427,7 @@ void MCGeneral(Workspace&            ws,
                       //oneminusR-=local_surface_rmatrix(0,0,joker,joker);
                       //oneminusR/=1-R11;
                       //mult(vector1,oneminusR,local_surface_emission(0,joker));
-                      mult(vector1,evol_op,local_surface_emission(f_index,joker));
+                      mult(vector1,evol_op,local_surface_emission(0,joker));
                       mult(I_i,Q,vector1);
                       I_i/=g*(1-R11);
                       keepgoing=false;
@@ -435,7 +437,7 @@ void MCGeneral(Workspace&            ws,
                       //we have reflection
                       local_rte_los=local_surface_los(0,joker);
                       
-                      mult(q,evol_op,local_surface_rmatrix(0,f_index,joker,joker));
+                      mult(q,evol_op,local_surface_rmatrix(0,0,joker,joker));
                       mult(newQ,Q,q);
                       Q=newQ;
                       Q/=g*R11;
@@ -668,8 +670,9 @@ void MCIPA(Workspace&            ws,
                     ppath.gp_lon[np-1].idx)+=1;
           if (termination_flag==1)
             {
-              iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
-                                     Vector(1,f_grid[f_index]),iy_space_agenda);
+              iy_space_agendaExecute( ws, local_iy, Vector(1,f_grid[f_index]),
+                                      local_rte_pos, local_rte_los,
+                                      iy_space_agenda );
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -704,9 +707,9 @@ void MCIPA(Workspace&            ws,
                 }
               //decide whether we have reflection or emission
               surface_rtprop_agendaExecute(ws,
-                    local_surface_emission, local_surface_los, 
-                    local_surface_rmatrix, local_rte_pos, local_rte_los,
-                    surface_rtprop_agenda );
+                          local_surface_emission, local_surface_los, 
+                          local_surface_rmatrix, Vector(1,f_grid[f_index]),
+                          local_rte_pos, local_rte_los, surface_rtprop_agenda );
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {

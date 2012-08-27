@@ -1,5 +1,22 @@
 2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-235
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda):
+	* src/m_montecarlo.cc (MCGeneral, MCIPA): Adopted call of
+	surface_rtprop_agendaExecute.
+
+	* src/doit.cc (cloud_RT_surface, cloud_ppath_update1D)
+	(cloud_ppath_update1D_noseq): f_grid now input to cloud_RT_surface.
+
+	* src/rte.cc (get_iy_of_background): Adopted call of agendas
+	listed below.
+
+	* src/agendas.cc: Added f_grid as input to iy_cloudbox_agenda,
+	iy_surface_agenda and surface_rtprop_agenda.
+
+2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-234
 
 	* transmitter_pos now input to yCalc and converted to rte_pos2,
@@ -16,7 +33,7 @@
 
 	* src/m_ppath.cc (ppathCalc):
 	* src/m_rte.cc (iyCalc, iyEmissionStandard, iyRadioLink)
-	(iyTransmissionStandard): Basically replaced mblcok_index with
+	(iyTransmissionStandard): Basically replaced mblock_index with
 	rte_pos2.
 
 	* src/m_jacobian.cc (jacobianCalcAbsSpeciesPerturbations)

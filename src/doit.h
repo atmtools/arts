@@ -204,6 +204,7 @@ void cloud_RT_surface(Workspace& ws,
                       Tensor6View doit_i_field,
                       //Input
                       const Agenda& surface_rtprop_agenda,
+                      ConstVectorView f_grid,
                       const Index& f_index,
                       const Index& stokes_dim,
                       const Ppath& ppath_step,

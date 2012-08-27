@@ -286,7 +286,7 @@ void define_agenda_data()
         "shall be determined.\n"
         ),
        OUTPUT( "iy" ),
-       INPUT( "rte_pos", "rte_los" )));
+       INPUT( "f_grid", "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -324,7 +324,7 @@ void define_agenda_data()
         "for example, when radiation from the sun is considered.\n"
         ),
        OUTPUT( "iy" ),
-       INPUT( "rte_pos", "rte_los", "f_grid" )));
+       INPUT( "f_grid", "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -345,7 +345,7 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "diy_dx" ),
        INPUT( "iy_transmission", "cloudbox_on", 
-              "jacobian_do", "t_field", "z_field", "vmr_field", 
+              "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
               "iy_main_agenda", "rte_pos", "rte_los", "rte_pos2" )));
 
   agenda_data.push_back
@@ -606,7 +606,7 @@ void define_agenda_data()
         "   *surface_emission*, *surface_los* and *surface_rmatrix* \n"
         ),
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "rte_pos", "rte_los" )));
+       INPUT( "f_grid", "rte_pos", "rte_los" )));
 
  agenda_data.push_back
     (AgRecord

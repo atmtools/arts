@@ -245,7 +245,7 @@ void iySurfaceRtpropAgenda(
   Matrix    surface_emission;
   //
   surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
-                                surface_rmatrix, rte_pos, rte_los,
+                                surface_rmatrix, f_grid, rte_pos, rte_los,
                                 surface_rtprop_agenda );
 
   // Check output of *surface_rtprop_agenda*
