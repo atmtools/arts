@@ -4,7 +4,10 @@
 
 	* transmitter_pos now input to yCalc and converted to rte_pos2,
 	following sensor_pos/rte_pos. This allowed that mblock_index now
-	is completely invisible for the user.
+	is completely invisible for the user. In addition, rte_pos2 is now
+	defined throughout the rt part and more complex set-ups are
+	possible (such as considering surface reflections of transmitted
+	signals).
 
 	* controlfiles: Many cfiles had to be adopted.
 
