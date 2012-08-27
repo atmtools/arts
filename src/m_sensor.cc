@@ -1232,60 +1232,6 @@ void sensor_responseIF2RF(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseFromArrayData(
-        Sparse&                sensor_response,
-        Vector&                sensor_response_f,
-        ArrayOfIndex&          sensor_response_pol,
-        Vector&                sensor_response_za,
-        Vector&                sensor_response_aa,
-  const Index&                 mblock_index,
-  const ArrayOfSparse&         sensor_response_array,
-  const ArrayOfVector&         sensor_response_f_array,
-  const ArrayOfArrayOfIndex&   sensor_response_pol_array,
-  const ArrayOfVector&         sensor_response_za_array,
-  const ArrayOfVector&         sensor_response_aa_array,
-  const ArrayOfIndex&          sensor_response_index,
-  const Verbosity& )
-{
-  // Checks
-  // 
-  const Index na = sensor_response_array.nelem();
-  //
-  if( sensor_response_f_array.nelem()   != na  || 
-      sensor_response_pol_array.nelem() != na  ||
-      sensor_response_za_array.nelem()  != na  || 
-      sensor_response_aa_array.nelem()  != na )
-    { 
-      throw runtime_error( "All arrays (sensor_response_X_array) must have "
-                           "the same length." ); 
-    }
-  if( mblock_index >= sensor_response_index.nelem() )
-    {
-      throw runtime_error( "The given *mblock_index* is too high with respect "
-                           "to the length of *sensor_response_index*." );
-    }
-
-  // Determine index
-  const Index i = sensor_response_index[mblock_index];
-
-  if( i >= na )
-    {
-      throw runtime_error( "The index extracted from *sensor_response_index* "
-                           "is too high with respect to the length of "
-                           "*sensor_response_array*." );
-    }
-
-  // Extract data
-  sensor_response     = sensor_response_array[i]; 
-  sensor_response_f   = sensor_response_f_array[i]; 
-  sensor_response_pol = sensor_response_pol_array[i]; 
-  sensor_response_za  = sensor_response_za_array[i]; 
-  sensor_response_aa  = sensor_response_aa_array[i]; 
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseFillFgrid(// WS Output:
                               Sparse&         sensor_response,
                               Vector&         sensor_response_f,
@@ -2503,37 +2449,6 @@ void sensor_responseWMRF(// WS Output:
                       sensor_response_za_grid, sensor_response_aa_grid, 0 );
   
 }
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_response_arraySingle(
-        ArrayOfSparse&         sensor_response_array,
-        ArrayOfVector&         sensor_response_f_array,
-        ArrayOfArrayOfIndex&   sensor_response_pol_array,
-        ArrayOfVector&         sensor_response_za_array,
-        ArrayOfVector&         sensor_response_aa_array,
-  const Sparse&                sensor_response,
-  const Vector&                sensor_response_f,
-  const ArrayOfIndex&          sensor_response_pol,
-  const Vector&                sensor_response_za,
-  const Vector&                sensor_response_aa,
-  const Verbosity& )
-{
-  // The output arrays all have length 1
-  sensor_response_array.resize(1);
-  sensor_response_f_array.resize(1);
-  sensor_response_pol_array.resize(1);
-  sensor_response_za_array.resize(1);
-  sensor_response_aa_array.resize(1);
-
-  // Put in the non-array data
-  sensor_response_array[0]     = sensor_response; 
-  sensor_response_f_array[0]   = sensor_response_f; 
-  sensor_response_pol_array[0] = sensor_response_pol; 
-  sensor_response_za_array[0]  = sensor_response_za; 
-  sensor_response_aa_array[0]  = sensor_response_aa; 
-}
-
 
 
 

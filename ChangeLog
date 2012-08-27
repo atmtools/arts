@@ -1,5 +1,18 @@
 2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-233
+
+	* Removed everything associated with the idea of having
+	senesor_response_array. 
+
+	* src/m_sensor.cc (sensor_responseFromArrayData): Removed.
+	(sensor_response_arraySingle): Removed.
+
+	* src/workspace.cc (define_wsv_data): Removed all WSV with
+	sensor_response_array.
+
+2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-232
 
 	* controlfiles/artscomponents/ppath/TestPpath1/2/3D.arts: Adopted.

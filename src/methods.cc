@@ -8016,32 +8016,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "sensor_responseFromArrayData" ),
-        DESCRIPTION
-        (
-         "Sets up *sensor_response_array* from an existing *sensor_response*.\n"
-         "\n"
-         "Fills *sensor_response_array* and associated variables with\n"
-         "corresponding non-array data. Hence, the array variables get all a\n"
-         "length of 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol", 
-             "sensor_response_za", "sensor_response_aa" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "mblock_index", "sensor_response_array", "sensor_response_f_array", 
-            "sensor_response_pol_array", "sensor_response_za_array", 
-            "sensor_response_aa_array", "sensor_response_index" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "sensor_responseIF2RF" ),
         DESCRIPTION
         (
@@ -8351,32 +8325,6 @@ void define_md_data_raw()
             "sensor_response_za_grid", "sensor_response_aa_grid",
             "wmrf_weights",
             "f_backend" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "sensor_response_arraySingle" ),
-        DESCRIPTION
-        (
-         "Sets up *sensor_response_array* from an existing *sensor_response*.\n"
-         "\n"
-         "Fills *sensor_response_array* and associated variables with\n"
-         "corresponding non-array data. Hence, the array variables get all a\n"
-         "length of 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_response_array", "sensor_response_f_array",
-             "sensor_response_pol_array", "sensor_response_za_array",
-             "sensor_response_aa_array" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
