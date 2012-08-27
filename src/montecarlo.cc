@@ -439,6 +439,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                             const Tensor3&        t_field, 
                             const Tensor4&        vmr_field, 
                             const Tensor3&        edensity_field, 
+                            const Vector&         f_grid,
                             const Index&          f_index,
                             const ArrayOfIndex&   cloudbox_limits, 
                             const Tensor4&        pnd_field,
@@ -455,8 +456,8 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
   //calculate ppath to cloudbox boundary
   ppath_calc( ws, ppath, ppath_step_agenda, 3, 
               p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field,
-              edensity_field, f_index, refellipsoid, z_surface, 
-              1, cloudbox_limits, local_rte_pos, local_rte_los, 0,
+              edensity_field, Vector(1,f_grid[f_index]), refellipsoid, 
+              z_surface, 1, cloudbox_limits, local_rte_pos, local_rte_los, 0,
               verbosity );
   //if this ppath hit a cloud, now take ppath inside cloud
   if (ppath_what_background(ppath)>2)
@@ -475,9 +476,9 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
 
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field,
-                  edensity_field, f_index, refellipsoid, z_surface, 
-                  1, cloudbox_limits, local_rte_pos, local_rte_los, 1,
-                  verbosity );
+                  edensity_field, Vector(1,f_grid[f_index]), refellipsoid, 
+                  z_surface, 1, cloudbox_limits, local_rte_pos, local_rte_los, 
+                  1, verbosity );
 
       Matrix  pnd_ppath(particle_masses.nelem(),ppath.np);
       Vector t_ppath(ppath.np);

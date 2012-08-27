@@ -443,7 +443,7 @@ void iyEmissionStandard(
   //
   ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 0, 
                        mblock_index, t_field, z_field, vmr_field, 
-                       edensity_field, -1, ppath_agenda );
+                       edensity_field, f_grid, ppath_agenda );
 
   // Some basic sizes
   //
@@ -563,8 +563,6 @@ void iyEmissionStandard(
   //
   if( np > 1 )
     {
-      const Index f_index = -1;
-      
       get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
                           ppath_wind_u, ppath_wind_v, ppath_wind_w,
                           ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
@@ -575,11 +573,11 @@ void iyEmissionStandard(
                           ppath_p, ppath_t, ppath_vmr, 
                           ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                           ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                          f_grid, f_index, stokes_dim, atmosphere_dim );
+                          f_grid, stokes_dim, atmosphere_dim );
       get_ppath_trans(    trans_partial, trans_cumulat,scalar_tau, 
-                          ppath, ppath_abs, f_grid, f_index, stokes_dim );
+                          ppath, ppath_abs, f_grid, stokes_dim );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
-                          ppath, ppath_t, f_grid, f_index );
+                          ppath, ppath_t, f_grid );
     }
   else // For cases inside the cloudbox, or totally outside the atmosphere,
     {  // set zero optical thickness and unit transmission
@@ -666,16 +664,15 @@ void iyEmissionStandard(
             { if( is_t[iq] ) { do_t = 1; } }
           if( do_t )
             {
-              const Index f_index = -1;
               Vector t2 = ppath_t;
               t2 += dt;
               get_ppath_abs(      ws, ppath_at2, abs_mat_per_species_agenda, 
                                   ppath, ppath_p, t2, ppath_vmr, 
                                   ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                                   ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                                  f_grid, f_index, stokes_dim, atmosphere_dim );
+                                  f_grid, stokes_dim, atmosphere_dim );
               get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
-                                  ppath, t2, f_grid, f_index );
+                                  ppath, t2, f_grid );
             }
         }
       //#######################################################################
@@ -1139,7 +1136,7 @@ void iyRadioLink(
   //- Determine propagation path
   ppath_agendaExecute( ws, ppath, rte_pos, Vector(0), cloudbox_on, 0,
                        mblock_index, t_field, z_field, vmr_field,
-                       edensity_field, -1, ppath_agenda );
+                       edensity_field, f_grid, ppath_agenda );
   if( ppath_what_background(ppath) > 2 )
     { throw runtime_error( "Radiative background not set to \"space\" by "
                       "*ppath_agenda*. Is correct WSM used in the agenda?" ); }
@@ -1237,8 +1234,6 @@ void iyRadioLink(
   //
   if( np > 1 )
     {
-      const Index f_index = -1;
-
       get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
                           ppath_wind_u, ppath_wind_v, ppath_wind_w,
                           ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
@@ -1249,9 +1244,9 @@ void iyRadioLink(
                           ppath_p, ppath_t, ppath_vmr, 
                           ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                           ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                          f_grid, f_index, stokes_dim, atmosphere_dim );
+                          f_grid, stokes_dim, atmosphere_dim );
       get_ppath_trans(    trans_partial, trans_cumulat,scalar_tau, 
-                           ppath, ppath_abs, f_grid, f_index, stokes_dim );
+                           ppath, ppath_abs, f_grid, stokes_dim );
 
     }
 
@@ -1460,7 +1455,7 @@ void iyTransmissionStandard(
   //
   ppath_agendaExecute( ws, ppath, rte_pos, rte_los, 0, 0,
                        mblock_index, t_field, z_field, vmr_field, 
-                       edensity_field, -1, ppath_agenda );
+                       edensity_field, f_grid, ppath_agenda );
 
   // Some basic sizes
   //
@@ -1598,8 +1593,6 @@ void iyTransmissionStandard(
   //
   if( np > 1 )
     {
-      const Index f_index = -1;
-      
       get_ppath_atmvars(   ppath_p, ppath_t, ppath_vmr,
                            ppath_wind_u, ppath_wind_v, ppath_wind_w,
                            ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
@@ -1610,10 +1603,10 @@ void iyTransmissionStandard(
                            ppath_p, ppath_t, ppath_vmr, 
                            ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                            ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                           f_grid, f_index, stokes_dim, atmosphere_dim );
+                           f_grid, stokes_dim, atmosphere_dim );
       if( !cloudbox_on )
         { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
-                           ppath, ppath_abs, f_grid, f_index, stokes_dim );
+                           ppath, ppath_abs, f_grid, stokes_dim );
         }
       else
         {
@@ -1628,7 +1621,7 @@ void iyTransmissionStandard(
           scat_data.resize( 0 );   pnd_abs_vec.resize(0,0,0);
           //
           get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, 
-                            ppath, ppath_abs, f_grid, f_index, stokes_dim,
+                            ppath, ppath_abs, f_grid, stokes_dim,
                             clear2cloudbox, pnd_ext_mat );
         }
     }
@@ -1698,14 +1691,13 @@ void iyTransmissionStandard(
             { if( is_t[iq] ) { do_t = 1; } }
           if( do_t )
             {
-              const Index f_index = -1;
               Vector t2 = ppath_t;
               t2 += dt;
               get_ppath_abs( ws, ppath_at2, abs_mat_per_species_agenda, 
                              ppath, ppath_p, t2, ppath_vmr, 
                              ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                              ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                             f_grid, f_index, stokes_dim, atmosphere_dim );
+                             f_grid, stokes_dim, atmosphere_dim );
             }
         }
       //#######################################################################

@@ -5920,8 +5920,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", 
             "p_grid", "lat_grid", "lon_grid", "refellipsoid", "z_surface", 
-            "z_field", "t_field", "vmr_field", "edensity_field", "f_index",
-            "cloudbox_limits", "pnd_field", 
+            "z_field", "t_field", "vmr_field", "edensity_field", 
+            "f_grid", "f_index", "cloudbox_limits", "pnd_field", 
             "scat_data_mono", "particle_masses", "mc_seed" ),
         GIN( "max_iter" ),
         GIN_TYPE(    "Index" ),
@@ -6846,7 +6846,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_agenda", "basics_checked", "t_field", "z_field", "vmr_field",
-            "edensity_field", "f_index", "cloudbox_on", "cloudbox_checked", 
+            "edensity_field", "f_grid", "cloudbox_on", "cloudbox_checked", 
             "ppath_inside_cloudbox_do", "mblock_index", "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
@@ -6892,7 +6892,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "ppath_step_agenda", "basics_checked", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", 
-            "edensity_field", "f_index", "refellipsoid", "z_surface", 
+            "edensity_field", "f_grid", "refellipsoid", "z_surface", 
             "rte_pos", "rte_pos2" ),
         GIN(),
         GIN_TYPE(),
@@ -6925,7 +6925,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "ppath_step_agenda", "ppath_inside_cloudbox_do", "atmosphere_dim", 
             "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field",
-            "edensity_field", "f_index", "refellipsoid", "z_surface", 
+            "edensity_field", "f_grid", "refellipsoid", "z_surface", 
             "cloudbox_on", "cloudbox_limits", "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
@@ -6996,7 +6996,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
             "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", 
-            "edensity_field", "refellipsoid", "z_surface", "f_index",
+            "edensity_field", "refellipsoid", "z_surface", "f_grid",
             "ppath_lmax", "ppath_lraytrace" ),
         GIN(),
         GIN_TYPE(),
@@ -7390,19 +7390,16 @@ void define_md_data_raw()
          "many textbooks, e.g. Rybicki and Lightman (1979). The above refers\n"
          "to *refr_index*. *refr_index_group* is sqrt(1+wp^2/w^2).\n"
          "\n"
-         "The expression is dispersive. The frequency applied is selected as\n"
-         "follows. If *f_index* < 0, the mean of first and last element of\n"
-         "*f_grid* is selected. Otherwise, *f_index* specifies the element\n"
-         "of *f_grid* to extract. The applied frequency must be at least\n"
-         "twice the plasma frequency.\n"
+         "The expression is dispersive. The frequency applied is the mean of\n"
+         "first and last element of *f_grid* is selected. This frequency must\n"
+         "be at least twice the plasma frequency.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index", "refr_index_group" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "f_grid", "f_index", 
-            "rte_edensity" ),
+        IN( "refr_index", "refr_index_group", "f_grid", "rte_edensity" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9542,7 +9539,7 @@ void define_md_data_raw()
         GOUT_DESC( "Vector with zenith angles." ),
         IN( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
             "vmr_field", "edensity_field", "refellipsoid", "atmosphere_dim", 
-            "f_index" ),
+            "f_grid" ),
         GIN(         "v_ztan" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),

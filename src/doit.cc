@@ -301,7 +301,8 @@ void cloud_ppath_update1D(Workspace& ws,
   
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            edensity_field, f_index, ppath_step_agenda );
+                            edensity_field, Vector(1,f_grid[f_index]), 
+                            ppath_step_agenda );
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -441,7 +442,8 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            edensity_field, f_index, ppath_step_agenda );
+                            edensity_field, Vector(1,f_grid[f_index]), 
+                            ppath_step_agenda );
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -646,7 +648,8 @@ void cloud_ppath_update3D(Workspace& ws,
 
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            edensity_field, f_index, ppath_step_agenda);
+                            edensity_field, Vector(1,f_grid[f_index]), 
+                            ppath_step_agenda);
 
     // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the

@@ -1,3 +1,35 @@
+2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-232
+
+	* controlfiles/artscomponents/ppath/TestPpath1/2/3D.arts: Adopted.
+
+	* src/montecarlo.cc (iwp_cloud_opt_pathCalc): As below + added
+	f_grid as input argument.
+
+	* src/m_montecarlo.cc (MCIPA):
+	* src/doit.cc (cloud_ppath_update1D, cloud_ppath_update1D_noseq)
+	(cloud_ppath_update3D): Adopted call of ppath_step_agenda.
+
+	* src/rte.cc (get_ppath_blackrad, get_ppath_abs)
+	(get_ppath_trans, get_ppath_trans2): Now not using f_index.
+
+	* src/m_rte.cc (iyEmissionStandard, iyRadioLink)
+	(iyTransmissionStandard): f_index totally removed.
+
+	* src/rte.cc (defocusing_general_sub, defocusing_general)
+	(defocusing_sat2sat): f_index changed to f_grid.
+
+	* src/m_ppath.cc:
+	* src/ppath.cc:
+	* src/refraction.cc: f_index changed to f_grid everywhere used.
+
+	* src/m_refraction.cc (refr_indexFreeElectrons): Now not using
+	f_index. On-line doc updated accordingly.
+
+	* src/agendas.cc: Replaced f_index with f_grid as input to
+	ppath_agenda, ppath_step_agenda and refr_index_agenda.
+
 2012-08-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-231

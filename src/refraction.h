@@ -51,7 +51,7 @@ void get_refr_index_1d(
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
-    const Index&      f_index,
+    ConstVectorView   f_grid,
     const Numeric&    r );
 
 void get_refr_index_2d(
@@ -66,7 +66,7 @@ void get_refr_index_2d(
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
-    const Index&      f_index,
+    ConstVectorView   f_grid,
     const Numeric&    r,
     const Numeric&    lat );
 
@@ -83,7 +83,7 @@ void get_refr_index_3d(
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
-    const Index&      f_index,
+    ConstVectorView   f_grid,
     const Numeric&    r,
     const Numeric&    lat,
     const Numeric&    lon );
@@ -102,7 +102,7 @@ void refr_gradients_2d(
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
-    const Index&      f_index,
+    ConstVectorView   f_grid,
     const Numeric&    r,
     const Numeric&    lat );
 
@@ -122,7 +122,7 @@ void refr_gradients_3d(
     ConstTensor3View  t_field,
     ConstTensor4View  vmr_field,
     ConstTensor3View  edensity_field,
-    const Index&      f_index,
+    ConstVectorView   f_grid,
     const Numeric&    r,
     const Numeric&    lat,
     const Numeric&    lon );

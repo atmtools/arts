@@ -163,7 +163,7 @@ AgendaSet( blackbody_radiation_agenda ){
 # (not used if ppath_stepGeometric used in ppath_step_agenda)
 #
 AgendaSet( refr_index_agenda ){
-  Ignore( f_index )
+  Ignore( f_grid )
   Ignore( rte_edensity )
   NumericSet( refr_index, 1.0 )
   NumericSet( refr_index_group, 1.0 )
@@ -183,7 +183,7 @@ AgendaSet( ppath_step_agenda ){
   Ignore( t_field )
   Ignore( vmr_field )
   Ignore( edensity_field )
-  Ignore( f_index )
+  Ignore( f_grid )
   ppath_stepGeometric
 }
 NumericSet( ppath_lmax, 10e3 )

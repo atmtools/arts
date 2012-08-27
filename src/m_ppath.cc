@@ -73,7 +73,7 @@ void ppathCalc(
     const Tensor3&        z_field,
     const Tensor4&        vmr_field,
     const Tensor3&        edensity_field,
-    const Index&          f_index,
+    const Vector&         f_grid,
     const Index&          cloudbox_on, 
     const Index&          cloudbox_checked,
     const Index&          ppath_inside_cloudbox_do,
@@ -92,7 +92,7 @@ void ppathCalc(
 
   ppath_agendaExecute( ws, ppath, rte_pos, rte_los, cloudbox_on, 
                        ppath_inside_cloudbox_do, mblock_index, t_field, z_field,
-                       vmr_field, edensity_field, f_index, ppath_agenda );
+                       vmr_field, edensity_field, f_grid, ppath_agenda );
 }
 
 
@@ -114,7 +114,7 @@ void ppathFromRtePos2(
     const Tensor3&        z_field,
     const Tensor4&        vmr_field,
     const Tensor3&        edensity_field,
-    const Index&          f_index,
+    const Vector&         f_grid,
     const Vector&         refellipsoid,
     const Matrix&         z_surface,
     const Vector&         rte_pos,
@@ -198,7 +198,7 @@ void ppathFromRtePos2(
       // Path for present rte_los (no cloudbox!)
       ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
                   lon_grid, t_field, z_field, vmr_field, edensity_field,
-                  f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+                  f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
                   rte_pos, rte_los, 0, verbosity );
 
       // Find the point closest to rte_pos2, on the side towards rte_pos. 
@@ -457,7 +457,7 @@ void ppathStepByStep(
     const Tensor3&        z_field,
     const Tensor4&        vmr_field,
     const Tensor3&        edensity_field,
-    const Index&          f_index,
+    const Vector&         f_grid,
     const Vector&         refellipsoid,
     const Matrix&         z_surface,
     const Index&          cloudbox_on, 
@@ -467,7 +467,7 @@ void ppathStepByStep(
     const Verbosity&      verbosity)
 {
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
-              lon_grid, t_field, z_field, vmr_field, edensity_field, f_index, 
+              lon_grid, t_field, z_field, vmr_field, edensity_field, f_grid, 
               refellipsoid, z_surface, cloudbox_on, cloudbox_limits, rte_pos, 
               rte_los, ppath_inside_cloudbox_do, verbosity );
 }
@@ -539,7 +539,7 @@ void ppath_stepRefractionBasic(
     const Tensor3&    edensity_field,
     const Vector&     refellipsoid,
     const Matrix&     z_surface,
-    const Index&      f_index,
+    const Vector&     f_grid,
     const Numeric&    ppath_lmax,
     const Numeric&    ppath_lraytrace,
     const Verbosity&)
@@ -556,7 +556,7 @@ void ppath_stepRefractionBasic(
       if( atmosphere_dim == 1 )
         { 
           ppath_step_refr_1d( ws, ppath_step, p_grid, z_field(joker,0,0), 
-                              t_field, vmr_field, edensity_field, f_index, 
+                              t_field, vmr_field, edensity_field, f_grid, 
                               refellipsoid, z_surface(0,0), ppath_lmax, 
                               refr_index_agenda, "linear_basic", 
                               ppath_lraytrace );
@@ -565,7 +565,7 @@ void ppath_stepRefractionBasic(
         { 
           ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
                               z_field(joker,joker,0), t_field, vmr_field, 
-                              edensity_field, f_index, refellipsoid, 
+                              edensity_field, f_grid, refellipsoid, 
                               z_surface(joker,0), ppath_lmax, 
                               refr_index_agenda, "linear_basic", 
                               ppath_lraytrace ); 
@@ -574,7 +574,7 @@ void ppath_stepRefractionBasic(
         { 
           ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
                               z_field, t_field, vmr_field, edensity_field, 
-                              f_index, refellipsoid, z_surface, ppath_lmax, 
+                              f_grid, refellipsoid, z_surface, ppath_lmax, 
                               refr_index_agenda, "linear_basic", 
                               ppath_lraytrace ); 
         }
@@ -589,20 +589,20 @@ void ppath_stepRefractionBasic(
         { get_refr_index_1d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
                              refr_index_agenda, p_grid, refellipsoid, 
                              z_field(joker,0,0), t_field, vmr_field, 
-                             edensity_field, f_index, ppath_step.r[0] ); 
+                             edensity_field, f_grid, ppath_step.r[0] ); 
         }
       else if( atmosphere_dim == 2 )
         { get_refr_index_2d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
                              refr_index_agenda, p_grid, lat_grid, refellipsoid, 
                              z_field(joker,joker,0), t_field, vmr_field, 
-                             edensity_field, f_index, ppath_step.r[0], 
+                             edensity_field, f_grid, ppath_step.r[0], 
                              ppath_step.pos(0,1) ); 
         }
       else
         { get_refr_index_3d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
                              refr_index_agenda, p_grid, lat_grid, lon_grid, 
                              refellipsoid, z_field, t_field, vmr_field, 
-                             edensity_field, f_index, ppath_step.r[0], 
+                             edensity_field, f_grid, ppath_step.r[0], 
                              ppath_step.pos(0,1), ppath_step.pos(0,2) ); 
         }
     }
@@ -800,7 +800,7 @@ void VectorZtanToZaRefr1D(
      const Tensor3&      edensity_field,
      const Vector&       refellipsoid,
      const Index&        atmosphere_dim,
-     const Index&        f_index,
+     const Vector&       f_grid,
      const Vector&       ztan_vector,
      const Verbosity&)
 {
@@ -826,7 +826,7 @@ void VectorZtanToZaRefr1D(
     {
       get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
                          p_grid, refellipsoid[0], z_field(joker,0,0), t_field, 
-                         vmr_field, edensity_field, f_index,
+                         vmr_field, edensity_field, f_grid,
                          ztan_vector[i] + refellipsoid[0] );
 
     // Calculate zenith angle

@@ -4106,7 +4106,7 @@ void ppath_step_geom_3d(
    \param   t_field      As the WSV with the same name.
    \param   vmr_field    As the WSV with the same name.
    \param   edensity_field    As the WSV with the same name.
-   \param   f_index      As the WSV with the same name.
+   \param   f_grid       As the WSV with the same name.
    \param   lmax         As the WSV ppath_lmax
    \param   refr_index_agenda   As the WSV with the same name.
    \param   lraytrace    Maximum allowed length for ray tracing steps.
@@ -4136,7 +4136,7 @@ void raytrace_1d_linear_basic(
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
         ConstTensor3View       edensity_field,
-        const Index&           f_index,
+        ConstVectorView        f_grid,
         const Numeric&         lmax,
         const Agenda&          refr_index_agenda,
         const Numeric&         lraytrace,
@@ -4155,7 +4155,7 @@ void raytrace_1d_linear_basic(
   Numeric refr_index, refr_index_group;
   get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
                      p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                     edensity_field, f_index, r );
+                     edensity_field, f_grid, r );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
@@ -4208,7 +4208,7 @@ void raytrace_1d_linear_basic(
       // Refractive index at *r*
       get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
                          p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                         edensity_field, f_index, r );
+                         edensity_field, f_grid, r );
 
       // Calculate LOS zenith angle at found point.
       // The general code is very sensitive for numerical problems around the
@@ -4263,7 +4263,7 @@ void raytrace_1d_linear_basic(
    \param   t_field           As the WSV with the same name.
    \param   vmr_field         As the WSV with the same name.
    \param   edensity_field    As the WSV with the same name.
-   \param   f_index           As the WSV with the same name.
+   \param   f_grid            As the WSV with the same name.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitude (1D).
    \param   lmax              Maximum allowed length between the path points.
@@ -4283,7 +4283,7 @@ void ppath_step_refr_1d(
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
         ConstTensor3View  edensity_field,
-        const Index&      f_index,
+        ConstVectorView   f_grid,
         ConstVectorView   refellipsoid,
         const Numeric&    z_surface,
         const Numeric&    lmax,
@@ -4311,7 +4311,7 @@ void ppath_step_refr_1d(
       Numeric refr_index, refr_index_group;
       get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
                          p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                         edensity_field, f_index, r_start );
+                         edensity_field, f_grid, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
   else
@@ -4329,7 +4329,7 @@ void ppath_step_refr_1d(
     {
       raytrace_1d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
             n_array, ng_array, endface, refellipsoid, p_grid, z_field, t_field,
-            vmr_field, edensity_field, f_index, lmax, refr_index_agenda, 
+            vmr_field, edensity_field, f_grid, lmax, refr_index_agenda, 
             lraytrace, ppc, refellipsoid[0] + z_surface, 
             refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
             r_start, lat_start, za_start );
@@ -4387,7 +4387,7 @@ void ppath_step_refr_1d(
    \param   t_field         The WSV with the same name.
    \param   vmr_field       The WSV with the same name.
    \param   edensity_field  As the WSV with the same name.
-   \param   f_index         As the WSV with the same name.
+   \param   f_grid          As the WSV with the same name.
    \param   lmax            As the WSV ppath_lmax
    \param   refr_index_agenda   The WSV with the same name.
    \param   lraytrace       Maximum allowed length for ray tracing steps.
@@ -4422,7 +4422,7 @@ void raytrace_2d_linear_basic(
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
         ConstTensor3View       edensity_field,
-        const Index&           f_index,
+        ConstVectorView        f_grid,
         const Numeric&         lmax,
         const Agenda&          refr_index_agenda,
         const Numeric&         lraytrace,
@@ -4445,7 +4445,7 @@ void raytrace_2d_linear_basic(
   Numeric refr_index, refr_index_group;
   get_refr_index_2d( ws, refr_index, refr_index_group, refr_index_agenda, 
                      p_grid, lat_grid, refellipsoid, z_field, t_field, 
-                     vmr_field, edensity_field, f_index, r, lat );
+                     vmr_field, edensity_field, f_grid, r, lat );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
@@ -4507,7 +4507,7 @@ void raytrace_2d_linear_basic(
       Numeric   dndr, dndlat;
       refr_gradients_2d( ws, refr_index, refr_index_group, dndr, dndlat, 
                          refr_index_agenda, p_grid, lat_grid, refellipsoid, 
-                         z_field, t_field, vmr_field, edensity_field, f_index, 
+                         z_field, t_field, vmr_field, edensity_field, f_grid, 
                          r, lat );
 
       // Calculate LOS zenith angle at found point.
@@ -4573,7 +4573,7 @@ void raytrace_2d_linear_basic(
    \param   t_field           As the WSV with the same name.
    \param   vmr_field         As the WSV with the same name.
    \param   edensity_field    As the WSV with the same name.
-   \param   f_index           As the WSV with the same name.
+   \param   f_grid            As the WSV with the same name.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
@@ -4594,7 +4594,7 @@ void ppath_step_refr_2d(
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
         ConstTensor3View  edensity_field,
-        const Index&      f_index,
+        ConstVectorView   f_grid,
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
         const Numeric&    lmax,
@@ -4630,7 +4630,7 @@ void ppath_step_refr_2d(
       raytrace_2d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
                                 n_array, ng_array, endface, p_grid, lat_grid, 
                                 refellipsoid, z_field, t_field, vmr_field,
-                                edensity_field, f_index, lmax, 
+                                edensity_field, f_grid, lmax, 
                                 refr_index_agenda, lraytrace, lat1, lat3,
                                 rsurface1, rsurface3, r1a, r3a, r3b, r1b, 
                                 r_start, lat_start, za_start );
@@ -4695,7 +4695,7 @@ void ppath_step_refr_2d(
    \param   t_field        The WSV with the same name.
    \param   vmr_field      The WSV with the same name.
    \param   edensity_field As the WSV with the same name.
-   \param   f_index        As the WSV with the same name.
+   \param   f_grid         As the WSV with the same name.
    \param   lat1           Latitude of left end face of the grid cell.
    \param   lat3           Latitude of right end face of the grid cell.
    \param   lon5           Lower longitude of the grid cell.
@@ -4740,7 +4740,7 @@ void raytrace_3d_linear_basic(
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
         ConstTensor3View       edensity_field,
-        const Index&           f_index,
+        ConstVectorView        f_grid,
         const Numeric&         lmax,
         const Agenda&          refr_index_agenda,
         const Numeric&         lraytrace,
@@ -4773,7 +4773,7 @@ void raytrace_3d_linear_basic(
   Numeric refr_index, refr_index_group;
   get_refr_index_3d( ws, refr_index, refr_index_group, refr_index_agenda, 
                      p_grid, lat_grid, lon_grid, refellipsoid, z_field, t_field,
-                     vmr_field, edensity_field, f_index, r, lat, lon );
+                     vmr_field, edensity_field, f_grid, r, lat, lon );
   r_array.push_back( r );
   lat_array.push_back( lat );
   lon_array.push_back( lon );
@@ -4838,7 +4838,7 @@ void raytrace_3d_linear_basic(
       refr_gradients_3d( ws, refr_index, refr_index_group, dndr, dndlat, dndlon,
                          refr_index_agenda, p_grid, lat_grid, lon_grid, 
                          refellipsoid, z_field, t_field, vmr_field, 
-                         edensity_field, f_index, r, lat, lon );
+                         edensity_field, f_grid, r, lat, lon );
 
       // Calculate LOS zenith angle at found point.
       const Numeric   aterm  = RAD2DEG * lstep / refr_index;
@@ -4918,7 +4918,7 @@ void raytrace_3d_linear_basic(
    \param   t_field           Atmospheric temperatures.
    \param   vmr_field         VMR values.
    \param   edensity_field    As the WSV with the same name.
-   \param   f_index           As the WSV with the same name.
+   \param   f_grid            As the WSV with the same name.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
@@ -4940,7 +4940,7 @@ void ppath_step_refr_3d(
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
         ConstTensor3View  edensity_field,
-        const Index&      f_index,
+        ConstVectorView   f_grid,
         ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
         const Numeric&    lmax,
@@ -4983,7 +4983,7 @@ void ppath_step_refr_3d(
                            aa_array, l_array, n_array, ng_array, endface, 
                            refellipsoid, p_grid, lat_grid, lon_grid, 
                            z_field, t_field, vmr_field, edensity_field, 
-                           f_index,lmax, refr_index_agenda, lraytrace, 
+                           f_grid, lmax, refr_index_agenda, lraytrace, 
                            lat1, lat3, lon5, lon6, 
                            rsurface15, rsurface35, rsurface36, rsurface16,
                            r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
@@ -5787,7 +5787,7 @@ void ppath_start_stepping(
    \param z_field            As the WSM with the same name.
    \param vmr_field          As the WSM with the same name.
    \param edensity_field     As the WSM with the same name.
-   \param f_index            As the WSM with the same name.
+   \param f_grid             As the WSM with the same name.
    \param refellipsoid       As the WSM with the same name.
    \param z_surface          Surface altitude.
    \param cloudbox_on        Flag to activate the cloud box.
@@ -5811,7 +5811,7 @@ void ppath_calc(
     const Tensor3&        z_field,
     const Tensor4&        vmr_field,
     const Tensor3&        edensity_field,
-    const Index&          f_index, 
+    const Vector&         f_grid,
     const Vector&         refellipsoid,
     const Matrix&         z_surface,
     const Index&          cloudbox_on, 
@@ -5883,7 +5883,7 @@ void ppath_calc(
       istep++;
       //
       ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                                edensity_field, f_index, ppath_step_agenda );
+                                edensity_field, f_grid, ppath_step_agenda );
       // For debugging:
       //Print( ppath_step, 0, verbosity );
 
@@ -6118,7 +6118,7 @@ void ppath_calc(
         {
           //Print( ppath_step, 0, verbosity );
           ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, 
-                                    vmr_field, edensity_field, f_index, 
+                                    vmr_field, edensity_field, f_grid, 
                                     ppath_step_agenda );
           ppath.nreal[0]  = ppath_step.nreal[0];
           ppath.ngroup[0] = ppath_step.ngroup[0];

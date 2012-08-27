@@ -64,7 +64,6 @@ void refr_indexFreeElectrons(
           Numeric&   refr_index,
           Numeric&   refr_index_group,
     const Vector&    f_grid,
-    const Index&     f_index,
     const Numeric&   rte_edensity,
     const Verbosity&)
 {
@@ -76,13 +75,9 @@ void refr_indexFreeElectrons(
 
   if( rte_edensity > 0 )
     {
-      Numeric f;
-      if( f_index < 0 )
-        { f = ( f_grid[0] + last(f_grid) ) / 2.0; }
-      else
-        { f = f_grid[f_index]; }
-
+      const Numeric f = ( f_grid[0] + last(f_grid) ) / 2.0;
       const Numeric a = rte_edensity*k/(f*f);
+      const Numeric n = sqrt( 1 - a );
 
       if( a > 0.25 ) 
         {
@@ -92,8 +87,6 @@ void refr_indexFreeElectrons(
              << sqrt(rte_edensity*k)/1e6 << " MHz.";
           throw runtime_error( os.str() );
         }
-
-      const Numeric n = sqrt( 1 - a );
 
       refr_index       += n - 1;
       refr_index_group += 1/n - 1;

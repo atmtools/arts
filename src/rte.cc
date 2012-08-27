@@ -391,7 +391,7 @@ const Numeric dza = 1e-3;
     \param    z_field             As the WSV with the same name.
     \param    vmr_field           As the WSV with the same name.
     \param    edensity_field      As the WSV with the same name.
-    \param    f_index             As the WSV with the same name.
+    \param    f_grid              As the WSV with the same name.
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
     \param    verbosity           As the WSV with the same name.
@@ -414,7 +414,7 @@ void defocusing_general_sub(
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
   ConstTensor3View   edensity_field,
-  const Index&       f_index,
+  ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Verbosity&   verbosity )
@@ -433,7 +433,7 @@ void defocusing_general_sub(
   //
   ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
-              f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+              f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, 0, verbosity );
 
   // Calcualte cumulative optical path for ppx
@@ -512,7 +512,7 @@ void defocusing_general_sub(
     \param    z_field             As the WSV with the same name.
     \param    vmr_field           As the WSV with the same name.
     \param    edensity_field      As the WSV with the same name.
-    \param    f_index             As the WSV with the same name.
+    \param    f_grid              As the WSV with the same name.
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
     \param    ppath               As the WSV with the same name.
@@ -533,7 +533,7 @@ void defocusing_general(
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
   ConstTensor3View   edensity_field,
-  const Index&       f_index,
+  ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
@@ -561,7 +561,7 @@ void defocusing_general(
   //
   defocusing_general_sub( ws, pos1, rte_los, rte_pos, lo, ppath_step_agenda, 
                           atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-                          z_field, vmr_field, edensity_field, f_index, 
+                          z_field, vmr_field, edensity_field, f_grid, 
                           refellipsoid, z_surface, verbosity );
 
   // Same thing with negative zenit angle off-set
@@ -571,7 +571,7 @@ void defocusing_general(
   //
   defocusing_general_sub( ws, pos2, rte_los, rte_pos, lo, ppath_step_agenda, 
                           atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-                          z_field, vmr_field, edensity_field, f_index, 
+                          z_field, vmr_field, edensity_field, f_grid, 
                           refellipsoid, z_surface, verbosity );
 
   // Calculate distance between pos1 and 2, and derive the loss factor
@@ -608,7 +608,7 @@ void defocusing_general(
     \param    z_field             As the WSV with the same name.
     \param    vmr_field           As the WSV with the same name.
     \param    edensity_field      As the WSV with the same name.
-    \param    f_index             As the WSV with the same name.
+    \param    f_grid              As the WSV with the same name.
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
     \param    ppath               As the WSV with the same name.
@@ -629,7 +629,7 @@ void defocusing_sat2sat(
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
   ConstTensor3View   edensity_field,
-  const Index&       f_index,
+  ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
@@ -670,7 +670,7 @@ void defocusing_sat2sat(
   adjust_los( rte_los, atmosphere_dim );
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
-              f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+              f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, 0, verbosity );
   bending_angle1d( alpha1, ppt );
   alpha1 *= DEG2RAD;
@@ -681,7 +681,7 @@ void defocusing_sat2sat(
   adjust_los( rte_los, atmosphere_dim );
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
-              f_index, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+              f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, 0, verbosity );
   bending_angle1d( alpha2, ppt );
   alpha2 *= DEG2RAD;
@@ -1121,7 +1121,6 @@ void get_ppath_atmvars(
     \param   ppath_mag_v         V-mag for each ppath point.
     \param   ppath_mag_w         W-mag for each ppath point.
     \param   f_grid              As the WSV.    
-    \param   f_index             As the WSV.
     \param   stokes_dim          As the WSV.
     \param   atmosphere_dim      As the WSV.    
 
@@ -1143,27 +1142,16 @@ void get_ppath_abs(
   ConstVectorView       ppath_mag_v,
   ConstVectorView       ppath_mag_w,
   ConstVectorView       f_grid, 
-  const Index&          f_index, 
   const Index&          stokes_dim,
   const Index&          atmosphere_dim )
 {
   // Sizes
+  const Index   nf   = f_grid.nelem();
   const Index   np   = ppath.np;
   const Index   nabs = ppath_vmr.nrows();
 
-  // Frequencies
-  Numeric f_doppler;  // Frequency to apply for Doppler shift
-  Index   nf;
-  if( f_index < 0 )
-    { 
-      nf        = f_grid.nelem(); 
-      f_doppler = ( f_grid[0] + f_grid[nf-1] ) / 2.0;
-    }
-  else
-    { 
-      nf        = 1; 
-      f_doppler = f_grid[f_index];
-    }
+  // Frequency to apply for Doppler shift
+  const Numeric f_doppler = ( f_grid[0] + f_grid[nf-1] ) / 2.0;
     
   // Size variable
   ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
@@ -1227,7 +1215,7 @@ void get_ppath_abs(
       //
       Tensor4  abs_mat_per_species;
       //
-      abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_index,
+      abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, -1,
                                          rte_doppler, rte_mag, ppath_p[ip], 
                                          ppath_t[ip], ppath_vmr(joker,ip),
                                          l_abs_mat_per_species_agenda );
@@ -1252,7 +1240,6 @@ void get_ppath_abs(
     \param   blackbody_radiation_agenda   As the WSV.    
     \param   ppath_t           Temperature for each ppath point.
     \param   f_grid            As the WSV.    
-    \param   f_index           As the WSV.
 
     \author Patrick Eriksson 
     \date   2012-08-15
@@ -1263,14 +1250,11 @@ void get_ppath_blackrad(
   const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_t, 
-  ConstVectorView    f_grid, 
-  const Index&       f_index )
+  ConstVectorView    f_grid )
 {
   // Sizes
+  const Index   nf = f_grid.nelem();
   const Index   np = ppath.np;
-        Index   nf = 1;
-  if( f_index < 0 )
-    { nf = f_grid.nelem(); }
 
   // Loop path and call agenda
   //
@@ -1279,12 +1263,9 @@ void get_ppath_blackrad(
   for( Index ip=0; ip<np; ip++ )
     {
       Vector   bvector;
-      if( f_index < 0 )
-        { blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
-                                        f_grid, blackbody_radiation_agenda ); }
-      else
-        { blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
-                     Vector(1,f_grid[f_index]), blackbody_radiation_agenda ); }
+      
+      blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
+                                         f_grid, blackbody_radiation_agenda );
       ppath_blackrad(joker,ip) = bvector;
     }
 }
@@ -1462,7 +1443,6 @@ void get_ppath_ext(
     \param   ppath         As the WSV.    
     \param   ppath_abs     See get_ppath_abs.
     \param   f_grid        As the WSV.    
-    \param   f_index       As the WSV.
     \param   stokes_dim    As the WSV.
 
     \author Patrick Eriksson 
@@ -1475,14 +1455,11 @@ void get_ppath_trans(
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
   ConstVectorView       f_grid, 
-  const Index&          f_index, 
   const Index&          stokes_dim )
 {
   // Sizes
+  const Index   nf = f_grid.nelem();
   const Index   np = ppath.np;
-        Index   nf = 1;
-  if( f_index < 0 )
-    { nf = f_grid.nelem(); }
 
   // Init variables
   //
@@ -1554,7 +1531,6 @@ void get_ppath_trans(
     \param   ppath            As the WSV.    
     \param   ppath_abs        See get_ppath_abs.
     \param   f_grid           As the WSV.    
-    \param   f_index          As the WSV.
     \param   stokes_dim       As the WSV.
     \param   clear2cloudbox   See get_ppath_ext.
     \param   pnd_ext_mat      See get_ppath_ext.
@@ -1569,16 +1545,13 @@ void get_ppath_trans2(
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
   ConstVectorView       f_grid, 
-  const Index&          f_index, 
   const Index&          stokes_dim,
   const ArrayOfIndex&   clear2cloudbox,
   ConstTensor4View      pnd_ext_mat )
 {
   // Sizes
+  const Index   nf = f_grid.nelem();
   const Index   np = ppath.np;
-        Index   nf = 1;
-  if( f_index < 0 )
-    { nf = f_grid.nelem(); }
 
   // Init variables
   //

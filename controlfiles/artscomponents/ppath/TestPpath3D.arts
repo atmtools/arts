@@ -52,7 +52,7 @@ MatrixSetConstant( z_surface, nlat, nlon, 500 )
 
 # A dummy frequency grid
 #
-VectorSet( f_grid, [1e9,10e9] )
+VectorSet( f_grid, [10e9] )
 
 
 # Check if atmosphere OK
@@ -81,8 +81,7 @@ VectorSet( rte_los, [   113,  180    ] )
 # Calculate propagation path
 #
 IndexSet( mblock_index, -1 )    # A dummy value!
-IndexSet( f_index, 1 )          # Refractive index will be calculated for
-#                               # element 1 of f_grid.
+#
 ppathCalc                       
 
 
@@ -176,7 +175,7 @@ AgendaSet( ppath_step_agenda ){
   Ignore( t_field )
   Ignore( vmr_field )
   Ignore( edensity_field )
-  Ignore( f_index )
+  Ignore( f_grid )
   ppath_stepGeometric
 }
 ForLoop( forloop_agenda, 0, ilast, 1  )

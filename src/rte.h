@@ -99,7 +99,7 @@ void defocusing_general(
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
   ConstTensor3View   edensity_field,
-  const Index&       f_index,
+  ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
@@ -117,7 +117,7 @@ void defocusing_sat2sat(
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
   ConstTensor3View   edensity_field,
-  const Index&       f_index,
+  ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
@@ -196,7 +196,6 @@ void get_ppath_abs(
   ConstVectorView       ppath_mag_v,
   ConstVectorView       ppath_mag_w,
   ConstVectorView       f_grid, 
-  const Index&          f_index, 
   const Index&          stokes_dim,
   const Index&          atmosphere_dim );
 
@@ -206,8 +205,7 @@ void get_ppath_blackrad(
   const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_t, 
-  ConstVectorView    f_grid, 
-  const Index&       f_index );
+  ConstVectorView    f_grid );
 
 void get_ppath_ext( 
         ArrayOfIndex&                  clear2cloudbox,
@@ -232,7 +230,6 @@ void get_ppath_trans(
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
   ConstVectorView       f_grid, 
-  const Index&          f_index, 
   const Index&          stokes_dim );
 
 void get_ppath_trans2( 
@@ -242,7 +239,6 @@ void get_ppath_trans2(
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
   ConstVectorView       f_grid, 
-  const Index&          f_index, 
   const Index&          stokes_dim,
   const ArrayOfIndex&   clear2cloudbox,
   ConstTensor4View      pnd_ext_mat );
