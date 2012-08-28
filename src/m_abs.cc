@@ -2123,7 +2123,6 @@ void abs_scalar_gasCalcLBL(// WS Output:
                            const ArrayOfString& abs_cont_names,
                            const ArrayOfString& abs_cont_models,
                            const ArrayOfVector& abs_cont_parameters,
-                           const Index& f_index,
                            const Numeric& rte_pressure,
                            const Numeric& rte_temperature,
                            const Vector& rte_vmr_list,
@@ -2142,30 +2141,14 @@ void abs_scalar_gasCalcLBL(// WS Output:
   Matrix                         abs_coef;
   ArrayOfMatrix                  abs_coef_per_species;
   
-  // If f_index>=0, we need to make a local copy of f_grid, because
-  // f_gridSelectFIndex will destroy f_grid.  In any case, we assign
-  // f_grid_pointer so that it points to the valid f_grid (either
-  // original or copy).  
-  // (This is also need for the Doppler treatment,
+
+  // This construct is needed for the Doppler treatment,
   // since that also modifies the local frequency grid.)
   Vector local_f_grid;
   const Vector* f_grid_pointer;
-  if (f_index>=0)
-    {
-      // Make copy:
-      local_f_grid = f_grid;          
 
-      // Select the right frequency:
-      f_gridSelectFIndex(local_f_grid, f_index, verbosity);
-
-      // Make pointer point to copy:
-      f_grid_pointer = &local_f_grid; 
-    }
-  else
-    {
-      // Make pointer point to original.
-      f_grid_pointer = &f_grid;
-    }
+  // Make pointer point to original.
+  f_grid_pointer = &f_grid;
 
   // Doppler treatment, do this only if there is a non-zero Doppler
   // shift. We do this after the frequency selection, so in the case
@@ -2233,13 +2216,12 @@ void abs_mat_per_speciesInit(//WS Output
                              //WS Input
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Vector&                   f_grid,
-                             const Index&                    f_index,
                              const Index&                    stokes_dim,
                              const Verbosity&                
                             )
 {
     
-    Index nf = (f_index>=0)?1:f_grid.nelem();
+    Index nf = f_grid.nelem();
     
     if(abs_species.nelem() > 0 )
     {
@@ -2270,7 +2252,6 @@ void abs_mat_per_speciesCalcLBL(// WS Output:
                            const ArrayOfString& abs_cont_names,
                            const ArrayOfString& abs_cont_models,
                            const ArrayOfVector& abs_cont_parameters,
-                           const Index& f_index,
                            const Numeric& rte_pressure,
                            const Numeric& rte_temperature,
                            const Vector& rte_vmr_list,
@@ -2312,7 +2293,6 @@ void abs_mat_per_speciesCalcLBL(// WS Output:
                           abs_cont_names,
                           abs_cont_models,
                           abs_cont_parameters,
-                          f_index,
                           rte_pressure,
                           rte_temperature,
                           temp_rte_vmr_list,

@@ -2140,7 +2140,6 @@ void abs_mat_fieldCalc( Workspace& ws,
                         Tensor7& amps_field,
                         // WS Input:
                         const Agenda&  amps_agenda,
-                        const Index&   f_index,
                         const Vector&  f_grid,
                         const Index&   atmosphere_dim,
                         const Vector&  p_grid,
@@ -2207,50 +2206,24 @@ void abs_mat_fieldCalc( Workspace& ws,
          << "p_grid.";
       throw runtime_error( os.str() );
     }
-  
-  // We also set the start and extent for the frequency loop.
-  Index f_extent;
-
-  if ( f_index < 0 )
-    {
-      // This means we should extract for all frequencies.
-
-      f_extent = n_frequencies;
-    }
-  else
-    {
-      // This means we should extract only for one frequency.
-
-      // Make sure that f_index is inside f_grid:
-      if ( f_index >= n_frequencies )
-        {
-          ostringstream os;
-          os << "The frequency index f_index points to a frequency outside"
-             << "the frequency grid. (f_index = " << f_index
-             << ", n_frequencies = " << n_frequencies << ")";
-          throw runtime_error( os.str() );
-        }
-
-      f_extent = 1;
-    }
 
   // Resize output field.
   // The dimension in lat and lon must be at least one, even if these
   // grids are empty.
   out2 << "  Creating field with dimensions:\n"
        << "    " << n_species << "    gas species,\n"
-       << "    " << f_extent << "     frequencies,\n"
+       << "    " << n_frequencies << "     frequencies,\n"
        << "    " << n_pressures << "  pressures,\n"
        << "    " << n_latitudes << "  latitudes,\n"
        << "    " << n_longitudes << " longitudes.\n";
 
-  amps_field.resize( n_species,
-                    f_extent,
+  amps_field.resize(n_species,
+                    n_frequencies,
                     stokes_dim,
                     stokes_dim,
                     n_pressures,
                     n_latitudes,
-                    n_longitudes );
+                    n_longitudes);
 
 
   // We have to make a local copy of the Workspace and the agendas because
@@ -2296,17 +2269,17 @@ void abs_mat_fieldCalc( Workspace& ws,
                                            ipr, ila, ilo );
 
                 Vector rte_mag_dummy(1,-1.);
-                
+
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
                 // Agenda output: asg
                 abs_mat_per_species_agendaExecute(l_ws,
-                                             amps,
-                                             f_index, a_doppler,
-                                             rte_mag_dummy,
-                                             a_pressure,
-                                             a_temperature, a_vmr_list,
-                                             l_amps_agenda);
+                                                  amps,
+                                                  f_grid, a_doppler,
+                                                  rte_mag_dummy,
+                                                  a_pressure,
+                                                  a_temperature, a_vmr_list,
+                                                  l_amps_agenda);
 
                 // Verify, that the number of species in asg is
                 // constistent with vmr_field:
@@ -2322,7 +2295,7 @@ void abs_mat_fieldCalc( Workspace& ws,
 
                 // Verify, that the number of frequencies in asg is
                 // constistent with f_extent:
-                if ( f_extent !=amps.npages() )
+                if ( n_frequencies != amps.npages() )
                   {
                     ostringstream os;
                     os << "The number of frequencies desired is "
@@ -2478,7 +2451,6 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                          abs_cont_names, 
                          abs_cont_models, 
                          abs_cont_parameters, 
-                         -1,
                          local_p,
                          local_t,
                          local_vmrs,

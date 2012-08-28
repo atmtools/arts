@@ -76,7 +76,7 @@ void dtauc_ssalbCalc(Workspace& ws,
                      ConstTensor3View z_field, 
                      ConstVectorView p_grid,
                      ConstTensor4View vmr_field,
-                     const Index& f_index
+                     ConstVectorView f_mono
                     )
 {
   
@@ -156,17 +156,17 @@ void dtauc_ssalbCalc(Workspace& ws,
                                       vmr_field(j, i+1, 0, 0));
    
     Vector rte_mag_dummy(1,-1.);
-    
+
      abs_mat_per_species_agendaExecute(ws,
                                   abs_mat_per_species_local,
-                                  f_index,  // monochromatic calculation
+                                  f_mono,  // monochromatic calculation
                                   0,
                                   rte_mag_dummy,
                                   rte_pressure_local, 
                                   rte_temperature_local, 
                                   rte_vmr_list_local,
                                   abs_mat_per_species_agenda);
-     
+
      Numeric abs_total = abs_mat_per_species_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
 
      dtauc[Np_cloud-2-i]=(ext+abs+abs_total)*

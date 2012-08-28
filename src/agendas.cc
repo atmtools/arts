@@ -62,18 +62,11 @@ void define_agenda_data()
         "atmospheric state has to be specified by *rte_pressure*,\n"
         "*rte_temperature*, *rte_mag*, and *rte_vmr_list*.\n"
         "\n"
-        "A mandatory input parameter is f_index, which is used as follows:\n"
-        "\n"
-        "1. f_index < 0 : Return absorption for all frequencies (in f_grid).\n"
-        "\n"
-        "2. f_index >= 0 : Return absorption for the frequency indicated by\n"
-        "   f_index. \n"
-        "\n"
         "The methods inside this agenda may require a lot of additional\n"
-        "input variables, such as *f_grid*, *abs_species*, etc.\n"
+        "input variables, such as *abs_species*, etc.\n"
         ),
        OUTPUT( "abs_mat_per_species" ),
-       INPUT(  "f_index", "rte_doppler", "rte_mag", "rte_pressure", "rte_temperature",
+       INPUT(  "f_grid", "rte_doppler", "rte_mag", "rte_pressure", "rte_temperature",
                "rte_vmr_list" )));
   
   agenda_data.push_back
@@ -162,7 +155,7 @@ void define_agenda_data()
         ),
        OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
                "doit_i_field1D_spectrum"),
-       INPUT("f_index", "scat_i_p", "scat_i_lat", "scat_i_lon")));
+       INPUT("f_grid", "f_index", "scat_i_p", "scat_i_lat", "scat_i_lon")));
             
  agenda_data.push_back
     (AgRecord

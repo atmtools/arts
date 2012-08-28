@@ -1268,7 +1268,6 @@ void define_md_data_raw()
             "abs_cont_names",
             "abs_cont_models",
             "abs_cont_parameters",
-            "f_index",
             "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
         GIN(),
         GIN_TYPE(),
@@ -1300,10 +1299,7 @@ void define_md_data_raw()
          "frequency grid is shifted.\n"
          "\n"
          "The calculation is for one specific atmospheric condition, i.e., a set\n"
-         "of pressure, temperature, VMR values, and Doppler shift. It can be\n"
-         "either for a single frequency (f_index>=0), or for all frequencies\n"
-         "(f_index<0). The dimension of the output abs_mat_per_species is adjusted\n"
-         "accordingly.\n"
+         "of pressure, temperature, VMR values, and Doppler shift.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
         OUT( "abs_mat_per_species" ),
@@ -1319,7 +1315,6 @@ void define_md_data_raw()
             "abs_cont_names",
             "abs_cont_models",
             "abs_cont_parameters",
-            "f_index",
             "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler"
            ),
         GIN(),
@@ -1344,7 +1339,6 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_species",
             "f_grid",
-            "f_index",
             "stokes_dim"
         ),
         GIN(),
@@ -1414,10 +1408,6 @@ void define_md_data_raw()
          "2. Inside the scattering region, monochromatic absorption is\n"
          "pre-calculated for the entire atmospheric field.\n"
          "\n"
-         "Because of the different contexts, the method can calculate absorption\n"
-         "either for all frequencies in the frequency grid (f_index<0), or just\n"
-         "for the frequency indicated by f_index (f_index>=0).\n"
-         "\n"
          "The calculation itself is performed by the\n"
          "*abs_mat_per_species_agenda*.\n"
          ),
@@ -1427,7 +1417,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_mat_per_species_agenda",
-            "f_index",
             "f_grid",
             "atmosphere_dim",
             "p_grid", "lat_grid", "lon_grid",
@@ -9045,7 +9034,6 @@ void define_md_data_raw()
            "abs_cont_names",
            "abs_cont_models",
            "abs_cont_parameters",
-           "f_index",
            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
            "rte_los", "rte_mag"),
         GIN(),

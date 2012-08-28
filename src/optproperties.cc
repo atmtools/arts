@@ -926,7 +926,6 @@ ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& /*assd*/)
   \param abs_vec Absorption vector.
   Input:
   \param abs_mat_per_species as the WSV.
-  \param f_index as the WSV.
 
   \author Richard Larsson
   \date   2012-07-24
@@ -935,17 +934,12 @@ void opt_prop_add_abs_mat_per_species(//Output:
                                       Tensor3&         ext_mat,
                                       Matrix&          abs_vec,
                                       //Input:
-                                      const Tensor4    abs_mat_per_species,
-                                      const Index&     f_index)
+                                      const Tensor4    abs_mat_per_species)
 {
 
     Index stokes_dim = abs_mat_per_species.ncols();
     
-    Index freq_dim = 1;
-
-    if( f_index != -1 ){ freq_dim = abs_mat_per_species.npages(); }
-
-
+    Index freq_dim = abs_mat_per_species.npages();
 
     // old abs_vecInit
     abs_vec.resize( freq_dim, stokes_dim );

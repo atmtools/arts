@@ -905,7 +905,7 @@ void cloud_RT_no_background(Workspace& ws,
       Vector rte_mag_dummy(1,-1.);
         
       abs_mat_per_species_agendaExecute( ws, abs_mat_per_species_local,
-                                    f_index, 
+                                    f_grid[Range(f_index, 1)],
                                     0,
                                     rte_mag_dummy,
                                     rte_pressure_local, 
@@ -913,7 +913,7 @@ void cloud_RT_no_background(Workspace& ws,
                                     rte_vmr_list_local,
                                     abs_mat_per_species_agenda );
               
-      opt_prop_add_abs_mat_per_species(ext_mat_local, abs_vec_local, abs_mat_per_species_local, f_index);
+      opt_prop_add_abs_mat_per_species(ext_mat_local, abs_vec_local, abs_mat_per_species_local);
               
       //
       // Add average particle extinction to ext_mat. 
@@ -1358,16 +1358,16 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
               Vector rte_mag_dummy(1,-1.);
                 
-              abs_mat_per_species_agendaExecute( ws, abs_mat_per_species,
-                                            f_index, 
-                                            0,
-                                            rte_mag_dummy,
-                                            rte_pressure, 
-                                            rte_temperature, 
-                                            rte_vmr_list,
-                                            abs_mat_per_species_agenda );
+              abs_mat_per_species_agendaExecute(ws, abs_mat_per_species,
+                                                f_grid[Range(f_index, 1)],
+                                                0,
+                                                rte_mag_dummy,
+                                                rte_pressure,
+                                                rte_temperature,
+                                                rte_vmr_list,
+                                                abs_mat_per_species_agenda);
               
-              opt_prop_add_abs_mat_per_species(ext_mat, abs_vec, abs_mat_per_species, f_index);
+              opt_prop_add_abs_mat_per_species(ext_mat, abs_vec, abs_mat_per_species);
               
               //
               // Add average particle extinction to ext_mat. 
@@ -1475,7 +1475,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               Vector rte_mag_dummy(1,-1.);
               
               abs_mat_per_species_agendaExecute( ws, abs_mat_per_species,
-                                            f_index, 
+                                            f_grid[Range(f_index, 1)],
                                             0,
                                             rte_mag_dummy,
                                             rte_pressure, 
@@ -1483,7 +1483,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                             rte_vmr_list,
                                             abs_mat_per_species_agenda );
 
-              opt_prop_add_abs_mat_per_species(ext_mat, abs_vec, abs_mat_per_species, f_index);
+              opt_prop_add_abs_mat_per_species(ext_mat, abs_vec, abs_mat_per_species);
 
               //
               // Add average particle extinction to ext_mat. 

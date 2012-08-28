@@ -296,7 +296,6 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                   const ArrayOfString& abs_cont_names,
                                   const ArrayOfString& abs_cont_models,
                                   const ArrayOfVector& abs_cont_parameters,
-                                  const Index& f_index,
                                   const Numeric& rte_pressure,
                                   const Numeric& rte_temperature,
                                   const Vector& rte_vmr_list,
@@ -358,23 +357,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         since that also modifies the local frequency grid.)
     */
     Vector local_f_grid;
-    const Vector* f_grid_pointer;
-    if (f_index>=0)
-    {
-        // Make copy:
-        local_f_grid = f_grid;
-
-        // Select the right frequency:
-        f_gridSelectFIndex(local_f_grid, f_index, verbosity);
-
-        // Make pointer point to copy:
-        f_grid_pointer = &local_f_grid;
-    }
-    else
-    {
-        // Make pointer point to original.
-        f_grid_pointer = &f_grid;
-    }
+    // Make pointer point to original.
+    const Vector* f_grid_pointer = &f_grid;
 
     /*
         Doppler treatment, do this only if there is a non-zero Doppler

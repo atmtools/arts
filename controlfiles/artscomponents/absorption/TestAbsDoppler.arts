@@ -47,9 +47,6 @@ AbsInputFromAtmFields
 # Create the frequency grid `f_grid':
 VectorNLinSpace( f_grid, 500, 50e9, 150e9 )
 
-# Negative f_index means calculate for all frequencies.
-IndexSet( f_index, -1 )
-
 # Calculate field of absorption coefficients:
 abs_mat_fieldCalc
 
@@ -69,7 +66,7 @@ nelemGet( nelem, p_grid )
 VectorNLinSpace( doppler, nelem, 0, 1e9 )
 
 # Calculate field of absorption coefficients:
-abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_index, f_grid, 
+abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_grid, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                vmr_field, doppler )
 
@@ -89,7 +86,7 @@ AgendaSet( abs_mat_per_species_agenda ){
 }
 
 # Calculate field of absorption coefficients:
-abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_index, f_grid, 
+abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_grid, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                vmr_field, doppler )
 

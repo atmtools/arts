@@ -45,7 +45,7 @@ void dtauc_ssalbCalc(Workspace &ws,
                      ConstTensor3View z_field, 
                      ConstVectorView p_grid,
                      ConstTensor4View vmr_field,
-                     const Index& f_index);
+                     ConstVectorView f_mono);
 
 void phase_functionCalc(//Output
                         MatrixView phase_function,

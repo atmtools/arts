@@ -1,3 +1,75 @@
+2012-08-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-237
+
+	* WARNING!!!!!! WORK IN PROGRESS, removing f_index:
+
+	All test cases that use abs_mat_per_speciesExtractFromLookup are
+	currently not working!
+
+	* src/methods.cc:
+
+	(abs_scalar_gasCalcLBL, abs_mat_per_speciesCalcLBL,
+	abs_mat_per_speciesInit, abs_mat_fieldCalc,
+	abs_mat_per_speciesAddZeeman): Remove f_index.
+
+	* src/agendas.cc: Change f_index to f_grid in
+	abs_mat_per_species_agenda.
+	
+	Add f_grid to doit_mono_agenda, should be replaced by an f_mono WSV
+	later.
+
+	* src/optproperties.{cc,h} (opt_prop_add_abs_mat_per_species):
+
+	Remove f_index.
+
+	* src/doit.cc (cloud_RT_no_background,
+	cloud_ppath_update1D_planeparallel):
+
+	Change f_index to f_grid[Range(f_index, 1)] in
+	abs_mat_per_species_agendaExecute call.
+
+	Remove f_index from opt_prop_add_abs_mat_per_species.
+
+	* src/m_abs.cc (abs_scalar_gasCalcLBL, abs_mat_per_speciesCalcLBL):
+
+	Remove f_index.
+
+	* src/m_abs_lookup.cc (abs_mat_fieldCalc):
+
+	Adapt call to abs_mat_per_species_agendaExecute.
+
+	Remove parameter f_index.
+
+	(calc_lookup_error): Remove f_index argument (was -1) in call to
+	abs_scalar_gasCalcLBL.
+
+	* src/disort.{cc,h} (dtauc_ssalbCalc): Change f_index to f_mono.
+
+	* src/m_disort.cc (ScatteringDisort): Pass f_grid[Range(f_index,1)]
+	instead of f_index to dtauc_ssalbCalc.
+
+	* src/m_zeeman.cc (abs_mat_per_speciesAddZeeman):
+
+	Remove f_index.
+
+	* src/m_montecarlo.cc (mc_IWP_cloud_opt_pathCalc):
+
+	Pass f_mono to iwp_cloud_opt_pathCalc.
+
+	(MCGeneral): Pass f_mono instead of f_index to mcPathTraceGeneral.
+
+	* src/montecarlo.{cc,h} (clear_rt_vars_at_gp, cloudy_rt_vars_at_gp,
+	mcPathTraceGeneral, mcPathTraceIPA):
+	
+	Replace f_index with f_mono.
+
+	(iwp_cloud_opt_pathCalc): Replace f_grid+f_index by f_mono.
+
+	* controlfiles/artscomponents/absorption/TestAbsDoppler.arts:
+
+	Remove f_index.
+
 2012-08-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-236

@@ -102,6 +102,8 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                const Index&          max_iter,
                                const Verbosity&      verbosity)
 {
+  const Numeric f_mono = f_grid[f_index];
+  
   //if antenna is pencil beam jsut need a single path integral, otherwise
   //for now do monte carlo integration
   if (mc_antenna.get_type()==ANTENNA_TYPE_PENCIL_BEAM)
@@ -110,7 +112,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                              sensor_los(0,joker),
                              ppath_step_agenda,p_grid,lat_grid,lon_grid,
                              refellipsoid,z_surface,z_field,t_field,vmr_field,
-                             edensity_field, f_grid, f_index, cloudbox_limits,
+                             edensity_field, f_mono, cloudbox_limits,
                              pnd_field,scat_data_mono,particle_masses,
                              verbosity);
     }
@@ -134,7 +136,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                  local_rte_los,
                                  ppath_step_agenda,p_grid,lat_grid,lon_grid,
                                  refellipsoid,z_surface,z_field,t_field,
-                                 vmr_field,edensity_field, f_grid, f_index,
+                                 vmr_field,edensity_field, f_mono,
                                  cloudbox_limits,
                                  pnd_field,scat_data_mono,particle_masses,
                                  verbosity);
@@ -307,7 +309,7 @@ void MCGeneral(Workspace&            ws,
   mc_iteration_count=0;
   Vector vector1(stokes_dim), abs_vec_mono(stokes_dim), I_i(stokes_dim);
   Vector Isum(stokes_dim), Isquaredsum(stokes_dim);
-  const Vector f_mono(1,f_grid[f_index]);
+  const Numeric f_mono = f_grid[f_index];
   y.resize(stokes_dim);
   y=0;
   Index termination_flag=0;
@@ -326,7 +328,7 @@ void MCGeneral(Workspace&            ws,
   bool convert_to_rjbt=false;
   if ( y_unit == "RJBT" )
     { 
-      std_err_i=f_mono[0]*f_mono[0]*2*BOLTZMAN_CONST/
+      std_err_i=f_mono*f_mono*2*BOLTZMAN_CONST/
                                           SPEED_OF_LIGHT/SPEED_OF_LIGHT*std_err;
       convert_to_rjbt=true;
     }
@@ -361,7 +363,7 @@ void MCGeneral(Workspace&            ws,
                       evol_op, abs_vec_mono, temperature, ext_mat_mono, 
                       rng, local_rte_pos, local_rte_los, pnd_vec, g,ppath_step,
                       termination_flag, inside_cloud,
-                      abs_mat_per_species_agenda, stokes_dim, f_index, p_grid, 
+                      abs_mat_per_species_agenda, stokes_dim, f_mono, p_grid,
                       lat_grid, lon_grid, z_field, refellipsoid, z_surface,
                       t_field, vmr_field, cloudbox_limits, pnd_field,
                       scat_data_mono, verbosity); //, z_field_is_1D ); // Unused?
@@ -385,7 +387,7 @@ void MCGeneral(Workspace&            ws,
             }
           else if (termination_flag==1)
             {
-              iy_space_agendaExecute( ws, local_iy, f_mono, local_rte_pos,
+              iy_space_agendaExecute( ws, local_iy, Vector(1, f_mono), local_rte_pos,
                                       local_rte_los, iy_space_agenda);
 
               mult(vector1,evol_op,local_iy(0,joker));
@@ -397,7 +399,7 @@ void MCGeneral(Workspace&            ws,
             {
               //Calculate surface properties
               surface_rtprop_agendaExecute( ws, local_surface_emission, 
-                         local_surface_los, local_surface_rmatrix, f_mono,
+                         local_surface_los, local_surface_rmatrix, Vector(1, f_mono),
                          local_rte_pos, local_rte_los, surface_rtprop_agenda );
 
               if( local_surface_los.nrows() > 1 )
@@ -453,7 +455,7 @@ void MCGeneral(Workspace&            ws,
               if (rng.draw()>albedo)
                 {
                   //Calculate emission
-                  Numeric planck_value = planck( f_mono[0], temperature );
+                  Numeric planck_value = planck( f_mono, temperature );
                   Vector emission=abs_vec_mono;
                   emission*=planck_value;
                   Vector emissioncontri(stokes_dim);
@@ -488,7 +490,7 @@ void MCGeneral(Workspace&            ws,
             {
               //Must be clear sky emission point
               //Calculate emission
-              Numeric planck_value = planck( f_mono[0], temperature );
+              Numeric planck_value = planck( f_mono, temperature );
               Vector emission=abs_vec_mono;
               emission*=planck_value;
               Vector emissioncontri(stokes_dim);
@@ -519,8 +521,8 @@ void MCGeneral(Workspace&            ws,
     {
       for(Index j=0; j<stokes_dim; j++) 
         {
-          y[j]=invrayjean(y[j],f_mono[0]);
-          mc_error[j]=invrayjean(mc_error[j],f_mono[0]);
+          y[j]=invrayjean(y[j],f_mono);
+          mc_error[j]=invrayjean(mc_error[j],f_mono);
         }
     }
 }
@@ -610,6 +612,7 @@ void MCIPA(Workspace&            ws,
   mc_points.resize(p_grid.nelem(),lat_grid.nelem(),lon_grid.nelem());
   mc_points=0;
   Isum=0.0;Isquaredsum=0.0;
+  const Numeric f_mono = f_grid[f_index];
   Numeric std_err_i;
   bool convert_to_rjbt=false;
   if ( y_unit == "RJBT" )
@@ -646,7 +649,7 @@ void MCIPA(Workspace&            ws,
       Ppath ppath;
       ppath_calc( ws, ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field,
-                  edensity_field, Vector(1,f_grid[f_index]), refellipsoid, 
+                  edensity_field, Vector(1, f_mono), refellipsoid,
                   z_surface, 0, cloudbox_limits, local_rte_pos, local_rte_los, 
                   0, verbosity );
       
@@ -658,7 +661,7 @@ void MCIPA(Workspace&            ws,
                          local_rte_pos, local_rte_los, pnd_vec, g,
                          termination_flag, inside_cloud, 
                          abs_mat_per_species_agenda, 
-                         stokes_dim, f_index, p_grid, 
+                         stokes_dim, f_mono, p_grid,
                          lat_grid, lon_grid, z_field, refellipsoid, z_surface,
                          t_field, vmr_field, cloudbox_limits, pnd_field,
                          scat_data_mono, z_field_is_1D, ppath,

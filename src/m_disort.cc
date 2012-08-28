@@ -263,7 +263,7 @@ void ScatteringDisort(Workspace& ws,
       dtauc_ssalbCalc(ws, dtauc, ssalb, opt_prop_part_agenda,
                       abs_scalar_gas_agenda, spt_calc_agenda, 
                       pnd_field, 
-                      t_field, z_field, p_grid, vmr_field, f_index);
+                      t_field, z_field, p_grid, vmr_field, f_grid[Range(f_index,1)]);
       //cout << "dtauc " << dtauc << endl
       //     << "ssalb " << ssalb << endl;
       

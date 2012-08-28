@@ -191,7 +191,6 @@ void opt_prop_add_abs_mat_per_species(//Output:
                                       Tensor3&         ext_mat,
                                       Matrix&          abs_vec,
                                       //Input:
-                                      const Tensor4    abs_mat_per_species,
-                                      const Index&     f_index);
+                                      const Tensor4    abs_mat_per_species);
 
 #endif //optproperties_h
