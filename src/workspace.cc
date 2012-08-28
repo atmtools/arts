@@ -1757,6 +1757,15 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
+     ( NAME( "iy_sub_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
+ wsv_data.push_back
+    (WsvRecord
      ( NAME( "iy_surface_agenda" ),
        DESCRIPTION
        (

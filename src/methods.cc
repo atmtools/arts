@@ -4507,7 +4507,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "basics_checked", "iy_aux_vars", "t_field", 
+        IN( "basics_checked", "iy_aux_vars", "f_grid", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
             "rte_pos", "rte_los", "rte_pos2", "jacobian_do", "iy_main_agenda" ),
         GIN(),
@@ -4750,6 +4750,40 @@ void define_md_data_raw()
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", "scat_za_grid", 
             "scat_aa_grid", "f_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyLoopFrequencies" ),
+        DESCRIPTION
+        (
+         "Radiative transfer calculations one frequency at the time.\n"
+         "\n"
+         "The method loops the frequencies in *f_grid* and calls\n"
+         "*iy_sub_agenda* for each individual value. This method is placed\n"
+         "in *iy_main_agenda*, and the actual radiative ransfer method is\n"
+         "put in *iy_sub_agenda*.\n"
+         "\n"
+         "A common justification for using the method should be to consider\n"
+         "dispersion. By using this method it is ensured that the propagation\n"
+         "path for each individual frequency is calculated.\n"
+         "\n"
+         "Auxiliary data (defined by *iy_aux_vars*) can not contain along-\n"
+         "the-path quantities (a common ppath is not ensured). The returned\n"
+         "*ppath* is valid for the last frequency.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_aux_vars", "stokes_dim", "f_grid", "t_field", "z_field", 
+            "vmr_field", "cloudbox_on", "rte_pos", "rte_los", "rte_pos2", 
+            "jacobian_do", "iy_sub_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

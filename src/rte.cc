@@ -800,6 +800,7 @@ void get_iy(
    ConstTensor3View   z_field,
    ConstTensor4View   vmr_field,
    const Index&       cloudbox_on,
+   ConstVectorView    f_grid,
    ConstVectorView    rte_pos,
    ConstVectorView    rte_los,
    ConstVectorView    rte_pos2,
@@ -812,7 +813,7 @@ void get_iy(
 
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
                          ArrayOfString(0), cloudbox_on, 0, t_field, z_field,
-                         vmr_field, rte_pos, rte_los, rte_pos2,
+                         vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
 }
 
@@ -1768,8 +1769,8 @@ void iyb_calc(
               iy_main_agendaExecute( l_ws, iy, iy_aux_array[iang], ppath,
                                      diy_dx, 1, iy_transmission, iy_aux_vars, 
                                      cloudbox_on, j_analytical_do, t_field, 
-                                     z_field, vmr_field, rte_pos, los, rte_pos2,
-                                     l_iy_main_agenda );
+                                     z_field, vmr_field, f_grid, rte_pos, los, 
+                                     rte_pos2, l_iy_main_agenda );
 
               // Check that aux data can be handled and apply y_unit for 
               // the quantities where it makes sense

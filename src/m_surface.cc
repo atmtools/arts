@@ -305,8 +305,8 @@ void iySurfaceRtpropAgenda(
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
                                    iy_trans_new, ArrayOfString(0), 
                                    cloudbox_on, jacobian_do, t_field, 
-                                   z_field, vmr_field, rte_pos, los, rte_pos2, 
-                                   iy_main_agenda );
+                                   z_field, vmr_field, f_grid, rte_pos, 
+                                   los, rte_pos2, iy_main_agenda );
           }
 
           if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )

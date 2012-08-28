@@ -363,6 +363,7 @@ void iyCalc(
          ArrayOfTensor3&   diy_dx,
    const Index&            basics_checked,
    const ArrayOfString&    iy_aux_vars,
+   const Vector&           f_grid,
    const Tensor3&          t_field,
    const Tensor3&          z_field,
    const Tensor4&          vmr_field,
@@ -387,10 +388,9 @@ void iyCalc(
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
 
-
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
                          iy_aux_vars, cloudbox_on, jacobian_do, t_field, 
-                         z_field, vmr_field, rte_pos, rte_los, rte_pos2,
+                         z_field, vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
 }
 
@@ -938,6 +938,73 @@ void iyEmissionStandard(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyLoopFrequencies(
+         Workspace&        ws,
+         Matrix&           iy,
+         ArrayOfTensor4&   iy_aux,
+         Ppath&            ppath,
+         ArrayOfTensor3&   diy_dx,
+   const ArrayOfString&    iy_aux_vars,
+   const Index&            stokes_dim,
+   const Vector&           f_grid,
+   const Tensor3&          t_field,
+   const Tensor3&          z_field,
+   const Tensor4&          vmr_field,
+   const Index&            cloudbox_on,
+   const Vector&           rte_pos,
+   const Vector&           rte_los,
+   const Vector&           rte_pos2,
+   const Index&            jacobian_do,
+   const Agenda&           iy_sub_agenda,
+   const Verbosity& )
+{
+  // iy_transmission is just input and can be left empty for first call
+  Tensor3   iy_transmission(0,0,0);
+
+  const Index nf = f_grid.nelem();
+
+  for( Index i=0; i<nf; i++ )
+    {
+      // Variables for 1 frequency
+      Matrix         iy1;
+      ArrayOfTensor4 iy_aux1; 
+      ArrayOfTensor3 diy_dx1;
+      
+      iy_sub_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, 
+                            1, iy_transmission, iy_aux_vars, cloudbox_on, 
+                            jacobian_do, t_field, z_field, vmr_field, 
+                            Vector(1,f_grid[i]),
+                            rte_pos, rte_los, rte_pos2, iy_sub_agenda );
+
+      // After first frequency, give output its size
+      if( i == 0 )
+        {
+          iy.resize( nf, stokes_dim );
+          //
+          iy_aux.resize( iy_aux1.nelem() );
+          for( Index q=0; q<iy_aux1.nelem(); q++ )
+            {
+              if( iy_aux1[q].ncols() > 1 )
+                throw runtime_error( "When using this method, *iy_aux_vars* "
+                        "is not allowed to include along-the-path variables." );
+              iy_aux[q].resize(nf,iy_aux1[q].npages(),iy_aux1[q].nrows(),1);
+            }
+          //
+          diy_dx.resize( diy_dx1.nelem() );
+          for( Index q=0; q<diy_dx1.nelem(); q++ )
+            { diy_dx[q].resize( diy_dx1[q].npages(), nf, stokes_dim ); }
+        }
+
+      // Copy to output variables
+      iy(i,joker) = iy(0,joker);
+      for( Index q=0; q<iy_aux1.nelem(); q++ )
+        { iy_aux[q](i,joker,joker,0) = iy_aux1[q](0,joker,joker,0); }
+      for( Index q=0; q<diy_dx1.nelem(); q++ )
+        { diy_dx[q](joker,i,joker) = diy_dx1[q](joker,0,joker); }
+    }
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1253,7 +1320,7 @@ void iyRadioLink(
 
   // Transmitted signal
   //
-  iy_transmitter_agendaExecute( ws, iy, rte_pos, Vector(0), f_grid,
+  iy_transmitter_agendaExecute( ws, iy, f_grid, rte_pos, Vector(0),
                                 iy_transmitter_agenda ); 
   if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
     { throw runtime_error( "The size of *iy* returned from "
@@ -1402,75 +1469,6 @@ void iyRadioLink(
 
 
 
-void iyRunMonochromatic(
-         Workspace&        ws,
-         Matrix&           iy,
-         ArrayOfTensor4&   iy_aux,
-         Ppath&            ppath,
-         ArrayOfTensor3&   diy_dx,
-   const ArrayOfString&    iy_aux_vars,
-   const Index&            stokes_dim,
-   const Vector&           f_grid,
-   const Tensor3&          t_field,
-   const Tensor3&          z_field,
-   const Tensor4&          vmr_field,
-   const Index&            cloudbox_on,
-   const Vector&           rte_pos,
-   const Vector&           rte_los,
-   const Vector&           rte_pos2,
-   const Index&            jacobian_do,
-   const Agenda&           iy_main_agenda,
-   const Verbosity& )
-{
-  // iy_transmission is just input and can be left empty for first call
-  Tensor3   iy_transmission(0,0,0);
-
-  const Index nf = f_grid.nelem();
-
-  for( Index i=0; i<nf; i++ )
-    {
-      //const Vector f_mono(1,f_grid[i]);
-      
-      // Variables for 1 frequency
-      Matrix         iy1;
-      ArrayOfTensor4 iy_aux1; 
-      ArrayOfTensor3 diy_dx1;
-      
-      iy_main_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, 
-                             1, iy_transmission, iy_aux_vars, cloudbox_on, 
-                             jacobian_do, t_field, z_field, vmr_field, 
-                             rte_pos, rte_los, rte_pos2, iy_main_agenda );
-
-      // After first frequency, give output its size
-      if( i == 0 )
-        {
-          iy.resize( nf, stokes_dim );
-          //
-          iy_aux.resize( iy_aux1.nelem() );
-          for( Index q=0; q<iy_aux1.nelem(); q++ )
-            {
-              if( iy_aux1[q].ncols() > 1 )
-                throw runtime_error( "When using this method, *iy_aux_vars* "
-                        "is not allowed to include along-the-path variables." );
-              iy_aux[q].resize(nf,iy_aux1[q].npages(),iy_aux1[q].nrows(),1);
-            }
-          //
-          diy_dx.resize( diy_dx1.nelem() );
-          for( Index q=0; q<diy_dx1.nelem(); q++ )
-            { diy_dx[q].resize( diy_dx1[q].npages(), nf, stokes_dim ); }
-        }
-
-      // Copy to output variables
-      iy(i,joker) = iy(0,joker);
-      for( Index q=0; q<iy_aux1.nelem(); q++ )
-        { iy_aux[q](i,joker,joker,0) = iy_aux1[q](0,joker,joker,0); }
-      for( Index q=0; q<diy_dx1.nelem(); q++ )
-        { diy_dx[q](joker,i,joker) = diy_dx1[q](joker,0,joker); }
-    }
-}
-
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyTransmissionStandard(
          Workspace&                   ws,
@@ -1535,9 +1533,9 @@ void iyTransmissionStandard(
 
   // Get transmitted signal
   //
-  iy_transmitter_agendaExecute( ws, iy, ppath.pos(np-1,Range(0,atmosphere_dim)),
-                                ppath.los(np-1,joker), f_grid, 
-                                iy_transmitter_agenda );
+  iy_transmitter_agendaExecute( ws, iy, 
+                                f_grid, ppath.pos(np-1,Range(0,atmosphere_dim)),
+                                ppath.los(np-1,joker), iy_transmitter_agenda );
   //
   if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
     {

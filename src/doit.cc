@@ -1951,9 +1951,11 @@ void iy_interp_cloudbox_field(Matrix&               iy,
     throw runtime_error( "Unknown interpolation method. Possible choices are "
                          "\"linear\" and \"polynomial\"." );
   if( interpmeth == "polynomial"  &&  atmosphere_dim != 1  )
-    throw runtime_error( "Polynomial interpolation method is only available"
+    throw runtime_error( "Polynomial interpolation method is only available "
                          "for *atmosphere_dim* = 1." );
-  // Size of scat_i_p etc is checked below
+  if( scat_i_p.nlibraries() != f_grid.nelem() )
+    throw runtime_error( "Inconsistency in size between f_grid and scat_i_p! "
+         "(This method does not yet handle dispersion type calculations.)" );
   //---------------------------------------------------------------------------
 
 
@@ -2117,10 +2119,6 @@ void iy_interp_cloudbox_field(Matrix&               iy,
   // --- 1D ------------------------------------------------------------------
   else if( atmosphere_dim == 1 )
     {
-      // Use assert to check *scat_i_p* as this variable should to 99% be
-      // calculated internally, and thus make it possible to avoid this check.
-      assert( is_size( scat_i_p, nf,2,1,1,scat_za_grid.nelem(),1,stokes_dim ));
-
       out3 << "    Interpolating outgoing field:\n";
       out3 << "       zenith_angle: " << rte_los[0] << "\n";
       if( border )

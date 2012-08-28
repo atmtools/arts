@@ -135,6 +135,7 @@ void get_iy(
    ConstTensor3View   z_field,
    ConstTensor4View   vmr_field,
    const Index&       cloudbox_on,
+   ConstVectorView    f_grid,
    ConstVectorView    rte_pos,
    ConstVectorView    rte_los,
    ConstVectorView    rte_pos2,

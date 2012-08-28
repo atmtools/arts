@@ -1,3 +1,29 @@
+2012-08-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-238
+
+	* src/doit.cc (iy_interp_cloudbox_field): Added a check that
+	should catch if DOIT would be used together with
+	iyLoopFrequencies (which would fail).
+
+	* src/m_rte.cc (iyLoopFrequencies): Created (not tested, below called
+	iyRunMonochromatic).
+
+	* src/m_doit.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm): 
+	Adopted call of get_iy.
+
+	* src/rte.cc (get_iy): As below, but had here to add f_grid as input. 
+
+	* src/m_surface.cc (iySurfaceRtpropAgenda):
+	* src/rte.cc (iyb_calc):
+	* src/m_rte.cc (iyCalc): Adopted call of iy_main_agenda.
+
+	* src/m_rte.cc (iyTransmissionStandard, iyRadioLink): Adopted call
+	of iy_transmitter_agenda.
+
+	* src/agendas.cc: Added f_grid to iy_main_agenda and
+	iy_transmitter_agenda. Introduced iy_sub_agenda.
+
 2012-08-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-237

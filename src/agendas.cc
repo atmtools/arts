@@ -299,7 +299,7 @@ void define_agenda_data()
        OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
        INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
               "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
-              "rte_pos", "rte_los", "rte_pos2" )));  
+              "f_grid", "rte_pos", "rte_los", "rte_pos2" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -318,6 +318,25 @@ void define_agenda_data()
         ),
        OUTPUT( "iy" ),
        INPUT( "f_grid", "rte_pos", "rte_los" )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "iy_sub_agenda" ),
+       DESCRIPTION
+       (
+        "Sub-agenda to *iy_main_agenda*. \n"
+        "\n"
+        "The purpose of this agenda is to make it possible to introduce a\n"
+        "second layer inside *iy_main_agenda*. That is, *iy_main_agenda*\n"
+        "calls this agenda to obtain *iy* and associated variables. See\n"
+        "*iyLoopFrequencies* for example usage.\n"
+        "\n"
+        "This agenda has exactly the same in- and output as *iy_main_agenda*.\n"
+        ),
+       OUTPUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+       INPUT( "iy_agenda_call1", "iy_transmission", "iy_aux_vars",
+              "cloudbox_on", "jacobian_do", "t_field", "z_field", "vmr_field", 
+              "f_grid", "rte_pos", "rte_los", "rte_pos2" )));  
 
   agenda_data.push_back
     (AgRecord
@@ -354,7 +373,7 @@ void define_agenda_data()
         "an artificial device.\n"
         ),
        OUTPUT( "iy" ),
-       INPUT( "rte_pos", "rte_los", "f_grid" )));
+       INPUT( "f_grid", "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
