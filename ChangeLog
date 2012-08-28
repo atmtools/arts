@@ -1,3 +1,16 @@
+2012-08-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-236
+
+	* src/m_rte.cc (iyRunMonochromatic): Just started.
+
+	* src/doit.cc (cloud_RT_surface): Added a comment.
+
+	* src/m_montecarlo.cc (MCGeneral): Introduced f_mono (to avoid
+	forming this vector repeatedly).
+
+	* src/rte.cc (get_iy_of_background): Removed outdated comments. 
+
 2012-08-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-235

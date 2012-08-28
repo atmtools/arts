@@ -305,8 +305,9 @@ void MCGeneral(Workspace&            ws,
     Z(stokes_dim,stokes_dim);
   q=0.0;newQ=0.0;
   mc_iteration_count=0;
-  Vector vector1(stokes_dim),abs_vec_mono(stokes_dim),I_i(stokes_dim),Isum(stokes_dim),
-    Isquaredsum(stokes_dim);
+  Vector vector1(stokes_dim), abs_vec_mono(stokes_dim), I_i(stokes_dim);
+  Vector Isum(stokes_dim), Isquaredsum(stokes_dim);
+  const Vector f_mono(1,f_grid[f_index]);
   y.resize(stokes_dim);
   y=0;
   Index termination_flag=0;
@@ -325,7 +326,7 @@ void MCGeneral(Workspace&            ws,
   bool convert_to_rjbt=false;
   if ( y_unit == "RJBT" )
     { 
-      std_err_i=f_grid[f_index]*f_grid[f_index]*2*BOLTZMAN_CONST/
+      std_err_i=f_mono[0]*f_mono[0]*2*BOLTZMAN_CONST/
                                           SPEED_OF_LIGHT/SPEED_OF_LIGHT*std_err;
       convert_to_rjbt=true;
     }
@@ -384,9 +385,8 @@ void MCGeneral(Workspace&            ws,
             }
           else if (termination_flag==1)
             {
-              iy_space_agendaExecute( ws, local_iy, Vector(1,f_grid[f_index]), 
-                                      local_rte_pos,local_rte_los,
-                                      iy_space_agenda);
+              iy_space_agendaExecute( ws, local_iy, f_mono, local_rte_pos,
+                                      local_rte_los, iy_space_agenda);
 
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
@@ -397,8 +397,7 @@ void MCGeneral(Workspace&            ws,
             {
               //Calculate surface properties
               surface_rtprop_agendaExecute( ws, local_surface_emission, 
-                         local_surface_los, local_surface_rmatrix, 
-                         Vector(1,f_grid[f_index]),
+                         local_surface_los, local_surface_rmatrix, f_mono,
                          local_rte_pos, local_rte_los, surface_rtprop_agenda );
 
               if( local_surface_los.nrows() > 1 )
@@ -454,7 +453,7 @@ void MCGeneral(Workspace&            ws,
               if (rng.draw()>albedo)
                 {
                   //Calculate emission
-                  Numeric planck_value = planck( f_grid[f_index], temperature );
+                  Numeric planck_value = planck( f_mono[0], temperature );
                   Vector emission=abs_vec_mono;
                   emission*=planck_value;
                   Vector emissioncontri(stokes_dim);
@@ -489,7 +488,7 @@ void MCGeneral(Workspace&            ws,
             {
               //Must be clear sky emission point
               //Calculate emission
-              Numeric planck_value = planck( f_grid[f_index], temperature );
+              Numeric planck_value = planck( f_mono[0], temperature );
               Vector emission=abs_vec_mono;
               emission*=planck_value;
               Vector emissioncontri(stokes_dim);
@@ -520,8 +519,8 @@ void MCGeneral(Workspace&            ws,
     {
       for(Index j=0; j<stokes_dim; j++) 
         {
-          y[j]=invrayjean(y[j],f_grid[f_index]);
-          mc_error[j]=invrayjean(mc_error[j],f_grid[f_index]);
+          y[j]=invrayjean(y[j],f_mono[0]);
+          mc_error[j]=invrayjean(mc_error[j],f_mono[0]);
         }
     }
 }

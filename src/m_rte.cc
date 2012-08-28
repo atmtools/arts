@@ -1402,6 +1402,74 @@ void iyRadioLink(
 
 
 
+void iyRunMonochromatic(
+         Workspace&        ws,
+         Matrix&           iy,
+         ArrayOfTensor4&   iy_aux,
+         Ppath&            ppath,
+         ArrayOfTensor3&   diy_dx,
+   const ArrayOfString&    iy_aux_vars,
+   const Index&            stokes_dim,
+   const Vector&           f_grid,
+   const Tensor3&          t_field,
+   const Tensor3&          z_field,
+   const Tensor4&          vmr_field,
+   const Index&            cloudbox_on,
+   const Vector&           rte_pos,
+   const Vector&           rte_los,
+   const Vector&           rte_pos2,
+   const Index&            jacobian_do,
+   const Agenda&           iy_main_agenda,
+   const Verbosity& )
+{
+  // iy_transmission is just input and can be left empty for first call
+  Tensor3   iy_transmission(0,0,0);
+
+  const Index nf = f_grid.nelem();
+
+  for( Index i=0; i<nf; i++ )
+    {
+      //const Vector f_mono(1,f_grid[i]);
+      
+      // Variables for 1 frequency
+      Matrix         iy1;
+      ArrayOfTensor4 iy_aux1; 
+      ArrayOfTensor3 diy_dx1;
+      
+      iy_main_agendaExecute( ws, iy1, iy_aux1, ppath, diy_dx1, 
+                             1, iy_transmission, iy_aux_vars, cloudbox_on, 
+                             jacobian_do, t_field, z_field, vmr_field, 
+                             rte_pos, rte_los, rte_pos2, iy_main_agenda );
+
+      // After first frequency, give output its size
+      if( i == 0 )
+        {
+          iy.resize( nf, stokes_dim );
+          //
+          iy_aux.resize( iy_aux1.nelem() );
+          for( Index q=0; q<iy_aux1.nelem(); q++ )
+            {
+              if( iy_aux1[q].ncols() > 1 )
+                throw runtime_error( "When using this method, *iy_aux_vars* "
+                        "is not allowed to include along-the-path variables." );
+              iy_aux[q].resize(nf,iy_aux1[q].npages(),iy_aux1[q].nrows(),1);
+            }
+          //
+          diy_dx.resize( diy_dx1.nelem() );
+          for( Index q=0; q<diy_dx1.nelem(); q++ )
+            { diy_dx[q].resize( diy_dx1[q].npages(), nf, stokes_dim ); }
+        }
+
+      // Copy to output variables
+      iy(i,joker) = iy(0,joker);
+      for( Index q=0; q<iy_aux1.nelem(); q++ )
+        { iy_aux[q](i,joker,joker,0) = iy_aux1[q](0,joker,joker,0); }
+      for( Index q=0; q<diy_dx1.nelem(); q++ )
+        { diy_dx[q](joker,i,joker) = diy_dx1[q](joker,0,joker); }
+    }
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyTransmissionStandard(

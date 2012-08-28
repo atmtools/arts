@@ -829,9 +829,7 @@ void get_iy(
     the agendas.
 
     Each background is handled by an agenda. Several of these agandes
-    can involve recursive calls of *iy_main_agenda*. It is also
-    allowed to input *iy_clearsky_basic_agenda* instead of
-    *iy_main_agenda*.
+    can involve recursive calls of *iy_main_agenda*. 
 
     \param   ws                    Out: The workspace
     \param   iy                    Out: As the WSV.
@@ -846,7 +844,7 @@ void get_iy(
     \param   cloudbox_on           As the WSV.
     \param   stokes_dim            As the WSV.
     \param   f_grid                As the WSV.
-    \param   iy_main_agenda    As the WSV.
+    \param   iy_main_agenda        As the WSV.
     \param   iy_space_agenda       As the WSV.
     \param   iy_surface_agenda     As the WSV.
     \param   iy_cloudbox_agenda    As the WSV.
@@ -878,11 +876,10 @@ void get_iy_of_background(
   CREATE_OUT3;
   
   // Some sizes
-  const Index nf      = f_grid.nelem();
-  const Index np      = ppath.np;
+  const Index nf = f_grid.nelem();
+  const Index np = ppath.np;
 
-  // Set rte_pos, rte_gp_XXX and rte_los to match the last point in ppath.
-  // The agendas below use different combinations of these variables.
+  // Set rte_pos and rte_los to match the last point in ppath.
   //
   // Note that the Ppath positions (ppath.pos) for 1D have one column more
   // than expected by most functions. Only the first atmosphere_dim values

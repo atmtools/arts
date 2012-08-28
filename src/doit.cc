@@ -1020,8 +1020,7 @@ void cloud_RT_surface(Workspace& ws,
   Tensor4 surface_rmatrix;
 
 
-  //Set rte_pos, rte_gp_p and rte_los to match the last point
-  //in ppath.
+  //Set rte_pos and rte_los to match the last point in ppath.
   
   Index np = ppath_step.np;
   
@@ -1038,19 +1037,22 @@ void cloud_RT_surface(Workspace& ws,
   
   surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
                                 surface_rmatrix, Vector(1,f_grid[f_index]),
-                                rte_pos, rte_los,
-                                surface_rtprop_agenda );
+                                rte_pos, rte_los, surface_rtprop_agenda );
   
   iy = surface_emission;
 
-  Vector rtmp(stokes_dim); // Reflected Stokes vector for 1 frequency
   Index nlos = surface_los.nrows();
   
   if( nlos > 0 )
     {
+      Vector rtmp(stokes_dim); // Reflected Stokes vector for 1 frequency
+
       for( Index ilos=0; ilos<nlos; ilos++ )
         {
-          
+          // Several things needs to be fixed here. As far as I understand it,
+          // this works only for specular cases and if the lower cloudbox limit
+          // is exactly at the surface (PE, 120828)
+  
           mult( rtmp, surface_rmatrix(ilos,0,joker,joker), 
                 doit_i_field( cloudbox_limits[0], 0, 0,
                       (scat_za_grid.nelem() -1 - scat_za_index), 0, joker) );
