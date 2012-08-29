@@ -952,6 +952,8 @@ void iyLoopFrequencies(
    const Tensor3&          z_field,
    const Tensor4&          vmr_field,
    const Index&            cloudbox_on,
+   const Index&            iy_agenda_call1,
+   const Tensor3&          iy_transmission,
    const Vector&           rte_pos,
    const Vector&           rte_los,
    const Vector&           rte_pos2,
@@ -959,8 +961,12 @@ void iyLoopFrequencies(
    const Agenda&           iy_sub_agenda,
    const Verbosity& )
 {
-  // iy_transmission is just input and can be left empty for first call
-  Tensor3   iy_transmission(0,0,0);
+  // Throw error if unsupported features are requested
+  if( !iy_agenda_call1 )
+    throw runtime_error( 
+                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+  if( iy_transmission.ncols() )
+    throw runtime_error( "*iy_transmission* must be empty" );
 
   const Index nf = f_grid.nelem();
 
@@ -997,7 +1003,7 @@ void iyLoopFrequencies(
         }
 
       // Copy to output variables
-      iy(i,joker) = iy(0,joker);
+      iy(i,joker) = iy1(0,joker);
       for( Index q=0; q<iy_aux1.nelem(); q++ )
         { iy_aux[q](i,joker,joker,0) = iy_aux1[q](0,joker,joker,0); }
       for( Index q=0; q<diy_dx1.nelem(); q++ )

@@ -4,6 +4,8 @@
 # refractive 3D atmosphere. The case treats ground-based sensor, observing 
 # at a high/low zenith/elevation angle.
 #
+# The control file performs also a test of iyLoopFrequencies
+#
 # 2012-04-02, Patrick Eriksson
 
 
@@ -20,7 +22,7 @@ refellipsoidEarth( refellipsoid, "WGS84" )
 
 # Frequency grid 
 #
-VectorSet( f_grid, [10e9] )
+VectorSet( f_grid, [10e9,20e9] )
 
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
@@ -93,7 +95,7 @@ AgendaSet( iy_main_agenda ){
 }
 
 
-# Auxilariary varaibles
+# Auxiliary variables
 #
 ArrayOfStringSet( iy_aux_vars, 
     [ "Pressure", "Temperature", "VMR, species 0", "Absorption, summed",
@@ -117,6 +119,33 @@ MatrixCreate( iy0 )
 #
 ReadXML( iy0, "iyREFERENCE.xml" )
 MatrixCompare( iy, iy0, 0.0001 )
+
+
+
+
+#
+# Repeat, but running in "dispersion mode".
+#
+
+# Result shall here be identical.
+#
+Copy( iy0, iy )
+
+
+AgendaSet( iy_main_agenda ){
+  iyLoopFrequencies
+}
+AgendaSet( iy_sub_agenda ){
+  iyTransmissionStandard
+}
+
+# No along-the-path-variables can here be included
+ArrayOfStringSet( iy_aux_vars, 
+    [ "Optical depth" ] )
+
+iyCalc
+
+MatrixCompare( iy, iy0, 1e-6 )
 
 }
  
