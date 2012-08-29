@@ -66,7 +66,7 @@ abs_lookupCreate
 AgendaSet( abs_mat_per_species_agenda ){
   Ignore(rte_mag)
   abs_mat_per_speciesInit
-  abs_mat_per_speciesExtractFromLookup
+  abs_mat_per_speciesAddFromLookup
 }
 
 

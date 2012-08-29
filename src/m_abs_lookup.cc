@@ -1990,146 +1990,187 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
-                                      const GasAbsLookup& abs_lookup,
-                                      const Index&        abs_lookup_is_adapted, 
-                                      const Index&        abs_p_interp_order,
-                                      const Index&        abs_t_interp_order,
-                                      const Index&        abs_nls_interp_order,
-                                      const Index&        f_index,
-                                      const Numeric&      a_pressure,
-                                      const Numeric&      a_temperature,
-                                      const Vector&       a_vmr_list,
-                                      const Numeric&      a_doppler,
-                                      const Numeric&      extpolfac,
-                                      const Verbosity&    verbosity)
-{
-  CREATE_OUT3;
-  
-  // Check if the table has been adapted:
-  if ( 1!=abs_lookup_is_adapted )
-    throw runtime_error("Gas absorption lookup table must be adapted,\n"
-                        "use method abs_lookupAdapt.");
-
-  // The function we are going to call here is one of the few helper
-  // functions that adjust the size of their output argument
-  // automatically. 
-  abs_lookup.Extract( abs_scalar_gas,
-                      abs_p_interp_order,
-                      abs_t_interp_order,
-                      abs_nls_interp_order,
-                      f_index,
-                      a_pressure,
-                      a_temperature,
-                      a_vmr_list );
-
-  // Apply Doppler shift, if necessary.
-  if (0==a_doppler)
-    {
-      out3 << "  Doppler shift: None\n";
-    }
-  else
-    {
-      ostringstream os;
-      os << "  Doppler shift: " << a_doppler << " Hz\n";
-      out3 << os.str();
-
-      // Get original lookup table frequency grid.
-      const Vector& f_grid_original = abs_lookup.GetFgrid();      
-      const Index n_f_grid = f_grid_original.nelem();
-
-      // Apply f_index, if necessary.
-      Index f_start, f_extent;
-      if ( f_index < 0 )
-        {
-          // This means we have extracted for all frequencies.
-
-          f_start  = 0;
-          f_extent = n_f_grid;
-        }
-      else
-        {
-          // This means we have extracted only for one frequency.
-
-          // Check that f_index is inside f_grid: 
-          // (Only an assert here, since abs_lookup.Extract(), which
-          // we have called above, does exactly the same but gives a
-          // runtime error.)
-          assert ( f_index < n_f_grid );
-      
-          f_start  = f_index;
-          f_extent = 1;
-        }
-      const Range f_range(f_start,f_extent);
-      ConstVectorView f_grid_original_view = f_grid_original[f_range];
-
-      // Get shifted frequency grid.
-      Vector f_shifted = f_grid_original_view;
-      f_shifted -= a_doppler;
-
-      // Check that the shifted grid is within extpolfac of the original grid.
-      chk_interpolation_grids("Absorption from original frequency grid "
-                              "to Doppler-shifted frequency grid",
-                              f_grid_original_view,
-                              f_shifted,
-                              1,
-                              extpolfac );
-    
-      // Grid positions.
-      ArrayOfGridPos gp(f_shifted.nelem());
-      gridpos(gp,f_grid_original_view,f_shifted,extpolfac);
-
-      // Weights.
-      Matrix itw(gp.nelem(),2);
-      interpweights(itw,gp);
-
-      // Do interpolation.
-      Vector abs_interpolated(abs_scalar_gas.ncols());
-      // The vector temporarily holds interpolated absorption for each gas species.
-      for (Index i=0; i<abs_scalar_gas.nrows(); ++i)
-        {
-          interp(abs_interpolated, 
-                 itw, 
-                 abs_scalar_gas(i,joker),
-                 gp);
-          // Copy interpolated absorption to abs_scalar_gas.
-          abs_scalar_gas(i,joker) = abs_interpolated;
-        }
-
-    }
-}
-
-void abs_mat_per_speciesExtractFromLookup( Tensor4&       abs_mat_per_species,
+void abs_mat_per_speciesAddFromLookup( Tensor4&       abs_mat_per_species,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted,
                                       const Index&        abs_p_interp_order,
                                       const Index&        abs_t_interp_order,
                                       const Index&        abs_nls_interp_order,
-                                      const Index&        f_index,
+                                      const Vector&        f_grid,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
                                       const Vector&       a_vmr_list,
                                       const Numeric&      a_doppler,
-                                      const Index&        stokes_dim,
                                       const Numeric&      extpolfac,
                                       const Verbosity&    verbosity)
 {
-    Matrix abs_scalar_gas;
-    abs_scalar_gasExtractFromLookup(abs_scalar_gas,
-                                    abs_lookup,
-                                    abs_lookup_is_adapted,
-                                    abs_p_interp_order,
-                                    abs_t_interp_order,
-                                    abs_nls_interp_order,
-                                    f_index,
-                                    a_pressure,
-                                    a_temperature,
-                                    a_vmr_list,
-                                    a_doppler,
-                                    extpolfac,
-                                    verbosity);
+    CREATE_OUT3;
     
-    for(Index ii = 0; ii < stokes_dim; ii++){abs_mat_per_species(joker,joker,ii, ii) = abs_scalar_gas;}
+    // Variables needed by abs_lookup.Extract:
+    Matrix abs_scalar_gas;
+    Index  f_index;
+    
+    // Check if the table has been adapted:
+    if ( 1!=abs_lookup_is_adapted )
+        throw runtime_error("Gas absorption lookup table must be adapted,\n"
+                            "use method abs_lookupAdapt.");
+    
+    // Extraction is done for the frequencies in f_grid. However, there are
+    // some restrictions: f_grid must either be the same as the internal
+    // frequency grid of the lookup table (for efficiency reasons, only the
+    // first and last element of f_grid are checked), or must have only a
+    // single element. Handle this:
+    
+    // Get lookup table frequency grid:
+    const Vector& f_grid_lookup = abs_lookup.GetFgrid();
+    if (f_grid.nelem()==f_grid_lookup.nelem())
+    {
+        // Extract for all frequencies. Simple f_grid constistency check here.
+        
+        f_index = -1;
+        
+        if (f_grid[0]!=f_grid_lookup[0])
+        {
+            ostringstream os;
+            os << "First frequency in f_grid inconsistent with lookup table.\n"
+               << "f_grid[0]        = " << f_grid[0] << "\n"
+               << "f_grid_lookup[0] = " << f_grid_lookup[0] << ".";
+            throw runtime_error( os.str() );
+        }
+        
+        if (f_grid[f_grid.nelem()-1]!=f_grid_lookup[f_grid_lookup.nelem()-1])
+        {
+            ostringstream os;
+            os << "Last frequency in f_grid inconsistent with lookup table.\n"
+               << "f_grid[f_grid.nelem()-1]]              = " << f_grid[0] << "\n"
+               << "f_grid_lookup[f_grid_lookup.nelem()-1] = " << f_grid_lookup[0] << ".";
+            throw runtime_error( os.str() );
+        }
+    }
+    else if (f_grid.nelem()==1)
+    {
+        // Find f_index here.
+        
+        GridPos gp;
+        
+        gridpos( gp,
+                f_grid_lookup,
+                f_grid[0],
+                extpolfac );
+        
+        // We should be *on* a grid position, otherwise throw a runtime error.
+        // We check this with a fractional accuracy of 1 permille (0.001).
+        if (abs(gp.fd[0]) < 0.001)
+            f_index = gp.idx;
+        else if (abs(gp.fd[1]) < 0.001)
+            f_index = gp.idx+1;
+        else
+        {
+            ostringstream os;
+            os << "The frequency in f_grid (" << f_grid[0] << ") is not close\n"
+               << "to any frequency in the grid of the absorption table.";
+            throw runtime_error( os.str() );
+        }
+        
+        // As a double check, assert that the frequencies really are close:
+        if (abs(f_grid[0]-f_grid_lookup[f_index]) > 1)
+        {
+            ostringstream os;
+            os << "The frequency in f_grid (" << f_grid[0] << ") disagrees by\n"
+               << "more than 1 Hz from the closest frequency in the grid of\n"
+               << "the absorption table (" << f_grid_lookup[f_index] << ").";
+            throw runtime_error( os.str() );
+        }
+        
+    }
+    else
+    {
+        // Throw runtime error here.
+        ostringstream os;
+        os << "Variable f_grid must either match the internal frequency grid\n"
+           << "of the absorption lookup table, or have exactly one element.\n"
+           << "Here it has " << f_grid.nelem() << " elements.";
+        throw runtime_error( os.str() );
+    }
+    
+    // The function we are going to call here is one of the few helper
+    // functions that adjust the size of their output argument
+    // automatically.
+    abs_lookup.Extract( abs_scalar_gas,
+                       abs_p_interp_order,
+                       abs_t_interp_order,
+                       abs_nls_interp_order,
+                       f_index,
+                       a_pressure,
+                       a_temperature,
+                       a_vmr_list );
+    
+    // Apply Doppler shift, if necessary.
+    if (0==a_doppler)
+    {
+        out3 << "  Doppler shift: None\n";
+    }
+    else
+    {
+        ostringstream os;
+        os << "  Doppler shift: " << a_doppler << " Hz\n";
+        out3 << os.str();
+        
+        // Get shifted frequency grid.
+        Vector f_shifted = f_grid;
+        f_shifted -= a_doppler;
+        
+        // Check that the shifted grid is within extpolfac of the original grid.
+        chk_interpolation_grids("Absorption from original frequency grid "
+                                "to Doppler-shifted frequency grid",
+                                f_grid,
+                                f_shifted,
+                                1,
+                                extpolfac );
+        
+        // Grid positions.
+        ArrayOfGridPos gp(f_shifted.nelem());
+        gridpos(gp,f_grid,f_shifted,extpolfac);
+        
+        // Weights.
+        Matrix itw(gp.nelem(),2);
+        interpweights(itw,gp);
+        
+        // Do interpolation.
+        Vector abs_interpolated(abs_scalar_gas.ncols());
+        // The vector temporarily holds interpolated absorption for each gas species.
+        for (Index i=0; i<abs_scalar_gas.nrows(); ++i)
+        {
+            interp(abs_interpolated,
+                   itw,
+                   abs_scalar_gas(i,joker),
+                   gp);
+            // Copy interpolated absorption to abs_scalar_gas.
+            abs_scalar_gas(i,joker) = abs_interpolated;
+        }
+        
+    }
+    
+    // Now add to the right place in the absorption matrix.
+    
+    Index nr, nc, stokes_dim;
+    
+    // In the two stokes dimensions, abs_mat_per_species should be a
+    // square matrix of stokes_dim*stokes_dim. Check this, and determine
+    // stokes_dim:
+    nr = abs_mat_per_species.nrows();
+    nc = abs_mat_per_species.ncols();
+    if ( nr!=nc )
+    {
+        ostringstream os;
+        os << "The last two dimensions of abs_mat_per_species must be equal (stokes_dim).\n"
+           << "But here they are " << nr << " and " << nc << ".";
+        throw runtime_error( os.str() );
+    }
+    stokes_dim = nr;       // Could be nc here too, since they are the same.
+    
+    
+    for(Index ii = 0; ii < stokes_dim; ii++){abs_mat_per_species(joker,joker,ii, ii) += abs_scalar_gas;}
     
 }
 

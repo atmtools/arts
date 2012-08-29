@@ -1237,13 +1237,12 @@ void define_md_data_raw()
          "*abs_scalar_gasExtractFromLookup*. It is a shortcut for putting in some\n"
          "other methods explicitly, namely:\n"
          "\n"
-         "  1. *f_gridSelectFIndex*\n"
-         "  2. *NumericScale*( rte_doppler, rte_doppler, -1 )\n"
-         "  3. *VectorAddScalar*( f_grid, f_grid, rte_doppler )\n"
-         "  4. *AbsInputFromRteScalars*\n"
-         "  5. *abs_h2oSet*\n"
-         "  6. *abs_coefCalc*\n"
-         "  7. *abs_scalar_gasFromAbsCoef*\n"
+         "  1. *NumericScale*( rte_doppler, rte_doppler, -1 )\n"
+         "  2. *VectorAddScalar*( f_grid, f_grid, rte_doppler )\n"
+         "  3. *AbsInputFromRteScalars*\n"
+         "  4. *abs_h2oSet*\n"
+         "  5. *abs_coefCalc*\n"
+         "  6. *abs_scalar_gasFromAbsCoef*\n"
          "\n"
          "Sub-methods 2 and 3 are called only if rte_doppler is not zero.\n"
          "The treatment of the Doppler-shift here is exact, since the underlying\n"
@@ -1283,16 +1282,15 @@ void define_md_data_raw()
          "Calculates gas absorption coefficients line-by-line.\n"
          "\n"
          "This method can be used inside *abs_mat_per_species_agenda* just like\n"
-         "*abs_mat_per_speciesExtractFromLookup*. It is a shortcut for putting in some\n"
+         "*abs_mat_per_speciesAddFromLookup*. It is a shortcut for putting in some\n"
          "other methods explicitly, namely:\n"
          "\n"
-         "  1. *f_gridSelectFIndex*\n"
-         "  2. *NumericScale*( rte_doppler, rte_doppler, -1 )\n"
-         "  3. *VectorAddScalar*( f_grid, f_grid, rte_doppler )\n"
-         "  4. *AbsInputFromRteScalars*\n"
-         "  5. *abs_h2oSet*\n"
-         "  6. *abs_coefCalc*\n"
-         "  7. *abs_scalar_gasFromAbsCoef*\n"
+         "  1. *NumericScale*( rte_doppler, rte_doppler, -1 )\n"
+         "  2. *VectorAddScalar*( f_grid, f_grid, rte_doppler )\n"
+         "  3. *AbsInputFromRteScalars*\n"
+         "  4. *abs_h2oSet*\n"
+         "  5. *abs_coefCalc*\n"
+         "  6. *abs_scalar_gasFromAbsCoef*\n"
          "\n"
          "Sub-methods 2 and 3 are called only if rte_doppler is not zero.\n"
          "The treatment of the Doppler-shift here is exact, since the underlying\n"
@@ -1349,7 +1347,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesExtractFromLookup" ),
+      ( NAME( "abs_mat_per_speciesAddFromLookup" ),
         DESCRIPTION
         (
             //FIXME: Richard
@@ -1360,9 +1358,11 @@ void define_md_data_raw()
          "specific atmospheric condition, i.e., a set of pressure, temperature,\n"
          "VMR values, and Doppler shift.\n"
          "\n"
-         "Extraction can be either for a single frequency (f_index>=0), or for\n"
-         "all frequencies (f_index<0). The dimension of the output\n"
-         "abs_mat_per_species is adjusted accordingly.\n"
+	 "Extraction is done for the frequencies in f_grid. However, there are\n"
+	 "some restrictions: f_grid must either be the same as the internal\n"
+	 "frequency grid of the lookup table (for efficiency reasons, only the\n"
+	 "first and last element of f_grid are checked), or must have only a\n"
+	 "single element.\n"
          "\n"
          "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
          "and *abs_nls_interp_order*, respectively.\n"
@@ -1383,8 +1383,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_mat_per_species", "abs_lookup", "abs_lookup_is_adapted",
             "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
-            "f_index",
-            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler", "stokes_dim" ),
+            "f_grid",
+            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
         GIN("extpolfac"),
         GIN_TYPE("Numeric"),
         GIN_DEFAULT("10"),
@@ -4102,7 +4102,8 @@ void define_md_data_raw()
          "\n"
          "It reduces the f_grid to only one frequency, the one given by\n"
          "f_index. If f_index is -1, then all frequencies are kept. This\n"
-         "behavior is consistent with *abs_mat_per_speciesExtractFromLookup*.\n"
+         "behavior is consistent with *abs_mat_per_speciesAddFromLookup*.\n"
+	 "FIXME Stefan: Remove this method?\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "f_grid" ),
