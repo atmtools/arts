@@ -1,3 +1,24 @@
+2012-08-30  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-241
+
+	* Naming and documentation of Zeeman and absorption:
+	Changed some method names to be more consistent with
+	intentions and removed abs_scalar_gas from documentation.
+
+	* controlfiles/general/general.arts: Reflects new names.
+	* controlfiles/artscomponents/zeeman/TestZeeman.arts: Reflects new names.
+	* controlfiles/artscomponents/groundbased/TestWinds.arts: Reflects new names.
+	* doc/uguide/polarization.tex: Changed sign on equation (4.80) to true sign (I think).
+	* doc/uguide/Figs/abs_theory/Selection_Rule.pdf: Added Zeeman related explanatory figure.
+	* doc/uguide/concept.tex: Changed from scalar to mat as example workspace variable.
+	* doc/uguide/absorption.tex: Preliminary change from abs_scalar_gas to abs_mat_per_species.
+	* doc/uguide/absorption_theory.tex: Preliminary Zeeman theory added. Please let me know if something is explained in a bad manner...
+	* src/methods.cc: Name changes.
+	* src/m_abs.cc: Name changes.
+	* src/m_zeeman.cc: Name changes and slight code cleaning.
+
+
 2012-08-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-240

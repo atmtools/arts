@@ -403,7 +403,7 @@ executed, which means that the methods it contains are executed one
 after another.
 
 Figure \ref{fig:agendas} gives an example, for the agenda
-\wsaindex{abs\_scalar\_gas\_agenda}. Several radiative transfer methods use this
+\wsaindex{abs\_mat\_per\_species\_agenda}. Several radiative transfer methods use this
 agenda as input variable. When they need local absorption coefficients for a
 point in the atmosphere, they execute the agenda with the local pressure,
 temperature, and trace gas volume mixing ratio values as inputs. The agenda
@@ -412,16 +412,14 @@ then provides absorption coefficients as output.
 \begin{figure}
 \begin{code}
 *-------------------------------------------------------------------*
-Workspace variable = abs_scalar_gas_agenda
+Workspace variable = abs_mat_per_species_agenda
 ---------------------------------------------------------------------
 
-Calculation of scalar gas absorption.
-
-This agenda calculates absorption coefficients for all gas species 
-as a function of the given atmospheric state for one point in the 
-atmosphere. The result is returned in *abs_scalar_gas*, the 
-atmospheric state has to be specified by *rte_pressure*, 
-*rte_temperature*, and *rte_vmr_list*.
+This agenda calculates absorption coefficients for all gas species
+as a function of the given atmospheric state for one point in the
+atmosphere. The result is returned in *abs_mat_per_species*, the
+atmospheric state has to be specified by *rte_pressure*,
+*rte_temperature*, *rte_mag*, and *rte_vmr_list*.
 
 A mandatory input parameter is f_index, which is used as follows:
 
@@ -434,33 +432,40 @@ The methods inside this agenda may require a lot of additional
 input variables, such as *f_grid*, *species*, etc.
 ---------------------------------------------------------------------
 Group  = Agenda
-Output = abs_scalar_gas
-Input  = f_index, rte_pressure, rte_temperature, rte_vmr_list
+Output = abs_mat_per_species
+Input  = f_index, rte_doppler, rte_mag, rte_pressure,
+	 rte_temperature, rte_vmr_list
 *-------------------------------------------------------------------*
 \end{code}
 \begin{minipage}[t]{0.48\hsize}
 \begin{code}
-AgendaSet(abs_scalar_gas_agenda)
+AgendaSet(
+abs_mat_per_species_agenda)
 {
-  abs_scalar_gasCalcLBL
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddLBL
+  abs_mat_per_speciesAddZeemanLBL
 }
 \end{code}
 \end{minipage}
 \hspace*{\fill}
-\rule[-40pt]{.5pt}{50pt}
+\rule[-75pt]{.5pt}{85pt}
 \hspace*{\fill}
 \begin{minipage}[t]{0.48\hsize}
 \begin{code}
-AgendaSet(abs_scalar_gas_agenda)
+AgendaSet(
+abs_mat_per_species_agenda)
 {
-  abs_scalar_gasExtractFromLookup
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddFromLookup
 }
 \end{code}
 \end{minipage}
 \caption{Top: Built-in documentation for variable
-  \builtindoc{abs\_scalar\_gas\_agenda}, obtained by command
-  `\shortcode{arts -d abs\_scalar\_gas\_agenda}', or on page
-  \url{http://www.sat.ltu.se/arts/docserver/agendas/abs_scalar_gas_agenda}. Bottom
+  \builtindoc{abs\_mat\_per\_species\_agenda}, obtained by command
+  `\shortcode{arts -d abs\_mat\_per\_species\_agenda}', or on page
+  \url{http://www.sat.ltu.se/arts/docserver/agendas/abs_mat_per_species_agenda}. Bottom
   left: Controlfile agenda definition for line-by-line absorption
   calculation. Bottom right: Controlfile agenda definition to extract
   absorption from a pre-calculated lookup table.}
@@ -476,9 +481,9 @@ coefficients are extracted from a pre-calculated lookup table.
 On invocation, an agenda executes its methods one after the
 other. The inputs and outputs defined for the agenda must be satisfied
 by the invoked workspace methods. E.g., if an agenda has
-\builtindoc{abs\_scalar\_gas} in its list of output workspace
+\builtindoc{abs\_mat\_per\_species} in its list of output workspace
 variables, at least one workspace method which generates
-\builtindoc{abs\_scalar\_gas} must be added to the agenda in the
+\builtindoc{abs\_mat\_per\_species} must be added to the agenda in the
 controlfile.
 
 \section{Include controlfiles}

@@ -190,7 +190,7 @@ Numeric RelativeStrength(Index n, Index m, Index DJ, Index DM)
                     relstr = 3.0 * ( (N+1) * (N+1) - M * M) / ( ( N+1 ) * ( 2*N+1 ) * ( 2*N+3 ) );
                     break;
                 case -1:
-                    relstr = 3.0 * ( N-M+1 ) * ( N-M+2 ) / ( 4 * ( N+1 ) * ( 2*N+1 ) * ( 2*N+3 ) ) ;
+                    relstr = 3.0 * ( N-M+1 ) * ( N-M+2 ) / ( 4.0 * ( N+1 ) * ( 2*N+1 ) * ( 2*N+3 ) ) ;
                     break;
                 default:
                     relstr = -1e6;
@@ -201,13 +201,13 @@ Numeric RelativeStrength(Index n, Index m, Index DJ, Index DM)
             switch ( DM )
             {//* Switch over DM, if DM != 1, 0 or -1, DM is wrong.
                 case  1:
-                    relstr = 3.0 * ( N-M-1 ) * ( N-M ) / ( 4 * N * ( 2*N+1 ) * ( 2*N-1 ) );
+                    relstr = 3.0 * ( N-M-1 ) * ( N-M ) / ( 4.0 * N * ( 2*N+1 ) * ( 2*N-1 ) );
                     break;
                 case  0:
                     relstr = 3.0 * ( N * N - M * M ) / ( N * ( 2*N+1 ) * ( 2*N-1 ) );
                     break;
                 case -1:
-                    relstr = 3.0 * ( N+M-1 ) * ( N+M ) / ( 4 * N * ( 2*N+1 ) * ( 2*N-1 ) );
+                    relstr = 3.0 * ( N+M-1 ) * ( N+M ) / ( 4.0 * N * ( 2*N+1 ) * ( 2*N-1 ) );
                     break;
                 default:
                     relstr = -1e6;
@@ -287,7 +287,7 @@ Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
 };
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
+void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                                   const Vector& f_grid,
                                   const ArrayOfArrayOfSpeciesTag& abs_species,
                                   const Vector& abs_n2,
@@ -305,7 +305,6 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                   const Verbosity& verbosity)
 {
     CREATE_OUT3;
-    CREATE_OUT0;
 
     const Numeric margin    = 1e-3;
     bool          do_zeeman = false;
@@ -428,29 +427,25 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         Vector R22(3);
             cross3(R22, R11, R_path);
 
-        // Find the angle between Mishchenko vertical/horizontal and Lenoir vertical/horizontal
-        Numeric       eta      = vector_angle(R22, e_v);
-        const Numeric eta_same = vector_angle(R11, e_h);
+        // Test if the rotation is clockwise or counterclockwise.
         const Numeric eta_test = vector_angle(R22, e_h);
+        // Find the angle between Mishchenko vertical/horizontal and Lenoir vertical/horizontal
+        const Numeric eta      = (eta_test > 90.0)?-vector_angle(R22, e_v):vector_angle(R22, e_v);
+        const Numeric eta_same = (eta_test > 90.0)?-vector_angle(R11, e_h):vector_angle(R11, e_h);
 
         // Check to make sure these angles are the same. //FIXME: Remove this test when LOS is secured. 
         if( abs(eta-eta_same) > margin)
             throw runtime_error("There is a severe problem with the coordinate system rotation."
             " Two vectors rotated by eta cannot differ from the same vectors if first rotated by 90 degrees.");
 
-        // Test if the rotation is clockwise or counterclockwise.
-        if( eta_test > 90.0 )
-            eta *= -1.;
-
         // Angle between radiation propagation and magnetic field for determining how the radiation is polarized..
         const Numeric theta = vector_angle(H, R_path);
-        
+
         Numeric DF, RS; // Delta Frequency and Relative Strength
 
         // For all species
         for(Index II = 0; II<abs_species.nelem(); II++)
         {
-            
             // Reinitialize every loop to empty the set.
             ArrayOfLineRecord temp_abs_lines_sm, temp_abs_lines_sp, //sigma minus, sigma plus
                               temp_abs_lines_pi, temp_abs_lines_dt; // pi, default
@@ -465,7 +460,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                 const Index J  = temp_LR.Lower_J();
                 const Index N  = temp_LR.Lower_N();
                 const Index DJ = J - temp_LR.Upper_J();
-                
+
                 // Only look at lines which have no change in the main rotational number
                 if (J != -1 && N != -1)
                 {

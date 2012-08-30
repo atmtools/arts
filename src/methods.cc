@@ -1276,7 +1276,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesCalcLBL" ),
+      ( NAME( "abs_mat_per_speciesAddLBL" ),
         DESCRIPTION
         (
          "Calculates gas absorption coefficients line-by-line.\n"
@@ -9037,7 +9037,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddZeeman" ),
+      ( NAME( "abs_mat_per_speciesAddZeemanLBL" ),
         DESCRIPTION
         (
         "This function will, for each Zeeman species, make a local\n"

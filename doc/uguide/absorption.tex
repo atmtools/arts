@@ -3,6 +3,7 @@
 
 
 \starthistory
+  2012-08-28 & Updated to abs\_mat\_per\_species - by Richard Larsson. \\
   2011-07-05 & Added intro and sections on abs in RT and abs
                calculation. Also revised lookup table section. First 
                attempt of a complete absorption
@@ -20,25 +21,25 @@
   \aAbsXsec{i} & m$^2$             & xsec                    & Absorption cross section of
                                                                absorbing species $i$\\ 
   \aDen{i}     & m$^{-3}$          &                         & Number density of species $i$\\
-  \aAbsCoef{i} & m$^{-1}$          & abs\_scalar\_gas        & Absorption coefficient of
+  \aAbsCoef{i} & m$^{-1}$          & abs\_mat\_per\_species  & Absorption matrix of
                                                                absorbing species $i$\\
-  \AbsCoefTot  & m$^{-1}$          &                         & Total gas absorption coefficient
+  \AbsCoefTot  & m$^{-1}$          &                         & Total gas absorption matrix
  \label{symtable:absorption}     
 \stopsymbolswithunits
 
 \section{Introduction}
 
-The absorption coefficient describes how strongly the atmosphere is
+The absorption matrix describes how strongly the atmosphere is
 absorbing (and emitting).  Its unit (in ARTS) is m$^{-1}$.  For a
 definition, see for example Equation \ref{eq:lookup:beer}.  Both gases
 and particles in the atmosphere absorb, and the total absorption is
 the sum of these two contributions. But this chapter is only about the
 gas absorption.
 
-When calculating radiative transfer, the local absorption coefficient
+When calculating radiative transfer, the local absorption matrix
 at each point in the atmosphere has to be known.  Furthermore, if one
 also wants to calculate Jacobians, then the partial absorption
-coefficients for different atmospheric components (different
+matrices for different atmospheric components (different
 absorption species) also have to be known.   
 
 This chapter discusses different practical aspects of absorption in
@@ -63,16 +64,16 @@ absorption part of ARTS is very simple, so this will be a short
 section.
 
 The interface consists in the agenda
-\wsaindex{abs\_scalar\_gas\_agenda}.  RT functions execute this agenda
-whenever they need local absorption coefficients.  See the built-in
+\wsaindex{abs\_mat\_per\_species\_agenda}.  RT functions execute this agenda
+whenever they need local absorption matrices.  See the built-in
 documentation for the exact input and output arguments of the agenda.
 The idea is that input arguments are the local atmospheric conditions
-(temperature, pressure, trace gas volume mixing ratios, etc.).  These
-are all scalars.
+(temperature, pressure, trace gas volume mixing ratios, magnetic field, etc.).
 
 The output of the agenda is a single variable,
-\wsvindex{abs\_scalar\_gas}, a matrix with dimensions of frequency
-times absorption species.  In a typical ARTS run, this agenda will be
+\wsvindex{abs\_mat\_per\_species}, a tensor with dimensions of absorption species,
+frequency, Stokes dimension and Stokes dimension (Stokes dimension of one thus emulates scalar absorption).
+In a typical ARTS run, this agenda will be
 executed many times over, for different points in the atmosphere.
 
 Typical contents of this agenda are as follows:
@@ -80,14 +81,19 @@ Typical contents of this agenda are as follows:
 \subsection{On-the-fly absorption}
 
 \begin{code}
-AgendaSet( abs_scalar_gas_agenda )
+AgendaSet( abs_mat_per_species_agenda )
 {
- abs_scalar_gasCalcLBL
+ abs_mat_per_speciesInit
+ abs_mat_per_speciesAddLBL
+ abs_mat_per_speciesAddZeemanLBL
 }
 \end{code}
 
-This will calculate absorption coefficients for the exact local
-conditions that are given.  The setup for the calculation (which
+This will calculate absorption matrices for the exact local
+conditions that are given.  \wsaindex{abs\_mat\_per\_speciesAddLBL} calculates
+absorption for all non-Zeeman species which is why \wsaindex{abs\_mat\_per\_speciesAddZeemanLBL}
+follows.
+The setup for the calculation (which
 absorption species and many other details of the calculation) has to
 be done before, outside the agenda.  More information on how to set up
 the absorption calculation can be found in Section
@@ -96,26 +102,29 @@ the absorption calculation can be found in Section
 \subsection{Absorption from lookup table}
 
 \begin{code}
-AgendaSet( abs_scalar_gas_agenda )
+AgendaSet( abs_mat_per_species_agenda )
 {
- abs_scalar_gasExtractFromLookup
+ Ignore(rte_mag)
+ abs_mat_per_speciesInit
+ abs_mat_per_speciesAddFromLookup
 }
 \end{code}
 
-This will extract absorption coefficients from a pre-calculated lookup
+This will extract absorption matrices from a pre-calculated lookup
 table.  More information on the lookup table and how to generate it
 can be found in Section \ref{sec:absorption:lookup}.  
 
 \subsection{Doppler shift}
 \label{sec:absorption:doppler}
 
-Both \wsmindex{abs\_scalar\_gasCalcLBL} and
-\wsmindex{abs\_scalar\_gasExtractFromLookup} take into account a
+Each of \wsmindex{abs\_mat\_per\_speciesAddLBL}, 
+\wsmindex{abs\_mat\_per\_speciesAddZeemanLBL} and
+\wsmindex{abs\_mat\_per\_speciesAddFromLookup} take into account a
 possible Doppler shift. However, there is an important difference in
-the implementation: For \wsmindex{abs\_scalar\_gasCalcLBL} the shift
+the implementation: For \wsmindex{abs\_mat\_per\_speciesAddLBL} and \wsmindex{abs\_mat\_per\_speciesAddZeemanLBL} the shift
 is implemented by simply making the line-by-line calculation on a
 shifted frequency grid, so the treatment is exact. For
-\wsmindex{abs\_scalar\_gasExtractFromLookup}, on the other hand, the
+\wsmindex{abs\_mat\_per\_speciesAddFromLookup}, on the other hand, the
 shift is implemented numerically, by shifting the frequency grid and
 then linearly interpolating the pre-calculated absorption data.
 
@@ -123,7 +132,7 @@ then linearly interpolating the pre-calculated absorption data.
 \section{Calculating gas absorption}
 \label{sec:absorption:calculating}
 
-This section deals with calculating gas absorption coefficients in
+This section deals with calculating gas absorption matrices in
 ARTS.  This typically occurs in two different contexts, either
 on-the-fly in the radiative transfer calculation (see Section
 \ref{sec:absorption:abs-rt}), or when preparing a gas absorption
@@ -143,7 +152,7 @@ have spectral lines can be calculated as a sum over the absorption of
 each spectral line, plus some more or less empirical continuum terms.
 
 An absorption species in ARTS is an abstract entity that has a partial
-absorption coefficient associated with it, and that usually can be
+absorption matrix associated with it, and that usually can be
 associated with a volume mixing ratio of a corresponding gas (the VMRs
 are stored in variable \wsvindex{vmr\_field}). Total absorption is the
 sum of the partial absorptions of all absorption species. Absorption
@@ -153,12 +162,13 @@ method \wsmindex{SpeciesSet}.
 
 The absorption species tags describe not only the different absorbers,
 but also the model that should be used to calculate the absorption.
-There are two types of tags, those for explicit line-by-line
-calculations, and those for continua and complete absorption models.
+There are three types of tags, those for explicit line-by-line
+calculations, those for continua and complete absorption models, and a special Zeeman effect tag.
 An example of the first kind is `H2O-18', which identifies a
 particular isotopologue of water vapor.  An example of the second kind is
 `H2O-ForeignContCKDMT100', which identifies a particular continuum
-model.  Tags can be combined, if they refer to the same molecule
+model.  An example of the third is `O2-Z', which identifies that special Zeeman routines should be used.
+Tags can be combined, if they refer to the same molecule
 (different isotopologues are allowed). Even continuum tags can be combined
 with explicit line-by-line tags, if they refer to the same molecule.
 
@@ -261,11 +271,12 @@ line shape cutoff with \wsmindex{abs\_lines\_per\_speciesCompact}. \\
 %---------------------------------------------------------------------
 5a &
 Calculate absorption on-the-fly. &
-Agenda: \wsaindex{abs\_scalar\_gas\_agenda}. \newline
-Variable: \wsvindex{abs\_scalar\_gas}. \newline
-Methods: \wsmindex{abs\_scalar\_gasCalcLBL}. Alternative:
-\wsmindex{abs\_scalar\_gasExtractFromLookup} (extract absorption from
-pre-calculated lookup table). \\
+Agenda: \wsaindex{abs\_mat\_per\_species\_agenda}. \newline
+Variable: \wsvindex{abs\_mat\_per\_species}, which is nitialized in \wsmindex{abs\_mat\_per\_speciesInit}.\newline
+Methods: \wsmindex{abs\_mat\_per\_speciesAddLBL} and \wsmindex{abs\_mat\_per\_speciesAddZeemanLBL}. Alternative:
+\wsmindex{abs\_mat\_per\_speciesAddFromLookup} (extract absorption from
+pre-calculated lookup table). Note that the lookup table cannot contain absorption for
+Zeeman tagged species due to the dependency on magnetic field strength and direction of these.\\
 %---------------------------------------------------------------------
 5b &
 Calculate absorption lookup table. &
@@ -434,23 +445,26 @@ higher level methods, such as \wsmindex{abs\_coefCalc}.
 
 \subsection{Introduction}
 
-Calculating gas absorption coefficient spectra in a line by line way
+Calculating gas absorption matrix spectra in a line by line way
 is quite an expensive thing to do. Sometimes contributions from
 thousands or ten thousands of lines have to be summed up. To make
 matters worse, this has to be done over and over again for each point
 in the atmosphere.
 
-Actually, the absorption coefficient depends not directly on position,
+Actually, the absorption matrix depends not directly on position,
 but on the atmospheric state variables:
 \begin{itemize}
 \item Pressure
 \item Temperature
 \item Trace gas concentrations
+\item Magnetic field
 \end{itemize}
 
 The basic idea of the lookup table is to pre-calculate absorption for
 discrete combinations of these variables, and then use interpolation
-to extract absorption for the actual atmospheric state.
+to extract absorption for the actual atmospheric state. Due to the nature of
+the Zeeman effect, this is not implemented in the lookup table and we will 
+thus ignore the magnetic field.
 
 The lookup table concept and implementation is described only very
 briefly here in the user guide. Much more details and validation
@@ -577,17 +591,17 @@ calculation. It sets the variable \wsvindex{abs\_lookup\_is\_adapted}
 to flag that the table is now ok. 
 
 When the table has been successfully adapted, one can extract
-absorption coefficients with the method
-\wsmindex{abs\_scalar\_gasExtractFromLookup}. This will extract
-\emph{absorption coefficients}, i.e., the cross sections stored in the
+absorption matrices with the method
+\wsmindex{abs\_mat\_per\_speciesAddFromLookup}. This will extract
+\emph{absorption matrices}, i.e., the cross sections stored in the
 table are not only interpolated to the desired atmospheric conditions,
 but are also multiplied with the partial number density of the present
 absorbers.
 
-The \builtindoc{abs\_scalar\_gasExtractFromLookup} method is meant to
-be used inside the agenda \wsaindex{abs\_scalar\_gas\_agenda},
-which is used in several places where absorption coefficients are
-needed, both inside the scattering box and outside. 
+The \builtindoc{abs\_mat\_per\_speciesAddFromLookup} method is meant to
+be used inside the agenda \wsaindex{abs\_mat\_per\_species\_agenda},
+which is used in several places where absorption matrices are
+needed, both inside the scattering box and outside.
 
 It is also possible to calculate absorption for the entire atmospheric
 field.  This is done by the method \wsmindex{abs\_fieldCalc}, and is
@@ -598,7 +612,7 @@ no need to calculate a global field. But the
 absorption vs. pressure, for example.)
 
 Because of the different usage contexts, the method
-\builtindoc{abs\_scalar\_gasExtractFromLookup} can calculate absorption
+\builtindoc{abs\_mat\_per\_speciesAddFromLookup} can calculate absorption
 either for all frequencies in the frequency grid (input variable
 \wsvindex{f\_index}$<$0), or just for the frequency indicated by the
 input variable \builtindoc{f\_index} (\builtindoc{f\_index}$>=$0).

@@ -68,13 +68,13 @@ abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 AgendaSet( abs_mat_per_species_agenda ){
   Ignore(rte_mag)
   abs_mat_per_speciesInit
-  abs_mat_per_speciesCalcLBL
+  abs_mat_per_speciesAddLBL
   # To use the absorption lookup table, replace by:
   #abs_mat_per_speciesInit
   #abs_mat_per_speciesExtractFromLookup
   # To get absorption from Zeeman tag,
   # uncomment this:
-  #abs_mat_per_speciesAddZeeman
+  #abs_mat_per_speciesAddZeemanLBL
   # and comment out Ignore(rte_mag):
 }
 
