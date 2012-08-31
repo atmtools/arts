@@ -174,13 +174,13 @@ typedef Array<LineshapeSpec> ArrayOfLineshapeSpec;
 
 
 
-/** Contains the lookup data for one isotope.
+/** Contains the lookup data for one isotopologue.
     \author Stefan Buehler */
-class IsotopeRecord{
+class IsotopologueRecord{
 public:
 
   /** Default constructor. Needed by make_array. */
-  IsotopeRecord() : mname(),
+  IsotopologueRecord() : mname(),
                     mabundance(0.),
                     mmass(0.),
                     mmytrantag(-1),
@@ -191,7 +191,7 @@ public:
 
   /** Copy constructor. We need this, since operator= does not work
       correctly for Arrays. (Target Array has to be resized first.) */
-  IsotopeRecord(const IsotopeRecord& x) :
+  IsotopologueRecord(const IsotopologueRecord& x) :
     mname(x.mname),
     mabundance(x.mabundance),
     mmass(x.mmass),
@@ -202,7 +202,7 @@ public:
   { /* Nothing left to do here. */ }
 
   /** Constructor that sets the values. */
-  IsotopeRecord(const String&           name,
+  IsotopologueRecord(const String&           name,
                 const Numeric&          abundance,
                 const Numeric&          mass,
                 const Index&            mytrantag,
@@ -230,23 +230,23 @@ public:
 #endif // ifndef NDEBUG
   }
 
-  /** Isotope name. */
+  /** Isotopologue name. */
   const String&       Name()         const { return mname;  }
-  /** Normal abundance ( = isotopic ratio). (Absolute number.) */
+  /** Normal abundance ( = isotopologue ratio). (Absolute number.) */
   const Numeric&      Abundance()    const { return mabundance; }
-  /** Mass of the isotope. (In unified atomic mass units u)
+  /** Mass of the isotopologue. (In unified atomic mass units u)
       If I understand this correctly this is the same as g/mol. */
   const Numeric&      Mass()         const { return mmass;    }
-  /** MYTRAN2 tag numbers for all isotopes. -1 means not included. */
+  /** MYTRAN2 tag numbers for all isotopologues. -1 means not included. */
   const Index&          MytranTag()    const { return mmytrantag;    }
-  /** HITRAN-96 tag numbers for all isotopes. -1 means not included. */
+  /** HITRAN-96 tag numbers for all isotopologues. -1 means not included. */
   const Index&          HitranTag()    const { return mhitrantag;    }
-  /** JPL tag numbers for all isotopes. Empty array means not included. There
-      can be more than one JPL tag for an isotopic species, because in
+  /** JPL tag numbers for all isotopologues. Empty array means not included. There
+      can be more than one JPL tag for an isotopologue species, because in
       JPL different vibrational states have different tags. */
   const ArrayOfIndex&   JplTags()      const { return mjpltags;      }
 
-  //! Check if isotope is actually a continuum.
+  //! Check if isotopologue is actually a continuum.
   /*!
    \return True if this is a continuum.
    */
@@ -282,7 +282,7 @@ public:
       {
         ostringstream os;
         os << "Partition function of "
-           << "Isotope " << mname
+           << "Isotopologue " << mname
 //           << " is unknown.";
            << " at T=" << actual_temperature << "K is negative.";
         throw runtime_error(os.str());
@@ -315,49 +315,49 @@ public:
   /** Default constructor. */
   SpeciesRecord() : mname(),
                     mdegfr(-1),
-                    misotope() { /* Nothing to do here */ }
+                    misotopologue() { /* Nothing to do here */ }
   
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
                 const Index degfr,
-                const MakeArray<IsotopeRecord>& isotope)
+                const MakeArray<IsotopologueRecord>& isotopologue)
     : mname(name),
       mdegfr(degfr),
-      misotope(isotope)
+      misotopologue(isotopologue)
   {
 
-    // Thanks to Matpack, initialization of misotope with isotope
+    // Thanks to Matpack, initialization of misotopologue with isotopologue
     // should now work correctly.  
 
 #ifndef NDEBUG
       {
-        /* Check that the isotopes are correctly sorted. */
-        for ( Index i=0; i<misotope.nelem()-1; ++i )
+        /* Check that the isotopologues are correctly sorted. */
+        for ( Index i=0; i<misotopologue.nelem()-1; ++i )
           {
-            assert( misotope[i].Abundance() >= misotope[i+1].Abundance() );
+            assert( misotopologue[i].Abundance() >= misotopologue[i+1].Abundance() );
           }
 
         /* Check that the Mytran tags are correctly sorted. */
-        for ( Index i=0; i<misotope.nelem()-1; ++i )
+        for ( Index i=0; i<misotopologue.nelem()-1; ++i )
           {
-            if ( (0<misotope[i].MytranTag()) && (0<misotope[i+1].MytranTag()) )
+            if ( (0<misotopologue[i].MytranTag()) && (0<misotopologue[i+1].MytranTag()) )
               {
-                assert( misotope[i].MytranTag() < misotope[i+1].MytranTag() );
+                assert( misotopologue[i].MytranTag() < misotopologue[i+1].MytranTag() );
             
                 // Also check that the tags have the same base number:
-                assert( misotope[i].MytranTag()/10 == misotope[i].MytranTag()/10 );
+                assert( misotopologue[i].MytranTag()/10 == misotopologue[i].MytranTag()/10 );
               }
           }
 
         /* Check that the Hitran tags are correctly sorted. */
-        for ( Index i=0; i<misotope.nelem()-1; ++i )
+        for ( Index i=0; i<misotopologue.nelem()-1; ++i )
           {
-            if ( (0<misotope[i].HitranTag()) && (0<misotope[i+1].HitranTag()) )
+            if ( (0<misotopologue[i].HitranTag()) && (0<misotopologue[i+1].HitranTag()) )
               {
-                assert( misotope[i].HitranTag() < misotope[i+1].HitranTag() );
+                assert( misotopologue[i].HitranTag() < misotopologue[i+1].HitranTag() );
             
                 // Also check that the tags have the same base number:
-                assert( misotope[i].HitranTag()/10 == misotope[i+1].HitranTag()/10 );
+                assert( misotopologue[i].HitranTag()/10 == misotopologue[i+1].HitranTag()/10 );
               }
           }
       }
@@ -366,16 +366,16 @@ public:
 
   const String&               Name()     const { return mname;     }   
   Index                         Degfr()    const { return mdegfr;    }
-  const Array<IsotopeRecord>& Isotope()  const { return misotope;  }
-  Array<IsotopeRecord>&       Isotope()        { return misotope;  }
+  const Array<IsotopologueRecord>& Isotopologue()  const { return misotopologue;  }
+  Array<IsotopologueRecord>&       Isotopologue()        { return misotopologue;  }
   
 private:
   /** Species name. */
   String mname;
   /** Degrees of freedom. */
   Index mdegfr;
-  /** Isotope data. */
-  Array<IsotopeRecord> misotope;
+  /** Isotopologue data. */
+  Array<IsotopologueRecord> misotopologue;
 };
 
 /** Spectral line catalog data. 
@@ -413,12 +413,12 @@ private:
     ASCII file. That is why each new transition is marked with a `@'
     character.
 
-    The first column will contain the species and isotope, following
+    The first column will contain the species and isotopologue, following
     the naming scheme described below.  Scientific notation is
     allowed, e.g. 501.12345e9.  
 
     Note that starting with ARTSCAT-2, the intensity is per molecule,
-    i.e., it does not contain the isotope ratio. This is similar to
+    i.e., it does not contain the isotopologue ratio. This is similar to
     JPL, but different to HITRAN.
 
     Currently, ARTS is capable of handling ARTSCAT versions 3 and 4. Different
@@ -432,7 +432,7 @@ private:
      1   name                         NAME        -    e.g. O3-666
      2   center frequency                F       Hz    e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
-     4   line intensity                 I0    Hz*m^2   per isotope, not per species
+     4   line intensity                 I0    Hz*m^2   per isotopologue, not per species
      5   reference temp. for I0       T_I0        K
      6   lower state energy           ELOW        J    
      7   air broadened width          AGAM    Hz/Pa    values around 20000 Hz/Pa
@@ -483,9 +483,9 @@ private:
     Col  Variable                    Label        Unit    Comment
     ------------------------------------------------------------------      
     00   `@'                         ENTRY        -       marks start of entry
-    01   species\&isotope tag        NAME         -       e.g. O3-666
+    01   species\&isotopologue tag        NAME         -       e.g. O3-666
     02   center frequency            F            Hz      e.g. 501.12345e9 
-    03   line intensity              I0           Hz*m^2  per isotope, not per species
+    03   line intensity              I0           Hz*m^2  per isotopologue, not per species
     04   reference temp. for I0      T_I0         K
     05   lower state energy          ELOW         J   
     06   Einstein A-coefficient      A            1/s     where available from HITRAN 
@@ -547,7 +547,7 @@ public:
   LineRecord()
     : mversion (3),
       mspecies (1000000),
-      misotope (1000000),
+      misotopologue (1000000),
       mf       (0.     ),
       mpsf     (0.     ),
       mi0      (0.     ),
@@ -574,10 +574,10 @@ public:
 
   /** Constructor that sets all data elements explicitly. If
       assertions are not disabled (i.e., if NDEBUG is not \#defined),
-      assert statements check that the species and isotope data
+      assert statements check that the species and isotopologue data
       exists. */
   LineRecord( Index                 species,
-              Index                 isotope,
+              Index                 isotopologue,
               Numeric               f,
               Numeric               psf,
               Numeric               i0,
@@ -598,7 +598,7 @@ public:
               Numeric               /* dpsf */)
     : mversion (3),
       mspecies (species    ),
-      misotope (isotope    ),
+      misotopologue (isotopologue    ),
       mf       (f          ),
       mpsf     (psf        ),
       mi0      (i0         ),
@@ -622,14 +622,14 @@ public:
       mlower_n (-1     ),
       mlower_j (-1     )
   {
-    // Thanks to Matpack, initialization of misotope with isotope
+    // Thanks to Matpack, initialization of misotopologue with isotopologue
     // should now work correctly.  
 
-    // Check if this species is legal, i.e., if species and isotope
+    // Check if this species is legal, i.e., if species and isotopologue
     // data exists.
     ////    extern Array<SpeciesRecord> species_data;
     //assert( mspecies < species_data.nelem() );
-    //assert( misotope < species_data[mspecies].Isotope().nelem() );
+    //assert( misotopologue < species_data[mspecies].Isotopologue().nelem() );
   }
 
   /** Return the version String. */
@@ -647,16 +647,16 @@ public:
       to. The species data can be accessed by species_data[Species()]. */
   Index Species() const { return mspecies; }
 
-  /** The index of the isotopic species that this line belongs
-      to. The isotopic species data can be accessed by
-      species_data[Species()].Isotope()[Isotope()].  */
-  Index Isotope() const { return misotope; }
+  /** The index of the isotopologue species that this line belongs
+      to. The isotopologue species data can be accessed by
+      species_data[Species()].Isotopologue()[Isotopologue()].  */
+  Index Isotopologue() const { return misotopologue; }
 
   String Name() const;
 
   const SpeciesRecord& SpeciesData() const;
 
-  const IsotopeRecord& IsotopeData() const;
+  const IsotopologueRecord& IsotopologueData() const;
 
   /** The line center frequency in <b> Hz</b>. */
   Numeric F() const     { return mf; }
@@ -863,7 +863,7 @@ public:
     Each item is defined below, with its format shown in parenthesis.
 
       MO  (I2)  = molecule number
-      ISO (I1)  = isotope number (1 = most abundant, 2 = second, etc)
+      ISO (I1)  = isotopologue number (1 = most abundant, 2 = second, etc)
       V (F12.6) = frequency of transition in wavenumbers (cm-1)
       S (E10.3) = intensity in cm-1/(molec * cm-2) at 296 Kelvin
       R (E10.3) = transition probability squared in Debyes**2
@@ -994,7 +994,7 @@ public:
     parenthesis.
    
        MO  (I2)      = molecule number
-       ISO (I1)      = isotope number (1 = most abundant, 2 = second, etc)
+       ISO (I1)      = isotopologue number (1 = most abundant, 2 = second, etc)
     *  F (F13.4)     = frequency of transition in MHz
     *  errf (F8.4)   = error in f in MHz
        S (E10.3)     = intensity in cm-1/(molec * cm-2) at 296 K
@@ -1156,8 +1156,8 @@ private:
   Index mversion;
   // Molecular species index: 
   Index mspecies;
-  // Isotopic species index:
-  Index misotope;
+  // Isotopologue species index:
+  Index misotopologue;
   // The line center frequency in Hz:
   Numeric mf;
   // The pressure shift parameter in Hz/Pa:
@@ -1268,24 +1268,24 @@ private:
   Index mlower_j;
 };
 
-// is needed to map jpl tags/arts identifier to the species/isotope data within arts
+// is needed to map jpl tags/arts identifier to the species/isotopologue data within arts
 class SpecIsoMap{
 public:
-  SpecIsoMap():mspeciesindex(0), misotopeindex(0){}
+  SpecIsoMap():mspeciesindex(0), misotopologueindex(0){}
   SpecIsoMap(const Index& speciesindex,
-                const Index& isotopeindex)
+                const Index& isotopologueindex)
     : mspeciesindex(speciesindex),
-      misotopeindex(isotopeindex) 
+      misotopologueindex(isotopologueindex) 
   {}
 
   // Return the index to the species 
   const Index& Speciesindex() const { return mspeciesindex; }
-  // Return the index to the isotope
-  const Index& Isotopeindex() const { return misotopeindex; }
+  // Return the index to the isotopologue
+  const Index& Isotopologueindex() const { return misotopologueindex; }
 
 private:
   Index mspeciesindex;
-  Index misotopeindex;
+  Index misotopologueindex;
 };
 
 

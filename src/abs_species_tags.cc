@@ -48,7 +48,7 @@ SpeciesTag::SpeciesTag(String def)
 {
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
-  // Name of species and isotope (aux variables):
+  // Name of species and isotopologue (aux variables):
   String name, isoname;
   // Aux index:
   Index n;
@@ -60,7 +60,7 @@ SpeciesTag::SpeciesTag(String def)
   // Turn Zeeman off by default
   mzeeman = false;
 
-  // We cannot set a default value for the isotope, because the
+  // We cannot set a default value for the isotopologue, because the
   // default should be `ALL' and the value for `ALL' depends on the
   // species. 
     
@@ -98,15 +98,15 @@ SpeciesTag::SpeciesTag(String def)
   if ( 0 == def.nelem() )
     {
       // This means that there is nothing else to parse. Apparently
-      // the user wants all isotopes and no frequency limits.
-      // Frequency defaults are already set. Set isotope defaults:
-      misotope = spr.Isotope().nelem();
-      // This means all isotopes.
+      // the user wants all isotopologues and no frequency limits.
+      // Frequency defaults are already set. Set isotopologue defaults:
+      misotopologue = spr.Isotopologue().nelem();
+      // This means all isotopologues.
 
       return;
     }
     
-  // Extract the isotope name/Zeeman flag:
+  // Extract the isotopologue name/Zeeman flag:
   n    = def.find('-');    // find the '-'
   if (n != def.npos )
     {
@@ -116,7 +116,7 @@ SpeciesTag::SpeciesTag(String def)
       if ("Z" == isoname)
         {
           mzeeman = true;
-          // Zeeman flag was present, now extract the isotope name:
+          // Zeeman flag was present, now extract the isotopologue name:
           n    = def.find('-');    // find the '-'
           if (n != def.npos )
             {
@@ -126,7 +126,7 @@ SpeciesTag::SpeciesTag(String def)
           else
             {
               // n==def.npos means that def does not contain a '-'. In that
-              // case we assume that it contains just the isotope name and
+              // case we assume that it contains just the isotopologue name and
               // nothing else.
               isoname = def;
               def  = "";
@@ -136,7 +136,7 @@ SpeciesTag::SpeciesTag(String def)
   else
     {
       // n==def.npos means that def does not contain a '-'. In that
-      // case we assume that it contains just the isotope name or
+      // case we assume that it contains just the isotopologue name or
       // Zeeman flag and nothing else.
       isoname = def;
       def  = "";
@@ -144,8 +144,8 @@ SpeciesTag::SpeciesTag(String def)
         {
           mzeeman = true;
           // This means that there is nothing else to parse. Apparently
-          // the user wants all isotopes and no frequency limits.
-          misotope = spr.Isotope().nelem();
+          // the user wants all isotopologues and no frequency limits.
+          misotopologue = spr.Isotopologue().nelem();
           return;
         }
     }
@@ -153,28 +153,28 @@ SpeciesTag::SpeciesTag(String def)
   // Check for joker:
   if ( "*" == isoname )
     {
-      // The user wants all isotopes. Set this accordingly:
-      misotope = spr.Isotope().nelem();
+      // The user wants all isotopologues. Set this accordingly:
+      misotopologue = spr.Isotopologue().nelem();
     }
   else if ( "nl" == isoname )     // Check for "nl":
     {
       // The user wants no lines at all. Set this accordingly:
-      misotope = -1;
+      misotopologue = -1;
     }
   else
     {
-      // Make an array containing the isotope names:
+      // Make an array containing the isotopologue names:
       ArrayOfString ins;
-      for ( Index i=0; i<spr.Isotope().nelem(); ++i )
-        ins.push_back( spr.Isotope()[i].Name() );
+      for ( Index i=0; i<spr.Isotopologue().nelem(); ++i )
+        ins.push_back( spr.Isotopologue()[i].Name() );
 
-      misotope = find_first (ins, isoname);
+      misotopologue = find_first (ins, isoname);
 
-      // Check if we found a matching isotope:
-      if ( misotope < 0 ) 
+      // Check if we found a matching isotopologue:
+      if ( misotopologue < 0 ) 
         {
           ostringstream os;
-          os << "Isotope " << isoname << " is not a valid isotope or "
+          os << "Isotopologue " << isoname << " is not a valid isotopologue or "
              << "absorption model for species " << name << ".\n"
              << "Valid options are:\n";
           for ( Index i=0; i<ins.nelem(); ++i )
@@ -270,20 +270,20 @@ String SpeciesTag::Name() const
   // Zeeman flag.
   if (mzeeman) os << "Z-";
 
-  // Now the isotope. Can be "nl", a single isotope or ALL.
-  if ( misotope == spr.Isotope().nelem() )
+  // Now the isotopologue. Can be "nl", a single isotopologue or ALL.
+  if ( misotopologue == spr.Isotopologue().nelem() )
     {
-      // One larger than allowed means all isotopes!
+      // One larger than allowed means all isotopologues!
       os << "*-";
     }
-  else if ( misotope == -1 )
+  else if ( misotopologue == -1 )
     {
       // -1 means no lines!
       os << "nl-";
     }
   else
     {
-      os << spr.Isotope()[misotope].Name() << "-";
+      os << spr.Isotopologue()[misotopologue].Name() << "-";
     }
 
   // Now the frequency limits, if there are any. For this we first

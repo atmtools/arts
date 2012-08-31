@@ -539,13 +539,13 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
       for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
 
-          // Check if this is a specific isotope, or "all". ("all" is
+          // Check if this is a specific isotopologue, or "all". ("all" is
           // not a continuum tag.)
-          if ( abs_species[i][s].Isotope() <
-               species_data[abs_species[i][s].Species()].Isotope().nelem() )
+          if ( abs_species[i][s].Isotopologue() <
+               species_data[abs_species[i][s].Species()].Isotopologue().nelem() )
             {
               // Check for continuum tags
-              if (species_data[abs_species[i][s].Species()].Isotope()[abs_species[i][s].Isotope()].isContinuum())
+              if (species_data[abs_species[i][s].Species()].Isotopologue()[abs_species[i][s].Isotopologue()].isContinuum())
                 {
                   const String thisname = abs_species[i][s].Name();
                   // Ok, now we know this is a continuum tag.

@@ -217,7 +217,7 @@ void nca_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity
 
 //=== Array Types ==========================================================
 
-TMPL_NC_READ_WRITE_FILE_DUMMY(Array<IsotopeRecord> )
+TMPL_NC_READ_WRITE_FILE_DUMMY(Array<IsotopologueRecord> )
 TMPL_NC_READ_WRITE_FILE_DUMMY(Array<SpeciesRecord> )
 TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGriddedField1)

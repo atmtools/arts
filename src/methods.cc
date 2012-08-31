@@ -511,7 +511,7 @@ void define_md_data_raw()
          "thrown\n"
          "\n"
          "Please note that all lines must correspond\n"
-         "to legal species / isotope combinations\n"
+         "to legal species / isotopologue combinations\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines" ),
@@ -536,7 +536,7 @@ void define_md_data_raw()
      "Arts catalogue file.\n"
      "\n"
      "Please note that all lines must correspond\n"
-     "to legal species / isotope combinations\n"
+     "to legal species / isotopologue combinations\n"
      ),
     AUTHORS( "Oliver Lemke" ),
     OUT( "abs_lines" ),
@@ -563,7 +563,7 @@ void define_md_data_raw()
          "method *abs_linesReadFromHitran*.\n"
          "\n"
          "Please note that all lines must correspond to legal\n"
-         "species / isotope combinations and that the line data\n"
+         "species / isotopologue combinations and that the line data\n"
          "file must be sorted by increasing frequency\n"
          "\n"
          "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
@@ -626,7 +626,7 @@ void define_md_data_raw()
          "thrown\n"
          "\n"
          "Please note that all lines must correspond\n"
-         "to legal species / isotope combinations.\n"
+         "to legal species / isotopologue combinations.\n"
          "\n"
          "WWW access of the JPL catalogue: http://spec.jpl.nasa.gov/\n"
          ),
@@ -654,7 +654,7 @@ void define_md_data_raw()
          "thrown\n"
          "\n"
          "Please note that all lines must correspond\n"
-         "to legal species / isotope combinations\n"
+         "to legal species / isotopologue combinations\n"
          ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lines" ),
@@ -726,7 +726,7 @@ void define_md_data_raw()
          "controlfile. Lines are assigned to the first species that\n"
          "matches. That means if the list of species is [\"O3-666\",\"O3\"], then\n"
          "the last group O3 gets assigned all the O3 lines that do not fit in\n"
-         "the first group (all other isotopes than the main isotope).\n"
+         "the first group (all other isotopologues than the main isotopologue).\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
@@ -8366,9 +8366,9 @@ void define_md_data_raw()
          "representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects\n"
          "spectral features which belong to the same species.\n"
          "\n"
-         "A tag is defined in terms of the name of the species, isotope, and a\n"
+         "A tag is defined in terms of the name of the species, isotopologue, and a\n"
          "range of frequencies. Species are named after the standard chemical\n"
-         "names, e.g., \"O3\". Isotopes are given by the last digit of the atomic\n"
+         "names, e.g., \"O3\". Isotopologues are given by the last digit of the atomic\n"
          "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
          "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
          "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
@@ -8377,9 +8377,9 @@ void define_md_data_raw()
          "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
          "\n"
          "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
-         "frequency range and isotope may be omitted.\n"
+         "frequency range and isotopologue may be omitted.\n"
          "\n"
-         "Finally, instead of the isotope the special letter \"nl\" may be given,\n"
+         "Finally, instead of the isotopologue the special letter \"nl\" may be given,\n"
          "e.g., \"H2O-nl\". This means that no absorption at all is associated\n"
          "with this tag. (It is not quite clear if this feature is useful for\n"
          "anything right now.)\n"

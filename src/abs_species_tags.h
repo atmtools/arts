@@ -46,7 +46,7 @@ class SpeciesTag {
 public:
   /** Default constructor. */
   SpeciesTag() : mspecies(-1),
-                 misotope(-1),
+                 misotopologue(-1),
                  mlf(0.),
                  muf(0.),
                  mzeeman(false)
@@ -61,10 +61,10 @@ public:
   /** Molecular species index. */
   Index Species() const { return mspecies; }
 
-  /** Isotopic species index.
-      If this is equal to the number of isotopes (one more than
-      allowed) it means all isotopes of this species. */ 
-  Index Isotope() const { return misotope; }
+  /** Isotopologue species index.
+      If this is equal to the number of isotopologues (one more than
+      allowed) it means all isotopologues of this species. */ 
+  Index Isotopologue() const { return misotopologue; }
 
   /** The lower line center frequency in Hz.
       If this is <0 it means no lower limit. */
@@ -93,7 +93,7 @@ public:
   bool operator==(const SpeciesTag& other) const
   {
     if ( other.mspecies != mspecies ) return false;
-    if ( other.misotope != misotope ) return false;
+    if ( other.misotopologue != misotopologue ) return false;
     if ( other.mlf      != mlf      ) return false;
     if ( other.muf      != muf      ) return false;
     return true;
@@ -104,12 +104,12 @@ private:
   //! Molecular species index.
   Index mspecies;
 
-  //! Isotopic species index.
+  //! Isotopologue species index.
   /*!
-    If this is equal to the number of isotopes (one more than
-    allowed) it means all isotopes of this species. If it is <0 it
-    means no isotope (no lines), corresponding to "H2O-nl" */
-  Index misotope;
+    If this is equal to the number of isotopologues (one more than
+    allowed) it means all isotopologues of this species. If it is <0 it
+    means no isotopologue (no lines), corresponding to "H2O-nl" */
+  Index misotopologue;
 
   //! The lower limit line center frequency in Hz.
   /*! If this is <0 it means no lower limit. */

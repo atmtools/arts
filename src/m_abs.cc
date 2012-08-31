@@ -331,11 +331,11 @@ void abs_linesReadFromSplitArtscat(// WS Output:
     for (ArrayOfSpeciesTag::const_iterator sp = asp->begin();
          sp != asp->end(); sp++)
     {
-      // If the Isotope number is equal to the number of Isotopes for that species,
-      // it means 'all isotopes', in which case we have to read a catalog.
+      // If the Isotopologue number is equal to the number of Isotopologues for that species,
+      // it means 'all isotopologues', in which case we have to read a catalog.
       // Continua don't need a catalog.
-      if (sp->Isotope() == species_data[sp->Species()].Isotope().nelem()
-          || !species_data[sp->Species()].Isotope()[sp->Isotope()].isContinuum())
+      if (sp->Isotopologue() == species_data[sp->Species()].Isotopologue().nelem()
+          || !species_data[sp->Species()].Isotopologue()[sp->Isotopologue()].isContinuum())
           {
             unique_species.insert(sp->Species());
           }
@@ -735,13 +735,13 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
               // tags must belong to the same species.
               if ( this_tag.Species() != this_line.Species() ) break;
 
-              // Test isotope. The isotope can either match directly, or
-              // the Isotope of the tag can be one larger than the
-              // number of isotopes, which means `all'. Test the second
+              // Test isotopologue. The isotopologue can either match directly, or
+              // the Isotopologue of the tag can be one larger than the
+              // number of isotopologues, which means `all'. Test the second
               // condition first, since this will probably be more often
               // used.
-              if ( this_tag.Isotope() != this_line.SpeciesData().Isotope().nelem() )
-                if ( this_tag.Isotope() != this_line.Isotope() )
+              if ( this_tag.Isotopologue() != this_line.SpeciesData().Isotopologue().nelem() )
+                if ( this_tag.Isotopologue() != this_line.Isotopologue() )
                   continue;
 
             // Test frequncy range we take both the lower (Lf) and the
@@ -1642,7 +1642,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
             }
 
           // Get the name of the species. The member function name of a
-          // LineRecord returns the full name (species + isotope). So
+          // LineRecord returns the full name (species + isotopologue). So
           // it is for us more convenient to get the species index
           // from the LineRecord member function Species(), and then
           // use this to look up the species name in species_data.
@@ -1854,15 +1854,15 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       for ( Index s=0; s<tgs[i].nelem(); ++s )
         {
           // First of all, we have to make sure that this is not a
-          // tag that means `all isotopes', because this should not
-          // include continuum. For such tags, tag.Isotope() will
-          // return the number of isotopes (i.e., one more than the
+          // tag that means `all isotopologues', because this should not
+          // include continuum. For such tags, tag.Isotopologue() will
+          // return the number of isotopologues (i.e., one more than the
           // allowed index range).
-          if ( tgs[i][s].Isotope() <
-               species_data[tgs[i][s].Species()].Isotope().nelem() )
+          if ( tgs[i][s].Isotopologue() <
+               species_data[tgs[i][s].Species()].Isotopologue().nelem() )
             {
               // If we get here, it means that the tag describes a
-              // specific isotope. Could be a continuum tag!
+              // specific isotopologue. Could be a continuum tag!
                 
               // The if clause below checks for continuum tags.
               // It does the following:
@@ -1873,16 +1873,16 @@ void abs_xsec_per_speciesAddConts(// WS Output:
               //          Species() on the tag. Thus we have:
               //          species_data[tgs[i][s].Species()].
               //
-              // 2. Member function Isotope() on the above biest gives
-              //    us the array of isotope specific data. This we have
-              //    to subscribe with the right isotope index, which we
-              //    get by calling member function Isotope on the
+              // 2. Member function Isotopologue() on the above biest gives
+              //    us the array of isotopologue specific data. This we have
+              //    to subscribe with the right isotopologue index, which we
+              //    get by calling member function Isotopologue on the
               //    tag. Thus we have:
-              //    Isotope()[tgs[i][s].Isotope()]
+              //    Isotopologue()[tgs[i][s].Isotopologue()]
               //
-              // 3. Finally, from the isotope data we need to get the flag
+              // 3. Finally, from the isotopologue data we need to get the flag
               //    whether this is a continuum.
-              if ( species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].isContinuum() )
+              if ( species_data[tgs[i][s].Species()].Isotopologue()[tgs[i][s].Isotopologue()].isContinuum() )
                 {
                   // We have identified a continuum tag!
 
@@ -1890,7 +1890,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
                   const String name =
                     species_data[tgs[i][s].Species()].Name() + "-"
-                    + species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Name();
+                    + species_data[tgs[i][s].Species()].Isotopologue()[tgs[i][s].Isotopologue()].Name();
   
                   // Check that this corresponds to a valid continuum
                   // model:

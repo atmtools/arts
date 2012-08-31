@@ -90,7 +90,7 @@ TMPL_NC_READ_WRITE_FILE(GriddedField3)
 TMPL_NC_READ_WRITE_FILE(GriddedField4)
 TMPL_NC_READ_WRITE_FILE(GasAbsLookup)
 TMPL_NC_READ_WRITE_FILE(GridPos)
-TMPL_NC_READ_WRITE_FILE(IsotopeRecord)
+TMPL_NC_READ_WRITE_FILE(IsotopologueRecord)
 TMPL_NC_READ_WRITE_FILE(MCAntenna)
 TMPL_NC_READ_WRITE_FILE(Ppath)
 TMPL_NC_READ_WRITE_FILE(RetrievalQuantity)
@@ -101,7 +101,7 @@ TMPL_NC_READ_WRITE_FILE(SpeciesTag)
 
 //=== Array Types ==========================================================
 
-TMPL_NC_READ_WRITE_FILE(Array<IsotopeRecord> )
+TMPL_NC_READ_WRITE_FILE(Array<IsotopologueRecord> )
 TMPL_NC_READ_WRITE_FILE(Array<SpeciesRecord> )
 TMPL_NC_READ_WRITE_FILE(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_NC_READ_WRITE_FILE(ArrayOfArrayOfGriddedField1)

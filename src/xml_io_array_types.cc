@@ -932,16 +932,16 @@ void xml_write_to_stream(ostream&                   os_xml,
 
 
 
-//=== ArrayOfIsotopeRecord ===================================================
+//=== ArrayOfIsotopologueRecord ===================================================
 
-//! Reads ArrayOfIsotopeRecord from XML input stream
+//! Reads ArrayOfIsotopologueRecord from XML input stream
 /*!
   \param is_xml    XML Input stream
-  \param airecord  ArrayOfIsotopeRecord return value
+  \param airecord  ArrayOfIsotopologueRecord return value
   \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream&              is_xml,
-                          Array<IsotopeRecord>& airecord,
+                          Array<IsotopologueRecord>& airecord,
                           bifstream*            pbifs,
                           const Verbosity&      verbosity)
 {
@@ -950,7 +950,7 @@ void xml_read_from_stream(istream&              is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("Array");
-  tag.check_attribute("type", "IsotopeRecord");
+  tag.check_attribute("type", "IsotopologueRecord");
 
   tag.get_attribute_value("nelem", nelem);
   airecord.resize(nelem);
@@ -964,7 +964,7 @@ void xml_read_from_stream(istream&              is_xml,
   catch (runtime_error e)
     {
       ostringstream os;
-      os << "Error reading ArrayOfIsotopeRecord: "
+      os << "Error reading ArrayOfIsotopologueRecord: "
          << "\n Element: " << n
          << "\n" << e.what();
       throw runtime_error(os.str());
@@ -975,15 +975,15 @@ void xml_read_from_stream(istream&              is_xml,
 }
 
 
-//! Writes ArrayOfIsotopeRecord to XML output stream
+//! Writes ArrayOfIsotopologueRecord to XML output stream
 /*!
   \param os_xml    XML Output stream
-  \param airecord  ArrayOfIsotopeRecord
+  \param airecord  ArrayOfIsotopologueRecord
   \param pbofs     Pointer to binary file stream. NULL for ASCII output.
   \param name      Optional name attribute
 */
 void xml_write_to_stream(ostream&                    os_xml,
-                         const Array<IsotopeRecord>& airecord,
+                         const Array<IsotopologueRecord>& airecord,
                          bofstream*                  pbofs,
                          const String&               name,
                          const Verbosity&            verbosity)
@@ -995,7 +995,7 @@ void xml_write_to_stream(ostream&                    os_xml,
   if (name.length())
     open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "IsotopeRecord");
+  open_tag.add_attribute("type", "IsotopologueRecord");
   open_tag.add_attribute("nelem", airecord.nelem());
 
   open_tag.write_to_stream(os_xml);

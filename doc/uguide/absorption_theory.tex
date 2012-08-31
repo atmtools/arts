@@ -845,9 +845,9 @@ programs written in the FORTRAN language, ARTS does not use fixed
 column widths. The advantage of this is that the precision of the
 parameters is not limited by the format.
 
-The first column of each entry contains the species and isotope,
+The first column of each entry contains the species and isotopologue,
 following the naming scheme described below. Note that the intensity
-is per molecule, i.e., it does not contain the isotopic ratio. This is
+is per molecule, i.e., it does not contain the isotopologue ratio. This is
 similar to JPL, but different to HITRAN.  The line format is:
 
 \begin{code}
@@ -893,12 +893,12 @@ fields are present.
 
 A line absorption species in ARTS is a particular isotopologue of a
 particular molecule.  Quantities such as the molecular mass and the
-isotopic ratio are specific and constant for each species.  Here is a
+isotopologue ratio are specific and constant for each species.  Here is a
 list of all species-specific information that is needed:
 \begin{itemize}
 \item Molecule name
-\item Isotope name
-\item Isotopic ratio
+\item Isotopologue name
+\item Isotopologue ratio
 \item Molecular mass
 \item Corresponding tag in different catalogues (MYTRAN, HITRAN, JPL)
 \item Partition function data
@@ -907,7 +907,7 @@ list of all species-specific information that is needed:
 These data are currently stored in two source code files,
 \fileindex{species\_data.cc} and \fileindex{partition\_function\_data.cc}. 
 It is planned to change this in the not too far future, at least for
-the isotopic ratios, in order to allow calculations for other
+the isotopologue ratios, in order to allow calculations for other
 planets. The data will then be read from include files instead.
 
 \citet{buehler:artst:05} contains an explicit list of species that
@@ -919,7 +919,7 @@ The different data sources are also documented there.
 \subsubsection{Partition function data}
 
 ARTS uses third order polynomials to approximate partition functions,
-so four polynomial coefficients have to be stored for each isotopic
+so four polynomial coefficients have to be stored for each isotopologue
 species. These data can be found in file
 \fileindex{partition\_function\_data.cc}. The file also contains
 documentation, including the source of the data for the different species.
@@ -932,7 +932,7 @@ partition function data collection in ARTS is based on that study.
 The data are from three different sources:
 \begin{description}
 \item[TIPS\_2003:]  Default.
-\item[JPL:] Only Species (including individual isotopes) not covered by TIPS\_2003.
+\item[JPL:] Only Species (including individual isotopologues) not covered by TIPS\_2003.
 \item[Agnes Perrin:] Personal communication, only species BrO.
 \end{description}
 

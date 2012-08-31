@@ -71,7 +71,7 @@ TMPL_XML_READ_WRITE(GriddedField5)
 TMPL_XML_READ_WRITE(GriddedField6)
 TMPL_XML_READ_WRITE(GasAbsLookup)
 TMPL_XML_READ_WRITE(GridPos)
-TMPL_XML_READ_WRITE(IsotopeRecord)
+TMPL_XML_READ_WRITE(IsotopologueRecord)
 TMPL_XML_READ_WRITE(MCAntenna)
 TMPL_XML_READ_WRITE(Ppath)
 TMPL_XML_READ_WRITE(RetrievalQuantity)
@@ -84,7 +84,7 @@ TMPL_XML_READ_WRITE(Verbosity)
 
 //=== Array Types ==========================================================
 
-TMPL_XML_READ_WRITE(Array<IsotopeRecord> )
+TMPL_XML_READ_WRITE(Array<IsotopologueRecord> )
 TMPL_XML_READ_WRITE(Array<SpeciesRecord> )
 TMPL_XML_READ_WRITE(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfGriddedField1)

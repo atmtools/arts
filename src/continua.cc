@@ -814,15 +814,15 @@ void MPM89H2OAbsModel (MatrixView        pxsec,
              Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
 
    \attention Corrected version of MPM93 by TKS, iup, 2002
-              The H2O lines at 547.676440 GHz and 552.020960 GHz are isotopic lines:<br>
-              547 GHz is from the isotope 1-8-1 (HITRAN code 181, JPL code 20003) with an
-              isotopic ratio of 0.00199983 and <br>
-              552 GHz is from the isotope 1-7-1  (HITRAN code 171, JPL code 19003) with an
-              isotopic ratio of 0.00037200.<br>
-              The original source code of MPM93 has these isotopic ratios not included
+              The H2O lines at 547.676440 GHz and 552.020960 GHz are isotopologue lines:<br>
+              547 GHz is from the isotopologue 1-8-1 (HITRAN code 181, JPL code 20003) with an
+              isotopologue ratio of 0.00199983 and <br>
+              552 GHz is from the isotopologue 1-7-1  (HITRAN code 171, JPL code 19003) with an
+              isotopologue ratio of 0.00037200.<br>
+              The original source code of MPM93 has these isotopologue ratios not included
               in the line strength parameter b1, which is an error.<br>
               In the arts implementation the line strength parameter b1 of these two lines
-              is multiplied with the appropriate isotopic ratio.
+              is multiplied with the appropriate isotopologue ratio.
 
    \author Thomas Kuhn
    \date 2002-05-06
@@ -1074,15 +1074,15 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
              AGARD 52nd Specialists Meeting of the Electromagnetic Wave
              Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
 
-   \attention The H2O lines at 547.676440 GHz and 552.020960 GHz are isotopic lines:<br>
-              547 GHz is from the isotope 1-8-1 (HITRAN code 181, JPL code 20003) with an
-              isotopic ratio of 0.00199983 and <br>
-              552 GHz is from the isotope 1-7-1  (HITRAN code 171, JPL code 19003) with an
-              isotopic ratio of 0.00037200.<br>
-              The original source code of MPM93 has these isotopic ratios not included
+   \attention The H2O lines at 547.676440 GHz and 552.020960 GHz are isotopologue lines:<br>
+              547 GHz is from the isotopologue 1-8-1 (HITRAN code 181, JPL code 20003) with an
+              isotopologue ratio of 0.00199983 and <br>
+              552 GHz is from the isotopologue 1-7-1  (HITRAN code 171, JPL code 19003) with an
+              isotopologue ratio of 0.00037200.<br>
+              The original source code of MPM93 has these isotopologue ratios not included
               in the line strength parameter b1, which is an error.<br>
               In the arts implementation the line strength parameter b1 of these two lines
-              is multiplied with the appropriate isotopic ratio.
+              is multiplied with the appropriate isotopologue ratio.
 
    \author Thomas Kuhn
    \date 2001-11-05
@@ -1127,8 +1127,8 @@ void MPM93H2OAbsModel (MatrixView        pxsec,
     {   504.482692,    0.00130,  6.733,   1.612,   4.01,  0.61,  0.45},
 //    {   547.676440,    0.97010,  0.114,   2.600,   4.50,  0.70,  1.00},
 //    {   552.020960,    1.47700,  0.114,   2.600,   4.50,  0.70,  1.00},
-    {   547.676440,    0.97010*0.00199983,  0.114,   2.600,   4.50,  0.70,  1.00}, // isotopic ratio multiplied
-    {   552.020960,    1.47700*0.00037200,  0.114,   2.600,   4.50,  0.70,  1.00}, // isotopic ratio multiplied
+    {   547.676440,    0.97010*0.00199983,  0.114,   2.600,   4.50,  0.70,  1.00}, // isotopologue ratio multiplied
+    {   552.020960,    1.47700*0.00037200,  0.114,   2.600,   4.50,  0.70,  1.00}, // isotopologue ratio multiplied
     {   556.936002,   48.74000,  0.159,   3.210,   4.11,  0.69,  1.00},
     {   620.700807,    0.50120,  2.200,   2.438,   4.68,  0.71,  0.68},
     {   645.866155,    0.00713,  8.580,   1.800,   4.00,  0.60,  0.50}, // ?? JPL tag 18003 (H2O) f_o = 645.7660100GHz
@@ -12842,7 +12842,7 @@ void xsec_continuum_tag (MatrixView             xsec,
 
    The given name should be something like
    `ContStandardSelf'. The function simply checks if there is a
-   species H2O with an isotope ContStandardSelf.
+   species H2O with an isotopologue ContStandardSelf.
 
    For user-friendliness, the function also compiles a list of allowed
    continuum models and gives this as an error message if the model is
@@ -12875,17 +12875,17 @@ void check_continuum_model(const String& name)
     {
       String specnam = i->Name();
 
-      // Loop all isotopes:
-      for ( Array<IsotopeRecord>::const_iterator j=i->Isotope().begin();
-      j<i->Isotope().end();
+      // Loop all isotopologues:
+      for ( Array<IsotopologueRecord>::const_iterator j=i->Isotopologue().begin();
+      j<i->Isotopologue().end();
       ++j )
   {
     String isonam = j->Name();
 
     // The specified name consists of a species part and an
-    // isotope part, e.g., H2O-ContStandardSelf. We need to
+    // isotopologue part, e.g., H2O-ContStandardSelf. We need to
     // construct a similar String from the species lookup data
-    // by concatenating species name and isotope name.
+    // by concatenating species name and isotopologue name.
 
     String fullnam = specnam + "-" + isonam;
     //    cout << fullnam << "\n";

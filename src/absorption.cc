@@ -45,10 +45,10 @@
 std::map<String, Index> SpeciesMap;
 
 
-// member fct of isotoperecord, calculates the partition fct at the
+// member fct of isotopologuerecord, calculates the partition fct at the
 // given temperature  from the partition fct coefficients (3rd order
 // polynomial in temperature)
-Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
+Numeric IsotopologueRecord::CalculatePartitionFctAtTemp( Numeric
                                                     temperature ) const
 {
   Numeric result = 0.;
@@ -205,14 +205,14 @@ void extract(T&      x,
   item >> x;
 }
 
-/** The full name of the species and isotope. E.g., `O3-666'. The
+/** The full name of the species and isotopologue. E.g., `O3-666'. The
   name is found by looking up the information in species_data,
-  using the species and isotope index. */
+  using the species and isotopologue index. */
 String LineRecord::Name() const {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
   const SpeciesRecord& sr = species_data[mspecies];
-  return sr.Name() + "-" + sr.Isotope()[misotope].Name();
+  return sr.Name() + "-" + sr.Isotopologue()[misotopologue].Name();
 }
 
 
@@ -232,21 +232,21 @@ const SpeciesRecord& LineRecord::SpeciesData() const {
 }
 
 
-/** The matching IsotopeRecord from species_data. The IsotopeRecord
-    is a subset of the SpeciesRecord. To get at the isotope data of
+/** The matching IsotopologueRecord from species_data. The IsotopologueRecord
+    is a subset of the SpeciesRecord. To get at the isotopologue data of
     a LineRecord lr, you can use:
     <ul>
-    <li>species_data[lr.Species()].Isotope()[lr.Isotope()]</li>
-    <li>lr.SpeciesData().Isotope()[lr.Isotope()]</li>
-    <li>lr.IsotopeData()</li>
+    <li>species_data[lr.Species()].Isotopologue()[lr.Isotopologue()]</li>
+    <li>lr.SpeciesData().Isotopologue()[lr.Isotopologue()]</li>
+    <li>lr.IsotopologueData()</li>
     </ul>
     The last option is clearly the shortest, and has the advantage
     that you don't have to declare the external variable
     species_data. */
-const IsotopeRecord& LineRecord::IsotopeData() const {
+const IsotopologueRecord& LineRecord::IsotopologueData() const {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
-  return species_data[mspecies].Isotope()[misotope];
+  return species_data[mspecies].Isotopologue()[misotopologue];
 }
 
 
@@ -264,8 +264,8 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
   extern const Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
-  // isotope lists. Could be any number, it just has to be made sure
-  // that it is neither the index of a species nor of an isotope.
+  // isotopologue lists. Could be any number, it just has to be made sure
+  // that it is neither the index of a species nor of an isotopologue.
   const Index missing = species_data.nelem() + 100;
 
   // We need a species index sorted by HITRAN tag. Keep this in a
@@ -276,7 +276,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
   static Array< Index >        hspec(100);
 
   // This is  an array of arrays for each hitran tag. It contains the
-  // ARTS indices of the HITRAN isotopes. 
+  // ARTS indices of the HITRAN isotopologues. 
   static Array< ArrayOfIndex > hiso(100);
 
   // Remeber if this stuff has already been initialized:
@@ -297,31 +297,31 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
           const SpeciesRecord& sr = species_data[i];
 
           // We have to be careful and check for the case that all
-          // HITRAN isotope tags are -1 (this species is missing in HITRAN).
+          // HITRAN isotopologue tags are -1 (this species is missing in HITRAN).
 
-          if ( 0 < sr.Isotope()[0].HitranTag() )
+          if ( 0 < sr.Isotopologue()[0].HitranTag() )
             {
-              // The HITRAN tags are stored as species plus isotope tags
+              // The HITRAN tags are stored as species plus isotopologue tags
               // (MO and ISO)
-              // in the Isotope() part of the species record.
-              // We can extract the MO part from any of the isotope tags,
+              // in the Isotopologue() part of the species record.
+              // We can extract the MO part from any of the isotopologue tags,
               // so we use the first one. We do this by taking an integer
               // division by 10.
           
-              Index mo = sr.Isotope()[0].HitranTag() / 10;
+              Index mo = sr.Isotopologue()[0].HitranTag() / 10;
               //          cout << "mo = " << mo << endl;
               hspec[mo] = i; 
           
               // Get a nicer to handle array of HITRAN iso tags:
-              Index n_iso = sr.Isotope().nelem();
+              Index n_iso = sr.Isotopologue().nelem();
               ArrayOfIndex iso_tags;
               iso_tags.resize(n_iso);
               for ( Index j=0; j<n_iso; ++j )
                 {
-                  iso_tags[j] = sr.Isotope()[j].HitranTag();
+                  iso_tags[j] = sr.Isotopologue()[j].HitranTag();
                 }
 
-              // Reserve elements for the isotope tags. How much do we
+              // Reserve elements for the isotopologue tags. How much do we
               // need? This depends on the largest HITRAN tag that we know
               // about!
               // Also initialize the tags to missing.
@@ -332,7 +332,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
               hiso[mo] = missing; // Matpack can set all elements like this.
 
 
-              // Set the isotope tags:
+              // Set the isotopologue tags:
               for ( Index j=0; j<n_iso; ++j )
                 {
                   if ( 0 < iso_tags[j] )                                  // ignore -1 elements
@@ -364,7 +364,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
                   if ( missing==hiso[i][j] )
                     out3 << " " << "m";
                   else
-                    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
+                    out3 << " " << species_data[hspec[i]].Isotopologue()[hiso[i][j]].Name();
                 }
               out3 << "\n";
             }
@@ -465,27 +465,27 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
   // Set mspecies from my cool index table:
   mspecies = hspec[mo];
 
-  // Extract isotope:
+  // Extract isotopologue:
   Index iso;                              
   extract(iso,line,1);
   //  cout << "iso = " << iso << endl;
 
 
-  // Set misotope from the other cool index table.
+  // Set misotopologue from the other cool index table.
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases. 
-  misotope = missing;
+  misotopologue = missing;
   if ( iso < hiso[mo].nelem() )
     if ( missing != hiso[mo][iso] )
-      misotope = hiso[mo][iso];
+      misotopologue = hiso[mo][iso];
 
-  // Issue error message if misotope is still missing:
-  if (missing == misotope)
+  // Issue error message if misotopologue is still missing:
+  if (missing == misotopologue)
     {
       ostringstream os;
       os << "Species: " << species_data[mspecies].Name()
-         << ", isotope iso = " << iso
+         << ", isotopologue iso = " << iso
          << " is unknown.";
       throw runtime_error(os.str());
     }
@@ -522,7 +522,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
     // We need to do the following:
     // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c).
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
-    // 3. Take out the isotopic ratio.
+    // 3. Take out the isotopologue ratio.
 
     const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
 
@@ -532,8 +532,8 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
     extract(s,line,10);
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
-    // Take out isotopic ratio:
-    mi0 /= species_data[mspecies].Isotope()[misotope].Abundance();  
+    // Take out isotopologue ratio:
+    mi0 /= species_data[mspecies].Isotopologue()[misotopologue].Abundance();  
   }  
   
   // Skip transition probability:
@@ -717,8 +717,8 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   extern const Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
-  // isotope lists. Could be any number, it just has to be made sure
-  // that it is neither the index of a species nor of an isotope.
+  // isotopologue lists. Could be any number, it just has to be made sure
+  // that it is neither the index of a species nor of an isotopologue.
   const Index missing = species_data.nelem() + 100;
 
   // We need a species index sorted by HITRAN tag. Keep this in a
@@ -729,7 +729,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   static Array< Index >        hspec(100);
 
   // This is  an array of arrays for each hitran tag. It contains the
-  // ARTS indices of the HITRAN isotopes.
+  // ARTS indices of the HITRAN isotopologues.
   static Array< ArrayOfIndex > hiso(100);
 
   // Remeber if this stuff has already been initialized:
@@ -750,31 +750,31 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
           const SpeciesRecord& sr = species_data[i];
 
           // We have to be careful and check for the case that all
-          // HITRAN isotope tags are -1 (this species is missing in HITRAN).
+          // HITRAN isotopologue tags are -1 (this species is missing in HITRAN).
 
-          if ( 0 < sr.Isotope()[0].HitranTag() )
+          if ( 0 < sr.Isotopologue()[0].HitranTag() )
             {
-              // The HITRAN tags are stored as species plus isotope tags
+              // The HITRAN tags are stored as species plus isotopologue tags
               // (MO and ISO)
-              // in the Isotope() part of the species record.
-              // We can extract the MO part from any of the isotope tags,
+              // in the Isotopologue() part of the species record.
+              // We can extract the MO part from any of the isotopologue tags,
               // so we use the first one. We do this by taking an integer
               // division by 10.
 
-              Index mo = sr.Isotope()[0].HitranTag() / 10;
+              Index mo = sr.Isotopologue()[0].HitranTag() / 10;
               //          cout << "mo = " << mo << endl;
               hspec[mo] = i;
 
               // Get a nicer to handle array of HITRAN iso tags:
-              Index n_iso = sr.Isotope().nelem();
+              Index n_iso = sr.Isotopologue().nelem();
               ArrayOfIndex iso_tags;
               iso_tags.resize(n_iso);
               for ( Index j=0; j<n_iso; ++j )
                 {
-                  iso_tags[j] = sr.Isotope()[j].HitranTag();
+                  iso_tags[j] = sr.Isotopologue()[j].HitranTag();
                 }
 
-              // Reserve elements for the isotope tags. How much do we
+              // Reserve elements for the isotopologue tags. How much do we
               // need? This depends on the largest HITRAN tag that we know
               // about!
               // Also initialize the tags to missing.
@@ -785,7 +785,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
               hiso[mo] = missing; // Matpack can set all elements like this.
 
 
-              // Set the isotope tags:
+              // Set the isotopologue tags:
               for ( Index j=0; j<n_iso; ++j )
                 {
                   if ( 0 < iso_tags[j] )                                  // ignore -1 elements
@@ -817,7 +817,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
                   if ( missing==hiso[i][j] )
                     out3 << " " << "m";
                   else
-                    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
+                    out3 << " " << species_data[hspec[i]].Isotopologue()[hiso[i][j]].Name();
                 }
               out3 << "\n";
             }
@@ -914,27 +914,27 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // Set mspecies from my cool index table:
   mspecies = hspec[mo];
 
-  // Extract isotope:
+  // Extract isotopologue:
   Index iso;
   extract(iso,line,1);
   //  cout << "iso = " << iso << endl;
 
 
-  // Set misotope from the other cool index table.
+  // Set misotopologue from the other cool index table.
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases.
-  misotope = missing;
+  misotopologue = missing;
   if ( iso < hiso[mo].nelem() )
     if ( missing != hiso[mo][iso] )
-      misotope = hiso[mo][iso];
+      misotopologue = hiso[mo][iso];
 
-  // Issue error message if misotope is still missing:
-  if (missing == misotope)
+  // Issue error message if misotopologue is still missing:
+  if (missing == misotopologue)
     {
       ostringstream os;
       os << "Species: " << species_data[mspecies].Name()
-         << ", isotope iso = " << iso
+         << ", isotopologue iso = " << iso
          << " is unknown.";
       throw runtime_error(os.str());
     }
@@ -971,7 +971,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     // We need to do the following:
     // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c).
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
-    // 3. Take out the isotopic ratio.
+    // 3. Take out the isotopologue ratio.
 
     const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
 
@@ -981,8 +981,8 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     extract(s,line,10);
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
-    // Take out isotopic ratio:
-    mi0 /= species_data[mspecies].Isotope()[misotope].Abundance();
+    // Take out isotopologue ratio:
+    mi0 /= species_data[mspecies].Isotopologue()[misotopologue].Abundance();
   }
 
   // Skip Einstein coefficient
@@ -1201,8 +1201,8 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   extern const Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
-  // isotope lists. Could be any number, it just has to be made sure
-  // that it is neither the index of a species nor of an isotope.
+  // isotopologue lists. Could be any number, it just has to be made sure
+  // that it is neither the index of a species nor of an isotopologue.
   const Index missing = species_data.nelem() + 100;
 
   // We need a species index sorted by MYTRAN tag. Keep this in a
@@ -1214,7 +1214,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   static Array< Index >        hspec(100,missing);      
 
   // This is  an array of arrays for each mytran tag. It contains the
-  // ARTS indices of the MYTRAN isotopes. 
+  // ARTS indices of the MYTRAN isotopologues. 
   static Array< ArrayOfIndex > hiso(100);
 
   // Remeber if this stuff has already been initialized:
@@ -1231,31 +1231,31 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
           const SpeciesRecord& sr = species_data[i];
 
           // We have to be careful and check for the case that all
-          // MYTRAN isotope tags are -1 (this species is missing in MYTRAN).
+          // MYTRAN isotopologue tags are -1 (this species is missing in MYTRAN).
 
-          if ( 0 < sr.Isotope()[0].MytranTag() )
+          if ( 0 < sr.Isotopologue()[0].MytranTag() )
             {
-              // The MYTRAN tags are stored as species plus isotope tags
+              // The MYTRAN tags are stored as species plus isotopologue tags
               // (MO and ISO)
-              // in the Isotope() part of the species record.
-              // We can extract the MO part from any of the isotope tags,
+              // in the Isotopologue() part of the species record.
+              // We can extract the MO part from any of the isotopologue tags,
               // so we use the first one. We do this by taking an integer
               // division by 10.
           
-              Index mo = sr.Isotope()[0].MytranTag() / 10;
+              Index mo = sr.Isotopologue()[0].MytranTag() / 10;
               //          cout << "mo = " << mo << endl;
               hspec[mo] = i; 
           
               // Get a nicer to handle array of MYTRAN iso tags:
-              Index n_iso = sr.Isotope().nelem();
+              Index n_iso = sr.Isotopologue().nelem();
               ArrayOfIndex iso_tags;
               iso_tags.resize(n_iso);
               for ( Index j=0; j<n_iso; ++j )
                 {
-                  iso_tags[j] = sr.Isotope()[j].MytranTag();
+                  iso_tags[j] = sr.Isotopologue()[j].MytranTag();
                 }
 
-              // Reserve elements for the isotope tags. How much do we
+              // Reserve elements for the isotopologue tags. How much do we
               // need? This depends on the largest MYTRAN tag that we know
               // about!
               // Also initialize the tags to missing.
@@ -1265,7 +1265,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
               hiso[mo].resize( max(iso_tags)%10 + 1 );
               hiso[mo] = missing; // Matpack can set all elements like this.
 
-              // Set the isotope tags:
+              // Set the isotopologue tags:
               for ( Index j=0; j<n_iso; ++j )
                 {
                   if ( 0 < iso_tags[j] )                                  // ignore -1 elements
@@ -1300,7 +1300,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
                   if ( missing==hiso[i][j] )
                     out3 << " " << "m";
                   else
-                    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
+                    out3 << " " << species_data[hspec[i]].Isotopologue()[hiso[i][j]].Name();
                 }
               out3 << "\n";
             }
@@ -1380,27 +1380,27 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   // Set mspecies from my cool index table:
   mspecies = hspec[mo];
 
-  // Extract isotope:
+  // Extract isotopologue:
   Index iso;                              
   extract(iso,line,1);
   //  cout << "iso = " << iso << endl;
 
 
-  // Set misotope from the other cool index table.
+  // Set misotopologue from the other cool index table.
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases. 
-  misotope = missing;
+  misotopologue = missing;
   if ( iso < hiso[mo].nelem() )
     if ( missing != hiso[mo][iso] )
-      misotope = hiso[mo][iso];
+      misotopologue = hiso[mo][iso];
 
-  // Issue error message if misotope is still missing:
-  if (missing == misotope)
+  // Issue error message if misotopologue is still missing:
+  if (missing == misotopologue)
     {
       ostringstream os;
       os << "Species: " << species_data[mspecies].Name()
-         << ", isotope iso = " << iso
+         << ", isotopologue iso = " << iso
          << " is unknown.";
       throw runtime_error(os.str());
     }
@@ -1433,7 +1433,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
     extern const Numeric SPEED_OF_LIGHT; // in [m/s]
 
     // MYTRAN2 intensity is in cm-1/(molec * cm-2) at 296 Kelvin.
-    // (just like HITRAN, only isotopic ratio is not included)
+    // (just like HITRAN, only isotopologue ratio is not included)
     // The first cm-1 is the frequency unit (it cancels with the
     // 1/frequency unit of the line shape function). 
     //
@@ -1621,28 +1621,28 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
           const SpeciesRecord& sr = species_data[i];
 
 
-          for ( Index j=0; j<sr.Isotope().nelem(); ++j)
+          for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
             {
               
-              for (Index k=0; k<sr.Isotope()[j].JplTags().nelem(); ++k)
+              for (Index k=0; k<sr.Isotopologue()[j].JplTags().nelem(); ++k)
                 {
 
                   SpecIsoMap indicies(i,j);
 
-                  JplMap[sr.Isotope()[j].JplTags()[k]] = indicies;
+                  JplMap[sr.Isotopologue()[j].JplTags()[k]] = indicies;
 
                   // Print the generated data structures (for debugging):
                   // The explicit conversion of Name to a c-String is
                   // necessary, because setw does not work correctly for
                   // stl Strings.
-                  const Index& i1 = JplMap[sr.Isotope()[j].JplTags()[k]].Speciesindex();
-                  const Index& i2 = JplMap[sr.Isotope()[j].JplTags()[k]].Isotopeindex();
+                  const Index& i1 = JplMap[sr.Isotopologue()[j].JplTags()[k]].Speciesindex();
+                  const Index& i2 = JplMap[sr.Isotopologue()[j].JplTags()[k]].Isotopologueindex();
                                          
-                  out3 << "  JPL TAG = " << sr.Isotope()[j].JplTags()[k] << "   Species = "
+                  out3 << "  JPL TAG = " << sr.Isotopologue()[j].JplTags()[k] << "   Species = "
                        << setw(10) << setiosflags(ios::left)
                        << species_data[i1].Name().c_str()
                        << "iso = " 
-                       << species_data[i1].Isotope()[i2].Name().c_str()
+                       << species_data[i1].Isotopologue()[i2].Name().c_str()
                        << "\n";
                 }
 
@@ -1785,8 +1785,8 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   // Set mspecies:
   mspecies = id.Speciesindex();
 
-  // Set misotope:
-  misotope = id.Isotopeindex();
+  // Set misotopologue:
+  misotopologue = id.Isotopologueindex();
 
   // Air broadening parameters: unknown to jpl, use old iup forward
   // model default values, which is mostly set to 0.0025 GHz/hPa, even
@@ -1868,11 +1868,11 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
       const SpeciesRecord& sr = species_data[i];
       
       
-      for ( Index j=0; j<sr.Isotope().nelem(); ++j)
+      for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
       {
         
         SpecIsoMap indicies(i,j);
-        String buf = sr.Name()+"-"+sr.Isotope()[j].Name();
+        String buf = sr.Name()+"-"+sr.Isotopologue()[j].Name();
         
         ArtsMap[buf] = indicies;
         
@@ -1881,13 +1881,13 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
         // necessary, because setw does not work correctly for
         // stl Strings.
         const Index& i1 = ArtsMap[buf].Speciesindex();
-        const Index& i2 = ArtsMap[buf].Isotopeindex();
+        const Index& i2 = ArtsMap[buf].Isotopologueindex();
         
         out3 << "  Arts Identifier = " << buf << "   Species = "
         << setw(10) << setiosflags(ios::left)
         << species_data[i1].Name().c_str()
         << "iso = " 
-        << species_data[i1].Isotope()[i2].Name().c_str()
+        << species_data[i1].Isotopologue()[i2].Name().c_str()
         << "\n";
         
       }
@@ -1958,8 +1958,8 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     // Set mspecies:
     mspecies = id.Speciesindex();
     
-    // Set misotope:
-    misotope = id.Isotopeindex();
+    // Set misotopologue:
+    misotopologue = id.Isotopologueindex();
     
     
     // Extract center frequency:
@@ -2063,11 +2063,11 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
           const SpeciesRecord& sr = species_data[i];
 
 
-          for ( Index j=0; j<sr.Isotope().nelem(); ++j)
+          for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
             {
               
               SpecIsoMap indicies(i,j);
-              String buf = sr.Name()+"-"+sr.Isotope()[j].Name();
+              String buf = sr.Name()+"-"+sr.Isotopologue()[j].Name();
               
               ArtsMap[buf] = indicies;
               
@@ -2076,13 +2076,13 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
               // necessary, because setw does not work correctly for
               // stl Strings.
               const Index& i1 = ArtsMap[buf].Speciesindex();
-              const Index& i2 = ArtsMap[buf].Isotopeindex();
+              const Index& i2 = ArtsMap[buf].Isotopologueindex();
                                          
               out3 << "  Arts Identifier = " << buf << "   Species = "
                    << setw(10) << setiosflags(ios::left)
                    << species_data[i1].Name().c_str()
                    << "iso = " 
-                   << species_data[i1].Isotope()[i2].Name().c_str()
+                   << species_data[i1].Isotopologue()[i2].Name().c_str()
                    << "\n";
 
             }
@@ -2153,8 +2153,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       // Set mspecies:
       mspecies = id.Speciesindex();
 
-      // Set misotope:
-      misotope = id.Isotopeindex();
+      // Set misotopologue:
+      misotopologue = id.Isotopologueindex();
 
 
       // Extract center frequency:
@@ -2547,7 +2547,7 @@ void xsec_species( MatrixView               xsec,
               Numeric F0 = l_l.F();
 
               // Intensity is already in the right units (Hz*m^2). It also
-              // includes already the isotopic ratio. Needs only to be
+              // includes already the isotopologue ratio. Needs only to be
               // coverted to the actual temperature and multiplied by total
               // number density and lineshape.
               Numeric intensity = l_l.I0();
@@ -2565,7 +2565,7 @@ void xsec_species( MatrixView               xsec,
               // reference temperature can be different for each line,
               // even of the same species.
               Numeric part_fct_ratio =
-                l_l.IsotopeData().CalculatePartitionFctRatio( l_l.Ti0(),
+                l_l.IsotopologueData().CalculatePartitionFctRatio( l_l.Ti0(),
                                                               t_i );
 
               // Boltzmann factors
@@ -2641,9 +2641,9 @@ void xsec_species( MatrixView               xsec,
               // 3. Doppler broadening without the sqrt(ln(2)) factor, which
               // seems to be redundant FIXME: verify .
               const Numeric sigma = F0 * doppler_const *
-                sqrt( t_i / l_l.IsotopeData().Mass());
+                sqrt( t_i / l_l.IsotopologueData().Mass());
 
-//              cout << l_l.IsotopeData().Name() << " " << l_l.F() << " "
+//              cout << l_l.IsotopologueData().Name() << " " << l_l.F() << " "
 //                   << Nair << " " << Agam << " " << Sgam << " " << Nself << endl;
 
               // 3.a. Put in pressure shift.
@@ -2783,13 +2783,13 @@ void xsec_species( MatrixView               xsec,
                     // 1. Total number density of the air. --> Not
                     //    anymore, we now to real cross-sections
                     // 2. Line intensity.
-                    // 3. Isotopic ratio.
+                    // 3. Isotopologue ratio.
                     //
-                    // The isotopic ratio must be applied here, since we are
-                    // summing up lines belonging to different isotopes.
+                    // The isotopologue ratio must be applied here, since we are
+                    // summing up lines belonging to different isotopologues.
 
-                    //                const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
-                    const Numeric factors = intensity * l_l.IsotopeData().Abundance();
+                    //                const Numeric factors = n * intensity * l_l.IsotopologueData().Abundance();
+                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
 
                     // We have to do:
                     // xsec(j,i) += factors * ls[j] * fac[j];

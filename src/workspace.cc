@@ -348,7 +348,7 @@ void Workspace::define_wsv_data()
        (
         "Lineshape specification: function, norm, cutoff. There is one entry for\n"
         "each abs_tag, not for each species. This means if you have several\n"
-        "abs_tags for different isotopes or transitions of a species, you\n"
+        "abs_tags for different isotopologues or transitions of a species, you\n"
         "may use different lineshapes.\n"
        ),
        GROUP( "ArrayOfLineshapeSpec" )));

@@ -656,16 +656,16 @@ void xml_write_to_stream(ostream& os_xml,
 }
 
 
-//=== IsotopeRecord ================================================
+//=== IsotopologueRecord ================================================
 
-//! Reads IsotopeRecord from XML input stream
+//! Reads IsotopologueRecord from XML input stream
 /*!
   \param is_xml   XML Input stream
   \param irecord  SpeciesRecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream& is_xml,
-                          IsotopeRecord& irecord,
+                          IsotopologueRecord& irecord,
                           bifstream* pbifs, const Verbosity& verbosity)
 {
   ArtsXMLTag    tag(verbosity);
@@ -677,7 +677,7 @@ void xml_read_from_stream(istream& is_xml,
   ArrayOfIndex  jpltags;
 
   tag.read_from_stream(is_xml);
-  tag.check_name("IsotopeRecord");
+  tag.check_name("IsotopologueRecord");
 
   xml_read_from_stream(is_xml, name, pbifs, verbosity);
   xml_read_from_stream(is_xml, abundance, pbifs, verbosity);
@@ -687,29 +687,29 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, jpltags, pbifs, verbosity);
 
   tag.read_from_stream(is_xml);
-  tag.check_name("/IsotopeRecord");
+  tag.check_name("/IsotopologueRecord");
 
-  irecord = IsotopeRecord(name, abundance, mass, mytrantag, hitrantag,
+  irecord = IsotopologueRecord(name, abundance, mass, mytrantag, hitrantag,
                           jpltags);
 }
 
 
-//! Writes IsotopeRecord to XML output stream
+//! Writes IsotopologueRecord to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param irecord  IsotopeRecord
+  \param irecord  IsotopologueRecord
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void xml_write_to_stream(ostream& os_xml,
-                         const IsotopeRecord& irecord,
+                         const IsotopologueRecord& irecord,
                          bofstream* pbofs,
                          const String& name, const Verbosity& verbosity)
 {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name("IsotopeRecord");
+  open_tag.set_name("IsotopologueRecord");
   if (name.length())
     open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
@@ -722,7 +722,7 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, irecord.HitranTag(), pbofs, "HitranTag", verbosity);
   xml_write_to_stream(os_xml, irecord.JplTags(), pbofs, "JplTags", verbosity);
 
-  close_tag.set_name("/IsotopeRecord");
+  close_tag.set_name("/IsotopologueRecord");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
@@ -1122,7 +1122,7 @@ void xml_read_from_stream(istream& is_xml,
   ArtsXMLTag tag(verbosity);
   String sname;
   Index degfr;
-  Array<IsotopeRecord> airecord;
+  Array<IsotopologueRecord> airecord;
 
   tag.read_from_stream(is_xml);
   tag.check_name("SpeciesRecord");
@@ -1161,7 +1161,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   xml_write_to_stream(os_xml, srecord.Name(), pbofs, "", verbosity);
   xml_write_to_stream(os_xml, srecord.Degfr(), pbofs, "", verbosity);
-  xml_write_to_stream(os_xml, srecord.Isotope(), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, srecord.Isotopologue(), pbofs, "", verbosity);
 
   close_tag.set_name("/SpeciesRecord");
   close_tag.write_to_stream(os_xml);
