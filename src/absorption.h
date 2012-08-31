@@ -250,7 +250,7 @@ public:
   /*!
    \return True if this is a continuum.
    */
-  bool isContinuum() const { return mname.length() && !isnumber(mname[0]); }
+  bool isContinuum() const { return mname.length() && !isdigit(mname[0]); }
 
   void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff )
   {

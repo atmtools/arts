@@ -1,5 +1,13 @@
 2012-08-31  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-243
+
+	* src/absorption.h (isContinuum):
+
+	Use isdigit instead of isnumber to fix build on Linux.
+
+2012-08-31  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-242
 
 	* src/absorption.h (IsotopeRecord):
