@@ -1,3 +1,30 @@
+2012-08-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-244
+
+	* doc/uguide/atmosphere.tex: Updated. Added a short section on
+	geo-location by lat_true and lon_true. Nothing about polarised
+	absorption now mentioned in cloudbox section. Commented out second
+	3D figure (no additional information and chapter then fits into 6
+	pages).
+
+	* doc/uguide/in_and_out.tex: New chapter. So far just treating
+	data formats.
+
+	* doc/uguide/concept.tex: Changed name of chapter to
+	"Introduction". A few language fixes. Some short updates, such
+	that radio links can be treated. Moved section on data formats to
+	new chapter.
+
+	Added three FIXME:
+	\FIXME{Control file structure changed, update this section!}
+	\FIXME{Revise this section after general.arts has been changed.}
+	\FIXME{The tests are now structured differently. Update the text.}
+
+	* controlfiles/general/general.arts: Changed
+	abs_mat_per_speciesExtractFromLookup to
+	abs_mat_per_speciesAddFromLookup (in a comment).
+
 2012-08-31  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-243

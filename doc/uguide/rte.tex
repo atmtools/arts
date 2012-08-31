@@ -4,6 +4,7 @@ calculations}
 
 
  \starthistory
+% 120831 & Included sicussion of polarised absorption (Patrick Eriksson).\\
  110611 & Extended and general revision (Patrick Eriksson).\\
  050613 & First complete version by Patrick Eriksson.\\
  \stophistory
@@ -11,7 +12,7 @@ calculations}
 \graphicspath{{Figs/rte/}}
 
 This section gives an overview of the variables and the approach used to handle
-the actual radiative transfer calculations. This includes an overview of how
+the actual radiative transfer calculations. This includes how
 effects caused by the sensor and surface are incorporated. The default
 assumption is that there is no particle scattering and the (atmospheric)
 absorption/emission is unpolarised. This is for simplicity denoted as clear-sky
@@ -34,7 +35,7 @@ correctly propagated to the sensor.
 %==============================================================================
 \label{sec:fm_defs:polarisation}
 
-To full polarisation state of radiation can be described by the Stokes
+The full polarisation state of radiation can be described by the Stokes
 vector. The vector can be defined in different ways, but it has always
 four elements. The Stokes vector, \StoVec, is here written as
 \begin{equation}

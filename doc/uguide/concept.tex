@@ -1,4 +1,4 @@
-\chapter{Basics}
+\chapter{Introduction}
 \label{sec:concept}
 
 \starthistory
@@ -27,27 +27,24 @@ used efficiently.
 \section{What is ARTS?}
 %==============================
 
-The Atmospheric Radiative Transfer Simulator, \textindex{ARTS}, is a
-software for performing simulations of atmospheric radiative
-transfer. ARTS is a relatively general and flexible program, where new
-calculation features can be easily added. Originally, the development
-of ARTS was initiated to deal with passive mm and sub-mm
-measurements. The radiation source for such measurements is emission
-in the atmosphere or by the Earth's surface. Thermal IR radiation is
-governed by the same basic physical principles and therefore this
-wavelength region is also well handled in ARTS now. But ARTS contains
-so far no dedicated methods for scattering of solar radiation and
-there is therefore a restriction to simulations of longwave radiation
-(microwave to thermal IR).
+The Atmospheric Radiative Transfer Simulator, \textindex{ARTS}, is a software
+for performing simulations of atmospheric radiative transfer. ARTS is a
+relatively general and flexible program, where new calculation features can be
+easily added. Originally, the development of ARTS was initiated to deal with
+passive mm and sub-mm measurements. The radiation source for such measurements
+is emission in the atmosphere or by the Earth's surface. Thermal IR radiation
+is governed by the same basic physical principles and therefore this wavelength
+region is also well handled in ARTS now. But ARTS contains so far no dedicated
+methods for scattering of solar radiation and there is therefore a restriction
+to simulations of longwave radiation (microwave to thermal IR). However, ARTS
+can be used for basic studies of lonwave radiation fluxes, as for example in
+\citet{buehler:recen:06} or \citet{john:under:06}. More lately, some support
+for handling radio link calculations have been added.
 
-One main application of ARTS should be to perform
-\textindex{retrievals} for remote sensing data. A special feature of
-ARTS in this context is its high flexibility when defining observation
-geometry (including scanning features) and sensor
-characteristics. Jacobians (weighting functions) are also
-provided. ARTS can also be used for basic studies of atmospheric
-radiation, as for example in \citet{buehler:recen:06} or
-\citet{john:under:06}.
+One main application of ARTS should be to perform \textindex{retrievals} for
+remote sensing data. A special feature of ARTS in this context is its high
+flexibility when defining observation geometry (including scanning features)
+and sensor characteristics. Jacobians (weighting functions) are also provided.
 
 There exist two versions of ARTS. This user guide deals with the later
 of the two versions \citep{eriksson:arts2:11}, here denoted as just
@@ -65,9 +62,10 @@ version. A short summary of ARTS's main features is:
   and 3D, a complete reference ellipsoid is used and the surface can have
   arbitrary shape.
 \item[Polarisation] is fully described by using the Stokes formalism.
-\item[Scattering] can be considered by two modules, DOIT
-  (Section~\ref{sec:scattering}) and MC (\theory,
-  Section~\ref{T-sec:montecarlo}). The \textindex{scattering} calculations are
+\item[Scattering] can be consider in seval manners. It can be included in
+  transmission type calculations. For scattering of thermal emission two
+  modules are at hand, DOIT (Section~\ref{sec:scattering}) and MC (\theory,
+  Section~\ref{T-sec:montecarlo}). The \textindex{scattering} particles are
   for efficiency reasons confined to a region of the atmosphere denoted as the
   cloud box.
 \item[Observation geometry] is free. That is, the forward model can be
@@ -128,12 +126,10 @@ following subsections.
 \label{sec:built-in_doc}
 
 ARTS contains \textindex{built-in documentation} for all functions and
-variables that are directly visible to the user (in ARTS terminology
-called workspace functions and workspace variables, and explained
-further below).  The easiest way to access this documentation is on
-the web page
-\url{http://www.sat.ltu.se/arts/docserver}. Alternatively, start ARTS
-with
+variables that are directly visible to the user (in ARTS terminology called
+workspace functions and workspace variables, and are explained further below).
+The easiest way to access this documentation is on the web page
+\url{http://www.sat.ltu.se/arts/docserver}. Alternatively, start ARTS with
 \begin{code}
   arts -s
 \end{code}
@@ -150,20 +146,20 @@ the corresponding entries in the built-in documentation.
 
 \subsection{Test and include controlfiles}
 
-ARTS calculations are governed by controlfiles (see below).  The ARTS
-distribution already comes with a large number of controlfiles, which
-fall into two categories: includes and tests.  They are described in
-more detail below, but already mentioned here as an important source
-of information for new users.  In particular, ARTS already comes with
-controlfiles to simulate some well-known instruments, such as for
-example MHS or HIRS.
+ARTS calculations are governed by controlfiles (see below). The ARTS
+distribution already comes with a large number of controlfiles, which fall into
+two categories: includes and tests. They are described in more detail below,
+but already mentioned here as an important source of information for new users.
+In particular, ARTS already comes with controlfiles to simulate some well-known
+instruments, such as for example MHS or HIRS. \\
+\FIXME{Control file structure changed, update this section!}
 
 \subsection{Source code documentation}
 
-All internal ARTS functions are documented with \textindex{DOXYGEN} at the source
-code level.  This documentation is intended mostly for those who want
-to do ARTS development work.  It can be accessed at
-\url{http://www.sat.ltu.se/arts/misc/arts-doc/doxygen/html/}. 
+All internal ARTS functions are documented with \textindex{DOXYGEN} at the
+source code level. This documentation is intended mostly for those who want to
+do ARTS development work. It can be accessed at
+\url{http://www.sat.ltu.se/arts/misc/arts-doc/doxygen/html/}.
 
 \subsection{Build instructions}
 
@@ -199,11 +195,10 @@ then the instructions are executed sequentially. Controlfile
 \begin{code}
   arts somefile.arts
 \end{code}
-
 A minimal ARTS controlfile example (the well-known `Hello World' program) is
 given in Figure \ref{fig:hello}. In this example, the variable \shortcode{s} is
-called a \emph{\textindex{workspace variable}}. We use this name to distinguish it from the
-variables that appear internally in the ARTS source code.
+called a \emph{\textindex{workspace variable}}. We use this name to distinguish
+it from the variables that appear internally in the ARTS source code.
 
 \begin{figure}
 \footnotesize
@@ -398,8 +393,8 @@ be omitted.
 %
 Agendas are a special group of workspace variables, which allow to
 modify how a calculation is performed. A variable of group
-\textindex{agenda} holds a list of workspace methods. It can be
-executed, which means that the methods it contains are executed one
+\textindex{agenda} holds a list of workspace method calls. It can be
+executed, which means that the method calls it contains are executed one
 after another.
 
 Figure \ref{fig:agendas} gives an example, for the agenda
@@ -421,20 +416,13 @@ atmosphere. The result is returned in *abs_mat_per_species*, the
 atmospheric state has to be specified by *rte_pressure*,
 *rte_temperature*, *rte_mag*, and *rte_vmr_list*.
 
-A mandatory input parameter is f_index, which is used as follows:
-
-1. f_index < 0 : Return absorption for all frequencies (in f_grid).
-
-2. f_index >= 0 : Return absorption for the frequency indicated by
-   f_index. 
-
 The methods inside this agenda may require a lot of additional
 input variables, such as *f_grid*, *species*, etc.
 ---------------------------------------------------------------------
 Group  = Agenda
 Output = abs_mat_per_species
-Input  = f_index, rte_doppler, rte_mag, rte_pressure,
-	 rte_temperature, rte_vmr_list
+Input  = f_grid, rte_doppler, rte_mag, rte_pressure,
+         rte_temperature, rte_vmr_list
 *-------------------------------------------------------------------*
 \end{code}
 \begin{minipage}[t]{0.48\hsize}
@@ -494,17 +482,17 @@ controlfiles, which is achieved by statements such as
 predefine general default settings, settings for typical applications,
 and/or settings for the simulation of well-known instruments.  A
 variety of include controlfiles are collected in directory
-\fileindex{includes} of the ARTS distribution.
+\fileindex{controlfiles} of the ARTS distribution.
 
-You should normally at least include the file
-\fileindex{general.arts}, which contains general default
-settings. Because giving the full path for every include file is
-inconvenient, ARTS will look for include files in a special
-directory.  This can be set by the command line option \shortcode{-I
+You should normally at least include the file \fileindex{general.arts}, which
+contains general default settings. Because giving the full path for every
+include file is inconvenient, ARTS will look for include files in a special
+directory. This can be set by the command line option \shortcode{-I
   <includepath>}, or by the environment variable
-\shortcode{\textindex{ARTS\_INCLUDE\_PATH}}.  If none of these are set, ARTS will
-assume the include path to point to the includes directory in the ARTS
-distribution.
+\shortcode{\textindex{ARTS\_INCLUDE\_PATH}}. If none of these are set, ARTS
+will assume the include path to point to the includes directory in the ARTS
+distribution. \FIXME{Revise this section after general.arts has been changed.}
+
 
 \section{Test controlfiles}
 
@@ -529,7 +517,10 @@ means every time a new ARTS version is submitted to the subversion
 repository. If your ARTS installation is healthy, \shortcode{make
   check} should run through without any errors. (See file
 \fileindex{README} in the ARTS distribution for detailed instructions
-on how to build ARTS.)
+on how to build ARTS.)\\
+\FIXME{The tests are now structured differently. Update the text.}
+
+
 
 \section{Verbosity levels}
 
@@ -573,31 +564,6 @@ The default setting for ARTS (if you do not use the command line flag)
 is `010', i.e., only the important messages to the screen, nothing to
 the report file, and no sub-agenda output.
 
-\section{Data formats}
-
-\subsection{XML files}
-
-% FIXME: OLE: Extend this
-XML is the default file format for exchanging data with ARTS. Two flavors are
-supported: Plain text and binary. In the plain format all data is stored in
-the XML file. For binary, the structure of the data is stored in the XML file
-and the data itself in binary format in a separate file.
-
-\subsection{NetCDF files}
-
-% FIXME: OLE: Extend this
-NetCDF input and output is supported for a subset of the data types available
-in ARTS.
-
-\subsection{Gridded fields}
-
-\subsubsection{Naming convention for grids}
-
-% FIXME: OLE: Extend this
-\begin{alltt}
-\small
-\input{gridded_field_gridnames.txt}
-\end{alltt}
 
 %%% Local Variables: 
 %%% mode: latex

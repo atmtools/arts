@@ -2,7 +2,7 @@
  \label{sec:atmosphere}
 
 \starthistory
- 110610 & Revised by Patrick Eriksson.\\ 
+ 120831 & Revised by Patrick Eriksson.\\ 
  020315 & First version by Patrick Eriksson.\\
 \stophistory
 
@@ -106,39 +106,38 @@ dimensionality is most easily set by the functions \wsmindex{AtmosphereSet1D},
 \begin{description}
   
 \item[\textindex{1D}\,\,\,] A 1D atmosphere can be described as being
-  spherically symmetric (Figure \ref{fig:fm_defs:1d}). The term 1D is used here
-  for simplicity and historical reasons, not because it is a true 1D case (a
-  strictly 1D atmosphere would just extend along a line). A spherical symmetry
-  means that atmospheric fields and the surface extend in all three dimensions,
-  but they have no latitude and longitude variation. This means that, for
-  example, atmospheric fields vary only as a function of altitude and the
-  surface constitutes the surface of a sphere. The radial coordinate is
-  accordingly sufficient when dealing with atmospheric quantities. The latitude
-  and longitude of the sensor are normally of no concern, but when required the
-  sensor is considered to be placed at latitude and longitude zero
-  $([\Lat,\Lon]=[0,0])$. The sensor is assumed to by directed towards
-  the North pole, corresponding to an azimuth angle of 0\degree. A 1D
-  atmosphere is shown in Figure~\ref{fig:fm_defs:1d}.
+  spherically symmetric. The term 1D is used here for simplicity and historical
+  reasons, not because it is a true 1D case (a strictly 1D atmosphere would
+  just extend along a line). A spherical symmetry means that atmospheric fields
+  and the surface extend in all three dimensions, but they have no latitude and
+  longitude variation. This means that, for example, atmospheric fields vary
+  only as a function of altitude and the surface constitutes the surface of a
+  sphere. The radial coordinate is accordingly sufficient when dealing with
+  atmospheric quantities. The latitude and longitude of the sensor are normally
+  of no concern, but when required the sensor is considered to be placed at
+  latitude and longitude zero $([\Lat,\Lon]=[0,0])$. The sensor is assumed to
+  by directed towards the North pole, corresponding to an azimuth angle of
+  0\degree. A 1D atmosphere is shown in Figure~\ref{fig:fm_defs:1d}.
   
 \item[\textindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D atmosphere
-  is only strictly defined inside a plane (Figure \ref{fig:fm_defs:2d}). More
-  in detail, this case be seen as observations restricted to the plane where
-  the longitude equals 0\degree\ or 180\degree. A polar system\index{polar
-    coordinate system}, consisting of a radial and an angular coordinate, is
-  applied. The angular coordinate is denoted as latitude, and matches the 3D
-  latitude in the range $[-90\degree,+90\degree]$, but for 2D there is no lower
-  or upper limit for the latitude coordinate. The 2D case is most likely used
-  for satellite measurements where the atmosphere is observed inside the orbit
-  plane. The 2D ``latitude'' can then be taken as the angular distance along
-  the satellite track. A 2D-latitude of e.g.\ 100\degree\ will then correspond
-  to a 2D-latitude of 80\degree. The atmosphere is normally treated to be
-  undefined outside the considered plane, but some scattering calculations may
-  treat the surrounding atmosphere in an simplified manner. A 2D atmosphere is
-  shown in Figure~\ref{fig:fm_defs:2d}.
+  is only strictly defined inside a plane. More in detail, this case be seen as
+  observations restricted to the plane where the longitude equals 0\degree\ or
+  180\degree. A polar system\index{polar coordinate system}, consisting of a
+  radial and an angular coordinate, is applied. The angular coordinate is
+  denoted as latitude, and matches the 3D latitude in the range
+  $[-90\degree,+90\degree]$, but for 2D there is no lower or upper limit for
+  the latitude coordinate. The 2D case is most likely used for satellite
+  measurements where the atmosphere is observed inside the orbit plane. The 2D
+  ``latitude'' can then be taken as the angular distance along the satellite
+  track. A 2D-latitude of e.g.\ 100\degree\ will then correspond to a
+  2D-latitude of 80\degree. The atmosphere is normally treated to be undefined
+  outside the considered plane, but some scattering calculations may treat the
+  surrounding atmosphere in an simplified manner. A 2D atmosphere is shown in
+  Figure~\ref{fig:fm_defs:2d}.
 
 \item[\textindex{3D}\,\,\,] In this, the most general, case, the atmospheric
   fields vary in all three spatial coordinates, as in a true atmosphere
-  (Figures~\ref{fig:fm_defs:3d} and \ref{fig:fm_defs:3dcross}). A
+  (Figures~\ref{fig:fm_defs:3d}). A
   \textindex{spherical coordinate system} is used where the dimensions are
   radius (\Rds), latitude (\Lat) and longitude (\Lon), and a position is given
   as $(\Rds,\Lat,\Lon)$. With other words, the standard way to specify a
@@ -147,7 +146,7 @@ dimensionality is most easily set by the functions \wsmindex{AtmosphereSet1D},
   etc. Longitudes are counted from the Greenwich meridian with positive values
   towards the east. Longitudes can have values from -360\degree to +360\degree.
   When the difference between the last and first value of the longitude grid is
-  $\geq 360\degree$ then the whole globe is considered to be covered. The user
+  $360\degree$ then the whole globe is considered to be covered. The user
   must ensure that the atmospheric fields for \Lon\ and $\Lon+360\degree$ are
   equal. If a point of propagation path is found to be outside the range of the
   longitude grid, this will results in an error if not the whole globe is
@@ -157,7 +156,7 @@ dimensionality is most easily set by the functions \wsmindex{AtmosphereSet1D},
 
 \end{description}
 
-\begin{figure}[p]
+\begin{figure}[t]
  \begin{center}
   \includegraphics*[angle=-90,width=0.98\hsize]{atm_dim_3d}
   \vspace*{-15mm}
@@ -173,20 +172,20 @@ dimensionality is most easily set by the functions \wsmindex{AtmosphereSet1D},
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_atm_dims.
 
-\begin{figure}[p]
- \begin{center}
-  \includegraphics*[width=0.98\hsize]{atm_dim_3dcross}
-  \caption{A latitudinal, or longitudinal, cross section of a 3D atmosphere. 
-    Plotting symbols as in Figure \ref{fig:fm_defs:1d}. Radii and
-    fields inside the cross section match the definitions for 2D.
-    The vertical extension
-    of the cloud box is defined identical for 1D and 3D. The horizontal 
-    extension of the cloud box is between two latitude and longitude grid
-    positions, where only one of the dimensions is visible in this figure.}
-  \label{fig:fm_defs:3dcross}
- \end{center}
-\end{figure}
-% This figure was produced by the Matlab function mkfigs_atm_dims.
+% \begin{figure}[p]
+%  \begin{center}
+%   \includegraphics*[width=0.98\hsize]{atm_dim_3dcross}
+%   \caption{A latitudinal, or longitudinal, cross section of a 3D atmosphere. 
+%     Plotting symbols as in Figure \ref{fig:fm_defs:1d}. Radii and
+%     fields inside the cross section match the definitions for 2D.
+%     The vertical extension
+%     of the cloud box is defined identical for 1D and 3D. The horizontal 
+%     extension of the cloud box is between two latitude and longitude grid
+%     positions, where only one of the dimensions is visible in this figure.}
+%   \label{fig:fm_defs:3dcross}
+%  \end{center}
+% \end{figure}
+% % This figure was produced by the Matlab function mkfigs_atm_dims.
 
 
 
@@ -226,8 +225,8 @@ See further Section \ref{sec:fm_defs:ppaths}. The volume covered by the grids
 is denoted as the \textindex{model atmosphere}.
 
 The basic atmospheric quantities are represented by their values at each
-crossing of the involved grids (indicated by thick dots in Figures
-\ref{fig:fm_defs:2d}--\ref{fig:fm_defs:3dcross}), or for 1D at each pressure
+crossing of the involved grids (indicated by thick dots in Figure
+\ref{fig:fm_defs:2d}), or for 1D at each pressure
 level (thick dots in Figure \ref{fig:fm_defs:1d}). This representation is
 denoted as the field\index{atmospheric field} of the quantity. The field must,
 at least, be specified for the geometric altitude of the pressure levels
@@ -251,6 +250,19 @@ representation of the quantity.
 
 
 
+\section{Geo-location of 1D and 2D}
+%===================
+\label{sec:fm_defs:geoloc}
+
+For 1D and 2D atmospheres, \builtindoc{lat\_grid} and \builtindoc{lon\_grid} do
+not contain true geographical positions (they are either empty or
+\builtindoc{lat\_grid} contains transformed data). However, some operations
+require that the positions is known, and this \index{geo-location} is handled
+by \wsvindex{lat\_true} and \wsvindex{lon\_true}. See the built-in
+documentation for further information on how to specify these variables.
+
+
+
 \section{Hydrostatic equilibrium}
 %===================
 \label{sec:fm_defs:hse}
@@ -259,8 +271,9 @@ There is no general demand that the model atmosphere fulfils hydrostatic
 equilibrium. That is, \builtindoc{t\_field} and \builtindoc{z\_field} can be
 specified independently of each other. On the other hand, ARTS provides means
 for ensuring that a model atmosphere matches hydrostatic equilibrium by the
-method \wsmindex{z\_fieldFromHSE}. This method is presently valid only for the
-planet Earth, but considers that gravitation varies with latitude and altitude.
+method \wsmindex{z\_fieldFromHSE}. The method considers that gravitation varies
+with latitude and altitude, and \builtindoc{lat\_true} and
+\builtindoc{lon\_true} must be set for 1D and 2D.
 
 Hydrostatic equilibrium gives only constrain for the distance between the
 pressure levels, not for the absolute geometrical altitudes. For this reason, a
@@ -291,19 +304,18 @@ pressure level, the pressure grid can extend below the surface level.
 \section{The cloud box}
 %===================
 \label{sec:fm_defs:cloudbox}
-In order to save computational time, calculations involving scattering and
-polarised gas absorption are limited to a special atmospheric domain. This
-atmospheric region is denoted as the \textindex{cloud box}, reflecting that it
-was introduced primarily to simplify scattering calculations. The cloud box is
-discussed here as it acts as an additional atmospheric limit when calculating
-propagation paths (see Section \ref{sec:fm_defs:rte}).
+In order to save computational time, calculations involving scattering are
+limited to a special atmospheric domain. This atmospheric region is denoted as
+the \textindex{cloud box}. The cloud box is discussed here as it acts as an
+additional atmospheric limit when calculating propagation paths (see Section
+\ref{sec:fm_defs:rte}).
 
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This
 means, for example, that the vertical limits of the cloud box are two
 pressure levels. For 3D, the horizontal extension of the cloud box
 is between two points of the latitude grid and likewise in the
-longitude direction (Figure \ref{fig:fm_defs:3dcross}). The latitude
+longitude direction. The latitude
 and longitude limits for the cloud box cannot be placed at the end
 points of the corresponding grid as it must be possible to calculate
 the incoming intensity field. The cloud box is activated by setting
