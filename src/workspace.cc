@@ -553,27 +553,6 @@ void Workspace::define_wsv_data()
       GROUP( "Vector" )));
 
   wsv_data.push_back
-    (WsvRecord
-    ( NAME( "abs_scalar_gas" ),
-      DESCRIPTION
-      (
-       "Scalar gas absorption coefficients.\n"
-       "\n"
-       "This contains the absorption coefficients for one point in the\n"
-       "atmosphere (one set of pressure, temperature, and VMR values). There\n"
-       "are two distinct cases:\n"
-       "\n"
-       "Case a:    For all frequencies and all species:\n"
-       "Dimension: [ f_grid, abs_species ]\n"
-       "\n"
-       "Case b:    For a single frequency for all species:\n"
-       "Dimension: [ 1,      abs_species ]\n"
-       "\n"
-       "Unit: 1/m\n"
-       ),
-      GROUP( "Matrix" )));
-
-     wsv_data.push_back
    (WsvRecord
     ( NAME( "abs_mat_field" ),
       DESCRIPTION

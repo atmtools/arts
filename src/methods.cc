@@ -1228,54 +1228,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_scalar_gasCalcLBL" ),
-        DESCRIPTION
-        (
-         "Calculates scalar gas absorption coefficients line-by-line.\n"
-         "\n"
-         "This method can be used inside *abs_scalar_gas_agenda* just like\n"
-         "*abs_scalar_gasExtractFromLookup*. It is a shortcut for putting in some\n"
-         "other methods explicitly, namely:\n"
-         "\n"
-         "  1. *NumericScale*( rte_doppler, rte_doppler, -1 )\n"
-         "  2. *VectorAddScalar*( f_grid, f_grid, rte_doppler )\n"
-         "  3. *AbsInputFromRteScalars*\n"
-         "  4. *abs_h2oSet*\n"
-         "  5. *abs_coefCalc*\n"
-         "  6. *abs_scalar_gasFromAbsCoef*\n"
-         "\n"
-         "Sub-methods 2 and 3 are called only if rte_doppler is not zero.\n"
-         "The treatment of the Doppler-shift here is exact, since the underlying\n"
-         "frequency grid is shifted.\n"
-         "\n"
-         "The calculation is for one specific atmospheric condition, i.e., a set\n"
-         "of pressure, temperature, VMR values, and Doppler shift. It can be\n"
-         "either for a single frequency (f_index>=0), or for all frequencies\n"
-         "(f_index<0). The dimension of the output abs_scalar_gas is adjusted\n"
-         "accordingly.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_scalar_gas" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid",
-            "abs_species",
-            "abs_n2",
-            "abs_lines_per_species",
-            "abs_lineshape",
-            "abs_cont_names",
-            "abs_cont_models",
-            "abs_cont_parameters",
-            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "abs_mat_per_speciesAddLBL" ),
         DESCRIPTION
         (
@@ -1290,7 +1242,7 @@ void define_md_data_raw()
          "  3. *AbsInputFromRteScalars*\n"
          "  4. *abs_h2oSet*\n"
          "  5. *abs_coefCalc*\n"
-         "  6. *abs_scalar_gasFromAbsCoef*\n"
+         "  6. *abs_mat_per_speciesFromAbsCoefPerSpecies*\n"
          "\n"
          "Sub-methods 2 and 3 are called only if rte_doppler is not zero.\n"
          "The treatment of the Doppler-shift here is exact, since the underlying\n"
@@ -1321,6 +1273,30 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back
+  ( MdRecord
+   ( NAME( "abs_mat_per_speciesAddFromAbsCoefPerSpecies" ),
+    DESCRIPTION
+    (
+     "Copy *abs_mat_per_species* from *abs_coef_per_species*. This is handy for putting an\n"
+     "explicit line-by-line calculation into the\n"
+     "*abs_mat_per_species_agenda*. This method is also used internally by.\n"
+     "*abs_mat_per_speciesAddLBL*.\n"
+     "Like all other abs_mat_per_species methods, this method does not overwrite\n"
+     "prior content of *abs_mat_per_species*, but adds to it.\n"
+     ),
+    AUTHORS( "Stefan Buehler" ),
+    OUT( "abs_mat_per_species" ),
+    GOUT(),
+    GOUT_TYPE(),
+    GOUT_DESC(),
+    IN( "abs_mat_per_species","abs_coef_per_species" ),
+    GIN(),
+    GIN_TYPE(),
+    GIN_DEFAULT(),
+    GIN_DESC()
+    ));
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_mat_per_speciesInit" ),

@@ -1621,8 +1621,11 @@ void abs_xsec_per_speciesAddLines(// WS Output:
       else
         ls = abs_lineshape[i];
       
-      // Skip the call to abs_xsec_per_species if the line list is empty.
-      if ( 0 < ll.nelem() )
+      
+      // We do the LBL calculation only if:
+      // - The line list is not empty, and
+      // - The species is not a Zeeman species.
+      if ( 0 < ll.nelem() && !tgs[0][0].Zeeman() )
         {
           // As a safety check, check that the species of the first
           // line matches the species we should have according to
@@ -2071,16 +2074,36 @@ void abs_cont_descriptionAppend(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_scalar_gasFromAbsCoef(// WS Output:
-                               Matrix&       abs_scalar_gas,
+void abs_mat_per_speciesAddFromAbsCoefPerSpecies(// WS Output:
+                               Tensor4&       abs_mat_per_species,
                                // WS Input:
                                const ArrayOfMatrix& abs_coef_per_species,
                                const Verbosity&)
 {
-  // abs_scalar_gas has format [f_grid, abs_species].
+  // abs_mat_per_species has format
+  // [ abs_species, f_grid, stokes_dim, stokes_dim ].
   // abs_coef_per_species has format ArrayOfMatrix (over species),
   // where for each species the matrix has format [f_grid, abs_p].
 
+  
+  // Set stokes_dim (and check that the last two dimensions of
+  // abs_mat_per_species really are equal).
+  Index nr, nc, stokes_dim;
+  // In the two stokes dimensions, abs_mat_per_species should be a
+  // square matrix of stokes_dim*stokes_dim. Check this, and determine
+  // stokes_dim:
+  nr = abs_mat_per_species.nrows();
+  nc = abs_mat_per_species.ncols();
+  if ( nr!=nc )
+  {
+    ostringstream os;
+    os << "The last two dimensions of abs_mat_per_species must be equal (stokes_dim).\n"
+    << "But here they are " << nr << " and " << nc << ".";
+    throw runtime_error( os.str() );
+  }
+  stokes_dim = nr;       // Could be nc here too, since they are the same.
+
+  
   Index n_species = abs_coef_per_species.nelem(); // # species
 
   if (0==n_species)
@@ -2100,113 +2123,31 @@ void abs_scalar_gasFromAbsCoef(// WS Output:
       throw runtime_error(os.str());
     }
   
-  abs_scalar_gas.resize(n_species,n_f);
-
-  // Loop species:
+  // Check species dimension of abs_mat_per_species
+  if ( abs_mat_per_species.nbooks()!=n_species )
+  {
+    ostringstream os;
+    os << "Species dimension of abs_mat_per_species does not\n"
+       << "match abs_coef_per_species.";
+    throw runtime_error( os.str() );
+  }
+  
+  // Check frequency dimension of abs_mat_per_species
+  if ( abs_mat_per_species.npages()!=n_f )
+  {
+    ostringstream os;
+    os << "Frequency dimension of abs_mat_per_species does not\n"
+       << "match abs_coef_per_species.";
+    throw runtime_error( os.str() );
+  }
+  
+  // Loop species and stokes dimensions, and add to abs_mat_per_species:
   for ( Index si=0; si<n_species; ++si )
-    abs_scalar_gas(si,joker) = abs_coef_per_species[si](joker,0);
+    for ( Index ii=0; ii<stokes_dim; ++ii )
+      abs_mat_per_species(si,joker,ii, ii) += abs_coef_per_species[si](joker,0);
 
 }
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_scalar_gasCalcLBL(// WS Output:
-                           Matrix& abs_scalar_gas,
-                           // WS Input:
-                           const Vector& f_grid,
-                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                           const Vector& abs_n2,
-                           const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                           const ArrayOfLineshapeSpec& abs_lineshape,
-                           const ArrayOfString& abs_cont_names,
-                           const ArrayOfString& abs_cont_models,
-                           const ArrayOfVector& abs_cont_parameters,
-                           const Numeric& rte_pressure,
-                           const Numeric& rte_temperature,
-                           const Vector& rte_vmr_list,
-                           const Numeric& rte_doppler,
-                           const Verbosity& verbosity)
-{
-  CREATE_OUT3;
-  
-  // Output of AbsInputFromRteScalars:
-  Vector        abs_p;
-  Vector        abs_t;
-  Matrix        abs_vmrs;
-  // Output of abs_h2oSet:
-  Vector          abs_h2o;
-  // Output of abs_coefCalc:
-  Matrix                         abs_coef;
-  ArrayOfMatrix                  abs_coef_per_species;
-  
-
-  // This construct is needed for the Doppler treatment,
-  // since that also modifies the local frequency grid.)
-  Vector local_f_grid;
-  const Vector* f_grid_pointer;
-
-  // Make pointer point to original.
-  f_grid_pointer = &f_grid;
-
-  // Doppler treatment, do this only if there is a non-zero Doppler
-  // shift. We do this after the frequency selection, so in the case
-  // that we have only a single frequency, we have to shift only that!
-
-  // Unfortunately, we need yet another local copy of f_grid. In
-  // constrast to the frequency selection, we here want to modify the
-  // actual frequency values inside!
-  Vector local_doppler_f_grid;
-  if (0==rte_doppler)
-    {
-      out3 << "  Doppler shift: None\n";
-    }
-  else
-    {
-      ostringstream os;
-      os << "  Doppler shift: " << rte_doppler << " Hz\n";
-      out3 << os.str();
-      
-      Numeric local_doppler;
-      NumericScale( local_doppler, rte_doppler, -1, verbosity );
-      // I could just have multiplied by -1 directly, but I like using
-      // the WSM here.
-
-      VectorAddScalar( local_doppler_f_grid,  *f_grid_pointer, local_doppler, verbosity );
-
-      // Make pointer point to the doppler shifted frequency grid.
-      f_grid_pointer = &local_doppler_f_grid;
-    }
-
-  AbsInputFromRteScalars(abs_p, 
-                         abs_t, 
-                         abs_vmrs, 
-                         rte_pressure, 
-                         rte_temperature, 
-                         rte_vmr_list,
-                         verbosity);
-
-  abs_h2oSet(abs_h2o, abs_species, abs_vmrs, verbosity);
-
-  abs_coefCalc(abs_coef, 
-               abs_coef_per_species, 
-               abs_species, 
-               *f_grid_pointer, 
-               abs_p, 
-               abs_t, 
-               abs_n2, 
-               abs_h2o, 
-               abs_vmrs, 
-               abs_lines_per_species, 
-               abs_lineshape, 
-               abs_cont_names, 
-               abs_cont_models, 
-               abs_cont_parameters,
-               verbosity);
-
-  abs_scalar_gasFromAbsCoef(abs_scalar_gas,
-                            abs_coef_per_species,
-                            verbosity);
-}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_mat_per_speciesInit(//WS Output
@@ -2256,52 +2197,90 @@ void abs_mat_per_speciesAddLBL(// WS Output:
                            const Numeric& rte_doppler,
                            const Verbosity& verbosity)
 {
+  CREATE_OUT3;
 
-    Matrix abs_scalar_gas;
-    ArrayOfIndex index_no_Zeeman;
-        
-    for(Index II = 0; II < abs_species.nelem(); II++)
-    {
-        if( !abs_species[0][0].Zeeman() )
-        {
-            index_no_Zeeman.push_back(II);
-        }
-    }
-
-    Index inz_N =            index_no_Zeeman.nelem();
-    ArrayOfArrayOfSpeciesTag temp_abs_species(inz_N);
-    ArrayOfArrayOfLineRecord temp_abs_lines_per_species(inz_N);
-    Vector                   temp_rte_vmr_list(inz_N);
-
-    for(Index II = 0; II < index_no_Zeeman.nelem(); II++)
-    {
-        temp_abs_species[II]            = abs_species[index_no_Zeeman[II]];
-        temp_abs_lines_per_species[II]  = abs_lines_per_species[index_no_Zeeman[II]];
-        temp_rte_vmr_list[II]           = rte_vmr_list[index_no_Zeeman[II]];
-    }
-
-    abs_scalar_gasCalcLBL(//Output:
-                          abs_scalar_gas,
-                          //Input:
-                          f_grid,
-                          temp_abs_species,
-                          abs_n2,
-                          temp_abs_lines_per_species,
-                          abs_lineshape,
-                          abs_cont_names,
-                          abs_cont_models,
-                          abs_cont_parameters,
-                          rte_pressure,
-                          rte_temperature,
-                          temp_rte_vmr_list,
-                          rte_doppler,
-                          verbosity);
+  
+  // Define communication variables for the actual absorption calculation:
+  
+  // Output of AbsInputFromRteScalars:
+  Vector        abs_p;
+  Vector        abs_t;
+  Matrix        abs_vmrs;
+  // Output of abs_h2oSet:
+  Vector          abs_h2o;
+  // Output of abs_coefCalc:
+  Matrix                         abs_coef;
+  ArrayOfMatrix                  abs_coef_per_species;
+  
+  
+  // This construct is needed for the Doppler treatment,
+  // since that also modifies the local frequency grid.)
+  Vector local_f_grid;
+  const Vector* f_grid_pointer;
+  
+  // Make pointer point to original.
+  f_grid_pointer = &f_grid;
+  
+  // Doppler treatment, do this only if there is a non-zero Doppler
+  // shift. We do this after the frequency selection, so in the case
+  // that we have only a single frequency, we have to shift only that!
+  
+  // Unfortunately, we need yet another local copy of f_grid. In
+  // constrast to the frequency selection, we here want to modify the
+  // actual frequency values inside!
+  Vector local_doppler_f_grid;
+  if (0==rte_doppler)
+  {
+    out3 << "  Doppler shift: None\n";
+  }
+  else
+  {
+    ostringstream os;
+    os << "  Doppler shift: " << rte_doppler << " Hz\n";
+    out3 << os.str();
     
-    for(Index ii = 0; ii<abs_mat_per_species.ncols(); ii++)
-        for(Index II = 0; II < index_no_Zeeman.nelem(); II++)
-        {
-            abs_mat_per_species(index_no_Zeeman[II],joker,ii, ii) = abs_scalar_gas(index_no_Zeeman[II],joker);
-        }
+    Numeric local_doppler;
+    NumericScale( local_doppler, rte_doppler, -1, verbosity );
+    // I could just have multiplied by -1 directly, but I like using
+    // the WSM here.
+    
+    VectorAddScalar( local_doppler_f_grid,  *f_grid_pointer, local_doppler, verbosity );
+    
+    // Make pointer point to the doppler shifted frequency grid.
+    f_grid_pointer = &local_doppler_f_grid;
+  }
+  
+  AbsInputFromRteScalars(abs_p,
+                         abs_t,
+                         abs_vmrs,
+                         rte_pressure,
+                         rte_temperature,
+                         rte_vmr_list,
+                         verbosity);
+  
+  abs_h2oSet(abs_h2o, abs_species, abs_vmrs, verbosity);
+  
+  abs_coefCalc(abs_coef,
+               abs_coef_per_species,
+               abs_species,
+               *f_grid_pointer,
+               abs_p,
+               abs_t,
+               abs_n2,
+               abs_h2o,
+               abs_vmrs,
+               abs_lines_per_species,
+               abs_lineshape,
+               abs_cont_names,
+               abs_cont_models,
+               abs_cont_parameters,
+               verbosity);
+  
+  // Now add abs_coef_per_species to abs_mat_per_species:
+  abs_mat_per_speciesAddFromAbsCoefPerSpecies(abs_mat_per_species,
+                                              abs_coef_per_species,
+                                              verbosity);
+
 }
 
 

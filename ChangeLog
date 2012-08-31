@@ -1,3 +1,39 @@
+2012-08-31  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-245
+
+	* GENERAL: Removed WSV abs_scalar_gas and the last remaining WSMs
+	that had to do with it.
+
+	* src/workspace.cc (abs_scalar_gas): Removed.
+
+	* src/methods.cc (abs_scalar_gasCalcLBL): Removed.
+	(abs_mat_per_speciesAddFromAbsCoefPerSpecies): Added. This method
+	is similar to the old method abs_scalar_gasFromAbsCoef that has
+	been removed. Used internally by abs_mat_per_speciesAddLBL.
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddLines): Do not calculate
+	for Zeeman species. (They are ignored in the same way as species
+	with empty line list are ignored.)
+	(abs_mat_per_speciesAddFromAbsCoefPerSpecies): Added.
+	(abs_scalar_gasFromAbsCoef): Removed. (Replaced by the above method.)
+	(abs_scalar_gasCalcLBL): Removed. (Content is now part of
+	abs_mat_per_speciesAddLBL.)
+	(abs_mat_per_speciesAddLBL): Removed special handling (ignoring)
+	of Zeeman species (now done in abs_xsec_per_speciesAddLines).
+
+	* src/m_abs_lookup.cc (calc_lookup_error): Use
+	abs_mat_per_speciesAddLBL instead of abs_scalar_gasCalcLBL.
+
+	* src/m_optproperties.cc: Fixed errors in comments.
+
+	* src/disort.h (dtauc_ssalbCalc): Fixed wrong absorption agenda name.
+
+	* src/disort.cc: Fixed errors in comments.
+
+	* src/montecarlo.h (mcPathTraceGeneral): Fixed wrong absorption
+	agenda name.
+
 2012-08-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-244

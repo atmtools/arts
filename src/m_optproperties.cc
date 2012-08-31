@@ -699,8 +699,8 @@ void ext_matAddGas(Tensor3&      ext_mat,
   // Number of frequencies:
   const Index f_dim = ext_mat.npages();
 
-  // This must be consistent with the first dimension of
-  // abs_scalar_gas. Check this:
+  // This must be consistent with the second dimension of
+  // abs_mat_per_species. Check this:
   if ( f_dim != abs_mat_per_species.npages() )
     throw runtime_error("Frequency dimension of ext_mat and abs_mat_per_species\n"
                         "are inconsistent in ext_matAddGas.");
@@ -759,20 +759,20 @@ void abs_vecAddGas(Matrix&       abs_vec,
   const Index f_dim = abs_vec.nrows();
   const Index stokes_dim = abs_vec.ncols();
   
-  // This must be consistent with the first dimension of
-  // abs_scalar_gas. Check this:
+  // This must be consistent with the second dimension of
+  // abs_mat_per_species. Check this:
   if ( f_dim != abs_mat_per_species.npages() )
-    throw runtime_error("Frequency dimension of abs_vec and abs_scalar_gas\n"
+    throw runtime_error("Frequency dimension of abs_vec and abs_mat_per_species\n"
                         "are inconsistent in abs_vecAddGas.");
   if ( stokes_dim != abs_mat_per_species.ncols() )
-    throw runtime_error("Stokes dimension of abs_vec and abs_scalar_gas\n"
+    throw runtime_error("Stokes dimension of abs_vec and abs_mat_per_species\n"
                         "are inconsistent in abs_vecAddGas.");
     
   // Loop all frequencies. Of course this includes the special case
   // that there is only one frequency.
   for ( Index i=0; i<f_dim; ++i )
     {
-      // Sum up the columns of abs_scalar_gas and add to the first
+      // Sum up the columns of abs_mat_per_species and add to the first
       // element of abs_vec.
       for(Index is = 0; is < stokes_dim;is++)
         abs_vec(i,is) += abs_mat_per_species(joker,i,is,0).sum();

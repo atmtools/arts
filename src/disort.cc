@@ -53,7 +53,7 @@ extern const Numeric BOLTZMAN_CONST;
   \param dtauc                 optical depths for all layers
   \param ssalb                 single scattering albedos for all layers
   \param opt_prop_part_agenda  use arts -d for docu
-  \param abs_scalar_gas_agenda use arts -d 
+  \param abs_mat_per_species_agenda use arts -d
   \param spt_calc_agenda       use arts -d 
   \param pnd_field             use arts -d 
   \param t_field               use arts -d 

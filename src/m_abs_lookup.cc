@@ -2436,14 +2436,13 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // vectors below) outside, but there was no significant speed
   // advantage. (I guess the LBL calculation is expensive enough to
   // make the extra time of allocation here insignificant.)
-  Matrix sga_tab;       // Absorption, dimension [n_f_grid,n_species]:
-  Matrix sga_lbl;
+  Matrix sga_tab;       // Absorption, dimension [n_species,n_f_grid]:
 
   // Do lookup table first:
 
   try            
     {
-      // Absorption, dimension [n_f_grid,n_species]:
+      // Absorption, dimension [n_species,n_f_grid]:
       // Output variable: sga_tab
       al.Extract(sga_tab,
                  abs_p_interp_order,
@@ -2468,7 +2467,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
 
   // Get number of frequencies. (We cannot do this earlier, since we
   // get it from the output of al.Extract.)
-  const Index n_f = sga_tab.nrows();
+  const Index n_f = sga_tab.ncols();
   
   // Allocate some vectors with this dimension:
   Vector abs_tab(n_f);
@@ -2477,31 +2476,42 @@ Numeric calc_lookup_error(// Parameters for lookup table:
 
   // Sum up for all species, to get total absorption:          
   for (Index i=0; i<n_f; ++i)
-    abs_tab[i] = sga_tab(i,joker).sum();
+    abs_tab[i] = sga_tab(joker,i).sum();
 
 
   // Now get absorption line-by-line.
-
-  abs_scalar_gasCalcLBL( sga_lbl, 
-                         al.f_grid, 
-                         al.species, 
-                         abs_n2, 
-                         abs_lines_per_species, 
-                         abs_lineshape, 
-                         abs_cont_names, 
-                         abs_cont_models, 
-                         abs_cont_parameters, 
-                         local_p,
-                         local_t,
-                         local_vmrs,
-                         0,
-                         verbosity);
+  
+  // Variable to hold result of absorption calculation:
+  Tensor4 abs_mat_per_species;
+  
+  // Initialize abs_mat_per_species:
+  abs_mat_per_speciesInit(abs_mat_per_species,
+                          al.species,
+                          al.f_grid,
+                          1,                 // Stokes dimension
+                          verbosity);
+    
+  // Add result of LBL calculation to abs_mat_per_species:
+  abs_mat_per_speciesAddLBL(abs_mat_per_species,
+                            al.f_grid,
+                            al.species,
+                            abs_n2,
+                            abs_lines_per_species,
+                            abs_lineshape,
+                            abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            local_p,
+                            local_t,
+                            local_vmrs,
+                            0,
+                            verbosity);
   // Last argument above is the Doppler shift (usually
   // rte_doppler). Should be zero in this case.
 
-  // Sum up for all species, to get total absorption:          
+  // Sum up for all species, to get total absorption:
   for (Index i=0; i<n_f; ++i)
-    abs_lbl[i] = sga_lbl(i,joker).sum();
+    abs_lbl[i] = abs_mat_per_species(joker,i,0,0).sum();
 
 
   // Ok. What we have to compare is abs_tab and abs_lbl.
