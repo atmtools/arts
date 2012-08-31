@@ -1,3 +1,20 @@
+2012-08-31  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-242
+
+	* src/absorption.h (IsotopeRecord):
+
+	Add isContinuum(). Instead of demanding the abundance being -1 for
+	continua, this test relies on the name of the continua tags not
+	starting with a number like normal isotopes.
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddConts),
+	src/continua.cc (check_continuum_model),
+	src/absorption.h (abs_linesReadFromSplitArtscat),
+	src/m_abs_lookup.cc (find_nonlinear_continua):
+
+	Use isContinuum to detect continua.
+
 2012-08-30  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-241

@@ -246,6 +246,12 @@ public:
       JPL different vibrational states have different tags. */
   const ArrayOfIndex&   JplTags()      const { return mjpltags;      }
 
+  //! Check if isotope is actually a continuum.
+  /*!
+   \return True if this is a continuum.
+   */
+  bool isContinuum() const { return mname.length() && !isnumber(mname[0]); }
+
   void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff )
   {
     mqcoeff = qcoeff;

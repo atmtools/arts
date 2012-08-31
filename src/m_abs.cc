@@ -333,9 +333,9 @@ void abs_linesReadFromSplitArtscat(// WS Output:
     {
       // If the Isotope number is equal to the number of Isotopes for that species,
       // it means 'all isotopes', in which case we have to read a catalog.
-      // Species with isotopic ratio -1 don't need a catalog.
+      // Continua don't need a catalog.
       if (sp->Isotope() == species_data[sp->Species()].Isotope().nelem()
-          || species_data[sp->Species()].Isotope()[sp->Isotope()].Abundance() != -1)
+          || !species_data[sp->Species()].Isotope()[sp->Isotope()].isContinuum())
           {
             unique_species.insert(sp->Species());
           }
@@ -1861,8 +1861,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
               // If we get here, it means that the tag describes a
               // specific isotope. Could be a continuum tag!
                 
-              // The if clause below checks whether the abundance of this tag
-              // is negative. (Negative abundance marks continuum tags.)
+              // The if clause below checks for continuum tags.
               // It does the following:
               //
               // 1. species_data contains the lookup table of species
@@ -1878,10 +1877,9 @@ void abs_xsec_per_speciesAddConts(// WS Output:
               //    tag. Thus we have:
               //    Isotope()[tgs[i][s].Isotope()]
               //
-              // 3. Finally, from the isotope data we need to get the mixing
-              //    ratio by calling the member function Abundance().
-              if ( 0 >
-                   species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Abundance() )
+              // 3. Finally, from the isotope data we need to get the flag
+              //    whether this is a continuum.
+              if ( species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].isContinuum() )
                 {
                   // We have identified a continuum tag!
 

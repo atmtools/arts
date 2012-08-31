@@ -544,9 +544,8 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
           if ( abs_species[i][s].Isotope() <
                species_data[abs_species[i][s].Species()].Isotope().nelem() )
             {
-              // Continuum tags have isotope ratio -1
-              if ( 0 >
-                   species_data[abs_species[i][s].Species()].Isotope()[abs_species[i][s].Isotope()].Abundance() )
+              // Check for continuum tags
+              if (species_data[abs_species[i][s].Species()].Isotope()[abs_species[i][s].Isotope()].isContinuum())
                 {
                   const String thisname = abs_species[i][s].Name();
                   // Ok, now we know this is a continuum tag.

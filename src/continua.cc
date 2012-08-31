@@ -12892,7 +12892,7 @@ void check_continuum_model(const String& name)
 
     // See if this is a continuum tag, so that we can add it to
     // the list:
-    if ( 0 > j->Abundance() )
+    if (j->isContinuum())
       {
         valid_models.push_back(fullnam);
       }
