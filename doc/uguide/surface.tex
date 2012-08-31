@@ -8,7 +8,7 @@
 \stophistory
 
 
-\graphicspath{{Figs/ppath/}}
+\graphicspath{{Figs/ppath/}{Figs/rte/}}
 
 
 \section{The reference ellipsoid}
@@ -234,6 +234,47 @@ The ARTS variable for the \textindex{surface altitude} (\wsvindex{z\_surface})
 is a matrix. For 1D, the surface constitutes a sphere by definition (as the
 ellipsoid), while for 2D and 3D any shape is allowed and a rough model of the
 surface topography can be made.
+
+
+
+\section{Surface XXX}
+%===================
+\label{sec:fm_defs:surface}
+
+\FIXME{This section is moved from another chapter. Incorporate it into this chapter.}
+
+If there is an interception of the propagation path by the surface, emission
+and scattering by the surface must be considered. This is the task of
+\wsaindex{iy\_surface\_agenda}. The standard method for this agenda is
+\wsmindex{iySurfaceRtpropAgenda} (in fact, the only option implemented so far)
+and the rest of this section outlines how this workspace method works. The
+upwelling radiation from the surface can be written as
+(Figure~\ref{fig:fm_defs:surface_refl})
+\begin{equation}
+  \MpiVct_s^u = \MpiVct_e + \sum_l^{} \mathbf{R}_l \MpiVct_l^d
+  \label{eq:fm_defs:surfacerefl}
+\end{equation}
+where \MpiVct\ is the Stokes vector for one frequency, $\MpiVct_s^u$
+is the total upward travelling intensity from the surface along the
+propagation path, $\MpiVct_e$ is the emission from the surface,
+$\MpiVct_l^d$ is the downward travelling intensity reaching the
+surface along direction $l$, and $\mathbf{R}_l$ is the reflection
+coefficient matrix from direction $l$ to the present propagation path.
+The emission from the surface $(\MpiVct_e)$ is stored in
+\wsvindex{surface\_emission}, the directions $l$ for which downward
+travelling intensities are given by \wsvindex{surface\_los}, and the
+reflection coefficients $(\mathbf{R})$ are stored in
+\wsvindex{surface\_rmatrix}. These workspace variables are set by
+\wsaindex{surface\_rtprop\_agenda}. Surface reflections and emission are
+discussed further in Section~\ref{sec:surf:eandr}.
+\begin{figure}
+ \begin{center}
+  \includegraphics*[width=0.95\hsize]{ground_refl}
+  \caption{Schematic of Equation \ref{eq:fm_defs:surfacerefl}.}
+  \label{fig:fm_defs:surface_refl}
+ \end{center}
+\end{figure}
+
 
 
 
