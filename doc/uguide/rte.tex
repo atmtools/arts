@@ -1,32 +1,35 @@
-\chapter{Overview of clear-sky radiative transfer 
-calculations}
+\chapter{Clear-sky radiative transfer calculations}
  \label{sec:rte}
 
 
  \starthistory
-% 120831 & Included sicussion of polarised absorption (Patrick Eriksson).\\
+ 120831 & Updated for handling of polarised absorption (Patrick Eriksson).\\
  110611 & Extended and general revision (Patrick Eriksson).\\
  050613 & First complete version by Patrick Eriksson.\\
  \stophistory
 
 \graphicspath{{Figs/rte/}}
 
-This section gives an overview of the variables and the approach used to handle
-the actual radiative transfer calculations. This includes how
-effects caused by the sensor and surface are incorporated. The default
-assumption is that there is no particle scattering and the (atmospheric)
-absorption/emission is unpolarised. This is for simplicity denoted as clear-sky
-calculations. Cases involving scattering or polarised absorption are handled by
-the ``cloud box'' (Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more
-demanding calculations are restricted to a smaller domain of the model
-atmosphere, and the radiative transfer in this domain is treated by dedicated
-workspace methods.
+This section serves as a general overview of the variables and the approach
+used to handle the actual radiative transfer calculations. This includes how
+effects caused by the sensor and surface are incorporated. Measurements of
+thermal emission in absence of particle scattering are taken as the standard
+case, and the basic theory for such simulations is also covered.
 
-The section deals with general aspects of radiative transfer and the
-algorithms applied outside the cloud box. Even though the atmospheric absorption
-and emission outside the cloud box are unpolarised, the expressions to apply
-must allow that polarisation signals from the surface and the cloud box are
-correctly propagated to the sensor.
+That is, a basic assumption for this chapter is that there is no particle
+scattering. This is denoted as clear-sky calculations. Cases involving
+scattering are restricted to the ``cloud box''
+(Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more demanding calculations
+are restricted to a smaller domain of the model atmosphere, and the radiative
+transfer in that domain is mainly treated by dedicated workspace methods. For
+pure transmission measurements (where scattering into the line-of-sight is
+neglected), see Chapter~\ref{sec:trans}.
+
+Absorption by atmospheric gases does normally not depend on polarisation but
+exceptions exist, where Zeeman splitting is one example. Both polarsied and
+unpolarised absorption is handled. Even if the gaseous absorption in itself is
+unpolarisaed, the expressions to apply must allow that polarisation signals
+from the surface and the cloud box are correctly propagated to the sensor.
 
 
 
@@ -100,11 +103,12 @@ effects shall be noted especially, and a similar nomenclature is used here:
 \item[\aMpiVct{b}]: Monochromatic pencil beam data for a measurement block. The
   definition of a measurement block is found in
   Section~\ref{sec:fm_defs:seqsandblocks}. This vector is only affected by
-  atmospheric radiative transfer. Only used internally and there is no
-  corresponding workspace variable.
-\item[\aMpiVct{y}]: Monochromatic data for a single (pencil beam)
-  line-of-sight. \aMpiVct{b} consists of one or several \aMpiVct{y} appended.
-  The corresponding workspace variable is \wsvindex{iy}.
+  atmospheric radiative transfer. As workspace variable denoted as
+  \wsvindex{iyb}, but can be considered as an internal variable and should not
+  be of concern for the user.
+\item[\aMpiVct{y}]: Monochromatic data for a single (pencil beam) line-of-sight
+  The corresponding workspace variable is \wsvindex{iy}. (\aMpiVct{b} consists
+  of one or several \aMpiVct{y} appended.)
 \item[\aSnsMtr{b}]: The complete sensor response matrix, for a measurement
   block. Can include data reduction. The corresponding workspace variable is
   \wsvindex{sensor\_response}.
@@ -118,7 +122,7 @@ effects shall be noted especially, and a similar nomenclature is used here:
   \FORALL{sensor positions}
    \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
                                     {pencil beam directions of the block}
-    \STATE{call \builtindoc{iy\_clearsky\_agenda}, giving \aMpiVct{y}}
+    \STATE{call \builtindoc{iy\_main\_agenda}, giving \aMpiVct{y}}
     \COMMENT{Algorithm \ref{alg:fm_defs:iyCSagenda}}
     \STATE{unit conversion of \aMpiVct{y} following \wsvindex{y\_unit}}
     \COMMENT{Section \ref{sec:fm_defs:unit}}
@@ -142,8 +146,7 @@ effects shall be noted especially, and a similar nomenclature is used here:
    \COMMENT{Section \ref{sec:fm_defs:rte}}
  \end{algorithmic}
  \caption{The main operations for methods to be part of
-   \wsvindex{iy\_clearsky\_agenda}. The same applies to methods for
-   \wsvindex{iy\_clearsky\_basic\_agenda}.}
+   \wsvindex{iy\_main\_agenda}.}
  \label{alg:fm_defs:iyCSagenda}
 \end{algorithm}
 The \builtindoc{yCalc} method is outlined in Algorithm~\ref{alg:fm_defs:yCalc}.
@@ -153,21 +156,20 @@ calculations and applies the sensor response matrix (\aSnsMtr{b}). The actual
 radiative transfer calculations are not part of \builtindoc{yCalc}.
 
 Atmospheric radiative transfer is solved for each pencil beam direction
-(line-of-sight) separately. It is the task of \wsvindex{iy\_clearsky\_agenda}
+(line-of-sight) separately. It is the task of \wsvindex{iy\_main\_agenda}
 (Algorithm~\ref{alg:fm_defs:iyCSagenda}) to perform a single such clear sky
 radiative transfer calculation. This agenda, in its turn, makes us of other
 agendas, such as \builtindoc{ppath\_step\_agenda}. All methods developed for
-\builtindoc{iy\_clearsky\_agenda} adapt automatically to the value of
+\builtindoc{iy\_main\_agenda} adapt automatically to the value of
 \wsvindex{stokes\_dim}.
 
 That is, \builtindoc{yCalc} is a common method, independent of the details of
 the radiative transfer. For example, \builtindoc{yCalc} is used both if emission
 measurements or pure transmission data are simulated, that choice is made
-inside \builtindoc{iy\_clearsky\_agenda} (see further Section
-\ref{sec:fm_defs:rte}). 
+inside \builtindoc{iy\_main\_agenda}. 
 
 The three following sections describes the main calculation steps of 
-\builtindoc{iy\_clearsky\_agenda}, in the order they are executed.
+\builtindoc{iy\_main\_agenda}, in the order they are executed.
 
 
 \section{Propagation paths}
@@ -250,27 +252,14 @@ the up-welling radiation from the surface
 paths are shown in Figures~\ref{fig:fm_defs:ppath_cases2} and 
 \ref{fig:fm_defs:ppath_cases1}.
  
-Not all propagation paths are allowed for 2D and 3D. The paths can
-only enter and leave the model atmosphere at the top of the
-atmosphere, as the atmospheric fields are treated to be undefined
-outside the covered latitude and longitude ranges
-(Figure~\ref{fig:fm_defs:ppath_badcases}). In addition, if the sensor
-is placed outside the model atmosphere, the line-of-sight zenith angle
-must be $\geq90\degree$, and the tangent point position of the
-propagation paths must be inside the end points of the latitude and
-longitude grids, but can be above the top of the atmosphere. Hence, it
-is allowed that the propagation path is totally outside the
-atmosphere, as long as the viewing direction is downward and the
-lowest point of the path, the tangent point, is inside the latitude
-and longitude limits of the model atmosphere.
-
-Propagation paths can be calculated separately by the method
-\wsmindex{ppathCalc}. However, for standard calculations the propagation paths
-are calculated internally by \builtindoc{yCalc}. The calculation of the path
-from one crossing of the grids to next crossing is defined by
-\wsaindex{ppath\_step\_agenda}. Depending on which function that is selected
-for \builtindoc{ppath\_step\_agenda}, refraction will be considered etc.
-Available workspace methods are presented in Section~\ref{sec:ppath:usage}.
+Not all propagation paths are allowed for 2D and 3D. In short, the paths can
+only enter and leave the model atmosphere at the top of the atmosphere, as the
+atmospheric fields are treated to be undefined outside the covered latitude and
+longitude ranges (Figure~\ref{fig:fm_defs:ppath_badcases}). Propagation paths
+can be calculated separately by the method \wsmindex{ppathCalc}, but for
+standard calculations the propagation paths are calculated internally by
+\builtindoc{yCalc}. The specification of propagation path calculations is
+discussed in Section~\ref{sec:ppath:usage}.
 
 
 
@@ -315,10 +304,10 @@ exist:
 It should be noted that except for the first case above, the determination of
 the radiative background involves further radiative transfer calculations. For
 example, in the case of surface reflection, the down-welling radiation is
-determined by a new call of \builtindoc{iy\_clearsky\_agenda} and the radiative
+determined by a new call of \builtindoc{iy\_main\_agenda} and the radiative
 background for that calculation is then space or the cloud box. The intensity
 field entering the cloud box is calculated by calls of
-\builtindoc{iy\_clearsky\_basic\_agenda} (with cloud box deactivated) and the
+\builtindoc{iy\_main\_basic\_agenda} (with cloud box deactivated) and the
 radiative background is then space or the surface. This results in that space
 is normally the ultimate radiative background for the calculations. The
 exception is for propagation paths that intersects with the surface, and the
@@ -370,11 +359,11 @@ practically in ARTS. Focus is put on emission measurements as ARTS is
 intended primarily for such observations. However, simulations of transmission
 measurements are also possible.
 
-Beside the actual radiances, \builtindoc{iy\_clearsky\_agenda} can provide
+Beside the actual radiances, \builtindoc{iy\_main\_agenda} can provide
 weighting functions and auxiliary data. These later variables are not supported
 by all parts of ARTS, and for efficiency reasons there exists a simpler version
 of the agenda. This version is denoted as
-\wsvindex{iy\_clearsky\_basic\_agenda} and returns only radiances.
+\wsvindex{iy\_main\_basic\_agenda} and returns only radiances.
 
 
 \subsection{Cases with emission}
@@ -444,8 +433,8 @@ radiative background can also be outputted as auxiliary data
 
 The expressions above are implemented in the workspace method
 \wsmindex{iyEmissionStandardClearsky}, intended to be part of
-\builtindoc{iy\_clearsky\_agenda}. For inclusion in
-\builtindoc{iy\_clearsky\_basic\_agenda}, there is a version denoted as
+\builtindoc{iy\_main\_agenda}. For inclusion in
+\builtindoc{iy\_main\_basic\_agenda}, there is a version denoted as
 \wsmindex{iyEmissionStandardClearskyBasic}. This version is not calculating
 $\mathcal{T}_i$, or provides any auxiliary data. 
 
@@ -472,23 +461,6 @@ of \builtindoc{Ignore}). Please, note that \builtindoc{emission\_agenda} and
 \builtindoc{iy\_space\_agenda} must be defined in a consistent manner, that
 they use the same unit for $B$.
 
-
-\subsection{Pure transmission calculations}
-%===================
-\label{sec:fm_defs:transmission}
-
-If only the attenuation of a signal is of concern (i.e.\ atmospheric and
-surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
-applied for all Stokes elements. The initiation of the Stokes vector by the
-radiative background must also be adopted. The standard choice for
-\wsvindex{iy\_space\_agenda} should here be \wsmindex{MatrixUnitIntensity}
-(instead of \builtindoc{MatrixCBR}). Otherwise the calculations are performed
-exactly as for cases with emission (\builtindoc{emission\_agenda} can be left
-undefined).
-
-Calculations of pure transmission type are performed by the method denoted as
-\wsmindex{iyBeerLambertStandardClearsky}. This method is complemented by
-\wsmindex{iyBeerLambertStandardCloudbox}, to be applied inside the cloud box.
 
 
 \section{Output unit}
