@@ -259,8 +259,14 @@ atmospheric fields are treated to be undefined outside the covered latitude and
 longitude ranges. Propagation paths can be calculated separately by the method
 \wsmindex{ppathCalc}, but for standard calculations the propagation paths are
 calculated internally by \builtindoc{yCalc}. Methods and variables to control
-the path calculations are discussed in Section~\ref{sec:ppath:usage}.
+the path calculations are discussed in Section~\ref{sec:ppath:usage}. 
 
+If nothing else is stated, it assumed that all frequency components share a
+single propagation path. Another way to express this assumption is that
+\textindex{dispersion} is neglected. See Section~\ref{sec:fm_defs:dispersion}
+for how to consider dispersion. In the non-dispersive case, the propagation
+path is valid for the first and last element in \wsvindex{f\_grid}, as this is
+the frequency given to \wsaindex{refr\_index\_agenda}.
 
 
 
@@ -506,7 +512,54 @@ instead handled seperately by \wsmindex{iyApplyYunit}.
 %==============================================================================
 \label{sec:fm_defs:dispersion}
 
-xxx
+The clear-sky radiative transfer methods handle all frequencies in
+\builtindoc{f\_grid} in parallel, for efficiency reasons. One aspect of this is
+that only a single propgation path is calculated, that is assumed to be common
+for all frequencies. With other words, \textindex{dispersion} is not
+considered. This is in general an acceptable simplification, but
+exceptions exist where standard example is radiative transfer through the
+ionosphere at frequencies approaching the ``plasma frequency''. 
+
+When dispersion is expected to give a significant impact on the results, ARTS
+offers a general (but slow) solution. Dispersion can be handled by setting
+\wsaindex{iy\_main\_agenda} as follows:
+\begin{code}
+AgendaSet( iy_main_agenda ){
+  iyLoopFrequencies
+}
+\end{code}
+The radiative transfer method you put in \builtindoc{iy\_main\_agenda} for
+non-dispersive calculations are now moved to \wsaindex{iy\_sub\_agenda}. For
+example, if \builtindoc{iyEmissionStandard} is the method of your choice:
+\begin{code}
+AgendaSet( iy_sub_agenda ){
+  iyEmissionStandard
+}
+\end{code}
+The approach is simple, \wsvindex{iyLoopFrequencies} calls
+\builtindoc{iy\_sub\_agenda} for each single frequency of \builtindoc{f\_grid}
+and appends the output data. Or, with some practical details,
+\builtindoc{iyLoopFrequencies} performs a loop over the \builtindoc{f\_grid},
+creates an internal \builtindoc{f\_grid} of length 1 holding the frequency of
+concern and calls \builtindoc{iy\_sub\_agenda} with this length-1 frequency
+grid. This has the result that a propagation path is calculated for each
+frequency component.
+
+Some more steps are required to correctly include dispersion. A basic demand is
+that \wsaindex{ppath\_agenda} considers refraction. Further,
+\wsaindex{refr\_index\_agenda} must provide a dispersive refractive index. Most
+methods aimed for \builtindoc{refr\_index\_agenda} give a refractive index that
+does not varies with frequency. An example on the opposite is
+\wsmindex{refr\_indexFreeElectrons}. If a method with dispersive refractive
+index is used for non-dispersive calculations, it recieves the mean of the
+first and last element in \builtindoc{f\_grid} (also commented above).
+
+The feature provided by \builtindoc{iyLoopFrequencies} can also be used to
+overcome other limitations, such as considering a frequency dependent Doppler
+shift (see Sec.~\ref{sec:winds:limitations}).
+
+
+
 
 
 

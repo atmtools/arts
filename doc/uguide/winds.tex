@@ -64,11 +64,17 @@ The vertical component is defined as for 3D.
 \subsection{Limitations}
 \label{sec:winds:limitations}
 %
-A single Doppler shift is applied for all frequencies. That is, broadband
-calculations are treated in an approximative manner. So far, non-zero winds
-require that the absorption is calculated ``on-the-fly''
+For efficiency reasons, a single Doppler shift is applied for all frequencies.
+That is, broadband calculations could be treated in an approximative manner. A
+general (but slow) way to overcome this simplification is to use the same
+mechanism as for including dispersion, as discussed in
+Section~\ref{sec:fm_defs:dispersion}. If \wsmindex{iyLoopFrequencies} is
+applied, the Doppler shift will be calculated for every frequency seperately.
+
+
+So far, non-zero winds require that the absorption is calculated ``on-the-fly''
 (Section~\ref{sec:absorption}). The scattering algorithms do not apply a
-Doppler shift, i.e.\ the winds are ignored.
+Doppler shift, i.e.\ the winds are ignored. \FIXME{Check these statements.}
 
 
 
