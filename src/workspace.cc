@@ -4139,7 +4139,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Used for radio link calculations and gives then the position of the\n"
        "transmitting device. The corresponding positions of the receiver are\n"
-       "given by *sensor_pos. The number of rows in *transitter_pos* and\n"
+       "given by *sensor_pos*. The number of rows in *transmitter_pos* and\n"
        "*sensor_pos* must be equal.\n"
        "\n" 
        "This WSV is also defined as *sensor_pos* regarding the content of the\n"

@@ -171,6 +171,13 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 }
 
 
+ostream& operator<< (ostream& os, const SpeciesRecord& sr)
+{
+  os << sr.Name() << "\n";
+  return os;
+}
+ 
+      
 /** Extract something from a catalogue line. This is just a small helper
     function to safe some typing. 
 

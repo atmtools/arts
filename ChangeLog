@@ -1,3 +1,25 @@
+2012-09-03  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-251
+
+	* src/species_data.cc: Added new HITRAN species&isotopologues and other
+	species required for ESA planetary study. Updated/revised documentation.
+	Corrected isotopologue abundancies from JPL (such that have IR(main
+	isoptope) given as 1).
+
+	* src/partition_function_data.cc: Added partition function coefficients
+	for new species/isotopologues. Updated documentation (FIXME: re-add code
+	to derive polynomial coefficients from TIPS and JPL partition function
+	data! It's a hassle trying to reproduce existing and consistently derive
+	new coefficients, when this is gone!). Re-enacted use of ceoff tags for
+	documenting data source.
+
+	* src/absorption.[cc,h]: added output operator for SpeciesRecord
+	(currently only outputs the species name tag. extend as needed.)
+
+	* src/agendas.cc(iy_surface_agenda), src/workspace.cc(transmitter_pos):
+	spellfixes in doc.
+
 2012-09-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-250

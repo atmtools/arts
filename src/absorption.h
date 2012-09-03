@@ -1309,6 +1309,14 @@ ostream& operator<< (ostream& os, const LineRecord& lr);
 
 
 
+/** Output operator for SpeciesRecord. Incomplete version: only writes
+    SpeciesName.
+
+    \author Jana Mendrok */
+ostream& operator<< (ostream& os, const SpeciesRecord& sr);
+
+
+
 /** Define the species data map.
 
     \author Stefan Buehler  */

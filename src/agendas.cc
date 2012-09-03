@@ -349,7 +349,7 @@ void define_agenda_data()
         "the surface, for given point and direction.\n"
         "\n"
         "The standard choice should be to make use of *surface_rtprop_agenda*\n"
-        "throught the WSM *iyFromSurfaceRtpropAgenda*.\n"
+        "through the WSM *iySurfaceRtpropAgenda*.\n"
         "\n"
         "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
         "the position and line-of-sight for which the upwelling radiation\n"
