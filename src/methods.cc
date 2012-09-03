@@ -528,61 +528,6 @@ void define_md_data_raw()
         ));
 
   md_data_raw.push_back
-  ( MdRecord
-   ( NAME( "abs_linesReadFromSplitArtscat" ),
-    DESCRIPTION
-    (
-     "Read all the lines in the given frequency range from a split\n"
-     "Arts catalogue file.\n"
-     "\n"
-     "Please note that all lines must correspond\n"
-     "to legal species / isotopologue combinations\n"
-     ),
-    AUTHORS( "Oliver Lemke" ),
-    OUT( "abs_lines" ),
-    GOUT(),
-    GOUT_TYPE(),
-    GOUT_DESC(),
-    IN( "abs_species" ),
-    GIN(         "basename", "fmin",    "fmax" ),
-    GIN_TYPE(    "String",   "Numeric", "Numeric" ),
-    GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
-    GIN_DESC("Basename of the catalogue.",
-             "Minimum frequency for lines to read [Hz].",
-             "Maximum frequency for lines to read [Hz]." )
-    ));
-  
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_linesReadFromHitranPre2004" ),
-        DESCRIPTION
-        (
-         "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
-         "the given frequency range. Otherwise a runtime error will be\n"
-         "thrown. For HITRAN 2004 and later line data use the workspace\n"
-         "method *abs_linesReadFromHitran*.\n"
-         "\n"
-         "Please note that all lines must correspond to legal\n"
-         "species / isotopologue combinations and that the line data\n"
-         "file must be sorted by increasing frequency\n"
-         "\n"
-         "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
-         ),
-        AUTHORS( "Thomas Kuhn" ),
-        OUT( "abs_lines" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN( "filename",  "fmin",    "fmax" ),
-        GIN_TYPE(    "String",    "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC( "Name (and path) of the catalogue file.",
-                  "Minimum frequency for lines to read [Hz].",
-                  "Maximum frequency for lines to read [Hz]." )
-        ));
-
-  md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_linesReadFromHitran" ),
         DESCRIPTION
@@ -616,6 +561,36 @@ void define_md_data_raw()
                   "Maximum frequency for lines to read [Hz]." )
         ));
   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_linesReadFromHitranPre2004" ),
+        DESCRIPTION
+        (
+         "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
+         "the given frequency range. Otherwise a runtime error will be\n"
+         "thrown. For HITRAN 2004 and later line data use the workspace\n"
+         "method *abs_linesReadFromHitran*.\n"
+         "\n"
+         "Please note that all lines must correspond to legal\n"
+         "species / isotopologue combinations and that the line data\n"
+         "file must be sorted by increasing frequency\n"
+         "\n"
+         "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
+         ),
+        AUTHORS( "Thomas Kuhn" ),
+        OUT( "abs_lines" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "filename",  "fmin",    "fmax" ),
+        GIN_TYPE(    "String",    "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
+        GIN_DESC( "Name (and path) of the catalogue file.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_linesReadFromJpl" ),
@@ -670,6 +645,31 @@ void define_md_data_raw()
                   "Maximum frequency for lines to read [Hz]." )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_linesReadFromSplitArtscat" ),
+        DESCRIPTION
+        (
+         "Read all the lines in the given frequency range from a split\n"
+         "Arts catalogue file.\n"
+         "\n"
+         "Please note that all lines must correspond\n"
+         "to legal species / isotopologue combinations\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_lines" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN(         "basename", "fmin",    "fmax" ),
+        GIN_TYPE(    "String",   "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
+        GIN_DESC("Basename of the catalogue.",
+                 "Minimum frequency for lines to read [Hz].",
+                 "Maximum frequency for lines to read [Hz]." )
+    ));
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_lines_per_speciesAddMirrorLines" ),
@@ -826,23 +826,23 @@ void define_md_data_raw()
         ));
 
   md_data_raw.push_back
-  ( MdRecord
-   ( NAME( "abs_lines_per_speciesWriteToSplitArtscat" ),
-    DESCRIPTION
-    (
-     "Write each species to a separate catalogue file.\n"
-     ),
-    AUTHORS( "Oliver Lemke" ),
-    OUT(),
-    GOUT(),
-    GOUT_TYPE(),
-    GOUT_DESC(),
-    IN( "output_file_format", "abs_lines_per_species" ),
-    GIN(         "basename" ),
-    GIN_TYPE(    "String" ),
-    GIN_DEFAULT( "" ),
-    GIN_DESC(    "Basename of the catalogue." )
-    ));
+    ( MdRecord
+      ( NAME( "abs_lines_per_speciesWriteToSplitArtscat" ),
+        DESCRIPTION
+        (
+         "Write each species to a separate catalogue file.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "output_file_format", "abs_lines_per_species" ),
+        GIN(         "basename" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( "" ),
+        GIN_DESC(    "Basename of the catalogue." )
+        ));
   
   md_data_raw.push_back     
     ( MdRecord
@@ -1167,65 +1167,152 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-     ( NAME( "abs_lookupTestAccMC" ),
-      DESCRIPTION
-      (
-       "Test accuracy of absorption lookup table with Monte Carlo Algorithm.\n"
-       "\n"
-       "Explicitly compare absorption from the lookup table with line-by-line\n"
-       "calculations for random conditions.\n"
-       "\n"
-       "The quantities returned are the mean value and standard deviation of\n"
-       "the absolute value of the relative error in percent.\n"
-       "The relative error itself is computed for a large number of cases\n"
-       "(pressure, temperature, and H2O VMR combinations). In the frequency\n"
-       "dimension the maximum value is taken for each case.\n"
-       "\n"
-       "Produces no workspace output, only output to the output streams.\n"
-       ),
-      AUTHORS( "Stefan Buehler" ),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_lookup",
-         "abs_lookup_is_adapted",
-         "abs_p_interp_order",
-         "abs_t_interp_order",
-         "abs_nls_interp_order",
-         "abs_n2",
-         "abs_lines_per_species", 
-         "abs_lineshape", 
-         "abs_cont_names", 
-         "abs_cont_models", 
-         "abs_cont_parameters",
-         "mc_seed"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
-      ));
-    
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_n2Set" ),
+      ( NAME( "abs_lookupTestAccMC" ),
         DESCRIPTION
         (
-         "Sets abs_n2 to the profile of the first tag group containing\n"
-         "molecular nitrogen. See *abs_h2oSet* for more details.\n"
+         "Test accuracy of absorption lookup table with Monte Carlo Algorithm.\n"
+         "\n"
+         "Explicitly compare absorption from the lookup table with line-by-line\n"
+         "calculations for random conditions.\n"
+         "\n"
+         "The quantities returned are the mean value and standard deviation of\n"
+         "the absolute value of the relative error in percent.\n"
+         "The relative error itself is computed for a large number of cases\n"
+         "(pressure, temperature, and H2O VMR combinations). In the frequency\n"
+         "dimension the maximum value is taken for each case.\n"
+         "\n"
+         "Produces no workspace output, only output to the output streams.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_n2" ),
+        OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "abs_vmrs" ),
+        IN( "abs_lookup",
+            "abs_lookup_is_adapted",
+            "abs_p_interp_order",
+            "abs_t_interp_order",
+            "abs_nls_interp_order",
+            "abs_n2",
+            "abs_lines_per_species",
+            "abs_lineshape",
+            "abs_cont_names",
+            "abs_cont_models",
+            "abs_cont_parameters",
+            "mc_seed"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "abs_mat_fieldCalc" ),
+        DESCRIPTION
+        (
+         "Calculate gas absorption for all points in the atmosphere.\n"
+         "\n"
+         "This is useful in two different contexts:\n"
+         "\n"
+         "1. For testing and plotting gas absorption. (For RT calculations, gas\n"
+         "absorption is calculated or extracted locally, therefore there is no\n"
+         "need to calculate a global field. But this method is handy for easy\n"
+         "plotting of absorption vs. pressure, for example.)\n"
+         "\n"
+         "2. Inside the scattering region, monochromatic absorption is\n"
+         "pre-calculated for the entire atmospheric field.\n"
+         "\n"
+         "The calculation itself is performed by the\n"
+         "*abs_mat_per_species_agenda*.\n"
+         ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "abs_mat_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_mat_per_species_agenda",
+            "f_grid",
+            "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid",
+            "t_field", "vmr_field" ),
+        GIN("doppler", "stokes_dim"),
+        GIN_TYPE("Vector", "Index"),
+        GIN_DEFAULT("[]", "1"),
+        GIN_DESC("A vector of doppler shift values in Hz. Must either be\n"
+                 "empty or have same dimension as p_grid\n", "stokes_dim since scalar case is treated differently.")
+        ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_mat_per_speciesAddFromAbsCoefPerSpecies" ),
+        DESCRIPTION
+        (
+         "Copy *abs_mat_per_species* from *abs_coef_per_species*. This is handy for putting an\n"
+         "explicit line-by-line calculation into the\n"
+         "*abs_mat_per_species_agenda*. This method is also used internally by.\n"
+         "*abs_mat_per_speciesAddLBL*.\n"
+         "Like all other abs_mat_per_species methods, this method does not overwrite\n"
+         "prior content of *abs_mat_per_species*, but adds to it.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "abs_mat_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_mat_per_species","abs_coef_per_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_mat_per_speciesAddFromLookup" ),
+        DESCRIPTION
+        (
+            //FIXME: Richard
+         "Extract gas absorption coefficients from lookup table.\n"
+         "\n"
+         "This extracts the absorption coefficient for all non-Zeeman species in\n"
+         "the current calculation from the lookup table. Extraction is for one\n"
+         "specific atmospheric condition, i.e., a set of pressure, temperature,\n"
+         "VMR values, and Doppler shift.\n"
+         "\n"
+         "Extraction is done for the frequencies in f_grid. However, there are\n"
+         "some restrictions: f_grid must either be the same as the internal\n"
+         "frequency grid of the lookup table (for efficiency reasons, only the\n"
+         "first and last element of f_grid are checked), or must have only a\n"
+         "single element.\n"
+         "\n"
+         "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
+         "and *abs_nls_interp_order*, respectively.\n"
+         "\n"
+         "Note that the treatment of the Doppler-shift here is approximate, since\n"
+         "there is a linear interpolation of absorption to a shifted frequency grid.\n"
+         "Due to this, with Doppler shift there will be an extrapolation on one edge\n"
+         "of the grid, where the spectrum is pushed out of the calculated range.\n"
+         "Use extpolfac to control how much extrapolation to tolerate before throwing\n"
+         "a runtime error. Default is to allow ten times the outermost grid distance.\n"
+         "\n"
+         "See also: *abs_mat_per_speciesCalcLBL*.\n"
+         ),
+        AUTHORS( "Stefan Buehler, Richard Larsson" ),
+        OUT( "abs_mat_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_mat_per_species", "abs_lookup", "abs_lookup_is_adapted",
+            "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
+            "f_grid",
+            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
+        GIN("extpolfac"),
+        GIN_TYPE("Numeric"),
+        GIN_DEFAULT("10"),
+        GIN_DESC("Extrapolation factor (for grid edge).")
+        ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_mat_per_speciesAddLBL" ),
@@ -1274,29 +1361,47 @@ void define_md_data_raw()
         ));
 
   md_data_raw.push_back
-  ( MdRecord
-   ( NAME( "abs_mat_per_speciesAddFromAbsCoefPerSpecies" ),
-    DESCRIPTION
-    (
-     "Copy *abs_mat_per_species* from *abs_coef_per_species*. This is handy for putting an\n"
-     "explicit line-by-line calculation into the\n"
-     "*abs_mat_per_species_agenda*. This method is also used internally by.\n"
-     "*abs_mat_per_speciesAddLBL*.\n"
-     "Like all other abs_mat_per_species methods, this method does not overwrite\n"
-     "prior content of *abs_mat_per_species*, but adds to it.\n"
-     ),
-    AUTHORS( "Stefan Buehler" ),
-    OUT( "abs_mat_per_species" ),
-    GOUT(),
-    GOUT_TYPE(),
-    GOUT_DESC(),
-    IN( "abs_mat_per_species","abs_coef_per_species" ),
-    GIN(),
-    GIN_TYPE(),
-    GIN_DEFAULT(),
-    GIN_DESC()
-    ));
-  
+    ( MdRecord
+      ( NAME( "abs_mat_per_speciesAddZeemanLBL" ),
+        DESCRIPTION
+        (
+        "This function will, for each Zeeman species, make a local\n"
+        "ArrayOfLineRecord for the various transition types with Zeeman\n"
+        "altered LineRecord(s).  These are then composed into a single\n"
+        "ArrayOfArrayOfLineRecord which is processed as per the scalar case.\n"
+        "\n"
+        "The line broadened absorption coefficients are finally multiplied with\n"
+        "the transition type rotation matrix and the new variable is inserted into\n"
+        "the out variable. Only -Z- species are treated.\n"
+        "\n"
+        "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
+        "however, when this Zeeman splitting method is used, the number of\n"
+        "lines is increased to about 45,000. This is a time consuming method.\n"
+        "\n"
+        "If rte_mag is of length 1 and contains -1.0 scalar calculations will follow.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT("abs_mat_per_species"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("abs_mat_per_species",
+           "f_grid",
+           "abs_species",
+           "abs_n2",
+           "abs_lines_per_species",
+           "abs_lineshape",
+           "abs_cont_names",
+           "abs_cont_models",
+           "abs_cont_parameters",
+           "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
+           "rte_los", "rte_mag"),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_mat_per_speciesInit" ),
@@ -1323,85 +1428,22 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddFromLookup" ),
+      ( NAME( "abs_n2Set" ),
         DESCRIPTION
         (
-            //FIXME: Richard
-         "Extract gas absorption coefficients from lookup table.\n"
-         "\n"
-         "This extracts the absorption coefficient for all non-Zeeman species in\n"
-         "the current calculation from the lookup table. Extraction is for one\n"
-         "specific atmospheric condition, i.e., a set of pressure, temperature,\n"
-         "VMR values, and Doppler shift.\n"
-         "\n"
-	 "Extraction is done for the frequencies in f_grid. However, there are\n"
-	 "some restrictions: f_grid must either be the same as the internal\n"
-	 "frequency grid of the lookup table (for efficiency reasons, only the\n"
-	 "first and last element of f_grid are checked), or must have only a\n"
-	 "single element.\n"
-         "\n"
-         "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
-         "and *abs_nls_interp_order*, respectively.\n"
-         "\n"
-         "Note that the treatment of the Doppler-shift here is approximate, since\n"
-         "there is a linear interpolation of absorption to a shifted frequency grid.\n"
-         "Due to this, with Doppler shift there will be an extrapolation on one edge\n"
-         "of the grid, where the spectrum is pushed out of the calculated range.\n"
-         "Use extpolfac to control how much extrapolation to tolerate before throwing\n"
-         "a runtime error. Default is to allow ten times the outermost grid distance.\n"
-         "\n"
-         "See also: *abs_mat_per_speciesCalcLBL*.\n"
+         "Sets abs_n2 to the profile of the first tag group containing\n"
+         "molecular nitrogen. See *abs_h2oSet* for more details.\n"
          ),
-        AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "abs_mat_per_species" ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "abs_n2" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_mat_per_species", "abs_lookup", "abs_lookup_is_adapted",
-            "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
-            "f_grid",
-            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
-        GIN("extpolfac"),
-        GIN_TYPE("Numeric"),
-        GIN_DEFAULT("10"),
-        GIN_DESC("Extrapolation factor (for grid edge).")
-        ));
-    
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "abs_mat_fieldCalc" ),
-        DESCRIPTION
-        (
-         "Calculate gas absorption for all points in the atmosphere.\n"
-         "\n"
-         "This is useful in two different contexts:\n"
-         "\n"
-         "1. For testing and plotting gas absorption. (For RT calculations, gas\n"
-         "absorption is calculated or extracted locally, therefore there is no\n"
-         "need to calculate a global field. But this method is handy for easy\n"
-         "plotting of absorption vs. pressure, for example.)\n"
-         "\n"
-         "2. Inside the scattering region, monochromatic absorption is\n"
-         "pre-calculated for the entire atmospheric field.\n"
-         "\n"
-         "The calculation itself is performed by the\n"
-         "*abs_mat_per_species_agenda*.\n"
-         ),
-        AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "abs_mat_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_mat_per_species_agenda",
-            "f_grid",
-            "atmosphere_dim",
-            "p_grid", "lat_grid", "lon_grid",
-            "t_field", "vmr_field" ),
-        GIN("doppler", "stokes_dim"),
-        GIN_TYPE("Vector", "Index"),
-        GIN_DEFAULT("[]", "1"),
-        GIN_DESC("A vector of doppler shift values in Hz. Must either be\n"
-                 "empty or have same dimension as p_grid\n", "stokes_dim since scalar case is treated differently.")
+        IN( "abs_species", "abs_vmrs" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -1670,27 +1712,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "AgendaExecute" ),
-        DESCRIPTION
-        ( 
-         "Execute an agenda.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(         "a" ),
-        GIN_TYPE(    "Agenda" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC(    "Agenda to be executed." ),
-        SETMETHOD(    false ),
-        AGENDAMETHOD( false )
-        ));
-      
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "AgendaAppend" ),
         DESCRIPTION
         ( 
@@ -1724,6 +1745,27 @@ void define_md_data_raw()
         PASSWSVNAMES(   true  )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AgendaExecute" ),
+        DESCRIPTION
+        ( 
+         "Execute an agenda.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(         "a" ),
+        GIN_TYPE(    "Agenda" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Agenda to be executed." ),
+        SETMETHOD(    false ),
+        AGENDAMETHOD( false )
+        ));
+      
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "AgendaSet" ),
@@ -2278,54 +2320,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "batch_atm_fields_compactAddConstant" ),
-        DESCRIPTION
-        (
-         "Adds a constant field to batch_atm_fields_compact.\n"
-         "\n"
-         "Applies *atm_fields_compactAddConstant* to each batch.\n"
-         "The format is equal to that WSM.\n"
-         ),
-        AUTHORS( "Gerrit Holl" ),
-        OUT( "batch_atm_fields_compact" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "batch_atm_fields_compact" ),
-        GIN( "name",   "value" ),
-        GIN_TYPE(    "String", "Numeric" ),
-        GIN_DEFAULT( NODEF,    NODEF ),
-        GIN_DESC( "Name of additional atmospheric field, with constant value.",
-                  "Constant value of additional field." )
-        ));
-
-
-   md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "batch_atm_fields_compactAddSpecies" ),
-        DESCRIPTION
-        (
-         "Adds a field to *batch_atm_fields_compact*, with interpolation.\n"
-         "\n"
-         "This method appends a *GriddedField3* to each *atm_fields_compact*.\n"
-         "in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.\n"
-         ),
-        AUTHORS( "Gerrit Holl" ),
-        OUT( "batch_atm_fields_compact" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "batch_atm_fields_compact" ),
-        GIN( "name",   "value" ),
-        GIN_TYPE(    "String", "GriddedField3" ),
-        GIN_DEFAULT( NODEF,    NODEF ),
-        GIN_DESC( "Name of additional atmospheric field. Use, e.g., vmr_ch4 for methane VMR",
-                  "Value of additional atmospheric field." )
-        ));
-
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "atm_fields_compactFromMatrix" ),
         DESCRIPTION
         (
@@ -2614,6 +2608,52 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "batch_atm_fields_compactAddConstant" ),
+        DESCRIPTION
+        (
+         "Adds a constant field to batch_atm_fields_compact.\n"
+         "\n"
+         "Applies *atm_fields_compactAddConstant* to each batch.\n"
+         "The format is equal to that WSM.\n"
+         ),
+        AUTHORS( "Gerrit Holl" ),
+        OUT( "batch_atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "batch_atm_fields_compact" ),
+        GIN( "name",   "value" ),
+        GIN_TYPE(    "String", "Numeric" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN_DESC( "Name of additional atmospheric field, with constant value.",
+                  "Constant value of additional field." )
+        ));
+
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "batch_atm_fields_compactAddSpecies" ),
+        DESCRIPTION
+        (
+         "Adds a field to *batch_atm_fields_compact*, with interpolation.\n"
+         "\n"
+         "This method appends a *GriddedField3* to each *atm_fields_compact*.\n"
+         "in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.\n"
+         ),
+        AUTHORS( "Gerrit Holl" ),
+        OUT( "batch_atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "batch_atm_fields_compact" ),
+        GIN( "name",   "value" ),
+        GIN_TYPE(    "String", "GriddedField3" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN_DESC( "Name of additional atmospheric field. Use, e.g., vmr_ch4 for methane VMR",
+                  "Value of additional atmospheric field." )
         ));
 
   md_data_raw.push_back
@@ -3203,6 +3243,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "doit_conv_flagAbsBT" ),
+        DESCRIPTION
+        (
+         "DOIT convergence test (maximum absolute difference in Rayleigh Jeans "
+         "BT)\n"
+         "\n"
+         "As *doit_conv_flagAbs* but convergence limits are specified in\n"
+         "Rayleigh-Jeans brighntess temperatures.\n"
+         ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
+        OUT( "doit_conv_flag", "doit_iteration_counter" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_conv_flag", "doit_iteration_counter",
+            "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
+        GIN( "epsilon" ),
+        GIN_TYPE(    "Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Limits for convergence. A vector with length matching "
+                  "*stokes_dim* with unit [K]."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "doit_conv_flagLsq" ),
         DESCRIPTION
         (
@@ -3230,32 +3296,6 @@ void define_md_data_raw()
                   )
         ));
   
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "doit_conv_flagAbsBT" ),
-        DESCRIPTION
-        (
-         "DOIT convergence test (maximum absolute difference in Rayleigh Jeans "
-         "BT)\n"
-         "\n"
-         "As *doit_conv_flagAbs* but convergence limits are specified in\n"
-         "Rayleigh-Jeans brighntess temperatures.\n"
-         ),
-        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "doit_conv_flag", "doit_iteration_counter" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "doit_conv_flag", "doit_iteration_counter",
-            "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
-        GIN( "epsilon" ),
-        GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Limits for convergence. A vector with length matching "
-                  "*stokes_dim* with unit [K]."
-                  )
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DoitInit" ),
@@ -3841,26 +3881,24 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "FrequencyFromWavelength" ),
+      ( NAME( "FieldFromGriddedField" ),
         DESCRIPTION
         (
-         "Convert from wavelength [m] to frequency [Hz].\n"
-         "\n"
-         "This is a generic method. It can take a single wavelength value or a wavelength vector as input.\n"
+         "FIXME: OLE\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT("frequency"),
-        GOUT_TYPE("Numeric, Vector"),
-        GOUT_DESC("frequency [Hz]"),
-        IN(),
-        GIN( "wavelength"),
-        GIN_TYPE("Numeric, Vector" ),
+        GOUT( "field" ),
+        GOUT_TYPE( "Matrix, Tensor3, Tensor4, Tensor4" ),
+        GOUT_DESC( "Extracted field." ),
+        IN( "p_grid", "lat_grid", "lon_grid" ),
+        GIN( "gfield" ),
+        GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("wavelength [m]" )
+        GIN_DESC( "Raw input gridded field." )
         ));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "FlagOff" ),
         DESCRIPTION
@@ -3966,7 +4004,28 @@ void define_md_data_raw()
         ));
   */
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "FrequencyFromWavelength" ),
+        DESCRIPTION
+        (
+         "Convert from wavelength [m] to frequency [Hz].\n"
+         "\n"
+         "This is a generic method. It can take a single wavelength value or a wavelength vector as input.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT(),
+        GOUT("frequency"),
+        GOUT_TYPE("Numeric, Vector"),
+        GOUT_DESC("frequency [Hz]"),
+        IN(),
+        GIN( "wavelength"),
+        GIN_TYPE("Numeric, Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("wavelength [m]" )
+        ));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "f_gridFromGasAbsLookup" ),
         DESCRIPTION
@@ -4093,25 +4152,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "FieldFromGriddedField" ),
-        DESCRIPTION
-        (
-         "FIXME: OLE\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT( "field" ),
-        GOUT_TYPE( "Matrix, Tensor3, Tensor4, Tensor4" ),
-        GOUT_DESC( "Extracted field." ),
-        IN( "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "gfield" ),
-        GIN_TYPE( "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Raw input gridded field." )
-        ));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "g0Earth" ),
@@ -4158,30 +4198,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "GriddedFieldPRegrid" ),
-        DESCRIPTION
-        (
-         "Interpolates the input field along the pressure dimension to *p_grid*.\n"
-         "gfield_raw_out and gfield_raw_in can be the same variable.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT( "gfield_raw_out" ),
-        GOUT_TYPE( "GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
-        GOUT_DESC( "Regridded gridded field." ),
-        IN( "p_grid" ),
-        GIN( "gfield_raw_in", "interp_order", "zeropadding" ),
-        GIN_TYPE( "GriddedField3, GriddedField4, ArrayOfGriddedField3",
-                  "Index",
-                  "Index" ),
-        GIN_DEFAULT( NODEF, "1", "0" ),
-        GIN_DESC( "Raw input gridded field.",
-                  "Interpolation order.",
-                  "Apply zero-padding." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "GriddedFieldLatLonRegrid" ),
         DESCRIPTION
         (
@@ -4208,29 +4224,26 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "Massdensity_cleanup" ),
+      ( NAME( "GriddedFieldPRegrid" ),
         DESCRIPTION
         (
-         "This WSM checks if *massdensity_field* contains values smaller than\n"
-         "*massdensity_threshold*. In this case, these values will be set to zero.\n"
-         "\n"
-         "The Method should be applied if *massdensity_field* contains unrealistic small\n"
-         "or erroneous data. (e.g. the chevallierl_91l data sets contain these small values)\n"
-         "\n"
-         "*Massdensity_cleanup* is called after generation of atmopheric fields.\n"
-         "\n"
-         "*Default value*:\t1e-15\n"
+         "Interpolates the input field along the pressure dimension to *p_grid*.\n"
+         "gfield_raw_out and gfield_raw_in can be the same variable.\n"
          ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "massdensity_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "massdensity_field" ),
-        GIN( "massdensity_threshold" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( "1e-15" ),
-        GIN_DESC( "Values in *massdensity_field* smaller than *massdensity_threshold* will be set to zero." )
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "gfield_raw_out" ),
+        GOUT_TYPE( "GriddedField3, GriddedField4, ArrayOfGriddedField3" ),
+        GOUT_DESC( "Regridded gridded field." ),
+        IN( "p_grid" ),
+        GIN( "gfield_raw_in", "interp_order", "zeropadding" ),
+        GIN_TYPE( "GriddedField3, GriddedField4, ArrayOfGriddedField3",
+                  "Index",
+                  "Index" ),
+        GIN_DEFAULT( NODEF, "1", "0" ),
+        GIN_DESC( "Raw input gridded field.",
+                  "Interpolation order.",
+                  "Apply zero-padding." )
         ));
 
   md_data_raw.push_back
@@ -4986,6 +4999,45 @@ void define_md_data_raw()
                   )
         ));
 
+  /*
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "jacobianAddParticle" ),
+    DESCRIPTION
+    (
+    "Add particle number density as retrieval quantity to the Jacobian.\n"
+    "\n"
+    "The Jacobian is done by perturbation calculation by adding elements\n"
+    "of *pnd_field_perturb* to *pnd_field*. Only 1D and 3D atmospheres\n"
+    "can be handled by this method.\n"
+    "\n"
+    "The perturbation field and the unit of it are defined outside ARTS.\n"
+    "This method only returns the difference between the reference and\n"
+    "perturbed spectra. The division by the size of the perturbation\n"
+    "also has to be done outside ARTS.\n"
+    "The unit of the particle jacobian is the same as for *y*.\n"
+    "\n"
+    "Generic input:\n"
+    "  Vector : The pressure grid of the retrieval field.\n"
+    "  Vector : The latitude grid of the retrieval field.\n"
+    "  Vector : The longitude grid of the retrieval field.\n"
+    ),
+    AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+    OUT( "jacobian_quantities", "jacobian_agenda" ),
+    GOUT(),
+    GOUT_TYPE(),
+    GOUT_DESC(),
+    IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+    "pnd_field", "pnd_field_perturb", "cloudbox_limits" ),
+    GIN(      "gin1"      , "gin2"      , "gin3"       ),
+    GIN_TYPE(    "Vector", "Vector", "Vector" ),
+    GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
+    GIN_DESC( "FIXME DOC",
+    "FIXME DOC",
+    "FIXME DOC" )
+    ));
+  */
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianAddPointingZa" ),
@@ -5116,45 +5168,6 @@ void define_md_data_raw()
                   )
         ));
 
-  /*
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "jacobianAddParticle" ),
-    DESCRIPTION
-    (
-    "Add particle number density as retrieval quantity to the Jacobian.\n"
-    "\n"
-    "The Jacobian is done by perturbation calculation by adding elements\n"
-    "of *pnd_field_perturb* to *pnd_field*. Only 1D and 3D atmospheres\n"
-    "can be handled by this method.\n"
-    "\n"
-    "The perturbation field and the unit of it are defined outside ARTS.\n"
-    "This method only returns the difference between the reference and\n"
-    "perturbed spectra. The division by the size of the perturbation\n"
-    "also has to be done outside ARTS.\n"
-    "The unit of the particle jacobian is the same as for *y*.\n"
-    "\n"
-    "Generic input:\n"
-    "  Vector : The pressure grid of the retrieval field.\n"
-    "  Vector : The latitude grid of the retrieval field.\n"
-    "  Vector : The longitude grid of the retrieval field.\n"
-    ),
-    AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-    OUT( "jacobian_quantities", "jacobian_agenda" ),
-    GOUT(),
-    GOUT_TYPE(),
-    GOUT_DESC(),
-    IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-    "pnd_field", "pnd_field_perturb", "cloudbox_limits" ),
-    GIN(      "gin1"      , "gin2"      , "gin3"       ),
-    GIN_TYPE(    "Vector", "Vector", "Vector" ),
-    GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
-    GIN_DESC( "FIXME DOC",
-    "FIXME DOC",
-    "FIXME DOC" )
-    ));
-  */
-  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
@@ -5239,6 +5252,39 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
+ /*
+           md_data_raw.push_back
+            ( MdRecord
+            ( NAME( "jacobianCalcParticle" ),
+            DESCRIPTION
+            (
+            "Calculates particle number densities jacobians by perturbations\n"
+            "\n"
+            "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
+            "and should normally not be called by the user.\n"
+            ),
+            AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+            OUT( "jacobian" ),
+            GOUT(),
+            GOUT_TYPE(),
+            GOUT_DESC(),
+            IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
+            "jacobian_particle_update_agenda",
+            "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
+            "surface_rtprop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
+            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
+            "refellipsoid", "z_surface", 
+            "cloudbox_on", "cloudbox_limits", "pnd_field",
+            "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
+            "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
+            GIN(),
+            GIN_TYPE(),
+            GIN_DEFAULT(),
+            GIN_DESC()
+            ));
+        
+ */
 
   md_data_raw.push_back
     ( MdRecord
@@ -5379,40 +5425,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-
- /*        
-           md_data_raw.push_back
-            ( MdRecord
-            ( NAME( "jacobianCalcParticle" ),
-            DESCRIPTION
-            (
-            "Calculates particle number densities jacobians by perturbations\n"
-            "\n"
-            "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
-            "and should normally not be called by the user.\n"
-            ),
-            AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-            OUT( "jacobian" ),
-            GOUT(),
-            GOUT_TYPE(),
-            GOUT_DESC(),
-            IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
-            "jacobian_particle_update_agenda",
-            "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
-            "surface_rtprop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
-            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
-            "refellipsoid", "z_surface", 
-            "cloudbox_on", "cloudbox_limits", "pnd_field",
-            "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
-            "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
-            GIN(),
-            GIN_TYPE(),
-            GIN_DEFAULT(),
-            GIN_DESC()
-            ));
-        
- */
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianClose" ),
@@ -5490,7 +5502,34 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Massdensity_cleanup" ),
+        DESCRIPTION
+        (
+         "This WSM checks if *massdensity_field* contains values smaller than\n"
+         "*massdensity_threshold*. In this case, these values will be set to zero.\n"
+         "\n"
+         "The Method should be applied if *massdensity_field* contains unrealistic small\n"
+         "or erroneous data. (e.g. the chevallierl_91l data sets contain these small values)\n"
+         "\n"
+         "*Massdensity_cleanup* is called after generation of atmopheric fields.\n"
+         "\n"
+         "*Default value*:\t1e-15\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "massdensity_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "massdensity_field" ),
+        GIN( "massdensity_threshold" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "1e-15" ),
+        GIN_DESC( "Values in *massdensity_field* smaller than *massdensity_threshold* will be set to zero." )
+        ));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "MatrixCBR" ),
         DESCRIPTION
@@ -5521,6 +5560,34 @@ void define_md_data_raw()
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
         GIN_DESC( "Frequency vector." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixCompare" ),
+        DESCRIPTION
+        (
+         "Checks the consistency between two matrices.\n" 
+         "\n"
+         "The two matrices are checked to not deviate outside the specified\n"
+         "value (*maxdev*). An error is issued if this is not fulfilled.\n"
+         "\n"
+         "The main application of this method is to be part of the test\n"
+         "control files, and then used to check that a calculated Jacobian\n"
+         "is consistent with an old, reference, calculation.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "matrix1", "matrix2", "maxabsdiff", "error_message" ),
+        GIN_TYPE( "Matrix", "Matrix", "Numeric", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
+        GIN_DESC( "A first matrix", "A second matrix", 
+                  "Threshold for maximum absolute difference.",
+                  "Additional error message.")
         ));
 
   md_data_raw.push_back
@@ -5603,27 +5670,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MatrixSetConstant" ),
-        DESCRIPTION
-        (
-         "Creates a matrix and sets all elements to the specified value.\n"
-         "\n"
-         "The size is determined by *ncols* and *nrows*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "m"      ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Variable to initialize." ),
-        IN( "nrows", "ncols" ),
-        GIN(         "value"   ),
-        GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF     ),
-        GIN_DESC( "Matrix value." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "MatrixSet" ),
         DESCRIPTION
         (
@@ -5644,6 +5690,27 @@ void define_md_data_raw()
         GIN_DESC( "The values of the newly created matrix. Elements are separated "
                   "by commas, rows by semicolons."),
         SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixSetConstant" ),
+        DESCRIPTION
+        (
+         "Creates a matrix and sets all elements to the specified value.\n"
+         "\n"
+         "The size is determined by *ncols* and *nrows*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "m"      ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Variable to initialize." ),
+        IN( "nrows", "ncols" ),
+        GIN(         "value"   ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Matrix value." )
         ));
 
   md_data_raw.push_back
@@ -5733,34 +5800,6 @@ void define_md_data_raw()
                   "The vector to be copied into the second column.",
                   "The vector to be copied into the third column." 
                   )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "MatrixCompare" ),
-        DESCRIPTION
-        (
-         "Checks the consistency between two matrices.\n" 
-         "\n"
-         "The two matrices are checked to not deviate outside the specified\n"
-         "value (*maxdev*). An error is issued if this is not fulfilled.\n"
-         "\n"
-         "The main application of this method is to be part of the test\n"
-         "control files, and then used to check that a calculated Jacobian\n"
-         "is consistent with an old, reference, calculation.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( ),
-        GIN( "matrix1", "matrix2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Matrix", "Matrix", "Numeric", "String" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
-        GIN_DESC( "A first matrix", "A second matrix", 
-                  "Threshold for maximum absolute difference.",
-                  "Additional error message.")
         ));
 
   md_data_raw.push_back
@@ -7851,53 +7890,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "sensor_responseFillFgrid" ),
-        DESCRIPTION
-        (
-         "Polynomial frequency interpolation of spectra.\n"
-         "z\n"
-         "The sensor response methods treat the spectra to be piece-wise linear\n"
-         "functions. This method is a workaround for making methods handling\n"
-         "the spectra in a more elaborate way: it generates spectra on a more\n"
-         "dense grid by polynomial interpolation. The interpolation is not\n"
-         "done explicitly, it is incorporated into *sensor_response*.\n"
-         "\n"
-         "This method should in general increase the calculation accuracy for\n"
-         "a given *f_grid*. However, the selection of (original) grid points\n"
-         "becomes more sensitive when using this method. A poor choice of grid\n"
-         "points can result in a decreased accuracy, or generation of negative\n"
-         "radiances. Test calculations indicated that the error easily can\n"
-         "increase with this method close the edge of *f_grid*, and it could\n"
-         "be wise to make *f_grid* a bit wider than actually necessary to avoid\n"
-         "this effect\n"
-         "\n"
-         "The method shall be inserted before the antenna stage. That is, this\n"
-         "method shall normally be called directly after *sensor_responseInit*.\n"
-         "\n"
-         "Between each neighbouring points of *f_grid*, this method adds\n"
-         "*nfill* grid points. The polynomial order of the interpolation is\n"
-         "*polyorder*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-             "sensor_response_za", "sensor_response_aa", 
-             "sensor_response_f_grid" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", 
-            "sensor_response_f_grid", "sensor_response_pol_grid", 
-            "sensor_response_za_grid", "sensor_response_aa_grid" ),
-        GIN( "polyorder", "nfill" ),
-        GIN_TYPE( "Index", "Index" ),
-        GIN_DEFAULT( "3", "2" ),
-        GIN_DESC( "Polynomial order of interpolation", 
-                  "Number of points to insert in each gap of f_grid" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "sensor_responseBackendFrequencySwitching" ),
         DESCRIPTION
         (
@@ -7974,6 +7966,53 @@ void define_md_data_raw()
         GIN_DESC( "Weight for values from first viewing direction.", 
                   "Weight for values from second viewing direction." 
                   )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responseFillFgrid" ),
+        DESCRIPTION
+        (
+         "Polynomial frequency interpolation of spectra.\n"
+         "z\n"
+         "The sensor response methods treat the spectra to be piece-wise linear\n"
+         "functions. This method is a workaround for making methods handling\n"
+         "the spectra in a more elaborate way: it generates spectra on a more\n"
+         "dense grid by polynomial interpolation. The interpolation is not\n"
+         "done explicitly, it is incorporated into *sensor_response*.\n"
+         "\n"
+         "This method should in general increase the calculation accuracy for\n"
+         "a given *f_grid*. However, the selection of (original) grid points\n"
+         "becomes more sensitive when using this method. A poor choice of grid\n"
+         "points can result in a decreased accuracy, or generation of negative\n"
+         "radiances. Test calculations indicated that the error easily can\n"
+         "increase with this method close the edge of *f_grid*, and it could\n"
+         "be wise to make *f_grid* a bit wider than actually necessary to avoid\n"
+         "this effect\n"
+         "\n"
+         "The method shall be inserted before the antenna stage. That is, this\n"
+         "method shall normally be called directly after *sensor_responseInit*.\n"
+         "\n"
+         "Between each neighbouring points of *f_grid*, this method adds\n"
+         "*nfill* grid points. The polynomial order of the interpolation is\n"
+         "*polyorder*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid" ),
+        GIN( "polyorder", "nfill" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "3", "2" ),
+        GIN_DESC( "Polynomial order of interpolation", 
+                  "Number of points to insert in each gap of f_grid" )
         ));
 
   md_data_raw.push_back
@@ -8198,8 +8237,8 @@ void define_md_data_raw()
         ));
 
   md_data_raw.push_back
-  ( MdRecord
-   ( NAME( "sensor_responseSimpleAMSU" ),
+    ( MdRecord
+      ( NAME( "sensor_responseSimpleAMSU" ),
         DESCRIPTION
         (
          "Simplified sensor setup for an AMSU-type instrument.\n"
@@ -8236,12 +8275,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim",
-        "stokes_dim", 
-        "sensor_description_amsu" ),
-    GIN( "spacing" ),
-    GIN_TYPE(    "Numeric" ),
-    GIN_DEFAULT( ".1e9" ),
-    GIN_DESC( "Desired grid spacing in Hz." )
+            "stokes_dim",
+            "sensor_description_amsu" ),
+        GIN( "spacing" ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( ".1e9" ),
+        GIN_DESC( "Desired grid spacing in Hz." )
         ));
 
         /* Not yet updated
@@ -9005,48 +9044,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddZeemanLBL" ),
-        DESCRIPTION
-        (
-        "This function will, for each Zeeman species, make a local\n"
-        "ArrayOfLineRecord for the various transition types with Zeeman\n"
-        "altered LineRecord(s).  These are then composed into a single\n"
-        "ArrayOfArrayOfLineRecord which is processed as per the scalar case.\n"
-        "\n"
-        "The line broadened absorption coefficients are finally multiplied with\n"
-        "the transition type rotation matrix and the new variable is inserted into\n"
-        "the out variable. Only -Z- species are treated.\n"
-        "\n"
-        "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
-        "however, when this Zeeman splitting method is used, the number of\n"
-        "lines is increased to about 45,000. This is a time consuming method.\n"
-        "\n"
-        "If rte_mag is of length 1 and contains -1.0 scalar calculations will follow.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT("abs_mat_per_species"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN("abs_mat_per_species",
-           "f_grid",
-           "abs_species",
-           "abs_n2",
-           "abs_lines_per_species",
-           "abs_lineshape",
-           "abs_cont_names",
-           "abs_cont_models",
-           "abs_cont_parameters",
-           "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
-           "rte_los", "rte_mag"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9829,55 +9826,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "yCalc" ),
-        DESCRIPTION
-        (
-         "Calculation of complete measurement vectors (y).\n"
-         "\n"
-         "The method performs radiative transfer calculations from a sensor\n"
-         "perspective. Radiative transfer calculations are performed for\n"
-         "monochromatic pencil beams, following *iy_main_agenda* and\n"
-         "associated agendas. Obtained radiances are weighted together by\n"
-         "*sensor_response*, to include the characteristics of the sensor.\n"
-         "The measurement vector obtained can contain anything from a single\n"
-         "frequency value to a series of measurement scans (each consisting\n"
-         "of a series of spectra), all depending on the settings. Spectra\n"
-         "and jacobians are calculated in parallel.\n"
-         "\n"
-         "The unit of output radiances and jacobians follow *y_unit*. The\n"
-         "conversion is applied on monochromatic pencil beam values. That\n"
-         "is, before any sensor responses have been included.\n"
-         "The frequency, polarisation etc. for each measurement value is\n" 
-         "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
-         "\n"
-         "See the method selected for *iy_main_agenda* for quantities\n"
-         "that can be obtained by *y_aux*. However, in no case data of\n"
-         "along-the-path type can be extracted. *y_unit* is applied on the\n"
-         "following aux data:\n"
-         "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "basics_checked", "atmosphere_dim", "t_field", "z_field", 
-            "vmr_field", "cloudbox_on", "cloudbox_checked", "stokes_dim", 
-            "f_grid", "sensor_pos", "sensor_los", "transmitter_pos",
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "sensor_response_f",
-            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "iy_main_agenda", "y_unit", 
-            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
-            "jacobian_indices", "iy_aux_vars" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ybatchCalc" ),
         DESCRIPTION
         (
@@ -10024,6 +9972,55 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF,          NODEF ),
         GIN_DESC( "FIXME DOC",
                   "FIXME DOC" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yCalc" ),
+        DESCRIPTION
+        (
+         "Calculation of complete measurement vectors (y).\n"
+         "\n"
+         "The method performs radiative transfer calculations from a sensor\n"
+         "perspective. Radiative transfer calculations are performed for\n"
+         "monochromatic pencil beams, following *iy_main_agenda* and\n"
+         "associated agendas. Obtained radiances are weighted together by\n"
+         "*sensor_response*, to include the characteristics of the sensor.\n"
+         "The measurement vector obtained can contain anything from a single\n"
+         "frequency value to a series of measurement scans (each consisting\n"
+         "of a series of spectra), all depending on the settings. Spectra\n"
+         "and jacobians are calculated in parallel.\n"
+         "\n"
+         "The unit of output radiances and jacobians follow *y_unit*. The\n"
+         "conversion is applied on monochromatic pencil beam values. That\n"
+         "is, before any sensor responses have been included.\n"
+         "The frequency, polarisation etc. for each measurement value is\n" 
+         "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
+         "\n"
+         "See the method selected for *iy_main_agenda* for quantities\n"
+         "that can be obtained by *y_aux*. However, in no case data of\n"
+         "along-the-path type can be extracted. *y_unit* is applied on the\n"
+         "following aux data:\n"
+         "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "basics_checked", "atmosphere_dim", "t_field", "z_field", 
+            "vmr_field", "cloudbox_on", "cloudbox_checked", "stokes_dim", 
+            "f_grid", "sensor_pos", "sensor_los", "transmitter_pos",
+            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
+            "iy_main_agenda", "y_unit", 
+            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
+            "jacobian_indices", "iy_aux_vars" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back

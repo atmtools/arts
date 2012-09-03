@@ -106,6 +106,31 @@ void define_agenda_data()
        INPUT(  "doit_conv_flag", "doit_iteration_counter",
                "doit_i_field", "doit_i_field_old" )));
 
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "doit_mono_agenda" ),
+       DESCRIPTION
+       (
+       "Performs monochromatic DOIT calculation."
+       "\n"
+       "This agenda includes for example the following methods:\n"
+       "   1. *DoitScatteringDataPrepare* \n"
+       "   2. *doit_i_fieldSetClearsky* \n"
+       "   3. *doit_i_fieldIterate*\n"
+       "   4. *DoitCloudboxFieldPut*\n"
+       "\n"
+       "The result of the agenda is the radiation field inside the \n"
+       "cloudbox and on the cloudbox boundary, which can be used \n"
+       "as radiative background for a clearsky radiative transfer \n"
+       "calculation. \n"
+       "\n"
+       "See the ArtsWiki page UsingArtsDoit and the online documentation\n"
+       "for more information about the methods.\n"
+        ),
+       OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
+               "doit_i_field1D_spectrum"),
+       INPUT("f_grid", "f_index", "scat_i_p", "scat_i_lat", "scat_i_lon")));
+            
  agenda_data.push_back
     (AgRecord
      ( NAME( "doit_scat_field_agenda" ),
@@ -132,31 +157,6 @@ void define_agenda_data()
         OUTPUT( "doit_scat_field" ),
         INPUT(  "doit_scat_field", "doit_i_field")));
 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "doit_mono_agenda" ),
-       DESCRIPTION
-       (
-       "Performs monochromatic DOIT calculation."
-       "\n"
-       "This agenda includes for example the following methods:\n"
-       "   1. *DoitScatteringDataPrepare* \n"
-       "   2. *doit_i_fieldSetClearsky* \n"
-       "   3. *doit_i_fieldIterate*\n"
-       "   4. *DoitCloudboxFieldPut*\n"
-       "\n"
-       "The result of the agenda is the radiation field inside the \n"
-       "cloudbox and on the cloudbox boundary, which can be used \n"
-       "as radiative background for a clearsky radiative transfer \n"
-       "calculation. \n"
-       "\n"
-       "See the ArtsWiki page UsingArtsDoit and the online documentation\n"
-       "for more information about the methods.\n"
-        ),
-       OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
-               "doit_i_field1D_spectrum"),
-       INPUT("f_grid", "f_index", "scat_i_p", "scat_i_lat", "scat_i_lon")));
-            
  agenda_data.push_back
     (AgRecord
      ( NAME( "doit_rte_agenda" ),
@@ -620,6 +620,16 @@ void define_agenda_data()
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rte_pos", "rte_los" )));
 
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "test_agenda" ),
+       DESCRIPTION
+       (
+       "Dummy agenda for testing purposes.\n"
+       ),
+      OUTPUT(),
+      INPUT()));
+
  agenda_data.push_back
     (AgRecord
      ( NAME( "ybatch_calc_agenda" ),
@@ -632,15 +642,5 @@ void define_agenda_data()
         ),
        OUTPUT( "y", "jacobian" ),
        INPUT( "ybatch_index" )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "test_agenda" ),
-       DESCRIPTION
-       (
-       "Dummy agenda for testing purposes.\n"
-       ),
-      OUTPUT(),
-      INPUT()));
 
 }

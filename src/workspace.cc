@@ -118,12 +118,12 @@ void Workspace::define_wsv_data()
        (
         "The matrix of total absorption coefficients.\n"
         "\n"
-	"This variable is not used explicitly in a standard calculation, where\n"
-	"absorption comes from the lookup table *abs_lookup*. However, it is\n"
-	"useful for testing the methods that actually calculate line-by-line\n"
-	"absorption, which have this variable as output. These methods are\n"
-	"called internally by the method *abs_lookupCreate*, which generates\n"
-	"the lookup table.\n"
+        "This variable is not used explicitly in a standard calculation, where\n"
+        "absorption comes from the lookup table *abs_lookup*. However, it is\n"
+        "useful for testing the methods that actually calculate line-by-line\n"
+        "absorption, which have this variable as output. These methods are\n"
+        "called internally by the method *abs_lookupCreate*, which generates\n"
+        "the lookup table.\n"
         "\n"
         "Dimensions: [f_grid, abs_p]\n"
         "\n"
@@ -133,14 +133,14 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     (NAME( "abs_coef_per_species" ),
-      DESCRIPTION
-      (
-       "These are the absorption coefficients individually for each\n"
-       "tag group. The Array contains one matrix for each tag group,\n"
-       "the matrix format is the same as that of abs_coef\n"
-      ),
-      GROUP( "ArrayOfMatrix" )));
+     ( NAME( "abs_coef_per_species" ),
+       DESCRIPTION
+       (
+        "These are the absorption coefficients individually for each\n"
+        "tag group. The Array contains one matrix for each tag group,\n"
+        "the matrix format is the same as that of abs_coef\n"
+        ),
+       GROUP( "ArrayOfMatrix" )));
 
 //   wsv_data.push_back
 //    (WsvRecord
@@ -153,184 +153,184 @@ void Workspace::define_wsv_data()
   
   wsv_data.push_back
     (WsvRecord
-     (NAME( "abs_cont_models" ),
-      DESCRIPTION
-      (
-       "Continuum / full model absorption model description parameter.\n"
-       "See the WSV `abs_cont_names' for a detailed description\n"
-       "of the allowed continuum models. There should be one string here\n"
-       "for each entry in `abs_cont_names'.See also the online\n" 
-       "documentation in arts/doc/doxygen/html/continua_cc.html.\n"
-      ),
-      GROUP( "ArrayOfString" )));
+     ( NAME( "abs_cont_models" ),
+       DESCRIPTION
+       (
+        "Continuum / full model absorption model description parameter.\n"
+        "See the WSV `abs_cont_names' for a detailed description\n"
+        "of the allowed continuum models. There should be one string here\n"
+        "for each entry in `abs_cont_names'.See also the online\n"
+        "documentation in arts/doc/doxygen/html/continua_cc.html.\n"
+       ),
+       GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
     (WsvRecord
-     (NAME( "abs_cont_names" ),
-      DESCRIPTION
-      (
-       "Continuum / full model absorption tag names. This variable should\n"
-       "contain a list of tag names of continuum and full models, respectively.\n"
-       "Associated with this WSV is the WSV\n"
-       "`abs_cont_models' which contains the specific model version of\n"
-       "each continuum / full model absorption tag and the WSV\n"
-       "`abs_cont_parameters' which should contain the continuum / full model\n"
-       "user defined parameters. The user defined parameters are only used when\n"
-       "the specified model is 'user'. See also the online documentation in\n"
-       "arts/doc/doxygen/html/continua_cc.html.\n"
-       "\n"
-       "The following full water vapor models are implemented:\n"
-       "'H2O-MPM87': absorption model (line and continuum) according to \n"
-       "   H. J. Liebe,\n" 
-       "   A contribution to modeling atmospheric millimeter-wave properties,\n"
-       "   Frequenz,  41, 1987, 31-36\n"
-       "   and\n"
-       "   H. J. Liebe and D. H. Layton,\n"
-       "   Millimeter-wave properties of the atmosphere:\n"
-       "   Laboratory studies and propagation modeling,\n"
-       "   U.S. Dept. of Commerce, National Telecommunications and Information\n"
-       "   Administration, Institute for Communication Sciences,\n"
-       "   325 Broadway, Boulder, CO 80303-3328, report 87224.\n"
-       "'H2O-MPM89': absorption model (line and continuum) according to \n"
-       "   H. J. Liebe,\n Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631\n"
-       "'H2O-MPM93': absorption model (line and continuum) according to \n"
-       "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-       "   Propagation modeling of moist air and suspended water/ice\n"
-       "   particles at frequencies below 1000 GHz,\n"
-       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-       "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21 \n" 
-       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-       "'H2O-CP98': absorption model (line and continuum) according to \n"
-       "   S. L. Cruz-Pol et al.,\n Radio Science, 33(5), 1319, 1998"
-       "   (ece.uprm.edu/~pol/Atmosphere.html)\n"
-       "'H2O-PWR98': absorption model (line and continuum) according to \n"
-       "   P. W. Rosenkranz,\n "
-       "   Radio Science, 33(4),  919, 1998, Radio Science, 34(4), 1025, 1999\n"
-       "   (ftp: mesa.mit.edu/phil/lbl_rt).\n"
-       "\n"
-       "The following full oxygen models are implemented:\n"
-       "'O2-MPM93': absorption model (line and continuum) according to\n"
-       "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-       "   Propagation modeling of moist air and suspended water/ice\n"
-       "   particles at frequencies below 1000 GHz,\n"
-       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-       "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-       "'O2-PWR93': absorption model (line and continuum) according to \n"
-       "   P. W. Rosenkranz,\n Chapter 2, in M. A. Janssen, \n"
-       "   Atmospheric Remote Sensing by Microwave Radiometry\n"
-       "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-       "\n"
-       "The following continuum parameterizations are implemented:\n"
-       "H2O-H2O ('H2O-SelfContStandardType'):\n" 
-       "   P. W. Rosenkranz, \n"
-       "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
-       "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
-       "H2O-air ('H2O-ForeignContStandardType'): \n"
-       "   P. W. Rosenkranz, \n"
-       "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
-       "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
-       "H2O-air ('H2O-ContMPM93'): \n"
-       "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-       "   Propagation modeling of moist air and suspended water/ice\n"
-       "   particles at frequencies below 1000 GHz,\n"
-       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-       "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"      
-       "O2-air ('O2-SelfContStandardType'):\n"
-       "   P. W. Rosenkranz,\n"
-       "   Chapter 2, in M. A. Janssen,\n"
-       "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-       "   John Wiley & Sons, Inc., 1993\n"
-       "   (mesa.mit.edu/phil/lbl_rt)\n"
-       "   and also described in \n"
-       "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-       "   Propagation modeling of moist air and suspended water/ice\n"
-       "   particles at frequencies below 1000 GHz,\n"
-       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-       "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-       "N2-N2 ('N2-SelfContStandardType'):\n"
-       "   The functional form of Rosenkranz but with more input parameters.\n"
-       "   P. W. Rosenkranz,\n"
-       "   Chapter 2, in M. A. Janssen,\n"
-       "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-       "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-       "N2-N2 ('N2-SelfContMPM93'):\n"
-       "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-       "   Propagation modeling of moist air and suspended water/ice\n"
-       "   particles at frequencies below 1000 GHz,\n"
-       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-       "   Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 \n"
-       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-       "CO2-CO2 ('CO2-SelfContPWR93'):\n"
-       "   P. W. Rosenkranz,\n"
-       "   Chapter 2, in M. A. Janssen,\n"
-       "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-       "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-       "CO2-N2 ('CO2-ForeignContPWR93'):\n"
-       "   P. W. Rosenkranz,\n"
-       "   Chapter 2, in M. A. Janssen,\n"
-       "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-       "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-       "\n"
-       "The following cloud absorption models are implemented:\n"
-       "Suspended water droplet ('liquidcloud-MPM93') \n"
-       "   absorption parameterization from the MPM93 model:\n"
-       "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-       "   Propagation modeling of moist air and suspended water/ice\n"
-       "   particles at frequencies below 1000 GHz,\n"
-       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-       "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-       "Ice water droplet absorption ('icecloud-MPM93') \n"
-       "   parameterization from MPM93 model:\n"
-       "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-       "   Propagation modeling of moist air and suspended water/ice\n"
-       "   particles at frequencies below 1000 GHz,\n"
-       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-       "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-       "\n"
-       "The following rain extinction model is implemented:\n"
-       "Rain extinction parameterization ('rain-MPM93') from the\n"
-       "   MPM93 model, described in:\n" 
-       "   H. J. Liebe,\n" 
-       "   MPM - An Atmospheric Millimeter-Wave Propagation Model,\n"
-       "   Int. J. Infrared and Millimeter Waves, vol. 10(6),\n"
-       "   pp. 631-650, 1989;\n"
-       "   and based on:\n" 
-       "   Olsen, R.L., D.V. Rogers, and D. B. Hodge,\n"
-       "   The aR^b relation in the calculation of rain attenuation,\n"
-       "   IEEE Trans. Antennas Propagat., vol. AP-26, pp. 318-329, 1978.\n"
-       "   IMPORTANT NOTE: rain-MPM93 parameterizes the EXTINCTION by rain,\n"
-       "    not just the absorption. Therefore it is not suitable for \n"
-       "    calculating thermal emission by rain!\n"
-       "    Please use rain-MPM93 only for calculation of attenuation.\n"
-      ),
-      GROUP( "ArrayOfString" )));
+     ( NAME( "abs_cont_names" ),
+       DESCRIPTION
+       (
+        "Continuum / full model absorption tag names. This variable should\n"
+        "contain a list of tag names of continuum and full models, respectively.\n"
+        "Associated with this WSV is the WSV\n"
+        "`abs_cont_models' which contains the specific model version of\n"
+        "each continuum / full model absorption tag and the WSV\n"
+        "`abs_cont_parameters' which should contain the continuum / full model\n"
+        "user defined parameters. The user defined parameters are only used when\n"
+        "the specified model is 'user'. See also the online documentation in\n"
+        "arts/doc/doxygen/html/continua_cc.html.\n"
+        "\n"
+        "The following full water vapor models are implemented:\n"
+        "'H2O-MPM87': absorption model (line and continuum) according to \n"
+        "   H. J. Liebe,\n"
+        "   A contribution to modeling atmospheric millimeter-wave properties,\n"
+        "   Frequenz,  41, 1987, 31-36\n"
+        "   and\n"
+        "   H. J. Liebe and D. H. Layton,\n"
+        "   Millimeter-wave properties of the atmosphere:\n"
+        "   Laboratory studies and propagation modeling,\n"
+        "   U.S. Dept. of Commerce, National Telecommunications and Information\n"
+        "   Administration, Institute for Communication Sciences,\n"
+        "   325 Broadway, Boulder, CO 80303-3328, report 87224.\n"
+        "'H2O-MPM89': absorption model (line and continuum) according to \n"
+        "   H. J. Liebe,\n Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631\n"
+        "'H2O-MPM93': absorption model (line and continuum) according to \n"
+        "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
+        "   Propagation modeling of moist air and suspended water/ice\n"
+        "   particles at frequencies below 1000 GHz,\n"
+        "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
+        "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21 \n"
+        "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+        "'H2O-CP98': absorption model (line and continuum) according to \n"
+        "   S. L. Cruz-Pol et al.,\n Radio Science, 33(5), 1319, 1998"
+        "   (ece.uprm.edu/~pol/Atmosphere.html)\n"
+        "'H2O-PWR98': absorption model (line and continuum) according to \n"
+        "   P. W. Rosenkranz,\n "
+        "   Radio Science, 33(4),  919, 1998, Radio Science, 34(4), 1025, 1999\n"
+        "   (ftp: mesa.mit.edu/phil/lbl_rt).\n"
+        "\n"
+        "The following full oxygen models are implemented:\n"
+        "'O2-MPM93': absorption model (line and continuum) according to\n"
+        "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
+        "   Propagation modeling of moist air and suspended water/ice\n"
+        "   particles at frequencies below 1000 GHz,\n"
+        "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
+        "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
+        "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+        "'O2-PWR93': absorption model (line and continuum) according to \n"
+        "   P. W. Rosenkranz,\n Chapter 2, in M. A. Janssen, \n"
+        "   Atmospheric Remote Sensing by Microwave Radiometry\n"
+        "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
+        "\n"
+        "The following continuum parameterizations are implemented:\n"
+        "H2O-H2O ('H2O-SelfContStandardType'):\n"
+        "   P. W. Rosenkranz, \n"
+        "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
+        "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
+        "H2O-air ('H2O-ForeignContStandardType'): \n"
+        "   P. W. Rosenkranz, \n"
+        "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
+        "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
+        "H2O-air ('H2O-ContMPM93'): \n"
+        "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
+        "   Propagation modeling of moist air and suspended water/ice\n"
+        "   particles at frequencies below 1000 GHz,\n"
+        "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
+        "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
+        "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+        "O2-air ('O2-SelfContStandardType'):\n"
+        "   P. W. Rosenkranz,\n"
+        "   Chapter 2, in M. A. Janssen,\n"
+        "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
+        "   John Wiley & Sons, Inc., 1993\n"
+        "   (mesa.mit.edu/phil/lbl_rt)\n"
+        "   and also described in \n"
+        "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
+        "   Propagation modeling of moist air and suspended water/ice\n"
+        "   particles at frequencies below 1000 GHz,\n"
+        "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
+        "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
+        "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+        "N2-N2 ('N2-SelfContStandardType'):\n"
+        "   The functional form of Rosenkranz but with more input parameters.\n"
+        "   P. W. Rosenkranz,\n"
+        "   Chapter 2, in M. A. Janssen,\n"
+        "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
+        "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
+        "N2-N2 ('N2-SelfContMPM93'):\n"
+        "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
+        "   Propagation modeling of moist air and suspended water/ice\n"
+        "   particles at frequencies below 1000 GHz,\n"
+        "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
+        "   Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 \n"
+        "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+        "CO2-CO2 ('CO2-SelfContPWR93'):\n"
+        "   P. W. Rosenkranz,\n"
+        "   Chapter 2, in M. A. Janssen,\n"
+        "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
+        "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
+        "CO2-N2 ('CO2-ForeignContPWR93'):\n"
+        "   P. W. Rosenkranz,\n"
+        "   Chapter 2, in M. A. Janssen,\n"
+        "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
+        "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
+        "\n"
+        "The following cloud absorption models are implemented:\n"
+        "Suspended water droplet ('liquidcloud-MPM93') \n"
+        "   absorption parameterization from the MPM93 model:\n"
+        "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
+        "   Propagation modeling of moist air and suspended water/ice\n"
+        "   particles at frequencies below 1000 GHz,\n"
+        "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
+        "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
+        "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+        "Ice water droplet absorption ('icecloud-MPM93') \n"
+        "   parameterization from MPM93 model:\n"
+        "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
+        "   Propagation modeling of moist air and suspended water/ice\n"
+        "   particles at frequencies below 1000 GHz,\n"
+        "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
+        "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
+        "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+        "\n"
+        "The following rain extinction model is implemented:\n"
+        "Rain extinction parameterization ('rain-MPM93') from the\n"
+        "   MPM93 model, described in:\n"
+        "   H. J. Liebe,\n"
+        "   MPM - An Atmospheric Millimeter-Wave Propagation Model,\n"
+        "   Int. J. Infrared and Millimeter Waves, vol. 10(6),\n"
+        "   pp. 631-650, 1989;\n"
+        "   and based on:\n"
+        "   Olsen, R.L., D.V. Rogers, and D. B. Hodge,\n"
+        "   The aR^b relation in the calculation of rain attenuation,\n"
+        "   IEEE Trans. Antennas Propagat., vol. AP-26, pp. 318-329, 1978.\n"
+        "   IMPORTANT NOTE: rain-MPM93 parameterizes the EXTINCTION by rain,\n"
+        "    not just the absorption. Therefore it is not suitable for \n"
+        "    calculating thermal emission by rain!\n"
+        "    Please use rain-MPM93 only for calculation of attenuation.\n"
+       ),
+       GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
     (WsvRecord
-     (NAME( "abs_cont_parameters" ),
-      DESCRIPTION
-      (
-       "Continuum model parameters. See the WSV *abs_cont_names*\n"
-       "for a detailed description of the allowed continuum models. There\n"
-       "should be one parameter vector here for each entry in\n"
-       "*abs_cont_names*. See also the online documentation in\n"
-       "arts/doc/doxygen/html/continua_cc.html.\n"
-      ),
-      GROUP( "ArrayOfVector" )));
+     ( NAME( "abs_cont_parameters" ),
+       DESCRIPTION
+       (
+        "Continuum model parameters. See the WSV *abs_cont_names*\n"
+        "for a detailed description of the allowed continuum models. There\n"
+        "should be one parameter vector here for each entry in\n"
+        "*abs_cont_names*. See also the online documentation in\n"
+        "arts/doc/doxygen/html/continua_cc.html.\n"
+       ),
+       GROUP( "ArrayOfVector" )));
     
     wsv_data.push_back
     (WsvRecord
-     (NAME( "abs_h2o" ),
-      DESCRIPTION
-      (
-       "The total water profile associated with the pressures in *abs_p* [-]\n"
-      ),
-      GROUP( "Vector" )));
+     ( NAME( "abs_h2o" ),
+       DESCRIPTION
+       (
+        "The total water profile associated with the pressures in *abs_p* [-]\n"
+       ),
+       GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -496,6 +496,27 @@ void Workspace::define_wsv_data()
        GROUP( "Index" )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_mat_field" ),
+      DESCRIPTION
+      (
+       "Gas absorption field.\n"
+       "\n"
+       "Contains the gas absorption for all species as a function of\n"
+       "*f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
+       "\n"
+       "This is mainly for testing and plotting gas absorption. For RT\n"
+       "calculations, gas absorption is calculated or extracted locally,\n"
+       "therefore there is no need to store a global field. But this variable\n"
+       "is handy for easy plotting of absorption vs. pressure, for example.\n"
+       "\n"
+       "Unit:       1/m\n"
+       "\n"
+       "Dimensions: [species, f_grid, stokes_dim, stokes_dim, p_grid, lat_grid, lon_grid]\n"
+        ),
+      GROUP( "Tensor7" )));
+
+  wsv_data.push_back
     (WsvRecord
     ( NAME( "abs_mat_per_species" ),
       DESCRIPTION
@@ -551,27 +572,6 @@ void Workspace::define_wsv_data()
        "Unit: Pa\n"
        ),
       GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_mat_field" ),
-      DESCRIPTION
-      (
-       "Gas absorption field.\n"
-       "\n"
-       "Contains the gas absorption for all species as a function of\n"
-       "*f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
-       "\n"
-       "This is mainly for testing and plotting gas absorption. For RT\n"
-       "calculations, gas absorption is calculated or extracted locally,\n"
-       "therefore there is no need to store a global field. But this variable\n"
-       "is handy for easy plotting of absorption vs. pressure, for example.\n"
-       "\n"
-       "Unit:       1/m\n"
-       "\n"
-       "Dimensions: [species, f_grid, stokes_dim, stokes_dim, p_grid, lat_grid, lon_grid]\n"
-        ),
-      GROUP( "Tensor7" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -634,7 +634,7 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME("abs_vec_spt"),
+     ( NAME( "abs_vec_spt"),
        DESCRIPTION
        (
         "Absorption vector for a single particle type.\n"
@@ -1014,28 +1014,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "cloudbox_on" ),
-      DESCRIPTION
-      (
-       "Flag to activate the cloud box.\n"
-       "\n"
-       "Scattering calculations are confined to a part of the atmosphere\n"
-       "denoted as the cloud box. The extension of the cloud box is given by\n"
-       "*cloudbox_limits*. This variable tells methods if a cloud box is\n"
-       "activated or not. \n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  Boolean.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "cloudbox_limits" ),
       DESCRIPTION
       (
@@ -1077,9 +1055,31 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfIndex" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "cloudbox_on" ),
+      DESCRIPTION
+      (
+       "Flag to activate the cloud box.\n"
+       "\n"
+       "Scattering calculations are confined to a part of the atmosphere\n"
+       "denoted as the cloud box. The extension of the cloud box is given by\n"
+       "*cloudbox_limits*. This variable tells methods if a cloud box is\n"
+       "activated or not. \n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  Boolean.\n"
+       ),
+      GROUP( "Index" )));
+
  wsv_data.push_back
     (WsvRecord
-     ( NAME("complex_n"),
+     ( NAME( "complex_n"),
        DESCRIPTION
        (
         "Complex refractive index (n).\n"
@@ -1709,7 +1709,7 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "iy_main_agenda" ),
+     ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
         "See agendas.cc.\n"
@@ -1718,7 +1718,7 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "iy_cloudbox_agenda" ),
+     ( NAME( "iy_main_agenda" ),
        DESCRIPTION
        (
         "See agendas.cc.\n"
@@ -1752,15 +1752,6 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_transmitter_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc.\n"
-        ),
-       GROUP( "Agenda" )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "iy_transmission" ),
@@ -1785,6 +1776,15 @@ void Workspace::define_wsv_data()
       GROUP( "Tensor3" )));
 
  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_transmitter_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
+ wsv_data.push_back
    (WsvRecord
     ( NAME( "jacobian" ),
       DESCRIPTION
@@ -1807,6 +1807,15 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "jacobian_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "jacobian_do" ),
       DESCRIPTION
       (
@@ -1817,15 +1826,6 @@ void Workspace::define_wsv_data()
        "methods).\n"
       ),
       GROUP( "Index" )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "jacobian_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2371,6 +2371,15 @@ void Workspace::define_wsv_data()
  
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "met_profile_calc_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "nelem" ),
       DESCRIPTION
       (
@@ -2441,15 +2450,6 @@ void Workspace::define_wsv_data()
         "See *ncols*.\n"
        ),
       GROUP( "Index" )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "met_profile_calc_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -4019,15 +4019,6 @@ void Workspace::define_wsv_data()
         ), 
        GROUP( "Matrix" )));
 
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_rtprop_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc.\n"
-        ),
-       GROUP( "Agenda" )));
-  
   wsv_data.push_back
     (WsvRecord
      ( NAME( "surface_rmatrix" ),
@@ -4052,6 +4043,15 @@ void Workspace::define_wsv_data()
         ), 
        GROUP( "Tensor4" )));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rtprop_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+  
    wsv_data.push_back
    (WsvRecord
     ( NAME( "surface_skin_t" ),
@@ -4329,19 +4329,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "wmrf_channels" ),
-      DESCRIPTION
-      (
-       "Channel selection for WMRF fast calculation.\n"
-       "\n"
-       "This variable can be used to select one or several instrument channels\n"
-       "from the list of all possible channels. Zero-based indexing is used, so\n"
-       "Channel 0 is the first instrument channel!\n"
-       ),
-      GROUP( "ArrayOfIndex" ))); 
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "wind_u_field" ),
       DESCRIPTION
       (
@@ -4407,6 +4394,19 @@ void Workspace::define_wsv_data()
        "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"
        ),
       GROUP( "Tensor3" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "wmrf_channels" ),
+      DESCRIPTION
+      (
+       "Channel selection for WMRF fast calculation.\n"
+       "\n"
+       "This variable can be used to select one or several instrument channels\n"
+       "from the list of all possible channels. Zero-based indexing is used, so\n"
+       "Channel 0 is the first instrument channel!\n"
+       ),
+      GROUP( "ArrayOfIndex" ))); 
 
   wsv_data.push_back
    (WsvRecord
