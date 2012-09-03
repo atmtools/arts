@@ -15,14 +15,13 @@ If only the attenuation of a signal is of concern (i.e.\ atmospheric and
 surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
 applied for all Stokes elements. The initiation of the Stokes vector by the
 radiative background must also be adopted. The standard choice for
-\wsvindex{iy\_space\_agenda} should here be \wsmindex{MatrixUnitIntensity}
+\wsaindex{iy\_space\_agenda} should here be \wsmindex{MatrixUnitIntensity}
 (instead of \builtindoc{MatrixCBR}). Otherwise the calculations are performed
-exactly as for cases with emission (\builtindoc{emission\_agenda} can be left
-undefined).
+exactly as for cases with emission (\builtindoc{blackbody\_radiation\_agenda}
+can be left undefined).
 
 Calculations of pure transmission type are performed by the method denoted as
-\wsmindex{iyBeerLambertStandardClearsky}. This method is complemented by
-\wsmindex{iyBeerLambertStandardCloudbox}, to be applied inside the cloud box.
+\wsmindex{iyTransmissionStandard}.
 
 
 

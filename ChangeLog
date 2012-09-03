@@ -1,3 +1,27 @@
+2012-09-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-249
+
+	* doc/uguide/rte.tex: Extended, but not yet finished.
+
+	* doc/uguide/*.tex: Some general cleaning. Removed some
+	double-defined labels. Updated to new names of some WSV and WSM
+	(blackbody_radiation_agenda, iyTransmissionStandard ...). Some
+	agendas ended up in Index under WSV.
+
+	* doc/uguide/reduction.tex:
+	* doc/uguide/wfuns_sensor.tex:
+	* doc/uguide/measerr.tex:
+	* doc/uguide/wfuns_atm.tex: All removed, obselete (the content can
+	be picked up from AUG-1).
+
+	* doc/uguide/symbol_defs.tex: Removed the command SAbVec (not
+	used, and probably just confusing).
+
+	Changed the symbol for identity matrix to 1. This to avoid
+	confusion where the identity matrix and the stokes vector appear
+	in the same equation (I used for Stokes).
+
 2012-08-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-248

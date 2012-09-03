@@ -330,7 +330,7 @@ Even though it is possible to execute agendas directly from the control
 file with the \builtindoc{AgendaExecute} method, the more common and
 intended use case is the internal invocation by other WSMs. This adds a
 considerable amount of flexibility to arts.
-The \builtindoc{iyEmissionStandardClearsky} method for example calculates
+The \builtindoc{iyEmissionStandard} method for example calculates
 (besides other components) the emission term. Without the means of an agenda,
 it would only be possible to use always the same method for the emission
 calculation. By the use of an agenda the user can choose between different
@@ -338,8 +338,8 @@ methods to calculate the emission and plug them into the emission agenda in
 the control file:
 
 \begin{code}
-AgendaSet( emission_agenda ){
-  emissionPlanck
+AgendaSet( blackbody\_radiation\_agenda ){
+  blackbody\_radiationPlanck
 }
 \end{code}
 

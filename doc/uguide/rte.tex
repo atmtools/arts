@@ -1,4 +1,4 @@
-\chapter{Clear-sky radiative transfer calculations}
+\chapter{Clear-sky emission radiative transfer}
  \label{sec:rte}
 
 
@@ -13,8 +13,10 @@
 This section serves as a general overview of the variables and the approach
 used to handle the actual radiative transfer calculations. This includes how
 effects caused by the sensor and surface are incorporated. Measurements of
-thermal emission in absence of particle scattering are taken as the standard
-case, and the basic theory for such simulations is also covered.
+thermal emission in absence of particle scattering are used as example, and the
+basic theory for such simulations is also covered. The first ARTS version was
+developed for emission measurements, and such observations remain the standard
+case in ARTS.
 
 That is, a basic assumption for this chapter is that there is no particle
 scattering. This is denoted as clear-sky calculations. Cases involving
@@ -104,11 +106,11 @@ effects shall be noted especially, and a similar nomenclature is used here:
   definition of a measurement block is found in
   Section~\ref{sec:fm_defs:seqsandblocks}. This vector is only affected by
   atmospheric radiative transfer. As workspace variable denoted as
-  \wsvindex{iyb}, but can be considered as an internal variable and should not
-  be of concern for the user.
-\item[\aMpiVct{y}]: Monochromatic data for a single (pencil beam) line-of-sight
-  The corresponding workspace variable is \wsvindex{iy}. (\aMpiVct{b} consists
-  of one or several \aMpiVct{y} appended.)
+  \wsvindex{iyb}, but can be considered as a pure internal variable and should
+  not be of concern for the user.
+\item[\aMpiVct{y}]: Monochromatic data for one line-of-sight, i.e.\ a single
+  pencil beam calculation. The corresponding workspace variable is
+  \wsvindex{iy}. (\aMpiVct{b} consists of one or several \aMpiVct{y} appended.)
 \item[\aSnsMtr{b}]: The complete sensor response matrix, for a measurement
   block. Can include data reduction. The corresponding workspace variable is
   \wsvindex{sensor\_response}.
@@ -146,7 +148,7 @@ effects shall be noted especially, and a similar nomenclature is used here:
    \COMMENT{Section \ref{sec:fm_defs:rte}}
  \end{algorithmic}
  \caption{The main operations for methods to be part of
-   \wsvindex{iy\_main\_agenda}.}
+   \wsaindex{iy\_main\_agenda}.}
  \label{alg:fm_defs:iyCSagenda}
 \end{algorithm}
 The \builtindoc{yCalc} method is outlined in Algorithm~\ref{alg:fm_defs:yCalc}.
@@ -156,8 +158,8 @@ calculations and applies the sensor response matrix (\aSnsMtr{b}). The actual
 radiative transfer calculations are not part of \builtindoc{yCalc}.
 
 Atmospheric radiative transfer is solved for each pencil beam direction
-(line-of-sight) separately. It is the task of \wsvindex{iy\_main\_agenda}
-(Algorithm~\ref{alg:fm_defs:iyCSagenda}) to perform a single such clear sky
+(line-of-sight) separately. It is the task of \wsaindex{iy\_main\_agenda}
+(Algorithm~\ref{alg:fm_defs:iyCSagenda}) to perform a single clear sky
 radiative transfer calculation. This agenda, in its turn, makes us of other
 agendas, such as \builtindoc{ppath\_agenda}. All methods developed for
 \builtindoc{iy\_main\_agenda} adapt automatically to the value of
@@ -167,7 +169,6 @@ That is, \builtindoc{yCalc} is a common method, independent of the details of
 the radiative transfer. For example, \builtindoc{yCalc} is used both if emission
 measurements or pure transmission data are simulated, that choice is made
 inside \builtindoc{iy\_main\_agenda}. 
-
 The three following sections describes the main calculation steps of 
 \builtindoc{iy\_main\_agenda}, in the order they are executed.
 
@@ -257,8 +258,8 @@ only enter and leave the model atmosphere at the top of the atmosphere, as the
 atmospheric fields are treated to be undefined outside the covered latitude and
 longitude ranges. Propagation paths can be calculated separately by the method
 \wsmindex{ppathCalc}, but for standard calculations the propagation paths are
-calculated internally by \builtindoc{yCalc}. The specification of propagation
-path calculations is discussed in Section~\ref{sec:ppath:usage}.
+calculated internally by \builtindoc{yCalc}. Methods and variables to control
+the path calculations are discussed in Section~\ref{sec:ppath:usage}.
 
 
 
@@ -267,9 +268,6 @@ path calculations is discussed in Section~\ref{sec:ppath:usage}.
 %===================
 \label{sec:fm_defs:rad_bkgr}
 
-\subsection{Overview}
-%===================
-%
 The radiative intensity at the starting point of the path, and in the
 direction of the line-of-sight at that point, is denoted as the
 \textindex{radiative background}. Four possible radiative backgrounds
@@ -303,10 +301,10 @@ exist:
 \end{description}
 It should be noted that except for the first case above, the determination of
 the radiative background involves further radiative transfer calculations. For
-example, in the case of surface reflection, the down-welling radiation is
+example, in the case of surface reflection, the down-welling radiation could be
 determined by a new call of \builtindoc{iy\_main\_agenda} and the radiative
 background for that calculation is then space or the cloud box. The intensity
-field entering the cloud box is calculated by calls of
+field entering the cloud box is in some cases calculated by calls of
 \builtindoc{iy\_main\_agenda} (with cloud box deactivated) and the radiative
 background for these calculartions is then space or the surface. This results
 in that space is normally the ultimate radiative background for the
@@ -322,35 +320,44 @@ propagation path effectively starts at the surface.
 \label{sec:fm_defs:rte}
 
 This section describes how the core radiative transfer equation is solved
-practically in ARTS. Focus is put on emission measurements as ARTS is
-intended primarily for such observations. However, simulations of transmission
-measurements are also possible.
+practically in ARTS. As mentioned, in this chapter focus is put on emission
+measurements. Local thermodynamic equilibrium (LTE) is throughout assumed.
 
-Beside the actual radiances, \builtindoc{iy\_main\_agenda} can provide
-weighting functions and auxiliary data. These later variables are not supported
-by all parts of ARTS, and for efficiency reasons there exists a simpler version
-of the agenda. This version is denoted as
-\wsvindex{iy\_main\_basic\_agenda} and returns only radiances.
-
-
-\subsection{Cases with emission}
-%===================
-\label{sec:fm_defs:emission}
+\subsection{General theory (LTE and no scattering)}
 
 The complete vector radiative transfer equation, including scattering, is given
-by Equation \ref{T-eq:rtetheory:VRTE} in \theory. If scattering can be
-neglected, the equation can be written as
+by Equation \ref{T-eq:rtetheory:VRTE} in \theory. As scattering here is
+neglected and, hence, all extinction is caused by absorption, the equation can
+be written as
+\begin{equation}
+  \label{eq:rte:vrte0}
+  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat(\StoVec-\VctStl{b}),
+\end{equation}
+where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the distance
+along the propagation path, \ExtMat\ is the extinction matrix and \VctStl{b} is
+the emission source term. Just one element of the vector \VctStl{b} is non-zero:
+\begin{equation}
+  \label{eq:rte:bvec}
+  \VctStl{b} = [\,B\,0\,0\,0\,]^T,
+\end{equation}
+where the scalar $B$ equals the Planck function describing blackbody radiation
+(discussed below, Eq.~\ref{eq:planck}).
+Hence, Equation~\ref{eq:rte:vrte0} can be simplified to
 \begin{equation}
   \label{eq:rte:vrte}
   \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
 \end{equation}
-where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the distance
-along the propagation path, \ExtMat\ is the extinction matrix, \AbsVec\ is the
-absorption vector and $B$ is the source function (a scalar). If local
-thermodynamic equilibrium applies, $B$ equals the Planck function describing
-blackbody radiation. See further \theory, Section~\ref{T-sec:rte_theory}. For
-``clear-sky conditions'' the matrix \ExtMat\ is diagonal, with all diagonal
-elements equal, and only the first of the elements of \AbsVec\ is non-zero.
+where \AbsVec\ is denoted as the absorption vector. In this case of no
+scattering (and LTE), \AbsVec\ is identical to the first column of \ExtMat.
+See further \theory, Section~\ref{T-sec:rte_theory}. 
+
+
+\subsection{Unpolarised absorption}
+
+Let's start with the simpler case of non-polarised absorption (that is, the
+absorption is indepencdent of absorption). For unpolarised absorption the
+matrix \ExtMat\ is diagonal, with all diagonal elements equal, and only the
+first of the elements of \AbsVec\ is non-zero.
 
 The radiative transfer equation above can be solved in many ways, and with
 different level of refinement. The standard approach in ARTS is to solve the
@@ -364,7 +371,7 @@ Equation~\ref{T-eq:rtetheory:layer})
 with
 \begin{eqnarray}
   \bar{B}_i &=& (B(T_i)+B(T_{i+1}))/2, \\
-  \aOth{i} &=& \Delta s_i(k_i+k_{i+1})/2, 
+  \aOth{i} &=& \Delta s_i(k_i+k_{i+1})/2,  
   \label{eq:taustep}
 \end{eqnarray}
 where $I_i$, $T_i$ and $k_i$ are the radiance, temperature and absorption
@@ -374,14 +381,16 @@ $\bar{B}_i$ is a Planck function average of the path step, and the absorption
 is assumed to vary linearly between the two points. The start value of \Mpi\ is
 governed by the radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
 
-As mentioned above, the emission is unpolarised for the conditions assumed
-here, and the emission term vanishes for higher Stokes elements. Accordingly,
-the expression for the second Stokes component is
+A consequence of unpolarised absorption is that also the emission is
+unpolarised, and the emission term vanishes for higher Stokes elements.
+Accordingly, the expression for the second Stokes component is
 \begin{equation}
   Q_{i+1}(\Frq) = Q_i(\Frq)e^{-\aOth{i}}.
   \label{eq:fm_defs:rte_step2}
 \end{equation}
-The third and forth Stokes component are handled likewise.
+The third and forth Stokes component are handled likewise. The expressions
+above are implemented in the workspace method \wsmindex{iyEmissionStandard},
+intended to be part of \builtindoc{iy\_main\_agenda}.
 
 An alternative way to perform the calculations for the first Stokes element
 would be
@@ -394,23 +403,18 @@ between the sensor and point $i$. This calculation approach is not used as it
 fits poorer with the calculation of weighting functions
 (Section~\ref{sec:wfuns}). However, the calculation of weighting functions is
 simplified if $\mathcal{T}_i$ is at hand, and this quantity is also tracked by
-\builtindoc{iyEmissionStandardClearsky}. The value of $\mathcal{T}$ at the
-radiative background can also be outputted as auxiliary data
-(\wsvindex{iy\_aux}).
+\builtindoc{iyEmissionStandard}. 
 
-The expressions above are implemented in the workspace method
-\wsmindex{iyEmissionStandardClearsky}, intended to be part of
-\builtindoc{iy\_main\_agenda}. For inclusion in
-\builtindoc{iy\_main\_basic\_agenda}, there is a version denoted as
-\wsmindex{iyEmissionStandardClearskyBasic}. This version is not calculating
-$\mathcal{T}_i$, or provides any auxiliary data. 
 
-The term $B$ is set by \wsvindex{emission\_agenda}. The setting of this agenda
-basically determines the unit of the final outcome of
-Eq.~\ref{eq:fm_defs:rte_step}, see further Sec.~\ref{sec:fm_defs:unit}.
-For radiance calculations, the standard workspace method to use inside 
-\builtindoc{emission\_agenda} is \wsmindex{emissionPlanck}. The Planck function
-is in this method, and in ARTS generally, defined as
+\subsection{Blackbody and cosmic background radiation}
+
+The term $B$ is set by \wsaindex{blackbody\_radiation\_agenda}. The setting of
+this agenda basically determines the unit of the final outcome of
+Eq.~\ref{eq:fm_defs:rte_step}, see further Sec.~\ref{sec:fm_defs:unit}. For
+radiance calculations, the standard workspace method to use inside
+\builtindoc{blackbody\_radiation\_agenda} is
+\wsmindex{blackbody\_radiationPlanck}. The Planck function is in this method,
+and in ARTS generally, defined as
 \begin{equation}
   \label{eq:planck}
   \Planck(\Tmp) = \frac{2\planckCns\Frq^3}
@@ -423,10 +427,31 @@ be defined as a function of wavelength.)
 
 As long as cosmic background radiation is the only type of non-telluric
 radiation that has to be considered, the standard method for inclusion in
-\wsvindex{iy\_space\_agenda} is \wsmindex{MatrixCBR} (together with some calls
-of \builtindoc{Ignore}). Please, note that \builtindoc{emission\_agenda} and 
-\builtindoc{iy\_space\_agenda} must be defined in a consistent manner, that
-they use the same unit for $B$.
+\wsaindex{iy\_space\_agenda} is \wsmindex{MatrixCBR} (together with some calls
+of \builtindoc{Ignore}). Please, note that
+\builtindoc{blackbody\_radiation\_agenda} and \builtindoc{iy\_space\_agenda},
+as well as \wsaindex{iy\_surface\_agenda}, must be defined in a consistent
+manner, that they use the same unit for $B$.
+
+
+\subsection{Polarised absorption}
+
+The overall calculation procedure is the same with polarised absorption, the
+only difference is the radiative transfer expression applied. The calculations
+for the different Stokes components can here not be seperated, and
+matrix-vector notation is required: 
+\begin{equation}
+  \label{eq:fm_defs:vrte_step}
+  \StoVec_{i+1} = e^{-\bar{\ExtMat}s} \StoVec_i + 
+                  (\IdnMtr-e^{-\bar{\ExtMat}s})\bar{\VctStl{b}},
+\end{equation}
+where \IdnMtr\ is the identity matrix. The extinction matrices at point $i$ and
+$i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$, in line with
+Equation~\ref{eq:taustep}. The \VctStl{b}-vectors are handled likewise.
+The matrix exponential \dots
+
+
+
 
 
 
@@ -438,13 +463,29 @@ There is no fixed unit for calculated spectra (\wsvindex{y}), it depends on the
 calculation set-up. For example, if emission is considered, or if just
 transmissions are calculated. 
 
-The primary unit for emission data (radiances) is [W/(Hz$\cdot$m$^2\cdot$sr)],
+The primary unit for emission data (radiances) is [W/(Hz$\cdot$m$^2\cdot$sr)].
 The emission intensity corresponds directly with the definition of the Planck
 function (Eq.~\ref{eq:planck}). This radiance can be converted to other
 emission units by the workspace variable \wsvindex{y\_unit}. For comments on
 the practical aspects, see the built-in documentation of \builtindoc{y\_unit}.
-Otherwise, considerations and expressions for the unit conversion are mainly
+Otherwise, considerations and expressions for the unit conversion are
 discussed in ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
+
+
+
+\section{Auxiliay data}
+%==============================================================================
+\label{sec:fm_defs:aux}
+
+xx
+
+
+
+\section{Single pencil beam calculations}
+%==============================================================================
+\label{sec:fm_defs:single_beams}
+
+xx
 
 
 

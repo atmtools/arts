@@ -102,7 +102,7 @@ derive an analytical expression for the WFs. This is advantageous because they
 result in faster and more accurate calculations. Such expressions are derived
 below. Some of the terms involved are calculated as a perturbation. This is
 partly a consequence of the flexibility of ARTS. The high-level radiative
-transfer methods (e.g.\ \builtindoc{iyEmissionStandardClearsky}) do not know
+transfer methods (e.g.\ \builtindoc{iyEmissionStandard}) do not know
 how the low-level methods are defining all quantities, and a fixed analytical
 expression can not be used (see e.g.\ Sec.~\ref{sec:wfuns:atmtemp}). So, in
 practise, the calculations are ``semi-analytical''.
@@ -137,7 +137,7 @@ Finalise the definition of retrieval quantities by calling
 \wsmindex{jacobianClose}. To disable the calculation of WFs, skip all above,
 and just use \wsmindex{jacobianOff}. The methods named jacobianCalc{\it
   Something} shall never be used directly. Neither needs the user to consider
-\wsvindex{jacobian\_agenda}.
+\wsaindex{jacobian\_agenda}.
 
 The input to the ``add methods'' differs. In some cases you can select between
 the analytical and perturbation options. For all perturbation calculations you
@@ -347,7 +347,7 @@ one element of \SttVct. The exception is if the positions of $x_i$ and $x$ are
 identical. Reversely, the weighting function for element $x$ can have
 contributions from several propagation path points ($x_i$), as well as from
 several radiance spectra.
-The expressions above are implemented in \wsmindex{iyEmissionStandardClearsky}.
+The expressions above are implemented in \wsmindex{iyEmissionStandard}.
 
 For higher Stokes components, or if emission is ignored, Eq.~\ref{eq:I4J} is
 simplified to
@@ -366,8 +366,8 @@ giving
   -X I_i.
 \end{equation}
 This later form is used for Stokes element 2 to 4 in
-\wsmindex{iyEmissionStandardClearsky} and for all components in
-\wsmindex{iyBeerLambertStandardClearsky}.
+\wsmindex{iyEmissionStandard} and for all components in
+\wsmindex{iyTransmissionStandard}.
 
 In practise, all Stokes components are treated in parallel, to simply
 incorporate surface scattering (and in the future possibly also cloud
