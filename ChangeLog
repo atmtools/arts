@@ -1,3 +1,13 @@
+2012-09-03  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-254
+
+	* controlfiles/planetary_toolbox/: Added folder for collection of
+	controlfiles for ESA planetary toolbox.
+
+	* src/partition_function_data.cc: correction of C3H8 part.fct. and
+	documentation.
+
 2012-09-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-253

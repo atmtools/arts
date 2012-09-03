@@ -773,21 +773,28 @@ iso(it_isotopologue,	"28" ,  Qcoeff(-2.913675e+01,  3.263819e+00,  -8.018822e-04
 
   // C3H8
   // Coeff: 2*
-  // Note: Standard fit (150-300K) is completely wrong at T<150K, hence fit has
-  // been done 9-300K. Still, the fit is poor, particularly vibrational
-  // corrected data at lower temperatures  (deviation in QT/QT[300K] ~10%,
-  // for vib data at T<100K ~50%).
+  // Note: The standard fit (150-300K) is completely wrong at T<150K, hence fit
+  // has been done over 9-300K. Still, the fit is rather poor (deviation in
+  // QT/QT[300K] ~10%).
   // Reason might be that the T^1.5 relation of the partition function does not
   // seem to hold (from looking at QT(T) at the given JPL temperatures), but
   // also that due to several orders of magnitude differences over the QT(T),
   // the fit is strongly forced to the high QT at high temperatures. Some kind
   // of weighted fit (putting more weight on low T values, e.g., cost function
   // depending on relative deviation instead of absolute) might be better.
+  // According to our interpretation of the JPL C3H8 fact sheet, the JPL
+  // partition functions in this case already include vibrational partition
+  // function, i.e. do not need to get corrected here (nevertheless we leave the
+  // data with correction here in case we find, we're wrong. For those
+  // corrections, vibrational energy levels were taken from
+  // http://webbook.nist.gov/chemistry/vib-ser.html. With this corrections, the
+  // polynomial fit is even worse, yealding deviations of QT/QT[300K] >50% at
+  // T<100K ~50%).
   spec(it_species, it_isotopologue, "C3H8");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
-//iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,  5.692114e-02)); // w/out vib
-iso(it_isotopologue,	"21" ,  Qcoeff(-1.509682e+05,  8.184783e+03, -8.819316e+01,  3.778885e-01)); // with vib
+iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,  5.692114e-02)); // w/out extra vib
+//iso(it_isotopologue,	"21" ,  Qcoeff(-1.509682e+05,  8.184783e+03, -8.819316e+01,  3.778885e-01)); // with vib
 
 
 
