@@ -840,10 +840,12 @@ void iyEmissionStandard(
             }
           else
             {
+              /*
               // Vector for blackbody radiation
               Vector b(ns,0.0);
               // Identity matrix
               Matrix I(ns,ns); id_mat(I);
+              */
               //
               for( Index iv=0; iv<nf; iv++ )  
                 {
@@ -859,9 +861,10 @@ void iyEmissionStandard(
                   else
                     {
                       // Transmitted term
-                      Vector t1(ns);
-                      mult( t1, trans_partial(iv,joker,joker,ip), iy(iv,joker));
+                      Vector tt(ns);
+                      mult( tt, trans_partial(iv,joker,joker,ip), iy(iv,joker));
                       // Emission term
+                      /*
                       Vector t2(ns);
                       b[0] = bbar[iv];
                       Matrix ImT(ns,ns);
@@ -873,6 +876,13 @@ void iyEmissionStandard(
                       // Sum up
                       for( Index is=0; is<ns; is++ )
                         { iy(iv,is) = t1[is] + t2[is]; }
+                      */
+                      // Add emission, first Stokes element
+                      iy(iv,0) = tt[0] + bbar[iv]*(1-trans_partial(iv,0,0,ip));
+                      // Remaining Stokes elements
+                      for( Index i=1; i<ns; i++ )
+                        { iy(iv,i) = tt[i] - bbar[iv]*trans_partial(iv,i,0,ip);}
+                      
                     }
                 }
             }

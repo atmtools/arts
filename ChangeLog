@@ -1,3 +1,15 @@
+2012-09-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-252
+
+	* doc/uguide/rte.tex: To be continued ...
+
+	* src/m_rte.cc (iyEmissionStandard): Code for RT step with
+	polarised absorption changed. Usage of mult avoided for emission
+	part, to make use of the fact that the b-vector contains zeros.
+
+	* doc/uguide/wfuns.tex: Added fixme to explain diy_dx.
+
 2012-09-03  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-251

@@ -16,7 +16,7 @@ effects caused by the sensor and surface are incorporated. Measurements of
 thermal emission in absence of particle scattering are used as example, and the
 basic theory for such simulations is also covered. The first ARTS version was
 developed for emission measurements, and such observations remain the standard
-case in ARTS.
+case in ARTS. 
 
 That is, a basic assumption for this chapter is that there is no particle
 scattering. This is denoted as clear-sky calculations. Cases involving
@@ -445,11 +445,17 @@ matrix-vector notation is required:
   \StoVec_{i+1} = e^{-\bar{\ExtMat}s} \StoVec_i + 
                   (\IdnMtr-e^{-\bar{\ExtMat}s})\bar{\VctStl{b}},
 \end{equation}
-where \IdnMtr\ is the identity matrix. The extinction matrices at point $i$ and
-$i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$, in line with
-Equation~\ref{eq:taustep}. The \VctStl{b}-vectors are handled likewise.
-The matrix exponential \dots
-
+where \IdnMtr\ is the identity matrix. The extinction matrices and \VctStl{b}
+at point $i$ and $i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$ and
+$\bar{\VctStl{b}}$, respectively, in line with Equation~\ref{eq:taustep}. The
+calculation of the transmission matrix,
+\begin{equation}
+  \VctStl{T} = e^{-\bar{\ExtMat}s},
+\end{equation}
+involves a matrix exponential, that is calculated by the Pad\'e approximations,
+as described in \developer, Section \ref{D-sec:lin_alg:mat_exp}. Only the first
+element of $\bar{\VctStl{b}}$ is non-zero, and only the first column of the
+matrix corresponding to the term $(\IdnMtr-e^{-\bar{\ExtMat}s})$ is of interest.
 
 
 
@@ -473,7 +479,38 @@ discussed in ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
 
 
 
-\section{Auxiliay data}
+\section{Single pencil beam calculations}
+%==============================================================================
+\label{sec:fm_defs:single_beams}
+
+The text above assumes that \wsmindex{yCalc} is used. This method can always be
+used, but \builtindoc{yCalc} is not mandatory if the simulations deal only with
+monochromatic data for a single line-of-sight. In this case, it could be more
+handy to use \wsmindex{iyCalc}, which basically is a direct call of
+\wsaindex{iy\_main\_agenda}. A reason for selecting \builtindoc{iyCalc} is that
+a larger set of auxiliary quantities can be extraced
+(Sec.~\ref{sec:fm_defs:aux}). 
+
+On the input side, the main difference when using \builtindoc{iyCalc} is that
+the observation position and line-of-sight are specified by \wsvindex{rte\_pos}
+and \wsvindex{rte\_los} (instead of \builtindoc{sensor\_pos} and
+\builtindoc{sensor\_los}). The calculated radiances are returned as the matrix
+\wsvindex{iy} (instead of the vector \builtindoc{y}). 
+No automatic unit conversion is made inside \builtindoc{iyCalc}. This is
+instead handled seperately by \wsmindex{iyApplyYunit}.
+
+
+
+
+\section{Dispersion}
+%==============================================================================
+\label{sec:fm_defs:dispersion}
+
+xxx
+
+
+
+\section{Auxiliary data}
 %==============================================================================
 \label{sec:fm_defs:aux}
 
@@ -481,11 +518,6 @@ xx
 
 
 
-\section{Single pencil beam calculations}
-%==============================================================================
-\label{sec:fm_defs:single_beams}
-
-xx
 
 
 
