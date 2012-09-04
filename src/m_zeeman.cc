@@ -290,12 +290,8 @@ Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
 void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                                   const Vector& f_grid,
                                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                                  const Vector& abs_n2,
                                   const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                   const ArrayOfLineshapeSpec& abs_lineshape,
-                                  const ArrayOfString& abs_cont_names,
-                                  const ArrayOfString& abs_cont_models,
-                                  const ArrayOfVector& abs_cont_parameters,
                                   const Numeric& rte_pressure,
                                   const Numeric& rte_temperature,
                                   const Vector& rte_vmr_list,
@@ -609,15 +605,17 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                  << ",\nSP stands for: " << temp_abs_lines_sp.nelem()
                  << " and \nDT stands for: " << temp_abs_lines_dt.nelem() << "\n";
                  
-            
             // with the same species information, FIXME: Oliver: This is UGLY. Also, it ignores any other oxygen tags...
             ArrayOfArrayOfSpeciesTag temp_abs_species(4);
-            temp_abs_species[0].resize(1);temp_abs_species[0][0] = SpeciesTag("O2");
-            temp_abs_species[1].resize(1);temp_abs_species[1][0] = SpeciesTag("O2");
-            temp_abs_species[2].resize(1);temp_abs_species[2][0] = SpeciesTag("O2"); 
-            temp_abs_species[3].resize(1);temp_abs_species[3][0] = SpeciesTag("O2");
-
-                // and the same volume mixing ratios.
+            for (Index i=0; i<4; ++i) {
+              temp_abs_species[i][0] = SpeciesTag("O2");
+              // We are setting the tag explicitly to O2 here. The function
+              // anyway currently works only for this molecule. By setting it
+              // like this (without Zeeman flag) we ensure that we can use the
+              // standard LBL function to calculate absorption.
+            }
+          
+            // and the same volume mixing ratios.
             Vector temp_vmrs(4);
                 temp_vmrs[0] = rte_vmr_list[II]; temp_vmrs[1] = rte_vmr_list[II];
                 temp_vmrs[2] = rte_vmr_list[II]; temp_vmrs[3] = rte_vmr_list[II];
@@ -637,15 +635,22 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
             Vector abs_h2o(1,-1.0);
             // then calculate the cross section per species
             abs_xsec_per_speciesAddLines(abs_xsec_per_species,                                                //Output
-                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_h2o, abs_vmrs, //Input
+                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_vmrs, //Input
                                          temp_abs_lines_per_species, abs_lineshape,                         //Input
                                          verbosity);                                                       //Verbose!
+          
             // and take continua into account.
-            abs_xsec_per_speciesAddConts(abs_xsec_per_species,                                    //Output
-                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t,        //Input
-                                         abs_n2, abs_h2o, abs_vmrs,                             //Input
-                                         abs_cont_names, abs_cont_parameters, abs_cont_models, //Input
-                                         verbosity);                                          //Verbose!
+            // 2012-9-4 Stefan: I don't think this function should add
+            //          continua, since they are already added elsewhere.
+            //          This function should just do the Zeeman LBL part, as
+            //          The name says.
+            //
+            //            abs_xsec_per_speciesAddConts(abs_xsec_per_species,                                    //Output
+            //                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t,        //Input
+            //                                         abs_n2, abs_h2o, abs_vmrs,                             //Input
+            //                                         abs_cont_names, abs_cont_parameters, abs_cont_models, //Input
+            //                                         verbosity);                                          //Verbose!
+
             // We can finally obtain the coefficients per species!
             Matrix abs_coef; ArrayOfMatrix abs_coef_per_species;
                 abs_coefCalcFromXsec(abs_coef, abs_coef_per_species, //Output
@@ -704,15 +709,22 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
             Vector abs_h2o(1,-1.0);
             // then calculate the cross section per species
             abs_xsec_per_speciesAddLines(abs_xsec_per_species,                                                //Output
-                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_h2o, abs_vmrs, //Input
+                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_vmrs, //Input
                                          temp_abs_lines_per_species, abs_lineshape,                         //Input
                                          verbosity);                                                       //Verbose!
+
             // and take continua into account.
-            abs_xsec_per_speciesAddConts(abs_xsec_per_species,                                    //Output
-                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t,        //Input
-                                         abs_n2, abs_h2o, abs_vmrs,                             //Input
-                                         abs_cont_names, abs_cont_parameters, abs_cont_models, //Input
-                                         verbosity);                                          //Verbose!
+            // 2012-9-4 Stefan: I don't think this function should add
+            //          continua, since they are already added elsewhere.
+            //          This function should just do the Zeeman LBL part, as
+            //          The name says.
+            //
+            //            abs_xsec_per_speciesAddConts(abs_xsec_per_species,                                    //Output
+            //                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t,        //Input
+            //                                         abs_n2, abs_h2o, abs_vmrs,                             //Input
+            //                                         abs_cont_names, abs_cont_parameters, abs_cont_models, //Input
+            //                                         verbosity);                                          //Verbose!
+
             // We can finally obtain the coefficients per species!
             Matrix abs_coef; ArrayOfMatrix abs_coef_per_species;
                 abs_coefCalcFromXsec(abs_coef, abs_coef_per_species, //Output

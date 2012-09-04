@@ -436,7 +436,6 @@ void abs_lookupCreate(// WS Output:
                                                 f_grid,
                                                 abs_p,
                                                 this_t,
-                                                abs_h2o,
                                                 this_vmr,
                                                 these_lines,
                                                 this_lineshape,

@@ -1,10 +1,49 @@
+2012-09-04  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-256
+
+	* src/absorption.cc
+	(find_broad_spec_locations): Added. It finds
+	the positions of the broadening species (N2, O2, etc.) in
+	abs_species.
+	(xsec_species): Modified call parameters. Added:
+	all_vmrs (instead of vmr), abs_species, this_species. Removed:
+	abs_h2o_orig. We now have all species descriptions and VMRs
+	available, so that we can calculate the broadening by the
+	different gases explicitly. (The broadening calculation itself is
+	not yet implemented.)
+
+	* src/m_abs.cc
+	(abs_coefCalc): Adapted to change in xsec_species.
+	(abs_coefCalcSaveMemory): Ditto.
+	(abs_xsec_per_speciesAddLines): Ditto.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): Ditto.
+
+	* src/m_zeeman.cc (abs_mat_per_speciesAddZeemanLBL): Adapted to
+	changes in xsec_species. Commented out call to calculation
+	of continua, since I believe it should not be here. This makes
+	also several input arguments unnecessary, removed them.
+
+	* src/methods.cc
+	(abs_mat_per_speciesAddZeemanLBL): Updated.
+	(abs_xsec_per_speciesAddLines): Updated.
+
+	* src/absorption.h: Added enum for position indices of broadening
+	species in abs_species (SPEC_POS_N2, SPEC_POS_O2, SPEC_POS_H2O,
+	SPEC_POS_CO2, SPEC_POS_H2, SPEC_POS_He).
+
+	* src/lineshapes.cc
+	(Rosenkranz_Voigt_Kuntz6): Removed.
+	(Rosenkranz_Voigt_Drayson): Ditto.
+
 2012-09-04  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-255
 
 	* src/m_abs.cc: Minute change.
-	
-	* src/m_zeeman.cc: For now the temporary abs_species only 
+
+	* src/m_zeeman.cc: For now the temporary abs_species only
 	carry the "O2" tag. All other tag information is lost.
 
 2012-09-03  Jana Mendrok <jana.mendrok@ltu.se>

@@ -2248,6 +2248,71 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
   return false;
 }
 
+
+/** Find the location of all broadening species in abs_species. 
+ 
+ Set to -1 if
+ not found. The length of array broad_spec_locations is the number of allowed
+ broadening species (in ARTSCAT-4 N2, O2, H2O, CO2, H2, H2). The value
+ means:
+ <p> -1 = not in abs_species
+ <p> -2 = in abs_species, but should be ignored because it is identical to Self
+ <p> N  = species is number N in abs_species
+ 
+ The catalogue contains also broadening parameters for "Self", but we ignore this 
+ here, since we know the position of species "Self" anyway.
+ 
+ \retval broad_spec_locations See above.
+ \param abs_species List of absorption species
+ \param this_species Index of the current species in abs_species
+
+ \author Stefan Buehler
+ \date   2012-09-04
+ 
+**/
+void find_broad_spec_locations(ArrayOfIndex broad_spec_locations,
+                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const Index this_species)
+{
+  // Make sure this_species points to somewhere inside abs_species:
+  assert(this_species>=0);
+  assert(this_species<abs_species.nelem());
+  
+  // Number of broadening species:
+  const Index nbs = 6;
+  
+  // Resize output array:
+  broad_spec_locations.resize(nbs);
+  
+  // Set broadening species names, using the enums defined in absorption.h.
+  // This is hardwired here and quite primitive, but should do the job.
+  ArrayOfString broad_spec_names(nbs);
+  broad_spec_names[SPEC_POS_N2]  = "N2";
+  broad_spec_names[SPEC_POS_O2]  = "O2";
+  broad_spec_names[SPEC_POS_H2O] = "H2O";
+  broad_spec_names[SPEC_POS_CO2] = "CO2";
+  broad_spec_names[SPEC_POS_H2]  = "H2";
+  broad_spec_names[SPEC_POS_He]  = "He";
+  
+  // Loop over all broadening species and see if we can find them in abs_species.
+  for (Index i=0; i<nbs; ++i) {
+    // Find associated internal species index (we do the lookup by index, not by name).
+    const Index isi = species_index_from_species_name(broad_spec_names[i]);
+    
+    // First check if this species is the same as this_species
+    if ( isi == abs_species[this_species][0].Species() )
+      broad_spec_locations[i] = -2;
+    else
+    {
+      // Find position of broadening species isi in abs_species. The called
+      // function returns -1 if not found, which is already the correct
+      // treatment for this case that we also want here.
+      broad_spec_locations[i] = find_first_species_tg(abs_species,isi);
+    }
+  }
+}
+
+
 /** Calculate line absorption cross sections for one tag group. All
     lines in the line list must belong to the same species. This must
     be ensured by abs_lines_per_speciesCreateFromLines, so it is only verified
@@ -2267,13 +2332,16 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
     \param f_grid       Frequency grid.
     \param abs_p        Pressure grid.
     \param abs_t        Temperatures associated with abs_p.
-    \param abs_h2o_orig Total volume mixing ratio of water vapor.
-    \param vmr          Volume mixing ratio of the calculated species.
+    \param all_vmrs     Gas volume mixing ratios [nspecies, np].
+    \param abs_species  Species tags for all species.
+    \param this_species Index of the current species in abs_species.
     \param abs_lines    The spectroscopic line list.
     \param ind_ls       Index to lineshape function.
     \param ind_lsn      Index to lineshape norm.
     \param cutoff       Lineshape cutoff.
 
+    FIXME: Update above!
+ 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 
 
@@ -2281,13 +2349,21 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 
     \author Stefan Buehler 
     \date   2007-08-08 
+
+    Adapted to new Perrin line parameters, treating broadening by different 
+    gases explicitly
+ 
+    \author Stefan Buehler
+    \date   2012-09-03
+
 */
 void xsec_species( MatrixView               xsec,
                    ConstVectorView          f_grid,
                    ConstVectorView          abs_p,
                    ConstVectorView          abs_t,
-                   ConstVectorView          abs_h2o_orig,
-                   ConstVectorView          vmr,
+                   ConstMatrixView          all_vmrs,
+                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                   const Index              this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const Index              ind_ls,
                    const Index              ind_lsn,
@@ -2381,8 +2457,8 @@ void xsec_species( MatrixView               xsec,
   Index ii = (nf+1 < 10) ? 10 : nf+1;
   Vector aux(ii);
 
-  // Check that abs_p, abs_t, and abs_vmrs have the same
-  // dimension. This could be a user error, so we throw a
+  // Check that abs_p, abs_t, and abs_vmrs have consistent
+  // dimensions. This could be a user error, so we throw a
   // runtime_error. 
 
   if ( abs_t.nelem() != np )
@@ -2394,14 +2470,27 @@ void xsec_species( MatrixView               xsec,
       throw runtime_error(os.str());
     }
 
-  if ( vmr.nelem() != np )
+  // all_vmrs should have dimensions [nspecies, np]:
+  
+  if ( all_vmrs.ncols() != np )
     {
       ostringstream os;
-      os << "Variable vmr must have the same dimension as abs_p.\n"
-         << "vmr.nelem() = " << vmr.nelem() << '\n'
+      os << "Number of columns of all_vmrs must match abs_p.\n"
+         << "all_vmrs.ncols() = " << all_vmrs.ncols() << '\n'
          << "abs_p.nelem() = " << np;
       throw runtime_error(os.str());
     }
+
+  const Index nspecies = abs_species.nelem();
+  
+  if ( all_vmrs.nrows() != nspecies)
+  {
+    ostringstream os;
+    os << "Number of rows of all_vmrs must match abs_species.\n"
+    << "all_vmrs.nrows() = " << all_vmrs.nrows() << '\n'
+    << "abs_species.nelem() = " << nspecies;
+    throw runtime_error(os.str());
+  }
 
   // With abs_h2o it is different. We do not really need this in most
   // cases, only the Rosenkranz lineshape for oxygen uses it. There is
@@ -2409,31 +2498,31 @@ void xsec_species( MatrixView               xsec,
   // vector here if we find it. The Rosenkranz lineshape does a check
   // to make sure that the value is actually set, and not the default
   // value. 
-  Vector abs_h2o(np);
-  if ( abs_h2o_orig.nelem() == np )
-    {
-      abs_h2o = abs_h2o_orig;
-    }
-  else
-    {
-      if ( ( 1   == abs_h2o_orig.nelem()) && 
-           ( -.99 > abs_h2o_orig[0]) )
-        {
-          // We have found the global default value. Expand this to a
-          // vector with the right length, by copying -1 to all
-          // elements of abs_h2o.
-          abs_h2o = -1;         
-        }
-      else
-        {
-          ostringstream os;
-          os << "Variable abs_h2o must have default value -1 or the\n"
-             << "same dimension as abs_p.\n"
-             << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
-             << "abs_p.nelem() = " << np;
-          throw runtime_error(os.str());
-        }
-    }
+//  Vector abs_h2o(np);
+//  if ( abs_h2o_orig.nelem() == np )
+//    {
+//      abs_h2o = abs_h2o_orig;
+//    }
+//  else
+//    {
+//      if ( ( 1   == abs_h2o_orig.nelem()) && 
+//           ( -.99 > abs_h2o_orig[0]) )
+//        {
+//          // We have found the global default value. Expand this to a
+//          // vector with the right length, by copying -1 to all
+//          // elements of abs_h2o.
+//          abs_h2o = -1;         
+//        }
+//      else
+//        {
+//          ostringstream os;
+//          os << "Variable abs_h2o must have default value -1 or the\n"
+//             << "same dimension as abs_p.\n"
+//             << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
+//             << "abs_p.nelem() = " << np;
+//          throw runtime_error(os.str());
+//        }
+//    }
 
   // Check that the dimension of xsec is indeed [f_grid.nelem(),
   // abs_p.nelem()]:
@@ -2447,7 +2536,20 @@ void xsec_species( MatrixView               xsec,
          << "abs_p.nelem() = " << np;
       throw runtime_error(os.str());
     }
-
+  
+  
+  // Find the location of all broadening species in abs_species. Set to -1 if
+  // not found. The length of array broad_spec_locations is the number of allowed
+  // broadening species (in ARTSCAT-4 Self, N2, O2, H2O, CO2, H2, H2). The value
+  // means:
+  // -1 = not in abs_species
+  // -2 = in abs_species, but should be ignored because it is identical to Self
+  // N  = species is number N in abs_species
+  ArrayOfIndex broad_spec_locations;
+  find_broad_spec_locations(broad_spec_locations,
+                            abs_species,
+                            this_species);
+  
 
   // Loop all pressures:
 
@@ -2465,8 +2567,7 @@ void xsec_species( MatrixView               xsec,
       // Store input profile variables, this is perhaps slightly faster.
       const Numeric p_i       = abs_p[i];
       const Numeric t_i       = abs_t[i];
-      const Numeric vmr_i     = vmr[i];
-      const Numeric abs_h2o_i = abs_h2o[i];
+      const Numeric vmr_i     = all_vmrs(this_species,i);
     
       //out3 << "  p = " << p_i << " Pa\n";
 
@@ -2549,7 +2650,19 @@ void xsec_species( MatrixView               xsec,
 
               // abs_lines[l] is used several times, this construct should be
               // faster (Oliver Lemke)
-              LineRecord l_l = abs_lines[l];  // which line are we dealing with
+              const LineRecord& l_l = abs_lines[l];  // which line are we dealing with
+              
+              // Make sure that catalogue version is either 3 or 4 (no other
+              // versions are supported yet):
+              if ( 3!=l_l.Version() && 4!=l_l.Version() )
+              {
+                ostringstream os;
+                os << "Unknown spectral line catalogue version (artscat-"
+                << l_l.Version() << ").\n"
+                << "Allowed are artscat-3 and artscat-4.";
+                throw runtime_error(os.str());
+              }
+              
               // Center frequency in vacuum:
               Numeric F0 = l_l.F();
 
@@ -2601,96 +2714,89 @@ void xsec_species( MatrixView               xsec,
                   intensity     = intensity * mafac / sinh(mafac);
                 }
 
-              Numeric Tgam;
-              Numeric Nair;
-              Numeric Agam;
-              Numeric Sgam;
-              Numeric Nself;
-              Numeric Psf;
-
-              if (l_l.Version() == 3)
-              {
-                Tgam = l_l.Tgam();
-                Agam = l_l.Agam();
-                Nair = l_l.Nair();
-                Sgam = l_l.Sgam();
-                Nself = l_l.Nself();
-                Psf = l_l.Psf();
-              }
-              else
-              {
-                static bool warn = false;
-                if (!warn)
+              // 2. Calculate the pressure broadened line width and the pressure
+              // shifted center frequency.
+              //
+              // Here there is a difference betweeen catalogue version 4
+              // (from ESA planetary study) and earlier catalogue versions.
+              Numeric gamma;     // The line width.
+              if (l_l.Version() == 4)
                 {
-                  CREATE_OUT0;
-                  warn = true;
-                  out0 << "  WARNING: Using artscat version 4 for calculations is currently\n"
-                       << "           just a hack and results are most likely wrong!!!\n";
+                  //                  gamma = calc_gamma_artscat4();
+                  gamma = 0; // FIXME remove
+
+                  // FIXME: Pressure shift!
                 }
-                Tgam = l_l.Tgam();
-                // Use hardcoded mixing ratios for air
-                Agam = l_l.Gamma_N2() * 0.79 + l_l.Gamma_O2() * 0.21;
-                Nair = l_l.Gam_N_N2() * 0.79 + l_l.Gam_N_O2() * 0.21;
-                Sgam = l_l.Gamma_self();
-                Nself = l_l.Gam_N_self();
-                Psf = l_l.Delta_N2() * 0.79 + l_l.Delta_O2() * 0.21;
-              }
-
-              // 2. Get pressure broadened line width:
-              // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
-              const Numeric theta = Tgam / t_i;
-              const Numeric theta_Nair = pow(theta, Nair);
-
-              const Numeric gamma
-                = Agam * theta_Nair  * (p_i - p_partial)
-                + Sgam * pow(theta, Nself) * p_partial;
-
+              else if (l_l.Version() == 3)
+                {
+                  //                  Numeric Tgam;
+                  //                  Numeric Nair;
+                  //                  Numeric Agam;
+                  //                  Numeric Sgam;
+                  //                  Numeric Nself;
+                  //                  Numeric Psf;
+                  
+                  //              if (l_l.Version() == 3)
+                  //              {
+                  Numeric Tgam = l_l.Tgam();
+                  Numeric Agam = l_l.Agam();
+                  Numeric Nair = l_l.Nair();
+                  Numeric Sgam = l_l.Sgam();
+                  Numeric Nself = l_l.Nself();
+                  Numeric Psf = l_l.Psf();
+                  //              }
+                  //              else
+                  //              {
+                  //                static bool warn = false;
+                  //                if (!warn)
+                  //                {
+                  //                  CREATE_OUT0;
+                  //                  warn = true;
+                  //                  out0 << "  WARNING: Using artscat version 4 for calculations is currently\n"
+                  //                       << "           just a hack and results are most likely wrong!!!\n";
+                  //                }
+                  //                Tgam = l_l.Tgam();
+                  //                // Use hardcoded mixing ratios for air
+                  //                Agam = l_l.Gamma_N2() * 0.79 + l_l.Gamma_O2() * 0.21;
+                  //                Nair = l_l.Gam_N_N2() * 0.79 + l_l.Gam_N_O2() * 0.21;
+                  //                Sgam = l_l.Gamma_self();
+                  //                Nself = l_l.Gam_N_self();
+                  //                Psf = l_l.Delta_N2() * 0.79 + l_l.Delta_O2() * 0.21;
+                  //              }
+                  
+                  // Get pressure broadened line width:
+                  // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
+                  const Numeric theta = Tgam / t_i;
+                  const Numeric theta_Nair = pow(theta, Nair);
+                  
+                  gamma =   Agam * theta_Nair  * (p_i - p_partial)
+                  + Sgam * pow(theta, Nself) * p_partial;
+                  
+                  
+                  // Pressure shift:
+                  // The T dependence is connected to that of agam by:
+                  // n_shift = .25 + 1.5 * n_agam
+                  // Theta has been initialized above.
+                  F0 += Psf * p_i *
+                  std::pow( theta , (Numeric).25 + (Numeric)1.5*Nair );
+                  
+                }
+              else
+                {
+                  // There is a runtime error check for allowed artscat versions
+                  // further up.
+                  assert(false);
+                }
+              
               // 3. Doppler broadening without the sqrt(ln(2)) factor, which
-              // seems to be redundant FIXME: verify .
+              // seems to be redundant.
               const Numeric sigma = F0 * doppler_const *
                 sqrt( t_i / l_l.IsotopologueData().Mass());
 
 //              cout << l_l.IsotopologueData().Name() << " " << l_l.F() << " "
 //                   << Nair << " " << Agam << " " << Sgam << " " << Nself << endl;
 
-              // 3.a. Put in pressure shift.
-              // The T dependence is connected to that of agam by:
-              // n_shift = .25 + 1.5 * n_agam
-              // Theta has been initialized above.
-              F0 += Psf * p_i *
-                std::pow( theta , (Numeric).25 + (Numeric)1.5*Nair );
-
-              // 4. the rosenkranz lineshape for oxygen calculates the
-              // pressure broadening, overlap, ... differently. Therefore
-              // all required parameters are passed in the aux array, the
-              // given order must agree with how they are accessed in the
-              // used lineshape (currently only the Rosenkranz routines are
-              // using this method of passing parameters). Parameters are
-              // always passed, because the Rosenkranz lineshape function
-              // can be used without overlap correction, which is then just
-              // set to 0. I know, this is not very nice, but I suggested to
-              // put the oxygen absorption into a different workspace
-              // method, but nobody listened to me, Schnief.
-              aux[0] = theta;
-              aux[1] = theta_Nair;
-              aux[2] = p_i;
-              aux[3] = vmr_i;
-              aux[4] = abs_h2o_i;
-              aux[5] = Agam;
-              aux[6] = Nair;
-              // is overlap available, otherwise pass zero
-              if (l_l.Naux() > 1)
-                {
-                  aux[7] = l_l.Aux()[0];
-                  aux[8] = l_l.Aux()[1];
-                  //            cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
-                }
-              else
-                {
-                  aux[7] = 0.0;
-                  aux[8] = 0.0;
-                }
-
+              
 
               // Indices pointing at begin/end frequencies of f_grid or at
               // the elements that have to be calculated in case of cutoff

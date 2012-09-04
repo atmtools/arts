@@ -1329,7 +1329,7 @@ void define_md_data_raw()
          "  3. *AbsInputFromRteScalars*\n"
          "  4. *abs_h2oSet*\n"
          "  5. *abs_coefCalc*\n"
-         "  6. *abs_mat_per_speciesFromAbsCoefPerSpecies*\n"
+         "  6. *abs_mat_per_speciesAddFromAbsCoefPerSpecies*\n"
          "\n"
          "Sub-methods 2 and 3 are called only if rte_doppler is not zero.\n"
          "The treatment of the Doppler-shift here is exact, since the underlying\n"
@@ -1388,12 +1388,8 @@ void define_md_data_raw()
         IN("abs_mat_per_species",
            "f_grid",
            "abs_species",
-           "abs_n2",
            "abs_lines_per_species",
            "abs_lineshape",
-           "abs_cont_names",
-           "abs_cont_models",
-           "abs_cont_parameters",
            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
            "rte_los", "rte_mag"),
         GIN(),
@@ -1678,7 +1674,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_h2o",
+        IN( "abs_species", "f_grid", "abs_p", "abs_t", 
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape" ),
         GIN(),
         GIN_TYPE(),

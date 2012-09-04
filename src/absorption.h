@@ -34,6 +34,8 @@
 #include "mystring.h"
 #include "make_array.h"
 #include "messages.h"
+#include "abs_species_tags.h"
+
 
 /** The type that is used to store pointers to lineshape
     functions.  */
@@ -1329,21 +1331,35 @@ void write_lines_to_stream(ostream& os,
 
 
 void xsec_species( MatrixView               xsec,
-                   ConstVectorView          f_mono,
-                   ConstVectorView          abs_p,
-                   ConstVectorView          abs_t,           
-                   ConstVectorView          h2o_abs,           
-                   ConstVectorView          vmr,
-                   const ArrayOfLineRecord& abs_lines,
-                   const Index              ind_ls,
-                   const Index              ind_lsn,
-                   const Numeric            cutoff,
-                   const Verbosity&         verbosity );
+                  ConstVectorView          f_grid,
+                  ConstVectorView          abs_p,
+                  ConstVectorView          abs_t,
+                  ConstMatrixView          all_vmrs,
+                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                  const Index              this_species,
+                  const ArrayOfLineRecord& abs_lines,
+                  const Index              ind_ls,
+                  const Index              ind_lsn,
+                  const Numeric            cutoff,
+                  const Verbosity&         verbosity );
 
 
 // A helper function for energy conversion:
 Numeric wavenumber_to_joule(Numeric e);
 
+
+//======================================================================
+//             Indices of broadening species in abs_species
+//======================================================================
+
+enum {
+  SPEC_POS_N2,
+  SPEC_POS_O2,
+  SPEC_POS_H2O,
+  SPEC_POS_CO2,
+  SPEC_POS_H2,
+  SPEC_POS_He
+};
 
 
 //======================================================================
