@@ -25,12 +25,14 @@ scattering are restricted to the ``cloud box''
 are restricted to a smaller domain of the model atmosphere, and the radiative
 transfer in that domain is mainly treated by dedicated workspace methods. For
 pure transmission measurements (where scattering into the line-of-sight is
-neglected), see Chapter~\ref{sec:trans}.
+neglected), see Chapter~\ref{sec:trans}. This chapter discusses only the direct
+radiative transfer, calculation of partial derivatives (i.e.\ the
+Jacobian or weighting functions) is discussed in Section~\ref{sec:wfuns}. 
 
 Absorption by atmospheric gases does normally not depend on polarisation but
-exceptions exist, where Zeeman splitting is one example. Both polarsied and
+exceptions exist, where Zeeman splitting is one example. Both polarised and
 unpolarised absorption is handled. Even if the gaseous absorption in itself is
-unpolarisaed, the expressions to apply must allow that polarisation signals
+unpolarised, the expressions to apply must allow that polarisation signals
 from the surface and the cloud box are correctly propagated to the sensor.
 
 
@@ -292,7 +294,7 @@ exist:
 \item[The surface] The sum of surface emission and radiation reflected by the
   surface is the radiative background when the propagation path intersects with
   the surface. It is the task of \wsaindex{iy\_surface\_agenda} to return this
-  upwelling radiation from the surface, see further
+  up-welling radiation from the surface, see further
   Chapter~\ref{sec:surface}.
 \item[Surface of cloud box] For cases when the propagation path enters
   the cloud box the radiative background is the intensities leaving
@@ -312,7 +314,7 @@ determined by a new call of \builtindoc{iy\_main\_agenda} and the radiative
 background for that calculation is then space or the cloud box. The intensity
 field entering the cloud box is in some cases calculated by calls of
 \builtindoc{iy\_main\_agenda} (with cloud box deactivated) and the radiative
-background for these calculartions is then space or the surface. This results
+background for these calculations is then space or the surface. This results
 in that space is normally the ultimate radiative background for the
 calculations. The exception is for propagation paths that intersects with the
 surface, and the surface is treated to act as a blackbody. For such cases, the
@@ -361,7 +363,7 @@ See further \theory, Section~\ref{T-sec:rte_theory}.
 \subsection{Unpolarised absorption}
 
 Let's start with the simpler case of non-polarised absorption (that is, the
-absorption is indepencdent of absorption). For unpolarised absorption the
+absorption is independent of absorption). For unpolarised absorption the
 matrix \ExtMat\ is diagonal, with all diagonal elements equal, and only the
 first of the elements of \AbsVec\ is non-zero.
 
@@ -444,7 +446,7 @@ manner, that they use the same unit for $B$.
 
 The overall calculation procedure is the same with polarised absorption, the
 only difference is the radiative transfer expression applied. The calculations
-for the different Stokes components can here not be seperated, and
+for the different Stokes components can here not be separated, and
 matrix-vector notation is required: 
 \begin{equation}
   \label{eq:fm_defs:vrte_step}
@@ -494,7 +496,7 @@ used, but \builtindoc{yCalc} is not mandatory if the simulations deal only with
 monochromatic data for a single line-of-sight. In this case, it could be more
 handy to use \wsmindex{iyCalc}, which basically is a direct call of
 \wsaindex{iy\_main\_agenda}. A reason for selecting \builtindoc{iyCalc} is that
-a larger set of auxiliary quantities can be extraced
+a larger set of auxiliary quantities can be extracted
 (Sec.~\ref{sec:fm_defs:aux}). 
 
 On the input side, the main difference when using \builtindoc{iyCalc} is that
@@ -503,7 +505,7 @@ and \wsvindex{rte\_los} (instead of \builtindoc{sensor\_pos} and
 \builtindoc{sensor\_los}). The calculated radiances are returned as the matrix
 \wsvindex{iy} (instead of the vector \builtindoc{y}). 
 No automatic unit conversion is made inside \builtindoc{iyCalc}. This is
-instead handled seperately by \wsmindex{iyApplyYunit}.
+instead handled separately by \wsmindex{iyApplyYunit}.
 
 
 
@@ -513,16 +515,17 @@ instead handled seperately by \wsmindex{iyApplyYunit}.
 \label{sec:fm_defs:dispersion}
 
 The clear-sky radiative transfer methods handle all frequencies in
-\builtindoc{f\_grid} in parallel, for efficiency reasons. One aspect of this is
-that only a single propgation path is calculated, that is assumed to be common
-for all frequencies. With other words, \textindex{dispersion} is not
-considered. This is in general an acceptable simplification, but
-exceptions exist where standard example is radiative transfer through the
-ionosphere at frequencies approaching the ``plasma frequency''. 
+\builtindoc{f\_grid} in parallel, for efficiency reasons. One consequence of
+this feature is that only a single propagation path is calculated, that is
+assumed to be common for all frequencies. With other words,
+\textindex{dispersion} is not considered. This is in general an acceptable
+simplification, but exceptions exist where one example is radiative
+transfer through the ionosphere at frequencies approaching the ``plasma
+frequency''.
 
 When dispersion is expected to give a significant impact on the results, ARTS
-offers a general (but slow) solution. Dispersion can be handled by setting
-\wsaindex{iy\_main\_agenda} as follows:
+offers a general solution. Dispersion can be handled by setting
+\wsaindex{iy\_main\_agenda} as:
 \begin{code}
 AgendaSet( iy_main_agenda ){
   iyLoopFrequencies
@@ -537,13 +540,12 @@ AgendaSet( iy_sub_agenda ){
 }
 \end{code}
 The approach is simple, \wsvindex{iyLoopFrequencies} calls
-\builtindoc{iy\_sub\_agenda} for each single frequency of \builtindoc{f\_grid}
-and appends the output data. Or, with some practical details,
-\builtindoc{iyLoopFrequencies} performs a loop over the \builtindoc{f\_grid},
-creates an internal \builtindoc{f\_grid} of length 1 holding the frequency of
-concern and calls \builtindoc{iy\_sub\_agenda} with this length-1 frequency
-grid. This has the result that a propagation path is calculated for each
-frequency component.
+\builtindoc{iy\_sub\_agenda} for each single frequency in \builtindoc{f\_grid}
+and appends the output data. With some details, \builtindoc{iyLoopFrequencies}
+performs a loop over the \builtindoc{f\_grid}, creates an internal
+\builtindoc{f\_grid} of length 1 holding the frequency of concern and calls
+\builtindoc{iy\_sub\_agenda} with this length-1 frequency grid. This has the
+result that a propagation path is calculated for each frequency component.
 
 Some more steps are required to correctly include dispersion. A basic demand is
 that \wsaindex{ppath\_agenda} considers refraction. Further,
@@ -551,12 +553,14 @@ that \wsaindex{ppath\_agenda} considers refraction. Further,
 methods aimed for \builtindoc{refr\_index\_agenda} give a refractive index that
 does not varies with frequency. An example on the opposite is
 \wsmindex{refr\_indexFreeElectrons}. If a method with dispersive refractive
-index is used for non-dispersive calculations, it recieves the mean of the
-first and last element in \builtindoc{f\_grid} (also commented above).
+index is used for non-dispersive calculations, it receives the mean of the
+first and last element in \builtindoc{f\_grid} (as already commented above).
 
 The feature provided by \builtindoc{iyLoopFrequencies} can also be used to
 overcome other limitations, such as considering a frequency dependent Doppler
-shift (see Sec.~\ref{sec:winds:limitations}).
+shift (see Sec.~\ref{sec:winds:limitations}). On the other hand,
+\builtindoc{iyLoopFrequencies} can not be combined with auxiliary data of
+along-the-path character (Sec.~\ref{sec:fm_defs:aux})
 
 
 
@@ -567,10 +571,73 @@ shift (see Sec.~\ref{sec:winds:limitations}).
 %==============================================================================
 \label{sec:fm_defs:aux}
 
-xx
+The core output of the radiative calculations is \builtindoc{y}
+(\builtindoc{iy} if \builtindoc{iyCalc} is used, jacobians discussed in
+Sec.~\ref{sec:wfuns}), but different auxiliary data can be extracted. First of
+all, \wsmindex{yCalc} outputs automatically \wsvindex{y\_f}, \wsvindex{y\_pol},
+\wsvindex{y\_pos} and \wsvindex{y\_los}. These data give information about the
+frequency, polarisation, sensor position and sensor bore-sight, respectively,
+corresponding to each value in \builtindoc{y}. The content of the variables are
+governed by the sensor settings and the order calculated radiances are stored
+(discussed in Sec.~\ref{sec:fm_defs:seqsandblocks}).
 
+A more general mechanism for extracting auxiliary data is controlled by the
+\wsvindex{iy\_aux\_vars} workspace variable. This mechanism is most useful
+together with \builtindoc{iyCalc}, and for the moment we assume that this
+method is used (limitations for \builtindoc{yCalc} are discussed below). The
+quantities that can be extracted differ, see the built-in documentation for
+the options for each workspace method of concern. For example:
+\begin{code}
+arts -d iyEmissionStandard
+\end{code}
+The options for this particular method  (\wsmindex{iyEmissionStandard}) can be
+divided into different groups (more variables will/can be added):
+\begin{description}
+\item[Atmosphere, along-the-path] The pressure, temperature and volume mixing
+  rations along the propagation path.
+\item[Attenuation, along-the-path] Total and species specific absorption
+  coefficients along the propagation path.
+\item[Radiative properties, along-the-path] The radiance at each propagation
+  path point.
+\item[Overall radiative properties] The total optical depth along the path.
+\end{description}
+``Along-the-path'' means that data are provided for each point of the
+propagation path. The path is described by \wsvindex{ppath}, that is also
+returned by \wsmindex{iy\_main\_agenda}. The \builtindoc{ppath} contains the
+information needed to geo-position, for example, ``along-the path
+temperatures''.
 
+Example on setting of \wsvindex{iy\_aux\_vars} (again valid for
+\builtindoc{iyEmissionStandard}):
+\begin{code}
+ArrayOfStringSet( iy_aux_vars,  
+    [ "Temperature", 
+      "VMR, species 0",
+      "Absorption, summed", 
+      "Absorption, species 0",
+      "Absorption, species 2",
+      "iy", 
+      "Optical depth" ] )
+\end{code}
+The data are outputted in a single variable, \wsvindex{iy\_aux}. This variable
+is an array of Tensor4. All dimensions are used when storing e.g.\ the
+absorption matrix along the propagation path (for all frequencies of
+\builtindoc{f\_grid}). For other types of quantities, one or several dimensions
+are set to have length 1. See the built-in documentation for further details,
+such as the order of the data dimensions.
 
+Storage of quantities of ``along-the-path'' type assumes that there exists a
+common propagation path. This is necessarily not the case for calculations by
+\builtindoc{yCalc}. This is the case as a calculation considering an antenna
+response includes radiative transfer along several propagation paths. The
+points of these paths do not end up on common altitude grid, neither are at a
+fixed distance from the sensor. In fact, the number of points of the paths will
+likely differ. For this reason, \wsmindex{yCalc} will issue an error if you
+in \wsvindex{iy\_aux\_vars} include a quantity of ``along-the-path'' character.
+
+The same applies to dispersion calculations (here the propagation path differs
+already between the frequencies), and also \wsmindex{iyLoopFrequencies} gives
+also an error if ``along-the-path'' auxiliary data are selected.
 
 
 
@@ -600,7 +667,7 @@ The observation positions of the sensor are stored in
 \wsvindex{sensor\_pos}. This is a matrix where each row corresponds to
 a sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
-matrix (from first to last) are geomtrical altitude, latitude and longitude.
+matrix (from first to last) are geometrical altitude, latitude and longitude.
 Accordingly, row $i$ of \builtindoc{sensor\_pos} for a 3D case is
 $(\aAlt{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
@@ -629,7 +696,7 @@ dimensionalities, while the azimuth angle is defined only for 3D.
 The term line-of-sight is not only used in connection with the sensor,
 it is also used to describe the local propagation direction along the
 path taken by the observed radiation
-(Section~\ref{sec:fm_defs:ppaths}).  The zenith and azimuthal angles
+(Section~\ref{sec:fm_defs:ppaths}).  The zenith and azimuth angles
 are defined in an identical way in both of these contexts (sensor
 pointing direction; local propagation direction). This is expected as
 the position of the sensor is the end point of the propagation path.
@@ -893,7 +960,7 @@ mesh on which the atmospheric fields are defined. This means that the
 spacing of these grids shall be selected having the representation of
 the atmospheric fields in mind. That is, the spacing shall be fine
 enough that the atmospheric field is sufficiently well approximated by
-the piecewise (multi-)linear representation between the grid
+the piece-wise (multi-)linear representation between the grid
 crossings. The result is that a finer spacing must be used to
 represent correctly atmospheric fields with a lot of structure, while
 the grids can have fewer points when the atmospheric fields are
@@ -902,7 +969,7 @@ smooth.
 The accuracy when performing the actual radiative transfer calculations depends
 on the refinement of the expressions used and the discretisation of the
 propagation path. If Equation \ref{eq:fm_defs:rte_step} is used, the
-underlaying assumption is that the Planck function and the absorption vary
+underlying assumption is that the Planck function and the absorption vary
 linearly along the propagation path step. These assumptions are of course less
 violated if the path step length is made small. An upper limit of the path step
 length is set by \wsvindex{ppath\_lmax}. In many cases it should suffice to
