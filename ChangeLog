@@ -1,3 +1,12 @@
+2012-09-04  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-255
+
+	* src/m_abs.cc: Minute change.
+	
+	* src/m_zeeman.cc: For now the temporary abs_species only 
+	carry the "O2" tag. All other tag information is lost.
+
 2012-09-03  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-254

@@ -1625,7 +1625,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
       // We do the LBL calculation only if:
       // - The line list is not empty, and
       // - The species is not a Zeeman species.
-      if ( 0 < ll.nelem() && !tgs[0][0].Zeeman() )
+      if ( 0 < ll.nelem() && tgs[i].nelem() && !tgs[i][0].Zeeman() )
         {
           // As a safety check, check that the species of the first
           // line matches the species we should have according to

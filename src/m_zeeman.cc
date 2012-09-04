@@ -305,7 +305,7 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                                   const Verbosity& verbosity)
 {
     CREATE_OUT3;
-
+    
     const Numeric margin    = 1e-3;
     bool          do_zeeman = false;
 
@@ -347,14 +347,7 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                     " a flag nor the lenght of a magnetic field vector.");
     }
     // End   TEST(s)
-    /*
-        If f_index>=0, we need to make a local copy of f_grid, because
-        f_gridSelectFIndex will destroy f_grid.  In any case, we assign
-        f_grid_pointer so that it points to the valid f_grid (either
-        original or copy).
-        (This is also need for the Doppler treatment,
-        since that also modifies the local frequency grid.)
-    */
+
     Vector local_f_grid;
     // Make pointer point to original.
     const Vector* f_grid_pointer = &f_grid;
@@ -617,11 +610,14 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                  << " and \nDT stands for: " << temp_abs_lines_dt.nelem() << "\n";
                  
             
-            // with the same species information,
+            // with the same species information, FIXME: Oliver: This is UGLY. Also, it ignores any other oxygen tags...
             ArrayOfArrayOfSpeciesTag temp_abs_species(4);
-                temp_abs_species[0] = abs_species[II]; temp_abs_species[1] = abs_species[II];
-                temp_abs_species[2] = abs_species[II]; temp_abs_species[3] = abs_species[II];
-            // and the same volume mixing ratios.
+            temp_abs_species[0].resize(1);temp_abs_species[0][0] = SpeciesTag("O2");
+            temp_abs_species[1].resize(1);temp_abs_species[1][0] = SpeciesTag("O2");
+            temp_abs_species[2].resize(1);temp_abs_species[2][0] = SpeciesTag("O2"); 
+            temp_abs_species[3].resize(1);temp_abs_species[3][0] = SpeciesTag("O2");
+
+                // and the same volume mixing ratios.
             Vector temp_vmrs(4);
                 temp_vmrs[0] = rte_vmr_list[II]; temp_vmrs[1] = rte_vmr_list[II];
                 temp_vmrs[2] = rte_vmr_list[II]; temp_vmrs[3] = rte_vmr_list[II];
