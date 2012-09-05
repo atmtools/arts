@@ -283,22 +283,44 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 
     const GriddedField2 &gfraw_in = *gfraw_in_pnt;
 
-    chk_size("Raw GriddedField", gfraw_in.data, 1, 1);
-
     chk_griddedfield_gridname(gfraw_in, 0, "Latitude");
     chk_griddedfield_gridname(gfraw_in, 1, "Longitude");
 
-    Vector v(2);
-    v[0] = -90; v[1] = 90;
-    gfraw_out.set_grid(0, v);
+    if (gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1)
+        throw runtime_error("Can't expand data because number of Latitudes and Longitudes is greater than 1");
+
     gfraw_out.set_grid_name(0, "Latitude");
+    gfraw_out.set_grid_name(1, "Longitude");
 
-    v[0] = 0; v[1] = 360;
-    gfraw_out.set_grid(0, v);
-    gfraw_out.set_grid_name(0, "Longitude");
+    Vector v(2);
+    if (gfraw_in.data.nrows() == 1 && gfraw_in.data.ncols() != 1)
+    {
+        v[0] = -90; v[1] = 90;
+        gfraw_out.set_grid(0, v);
+        gfraw_out.resize(2, gfraw_in.data.ncols());
 
-    gfraw_out.resize(2, 2);
-    gfraw_out.data = gfraw_in.data(0, 0);
+        for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+            gfraw_out.data(joker, j) = gfraw_in.data(0, j);
+    }
+    else if (gfraw_in.data.nrows() != 1 && gfraw_in.data.ncols() == 1)
+    {
+        v[0] = 0; v[1] = 360;
+        gfraw_out.set_grid(1, v);
+        gfraw_out.resize(gfraw_in.data.nrows(), 2);
+
+        for (Index j = 0; j < gfraw_in.data.nrows(); j++)
+            gfraw_out.data(j, joker) = gfraw_in.data(j, 0);
+    }
+    else
+    {
+        v[0] = -90; v[1] = 90;
+        gfraw_out.set_grid(0, v);
+        v[0] = 0; v[1] = 360;
+        gfraw_out.set_grid(1, v);
+        gfraw_out.resize(2, 2);
+
+        gfraw_out.data = gfraw_in.data(0, 0);
+    }
 }
 
 
@@ -322,29 +344,50 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 
     const GriddedField3 &gfraw_in = *gfraw_in_pnt;
 
-    chk_size("Raw GriddedField", gfraw_in.data, gfraw_in.data.npages(), 1, 1);
-
     chk_griddedfield_gridname(gfraw_in, 1, "Latitude");
     chk_griddedfield_gridname(gfraw_in, 2, "Longitude");
 
+    if (gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1)
+      throw runtime_error("Can't expand data because number of Latitudes and Longitudes is greater than 1");
+
     gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
     gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
-
-    Vector v(2);
-    v[0] = -90; v[1] = 90;
-    gfraw_out.set_grid(1, v);
     gfraw_out.set_grid_name(1, "Latitude");
-
-    v[0] = 0; v[1] = 360;
-    gfraw_out.set_grid(2, v);
     gfraw_out.set_grid_name(2, "Longitude");
 
-    gfraw_out.resize(gfraw_in.data.npages(), 2, 2);
+    Vector v(2);
+    if (gfraw_in.data.nrows() == 1 && gfraw_in.data.ncols() != 1)
+    {
+        v[0] = -90; v[1] = 90;
+        gfraw_out.set_grid(1, v);
+        gfraw_out.resize(gfraw_in.data.npages(), 2, gfraw_in.data.ncols());
+        
+        for (Index i = 0; i < gfraw_in.data.npages(); i++)
+            for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+                gfraw_out.data(i, joker, j) = gfraw_in.data(i, 0, j);
+    }
+    else if (gfraw_in.data.nrows() != 1 && gfraw_in.data.ncols() == 1)
+    {
+        v[0] = 0; v[1] = 360;
+        gfraw_out.set_grid(2, v);
+        gfraw_out.resize(gfraw_in.data.npages(), gfraw_in.data.nrows(), 2);
 
-    for (Index i = 0; i < gfraw_in.data.npages(); i++)
-        gfraw_out.data(i, joker, joker) = gfraw_in.data(i, 0, 0);
+        for (Index i = 0; i < gfraw_in.data.npages(); i++)
+            for (Index j = 0; j < gfraw_in.data.nrows(); j++)
+                gfraw_out.data(i, j, joker) = gfraw_in.data(i, j, 0);
+    }
+    else
+    {
+        v[0] = -90; v[1] = 90;
+        gfraw_out.set_grid(1, v);
+        v[0] = 0; v[1] = 360;
+        gfraw_out.set_grid(2, v);
+        gfraw_out.resize(gfraw_in.data.npages(), 2, 2);
+
+        for (Index i = 0; i < gfraw_in.data.npages(); i++)
+            gfraw_out.data(i, joker, joker) = gfraw_in.data(i, 0, 0);
+    }
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GriddedFieldLatLonExpand(// WS Generic Output:
@@ -366,32 +409,56 @@ void GriddedFieldLatLonExpand(// WS Generic Output:
 
     const GriddedField4 &gfraw_in = *gfraw_in_pnt;
 
-    chk_size("Raw GriddedField", gfraw_in.data,
-             gfraw_in.data.nbooks(), gfraw_in.data.npages(), 1, 1);
-
     chk_griddedfield_gridname(gfraw_in, 2, "Latitude");
     chk_griddedfield_gridname(gfraw_in, 3, "Longitude");
 
+    if (gfraw_in.data.ncols() != 1 && gfraw_in.data.nrows() != 1)
+        throw runtime_error("Can't expand data because number of Latitudes and Longitudes is greater than 1");
+    
     gfraw_out.set_grid(0, gfraw_in.get_numeric_grid(0));
     gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
 
     gfraw_out.set_grid(1, gfraw_in.get_numeric_grid(1));
     gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
 
-    Vector v(2);
-    v[0] = -90; v[1] = 90;
-    gfraw_out.set_grid(2, v);
     gfraw_out.set_grid_name(2, "Latitude");
-
-    v[0] = 0; v[1] = 360;
-    gfraw_out.set_grid(3, v);
     gfraw_out.set_grid_name(3, "Longitude");
 
-    gfraw_out.resize(gfraw_in.data.nbooks(), gfraw_in.data.npages(), 2, 2);
+    Vector v(2);
+    if (gfraw_in.data.nrows() == 1 && gfraw_in.data.ncols() != 1)
+    {
+        v[0] = -90; v[1] = 90;
+        gfraw_out.set_grid(2, v);
+        gfraw_out.resize(gfraw_in.data.nbooks(), gfraw_in.data.npages(), 2, gfraw_in.data.ncols());
 
-    for (Index i = 0; i < gfraw_in.data.nbooks(); i++)
-        for (Index j = 0; j < gfraw_in.data.npages(); j++)
-            gfraw_out.data(i, j, joker, joker) = gfraw_in.data(i, j, 0, 0);
+        for (Index k = 0; k < gfraw_in.data.nbooks(); k++)
+            for (Index i = 0; i < gfraw_in.data.npages(); i++)
+                for (Index j = 0; j < gfraw_in.data.ncols(); j++)
+                    gfraw_out.data(k, i, joker, j) = gfraw_in.data(k, i, 0, j);
+    }
+    else if (gfraw_in.data.nrows() != 1 && gfraw_in.data.ncols() == 1)
+    {
+        v[0] = 0; v[1] = 360;
+        gfraw_out.set_grid(3, v);
+        gfraw_out.resize(gfraw_in.data.nbooks(), gfraw_in.data.npages(), gfraw_in.data.nrows(), 2);
+
+        for (Index k = 0; k < gfraw_in.data.nbooks(); k++)
+            for (Index i = 0; i < gfraw_in.data.npages(); i++)
+                for (Index j = 0; j < gfraw_in.data.nrows(); j++)
+                    gfraw_out.data(k, i, j, joker) = gfraw_in.data(k, i, j, 0);
+    }
+    else
+    {
+        v[0] = -90; v[1] = 90;
+        gfraw_out.set_grid(2, v);
+        v[0] = 0; v[1] = 360;
+        gfraw_out.set_grid(3, v);
+        gfraw_out.resize(gfraw_in.data.nbooks(), gfraw_in.data.npages(), 2, 2);
+
+        for (Index k = 0; k < gfraw_in.data.nbooks(); k++)
+            for (Index i = 0; i < gfraw_in.data.npages(); i++)
+                gfraw_out.data(k, i, joker, joker) = gfraw_in.data(k, i, 0, 0);
+    }
 }
 
 

@@ -1,3 +1,12 @@
+2012-09-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-259
+
+	* src/m_atmosphere.cc (GriddedFieldLatLonExpand):
+
+	Properly handle the case if only one dimension (lat or lon) has only
+	1 element.
+
 2012-09-05  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-258
@@ -6,7 +15,6 @@
 	farther down place and updated parts of the text
 
 	* src/m_zeeman.cc: Updated sligthly.
-
 
 2012-09-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
