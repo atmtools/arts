@@ -1,3 +1,13 @@
+2012-09-06  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-262
+
+	* 3rdparty/partFct/*.*: Added. Tools and data for derivation of partition
+	function polynomial coefficients. For details see README.
+
+	* 3rdparty/partFct/TIPS/: Added. Latest version of the TIPS
+	program (slightly modified for all-species tabulated Q(T) output).
+
 2012-09-05  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-261

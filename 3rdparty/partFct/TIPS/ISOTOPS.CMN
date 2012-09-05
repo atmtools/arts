@@ -1,0 +1,3 @@
+c++
+      COMMON /ISO_data/ ISO82(NMOL,Max_ISO),ISONM(NMOL)
+
