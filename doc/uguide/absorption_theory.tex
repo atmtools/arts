@@ -158,6 +158,9 @@ and Liebe will show up under both continua and complete absorption
 models. The continuum section then treats specifically the continuum
 parameterization of these model, the complete absorption model section
 puts more focus on the line part and the model as a whole.
+
+Each of the main parts first introduces the theoretical background to the topic,
+then presents aspects of the specific implementation in ARTS.
                                           
 
 % ================================================================================
@@ -170,7 +173,7 @@ puts more focus on the line part and the model as a whole.
 %-----------------------
 \label{sec:abs_theory:line_absorption}
 
-\subsection{Background}
+\subsection{Theoretical background}
  
 We will introduce here the main concepts concerning line
 absorption. The aim is to give some overview and show some key
@@ -179,7 +182,7 @@ understand line absorption, you should refer to one of the cited
 books, or some other book on spectroscopy.
 
 \subsubsection{Basic expressions} 
- 
+
 An absorption line is described by the corresponding 
 absorption coefficient as a function of frequency $\alpha(\nu)$, which
 can be written as \citep{goodyandyung:89}:
@@ -202,19 +205,20 @@ different temperatures is done by
     - e^{-E_i/(kT)}}{e^{-E_f/(kT_0)} - e^{-E_i/(kT_0)}}
 \end{equation}
 given the energies $E_f$ and $E_i$ of the two levels between which the
-transition occurs as well as the partition function  $Q(T)$ \citep{rothman:98}. The
-databases contain the lower state energy $E_l$ tabulated along with
+transition occurs as well as the partition function  $Q(T)$ \citep{rothman:98}.
+The databases contain the lower state energy $E_l$ tabulated along with
 the $S$ and the transition frequency $\nu$, so that the upper state
 energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
-all molecular species are also available along with spectroscopic
-databases, either in the form of tabulated values for a set
-temperatures, or in the form of FORTRAN routines. One can obtain the
-total absorption coefficient by adding the absorption of all spectral
-lines of all molecular species.
+the different molecular species are commonly available along with the
+spectroscopic databases, given in the form of tabulated values for a set
+temperatures (e.g., for JPL catalogue) or through some computer code (e.g.,
+the TIPS program coming with the HITRAN catalogue). As absorption is additive,
+the total absorption coefficient is derived by adding up the absorption
+contributions of all spectral lines of all molecular species.
 
-The problem of describing the line shape
-function is discussed in the following subsection. Then another
-subsection discusses partition functions and their calculation.
+The following subsections discuss common descriptions of the line shape
+function, present partition functions and their calculation formalism more in
+depth, and introduce the Zeeman effect.
 
 
 \subsubsection{Line shape functions} 
@@ -400,10 +404,11 @@ throughout the thermal infrared spectral range, but there the mirror
 line at negative frequency is negligible anyway, because it is so far
 away.
 
+
 \subsubsection{Partition functions}
 
 Partition functions are needed to compute the temperature dependence
-of line intensities (Equation \ref{eq:abs_theory:line_intensity} on
+of the line intensities (Equation \ref{eq:abs_theory:line_intensity} on
 page \pageref{eq:abs_theory:line_intensity}).  They are related to the
 molecular energy states and their statistical distribution during the
 radiation process.
@@ -450,14 +455,13 @@ bearing in mind that the respective energies, translational and
 internal, are independent of each other. The first quantity $Q_{tr}$ accounts
 for the distribution of the translational energy of the gas particles
 - it takes into account that the translational velocities of the
-particles fulfill the Maxwell distribution. The quantity, however,
-which we are interested in in (3.3) is the {\it{internal}\nocorr}
-partition function (or the {\it{total internal partition  function}\nocorr}
- because the transitions between the discrete
+particles fulfill the Maxwell distribution. However, for Equation
+\ref{eq:abs_theory:line_intensity}, the quantity we are interested in
+is the {\it{internal}\nocorr} partition function (or the {\it{total internal
+partition function}\nocorr}) because the transitions between the discrete
 internal energy states are responsible for the absorption or emittance
-of radiation. Accordingly $Q_{int}$ describes the
-distribution of energy among the internal energy states of the gas
-particles.
+of radiation. Accordingly $Q_{int}$ describes the distribution of energy among
+the internal energy states of the gas particles.
 
 The internal partition function for free gaseous molecules is a
 function of the electronic, the vibrational, the rotational, and the
@@ -830,19 +834,38 @@ and
 
 We have in this subsection derived the formalism for the Zeeman effect and may now use Equation~\ref{eq:abs_zeeman_mat} instead of Equation~\ref{eq:abs_coeff} to describe absorption when appropriate.
 
-\subsection{Spectral-line-specific data and line catalogues} 
+\subsection{Line-specific data and line catalogue data in ARTS} 
 
 ARTS has an internal representation of spectral line data that maps
 naturally to a native catalogue format, which we will discuss
-below. But ARTS can read also several other catalogue formats, in
-particular HITRAN and JPL format. If these other catalogues are used,
-line data are converted to the internal representation during
+below. This internal catalogue data exists and can be
+handled in two variants, the so-called ARTSCAT-3 and ARTSCAT-4 -- versions~3
+and 4 of the ARTS catalogue format. The spectroscopic databases commonly
+used in Earth atmospheric research contain the spectroscopic parameters
+representative for Earth conditions. This regards particular the foreign
+broadened width, often called the air broadened width as it considerers
+the contribution from nitrogen and oxygen that make up for the vast majority
+of gases in the Earth atmosphere, and the pressure shift. ARTSCAT-3 contains
+these ``classical'' spectroscopic parameters. ARTSCAT-4 on the other hand has
+been developed with view on planetary science. That is, it holds these
+parameters separately for the different molecular species. Theoretically this
+has to list all cross-combinations of species. However, most species show only
+very low abundances and can safely be neglected. For now, the main atmospheric
+constituents of Earth, Mars, Venus, and Jupiter, namely N2, O2, H2O, CO2, H2,
+and He are considered in the database.
+It should be noted, that both line data formats can behandled simultaneously
+within one calculation (writing to file of mixed format data, however, is not
+possible).
+
+Besides its own internal format, ARTS can also read several other catalogue
+formats, in particular HITRAN and JPL format. If these other catalogues are used,
+line data are converted to the internal ARTSCAT-3 representation during
 reading. In other words, all unit conversions are done by the reading
 routines.
 
-The ARTS internal spectral line data files contain an XML header and
-footer, and between them one entry for each spectral line. Each entry
-starts with with an `@' character. It then contains the different line
+The ARTS internal spectral line data files (both ARTSCAT-3 and -4) contain
+an XML header and footer, and between them one entry for each spectral line.
+Each entry starts with with an `@' character. It then contains the different line
 parameters, separated by one or more blank characters. Scientific
 notation is allowed, e.g. 501.12345e9.  
 
@@ -854,14 +877,17 @@ parameters is not limited by the format.
 The first column of each entry contains the species and isotopologue,
 following the naming scheme described below. Note that the intensity
 is per molecule, i.e., it does not contain the isotopologue ratio. This is
-similar to JPL, but different to HITRAN.  The line format is:
+similar to JPL, but different to HITRAN.
+The definition of the further entries differ between the two ARTSCAT
+representations.
 
+\paragraph*{ARTSCAT-3 line format is:}
 \begin{code}
 
 Col  Variable                     Label    Unit     
 -----------------------------------------------      
  0   `@'                         ENTRY        -     
- 1   name                         NAME        -     
+ 1   molecule & isotopologue tag  NAME        -
  2   center frequency                F       Hz     
  3   pressure shift of F           PSF    Hz/Pa    
  4   line intensity per molecule    I0   m^2/Hz     
@@ -895,7 +921,51 @@ other species, e.g., methane, may need more coefficients. The default
 for \texttt{N\_AUX} is zero. In that case, no further \texttt{AUX}
 fields are present.
 
-\subsection{Species-specific data}
+\paragraph*{The line format of ARTSCAT-4 is:}
+\begin{code}
+
+Col  Variable                        Label    Unit
+--------------------------------------------------
+ 0   `@'                             ENTRY       -
+ 1   molecule & isotopologue tag      NAME       -
+ 2   center frequency                    F      Hz
+ 3   line intensity                     I0  Hz*m^2
+ 4   reference temp. for I0           T_I0       K
+ 5   lower state energy               ELOW       J
+ 6   Einstein A-coefficient              A     1/s 
+ 7   Upper state stat. weight      G_upper       -
+ 8   Lower state stat. weight      G_lower       -
+ 9   broadening parameter self  GAMMA_self   Hz/Pa
+10   broadening parameter N2      GAMMA_N2   Hz/Pa
+11   broadening parameter O2      GAMMA_O2   Hz/Pa
+12   broadening parameter H2O    GAMMA_H2O   Hz/Pa
+13   broadening parameter CO2    GAMMA_CO2   Hz/Pa
+14   broadening parameter H2      GAMMA_H2   Hz/Pa
+15   broadening parameter He      GAMMA_He   Hz/Pa
+16   GAM temp. exponent self        N_self       -
+17   GAM temp. exponent N2            N_N2       -
+18   GAM temp. exponent O2            N_O2       -
+19   GAM temp. exponent H2O          N_H2O       -
+20   GAM temp. exponent CO2          N_CO2       -
+21   GAM temp. exponent H2            N_H2       -
+22   GAM temp. exponent He            N_He       -
+23   F pressure shift N2          DELTA_N2   Hz/Pa
+24   F pressure shift O2          DELTA_O2   Hz/Pa   
+25   F pressure shift H2O        DELTA_H2O   Hz/Pa   
+26   F pressure shift CO2        DELTA_CO2   Hz/Pa   
+27   F pressure shift H2          DELTA_H2   Hz/Pa   
+28   F pressure shift He          DELTA_He   Hz/Pa   
+29   Vib. & rotational assignments     VRA       -                      
+
+\end{code}
+Parameters 0-28 must be present. Parameter 29 contains coded quantum numbers.
+The coding conventions are species specific. The definitions are given in file
+\shortcode{ARTSCAT-4\_Col29\_Conventions.txt}, which is available along with
+the first incarnation of an ARTSCAT-4 type spectroscopic catalog from the
+\shortcode{arts-xml-data} data package.
+
+
+\subsection{Species-specific data in ARTS}
 
 A line absorption species in ARTS is a particular isotopologue of a
 particular molecule.  Quantities such as the molecular mass and the
@@ -912,21 +982,24 @@ list of all species-specific information that is needed:
 
 These data are currently stored in two source code files,
 \fileindex{species\_data.cc} and \fileindex{partition\_function\_data.cc}. 
-It is planned to change this in the not too far future, at least for
-the isotopologue ratios, in order to allow calculations for other
-planets. The data will then be read from include files instead.
+That is, currently these data are hard-coded and can not be changed via
+controlfile settings.
+In order to allow calculations for other planets, we are going to change
+this in the not too far future, at least for the isotopologue ratios. It is
+planned, that the data will then be read from include files instead.
 
 \citet{buehler:artst:05} contains an explicit list of species that
-were implemented at the time of writing and their data.  We do not
-have such a list here, because it is too hard to maintain.  Currently,
-the best is to look directly in file \shortcode{species\_data.cc}.
-The different data sources are also documented there.
+were implemented at the time of writing of that article.  We do not include
+such a list here, because it is hard to maintain. Instead, we directly refer
+the user to check for the implemented species directly in file
+\shortcode{species\_data.cc}. There, also the different sources of data
+are documented.
 
 \subsubsection{Partition function data}
 
 ARTS uses third order polynomials to approximate partition functions,
 so four polynomial coefficients have to be stored for each isotopologue
-species. These data can be found in file
+species. These data is stored in file
 \fileindex{partition\_function\_data.cc}. The file also contains
 documentation, including the source of the data for the different species.
 
@@ -935,32 +1008,49 @@ the impact of partition function errors on sub-millimeter wave limb
 sounder retrievals, was studied in detail in \citet{cverdes:05}. The
 partition function data collection in ARTS is based on that study.
 
-The data are from three different sources:
+In general, the data in general are derived from the following sources:
 \begin{description}
-\item[TIPS\_2003:]  Default.
-\item[JPL:] Only Species (including individual isotopologues) not covered by TIPS\_2003.
-\item[Agnes Perrin:] Personal communication, only species BrO.
+\item[TIPS:] Default.
+\item[JPL:] Only species (including individual isotopologues) not covered by TIPS.
+\item[Agnes Perrin:] Personal communication, only for species BrO.
 \end{description}
 
-In most cases, we calculated the coefficients using TIPS\_2003,
-provided by B. Gamache.  The program was obtained from the `Software
-and Data' section of the web page
-\url{http://faculty.uml.edu/robert_gamache/}.  It includes the data
-for all molecular species found in the 2000 HITRAN database.
-  
+The TIPS program is developed and maintained by B. Gamache. In conjunction
+with HITRAN it is the suggested way to derive the partition functions and is part of the HITRAN distributions. More recent versions might be available via B. Gmache's website (\url{http://faculty.uml.edu/robert_gamache/}, `Software and Data' section). TIPS covers all molecular species and isotopolgues found in the respective version of the HITRAN database. Often it includes some more species than HITRAN, and extensions for other species (e.g., species of astrophysical interest) can be derived from the Gamache website.
+
+Earlier versions of TIPS (until at least 1997) provided 3rd order polynomial
+coefficients, which were then used in ARTS.
+Newer versions (from at latest 2003) provide partition
+functions for a specific molecule and isotopologue at a specific temperature,
+and tabulated values can be obtained through successive runs of the program.
+Polynomial coefficients then need to be derived by a fit to the TIPS output.
+Here, partition functions were calculated on a 1K-step grid, and the polynomial
+coefficients derived by a least-square fit between 150\,--\,300\,K (unless
+otherwise noted in \fileindex{partition\_function\_data.cc}).
+
 The coefficients for the few species which are not covered in
-TIPS\_2003 were calculated from JPL values. The JPL catalogue has a
-different way to calculate the partition function, it gives the
-partition function at specific temperatures: 300, 225, 150, 75, 37.5,
-18.75, 9.375 K and an interpolation scheme is given for values
-inbetween. The partition functions are proportional to temperature
-$T^1.5$ for non-linear molecules (degrees of freedom: 3) and
-proportional to $T$ for linear molecules (degrees of freedom
-2).
+TIPS are calculated from JPL values. The JPL catalogue has a
+different way to calculate the partition function. It provides the
+partition function at a set of specific temperatures: 300, 225, 150, 75, 37.5,
+18.75, 9.375 K. An interpolation scheme is given for values
+inbetween: the partition functions are assumed to be proportional to $T^{1.5}$
+for non-linear molecules (degrees of freedom: 3) and proportional to $T$ for
+linear molecules (degrees of freedom 2).
+From these data polynomial coefficients are derived in the same way as from TIPS
+output: first, partition functions are tabulated on a 1K-step grid, then a
+least-square fit over T\,=\,150\,--\,300\,K is performed.
 
 The partition function data for BrO were provided by Agnes
 Perrin, Orsay, France.
 
+The temperature range used for deriving the polynomial fit was judged to be
+representative of the range of temperatures occuring in the Earth atmosphere.
+For calculations in planetary atmospheres it might be advantageous being able to
+use other data, e.g. such derived for temperatures prevailing there. We are
+exploring options to allow for that (e.g., read data from include files as
+planned for isotopologue ratios, or replacement of parameterized partition
+functions by directly calculated one through embedding TIPS and the JPL scheme
+in ARTS).
 
 % ================================================================================
 % The following section was originally written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de

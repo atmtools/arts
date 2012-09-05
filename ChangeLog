@@ -1,3 +1,23 @@
+2012-09-05  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-261
+
+	* doc/uguide/absorption.tex: Updated. Separate subsec for
+	absorption-with-no-RT. Refer to ATG for details on isotop. ratios and
+	partition function data.
+
+	* doc/uguide/absorption_theory.tex: Updated. Added info on ARTSCAT-4
+	and its format. Redone and completed part on partition function
+	implementation & derivation.
+
+	* src/workspace.cc (abs_coef,abs_coef_per_species:
+	Concretized documentation.
+
+	* src/methods.cc: (abs_mat_per_speciesAddFromLookup) linkname fix, 
+	(GriddedFieldLatLonExpand) documentation corrected.
+
+	* src/absorption.h: Fixed layout of line format tables.
+
 2012-09-05  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-260

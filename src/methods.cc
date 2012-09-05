@@ -1296,7 +1296,7 @@ void define_md_data_raw()
          "Use extpolfac to control how much extrapolation to tolerate before throwing\n"
          "a runtime error. Default is to allow ten times the outermost grid distance.\n"
          "\n"
-         "See also: *abs_mat_per_speciesCalcLBL*.\n"
+         "See also: *abs_mat_per_speciesAddLBL*.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
         OUT( "abs_mat_per_species" ),
@@ -4175,7 +4175,8 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Expands the latitude and longitude grid of the GriddedField to\n"
-         "[-90, 90] and [0,360]. Lat and lon input grids must have size 1.\n"
+         "[-90, 90] and [0,360], respectively. Expansion is only done in"
+         "the dimension(s), where the grid size is 1.\n"
          "The values from the input data will be duplicated to accomodate\n"
          "for the larger size of the output field.\n"
          "gfield_raw_out and gfield_raw_in can be the same variable.\n"

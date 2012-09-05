@@ -79,6 +79,7 @@ executed many times over, for different points in the atmosphere.
 Typical contents of this agenda are as follows:
 
 \subsection{On-the-fly absorption}
+\label{sec:absorption:abs-rt-otf}
 
 \begin{code}
 AgendaSet( abs_mat_per_species_agenda )
@@ -133,13 +134,12 @@ then linearly interpolating the pre-calculated absorption data.
 \label{sec:absorption:calculating}
 
 This section deals with calculating gas absorption matrices in
-ARTS.  This typically occurs in two different contexts, either
-on-the-fly in the radiative transfer calculation (see Section
-\ref{sec:absorption:abs-rt}), or when preparing a gas absorption
-lookup table (see Section \ref{sec:absorption:lookup}).  A third and
-more unusual case is that the user is only interested in the
-absorption itself, for a particular atmospheric scenario, and not in
-the radiative transfer simulation.
+ARTS.  This can typically occur in three different contexts:
+as on-the-fly absorption matrix calculation within the radiative transfer
+calculation (see Section \ref{sec:absorption:abs-rt-otf}), when preparing
+a gas absorption lookup table (see Section \ref{sec:absorption:lookup}),
+or when the user is only interested in the absorption itself (see Section
+\ref{sec:absorption:abs-only}), but not in the radiative transfer simulation.
 
 In all these cases, the same core absorption routines will be used,
 although the interfaces differ. 
@@ -172,10 +172,10 @@ Tags can be combined, if they refer to the same molecule
 (different isotopologues are allowed). Even continuum tags can be combined
 with explicit line-by-line tags, if they refer to the same molecule.
 
-It should be noted that isotopic ratios are taken into account
+It should be noted that isotopologue ratios are taken into account
 implicitly when line strengths are calculated, so even if you make
 calculations for individual isotopologues, the VMR numbers in the
-variable \wsvindex{vmr\_field} should not be adjusted for the isotopic
+variable \wsvindex{vmr\_field} should not be adjusted for the isotopologue
 ratio. As an example, to make a line-by-line calculation for all ozone
 isotopologues, you could represent them in different ways by
 \wsmindex{SpeciesSet}.
@@ -209,8 +209,11 @@ the ARTS \fileindex{includes} directory.
 
 For absorption species with explicit line-by-line calculation the
 calculation involves the steps summarized in Table
-\ref{tab:absorption:lbl}. The list of variables and methods in the
-table is not complete, the idea is to give an overview over the
+\ref{tab:absorption:lbl}, containing the steps that are common to all the
+three contexts in which explicit line-by-line calculations can occur as well
+as the steps that are specific to each of those cases. 
+The list of variables and methods in the
+table is not complete. The idea is to give an overview over the
 important ones and show how they work together. Missing are
 particularly the input variables that describe the atmospheric
 conditions, and continuum description variables, which normally do not
@@ -219,13 +222,16 @@ have to be set by the user anyway.
 \begin{table}
 \footnotesize
 \renewcommand{\arraystretch}{1.5}
+\newcounter{rownum}
+\newcommand{\mylabel}[1]{\refstepcounter{rownum} \label{#1}}
 \begin{tabularx}{\hsize}{l>{\raggedright\arraybackslash\hsize=0.5\hsize}X
                           >{\raggedright\arraybackslash\hsize=1.5\hsize}X}
 \hline
 \# & Step & Variables and Methods \\
 \hline
 %---------------------------------------------------------------------
-1 & 
+\mylabel{step:lineshape}
+\arabic{rownum} & 
 Define line shape function(s) to use. &
 Variable:
 \wsvindex{abs\_lineshape}. \newline
@@ -234,7 +240,8 @@ Methods:
 \wsmindex{abs\_lineshape\_per\_tgDefine} (different shapes for different
 species). \\
 %---------------------------------------------------------------------
-2 &
+\mylabel{step:readline}
+\arabic{rownum} &
 Read spectral line data (the order of the first two steps does not
 matter). &
 Variable: \wsvindex{abs\_lines}. \newline
@@ -248,7 +255,8 @@ different catalogue formats). For the ARTS internal format, the
 standard method \wsmindex{ReadXML} works also, but does not allow to
 select a frequency range, as the others do. \\
 %---------------------------------------------------------------------
-3 &
+\mylabel{step:splitline}
+\arabic{rownum} &
 Split line data for different absorption species. &
 Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods:
@@ -256,7 +264,8 @@ Methods:
 lines from different catalogues for different species directly with
 \wsmindex{abs\_lines\_per\_speciesReadFromCatalogues}. \\
 %---------------------------------------------------------------------
-4 &
+\mylabel{step:optline}
+\arabic{rownum} &
 Optimize line data. &
 Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods: Add mirror lines for VVW line shape with
@@ -269,7 +278,8 @@ line shape cutoff with \wsmindex{abs\_lines\_per\_speciesCompact}. \\
   have to be done only once per ARTS run. The fifth step is the actual
   absorption calculation, which can occur in different contexts.} \\
 %---------------------------------------------------------------------
-5a &
+\mylabel{step:calc}
+\arabic{rownum}a &
 Calculate absorption on-the-fly. &
 Agenda: \wsaindex{abs\_mat\_per\_species\_agenda}. \newline
 Variable: \wsvindex{abs\_mat\_per\_species}, which is nitialized in \wsmindex{abs\_mat\_per\_speciesInit}.\newline
@@ -278,17 +288,17 @@ Methods: \wsmindex{abs\_mat\_per\_speciesAddLBL} and \wsmindex{abs\_mat\_per\_sp
 pre-calculated lookup table). Note that the lookup table cannot contain absorption for
 Zeeman tagged species due to the dependency on magnetic field strength and direction of these.\\
 %---------------------------------------------------------------------
-5b &
+\arabic{rownum}b &
 Calculate absorption lookup table. &
 Variable: \wsvindex{abs\_lookup}. \newline
 Methods: \wsvindex{abs\_lookupCreate}. Alternative: Load lookup table
 from file with \wsmindex{ReadXML}, it then has to be adapted to the
 current calculation (and checked) with \wsmindex{abs\_lookupAdapt}. \\ 
 %---------------------------------------------------------------------
-5c &
-Just calculate absorption (not for RT purposes). &
-Variable: \wsvindex{abs\_coef}. \newline
-Methods, high level: \wsvindex{abs\_coefCalc},
+\arabic{rownum}c &
+Calculate absorption only (no RT). &
+Variable: \wsvindex{abs\_mat\_field},\wsvindex{abs\_coef}. \newline
+Methods, high level: \wsmindex{abs\_mat\_fieldCalc}, \wsmindex{abs\_coefCalc},
 \wsmindex{abs\_coefCalcSaveMemory}. \newline
 Methods, low level: \newline
 \wsmindex{abs\_xsec\_per\_speciesInit}, \newline
@@ -306,15 +316,30 @@ from absorption cross-sections). \\
 \label{tab:absorption:lbl}
 \end{table}
 
-Chapter \ref{T-sec:abs_theory} of \theory\ contains more information on
-the internal format of the spectral line data.  It also contains
-theoretical background for the calculation itself.  
-
 See the built-in documentation of the various variables and methods
 for more information.  It is on purpose not repeated here, for better
 maintainability.  If you are viewing this pdf file on a computer, just
 click on a variable or method name to get to the corresponding
 built-in documentation. 
+
+%\subsection{Spectral line data and other input}
+%\label{sec:absorption:spec}
+
+Important input to the line-by-line calculations is the spectral line data,
+usually provided by spectroscopic catalogues. ARTS has its own format for the
+spectral line data, but is also capable of handling data from other catalogues
+like HITRAN (both pre- and post-2004 formats) and JPL (see Table
+\ref{tab:absorption:lbl}, step \ref{step:readline}).
+Chapter \ref{T-sec:abs_theory} of \theory\ contains more information on
+the internal format of the spectral line data.  It also contains
+theoretical background for the calculation itself.
+
+Some parameters required for line-by-line absorption calculations,
+specifically isotopologue ratios and partition functions, are at the moment
+hard-coded into ARTS. That is, no settings related to those have to be or
+can be done on the user level. For more information on theoretical baxckground
+as well as the source and implementation of those parameters in ARTS see Section
+\ref{T-sec:abs_theory:line_absorption} of \theory.
 
 \subsection{Continua and complete absorption models}
 \label{sec:absorption:continua}
@@ -603,19 +628,20 @@ be used inside the agenda \wsaindex{abs\_mat\_per\_species\_agenda},
 which is used in several places where absorption matrices are
 needed, both inside the scattering box and outside.
 
-It is also possible to calculate absorption for the entire atmospheric
-field.  This is done by the method \wsmindex{abs\_fieldCalc}, and is
-useful for testing and plotting gas absorption. (For RT calculations,
-gas absorption is calculated or extracted locally, therefore there is
-no need to calculate a global field. But the
-\builtindoc{abs\_fieldCalc} method is handy for easy plotting of
-absorption vs. pressure, for example.)
+\section{Stand-alone gas absorption calculation}
+\label{sec:absorption:abs-only}
 
-Because of the different usage contexts, the method
-\builtindoc{abs\_mat\_per\_speciesAddFromLookup} can calculate absorption
-either for all frequencies in the frequency grid (input variable
-\wsvindex{f\_index}$<$0), or just for the frequency indicated by the
-input variable \builtindoc{f\_index} (\builtindoc{f\_index}$>=$0).
+Within the RT calculations, gas absorption is calculated or extracted locally,
+i.e., for a specific point in the atmosphere or in other words for a specific
+set of pressure, temperature, and trace gas VMR. However, sometimes it is of
+interest to explicitly calculate and output absorption, e.g., for testing and
+validating modules of the absorption calculation,  for model comparisons, for
+plotting and analyzing absorption coefficients, etc.
+Table \ref{tab:absorption:lbl}, step \ref{step:calc}c lists high- and low-level
+workspace methods for this purpose.
+In particular, the method \wsmindex{abs\_mat\_fieldCalc} provides the absorption
+matrices, i.e., polarized absorption coefficients, per species tag group for
+an entire atmospheric scenario and the complete frequency grid.
 
 
 %%% Local Variables: 

@@ -116,7 +116,7 @@ void Workspace::define_wsv_data()
      ( NAME( "abs_coef" ),
        DESCRIPTION
        (
-        "The matrix of total absorption coefficients.\n"
+        "The matrix of total scalar absorption coefficients.\n"
         "\n"
         "This variable is not used explicitly in a standard calculation, where\n"
         "absorption comes from the lookup table *abs_lookup*. However, it is\n"
@@ -136,9 +136,10 @@ void Workspace::define_wsv_data()
      ( NAME( "abs_coef_per_species" ),
        DESCRIPTION
        (
-        "These are the absorption coefficients individually for each\n"
-        "tag group. The Array contains one matrix for each tag group,\n"
-        "the matrix format is the same as that of abs_coef\n"
+        "Scalar absorption coefficients individually per tag group.\n"
+        "\n"
+        "The Array contains one matrix of absorption coefficients for each tag\n"
+        " group, where the matrix format is the same as that of *abs_coef*\n"
         ),
        GROUP( "ArrayOfMatrix" )));
 

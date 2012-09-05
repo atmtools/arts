@@ -428,10 +428,10 @@ private:
     The line format of ARTSCAT-3 (for ARTSCAT-4 see further below) is:
 
     \verbatim
-    Col  Variable                Label    Unit     Comment
+    Col  Variable                    Label     Unit    Comment
     ------------------------------------------------------------------      
      0   `@'                         ENTRY        -    marks start of entry
-     1   name                         NAME        -    e.g. O3-666
+     1    species\&isotopologue tag   NAME        -    e.g. O3-666
      2   center frequency                F       Hz    e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
      4   line intensity                 I0    Hz*m^2   per isotopologue, not per species
@@ -485,7 +485,7 @@ private:
     Col  Variable                    Label        Unit    Comment
     ------------------------------------------------------------------      
     00   `@'                         ENTRY        -       marks start of entry
-    01   species\&isotopologue tag        NAME         -       e.g. O3-666
+    01   species\&isotopologue tag   NAME         -       e.g. O3-666
     02   center frequency            F            Hz      e.g. 501.12345e9 
     03   line intensity              I0           Hz*m^2  per isotopologue, not per species
     04   reference temp. for I0      T_I0         K
