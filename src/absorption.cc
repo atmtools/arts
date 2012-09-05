@@ -123,44 +123,58 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
       
       break;
       
-    case 4:
-      os << "@"
-      << " " << lr.Name  ()
-      << " "
-      << setprecision(precision)
-      <<        lr.F()
-      << " " << lr.I0()
-      << " " << lr.Ti0()
-      << " " << lr.Elow()
-      << " " << lr.A()
-      << " " << lr.G_upper()
-      << " " << lr.G_lower()
-      << " " << lr.Gamma_self()
-      << " " << lr.Gamma_N2()
-      << " " << lr.Gamma_O2()
-      << " " << lr.Gamma_H2O()
-      << " " << lr.Gamma_CO2()
-      << " " << lr.Gamma_H2()
-      << " " << lr.Gamma_He()
-      << " " << lr.Gam_N_self()
-      << " " << lr.Gam_N_N2()
-      << " " << lr.Gam_N_O2()
-      << " " << lr.Gam_N_H2O()
-      << " " << lr.Gam_N_CO2()
-      << " " << lr.Gam_N_H2()
-      << " " << lr.Gam_N_He()
-      << " " << lr.Delta_N2()
-      << " " << lr.Delta_O2()
-      << " " << lr.Delta_H2O()
-      << " " << lr.Delta_CO2()
-      << " " << lr.Delta_H2()
-      << " " << lr.Delta_He()
-      << " " << lr.Upper_GQuanta()
-      << " " << lr.Lower_GQuanta()
-      << " " << lr.Upper_LQuanta()
-      << " " << lr.Lower_LQuanta();
+    case 4: {
+      ostringstream ls;
 
+      ls << "@"
+         << " " << lr.Name  ()
+         << " "
+         << setprecision(precision)
+         <<        lr.F()
+         << " " << lr.I0()
+         << " " << lr.Ti0()
+         << " " << lr.Elow()
+         << " " << lr.A()
+         << " " << lr.G_upper()
+         << " " << lr.G_lower()
+         << " " << lr.Sgam();
+      
+      for (Index s=0; s<6; ++s)
+        ls << " " << lr.Gamma_foreign(s);
+//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_N2)
+//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_O2)
+//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_H2O)
+//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_CO2)
+//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_H2)
+//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_He)
+
+      ls << " " << lr.Nself();
+      for (Index s=0; s<6; ++s)
+        ls << " " << lr.N_foreign(s);
+//      << " " << lr.N_foreign(LineRecord::SPEC_POS_N2)
+//      << " " << lr.N_foreign(LineRecord::SPEC_POS_O2)
+//      << " " << lr.N_foreign(LineRecord::SPEC_POS_H2O)
+//      << " " << lr.N_foreign(LineRecord::SPEC_POS_CO2)
+//      << " " << lr.N_foreign(LineRecord::SPEC_POS_H2)
+//      << " " << lr.N_foreign(LineRecord::SPEC_POS_He)
+
+      for (Index s=0; s<6; ++s)
+        ls << " " << lr.Delta_foreign(s);
+//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_N2)
+//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_O2)
+//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_H2O)
+//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_CO2)
+//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_H2)
+//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_He)
+      ls << " " << lr.Upper_GQuanta()
+         << " " << lr.Lower_GQuanta()
+         << " " << lr.Upper_LQuanta()
+         << " " << lr.Lower_LQuanta();
+
+      os << ls.str();
+      
       break;
+    }
       
     default:
       os << "Unknown ARTSCAT version: " << lr.Version();
@@ -2187,30 +2201,41 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       icecream >> mglower;
 
       // Extract broadening parameters:
-      icecream >> mgamma_self;
-      icecream >> mgamma_n2;
-      icecream >> mgamma_o2;
-      icecream >> mgamma_h2o;
-      icecream >> mgamma_co2;
-      icecream >> mgamma_h2;
-      icecream >> mgamma_he;
+      icecream >> msgam;
+
+      mgamma_foreign.resize(6);
+      for (Index s=0; s<6; ++s)
+          icecream >> mgamma_foreign[s];
+//      icecream >> mgamma_n2;
+//      icecream >> mgamma_o2;
+//      icecream >> mgamma_h2o;
+//      icecream >> mgamma_co2;
+//      icecream >> mgamma_h2;
+//      icecream >> mgamma_he;
       
       // Extract GAM temp. exponents:
-      icecream >> mn_self;
-      icecream >> mn_n2;
-      icecream >> mn_o2;
-      icecream >> mn_h2o;
-      icecream >> mn_co2;
-      icecream >> mn_h2;
-      icecream >> mn_he;
+      icecream >> mnself;
+    
+      mn_foreign.resize(6);
+      for (Index s=0; s<6; ++s)
+          icecream >> mn_foreign[s];
+//      icecream >> mn_n2;
+//      icecream >> mn_o2;
+//      icecream >> mn_h2o;
+//      icecream >> mn_co2;
+//      icecream >> mn_h2;
+//      icecream >> mn_he;
 
       // Extract F pressure shifts:
-      icecream >> mdelta_n2;
-      icecream >> mdelta_o2;
-      icecream >> mdelta_h2o;
-      icecream >> mdelta_co2;
-      icecream >> mdelta_h2;
-      icecream >> mdelta_he;
+      mdelta_foreign.resize(6);
+      for (Index s=0; s<6; ++s)
+          icecream >> mdelta_foreign[s];
+//      icecream >> mdelta_n2;
+//      icecream >> mdelta_o2;
+//      icecream >> mdelta_h2o;
+//      icecream >> mdelta_co2;
+//      icecream >> mdelta_h2;
+//      icecream >> mdelta_he;
 
       {
           String qstr1 = line.substr(288,      12);
@@ -2279,25 +2304,25 @@ void find_broad_spec_locations(ArrayOfIndex broad_spec_locations,
   assert(this_species<abs_species.nelem());
   
   // Number of broadening species:
-  const Index nbs = 6;
+  const Index nbs = LineRecord::NBroadSpec();
   
   // Resize output array:
   broad_spec_locations.resize(nbs);
   
-  // Set broadening species names, using the enums defined in absorption.h.
-  // This is hardwired here and quite primitive, but should do the job.
-  ArrayOfString broad_spec_names(nbs);
-  broad_spec_names[SPEC_POS_N2]  = "N2";
-  broad_spec_names[SPEC_POS_O2]  = "O2";
-  broad_spec_names[SPEC_POS_H2O] = "H2O";
-  broad_spec_names[SPEC_POS_CO2] = "CO2";
-  broad_spec_names[SPEC_POS_H2]  = "H2";
-  broad_spec_names[SPEC_POS_He]  = "He";
+//  // Set broadening species names, using the enums defined in absorption.h.
+//  // This is hardwired here and quite primitive, but should do the job.
+//  ArrayOfString broad_spec_names(nbs);
+//  broad_spec_names[LineRecord::SPEC_POS_N2]  = "N2";
+//  broad_spec_names[LineRecord::SPEC_POS_O2]  = "O2";
+//  broad_spec_names[LineRecord::SPEC_POS_H2O] = "H2O";
+//  broad_spec_names[LineRecord::SPEC_POS_CO2] = "CO2";
+//  broad_spec_names[LineRecord::SPEC_POS_H2]  = "H2";
+//  broad_spec_names[LineRecord::SPEC_POS_He]  = "He";
   
   // Loop over all broadening species and see if we can find them in abs_species.
   for (Index i=0; i<nbs; ++i) {
     // Find associated internal species index (we do the lookup by index, not by name).
-    const Index isi = species_index_from_species_name(broad_spec_names[i]);
+    const Index isi = species_index_from_species_name(LineRecord::BroadSpecName(i));
     
     // First check if this species is the same as this_species
     if ( isi == abs_species[this_species][0].Species() )
@@ -2312,6 +2337,94 @@ void find_broad_spec_locations(ArrayOfIndex broad_spec_locations,
   }
 }
 
+/** Calculate line width and pressure shift for artscat4.
+ 
+    \retval gamma Line width [Hz].
+    \retval deltaf Pressure shift [Hz].
+    \param p Pressure [Pa].
+    \param  t Temperature [K].
+    \param  vmrs Vector of VMRs for different species [dimensionless].
+    \param  this_species Index of current species in vmrs.
+    \param  broad_spec_locations Has length of number of allowed broadening species
+                                 (6 in artscat-4). Gives for each species the position
+                                 in vmrs, or negative if it should be ignored. See 
+				 function find_broad_spec_locations for details.
+    \param  l_l Spectral line data record (a single line).
+    \param  verbosity Verbosity flag.
+
+    \author Stefan Buehler
+    \date   2012-09-05
+ */
+void calc_gamma_and_deltaf_artscat4(Numeric gamma,
+                                    Numeric deltaf,
+                                    const Numeric p,
+                                    const Numeric t,
+                                    ConstVectorView vmrs,
+                                    const Index this_species,
+                                    const ArrayOfIndex& broad_spec_locations,
+                                    const LineRecord& l_l,
+                                    const Verbosity& verbosity )
+{
+    // Number of broadening species:
+    const Index nbs = LineRecord::NBroadSpec();
+    assert(nbs==broad_spec_locations.nelem());
+  
+    // Theta is reference temperature divided by local temperature. Used in
+    // several place by the broadening and shift formula.
+    const Numeric theta = l_l.Ti0() / t;
+    
+    // Calculate sum of VMRs of all available broadening species (we need this
+    // for normalization). Initialize with self VMR, we'll add the other later:
+    Numeric broad_spec_vmr_sum = vmrs[this_species];
+
+    // Gamma is the line widht. Initialize with the 
+    // self broadening:
+    gamma =  l_l.Sgam() * pow(theta, l_l.Nself()) * vmrs[this_species];
+    
+    // There is no self shift parameter (or rather, we do not have it), so
+    // initialize shift to 0:
+    deltaf = 0;
+    
+    // Add other broadening species, where available:
+    for (Index i=0; i<nbs; ++i)
+        if ( broad_spec_locations[i] >= 0 ) {
+
+            // Add to VMR sum:
+            broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
+
+            // foreign broadening:
+            gamma +=  l_l.Gamma_foreign(i) * pow(theta, l_l.N_foreign(i))
+            * vmrs[broad_spec_locations[i]];
+         
+            // Pressure shift:
+            // The T dependence is connected to that of the corresponding
+            // broadening parameter by:
+            // n_shift = .25 + 1.5 * n_gamma
+            deltaf += l_l.Delta_foreign(i)
+                      * pow( theta , (Numeric).25 + (Numeric)1.5*l_l.N_foreign(i) )
+                      * vmrs[broad_spec_locations[i]];
+        }
+    
+    // Check that sum is not too far from 1:
+    if ( abs(broad_spec_vmr_sum-1) > 0.1 )
+      {
+        CREATE_OUT1;
+        out1 << "Warning: The total VMR of all your defined broadening\n"
+             << "species is " << broad_spec_vmr_sum << ", more than 10% "
+             << "different from 1.\n";
+      }
+  
+    // Multiply by total pressure and normalize to make sure that the total
+    // width and shift are proportional to the
+    // total pressure. This would naturally be the case if broad_spec_vmr_sum
+    // was 1, but is violated if the sum is not 1. Two obvious strategies to
+    // compensate are a) scale gamma accordingly (assume that the relative amounts
+    // in VMRs are right), or b) assign all missing VMR to of those species that
+    // represent the background atmosphere. Option b seems to difficult in
+    // practice, so we chose a.
+    gamma  *= p / broad_spec_vmr_sum;
+    deltaf *= p / broad_spec_vmr_sum;
+}
 
 /** Calculate line absorption cross sections for one tag group. All
     lines in the line list must belong to the same species. This must
@@ -2340,8 +2453,6 @@ void find_broad_spec_locations(ArrayOfIndex broad_spec_locations,
     \param ind_lsn      Index to lineshape norm.
     \param cutoff       Lineshape cutoff.
 
-    FIXME: Update above!
- 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 
 
@@ -2720,12 +2831,18 @@ void xsec_species( MatrixView               xsec,
               // Here there is a difference betweeen catalogue version 4
               // (from ESA planetary study) and earlier catalogue versions.
               Numeric gamma;     // The line width.
+              Numeric deltaf;    // Pressure shift.
               if (l_l.Version() == 4)
                 {
-                  //                  gamma = calc_gamma_artscat4();
-                  gamma = 0; // FIXME remove
-
-                  // FIXME: Pressure shift!
+                  calc_gamma_and_deltaf_artscat4(gamma,
+                                                 deltaf,
+                                                 p_i,
+                                                 t_i,
+                                                 all_vmrs(joker,i),
+                                                 this_species,
+                                                 broad_spec_locations,
+                                                 l_l,
+                                                 verbosity);
                 }
               else if (l_l.Version() == 3)
                 {
@@ -2777,7 +2894,7 @@ void xsec_species( MatrixView               xsec,
                   // The T dependence is connected to that of agam by:
                   // n_shift = .25 + 1.5 * n_agam
                   // Theta has been initialized above.
-                  F0 += Psf * p_i *
+                  deltaf = Psf * p_i *
                   std::pow( theta , (Numeric).25 + (Numeric)1.5*Nair );
                   
                 }
@@ -2787,6 +2904,9 @@ void xsec_species( MatrixView               xsec,
                   // further up.
                   assert(false);
                 }
+              
+              // Apply pressure shift:
+              F0 += deltaf;
               
               // 3. Doppler broadening without the sqrt(ln(2)) factor, which
               // seems to be redundant.

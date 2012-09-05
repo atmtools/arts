@@ -537,7 +537,7 @@ private:
 */
 class LineRecord {
 public:
-
+    
   /** Make the helper function linesElowToJoule a friend, so that it
       can change the lower state energy. FIXME: Remove this when we
       don't need the helper function anymore. */
@@ -754,74 +754,83 @@ public:
   /** Accuracy for pressure shift in <b> relative value </b>: */
   Numeric dPsf() const { return mdpsf; }
 
-  /** Einstein A-coefficient in <b> 1/s </b>: */
+  /** ARTSCAT-4 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
   
-  /** Upper state stat. weight: */
+  /** ARTSCAT-4 Upper state stat. weight: */
   Numeric G_upper() const { return mgupper; }
   
-  /** Lower state stat. weight: */
+  /** ARTSCAT-4 Lower state stat. weight: */
   Numeric G_lower() const { return mglower; }
   
-  /** Broadening parameter self in <b> Hz/Pa </b>: */
-  Numeric Gamma_self() const { return mgamma_self; }
-  
-  /** Broadening parameter N2 in <b> Hz/Pa </b>: */
-  Numeric Gamma_N2() const { return mgamma_n2; }
-  
-  /** Broadening parameter O2 in <b> Hz/Pa </b>: */
-  Numeric Gamma_O2() const { return mgamma_o2; }
-  
-  /** Broadening parameter H2O in <b> Hz/Pa </b>: */
-  Numeric Gamma_H2O() const { return mgamma_h2o; }
-  
-  /** Broadening parameter CO2 in <b> Hz/Pa </b>: */
-  Numeric Gamma_CO2() const { return mgamma_co2; }
-  
-  /** Broadening parameter H2 in <b> Hz/Pa </b>: */
-  Numeric Gamma_H2() const { return mgamma_h2; }
-  
-  /** Broadening parameter He in <b> Hz/Pa </b>: */
-  Numeric Gamma_He() const { return mgamma_he; }
-  
-  /** GAM temp. exponent N self: */
-  Numeric Gam_N_self() const { return mn_self; }
-  
-  /** GAM temp. exponent N N2: */
-  Numeric Gam_N_N2() const { return mn_n2; }
-  
-  /** GAM temp. exponent N O2: */
-  Numeric Gam_N_O2() const { return mn_o2; }
-  
-  /** GAM temp. exponent N H2O: */
-  Numeric Gam_N_H2O() const { return mn_h2o; }
-  
-  /** GAM temp. exponent N CO2: */
-  Numeric Gam_N_CO2() const { return mn_co2; }
-  
-  /** GAM temp. exponent N H2: */
-  Numeric Gam_N_H2() const { return mn_h2; }
-  
-  /** GAM temp. exponent N He: */
-  Numeric Gam_N_He() const { return mn_he; }
-  
-  /** F Pressure shift N2 in <b> Hz/Pa </b>: */
-  Numeric Delta_N2() const { return mdelta_n2; }
-  
-  /** F Pressure shift O2 in <b> Hz/Pa </b>: */
-  Numeric Delta_O2() const { return mdelta_o2; }
-  
-  /** F Pressure shift H2O in <b> Hz/Pa </b>: */
-  Numeric Delta_H2O() const { return mdelta_h2o; }
-  
-  /** F Pressure shift CO2 in <b> Hz/Pa </b>: */
-  Numeric Delta_CO2() const { return mdelta_co2; }
-  
-  /** F Pressure shift H2 in <b> Hz/Pa </b>: */
-  Numeric Delta_H2() const { return mdelta_h2; }
-  
-  /** F Pressure shift He in <b> Hz/Pa </b>: */
-  Numeric Delta_He() const { return mdelta_he; }
+  /** ARTSCAT-4 foreign broadening parameters in <b> Hz/Pa </b>: */
+  Numeric Gamma_foreign(const Index i) const { return mgamma_foreign[i]; }
+
+   /** ARTSCAT-4 foreign temperature exponents (dimensionless): */
+   Numeric N_foreign(const Index i) const { return mn_foreign[i]; }
+
+   /** ARTSCAT-4 pressure shift parameters in <b> Hz/Pa </b>: */
+   Numeric Delta_foreign(const Index i) const { return mdelta_foreign[i]; }
+
+//  /** Broadening parameter self in <b> Hz/Pa </b>: */
+//  Numeric Gamma_self() const { return mgamma_self; }
+//  
+//  /** Broadening parameter N2 in <b> Hz/Pa </b>: */
+//  Numeric Gamma_N2() const { return mgamma_n2; }
+//  
+//  /** Broadening parameter O2 in <b> Hz/Pa </b>: */
+//  Numeric Gamma_O2() const { return mgamma_o2; }
+//  
+//  /** Broadening parameter H2O in <b> Hz/Pa </b>: */
+//  Numeric Gamma_H2O() const { return mgamma_h2o; }
+//  
+//  /** Broadening parameter CO2 in <b> Hz/Pa </b>: */
+//  Numeric Gamma_CO2() const { return mgamma_co2; }
+//  
+//  /** Broadening parameter H2 in <b> Hz/Pa </b>: */
+//  Numeric Gamma_H2() const { return mgamma_h2; }
+//  
+//  /** Broadening parameter He in <b> Hz/Pa </b>: */
+//  Numeric Gamma_He() const { return mgamma_he; }
+//  
+//  /** GAM temp. exponent N self: */
+//  Numeric Gam_N_self() const { return mn_self; }
+//  
+//  /** GAM temp. exponent N N2: */
+//  Numeric Gam_N_N2() const { return mn_n2; }
+//  
+//  /** GAM temp. exponent N O2: */
+//  Numeric Gam_N_O2() const { return mn_o2; }
+//  
+//  /** GAM temp. exponent N H2O: */
+//  Numeric Gam_N_H2O() const { return mn_h2o; }
+//  
+//  /** GAM temp. exponent N CO2: */
+//  Numeric Gam_N_CO2() const { return mn_co2; }
+//  
+//  /** GAM temp. exponent N H2: */
+//  Numeric Gam_N_H2() const { return mn_h2; }
+//  
+//  /** GAM temp. exponent N He: */
+//  Numeric Gam_N_He() const { return mn_he; }
+//  
+//  /** F Pressure shift N2 in <b> Hz/Pa </b>: */
+//  Numeric Delta_N2() const { return mdelta_n2; }
+//  
+//  /** F Pressure shift O2 in <b> Hz/Pa </b>: */
+//  Numeric Delta_O2() const { return mdelta_o2; }
+//  
+//  /** F Pressure shift H2O in <b> Hz/Pa </b>: */
+//  Numeric Delta_H2O() const { return mdelta_h2o; }
+//  
+//  /** F Pressure shift CO2 in <b> Hz/Pa </b>: */
+//  Numeric Delta_CO2() const { return mdelta_co2; }
+//  
+//  /** F Pressure shift H2 in <b> Hz/Pa </b>: */
+//  Numeric Delta_H2() const { return mdelta_h2; }
+//  
+//  /** F Pressure shift He in <b> Hz/Pa </b>: */
+//  Numeric Delta_He() const { return mdelta_he; }
 
   /** Upper state global quanta */
   const String& Upper_GQuanta() const { return mupper_gquanta; }
@@ -847,7 +856,51 @@ public:
   /** Lower state local quanta J */
   Index Lower_J() const { return mlower_j; }
 
+  
+  /** Indices of different broadening species in Gamma_foreign, 
+   N_foreign, and Delta_foreign. */
+  enum {
+    BROAD_SPEC_POS_N2,
+    BROAD_SPEC_POS_O2,
+    BROAD_SPEC_POS_H2O,
+    BROAD_SPEC_POS_CO2,
+    BROAD_SPEC_POS_H2,
+    BROAD_SPEC_POS_He
+  };
 
+  /** Return the name of an artscat-4 broadening species, as function of its
+   index. Meant to be called with the enum constants defined in this class. */
+  static String BroadSpecName(const Index i)  {
+    switch (i) {
+      case BROAD_SPEC_POS_N2:
+        return "N2";
+        break;
+      case BROAD_SPEC_POS_O2:
+        return "O2";
+        break;
+      case BROAD_SPEC_POS_H2O:
+        return "H2O";
+        break;
+      case BROAD_SPEC_POS_CO2:
+        return "CO2";
+        break;
+      case BROAD_SPEC_POS_H2:
+        return "H2";
+        break;
+      case BROAD_SPEC_POS_He:
+        return "He";
+        break;
+      default:
+        assert(false);   // We should never end up here.
+        break;
+    }
+  }
+  
+  /** Return the number of artscat-4 foreign broadening species (6). This just
+   so that we do not have to hardwire the number elsewhere. */
+  static Index NBroadSpec()  {return 6;}
+
+  
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):
 
@@ -1151,8 +1204,7 @@ public:
    \author Oliver Lemke
    */
   bool ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity);
-  
-
+    
 private:
   // Version number:
   Index mversion;
@@ -1210,47 +1262,63 @@ private:
   Numeric mglower;
   
   // Broadening parameter self in Hz/Pa:
-  Numeric mgamma_self;
-  // Broadening parameter N2 in Hz/Pa:
-  Numeric mgamma_n2;
-  // Broadening parameter O2 in Hz/Pa:
-  Numeric mgamma_o2;
-  // Broadening parameter H2O in Hz/Pa:
-  Numeric mgamma_h2o;
-  // Broadening parameter CO2 in Hz/Pa:
-  Numeric mgamma_co2;
-  // Broadening parameter H2 in Hz/Pa:
-  Numeric mgamma_h2;
-  // Broadening parameter He in Hz/Pa:
-  Numeric mgamma_he;
+  //  Numeric mgamma_self;
+  // Already in artscat-3 as msgam
+    
+  // Array of foreign broadening parameters in Hz/Pa. Parameters for
+  // individual species can be found using the enum defined in this class.
+  Vector mgamma_foreign;
+  
+//  // Broadening parameter N2 in Hz/Pa:
+//  Numeric mgamma_n2;
+//  // Broadening parameter O2 in Hz/Pa:
+//  Numeric mgamma_o2;
+//  // Broadening parameter H2O in Hz/Pa:
+//  Numeric mgamma_h2o;
+//  // Broadening parameter CO2 in Hz/Pa:
+//  Numeric mgamma_co2;
+//  // Broadening parameter H2 in Hz/Pa:
+//  Numeric mgamma_h2;
+//  // Broadening parameter He in Hz/Pa:
+//  Numeric mgamma_he;
 
   // GAM temp. exponent self:
-  Numeric mn_self;
-  // GAM temp. exponent N2:
-  Numeric mn_n2;
-  // GAM temp. exponent O2:
-  Numeric mn_o2;
-  // GAM temp. exponent H2O:
-  Numeric mn_h2o;
-  // GAM temp. exponent CO2:
-  Numeric mn_co2;
-  // GAM temp. exponent H2:
-  Numeric mn_h2;
-  // GAM temp. exponent He:
-  Numeric mn_he;
+  //  Numeric mn_self;
+  // Already in artscat-3 as msgam mnself
+
+  // Array of foreign temp. exponents (dimensionless). Parameters for
+  // individual species can be found using the enum defined in this class.
+  Vector mn_foreign;
+
+//  // GAM temp. exponent N2:
+//  Numeric mn_n2;
+//  // GAM temp. exponent O2:
+//  Numeric mn_o2;
+//  // GAM temp. exponent H2O:
+//  Numeric mn_h2o;
+//  // GAM temp. exponent CO2:
+//  Numeric mn_co2;
+//  // GAM temp. exponent H2:
+//  Numeric mn_h2;
+//  // GAM temp. exponent He:
+//  Numeric mn_he;
   
-  // F Pressure shift N2 in Hz/Pa:
-  Numeric mdelta_n2;
-  // F Pressure shift O2 in Hz/Pa:
-  Numeric mdelta_o2;
-  // F Pressure shift H2O in Hz/Pa:
-  Numeric mdelta_h2o;
-  // F Pressure shift CO2 in Hz/Pa:
-  Numeric mdelta_co2;
-  // F Pressure shift H2 in Hz/Pa:
-  Numeric mdelta_h2;
-  // F Pressure shift He in Hz/Pa:
-  Numeric mdelta_he;
+  // Array of pressure shift parameters in Hz/Pa. Parameters for
+  // individual species can be found using the enum defined in this class.
+  Vector mdelta_foreign;
+
+//  // F Pressure shift N2 in Hz/Pa:
+//  Numeric mdelta_n2;
+//  // F Pressure shift O2 in Hz/Pa:
+//  Numeric mdelta_o2;
+//  // F Pressure shift H2O in Hz/Pa:
+//  Numeric mdelta_h2o;
+//  // F Pressure shift CO2 in Hz/Pa:
+//  Numeric mdelta_co2;
+//  // F Pressure shift H2 in Hz/Pa:
+//  Numeric mdelta_h2;
+//  // F Pressure shift He in Hz/Pa:
+//  Numeric mdelta_he;
 
   /** Upper state global quanta */
   String mupper_gquanta;
@@ -1348,18 +1416,6 @@ void xsec_species( MatrixView               xsec,
 Numeric wavenumber_to_joule(Numeric e);
 
 
-//======================================================================
-//             Indices of broadening species in abs_species
-//======================================================================
-
-enum {
-  SPEC_POS_N2,
-  SPEC_POS_O2,
-  SPEC_POS_H2O,
-  SPEC_POS_CO2,
-  SPEC_POS_H2,
-  SPEC_POS_He
-};
 
 
 //======================================================================

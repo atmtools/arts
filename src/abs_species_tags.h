@@ -168,16 +168,6 @@ void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
                                     const String& names );
 
 
-//=====================================================================
-//           Definitions for species_index
-//=====================================================================
-
-#define SPECIES_INDEX_N2 0
-#define SPECIES_INDEX_O2 1
-#define SPECIES_INDEX_H2O 2
-#define SPECIES_INDEX_O3 3
-#define SPECIES_INDEX_CO2 4
-#define SPECIES_INDEX_COUNT 5
 
 
 //--------------------------------------------------------------------------------
