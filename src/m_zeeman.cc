@@ -343,7 +343,6 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                     " a flag nor the lenght of a magnetic field vector.");
     }
     // End   TEST(s)
-
     Vector local_f_grid;
     // Make pointer point to original.
     const Vector* f_grid_pointer = &f_grid;
@@ -605,16 +604,17 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                  << ",\nSP stands for: " << temp_abs_lines_sp.nelem()
                  << " and \nDT stands for: " << temp_abs_lines_dt.nelem() << "\n";
                  
-            // with the same species information, FIXME: Oliver: This is UGLY. Also, it ignores any other oxygen tags...
+            // with the same species information,
             ArrayOfArrayOfSpeciesTag temp_abs_species(4);
             for (Index i=0; i<4; ++i) {
-              temp_abs_species[i][0] = SpeciesTag("O2");
-              // We are setting the tag explicitly to O2 here. The function
-              // anyway currently works only for this molecule. By setting it
-              // like this (without Zeeman flag) we ensure that we can use the
-              // standard LBL function to calculate absorption.
+                temp_abs_species[i].resize(1);
+                temp_abs_species[i][0] = SpeciesTag("O2");
+                // We are setting the tag explicitly to O2 here. The function
+                // anyway currently works only for this molecule. By setting it
+                // like this (without Zeeman flag) we ensure that we can use the
+                // standard LBL function to calculate absorption.
             }
-          
+            
             // and the same volume mixing ratios.
             Vector temp_vmrs(4);
                 temp_vmrs[0] = rte_vmr_list[II]; temp_vmrs[1] = rte_vmr_list[II];
@@ -664,7 +664,10 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
             for(Index ii = 0; ii< 4; ii++)
             {
                 // Assign the DM transition type,
-                if(ii == 0){DM = 0;}else if(ii == 1){DM = 1;}else if(ii == 2){DM = -1;}else{DM = 1023;} // 1023 is a default, not physical, value.
+                if(ii == 0){DM = 0;}
+                else if(ii == 1){DM = 1;}
+                else if(ii == 2){DM = -1;}
+                else{DM = 1023;} // 1023 is a default, not physical, value.
 
                 // then get the rotation extinction matrix for this DM transition
                 K_mat(K, theta*DEG2RAD, eta*DEG2RAD, DM);
@@ -674,8 +677,8 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                 abs_mat_ZeemanO2+=part_abs_mat_ZeemanO2;
             };
 
-            // When done, assign to the return Tensor4.
-            abs_mat_per_species(II, joker, joker, joker) = abs_mat_ZeemanO2;
+            // When done, add to the return Tensor4.
+            abs_mat_per_species(II, joker, joker, joker) += abs_mat_ZeemanO2;
 
         }
     }

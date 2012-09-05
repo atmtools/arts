@@ -216,299 +216,6 @@ The problem of describing the line shape
 function is discussed in the following subsection. Then another
 subsection discusses partition functions and their calculation.
 
-\subsubsection{The Zeeman Effect O$_2$}
-Gases with an inherent magnetic dipole placed in an external magnetic field show a special kind of transition. This is known as the Zeeman effect, which polarizes the radiation and results in several shifted peaks per line. In essence it increases the number of lines, which means that we can treat each peak as a separate absorption line of a relatively different strength and with a shifted central frequency. Of course, we must also consider the polarization effect (which is mathematically sound to do with rotating matrices in Stokes parameterization).
-
-\begin{figure}[ht!]
- \centering
- \includegraphics[width=343pt,keepaspectratio=true]{Selection_Rule.pdf}
- \begin{minipage}{312pt}
-\vspace*{-0.8cm}
- \caption{Graphical representation of the selection rule. Note how the initial magnitude (denoted "Upper") of $M$ may be larger for the $N^{-}$ or $\Delta J = -1$ case. The initial value of $M$ is used in Tables~\ref{tab:delta_nu_0}~and~\ref{tab:zeta}, and consequently in Equation~\ref{eq:abs_zeeman_mat}.}
- \label{fig:zeeman_schematic}
-\end{minipage}
-\end{figure}
-
-In quantum physics terminology, for oxygen, the rule of transition only allows $\Delta J =\pm 1$ ($J$ is the total angular momentum number) and $\Delta M = 0, \pm 1$ ($M$ is the quantum number denoting the projection of the molecular magnetic moment),
-where $N-1\leq J \leq N+1$ ($N$ is the main rotational quantum number) and $M = -J,$ $(-J+1),\cdots,$ $0,\cdots,$ $(J-1),$ $J$. 
-A transition with $\Delta J = +1$ is called an $N^+$ transition and
- a transition with $\Delta J = -1$ is called an $N^-$ transition. A simple schematic of the allowed transitions can be found in Figure~\ref{fig:zeeman_schematic}.
-
-Rewriting Equation~\ref{eq:abs_coeff} to take into account the Zeeman effect for oxygen gives
-\begin{equation}\label{eq:abs_zeeman_mat}\scriptsize
- \mbox{\boldmath${\alpha}$}(\nu)=\frac{1}{2}nS(T)\sum_{M,\Delta M} \left\{ \zeta(N,M,\Delta J, \Delta M) F(\nu, \nu_0 + \Delta\nu_0[N,M,\Delta J, \Delta M, H])  \mbox{\boldmath${K}'$}(\theta, \eta,\Delta M)  \right\}.
-\end{equation}
-Term by term we know what $n$, $S(T)$ and $F(\nu,\nu_0)$ are supposed to represent. The additional terms $\zeta$, $\Delta\nu_0$ and \boldmath${K'}$\unboldmath are due to quantum physics and some angles relating to the coordinate system and propagation path. The factor $\frac{1}{2}$ is due to normalization issues and could be incorporated into $\zeta$ if need be. It is however kept in the theory for consistency with the tabular values of Liebe and Hufford (1989). The relative strength, $\zeta$, and central frequency shift, $\Delta\nu_0$, can be found in Tables~\ref{tab:delta_nu_0}~and~\ref{tab:zeta} respectively.
-
-Non-Zeeman affected species simply have an absorption matrix {\boldmath$\alpha$\unboldmath$=\alpha$\boldmath$I$\unboldmath}, where {\boldmath$I$}  is the identity matrix of appropriate size.
-
-\begin{table}[ht!]
- \centering
-\begin{minipage}{280pt}
-  \begin{tabular}{l|ll}
-    \hline\\[-5pt]
-    &$N^+$ transition&$N^-$ transition\\[5pt]\hline\\[-5pt]
-    $\Delta M = +1$&$\frac{KH}{N+1}\left(1 +M\frac{N-1}{N}\right)$&$-\frac{KH}{N}\left(1 +M\frac{N+2}{N+1}\right)$\\[10pt]
-    $\Delta M =  0$&$\frac{KH}{N+1}M\frac{N-1}{N}$&$-\frac{KH}{N}M\frac{N+2}{N+1}$\\[10pt]
-    $\Delta M = -1$&$\frac{KH}{N+1}\left(-1 +M\frac{N-1}{N}\right)$&$-\frac{KH}{N}\left(-1 +M\frac{N+2}{N+1}\right)$
-    \\[5pt]\hline
-  \end{tabular}
-\caption{Frequency shift due to the Zeeman effect. $H$ is the magnitude of the external field in Tesla and $K$ is a constant of $2.8026\times10^{10}$
-for shifts in Hz. The quantum numbers are the initial state values. This table can be found in Lenoir~(1968).}
-\label{tab:delta_nu_0}
-\end{minipage}
-\end{table}
-
-From Lenoir (1968) the rotating \boldmath$\rho$\unboldmath-matrices in coherency terms are
-\begin{equation}
- \mbox{\boldmath$\rho$\unboldmath}_{\sigma\pm} = \left[
-\begin{array}{cc}
- 1&\mp i\cos\theta\\
-\pm i\cos\theta&\cos^2\theta
-\end{array}
-\right]\label{eq:rho_sigma}
-\end{equation}
-and
-\begin{equation}
- \mbox{\boldmath$\rho$\unboldmath}_{\pi} = \left[
-\begin{array}{cc}
- 0&0\\
-0&\sin^2\theta
-\end{array}
-\right].\label{eq:rho_pi}
-\end{equation}
-The angle, $\theta$, is between the propagation direction of the radiation and the magnetic field vector. The {\boldmath$\rho$}-matrix relevant depends on the transition type. If $\Delta M = \pm 1$ use {\boldmath$\rho$}$_{\sigma\pm}$ and if $\Delta M = 0$ use {\boldmath$\rho$}$_{\pi}$.
-
-\begin{table}[ht!]
- \centering
-\begin{minipage}{254.1pt}
-  \begin{tabular}{l|cc}
-    \hline\\[-5pt]
-    &$N^{+}$ transition&$N^{-}$ transition\\[5pt]\hline\\[-5pt]
-    $\Delta M = +1$	&$\frac{3(N+M+1)( N+M+2 )}{4( N+1 )( 2N+1 )( 2N+3 ) }$
-		        &$\frac{3( N-M-1 ) ( N-M ) }{ 4 N ( 2N+1 )( 2N-1 ) }$\\[10pt]
-    $\Delta M =  0$	&$\frac{3  \left[(N+1)^2  - M^2 \right]}{ ( N+1 )  ( 2N+1 )  ( 2N+3 ) }$
-			&$\frac{3 ( N^2 - M^2 )}{ N  ( 2N+1 )  ( 2N-1 ) }$\\[10pt]
-    $\Delta M = -1$	&$\frac{3 ( N-M+1 )  ( N-M+2 ) }{ 4 ( N+1 )  ( 2N+1 )  ( 2N+3 )}$
-			&$\frac{3 ( N+M-1 ) ( N+M )}{ 4 N  ( 2N+1 )  ( 2N-1 ) }$
-    \\[5pt]\hline
-  \end{tabular}
-\caption{Strength of the individual, shifted, lines as determined by $\zeta$.
-The quantum numbers are the initial state values. This table is adapted from Liebe and Hufford (1989).}
-\label{tab:zeta}
-\end{minipage}
-\end{table}
-
-To get the polarization matrix for a Stokes vector requires a bit of rewriting. First of all the coherency matrix for average signals following von Engeln (2000) is
-\begin{equation}
- \mathbf{S} = \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}} \left[
-\begin{array}{cc}
- <E_v E_v^\ast>&<E_v E_h^\ast>\\
- <E_h E_v^\ast>&<E_h E_h^\ast>
-\end{array}
-\right].
-\end{equation}
-
-Looking at Equations~\ref{eq:polarization:stokesparam_I_general}~to~\ref{eq:polarization:stokesparam_V_general} we see that there should be a transformation possible such that the coherency matrix is described in Stokes parameters. This transformation
-\begin{equation}\label{eq:coh_to_zee}\tiny
-\frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
-  \left[
-    \begin{array}{cc}
-      <E_v E_v^\ast>&<E_v E_h^\ast>\\
-      <E_h E_v^\ast>&<E_h E_h^\ast>
-    \end{array}
-  \right] 
-\Rightarrow
-\frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
-  \left[
-    \begin{array}{cccc}
-      &&<E_v E_v^\ast>+<E_h E_h^\ast>\\
-      &&<E_v E_v^\ast>-<E_h E_h^\ast>\\
-      -&(&<E_v E_h^\ast>+<E_h E_v^\ast>&)\\
-      i&\left(\right.&<E_h E_v^\ast>-<E_v E_h^\ast>&\left.\right)
-    \end{array} 
-  \right].
-\end{equation}
-should hold for all radiation matrices \boldmath$S$\unboldmath. In other words, if we apply the radiative transfer
-equation for the coherency case it will transform into Stokes parameters by Equation~\ref{eq:coh_to_zee}. The radiative transfer equation from Lenoir (1968) combined with the equation used herein (for pure absorption) gives 
-$$\mbox{\boldmath$GS +SG^{t^\ast}$\unboldmath$ \Rightarrow $\boldmath$K$}I,$$
-where {\boldmath$G$} is one of Equations~\ref{eq:rho_sigma}~or~\ref{eq:rho_pi} depending on $\Delta M$. This means that {\boldmath$G^{t^\ast} = G$}, which significantly simplifies the calculations to come.
-
-One way to write the coherency matrix in Stokes parameters, $I_n$, is
-\begin{equation}
- \mbox{\boldmath$S$} = \frac{1}{2}\sum_{n=0}^{n=3}\mbox{\boldmath$a$}_nI_n,\label{eq:a_iI_i}
-\end{equation}
-where it can be seen, e.g. from the transformation Equation~\ref{eq:coh_to_zee}, that
-\begin{equation}\small
- \mbox{\boldmath$a$}_0 = \left[\begin{array}{cc}
-       1&0\\0&1 
-       \end{array}\right], \mbox{ }
- \mbox{\boldmath$a$}_1 = \left[\begin{array}{cc}
-       1&0\\0&-1 
-       \end{array}\right], \mbox{ }
- \mbox{\boldmath$a$}_2 = \left[\begin{array}{cc}
-       0&-1\\-1&0 
-       \end{array}\right]\mbox{ and }
- \mbox{\boldmath$a$}_3 = \left[\begin{array}{cc}
-       0&i\\-i&0 
-       \end{array}\right].
-\end{equation}
-
-Now applying the radiative transfer equation on the simplified radiation coherency matrix 
-\begin{equation}
-\mbox{\boldmath$S$}' = \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_0+\mbox{\boldmath$a$}_0\mbox{\boldmath$G$})I_0 + \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_1+\mbox{\boldmath$a$}_1\mbox{\boldmath$G$})I_1 + \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_2+\mbox{\boldmath$a$}_2\mbox{\boldmath$G$})I_2 + \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_3+\mbox{\boldmath$a$}_3\mbox{\boldmath$G$})I_3,
-\end{equation}
-gives us easy to use means of deriving {\boldmath$K$} since we now can treat each Stokes parameter separately
-
-$I_0'$:
-\begin{equation}\label{eq:zeeman_stokes0}
- \left[
-\begin{array}{cc}
-G_{11}	&	G_{12}\\
-G_{21}	&	G_{22}
-\end{array}
-\right] \times I_0
- \Rightarrow
-\left[
-\begin{array}{c}
-G_{11}+G_{22}\\
-G_{11}-G_{22}\\
--(G_{21}+G_{12})\\
-i(G_{21}-G_{12})
-\end{array}
-\right] \times I_0
-\end{equation}
-
-$I_1'$:
-\begin{equation}\label{eq:zeeman_stokes1}
- \left[
-\begin{array}{cc}
-G_{11}	&	0\\
-0	&	-G_{22}
-\end{array}
-\right] \times I_1
- \Rightarrow
-\left[
-\begin{array}{c}
-G_{11}-G_{22}\\
-G_{11}+G_{22}\\
-0\\
-0
-\end{array}
-\right] \times I_1
-\end{equation}
-
-$I_2'$:
-\begin{equation}\label{eq:zeeman_stokes2}
- -\frac{1}{2}\left[
-\begin{array}{cc}
-G_{21}+G_{12}	&	G_{11}+G_{22}\\
-G_{11}+G_{22}	&	G_{21}+G_{12}
-\end{array}
-\right] \times I_2
- \Rightarrow
-\left[
-\begin{array}{c}
--(G_{21}+G_{12})\\
-0\\
-G_{11}+G_{22}\\
-0
-\end{array}
-\right] \times I_2
-\end{equation}
-
-$I_3'$:
-\begin{equation}\label{eq:zeeman_stokes3}
- \frac{1}{2}\left[
-\begin{array}{cc}
- iG_{21}-iG_{12}	&	iG_{11}+iG_{22}\\
--iG_{11}-iG_{22}	&	iG_{21}-iG_{12}
-\end{array}
-\right] \times I_3
- \Rightarrow
-\left[
-\begin{array}{c}
-i(G_{21}-G_{12})\\
-0\\
-0\\
-G_{11}+G_{22}
-\end{array}
-\right] \times I_3
-\end{equation}
-
-Combining Vectors~\ref{eq:zeeman_stokes0}~to~\ref{eq:zeeman_stokes3} as column vectors will give the polarization rotation matrix
-\begin{equation}
- \mbox{\boldmath$K$} = \left[
-\begin{array}{cccc}
-G_{11}+G_{22}&G_{11}-G_{22}&-(G_{21}+G_{12})&i\left(G_{21}-G_{12}\right)\\
-G_{11}-G_{22}&G_{11}+G_{22}&0&0\\
--(G_{21}+G_{12})&0&G_{11}+G_{22}&0\\
-i\left(G_{21}-G_{12}\right)&0&0&G_{11}+G_{22}
-\end{array}
-\right].
-\end{equation}
-This is favorably rewritten in terms of $\sigma_\pm$ and $\pi$ transitions such that
-\begin{equation}
- \mbox{\boldmath$K$}_{\sigma\pm} = \left[
-\begin{array}{rrrr}
-1+\cos^2\theta&\sin^2\theta&0&\mp2\cos\theta\\
-\sin^2\theta&1+\cos^2\theta&0&0\\
-0&0&1+\cos^2\theta&0\\
-\mp2\cos\theta&0&0&1+\cos^2\theta
-\end{array}
-\right]
-\end{equation}
-and
-\begin{equation}
- \mbox{\boldmath$K$}_{\pi} =
-\left[
-\begin{array}{rrrr}
-\sin^2\theta&-\sin^2\theta&0&0\\
--\sin^2\theta&\sin^2\theta&0&0\\
-0&0&\sin^2\theta&0\\
-0&0&0&\sin^2\theta
-\end{array}
-\right].
-\end{equation}
-
-These {\boldmath$K$}-matrices are however in a magnetic field dependent coordinate system. Since ARTS is using the coordinate system by Mishchenko et al. (2002), we simply rotate the coordinate system by so that the horizontal direction is
-$$\mbox{\boldmath$R$}_{11} = \mbox{\boldmath$H$}-\mbox{\textbf{proj}}\mbox{\boldmath$_n$}\mbox{\boldmath$H$}$$
-then the angle, $\eta$, between $\mbox{\boldmath$R$}_{11}$ and $\mbox{\boldmath$e$}_{h}$ can be used together with the coordinate system rotation matrix
-\begin{equation}
- \mbox{\boldmath$L$}(\eta) = 
-\left[
-\begin{array}{rrrr}
- 1&0&0&0\\
-0&\cos 2\eta& -\sin 2\eta&0\\
-0&\sin 2\eta& \cos 2\eta &0\\
-0&0&0&1
-\end{array}
-\right]
-\end{equation}
-to determine that
-\begin{equation}\small
- \mbox{\boldmath$K$}'_{\pm\sigma}(\theta,\eta) = \left[
-\begin{array}{rrrr}
-1+\cos^2\theta & \cos\left(2\eta\right)\sin^2\theta &  \sin\left(2\eta\right)\sin^2\theta&\mp 2\cos\theta\\
-\cos\left(2\eta\right)\sin^2\theta&1+\cos^2\theta&0&0\\
-\sin\left(2\eta\right)\sin^2\theta&0&1+\cos^2\theta&0\\
-\mp 2\cos\theta&0&0&1+\cos^2\theta
-\end{array}
-\right]
-\end{equation}
-and
-\begin{equation}\small
- \mbox{\boldmath$K$}'_\pi(\theta,\eta) = \left[
-\begin{array}{rrrr}
-\sin^2\theta & -\cos\left(2\eta\right)\sin^2\theta &  -\sin\left(2\eta\right)\sin^2\theta&0\\
--\cos\left(2\eta\right)\sin^2\theta&\sin^2\theta&0&0\\
--\sin\left(2\eta\right)\sin^2\theta&0&\sin^2\theta&0\\
-0&0&0&\sin^2\theta
-\end{array}
-\right].
-\end{equation}
-
-We have in this subsection derived the formalism for the Zeeman effect and may now use Equation~\ref{eq:abs_zeeman_mat} instead of Equation~\ref{eq:abs_coeff} to describe absorption when appropriate.
 
 \subsubsection{Line shape functions} 
 \label{sec:abs_theory:shape}
@@ -823,6 +530,305 @@ and for a {\it{spherical}} top, using the current notation of
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 \end{equation}
 
+\subsubsection{The Zeeman Effect for O$_2$}
+Gases with an inherent magnetic dipole placed in an external magnetic field show a special kind of transition. This is known as the Zeeman effect, which polarizes the radiation and results in several shifted peaks per line. In essence it increases the number of lines, which means that we can treat each peak as a separate absorption line of a relatively different strength and with a shifted central frequency. Of course, we must also consider the polarization effect (which is mathematically sound to do with rotating matrices in Stokes parameterization).
+
+\begin{figure}[ht!]
+ \centering
+ \includegraphics[width=343pt,keepaspectratio=true]{Selection_Rule.pdf}
+ \begin{minipage}{312pt}
+\vspace*{-0.8cm}
+ \caption{Graphical representation of the selection rule. Note how the initial magnitude (denoted "Upper") of $M$ may be larger for the $N^{-}$ or $\Delta J = -1$ case. The initial value of $M$ is used in Tables~\ref{tab:delta_nu_0}~and~\ref{tab:zeta}, and consequently in Equation~\ref{eq:abs_zeeman_mat}.}
+ \label{fig:zeeman_schematic}
+\end{minipage}
+\end{figure}
+
+From Halliday, 1955, there are mainly two quantum numbers which govern the magnetism of particles. 
+The first is the total orbital angular moment number for all electrons $N$. The second is the total spin angular moment number for all the electrons $S$. 
+These two can be described by the spin-orbit coupling number $J$, which may be thought of as the total angular moment number of the particle. The oxygen molecule have $S=1$ due to the free electron pair, which means
+the spin-orbit coupling number may take on two values for every $N$ such that $J=N\pm1$. 
+In a magnetic field, the projection of $J$ on this field may take on a finite number of projected angular moment numbers $M = -J,\;1-J,\;(\cdots),\;J-1,\;J$. 
+The projected angular moment influence the energy of the level by a factor $g_JMH$, where $H$ is the magnitude of the magnetic field and $g_J$ is known as the Landé splitting factor.
+
+It is important to note that it only makes sense to classify the problem in the manner above if there is a coupling between $N$ and $S$. For sufficiently large magnetic fields, $N$ and $S$ uncouples and the problem complicates further. If even nuclear spin is considered and hyperfine transitions are allowed, yet another level is added to the problem (see, e.g., Halliday, 1955).
+
+According to Lenoir, 1968, the rules of transition from initial to final state for oxygen only allow $\Delta J =\pm 1$ and $\Delta M = 0, \pm 1$. A transition with $\Delta J = +1$ is called an $N^+$ transition and a transition with $\Delta J = -1$ is called an $N^-$ transition. A simple schematic of the allowed transitions can be found in Figure~\ref{fig:zeeman_schematic}. There is a relative strength to each of the possible transitions displayed by the variable $\zeta$ (values in Table~\ref{tab:zeta}), and a shift in frequency, $\Delta\nu_0$, displayed by Table~\ref{tab:delta_nu_0}. It seems common for absorption databases (e.g., HITRAN) to list the central line frequency for every $J$ and let the user calculate the shifted frequency due to the magnetic field and $M$. Rewriting Equation~\ref{eq:abs_coeff} to take into account the Zeeman effect for oxygen gives
+\begin{equation}\label{eq:abs_zeeman_mat}\scriptsize
+ \mbox{\boldmath${\alpha}$}(\nu)=\frac{1}{2}nS(T)\!\!\!\sum_{M,\Delta M} \Bigl\{ \, \zeta(N,M,\Delta J, \Delta M) \; F(\nu, \nu_0 + \Delta\nu_0[N,M,\Delta J, \Delta M, H]) \; \mbox{\boldmath${K}'$}(\theta, \eta,\Delta M) \, \Bigr\}.
+\end{equation}
+Term by term we know what $n$, $S(T)$, $F(\nu,\nu_0)$, $\zeta$ and $\Delta\nu_0$ are supposed to represent. The magnitude of the magnetic field is denoted $H$. The factor $\frac{1}{2}$ is due to normalization issues and could be incorporated into $\zeta$ if need be. It is however kept in the theory for consistency with the tabular values of Liebe and Hufford (1989). 
+
+The additional term, {\boldmath$K'$}, is due to the polarization that occurs in a plane made from the direction of propagation of the radiation, {\boldmath$n$}, due to the Zeeman effect. The angles involved are $\theta$ between the magnetic field {\boldmath$H$} and {\boldmath$n$}, and $\eta$ between $\mbox{\boldmath$H$}-\mbox{proj}_{\mbox{\boldmath$n$}}\left(\mbox{\boldmath$H$}\right)$ and the horizontal polarization direction used by ARTS {\boldmath$e$}$_h$. Both {\boldmath$n$} and {\boldmath$e$}$_h$ are defined and explained in Chapter~\ref{sec:polarization}.
+
+Non-Zeeman affected species simply have an absorption matrix {\boldmath$\alpha$\unboldmath$=\alpha$\boldmath$I$\unboldmath}, where {\boldmath$I$} is the identity matrix of appropriate size.
+
+\begin{table}[ht!]
+ \centering
+\begin{minipage}{280pt}
+  \begin{tabular}{l|ll}
+    \hline\\[-5pt]
+    &$N^+$ transition&$N^-$ transition\\[5pt]\hline\\[-5pt]
+    $\Delta M = +1$&$\frac{KH}{N+1}\left(1 +M\frac{N-1}{N}\right)$&$-\frac{KH}{N}\left(1 +M\frac{N+2}{N+1}\right)$\\[10pt]
+    $\Delta M =  0$&$\frac{KH}{N+1}M\frac{N-1}{N}$&$-\frac{KH}{N}M\frac{N+2}{N+1}$\\[10pt]
+    $\Delta M = -1$&$\frac{KH}{N+1}\left(-1 +M\frac{N-1}{N}\right)$&$-\frac{KH}{N}\left(-1 +M\frac{N+2}{N+1}\right)$
+    \\[5pt]\hline
+  \end{tabular}
+\caption{Frequency shift, $\Delta\nu_0$, due to the Zeeman effect. $H$ is the magnitude of the external field in Tesla and $K$ is a constant of $2.8026\times10^{10}$
+for shifts in Hz. The quantum numbers are the initial state values. This table can be found in Lenoir~(1968).}
+\label{tab:delta_nu_0}
+\end{minipage}
+\end{table}
+
+Lenoir (1968) describes the rotating polarization matrices, {\boldmath$\rho$}, in coherency terms as
+\begin{equation}
+ \mbox{\boldmath$\rho$\unboldmath}_{\sigma\pm} = \left[
+\begin{array}{cc}
+ 1&\mp i\cos\theta\\
+\pm i\cos\theta&\cos^2\theta
+\end{array}
+\right]\label{eq:rho_sigma}
+\end{equation}
+and
+\begin{equation}
+ \mbox{\boldmath$\rho$\unboldmath}_{\pi} = \left[
+\begin{array}{cc}
+ 0&0\\
+0&\sin^2\theta
+\end{array}
+\right].\label{eq:rho_pi}
+\end{equation}
+The angle, $\theta$, is between the propagation direction of the radiation and the magnetic field vector. The relevant {\boldmath$\rho$}-matrix  depends on the $\Delta M$ transition type. If $\Delta M = \pm 1$ use {\boldmath$\rho$}$_{\sigma\pm}$ and if $\Delta M = 0$ use {\boldmath$\rho$}$_{\pi}$.
+
+\begin{table}[ht!]
+ \centering
+\begin{minipage}{254.1pt}
+  \begin{tabular}{l|cc}
+    \hline\\[-5pt]
+    &$N^{+}$ transition&$N^{-}$ transition\\[5pt]\hline\\[-5pt]
+    $\Delta M = +1$	&$\frac{3(N+M+1)( N+M+2 )}{4( N+1 )( 2N+1 )( 2N+3 ) }$
+		        &$\frac{3( N-M-1 ) ( N-M ) }{ 4 N ( 2N+1 )( 2N-1 ) }$\\[10pt]
+    $\Delta M =  0$	&$\frac{3  \left[(N+1)^2  - M^2 \right]}{ ( N+1 )  ( 2N+1 )  ( 2N+3 ) }$
+			&$\frac{3 ( N^2 - M^2 )}{ N  ( 2N+1 )  ( 2N-1 ) }$\\[10pt]
+    $\Delta M = -1$	&$\frac{3 ( N-M+1 )  ( N-M+2 ) }{ 4 ( N+1 )  ( 2N+1 )  ( 2N+3 )}$
+			&$\frac{3 ( N+M-1 ) ( N+M )}{ 4 N  ( 2N+1 )  ( 2N-1 ) }$
+    \\[5pt]\hline
+  \end{tabular}
+\caption{Strength of the individual, shifted, lines as determined by $\zeta$.
+The quantum numbers are the initial state values. This table is adapted from Liebe and Hufford (1989).}
+\label{tab:zeta}
+\end{minipage}
+\end{table}
+
+To get the polarization matrix for a Stokes vector requires a bit of rewriting. First of all the coherency matrix for average signals following von Engeln (2000) is
+\begin{equation}
+ \mathbf{S} = \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}} \left[
+\begin{array}{cc}
+ <E_v E_v^\ast>&<E_v E_h^\ast>\\
+ <E_h E_v^\ast>&<E_h E_h^\ast>
+\end{array}
+\right].
+\end{equation}
+
+Looking at Equations~\ref{eq:polarization:stokesparam_I_general}~to~\ref{eq:polarization:stokesparam_V_general} we see that there should be a transformation possible such that the coherency matrix is described in Stokes parameters. This transformation
+\begin{equation}\label{eq:coh_to_zee}\tiny
+\frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
+  \left[
+    \begin{array}{cc}
+      <E_v E_v^\ast>&<E_v E_h^\ast>\\
+      <E_h E_v^\ast>&<E_h E_h^\ast>
+    \end{array}
+  \right] 
+\Rightarrow
+\frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
+  \left[
+    \begin{array}{cccc}
+      &&<E_v E_v^\ast>+<E_h E_h^\ast>\\
+      &&<E_v E_v^\ast>-<E_h E_h^\ast>\\
+      -&(&<E_v E_h^\ast>+<E_h E_v^\ast>&)\\
+      i&\left(\right.&<E_h E_v^\ast>-<E_v E_h^\ast>&\left.\right)
+    \end{array} 
+  \right].
+\end{equation}
+should hold for all radiation matrices \boldmath$S$\unboldmath. In other words, if we apply the radiative transfer
+equation for the coherency case it will transform into Stokes parameters by Equation~\ref{eq:coh_to_zee}. The radiative transfer equation from Lenoir (1968) combined with the equation used herein (for pure absorption) gives 
+$$\mbox{\boldmath$GS +SG^{t^\ast}$\unboldmath$ \Rightarrow $\boldmath$K$}I,$$
+where {\boldmath$G$} is one of Equations~\ref{eq:rho_sigma}~or~\ref{eq:rho_pi} depending on $\Delta M$. This means that {\boldmath$G^{t^\ast} = G$}, which significantly simplifies the calculations to come.
+
+One way to write the coherency matrix in Stokes parameters, $I_n$, is
+\begin{equation}
+ \mbox{\boldmath$S$} = \frac{1}{2}\sum_{n=0}^{n=3}\mbox{\boldmath$a$}_nI_n,\label{eq:a_iI_i}
+\end{equation}
+where it can be seen, e.g. from the transformation Equation~\ref{eq:coh_to_zee}, that
+\begin{equation}\small
+ \mbox{\boldmath$a$}_0 = \left[\begin{array}{cc}
+       1&0\\0&1 
+       \end{array}\right], \mbox{ }
+ \mbox{\boldmath$a$}_1 = \left[\begin{array}{cc}
+       1&0\\0&-1 
+       \end{array}\right], \mbox{ }
+ \mbox{\boldmath$a$}_2 = \left[\begin{array}{cc}
+       0&-1\\-1&0 
+       \end{array}\right]\mbox{ and }
+ \mbox{\boldmath$a$}_3 = \left[\begin{array}{cc}
+       0&i\\-i&0 
+       \end{array}\right].
+\end{equation}
+
+Now applying the radiative transfer equation on the simplified radiation coherency matrix 
+\begin{equation}\footnotesize
+\mbox{\boldmath$S$}' = \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_0+\mbox{\boldmath$a$}_0\mbox{\boldmath$G$})I_0 + \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_1+\mbox{\boldmath$a$}_1\mbox{\boldmath$G$})I_1 + \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_2+\mbox{\boldmath$a$}_2\mbox{\boldmath$G$})I_2 + \frac{1}{2}(\mbox{\boldmath$G$}\mbox{\boldmath$a$}_3+\mbox{\boldmath$a$}_3\mbox{\boldmath$G$})I_3,
+\end{equation}
+gives us a straightforward way of deriving {\boldmath$K$}, since we now can treat each Stokes parameter separately as
+
+$I_0'$:
+\begin{equation}\label{eq:zeeman_stokes0}
+ \left[
+\begin{array}{cc}
+G_{11}	&	G_{12}\\
+G_{21}	&	G_{22}
+\end{array}
+\right] \times I_0
+ \Rightarrow
+\left[
+\begin{array}{c}
+G_{11}+G_{22}\\
+G_{11}-G_{22}\\
+-(G_{21}+G_{12})\\
+i(G_{21}-G_{12})
+\end{array}
+\right] \times I_0
+\end{equation}
+
+$I_1'$:
+\begin{equation}\label{eq:zeeman_stokes1}
+ \left[
+\begin{array}{cc}
+G_{11}	&	0\\
+0	&	-G_{22}
+\end{array}
+\right] \times I_1
+ \Rightarrow
+\left[
+\begin{array}{c}
+G_{11}-G_{22}\\
+G_{11}+G_{22}\\
+0\\
+0
+\end{array}
+\right] \times I_1
+\end{equation}
+
+$I_2'$:
+\begin{equation}\label{eq:zeeman_stokes2}
+ -\frac{1}{2}\left[
+\begin{array}{cc}
+G_{21}+G_{12}	&	G_{11}+G_{22}\\
+G_{11}+G_{22}	&	G_{21}+G_{12}
+\end{array}
+\right] \times I_2
+ \Rightarrow
+\left[
+\begin{array}{c}
+-(G_{21}+G_{12})\\
+0\\
+G_{11}+G_{22}\\
+0
+\end{array}
+\right] \times I_2
+\end{equation}
+
+$I_3'$:
+\begin{equation}\label{eq:zeeman_stokes3}
+ \frac{1}{2}\left[
+\begin{array}{cc}
+ iG_{21}-iG_{12}	&	iG_{11}+iG_{22}\\
+-iG_{11}-iG_{22}	&	iG_{21}-iG_{12}
+\end{array}
+\right] \times I_3
+ \Rightarrow
+\left[
+\begin{array}{c}
+i(G_{21}-G_{12})\\
+0\\
+0\\
+G_{11}+G_{22}
+\end{array}
+\right] \times I_3
+\end{equation}
+
+Combining Vectors~\ref{eq:zeeman_stokes0}~to~\ref{eq:zeeman_stokes3} as column vectors will give the polarization rotation matrix
+\begin{equation}
+ \mbox{\boldmath$K$} = \left[
+\begin{array}{cccc}
+G_{11}+G_{22}&G_{11}-G_{22}&-(G_{21}+G_{12})&i\left(G_{21}-G_{12}\right)\\
+G_{11}-G_{22}&G_{11}+G_{22}&0&0\\
+-(G_{21}+G_{12})&0&G_{11}+G_{22}&0\\
+i\left(G_{21}-G_{12}\right)&0&0&G_{11}+G_{22}
+\end{array}
+\right].
+\end{equation}
+This is favorably rewritten in terms of $\sigma_\pm$ and $\pi$ transitions such that
+\begin{equation}
+ \mbox{\boldmath$K$}_{\sigma\pm} = \left[
+\begin{array}{rrrr}
+1+\cos^2\theta&\sin^2\theta&0&\mp2\cos\theta\\
+\sin^2\theta&1+\cos^2\theta&0&0\\
+0&0&1+\cos^2\theta&0\\
+\mp2\cos\theta&0&0&1+\cos^2\theta
+\end{array}
+\right]
+\end{equation}
+and
+\begin{equation}
+ \mbox{\boldmath$K$}_{\pi} =
+\left[
+\begin{array}{rrrr}
+\sin^2\theta&-\sin^2\theta&0&0\\
+-\sin^2\theta&\sin^2\theta&0&0\\
+0&0&\sin^2\theta&0\\
+0&0&0&\sin^2\theta
+\end{array}
+\right].
+\end{equation}
+
+These {\boldmath$K$}-matrices are however in a magnetic field dependent coordinate system. Since ARTS is using the coordinate system by Mishchenko et al. (2002), we simply rotate the coordinate system by so that the horizontal direction is
+$$\mbox{\boldmath$R$}_{11} = \mbox{\boldmath$H$}-\mbox{\textbf{proj}}\mbox{\boldmath$_n$}\mbox{\boldmath$H$}$$
+then the angle, $\eta$, between $\mbox{\boldmath$R$}_{11}$ and $\mbox{\boldmath$e$}_{h}$ can be used together with the coordinate system rotation matrix
+\begin{equation}
+ \mbox{\boldmath$L$}(\eta) = 
+\left[
+\begin{array}{rrrr}
+ 1&0&0&0\\
+0&\cos 2\eta& -\sin 2\eta&0\\
+0&\sin 2\eta& \cos 2\eta &0\\
+0&0&0&1
+\end{array}
+\right]
+\end{equation}
+to determine that the polarization rotation matrices are
+\begin{equation}\small
+ \mbox{\boldmath$K$}'_{\pm\sigma}(\theta,\eta) = \left[
+\begin{array}{rrrr}
+1+\cos^2\theta & \cos\left(2\eta\right)\sin^2\theta &  \sin\left(2\eta\right)\sin^2\theta&\mp 2\cos\theta\\
+\cos\left(2\eta\right)\sin^2\theta&1+\cos^2\theta&0&0\\
+\sin\left(2\eta\right)\sin^2\theta&0&1+\cos^2\theta&0\\
+\mp 2\cos\theta&0&0&1+\cos^2\theta
+\end{array}
+\right]
+\end{equation}
+and
+\begin{equation}\small
+ \mbox{\boldmath$K$}'_\pi(\theta,\eta) = \left[
+\begin{array}{rrrr}
+\sin^2\theta & -\cos\left(2\eta\right)\sin^2\theta &  -\sin\left(2\eta\right)\sin^2\theta&0\\
+-\cos\left(2\eta\right)\sin^2\theta&\sin^2\theta&0&0\\
+-\sin\left(2\eta\right)\sin^2\theta&0&\sin^2\theta&0\\
+0&0&0&\sin^2\theta
+\end{array}
+\right].
+\end{equation}
+
+We have in this subsection derived the formalism for the Zeeman effect and may now use Equation~\ref{eq:abs_zeeman_mat} instead of Equation~\ref{eq:abs_coeff} to describe absorption when appropriate.
 
 \subsection{Spectral-line-specific data and line catalogues} 
 

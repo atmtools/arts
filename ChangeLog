@@ -1,3 +1,13 @@
+2012-09-05  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-258
+
+	* doc/uguide/absorption_theory.tex: Moved the Zeeman text
+	farther down place and updated parts of the text
+
+	* src/m_zeeman.cc: Updated sligthly.
+
+
 2012-09-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-257
