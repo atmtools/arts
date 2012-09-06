@@ -7838,7 +7838,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "stokes_dim", "f_grid" ),
+        IN( "stokes_dim", "f_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

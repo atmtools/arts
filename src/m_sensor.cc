@@ -1482,7 +1482,6 @@ void sensorOff(// WS Output:
                Index&          antenna_dim,
                Vector&         mblock_za_grid,
                Vector&         mblock_aa_grid,
-               const Index&    atmosphere_dim,
                const Index&    stokes_dim,
                const Vector&   f_grid,
                const Verbosity& verbosity)
@@ -1491,8 +1490,10 @@ void sensorOff(// WS Output:
 
   AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid, verbosity );
 
-  // Dummy variables
-  Index         sensor_norm = 1;
+  // Dummy variables (The method is independent of atmosphere_dim.
+  // atmosphere_dim used below just for some checks when antenna is active, not
+  // relevant here. ).
+  const Index sensor_norm = 1, atmosphere_dim = 1;
 
   sensor_responseInit( sensor_response, sensor_response_f, 
                   sensor_response_pol, sensor_response_za, sensor_response_aa, 
