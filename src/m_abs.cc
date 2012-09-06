@@ -95,6 +95,19 @@ void abs_lines_per_speciesSetEmpty(// WS Output:
     }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesArtscat4FromArtscat3(// WS Output:
+                                   ArrayOfLineRecord& abs_lines,
+                                   // Verbosity object:
+                                   const Verbosity&)
+{
+    // Loop over all lines, use member function to do conversion.
+#pragma omp parallel for    \
+if(!arts_omp_in_parallel())
+    for ( Index i=0; i<abs_lines.nelem(); ++i )
+        abs_lines[i].ARTSCAT4FromARTSCAT3();
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromHitranPre2004(

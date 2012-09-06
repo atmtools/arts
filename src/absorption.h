@@ -29,6 +29,7 @@
 #define absorption_h
 
 #include <stdexcept>
+#include <cmath>
 #include "matpackI.h"
 #include "array.h"
 #include "mystring.h"
@@ -868,8 +869,13 @@ public:
     BROAD_SPEC_POS_He
   };
 
+  /** Return the number of artscat-4 foreign broadening species (6). This just
+      so that we do not have to hardwire the number elsewhere. */
+  static Index NBroadSpec()  {return 6;}
+    
   /** Return the name of an artscat-4 broadening species, as function of its
-   index. Meant to be called with the enum constants defined in this class. */
+   broadening species index. Meant to be called with the enum constants 
+   defined in this class. */
   static String BroadSpecName(const Index i)  {
     switch (i) {
       case BROAD_SPEC_POS_N2:
@@ -896,10 +902,84 @@ public:
     }
   }
   
-  /** Return the number of artscat-4 foreign broadening species (6). This just
-   so that we do not have to hardwire the number elsewhere. */
-  static Index NBroadSpec()  {return 6;}
+  /** Return the internal species index (index in species_data) of an 
+   artscat-4 broadening species,
+   as function of its broadening spcecies index. Meant to be called with the 
+   enum constants defined in this class. */
+  static Index BroadSpecSpecIndex(const Index i)  {
+    // No need for asserts of i here, since the default clause in
+    // BroadSpecName catches everything.
+    return species_index_from_species_name(BroadSpecName(i));
+  }
+  
+  /** Converts line parameters from ARTSCAT-3 to ARTSCAT-4 format.
+     
+     ARTSCAT-4 lines contain more information than ARTSCAT-3 lines,
+     particularly they contain separate broadening parameters for six
+     different broadening species. So a real conversion is not
+     possible. What this method does is copy the air broadening (and shift)
+     parameters from ARTSCAT-3 to all ARTSCAT-4 broadening species. The
+     case that one of the broadening species is identical to the Self
+     species is also handled correctly.
+     
+     The idea is that the ARTSCAT-4 line list generated in this way should
+     give identical RT simulation results as the original ARTSCAT-3
+     list. This is verified in one of the test controlfiles.
+     
+     Currently only broadening and shift parameters are handled here. There
+     are some other additional fields in ARTSCAT-4, which we so far ignore.
+   */
+  void ARTSCAT4FromARTSCAT3() {
 
+      // Check that this line really is ARTSCAT-3
+      if ( this->Version() != 3 )
+        {
+          ostringstream os;
+          os << "This line is not ARTSCAT-3, it is ARTSCAT-" << this->Version();
+          throw runtime_error(os.str());
+        }
+
+      // Loop over broadening species:
+      for (Index i=0; i<NBroadSpec(); ++i) {
+          
+          // Find out if this broadening species is identical to the line species:
+          if (this->Species() == BroadSpecSpecIndex(i)) {
+              // We have to copy the self parameters here.
+              mgamma_foreign[i] = msgam;
+              mn_foreign[i] =     mnself;
+              mdelta_foreign[i] = 0;
+          } else {
+              // We have to copy the foreign parameters here.
+              mgamma_foreign[i] = magam;
+              mn_foreign[i] =     mnair;
+              mdelta_foreign[i] = mpsf;
+          }
+      }
+      
+      // Erase the ARTSCAT-3 foreign parameteres:
+      ARTSCAT4UnusedToNaN();
+  }
+  
+ /** Set to NaN all parameters that are not in ARTSCAT-4. */
+  void ARTSCAT4UnusedToNaN() {
+      
+      // Resize aux array to 0, not used in ARTSCAT-4:
+      maux.resize(0);
+      
+      // Set other parameters to NAN:
+      magam    = NAN;
+      mnair    = NAN;
+      mpsf     = NAN;
+      mtgam    = NAN;
+      
+      mdf      = NAN;
+      mdi0     = NAN;
+      mdagam   = NAN;
+      mdsgam   = NAN;
+      mdnair   = NAN;
+      mdnself  = NAN;
+      mdpsf    = NAN;
+    }
   
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):

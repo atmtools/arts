@@ -503,6 +503,40 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_linesArtscat4FromArtscat3" ),
+        DESCRIPTION
+        (
+	 "Convert a line list from ARTSCAT-3 to ARTSCAT-4 format.\n"
+	 "\n"
+	 "ARTSCAT-4 lines contain more information than ARTSCAT-3 lines,\n"
+	 "particularly they contain separate broadening parameters for six\n"
+	 "different broadening species. So a real conversion is not\n"
+	 "possible. What this method does is copy the air broadening (and shift)\n"
+	 "parameters from ARTSCAT-3 to all ARTSCAT-4 broadening species. The\n"
+	 "case that one of the broadening species is identical to the Self\n"
+	 "species is also handled correctly.\n"
+	 "\n"
+	 "The idea is that the ARTSCAT-4 line list generated in this way should\n"
+	 "give identical RT simulation results as the original ARTSCAT-3\n"
+	 "list. This is verified in one of the test controlfiles.\n"
+	 "\n"
+	 "Currently only broadening and shift parameters are handled here. There\n"
+	 "are some other additional fields in ARTSCAT-4, which we so far ignore.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "abs_lines" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lines" ),
+        GIN(  ),
+        GIN_TYPE(     ),
+        GIN_DEFAULT(  ),
+        GIN_DESC(  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "abs_linesReadFromArts" ),
         DESCRIPTION
         (

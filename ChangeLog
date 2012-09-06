@@ -1,3 +1,19 @@
+2012-09-06  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-266
+
+	* src/m_abs.cc (abs_linesArtscat4FromArtscat3): Added, converts
+	lines from version 3 to version 4 format.
+
+	* src/methods.cc: (abs_linesArtscat4FromArtscat3): Added.
+
+	* src/absorption.cc: Minor changes in broadening calculations.
+
+	* src/absorption.h (BroadSpecSpecIndex): Added.
+	(ARTSCAT4FromARTSCAT3): Added, internal function that does the
+	work for WSM abs_linesArtscat4FromArtscat3.
+	(ARTSCAT4UnusedToNaN): Added.
+
 2012-09-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-265

@@ -2252,22 +2252,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
           if (q[4] > 0) mlower_j = q[4];
       }
 
-      // Resize aux array to 0, not used in ARTSCAT-4
-      maux.resize(0);
-
-      // Set values that are not used in ARTSCAT-4 to -1
-      mdf      = -1;
-      mdi0     = -1;
-      mdagam   = -1;
-      mdsgam   = -1;
-      mdnair   = -1;
-      mdnself  = -1;
-      mdpsf    = -1;            
+      LineRecord::ARTSCAT4UnusedToNaN();
     }
-
-  // FIXME: OLE: Is it okay to set this to the same value as for HITRAN?
-  // Reference temperature for AGAM and SGAM in K.
-  mtgam = 296.0;
 
   // That's it!
   return false;
@@ -2322,9 +2308,9 @@ void find_broad_spec_locations(ArrayOfIndex broad_spec_locations,
   // Loop over all broadening species and see if we can find them in abs_species.
   for (Index i=0; i<nbs; ++i) {
     // Find associated internal species index (we do the lookup by index, not by name).
-    const Index isi = species_index_from_species_name(LineRecord::BroadSpecName(i));
+    const Index isi = LineRecord::BroadSpecSpecIndex(i);
     
-    // First check if this species is the same as this_species
+    // First check if this broadening species is the same as this_species
     if ( isi == abs_species[this_species][0].Species() )
       broad_spec_locations[i] = -2;
     else
@@ -2386,8 +2372,22 @@ void calc_gamma_and_deltaf_artscat4(Numeric gamma,
     deltaf = 0;
     
     // Add other broadening species, where available:
-    for (Index i=0; i<nbs; ++i)
-        if ( broad_spec_locations[i] >= 0 ) {
+    for (Index i=0; i<nbs; ++i) {
+        if ( broad_spec_locations[i] < -1 ) {
+            // -2 means that this broadening species is identical to Self.
+            // Throw runtime errors if the parameters are not identical.
+            if (l_l.Gamma_foreign(i)!=l_l.Sgam() ||
+                l_l.N_foreign(i)!=l_l.Nself())
+              {
+                ostringstream os;
+                os << "Inconsistency in LineRecord, self broadening and line "
+                   << "broadening for " << LineRecord::BroadSpecName(i) << "\n"
+                   << "should be identical.\n"
+                   << "LineRecord:\n"
+                   << l_l;
+                throw runtime_error(os.str());
+              }
+        } else if ( broad_spec_locations[i] >= 0 ) {
 
             // Add to VMR sum:
             broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
@@ -2404,7 +2404,8 @@ void calc_gamma_and_deltaf_artscat4(Numeric gamma,
                       * pow( theta , (Numeric).25 + (Numeric)1.5*l_l.N_foreign(i) )
                       * vmrs[broad_spec_locations[i]];
         }
-    
+    }
+        
     // Check that sum is not too far from 1:
     if ( abs(broad_spec_vmr_sum-1) > 0.1 )
       {
