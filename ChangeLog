@@ -1,5 +1,14 @@
 2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-268
+
+	* src/partition_function_data.cc: Added links to partition function
+	comparison data&tools archive.
+
+	* doc/uguide/concept.tex: couple of fixes of spelling and formulations.
+
+2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-267
 
 	* starting cleaning & reorganizing of general.arts:

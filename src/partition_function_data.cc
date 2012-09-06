@@ -128,7 +128,8 @@
   therefore use for this species (see below).
 
   In order to see the level of agreement of the to partition functions datasets, HITRAN 
-  and JPL, a intercomparison has been made. 
+  and JPL, a intercomparison has been made (data, tools, etc. in
+  sat-group-servers:/storage4/projects_bremen/Spectro2/PartitionFunction/CompPartFun/). 
   It was found that, with some exceptions, the two datasets are in a good
   agreement, if a vibrational correction is applied to the JPL partition
   functions. Only for 16 molecules (out of 66 considered molecules), the deviations in

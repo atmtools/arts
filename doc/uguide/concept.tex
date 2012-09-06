@@ -62,12 +62,14 @@ version. A short summary of ARTS's main features is:
   and 3D, a complete reference ellipsoid is used and the surface can have
   arbitrary shape.
 \item[Polarisation] is fully described by using the Stokes formalism.
-\item[Scattering] can be consider in seval manners. It can be included in
-  transmission type calculations. For scattering of thermal emission two
-  modules are at hand, DOIT (Section~\ref{sec:scattering}) and MC (\theory,
-  Section~\ref{T-sec:montecarlo}). The \textindex{scattering} particles are
+\item[Scattering] can be considered in several manners. Extinction from
+  scatterers can be included in transmission type calculations.
+  For radiance calculations of thermal emission (in contrast to solar radiation)
+  there are two modules at hand to take the scattering into account: DOIT
+  (Section~\ref{sec:scattering}) and MC (\theory, Section~\ref{T-sec:montecarlo}).
+  The \textindex{scattering} particles are
   for efficiency reasons confined to a region of the atmosphere denoted as the
-  cloud box.
+  cloudbox.
 \item[Observation geometry] is free. That is, the forward model can be
   used to simulate ground-based, down-looking, limb sounding and
   balloon/aircraft measurements.
@@ -127,7 +129,8 @@ following subsections.
 
 ARTS contains \textindex{built-in documentation} for all functions and
 variables that are directly visible to the user (in ARTS terminology called
-workspace functions and workspace variables, and are explained further below).
+workspace functions and workspace variables; they are explained in more depth
+further below).
 The easiest way to access this documentation is on the web page
 \url{http://www.sat.ltu.se/arts/docserver}. Alternatively, start ARTS with
 \begin{code}
