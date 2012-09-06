@@ -11,6 +11,10 @@ Arts2{
 INCLUDE "general/general.arts"
 
 
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
 # Reference ellipsoid
 #
 refellipsoidEarth( refellipsoid, "Sphere" )
@@ -43,7 +47,11 @@ AtmFieldsCalc
 MatrixSetConstant( z_surface, 1, 1, 500 )
 
 
-# Activate to make tests with cloudbox on:
+# Initializing cloudbox: No scattering
+#
+cloudboxOff
+
+# To instead make tests with cloudbox on, activate those:
 #FlagOn( cloudbox_on )
 #ArrayOfIndexSet( cloudbox_limits, [ 4, 10 ] )
 

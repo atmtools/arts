@@ -15,6 +15,10 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 
 
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
 # Reference ellipsoid
 #
 refellipsoidEarth( refellipsoid, "WGS84" )
@@ -60,6 +64,14 @@ AtmFieldsCalcExpand1D
 # Get ground altitude (z_surface) from z_field
 MatrixSetConstant( z_surface, 11, 11, 0 )
 
+
+# No scattering
+#
+cloudboxOff
+
+# No jacobian calculations
+#
+jacobianOff
 
 # Check model atmosphere
 # 

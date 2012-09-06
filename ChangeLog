@@ -1,3 +1,33 @@
+2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-267
+
+	* starting cleaning & reorganizing of general.arts:
+
+	* controlfiles/general/agendas.arts,planet_earth.arts: Added. INCLUDE
+	files supposed to hold agenda predefinitions & default settings and
+	planet specific default settings. For the moment just everything falling
+	into those categories moved from general.arts to those. Need further
+	development/structuring/cleaning.
+
+	* controlfiles/general/general.arts: Clean up. Keeping only "real"
+	defaults, i.e., settings that are basic and usually not reset.
+
+	* controlfiles/[artscomponents,instruments]/*/Test*.arts: Adapted all
+	test cases to above general.arts changes (particularly moved setting of
+	atm_dim, stokes_dim, cloudboxOff, jacobianOff into the Test ctrl-files.
+	user shall be forced to explicitly set those parameters).
+
+	* controlfiles/instrument/amsu/TestAMSUA.arts: Removed. Except for the
+	amsua.arts include, which does not exist, and the MatrixCompare of the
+	output this is identical to TestAMSUB.arts. So no need to keep it.
+
+	* controlfiles/CMakeLists.txt: switch on ALL existing test cases (except
+	TestDisort, which needs to be fixed. or removed.)
+
+	* controlfiles/instruments/hirs/garand_profiles.xml.gz: Moved to
+	controlfiles/atmosphere_data/.
+
 2012-09-06  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-266

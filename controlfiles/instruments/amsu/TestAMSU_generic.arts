@@ -146,8 +146,11 @@ AgendaSet( ybatch_calc_agenda ){
   # generate p_grid, t_field, z_field, vmr_field:
   AtmFieldsFromCompact
 
-  # Optionally set Jacobian parameters. You can comment out this block 
-  # if you do not want Jacobians in order to speed up the calculation. 
+  # Optionally set Jacobian parameters.
+  # uncomment this for NO jacobian calculations
+  jacobianOff
+  # Uncomment this block if you want Jacobians. Attention, it slows down the
+  # computation a lot.
   # Also, you can add other Jacobians here, for example for temperature.
 #  jacobianInit
 #  jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
@@ -159,6 +162,9 @@ AgendaSet( ybatch_calc_agenda ){
 #                         "rel",
 #                         0.01 )
 #  jacobianClose
+
+  # No scattering
+  cloudboxOff
 
   # get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )

@@ -8,13 +8,14 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 
+IndexSet( stokes_dim, 1 )
+AtmosphereSet3D
+
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
 ReadXML( f_grid, "TestMonteCarloDataPrepare.f_grid.xml" )
 
 ReadXML( p_grid, "p_grid.xml" )
-
-AtmosphereSet3D
 
 ReadXML( lat_grid, "lat_grid.xml" )
 
@@ -43,6 +44,7 @@ ReadXML( scat_data_raw, "TestMonteCarloDataPrepare.scat_data_raw.xml" )
 
 basics_checkedCalc
 cloudbox_checkedCalc
+jacobianOff
 
 
 #### Define Agendas #################################################

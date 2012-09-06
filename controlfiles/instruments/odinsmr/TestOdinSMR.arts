@@ -13,6 +13,15 @@
 
 Arts2 {
 
+
+# Basic settings (already needed in sensor part)
+# ---
+# This example assumes 1D
+AtmosphereSet1D
+# scalar RT
+IndexSet( stokes_dim, 1 )
+
+
 # Select frequency band here:
 #
 INCLUDE "odinsmr_501.arts"
@@ -36,9 +45,6 @@ INCLUDE "odinsmr_501.arts"
 #
 VectorNLogSpace( p_grid, 321, 1000e2, 1 )
 
-# This example assumes 1D
-AtmosphereSet1D
-
 # Atmospheric profiles here taken from Fascod
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
 #
@@ -46,6 +52,12 @@ AtmFieldsCalc
 
 # Get ground altitude (z_surface) from z_field
 Extract( z_surface, z_field, 0 )
+
+# No scattering
+cloudboxOff
+
+# No jacobian calculations
+jacobianOff
 
 basics_checkedCalc
 cloudbox_checkedCalc

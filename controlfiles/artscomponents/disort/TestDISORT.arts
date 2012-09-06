@@ -10,7 +10,7 @@
 # The DISORT calculation is set up in a very similar way to the 
 # DOIT calculation. 
 
-Arts {
+Arts2 {
 
 INCLUDE "general/general"
 INCLUDE "general/continua.arts"

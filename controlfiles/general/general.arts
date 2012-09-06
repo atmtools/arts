@@ -7,37 +7,35 @@
 Arts2 {
 
 
+
+############
+# PART 1 - following settings serve (mainly) as initialisations
+############
+
 #
 # Initialize verbosity levels
 #
 verbosityInit
 
+#
+# No particle/scattering species (yet)
+#
+ParticleSpeciesSet( part_species, [] )
 
 #
-# Default output format
+# Default is that no transmitter is involved
 #
-output_file_formatSetAscii
-
-
-#
-# Number of Stokes components to be computed
-#
-IndexSet( stokes_dim, 1 )
-
+MatrixSet( transmitter_pos, [] )
 
 #
-# Dimensionality of the atmosphere
+# FOS 
 #
-AtmosphereSet1D
-
+IndexSet( fos_i, 0 )
 
 #
-# The N2 VMR value is sometimes needed for the calculation of the
-# absorption coefficient of other species. The value here is from
-# Wallace&Hobbs, 2nd edition.
+# No auxiliary variables as default
 #
-VectorSet( abs_n2, [ 0.7808 ] )
-
+ArrayOfStringSet( iy_aux_vars, [] )
 
 #
 # The H2O VMR value is sometimes needed for the calculation of the
@@ -47,7 +45,69 @@ VectorSet( abs_n2, [ 0.7808 ] )
 #
 VectorSet( abs_h2o, [ -1 ] )
 
+# jm: in this basic version here as initialisation. also, no refraction (n=1)
+#  seems a sensible default setting.
+#
+# Refractive index agenda
+#
+AgendaSet( refr_index_agenda ){
+  Ignore( f_grid )
+  Ignore( rte_edensity )
+  Ignore( rte_pressure )
+  Ignore( rte_temperature )
+  Ignore( rte_vmr_list )
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+}
 
+
+### basics_CheckedCalc requires them to be initialised. 0 seems an ok default.
+# 
+# Winds, Magnetic field, and electron density
+# (all components set to be empty, shorthand for no winds/magnetic field)
+#
+Tensor3SetConstant( wind_u_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( wind_v_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( mag_u_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( mag_v_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
+Tensor3SetConstant( edensity_field, 0, 0, 0, 0.0 )
+
+
+
+############
+# PART 2 - following settings are highly recommended to be NOT changed
+############
+
+#
+# Set default interpolation orders for absorption lookup table. Do not
+# mess with these values, unless you know what you are doing! 
+#
+IndexSet( abs_p_interp_order,   5 )
+IndexSet( abs_t_interp_order,   7 )
+IndexSet( abs_nls_interp_order, 5 )
+
+#
+# Variable for calculation of propagation paths:
+#
+# You should not change the value of ppath_inside_cloudbox_do, if you don't 
+# know exactly what you are doing!)
+FlagOff( ppath_inside_cloudbox_do )
+
+
+
+############
+# PART 3 - following settings define some meaningful defaults
+############
+
+#
+# Default output format
+#
+output_file_formatSetAscii
+
+
+### jm: general enough? or throw away & leave setting completely to user?
 #
 # Lineshape function
 #
@@ -59,160 +119,15 @@ VectorSet( abs_h2o, [ -1 ] )
 abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 
 
+### jm: this one general enough? suggest to leave here as unexperienced user might
+#  not have a good feeling for what is an appropriate value.
 #
-# Default is "on-the-fly" absorption
-# Another option is to create an absorption table, which could save
-# (considerable) time, especially for batch calculations.
-# 
-
-AgendaSet( abs_mat_per_species_agenda ){
-  Ignore(rte_mag)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddLBL
-  # To use the absorption lookup table, replace by:
-  #abs_mat_per_speciesInit
-  #abs_mat_per_speciesAddFromLookup
-  # To get absorption from Zeeman tag,
-  # uncomment this:
-  #abs_mat_per_speciesAddZeemanLBL
-  # and comment out Ignore(rte_mag):
-}
-
-
+# Variable for calculation of propagation paths:
 #
-# Set default interpolation orders for absorption lookup table. Do not
-# mess with these values, unless you know what you are doing! 
-#
-IndexSet( abs_p_interp_order,   5 )
-IndexSet( abs_t_interp_order,   7 )
-IndexSet( abs_nls_interp_order, 5 )
-
-
-#
-# Define reference ellipsoid (a spherical ellipsoid must be used for 1D)
-# 
-refellipsoidEarth( refellipsoid, "Sphere" )
-
-
-#
-# Gravity and weight of dry air
-# (needed for hydrostatic equilibrium calculations)
-# 
-AgendaSet( g0_agenda ){
-   Ignore( lon )
-   g0Earth
-} 
-NumericSet( molarmass_dry_air, 28.966 )
-
-
-# 
-# Winds (all set to be empty, shorthand for no winds)
-#
-Tensor3SetConstant( wind_u_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( wind_v_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
-
-
-# 
-# Magnetic field (all components set to be empty, shorthand for no magnetic field)
-#
-Tensor3SetConstant( mag_u_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( mag_v_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
-
-
-# 
-# Field of free electrons (empty is shorthand for no free electrons)
-#
-Tensor3SetConstant( edensity_field, 0, 0, 0, 0.0 )
-
-
-#
-# Surface, upwelling radiation
-# 
-# The default model is a blackbody surface. This is a good choice only
-# if your sensor operates at a frequency where the troposphere is
-# opaque, but it is the fastest option.
-#
-# Warning: If you want to do calculations with something other than a
-# blackbody surface, you have to re-define the surface_rtprop_agenda. It
-# is not enough to just set e.g. surface_scalar_reflectivity! 
-# 
-AgendaSet( iy_surface_agenda ){
-  iySurfaceRtpropAgenda
-} 
-AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_los )
-   InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
-                           lon_grid, z_field, rte_pos, t_field )
-   surfaceBlackbody
-} 
-
-
-#
-# Default is to include emission in source term
-# 
-AgendaSet( blackbody_radiation_agenda ){
-  blackbody_radiationPlanck
-}
-
-
-
-#
-# Refractive index agenda
-# (not used if ppath_stepGeometric used in ppath_step_agenda)
-#
-AgendaSet( refr_index_agenda ){
-  Ignore( f_grid )
-  Ignore( rte_edensity )
-  NumericSet( refr_index, 1.0 )
-  NumericSet( refr_index_group, 1.0 )
-  refr_indexThayer
-}
-
-
-#
-# Agendas and variables for calculation of propagation paths:
-# (This will result in pure geometrical calculations. That is, refraction is 
-# neglected. The value for ppath_lmax of 10e3 is OK for limb sounding, and 
+# The value for ppath_lmax of 10e3 is OK for limb sounding, and 
 # also for down-looking if not very accutate results are demanded.
-# You should not change the value of ppath_inside_cloudbox_do, if you don't 
-# know exactly what you are doing!)
 #
-AgendaSet( ppath_step_agenda ){
-  Ignore( t_field )
-  Ignore( vmr_field )
-  Ignore( edensity_field )
-  Ignore( f_grid )
-  ppath_stepGeometric
-}
 NumericSet( ppath_lmax, 10e3 )
-#
-AgendaSet( ppath_agenda ){
-  Ignore( rte_pos2 )
-  ppathStepByStep
-}
-FlagOff( ppath_inside_cloudbox_do )
-
-
-#
-# Agendas for clearsky radiative transfer calculation
-# 
-AgendaSet( iy_space_agenda ){
-  Ignore( rte_pos )
-  Ignore( rte_los )
-  MatrixCBR( iy, stokes_dim, f_grid )
-}
-#
-AgendaSet( iy_main_agenda ){
-  iyEmissionStandard
-}
-
-
-#
-# No auxiliary variables as default
-#
-ArrayOfStringSet( iy_aux_vars, [] )
 
 
 #
@@ -220,41 +135,13 @@ ArrayOfStringSet( iy_aux_vars, [] )
 #
 StringSet( y_unit, "1" )
 
-
-#
-# No scattering
-#
-cloudboxOff
-ParticleSpeciesSet( part_species, [] )
-
-
-#
-# No jacobian calculations by default
-#
-jacobianOff
-
-
 #
 # Batch calculations start at index 0 by default
 #
 IndexSet( ybatch_start, 0 )
 
 
-#
-# Default is that no transmitter is involved
-#
-MatrixSet( transmitter_pos, [] )
-
-
-#
-# FOS 
-#
-IndexSet( fos_i, 0 )
-
-#
-# Isotopologue ratios
-#
-isotopologue_ratiosInitFromBuiltin
-
+INCLUDE "agendas.arts"
+INCLUDE "general_topical.arts"
 }
 

@@ -5,9 +5,19 @@ Arts2 {
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 
+
+# Basic settings (already needed in sensor part)
+# ---
+# This example assumes 1D
+AtmosphereSet1D
+# scalar RT
+IndexSet( stokes_dim, 1 )
+
+
 INCLUDE "mhs_fast.arts"
 
 INCLUDE "TestMHS_generic.arts"
+
 
 # Store result matrix:
 # ---

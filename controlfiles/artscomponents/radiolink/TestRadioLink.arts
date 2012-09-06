@@ -12,6 +12,10 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 
 
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
 # Frequency grid 
 #
 VectorSet( f_grid, [ 1e9, 5e9, 10e9 ] )
@@ -35,6 +39,10 @@ SpeciesSet( abs_species,
 abs_lines_per_speciesSetEmpty
 
 
+# Dimensionality of the atmosphere
+#
+AtmosphereSet1D
+
 # Atmospheric profiles
 # 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
@@ -48,6 +56,14 @@ AtmFieldsCalc( t_field, z_field, vmr_field, p_grid,
 # Surface altitude
 MatrixSetConstant( z_surface, 1, 1, 0 )
 
+
+# No scattering
+#
+cloudboxOff
+
+# No jacobian calculations
+#
+jacobianOff
 
 # Check model atmosphere
 # 

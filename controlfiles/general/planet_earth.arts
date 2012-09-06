@@ -1,0 +1,53 @@
+Arts2 {
+
+######
+# To move to "functional" include files
+######
+
+
+### planet specific (here: Earth)###
+
+#
+# The N2 VMR value is sometimes needed for the calculation of the
+# absorption coefficient of other species. The value here is from
+# Wallace&Hobbs, 2nd edition.
+#
+VectorSet( abs_n2, [ 0.7808 ] )
+
+
+#
+# Define reference ellipsoid (a spherical ellipsoid must be used for 1D)
+# 
+refellipsoidEarth( refellipsoid, "Sphere" )
+
+
+# jm: g0_agenda here, if it is basically fix. if likely to be redefined, rather put in agenda-file.
+#
+# Gravity and weight of dry air
+# (needed for hydrostatic equilibrium calculations)
+# 
+AgendaSet( g0_agenda ){
+   Ignore( lon )
+   g0Earth
+} 
+NumericSet( molarmass_dry_air, 28.966 )
+
+
+# jm: here, or rather (in different meaningful versions) in agenda-file?!
+#
+# Refractive index agenda
+# (not used if ppath_stepGeometric used in ppath_step_agenda)
+#
+AgendaSet( refr_index_agenda ){
+  Ignore( f_grid )
+  Ignore( rte_edensity )
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+  refr_indexThayer
+}
+
+# Isotopologue ratios
+#
+isotopologue_ratiosInitFromBuiltin
+
+}

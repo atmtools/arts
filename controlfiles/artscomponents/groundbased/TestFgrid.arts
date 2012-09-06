@@ -12,6 +12,9 @@ SpeciesSet( abs_species, [ "O3", "H2O" ] )
 
 # ---- Atmospheric scenario --------------------------------------------------
 
+# Dimensionality of the atmosphere
+AtmosphereSet1D
+
 # A pressure grid rougly matching 0 to 80 km in 1 km steps.
 VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
 
@@ -42,14 +45,6 @@ NumericSet( za, 60 )
 MatrixSetConstant( sensor_pos, 1, 1, z_platform )
 Copy( z_surface, sensor_pos )
 MatrixSetConstant( sensor_los, 1, 1, za )
-
-
-#--- Other stuff -------------------------------------------------------------
-
-basics_checkedCalc
-cloudbox_checkedCalc
-StringSet( y_unit, "RJBT" )
-
 
 
 # ---- Create fast f_grid ----------------------------------------------------
@@ -103,8 +98,19 @@ Append( f_grid, flog )
 VectorAddScalar( f_grid, f_grid, v0 )
 
 
+#--- Checks & Misc settings --------------------------------------------------
+
+IndexSet( stokes_dim, 1 )
+cloudboxOff
+basics_checkedCalc
+cloudbox_checkedCalc
+StringSet( y_unit, "RJBT" )
+
+
+
 #-- Calculate spectrum for monochromatic grid and store as y1(x1)
 
+jacobianOff
 sensorOff
 yCalc
 

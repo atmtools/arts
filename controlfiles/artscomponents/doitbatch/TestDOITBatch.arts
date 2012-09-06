@@ -34,6 +34,10 @@ IndexSet (stokes_dim, 1)
 #-----------------
 IndexSet (atmosphere_dim, 1)
 
+#No jacobian calculations
+#-----------------
+jacobianOff
+
 # Modifiy the maximum propagation step, from the default(10.e3)
 # to 250 m:---------------------------------------------------
 NumericSet( ppath_lmax, 250 )

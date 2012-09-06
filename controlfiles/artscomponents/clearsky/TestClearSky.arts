@@ -20,6 +20,19 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 
 
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+# Clearsky = No scattering
+#
+cloudboxOff
+
+# No jacobian calculation
+#
+jacobianOff
+
+
 # Read a line file and a matching small frequency grid
 # ---
 ReadXML( abs_lines, "abs_lines.xml" )
@@ -83,6 +96,7 @@ VectorCreate( odepth )
 
 # Atmosphere and surface
 # ---
+AtmosphereSet1D
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 

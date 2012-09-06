@@ -31,6 +31,9 @@ IndexSet( stokes_dim, 4 )
 # Definition of the atmosphere
 # ----------------------------
 
+# Dimensionality of the atmosphere
+AtmosphereSet1D
+
 # Pressure grid
 ReadXML( p_grid, "p_grid.xml" )
 
@@ -232,6 +235,10 @@ AgendaSet( iy_cloudbox_agenda ){
   Ignore (rte_los)
   iyInterpCloudboxField
 }
+
+# No jacobian calculations
+#
+jacobianOff
 
 #==================start==========================
 

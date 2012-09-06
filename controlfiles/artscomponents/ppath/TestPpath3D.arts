@@ -11,6 +11,10 @@ Arts2{
 INCLUDE "general/general.arts"
 
 
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
 # A pressure grid rougly matching 0 to 80 km.
 #
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
@@ -44,6 +48,10 @@ nelemGet( nlon, lon_grid )
 #
 MatrixSetConstant( z_surface, nlat, nlon, 500 )
 
+
+# Initializing cloudbox: No scattering
+#
+cloudboxOff
 
 # Activate to make tests with cloudbox on:
 #FlagOn( cloudbox_on )

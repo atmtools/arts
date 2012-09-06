@@ -13,6 +13,9 @@ Arts2 {
 INCLUDE "general/general.arts"
 
 
+# Number of Stokes components to be computed
+IndexSet( stokes_dim, 1 )
+
 # ---- f_grid ----------------------------------------------------------------
 
 NumericCreate( v0 )
@@ -71,6 +74,9 @@ SpeciesSet( abs_species, [ "O3", "H2O" ] )
 
 # ---- Atmospheric scenario --------------------------------------------------
 
+# Dimensionality of the atmosphere
+AtmosphereSet1D
+
 # A pressure grid rougly matching 0 to 80 km in 500 m steps.
 VectorNLogSpace( p_grid, 160, 1.013e5, 1 )
 
@@ -117,6 +123,7 @@ MatrixSetConstant( sensor_los, 1, 1, za )
 
 # ---- Finalise atmosphere ---------------------------------------------------
 
+cloudboxOff
 basics_checkedCalc
 cloudbox_checkedCalc
 

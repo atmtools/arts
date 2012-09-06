@@ -51,6 +51,13 @@ AgendaSet( surface_rtprop_agenda ){
 # ---
 sensorOff
 
+# No scattering
+#
+cloudboxOff
+
+# No jacobian calculations
+#
+jacobianOff
 
 # We select here to use Rayleigh-Jean brightness temperatures
 # ---
@@ -62,6 +69,7 @@ StringSet( y_unit, "RJBT" )
 
 # Atmosphere and surface
 # ---
+AtmosphereSet1D
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 

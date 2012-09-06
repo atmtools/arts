@@ -15,6 +15,10 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 
 
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
 # Frequency grid 
 #
 VectorNLinSpace( f_grid, 201, 325e9, 327e9 )
@@ -36,6 +40,10 @@ SpeciesSet( abs_species,
 # 
 abs_lines_per_speciesSetEmpty
 
+
+# Dimensionality of the atmosphere
+#
+AtmosphereSet1D
 
 # Atmospheric profiles
 # 
@@ -70,6 +78,14 @@ ArrayOfStringSet( iy_aux_vars,
       "iy", 
       "Optical depth" ] )
 
+
+# No scattering
+#
+cloudboxOff
+
+# No jacobian calculation
+#
+jacobianOff
 
 # Perform RT calculations
 # 

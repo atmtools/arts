@@ -1,0 +1,96 @@
+Arts2 {
+
+######
+# Agenda definitions
+# 
+# Move to "functional" include files?
+# Or rather to agenda-includes (also topically sorted)? those should use
+#  agendaCreate feature and (pre)define sets of typical agenda settings, where
+#  and as far as appropriate. e.g. lbl and lut abs settings.
+######
+
+
+#
+# Default is "on-the-fly" absorption
+# Another option is to create an absorption table, which could save
+# (considerable) time, especially for batch calculations.
+# 
+
+AgendaSet( abs_mat_per_species_agenda ){
+  Ignore(rte_mag)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddLBL
+  # To use the absorption lookup table, replace by:
+  #abs_mat_per_speciesInit
+  #abs_mat_per_speciesAddFromLookup
+  # To get absorption from Zeeman tag,
+  # uncomment this:
+  #abs_mat_per_speciesAddZeemanLBL
+  # and comment out Ignore(rte_mag):
+}
+
+
+#
+# Surface, upwelling radiation
+# 
+# The default model is a blackbody surface. This is a good choice only
+# if your sensor operates at a frequency where the troposphere is
+# opaque, but it is the fastest option.
+#
+# Warning: If you want to do calculations with something other than a
+# blackbody surface, you have to re-define the surface_rtprop_agenda. It
+# is not enough to just set e.g. surface_scalar_reflectivity! 
+# 
+AgendaSet( iy_surface_agenda ){
+  iySurfaceRtpropAgenda
+} 
+AgendaSet( surface_rtprop_agenda ){
+   Ignore( rte_los )
+   InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
+                           lon_grid, z_field, rte_pos, t_field )
+   surfaceBlackbody
+} 
+
+
+#
+# Default is to include emission in source term
+# 
+AgendaSet( blackbody_radiation_agenda ){
+  blackbody_radiationPlanck
+}
+
+
+#
+# Agendas and variables for calculation of propagation paths:
+# (This will result in pure geometrical calculations. That is, refraction is 
+# neglected.)
+#
+AgendaSet( ppath_step_agenda ){
+  Ignore( t_field )
+  Ignore( vmr_field )
+  Ignore( edensity_field )
+  Ignore( f_grid )
+  ppath_stepGeometric
+}
+#
+AgendaSet( ppath_agenda ){
+  Ignore( rte_pos2 )
+  ppathStepByStep
+}
+
+
+#
+# Agendas for clearsky radiative transfer calculation
+# 
+AgendaSet( iy_space_agenda ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  MatrixCBR( iy, stokes_dim, f_grid )
+}
+#
+AgendaSet( iy_main_agenda ){
+  iyEmissionStandard
+}
+
+
+}

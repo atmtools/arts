@@ -5,9 +5,16 @@ Arts2 {
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 
+# Basic settings (already needed in sensor part)
+# ---
+AtmosphereSet1D
+IndexSet( stokes_dim, 1 )
+
+# be aware, that amsub.arts as is only works for 1D and stokes_dim=1
 INCLUDE "amsub.arts"
 
 INCLUDE "TestAMSU_generic.arts"
+
 
 # Store result matrix:
 # ---
