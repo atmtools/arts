@@ -863,6 +863,8 @@ void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
 {
   const Index n_old = old_grid.nelem();
   
+  if (!new_grid.nelem()) throw runtime_error("The new grid is not allowed to be empty.");
+
   ostringstream os;
   os << "There is a problem with the grids for the\n"
   << "following interpolation: " << which_interpolation << ".\n";
@@ -1018,6 +1020,8 @@ void chk_interpolation_grids_loose_check_data(Index&          ing_min,
                                               ConstVectorView new_grid,
                                               ConstVectorView data)
 {
+  if (!new_grid.nelem()) throw runtime_error("The new grid is not allowed to be empty.");
+
   ostringstream os;
   os << "There is a problem with the grids for the\n"
      << "following interpolation: " << which_interpolation << ".\n";
@@ -1079,6 +1083,8 @@ void chk_interpolation_grids(const String&   which_interpolation,
                              const bool      islog)
 {
   const Index n_old = old_grid.nelem();
+
+  if (!new_grid.nelem()) throw runtime_error("The new grid is not allowed to be empty.");
 
   ostringstream os;
   os << "There is a problem with the grids for the\n"

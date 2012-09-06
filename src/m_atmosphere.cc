@@ -738,6 +738,9 @@ void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
 {
     CREATE_OUT2;
 
+    if (!lat_true.nelem()) throw runtime_error("The new latitude grid is not allowed to be empty.");
+    if (!lon_true.nelem()) throw runtime_error("The new longitude grid is not allowed to be empty.");
+
     chk_griddedfield_gridname(gfraw_in, lat_grid_index, "Latitude");
     chk_griddedfield_gridname(gfraw_in, lon_grid_index, "Longitude");
     if (gfraw_in.get_grid_size(lat_grid_index) == 1 || gfraw_in.get_grid_size(lon_grid_index) == 1)
