@@ -292,6 +292,7 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                                   const ArrayOfArrayOfSpeciesTag& abs_species,
                                   const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                   const ArrayOfLineshapeSpec& abs_lineshape,
+                                  const ArrayOfVector& isotopologue_ratios,
                                   const Numeric& rte_pressure,
                                   const Numeric& rte_temperature,
                                   const Vector& rte_vmr_list,
@@ -634,11 +635,12 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
             // Cheat to remove h2o dependency,
             Vector abs_h2o(1,-1.0);
             // then calculate the cross section per species
-            abs_xsec_per_speciesAddLines(abs_xsec_per_species,                                                //Output
+            abs_xsec_per_speciesAddLines(abs_xsec_per_species, //Output
                                          temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_vmrs, //Input
-                                         temp_abs_lines_per_species, abs_lineshape,                         //Input
-                                         verbosity);                                                       //Verbose!
-          
+                                         temp_abs_lines_per_species, abs_lineshape,
+                                         isotopologue_ratios,
+                                         verbosity);
+
             // and take continua into account.
             // 2012-9-4 Stefan: I don't think this function should add
             //          continua, since they are already added elsewhere.
@@ -711,10 +713,10 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
             // Cheat to remove h2o dependency,
             Vector abs_h2o(1,-1.0);
             // then calculate the cross section per species
-            abs_xsec_per_speciesAddLines(abs_xsec_per_species,                                                //Output
+            abs_xsec_per_speciesAddLines(abs_xsec_per_species, //Output
                                          temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_vmrs, //Input
-                                         temp_abs_lines_per_species, abs_lineshape,                         //Input
-                                         verbosity);                                                       //Verbose!
+                                         temp_abs_lines_per_species, abs_lineshape,
+                                         isotopologue_ratios, verbosity);
 
             // and take continua into account.
             // 2012-9-4 Stefan: I don't think this function should add

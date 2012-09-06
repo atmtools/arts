@@ -1,5 +1,42 @@
 2012-09-06  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-264
+
+	* src/workspace.cc: New WSV isotopologue_ratios.
+
+	* src/methods.cc:
+
+	New WSM isotopologue_ratiosInitFromBuiltin.
+
+	(abs_lookupCreate, abs_lookupTestAccuracy, abs_lookupTestAccMC,
+	abs_mat_per_speciesAddZeemanLBL):
+
+	Add isotopologue_ratios as input.
+
+	* controlfiles/general/general.arts: Initialize isotopologue_ratios.
+
+	* src/absorption.{h,cc} (xsec_species):
+
+	Add param isotopologue_ratios. Use those for calculation instead the
+	ones from species_data.
+
+	* m_abs.cc (abs_coefCalc, abs_coefCalcSaveMemory,
+	abs_xsec_per_speciesAddLines, abs_mat_per_speciesAddLBL):
+
+	Add param isotopologue_ratios.
+
+	(isotopologue_ratiosInitFromBuiltin): New function.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate, calc_lookup_error,
+	abs_lookupTestAccuracy, abs_lookupTestAccMC),
+	src/m_zeeman.cc (abs_mat_per_speciesAddZeemanLBL):
+
+	Add param isotopologue_ratios.
+
+	* gas_abs_lookup.h (GasAbsLookup): Update friend declarations.
+
+2012-09-06  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-263
 
 	* src/m_atmosphere.cc (GriddedFieldLatLonRegridHelper):

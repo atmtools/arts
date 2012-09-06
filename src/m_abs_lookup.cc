@@ -75,6 +75,7 @@ void abs_lookupCreate(// WS Output:
                       const ArrayOfString&            abs_cont_names,    
                       const ArrayOfString&            abs_cont_models,   
                       const ArrayOfVector&            abs_cont_parameters,
+                      const ArrayOfVector&            isotopologue_ratios,
                       const Verbosity&                verbosity)
 {
   CREATE_OUT2;
@@ -439,6 +440,7 @@ void abs_lookupCreate(// WS Output:
                                                 this_vmr,
                                                 these_lines,
                                                 this_lineshape,
+                                                isotopologue_ratios,
                                                 verbosity);
 
                   abs_xsec_per_speciesAddConts( abs_xsec_per_species,
@@ -2425,6 +2427,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                           const ArrayOfString&            abs_cont_names,
                           const ArrayOfString&            abs_cont_models,
                           const ArrayOfVector&            abs_cont_parameters,
+                          const ArrayOfVector&            isotopologue_ratios,
                           // Parameters for both:
                           const Numeric&      local_p,
                           const Numeric&      local_t,
@@ -2500,6 +2503,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                             abs_cont_names,
                             abs_cont_models,
                             abs_cont_parameters,
+                            isotopologue_ratios,
                             local_p,
                             local_t,
                             local_vmrs,
@@ -2547,6 +2551,7 @@ void abs_lookupTestAccuracy(// WS Input:
                             const ArrayOfString&            abs_cont_names,
                             const ArrayOfString&            abs_cont_models,
                             const ArrayOfVector&            abs_cont_parameters,
+                            const ArrayOfVector&            isotopologue_ratios,
                             const Verbosity&                verbosity)
 {
   CREATE_OUT2;
@@ -2648,6 +2653,7 @@ void abs_lookupTestAccuracy(// WS Input:
                             abs_cont_names,
                             abs_cont_models,
                             abs_cont_parameters,
+                            isotopologue_ratios,
                             // Parameters for both:
                             local_p,
                             local_t,
@@ -2724,6 +2730,7 @@ void abs_lookupTestAccuracy(// WS Input:
                             abs_cont_names,
                             abs_cont_models,
                             abs_cont_parameters,
+                            isotopologue_ratios,
                             // Parameters for both:
                             local_p,
                             local_t,
@@ -2809,6 +2816,7 @@ void abs_lookupTestAccuracy(// WS Input:
                           abs_cont_names,
                           abs_cont_models,
                           abs_cont_parameters,
+                          isotopologue_ratios,
                           // Parameters for both:
                           local_p,
                           local_t,
@@ -2875,6 +2883,7 @@ void abs_lookupTestAccuracy(// WS Input:
                           abs_cont_names,
                           abs_cont_models,
                           abs_cont_parameters,
+                          isotopologue_ratios,
                           // Parameters for both:
                           local_p,
                           local_t,
@@ -2933,6 +2942,7 @@ void abs_lookupTestAccMC(// WS Input:
                          const ArrayOfString&            abs_cont_names,
                          const ArrayOfString&            abs_cont_models,
                          const ArrayOfVector&            abs_cont_parameters,
+                         const ArrayOfVector&            isotopologue_ratios,
                          const Index&                    mc_seed,
                          const Verbosity&                verbosity)
 {
@@ -3089,6 +3099,7 @@ void abs_lookupTestAccMC(// WS Input:
                                               abs_cont_names,
                                               abs_cont_models,
                                               abs_cont_parameters,
+                                              isotopologue_ratios,
                                               // Parameters for both:
                                               this_p,
                                               this_t,  

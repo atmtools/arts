@@ -1628,6 +1628,16 @@ void Workspace::define_wsv_data()
       GROUP( "Matrix" )));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "isotopologue_ratios" ),
+       DESCRIPTION
+       (
+        "Isotopologue ratios. This variable can be set to default values by calling\n"
+        "*isotopologue_ratiosInitFromBuiltin*\n"
+        ),
+       GROUP( "ArrayOfVector" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "iyb" ),
       DESCRIPTION

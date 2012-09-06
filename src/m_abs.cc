@@ -1247,6 +1247,7 @@ void abs_coefCalc(// WS Output:
                   const ArrayOfString&            abs_cont_names,
                   const ArrayOfString&            abs_cont_models,
                   const ArrayOfVector&            abs_cont_parameters,
+                  const ArrayOfVector&            isotopologue_ratios,
                   const Verbosity&                verbosity)
 {
   // Dimension checks are performed in the executed functions
@@ -1264,6 +1265,7 @@ void abs_coefCalc(// WS Output:
                                abs_vmrs,
                                abs_lines_per_species,
                                abs_lineshape,
+                               isotopologue_ratios,
                                verbosity);
 
   abs_xsec_per_speciesAddConts(abs_xsec_per_species,
@@ -1303,9 +1305,10 @@ void abs_coefCalcSaveMemory(// WS Output:
                             const Matrix&                   abs_vmrs,
                             const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                             const ArrayOfLineshapeSpec&     abs_lineshape,
-                            const ArrayOfString&   abs_cont_names,
-                            const ArrayOfString&   abs_cont_models,
-                            const ArrayOfVector&   abs_cont_parameters,
+                            const ArrayOfString&            abs_cont_names,
+                            const ArrayOfString&            abs_cont_models,
+                            const ArrayOfVector&            abs_cont_parameters,
+                            const ArrayOfVector&            isotopologue_ratios,
                             const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -1370,6 +1373,7 @@ void abs_coefCalcSaveMemory(// WS Output:
                                    this_vmr,
                                    these_lines,
                                    this_lineshape,
+                                   isotopologue_ratios,
                                    verbosity);
 
       abs_xsec_per_speciesAddConts(abs_xsec_per_species,
@@ -1524,6 +1528,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const Matrix&                    abs_vmrs,
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
+                                  const ArrayOfVector&             isotopologue_ratios,
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
@@ -1730,6 +1735,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                         ls.Ind_ls(),
                         ls.Ind_lsn(),
                         ls.Cutoff(),
+                        isotopologue_ratios,
                         verbosity );
           // Note that we call xsec_species with a row of abs_vmrs,
           // selected by the above Matpack expression. This is
@@ -2189,6 +2195,7 @@ void abs_mat_per_speciesAddLBL(// WS Output:
                            const ArrayOfString& abs_cont_names,
                            const ArrayOfString& abs_cont_models,
                            const ArrayOfVector& abs_cont_parameters,
+                           const ArrayOfVector& isotopologue_ratios,
                            const Numeric& rte_pressure,
                            const Numeric& rte_temperature,
                            const Vector& rte_vmr_list,
@@ -2272,6 +2279,7 @@ void abs_mat_per_speciesAddLBL(// WS Output:
                abs_cont_names,
                abs_cont_models,
                abs_cont_parameters,
+               isotopologue_ratios,
                verbosity);
   
   // Now add abs_coef_per_species to abs_mat_per_species:
@@ -2307,6 +2315,26 @@ void f_gridSelectFIndex(// WS Output:
       Numeric this_f = f_grid[f_index];
       f_grid.resize(1);
       f_grid = this_f;
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void isotopologue_ratiosInitFromBuiltin(ArrayOfVector& isotopologue_ratios,
+                                        const Verbosity&)
+{
+    extern Array<SpeciesRecord> species_data;
+
+    isotopologue_ratios.resize(species_data.nelem());
+
+    for (Index isd = 0; isd < species_data.nelem(); isd++)
+    {
+        const Array<IsotopologueRecord>& air = species_data[isd].Isotopologue();
+        isotopologue_ratios[isd].resize(air.nelem());
+        for (Index iir = 0; iir < air.nelem(); iir++)
+        {
+            isotopologue_ratios[isd][iir] = air[iir].Abundance();
+        }
     }
 }
 

@@ -2452,6 +2452,7 @@ void calc_gamma_and_deltaf_artscat4(Numeric gamma,
     \param ind_ls       Index to lineshape function.
     \param ind_lsn      Index to lineshape norm.
     \param cutoff       Lineshape cutoff.
+    \param isotopologue_ratios  Isotopologue ratios.
 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 
@@ -2479,6 +2480,7 @@ void xsec_species( MatrixView               xsec,
                    const Index              ind_ls,
                    const Index              ind_lsn,
                    const Numeric            cutoff,
+                   const ArrayOfVector&     isotopologue_ratios,
                    const Verbosity&         verbosity )
 {
   // Make lineshape and species lookup data visible:
@@ -3022,7 +3024,9 @@ void xsec_species( MatrixView               xsec,
                     // summing up lines belonging to different isotopologues.
 
                     //                const Numeric factors = n * intensity * l_l.IsotopologueData().Abundance();
-                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
+//                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
+                      const Numeric factors =
+                            intensity * isotopologue_ratios[l_l.Species()][l_l.Isotopologue()];
 
                     // We have to do:
                     // xsec(j,i) += factors * ls[j] * fac[j];

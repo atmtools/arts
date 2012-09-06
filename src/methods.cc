@@ -256,7 +256,7 @@ void define_md_data_raw()
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "abs_cont_names", "abs_cont_models", 
-            "abs_cont_parameters" ),
+            "abs_cont_parameters", "isotopologue_ratios" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -310,7 +310,7 @@ void define_md_data_raw()
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "abs_cont_names", "abs_cont_models", 
-            "abs_cont_parameters" ),
+            "abs_cont_parameters", "isotopologue_ratios" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -919,7 +919,8 @@ void define_md_data_raw()
             "abs_n2",
             "abs_cont_names",
             "abs_cont_models", 
-            "abs_cont_parameters"
+            "abs_cont_parameters",
+            "isotopologue_ratios"
             ),
         GIN(),
         GIN_TYPE(),
@@ -1158,7 +1159,8 @@ void define_md_data_raw()
             "abs_lineshape", 
             "abs_cont_names", 
             "abs_cont_models", 
-            "abs_cont_parameters" ),
+            "abs_cont_parameters",
+            "isotopologue_ratios" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1199,6 +1201,7 @@ void define_md_data_raw()
             "abs_cont_names",
             "abs_cont_models",
             "abs_cont_parameters",
+            "isotopologue_ratios",
             "mc_seed"),
         GIN(),
         GIN_TYPE(),
@@ -1352,6 +1355,7 @@ void define_md_data_raw()
             "abs_cont_names",
             "abs_cont_models",
             "abs_cont_parameters",
+            "isotopologue_ratios",
             "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler"
            ),
         GIN(),
@@ -1390,6 +1394,7 @@ void define_md_data_raw()
            "abs_species",
            "abs_lines_per_species",
            "abs_lineshape",
+           "isotopologue_ratios",
            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
            "rte_los", "rte_mag"),
         GIN(),
@@ -1675,7 +1680,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", 
-            "abs_vmrs", "abs_lines_per_species", "abs_lineshape" ),
+            "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
+            "isotopologue_ratios" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4437,6 +4443,25 @@ void define_md_data_raw()
         GIN_DESC( "Position vector.", "Field to interpolate." )
         ));
   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "isotopologue_ratiosInitFromBuiltin" ),
+        DESCRIPTION
+        (
+         "Initialize isotopologue ratios with default values from built-in species data.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "isotopologue_ratios" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyApplyYunit" ),

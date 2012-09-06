@@ -251,5 +251,10 @@ MatrixSet( transmitter_pos, [] )
 #
 IndexSet( fos_i, 0 )
 
+#
+# Isotopologue ratios
+#
+isotopologue_ratiosInitFromBuiltin
+
 }
 

@@ -1409,6 +1409,7 @@ void xsec_species( MatrixView               xsec,
                   const Index              ind_ls,
                   const Index              ind_lsn,
                   const Numeric            cutoff,
+                  const ArrayOfVector&     isotopologue_ratios,
                   const Verbosity&         verbosity );
 
 
