@@ -654,6 +654,59 @@ void Tensor6SetConstant(Tensor6&   x,
   out3 << "             ncols : " << ncols     << "\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor7Compare(const Tensor7&  aa,
+                   const Tensor7&   bb,
+                   const Numeric&   maxabsdiff,
+                   const String&    error_message,
+                   const Verbosity& verbosity)
+{
+    const Index ncols = aa.ncols();
+    const Index nrows = aa.nrows();
+    const Index npages = aa.npages();
+    const Index nbooks = aa.nbooks();
+    const Index nshelves = aa.nshelves();
+    const Index nvitrines = aa.nvitrines();
+    const Index nlibraries = aa.nlibraries();
+    
+    if(bb.ncols() != ncols   ||
+       bb.nrows() != nrows  ||
+       bb.npages() != npages   ||
+       bb.nbooks() != nbooks   ||
+       bb.nshelves() != nshelves   ||
+       bb.nvitrines() != nvitrines   ||
+       bb.nlibraries() != nlibraries       )
+        throw runtime_error( "The two tensors do not have the same size." );
+    
+    Numeric maxdiff = 0.0;
+    
+    for( Index c=0; c<ncols; c++ )
+        for( Index r=0; r<nrows; r++ )
+            for( Index p=0; p<npages; p++ )
+                for( Index b=0; b<nbooks; b++ )
+                    for( Index s=0; s<nshelves; s++ )
+                        for( Index v=0; v<nvitrines; v++ )
+                            for( Index l=0; l<nlibraries; l++ )
+            {
+              const Numeric diff = abs( aa(l,v,s,b,p,r,c) - bb(l,v,s,b,p,r,c) );
+              if( diff > maxdiff )
+                { maxdiff = diff; }
+            }
+
+    
+    if( maxdiff > maxabsdiff )
+      {
+        ostringstream os;
+        os << "Checked failed!\n";
+        if (error_message.length()) os << error_message << "\n";
+        os << "Max allowed deviation set to : " << maxabsdiff << endl
+        << "but the tensors deviate with: " << maxdiff << endl;
+        throw runtime_error(os.str());
+      }
+    
+    CREATE_OUT2;
+    out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor7Scale(Tensor7&  out,

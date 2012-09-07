@@ -2281,7 +2281,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
  \date   2012-09-04
  
 **/
-void find_broad_spec_locations(ArrayOfIndex broad_spec_locations,
+void find_broad_spec_locations(ArrayOfIndex& broad_spec_locations,
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const Index this_species)
 {
@@ -2341,8 +2341,8 @@ void find_broad_spec_locations(ArrayOfIndex broad_spec_locations,
     \author Stefan Buehler
     \date   2012-09-05
  */
-void calc_gamma_and_deltaf_artscat4(Numeric gamma,
-                                    Numeric deltaf,
+void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
+                                    Numeric& deltaf,
                                     const Numeric p,
                                     const Numeric t,
                                     ConstVectorView vmrs,
@@ -2405,14 +2405,22 @@ void calc_gamma_and_deltaf_artscat4(Numeric gamma,
                       * vmrs[broad_spec_locations[i]];
         }
     }
-        
+
+//  {
+//    CREATE_OUT3;
+//    ostringstream os;
+//    os << "  Broad_spec_vmr_sum: " << broad_spec_vmr_sum << "\n";
+//    out3 << os.str();
+//  }
+    
     // Check that sum is not too far from 1:
     if ( abs(broad_spec_vmr_sum-1) > 0.1 )
       {
-        CREATE_OUT1;
-        out1 << "Warning: The total VMR of all your defined broadening\n"
+        ostringstream os;
+        os << "Warning: The total VMR of all your defined broadening\n"
              << "species is " << broad_spec_vmr_sum << ", more than 10% "
              << "different from 1.\n";
+        throw runtime_error(os.str());
       }
   
     // Multiply by total pressure and normalize to make sure that the total

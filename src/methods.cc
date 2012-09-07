@@ -9039,6 +9039,35 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+     ( NAME( "Tensor7Compare" ),
+      DESCRIPTION
+      (
+       "Checks the consistency between two Tensor7 variables.\n"
+       "\n"
+       "The two tensors are checked to not deviate outside the specified\n"
+       "value (*maxdev*). An error is issued if this is not fulfilled.\n"
+       "\n"
+       "The main application of this method is to be part of the test\n"
+       "control files.\n"
+       "\n"
+       "Based on Patrick's similar method for Matrix.\n"
+       ),
+      AUTHORS( "Stefan Buehler" ),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( ),
+      GIN( "tensor1", "tensor2", "maxabsdiff", "error_message" ),
+      GIN_TYPE( "Tensor7", "Tensor7", "Numeric", "String" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
+      GIN_DESC( "A first tensor", "A second tensor",
+               "Threshold for maximum absolute difference.",
+               "Additional error message.")
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Tensor7Scale" ),
         DESCRIPTION
         (

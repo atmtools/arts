@@ -938,9 +938,19 @@ public:
           os << "This line is not ARTSCAT-3, it is ARTSCAT-" << this->Version();
           throw runtime_error(os.str());
         }
+      
+      // Set version to 4:
+      mversion = 4;
 
+      const Index nbs = NBroadSpec();
+      
+      // Resize foreign parameter arrays:
+      mgamma_foreign.resize(nbs);
+      mn_foreign.resize(nbs);
+      mdelta_foreign.resize(nbs);
+      
       // Loop over broadening species:
-      for (Index i=0; i<NBroadSpec(); ++i) {
+      for (Index i=0; i<nbs; ++i) {
           
           // Find out if this broadening species is identical to the line species:
           if (this->Species() == BroadSpecSpecIndex(i)) {

@@ -1,3 +1,22 @@
+2012-09-07  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-272
+
+	* controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts:
+	Added. Makes sure that absorption calculated from ARTSCAT-4 and
+	ARTSCAT-3 is the same.
+
+	* src/m_basic_types.cc (Tensor7Compare): Added. Similar to the
+	other ...Compare methods.
+
+	* src/methods.cc (Tensor7Compare): Added.
+
+	* src/absorption.cc (find_broad_spec_locations): Fixed bug in
+	function parameters.
+	(calc_gamma_and_deltaf_artscat4): Ditto.
+
+	* src/absorption.h (ARTSCAT4FromARTSCAT3): Bugfixes.
+
 2012-09-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-271

@@ -1,3 +1,5 @@
+#DEFINITIONS:  -*-sh-*-
+#
 # An example ARTS controlfile that calculates absorption
 # coefficients. 
 # SAB 16.06.2000

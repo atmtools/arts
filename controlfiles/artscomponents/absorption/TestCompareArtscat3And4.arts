@@ -1,0 +1,61 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Compare absorption coefficients generated with ARTSCAT-3 to the ones that we get when
+# converting the line data to ARTSCAT-4. The result should be the same.
+# SAB 2012-09-06
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+
+# This test catalogue was generated from the HITRAN catalogue in the
+# following way:
+#abs_linesReadFromHitran( abs_lines,
+#        "PATH_TO_ARTS-DATA/spectroscopy/hitran96/hitran96_lowfreq.par",
+#        1e9,
+#        200e9 )
+
+abs_linesReadFromArts( abs_lines, "lines.xml", 1e9, 200e9 )
+abs_speciesDefineAllInScenario( abs_species, "atmosphere_data/tropical" )
+abs_lines_per_speciesCreateFromLines
+
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
+VectorNLogSpace( p_grid, 10, 100000, 10 )
+AtmFieldsCalc
+
+AgendaSet( abs_mat_per_species_agenda ){
+    Ignore(rte_mag)
+    abs_mat_per_speciesInit
+    abs_mat_per_speciesAddLBL
+}
+
+VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
+
+timerStart
+abs_mat_fieldCalc
+timerStop
+
+Tensor7Create(abs_mat_field_artscat3)
+Copy(abs_mat_field_artscat3, abs_mat_field)
+
+abs_linesArtscat4FromArtscat3
+abs_lines_per_speciesCreateFromLines
+
+# Re-do calculation with converted catalogue:
+timerStart
+abs_mat_fieldCalc
+timerStop
+
+# ArrayOfLineRecordCreate(abs_lines_artscat4)
+# Copy(abs_lines_artscat4,abs_lines)
+# WriteXML( "zascii", abs_lines_artscat4 )
+# WriteXML( "zascii", p_grid )
+# WriteXML( "zascii", f_grid )
+# WriteXML( "zascii", abs_mat_field_artscat3 )
+# WriteXML( "zascii", abs_mat_field )
+
+# Compare the two results:
+Tensor7Compare( abs_mat_field, abs_mat_field_artscat3, 1e-7 )
+
+}
