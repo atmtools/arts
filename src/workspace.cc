@@ -2773,7 +2773,22 @@ void Workspace::define_wsv_data()
        "Usage: Ppath methods such as *ppath_stepGeometric*.\n"
        ),
       GROUP( "Numeric" )));
-
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_los" ),
+      DESCRIPTION
+      (
+       "A propagation path step.\n"
+       "\n"
+       "The main intention of this variable is communication with the agenda\n"
+       "*abs_mat_per_species_agenda*.\n"
+       "\n"
+       "This is simply a way to pass on ppath.los[ip,joker].\n"
+       "\n"
+       ),
+      GROUP( "Vector" )));
+   
   wsv_data.push_back
    (WsvRecord
     ( NAME( "ppath_lraytrace" ),

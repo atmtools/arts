@@ -1216,7 +1216,7 @@ void get_ppath_abs(
       Tensor4  abs_mat_per_species;
       //
       abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
-                                         rte_doppler, rte_mag, ppath_p[ip], 
+                                         rte_doppler, rte_mag, ppath.los(ip,joker), ppath_p[ip], 
                                          ppath_t[ip], ppath_vmr(joker,ip),
                                          l_abs_mat_per_species_agenda );
 

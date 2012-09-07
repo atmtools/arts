@@ -27,6 +27,7 @@ USA. */
 #include "absorption.h"
 #include "abs_species_tags.h"
 #include "matpackIII.h"
+#include "rte.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
@@ -72,8 +73,8 @@ void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
     {
         case -1:
             K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) = ( 1 - cos(theta)*cos(theta) ) * cos( 2 * eta );
-            K(0,2) = ( 1 - cos(theta)*cos(theta) ) * sin( 2 * eta );
+            K(0,1) =   sin(theta)*sin(theta) * cos( 2 * eta );
+            K(0,2) =   sin(theta)*sin(theta) * sin( 2 * eta );
             K(0,3) =   2 * cos(theta);
 
             K(1,0) = K(0,1);
@@ -93,9 +94,9 @@ void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
             break;
         case  1:
             K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) = ( 1 - cos(theta)*cos(theta) ) * cos( 2 * eta );
-            K(0,2) = ( 1 - cos(theta)*cos(theta) ) * sin( 2 * eta );
-            K(0,3) = -2*cos(theta);
+            K(0,1) =   sin(theta)*sin(theta) * cos( 2 * eta );
+            K(0,2) =   sin(theta)*sin(theta) * sin( 2 * eta );
+            K(0,3) =  -2*cos(theta);
 
             K(1,0) = K(0,1);
             K(1,1) = K(0,0);
@@ -297,11 +298,14 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                                   const Numeric& rte_temperature,
                                   const Vector& rte_vmr_list,
                                   const Numeric& rte_doppler,
-                                  const Vector& rte_los,
                                   const Vector& rte_mag,
+				                  const Vector& ppath_los,
+				                  const Index& atmosphere_dim,
                                   const Verbosity& verbosity)
 {
     CREATE_OUT3;
+    Vector R_path_los;
+    mirror_los(R_path_los, ppath_los, atmosphere_dim);
     
     const Numeric margin    = 1e-3;
     bool          do_zeeman = false;
@@ -341,7 +345,7 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                 " but not the content of such.");
         else
             throw runtime_error("rte_mag does not have the length of"
-                    " a flag nor the lenght of a magnetic field vector.");
+                    " a flag nor the length of a magnetic field vector.");
     }
     // End   TEST(s)
     Vector local_f_grid;
@@ -389,22 +393,22 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
 
         // Direction vector of radiation
         Numeric dx, dy, dz;
-            zaaa2cart(dx,dy,dz,rte_los[0],rte_los[1]);
+            zaaa2cart(dx,dy,dz,R_path_los[0],R_path_los[1]);
 
         // Radiation path direction as per Mishchenko.
-        Vector R_path(3); // FIXME: LOS direction is negative radiation path?
+        Vector R_path(3);
             R_path[0] = dx;
             R_path[1] = dy;
             R_path[2] = dz;
         // Vertical polarization direction as per Mishchenko.
-        Vector e_v(3); // FIXME: LOS direction negative results in mult -1?
-            e_v[0] =  cos(rte_los[0] * DEG2RAD) * cos(rte_los[1] * DEG2RAD);
-            e_v[1] =  cos(rte_los[0] * DEG2RAD) * sin(rte_los[1] * DEG2RAD);
-            e_v[2] = -sin(rte_los[0] * DEG2RAD);
+        Vector e_v(3);
+            e_v[0] =  cos(R_path_los[0] * DEG2RAD) * cos(R_path_los[1] * DEG2RAD);
+            e_v[1] =  cos(R_path_los[0] * DEG2RAD) * sin(R_path_los[1] * DEG2RAD);
+            e_v[2] = -sin(R_path_los[0] * DEG2RAD);
         // Horizontal polarization direction as per Mishchenko.
         Vector e_h(3);
-            e_h[0] = -sin(rte_los[1] * DEG2RAD);
-            e_h[1] =  cos(rte_los[1] * DEG2RAD);
+            e_h[0] = -sin(R_path_los[1] * DEG2RAD);
+            e_h[1] =  cos(R_path_los[1] * DEG2RAD);
             e_h[2] =  0;
         // Get the coordinate system used by Lenoir.
         Vector temp(3);
@@ -421,11 +425,6 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
         // Find the angle between Mishchenko vertical/horizontal and Lenoir vertical/horizontal
         const Numeric eta      = (eta_test > 90.0)?-vector_angle(R22, e_v):vector_angle(R22, e_v);
         const Numeric eta_same = (eta_test > 90.0)?-vector_angle(R11, e_h):vector_angle(R11, e_h);
-
-        // Check to make sure these angles are the same. //FIXME: Remove this test when LOS is secured. 
-        if( abs(eta-eta_same) > margin)
-            throw runtime_error("There is a severe problem with the coordinate system rotation."
-            " Two vectors rotated by eta cannot differ from the same vectors if first rotated by 90 degrees.");
 
         // Angle between radiation propagation and magnetic field for determining how the radiation is polarized..
         const Numeric theta = vector_angle(H, R_path);
@@ -632,8 +631,6 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                 temp_abs_species, *f_grid_pointer, abs_p,     //Input
                 verbosity);                                  //Verbose!
 
-            // Cheat to remove h2o dependency,
-            Vector abs_h2o(1,-1.0);
             // then calculate the cross section per species
             abs_xsec_per_speciesAddLines(abs_xsec_per_species, //Output
                                          temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_vmrs, //Input

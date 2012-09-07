@@ -1162,12 +1162,12 @@ void basics_checkedCalc(
     throw runtime_error( "The WSV *refellispoid* must be a vector of "
                          "length 2*." );
   if( refellipsoid[0] <= 0 )
-    throw runtime_error( "The first element of *refellispoid* must be > 0." );
+    throw runtime_error( "The first element of *refellipsoid* must be > 0." );
   if( refellipsoid[1] < 0  ||  refellipsoid[1] > 1 )
-    throw runtime_error( "The second element of *refellispoid* must be "
+    throw runtime_error( "The second element of *refellipsoid* must be "
                          "inside [0,1]." );
   if( atmosphere_dim == 1  &&  refellipsoid[1] != 0 )
-    throw runtime_error( "For 1D, the second element of *refellispoid* (the "
+    throw runtime_error( "For 1D, the second element of *refellipsoid* (the "
                          "eccentricity) must be 0." );
 
   // More for t_field.

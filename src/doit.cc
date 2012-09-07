@@ -902,12 +902,13 @@ void cloud_RT_no_background(Workspace& ws,
       // and ext_mat.
       //
 
-      Vector rte_mag_dummy(1,-1.);
-        
+      const Vector rte_mag_dummy(1,-1.);
+      const Vector ppath_los_dummy;
+      
       abs_mat_per_species_agendaExecute( ws, abs_mat_per_species_local,
                                     f_grid[Range(f_index, 1)],
                                     0,
-                                    rte_mag_dummy,
+                                    rte_mag_dummy, ppath_los_dummy,
                                     rte_pressure_local, 
                                     rte_temperature_local, 
                                     rte_vmr_list_local,
@@ -1356,12 +1357,13 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // and ext_mat.
               //
 
-              Vector rte_mag_dummy(1,-1.);
+              const Vector rte_mag_dummy(1,-1.);
+	      const Vector ppath_los_dummy;
                 
               abs_mat_per_species_agendaExecute(ws, abs_mat_per_species,
                                                 f_grid[Range(f_index, 1)],
                                                 0,
-                                                rte_mag_dummy,
+                                                rte_mag_dummy,ppath_los_dummy,
                                                 rte_pressure,
                                                 rte_temperature,
                                                 rte_vmr_list,
@@ -1472,12 +1474,13 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // and ext_mat.
               //
                 
-              Vector rte_mag_dummy(1,-1.);
+              const Vector rte_mag_dummy(1,-1.);
+	      const Vector ppath_los_dummy;
               
               abs_mat_per_species_agendaExecute( ws, abs_mat_per_species,
                                             f_grid[Range(f_index, 1)],
                                             0,
-                                            rte_mag_dummy,
+                                            rte_mag_dummy,ppath_los_dummy,
                                             rte_pressure, 
                                             rte_temperature, 
                                             rte_vmr_list,

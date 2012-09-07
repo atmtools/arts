@@ -106,11 +106,12 @@ void clear_rt_vars_at_gp(Workspace&          ws,
 
   temperature = t_vec[0];
 
-  Vector rte_mag_dummy(1,-1.);
+  const Vector rte_mag_dummy(1,-1.);
+  const Vector ppath_los_dummy;
   
   //calcualte absorption coefficient
   abs_mat_per_species_agendaExecute(ws, local_abs_mat_per_species,
-                                    Vector(1, f_mono), 0, rte_mag_dummy, p_vec[0],
+                                    Vector(1, f_mono), 0, rte_mag_dummy, ppath_los_dummy,p_vec[0],
                                     temperature, vmr_mat(joker, 0),
                                     abs_mat_per_species_agenda);
 
@@ -185,11 +186,12 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
 
-  Vector rte_mag_dummy(1,-1.);
+  const Vector rte_mag_dummy(1,-1.);
+  const Vector ppath_los_dummy;
   
   //rte_vmr_list    = vmr_ppath(joker,0);
   abs_mat_per_species_agendaExecute(ws, local_abs_mat_per_species,
-                                    Vector(1, f_mono), 0, rte_mag_dummy, p_ppath[0],
+                                    Vector(1, f_mono), 0, rte_mag_dummy, ppath_los_dummy,p_ppath[0],
                                     temperature,vmr_ppath(joker, 0),
                                     abs_mat_per_species_agenda);
   

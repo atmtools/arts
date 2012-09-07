@@ -155,13 +155,14 @@ void dtauc_ssalbCalc(Workspace& ws,
        rte_vmr_list_local[j] = 0.5 * (vmr_field(j, i, 0, 0) +
                                       vmr_field(j, i+1, 0, 0));
    
-    Vector rte_mag_dummy(1,-1.);
+    const Vector rte_mag_dummy(1,-1.);
+    const Vector ppath_los_dummy;
 
      abs_mat_per_species_agendaExecute(ws,
                                   abs_mat_per_species_local,
                                   f_mono,  // monochromatic calculation
                                   0,
-                                  rte_mag_dummy,
+                                  rte_mag_dummy,ppath_los_dummy,
                                   rte_pressure_local, 
                                   rte_temperature_local, 
                                   rte_vmr_list_local,

@@ -1,3 +1,31 @@
+2012-09-07  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-278
+
+	* General: Fixed a major miss in treatment of Zeeman regarding
+	what los vector to use. Used to take sensor los instead of
+	point path los.
+	
+	* Controlfiles/*: Added Ignore( ppath_los ) to non-Zeeman absorption
+	agenda definitions.
+
+	* src/rte.cc: Sends ppath.los at ip into abs_mat_per_species_agenda 
+	in relevant functions.
+	
+	* src/doit.cc, src/montecarlo.cc, src/disort.cc, src/m_abs_lookup.cc:
+	Sends in dummy ppath_los to absorption agenda. Did not check if these
+	had ppath defined and could us the real los instead since they already
+	send in dummy magnetic field.
+	
+	* src/methods.cc: abs_mat_per_speciesAddZeemanLBL now takes ppath_los
+	instead of rte_los. Also takes atmosphere_dim for use of mirror_los.
+	
+	* src/workspace.cc: Added ppath_los.
+	
+	* src/agendas.cc: Updated abs_mat_per_species_agenda to take ppath_los.
+	
+	* src/m_zeeman.cc: In effect mirror_los(*) of ppath_los replaces rte_los.
+
 2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-277

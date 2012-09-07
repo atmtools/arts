@@ -18,6 +18,7 @@ Arts2 {
 
 AgendaSet( abs_mat_per_species_agenda ){
   Ignore(rte_mag)
+  Ignore(ppath_los)
   abs_mat_per_speciesInit
   abs_mat_per_speciesAddLBL
   # To use the absorption lookup table, replace by:
@@ -26,7 +27,7 @@ AgendaSet( abs_mat_per_species_agenda ){
   # To get absorption from Zeeman tag,
   # uncomment this:
   #abs_mat_per_speciesAddZeemanLBL
-  # and comment out Ignore(rte_mag):
+  # and comment out Ignore(rte_mag), Ignore(ppath_los):
 }
 
 

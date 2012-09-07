@@ -2309,7 +2309,8 @@ void abs_mat_fieldCalc( Workspace& ws,
                 a_vmr_list    = vmr_field( Range(joker),
                                            ipr, ila, ilo );
 
-                Vector rte_mag_dummy(1,-1.);
+                const Vector rte_mag_dummy(1,-1.);
+		const Vector ppath_los_dummy;
 
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
@@ -2317,7 +2318,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                 abs_mat_per_species_agendaExecute(l_ws,
                                                   amps,
                                                   f_grid, a_doppler,
-                                                  rte_mag_dummy,
+                                                  rte_mag_dummy,ppath_los_dummy,
                                                   a_pressure,
                                                   a_temperature, a_vmr_list,
                                                   l_amps_agenda);

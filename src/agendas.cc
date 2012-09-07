@@ -66,7 +66,7 @@ void define_agenda_data()
         "input variables, such as *abs_species*, etc.\n"
         ),
        OUTPUT( "abs_mat_per_species" ),
-       INPUT(  "f_grid", "rte_doppler", "rte_mag", "rte_pressure", "rte_temperature",
+       INPUT(  "f_grid", "rte_doppler", "rte_mag", "ppath_los", "rte_pressure", "rte_temperature",
                "rte_vmr_list" )));
   
   agenda_data.push_back
