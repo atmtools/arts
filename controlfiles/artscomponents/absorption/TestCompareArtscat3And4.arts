@@ -22,6 +22,10 @@ abs_lines_per_speciesCreateFromLines
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
 VectorNLogSpace( p_grid, 10, 100000, 10 )
+
+AtmosphereSet1D
+IndexSet( stokes_dim, 1 )
+
 AtmFieldsCalc
 
 AgendaSet( abs_mat_per_species_agenda ){

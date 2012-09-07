@@ -20,6 +20,8 @@ install (DIRECTORY artscomponents
 arts_test_run_ctlfile(fast.absorption artscomponents/absorption/TestAbs.arts)
 arts_test_run_ctlfile(fast.absorption.doppler
                       artscomponents/absorption/TestAbsDoppler.arts)
+arts_test_run_ctlfile(fast.absorption.compareArtscat3and4
+                      artscomponents/absorption/TestCompareArtscat3and4.arts)
 
 arts_test_run_ctlfile(fast.surface artscomponents/surface/TestSurface.arts)
 

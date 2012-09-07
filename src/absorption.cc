@@ -2349,7 +2349,7 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
                                     const Index this_species,
                                     const ArrayOfIndex& broad_spec_locations,
                                     const LineRecord& l_l,
-                                    const Verbosity& verbosity )
+                                    const Verbosity&)
 {
     // Number of broadening species:
     const Index nbs = LineRecord::NBroadSpec();
