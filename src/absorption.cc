@@ -2417,7 +2417,7 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
     if ( abs(broad_spec_vmr_sum-1) > 0.1 )
       {
         ostringstream os;
-        os << "Warning: The total VMR of all your defined broadening\n"
+        os << "Error: The total VMR of all your defined broadening\n"
              << "species is " << broad_spec_vmr_sum << ", more than 10% "
              << "different from 1.\n";
         throw runtime_error(os.str());

@@ -41,7 +41,7 @@ ReadXML( p_grid, "p_grid.xml" )
 SpeciesSet( abs_species, [ "H2O", "N2", "O2"] )
 
 # Atmospheric profiles
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/tropical" )
 
 # Gas absorption from lookup table 
 # ---------------------------------

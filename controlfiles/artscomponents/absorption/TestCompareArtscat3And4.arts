@@ -17,10 +17,10 @@ INCLUDE "general/continua.arts"
 #        200e9 )
 
 abs_linesReadFromArts( abs_lines, "lines.xml", 1e9, 200e9 )
-abs_speciesDefineAllInScenario( abs_species, "atmosphere_data/tropical" )
+abs_speciesDefineAllInScenario( abs_species, "testdata/tropical" )
 abs_lines_per_speciesCreateFromLines
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/tropical" )
 VectorNLogSpace( p_grid, 10, 100000, 10 )
 
 AtmosphereSet1D

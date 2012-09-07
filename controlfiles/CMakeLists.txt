@@ -20,7 +20,7 @@ install (DIRECTORY artscomponents
 arts_test_run_ctlfile(fast.absorption artscomponents/absorption/TestAbs.arts)
 arts_test_run_ctlfile(fast.absorption.doppler
                       artscomponents/absorption/TestAbsDoppler.arts)
-arts_test_run_ctlfile(fast.absorption.compareArtscat3and4
+arts_test_run_ctlfile(fast.absorption.compareArtscat3and4 
                       artscomponents/absorption/TestCompareArtscat3And4.arts)
 
 arts_test_run_ctlfile(fast.surface artscomponents/surface/TestSurface.arts)
@@ -83,7 +83,7 @@ arts_test_run_ctlfile(slow.amsub instruments/amsu/TestAMSUB.arts)
 arts_test_run_ctlfile(fast.mhs instruments/mhs/TestMHS_fast.arts)
 arts_test_run_ctlfile(slow.mhs instruments/mhs/TestMHS.arts)
 
-#arts_test_run_ctlfile(slow.hirs instruments/hirs/TestHIRS.arts)
+arts_test_run_ctlfile(slow.hirs instruments/hirs/TestHIRS.arts)
 
 #arts_test_run_ctlfile(slow.avhrr instruments/avhrr/TestAVHRR.arts)
 

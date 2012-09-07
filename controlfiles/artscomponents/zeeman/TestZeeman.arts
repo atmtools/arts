@@ -20,22 +20,46 @@ AgendaSet( abs_mat_per_species_agenda ){
 # ---
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 
+# Looking into the O2 band around 60GHz
+VectorSet(f_grid, [ 62.417e9, 62.448e9, 62.47e9, 62.486e9])
 
 # Definition of species
 # ---
 SpeciesSet( abs_species, ["O2-Z"] )
 
+# read line catalogue
 abs_linesReadFromHitran(abs_lines, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par", 62.3e9, 62.6e9)
-VectorSet(f_grid, [ 62.417e9, 62.448e9, 62.47e9, 62.486e9])
+#abs_linesArtscat4FromArtscat3( abs_lines )
+#WriteXML( "ascii", abs_lines, "../../controlfiles/testdata/abs_lines_60GHz.xml" )
 
 # Sort the line file according to species
 abs_lines_per_speciesCreateFromLines
 
 
+# monochromatic, pencibeam sensor
+sensorOff
+
+# No scattering
+cloudboxOff
+
+# No jacobian calculations
+jacobianOff
+
+# We select here to use Rayleigh-Jean brightness temperatures
+# ---
+StringSet( y_unit, "RJBT" )
+
+
+AtmosphereSet3D
+VectorLinSpace( lat_grid, -45, 45, 1 )
+VectorLinSpace( lon_grid, -45, 45, 1 )
+refellipsoidEarth( refellipsoid, "WGS84" )
+
 # Atmospheric scenario
 # ---
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "../../atmosphere_data/tropical" )
+            "testdata/tropical" )
+AtmFieldsCalcExpand1D
 
 
 # Weakly reflecting surface (surface_skin_t set below in 1D part)
@@ -45,79 +69,19 @@ AgendaSet( surface_rtprop_agenda ){
   Ignore( rte_pos )
   surfaceFlatReflectivity
 } 
-
-
-# No sensor properties
-# ---
-sensorOff
-
-# No scattering
-#
-cloudboxOff
-
-# No jacobian calculations
-#
-jacobianOff
-
-# We select here to use Rayleigh-Jean brightness temperatures
-# ---
-StringSet( y_unit, "RJBT" )
-
-#########################################################################
-# 1D
-#########################################################################
-
-# Atmosphere and surface
-# ---
-AtmosphereSet1D
-AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 
-# *surface_skin_t*
-# ---
-Extract( t_surface, t_field, 0 )
-VectorCreate( t_surface1D )
-VectorExtractFromMatrix( t_surface1D, t_surface, 0, "row" )
-Extract( surface_skin_t, t_surface1D, 0 )
-
-# Definition of sensor position and LOS
-# ---
-MatrixSetConstant( sensor_pos, 1, 1, 600e3 )
-MatrixSet( sensor_los, [ 113 ] )
-
-#########################################################################
-# 2D
-#########################################################################
-
-# Atmosphere and surface
-# ---
-AtmosphereSet2D
-VectorLinSpace( lat_grid, -45, 45, 1 )
-AtmFieldsCalcExpand1D
-Extract( z_surface, z_field, 0 )
-refellipsoidEarth( refellipsoid, "WGS84" )
 
 # Definition of sensor position and LOS
 # ---
 MatrixCreate( zeros )
+MatrixSetConstant( sensor_pos, 1, 1, 600e3 )
+MatrixSet( sensor_los, [ 113 ] )
 MatrixSetConstant( zeros, 1, 1, 0 )
 Append( sensor_pos, zeros, "trailing" )
-
-#########################################################################
-# 3D
-#########################################################################
-
-# Atmosphere and surface
-# ---
-AtmosphereSet3D
-VectorLinSpace( lon_grid, -45, 45, 1 )
-AtmFieldsCalcExpand1D
-Extract( z_surface, z_field, 0 )
-
-# Definition of sensor position and LOS
-# ---
 Append( sensor_pos, zeros, "trailing" )
 Append( sensor_los, zeros, "trailing" )
+
 
 # Set magnetic field
 GriddedField3Create(B_W)

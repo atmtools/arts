@@ -30,7 +30,7 @@ SpeciesSet( abs_species, [ "H2O-PWR98",
                            "N2-SelfContStandardType" ] )
 
 # Alternatively select all species that we can find in the scenario:
-#abs_speciesDefineAllInScenario( abs_species, "atmosphere_data/tropical" )
+#abs_speciesDefineAllInScenario( abs_species, "testdata/tropical" )
 
 # This separates the lines into the different tag groups and creates
 # the workspace variable `abs_lines_per_species':
@@ -44,7 +44,7 @@ AtmosphereSet1D
 VectorNLogSpace( p_grid, 10, 100000, 10 )
  
 # Atmospheric profiles
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "atmosphere_data/tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/tropical" )
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_field', `z_field', `vmr_field'

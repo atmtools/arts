@@ -48,7 +48,7 @@ AtmosphereSet1D
 # Atmospheric profiles
 # 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "atmosphere_data/tropical" )
+            "testdata/tropical" )
 #
 AtmFieldsCalc
 

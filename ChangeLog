@@ -1,3 +1,26 @@
+2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-275
+
+	* controlfiles/atmosphere_data/: Renamed to testdata/
+
+	* controlfiles/testdata/abs_lines_IR.xml.gz:
+	Added. ARTS catalogue data for HIRS/AVHRR test cases.
+
+	* controlfiles/[artscomponents,instruments]/*/*.arts:
+	Adapted to atmosphere_data/ renaming.
+
+	* controlfiles/instruments/avhrr/avhrr_reference.arts,
+	hirs/hirs_fast.arts,hirs/hirs_hitran.arts:
+	Replace use of HITRAN by ARTSCAT-version of HITRAN.
+
+	* controlfiles/CMakeLists.txt: switch on TestHIRS again (TestAVHRR also
+	running, but computational expensive and need not that different from
+	TestHIRS).
+
+	* src/absorption.cc(calc_gamma_and_deltaf_artscat4):
+	VMR-"Warning" throws an error, hence -> "Error".
+
 2012-09-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-274

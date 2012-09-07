@@ -59,7 +59,7 @@ INCLUDE "avhrr_reference.arts"
 
 ArrayOfMatrixCreate( arrayofmatrix_1 )
 
-ReadXML( arrayofmatrix_1, "atmosphere_data/garand_profiles.xml.gz" )
+ReadXML( arrayofmatrix_1, "testdata/garand_profiles.xml.gz" )
 
 # Convert to batch_atm_fields_compact
 # ---

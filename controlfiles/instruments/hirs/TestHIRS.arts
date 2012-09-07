@@ -85,7 +85,7 @@ ArrayOfMatrixCreate( arrayofmatrix_1 )
 #         "/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml" )
 #ReadXML( arrayofmatrix_1, "../AMSU/chevallierl91_clear_q_extract.xml" )
 
-ReadXML( arrayofmatrix_1, "atmosphere_data/garand_profiles.xml.gz" )
+ReadXML( arrayofmatrix_1, "testdata/garand_profiles.xml.gz" )
 
 # Storage in an array of matrix is handy for profile data, because
 # it is very compact. However, the more general internal

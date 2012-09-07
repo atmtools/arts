@@ -12,6 +12,8 @@ abs_linesReadFromHitran( abs_lines,
 
 abs_lines_per_speciesCreateFromLines
 
+# write out for HITRAN-independent use in test case runs
+#WriteXML( "zascii", abs_lines, "../../testdata/abs_lines_IR.xml.gz" )
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line
 # calculation, you also have to call

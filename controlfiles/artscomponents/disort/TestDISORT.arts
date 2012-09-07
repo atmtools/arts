@@ -38,7 +38,7 @@ SpeciesSet(abs_species){
 
 # Atmospheric profiles
 AtmRawRead{
- basename = "data/tropical"
+ basename = "testdata/tropical"
 }
 
 # Gas absorption from lookup table 
@@ -47,7 +47,7 @@ abs_lookupInit
 
 # Lookup tables can be computed using the MATLAB (please contact Stefan)
 ReadXML( abs_lookup ){
-   "data/gas_abs_lookup.xml"
+   "testdata/gas_abs_lookup.xml"
 }
    	
 abs_lookupAdapt
@@ -121,8 +121,8 @@ ParticleTypeInit
 # Note that you must use p20 data, because disort only works with this
 # format. 
 ParticleTypeAdd{
-filename_scat_data="data/scat_data_disort.xml"
-filename_pnd_field="data/pnd_field_1D.xml"
+filename_scat_data="testdata/scat_data_disort.xml"
+filename_pnd_field="testdata/pnd_field_1D.xml"
 }
 
 pnd_fieldCalc
