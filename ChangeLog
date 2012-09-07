@@ -1,3 +1,14 @@
+2012-09-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-271
+
+	* doc/uguide/rte.tex: Added flowchart. Some language fixes. Made
+	the "Compulsory sensor ..." section a bit shorter, by removing
+	less important discission. This hopyfully completes the revision
+	of the chapter.
+
+	* doc/uguide/sensor.tex: Extended with two paragrapghs from rte.cc.
+
 2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-270

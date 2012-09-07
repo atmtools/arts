@@ -3,7 +3,8 @@
 
 
  \starthistory
- 120831 & Updated for handling of polarised absorption (Patrick Eriksson).\\
+ 120831 & Added flowchart and sections on polarised absorption, 
+       \builtindoc{iyCalc}, auxiliary data and dispersion (Patrick Eriksson).\\
  110611 & Extended and general revision (Patrick Eriksson).\\
  050613 & First complete version by Patrick Eriksson.\\
  \stophistory
@@ -18,7 +19,7 @@ basic theory for such simulations is also covered. The first ARTS version was
 developed for emission measurements, and such observations remain the standard
 case in ARTS. 
 
-That is, a basic assumption for this chapter is that there is no particle
+A basic assumption for this chapter is thus that there is no particle
 scattering. This is denoted as clear-sky calculations. Cases involving
 scattering are restricted to the ``cloud box''
 (Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more demanding calculations
@@ -35,6 +36,39 @@ unpolarised absorption is handled. Even if the gaseous absorption in itself is
 unpolarised, the expressions to apply must allow that polarisation signals
 from the surface and the cloud box are correctly propagated to the sensor.
 
+\begin{figure*}[p]
+ \begin{center}
+  \includegraphics*[clip,trim=25 30 25 40,width=0.99\hsize]{ycalc_flow}\\
+  {\small (For caption see top of the next page.)}
+ \end{center}
+\end{figure*}
+% This figure was produced by LibreOffice draw: ycalc_flow.odg
+
+\begin{figure}[t]
+  \caption{A flowchart of a radiative transfer calculation (on prevoius page),
+    using \wsmindex{yCalc} or \wsmindex{iyCalc}. The figure assumes that
+    \wsaindex{iy\_main\_agenda} holds \wsmindex{iyEmissionStandard}, that
+    represents the most complex case. Some important input data are shown in
+    orange, and main output are shown in green. The two main methods are
+    plotted as grey boxes, while agendas are shown as ovals. For cases when
+    \builtindoc{iy\_sub\_agenda} not is defined (the most common situation),
+    the agendas communicate directly with \builtindoc{iy\_main\_agenda}. For
+    connections between methods and agendas the arrows show the direction of
+    output (calculated) data. Every call of an agenda involves also some input
+    data (settings), but this aspect has been ignored for clarity reasons. Data
+    entering an agenda along a common line indicates mutually independent
+    options. For example, absorption can be calculated "on-the-fly" from basic
+    spectroscopic data or be extracted from a pre-calculated look-up table (see
+    bottom-right corner). The dotted lines indicate that some methods and
+    agendas can make further calls of \builtindoc{iy\_main\_agenda}.}
+  \label{fig:ycalc_flow}
+\end{figure}
+
+The content of this chapter corresponds roughly to the flowchart displayed in
+Figure~\ref{fig:ycalc_flow}, outlining a standard radiative transfer emission
+calculation. The chapter focuses on overall raditaive transfer and sensor
+aspects, while details for the different agendas are found in subsequent
+chapters.
 
 
 
@@ -247,7 +281,7 @@ sensor and following the path backwards by some \textindex{ray
 atmosphere, geometrical calculations are used (as there is no
 refraction in space) to find the crossing between the path and the top
 of the atmosphere where the ray tracing then starts. Paths are tracked
-backwards until the top of the atmosphere is reached, or there is an
+backwards until the top of the atmosphere or to is an
 intersection with the cloud box or the surface. The propagation path
 (or paths) before a surface reflection is calculated when determining
 the up-welling radiation from the surface
@@ -267,8 +301,8 @@ If nothing else is stated, it assumed that all frequency components share a
 single propagation path. Another way to express this assumption is that
 \textindex{dispersion} is neglected. See Section~\ref{sec:fm_defs:dispersion}
 for how to consider dispersion. In the non-dispersive case, the propagation
-path is valid for the first and last element in \wsvindex{f\_grid}, as this is
-the frequency given to \wsaindex{refr\_index\_agenda}.
+path is valid for average of the first and last element in \wsvindex{f\_grid},
+as this is the frequency given to \wsaindex{refr\_index\_agenda}.
 
 
 
@@ -342,7 +376,7 @@ be written as
   \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat(\StoVec-\VctStl{b}),
 \end{equation}
 where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the distance
-along the propagation path, \ExtMat\ is the extinction matrix and \VctStl{b} is
+along the propagation path, \ExtMat\ is the absorption matrix and \VctStl{b} is
 the emission source term. Just one element of the vector \VctStl{b} is non-zero:
 \begin{equation}
   \label{eq:rte:bvec}
@@ -363,7 +397,7 @@ See further \theory, Section~\ref{T-sec:rte_theory}.
 \subsection{Unpolarised absorption}
 
 Let's start with the simpler case of non-polarised absorption (that is, the
-absorption is independent of absorption). For unpolarised absorption the
+absorption is independent of polarisation state). For unpolarised absorption the
 matrix \ExtMat\ is diagonal, with all diagonal elements equal, and only the
 first of the elements of \AbsVec\ is non-zero.
 
@@ -408,10 +442,35 @@ would be
 \end{equation}
 where $I$ is the final intensity and $\mathcal{T}_i$ is the transmission
 between the sensor and point $i$. This calculation approach is not used as it
-fits poorer with the calculation of weighting functions
-(Section~\ref{sec:wfuns}). However, the calculation of weighting functions is
+fits poorer with the calculation of weighting functions ($I_i$ must be known,
+Section~\ref{sec:wfuns}). However, the calculation of weighting functions is
 simplified if $\mathcal{T}_i$ is at hand, and this quantity is also tracked by
-\builtindoc{iyEmissionStandard}. 
+\builtindoc{iyEmissionStandard}.
+
+
+\subsection{Polarised absorption}
+
+The overall calculation procedure is the same with polarised absorption, the
+only difference is the radiative transfer expression applied. The calculations
+for the different Stokes components can here not be separated, and
+matrix-vector notation is required: 
+\begin{equation}
+  \label{eq:fm_defs:vrte_step}
+  \StoVec_{i+1} = e^{-\bar{\ExtMat}s} \StoVec_i + 
+                  (\IdnMtr-e^{-\bar{\ExtMat}s})\bar{\VctStl{b}},
+\end{equation}
+where \IdnMtr\ is the identity matrix. The extinction matrices and \VctStl{b}
+at point $i$ and $i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$ and
+$\bar{\VctStl{b}}$, respectively, in line with Equation~\ref{eq:taustep}. The
+calculation of the transmission matrix,
+\begin{equation}
+  \VctStl{T} = e^{-\bar{\ExtMat}s},
+\end{equation}
+involves a matrix exponential, that is calculated by the Pad\'e approximations,
+as described in \developer, Section \ref{D-sec:lin_alg:mat_exp}. Only the first
+element of $\bar{\VctStl{b}}$ is non-zero, and only the first column of the
+matrix corresponding to the term $(\IdnMtr-e^{-\bar{\ExtMat}s})$ is of interest.
+
 
 
 \subsection{Blackbody and cosmic background radiation}
@@ -442,29 +501,6 @@ as well as \wsaindex{iy\_surface\_agenda}, must be defined in a consistent
 manner, that they use the same unit for $B$.
 
 
-\subsection{Polarised absorption}
-
-The overall calculation procedure is the same with polarised absorption, the
-only difference is the radiative transfer expression applied. The calculations
-for the different Stokes components can here not be separated, and
-matrix-vector notation is required: 
-\begin{equation}
-  \label{eq:fm_defs:vrte_step}
-  \StoVec_{i+1} = e^{-\bar{\ExtMat}s} \StoVec_i + 
-                  (\IdnMtr-e^{-\bar{\ExtMat}s})\bar{\VctStl{b}},
-\end{equation}
-where \IdnMtr\ is the identity matrix. The extinction matrices and \VctStl{b}
-at point $i$ and $i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$ and
-$\bar{\VctStl{b}}$, respectively, in line with Equation~\ref{eq:taustep}. The
-calculation of the transmission matrix,
-\begin{equation}
-  \VctStl{T} = e^{-\bar{\ExtMat}s},
-\end{equation}
-involves a matrix exponential, that is calculated by the Pad\'e approximations,
-as described in \developer, Section \ref{D-sec:lin_alg:mat_exp}. Only the first
-element of $\bar{\VctStl{b}}$ is non-zero, and only the first column of the
-matrix corresponding to the term $(\IdnMtr-e^{-\bar{\ExtMat}s})$ is of interest.
-
 
 
 
@@ -483,7 +519,7 @@ function (Eq.~\ref{eq:planck}). This radiance can be converted to other
 emission units by the workspace variable \wsvindex{y\_unit}. For comments on
 the practical aspects, see the built-in documentation of \builtindoc{y\_unit}.
 Otherwise, considerations and expressions for the unit conversion are
-discussed in ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
+discussed in the ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
 
 
 
@@ -492,7 +528,7 @@ discussed in ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
 \label{sec:fm_defs:single_beams}
 
 The text above assumes that \wsmindex{yCalc} is used. This method can always be
-used, but \builtindoc{yCalc} is not mandatory if the simulations deal only with
+used, but \builtindoc{yCalc} is not mandatory if the simulations only deal with
 monochromatic data for a single line-of-sight. In this case, it could be more
 handy to use \wsmindex{iyCalc}, which basically is a direct call of
 \wsaindex{iy\_main\_agenda}. A reason for selecting \builtindoc{iyCalc} is that
@@ -541,7 +577,7 @@ AgendaSet( iy_sub_agenda ){
 \end{code}
 The approach is simple, \wsvindex{iyLoopFrequencies} calls
 \builtindoc{iy\_sub\_agenda} for each single frequency in \builtindoc{f\_grid}
-and appends the output data. With some details, \builtindoc{iyLoopFrequencies}
+and appends the output. With some details, \builtindoc{iyLoopFrequencies}
 performs a loop over the \builtindoc{f\_grid}, creates an internal
 \builtindoc{f\_grid} of length 1 holding the frequency of concern and calls
 \builtindoc{iy\_sub\_agenda} with this length-1 frequency grid. This has the
@@ -586,7 +622,7 @@ A more general mechanism for extracting auxiliary data is controlled by the
 together with \builtindoc{iyCalc}, and for the moment we assume that this
 method is used (limitations for \builtindoc{yCalc} are discussed below). The
 quantities that can be extracted differ, see the built-in documentation for
-the options for each workspace method of concern. For example:
+the options for each workspace method of concern, e.g.:
 \begin{code}
 arts -d iyEmissionStandard
 \end{code}
@@ -599,12 +635,13 @@ divided into different groups (more variables will/can be added):
   coefficients along the propagation path.
 \item[Radiative properties, along-the-path] The radiance at each propagation
   path point.
-\item[Overall radiative properties] The total optical depth along the path.
+\item[Overall radiative properties] The total optical depth along the path and
+  flag giving the radiative background.
 \end{description}
 ``Along-the-path'' means that data are provided for each point of the
 propagation path. The path is described by \wsvindex{ppath}, that is also
-returned by \wsmindex{iy\_main\_agenda}. The \builtindoc{ppath} contains the
-information needed to geo-position, for example, ``along-the path
+returned by \wsmindex{iy\_main\_agenda}. The \builtindoc{ppath} variable
+contains the information needed to geo-position, for example, ``along-the path
 temperatures''.
 
 Example on setting of \wsvindex{iy\_aux\_vars} (again valid for
@@ -645,18 +682,16 @@ also an error if ``along-the-path'' auxiliary data are selected.
 %==============================================================================
 \label{sec:fm_defs:sensor1}
 
-The instrument that detects the simulated radiation is denoted as the
-sensor\index{sensor, the}. The forward model is constructed in such
-way that a sensor must exist. For cases when only monochromatic pencil
-beam radiation is of interest, the positions and directions for which
-the radiation shall be calculated are given by specifying an imaginary
-sensor with infinite frequency and angular resolution. The workspace
-variables for the sensor that always must be specified are
-\builtindoc{sensor\_response}, \builtindoc{sensor\_pos},
-\builtindoc{sensor\_los}, \builtindoc{antenna\_dim},
+The instrument real or hypothetical, that detects the simulated radiation is
+denoted as the sensor\index{sensor, the}. The forward model is constructed in
+such way that a sensor must exist. For cases when only monochromatic pencil
+beam radiation is of interest, the positions and directions for which the
+radiation shall be calculated are given by specifying an imaginary sensor with
+infinite frequency and angular resolution. The workspace variables for the
+sensor that always must be specified are \builtindoc{sensor\_response},
+\builtindoc{sensor\_pos}, \builtindoc{sensor\_los}, \builtindoc{antenna\_dim},
 \builtindoc{mblock\_za\_grid} and \builtindoc{mblock\_aa\_grid}. These
-variables are presented separately
-below. 
+variables are presented separately below.
 
 
 \subsection{Sensor position\index{sensor position}}
@@ -677,12 +712,13 @@ incorrect choice is to place the senor below the surface altitude. If
 the sensor is placed inside the model atmosphere, any sensor
 line-of-sight is allowed, this including the cases that the sensor is
 placed on the surface looking down, and that the sensor is placed
-inside the cloud box.
+inside the cloud box. 
 
-The sensor is treated to be motionless when calculating the spectrum,
-or spectra, for each given observation position. One or several
-spectra can be calculated for each position as described in
-Section~\ref{sec:fm_defs:seqsandblocks}.
+One or several spectra can be calculated for each position as described in
+Section~\ref{sec:fm_defs:seqsandblocks}. The corresponding workspace variable
+for single pencil beam calculations is \wsvindex{rte\_pos}, that is the input
+to e.g.\ \wsaindex{iy\_main\_agenda} and \wsmindex{iyCalc}. 
+
 
 
 \subsection{Line-of-sight\index{line-of-sight}}
@@ -753,13 +789,13 @@ equals the longitude along the viewing direction. For example, if
 standing on any of the poles and the viewing direction is towards
 Greenwich, the azimuth angle is 0\degree.
 
-The sensor line-of-sights are stored in \wsvindex{sensor\_los}. This
-workspace variable is a matrix, where the first column holds zenith
-angles and the second column is azimuth angles. For 1D and 2D there is
-only one column in the matrix, while for 3D a row $i$ of the matrix is
-$(\aZntAng{i},\aAzmAng{i})$. The number of rows for
-\builtindoc{sensor\_los} must be the same as for
-\builtindoc{sensor\_pos}.
+The sensor line-of-sights are stored in \wsvindex{sensor\_los}. This workspace
+variable is a matrix, where the first column holds zenith angles and the second
+column is azimuth angles. For 1D and 2D there is only one column in the matrix,
+while for 3D a row $i$ of the matrix is $(\aZntAng{i},\aAzmAng{i})$. The number
+of rows for \builtindoc{sensor\_los} must be the same as for
+\builtindoc{sensor\_pos}. The correspondance to \builtindoc{rte\_pos} is
+{rte\_los}.
 
 
 \subsection{Sensor characteristics and data reduction}
@@ -771,7 +807,7 @@ used here as a comprehensive term for the response of all sensor parts
 that affect how the field of monochromatic pencil beam intensities are
 translated to the recorded spectrum. For example, the antenna pattern,
 the side-band filtering and response of the spectrometer channels are
-normally the most important characteristics for a microwave heterodyne
+normally the most important characteristics of a microwave heterodyne
 radiometer. Any processing of the spectral data that takes place
 before the retrieval is denoted as \textindex{data reduction}. The
 most common processing is to represent the original spectra with a
@@ -803,23 +839,6 @@ integrating the azimuth response for each zenith angle. For cases
 with 1D antenna patterns, \builtindoc{mblock\_aa\_grid} must be set to
 be an empty vector.
 
-For each sensor position, a number of monochromatic pencil beam
-spectra are calculated. The monochromatic frequencies are given by
-\builtindoc{f\_grid}. The pencil
-beam directions are obtained by summing the sensor line-of-sight
-angles (\builtindoc{sensor\_los}) for the position and the values of
-\builtindoc{mblock\_za\_grid} and \builtindoc{mblock\_aa\_grid}. For
-example, pencil beam zenith angle $i$ is calculated as
-\begin{equation}
-  \aZntAng{i} = \aZntAng{0} + \Delta\aZntAng{i}
-  \label{eq:fm_defs:psi_grid}
-\end{equation}
-where \aZntAng{0} is the sensor line-of-sight for the position of
-concern and $\Delta\aZntAng{i}$ is value $i$ of
-\builtindoc{mblock\_za\_grid}.  With other words,
-\builtindoc{mblock\_za\_grid} and \builtindoc{mblock\_aa\_grid} give
-the grid (relative to the sensor line-of-sight) for the calculation of
-the intensity field that will be weighted with the antenna response.
 
 
 \subsection{Measurement sequences and blocks}
@@ -834,8 +853,7 @@ measurement sequence consists of one or several \textindex{measurement
 an off-set of the line-of-sight, all other factors should be common
 for all blocks. A block can be treated as a measurement cycle that is
 repeated, an integer number of times, to form the measurement
-sequence.  The measurement blocks correspond normally to each unique
-sensor position of the sequence.
+sequence. 
 
 A measurement block covers one or several recorded spectra, depending
 on the measurement conditions and the atmospheric dimensionality. A
@@ -865,19 +883,10 @@ is moving but the movement during some subsequent spectra can be
 neglected. If this can be done must be judged by comparing the
 movement of the sensor during the extent of the considered block size
 and the spatial resolution, in the direction of the movement, that is
-hoped to be achieved. If this intermediate solution shall be an
-option, the difference in zenith and azimuth angles between the
-spectra must be the same for all blocks, otherwise
-\builtindoc{sensor\_response} cannot be applied for all blocks as done
-below in Equation~\ref{eq:fm_defs:measseq}.
+hoped to be achieved. 
 
-For each block, pencil beam spectra are calculated for the
-line-of-sights obtained when summing \wsvindex{sensor\_los} and
-\wsvindex{mblock\_za\_grid} (and possibly
-\wsvindex{mblock\_aa\_grid}), as described in
-Section~\ref{sec:fm_defs:sensorchar}. The pencil beam spectra for each
-line-of-sight are appended vertically to form a common vector,
-\aMpiVct{b}. Values are put in following the order in
+The pencil beam spectra for each line-of-sight are appended vertically to form
+a common vector, \aMpiVct{b}. Values are put in following the order in
 \builtindoc{f\_grid}. Hence, the frequencies for this vector are
 \begin{equation}
   \aMpiVct{b} = 
@@ -911,22 +920,7 @@ appended vertically, following the order of the positions in
             \end{array} \right]
   \label{eq:fm_defs:measseq}
 \end{equation}
-where $1$ indicates the first sensor position etc. This equation shows
-that \wsvindex{sensor\_response} shall contain at least a description
-of the antenna response. The matrix \shortcode{Hb} can also cover
-other sensor characteristics and data reduction if the features of
-concern are common for all measurement blocks. 
-
-As the sensor line-of-sight and block grid values are just added,
-there is an ambiguity of the line-of-sight. It is possible to apply a
-constant off-set to the line-of-sights, if the block grids are
-corrected accordingly. For example, if the simulations deal with limb
-sounding and a 1D atmosphere, where normally a single block should be
-used despite a number of spectra are recorded, it could be practical
-to set the line-of-sight to the viewing direction of the uppermost or
-lowermost spectrum, and the zenith angles in \builtindoc{mblock\_za\_grid}
-will not be centred around zero which is the case when the ``true''
-line-of-sight is used.
+where $1$ indicates the first sensor position etc. 
 
 It should be noted that the compulsory sensor variables give no
 information about the content of the obtained \MsrVct, as it is not
@@ -948,7 +942,7 @@ The accuracy of the calculations depends on many factors. For many
 factors, such as spectroscopic parameters, there is nothing else to do
 than using best available data. On the other hand, for other factors
 there is a trade-off between accuracy and speed. More accurate
-calculations requires normally also more computer memory. All
+calculations require normally also more computer memory. All
 different grids and the propagation path step length fall into this
 category of accuracy factors. It could be worth discussing the
 selection of atmospheric grids and the path step length as there can
