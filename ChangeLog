@@ -1,5 +1,12 @@
 2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-270
+
+	* controlfiles/CMakeLists.txt: outcomment tests that currently use
+	HITRAN (to be fixed before switching on again).
+
+2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-269
 
 	* controlfiles/general/general.arts: fix INCLUDE file name.

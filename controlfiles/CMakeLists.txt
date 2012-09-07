@@ -66,9 +66,9 @@ arts_test_ctlfile_depends(fast.montecarlo.rtecalc fast.montecarlo.dataprepare)
 
 arts_test_run_ctlfile(slow.wfuns artscomponents/wfuns/TestWfuns.arts)
 
-arts_test_run_ctlfile(slow.zeeman artscomponents/zeeman/TestZeeman.arts)
+#arts_test_run_ctlfile(slow.zeeman artscomponents/zeeman/TestZeeman.arts)
 
-arts_test_run_ctlfile(slow.disort artscomponents/disort/TestDISORT.arts)
+#arts_test_run_ctlfile(slow.disort artscomponents/disort/TestDISORT.arts)
 
 ###################
 ### Instruments ###
@@ -81,7 +81,7 @@ arts_test_run_ctlfile(slow.amsub instruments/amsu/TestAMSUB.arts)
 arts_test_run_ctlfile(fast.mhs instruments/mhs/TestMHS_fast.arts)
 arts_test_run_ctlfile(slow.mhs instruments/mhs/TestMHS.arts)
 
-arts_test_run_ctlfile(slow.hirs instruments/hirs/TestHIRS.arts)
+#arts_test_run_ctlfile(slow.hirs instruments/hirs/TestHIRS.arts)
 
-arts_test_run_ctlfile(slow.avhrr instruments/avhrr/TestAVHRR.arts)
+#arts_test_run_ctlfile(slow.avhrr instruments/avhrr/TestAVHRR.arts)
 
