@@ -1,5 +1,13 @@
 2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-269
+
+	* controlfiles/general/general.arts: fix INCLUDE file name.
+
+	* controlfiles/CMakeLists.txt: Oops, bugfix - NOW all tests switched ON.
+
+2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-268
 
 	* src/partition_function_data.cc: Added links to partition function

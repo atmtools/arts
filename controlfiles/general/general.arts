@@ -142,6 +142,6 @@ IndexSet( ybatch_start, 0 )
 
 
 INCLUDE "agendas.arts"
-INCLUDE "general_topical.arts"
+INCLUDE "planet_earth.arts"
 }
 
