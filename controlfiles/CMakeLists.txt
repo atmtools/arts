@@ -8,7 +8,7 @@ add_custom_target (clean-cfiles DEPENDS clean-cfiles-cmd)
 set (ARTS_CONTROLFILE_DIR share/arts/controlfiles)
 
 install (DIRECTORY artscomponents
-                   atmosphere_data
+                   testdata
                    general
                    instruments
          DESTINATION ${ARTS_CONTROLFILE_DIR}

@@ -1,5 +1,11 @@
 2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-276
+
+	* controlfiles/CMakeLists.txt: Fixed atmosphere_data/ renaming.
+
+2012-09-07  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-275
 
 	* controlfiles/atmosphere_data/: Renamed to testdata/
