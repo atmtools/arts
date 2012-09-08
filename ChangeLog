@@ -1,3 +1,15 @@
+2012-09-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-279
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/wfuns/TestWfuns.arts,
+	controlfiles/instruments/hirs/TestHIRS.arts,
+	controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts:
+
+	Add more Ignore(ppath_los) to non-Zeeman absorption agenda definitions
+	in remaining check-all tests.
+
 2012-09-07  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-278

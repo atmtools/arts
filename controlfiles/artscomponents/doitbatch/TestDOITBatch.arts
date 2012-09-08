@@ -132,6 +132,7 @@ abs_lookupAdapt
 # Set abs_mat_per_species_agenda to use lookup table
 AgendaSet( abs_mat_per_species_agenda ){ 
   Ignore(rte_mag)
+  Ignore(ppath_los)
   abs_mat_per_speciesInit
   abs_mat_per_speciesAddFromLookup 
 }
