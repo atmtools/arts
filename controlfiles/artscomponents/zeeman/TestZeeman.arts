@@ -21,14 +21,14 @@ AgendaSet( abs_mat_per_species_agenda ){
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 
 # Looking into the O2 band around 60GHz
-VectorSet(f_grid, [ 62.417e9, 62.448e9, 62.47e9, 62.486e9])
+VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 
 # Definition of species
 # ---
 SpeciesSet( abs_species, ["O2-Z"] )
 
 # read line catalogue
-abs_linesReadFromHitran(abs_lines, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par", 62.3e9, 62.6e9)
+abs_linesReadFromHitran(abs_lines, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par", 61.1e9, 61.2e9)
 #abs_linesArtscat4FromArtscat3( abs_lines )
 #WriteXML( "ascii", abs_lines, "../../controlfiles/testdata/abs_lines_60GHz.xml" )
 

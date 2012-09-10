@@ -26,6 +26,7 @@ USA. */
 #include "math_funcs.h"
 #include "absorption.h"
 #include "abs_species_tags.h"
+#include "physics_funcs.h"
 #include "matpackIII.h"
 #include "rte.h"
 
@@ -287,21 +288,49 @@ Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
     return KH*fcc;
 };
 
+void PartReturnZeeman(  Tensor3View part_abs_mat,
+                        const ArrayOfArrayOfSpeciesTag& abs_species,
+                        const ArrayOfLineshapeSpec& abs_lineshape,
+                        const ArrayOfLineRecord& lr,
+                        const SpeciesAuxData& isotopologue_ratios,
+                        const Matrix& abs_vmrs,
+                        const Vector& abs_p,
+                        const Vector& abs_t,
+                        const Vector& f_grid,
+                        const Numeric& theta,
+                        const Numeric& eta,
+                        const Index& DM,
+                        const Index& this_species,
+                        const Verbosity& verbosity )
+{
+    assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
+    
+    Matrix temp(f_grid.nelem(), 1, 0.);
+    xsec_species( temp, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
+                abs_lineshape[this_species].Ind_ls(), abs_lineshape[this_species].Ind_lsn(), abs_lineshape[this_species].Cutoff(),
+                isotopologue_ratios, verbosity ); // Now in cross section
+
+    temp *= abs_vmrs(this_species, 0) * number_density( abs_p[this_species],abs_t[this_species]); // Now in absorption coef.
+
+    Matrix  K(4,4); K_mat(K, theta*DEG2RAD, eta*DEG2RAD, DM);
+    mult(part_abs_mat,temp(joker,0), K);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
-                                  const Vector& f_grid,
-                                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                                  const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                  const ArrayOfLineshapeSpec& abs_lineshape,
-                                  const SpeciesAuxData& isotopologue_ratios,
-                                  const Numeric& rte_pressure,
-                                  const Numeric& rte_temperature,
-                                  const Vector& rte_vmr_list,
-                                  const Numeric& rte_doppler,
-                                  const Vector& rte_mag,
-				                  const Vector& ppath_los,
-				                  const Index& atmosphere_dim,
-                                  const Verbosity& verbosity)
+				      const Vector& f_grid,
+				      const ArrayOfArrayOfSpeciesTag& abs_species,
+				      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+				      const ArrayOfLineshapeSpec& abs_lineshape,
+                                     const SpeciesAuxData& isotopologue_ratios,
+				      const Numeric& rte_pressure,
+				      const Numeric& rte_temperature,
+				      const Vector& rte_vmr_list,
+				      const Numeric& rte_doppler,
+				      const Vector& rte_mag,
+				      const Vector& ppath_los,
+				      const Index& atmosphere_dim,
+				      const Verbosity& verbosity)
 {
     CREATE_OUT3;
     Vector R_path_los;
@@ -383,18 +412,24 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
         f_grid_pointer = &local_doppler_f_grid;
     }
 
+    // Using the standard scalar absorption functions to get physics parameters,
+    Vector abs_p, abs_t; Matrix abs_vmrs;
+    AbsInputFromRteScalars( abs_p, abs_t, abs_vmrs,                        // Output
+                            rte_pressure, rte_temperature, rte_vmr_list,  //Input
+                            verbosity);                                  // Verbose!
     if(do_zeeman == 1)
     {
         //Get the magnitude of the magnetic field and store a local unit Vector for simplified angle calculations.
         const Numeric H_mag = sqrt( rte_mag * rte_mag );
+        
+        Numeric theta, eta;
+        { // Getting angles from coordinate system
         Vector H(3);
             H  = rte_mag;
             H /= H_mag;
-
         // Direction vector of radiation
         Numeric dx, dy, dz;
             zaaa2cart(dx,dy,dz,R_path_los[0],R_path_los[1]);
-
         // Radiation path direction as per Mishchenko.
         Vector R_path(3);
             R_path[0] = dx;
@@ -411,24 +446,24 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
             e_h[1] =  cos(R_path_los[1] * DEG2RAD);
             e_h[2] =  0;
         // Get the coordinate system used by Lenoir.
-        Vector temp(3);
-            proj(temp, R_path, H);
+        Vector tmp(3);
+            proj(tmp, R_path, H);
         Vector R11(3);
             R11  = H;
-            R11 -= temp;
+            R11 -= tmp;
             R11 *= sqrt(R11*R11);
         Vector R22(3);
             cross3(R22, R11, R_path);
-
         // Test if the rotation is clockwise or counterclockwise.
         const Numeric eta_test = vector_angle(R22, e_h);
         // Find the angle between Mishchenko vertical/horizontal and Lenoir vertical/horizontal
-        const Numeric eta      = (eta_test > 90.0)?-vector_angle(R22, e_v):vector_angle(R22, e_v);
-        const Numeric eta_same = (eta_test > 90.0)?-vector_angle(R11, e_h):vector_angle(R11, e_h);
+        eta      = (eta_test > 90.0)?-vector_angle(R22, e_v):vector_angle(R22, e_v);
+        //const Numeric eta_same = (eta_test > 90.0)?-vector_angle(R11, e_h):vector_angle(R11, e_h); //This is a code testing variable
 
         // Angle between radiation propagation and magnetic field for determining how the radiation is polarized..
-        const Numeric theta = vector_angle(H, R_path);
-
+        theta = vector_angle(H, R_path);
+        }
+        
         Numeric DF, RS; // Delta Frequency and Relative Strength
 
         // For all species
@@ -458,14 +493,8 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                         if ( N <= 0 )
                             throw runtime_error("The main quantum number cannot be nil!?");
                         if (abs(DJ) != 1){ temp_abs_lines_dt.push_back(temp_LR); continue; }
-                        if ( J-DJ != N ) //FIXME: default K??? throw runtime_error?
-                        { // Since Hitran12 beta version, this does no longer apply
-                            out3 << "Physics ERROR: J-DJ = " << J - DJ << " and N = "
-                                << N << " for ii = " << ii << ". The string is:\n"
-                                << temp_LR.Lower_LQuanta() <<"\nThe total line is:\n"
-                                <<temp_LR<<"\n";
-                            continue;
-                        }
+                        if ( J-DJ != N )
+                            throw runtime_error("J must change from N by plus minus 1.");
                         // End   TEST(s)
 
                         // For every upper molecular magnetic moment, M
@@ -484,18 +513,19 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
-
+                                
                                 DF =  FrequencyChange(N, M, DJ,  0, H_mag);
                                 RS = RelativeStrength(N, M, DJ,  0);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
-
+                                
                                 DF =  FrequencyChange(N, M, DJ, +1, H_mag);
                                 RS = RelativeStrength(N, M, DJ, +1);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
+                                
                             }
                             else if ( DJ == -1 )
                             { // Then certain M results in blocked DM transitions
@@ -585,100 +615,45 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
                     temp_abs_lines_dt.push_back(temp_LR);
             }
 
-            // Sort ArrayOfLineRecord(s) by frequency [low → high].
-            sort(temp_abs_lines_pi.begin(), temp_abs_lines_pi.end(), sortF);
-            sort(temp_abs_lines_sp.begin(), temp_abs_lines_sp.end(), sortF);
-            sort(temp_abs_lines_sm.begin(), temp_abs_lines_sm.end(), sortF);
-            sort(temp_abs_lines_dt.begin(), temp_abs_lines_dt.end(), sortF);
-            // Treat the DM transitions as separate species,
-            ArrayOfArrayOfLineRecord temp_abs_lines_per_species(4);
-                temp_abs_lines_per_species[0] = temp_abs_lines_pi;
-                temp_abs_lines_per_species[1] = temp_abs_lines_sp;
-                temp_abs_lines_per_species[2] = temp_abs_lines_sm;
-                temp_abs_lines_per_species[3] = temp_abs_lines_dt;
-
-            out3 << "From initially having: " << abs_lines_per_species[II].nelem() << " lines, \nit is now split up into: "
-                 << temp_abs_lines_pi.nelem()+temp_abs_lines_sp.nelem()+temp_abs_lines_sm.nelem()+temp_abs_lines_dt.nelem()
-                 << " lines.\nOut of these, \nPI stands for: " << temp_abs_lines_pi.nelem()
-                 << ",\nSM stands for: " << temp_abs_lines_sm.nelem()
-                 << ",\nSP stands for: " << temp_abs_lines_sp.nelem()
-                 << " and \nDT stands for: " << temp_abs_lines_dt.nelem() << "\n";
-                 
-            // with the same species information,
-            ArrayOfArrayOfSpeciesTag temp_abs_species(4);
-            for (Index i=0; i<4; ++i) {
-                temp_abs_species[i].resize(1);
-                temp_abs_species[i][0] = SpeciesTag("O2");
-                // We are setting the tag explicitly to O2 here. The function
-                // anyway currently works only for this molecule. By setting it
-                // like this (without Zeeman flag) we ensure that we can use the
-                // standard LBL function to calculate absorption.
+            { // Sort ArrayOfLineRecord(s) by frequency [low → high].
+                sort(temp_abs_lines_pi.begin(), temp_abs_lines_pi.end(), sortF);
+                sort(temp_abs_lines_sp.begin(), temp_abs_lines_sp.end(), sortF);
+                sort(temp_abs_lines_sm.begin(), temp_abs_lines_sm.end(), sortF);
+                sort(temp_abs_lines_dt.begin(), temp_abs_lines_dt.end(), sortF);
             }
-            
-            // and the same volume mixing ratios.
-            Vector temp_vmrs(4);
-                temp_vmrs[0] = rte_vmr_list[II]; temp_vmrs[1] = rte_vmr_list[II];
-                temp_vmrs[2] = rte_vmr_list[II]; temp_vmrs[3] = rte_vmr_list[II];
 
-            // Using the standard scalar absorption functions to get physics parameters,
-            Vector abs_p, abs_t; Matrix abs_vmrs;
-                AbsInputFromRteScalars(abs_p, abs_t, abs_vmrs, // Output
-                rte_pressure, rte_temperature, temp_vmrs,     //Input
-                verbosity);                                  // Verbose!
-            // and then initialize the cross section per species variable.
-            ArrayOfMatrix abs_xsec_per_species;
-                abs_xsec_per_speciesInit(abs_xsec_per_species, //Output
-                temp_abs_species, *f_grid_pointer, abs_p,     //Input
-                verbosity);                                  //Verbose!
-
-            // then calculate the cross section per species
-            abs_xsec_per_speciesAddLines(abs_xsec_per_species, //Output
-                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_vmrs, //Input
-                                         temp_abs_lines_per_species, abs_lineshape,
-                                         isotopologue_ratios,
-                                         verbosity);
-
-            // and take continua into account.
-            // 2012-9-4 Stefan: I don't think this function should add
-            //          continua, since they are already added elsewhere.
-            //          This function should just do the Zeeman LBL part, as
-            //          The name says.
-            //
-            //            abs_xsec_per_speciesAddConts(abs_xsec_per_species,                                    //Output
-            //                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t,        //Input
-            //                                         abs_n2, abs_h2o, abs_vmrs,                             //Input
-            //                                         abs_cont_names, abs_cont_parameters, abs_cont_models, //Input
-            //                                         verbosity);                                          //Verbose!
-
-            // We can finally obtain the coefficients per species!
-            Matrix abs_coef; ArrayOfMatrix abs_coef_per_species;
-                abs_coefCalcFromXsec(abs_coef, abs_coef_per_species, //Output
-                abs_xsec_per_species, abs_vmrs, abs_p, abs_t,       //Input
-                verbosity);                                        //Verbose!
-
-            Tensor3 part_abs_mat_ZeemanO2((*f_grid_pointer).nelem(), 4, 4), abs_mat_ZeemanO2((*f_grid_pointer).nelem(), 4, 4, 0.0);
-            Matrix  K(4,4); Index DM;
-
-            // For pi, sp, sm and defaulting Zeeman transitions
-            for(Index ii = 0; ii< 4; ii++)
-            {
-                // Assign the DM transition type,
-                if(ii == 0){DM = 0;}
-                else if(ii == 1){DM = 1;}
-                else if(ii == 2){DM = -1;}
-                else{DM = 1023;} // 1023 is a default, not physical, value.
-
-                // then get the rotation extinction matrix for this DM transition
-                K_mat(K, theta*DEG2RAD, eta*DEG2RAD, DM);
-                // and multiplied it per frequency dependent absorption coefficient
-                mult(part_abs_mat_ZeemanO2, abs_coef_per_species[ii](joker,0), K);
-                // to build up the species extinction matrix as a function of frequency.
-                abs_mat_ZeemanO2+=part_abs_mat_ZeemanO2;
-            };
-
-            // When done, add to the return Tensor4.
-            abs_mat_per_species(II, joker, joker, joker) += abs_mat_ZeemanO2;
-
+            { // Add Pi contribution to final abs_mat_per_species
+                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                                  temp_abs_lines_pi, isotopologue_ratios,
+                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                  theta, eta, 0, II, verbosity );
+                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            }
+            { // Add Sigma minus contribution to final abs_mat_per_species
+                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                                  temp_abs_lines_sm, isotopologue_ratios,
+                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                  theta, eta, -1, II, verbosity );
+                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            }
+            { // Add Sigma plus contribution to final abs_mat_per_species
+                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                                  temp_abs_lines_sp, isotopologue_ratios,
+                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                  theta, eta, 1, II, verbosity );
+                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            }
+            { // Add Default contribution to final abs_mat_per_species
+                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                                  temp_abs_lines_dt, isotopologue_ratios,
+                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                  theta, eta, 1023, II, verbosity );
+                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            }
         }
     }
     else // if the magnetic field is ignored
@@ -687,59 +662,13 @@ void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
         {
             // If the species isn't Zeeman, look at the next species.
             if(!abs_species[II][0].Zeeman()) continue;
-
-            //Assign temporary variables:
-            ArrayOfArrayOfSpeciesTag temp_abs_species(1);
-                temp_abs_species[0] = abs_species[II];
-             Vector temp_vmrs(1);
-                temp_vmrs[0] = rte_vmr_list[II];
-             ArrayOfArrayOfLineRecord temp_abs_lines_per_species;
-                temp_abs_lines_per_species.push_back(abs_lines_per_species[II]);
-                
-            // Using the standard scalar absorption functions to get physics parameters,
-            Vector abs_p, abs_t; Matrix abs_vmrs;
-            AbsInputFromRteScalars(abs_p, abs_t, abs_vmrs, // Output
-            rte_pressure, rte_temperature, temp_vmrs,     //Input
-            verbosity);                                  // Verbose!
-            // and then initialize the cross section per species variable.
-            ArrayOfMatrix abs_xsec_per_species;
-            abs_xsec_per_speciesInit(abs_xsec_per_species, //Output
-            temp_abs_species, *f_grid_pointer, abs_p,     //Input
-            verbosity);                                  //Verbose!
-
-            // Cheat to remove h2o dependency,
-            Vector abs_h2o(1,-1.0);
-            // then calculate the cross section per species
-            abs_xsec_per_speciesAddLines(abs_xsec_per_species, //Output
-                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t, abs_vmrs, //Input
-                                         temp_abs_lines_per_species, abs_lineshape,
-                                         isotopologue_ratios, verbosity);
-
-            // and take continua into account.
-            // 2012-9-4 Stefan: I don't think this function should add
-            //          continua, since they are already added elsewhere.
-            //          This function should just do the Zeeman LBL part, as
-            //          The name says.
-            //
-            //            abs_xsec_per_speciesAddConts(abs_xsec_per_species,                                    //Output
-            //                                         temp_abs_species, *f_grid_pointer, abs_p, abs_t,        //Input
-            //                                         abs_n2, abs_h2o, abs_vmrs,                             //Input
-            //                                         abs_cont_names, abs_cont_parameters, abs_cont_models, //Input
-            //                                         verbosity);                                          //Verbose!
-
-            // We can finally obtain the coefficients per species!
-            Matrix abs_coef; ArrayOfMatrix abs_coef_per_species;
-                abs_coefCalcFromXsec(abs_coef, abs_coef_per_species, //Output
-                abs_xsec_per_species, abs_vmrs, abs_p, abs_t,       //Input
-                verbosity);                                        //Verbose!
-
-            Tensor3 abs_mat_ZeemanO2(abs_mat_per_species.npages(), 4, 4, 0.);
-                abs_mat_ZeemanO2(joker,0,0) = abs_coef_per_species[0](joker,0);
-                abs_mat_ZeemanO2(joker,1,1) = abs_coef_per_species[0](joker,0);
-                abs_mat_ZeemanO2(joker,2,2) = abs_coef_per_species[0](joker,0);
-                abs_mat_ZeemanO2(joker,3,3) = abs_coef_per_species[0](joker,0);
             
-            abs_mat_per_species(II, joker, joker, joker) = abs_mat_ZeemanO2;
+            Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+            PartReturnZeeman(   part_abs_mat, abs_species, abs_lineshape,
+                                abs_lines_per_species[II], isotopologue_ratios,
+                                abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                0,0,1023, II, verbosity );
+            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
         }
     }
 }

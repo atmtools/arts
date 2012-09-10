@@ -1,3 +1,13 @@
+2012-09-10  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-281
+	
+	* src/m_zeeman.cc: Changed program flow to not call higher level functions.
+	(Absorption is now handled locally instead of calling m_abs.cc functions).
+	Also have a lower tollerance for database errors.
+	
+	* Updated Zeeman testfiles.
+
 2012-09-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-280
