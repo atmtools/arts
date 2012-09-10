@@ -1107,6 +1107,110 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+
+//=== SpeciesAuxData ===========================================
+
+//! Reads SpeciesAuxData from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param sap      SpeciesAuxData return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream&           is_xml,
+                          SpeciesAuxData&    sad,
+                          bifstream*         pbifs _U_,
+                          const Verbosity&   verbosity)
+{
+    CREATE_OUT2;
+
+    ArtsXMLTag tag(verbosity);
+    Index nelem;
+    Index nparam;
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("SpeciesAuxData");
+
+    tag.get_attribute_value("nelem", nelem);
+    tag.get_attribute_value("nparam", nparam);
+
+    Index version;
+    tag.get_attribute_value("version", version);
+
+    if (version != 1)
+    {
+        ostringstream os;
+        os << "Unknown SpeciesAuxData version " << version;
+        throw runtime_error(os.str());
+    }
+
+    sad.initParams(nparam);
+    for (Index i = 0; i < nelem; i++)
+    {
+        sad.ReadFromStream(is_xml, nparam, verbosity);
+    }
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("/SpeciesAuxData");
+}
+
+
+//! Writes SpeciesAuxData to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param sap      SpeciesAuxData
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void xml_write_to_stream(ostream&                 os_xml,
+                         const SpeciesAuxData&    sad,
+                         bofstream* pbofs         _U_,
+                         const String&            name,
+                         const Verbosity&         verbosity)
+
+{
+    extern Array<SpeciesRecord> species_data;
+
+    ArtsXMLTag open_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+    Index nelem = 0;
+    for (ArrayOfMatrix::const_iterator isp = sad.getParams().begin();
+         isp != sad.getParams().end();
+         isp++)
+        nelem += isp->nrows();
+
+    open_tag.set_name("SpeciesAuxData");
+    if (name.length())
+        open_tag.add_attribute("name", name);
+    if (sad.getParams().nelem() && sad.getParams()[0].nrows())
+    {
+        open_tag.add_attribute("version", 1);
+        open_tag.add_attribute("nelem", nelem);
+        open_tag.add_attribute("nparam", sad.getParams()[0].ncols());
+    }
+    open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    const ArrayOfMatrix& params = sad.getParams();
+    for (Index isp = 0; isp < params.nelem(); isp++)
+    {
+        String species = species_data[isp].Name();
+        for (Index iiso = 0; iiso < params[isp].nrows(); iiso++)
+        {
+            os_xml << "@ " << species << "-" << species_data[isp].Isotopologue()[iiso].Name();
+            for (Index ip = 0; ip < params[isp].ncols(); ip++)
+                os_xml << " " << params[isp](iiso, ip);
+            os_xml << '\n';
+        }
+    }
+
+    close_tag.set_name("/SpeciesAuxData");
+    close_tag.write_to_stream(os_xml);
+    
+    os_xml << '\n';
+}
+
+
 //=== SpeciesRecord ================================================
 
 //! Reads SpeciesRecord from XML input stream

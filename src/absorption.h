@@ -337,7 +337,8 @@ public:
         /* Check that the isotopologues are correctly sorted. */
         for ( Index i=0; i<misotopologue.nelem()-1; ++i )
           {
-            assert( misotopologue[i].Abundance() >= misotopologue[i+1].Abundance() );
+              assert(isnan(misotopologue[i].Abundance()) || isnan(misotopologue[i+1].Abundance())
+                     || misotopologue[i].Abundance() >= misotopologue[i+1].Abundance());
           }
 
         /* Check that the Mytran tags are correctly sorted. */
@@ -380,6 +381,44 @@ private:
   /** Isotopologue data. */
   Array<IsotopologueRecord> misotopologue;
 };
+
+
+/** Auxiliary data for isotopologues */
+class SpeciesAuxData
+{
+public:
+    /** Default constructor. */
+    SpeciesAuxData() : mparams() { }
+
+    /** Resize according to builtin isotopologues in species data. */
+    void initParams(Index nparams);
+
+    /** Get parameter. */
+    Numeric getParam(Index species, Index isotopologue, Index col) const
+    {
+        return mparams[species](isotopologue, col);
+    }
+
+    /** Set parameter. */
+    void setParam(Index species, Index isotopologue, Index col, Numeric v)
+    {
+        mparams[species](isotopologue, col) = v;
+    }
+
+    /** Return a constant reference to the parameters. */
+    const ArrayOfMatrix& getParams() const { return mparams; }
+
+    /** Read parameters from input stream. */
+    bool ReadFromStream(istream& is, Index nparams, const Verbosity& verbosity);
+
+private:
+    ArrayOfMatrix mparams;
+};
+
+
+/** Fill SpeciesAuxData with default isotopologue ratios from species data. */
+void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& aud);
+
 
 /** Spectral line catalog data. 
 
@@ -1459,15 +1498,11 @@ typedef Array<LineRecord> ArrayOfLineRecord;
     \author Stefan Buehler */
 typedef Array< Array<LineRecord> > ArrayOfArrayOfLineRecord;
 
-
-
 /** Output operator for LineRecord. The result should look like a
     catalogue line.
 
     \author Stefan Buehler */
 ostream& operator<< (ostream& os, const LineRecord& lr);
-
-
 
 /** Output operator for SpeciesRecord. Incomplete version: only writes
     SpeciesName.
@@ -1475,17 +1510,16 @@ ostream& operator<< (ostream& os, const LineRecord& lr);
     \author Jana Mendrok */
 ostream& operator<< (ostream& os, const SpeciesRecord& sr);
 
+/** Output operator for SpeciesAuxData.
+    \author Oliver Lemke */
+ostream& operator<< (ostream& os, const SpeciesAuxData& sad);
+
 
 
 /** Define the species data map.
 
     \author Stefan Buehler  */
 void define_species_map();
-
-
-// Doc header in absorption.cc
-void write_lines_to_stream(ostream& os,
-                           const ArrayOfLineRecord& abs_lines);
 
 
 void xsec_species( MatrixView               xsec,
@@ -1499,7 +1533,7 @@ void xsec_species( MatrixView               xsec,
                   const Index              ind_ls,
                   const Index              ind_lsn,
                   const Numeric            cutoff,
-                  const ArrayOfVector&     isotopologue_ratios,
+                  const SpeciesAuxData&    isotopologue_ratios,
                   const Verbosity&         verbosity );
 
 

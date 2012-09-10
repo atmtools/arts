@@ -45,6 +45,10 @@
 std::map<String, Index> SpeciesMap;
 
 
+template<class T>
+void extract(T& x, String& line, Index  n);
+
+
 // member fct of isotopologuerecord, calculates the partition fct at the
 // given temperature  from the partition fct coefficients (3rd order
 // polynomial in temperature)
@@ -64,6 +68,179 @@ Numeric IsotopologueRecord::CalculatePartitionFctAtTemp( Numeric
   return result;
 }
 
+
+void SpeciesAuxData::initParams(Index nparams)
+{
+    extern Array<SpeciesRecord> species_data;
+
+    mparams.resize(species_data.nelem());
+
+    for (Index isp = 0; isp < species_data.nelem(); isp++)
+    {
+        mparams[isp].resize(species_data[isp].Isotopologue().nelem(), nparams);
+        mparams[isp](joker, 0) = NAN;
+    }
+}
+
+
+bool SpeciesAuxData::ReadFromStream(istream& is, Index nparams, const Verbosity& verbosity)
+{
+    CREATE_OUT3;
+
+    // Global species lookup data:
+    extern const Array<SpeciesRecord> species_data;
+
+    // We need a species index sorted by Arts identifier. Keep this in a
+    // static variable, so that we have to do this only once.  The ARTS
+    // species index is ArtsMap[<Arts String>].
+    static map<String, SpecIsoMap> ArtsMap;
+
+    // Remember if this stuff has already been initialized:
+    static bool hinit = false;
+
+    if ( !hinit )
+    {
+
+        out3 << "  ARTS index table:\n";
+
+        for ( Index i=0; i<species_data.nelem(); ++i )
+        {
+            const SpeciesRecord& sr = species_data[i];
+
+
+            for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
+            {
+
+                SpecIsoMap indicies(i,j);
+                String buf = sr.Name()+"-"+sr.Isotopologue()[j].Name();
+
+                ArtsMap[buf] = indicies;
+
+                // Print the generated data structures (for debugging):
+                // The explicit conversion of Name to a c-String is
+                // necessary, because setw does not work correctly for
+                // stl Strings.
+                const Index& i1 = ArtsMap[buf].Speciesindex();
+                const Index& i2 = ArtsMap[buf].Isotopologueindex();
+
+                out3 << "  Arts Identifier = " << buf << "   Species = "
+                << setw(10) << setiosflags(ios::left)
+                << species_data[i1].Name().c_str()
+                << "iso = "
+                << species_data[i1].Isotopologue()[i2].Name().c_str()
+                << "\n";
+
+            }
+        }
+        hinit = true;
+    }
+
+
+    // This always contains the rest of the line to parse. At the
+    // beginning the entire line. Line gets shorter and shorter as we
+    // continue to extract stuff from the beginning.
+    String line;
+
+    // Look for more comments?
+    bool comment = true;
+
+    while (comment)
+    {
+        // Return true if eof is reached:
+        if (is.eof()) return true;
+
+        // Throw runtime_error if stream is bad:
+        if (!is) throw runtime_error ("Stream bad.");
+
+        // Read line from file into linebuffer:
+        getline(is,line);
+
+        // It is possible that we were exactly at the end of the file before
+        // calling getline. In that case the previous eof() was still false
+        // because eof() evaluates only to true if one tries to read after the
+        // end of the file. The following check catches this.
+        if (line.nelem() == 0 && is.eof()) return true;
+
+        // @ as first character marks catalogue entry
+        char c;
+        extract(c,line,1);
+
+        // check for empty line
+        if (c == '@')
+        {
+            comment = false;
+        }
+    }
+
+
+    // read the arts identifier String
+    istringstream icecream(line);
+
+    String artsid;
+    icecream >> artsid;
+
+    cout << artsid << endl;
+    if (artsid.length() != 0)
+    {
+        Index mspecies;
+        Index misotopologue;
+
+        // ok, now for the cool index map:
+        // is this arts identifier valid?
+        const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
+        if ( i == ArtsMap.end() )
+        {
+            ostringstream os;
+            os << "ARTS Tag: " << artsid << " is unknown.";
+            throw runtime_error(os.str());
+        }
+
+        SpecIsoMap id = i->second;
+
+
+        // Set mspecies:
+        mspecies = id.Speciesindex();
+
+        // Set misotopologue:
+        misotopologue = id.Isotopologueindex();
+
+        Matrix& params = mparams[mspecies];
+        // Extract accuracies:
+        try
+        {
+            Numeric p;
+            for (Index ip = 0; ip < nparams; ip++)
+            {
+                icecream >> p;
+                params(misotopologue, ip) = p;
+            }
+        }
+        catch (runtime_error)
+        {
+            throw runtime_error("Error reading SpeciesAuxData.");
+        }
+    }
+    
+    // That's it!
+    return false;
+}
+
+
+/** Fill SpeciesAuxData with default isotopologue ratios from species data. */
+void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& aud)
+{
+    extern Array<SpeciesRecord> species_data;
+
+    aud.initParams(1);
+
+    for (Index isp = 0; isp < species_data.nelem(); isp++)
+        for (Index iiso = 0; iiso < species_data[isp].Isotopologue().nelem(); iiso++)
+        {
+            aud.setParam(isp, iiso, 0, species_data[isp].Isotopologue()[iiso].Abundance());
+        }
+}
+
+
 /*! Define the species data map.
 
     \author Stefan Buehler */
@@ -76,6 +253,7 @@ void define_species_map()
       SpeciesMap[species_data[i].Name()] = i;
     }
 }
+
 
 ostream& operator<< (ostream& os, const LineRecord& lr)
 {
@@ -192,6 +370,13 @@ ostream& operator<< (ostream& os, const SpeciesRecord& sr)
 }
  
       
+ostream& operator<< (ostream& os, const SpeciesAuxData& sad)
+{
+  os << sad.getParams();
+  return os;
+}
+
+
 /** Extract something from a catalogue line. This is just a small helper
     function to safe some typing. 
 
@@ -300,7 +485,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
   // ARTS indices of the HITRAN isotopologues. 
   static Array< ArrayOfIndex > hiso(100);
 
-  // Remeber if this stuff has already been initialized:
+  // Remember if this stuff has already been initialized:
   static bool hinit = false;
 
   // Remember, about which missing species we have already issued a
@@ -753,7 +938,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // ARTS indices of the HITRAN isotopologues.
   static Array< ArrayOfIndex > hiso(100);
 
-  // Remeber if this stuff has already been initialized:
+  // Remember if this stuff has already been initialized:
   static bool hinit = false;
 
   // Remember, about which missing species we have already issued a
@@ -1238,7 +1423,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   // ARTS indices of the MYTRAN isotopologues. 
   static Array< ArrayOfIndex > hiso(100);
 
-  // Remeber if this stuff has already been initialized:
+  // Remember if this stuff has already been initialized:
   static bool hinit = false;
 
   // Remember, about which missing species we have already issued a
@@ -1629,7 +1814,7 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   // because the tag array within the species data is an Index array.
   static map<Index, SpecIsoMap> JplMap;
 
-  // Remeber if this stuff has already been initialized:
+  // Remember if this stuff has already been initialized:
   static bool hinit = false;
 
   if ( !hinit )
@@ -1874,7 +2059,7 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
   // species index is ArtsMap[<Arts String>]. 
   static map<String, SpecIsoMap> ArtsMap;
   
-  // Remeber if this stuff has already been initialized:
+  // Remember if this stuff has already been initialized:
   static bool hinit = false;
   
   mversion = 3;
@@ -2069,7 +2254,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
   // species index is ArtsMap[<Arts String>]. 
   static map<String, SpecIsoMap> ArtsMap;
 
-  // Remeber if this stuff has already been initialized:
+  // Remember if this stuff has already been initialized:
   static bool hinit = false;
 
   mversion = 4;
@@ -2489,7 +2674,7 @@ void xsec_species( MatrixView               xsec,
                    const Index              ind_ls,
                    const Index              ind_lsn,
                    const Numeric            cutoff,
-                   const ArrayOfVector&     isotopologue_ratios,
+                   const SpeciesAuxData&    isotopologue_ratios,
                    const Verbosity&         verbosity )
 {
   // Make lineshape and species lookup data visible:
@@ -3034,8 +3219,8 @@ void xsec_species( MatrixView               xsec,
 
                     //                const Numeric factors = n * intensity * l_l.IsotopologueData().Abundance();
 //                    const Numeric factors = intensity * l_l.IsotopologueData().Abundance();
-                      const Numeric factors =
-                            intensity * isotopologue_ratios[l_l.Species()][l_l.Isotopologue()];
+                      const Numeric factors = intensity
+                          * isotopologue_ratios.getParam(l_l.Species(), l_l.Isotopologue(), 0);
 
                     // We have to do:
                     // xsec(j,i) += factors * ls[j] * fac[j];

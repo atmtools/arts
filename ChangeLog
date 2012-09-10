@@ -1,3 +1,55 @@
+2012-09-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-280
+
+	* Add support for reading and writing of isotopologue_ratios to an XML
+	file. The file format is similar to the ARTSCAT format.
+
+	Default values for isotopologue ratios can be extracted from the
+	built-in species_data (this is done by default in general.arts) and
+	then be written to a file:
+
+	isotopologue_ratiosInitFromBuiltin
+	WriteXML("ascii", isotopologue_ratios, "isos.xml")
+
+	Instead of intializing isotopologue_ratios from species_data, they can
+	then simply be read:
+
+	ReadXML(isotopologue_ratios, "isos.xml")
+
+	Note that all ratios are initialized with NAN. If species are missing
+	from the input file, those values will stay NAN.
+
+	* src/absorption.{cc,h}:
+
+	New class SpeciesAuxData. Used to hold runtime values for
+	IsotopologueRatios at the moment, but can be used for other parameters
+	in the future. Reading routine is also in here.
+
+	(write_lines_to_stream): Remove declaration of non-existent function.
+
+	* src/species_data.cc:
+
+	Replace all -1. ratio and mass values for continua with NAN.
+
+	* src/groups.cc: New group SpeciesAuxData.
+
+	* src/workspace.cc, src/gas_abs_lookup.h, src/m_abs.cc,
+	src/m_abs_lookup.cc, src/m_zeeman.cc:
+
+	Change type of isotopologue_ratios from ArrayOfVector to
+	SpeciesAuxData.
+
+	* src/xml_io_compound_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Add reading/writing for SpeciesAuxData.
+
+	* src/nc_io_compound_types.cc, src/nc_io_instantiation.h,
+	src/nc_io_types.h:
+
+	Add dummy for SpeciesAuxData type.
+
 2012-09-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-279

@@ -207,24 +207,24 @@ void define_basic_species_data()
          REC( "182"             ,6.23003E-07    ,21.020985    ,-1     ,15     ,TAGS(21001) ),
          REC( "172"             ,1.15853E-07    ,20.020956    ,-1     ,16     ,TAGS()      ),
          REC( "262"             ,2.2430204E-08  ,20.000000    ,-1     ,-1     ,TAGS(20001) ),
-         REC( "SelfContStandardType"    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "ForeignContStandardType" ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "ForeignContMaTippingType",-1.    ,-1.    ,-1     ,-1     ,TAGS()      ), 
-         REC( "ContMPM93"               ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "SelfContCKDMT100"        ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "ForeignContCKDMT100"     ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "SelfContCKD222"          ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "ForeignContCKD222"       ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "SelfContCKD242"          ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "ForeignContCKD242"       ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "SelfContCKD24"           ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "ForeignContCKD24"        ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "ForeignContATM01"        ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "CP98"                    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "MPM87"                   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "MPM89"                   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "MPM93"                   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      ),
-         REC( "PWR98"                   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      )
+         REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContStandardType" ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContMaTippingType",NAN    ,NAN    ,-1     ,-1     ,TAGS()      ), 
+         REC( "ContMPM93"               ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "SelfContCKDMT100"        ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContCKDMT100"     ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "SelfContCKD222"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContCKD222"       ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "SelfContCKD242"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContCKD242"       ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "SelfContCKD24"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContCKD24"        ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "ForeignContATM01"        ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "CP98"                    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "MPM87"                   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "MPM89"                   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "MPM93"                   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
+         REC( "PWR98"                   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      )
          ) ) );
 
   // CO2 
@@ -248,10 +248,10 @@ void define_basic_species_data()
          REC( "728"     ,1.47180E-06   ,46.998291    ,28     ,28     ,TAGS() ),
          REC( "838"     ,4.44600E-08   ,49.001675    ,-1     ,29     ,TAGS() ),
          REC( "837"     ,1.65354E-08   ,48.001646    ,-1     ,-1     ,TAGS() ),
-         REC( "CKD241"           ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "CKDMT100"         ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "SelfContPWR93"    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "ForeignContPWR93" ,-1.    ,-1.    ,-1     ,-1     ,TAGS())
+         REC( "CKD241"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "CKDMT100"         ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "SelfContPWR93"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "ForeignContPWR93" ,NAN    ,NAN    ,-1     ,-1     ,TAGS())
          ) ) );
   
 
@@ -337,20 +337,20 @@ void define_basic_species_data()
          REC("66"       , .995262E+00   ,31.989830    ,71     ,71     ,TAGS(32001, 32002)),
          REC("68"       , 3.99141E-03   ,33.994076    ,72     ,72     ,TAGS(34001)),
          REC("67"       , 7.42235E-04   ,32.994045    ,73     ,73     ,TAGS(33002)),
-         REC( "CIAfunCKDMT100"  ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "v0v0CKDMT100"    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "v1v0CKDMT100"    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "SelfContStandardType"    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "SelfContMPM93"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "SelfContPWR93"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "PWR98"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "PWR93"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "PWR88"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "MPM93"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "MPM92"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "MPM89"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "MPM87"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "MPM85"   ,-1.    ,-1.    ,-1     ,-1     ,TAGS())
+         REC( "CIAfunCKDMT100"  ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "v0v0CKDMT100"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "v1v0CKDMT100"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "SelfContMPM93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "SelfContPWR93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "PWR98"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "PWR93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "PWR88"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "MPM93"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "MPM92"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "MPM89"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "MPM87"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "MPM85"   ,NAN    ,NAN    ,-1     ,-1     ,TAGS())
          ) ) );
 
   // NO
@@ -580,13 +580,13 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("44"       ,0.9926874      ,28.006147    ,-1     ,221    ,TAGS( )),
-         REC( "SelfContMPM93"           ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "SelfContPWR93"           ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "SelfContStandardType"    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "SelfContBorysow"         ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "CIArotCKDMT100"          ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "CIAfunCKDMT100"          ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
-         REC( "DryContATM01"            ,-1.    ,-1.    ,-1     ,-1     ,TAGS())
+         REC( "SelfContMPM93"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "SelfContPWR93"           ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "SelfContBorysow"         ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "CIArotCKDMT100"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "CIAfunCKDMT100"          ,NAN    ,NAN    ,-1     ,-1     ,TAGS()),
+         REC( "DryContATM01"            ,NAN    ,NAN    ,-1     ,-1     ,TAGS())
          ) ) );
 
   // HCN
@@ -1076,7 +1076,7 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//   Name,     Isotop. Ratio,   Mass,   MY-tag, HI-tag, JPL-tag
          //             |                |       |       |       |
-         REC( "MPM93"   ,-1.            ,-1.    ,-1     ,-1     ,TAGS())
+         REC( "MPM93"   ,NAN            ,NAN    ,-1     ,-1     ,TAGS())
          ) ) );
 
   // You also have to change the entry in the file
@@ -1088,7 +1088,7 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//   Name,     Isotop. Ratio,   Mass,   MY-tag, HI-tag, JPL-tag
          //             |                |       |       |       |
-         REC( "MPM93"   ,-1.            ,-1.    ,-1     ,-1     ,TAGS()      )
+         REC( "MPM93"   ,NAN            ,NAN    ,-1     ,-1     ,TAGS()      )
          ) ) );
 
   // You also have to change the entry in the file
@@ -1100,7 +1100,7 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//   Name,     Isotop. Ratio,   Mass,   MY-tag, HI-tag, JPL-tag
          //             |                |       |       |       |
-         REC( "MPM93"   ,-1.             ,-1.    ,-1     ,-1     ,TAGS()      )
+         REC( "MPM93"   ,NAN             ,NAN    ,-1     ,-1     ,TAGS()      )
          ) ) );
 
   //cout << species_data;

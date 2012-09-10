@@ -102,7 +102,7 @@ public:
                       const ArrayOfString&            abs_cont_names,    
                       const ArrayOfString&            abs_cont_models,   
                       const ArrayOfVector&            abs_cont_parameters,
-                      const ArrayOfVector&            isotopologue_ratios,
+                      const SpeciesAuxData&           isotopologue_ratios,
                       const Verbosity&                verbosity);
 
   friend Numeric calc_lookup_error(// Parameters for lookup table:
@@ -118,7 +118,7 @@ public:
                       const ArrayOfString&            abs_cont_names,
                       const ArrayOfString&            abs_cont_models,
                       const ArrayOfVector&            abs_cont_parameters,
-                      const ArrayOfVector&            isotopologue_ratios,
+                      const SpeciesAuxData&           isotopologue_ratios,
                       // Parameters for both:
                       const Numeric&      local_p,
                       const Numeric&      local_t,
@@ -137,7 +137,7 @@ public:
                       const ArrayOfString&            abs_cont_names,
                       const ArrayOfString&            abs_cont_models,
                       const ArrayOfVector&            abs_cont_parameters,
-                      const ArrayOfVector&            isotopologue_ratios,
+                      const SpeciesAuxData&           isotopologue_ratios,
                       const Verbosity&                verbosity);
 
   friend void abs_lookupTestAccMC(// WS Input:
@@ -152,7 +152,7 @@ public:
                       const ArrayOfString&            abs_cont_names,
                       const ArrayOfString&            abs_cont_models,
                       const ArrayOfVector&            abs_cont_parameters,
-                      const ArrayOfVector&            isotopologue_ratios,
+                      const SpeciesAuxData&           isotopologue_ratios,
                       const Index&                    mc_seed,
                       const Verbosity&                verbosity);
 

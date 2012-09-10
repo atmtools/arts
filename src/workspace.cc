@@ -1635,7 +1635,7 @@ void Workspace::define_wsv_data()
         "Isotopologue ratios. This variable can be set to default values by calling\n"
         "*isotopologue_ratiosInitFromBuiltin*\n"
         ),
-       GROUP( "ArrayOfVector" )));
+       GROUP( "SpeciesAuxData" )));
 
   wsv_data.push_back
    (WsvRecord

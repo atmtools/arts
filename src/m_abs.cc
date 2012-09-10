@@ -1260,7 +1260,7 @@ void abs_coefCalc(// WS Output:
                   const ArrayOfString&            abs_cont_names,
                   const ArrayOfString&            abs_cont_models,
                   const ArrayOfVector&            abs_cont_parameters,
-                  const ArrayOfVector&            isotopologue_ratios,
+                  const SpeciesAuxData&           isotopologue_ratios,
                   const Verbosity&                verbosity)
 {
   // Dimension checks are performed in the executed functions
@@ -1321,7 +1321,7 @@ void abs_coefCalcSaveMemory(// WS Output:
                             const ArrayOfString&            abs_cont_names,
                             const ArrayOfString&            abs_cont_models,
                             const ArrayOfVector&            abs_cont_parameters,
-                            const ArrayOfVector&            isotopologue_ratios,
+                            const SpeciesAuxData&           isotopologue_ratios,
                             const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -1541,7 +1541,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const Matrix&                    abs_vmrs,
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
-                                  const ArrayOfVector&             isotopologue_ratios,
+                                  const SpeciesAuxData&            isotopologue_ratios,
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
@@ -2208,7 +2208,7 @@ void abs_mat_per_speciesAddLBL(// WS Output:
                            const ArrayOfString& abs_cont_names,
                            const ArrayOfString& abs_cont_models,
                            const ArrayOfVector& abs_cont_parameters,
-                           const ArrayOfVector& isotopologue_ratios,
+                           const SpeciesAuxData& isotopologue_ratios,
                            const Numeric& rte_pressure,
                            const Numeric& rte_temperature,
                            const Vector& rte_vmr_list,
@@ -2333,22 +2333,10 @@ void f_gridSelectFIndex(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void isotopologue_ratiosInitFromBuiltin(ArrayOfVector& isotopologue_ratios,
+void isotopologue_ratiosInitFromBuiltin(SpeciesAuxData& isotopologue_ratios,
                                         const Verbosity&)
 {
-    extern Array<SpeciesRecord> species_data;
-
-    isotopologue_ratios.resize(species_data.nelem());
-
-    for (Index isd = 0; isd < species_data.nelem(); isd++)
-    {
-        const Array<IsotopologueRecord>& air = species_data[isd].Isotopologue();
-        isotopologue_ratios[isd].resize(air.nelem());
-        for (Index iir = 0; iir < air.nelem(); iir++)
-        {
-            isotopologue_ratios[isd][iir] = air[iir].Abundance();
-        }
-    }
+    fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(isotopologue_ratios);
 }
 
 
