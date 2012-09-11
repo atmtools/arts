@@ -2544,19 +2544,23 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
     // several place by the broadening and shift formula.
     const Numeric theta = l_l.Ti0() / t;
     
-    // Calculate sum of VMRs of all available broadening species (we need this
-    // for normalization). Initialize with self VMR, we'll add the other later:
-    Numeric broad_spec_vmr_sum = vmrs[this_species];
+    // Split total pressure in self and foreign part:
+    const Numeric p_self    = vmrs[this_species] * p;
+    const Numeric p_foreign = p-p_self;
+    
+    // Calculate sum of VMRs of all available foreign broadening species (we need this
+    // for normalization). The species "Self" will not be included in the sum!
+    Numeric broad_spec_vmr_sum = 0;
 
-    // Gamma is the line widht. Initialize with the 
-    // self broadening:
-    gamma =  l_l.Sgam() * pow(theta, l_l.Nself()) * vmrs[this_species];
+    // Gamma is the line width. We first treat self and foreign width separately:
+    const Numeric gamma_self =  l_l.Sgam() * pow(theta, l_l.Nself()) * p_self;
+    Numeric gamma_foreign = 0;
     
     // There is no self shift parameter (or rather, we do not have it), so
-    // initialize shift to 0:
+    // we do not need separate treatment of self and foreign for the shift:
     deltaf = 0;
     
-    // Add other broadening species, where available:
+    // Add up foreign broadening species, where available:
     for (Index i=0; i<nbs; ++i) {
         if ( broad_spec_locations[i] < -1 ) {
             // -2 means that this broadening species is identical to Self.
@@ -2578,8 +2582,8 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
             broad_spec_vmr_sum += vmrs[broad_spec_locations[i]];
 
             // foreign broadening:
-            gamma +=  l_l.Gamma_foreign(i) * pow(theta, l_l.N_foreign(i))
-            * vmrs[broad_spec_locations[i]];
+            gamma_foreign +=  l_l.Gamma_foreign(i) * pow(theta, l_l.N_foreign(i))
+                              * vmrs[broad_spec_locations[i]];
          
             // Pressure shift:
             // The T dependence is connected to that of the corresponding
@@ -2598,26 +2602,32 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
 //    out3 << os.str();
 //  }
     
-    // Check that sum is not too far from 1:
-    if ( abs(broad_spec_vmr_sum-1) > 0.1 )
+    // Check that sum of self and all foreign VMRs is not too far from 1:
+    if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1 )
       {
         ostringstream os;
         os << "Error: The total VMR of all your defined broadening\n"
-             << "species is " << broad_spec_vmr_sum << ", more than 10% "
-             << "different from 1.\n";
+             << "species (including \"self\") is " << broad_spec_vmr_sum
+             << ", more than 10% " << "different from 1.\n";
         throw runtime_error(os.str());
       }
-  
-    // Multiply by total pressure and normalize to make sure that the total
-    // width and shift are proportional to the
-    // total pressure. This would naturally be the case if broad_spec_vmr_sum
-    // was 1, but is violated if the sum is not 1. Two obvious strategies to
-    // compensate are a) scale gamma accordingly (assume that the relative amounts
-    // in VMRs are right), or b) assign all missing VMR to of those species that
-    // represent the background atmosphere. Option b seems to difficult in
-    // practice, so we chose a.
-    gamma  *= p / broad_spec_vmr_sum;
-    deltaf *= p / broad_spec_vmr_sum;
+    
+    // Normalize foreign gamma and deltaf with the foreign VMR sum:
+    gamma_foreign /= broad_spec_vmr_sum;
+    deltaf        /= broad_spec_vmr_sum;
+    
+    // Multiply by pressure. For the width we take only the foreign pressure.
+    // This is consistent with that we have scaled with the sum of all foreign
+    // broadening VMRs. In this way we make sure that the total foreign broadening
+    // scales with the total foreign pressure.
+    gamma_foreign  *= p_foreign;
+    // For the shift we simply take the total pressure, since there is no self part.
+    deltaf *= p;
+
+    // For the width, add self and foreign parts:
+    gamma = gamma_self + gamma_foreign;
+    
+    // That's it, we're done.
 }
 
 /** Calculate line absorption cross sections for one tag group. All

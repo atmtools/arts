@@ -1,11 +1,25 @@
+2012-09-11  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-282
+
+	* src/absorption.cc (calc_gamma_and_deltaf_artscat4): Modified the
+	broadening calculation: Normalize only the foreign broadening, so
+	that it scales with the total foreign pressure (1-p_self). In
+	other words, we do no scaling for the self part. In this way,
+	results are even closer to what we got with artscat-3.
+
+	* controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts:
+	Make test fail if Artscat-3 and Artscat-4 absorption differ by
+	more than 1e-18 1/m (was 1e-7).
+
 2012-09-10  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-281
-	
+
 	* src/m_zeeman.cc: Changed program flow to not call higher level functions.
 	(Absorption is now handled locally instead of calling m_abs.cc functions).
 	Also have a lower tollerance for database errors.
-	
+
 	* Updated Zeeman testfiles.
 
 2012-09-10  Oliver Lemke  <olemke@core-dump.info>

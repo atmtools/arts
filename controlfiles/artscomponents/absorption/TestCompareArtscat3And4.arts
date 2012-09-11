@@ -61,6 +61,6 @@ timerStop
 # WriteXML( "zascii", abs_mat_field )
 
 # Compare the two results:
-Tensor7Compare( abs_mat_field, abs_mat_field_artscat3, 1e-7 )
+Tensor7Compare( abs_mat_field, abs_mat_field_artscat3, 1e-18 )
 
 }
