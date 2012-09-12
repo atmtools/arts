@@ -2197,7 +2197,7 @@ void abs_mat_per_speciesInit(//WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddLBL(// WS Output:
+void abs_mat_per_speciesAddOnTheFly(// WS Output:
                            Tensor4& abs_mat_per_species,
                            // WS Input:
                            const Vector& f_grid,

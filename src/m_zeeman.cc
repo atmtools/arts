@@ -317,7 +317,7 @@ void PartReturnZeeman(  Tensor3View part_abs_mat,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddZeemanLBL(Tensor4& abs_mat_per_species,
+void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
 				      const Vector& f_grid,
 				      const ArrayOfArrayOfSpeciesTag& abs_species,
 				      const ArrayOfArrayOfLineRecord& abs_lines_per_species,

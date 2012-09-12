@@ -32,7 +32,7 @@ AgendaSet( abs_mat_per_species_agenda ){
     Ignore(rte_mag)
     Ignore(ppath_los)
     abs_mat_per_speciesInit
-    abs_mat_per_speciesAddLBL
+    abs_mat_per_speciesAddOnTheFly
 }
 
 VectorNLinSpace( f_grid, 100, 50e9, 150e9 )

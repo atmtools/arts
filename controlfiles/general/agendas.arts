@@ -20,13 +20,13 @@ AgendaSet( abs_mat_per_species_agenda ){
   Ignore(rte_mag)
   Ignore(ppath_los)
   abs_mat_per_speciesInit
-  abs_mat_per_speciesAddLBL
+  abs_mat_per_speciesAddOnTheFly
   # To use the absorption lookup table, replace by:
   #abs_mat_per_speciesInit
   #abs_mat_per_speciesAddFromLookup
   # To get absorption from Zeeman tag,
   # uncomment this:
-  #abs_mat_per_speciesAddZeemanLBL
+  #abs_mat_per_speciesAddZeeman
   # and comment out Ignore(rte_mag), Ignore(ppath_los):
 }
 

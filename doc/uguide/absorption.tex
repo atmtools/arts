@@ -85,14 +85,14 @@ Typical contents of this agenda are as follows:
 AgendaSet( abs_mat_per_species_agenda )
 {
  abs_mat_per_speciesInit
- abs_mat_per_speciesAddLBL
- abs_mat_per_speciesAddZeemanLBL
+ abs_mat_per_speciesAddOnTheFly
+ abs_mat_per_speciesAddZeeman
 }
 \end{code}
 
 This will calculate absorption matrices for the exact local
-conditions that are given.  \wsaindex{abs\_mat\_per\_speciesAddLBL} calculates
-absorption for all non-Zeeman species which is why \wsaindex{abs\_mat\_per\_speciesAddZeemanLBL}
+conditions that are given.  \wsaindex{abs\_mat\_per\_speciesAddOnTheFly calculates
+absorption for all non-Zeeman species which is why \wsaindex{abs\_mat\_per\_speciesAddZeeman}
 follows.
 The setup for the calculation (which
 absorption species and many other details of the calculation) has to
@@ -118,11 +118,11 @@ can be found in Section \ref{sec:absorption:lookup}.
 \subsection{Doppler shift}
 \label{sec:absorption:doppler}
 
-Each of \wsmindex{abs\_mat\_per\_speciesAddLBL}, 
+Each of \wsmindex{abs\_mat\_per\_speciesAddOnTheFly}, 
 \wsmindex{abs\_mat\_per\_speciesAddZeemanLBL} and
 \wsmindex{abs\_mat\_per\_speciesAddFromLookup} take into account a
 possible Doppler shift. However, there is an important difference in
-the implementation: For \wsmindex{abs\_mat\_per\_speciesAddLBL} and \wsmindex{abs\_mat\_per\_speciesAddZeemanLBL} the shift
+the implementation: For \wsmindex{abs\_mat\_per\_speciesAddOnTheFly} and \wsmindex{abs\_mat\_per\_speciesAddZeemanLBL} the shift
 is implemented by simply making the line-by-line calculation on a
 shifted frequency grid, so the treatment is exact. For
 \wsmindex{abs\_mat\_per\_speciesAddFromLookup}, on the other hand, the
@@ -283,7 +283,7 @@ line shape cutoff with \wsmindex{abs\_lines\_per\_speciesCompact}. \\
 Calculate absorption on-the-fly. &
 Agenda: \wsaindex{abs\_mat\_per\_species\_agenda}. \newline
 Variable: \wsvindex{abs\_mat\_per\_species}, which is nitialized in \wsmindex{abs\_mat\_per\_speciesInit}.\newline
-Methods: \wsmindex{abs\_mat\_per\_speciesAddLBL} and \wsmindex{abs\_mat\_per\_speciesAddZeemanLBL}. Alternative:
+Methods: \wsmindex{abs\_mat\_per\_speciesAddOnTheFly} and \wsmindex{abs\_mat\_per\_speciesAddZeemanLBL}. Alternative:
 \wsmindex{abs\_mat\_per\_speciesAddFromLookup} (extract absorption from
 pre-calculated lookup table). Note that the lookup table cannot contain absorption for
 Zeeman tagged species due to the dependency on magnetic field strength and direction of these.\\

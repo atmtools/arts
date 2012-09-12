@@ -2495,7 +2495,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                           verbosity);
     
   // Add result of LBL calculation to abs_mat_per_species:
-  abs_mat_per_speciesAddLBL(abs_mat_per_species,
+  abs_mat_per_speciesAddOnTheFly(abs_mat_per_species,
                             al.f_grid,
                             al.species,
                             abs_n2,

@@ -1288,7 +1288,7 @@ void define_md_data_raw()
          "Copy *abs_mat_per_species* from *abs_coef_per_species*. This is handy for putting an\n"
          "explicit line-by-line calculation into the\n"
          "*abs_mat_per_species_agenda*. This method is also used internally by.\n"
-         "*abs_mat_per_speciesAddLBL*.\n"
+         "*abs_mat_per_speciesAddOnTheFly*.\n"
          "Like all other abs_mat_per_species methods, this method does not overwrite\n"
          "prior content of *abs_mat_per_species*, but adds to it.\n"
          ),
@@ -1333,7 +1333,7 @@ void define_md_data_raw()
          "Use extpolfac to control how much extrapolation to tolerate before throwing\n"
          "a runtime error. Default is to allow ten times the outermost grid distance.\n"
          "\n"
-         "See also: *abs_mat_per_speciesAddLBL*.\n"
+         "See also: *abs_mat_per_speciesAddOnTheFly*.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
         OUT( "abs_mat_per_species" ),
@@ -1352,7 +1352,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddLBL" ),
+      ( NAME( "abs_mat_per_speciesAddOnTheFly" ),
         DESCRIPTION
         (
          "Calculates gas absorption coefficients line-by-line.\n"
@@ -1400,7 +1400,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddZeemanLBL" ),
+      ( NAME( "abs_mat_per_speciesAddZeeman" ),
         DESCRIPTION
         (
         "This function will, for each Zeeman species, make a local\n"
