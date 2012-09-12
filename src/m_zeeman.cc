@@ -239,7 +239,7 @@ Numeric RelativeStrength(Index n, Index m, Index DJ, Index DM)
 Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
 {
     /*
-    The following switch case is from table 2 of Liebe and Hufford, 1989.
+    The following switch case is from table 2 of Lenoir, 1968.
     */
 
     Numeric N = (Numeric)n, M = (Numeric)m, fcc;
@@ -251,16 +251,16 @@ Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
             switch ( DM )
             {//* Switch over DM, if DM != 1, 0 or -1, DM is wrong.
                 case 1:
-                    fcc = 1.0 * ( M * ( N-1 ) - N ) / ( N * ( N+1 ) ) ;
+                    fcc = 1 / ( N + 1 ) * ( 1 + M * ( N - 1 ) / N );
                     break;
                 case  0:
-                    fcc = 1.0 * ( M * ( N-1 ) ) / ( N * ( N+1 ) ) ;
+                    fcc = 1 / ( N + 1 ) * M * ( N - 1 ) / N;
                     break;
                 case  -1:
-                    fcc = 1.0 * ( M * ( N-1 ) + N ) / ( N * ( N+1 ) ) ;
+                    fcc = 1 / ( N + 1 ) * ( M * ( N - 1 ) / N - 1 );
                     break;
                 default:
-                    fcc = -1e10;
+                    fcc = 0;
                     break;
             };
             break;
@@ -268,21 +268,21 @@ Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
             switch ( DM )
             {//* Switch over DM, if DM != 1, 0 or -1, DM is wrong.
                 case 1:
-                    fcc = 1.0 * ( M * ( N+2 ) - 1 ) / ( N * ( N+1 ) ) ;
+                    fcc = - 1 / N * ( 1 + M * ( N +2 ) / ( N + 1 ) );
                     break;
                 case  0:
-                    fcc = 1.0 * ( M * ( N+2 ) ) / ( N * ( N+1 ) ) ;
+                    fcc = - 1 / N * M * ( N +2 ) / ( N + 1 );
                     break;
-                case  -1:
-                    fcc = 1.0 * ( M * ( N+2 ) + 1 ) / ( N * ( N+1 ) ) ;
+                case -1:
+                    fcc = - 1 / N * ( M * ( N +2 ) / ( N + 1 ) - 1 );
                     break;
                 default:
-                    fcc = -1e10;
+                    fcc = 0;
                     break;
             };
             break;
         default:
-            fcc = -1e10;
+            fcc = 0;
             break;
     };
     return KH*fcc;
@@ -490,11 +490,22 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                     if ( temp_LR.Upper_N() == N )
                     {
                         // Begin TEST(s)
+                        ostringstream os;
                         if ( N <= 0 )
-                            throw runtime_error("The main quantum number cannot be nil!?");
+                        {
+                            os << "The main quantum number cannot be nil!? LineRecord is:\n" 
+                               << temp_LR << "\nCatalog Version() is: " << temp_LR.Version();
+                            throw runtime_error(os.str());
+                        }
+                            
                         if (abs(DJ) != 1){ temp_abs_lines_dt.push_back(temp_LR); continue; }
+                        
                         if ( J-DJ != N )
-                            throw runtime_error("J must change from N by plus minus 1.");
+                        {
+                            os << "J must change from N by plus minus S or integer thereof. LineRecord is:\n" 
+                            << temp_LR << "\nCatalog Version() is: " << temp_LR.Version();
+                            throw runtime_error(os.str());
+                        }
                         // End   TEST(s)
 
                         // For every upper molecular magnetic moment, M
@@ -513,19 +524,19 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
-                                
+
                                 DF =  FrequencyChange(N, M, DJ,  0, H_mag);
                                 RS = RelativeStrength(N, M, DJ,  0);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
-                                
+
                                 DF =  FrequencyChange(N, M, DJ, +1, H_mag);
                                 RS = RelativeStrength(N, M, DJ, +1);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
-                                
+
                             }
                             else if ( DJ == -1 )
                             { // Then certain M results in blocked DM transitions
@@ -536,6 +547,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
+                                    
                                 }
                                 else if ( M == -J + DJ + 1 && M!=0 )
                                 { // Next to lower limit M can only allow DM = 1, 0
@@ -621,39 +633,36 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                 sort(temp_abs_lines_sm.begin(), temp_abs_lines_sm.end(), sortF);
                 sort(temp_abs_lines_dt.begin(), temp_abs_lines_dt.end(), sortF);
             }
-
-            { // Add Pi contribution to final abs_mat_per_species
-                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
-                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
-                                  temp_abs_lines_pi, isotopologue_ratios,
-                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
-                                  theta, eta, 0, II, verbosity );
-                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
-            }
-            { // Add Sigma minus contribution to final abs_mat_per_species
-                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
-                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
-                                  temp_abs_lines_sm, isotopologue_ratios,
-                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
-                                  theta, eta, -1, II, verbosity );
-                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
-            }
-            { // Add Sigma plus contribution to final abs_mat_per_species
-                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
-                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
-                                  temp_abs_lines_sp, isotopologue_ratios,
-                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
-                                  theta, eta, 1, II, verbosity );
-                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
-            }
-            { // Add Default contribution to final abs_mat_per_species
-                Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
-                PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
-                                  temp_abs_lines_dt, isotopologue_ratios,
-                                  abs_vmrs, abs_p, abs_t, *f_grid_pointer,
-                                  theta, eta, 1023, II, verbosity );
-                abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
-            }
+            
+            Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+            
+            // Add Pi contribution to final abs_mat_per_species
+            PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                              temp_abs_lines_pi, isotopologue_ratios,
+                              abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                              theta, eta, 0, II, verbosity );
+            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+        
+            // Add Sigma minus contribution to final abs_mat_per_species
+            PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                              temp_abs_lines_sm, isotopologue_ratios,
+                              abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                              theta, eta, -1, II, verbosity );
+            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            
+            // Add Sigma plus contribution to final abs_mat_per_species
+            PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                                temp_abs_lines_sp, isotopologue_ratios,
+                                abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                theta, eta, 1, II, verbosity );
+            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            
+            // Add Default contribution to final abs_mat_per_species
+            PartReturnZeeman( part_abs_mat, abs_species, abs_lineshape,
+                              temp_abs_lines_dt, isotopologue_ratios,
+                              abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                              theta, eta, 1023, II, verbosity );
+            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
         }
     }
     else // if the magnetic field is ignored

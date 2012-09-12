@@ -1,3 +1,13 @@
+2012-09-12  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-285
+
+	* src/m_zeeman.cc: Fixed sign error in frequency shift routine.
+	Also gives more information in the error message if a LineRecord
+	that contains unexpected quantum numbers is encountered.
+
+	* Updated Zeeman reference file: to fix for the sign error.
+
 2012-09-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-284
