@@ -180,7 +180,6 @@ bool SpeciesAuxData::ReadFromStream(istream& is, Index nparams, const Verbosity&
     String artsid;
     icecream >> artsid;
 
-    cout << artsid << endl;
     if (artsid.length() != 0)
     {
         Index mspecies;

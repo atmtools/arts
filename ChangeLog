@@ -1,5 +1,13 @@
 2012-09-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-291
+
+	* src/absorption.cc (SpeciesAuxData::ReadFromStream):
+
+	Remove leftover debug output.
+
+2012-09-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-290
 
 	* src/xml_io_compound_types.cc:
