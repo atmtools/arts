@@ -1,0 +1,172 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# ARTS controlfile testing consistency of use of built-in and read-from-file
+# isotopologue ratios. It calculates radiances with applying 3 different
+# approaches of getting & using isotopologue ratios (IR):
+# (a) the classical case: using ARTS built-in IR
+# (b) using identical IR as from (a), but read in from file
+# (c) for H2O-162 (=HDO), we use IR_new=IR_orig*2 and VMR_new=VMR_orig. As in
+#     ARTS absorption = VMR*IR*LineStrength*LineShapeFct, this should give
+#     (largely) identical results to (a) and (b).
+#
+# 2012-09-14 Jana Mendrok
+
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+
+
+VectorLinSpace( f_grid, 488e9, 491e9, 0.01e9 )
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+# monchromatic pencilbeam 1D scalar clearsky RT without Jacobians
+AtmosphereSet1D
+IndexSet( stokes_dim, 1 )
+cloudboxOff
+jacobianOff
+sensorOff
+
+# output radiances in Planck-Tb
+StringSet( y_unit, "RJBT" )
+
+# sensor position and LOS
+IndexCreate( n_tan )
+IndexSet( n_tan, 5 )
+VectorCreate( z_tan )
+VectorNLinSpace( z_tan, n_tan, 50e3, 10e3 )
+
+# Create vector of zenith angles for selected tangent altitudes
+MatrixSetConstant( sensor_pos, n_tan, 1, 600e3 )
+VectorCreate( za )
+VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
+Matrix1ColFromVector( sensor_los, za )
+
+# on-the-fly absorption
+AgendaSet( abs_mat_per_species_agenda ){
+  Ignore(rte_mag)
+  Ignore(ppath_los)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddOnTheFly
+}
+
+# Blackbody surface
+AgendaSet( surface_rtprop_agenda ){
+  Ignore( rte_los )
+  InterpAtmFieldToRtePos(surface_skin_t, atmosphere_dim,
+                         p_grid, lat_grid, lon_grid, z_field,
+                         rte_pos, t_field)
+  surfaceBlackbody
+}
+
+# Definition of species: here we neglect continua
+SpeciesSet( abs_species,
+            ["H2O-161", "H2O-162",
+             "N2", "O2"] )
+
+# use planetary catalogue
+abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/perrin/", 0, 3e12)
+abs_lines_per_speciesCreateFromLines
+
+
+
+#######
+# CASE (a): H2O only with builtIn setup and standard profiles
+#######
+# Atmospheric scenario
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "testdata/tropical" )
+AtmFieldsCalc
+
+# Surface at bottom of defined atosphere
+Extract( z_surface, z_field, 0 )
+
+# check basic atm&surface setup of
+basics_checkedCalc
+cloudbox_checkedCalc
+
+#now do the RT calc
+isotopologue_ratiosInitFromBuiltin
+#WriteXML("ascii", isotopologue_ratios, "IRfromARTSBuiltin.xml")
+yCalc
+#WriteXML( "ascii", y, "y.IsoRatios_Builtin.xml" )
+VectorCreate( yA )
+Copy( yA, y )
+
+
+#######
+# CASE (b): H2O with (unchanged) IR from file (relevant H2O only) and AtmFiles explicitly read
+#######
+
+#we need some container for vmr reading
+GriddedField3Create( vmr1_raw )
+ArrayOfGriddedField3Create( vmrall_raw )
+
+# Read Atmospheric scenario files
+ReadXML( t_field_raw, "testdata/tropical.t.xml" )
+ReadXML( z_field_raw, "testdata/tropical.z.xml" )
+#twice read&append H2O as we use default profile for both defined H2O tag groups
+ReadXML( vmr1_raw, "testdata/tropical.H2O.xml" )
+Append( vmrall_raw, vmr1_raw )
+ReadXML( vmr1_raw, "testdata/tropical.H2O.xml" )
+Append( vmrall_raw, vmr1_raw )
+ReadXML( vmr1_raw, "testdata/tropical.N2.xml" )
+Append( vmrall_raw, vmr1_raw )
+ReadXML( vmr1_raw, "testdata/tropical.O2.xml" )
+Append( vmrall_raw, vmr1_raw )
+Copy( vmr_field_raw, vmrall_raw )
+
+# calc fields from raw gridded fields
+AtmFieldsCalc
+
+# check basic atm&surface setup of
+basics_checkedCalc
+cloudbox_checkedCalc
+
+#now do the RT calc
+ReadXML( isotopologue_ratios, "IsoRatios_H2Oorig.xml" )
+yCalc
+#WriteXML( "ascii", y, "y.IsoRatios_H2Oorig.xml" )
+VectorCreate( yB )
+Copy( yB, y )
+VectorCompare( yA, yB, 1e-20 )
+
+
+#######
+# CASE (c): H2O-162 with modified IR (*2) from file and VMR profile (/2)
+#######
+
+ArrayOfGriddedField3Create( vmrall_raw2 )
+
+# Read Atmospheric scenario files
+ReadXML( t_field_raw, "testdata/tropical.t.xml" )
+ReadXML( z_field_raw, "testdata/tropical.z.xml" )
+#here read separate files for H2O and HDO tag groups
+ReadXML( vmr1_raw, "testdata/tropical.H2O.xml" )
+Append( vmrall_raw2, vmr1_raw )
+ReadXML( vmr1_raw, "tropical.H2O_50%.xml" )
+Append( vmrall_raw2, vmr1_raw )
+ReadXML( vmr1_raw, "testdata/tropical.N2.xml" )
+Append( vmrall_raw2, vmr1_raw )
+ReadXML( vmr1_raw, "testdata/tropical.O2.xml" )
+Append( vmrall_raw2, vmr1_raw )
+Copy( vmr_field_raw, vmrall_raw2 )
+
+# calc fields from raw gridded fields
+AtmFieldsCalc
+
+# check basic atm&surface setup of
+basics_checkedCalc
+cloudbox_checkedCalc
+
+#now do the RT calc
+ReadXML( isotopologue_ratios, "IsoRatios_H2Omani.xml" )
+yCalc
+#WriteXML( "ascii", y, "y.IsoRatios_H2Omani.xml" )
+VectorCreate( yC )
+Copy( yC, y )
+VectorCompare( yA, yC, 1e-3 )
+
+}
+

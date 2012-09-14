@@ -1,3 +1,17 @@
+2012-09-14  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-292
+
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts,
+	IsoRatios_H2Oorig.xml, IsoRatios_H2Omani.xml, tropical.H2O_50%.xml,
+	controlfiles/CMakeLists.txt:
+	Added isotopologue ratio consistency test case.
+
+	* src/species_data.cc: Fixed some isotopologue ratio bugs. Docu updated
+	on built-in vs. read-from-file isotopologue ratios.
+
+	* src/absorption.[cc,h]: extended output operator for SpeciesRecord.
+
 2012-09-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-291

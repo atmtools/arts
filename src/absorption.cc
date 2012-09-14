@@ -365,7 +365,10 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
 ostream& operator<< (ostream& os, const SpeciesRecord& sr)
 {
-  os << sr.Name() << "\n";
+  for ( Index j=0; j<sr.Isotopologue().nelem(); ++j)
+    {
+      os << sr.Name() << "-" << sr.Isotopologue()[j].Name() << "\n";
+    }
   return os;
 }
  

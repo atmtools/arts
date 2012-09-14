@@ -77,9 +77,9 @@ Array<SpeciesRecord> species_data;
        indicated.
 
   <dt> Isotopologue Ratio: 
-  <dd> Generally Hitran convention, unless otherwise indicated.
-       A number code in the header gives the source of the isotopologue ratios 
-       for each isotopologue of each species:
+  <dd> Built-in isotoplogue ratios for Earth. Generally Hitran convention, unless
+       otherwise indicated. A number code in the header gives the source of the
+       isotopologue ratios for each isotopologue of each species:
        
        <table>
        <tr>
@@ -104,6 +104,11 @@ Array<SpeciesRecord> species_data;
                     abundances. Origin of isotopic ratio documented in individual
                     species headers.
        </table>
+
+      On run-time, isotopologue ratios can be initialized from those built-in
+      values or can be read in from file (replacing those given here).
+      Pre-prepared xml files with isotopologue ratios of selected planets are available
+      from arts-xml-data package.
 
   <dt> Mass: 
   <!-- <dd> Rounded atomic weight. (SAB: From looking at the table in forward_4_96,
@@ -923,8 +928,8 @@ void define_basic_species_data()
          REC("211124"   ,.973866E+00    ,41.026549    ,-1     ,411    ,TAGS(41001,41010)),
          REC("311124"   ,.102683e-01    ,42.00        ,-1     ,-1     ,TAGS(42006)),
          REC("211134"   ,.102683e-01    ,42.00        ,-1     ,-1     ,TAGS(42007)),
-         REC("211125"   ,.360163e-02    ,42.00        ,-1     ,-1     ,TAGS(42001)),
-         REC("211224"   ,.147062e-03    ,42.00        ,-1     ,-1     ,TAGS(42008))
+         REC("211125"   ,.347136e-02    ,42.00        ,-1     ,-1     ,TAGS(42001)),
+         REC("211224"   ,.441185e-03    ,42.00        ,-1     ,-1     ,TAGS(42008))
          ) ) );
 
   // CF4 
@@ -1017,8 +1022,8 @@ void define_basic_species_data()
          ) ) );
 
   // C3H8
-  // Isotopologue Ratios: 3
-  // Note: Name and Mass guessed. DEGFR from JPL.
+  // Isotopologue Ratios: 4
+  // Note: Name and Mass guessed. DEGFR and atomic isotopic ratios from JPL.
   species_data.push_back
     ( SpeciesRecord
       ( NAME("C3H8"),
@@ -1026,7 +1031,7 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
          //             |                |         |       |       |
-         REC("21"      ,1.0             ,44.00    ,-1     ,-1    ,TAGS(44013))
+         REC("21"      ,9.66290e-01     ,44.00    ,-1     ,-1    ,TAGS(44013))
          ) ) );
 
   // H2

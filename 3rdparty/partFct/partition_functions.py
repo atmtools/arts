@@ -106,7 +106,7 @@ def do_poly3fit(y,k):
 
   Parameters
   ----------
-  y: array (dim: Ny)
+  y : array (dim: Ny)
       measurement vector, i.e., the data the polynomial is fitted to.
       for partition function fits this are the tabulated partition functions.
   k : array (dim: Ny)

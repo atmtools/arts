@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<SpeciesAuxData version="1" nelem="6" nparam="1">
+@ H2O-161 0.99731702
+@ H2O-162 0.000621386
+@ O2-66 0.995262
+@ O2-68 0.00399141
+@ O2-67 0.000742235
+@ N2-44 0.9926874
+</SpeciesAuxData>
+</arts>
