@@ -1191,6 +1191,7 @@ void xml_write_to_stream(ostream&                 os_xml,
     open_tag.write_to_stream(os_xml);
     os_xml << '\n';
 
+    os_xml.precision(15);
     const ArrayOfMatrix& params = sad.getParams();
     for (Index isp = 0; isp < params.nelem(); isp++)
     {
