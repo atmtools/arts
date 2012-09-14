@@ -1,5 +1,13 @@
 2012-09-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-290
+
+	* src/xml_io_compound_types.cc:
+
+	Use xml_set_stream_precision instead of setting it manually.
+
+2012-09-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-289
 
 	* src/ppath.cc (ppath_step_refr_{1,2,3}d):
