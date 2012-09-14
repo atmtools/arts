@@ -35,6 +35,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <cmath>
+#include "file.h"
 #include "absorption.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -211,7 +212,7 @@ bool SpeciesAuxData::ReadFromStream(istream& is, Index nparams, const Verbosity&
             Numeric p;
             for (Index ip = 0; ip < nparams; ip++)
             {
-                icecream >> p;
+                icecream >> double_imanip() >> p;
                 params(misotopologue, ip) = p;
             }
         }

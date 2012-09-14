@@ -1,3 +1,19 @@
+2012-09-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-286
+
+	* src/file.{cc,h}:
+
+	Add an input manipulator class to support parsing of inf and nan
+	values from input streams. The standard is not clear about support for
+	this (some newer compilers like clang do it by default, others like gcc
+	don't).  With this class, we can handle it consistently across
+	different compilers.
+
+	* src/absorption.cc (SpeciesAuxData::ReadFromStream):
+
+	Use double_imanip().
+
 2012-09-12  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-285

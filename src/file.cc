@@ -40,6 +40,7 @@
 #include <cmath>
 #include <cfloat>
 #include <cstdio>
+#include <limits>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -463,4 +464,54 @@ void get_dirname(String& dirname, const String& path)
       if (i < fileparts.nelem()-2) dirname += "/";
     }
   }
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+//   IO manipulation classes for parsing nan and inf
+////////////////////////////////////////////////////////////////////////////
+
+double_istream&
+double_istream::parse_on_fail (double& x, bool neg) {
+    const char *exp[] = { "", "inf", "Inf", "nan", "NaN" };
+    const char *e = exp[0];
+    int l = 0;
+    char inf[4];
+    char *c = inf;
+    if (neg) *c++ = '-';
+    in.clear();
+    if (!(in >> *c).good()) return *this;
+    switch (*c) {
+        case 'i': e = exp[l=1]; break;
+        case 'I': e = exp[l=2]; break;
+        case 'n': e = exp[l=3]; break;
+        case 'N': e = exp[l=4]; break;
+    }
+    while (*c == *e) {
+        if ((e-exp[l]) == 2) break;
+        ++e; if (!(in >> *++c).good()) break;
+    }
+    if (in.good() && *c == *e) {
+        switch (l) {
+            case 1:
+            case 2: x = std::numeric_limits<double>::infinity(); break;
+            case 3:
+            case 4: x = std::numeric_limits<double>::quiet_NaN(); break;
+        }
+        if (neg) x = -x;
+        return *this;
+    } else if (!in.good()) {
+        if (!in.fail()) return *this;
+        in.clear(); --c;
+    }
+    do { in.putback(*c); } while (c-- != inf);
+    in.setstate(std::ios_base::failbit);
+    return *this;
+}
+
+
+const double_imanip&
+operator>>(std::istream& in, const double_imanip& dm) {
+    dm.in = &in;
+    return dm;
 }
