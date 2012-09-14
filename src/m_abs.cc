@@ -2448,21 +2448,25 @@ void WriteMolTau(//WS Input
   if ((retval = nc_put_var_double (ncid, wvl_varid, &wvl[0])))
     nca_error (retval, "nc_put_var");
 
-  double tau[z_field.npages()-1][f_grid.nelem()][abs_mat_field.nbooks()][abs_mat_field.nbooks()];
+  const Index zfnp = z_field.npages()-1;
+  const Index fgne = f_grid.nelem();
+  const Index amfnb = abs_mat_field.nbooks();
+
+  double tau[zfnp][fgne][amfnb][amfnb];
 
   // Initialize tau
-    for (int iz=0; iz<z_field.npages()-1; iz++)
-        for (int iv=0; iv<f_grid.nelem(); iv++)
-            for (int is1=0; iv<abs_mat_field.nbooks(); iv++)
-                for (int is2=0; iv<abs_mat_field.nbooks(); iv++)
+    for (int iz =0; iz<zfnp; iz++)
+        for (int iv=0; iv<fgne; iv++)
+            for (int is1=0; iv<amfnb; iv++)
+                for (int is2=0; iv<amfnb; iv++)
                     tau[iz][iv][is1][is2] = 0.0;
 
   // Calculate average tau for layers
   for (int is=0; is<abs_mat_field.nlibraries(); is++)
-    for (int iz=0; iz<z_field.npages()-1; iz++)
-      for (int iv=0; iv<f_grid.nelem(); iv++)
-          for (int is1=0; iv<abs_mat_field.nbooks(); iv++)
-              for (int is2=0; iv<abs_mat_field.nbooks(); iv++)
+    for (int iz=0; iz<zfnp; iz++)
+      for (int iv=0; iv<fgne; iv++)
+          for (int is1=0; iv<amfnb; iv++)
+              for (int is2=0; iv<amfnb; iv++)
                 // sum up all species
                 tau[iz][iv][is1][is2] += 0.5 * (abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-1-iz,0,0)+
                                     abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-2-iz,0,0))

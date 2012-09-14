@@ -469,6 +469,13 @@ try_ready_chunked_body (struct MHD_Connection *connection)
   else
     {
       /* buffer not in range, try to fill it */
+      if (response->crc == NULL)
+      {
+          CONNECTION_CLOSE_ERROR (connection,
+                                  "Closing connection (CRC is NULL)\n");
+          return MHD_NO;
+      }
+
       ret = response->crc (response->crc_cls,
 			   connection->response_write_position,
 			   &connection->write_buffer[sizeof (cbuf)],

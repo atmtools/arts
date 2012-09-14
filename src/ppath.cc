@@ -4334,6 +4334,11 @@ void ppath_step_refr_1d(
             refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
             r_start, lat_start, za_start );
     }
+  else
+    {
+      // Make sure we fail if called with an invalid rtrace_method.
+      assert(false);
+    }
 
   // Fill *ppath*
   //
@@ -4634,6 +4639,11 @@ void ppath_step_refr_2d(
                                 refr_index_agenda, lraytrace, lat1, lat3,
                                 rsurface1, rsurface3, r1a, r3a, r3b, r1b, 
                                 r_start, lat_start, za_start );
+    }
+  else
+    {
+      // Make sure we fail if called with an invalid rtrace_method.
+      assert(false);
     }
 
   // Fill *ppath*
@@ -4988,6 +4998,11 @@ void ppath_step_refr_3d(
                            rsurface15, rsurface35, rsurface36, rsurface16,
                            r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                            r_start, lat_start, lon_start, za_start, aa_start );
+    }
+  else
+    {
+      // Make sure we fail if called with an invalid rtrace_method.
+      assert(false);
     }
 
   // Fill *ppath*

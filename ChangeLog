@@ -1,5 +1,26 @@
 2012-09-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-289
+
+	* src/ppath.cc (ppath_step_refr_{1,2,3}d):
+
+	Fire up an assertion if called with an unknown raytrace method.
+	Because rtrace_method is a string, this can easily happen by a typo.
+	Without this sanity check, the calculation will just continue with
+	uninitialized variables.
+
+	* src/libmicrohttpd/connection.c (try_ready_chunked_body):
+
+	Catch possible NULL function pointer dereference.
+
+	* src/m_abs.cc (WriteMolTau):
+
+	Store sizes in variables.
+
+	* src/absorption.cc (xsec_species): Make some variables const.
+
+2012-09-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-288
 
 	* src/montecarlo.cc (mcPathTraceIPA):

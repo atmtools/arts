@@ -3062,12 +3062,12 @@ void xsec_species( MatrixView               xsec,
                   
                   //              if (l_l.Version() == 3)
                   //              {
-                  Numeric Tgam = l_l.Tgam();
-                  Numeric Agam = l_l.Agam();
-                  Numeric Nair = l_l.Nair();
-                  Numeric Sgam = l_l.Sgam();
-                  Numeric Nself = l_l.Nself();
-                  Numeric Psf = l_l.Psf();
+                  const Numeric Tgam = l_l.Tgam();
+                  const Numeric Agam = l_l.Agam();
+                  const Numeric Nair = l_l.Nair();
+                  const Numeric Sgam = l_l.Sgam();
+                  const Numeric Nself = l_l.Nself();
+                  const Numeric Psf = l_l.Psf();
                   //              }
                   //              else
                   //              {
