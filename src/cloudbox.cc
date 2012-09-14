@@ -1097,7 +1097,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   const Numeric N0 = 0.08*1e8; // [#/cm^3/cm] converted to [#/m^3/m]
   const Numeric lambda_fac = 41.*1e2; // [cm^-1] converted to [m^-1] to fit d[m]
   const Numeric lambda_exp = -0.21;
-  Numeric PWC, lambda;
+  Numeric PWC, lambda = NAN;
 
   if (d.nelem() > 0)
   // d.nelem()=0 implies no selected particles for the respective particle
@@ -1173,6 +1173,9 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
               }
               //cout << "fine at p: " << p << " lat: " << lat << " lon" << lon
               //     << " for PR=" << PR_field ( p, lat, lon )*fac << "mm/hr.\n";
+
+              // Make sure lambda was initialized in the while loop
+              assert(!isnan(lambda));
 
               // calculate error of pnd sum and real XWC
               PWC = rho_mean*PI*N0 / pow(lambda,4.);
@@ -1771,7 +1774,6 @@ void scale_H11 (Vector& pnd,
 {
   // set vector x to pnd size
   Vector x (pnd.nelem(), 0.0);
-  Numeric ratio;
 
   for ( Index i = 0; i<pnd.nelem(); i++ )
   {
@@ -1784,13 +1786,12 @@ void scale_H11 (Vector& pnd,
   {
     // set ratio and all pnd values to zero, IF there are 
     // no scattering particles at this atmospheric level.
-    ratio = 0.0;
     pnd = 0.0;
   }
   else
   {
-    // calculate the ratio of initial massdensity (xwc) to sum of pnds
-    ratio = xwc/x.sum();
+      // calculate the ratio of initial massdensity (xwc) to sum of pnds
+    const Numeric ratio = xwc/x.sum();
     // scale each pnd to represent the total massdensity
     pnd *= ratio;
   }

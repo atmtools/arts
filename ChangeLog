@@ -1,5 +1,33 @@
 2012-09-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-288
+
+	* src/montecarlo.cc (mcPathTraceIPA):
+
+	Add an assertion on istep to make sure we ran at least once through
+	the while loop. If not, several variables are used uninitialized.
+
+	* src/cloudbox.cc (scale_H11):
+
+	Move definition of ratio into the block where it's actually used and
+	remove unnecessary assignment.
+
+	(pnd_fieldMP48): Init lambda with nan and add an assertion to make sure
+	it was properly initialized inside the while loop. Otherwise it's
+	possible that it is used uninitialized.
+
+	* src/ppath.cc (ppath_start_2d, do_gridcell_2d):
+
+	Remove unnecessary assignments to variables whose value is never read
+	again.
+
+	* src/m_atmosphere.cc (z_fieldFromHSE):
+
+	Remove unnecessary assignment of g1=g0 by moving it inside the
+	for-loop where it is actually used (and initialized with g2).
+
+2012-09-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-287
 
 	* src/xml_io_compound_types.cc:

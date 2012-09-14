@@ -2347,14 +2347,14 @@ void z_fieldFromHSE(
           while( z_acc > z_hse_accuracy )
             {
               z_acc = 0;
-              Numeric g1=g0, g2=g0;
+              Numeric g2=g0;
 
               for( Index ip=0; ip<np-1; ip++ )
                 {
                   // Calculate average g
                   if( ip == 0 )
                     { z2g( g2, re, g0, z_field(ip,ilat,ilon) ); }
-                  g1 = g2;
+                  const Numeric g1 = g2;
                   z2g( g2, re, g0, z_field(ip+1,ilat,ilon) );
                   //
                   const Numeric g = ( g1 + g2 ) / 2.0;

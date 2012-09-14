@@ -1142,6 +1142,10 @@ void mcPathTraceIPA(Workspace&            ws,
       //the atmosphere and between the two points corresponding to the *Array 
       //variables.
 
+      // If istep is 0 means we never entered the above while loop and
+      // thus x, y, z, ds, dx, dy, dz are uninitialized
+      assert(istep);
+
       //find position corresponding to the pathlength criteria
       k=-log(incT(0,0))/lstep;
       //length of path segment required by critera

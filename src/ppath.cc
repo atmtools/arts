@@ -2568,7 +2568,7 @@ void ppath_start_2d(
       if( is_los_downwards( za_start, tilt ) )
         {
           ip--;
-          r1b = r1a;   r3b = r3a;   c4 = c2;
+          r1b = r1a;   r3b = r3a;
           r1a = re1 + z_field(ip,ilat);
           r3a = re3 + z_field(ip,ilat+1);
           plevel_slope_2d( c2, lat1, lat3, r1a, r3a );
@@ -2581,7 +2581,7 @@ void ppath_start_2d(
       if( !is_los_downwards( za_start, tilt ) )
         {
           ip++;
-          r1a = r1b;   r3a = r3b;   c2 = c4;
+          r1a = r1b;   r3a = r3b;
           r3b = re3 + z_field(ip+1,ilat+1);
           r1b = re1 + z_field(ip+1,ilat);    
           plevel_slope_2d( c4, lat1, lat3, r1b, r3b );
@@ -3306,7 +3306,7 @@ void do_gridcell_2d(
     plevel_crossing_2d( rt, latt, lt, r_start, lat_start, za_start, ppc, 
                                                  lat1, lat3, r1b, r3b, false );
     if( rt > 0  &&  lt < l )  // lt<l to resolve the closest crossing
-      { endface = 4;   r = rt;   lat = latt;   l = lt; }
+      { endface = 4;   r = rt;   lat = latt;  /* l = lt; */ }
   }
   
   // Latitude endfaces
