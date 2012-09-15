@@ -7209,26 +7209,6 @@ void PWR93O2AbsModel (MatrixView        pxsec,
   << " CO = " << CO << "\n";
 
 
-  // determin if version Rosenkranz 1993 or Rosenkranz 1988 is selected
-  if ( (version != "PWR98") && (version != "PWR93") && (version != "PWR88") )
-    {
-      ostringstream os;
-      os << "O2-PWR93/PWR88: ERROR! Wrong version is selected.\n"
-   << "Valid versions are:\n"
-   << "  'PWR98'  updates of F and S to HISTRAN96 and M.J.Schwartz, MIT, 1997\n"
-         << "           suggestions implemented.\n"
-         << "  'PWR93'  for the oxygen absorption model described in  \n"
-         << "           P. W. Rosenkranz, Chapter 2, in M. A. Janssen,\n"
-         << "           Atmospheric Remote Sensing by Microwave Radiometry,\n"
-         << "           John Wiley & Sons, Inc., 1993.\n"
-         << "  'PWR88'  for the oxygen absorption model described in \n"
-         << "           P. W. Rosenkranz, Interference coefficients for the \n"
-   << "           overlapping oxygen lines in air, \n"
-         << "           JQSRT, 1988, Volume 39, 287-297.\n";
-      throw runtime_error(os.str());
-    }
-
-
   // select version dependent parameters
   if ( version == "PWR88" ) {
     for ( Index i=0; i<n_lines; ++i )
@@ -7238,7 +7218,7 @@ void PWR93O2AbsModel (MatrixView        pxsec,
         Y300[i] = Y88[i];
       };
   }
-  if ( version == "PWR93" ) {
+  else if ( version == "PWR93" ) {
     for ( Index i=0; i<n_lines; ++i )
       {
   F[i]    = F93[i];
@@ -7246,7 +7226,7 @@ void PWR93O2AbsModel (MatrixView        pxsec,
         Y300[i] = Y93[i];
       };
   }
-  if ( version == "PWR98" ) {
+  else if ( version == "PWR98" ) {
     for ( Index i=0; i<n_lines; ++i )
       {
   F[i]    = F98[i];
@@ -7254,6 +7234,24 @@ void PWR93O2AbsModel (MatrixView        pxsec,
         Y300[i] = Y93[i];
       };
   }
+  else
+  {
+      ostringstream os;
+      os << "O2-PWR93/PWR88: ERROR! Wrong version is selected.\n"
+      << "Valid versions are:\n"
+      << "  'PWR98'  updates of F and S to HISTRAN96 and M.J.Schwartz, MIT, 1997\n"
+      << "           suggestions implemented.\n"
+      << "  'PWR93'  for the oxygen absorption model described in  \n"
+      << "           P. W. Rosenkranz, Chapter 2, in M. A. Janssen,\n"
+      << "           Atmospheric Remote Sensing by Microwave Radiometry,\n"
+      << "           John Wiley & Sons, Inc., 1993.\n"
+      << "  'PWR88'  for the oxygen absorption model described in \n"
+      << "           P. W. Rosenkranz, Interference coefficients for the \n"
+      << "           overlapping oxygen lines in air, \n"
+      << "           JQSRT, 1988, Volume 39, 287-297.\n";
+      throw runtime_error(os.str());
+  }
+
 
   const Index n_p = abs_p.nelem();  // Number of pressure levels
   const Index n_f = f_grid.nelem();  // Number of frequencies
@@ -7977,14 +7975,15 @@ void MPM93_N2_continuum (MatrixView          pxsec,
   // ---------------------------------------------------------------------------------------
 
   // select the parameter set (!!model dominates values!!):
-  Numeric S0, G0, xf, xT, gxf;
+  Numeric S0, G0, xf, xT;
+  //Numeric gxf;
   if ( model == "MPM93" )
     {
       S0  = S_MPM93;
       G0  = G_MPM93;
       xT  = xT_MPM93;
       xf  = xf_MPM93;
-      gxf = gxf_MPM93;
+      //gxf = gxf_MPM93;
     }
   else if ( model == "MPM93Scale" )
     {
@@ -7992,7 +7991,7 @@ void MPM93_N2_continuum (MatrixView          pxsec,
       G0  = G_MPM93;
       xT  = xT_MPM93;
       xf  = xf_MPM93;
-      gxf = gxf_MPM93;
+      //gxf = gxf_MPM93;
     }
   else if ( model == "user" )
     {
@@ -8000,7 +7999,7 @@ void MPM93_N2_continuum (MatrixView          pxsec,
       G0  = Gin;
       xT  = xTin;
       xf  = xfin;
-      gxf = 9.000*xf;
+      //gxf = 9.000*xf;
     }
   else
     {
@@ -13418,7 +13417,8 @@ Numeric n2n2tks_(double t, double f)
     double ret_val;
 
     /* Local variables */
-    double hexa[10], quad[10], freq[10], e;
+    //double hexa[10], quad[10];
+    double freq[10], e;
     int i__;
     double s, x, t1, t2, t3, t4;
     int ij, nf, jj;
@@ -13427,11 +13427,12 @@ Numeric n2n2tks_(double t, double f)
     double ss[1], tt[2];
     extern /* Subroutine */ int bound32_(double *, double *, int
       *), bound54_(double *, double *, int *);
-    double tksabs[5];
+    //double tksabs[5];
     extern /* Subroutine */ int spline_(int *, int *, int *,
       double *, double *, double *, double *,
       double *, double *, int *, double *);
-    double dtrans[10], abscoef[10];
+    double abscoef[10];
+    //double dtrans[10];
     extern /* Subroutine */ int addspec_(double *, double *,
       double *, double *, double *, double *,
       double *, int *, double *, double *, int *,
@@ -13480,7 +13481,7 @@ Numeric n2n2tks_(double t, double f)
 /* TKS  INPUT/OUTPUT VARIABLES */
 /*      REAL T, F */
 
-    ret_val = 0.;
+    //ret_val = 0.;
 
 /*     TEMP   = TEMPERATURE IN KELVIN, SHOULD BE BETWEEN 50. AND 300. */
 /*     FNUMIN = LOWEST FREQUENCY IN CM-1, FOR LISTING OF ALPHA(FNU) */
@@ -13629,7 +13630,7 @@ L444:
       like, &cs__2, &cs__0, &cs__2, &cs__3);
     s__1 = nf;
     for (i__ = 1; i__ <= s__1; ++i__) {
-  quad[i__ - 1] = abscoef[i__ - 1];
+  //quad[i__ - 1] = abscoef[i__ - 1];
 /* L20: */
   alfatot[i__ - 1] = abscoef[i__ - 1] + alfatot[i__ - 1];
     }
@@ -13688,7 +13689,7 @@ L444:
       like, &cs__4, &cs__0, &cs__4, &cs__5);
     s__1 = nf;
     for (i__ = 1; i__ <= s__1; ++i__) {
-  hexa[i__ - 1] = abscoef[i__ - 1];
+    //hexa[i__ - 1] = abscoef[i__ - 1];
   /*
     s_wsle(&io___25);
     do_lio(&c__9, &c__1, " T=50-140K: HEXA(", (ftnlen)17);
@@ -13721,7 +13722,7 @@ L333:
       like, &cs__4, &cs__0, &cs__4, &cs__5);
     s__1 = nf;
     for (i__ = 1; i__ <= s__1; ++i__) {
-  hexa[i__ - 1] = abscoef[i__ - 1];
+  //hexa[i__ - 1] = abscoef[i__ - 1];
   /*
     s_wsle(&io___26);
     do_lio(&c__9, &c__1, " T=140-300K: HEXA(", (ftnlen)18);
@@ -13757,7 +13758,7 @@ L334:
       like, &cs__2, &cs__2, &cs__3, &cs__3);
     s__1 = nf;
     for (i__ = 1; i__ <= s__1; ++i__) {
-  dtrans[i__ - 1] = abscoef[i__ - 1];
+  //dtrans[i__ - 1] = abscoef[i__ - 1];
 /* L650: */
   alfatot[i__ - 1] += abscoef[i__ - 1];
     }
@@ -13785,10 +13786,10 @@ L334:
 
 
 /* TKS FILL OUTPUT VARIABLE */
-    tksabs[0] = quad[0];
-    tksabs[1] = hexa[0];
-    tksabs[2] = dtrans[0];
-    tksabs[3] = alfatot[0];
+//    tksabs[0] = quad[0];
+//    tksabs[1] = hexa[0];
+//    tksabs[2] = dtrans[0];
+//    tksabs[3] = alfatot[0];
     ret_val = alfatot[0];
 /* TKS      print*,'QUAD(1),HEXA(1),DTRANS(1)=',QUAD(1),HEXA(1),DTRANS(1) */
 L999:
@@ -14373,7 +14374,8 @@ L30:
 
     /* Local variables */
     double alfa;
-    int nnii, nsol2;
+    int nnii;
+    //int nsol2;
     double a, b;
     int i__, l, n;
     double stoke, stoki, am, pf;
@@ -14511,7 +14513,7 @@ L56:
     }
 
     *nsol = nsri + 1;
-    nsol2 = *nsol + 1;
+    //nsol2 = *nsol + 1;
 /*     RSI - CONTRIBUTION FOR POSITIVE FREQUENCY SHIFTS */
 
     s__1 = *nsol;
@@ -14562,9 +14564,9 @@ L56:
 {
     /* Initialized data */
 
-    static int ldelvis[54] = { 0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,
-      1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
-      };
+//    static int ldelvis[54] = { 0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,
+//      1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
+//      };
     static int ivis[54] = { 0,0,0,1,1,1,2,2,2,3,3,3,0,0,0,0,0,0,1,1,1,1,
       1,1,2,2,2,2,2,2,3,3,3,3,3,3,0,0,0,0,0,0,1,1,1,1,1,1,2,2,2,2,2,2 };
     static int ivips[54] = { 0,0,0,1,1,1,2,2,2,3,3,3,1,1,1,1,1,1,2,2,2,2,
@@ -14598,13 +14600,15 @@ L56:
 
     /* Local variables */
     double alfa;
-    int nnii, ivip, nsol2;
+    int nnii, ivip;
+    //int nsol2;
     double a, b;
     int i__, l, n;
     double stoke, stoki, am, pf;
     int ll, lp;
     double rm;
-    int nr, ldelel, iv, ldelvi;
+    int nr, ldelel, iv;
+    //int ldelvi;
     double stokip;
     int ivi, llp, ivp;
     extern double clebsqr_(int *, int *, int *);
@@ -14657,7 +14661,7 @@ L56:
     nr = 0;
 L555:
     ++nr;
-    ldelvi = ldelvis[nr - 1];
+    //ldelvi = ldelvis[nr - 1];
     ivi = ivis[nr - 1];
     ivip = ivips[nr - 1];
     ldelel = ldelels[nr - 1];
@@ -14720,7 +14724,7 @@ L56:
     }
 
     *nsol = nsri + 1;
-    nsol2 = *nsol + 1;
+    //nsol2 = *nsol + 1;
 
     s__1 = *nsol;
     for (i__ = 1; i__ <= s__1; ++i__) {
@@ -14823,11 +14827,6 @@ L22:
 double clebsqr_(int *l, int *lambda, int *lp)
 {
     return clebsqr_0_(0, l, lambda, lp);
-    }
-
-double threej2_(void)
-{
-    return clebsqr_0_(1, (int *)0, (int *)0, (int *)0);
     }
 
 double fctl_(int *n)
@@ -15118,7 +15117,7 @@ L57:
 L58:
   ++(*nr);
   ht1 = t[j] - x[1];
-  ht2 = t[j] - x[2];
+  //ht2 = t[j] - x[2];
   yp1 = (y[cs__1 + 1] - y[cs__1]) / (x[cs__1 + 1] - x[cs__1]) + (x[1] -
     x[2]) * (s2[1] * 2. + s2[2]) / 6.;
   if (*k < 0) {
@@ -15139,7 +15138,7 @@ L72:
   goto L61;
 L158:
   ht2 = t[j] - x[n];
-  ht1 = t[j] - x[n1];
+  //ht1 = t[j] - x[n1];
   ++(*nr);
   ypn = (y[n1 + 1] - y[n1]) / (x[n1 + 1] - x[n1]) + (x[n] - x[n1]) * (
     s2[n1] + s2[n] * 2.) / 6.;
@@ -16559,9 +16558,9 @@ double artsckd_(double p, double t, double vmrh2o,
     w_other__ = 0.0e0;
     ret_val = 0.0e0;
     rft = 0.0e0;
-    os_wv = 0.0e0;
-    of_wv = 0.0e0;
-    oc_n2 = 0.0e0;
+    //os_wv = 0.0e0;
+    //of_wv = 0.0e0;
+    //oc_n2 = 0.0e0;
 
 /*      ---INPUTS & GENERAL CONTROL PARAMETERS */
 
@@ -16683,8 +16682,6 @@ double fwv_mpmf87s93__(double wn, double *w_wv__, double *rft,
     int i__, j;
     double x[4], fscal, xf;
 
-    ret_val = 0.0e0;
-
     j = (int) ((wn - fh2ob_1.v1) / fh2ob_1.dv) + 1;
 
     for (i__ = 1; i__ <= 4; ++i__) {
@@ -16732,8 +16729,6 @@ double fwv24_(double wn, double *w_wv__, double *rft,
   extern double xlgr_(double *, double *);
   int i__, j;
   double x[4], fscal, xf, vf2, vf4, vf6;
-
-  ret_val = 0.0e0;
 
   j = (int) ((wn - fh2ob_1.v1) / fh2ob_1.dv) + 1;
   for (i__ = 1; i__ <= 4; ++i__) {
@@ -16838,8 +16833,6 @@ double swv24_(double wn, double t, double *t0, double *
 
 /*     ---UNITS(CM**3/MOL)*1.E-20 */
 
-    ret_val = 0.;
-
     j = (int) ((wn - sh2ob_1.v1) / sh2ob_1.dv) + 1;
     d__1 = s260a_1.swv260[j - 2] / sh2oa_1.swv296[j - 2];
     d__2 = (t - *t0) / (260. - *t0);
@@ -16892,8 +16885,6 @@ double swv_mpmf87s93__(double wn, double t, double *t0,
     double x[4], xf;
 
 /*     ---UNITS(CM**3/MOL)*1.E-20 */
-
-    ret_val = 0.;
 
     j = (int) ((wn - sh2ob_1.v1) / sh2ob_1.dv) + 1;
     d__1 = s260a_1.swv260[j - 2] / sh2oa_1.swv296[j - 2];
@@ -16969,7 +16960,6 @@ double conti_n2__(double wn, double t, double *t0,
 
 
 
-    ret_val = 0.;
 /* TKS  -- begin implementation of TKS */
     if (wn <= 0.) {
   ret_val = 0.;

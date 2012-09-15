@@ -358,7 +358,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[7] >= lauf[3] || lauf[15] >= lauf[11]) {
     if ((r__1 = y - yps4, fabs(r__1)) > 1e-8f) {
-      yps4 = y;
+      //yps4 = y;
       a7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
                     y2 * (y2 * (y2 * (2.35944f - y2 * .56419f) - 72.9359f) + 
                     571.687f) - 5860.68f) + 40649.2f) - 320772.f) + 1684100.f)
@@ -462,7 +462,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[6] >= lauf[2] || lauf[14] >= lauf[10]) {
     if ((r__1 = y - yps3, fabs(r__1)) > 1e-8f) {
-      yps3 = y;
+      //yps3 = y;
       a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
                     .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
                     + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
@@ -501,7 +501,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[5] >= lauf[1] || lauf[13] >= lauf[9]) {
     if ((r__1 = y - yps2, fabs(r__1)) > 1e-8f) {
-      yps2 = y;
+      //yps2 = y;
       a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
                     1.05786f);
       b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
@@ -527,7 +527,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
  L7:
   if (lauf[4] >= lauf[0] || lauf[12] >= lauf[8]) {
     if ((r__1 = y - yps1, fabs(r__1)) > 1e-8f) {
-      yps1 = y;
+      //yps1 = y;
       a1 = y * .5641896f;
       b1 = y2 + .5f;
       a2 = y2 * 4;
@@ -771,7 +771,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[9] >= lauf[4] || lauf[19] >= lauf[14]) {
     if ((r__1 = y - yps4, fabs(r__1)) > 1e-8f) {
-      yps4 = y;
+      //yps4 = y;
       a7 = y * (y2 * (y2 * 4.56662e8f - 9.86604e8f) + 1.16028e9f);
       b7 = y * (y2 * (y2 * 8.06985e8f - 9.85386e8f) - 5.60505e8f);
       c7 = y * (y2 * (y2 * 2.94262e8f + 2.47157e8f) - 6.51523e8f);
@@ -821,7 +821,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[8] >= lauf[3] || lauf[18] >= lauf[13]) {
     if ((r__1 = y - yps3, fabs(r__1)) > 1e-8f) {
-      yps3 = y;
+      //yps3 = y;
       a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
                     .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
                     + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
@@ -860,7 +860,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[7] >= lauf[2] || lauf[17] >= lauf[12]) {
     if ((r__1 = y - yps2, fabs(r__1)) > 1e-8f) {
-      yps2 = y;
+      //yps2 = y;
       a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
                 1.05786f);
       b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
@@ -885,7 +885,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[6] >= lauf[1] || lauf[16] >= lauf[11]) {
     if ((r__1 = y - yps1, fabs(r__1)) > 1e-8f) {
-      yps1 = y;
+      //yps1 = y;
       a1 = y * .5641896f;
       b1 = y2 + .5f;
       a2 = y2 * 4;
@@ -907,7 +907,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
 L8:
   if (lauf[5] >= lauf[0] || lauf[15] >= lauf[10]) {
     if ((r__1 = y - yps0, fabs(r__1)) > 1e-8f) {
-      yps0 = y;
+      //yps0 = y;
       a0 = y * .5641896f;
     }
 
@@ -1144,7 +1144,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[9] >= lauf[4] || lauf[19] >= lauf[14]) {
     if ((r__1 = (float)(y - yps4), fabs(r__1)) > 1e-8f) {
-      yps4 = (float)y;
+      //yps4 = (float)y;
       a7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
                     y2 * (y2 * (y2 * (2.35944f - y2 * .56419f) - 72.9359f) + 
                     571.687f) - 5860.68f) + 40649.2f) - 320772.f) + 1684100.f)
@@ -1248,7 +1248,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[8] >= lauf[3] || lauf[18] >= lauf[13]) {
     if ((r__1 = (float)(y - yps3), fabs(r__1)) > 1e-8f) {
-      yps3 = (float)y;
+      //yps3 = (float)y;
       a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
                     .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
                     + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
@@ -1287,7 +1287,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[7] >= lauf[2] || lauf[17] >= lauf[12]) {
     if ((r__1 = (float)(y - yps2), fabs(r__1)) > 1e-8f) {
-      yps2 = (float)y;
+      //yps2 = (float)y;
       a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
                     1.05786f);
       b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
@@ -1312,7 +1312,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
   /* -------------------------------------------------------------------- */
   if (lauf[6] >= lauf[1] || lauf[16] >= lauf[11]) {
     if ((r__1 = (float)(y - yps1), fabs(r__1)) > 1e-8f) {
-      yps1 = (float)y;
+      //yps1 = (float)y;
       a1 = y * .5641896f;
       b1 = y2 + .5f;
       a2 = y2 * 4;
@@ -1334,7 +1334,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
  L8:
   if (lauf[5] >= lauf[0] || lauf[15] >= lauf[10]) {
     if ((r__1 = (float)(y - yps0), fabs(r__1)) > 1e-8f) {
-      yps0 = (float)y;
+      //yps0 = (float)y;
       a0 = y * .5641896f;
     }
 
@@ -1436,7 +1436,7 @@ void lineshape_voigt_drayson(Vector&         ls,
       Numeric CO = 0;
       Numeric U, V, UU, VV, Y2, DX;
       int I, J, K, MAX, MIN, N, i1;
-      int TRU = 0;
+      //int TRU = 0;
 
 
       // variables needed in original c routine:
@@ -1452,9 +1452,9 @@ void lineshape_voigt_drayson(Vector&         ls,
         }
 
 
-      if (TRU) goto L104;
+      //if (TRU) goto L104;
 /***  REGION I. COMPUTE DAWSON'S FUNCTION AT MESH POINTS ***/
-      TRU = 1;
+      //TRU = 1;
       for (I=1; I<=15; I++)
         RI[I] = -I/2.;
       for (I=1; I<=25; I++)
@@ -1469,7 +1469,8 @@ void lineshape_voigt_drayson(Vector&         ls,
         D3[I] = (HN[I]*D2[I]+D1[I])/RI[3];
         D4[I] = (HN[I]*D3[I]+D2[I])/RI[4];
       }
-L104: for (K=0; K<(int) nf; K++)
+//L104:
+    for (K=0; K<(int) nf; K++)
   {
     if ((x[K]-5.) < 0.) goto L105; else goto L112;
   L105: if ((Y-1.) <= 0.) goto L110; else goto L106;

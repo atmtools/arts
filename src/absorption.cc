@@ -2555,8 +2555,10 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
     // for normalization). The species "Self" will not be included in the sum!
     Numeric broad_spec_vmr_sum = 0;
 
-    // Gamma is the line width. We first treat self and foreign width separately:
-    const Numeric gamma_self =  l_l.Sgam() * pow(theta, l_l.Nself()) * p_self;
+    // Gamma is the line width. We first initialize gamma with the self width
+    gamma =  l_l.Sgam() * pow(theta, l_l.Nself()) * p_self;
+
+    // and treat foreign width separately:
     Numeric gamma_foreign = 0;
     
     // There is no self shift parameter (or rather, we do not have it), so
@@ -2627,8 +2629,8 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
     // For the shift we simply take the total pressure, since there is no self part.
     deltaf *= p;
 
-    // For the width, add self and foreign parts:
-    gamma = gamma_self + gamma_foreign;
+    // For the width, add foreign parts:
+    gamma += gamma_foreign;
     
     // That's it, we're done.
 }

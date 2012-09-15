@@ -1,3 +1,40 @@
+2012-09-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-293
+
+	* src/methods.cc (define_md_data_raw):
+
+	Clarify docs for Create and Delete.
+
+	* src/continua.cc:
+
+	(PWR93O2AbsModel): Cleanup code.
+
+	(threej2_): Remove unused function. Would only lead to a null pointer
+	dereference anyway...
+
+	(MPM93_N2_continuum, n2n2tks_, bound32_, bound54_, spline_0_,
+	artsckd_, fwv_mpmf87s93__, fwv24_, swv24_, swv_mpmf87s93__,
+	conti_n2__):
+
+	Remove unused variables and redundant assignments.
+
+	(bound54_): Remove unused static array.
+
+	* src/lineshapes.cc:
+
+	(lineshape_voigt_kuntz6, lineshape_voigt_kuntz3,
+	lineshape_voigt_kuntz4):
+
+	Remove redundant assignments.
+
+	(lineshape_voigt_drayson): Remove code with no effect and variable TRU.
+
+	* src/absorption.cc (calc_gamma_and_deltaf_artscat4):
+
+	Slightly rearrange code. Initialize gamma with gamma_self. Remove temp
+	variable.
+
 2012-09-14  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-292

@@ -147,7 +147,12 @@ void define_md_data_raw()
         (
          String("Creates a variable of group " + *it + ".\n"
                 "\n"
-                "If the variable already exists, it'll be reinitialized.\n").c_str()
+                "If the variable already exists, it'll be reinitialized. That means\n"
+                "Index and Numeric are set to 0, container types like Vector or\n"
+                "Array are set to empty.\n"
+                "If you want to set the variable to an uninitialized state,\n"
+                "use *Delete*.\n"
+                ).c_str()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -3154,7 +3159,8 @@ void define_md_data_raw()
          "Deletes a workspace variable.\n"
          "\n"
          "The variable is marked as uninitialized and its memory freed.\n"
-         "It is not removed from the workspace though.\n"
+         "It is not removed from the workspace though, therefore you\n"
+         "don't need to/can't call Create for this variable again.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
