@@ -1,5 +1,14 @@
 2012-09-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-296
+
+	* src/mystring.h (split):
+	
+	Fix crash if the string contains several occurrences of the delimiter
+	right next to each other. Bug found by Mathias.
+
+2012-09-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-295
 
 	* src/absorption.cc: Remove debug code.

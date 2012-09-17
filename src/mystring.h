@@ -239,7 +239,7 @@ inline void my_basic_string<charT>::split (Array< my_basic_string<charT> > &aos,
   while (oldpos < (size_t)this->nelem() &&
          (pos = this->find(delim, oldpos)) != (size_t)my_basic_string<charT>::npos)
   {
-    if (pos) aos.push_back(this->substr(oldpos, pos-oldpos));
+    if (pos && pos-oldpos) aos.push_back(this->substr(oldpos, pos-oldpos));
     oldpos = pos+delim.nelem();
   }
   
