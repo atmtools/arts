@@ -2217,7 +2217,10 @@ void abs_mat_per_speciesAddOnTheFly(// WS Output:
 {
   CREATE_OUT3;
 
-  
+  // Check that correct isotopologue ratios are defined for the species
+  // we want to calculate
+  checkIsotopologueRatios(abs_species, isotopologue_ratios);
+
   // Define communication variables for the actual absorption calculation:
   
   // Output of AbsInputFromRteScalars:

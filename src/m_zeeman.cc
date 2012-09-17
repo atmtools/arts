@@ -353,6 +353,10 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         lines is increased to about 45,000. This is a time consuming method...
     */
 
+    // Check that correct isotopologue ratios are defined for the species
+    // we want to calculate
+    checkIsotopologueRatios(abs_species, isotopologue_ratios);
+
     // Begin TEST(s)
     for(Index II = 0; II<abs_species.nelem(); II++)
         if(abs_species[II][0].Zeeman()) { do_zeeman = true; break; } // If any species is Zeeman, do it.

@@ -393,7 +393,7 @@ public:
     /** Resize according to builtin isotopologues in species data. */
     void initParams(Index nparams);
 
-    /** Get parameter. */
+    /** Get single parameter value. */
     Numeric getParam(Index species, Index isotopologue, Index col) const
     {
         return mparams[species](isotopologue, col);
@@ -416,11 +416,14 @@ private:
 };
 
 
+/** Check that isotopologue ratios for the given species are correctly defined. */
+void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const SpeciesAuxData& sad);
+
 /** Fill SpeciesAuxData with default isotopologue ratios from species data. */
-void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& aud);
+void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad);
 
-
-/** Spectral line catalog data. 
+/** Spectral line catalog data.
 
     Below is a description of the ARTS catalogue format.
     The file starts with the usual XML header:

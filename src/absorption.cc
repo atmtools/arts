@@ -226,17 +226,89 @@ bool SpeciesAuxData::ReadFromStream(istream& is, Index nparams, const Verbosity&
 }
 
 
-/** Fill SpeciesAuxData with default isotopologue ratios from species data. */
-void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& aud)
+void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const SpeciesAuxData& sad)
+{
+    extern Array<SpeciesRecord> species_data;
+    static Index count = 0;
+    count ++;
+//    cout << count << endl;
+    if (species_data.nelem() != sad.getParams().nelem())
+    {
+        ostringstream os;
+        os << "Number species in SpeciesAuxData (" << sad.getParams().nelem()
+        << "does not fit builtin species data (" << species_data.nelem() << ").";
+        throw runtime_error(os.str());
+    }
+
+    for (Index iasp = 0; iasp < abs_species.nelem(); iasp++)
+    {
+        for (Index iaiso = 0; iaiso < abs_species[iasp].nelem(); iaiso++)
+        {
+            const SpeciesTag species_tag = abs_species[iasp][iaiso];
+            const Index sp = species_tag.Species();
+            const Index iso = species_tag.Isotopologue();
+
+            Index first_iso = iso;
+            Index last_iso = iso;
+
+            // Special case: If isotopologue index is equal to
+            // the number isotologues in this species, it acts as
+            // a wildcard to select all isotopologues
+            if (iso == species_data[sp].Isotopologue().nelem())
+            {
+                first_iso = 0;
+                last_iso = species_data[sp].Isotopologue().nelem()-1;
+            }
+
+            for (Index this_iso = first_iso; this_iso <= last_iso; this_iso++)
+            {
+                // If this tag is not a continuum, the isotopologue ratio shall not nan or < 0.
+                if (!species_data[sp].Isotopologue()[this_iso].isContinuum())
+                {
+                    if (isnan(sad.getParam(sp, this_iso, 0))
+                        || sad.getParam(sp, this_iso, 0) < 0.)
+                    {
+                        ostringstream os;
+                        os << "Invalid isotopologue ratio\n"
+                        << "Tag:          " << species_tag.Name() << "\n"
+                        << "Isotopologue: "
+                        << species_data[sp].Name() << "-"
+                        << species_data[sp].Isotopologue()[this_iso].Name()
+                        << "\n"
+                        << "Ratio:        " << sad.getParam(sp, this_iso, 0);
+                        throw runtime_error(os.str());
+                    }
+                }
+                // For continuum, the ratio shall be nan
+                else if (!isnan(sad.getParam(sp, this_iso, 0)))
+                {
+                    ostringstream os;
+                    os << "Invalid isotopologue ratio\n"
+                    << "Tag:       " << species_tag.Name() << "\n"
+                    << "Continuum: "
+                    << species_data[sp].Name() << "-"
+                    << species_data[sp].Isotopologue()[this_iso].Name()
+                    << "\n"
+                    << "Ratio:     " << sad.getParam(sp, this_iso, 0);
+                    throw runtime_error(os.str());
+                }
+            }
+        }
+    }
+}
+
+
+void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad)
 {
     extern Array<SpeciesRecord> species_data;
 
-    aud.initParams(1);
+    sad.initParams(1);
 
     for (Index isp = 0; isp < species_data.nelem(); isp++)
         for (Index iiso = 0; iiso < species_data[isp].Isotopologue().nelem(); iiso++)
         {
-            aud.setParam(isp, iiso, 0, species_data[isp].Isotopologue()[iiso].Abundance());
+            sad.setParam(isp, iiso, 0, species_data[isp].Isotopologue()[iiso].Abundance());
         }
 }
 

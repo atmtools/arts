@@ -85,6 +85,10 @@ void abs_lookupCreate(// WS Output:
   // end.
   int omp_nested_original = arts_omp_get_nested();
 
+  // Check that correct isotopologue ratios are defined for the species
+  // we want to calculate
+  checkIsotopologueRatios(abs_species, isotopologue_ratios);
+
   // We will be calling an absorption agenda one species at a
   // time. This is better than doing all simultaneously, because is
   // saves memory and allows for consistent treatment of nonlinear
