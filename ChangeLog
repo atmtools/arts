@@ -1,5 +1,11 @@
 2012-09-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-295
+
+	* src/absorption.cc: Remove debug code.
+
+2012-09-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-294
 
 	* src/absorption.{cc,h} (checkIsotopologueRatios):

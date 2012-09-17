@@ -230,9 +230,7 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
                              const SpeciesAuxData& sad)
 {
     extern Array<SpeciesRecord> species_data;
-    static Index count = 0;
-    count ++;
-//    cout << count << endl;
+
     if (species_data.nelem() != sad.getParams().nelem())
     {
         ostringstream os;
