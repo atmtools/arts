@@ -1,0 +1,84 @@
+\chapter{Refractive index}
+ \label{sec:rindex}
+
+\starthistory
+  120918 & Started (Patrick Eriksson).\\
+\stophistory
+
+
+Refractive index\index{refractive index} \dots
+
+\FIXME{Write a proper introduction. Comment on that this is not the complex
+refractive index, also covering absorption.} 
+
+
+\section{Monochromatic and group refractive index}
+%
+The corresponding workspace variables are \wsvindex{refr\_index} and
+\wsvindex{refr\_index\_group}. If they differ, there is
+dispersion\index{dispersion}. The monochromatic refractive index is below
+denoted as \Rfr, while the group one is written as $\Rfr_{g}$.
+
+\FIXME{Describe where each variable is used. Expand \dots} 
+
+
+
+\section{Gases}
+%
+The following workspace methods are at hand for calculating the summed
+refractive index of atmospheric gases: \wsmindex{refr\_indexThayer} and
+\wsmindex{refr\_indexIR}. \FIXME{Expand \dots} 
+
+
+\section{Free electrons}
+%
+Free electrons, as exist in the ionosphere, will affect propagating radio waves
+in several ways. Free electrons will have an impact of the propagation speed of
+radio waves, hence a signal can be delayed and refracted. This section assumes
+that the magnetic field is zero, for Faraday rotation see Section \FIXME{add
+  reference when this section exists}.
+
+An electromagnetic wave passing through a plasma (such as the ionosphere) will
+drive electrons to oscillate and re-radiating the wave frequency. This is the
+basic reason of the contribution of electrons to the refractive index. 
+An important variable is the plasma frequency, $\Frq_{p}$:
+\begin{equation}
+  \omega_{p}=\sqrt{\frac{Ne^{2}}{\epsilon_{0}m}},
+\end{equation}
+where \(\omega_{p}=2\pi\Frq_{p}\), \(N\) is the electron density, \(e\) is the
+charge of an electron, \(\epsilon_{0}\) is the permittivity of free space, and
+\(m\) is the mass of an electron. For example, for the Earth's ionosphere
+\(\Frq_{p}\) \(\approx\) 9\,MHz.
+Waves having a frequency below $\Frq_{p}$ are reflected by a plasma.
+
+Neglecting influences of any magnetic field, the refractive index of a plasma
+is \citep[e.g.][]{rybicki:radia:79}
+\begin{equation}
+\label{eq:n:electrons}
+\Rfr =\sqrt{1-\frac{\omega_{p}^{2}}{\omega^{2}}}=\sqrt{1-\frac{Ne^{2}}
+{\epsilon_{0}m\omega^{2}}}.
+\end{equation}
+where $\omega$ is the angular frequency ($\omega=2\pi\Frq$). This refractive
+index is less than unity (phase velocity is greater than the speed of light),
+but is approaching unity with increasing frequency. The group velocity is
+\citep{rybicki:radia:79}
+\begin{equation}
+\aSpd{g}=\speedoflight\sqrt{1-\frac{Ne^{2}}
+{\epsilon_{0}m\omega^{2}}}
+\end{equation}
+which is clearly less than the speed of light.
+The energy (or information) of a signal propagating through the ionosphere
+travels with the group velocity, and the group speed refractive
+index (\(\Rfr_{g}=\frac{\speedoflight}{\aSpd{g}}\)) is
+\begin{equation}
+\label{eq:ng:electrons}
+  \Rfr_{g}=\left(
+    1-\frac{Ne^{2}}
+    {\epsilon_{0}m\omega^{2}}
+  \right)^{-1/2}.
+\end{equation}
+Equations~\ref{eq:n:electrons} and \ref{eq:ng:electrons} are implemented in
+\wsmindex{refr\_indexFreeElectrons}. The method demans that the radative
+transfer frequency is at least twice the plasma frequency.
+
+

@@ -7,9 +7,10 @@
  \stophistory
 
 
+
 \section{Pure transmission calculations}
 %===================
-\label{sec:fm_defs:transmission}
+\label{sec:transmission}
 
 If only the attenuation of a signal is of concern (i.e.\ atmospheric and
 surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
@@ -25,7 +26,93 @@ Calculations of pure transmission type are performed by the method denoted as
 
 
 
+
+\section{Radio calculations}
+%===================
+\label{sec:radiolinks}
+
+
+\subsection{Determining the propagation path}
+%===================
+\label{sec:radiolinks:ppath}
+
+Use \wsmindex{ppathFromRtePos2}.
+
+
+\subsection{Free space loss}
+%===================
+\label{sec:radiolinks:ppath}
+The radiance law is not applicable for the signal from a point source.
+According to \citet{ippolito:satco:08}, the signal intensity at a distance
+\(s\), in free space, from a transmitting antenna, with a gain \(g_{t}\) is
+defined as
+\begin{equation}
+ I(s)=\frac{p_{t}g_{t}}{4\pi s^{2}},
+\end{equation}
+where \(p_{t}\) is the transmitted power. The power \(p_{r}\) received by a
+receiving antenna with an effective aperture \(A_{e}\) and gain \(g_{r}\)
+located a distance \(s\) from the transmitting antenna is
+\begin{equation}
+\label{eq:fsl}
+p_{r}(s)=\frac{p_{t}g_{t}}{4\pi s^{2}}A_{e}=\frac{p_{t}g_{t}}{4\pi s^{2}}
+\frac{g_{r}\Wvl^{2}}{4\pi}=
+p_{t}g_{t}g_{r}\left(\frac{\Wvl}{4\pi s} \right)^{2},
+\end{equation}
+where the last term  
+to the right (or actually the reciprocal) is denoted as the
+free space path loss (\(F\)):
+\begin{equation}
+F\equiv\frac{p_{t}g_{t}g_{r}}{p_{r}}=\left(\frac{4\pi s}{\Wvl}\right)^{2}.
+\end{equation}
+Taking the derivative of \(\Mpi(s)\) gives
+\begin{equation}
+\label{eq:fsplarts}
+ \frac{\DiffD\Mpi(s)}{\DiffD s}=-\frac{2}{s}I(s).
+\end{equation}
+This equals the Beer-Lambert with an absorbance of $2/s$. With other words, the
+free space loss can be treated as an ordinary extinction term. However, it
+should be noted that this ``extinction coefficient'' is non-linear, it varies
+with the distance from the transmitting antenna. 
+
+
+\subsection{Extra path delay}
+%
+An electromagnetic wave that travels a path of given optical path 
+length arrives with the same phase shift as if it had travelled a 
+path of that physical length in a vacuum. 
+In the absence of an atmosphere a signal
+sent from a transmitter in the direction towards a receiver would
+follow a straight line, i.e. the shortest geometric distance
+between the two instruments. Moreover, the signal would propagate
+with the speed of light.
+The geometric distance \(D\) between the transmitter and receiver is
+\begin{equation}
+D\equiv\int_{straight\,line}1\DiffD s
+\end{equation}
+In the presence of an atmosphere, two changes follow,
+the speed of the signal is retarded and the ray direction gets 
+bent. 
+The apparent bent ray-path length is
+\begin{equation}
+L\equiv\int_{bent\,ray-path}\Rfr(s)\DiffD s.
+\end{equation}
+One can also define the geometric bent ray-path length as
+\begin{equation}
+G\equiv\int_{bent\,ray-path}1\DiffD s.
+\end{equation}
+The total delay expressed in units of length is 
+\begin{equation}
+d \equiv L-D \ge 0,
+\end{equation}
+which can also be expressed as
+\begin{equation} 
+d=d_{a}+d_{g}=(L-G)+(G-D)
+\end{equation}
+where \(d_{a}\) is the along-path delay
+and \(d_{g}\) is the geometric delay.
+
+
 %%% Local Variables: 
 %%% mode: latex
-%%% TeX-master: "main"
+%%% TeX-master: "arts_user"
 %%% End: 

@@ -1,3 +1,28 @@
+2012-09-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-298
+
+	* src/methods.cc: Updated and corrected the doc for ppathFromRtePos2.
+
+	* doc/uguide/transmission.tex: Added some sections, to be filled ...
+
+	* doc/uguide/ppath.tex: ppath_agenda is now mentioned. Added a
+	comment about radio links, referrring to a special section.
+
+	* doc/uguide/references.bib: Added rybicki:radia:79 and
+	ippolito:satco:08.
+
+	* doc/uguide/arts_user.tex: Changed order of the chapters. Hard to
+	find a clear logically order, but a try.
+
+	* doc/uguide/common.tex: FIXMEs now written in gray, to visually
+	end up a bit in the background.
+
+	* doc/uguide/refr_index.tex: started this chapter.
+
+	(If anyone plans to add a chapter, do it now so section references
+	from ESA study DDD do not change.)
+
 2012-09-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-297
@@ -9,7 +34,7 @@
 	* arts-2-1-296
 
 	* src/mystring.h (split):
-	
+
 	Fix crash if the string contains several occurrences of the delimiter
 	right next to each other. Bug found by Mathias.
 

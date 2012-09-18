@@ -25,14 +25,20 @@ Chapter~\ref{T-sec:ppaththeory} of \theory.
 %===================
 \label{sec:ppath:usage}
 
-\FIXME{Add comments about \builtindoc{ppath\_agenda}.}
+The overall calculation approach for finding the propagation path is specified
+by \wsaindex{ppath\_agenda}. The standard choice for this agenda is
+\wsmindex{ppathStepByStep}, applying \builtindoc{ppath\_step\_agenda}
+repeatedly in order to trace the path backwards, starting at the sensor. This
+set-up is assumed throughout this chapter. A slighltly different selection of
+workspace methods is required for radio link calculations, see further
+Section~\ref{sec:radiolinks:ppath}.
 
-The ray tracing algorithm to be applied for the calculation of propagation path
-is selected by specifying \wsaindex{ppath\_step\_agenda} (see
-further Section~\ref{sec:fm_defs:ppaths}). The fastest calculations are
+The exact ray tracing algorithm to be applied for the calculation of
+propagation path is selected through \wsaindex{ppath\_step\_agenda}
+(see further Section~\ref{sec:fm_defs:ppaths}). The fastest calculations are
 obtained if refraction is neglected, denoted as geometrical calcutions. The
 workspace method to apply if this assumption can be made is
-\wsmindex{ppath\_stepGeometric}. 
+\wsmindex{ppath\_stepGeometric}.
 
 The main consideration for using \builtindoc{ppath\_stepGeometric} is to select
 a value for \wsvindex{ppath\_lmax}. This variable controls to some extent the
