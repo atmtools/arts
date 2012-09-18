@@ -16,9 +16,8 @@ BUILDING ARTS
 
 Build Prerequisites:
 
-gcc (or icc)
-g++ (or icc)
-cmake (>=2.6.3)
+gcc/g++ (or llvm)
+cmake (>=2.8.3)
 zlib
 netcdf (optional)
 
