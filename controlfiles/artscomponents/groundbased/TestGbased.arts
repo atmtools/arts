@@ -96,7 +96,7 @@ AbsInputFromAtmFields
 SpeciesSet( abs_nls, [] )
 VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
-abs_lookupCreate
+abs_lookupCalc
 
 AgendaSet( abs_mat_per_species_agenda ){
   Ignore(rte_mag)

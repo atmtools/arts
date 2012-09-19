@@ -80,7 +80,7 @@ Delete( arrayofmatrix_1 )
 # Setup lookup table
 # ---
 abs_lookupSetupBatch
-abs_lookupCreate
+abs_lookupCalc
 
 # Set abs_mat_per_species_agenda to use lookup table
 # ---

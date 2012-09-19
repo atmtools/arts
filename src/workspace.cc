@@ -122,7 +122,7 @@ void Workspace::define_wsv_data()
         "absorption comes from the lookup table *abs_lookup*. However, it is\n"
         "useful for testing the methods that actually calculate line-by-line\n"
         "absorption, which have this variable as output. These methods are\n"
-        "called internally by the method *abs_lookupCreate*, which generates\n"
+        "called internally by the method *abs_lookupCalc*, which generates\n"
         "the lookup table.\n"
         "\n"
         "Dimensions: [f_grid, abs_p]\n"
@@ -400,7 +400,7 @@ void Workspace::define_wsv_data()
           "species, or some other species that uses *abs_h2o*, that is, for which\n"
           "the absorption coefficient depends directly on water vapor.\n"
           "\n"
-          "See user guide and online documentation of *abs_pts* and *abs_lookupCreate*\n"
+          "See user guide and online documentation of *abs_pts* and *abs_lookupCalc*\n"
           "for more details and usage examples.\n"
           ), 
          GROUP( "ArrayOfArrayOfSpeciesTag" )));

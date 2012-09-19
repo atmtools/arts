@@ -913,7 +913,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "abs_lookupCreate" ),
+      ( NAME( "abs_lookupCalc" ),
         DESCRIPTION
         (
          "Creates a gas absorption lookup table.\n"
@@ -990,7 +990,7 @@ void define_md_data_raw()
       ( NAME( "abs_lookupSetup" ),
         DESCRIPTION
         (
-         "Set up input parameters for abs_lookupCreate.\n"
+         "Set up input parameters for abs_lookupCalc.\n"
          "\n"
          "More information can be found in the documentation for method\n"
          "*abs_lookupSetupBatch*\n"
@@ -1049,7 +1049,7 @@ void define_md_data_raw()
       ( NAME( "abs_lookupSetupBatch" ),
         DESCRIPTION
         (
-         "Set up input parameters for abs_lookupCreate for batch calculations.\n"
+         "Set up input parameters for abs_lookupCalc for batch calculations.\n"
          "\n"
          "This method performs a similar task as *abs_lookupSetup*, with the\n"
          "difference, that the lookup table setup is not for a single\n"

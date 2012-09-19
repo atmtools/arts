@@ -87,7 +87,7 @@ WriteXML( output_file_format, abs_field_doppler )
 
 # Now with Doppler and lookup table!
 abs_lookupSetup
-abs_lookupCreate
+abs_lookupCalc
 AgendaSet( abs_mat_per_species_agenda ){
   Ignore(rte_mag)
   Ignore(ppath_los)

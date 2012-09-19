@@ -84,7 +84,7 @@ public:
                                     const String& name,
                                     const Verbosity& verbosity);
 
-  friend void abs_lookupCreate(// WS Output:
+  friend void abs_lookupCalc(// WS Output:
                       GasAbsLookup& abs_lookup,
                       Index& abs_lookup_is_adapted,
                       // WS Input:

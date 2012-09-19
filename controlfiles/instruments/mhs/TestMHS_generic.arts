@@ -81,7 +81,7 @@ abs_lookupSetupBatch
 
 # Create the lookup table
 # ---
-abs_lookupCreate
+abs_lookupCalc
 
 # Test (and print) lookup table accuracy
 # ---

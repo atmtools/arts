@@ -51,7 +51,7 @@ MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 WriteXML( output_file_format, z_surface )
 
 abs_lookupSetup
-abs_lookupCreate
+abs_lookupCalc
 WriteXML( output_file_format, abs_lookup )
 
 

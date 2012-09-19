@@ -57,26 +57,26 @@ void abs_lookupInit(GasAbsLookup& /* x */, const Verbosity& verbosity)
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupCreate(// WS Output:
-                      GasAbsLookup& abs_lookup,
-                      Index& abs_lookup_is_adapted,
-                      // WS Input:
-                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                      const ArrayOfLineshapeSpec&     abs_lineshape,
-                      const ArrayOfArrayOfSpeciesTag& abs_nls,
-                      const Vector&                   f_grid,
-                      const Vector&                   abs_p,
-                      const Matrix&                   abs_vmrs,
-                      const Vector&                   abs_t,
-                      const Vector&                   abs_t_pert,
-                      const Vector&                   abs_nls_pert, 
-                      const Vector&                   abs_n2,            
-                      const ArrayOfString&            abs_cont_names,    
-                      const ArrayOfString&            abs_cont_models,   
-                      const ArrayOfVector&            abs_cont_parameters,
-                      const SpeciesAuxData&           isotopologue_ratios,
-                      const Verbosity&                verbosity)
+void abs_lookupCalc(// WS Output:
+                    GasAbsLookup& abs_lookup,
+                    Index& abs_lookup_is_adapted,
+                    // WS Input:
+                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                    const ArrayOfLineshapeSpec&     abs_lineshape,
+                    const ArrayOfArrayOfSpeciesTag& abs_nls,
+                    const Vector&                   f_grid,
+                    const Vector&                   abs_p,
+                    const Matrix&                   abs_vmrs,
+                    const Vector&                   abs_t,
+                    const Vector&                   abs_t_pert,
+                    const Vector&                   abs_nls_pert,
+                    const Vector&                   abs_n2,
+                    const ArrayOfString&            abs_cont_names,
+                    const ArrayOfString&            abs_cont_models,
+                    const ArrayOfVector&            abs_cont_parameters,
+                    const SpeciesAuxData&           isotopologue_ratios,
+                    const Verbosity&                verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;

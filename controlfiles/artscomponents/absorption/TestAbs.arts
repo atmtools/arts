@@ -78,7 +78,7 @@ VectorSet( abs_t_pert, [] )
 VectorSet( abs_nls_pert, [] )
 #VectorNLogSpace( abs_nls_pert, 5, 0.01, 10 )
 
-abs_lookupCreate
+abs_lookupCalc
 
 # Optionally write these to files:
 #WriteXML( output_file_format, abs_t )

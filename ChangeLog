@@ -1,5 +1,33 @@
 2012-09-19  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-300
+
+	* I apologize beforehand for breaking controlfiles.
+
+	* abs_lookupCreate is not called abs_lookupCalc. The original name
+	wasn't that great because it is not actually creating the variable.
+	Calc is more in line with all the other ...Calc functions we already
+	have.
+
+	* controlfiles/artscomponents/absorption/TestAbs.arts,
+	controlfiles/artscomponents/absorption/TestAbsDoppler.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/groundbased/TestGbased.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts,
+	controlfiles/artscomponents/wfuns/TestWfuns.arts,
+	controlfiles/instruments/amsu/TestAMSU_generic.arts,
+	controlfiles/instruments/avhrr/TestAVHRR.arts,
+	controlfiles/instruments/hirs/TestHIRS.arts,
+	controlfiles/instruments/mhs/TestMHS_generic.arts,
+	controlfiles/instruments/odinsmr/TestOdinSMR.arts,
+	controlfiles/instruments/odinsmr/TestOdinSMR_1D.arts,
+	doc/uguide/absorption.tex, src/gas_abs_lookup.h, src/m_abs.cc,
+	src/m_abs_lookup.cc, src/methods.cc, src/workspace.cc:
+
+	abs_lookupCreate -> abs_lookupCalc.
+
+2012-09-19  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-299
 
 	* This commit fixes the behaviour of the TYPECreate methods. After

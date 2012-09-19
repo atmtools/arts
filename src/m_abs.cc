@@ -1964,7 +1964,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                          << "absorption routines directly, or on the fly, you could\n"
                          << "use for example the method *abs_h2oSet*.\n"
                          << "If you are generating an absorption lookup table with\n"
-                         << "abs_lookupCreate, it should be enough to add a H2O species\n"
+                         << "abs_lookupCalc, it should be enough to add a H2O species\n"
                          << "to your calculation to fix this problem.";
                       throw runtime_error(os.str());
                     }

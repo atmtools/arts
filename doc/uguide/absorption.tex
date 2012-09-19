@@ -291,7 +291,7 @@ Zeeman tagged species due to the dependency on magnetic field strength and direc
 \arabic{rownum}b &
 Calculate absorption lookup table. &
 Variable: \wsvindex{abs\_lookup}. \newline
-Methods: \wsvindex{abs\_lookupCreate}. Alternative: Load lookup table
+Methods: \wsvindex{abs\_lookupCalc}. Alternative: Load lookup table
 from file with \wsmindex{ReadXML}, it then has to be adapted to the
 current calculation (and checked) with \wsmindex{abs\_lookupAdapt}. \\ 
 %---------------------------------------------------------------------
@@ -589,8 +589,8 @@ The gas absorption lookup table is implemented by the class
 
 The lookup table itself is stored in the workspace variable
 \wsvindex{abs\_lookup}.  It can be generated with the method
-\wsmindex{abs\_lookupCreate}.  ARTS also includes some methods that
-automatically set input parameters for \builtindoc{abs\_lookupCreate},
+\wsmindex{abs\_lookupCalc}.  ARTS also includes some methods that
+automatically set input parameters for \builtindoc{abs\_lookupCalc},
 such as grid ranges and reference profiles of pressure, temperature,
 and trace gas concentrations.  These methods are
 \wsmindex{abs\_lookupSetup}, \wsmindex{abs\_lookupSetupBatch}, and

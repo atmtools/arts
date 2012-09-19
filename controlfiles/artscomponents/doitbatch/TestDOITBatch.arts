@@ -118,7 +118,7 @@ SpeciesSet( abs_species, [ "H2O-PWR98",
 
   #abs_lookupSetupBatch   	
 
-  #abs_lookupCreate
+  #abs_lookupCalc
 
   #WriteXML("ascii", abs_lookup, "abs_lookupBatch.xml")
 
