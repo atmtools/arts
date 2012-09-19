@@ -1,10 +1,16 @@
 2012-09-19  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-301
+
+	* ChangeLog: Grr... fix typo 'is not called' -> 'is now called'.
+
+2012-09-19  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-300
 
 	* I apologize beforehand for breaking controlfiles.
 
-	* abs_lookupCreate is not called abs_lookupCalc. The original name
+	* abs_lookupCreate is now called abs_lookupCalc. The original name
 	wasn't that great because it is not actually creating the variable.
 	Calc is more in line with all the other ...Calc functions we already
 	have.
