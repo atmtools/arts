@@ -114,24 +114,29 @@ public:
               moutput(),
               minput(),
               msetvalue(),
-              mtasks() { /* Nothing to do here. */ }
+              mtasks(),
+              minternal(false)
+  { /* Nothing to do here. */ }
 
   MRecord(const MRecord& x) : mid(x.mid),
                               moutput(x.moutput),
                               minput(x.minput),
                               msetvalue(x.msetvalue),
-                              mtasks(x.mtasks)
+                              mtasks(x.mtasks),
+                              minternal(x.minternal)
   { /* Nothing to do here */ }
 
   MRecord(const Index         id,
           const ArrayOfIndex& output,
           const ArrayOfIndex& input,
           const TokVal&       setvalue,
-          const Agenda&       tasks) : mid(id),
-                                       moutput(output),
-                                       minput(input),
-                                       msetvalue(setvalue),
-                                       mtasks(tasks)
+          const Agenda&       tasks,
+                bool          internal = false) : mid(id),
+                                          moutput(output),
+                                          minput(input),
+                                          msetvalue(setvalue),
+                                          mtasks(tasks),
+                                          minternal(internal)
   { /* Nothing to do here */ }
 
   Index               Id()       const { return mid;       }
@@ -139,6 +144,16 @@ public:
   const ArrayOfIndex& In()       const { return minput;    }
   const TokVal&       SetValue() const { return msetvalue; }
   const Agenda&       Tasks()    const { return mtasks;    }
+
+  //! Indicates the origin of this method.
+  /*!
+    Returns true if this method originates from a controlfile and false
+    if it was added by the engine.
+    E.g., for Create and Delete that are added for variables that are
+    added internally to handle literals in the controlfile this flag
+    will be set to true.
+   */
+  bool isInternal() const { return minternal; }
 
   //! Assignment operator for MRecord.
   /*! 
@@ -220,6 +235,8 @@ private:
   /** An agenda, which can be given in the controlfile instead of
       keywords. */
   Agenda mtasks;
+  /** Flag if this method is called internally by the engine */
+  bool minternal;
 };
 
 //! Resize the method list.

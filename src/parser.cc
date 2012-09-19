@@ -305,6 +305,25 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
 
               tasklist_insert_set_delete(auto_vars, auto_vars_values,
                                          1, tasklist);
+
+              // If Create was called on a variable that already existed,
+              // insert a Delete call to set it back to an uninitialized state
+              extern const Array<MdRecord> md_data;
+              const String& mname = md_data[id].Name();
+
+              if (mname.length() > 6 &&
+                  mname.find ("Create") == mname.length() - 6 &&
+                  get_wsv_group_id(mname.substr(0, mname.length() - 6)) != -1)
+                {
+                  extern const map<String, Index> MdMap;
+                  extern const ArrayOfString wsv_group_names;
+                  String method_name = "Delete_sg_" + wsv_group_names[Workspace::wsv_data[output[0]].Group()];
+                  map<String, Index>::const_iterator mdit;
+                  mdit = MdMap.find(method_name);
+                  assert ( mdit != MdMap.end() );
+
+                  tasklist.push_back(MRecord(mdit->second,ArrayOfIndex(),output,TokVal(),Agenda(),true));
+                }
             }
 
           {
@@ -1428,7 +1447,7 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
       tasklist.push_back(MRecord(init_mdid,
                                  auto_output_var, auto_input_var,
                                  auto_keyword_value,
-                                 auto_tasks));
+                                 auto_tasks, true));
     }
 }
 

@@ -226,21 +226,16 @@ void Agenda::execute(Workspace& ws) const
       try
         {
           {
-            if ((mdd.SetMethod() && mrr.Out().nelem()
-                 && Workspace::wsv_data[mrr.Out()[0]].Name().substr(0, 5) == "auto_")
-                || (mdd.Name() == "Delete" && mrr.In().nelem()
-                    && Workspace::wsv_data[mrr.In()[0]].Name().substr(0, 5) == "auto_"))
+//            if ((mdd.SetMethod() && mrr.Out().nelem()
+//                 && Workspace::wsv_data[mrr.Out()[0]].Name().substr(0, 5) == "auto_")
+//                || (mdd.Name() == "Delete" && mrr.In().nelem()
+//                    && Workspace::wsv_data[mrr.In()[0]].Name().substr(0, 5) == "auto_"))
+              if (mrr.isInternal())
               {
-//                ostringstream os;  // disabled for performance reasons
-//                os << "- " << mdd.Name() << "\n";
-//                out3 << os.str();
                 out3 << "- " << mdd.Name() << "\n";
               }
             else
               {
-//                ostringstream os;  // disabled for performance reasons
-//                os << "- " << mdd.Name() << "\n";
-//                out1 << os.str();
                 out1 << "- " << mdd.Name() << "\n";
               }
           }
