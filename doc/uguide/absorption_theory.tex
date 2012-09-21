@@ -1073,6 +1073,29 @@ ARTSCAT-3 value. To make sure that the broadening species account for
 a reasonable part of the atmosphere, we throw a runtime error if their
 VMR sum deviates from 1 by more than 10\%.
 
+Two other caveats should be mentioned here. Caveat 1: The species list for the
+absorption calculation may contain multiple tags groups for the same
+molecular species, for example corresponding to different isotopes or
+even individual spectral lines. For the broadening and shift
+calculation we always use the VMR belonging to the first tag
+group. For example, if the species list is
+[``H2O-161'',``H2O-181'',``O3-666'',``O3-668''], then the VMRs of
+``H2O-161'' and ``O3-666'' will be the ones that are used for the broadening and
+shift calculations.
+
+Caveat 2: If the species to which the line belongs is equal to one of
+the broadening species, then the VMR of the species itself will be
+used for broadening, even if it is not first in the list. With the
+same absorption species as above, if the line that we are working on
+belongs to ``O3-668'', then the VMRs of ``H2O-161'' and ``O3-668''
+will be used for the calculation, and the VMR of ``O3-666'' will be
+ignored. 
+
+Both these caveats mean that the broadening calculation may
+give unexpected results in the presence of drastically different VMRs
+that belong to the same molecular species, because in that case it makes a
+difference which of the VMR is selected for broadening.
+
 
 \subsection{Species-specific data in ARTS}
 

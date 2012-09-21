@@ -1,3 +1,11 @@
+2012-09-21  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-307
+
+	* doc/uguide/absorption_theory.tex (Pressure broadening and shift
+	calculation): Added caveats on VMR selection after discussion with
+	Jana.
+
 2012-09-21  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-306
@@ -5,13 +13,13 @@
 	* src/m_zeeman.cc: Added another way to calculate frequency
 	change. Will try to make it more useful soon. Fixed
 	abs_species treatment error.
-	
+
 	* Updated Zeeman test file: to catch abs_species treatment
 	error if it ever reoccurs.
-	
+
 	* src/messages.h: Will now flush output independent of user
 	interface (I think).
-	
+
 	* src/m_abs_lookup.cc: Removed a FIXME, since I think the
 	original implementation works.
 
