@@ -1,10 +1,25 @@
-\chapter{Transmission and radio link calculations}
+\chapter{Transmission calculations}
  \label{sec:trans}
 
 
- \starthistory
+\starthistory
  120831 & Started (Patrick Eriksson).\\
- \stophistory
+\stophistory
+
+The term ``transmission calculations'' refer here to situations when
+atmospheric and surface emission can be neglected. These calculations can be
+divided into two main types. The first one is when just the transmission of the
+atmosphere is diagnosed (Sec.~\ref{sec:transmission}). The observation geometry
+is here given exactly as for emission simulations, by a position and a
+line-of-sight.
+
+The second main type is radio link budgets (Sec.~\ref{sec:radiolinks}). In this
+case, a core problem is to determine the propagation path between transmitter
+and receiver. That is, the line-of-sight of the sensor (receiver) is not set by
+the user, it is determined by the transmitter position. A characterisation of a
+radio link normally involves several attenuation terms not encountered for
+passive measurements, such as free space loss and defocusing.
+
 
 
 
@@ -12,17 +27,24 @@
 %===================
 \label{sec:transmission}
 
-If only the attenuation of a signal is of concern (i.e.\ atmospheric and
-surface emissions are neglected), Equation~\ref{eq:fm_defs:rte_step2} can be
-applied for all Stokes elements. The initiation of the Stokes vector by the
-radiative background must also be adopted. The standard choice for
-\wsaindex{iy\_space\_agenda} should here be \wsmindex{MatrixUnitIntensity}
-(instead of \builtindoc{MatrixCBR}). Otherwise the calculations are performed
-exactly as for cases with emission (\builtindoc{blackbody\_radiation\_agenda}
-can be left undefined).
+This section discusses the \wsmindex{iyTransmissionStandard} workspace method
+and is relevant if you want to calculate the transmission through the
+atmosphere for a given position and line-of-sight. The set-up is largely the
+same as for simulations involving emission, such as that the observation
+geometry is defined by \wsvindex{sensor\_pos} and \wsvindex{sensor\_los} (or
+\wsvindex{rte\_pos} and \wsvindex{rte\_los} if \builtindoc{iyCalc} is used).
+The first main difference is that \wsaindex{iy\_transmitter\_agenda} replaces
+\wsaindex{iy\_space\_agenda} and \wsaindex{iy\_surface\_agenda}. The second
+main difference is that handling of cloud scattering is built-in and the need
+to define \wsaindex{iy\_cloudbox\_agenda} vanishes.
 
-Calculations of pure transmission type are performed by the method denoted as
-\wsmindex{iyTransmissionStandard}.
+\dots 
+
+\wsmindex{MatrixUnitIntensity} should be the standard choice for
+\wsaindex{iy\_transmitter\_agenda}.
+
+\builtindoc{blackbody\_radiation\_agenda} can be left undefined).
+
 
 
 
