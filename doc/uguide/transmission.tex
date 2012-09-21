@@ -3,7 +3,7 @@
 
 
 \starthistory
- 120921 & A first, incomplete, version (Patrick Eriksson).\\
+ 120921 & A first, but incomplete, version (Patrick Eriksson).\\
 \stophistory
 
 The term ``transmission calculations'' refer here to situations when
@@ -66,11 +66,25 @@ The radiative transfer expression applied is
 \end{equation}
 where the extinction matrix is determined in the same manner as for emission
 cases (Sec.~\ref{sec:fm_defs:rad_bkgr}). In situations where the matrix
-\ExtMat\ is diagonal, the scalar form is used (Eq.~\ref{eq:fm_defs:rte_step2}).
+\ExtMat\ is diagonal, the scalar form shown in Eq.~\ref{eq:fm_defs:rte_step2})
+is used.
 
-\FIXME{Comment on scattering aspects.}
+The method determines automatically if any part of the propagation path is
+inside the cloud-box (if active). If this is the case, particle extinction is
+included in \ExtMat, following the same path step averaging as applied for
+pure absorbing species. For this method, scattering is purely a loss mechanism,
+there is no gain by scattering into the line-of-sight
 
+A related concern is the treatment of the surface. In standard usage of the
+method, there is no signal reflected by the surface. The radiative transfer
+calculations are started at the surface.
 
+See the built-in documentation (\builtindoc{iyTransmissionStandard}) for a full
+list of possible auxiliary quantities. These data include quantities that make
+it possible to determine the (vector) transmission for different parts of the
+propagation path. For example, the state of \builtindoc{iy} at each point of
+the propagation path can be extracted, and also the transmission matrix
+(Eq.~\ref{eq:rte:transmat}) path step is accessible.
 
 
 

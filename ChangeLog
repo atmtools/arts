@@ -1,5 +1,14 @@
 2012-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-304
+
+	* doc/uguide/transmission.tex: Completed a version of the
+	transmission section.
+
+	* doc/uguide/rte.tex: Adeded missing labels for some equations.
+
+2012-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-303
 
 	* doc/uguide/transmission.tex: More work transmission section.
