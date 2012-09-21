@@ -4,6 +4,8 @@
 \graphicspath{{Figs/abs_theory/}}
 
 \starthistory
+  2012-09-21 & Added pressure broadening and shift documentation,
+  Stefan Buehler.\\
   2011-07-05 & Revised for ARTS2 by Stefan Buehler.\\
   2001-11-21 & Continuum absorption part written, Thomas Kuhn.\\
   2001-10-05 & Line absorption part written, Nikolay Koulev.\\
@@ -834,6 +836,7 @@ and
 We have in this subsection derived the formalism for the Zeeman effect and may now use Equation~\ref{eq:abs_zeeman_mat} instead of Equation~\ref{eq:abs_coeff} to describe absorption when appropriate.
 
 \subsection{Line-specific data and line catalogue data in ARTS} 
+\label{sec:abs_theory:catalogue_formats}
 
 ARTS has an internal representation of spectral line data that maps
 naturally to a native catalogue format, which we will discuss
@@ -880,7 +883,7 @@ similar to JPL, but different to HITRAN.
 The definition of the further entries differ between the two ARTSCAT
 representations.
 
-\paragraph*{ARTSCAT-3 line format is:}
+\paragraph*{The ARTSCAT-3 line format is:}
 \begin{code}
 
 Col  Variable                     Label    Unit     
@@ -920,7 +923,7 @@ other species, e.g., methane, may need more coefficients. The default
 for \texttt{N\_AUX} is zero. In that case, no further \texttt{AUX}
 fields are present.
 
-\paragraph*{The line format of ARTSCAT-4 is:}
+\paragraph*{The ARTSCAT-4 line format is:}
 \begin{code}
 
 Col  Variable                        Label    Unit
@@ -929,19 +932,19 @@ Col  Variable                        Label    Unit
  1   molecule & isotopologue tag      NAME       -
  2   center frequency                    F      Hz
  3   line intensity                     I0  Hz*m^2
- 4   reference temp. for I0           T_I0       K
+ 4   reference temperature            T_I0       K
  5   lower state energy               ELOW       J
  6   Einstein A-coefficient              A     1/s 
  7   Upper state stat. weight      G_upper       -
  8   Lower state stat. weight      G_lower       -
- 9   broadening parameter self  GAMMA_self   Hz/Pa
+ 9   broadening parameter self        SGAM   Hz/Pa
 10   broadening parameter N2      GAMMA_N2   Hz/Pa
 11   broadening parameter O2      GAMMA_O2   Hz/Pa
 12   broadening parameter H2O    GAMMA_H2O   Hz/Pa
 13   broadening parameter CO2    GAMMA_CO2   Hz/Pa
 14   broadening parameter H2      GAMMA_H2   Hz/Pa
 15   broadening parameter He      GAMMA_He   Hz/Pa
-16   GAM temp. exponent self        N_self       -
+16   GAM temp. exponent self         NSELF       -
 17   GAM temp. exponent N2            N_N2       -
 18   GAM temp. exponent O2            N_O2       -
 19   GAM temp. exponent H2O          N_H2O       -
@@ -962,6 +965,113 @@ The coding conventions are species specific. The definitions are given in file
 \shortcode{ARTSCAT-4\_Col29\_Conventions.txt}, which is available along with
 the first incarnation of an ARTSCAT-4 type spectroscopic catalog from the
 \shortcode{arts-xml-data} data package.
+
+\subsection{Pressure broadening and shift calculation}
+
+The pressure broadened line width $\gamma_L$ (see Equations
+\ref{eq:abs_theory:pressure_lorentz} and \ref{eq:abs_theory:vvw}) is
+calculated from spectral line parameters and atmospheric state
+variables. At the same time, a pressure shift $\Delta \nu$ is also calculated.
+The calculations are different for ARTSCAT-3 and ARTSCAT-4
+lines. Table \ref{tab:abs_theory:pb_inputs} lists the input variables
+for the two different cases. 
+
+\begin{table}
+\begin{tabularx}{\hsize}{lXX}
+\hline
+&  ARTSCAT-3 & ARTSCAT-4 \\
+\hline
+ Atmospheric variables&
+ pressure $p$ \newline 
+ temperature $T$\newline 
+ VMR of current species $x_\mathrm{self}$
+ & 
+ pressure $p$ \newline 
+ temperature $T$\newline
+ VMR of current species $x_\mathrm{self}$
+ broadening species VMRs $x_i$ (where $i$ is the index of the gas species)
+\\
+Spectral line parameters&
+T\_GAM,
+ AGAM,    
+ SGAM,
+ NAIR,     
+NSELF, 
+  PSF  (see Section \ref{sec:abs_theory:catalogue_formats} for definitions)      
+&
+ T\_I0,\newline
+ SGAM, 
+   GAMMA\_N2, 
+   GAMMA\_O2, 
+  GAMMA\_H2O, 
+  GAMMA\_CO2, 
+   GAMMA\_H2, 
+   GAMMA\_He,\newline 
+     NSELF, 
+       N\_N2, 
+       N\_O2, 
+      N\_H2O, 
+      N\_CO2, 
+       N\_H2, 
+       N\_He,\newline 
+   DELTA\_N2, 
+   DELTA\_O2,    
+  DELTA\_H2O,    
+  DELTA\_CO2,    
+   DELTA\_H2,    
+   DELTA\_He (see Section \ref{sec:abs_theory:catalogue_formats} for definitions)   
+\\
+\hline
+\end{tabularx}
+\caption{Pressure broadening and pressure shift input variables for different ARTSCAT versions.}
+\label{tab:abs_theory:pb_inputs}
+\end{table}
+
+\subsubsection{ARTSCAT-3}
+
+With ARTSCAT-3, the pressure broadened line width is calculate as
+\begin{equation}
+  \gamma_L = x_\mathrm{self} \; p \; \mathrm{SGAM} \; \frac{\mathrm{T\_GAM}}{T}^{\mathrm{NSELF}}
+             + (1-x_\mathrm{self}) \; p \; \mathrm{AGAM} \; \frac{\mathrm{T\_GAM}}{T}^{\mathrm{NAIR}} \;,
+\end{equation}
+and the pressure shift is calculated as
+\begin{equation}
+  \Delta \nu = p \; \mathrm{PSF} \; \frac{\mathrm{T\_GAM}}{T}^{(0.25 + 1.5 * \mathrm{NAIR})} \;,
+\end{equation}
+where all variables are defined as in Table \ref{tab:abs_theory:pb_inputs}. 
+
+
+
+\subsubsection{ARTSCAT-4}
+
+With ARTSCAT-4, the pressure broadened line width is calculate as
+\begin{equation}
+  \gamma_L = x_\mathrm{self} \; p \; \mathrm{SGAM} \; \frac{\mathrm{T\_I0}}{T}^{\mathrm{NSELF}}
+             + (1-x_\mathrm{self}) \; p \; \frac{\sum_i \left[ x_i \; \mathrm{GAMMA}_i \;
+               \frac{\mathrm{T\_I0}}{T}^{\mathrm{N}_i} \right ] }
+             {\sum_i x_i} \;,
+\end{equation}
+where index $i$ runs over the six different broadening species N$_2$,
+O$_2$, H$_2$O, CO$_2$, H$_2$, and He, and all other variables are
+defined as in Table \ref{tab:abs_theory:pb_inputs}. Note that there is
+no separate reference temperature for the broadening and shift
+parameters in ARTSCAT-4. Instead we use T\_I0 the same reference
+temperature as for the line intensity.
+ 
+Similarly, the pressure shift is calculated as
+\begin{equation}
+\Delta \nu = p \; \frac{\sum_i \left[ x_i \; \mathrm{DELTA}_i \;
+               \frac{\mathrm{T\_I0}}{T}^{(0.25 + 1.5 * \mathrm{N}_i} \right ] }
+             {\sum_i x_i} \;.
+\end{equation}
+The normalisation by $\sum_i x_i$ in both formulas accounts for the fact that the sum
+of the foreign broadening species usually will not exactly add up to
+1. With this normalisation, the ARTSCAT-4 broadening and shift
+reproduce the
+ARTSCAT-3  results if all foreign parameters are filled with the
+ARTSCAT-3 value. To make sure that the broadening species account for
+a reasonable part of the atmosphere, we throw a runtime error if their
+VMR sum deviates from 1 by more than 10\%.
 
 
 \subsection{Species-specific data in ARTS}
