@@ -179,9 +179,9 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
 #pragma omp critical
       {
         if (aos.get_priority() == 0)
-          cerr << t;
+            cerr << t << flush;
         else
-          cout << t;
+            cout << t << flush;
       }
     }
     

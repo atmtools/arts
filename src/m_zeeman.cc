@@ -33,7 +33,7 @@ USA. */
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
-
+extern const Numeric PLANCK_CONST;
 
 
 /*!
@@ -171,7 +171,7 @@ void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
     \author Richard Larsson
     \date   2012-08-03
 */
-Numeric RelativeStrength(Index n, Index m, Index DJ, Index DM)
+Numeric RelativeStrengthLenoir(Index n, Index m, Index DJ, Index DM)
 {
 
     /*
@@ -236,7 +236,7 @@ Numeric RelativeStrength(Index n, Index m, Index DJ, Index DM)
     \author Richard Larsson
     \date   2012-08-03
 */
-Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
+Numeric FrequencyChangeLenoir(Index n, Index m, Index, Index, Index DJ, Index DM, Index, Numeric H_mag)
 {
     /*
     The following switch case is from table 2 of Lenoir, 1968.
@@ -288,6 +288,17 @@ Numeric FrequencyChange(Index n, Index m, Index DJ, Index DM, Numeric H_mag)
     return KH*fcc;
 };
 
+Numeric FrequencyChangeDirect(Index n, Index m, Index j, Index s,Index, Index DM, Index, Numeric H_mag)
+{
+    Numeric N = (Numeric)n, M = (Numeric)m, J = (Numeric)j, S = (Numeric)s, fcc;
+    
+    Numeric BOHR_MAGNETON = 9.27400968e-24;
+    
+    fcc=-1.0001*H_mag*(M+(Numeric)DM)*(J*(J+1)+S*(S+1)-N*(N+1))/(J*(J+1)) / PLANCK_CONST * BOHR_MAGNETON;
+    
+    return fcc;
+}
+
 void PartReturnZeeman(  Tensor3View part_abs_mat,
                         const ArrayOfArrayOfSpeciesTag& abs_species,
                         const ArrayOfLineshapeSpec& abs_lineshape,
@@ -305,15 +316,22 @@ void PartReturnZeeman(  Tensor3View part_abs_mat,
 {
     assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
     
-    Matrix temp(f_grid.nelem(), 1, 0.);
-    xsec_species( temp, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
-                abs_lineshape[this_species].Ind_ls(), abs_lineshape[this_species].Ind_lsn(), abs_lineshape[this_species].Cutoff(),
-                isotopologue_ratios, verbosity ); // Now in cross section
-
-    temp *= abs_vmrs(this_species, 0) * number_density( abs_p[this_species],abs_t[this_species]); // Now in absorption coef.
-
+    Matrix temp1(f_grid.nelem(), 1, 0.);
+    
+    for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
+    {
+        Matrix temp2(f_grid.nelem(), 1, 0.);
+        
+        xsec_species( temp2, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
+                    abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
+                    isotopologue_ratios, verbosity ); // Now in cross section
+        
+        temp2 *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+        
+        temp1 += temp2;
+    }
     Matrix  K(4,4); K_mat(K, theta*DEG2RAD, eta*DEG2RAD, DM);
-    mult(part_abs_mat,temp(joker,0), K);
+    mult(part_abs_mat,temp1(joker,0), K);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -339,6 +357,9 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
     const Numeric margin    = 1e-3;
     bool          do_zeeman = false;
 
+    //FIXME: this is a particle constant. For now, only O2 is considered and it has S = 1.
+    const Index S = 1;
+    
     /*
         This function will, for each Zeeman species, make a local
         ArrayOfLineRecord(s) for the various transition types with Zeeman
@@ -487,7 +508,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                 const Index J  = temp_LR.Lower_J();
                 const Index N  = temp_LR.Lower_N();
                 const Index DJ = J - temp_LR.Upper_J();
-
+                const Index DN  = N - temp_LR.Upper_N();
                 // Only look at lines which have no change in the main rotational number
                 if (J != -1 && N != -1)
                 {
@@ -513,7 +534,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                         // End   TEST(s)
 
                         // For every upper molecular magnetic moment, M
-                        for ( Index M = -J+DJ; M<=J-DJ; M++ )
+                        for ( Index M = -N+DN; M<=N-DN; M++ )
                         {
                             /*
                                 Note that:
@@ -523,20 +544,20 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                             */
                             if ( DJ ==  1 )
                             { // Then all DM transitions possible for all M
-                                DF =  FrequencyChange(N, M, DJ, -1, H_mag);
-                                RS = RelativeStrength(N, M, DJ, -1);
+                                DF =  FrequencyChangeDirect(N, M, J, S, DJ, -1, DN, H_mag);
+                                RS = RelativeStrengthLenoir(N, M, DJ, -1);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
 
-                                DF =  FrequencyChange(N, M, DJ,  0, H_mag);
-                                RS = RelativeStrength(N, M, DJ,  0);
+                                DF =  FrequencyChangeDirect(N, M, J, S, DJ,  0, DN, H_mag);
+                                RS = RelativeStrengthLenoir(N, M, DJ,  0);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
 
-                                DF =  FrequencyChange(N, M, DJ, +1, H_mag);
-                                RS = RelativeStrength(N, M, DJ, +1);
+                                DF =  FrequencyChangeDirect(N, M, J, S, DJ, +1, DN, H_mag);
+                                RS = RelativeStrengthLenoir(N, M, DJ, +1);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
@@ -546,8 +567,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                             { // Then certain M results in blocked DM transitions
                                 if ( M == -J + DJ && M!=0 )
                                 { // Lower limit M only allows DM = 1
-                                    DF =  FrequencyChange(N, M, DJ, +1, H_mag);
-                                    RS = RelativeStrength(N, M, DJ, +1);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ, +1, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ, +1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
@@ -555,64 +576,64 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 }
                                 else if ( M == -J + DJ + 1 && M!=0 )
                                 { // Next to lower limit M can only allow DM = 1, 0
-                                    DF =  FrequencyChange(N, M, DJ, +1, H_mag);
-                                    RS = RelativeStrength(N, M, DJ, +1);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ, +1, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ, +1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
 
-                                    DF =  FrequencyChange(N, M, DJ,  0, H_mag);
-                                    RS = RelativeStrength(N, M, DJ,  0);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ,  0, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
                                 }
                                 else if ( M ==  J - DJ - 1 && M!=0 )
                                 { // Next to upper limit M can only allow DM = 0, -1
-                                    DF =  FrequencyChange(N, M, DJ,  0, H_mag);
-                                    RS = RelativeStrength(N, M, DJ,  0);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ,  0, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
 
-                                    DF =  FrequencyChange(N, M, DJ, -1, H_mag);
-                                    RS = RelativeStrength(N, M, DJ, -1);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ, -1, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ, -1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
                                 }
                                 else if ( M == J - DJ && M!=0 )
                                 { // Upper limit M only allow DM = -1
-                                    DF =  FrequencyChange(N, M, DJ, -1, H_mag);
-                                    RS = RelativeStrength(N, M, DJ, -1);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ, -1, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ, -1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
                                 }
                                 else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
                                 { // Special case for N=1, J=0, M=0. Only allows DM = 0
-                                    DF =  FrequencyChange(N, M, DJ,  0, H_mag);
-                                    RS = RelativeStrength(N, M, DJ,  0);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ,  0, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
                                 }
                                 else
                                 { // All DM transitions are possible for these M(s)
-                                    DF =  FrequencyChange(N, M, DJ, +1, H_mag);
-                                    RS = RelativeStrength(N, M, DJ, +1);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ, +1, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ, +1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
 
-                                    DF =  FrequencyChange(N, M, DJ,  0, H_mag);
-                                    RS = RelativeStrength(N, M, DJ,  0);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ,  0, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
 
-                                    DF =  FrequencyChange(N, M, DJ, -1, H_mag);
-                                    RS = RelativeStrength(N, M, DJ, -1);
+                                    DF =  FrequencyChangeDirect(N, M, J, S, DJ, -1, DN, H_mag);
+                                    RS = RelativeStrengthLenoir(N, M, DJ, -1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);

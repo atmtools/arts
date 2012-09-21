@@ -301,7 +301,8 @@ void abs_lookupCalc(// WS Output:
   // Loop species:
   for ( Index i=0,spec=0; i<n_species; ++i )
     {
-        if ( abs_species[i][0].Zeeman() ) { continue; } //FIXME: Richard... Is this the right place to tell Create to ignore Zeeman? Needs more work?
+        //Skipping Zeeman species
+        if ( abs_species[i][0].Zeeman() ) { continue; } 
 
         // spec is the index for the second dimension of abs_lookup.xsec.
       

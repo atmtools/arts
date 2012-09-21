@@ -12,6 +12,7 @@ IndexSet( stokes_dim, 4 )
 
 AgendaSet( abs_mat_per_species_agenda ){
   abs_mat_per_speciesInit
+  abs_mat_per_speciesAddOnTheFly
   abs_mat_per_speciesAddZeeman
 }
 
@@ -25,7 +26,7 @@ VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 
 # Definition of species
 # ---
-SpeciesSet( abs_species, ["O2-Z"] )
+SpeciesSet( abs_species, ["H2O","O2-Z"] )
 
 # read line catalogue
 abs_linesReadFromHitran(abs_lines, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par", 61.1e9, 61.2e9)
