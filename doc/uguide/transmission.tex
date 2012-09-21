@@ -3,7 +3,7 @@
 
 
 \starthistory
- 120831 & Started (Patrick Eriksson).\\
+ 120921 & A first, incomplete, version (Patrick Eriksson).\\
 \stophistory
 
 The term ``transmission calculations'' refer here to situations when
@@ -36,14 +36,41 @@ geometry is defined by \wsvindex{sensor\_pos} and \wsvindex{sensor\_los} (or
 The first main difference is that \wsaindex{iy\_transmitter\_agenda} replaces
 \wsaindex{iy\_space\_agenda} and \wsaindex{iy\_surface\_agenda}. The second
 main difference is that handling of cloud scattering is built-in and the need
-to define \wsaindex{iy\_cloudbox\_agenda} vanishes.
-
-\dots 
-
-\wsmindex{MatrixUnitIntensity} should be the standard choice for
-\wsaindex{iy\_transmitter\_agenda}.
-
+to define \wsaindex{iy\_cloudbox\_agenda} vanishes. The differences appear
+inside \wsaindex{iy\_main\_agenda}, \wsmindex{yCalc} is independent of the type
+of radiative transfer calculations. Further,
 \builtindoc{blackbody\_radiation\_agenda} can be left undefined).
+
+As for emission measurements (Sec.~\ref{sec:fm_defs:calcproc},
+Algorithm~\ref{alg:fm_defs:iyCSagenda}) the first main operation is to
+determine the propagation path through the atmosphere, but this is here done
+without considering the cloud-box (it is simple deactivated during this step).
+The possible ``radiative backgrounds'' are accordingly the surface or space,
+i.e.\ where the propagation path starts. 
+
+The next step is to call \builtindoc{iy\_transmitter\_agenda}. It should be
+noted that the same agenda is called independently if the radiative background
+is space or the surface. It is up to the user to decide if these two cases
+shall be distinguished in some manner (no workspace method for this task exists
+yet). A standard choice \builtindoc{iy\_transmitter\_agenda} is
+\wsmindex{MatrixUnitIntensity}. If this workspace method is used, the output of
+\builtindoc{iyTransmissionStandard} shows you the fraction of unpolarised
+radiation that is transmitted through the atmosphere, and the polarisation
+state of the transmitted part. 
+
+The radiative transfer expression applied is
+(cf.~Eq.~\ref{eq:fm_defs:vrte_step}):
+\begin{equation}
+  \label{eq:trans:vrte}
+  \StoVec_{i+1} = e^{-\bar{\ExtMat}s} \StoVec_i 
+\end{equation}
+where the extinction matrix is determined in the same manner as for emission
+cases (Sec.~\ref{sec:fm_defs:rad_bkgr}). In situations where the matrix
+\ExtMat\ is diagonal, the scalar form is used (Eq.~\ref{eq:fm_defs:rte_step2}).
+
+\FIXME{Comment on scattering aspects.}
+
+
 
 
 
@@ -52,6 +79,9 @@ to define \wsaindex{iy\_cloudbox\_agenda} vanishes.
 \section{Radio calculations}
 %===================
 \label{sec:radiolinks}
+
+The \wsmindex{iyRadioLink} method is in development and at this moment just
+some theory is provided:
 
 
 \subsection{Determining the propagation path}
