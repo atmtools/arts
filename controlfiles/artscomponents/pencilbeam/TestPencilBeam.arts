@@ -96,9 +96,9 @@ iyCalc
 
 # Convert to Tb
 #
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 #
-iyApplyYunit
+iyApplyUnit
 
 
 # To save calculated spectrum and transmission

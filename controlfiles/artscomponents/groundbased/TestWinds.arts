@@ -101,7 +101,7 @@ basics_checkedCalc
 cloudbox_checkedCalc
 sensorOff
 jacobianOff
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 
 
 

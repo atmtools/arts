@@ -331,7 +331,6 @@ void jacobianCalcAbsSpeciesPerturbations(
   const Index&                      antenna_dim,
   const Sparse&                     sensor_response,
   const Agenda&                     iy_main_agenda,
-  const String&                     y_unit,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
   const String&                     species,
@@ -506,7 +505,7 @@ void jacobianCalcAbsSpeciesPerturbations(
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_main_agenda, 
-                        y_unit, 0, ArrayOfRetrievalQuantity(), 
+                        0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //
               mult( dy, sensor_response, iybp );
@@ -996,7 +995,6 @@ void jacobianCalcPointingZaRecalc(
   const Sparse&                    sensor_response,
   const Vector&                    sensor_time,
   const Agenda&                    iy_main_agenda,
-  const String&                    y_unit,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity&                 verbosity )
@@ -1041,8 +1039,7 @@ void jacobianCalcPointingZaRecalc(
               atmosphere_dim, 
               t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, transmitter_pos, mblock_za_grid, 
-              mblock_aa_grid, 
-              antenna_dim, iy_main_agenda, y_unit, 
+              mblock_aa_grid, antenna_dim, iy_main_agenda,
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(),
               ArrayOfString(), verbosity );
 
@@ -1434,7 +1431,6 @@ void jacobianCalcTemperaturePerturbations(
   const Index&                      antenna_dim,
   const Sparse&                     sensor_response,
   const Agenda&                     iy_main_agenda,
-  const String&                     y_unit,
   const Agenda&                     g0_agenda,
   const Numeric&                    molarmass_dry_air,
   const Numeric&                    p_hse,
@@ -1591,7 +1587,7 @@ void jacobianCalcTemperaturePerturbations(
                         stokes_dim, f_grid, sensor_pos, sensor_los, 
                         transmitter_pos, mblock_za_grid, mblock_aa_grid, 
                         antenna_dim, iy_main_agenda, 
-                        y_unit, 0, ArrayOfRetrievalQuantity(), 
+                        0, ArrayOfRetrievalQuantity(), 
                         ArrayOfArrayOfIndex(), ArrayOfString(), verbosity );
               //
               mult( dy, sensor_response, iybp );

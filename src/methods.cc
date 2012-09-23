@@ -4500,30 +4500,35 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyApplyYunit" ),
+      ( NAME( "iyApplyUnit" ),
         DESCRIPTION
         (
          "Conversion of *iy* to other spectral units.\n"
          "\n"
-         "No automatic unit conversion is applied on the iy-variables, but\n"
-         "this method allows for a seperate conversion of *iy* and *iy_aux*\n"
-         "to the unit selected by *y_unit*.\n"
+         "The method allows a change of unit, as a post-processing step,\n"
+         "ignoring the n2-law of radiance.\n"
+         "\n"         
+         "The conversion made inside *iyEmissionStandard* is mimiced\n"
+         "and see that method for constraints and selection of output units.\n"
+         "This with the restriction that the n2-law can be ignored. The later\n"
+         "is the case if the sensor is placed in space, or if the refractive\n"
+         "only devaites slightly from unity.\n"
          "\n"
-         "Only these auxilary quantities are modified:\n"
+         "It is stressed that there is no automatic check that the method is\n"
+         "applied correctly, it is up to the user to ensure that the input\n"
+         "data are suitable for the conversion.\n"
+         "\n"
+         "Beside *iy*, these auxilary quantities are modified:\n"
          "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
          "\n"
-         "Please note that *diy*dx* is not handled and it is demanded that\n"
-         "*jacobian_do* is 0.\n"
-         "\n"
-         "See further *y_unit*.\n"
+         "Please note that *diy*dx* is not handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy", "iy_aux", "stokes_dim", "f_grid", "jacobian_do", 
-            "iy_aux_vars", "y_unit" ),
+        IN( "iy", "iy_aux", "stokes_dim", "f_grid", "iy_aux_vars", "iy_unit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4542,22 +4547,20 @@ void define_md_data_raw()
          "specified position (*rte_pos*) and line-of-sight (*rte_pos*).\n"
          "See *iy* and associated variables for format of output.\n"
          "\n"
-         "Only analytical Jacobian calculations are performed. Hence,\n"
-         "elements of *diy_dx* can be empty.\n"
-         "\n"
-         "No unit conversion is applied (but can be done as post-processing).\n"
+         "Please note that Jacobian type calculations not are supported.\n"
+         "For this use *yCalc*.\n"
          "\n"
          "No sensor charactersitcs are applied. That is most easily\n"
          "incorporated by using *yCalc*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "basics_checked", "iy_aux_vars", "f_grid", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "cloudbox_checked", 
-            "rte_pos", "rte_los", "rte_pos2", "jacobian_do", "iy_main_agenda" ),
+            "rte_pos", "rte_los", "rte_pos2", "iy_main_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4572,12 +4575,35 @@ void define_md_data_raw()
          "Standard method for radiative transfer calculations with emission.\n"
          "\n"
          "Designed to be part of *iy_main_agenda*. That is, only valid\n"
-         "outside the cloudbox (no scattering or polarised absorption).\n"
-         "Assumes local thermodynamic equilibrium for emission.\n"
+         "outside the cloudbox (no scattering). Assumes local thermodynamic\n"
+         "equilibrium for emission. The basic calculation strategy is to take\n"
+         "the average of the absorption and the emission source function at\n"
+         "the end points of each step of the propagation path. For details,n"
+         "see the user guide.\n" 
          "\n"
-         "The overall strategy is to take the average of the absorption and\n"
-         "the emission source function at the end points of each step of\n"
-         "the propagation path. See further the user guide.\n" 
+         "The internal radiance unit is determined by your definition of\n"
+         "blackbody radiation inside the atmospheric and surface source\n" 
+         "terms. Set *iiy_unit* to \"1\" if you want this to also be the unit\n"
+         "for output radiances. If you want another output unit, you need to\n"
+         "make sure that the internal unit is [W/m2/Hz/sr] (ie. the frequency\n"
+         "version of the Planck function). The possible choices for *iy_unit*\n"
+         "are:\n"
+         " \"1\"             : No conversion.\n"
+         " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
+         "                     temperature.\n"
+         " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
+         " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
+         "                     wavelength unit).\n"
+         " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
+         "                     wavenumber unit).\n"
+         "\n"
+         "Please note that there is no way for ARTS to strictly check the\n"
+         "internal unit. In principle, the unit can differ between the\n"
+         "elements. The user must makes sure that any unit conversion is\n"
+         "applied correctly, and in accordance with the calibration of the\n"
+         "instrument of concern. Expressions applied and considerations for\n"
+         "the unit conversion of radiances are discussed in Sec. 5.7 of the\n"
+         "ARTS-2 article.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Pressure\": The pressure along the propagation path.\n"
@@ -4595,8 +4621,8 @@ void define_md_data_raw()
          "* \"Radiative background\": Index value flagging the radiative\n"
          "     background. The following coding is used: 0=space, 1=surface\n"
          "     and 2=cloudbox. Size: [nf,1,1,1].\n"
-         "  \"iy\": The radiance at each point along the path.\n"
-         "     Size: [nf,ns,1,np].\n"
+         "  \"iy\": The radiance at each point along the path (*iiy_unit* is.\n"
+         "     considered). Size: [nf,ns,1,np].\n"
          "* \"Optical depth\": The scalar optical depth between the\n"
          "     observation point and the end of the primary propagation path\n"
          "     (ie. the optical depth to the surface, cloudbox or space.)\n"
@@ -4620,7 +4646,7 @@ void define_md_data_raw()
             "t_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "edensity_field",
-            "cloudbox_on", "iy_aux_vars", "jacobian_do", 
+            "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", 
             "ppath_agenda", "blackbody_radiation_agenda",
             "abs_mat_per_species_agenda", "iy_main_agenda", 
@@ -4695,12 +4721,12 @@ void define_md_data_raw()
          "run. Sensor responses can be included in the standard manner\n" 
          "(through *yCalc*).\n"
          "\n"
-         "MC unit is set as for *MCGeneral*. No antenna pattern is included.\n"
-         "\n"
          "This function does not apply the MC approach when it comes\n"
          "to sensor properties. These properties are not considered when\n"
          "tracking photons, which is done in *MCGeneral* (but then only for\n"
          "the antenna pattern).\n"
+         "\n"
+         "Output unit options  (*iy_unit*) exactly as for *MCGeneral*.\n"
          "\n"
          "The MC calculation errors are all assumed be uncorrelated and each\n"
          "have a normal distribution. These properties are of relevance when\n"
@@ -4711,8 +4737,7 @@ void define_md_data_raw()
          "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
          "As or *MCGeneral*, the value of *mc_error* shall be adopted to\n"
-         "*y_unit*. However, to be consistent with other iy_methods, this\n"
-         "method returns radiance data (*y_unit*) is applied inside yCalc).\n"
+         "*iy_unit*.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Error (uncorrelated)\": Calculation error. Size: [nf,ns,1,1].\n"
@@ -4732,9 +4757,9 @@ void define_md_data_raw()
             "jacobian_do", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "t_field", "vmr_field", "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "cloudbox_checked",
-            "stokes_dim", "f_grid", "scat_data_raw", 
-            "iy_space_agenda", "surface_rtprop_agenda", "abs_mat_per_species_agenda",
-            "pnd_field", "y_unit",
+            "stokes_dim", "f_grid", "scat_data_raw", "iy_space_agenda", 
+            "surface_rtprop_agenda", "abs_mat_per_species_agenda",
+            "pnd_field", "iy_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter"),
         GIN(),
         GIN_TYPE(),
@@ -5273,8 +5298,7 @@ void define_md_data_raw()
             "cloudbox_on", "stokes_dim", "f_grid", 
             "sensor_pos", "sensor_los", "transmitter_pos", "mblock_za_grid", 
             "mblock_aa_grid", "antenna_dim", "sensor_response",
-            "iy_main_agenda", "y_unit", "jacobian_quantities",
-            "jacobian_indices" ),
+            "iy_main_agenda", "jacobian_quantities", "jacobian_indices" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
@@ -5393,7 +5417,7 @@ void define_md_data_raw()
             "f_grid", "sensor_pos", "sensor_los", "transmitter_pos", 
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_time", 
-            "iy_main_agenda", "y_unit", "jacobian_quantities",
+            "iy_main_agenda", "jacobian_quantities",
             "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -5474,7 +5498,7 @@ void define_md_data_raw()
             "vmr_field", "abs_species", "refellipsoid", "z_surface", 
             "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
             "transmitter_pos", "mblock_za_grid", "mblock_aa_grid", 
-            "antenna_dim", "sensor_response", "iy_main_agenda", "y_unit", 
+            "antenna_dim", "sensor_response", "iy_main_agenda", 
             "g0_agenda", "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
             "jacobian_quantities", "jacobian_indices" ),
         GIN(),
@@ -6049,8 +6073,8 @@ void define_md_data_raw()
           "according to system time, positive *mc_seed* values are taken\n"
           "literally.\n"
           "\n"
-          "Only \"1\" and \"RJBT\" are allowed for *y_unit*. The value of\n"
-          "*mc_error* follows the selection for *y_unit* (both for in- and\n"
+          "Only \"1\" and \"RJBT\" are allowed for *iy_unit*. The value of\n"
+          "*mc_error* follows the selection for *iy_unit* (both for in- and\n"
           "output.\n"
           ),
         AUTHORS( "Cory Davis" ),
@@ -6064,7 +6088,7 @@ void define_md_data_raw()
             "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
             "pnd_field", "scat_data_mono", "basics_checked", "cloudbox_checked",
-            "mc_seed", "y_unit", 
+            "mc_seed", "iy_unit", 
             "mc_std_err", "mc_max_time", "mc_max_iter"),//, "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
@@ -6090,7 +6114,7 @@ void define_md_data_raw()
             "abs_mat_per_species_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
             "lon_grid", "z_field", "refellipsoid", "z_surface", "t_field", 
             "vmr_field", "edensity_field", "cloudbox_limits", "pnd_field", 
-            "scat_data_mono", "mc_seed", "y_unit",
+            "scat_data_mono", "mc_seed", "iy_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
@@ -8265,11 +8289,12 @@ void define_md_data_raw()
          "\n"
          "See *sensor_pol* for coding of polarisation states.\n"
          "\n"
-         "Note that the state of *y_unit* is considered. This WSV must give\n"
+         "Note that the state of *iy_unit* is considered. This WSV must give\n"
          "the actual unit of the data. This as, the extraction of components\n"
          "is slightly different if data are radiances or brightness\n"
-         "temperatures.  In practise this means that *y_unit* (as to be\n"
-         "applied inside *yCalc*) must be set before calling this method.\n"
+         "temperatures.  In practise this means that *iy_unit* (as to be\n"
+         "applied inside *iy_main_agenda*) must be set before calling this\n"
+         "method.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
@@ -8281,7 +8306,7 @@ void define_md_data_raw()
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
             "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
             "sensor_response_pol_grid", "sensor_response_za_grid",
-            "sensor_response_aa_grid", "stokes_dim", "y_unit", "sensor_pol" ),
+            "sensor_response_aa_grid", "stokes_dim", "iy_unit", "sensor_pol" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9869,14 +9894,21 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "yApplyYunit" ),
+      ( NAME( "yApplyUnit" ),
         DESCRIPTION
         (
          "Conversion of *y* to other spectral units.\n"
          "\n"
          "Any conversion to brightness temperature is normally made inside\n"
          "*yCalc*. This method makes it possible to also make this conversion\n"
-         "after *yCalc*, but with restrictions for *jacobian*.\n"
+         "after *yCalc*, but with restrictions for *jacobian* and with.\n"
+         "respect to the n2-law of radiance.\n"
+         "\n"
+         "The conversion made inside *iyEmissionStandard* is mimiced\n"
+         "and see that method for constraints and selection of output units.\n"
+         "This with the restriction that the n2-law can be ignored. The later\n"
+         "is the case if the sensor is placed in space, or if the refractive\n"
+         "only devaites slightly from unity.\n"
          "\n"
          "The method handles *y* and *jacobian* in parallel, where\n"
          "the last variable is only considered if it is set. The\n"
@@ -9888,17 +9920,17 @@ void define_md_data_raw()
          "quantity that can not be handled is *jacobianAddPolyfit*. There\n"
          "are no automatic checks warning for incorrect usage!\n"
          "\n" 
-         "If you are using this method, *y_unit* should be set to \"1\" when\n"
+         "If you are using this method, *iy_unit* should be set to \"1\" when\n"
          "calling *yCalc*, and be changed before calling this method.\n"
-         "\n"         
-         "See further *y_unit*.\n"
+         "\n" 
+         "Conversion of *y_aux* is not supported.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "jacobian", "y_f", "y_pol", "y_unit" ),
+        IN( "y", "jacobian", "y_f", "y_pol", "iy_unit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10072,17 +10104,12 @@ void define_md_data_raw()
          "of a series of spectra), all depending on the settings. Spectra\n"
          "and jacobians are calculated in parallel.\n"
          "\n"
-         "The unit of output radiances and jacobians follow *y_unit*. The\n"
-         "conversion is applied on monochromatic pencil beam values. That\n"
-         "is, before any sensor responses have been included.\n"
          "The frequency, polarisation etc. for each measurement value is\n" 
          "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
          "\n"
          "See the method selected for *iy_main_agenda* for quantities\n"
          "that can be obtained by *y_aux*. However, in no case data of\n"
-         "along-the-path type can be extracted. *y_unit* is applied on the\n"
-         "following aux data:\n"
-         "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
+         "along-the-path type can be extracted.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
@@ -10095,9 +10122,8 @@ void define_md_data_raw()
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "iy_main_agenda", "y_unit", 
-            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
-            "jacobian_indices", "iy_aux_vars" ),
+            "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
+            "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -10109,7 +10135,7 @@ void define_md_data_raw()
       ( NAME( "z_fieldFromHSE" ),
         DESCRIPTION
         (
-         "Forse altitudes to fulfil hydrostatic equilibrium.\n"
+         "Force altitudes to fulfil hydrostatic equilibrium.\n"
          "\n"
          "The method applies hydrostatic equilibrium. A mixture of \"dry\n"
          "air\" and water vapour is assumed. That is, the air is assumed to\n"

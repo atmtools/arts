@@ -69,7 +69,7 @@ Matrix1RowFromVector( sensor_los, rte_los )
 
 IndexSet( stokes_dim, 4 )
 
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 
 MCSetSeedFromTime
 
@@ -104,7 +104,7 @@ WriteXML( output_file_format, mc_error )
 
 Print( mc_iteration_count, 1 )
 
-Print( y_unit, 1 )
+Print( iy_unit, 1 )
 
 #### Tests ########################
 

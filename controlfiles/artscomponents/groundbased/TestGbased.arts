@@ -158,7 +158,7 @@ AgendaSet( iy_space_agenda ){
 
 FlagOn( sensor_norm )
 
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 
 NumericCreate( f_resolution )
 NumericCreate( f_switch )

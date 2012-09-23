@@ -104,7 +104,7 @@ IndexSet( stokes_dim, 1 )
 cloudboxOff
 basics_checkedCalc
 cloudbox_checkedCalc
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 
 
 

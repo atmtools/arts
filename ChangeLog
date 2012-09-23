@@ -1,3 +1,56 @@
+2012-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+
+	* arts-2-1-308
+
+	* Main change is that unit conversion is moved from iyb_calc down
+	to methods for iy_main_agenda. This solves several issues:
+	- Not all unit conversions make sense everywhere. For example,
+	radiance conversions should not be applied on active signals.
+	The selection of units can now be implemented on method level.
+	- Now more clear when iy_unit makes sense (if not, not an input 
+	argument!").
+	- Back-conversion in iyMC now not needed.
+	- The n2-law can be implemented without a lot of overhead (but not
+	yet done).
+
+	* controlfiles/*: About 20 controlfiles adopted renaming of
+	iy_unit and ApplyUnit methods.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts: A
+	special case among the cfiles. For DOIT the unit must now be "1"
+	when calling CloudboxGetIncoming. Final unit can first be set
+	afterwards. So definition of iy_unit had to be moved into the
+	batch agenda.
+
+	* src/m_rte.cc (iyEmissionStandard): Adopted removed parts from
+	iyb_calc, thus iy_unit is new input. Built-in doc corrected and
+	extended.
+
+	(iyApplyUnit): iyApplyYunit renamed. jacobian_do removed as input.
+	Documentation adopted and extended.
+
+	(iyCalc): Removed diy_dx as output. Jacobians are only partly
+	supported on iy-level (perturbations made at yCalc level),
+	and safest to remove diy_dx here.
+
+	(iyMC): Removed back-conversion to radiance. Updated doc.
+
+	* src/m_jacobian.cc: Removed y_unit from all methods (where it was
+	passed on to iyb_calc).
+
+	* src/rte.cc (apply_iy_unit): Renamed from apply_y_unit.
+	(apply_iy_unit2): Renamed from apply_y_unit2.
+
+	(iyb_calc): Removed everything associated with unit conversion.
+
+	* src/workspace.cc: y_unit renamed to iy_unit, to reflect where
+	the conversion now will be applied. Most of documentation moved to
+	iyEmissionSteandard (as not generarly valid).
+
+	* doc/uguide/ppath.tex: end_lstep was called start_lstep in
+	structure table.
+
 2012-09-21  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-307

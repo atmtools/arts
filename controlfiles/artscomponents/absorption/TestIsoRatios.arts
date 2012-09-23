@@ -29,7 +29,7 @@ jacobianOff
 sensorOff
 
 # output radiances in Planck-Tb
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 
 # sensor position and LOS
 IndexCreate( n_tan )

@@ -312,29 +312,33 @@ void get_pointers_for_analytical_jacobians(
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyApplyYunit(
+void iyApplyUnit(
          Matrix&         iy,
    ArrayOfTensor4&       iy_aux,
    const Index&          stokes_dim,
    const Vector&         f_grid,
-   const Index&          jacobian_do,
    const ArrayOfString&  iy_aux_vars,
-   const String&         y_unit,
+   const String&         iy_unit,
    const Verbosity&)
 {
-  if( jacobian_do )
-    throw runtime_error( "This method does not handle conversion of jacobian "
-                      "quantities and should not be used with jacobian_do=1." );
+  if( iy_unit == "1" )
+    throw runtime_error( "No need to use this method with *iy_unit* = \"1\"." );
 
-  if( y_unit == "1" )
-    throw runtime_error( "No need to use this method with *y_unit* = \"1\"." );
+  if( max(iy(joker,0)) > 1e-3 )
+    {
+      ostringstream os;
+      os << "The spectrum matrix *iy* is required to have original radiance\n"
+         << "unit, but this seems not to be the case. This as a value above\n"
+         << "1e-3 is found in *iy*.";
+      throw runtime_error( os.str() );      
+    }
 
   // Polarisation index variable
   ArrayOfIndex i_pol(stokes_dim);
   for( Index is=0; is<stokes_dim; is++ )
     { i_pol[is] = is + 1; }
 
-  apply_y_unit( iy, y_unit, f_grid, i_pol );
+  apply_iy_unit( iy, iy_unit, f_grid, i_pol );
   
   for( Index i=0; i<iy_aux_vars.nelem(); i++ )
     {
@@ -345,7 +349,7 @@ void iyApplyYunit(
             throw runtime_error( "Data marked as \"iy\" or \"Error\" "
                                  "have incorrect size." );
           for( Index j=0; j<iy_aux[i].ncols(); j++ )
-            { apply_y_unit( iy_aux[i](joker,joker,0,j), y_unit, f_grid, 
+            { apply_iy_unit( iy_aux[i](joker,joker,0,j), iy_unit, f_grid, 
                                                                       i_pol ); }
         }
     }
@@ -360,7 +364,6 @@ void iyCalc(
          Matrix&           iy,
          ArrayOfTensor4&   iy_aux,
          Ppath&            ppath,
-         ArrayOfTensor3&   diy_dx,
    const Index&            basics_checked,
    const ArrayOfString&    iy_aux_vars,
    const Vector&           f_grid,
@@ -372,7 +375,6 @@ void iyCalc(
    const Vector&           rte_pos,
    const Vector&           rte_los,
    const Vector&           rte_pos2,
-   const Index&            jacobian_do,
    const Agenda&           iy_main_agenda,
    const Verbosity& )
 {
@@ -388,8 +390,10 @@ void iyCalc(
   // iy_transmission is just input and can be left empty for first call
   Tensor3   iy_transmission(0,0,0);
 
+  ArrayOfTensor3 diy_dx;
+
   iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 1, iy_transmission, 
-                         iy_aux_vars, cloudbox_on, jacobian_do, t_field, 
+                         iy_aux_vars, cloudbox_on, 0, t_field, 
                          z_field, vmr_field, f_grid, rte_pos, rte_los, rte_pos2,
                          iy_main_agenda );
 }
@@ -421,6 +425,7 @@ void iyEmissionStandard(
    const Tensor3&                    mag_w_field,
    const Tensor3&                    edensity_field,
    const Index&                      cloudbox_on,
+   const String&                     iy_unit,
    const ArrayOfString&              iy_aux_vars,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -944,6 +949,60 @@ void iyEmissionStandard(
         }
       //#######################################################################
     } // if np>1
+
+
+  // Unit conversions
+  if( iy_agenda_call1 )
+    {
+      // If any conversion, check that standard form of Planck used
+      if( iy_unit != "1" )
+        {
+          // Test if correct value is obtained for 100GHz and 300K 
+          Vector btest;
+          blackbody_radiation_agendaExecute( ws, btest, 300, Vector(1,100e9),
+                                             blackbody_radiation_agenda );
+          if( abs( btest[0] - 9.1435e-16) > 1e-19 )
+            {
+              ostringstream os;
+              os << "When any unit conversion is applied, "
+                 << "*blackbody_radiation_agenda\nmust use the "
+                 << "*MatrixPlanck* WSM.\nA test call of the agenda "
+                 << "indicates that this is not the case.";
+              throw runtime_error( os.str() );
+            }
+        }
+        
+      // Determine refractive index to use for the n2 radiance law
+      Numeric n = 1.0; // Firsat guess is that sensor is in space
+      //
+      if( ppath.end_lstep == 0 ) // If true, sensor inside the atmosphere
+        { n = ppath.nreal[np-1]; }
+
+      // Polarisation index variable
+      ArrayOfIndex i_pol(stokes_dim);
+      for( Index is=0; is<stokes_dim; is++ )
+        { i_pol[is] = is + 1; }
+
+      // Jacobian part (must be converted to Tb before iy for PlanckBT)
+      // 
+      if( j_analytical_do )
+        {
+          FOR_ANALYTICAL_JACOBIANS_DO(
+            apply_iy_unit2( diy_dx[iq], iy, iy_unit, f_grid, i_pol ); )
+        } 
+
+      // iy
+      apply_iy_unit( iy, iy_unit, f_grid, i_pol );
+
+      // iy_aux
+      for( Index q=0; q<iy_aux.nelem(); q++ )
+        {
+          if( iy_aux_vars[q] == "iy")
+            { 
+              apply_iy_unit( iy_aux[q](joker,joker,0,0), iy_unit, f_grid, i_pol);
+            }
+        }
+    }
 }
 
 
@@ -1054,7 +1113,7 @@ void iyMC(
    const Agenda&                     surface_rtprop_agenda,
    const Agenda&                     abs_mat_per_species_agenda, 
    const Tensor4&                    pnd_field,
-   const String&                     y_unit,
+   const String&                     iy_unit,
    const Numeric&                    mc_std_err,
    const Index&                      mc_max_time,
    const Index&                      mc_max_iter,
@@ -1138,20 +1197,12 @@ void iyMC(
                  z_field, refellipsoid, z_surface, t_field, vmr_field, 
                  cloudbox_on, cloudbox_limits, 
                  pnd_field, scat_data_mono, 1, cloudbox_checked,
-                 mc_seed, y_unit, mc_std_err, mc_max_time, mc_max_iter,
+                 mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
                  verbosity); 
                  // GH 2011-06-17, mc_z_field_is_1D);
 
       assert( y.nelem() == stokes_dim );
 
-      // Output data must be converted back to radiance
-      if ( y_unit == "RJBT" )
-        { 
-          const Numeric scfac = invrayjean( 1, f_grid[f_index] );
-          y /= scfac;
-          mc_error /= scfac;
-        }
-     
       iy(f_index,joker) = y;
 
       if( auxError >= 0 ) 
@@ -2025,7 +2076,6 @@ void yCalc(
    const Vector&                     sensor_response_za,
    const Vector&                     sensor_response_aa,
    const Agenda&                     iy_main_agenda,
-   const String&                     y_unit,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
@@ -2226,7 +2276,7 @@ void yCalc(
                 mblock_index, atmosphere_dim, t_field, z_field, vmr_field, 
                 cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los, 
                 transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim, 
-                l_iy_main_agenda, y_unit, j_analytical_do, 
+                l_iy_main_agenda, j_analytical_do, 
                 jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity );
 
 
@@ -2318,17 +2368,17 @@ void yCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yApplyYunit(
+void yApplyUnit(
          Vector&         y,
          Matrix&         jacobian,
    const Vector&         y_f,
    const ArrayOfIndex&   y_pol,
-   const String&         y_unit,
+   const String&         iy_unit,
    const Verbosity&)
 {
-  if( y_unit == "1" )
+  if( iy_unit == "1" )
     { throw runtime_error(
-        "No need to use this method with *y_unit* = \"1\"." ); }
+        "No need to use this method with *iy_unit* = \"1\"." ); }
 
   if( max(y) > 1e-3 )
     {
@@ -2359,10 +2409,10 @@ void yApplyYunit(
 
   // Planck-Tb 
   //-------------------------------------------------------------------------- 
-  if( y_unit == "PlanckBT" )
+  if( iy_unit == "PlanckBT" )
     {
       // Hard to use telescoping here as the data are sorted differently in y
-      // and jacobian, than what is expected apply_y_unit. Copy to temporary
+      // and jacobian, than what is expected apply_iy_unit. Copy to temporary
       // variables instead.
 
       // Handle the elements in "frequency chunks"
@@ -2410,13 +2460,13 @@ void yApplyYunit(
                 {
                   Tensor3 J(jacobian.ncols(),1,n);
                   J(joker,0,joker) = transpose( jacobian(ii,joker) );
-                  apply_y_unit2( J, yv, y_unit, y_f[i0], i_pol ); 
+                  apply_iy_unit2( J, yv, iy_unit, y_f[i0], i_pol ); 
                   jacobian(ii,joker) = transpose( J(joker,0,joker) );
                 }
             }
 
           // y (must be done last)
-          apply_y_unit( yv, y_unit, y_f[i0], i_pol );
+          apply_iy_unit( yv, iy_unit, y_f[i0], i_pol );
           y[ii] = yv(0,joker);
 
           i0 += n;
@@ -2440,11 +2490,11 @@ void yApplyYunit(
 
           // Jacobian
           if( do_j )
-            { apply_y_unit2( MatrixView( jacobian(i,joker) ), yv, 
-                                                     y_unit, y_f[i], i_pol ); }
+            { apply_iy_unit2( MatrixView( jacobian(i,joker) ), yv, 
+                                                    iy_unit, y_f[i], i_pol ); }
 
           // y (must be done last)
-          apply_y_unit( yv, y_unit, y_f[i], i_pol );
+          apply_iy_unit( yv, iy_unit, y_f[i], i_pol );
           y[i] = yv(0,0);
         }
     }

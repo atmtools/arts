@@ -124,8 +124,8 @@ AgendaSet( ybatch_calc_agenda ){
   yCalc
 
   # Convert the measurement from radiance units to Planck Tb:
-  StringSet( y_unit, "PlanckBT" )
-  yApplyYunit
+  StringSet( iy_unit, "PlanckBT" )
+  yApplyUnit
 }
 
 # Set number of batch cases (uncomment according to your needs):

@@ -31,7 +31,7 @@ output_file_formatSetZippedAscii
 
 # AMSU uses Planck brightness temperatures
 # ---
-StringSet( y_unit, "PlanckBT" )
+StringSet( iy_unit, "PlanckBT" )
 
 #
 # modifiy the maximum propagation step, from the default(10.e3)

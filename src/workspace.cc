@@ -1604,6 +1604,16 @@ void Workspace::define_wsv_data()
        GROUP( "Agenda" )));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "isotopologue_ratios" ),
+       DESCRIPTION
+       (
+        "Isotopologue ratios. This variable can be set to default values by\n"
+        "calling *isotopologue_ratiosInitFromBuiltin*\n"
+        ),
+       GROUP( "SpeciesAuxData" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),
       DESCRIPTION
@@ -1626,16 +1636,6 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
       GROUP( "Matrix" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "isotopologue_ratios" ),
-       DESCRIPTION
-       (
-        "Isotopologue ratios. This variable can be set to default values by calling\n"
-        "*isotopologue_ratiosInitFromBuiltin*\n"
-        ),
-       GROUP( "SpeciesAuxData" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1795,6 +1795,20 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_unit" ),
+       DESCRIPTION
+       (
+        "Selection of output unit for some radiative transfer methods.\n"
+        "\n"
+        "This variable allows that the unit of the output radiance/intensity\n"
+        "is changed. The possible choices differ between the radiative\n"
+        "methods, including not considering the variable at all.\n"
+        "Accordingly, for details see the radiative method you have selected.\n"
+        ),
+       GROUP( "String" )));
+  
  wsv_data.push_back
    (WsvRecord
     ( NAME( "jacobian" ),
@@ -2249,7 +2263,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Output from Monte Carlo functions. \n"
         "\n"
-        "Units: Depends on *y_unit*.\n"
+        "Units: Depends on *iy_unit*.\n"
         "\n"
         "Size:  [ stokes_dim ]\n"
         ), 
@@ -4584,42 +4598,6 @@ void Workspace::define_wsv_data()
         ),
       GROUP( "Matrix" )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "y_unit" ),
-       DESCRIPTION
-       (
-        "Unit for spectral values returned by radiative transfer methods.\n"
-        "\n"
-        "The basic unit is determined by the definition of background\n"
-        "radiation and atmospheric and surface source terms. The standard\n"
-        "choices give radiances in unit of [W/m2/Hz/sr]. This variable\n"
-        "allows conversion to other units.\n"
-        "\n"
-        "Please note that there is no way for ARTS to check the actual unit\n"
-        "of a spectral value. In principle, the unit can differ between the\n"
-        "elements. The user must makes sure that any unit conversion is\n"
-        "applied correctly, and in accordance with the calibration of the\n"
-        "instrument of concern. Note especially that the brightness\n"
-        "temperature of pure Stokes elements is obtained with a common power\n"
-        "reference. In short, the ratio is Q/I is not changed by the\n"
-        "conversion (beside a non-linear effect for PlanckBT). This in\n"
-        "contrast to Iv and other single \"measurement\" single polarisation\n"
-        "componenets, where a Tb of e.g. Iv=200K corresponds to half of the\n"
-        "power for I=200K (total power). See further the documentation.\n"
-        "See *y_pol* for defined polarisation componenets.\n"
-        "\n"
-        "Possible choices are:\n"
-        " \"1\"             : No conversion.\n"
-        " \"RJBT\"          : Conversion to Rayleigh-Jean brightness temperature.\n"
-        " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
-        " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per wavelength unit).\n"
-        " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per wavenumber unit).\n"
-        "\n"
-        "Usage: Set by the user.\n"
-        ),
-       GROUP( "String" )));
-  
   wsv_data.push_back
    (WsvRecord
     ( NAME( "yb" ),

@@ -109,11 +109,11 @@ void adjust_los(
 
 
 
-//! apply_y_unit
+//! apply_iy_unit
 /*!
     Performs conversion from radiance to other units.
 
-    Use *apply_y_unit2* for conversion of jacobian data.
+    Use *apply_iy_unit2* for conversion of jacobian data.
 
     \param   iy       In/Out: Tensor3 with data to be converted, where 
                       column dimension corresponds to Stokes dimensionality
@@ -125,13 +125,13 @@ void adjust_los(
     \author Patrick Eriksson 
     \date   2010-04-07
 */
-void apply_y_unit( 
+void apply_iy_unit( 
             MatrixView   iy, 
          const String&   y_unit, 
        ConstVectorView   f_grid,
    const ArrayOfIndex&   i_pol )
 {
-  // The code is largely identical between the two apply_y_unit functions.
+  // The code is largely identical between the two apply_iy_unit functions.
   // If any change here, remember to update the other function.
 
   const Index nf = iy.nrows();
@@ -207,9 +207,9 @@ void apply_y_unit(
 
 
 
-//! apply_y_unit2
+//! apply_iy_unit2
 /*!
-    Largely as *apply_y_unit* but operates on jacobian data.
+    Largely as *apply_iy_unit* but operates on jacobian data.
 
     The associated spectrum data *iy* must be in radiance. That is, the
     spectrum can only be converted to Tb after the jacobian data. 
@@ -224,14 +224,14 @@ void apply_y_unit(
     \author Patrick Eriksson 
     \date   2010-04-10
 */
-void apply_y_unit2( 
+void apply_iy_unit2( 
    Tensor3View           J,
    ConstMatrixView       iy, 
    const String&         y_unit, 
    ConstVectorView       f_grid,
    const ArrayOfIndex&   i_pol )
 {
-  // The code is largely identical between the two apply_y_unit functions.
+  // The code is largely identical between the two apply_iy_unit functions.
   // If any change here, remember to update the other function.
 
   const Index nf = iy.nrows();
@@ -1675,7 +1675,6 @@ void iyb_calc(
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
   const Agenda&                     iy_main_agenda,
-  const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -1707,11 +1706,6 @@ void iyb_calc(
   // For iy_aux we don't know the number of quantities, and we have to store
   // all outout
   ArrayOfArrayOfTensor4  iy_aux_array( nza*naa );
-
-  // Polarisation index variable
-  ArrayOfIndex i_pol(stokes_dim);
-  for( Index is=0; is<stokes_dim; is++ )
-    { i_pol[is] = is + 1; }
 
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
@@ -1772,8 +1766,7 @@ void iyb_calc(
                                      z_field, vmr_field, f_grid, rte_pos, los, 
                                      rte_pos2, l_iy_main_agenda );
 
-              // Check that aux data can be handled and apply y_unit for 
-              // the quantities where it makes sense
+              // Check that aux data can be handled
               for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
                 {
                   if( iy_aux_array[iang][q].ncols() > 1  ||  
@@ -1781,24 +1774,17 @@ void iyb_calc(
                     { throw runtime_error( "For calculations using yCalc, "
                        "*iy_aux_vars* can not include\nvariables of "
                        "along-the-path or extinction matrix type."); }
-                  if( iy_aux_vars[q] == "iy" || iy_aux_vars[q] == "Error" ||
-                      iy_aux_vars[q] == "Error (uncorrelated)" )
-                    { apply_y_unit( iy_aux_array[iang][q](joker,joker,0,0), 
-                                                      y_unit, f_grid, i_pol ); }
                 }              
 
               // Start row in iyb etc. for present LOS
               //
               const Index row0 = iang * nf * stokes_dim;
 
-              // Jacobian part (must be converted to Tb before iy for PlanckBT)
+              // Jacobian part 
               // 
               if( j_analytical_do )
                 {
                   FOR_ANALYTICAL_JACOBIANS_DO(
-                    //
-                    apply_y_unit2( diy_dx[iq], iy, y_unit, f_grid, i_pol );
-                    //
                     for( Index ip=0; ip<jacobian_indices[iq][1] -
                                         jacobian_indices[iq][0]+1; ip++ )
                       {
@@ -1811,10 +1797,7 @@ void iyb_calc(
                   )
                 }
 
-              // iy : unit conversion and copy to iyb
-              //
-              apply_y_unit( iy, y_unit, f_grid, i_pol );
-              //
+              // iy : copy to iyb
               for( Index is=0; is<stokes_dim; is++ )
                 { iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); }
 

@@ -79,7 +79,7 @@ sensorOff
 
 # We select here to use Rayleigh-Jean brightness temperatures
 # ---
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 
 
 # Extract radiative nackground and optical depth as auxilary variables

@@ -238,6 +238,9 @@ AgendaSet( ybatch_calc_agenda ){
   basics_checkedCalc
   cloudbox_checkedCalc  
 
+  # No unit conversion at this stage
+  StringSet( iy_unit, "1" )
+
   # Calculate incoming radiation field on cloudbox boundaries
   CloudboxGetIncoming
 
@@ -247,12 +250,13 @@ AgendaSet( ybatch_calc_agenda ){
   # Executes doit_mono_agenda for all frequencies
   ScatteringDoit
 
+  # Here we choose our *y* output unit 
+  StringSet( iy_unit, "PlanckBT" )
+
   # Calculate complete measurement vector 
   yCalc
 }
 
-# Here we choose our *y* output unit 
-StringSet( y_unit, "PlanckBT" )
 
 # Set number of batch cases:
 nelemGet( ybatch_n, batch_atm_fields_compact )

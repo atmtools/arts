@@ -4,5 +4,5 @@ output_file_formatSetZippedAscii
 
 # HIRS spectral response functions assume radiance.
 # ---
-StringSet( y_unit, "1" )
+StringSet( iy_unit, "1" )
 }

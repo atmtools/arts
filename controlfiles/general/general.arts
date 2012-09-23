@@ -133,7 +133,7 @@ NumericSet( ppath_lmax, 10e3 )
 #
 # No unit conversion 
 #
-StringSet( y_unit, "1" )
+StringSet( iy_unit, "1" )
 
 #
 # Batch calculations start at index 0 by default

@@ -70,13 +70,13 @@ void adjust_los(
          VectorView   los, 
    const Index &      atmosphere_dim );
 
-void apply_y_unit( 
+void apply_iy_unit( 
             MatrixView   iy, 
          const String&   y_unit, 
        ConstVectorView   f_grid,
    const ArrayOfIndex&   i_pol );
 
-void apply_y_unit2( 
+void apply_iy_unit2( 
    Tensor3View           J,
    ConstMatrixView       iy, 
    const String&         y_unit, 
@@ -275,7 +275,6 @@ void iyb_calc(
   ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
   const Agenda&                     iy_main_agenda,
-  const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,

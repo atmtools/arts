@@ -256,7 +256,7 @@ ScatteringDoit
 
 # Calculate RT from cloudbox boundary to the sensor
 #
-StringSet( y_unit, "RJBT" )
+StringSet( iy_unit, "RJBT" )
 #
 yCalc
 
