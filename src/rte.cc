@@ -111,7 +111,8 @@ void adjust_los(
 
 //! apply_iy_unit
 /*!
-    Performs conversion from radiance to other units.
+    Performs conversion from radiance to other units, as well as applies
+    refractive index to fulfill the n2-law of radiance.
 
     Use *apply_iy_unit2* for conversion of jacobian data.
 
@@ -120,6 +121,7 @@ void adjust_los(
                       and row dimension corresponds to frequency.
     \param   y_unit   As the WSV.
     \param   f_grid   As the WSV.
+    \param   n        Refractive index at the observation position.
     \param   i_pol    Polarisation indexes. See documentation of y_pol.
 
     \author Patrick Eriksson 
@@ -129,6 +131,7 @@ void apply_iy_unit(
             MatrixView   iy, 
          const String&   y_unit, 
        ConstVectorView   f_grid,
+   const Numeric&        n,
    const ArrayOfIndex&   i_pol )
 {
   // The code is largely identical between the two apply_iy_unit functions.
@@ -141,7 +144,10 @@ void apply_iy_unit(
   assert( i_pol.nelem() == ns );
 
   if( y_unit == "1" )
-    {}
+    {
+      if( n != 1 )
+        { iy *= (n*n); }
+    }
 
   else if( y_unit == "RJBT" )
     {
@@ -183,7 +189,7 @@ void apply_iy_unit(
     {
       for( Index iv=0; iv<nf; iv++ )
         {
-          const Numeric scfac = f_grid[iv] * ( f_grid[iv] / SPEED_OF_LIGHT );
+          const Numeric scfac = n*n * f_grid[iv] * (f_grid[iv]/SPEED_OF_LIGHT);
           for( Index is=0; is<ns; is++ )
             { iy(iv,is) *= scfac; }
         }
@@ -191,7 +197,7 @@ void apply_iy_unit(
   
   else if ( y_unit == "W/(m^2 m-1 sr)" )
     {
-      iy *= SPEED_OF_LIGHT;
+      iy *= ( n * n * SPEED_OF_LIGHT );
     }
 
   else
@@ -220,6 +226,8 @@ void apply_iy_unit(
     \param   iy       Associated radiance data.
     \param   y_unit   As the WSV.
     \param   f_grid   As the WSV.
+    \param   n        Refractive index at the observation position.
+    \param   i_pol    Polarisation indexes. See documentation of y_pol.
 
     \author Patrick Eriksson 
     \date   2010-04-10
@@ -229,6 +237,7 @@ void apply_iy_unit2(
    ConstMatrixView       iy, 
    const String&         y_unit, 
    ConstVectorView       f_grid,
+   const Numeric&        n,
    const ArrayOfIndex&   i_pol )
 {
   // The code is largely identical between the two apply_iy_unit functions.
@@ -244,7 +253,10 @@ void apply_iy_unit2(
   assert( i_pol.nelem() == ns );
 
   if( y_unit == "1" )
-    {}
+    {
+      if( n != 1 )
+        { J *= (n*n); }
+    }
 
   else if( y_unit == "RJBT" )
     {
@@ -296,7 +308,7 @@ void apply_iy_unit2(
     {
       for( Index iv=0; iv<nf; iv++ )
         {
-          const Numeric scfac = f_grid[iv] * ( f_grid[iv] / SPEED_OF_LIGHT );
+          const Numeric scfac = n*n * f_grid[iv] * (f_grid[iv]/SPEED_OF_LIGHT);
           for( Index ip=0; ip<np; ip++ )
             {
               for( Index is=0; is<ns; is++ )
@@ -307,7 +319,7 @@ void apply_iy_unit2(
   
   else if ( y_unit == "W/(m^2 m-1 sr)" )
     {
-      J *= SPEED_OF_LIGHT;
+      J *= ( n *n * SPEED_OF_LIGHT );
     }
   
   else
@@ -1216,9 +1228,8 @@ void get_ppath_abs(
       Tensor4  abs_mat_per_species;
       //
       abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
-                                         rte_doppler, rte_mag, ppath.los(ip,joker), ppath_p[ip], 
-                                         ppath_t[ip], ppath_vmr(joker,ip),
-                                         l_abs_mat_per_species_agenda );
+              rte_doppler, rte_mag, ppath.los(ip,joker), ppath_p[ip], 
+              ppath_t[ip], ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
 
       // Copy to output argument
       //

@@ -338,7 +338,7 @@ void iyApplyUnit(
   for( Index is=0; is<stokes_dim; is++ )
     { i_pol[is] = is + 1; }
 
-  apply_iy_unit( iy, iy_unit, f_grid, i_pol );
+  apply_iy_unit( iy, iy_unit, f_grid, 1, i_pol );
   
   for( Index i=0; i<iy_aux_vars.nelem(); i++ )
     {
@@ -349,7 +349,7 @@ void iyApplyUnit(
             throw runtime_error( "Data marked as \"iy\" or \"Error\" "
                                  "have incorrect size." );
           for( Index j=0; j<iy_aux[i].ncols(); j++ )
-            { apply_iy_unit( iy_aux[i](joker,joker,0,j), iy_unit, f_grid, 
+            { apply_iy_unit( iy_aux[i](joker,joker,0,j), iy_unit, f_grid, 1, 
                                                                       i_pol ); }
         }
     }
@@ -845,13 +845,6 @@ void iyEmissionStandard(
             }
           else
             {
-              /*
-              // Vector for blackbody radiation
-              Vector b(ns,0.0);
-              // Identity matrix
-              Matrix I(ns,ns); id_mat(I);
-              */
-              //
               for( Index iv=0; iv<nf; iv++ )  
                 {
                   // Unpolarised absorption:
@@ -868,20 +861,6 @@ void iyEmissionStandard(
                       // Transmitted term
                       Vector tt(ns);
                       mult( tt, trans_partial(iv,joker,joker,ip), iy(iv,joker));
-                      // Emission term
-                      /*
-                      Vector t2(ns);
-                      b[0] = bbar[iv];
-                      Matrix ImT(ns,ns);
-                      for( Index is1=0; is1<ns; is1++ ) {
-                        for( Index is2=0; is2<ns; is2++ ) {
-                          ImT(is1,is2) = I(is1,is2) - 
-                                               trans_partial(iv,is1,is2,ip); } }
-                      mult( t2, ImT, b );
-                      // Sum up
-                      for( Index is=0; is<ns; is++ )
-                        { iy(iv,is) = t1[is] + t2[is]; }
-                      */
                       // Add emission, first Stokes element
                       iy(iv,0) = tt[0] + bbar[iv]*(1-trans_partial(iv,0,0,ip));
                       // Remaining Stokes elements
@@ -987,19 +966,21 @@ void iyEmissionStandard(
       // 
       if( j_analytical_do )
         {
-          FOR_ANALYTICAL_JACOBIANS_DO(
-            apply_iy_unit2( diy_dx[iq], iy, iy_unit, f_grid, i_pol ); )
+          FOR_ANALYTICAL_JACOBIANS_DO( apply_iy_unit2( diy_dx[iq], iy, iy_unit,
+                                                       f_grid, n, i_pol ); )
         } 
 
       // iy
-      apply_iy_unit( iy, iy_unit, f_grid, i_pol );
+      apply_iy_unit( iy, iy_unit, f_grid, n, i_pol );
 
       // iy_aux
       for( Index q=0; q<iy_aux.nelem(); q++ )
         {
           if( iy_aux_vars[q] == "iy")
             { 
-              apply_iy_unit( iy_aux[q](joker,joker,0,0), iy_unit, f_grid, i_pol);
+              for( Index ip=0; ip<ppath.np; ip++ )
+                { apply_iy_unit( iy_aux[q](joker,joker,0,ip), iy_unit, f_grid, 
+                                 ppath.nreal[ip], i_pol ); }
             }
         }
     }
@@ -2460,13 +2441,13 @@ void yApplyUnit(
                 {
                   Tensor3 J(jacobian.ncols(),1,n);
                   J(joker,0,joker) = transpose( jacobian(ii,joker) );
-                  apply_iy_unit2( J, yv, iy_unit, y_f[i0], i_pol ); 
+                  apply_iy_unit2( J, yv, iy_unit, y_f[i0], 1, i_pol ); 
                   jacobian(ii,joker) = transpose( J(joker,0,joker) );
                 }
             }
 
           // y (must be done last)
-          apply_iy_unit( yv, iy_unit, y_f[i0], i_pol );
+          apply_iy_unit( yv, iy_unit, y_f[i0], 1, i_pol );
           y[ii] = yv(0,joker);
 
           i0 += n;
@@ -2491,10 +2472,10 @@ void yApplyUnit(
           // Jacobian
           if( do_j )
             { apply_iy_unit2( MatrixView( jacobian(i,joker) ), yv, 
-                                                    iy_unit, y_f[i], i_pol ); }
+                              iy_unit, y_f[i], 1, i_pol ); }
 
           // y (must be done last)
-          apply_iy_unit( yv, iy_unit, y_f[i], i_pol );
+          apply_iy_unit( yv, iy_unit, y_f[i], 1, i_pol );
           y[i] = yv(0,0);
         }
     }

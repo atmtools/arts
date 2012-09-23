@@ -1,5 +1,18 @@
 2012-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-309
+
+	* src/m_rte.cc (iyApplyUnit, yApplyUnit): n set to 1 in call of
+	apply_iy_unit functions.
+
+	(iyEmissionStandard): apply_iy_unit functions called with n.
+
+	* src/rte.cc (apply_iy_unit): Added refractive index as input, and
+	n2-law included in used expressions.
+
+	(apply_iy_unit2): As above.
+
+2012-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-308
 

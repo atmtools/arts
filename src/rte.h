@@ -74,6 +74,7 @@ void apply_iy_unit(
             MatrixView   iy, 
          const String&   y_unit, 
        ConstVectorView   f_grid,
+   const Numeric&        n,
    const ArrayOfIndex&   i_pol );
 
 void apply_iy_unit2( 
@@ -81,6 +82,7 @@ void apply_iy_unit2(
    ConstMatrixView       iy, 
    const String&         y_unit, 
    ConstVectorView       f_grid,
+   const Numeric&        n,
    const ArrayOfIndex&   i_pol );
 
 void bending_angle1d( 
