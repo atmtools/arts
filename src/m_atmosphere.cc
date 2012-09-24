@@ -500,6 +500,10 @@ void basics_checkedCalc(
     { throw runtime_error ( "The frequency grid is empty." ); }
   chk_if_increasing ( "f_grid", f_grid );
 
+  if (min(f_grid) <= 0) {
+    throw runtime_error("All frequencies in *f_grid* must be > 0.");
+  }
+
   // If here, all OK
   basics_checked = 1;
 }
