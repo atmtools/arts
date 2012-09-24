@@ -1433,6 +1433,8 @@ void PWR98H2OAbsModel (MatrixView       pxsec,
   assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature:
+#pragma omp parallel for      \
+  if(!arts_omp_in_parallel())
   for ( Index i=0; i<n_p; ++i )
     {
       // here the total pressure is not multiplied by the H2O vmr for the
@@ -7265,19 +7267,28 @@ void PWR93O2AbsModel (MatrixView        pxsec,
   assert ( n_f==pxsec.nrows() );
   assert ( n_p==pxsec.ncols() );
 
+  String fail_msg;
+  bool failed = false;
+
   // Loop pressure/temperature:
+#pragma omp parallel for      \
+  if(!arts_omp_in_parallel())
   for ( Index i=0; i<n_p; ++i )
     {
       // check if O2-VMR will cause an underflow due to division by zero:
       if (vmr[i] < VMRCalcLimit)
-  {
-    ostringstream os;
-    os << "ERROR: PWR93 O2 full absorption model has detected a O2 volume mixing ratio of "
-       << vmr[i] << " which is below the threshold of " << VMRCalcLimit << ".\n"
-       << "Therefore no calculation is performed.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+      {
+          ostringstream os;
+          os << "ERROR: PWR93 O2 full absorption model has detected a O2 volume mixing ratio of "
+          << vmr[i] << " which is below the threshold of " << VMRCalcLimit << ".\n"
+          << "Therefore no calculation is performed.\n";
+#pragma omp critical (PWR93O2AbsModel_error)
+          {
+              fail_msg = os.str();
+              failed = true;
+          }
+          continue;
+      }
       // relative inverse temperature [1]
       Numeric TH     = 3.0000e2 / abs_t[i];
       Numeric TH1    = (TH-1.000e0);
@@ -7335,6 +7346,9 @@ void PWR93O2AbsModel (MatrixView        pxsec,
     pxsec(s,i) += CONT + (2.414322e7 * SUM * abs_p[i] * pow(TH, (Numeric)3.) / PI);
   }
     }
+
+  if (failed) throw runtime_error(fail_msg);
+
   return;
 }
 //

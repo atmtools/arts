@@ -1,3 +1,67 @@
+2012-09-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-310
+
+	* OpenMP cleanup, work in progress.
+
+	* src/m_batch.cc (ybatchCalc), src/rte.cc (get_ppath_abs):
+
+	Never exit from inside the parallel loop. Instead set an abort flag
+	that skips remaining iterations, collect runtime error messages (from
+	all threads if necessary) and rethrow them after the loop.
+
+	Work in progress. This should be done for all parallel loops.
+	I'll continue with that in the next commits.
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Tweak log output to play nicer with multiple threads.
+
+	Don't call arts_exit inside here because we might be run inside
+	multiple threads. Throw a runtime_error instead. Calling the C library
+	exit function from multiple thread gives random errors (assertions,
+	terminate called twice message, or even core dumps) at program exit.
+
+	To be done in the next commits: Make sure we only have a single exit
+	point out of the program. All exceptions should be passed upwards
+	until they're dealed with in the main function.
+
+	* src/continua.cc (PWR98H2OAbsModel): Parallelize pressure loop.
+
+	(PWR93O2AbsModel): Parallelize pressure loop. Handle exception inside
+	loop and rethrow it after the loop.
+
+	* src/m_abs_lookup.cc (abs_lookupCalc):
+
+	Remove omp nested. Handled properly by the loop condition.
+
+	(abs_mat_fieldCalc): Tweak pressure loop parallel condition.
+
+	* src/m_abs_lookup.cc, src/m_batch.cc, src/messages.h, src/rng.cc, 
+	src/m_abs_lookup.cc, src/rte.cc:
+
+	Replace all unnamed critical regions with named regions. All unnamed
+	critical directives map to the same unspecified name. That means only
+	one thread at a time will be allowed to enter one of those regions
+	throughout the whole program at any time.
+
+	* src/absorption.cc (xsec_species): Tweak parallel condition.
+
+	* src/m_general.cc (Print): Move output of newline to the right place.
+
+	(SWITCH_OUTPUT): Use ostringstream for nicer multithreaded output.
+
+	(Print): Remove overload for ArrayOfIndex to use the output operator
+	directly.
+
+	* src/main.cc: Don't turn on omp nested. Usually not necessary and
+	might have bad side effects (thread explosion). Should only be turned
+	on in places that really need it.
+
+	* src/m_atmosphere.cc, src/m_doit.cc, src/m_rte.cc:
+
+	Remove commented out omp code.
+
 2012-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-309

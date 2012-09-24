@@ -226,17 +226,13 @@ void Agenda::execute(Workspace& ws) const
       try
         {
           {
-//            if ((mdd.SetMethod() && mrr.Out().nelem()
-//                 && Workspace::wsv_data[mrr.Out()[0]].Name().substr(0, 5) == "auto_")
-//                || (mdd.Name() == "Delete" && mrr.In().nelem()
-//                    && Workspace::wsv_data[mrr.In()[0]].Name().substr(0, 5) == "auto_"))
               if (mrr.isInternal())
               {
-                out3 << "- " << mdd.Name() << "\n";
+                out3 << "- " + mdd.Name() + "\n";
               }
             else
               {
-                out1 << "- " << mdd.Name() << "\n";
+                out1 << "- " + mdd.Name() + "\n";
               }
           }
         
@@ -245,8 +241,8 @@ void Agenda::execute(Workspace& ws) const
             for (Index s = 0; s < v.nelem(); ++s)
               if ((s != v.nelem()-1 || !mdd.SetMethod())
                   && !ws.is_initialized(v[s]))
-                give_up("Method "+mdd.Name()+" needs input variable: "+
-                        Workspace::wsv_data[v[s]].Name(), verbosity);
+                throw runtime_error("Method "+mdd.Name()+" needs input variable: "+
+                        Workspace::wsv_data[v[s]].Name());
           }
 
           { // Check if all output variables which are also used as input
@@ -254,8 +250,8 @@ void Agenda::execute(Workspace& ws) const
             const ArrayOfIndex& v = mdd.InOut();
             for (Index s = 0; s < v.nelem(); ++s)
               if (!ws.is_initialized(mrr.Out()[v[s]]))
-                give_up("Method "+mdd.Name()+" needs input variable: "+
-                        Workspace::wsv_data[mrr.Out()[v[s]]].Name(), verbosity);
+                throw runtime_error("Method "+mdd.Name()+" needs input variable: "+
+                        Workspace::wsv_data[mrr.Out()[v[s]]].Name());
           }
 
           // Call the getaway function:

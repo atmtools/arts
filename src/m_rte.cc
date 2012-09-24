@@ -2234,13 +2234,6 @@ void yCalc(
   Agenda l_jacobian_agenda (jacobian_agenda);
   Agenda l_iy_main_agenda (iy_main_agenda);
 
-/*#pragma omp parallel for                                           \
-  if(!arts_omp_in_parallel() && nmblock>1 && nmblock>=nza)        \
-    default(none)                                                   \
-    firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)     \
-    shared(j_analytical_do, sensor_los, mblock_za_grid, mblock_aa_grid, \
-           vmr_field, t_field, lon_grid, lat_grid, p_grid, f_grid,      \
-           sensor_pos, joker, naa)*/
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && \
      nmblock>=arts_omp_get_max_threads() && \

@@ -74,7 +74,7 @@ void Rng::seed(unsigned long int n, const Verbosity& verbosity)
   // Static pool of previously used seeds.
   static vector<unsigned long int> seeds;
 
-#pragma omp critical
+#pragma omp critical (Rng_seed)
   {
     unsigned long int n_orig = n;
     //cout << "Requested seed: " << n;

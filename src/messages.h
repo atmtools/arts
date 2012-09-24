@@ -176,7 +176,7 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
     
     if (aos.sufficient_priority_screen())
     {
-#pragma omp critical
+#pragma omp critical (ArtsOut_screen)
       {
         if (aos.get_priority() == 0)
             cerr << t << flush;
@@ -187,7 +187,7 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
     
     if (aos.sufficient_priority_file())
     {
-#pragma omp critical
+#pragma omp critical (ArtsOut_file)
       {
         //    if (report_file)              // Check if report file is good
         report_file << t << flush;

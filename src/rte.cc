@@ -1168,6 +1168,9 @@ void get_ppath_abs(
   // Size variable
   ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
 
+  bool abort = false;
+  String abort_msg;
+
   // Loop ppath points
   //
   Workspace l_ws (ws);
@@ -1178,6 +1181,8 @@ void get_ppath_abs(
   firstprivate(l_ws, l_abs_mat_per_species_agenda)
   for( Index ip=0; ip<np; ip++ )
     {
+      if (abort) continue;
+
       // Doppler shift
       //
       Numeric rte_doppler = 0;
@@ -1227,14 +1232,24 @@ void get_ppath_abs(
       //
       Tensor4  abs_mat_per_species;
       //
-      abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
+      try {
+          abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
               rte_doppler, rte_mag, ppath.los(ip,joker), ppath_p[ip], 
               ppath_t[ip], ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
+      } catch (runtime_error e) {
+          abort = true;
+#pragma omp critical (get_ppath_abs_abort_msg)
+          abort_msg = e.what();
+          continue;
+      }
 
       // Copy to output argument
       //
       ppath_abs(joker,joker,joker,joker,ip) = abs_mat_per_species;
     }
+
+    if (abort)
+        throw runtime_error(abort_msg);
 }
 
 
@@ -1724,13 +1739,6 @@ void iyb_calc(
   Agenda l_iy_main_agenda (iy_main_agenda);
   
   // Start of actual calculations
-/*#pragma omp parallel for                                        \
-  if(!arts_omp_in_parallel() && nza>1)                            \
-  default(none)                                                   \
-  firstprivate(l_ws, l_iy_main_agenda)                        \
-  shared(sensor_los, mblock_za_grid, mblock_aa_grid, vmr_field,   \
-         t_field, f_grid, sensor_pos, \
-         joker, naa) */
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && nza>=arts_omp_get_max_threads())                            \
   firstprivate(l_ws, l_iy_main_agenda)

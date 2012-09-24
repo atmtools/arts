@@ -99,25 +99,12 @@ void Print(// WS Generic Input:
 {
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
-    os << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1]
-         << "\n";
+  {
+      if (i) os << '\n';
+      os << "  " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1];
+  }
   CREATE_OUTS;
   SWITCH_OUTPUT (level, os.str ());
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Print(// WS Generic Input:
-           const ArrayOfIndex& x,
-           // Keywords:
-           const Index&        level,
-           const Verbosity&    verbosity)
-{
-  ostringstream os;
-  for( Index i=0; i<x.nelem(); i++ )
-    os << x[i] << " ";
-  CREATE_OUTS;
-  SWITCH_OUTPUT (level, os.str () << '\n');
 }
 
 
@@ -130,7 +117,10 @@ void Print(// WS Generic Input:
 {
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
-    os << x[i] << '\n';
+  {
+      if (i) os << '\n';
+      os << "  " << x[i];
+  }
   CREATE_OUTS;
   SWITCH_OUTPUT (level, os.str ());
 }

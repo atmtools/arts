@@ -81,10 +81,6 @@ void abs_lookupCalc(// WS Output:
   CREATE_OUT2;
   CREATE_OUT3;
   
-  // We need this to restore the original setting of omp_nested at the
-  // end.
-  int omp_nested_original = arts_omp_get_nested();
-
   // Check that correct isotopologue ratios are defined for the species
   // we want to calculate
   checkIsotopologueRatios(abs_species, isotopologue_ratios);
@@ -285,12 +281,6 @@ void abs_lookupCalc(// WS Output:
       out2 << "  No temperature perturbations.\n";
       these_t_pert.resize(1);
       these_t_pert = 0;
-
-      // In this case, we also want to enable nested parallel
-      // execution. Normally, it is the loop over the temperature
-      // perturbations that is parallel, but in this case that one is
-      // trivial. 
-      arts_omp_set_nested(1);
     }
 
   const Index these_t_pert_nelem = these_t_pert.nelem();
@@ -392,19 +382,10 @@ void abs_lookupCalc(// WS Output:
           // function. Anyway, shared is the correct setting for
           // abs_lookup, so there is no problem.
 
-/*#pragma omp parallel for                                       \
-  if(!arts_omp_in_parallel()                                   \
-     && these_t_pert_nelem>=arts_omp_get_max_threads())        \
-  default(none)                                                \
-  shared(these_t_pert, out3, this_species,                     \
-         this_lineshape, these_lines, this_vmr, abs_h2o,       \
-         joker, spec, abs_lookup, abs_p, f_grid,               \
-         abs_cont_models, abs_cont_parameters, abs_cont_names, \
-         abs_n2)                                               \
-  private(this_t, abs_xsec_per_species) */
 #pragma omp parallel for                                       \
   if(!arts_omp_in_parallel()                                   \
-     && these_t_pert_nelem>=arts_omp_get_max_threads())        \
+     && (these_t_pert_nelem >= arts_omp_get_max_threads() ||   \
+         these_t_pert_nelem >= abs_p.nelem()))                 \
   private(this_t, abs_xsec_per_species)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
@@ -500,9 +481,6 @@ void abs_lookupCalc(// WS Output:
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
   abs_lookup_is_adapted = 1;
-
-  // Reset the omp_nested state to original value:
-  arts_omp_set_nested(omp_nested_original);
 }
 
 
@@ -2279,15 +2257,8 @@ void abs_mat_fieldCalc( Workspace& ws,
 
 
   // Now we have to loop all points in the atmosphere:
-/*#pragma omp parallel for                                                 \
-  if(!arts_omp_in_parallel() && n_pressures>=arts_omp_get_max_threads()) \
-  default(none)                                                          \
-  shared(out3, joker, f_extent, p_grid, t_field, vmr_field, f_index,     \
-         asg_field)                                                      \
-  firstprivate(l_ws, l_sga_agenda)                                       \
-  private(asg, a_vmr_list) */
 #pragma omp parallel for                                                 \
-  if(!arts_omp_in_parallel() && n_pressures>=arts_omp_get_max_threads()) \
+  if(!arts_omp_in_parallel() && n_pressures >= n_frequencies) \
   firstprivate(l_ws, l_amps_agenda)                                       \
   private(amps, a_vmr_list)
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
@@ -2315,7 +2286,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                                            ipr, ila, ilo );
 
                 const Vector rte_mag_dummy(1,-1.);
-		const Vector ppath_los_dummy;
+                const Vector ppath_los_dummy;
 
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
@@ -2617,13 +2588,6 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_t = -999;
 
-/*#pragma omp parallel for                        \
-  if(!arts_omp_in_parallel())                   \
-  default(none)                                 \
-  shared(inbet_t_pert, joker, h2o_index, err_t, al, abs_cont_parameters, \
-         abs_cont_models, abs_cont_names, abs_lineshape,                 \
-         abs_lines_per_species, abs_n2, abs_nls_interp_order,            \
-         abs_t_interp_order, abs_p_interp_order) */
 #pragma omp parallel for                        \
   if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p; ++pi)
@@ -2670,7 +2634,7 @@ void abs_lookupTestAccuracy(// WS Input:
 
         //Critical directive here is necessary, because all threads
         //access the same variable.
-#pragma omp critical
+#pragma omp critical (abs_lookupTestAccuracy_piti)
         {
           if (max_abs_rel_diff > err_t)
             err_t = max_abs_rel_diff;
@@ -2691,13 +2655,6 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_nls = -999;
 
-/*#pragma omp parallel for                                               \
-  if(!arts_omp_in_parallel())                                          \
-  default(none)                                                        \
-  shared(inbet_nls_pert, joker, h2o_index, err_nls, al,                \
-         abs_cont_parameters, abs_cont_models, abs_cont_names,         \
-         abs_lineshape, abs_lines_per_species, abs_n2,                 \
-         abs_nls_interp_order, abs_t_interp_order, abs_p_interp_order) */
 #pragma omp parallel for                                               \
   if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p; ++pi)
@@ -2745,7 +2702,7 @@ void abs_lookupTestAccuracy(// WS Input:
 
         //Critical directive here is necessary, because all threads
         //access the same variable.
-#pragma omp critical
+#pragma omp critical (abs_lookupTestAccuracy_pini)
         {
           if (max_abs_rel_diff > err_nls)
             err_nls = max_abs_rel_diff;
@@ -2776,13 +2733,6 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_p = -999;
 
-/*#pragma omp parallel for                                               \
-  if(!arts_omp_in_parallel())                                          \
-  default(none)                                                        \
-  shared(inbet_p_grid, inbet_t_ref, joker, inbet_vmrs_ref, h2o_index,  \
-         err_p, al, abs_cont_parameters, abs_cont_models,              \
-         abs_cont_names, abs_lineshape, abs_lines_per_species, abs_n2, \
-         abs_nls_interp_order, abs_t_interp_order, abs_p_interp_order) */
 #pragma omp parallel for                                               \
   if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p-1; ++pi)
@@ -2831,7 +2781,7 @@ void abs_lookupTestAccuracy(// WS Input:
 
       //Critical directive here is necessary, because all threads
       //access the same variable.
-#pragma omp critical
+#pragma omp critical (abs_lookupTestAccuracy_pi)
       {
         if (max_abs_rel_diff > err_p)
           err_p = max_abs_rel_diff;
@@ -2846,15 +2796,6 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_tot = -999;
 
-/*#pragma omp parallel for                                               \
-  if(!arts_omp_in_parallel())                                          \
-  default(none)                                                        \
-  shared(inbet_t_pert, inbet_nls_pert, inbet_p_grid,                   \
-         inbet_t_ref, joker, inbet_vmrs_ref, h2o_index, err_tot,       \
-         abs_cont_parameters, abs_cont_models, abs_cont_names,         \
-         abs_lineshape, abs_lines_per_species, abs_n2,                 \
-         abs_nls_interp_order, abs_t_interp_order, abs_p_interp_order, \
-         al) */
 #pragma omp parallel for                                               \
   if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p-1; ++pi)
@@ -2898,7 +2839,7 @@ void abs_lookupTestAccuracy(// WS Input:
 
       //Critical directive here is necessary, because all threads
       //access the same variable.
-#pragma omp critical
+#pragma omp critical (abs_lookupTestAccuracy_pitini)
       {
         if (max_abs_rel_diff > err_tot)
           {

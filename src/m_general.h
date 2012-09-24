@@ -42,12 +42,16 @@
 class Workspace;
 
 #define SWITCH_OUTPUT(x,y) \
+{ \
+ostringstream so_os; \
+so_os << y << '\n'; \
 switch (x) { \
-case 0: out0 << y << "\n";break; \
-case 1: out1 << y << "\n";break; \
-case 2: out2 << y << "\n";break; \
-case 3: out3 << y << "\n";break; \
+case 0: out0 << so_os.str(); break; \
+case 1: out1 << so_os.str(); break; \
+case 2: out2 << so_os.str(); break; \
+case 3: out3 << so_os.str(); break; \
 default: throw runtime_error ("Output level must have value from 0-3"); \
+} \
 }
 
 
@@ -89,15 +93,6 @@ Print(// WS Generic Input:
       // Keywords:
       const Index&           level,
       const Verbosity&       verbosity);
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void
-Print(// WS Generic Input:
-      const ArrayOfIndex& x,
-      // Keywords:
-      const Index&        level,
-      const Verbosity&    verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

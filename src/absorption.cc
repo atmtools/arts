@@ -2942,18 +2942,11 @@ void xsec_species( MatrixView               xsec,
                             abs_species,
                             this_species);
   
-
   // Loop all pressures:
-
-/*#pragma omp parallel for                                        \
-  if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
-  default(none)                                                 \
-  shared(joker, abs_lines, abs_p, abs_t, vmr, f_grid,           \
-         abs_h2o, xsec)    \
-  firstprivate(ls, fac, f_local, aux) */
-#pragma omp parallel for                                        \
-  if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
-  firstprivate(ls, fac, f_local, aux) 
+#pragma omp parallel for                               \
+  if(!arts_omp_in_parallel()                           \
+     && (np >= arts_omp_get_max_threads() || np > nl)) \
+  firstprivate(ls, fac, f_local, aux)
   for ( Index i=0; i<np; ++i )
     {
       // Store input profile variables, this is perhaps slightly faster.
@@ -3002,11 +2995,6 @@ void xsec_species( MatrixView               xsec,
 
       // Loop all lines:
 
-/*#pragma omp parallel for                                            \
-  if(!arts_omp_in_parallel())                                       \
-  default(none)                                                     \
-  shared(abs_lines, abs_p, abs_t, vmr, f_grid, abs_h2o, xsec_accum) \
-  firstprivate(ls, fac, f_local, aux) */
 #pragma omp parallel for                                            \
   if(!arts_omp_in_parallel())                                       \
   firstprivate(ls, fac, f_local, aux) 

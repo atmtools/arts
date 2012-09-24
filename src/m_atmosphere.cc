@@ -1388,11 +1388,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
   batch_atm_fields_compact.resize(amnelem);
 
   // Loop the batch cases:
-/*#pragma omp parallel for                                     \
-  if(!arts_omp_in_parallel())                                \
-  default(none)                                              \
-  shared(am, atmosphere_dim, batch_atm_fields_compact,       \
-         extra_field_names, extra_field_values, field_names) */
 #pragma omp parallel for                                     \
   if(!arts_omp_in_parallel())
   for (Index i=0; i<amnelem; ++i)
