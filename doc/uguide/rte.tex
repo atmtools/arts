@@ -162,8 +162,6 @@ effects shall be noted especially, and a similar nomenclature is used here:
                                     {pencil beam directions of the block}
     \STATE{call \builtindoc{iy\_main\_agenda}, giving \aMpiVct{y}}
     \COMMENT{Algorithm \ref{alg:fm_defs:iyCSagenda}}
-    \STATE{unit conversion of \aMpiVct{y} following \wsvindex{y\_unit}}
-    \COMMENT{Section \ref{sec:fm_defs:unit}}
     \STATE{copy \aMpiVct{y} to correct part of \aMpiVct{b}}
    \ENDFOR
    \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of 
@@ -182,6 +180,8 @@ effects shall be noted especially, and a similar nomenclature is used here:
    \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
    \STATE{perform radiative transfer along the propagation path}
    \COMMENT{Section \ref{sec:fm_defs:rte}}
+   \STATE{unit conversion of \aMpiVct{y} following \wsvindex{iy\_unit}}
+   \COMMENT{Section \ref{sec:fm_defs:unit}}
  \end{algorithmic}
  \caption{The main operations for methods to be part of
    \wsaindex{iy\_main\_agenda}.}
@@ -491,7 +491,11 @@ and in ARTS generally, defined as
 where \planckCns\ is the Planck constant, \speedoflight\ the speed of light and
 \boltzmannCns\ the Boltzmann constant. This expression gives the total power,
 per unit frequency per unit area per solid angle. (The Planck function can also
-be defined as a function of wavelength.)
+be defined as a function of wavelength.) The expression in
+Equation~\ref{eq:planck} deviates from the exact definition (see
+Eq.~\ref{T-eq:rtetheory:Planck} in \theory) as it includes \speedoflight\
+instead of the local propagation speed ($v$). The reason for this is the
+n$^2$-law of radiance, discussed in the section below.
 
 As long as cosmic background radiation is the only type of non-telluric
 radiation that has to be considered, the standard method for inclusion in
@@ -506,21 +510,46 @@ manner, that they use the same unit for $B$.
 
 
 
-\section{Output unit}
+\section{Output unit and the n$^2$-law}
 %==============================================================================
 \label{sec:fm_defs:unit}
 
-There is no fixed unit for calculated spectra (\wsvindex{y}), it depends on the
-calculation set-up. For example, if emission is considered, or if just
-transmissions are calculated. 
+First of all, it should be noticed that ARTS does not enforce any fixed unit for
+calculated spectra (\wsvindex{y}), it depends on the calculation set-up. For
+example, if emission is considered, or if just transmissions are calculated.
 
 The primary unit for emission data (radiances) is [W/(Hz$\cdot$m$^2\cdot$sr)].
 The emission intensity corresponds directly with the definition of the Planck
-function (Eq.~\ref{eq:planck}). This radiance can be converted to other
-emission units by the workspace variable \wsvindex{y\_unit}. For comments on
-the practical aspects, see the built-in documentation of \builtindoc{y\_unit}.
-Otherwise, considerations and expressions for the unit conversion are
-discussed in the ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
+function (Eq.~\ref{eq:planck}). Conversion to other units is selected by the
+\wsvindex{iy\_unit} workspace variable. The standard manner is to apply the
+unit conversion as part of the calculations performed inside
+\builtindoc{yCalc}. See the built-in documentation of the workspace method you
+have selected for \builtindoc{iy\_main\_agenda} for comments on practical
+aspects and available output units. The most extensive support for conversion
+to other units is provided by \builtindoc{iyEmissionStandard}, while other
+methods have no support at all (ie.\ they ignore \builtindoc{iy\_unit}). It is
+also possible to change the unit as a post-processing step by
+\wsmindex{yApplyUnit} (or \wsmindex{iyApplyUnit}), but some restrictions apply
+and there no automatic checks if the input data have correct unit. Further
+considerations and expressions for the unit conversion are discussed in the
+ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
+
+The n$^2$-law of radiance\index{n2-law of radiance} is introduced in
+Section~\ref{T-sec:n2law} of \theory. As shown in that section, the main impact
+of the law is handled by consistently using the vacuum speed in the definition
+of the Planck radiation law, as done inside ARTS (Eq.~\ref{eq:planck}). This
+suffices if the sensor is placed in space (where the refractive index is 1), or
+if you use brightness temperatures. Remaining cases are also handled exactly if
+\builtindoc{iyEmissionStandard} is used. For those remaining cases, radiance
+data shall be scaled with the refractive index squared at the observation
+position. For Earth, the maximum value of this factor is about 0.1\,\%, and can
+anyhow normally be neglected.
+
+In summary, there is normally no need for you as an user to consider the
+n$^2$-law. The exception is if you extract radiance data for a point inside an
+atmosphere, and the refractive index deviates significantly from 1 at this
+point.
+
 
 
 

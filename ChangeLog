@@ -1,3 +1,27 @@
+2012-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-314
+
+	* src/m_rte.cc (iyEmissionStandard): Referred incorrectly to
+	MatrixPlanck in an error message.
+
+	* doc/uguide/rte.tex: Algorithms updated with respect to where
+	iy_unit is picked up. Output unit section extended to also treat
+	n2-law.
+
+	* doc/uguide/rte.tex: Flow chart updated (diy_dx now not output of
+	iyCalc).
+
+	* doc/uguide/rte_theory.tex: Changed the Planck function to use v
+	(instead of c). This is commented, with a reference to Thomas and
+	Stamnes.
+
+	Made a section on the n2-law (based on Bengt's text from the ESA
+	study TN1 report).
+
+	* doc/uguide/references.bib: Added mobley:light:94,
+	matlzer:radia:06 and thomas2002radiative.
+
 2012-09-24  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-2-1-313

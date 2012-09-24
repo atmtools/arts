@@ -944,9 +944,10 @@ void iyEmissionStandard(
             {
               ostringstream os;
               os << "When any unit conversion is applied, "
-                 << "*blackbody_radiation_agenda\nmust use the "
-                 << "*MatrixPlanck* WSM.\nA test call of the agenda "
-                 << "indicates that this is not the case.";
+                 << "*blackbody_radiation_agenda\nmust use "
+                 << "*blackbody_radiationPlanck* or a corresponding WSM.\n"
+                 << "A test call of the agenda indicates that this is not "
+                 << "the case.";
               throw runtime_error( os.str() );
             }
         }

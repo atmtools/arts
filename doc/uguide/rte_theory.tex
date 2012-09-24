@@ -13,11 +13,12 @@
  \label{sec:rte_theory}
 
 
-\starthistory
-  110615 & Revised, and moved parts about surface from AUG (PE). \\
-  050224 & Added chapter 1 from Claudia Emde's phd-thesis. \\
-  030305 & Copied from a compendium written by Patrick Eriksson.
-\stophistory
+ \starthistory 
+ 120924 & Added discussion of the n2-law, mainly using text
+          originally written for an ESA report by Bengt Rydberg (PE). \\
+ 110615 & Revised, and moved parts about surface from AUG (PE). \\
+ 050224 & Most text replaced by chapter 1 from Claudia Emde's phd-thesis. \\
+ 030305 & Copied from a compendium written by Patrick Eriksson. \stophistory
 
 
  When dealing with atmospheric radiation a division can be made
@@ -329,12 +330,17 @@ characterized by the Planck blackbody radiation
 \begin{equation}
   \label{eq:rtetheory:Planck}
   \Planck(T,\omega)\Delta S \Delta\Omega =
-    \frac{\hbar\omega^3}{2\pi^2 c^2\left[\exp\left(\frac{\hbar\omega}{k_B T}\right) -1\right]}
+    \frac{\hbar\omega^3}{2\pi^2 v^2\left[\exp\left(\frac{\hbar\omega}{k_B T}
+   \right) -1\right]}
      \Delta S \, \Delta\Omega,
 \end{equation}
-where $\Delta \Omega$ is a small solid angle about any direction,
-$\hbar$ is the Planck constant divided by $2\pi$, and $k_B$ is the
-Boltzmann constant. The blackbody Stokes vector is
+where $\Delta \Omega$ is a small solid angle about any direction, $\hbar$ is
+the Planck constant divided by $2\pi$, and $k_B$ is the Boltzmann constant.
+With respect to the n$^2$-law discussed below, it could be noticed that the
+Planck law is governed by the local phase velocity, $v$, \citep[see
+e.g.][]{thomas2002radiative}, and not the vacuum speed.
+
+The blackbody Stokes vector is
 \begin{equation}
   \StoVec_b(T, \omega) = \ColVctFour{\Planck(T,\omega)}{0}{0}{0}.
 \end{equation}
@@ -742,6 +748,80 @@ the first element of $\AbsVec^p$ is non-zero.
 %  outgoing radiation from the surface and the sea.
 
 
+\section{The n$^2$-law of radiance}
+\label{sec:n2law}
+
+
+\subsection{Introduction}
+
+The radiance, \StoVec, is unchanged for propagation in ``free space''. The term
+free space implies a refractive index of unity and that extinction is zero.
+However, it is possible to define a slightly different quantity that is
+conserved also for propagation with a varying refractive index. This quantity
+is here denoted as, $\StoVec_{n2}$, and is defined as
+\citep{mobley:light:94,matlzer:radia:06}:
+\begin{equation}
+\label{eq:mobley}
+\StoVec_{n2}\equiv\frac{\StoVec}{\Rfr^{2}}.
+\end{equation}
+That is, for radiation propagating without extinction or any sources,
+$\StoVec_{n2}$ is constant along the propagation path. This is denoted as the
+\(\Rfr^{2}\)-law for radiance. This impact of \Rfr\ can, for different reasons,
+normally be neglected. As a consequency and to keep the nomenclature simple,
+the n2-law is in general ignored in the ARTS documentation. 
+
+
+\subsection{Treatment in ARTS}
+
+As mentioned, the quantity defined by Equation~\ref{eq:mobley} is constant for
+propagation without attenuation. Further, it can be shown that the radiance
+corresponding to some emission is independent on the refractive index along the
+propagation path, only the refractive indexes at the emission and measurement
+points matter. This is also valid with attenuation along the propagation path
+\citep[][Eq.~4.23]{mobley:light:94}:
+\begin{equation}
+  \label{eq:mobley423}
+  \frac{\aStoI{m}}{\aRfr{m}^2} = e^{-\Oth}\frac{\aStoI{e}}{\aRfr{e}^2},
+\end{equation}
+where \aStoI{m}\ is measured radiance, \aRfr{m}\ the refractive index where the
+measurement is performed, \aStoI{e}\ emitted radiance, \aRfr{e}\ the refractive
+index at the emission point, and \Oth\ is the optical thickness between the two
+points. 
+
+As long as LTE applies, the emission is proportional to the Planck function,
+\Planck\ (Eq.~\ref{eq:rtetheory:Planck}). Hence, using an emissivity,
+$\varepsilon$, we have
+\begin{equation}
+  \frac{\aStoI{e}}{\aRfr{e}^2} = \frac{\varepsilon B(\aTmp{e})}{\aRfr{e}^2}=
+   \varepsilon B_{n2}(\aTmp{e}),
+\end{equation}
+where \aTmp{e}\ is the temperature of the emitting substance, and
+\begin{equation}
+  \label{eq:planckconst}
+  \Planck_{n2}(\BT)\equiv
+  \frac{\Planck(\BT)}{\Rfr^{2}} = \frac{2\planckCns\Frq^3}
+  {\speedoflight^{2}(exp(\planckCns\Frq/\boltzmannCns\BT)-1)}.
+\end{equation}
+That is, it turns out that by consistently apply $\speedoflight$ in the Planck
+function (instead of $v$), the dependency of \aRfr{e}\ is removed. What
+remains to obtain the correct radiance to output, \StoI, is to consider the
+impact of \aRfr{m}:
+\begin{equation}
+  \label{eq:n2finalstep}
+  \StoI = \aRfr{m}^2\StoI',
+\end{equation}
+where $\StoI'$ is the radiance calculated ignoring the n$^2$-law.
+
+As discussed by \citet{matlzer:radia:06}, it can be deduced from basic
+principles that the brightness temperature must be a preserved quantity, even
+in light of the n$^2$-law. This statement can also be understood from
+Equation~\ref{eq:planckconst}. In simple terms, the brightness temperature is
+defined with respect to the local Planck function and the impact of refractive
+index variations vanishes if the radiance is measured in terms of brightness
+temperature. 
+
+
+
 \section{Simple solution without scattering and polarization}
 
  If scattering can be neglected and the atmosphere is assumed to be in
@@ -792,6 +872,8 @@ the first element of $\AbsVec^p$ is non-zero.
  physical meaning, the radiation emitted at one point is $kBdl$ and this
  quantity is attenuated by the factor $e^{-\tau}$ before it reaches the
  observation point.
+
+
 
 
 \section{Special solutions}
@@ -890,6 +972,8 @@ the first element of $\AbsVec^p$ is non-zero.
    \end{minipage}
   \end{center}
  \end{figure}   
+
+
 
 
 
