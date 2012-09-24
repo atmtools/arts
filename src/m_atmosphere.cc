@@ -1174,7 +1174,6 @@ void basics_checkedCalc(
   if( min(t_field) <= 0 )
     throw runtime_error( "All temperatures in *t_field* must be > 0." );
 
-
   // Check that z_field has strictly increasing pages.
   for( Index row=0; row<z_field.nrows(); row++ )
     {
@@ -1304,6 +1303,10 @@ void basics_checkedCalc(
   if ( f_grid.nelem() == 0 )
     { throw runtime_error ( "The frequency grid is empty." ); }
   chk_if_increasing ( "f_grid", f_grid );
+
+  if (min(f_grid) <= 0) {
+    throw runtime_error("All frequencies in *f_grid* must be > 0.");
+  }
 
   // If here, all OK
   basics_checked = 1;
