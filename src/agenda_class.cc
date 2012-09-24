@@ -39,15 +39,6 @@
 #include "auto_md.h"
 
 
-/** Print the error message and exit. */
-void give_up(const String& message, const Verbosity& verbosity)
-{
-  CREATE_OUT0;
-  out0 << message << '\n';
-  arts_exit();
-}
-
-
 //! Appends methods to an agenda
 /*!
   This function appends a workspace method to the agenda. It currently only

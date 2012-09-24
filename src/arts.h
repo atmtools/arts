@@ -132,7 +132,6 @@ void define_lineshape_norm_data();
 
 void arts_exit (int status = EXIT_FAILURE);
 void arts_exit_with_error_message(const String& m, ArtsOut &os);
-void exit_or_rethrow(const String& m, ArtsOut &out);
 
 //
 // Physical constants are now in constants.cc

@@ -101,11 +101,26 @@ void abs_linesArtscat4FromArtscat3(// WS Output:
                                    // Verbosity object:
                                    const Verbosity&)
 {
+    String fail_msg;
+    bool failed = false;
+
     // Loop over all lines, use member function to do conversion.
 #pragma omp parallel for    \
 if(!arts_omp_in_parallel())
     for ( Index i=0; i<abs_lines.nelem(); ++i )
-        abs_lines[i].ARTSCAT4FromARTSCAT3();
+    {
+        try
+        {
+            abs_lines[i].ARTSCAT4FromARTSCAT3();
+        }
+        catch (runtime_error e)
+        {
+#pragma omp critical (abs_linesArtscat4FromArtscat3_fail)
+            { fail_msg = e.what(); failed = true; }
+        }
+    }
+
+    if (failed) throw runtime_error(fail_msg);
 }
 
 

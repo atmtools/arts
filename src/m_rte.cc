@@ -2234,6 +2234,9 @@ void yCalc(
   Agenda l_jacobian_agenda (jacobian_agenda);
   Agenda l_iy_main_agenda (iy_main_agenda);
 
+  String fail_msg;
+  bool failed = false;
+
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && \
      nmblock>=arts_omp_get_max_threads() && \
@@ -2241,65 +2244,80 @@ void yCalc(
   firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-      // Calculate monochromatic pencil beam data for 1 measurement block
-      //
-      Vector          iyb, iyb_error, yb(n1y);
-      ArrayOfMatrix   diyb_dx;      
-      //
-      iyb_calc( l_ws, iyb, iyb_aux_array[mblock_index], diyb_dx, 
-                mblock_index, atmosphere_dim, t_field, z_field, vmr_field, 
-                cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los, 
-                transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim, 
-                l_iy_main_agenda, j_analytical_do, 
-                jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity );
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
+      try
+        {
+          // Calculate monochromatic pencil beam data for 1 measurement block
+          //
+          Vector          iyb, iyb_error, yb(n1y);
+          ArrayOfMatrix   diyb_dx;
+          //
+          iyb_calc(l_ws, iyb, iyb_aux_array[mblock_index], diyb_dx,
+                   mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
+                   cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
+                   transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim,
+                   l_iy_main_agenda, j_analytical_do,
+                   jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity);
 
 
-      // Apply sensor response matrix on iyb, and put into y
-      //
-      const Range rowind = get_rowindex_for_mblock( sensor_response, 
-                                                                mblock_index );
-      const Index row0   = rowind.get_start();
-      //
-      mult( yb, sensor_response, iyb );
-      //
-      y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
+          // Apply sensor response matrix on iyb, and put into y
+          //
+          const Range rowind = get_rowindex_for_mblock(sensor_response,
+                                                       mblock_index);
+          const Index row0   = rowind.get_start();
+          //
+          mult( yb, sensor_response, iyb );
+          //
+          y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
 
-      // Fill information variables
-      //
-      for( Index i=0; i<n1y; i++ )
-        { 
-          y_f[row0+i]         = sensor_response_f[i];
-          y_pol[row0+i]       = sensor_response_pol[i]; 
-          y_pos(row0+i,joker) = sensor_pos(mblock_index,joker);
-          y_los(row0+i,0)     = sensor_los(mblock_index,0) + 
-                                sensor_response_za[i];
-          if( sensor_response_aa.nelem() )
+          // Fill information variables
+          //
+          for( Index i=0; i<n1y; i++ )
             { 
-              y_los(row0+i,1) = sensor_los(mblock_index,0) + 
-                                sensor_response_aa[i]; 
+              y_f[row0+i]         = sensor_response_f[i];
+              y_pol[row0+i]       = sensor_response_pol[i];
+              y_pos(row0+i,joker) = sensor_pos(mblock_index,joker);
+              y_los(row0+i,0)     = sensor_los(mblock_index,0) +
+                sensor_response_za[i];
+              if( sensor_response_aa.nelem() )
+                {
+                  y_los(row0+i,1) = sensor_los(mblock_index,0) +
+                    sensor_response_aa[i];
+                }
+            }
+
+          // Apply sensor response matrix on diyb_dx, and put into jacobian
+          // (that is, analytical jacobian part)
+          //
+          if( j_analytical_do )
+            {
+              FOR_ANALYTICAL_JACOBIANS_DO(
+                  mult(jacobian(rowind,
+                                Range(jacobian_indices[iq][0],
+                                      jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
+                       sensor_response, diyb_dx[iq] );
+              )
+            }
+
+          // Rest of *jacobian*
+          //
+          if( jacobian_do )
+            { 
+              jacobian_agendaExecute( l_ws, jacobian, mblock_index, iyb, yb, 
+                                     l_jacobian_agenda );
             }
         }
-
-      // Apply sensor response matrix on diyb_dx, and put into jacobian
-      // (that is, analytical jacobian part)
-      //
-      if( j_analytical_do )
+        catch (runtime_error e)
         {
-          FOR_ANALYTICAL_JACOBIANS_DO(
-            mult( jacobian(rowind, Range(jacobian_indices[iq][0],
-                          jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
-                                                sensor_response, diyb_dx[iq] );
-          )
-        }
-
-      // Rest of *jacobian*
-      //
-      if( jacobian_do )
-        { 
-          jacobian_agendaExecute( l_ws, jacobian, mblock_index, iyb, yb, 
-                                                            l_jacobian_agenda );
+#pragma omp critical (yCalc_fail)
+            { fail_msg = e.what(); failed = true; }
         }
     }  // End mblock loop
+
+  // Rethrow exception if a runtime error occurred in the mblock loop
+  if (failed) throw runtime_error(fail_msg);
 
   // Compile y_aux
   //

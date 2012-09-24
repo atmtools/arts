@@ -730,10 +730,6 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
                   out0 << "Error: HITRAN mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
-                  arts_exit();
-                  // SAB 08.08.2000 If you want to make the program
-                  // continue anyway, just comment out the exit
-                  // line.
                 }
             }
         }
@@ -1645,10 +1641,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
                   out0 << "Error: MYTRAN mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
-                  arts_exit();
-                  // SAB 08.08.2000 If you want to make the program
-                  // continue anyway, just comment out the exit
-                  // line.
                 }
             }
         }
@@ -2941,7 +2933,10 @@ void xsec_species( MatrixView               xsec,
   find_broad_spec_locations(broad_spec_locations,
                             abs_species,
                             this_species);
-  
+
+  String fail_msg;
+  bool failed = false;
+
   // Loop all pressures:
 #pragma omp parallel for                               \
   if(!arts_omp_in_parallel()                           \
@@ -2949,6 +2944,8 @@ void xsec_species( MatrixView               xsec,
   firstprivate(ls, fac, f_local, aux)
   for ( Index i=0; i<np; ++i )
     {
+      if (failed) continue;
+
       // Store input profile variables, this is perhaps slightly faster.
       const Numeric p_i       = abs_p[i];
       const Numeric t_i       = abs_t[i];
@@ -3000,6 +2997,9 @@ void xsec_species( MatrixView               xsec,
   firstprivate(ls, fac, f_local, aux) 
       for ( Index l=0; l< nl; ++l )
         {
+          // Skip remaining iterations if an error occurred
+          if (failed) continue;
+
 //           if (omp_in_parallel())
 //             cout << "LBL: omp_in_parallel: true\n";
 //           else
@@ -3010,7 +3010,6 @@ void xsec_species( MatrixView               xsec,
           // exceptions inside the parallel region. 
           try
             {
-
               // Copy f_grid to the beginning of f_local. There is one
               // element left at the end of f_local.  
               // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
@@ -3312,11 +3311,14 @@ void xsec_species( MatrixView               xsec,
             } // end of try block
           catch (runtime_error e)
             {
-              CREATE_OUT0;
-              exit_or_rethrow(e.what(), out0);
+#pragma omp critical (xsec_species_fail)
+                { fail_msg = e.what(); failed = true; }
             }
 
         } // end of parallel LBL loop
+
+      // Bail out if an error occurred in the LBL loop
+      if (failed) continue;
 
       // Now we just have to add up all the rows of xsec_accum:
       for (Index j=0; j<xsec_accum.nrows(); ++j)
@@ -3325,6 +3327,9 @@ void xsec_species( MatrixView               xsec,
         }
 
     } // end of parallel pressure loop
+
+  if (failed) throw runtime_error("Run-time error in function: xsec_species\n" + fail_msg);
+
 }
 
 

@@ -1,3 +1,86 @@
+2012-09-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-311
+
+	* Completed most of the OpenMP cleanup. The program is never exited
+	directly from inside parallel loops anymore. All exceptions are passed
+	up until they're caught in the main function. This should always give
+	a clear error stack.
+
+	* If you still encounter errors that look like the messy example below,
+	please file a bug report with me!!!!! You should always see the
+	'Stopping ARTS' and 'Goodbye' line. If not, that's a bug too. Note
+	that is does not apply to assertions.
+
+	Before, error messages could look like this example when runtime errors
+	occured in parallelised parts of the code:
+
+	Executing Arts
+	{
+	....
+	- ybatchCalc
+	Method abs_mat_per_speciesAddOnTheFly needs input variable:
+	abs_lines_per_speciesMethod abs_mat_per_speciesAddOnTheFly needs input
+	variable: abs_lines_per_speciesMethod abs_mat_per_speciesAddOnTheFly
+	needs input variable: abs_lines_per_species
+	Method abs_mat_per_speciesAddOnTheFly needs input variable:
+	abs_lines_per_speciesMethod abs_mat_per_speciesAddOnTheFly needs input
+	variable: abs_lines_per_species
+	terminate called after throwing an instance of 'std::ios_base::failure'
+	  what():  basic_ios::clear
+	Abort trap: 6
+
+	Now they (should) look like they this:
+	======================================
+
+	Executing Arts
+	{
+	....
+	- ybatchCalc
+	}
+	This run took 0.35s (0.32s CPU time)
+	Run-time error in controlfile: doitbatch/TestDOITBatch_test.arts
+	Run-time error in method: ybatchCalc
+	Run-time error at ybatch_index 0: 
+	Run-time error in agenda: ybatch_calc_agenda
+	Run-time error in method: CloudboxGetIncoming
+	Run-time error in agenda: iy_main_agenda
+	Run-time error in method: iyEmissionStandard
+	Run-time error in agenda: abs_mat_per_species_agenda
+	Run-time error in method: abs_mat_per_speciesAddOnTheFly
+	Method abs_mat_per_speciesAddOnTheFly needs input variable: abs_lines_per_species
+	Stopping ARTS execution.
+	Goodbye.
+	
+	* src/absorption.cc (xsec_species),
+	src/m_abs_lookup.cc (abs_lookupCalc, abs_mat_fieldCalc),
+	src/m_abs.cc (abs_linesArtscat4FromArtscat3),
+	src/m_rte.cc (yCalc), src/rte.cc (iyb_calc),
+	m_atmosphere.cc (batch_atm_fields_compactFromArrayOfMatrix,
+	batch_atm_fields_compactAddSpecies):
+
+	Don't exit from inside parallelized loops. Instead set a failed flag,
+	save the error and rethrow the exception after the loops.
+
+	* src/agenda_class.cc (give_up): Remove function. We never give up!!!
+
+	* src/arts.{cc.h} (exit_or_rethrow):
+
+	Remove function. We always throw up (the exceptions that is....)
+
+	* src/rte.cc (get_ppath_abs), src/m_batch.cc (ybatchCalc):
+
+	Rename vars for consistency.
+
+	(LineRecord::ReadFromHitranStream, LineRecord::ReadFromMytran2Stream):
+
+	Don't exit if unknown molecule is found. Now consistent with
+	LineRecord::ReadFromHitranStream2004.
+
+	* src/m_general.cc (Error):
+
+	Throw runtime_error instead of calling arts_exit.
+
 2012-09-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-310

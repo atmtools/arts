@@ -71,34 +71,3 @@ void arts_exit_with_error_message(const String& m, ArtsOut &out)
   
   arts_exit();              // No argument means failure.
 }
-
-//! Exit ARTS or re-throw error.
-/*!
-  The behavior of this function depends on whether we are compiling
-  with OpenMP or without. With OpenMP, the program is terminated with
-  the error message. Without OpenMP, the runtime_error is re-thrown in
-  order to be handled higher up. 
-
-  \param m Error message.
-
-  \author Stefan Buehler
-  \date   2008-05-09
-*/
-#ifdef _OPENMP
-void exit_or_rethrow(const String& m, ArtsOut &out)
-{
-  // With OpenMP, we have to terminate the program,
-  // because exceptions can not be thrown out of the
-  // parallel region.
-  arts_exit_with_error_message(m, out);
-}
-#else
-void exit_or_rethrow(const String& m, ArtsOut &out _U_)
-{
-  // Without OpenMP, we can re-throw the exception, to
-  // be handled higher up. This to preserve the
-  // "robust" option in ybatchCalc.
-  throw runtime_error(m);
-}
-#endif
-

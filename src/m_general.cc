@@ -331,8 +331,7 @@ timerStop (// WS Input
 void Error(const String& msg, const Verbosity& verbosity)
 {
   CREATE_OUT0;
-  out0 << msg << "\n";
-  arts_exit();
+  throw runtime_error(msg);
 }
 
 

@@ -288,13 +288,16 @@ void abs_lookupCalc(// WS Output:
 
   // 7. Now we have to fill abs_lookup.xsec with the right values!
 
+  String fail_msg;
+  bool failed = false;
+
   // Loop species:
   for ( Index i=0,spec=0; i<n_species; ++i )
     {
-        //Skipping Zeeman species
-        if ( abs_species[i][0].Zeeman() ) { continue; } 
+      //Skipping Zeeman species
+      if ( abs_species[i][0].Zeeman() ) { continue; }
 
-        // spec is the index for the second dimension of abs_lookup.xsec.
+      // spec is the index for the second dimension of abs_lookup.xsec.
       
       // Prepare absorption agenda input for this species:
       out2 << "  Doing species " << i+1 << " of " << n_species << ": "
@@ -389,6 +392,9 @@ void abs_lookupCalc(// WS Output:
   private(this_t, abs_xsec_per_species)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
+              // Skip remaining iterations if an error occurred
+              if (failed) continue;
+
               // The try block here is necessary to correctly handle
               // exceptions inside the parallel region. 
               try
@@ -471,10 +477,12 @@ void abs_lookupCalc(// WS Output:
                 } // end of try block
               catch (runtime_error e)
                 {
-                  CREATE_OUT0;
-                  exit_or_rethrow(e.what(), out0);
+#pragma omp critical (abs_lookupCalc_fail)
+                    { fail_msg = e.what(); failed = true; }
                 }
             } // end of parallel for loop
+
+            if (failed) throw runtime_error(fail_msg);
         }
     }
 
@@ -2255,6 +2263,8 @@ void abs_mat_fieldCalc( Workspace& ws,
   Workspace l_ws (ws);
   Agenda l_amps_agenda (amps_agenda);
 
+  String fail_msg;
+  bool failed = false;
 
   // Now we have to loop all points in the atmosphere:
 #pragma omp parallel for                                                 \
@@ -2263,6 +2273,9 @@ void abs_mat_fieldCalc( Workspace& ws,
   private(amps, a_vmr_list)
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
       // The try block here is necessary to correctly handle
       // exceptions inside the parallel region. 
       try
@@ -2338,10 +2351,12 @@ void abs_mat_fieldCalc( Workspace& ws,
         }
       catch (runtime_error e)
         {
-          CREATE_OUT0;
-          exit_or_rethrow(e.what(), out0);
+#pragma omp critical (abs_mat_fieldCalc_fail)
+            { fail_msg = e.what(); failed = true; }
         }
     }
+
+    if (failed) throw runtime_error(fail_msg);
 }
 
 

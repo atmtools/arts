@@ -1339,13 +1339,25 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
 {
     const Index nelem = batch_atm_fields_compact.nelem();
 
-// Parallelise this for-loop (some interpolation is being done, so it may
-// be beneficial)
+    String fail_msg;
+    bool failed = false;
+
+    // Parallelise this for-loop (some interpolation is being done, so it may
+    // be beneficial)
 #pragma omp parallel for if(!arts_omp_in_parallel())
     for (Index i=0; i<nelem; i++)
     {
-        atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species, verbosity);
+        try {
+            atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species, verbosity);
+        }
+        catch (runtime_error e)
+        {
+#pragma omp critical (batch_atm_fields_compactAddSpecies_fail)
+            { fail_msg = e.what(); failed = true; }
+        }
     }
+
+    if (failed) throw runtime_error(fail_msg);
 }
 
 // Workspace method, doxygen header is auto-generated.
@@ -1387,11 +1399,17 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
   // Make output variable the proper size:
   batch_atm_fields_compact.resize(amnelem);
 
+  String fail_msg;
+  bool failed = false;
+
   // Loop the batch cases:
 #pragma omp parallel for                                     \
   if(!arts_omp_in_parallel())
   for (Index i=0; i<amnelem; ++i)
     {
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
       // All the input variables are visible here, despite the
       // "default(none)". The reason is that they are return by
       // reference arguments of this function, which are shared
@@ -1415,10 +1433,12 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
         }
       catch (runtime_error e)
         {
-          CREATE_OUT0;
-          exit_or_rethrow(e.what(), out0);
+#pragma omp critical (batch_atm_fields_compactFromArrayOfMatrix_fail)
+            { fail_msg = e.what(); failed = true; }
         }
     }    
+
+    if (failed) throw runtime_error(fail_msg);
 }
 
 

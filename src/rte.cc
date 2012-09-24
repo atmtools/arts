@@ -1168,8 +1168,8 @@ void get_ppath_abs(
   // Size variable
   ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
 
-  bool abort = false;
-  String abort_msg;
+  String fail_msg;
+  bool failed = false;
 
   // Loop ppath points
   //
@@ -1181,7 +1181,7 @@ void get_ppath_abs(
   firstprivate(l_ws, l_abs_mat_per_species_agenda)
   for( Index ip=0; ip<np; ip++ )
     {
-      if (abort) continue;
+      if (failed) continue;
 
       // Doppler shift
       //
@@ -1237,9 +1237,8 @@ void get_ppath_abs(
               rte_doppler, rte_mag, ppath.los(ip,joker), ppath_p[ip], 
               ppath_t[ip], ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
       } catch (runtime_error e) {
-          abort = true;
-#pragma omp critical (get_ppath_abs_abort_msg)
-          abort_msg = e.what();
+#pragma omp critical (get_ppath_abs_fail)
+          { failed = true; fail_msg = e.what(); }
           continue;
       }
 
@@ -1248,8 +1247,8 @@ void get_ppath_abs(
       ppath_abs(joker,joker,joker,joker,ip) = abs_mat_per_species;
     }
 
-    if (abort)
-        throw runtime_error(abort_msg);
+    if (failed)
+        throw runtime_error(fail_msg);
 }
 
 
@@ -1705,7 +1704,7 @@ void iyb_calc(
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices,
   const ArrayOfString&              iy_aux_vars,
-  const Verbosity&                  verbosity )
+  const Verbosity&                  /* verbosity */ )
 {
   // Sizes
   const Index   nf   = f_grid.nelem();
@@ -1737,13 +1736,19 @@ void iyb_calc(
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
   Agenda l_iy_main_agenda (iy_main_agenda);
-  
+
+  String fail_msg;
+  bool failed = false;
+
   // Start of actual calculations
 #pragma omp parallel for                                          \
-  if(!arts_omp_in_parallel() && nza>=arts_omp_get_max_threads())                            \
+  if(!arts_omp_in_parallel() && nza>=arts_omp_get_max_threads())  \
   firstprivate(l_ws, l_iy_main_agenda)
   for( Index iza=0; iza<nza; iza++ )
     {
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
       // The try block here is necessary to correctly handle
       // exceptions inside the parallel region. 
       try
@@ -1825,11 +1830,12 @@ void iyb_calc(
 
       catch (runtime_error e)
         {
-          CREATE_OUT0;
-          exit_or_rethrow(e.what(), out0);
+#pragma omp critical (iyb_calc_fail)
+            { fail_msg = e.what(); failed = true; }
         }
     }  // End za loop
 
+  if (failed) throw runtime_error("Run-time error in function: iyb_calc\n" + fail_msg);
 
   // Compile iyb_aux
   //

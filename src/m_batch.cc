@@ -160,8 +160,8 @@ void ybatchCalc(Workspace&      ws,
   bool is_first = true;
   Index first_ybatch_index = 0;
 
+  ArrayOfString fail_msg;
   bool abort = false;
-  ArrayOfString abort_msg;
 
   // We have to calculate the first y so that we can size the output
   // matrix ybatch correctly. This is a bit complicated due to the
@@ -252,7 +252,7 @@ void ybatchCalc(Workspace&      ws,
           ostringstream aos;
           aos << "Run-time error at ybatch_index "
           << ybatch_start+first_ybatch_index << ": \n" << e.what();
-          abort_msg.push_back(aos.str());
+          fail_msg.push_back(aos.str());
 
           if (robust)
             {
@@ -270,7 +270,7 @@ void ybatchCalc(Workspace&      ws,
             {
               // The user wants the batch job to fail if one of the
               // jobs goes wrong.
-              throw runtime_error(*abort_msg.begin());
+              throw runtime_error(*(fail_msg.begin()));
             }
         }
       first_ybatch_index++;
@@ -341,21 +341,21 @@ void ybatchCalc(Workspace&      ws,
             {
               // The user wants the batch job to fail if one of the
               // jobs goes wrong.
-              //exit_or_rethrow(e.what(), out0);
+#pragma omp critical (ybatchCalc_fail)
               abort = true;
             }
             ostringstream os;
             os << "Run-time error at ybatch_index "
             << ybatch_start+ybatch_index << ": \n" << e.what();
-#pragma omp critical (ybatchCalc_abort_msg)
-            abort_msg.push_back(os.str());
+#pragma omp critical (ybatchCalc_fail_msg)
+            fail_msg.push_back(os.str());
         }
     }
 
-    if (abort_msg.nelem())
+    if (fail_msg.nelem())
     {
         ostringstream os;
-        for (ArrayOfString::const_iterator it = abort_msg.begin(); it != abort_msg.end(); it++)
+        for (ArrayOfString::const_iterator it = fail_msg.begin(); it != fail_msg.end(); it++)
             os << *it << '\n';
 
         if (abort)
