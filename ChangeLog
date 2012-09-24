@@ -1,5 +1,15 @@
 2012-09-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-312
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Throw a runtime error instead calling arts_exit directly if there is a
+	mismatch in the Jacobian dimension. Will bypass robust and terminate
+	the run.
+
+2012-09-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-311
 
 	* Completed most of the OpenMP cleanup. The program is never exited

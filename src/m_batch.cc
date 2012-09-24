@@ -221,13 +221,16 @@ void ybatchCalc(Workspace&      ws,
 
               if (Knr!=y.nelem())
                 {
-                  out0 << "First dimension of Jacobian must have same length as the measurement *y*.\n"
-                       << "Length of *y*: " << y.nelem() << "\n"
-                       << "Dimensions of *jacobian*: (" << Knr << ", " << Knc << ")\n";
-                  arts_exit();
-                  // We jump to exit here directly, since runtime errors are ignored 
-                  // if the robust option is on. But mismatch of the Jacobian 
-                  // dimension is a fatal error and should result in program termination.
+                  ostringstream os;
+                  os << "First dimension of Jacobian must have same length as the measurement *y*.\n"
+                     << "Length of *y*: " << y.nelem() << "\n"
+                     << "Dimensions of *jacobian*: (" << Knr << ", " << Knc << ")\n";
+                  // A mismatch of the Jacobian dimension is a fatal error
+                  // and should result in program termination. By setting abort
+                  // to true, this will result in a runtime error in the catch
+                  // block even if robust == 1
+                  abort = true;
+                  throw runtime_error(os.str());
                 }
               
               // Resize the container for all the Jacobians:
@@ -254,7 +257,7 @@ void ybatchCalc(Workspace&      ws,
           << ybatch_start+first_ybatch_index << ": \n" << e.what();
           fail_msg.push_back(aos.str());
 
-          if (robust)
+          if (robust && !abort)
             {
               ostringstream os;
               os << "WARNING! Job at ybatch_index " << ybatch_start+first_ybatch_index << " failed.\n"
