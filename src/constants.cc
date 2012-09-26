@@ -55,9 +55,7 @@
 
 
 /** Global constant, converts atm to Pa.
-
     Multiply your value in atm by this constant to get the value in Pa.
-
     \author Stefan Buehler 
     \date   2000-06-17
 */
@@ -70,6 +68,11 @@ extern const Numeric ATM2PA         = 1.01325e5;
 */
 extern const Numeric AVOGADROS_NUMB = 6.0220450e26;
 
+/** Bohr Magneton
+ *  \author Richard Larsson
+ *  \date   2012-09-26
+ */
+extern const Numeric BOHR_MAGNETON = 9.27400968e-24;
 
 /** Global constant, the Boltzmann constant [J/K]
     \author Patrick Eriksson 
@@ -128,12 +131,18 @@ extern const Numeric EULER_NUMBER   = 2.7182818284590452;
 
 
 /** Global constant, universal gas constant
-
     \author Patrick Eriksson
     \date   2012-03-19
 */
 extern const Numeric GAS_CONSTANT   = 8.3144621;
 
+
+/** Lande factor gs
+ *  \author Richard Larsson
+ *  \date   2012-09-26
+ */
+// Wikipedia source: http://en.wikipedia.org/wiki/G-factor_%28physics%29#Measured_g-factor_values
+extern const Numeric LANDE_GS      = 2.0023193043622;
 
 /** Global constant, log10(Euler's number)
     \author Thomas Kuhn

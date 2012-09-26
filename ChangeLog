@@ -1,3 +1,17 @@
+2012-09-26  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-315
+
+	* src/m_zeeman.cc: Fixed (FrequencyChangeDirect).
+	My hope is this function better describe the general problem and
+	will thus work for more species. Also, the Lenoir tables used did
+	not describe cases with DN != 0 when DJ == 0. Will have to construct
+	quantum transition rules first, then this should allow more general
+	Zeeman effect calculations. The quantum electron spin number is 
+	currently defined constant but it should be a species property.
+	 
+	* src/constants.cc: Added Bohr magneton and lande_gs.
+
 2012-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-314
