@@ -1,3 +1,13 @@
+2012-10-02  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-317
+
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts,
+	src/physics_funcs.cc, README: minor fixes.
+
+	* src/methods.cc (GriddedFieldLatLonRegrid, GriddedFieldPRegrid):
+	updated/clarified documentation.
+
 2012-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-316

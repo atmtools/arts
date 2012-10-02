@@ -168,7 +168,7 @@ void fresnel(
 
 //! invplanck
 /*!
-   Converts a radiance to Plack brightness temperature.
+   Converts a radiance to Planck brightness temperature.
 
     \return     Planck brightness temperature
     \param  i   radiance

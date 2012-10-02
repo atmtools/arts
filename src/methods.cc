@@ -4243,9 +4243,10 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Interpolates the input field along the latitude and longitude dimensions\n"
-         "to *lat_true* and *lon_true*. If the input longitude grid is outside\n"
-         "of *lon_true* it will be shifted left or right by 360.\n"
-         "If the input longitude grid covers 360 degrees, a cyclic interpolation\n"
+         "to *lat_true* and *lon_true*.\n"
+         "\n"
+         "If the input longitude grid is outside of *lon_true* it will be shifted\n"
+         "left or right by 360. If it covers 360 degrees, a cyclic interpolation\n"
          "will be performed.\n"
          "gfield_raw_out and gfield_raw_in can be the same variable.\n"
          ),
@@ -4269,6 +4270,15 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Interpolates the input field along the pressure dimension to *p_grid*.\n"
+         "\n"
+         "If zero-padding is applied, pressures that are outside the input\n"
+         "pressure grid are set to 0. This is thought, e.g., for VMR fields\n"
+         "that outside the given pressure can safely assumed to be zero. Using\n"
+         "zeropadding for altitude and temperature fields is strongly\n"
+         "discouraged (it will work here, though, but likely trigger errors\n"
+         "later on."
+         "Extrapolation is allowed within the common 0.5grid-step margin,\n"
+         "but is overruled by zeropadding.\n"
          "gfield_raw_out and gfield_raw_in can be the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
