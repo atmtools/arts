@@ -39,6 +39,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include "auto_md.h"
 #include "check_input.h"
 #include "array.h"
 #include "logic.h"
@@ -2130,4 +2131,41 @@ void chk_griddedfield_gridname(const GriddedField& gf,
     << "expected to be \"" << gridname << "\".";
     throw runtime_error(os.str());
   }
+}
+
+
+
+
+
+/*===========================================================================
+ === Functions checking agendas
+ ===========================================================================*/
+
+//! Checks if blackbody_radiation_agenda returns frequency based radiance
+/**
+    In several places of ARTS it is demanded that *blackbody_radiation_agenda*
+    is set to the standard Planck function of ARTS. This Planck function
+    returns W/(m2*sr*Hz) (note HZ, not any wavelength). 
+
+    This function performes a simple test to check if this Planck function is
+    used.
+
+    \return                   True or false.
+    \param   ws                           The workspace.
+    \param   blackbody_radiation_agenda   As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2012-10-02
+*/
+bool chk_if_std_blackbody_agenda( 
+         Workspace&   ws,
+   const Agenda&      blackbody_radiation_agenda )
+{
+  Vector btest;
+  blackbody_radiation_agendaExecute( ws, btest, 300, Vector(1,100e9),
+                                     blackbody_radiation_agenda );
+  if( abs( btest[0] - 9.1435e-16) > 1e-19 )
+    { return false; }
+  else
+    { return true; }
 }

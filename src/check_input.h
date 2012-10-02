@@ -383,4 +383,8 @@ void chk_griddedfield_gridname(const GriddedField& gf,
                                const Index gridindex,
                                const String& gridname);
 
+bool chk_if_std_blackbody_agenda( 
+         Workspace&   ws,
+   const Agenda&      blackbody_radiation_agenda );
+
 #endif  // checkinput_h

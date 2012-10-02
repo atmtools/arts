@@ -2790,10 +2790,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", 
-            "lon_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
-            "cloudbox_limits", "basics_checked", "cloudbox_checked", 
-            "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
+        IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", "lon_grid", 
+            "z_field", "t_field", "vmr_field", "cloudbox_on","cloudbox_limits",
+            "basics_checked", "cloudbox_checked", "f_grid", "stokes_dim", 
+            "iy_unit", "blackbody_radiation_agenda", 
+            "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2821,8 +2822,9 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", 
             "lon_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
-            "cloudbox_limits", "f_grid", "stokes_dim", 
-            "scat_za_grid", "scat_aa_grid" ),
+            "cloudbox_limits", "basics_checked", "cloudbox_checked", 
+            "f_grid", "stokes_dim", "iy_unit", 
+            "blackbody_radiation_agenda", "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4583,7 +4585,7 @@ void define_md_data_raw()
          "\n"
          "The internal radiance unit is determined by your definition of\n"
          "blackbody radiation inside the atmospheric and surface source\n" 
-         "terms. Set *iiy_unit* to \"1\" if you want this to also be the unit\n"
+         "terms. Set *iy_unit* to \"1\" if you want this to also be the unit\n"
          "for output radiances. If you want another output unit, you need to\n"
          "make sure that the internal unit is [W/m2/Hz/sr] (ie. the frequency\n"
          "version of the Planck function). The possible choices for *iy_unit*\n"

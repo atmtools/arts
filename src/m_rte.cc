@@ -934,26 +934,18 @@ void iyEmissionStandard(
   if( iy_agenda_call1 )
     {
       // If any conversion, check that standard form of Planck used
-      if( iy_unit != "1" )
+      if( !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
         {
-          // Test if correct value is obtained for 100GHz and 300K 
-          Vector btest;
-          blackbody_radiation_agendaExecute( ws, btest, 300, Vector(1,100e9),
-                                             blackbody_radiation_agenda );
-          if( abs( btest[0] - 9.1435e-16) > 1e-19 )
-            {
-              ostringstream os;
-              os << "When any unit conversion is applied, "
-                 << "*blackbody_radiation_agenda\nmust use "
-                 << "*blackbody_radiationPlanck* or a corresponding WSM.\n"
-                 << "A test call of the agenda indicates that this is not "
-                 << "the case.";
-              throw runtime_error( os.str() );
-            }
+          ostringstream os;
+          os << "When any unit conversion is applied, "
+             << "*blackbody_radiation_agenda\nmust use "
+             << "*blackbody_radiationPlanck* or a corresponding WSM.\nA test "
+             << "call of the agenda indicates that this is not the case.";
+          throw runtime_error( os.str() );
         }
         
       // Determine refractive index to use for the n2 radiance law
-      Numeric n = 1.0; // Firsat guess is that sensor is in space
+      Numeric n = 1.0; // First guess is that sensor is in space
       //
       if( ppath.end_lstep == 0 ) // If true, sensor inside the atmosphere
         { n = ppath.nreal[np-1]; }

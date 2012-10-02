@@ -2633,6 +2633,8 @@ void CloudboxGetIncoming(Workspace&      ws,
                          const Index&    cloudbox_checked,
                          const Vector&   f_grid,
                          const Index&    stokes_dim,
+                         const String&   iy_unit,
+                         const Agenda&   blackbody_radiation_agenda,
                          const Vector&   scat_za_grid,
                          const Vector&   scat_aa_grid,
                          const Verbosity&)
@@ -2648,6 +2650,21 @@ void CloudboxGetIncoming(Workspace&      ws,
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
   
+  // DOIT requires frequency based radiance:
+  if( iy_unit != "1"  || 
+      !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
+    {
+      ostringstream os;
+      os << "It is assumed that you use this method together with DOIT.\n"
+         << "Usage of this method then demands that the *iy_main_agenda*\n"
+         << "returns frequency based radiance (ie. [W/m2/Hz/sr]).\n"
+         << "This requires that *iy_unit* is set to \"1\" and that\n"
+         << "*blackbody_radiation_agenda uses *blackbody_radiationPlanck*\n"
+         << "or a corresponding WSM.\n"
+         << "At least one of these requirements is not met.\n";
+      throw runtime_error( os.str() );
+    }
+
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nza      = scat_za_grid.nelem();
@@ -2866,14 +2883,41 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
                               const Tensor3&  t_field,
                               const Tensor4&  vmr_field,
                               const ArrayOfIndex&   cloudbox_limits,
+                              const Index&    basics_checked,
+                              const Index&    cloudbox_checked,
                               const Vector&   f_grid,
                               const Index&    stokes_dim,
+                              const String&   iy_unit,
+                              const Agenda&   blackbody_radiation_agenda,
                               const Vector&   scat_za_grid,
                               const Vector&   scat_aa_grid,
                               const Verbosity&)
 {
+  // Basics and cloudbox OK?
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control variables must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( !cloudbox_checked )
+    throw runtime_error( "The cloudbox must be flagged to have passed a "
+                         "consistency check (cloudbox_checked=1)." );
+
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
+
+  // DOIT requires frequency based radiance:
+  if( iy_unit != "1"  || 
+      !chk_if_std_blackbody_agenda( ws, blackbody_radiation_agenda ) )
+    {
+      ostringstream os;
+      os << "It is assumed that you use this method together with DOIT.\n"
+         << "Usage of this method then demands that the *iy_main_agenda*\n"
+         << "returns frequency based radiance (ie. [W/m2/Hz/sr]).\n"
+         << "This requires that *iy_unit* is set to \"1\" and that\n"
+         << "*blackbody_radiation_agenda uses *blackbody_radiationPlanck*\n"
+         << "or a corresponding WSM.\n"
+         << "At least one of these requirements is not met.\n";
+      throw runtime_error( os.str() );
+    }
   
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
@@ -2889,8 +2933,6 @@ void CloudboxGetIncoming1DAtm(Workspace&      ws,
   //--- Check input ----------------------------------------------------------
   if( atmosphere_dim != 3 )
     throw runtime_error( "The atmospheric dimensionality must be 3.");
-//   if( cloudbox_on == 0  ||  cloudbox_limits.nelem() == 0 )
-//     throw runtime_error( "The cloudbox must be activated, and it is not.");
   if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
     throw runtime_error(
                      "*scat_za_grid* must include 0 and 180 degrees as endpoints." );

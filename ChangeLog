@@ -1,3 +1,31 @@
+2012-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-316
+
+	* The core DOIT part is hard-coded to return radiance (frequency
+	based, blackbody_radiation_agenda is not used). This puts a demand
+	on that CloudboxGetIncoming returns radiances. You could imagine
+	to use CloudboxGetIncoming for other things than DOIT, where other
+	units could be of interest. But as recent changes made it more
+	difficult to use DOIT for batch calculations, I have added some
+	checks in CloudboxGetIncoming to help the users. So,
+	CloudboxGetIncoming can now only return radiance data.
+
+	* src/m_doit.cc (CloudboxGetIncoming): Now also checks iy_unit and
+	blackbody_radiation, to ensure that frequency based radiance data
+	are obtained.
+
+	(CloudboxGetIncoming1DAtm): As above. In addition, now also
+	considering basics_checked and cloudbox_checked (as done in the
+	method above).
+
+	* src/m_rte.cc (iyEmissionStandard): Now uses the function below
+	(that is based on code from this method).
+
+	* src/check_input.cc (chk_if_std_blackbody_agenda): New function.
+	The function tests if blackbody_radiation_agenda returns
+	frequency based radiance, as assumed in some places.
+
 2012-09-26  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-315
@@ -7,9 +35,9 @@
 	will thus work for more species. Also, the Lenoir tables used did
 	not describe cases with DN != 0 when DJ == 0. Will have to construct
 	quantum transition rules first, then this should allow more general
-	Zeeman effect calculations. The quantum electron spin number is 
+	Zeeman effect calculations. The quantum electron spin number is
 	currently defined constant but it should be a species property.
-	 
+
 	* src/constants.cc: Added Bohr magneton and lande_gs.
 
 2012-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
