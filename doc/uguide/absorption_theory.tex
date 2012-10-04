@@ -1030,13 +1030,23 @@ NSELF,
 \subsubsection{ARTSCAT-3}
 
 With ARTSCAT-3, the pressure broadened line width is calculate as
-\begin{equation}
-  \gamma_L = x_\mathrm{self} \; p \; \mathrm{SGAM} \; \frac{\mathrm{T\_GAM}}{T}^{\mathrm{NSELF}}
-             + (1-x_\mathrm{self}) \; p \; \mathrm{AGAM} \; \frac{\mathrm{T\_GAM}}{T}^{\mathrm{NAIR}} \;,
-\end{equation}
+\begin{eqnarray}
+  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SGAM} \; 
+             \left(
+             \frac{\mathrm{T\_GAM}}{T}
+             \right)^{\mathrm{NSELF}} \nonumber \\
+           & &
+             + \; (1-x_\mathrm{self}) \; p \; \mathrm{AGAM} \; 
+             \left(
+             \frac{\mathrm{T\_GAM}}{T}
+             \right)^{\mathrm{NAIR}} \;,
+\end{eqnarray}
 and the pressure shift is calculated as
 \begin{equation}
-  \Delta \nu = p \; \mathrm{PSF} \; \frac{\mathrm{T\_GAM}}{T}^{(0.25 + 1.5 * \mathrm{NAIR})} \;,
+  \Delta \nu = p \; \mathrm{PSF} \; 
+             \left(
+             \frac{\mathrm{T\_GAM}}{T}
+             \right)^{(0.25 + 1.5 * \mathrm{NAIR})} \;,
 \end{equation}
 where all variables are defined as in Table \ref{tab:abs_theory:pb_inputs}. 
 
@@ -1045,12 +1055,19 @@ where all variables are defined as in Table \ref{tab:abs_theory:pb_inputs}.
 \subsubsection{ARTSCAT-4}
 
 With ARTSCAT-4, the pressure broadened line width is calculate as
-\begin{equation}
-  \gamma_L = x_\mathrm{self} \; p \; \mathrm{SGAM} \; \frac{\mathrm{T\_I0}}{T}^{\mathrm{NSELF}}
-             + (1-x_\mathrm{self}) \; p \; \frac{\sum_i \left[ x_i \; \mathrm{GAMMA}_i \;
-               \frac{\mathrm{T\_I0}}{T}^{\mathrm{N}_i} \right ] }
-             {\sum_i x_i} \;,
-\end{equation}
+\begin{eqnarray}
+  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SGAM} \; 
+               \left(
+               \frac{\mathrm{T\_I0}}{T}
+               \right)^{\mathrm{NSELF}}
+               \nonumber \\
+           & & + \; (1-x_\mathrm{self}) \; p \; 
+               \frac{\sum_i \left[ x_i \; \mathrm{GAMMA}_i \;
+                     \left(
+                     \frac{\mathrm{T\_I0}}{T}
+                     \right)^{\mathrm{N}_i} \right] }
+               {\sum_i x_i} \;,
+\end{eqnarray}
 where index $i$ runs over the six different broadening species N$_2$,
 O$_2$, H$_2$O, CO$_2$, H$_2$, and He, and all other variables are
 defined as in Table \ref{tab:abs_theory:pb_inputs}. Note that there is
@@ -1060,8 +1077,11 @@ temperature as for the line intensity.
  
 Similarly, the pressure shift is calculated as
 \begin{equation}
-\Delta \nu = p \; \frac{\sum_i \left[ x_i \; \mathrm{DELTA}_i \;
-               \frac{\mathrm{T\_I0}}{T}^{(0.25 + 1.5 * \mathrm{N}_i} \right ] }
+\Delta \nu = p \; 
+             \frac{\sum_i \left[ x_i \; \mathrm{DELTA}_i \;
+                   \left(
+                   \frac{\mathrm{T\_I0}}{T}
+                   \right)^{(0.25 + 1.5 * \mathrm{N}_i)} \right] }
              {\sum_i x_i} \;.
 \end{equation}
 The normalisation by $\sum_i x_i$ in both formulas accounts for the fact that the sum
