@@ -228,47 +228,6 @@ void Matrix3ColFromVectors(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixCompare(const Matrix&    matrix1,
-                   const Matrix&    matrix2,
-                   const Numeric&   maxabsdiff,
-                   const String&    error_message,
-                   const Verbosity& verbosity)
-{
-  const Index nrows = matrix1.nrows();
-  const Index ncols = matrix1.ncols();
-
-  if( matrix2.nrows() != nrows  ||  matrix2.ncols() != ncols )
-    throw runtime_error( "The two matrices do not have the same size." );
-
-  Numeric maxdiff = 0.0;
-
-  for( Index r=0; r<nrows; r++ )
-    { 
-      for( Index c=0; c<ncols; c++ )
-        {
-          const Numeric diff = abs( matrix1(r,c) - matrix2(r,c) );
-          if( diff > maxdiff )
-            { maxdiff = diff; }
-        }
-    }
-
-  if( maxdiff > maxabsdiff )
-    {
-      ostringstream os;
-      os << "Checked failed!\n";
-      if (error_message.length()) os << error_message << "\n";
-      os << "Max allowed deviation set to : " << maxabsdiff << endl
-         << "but the matrices deviate with: " << maxdiff << endl;
-      throw runtime_error(os.str());
-    }
-
-  CREATE_OUT2;
-  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix1RowFromVector(// WS Generic Output:
                           Matrix&   m,
                           // WS Generic Input:
@@ -375,29 +334,6 @@ void NumericAdd(Numeric&   out,
                 const Verbosity&)
 {
   out = value + in;
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void NumericCompare(const Numeric&   n1,
-                    const Numeric&   n2,
-                    const Numeric&   maxabsdiff,
-                    const String&    error_message,
-                    const Verbosity& verbosity)
-{
-  const Numeric maxdiff = abs(n1-n2);
-  if( maxdiff > maxabsdiff )
-  {
-    ostringstream os;
-    os << "Checked failed!\n";
-    if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to: " << maxabsdiff << endl
-       << "but the value deviates with:  " << maxdiff << endl;
-    throw runtime_error(os.str());
-  }
-  
-  CREATE_OUT2;
-  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
 }
 
 
@@ -654,59 +590,6 @@ void Tensor6SetConstant(Tensor6&   x,
   out3 << "             ncols : " << ncols     << "\n";
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor7Compare(const Tensor7&  aa,
-                   const Tensor7&   bb,
-                   const Numeric&   maxabsdiff,
-                   const String&    error_message,
-                   const Verbosity& verbosity)
-{
-    const Index ncols = aa.ncols();
-    const Index nrows = aa.nrows();
-    const Index npages = aa.npages();
-    const Index nbooks = aa.nbooks();
-    const Index nshelves = aa.nshelves();
-    const Index nvitrines = aa.nvitrines();
-    const Index nlibraries = aa.nlibraries();
-    
-    if(bb.ncols() != ncols   ||
-       bb.nrows() != nrows  ||
-       bb.npages() != npages   ||
-       bb.nbooks() != nbooks   ||
-       bb.nshelves() != nshelves   ||
-       bb.nvitrines() != nvitrines   ||
-       bb.nlibraries() != nlibraries       )
-        throw runtime_error( "The two tensors do not have the same size." );
-    
-    Numeric maxdiff = 0.0;
-    
-    for( Index c=0; c<ncols; c++ )
-        for( Index r=0; r<nrows; r++ )
-            for( Index p=0; p<npages; p++ )
-                for( Index b=0; b<nbooks; b++ )
-                    for( Index s=0; s<nshelves; s++ )
-                        for( Index v=0; v<nvitrines; v++ )
-                            for( Index l=0; l<nlibraries; l++ )
-            {
-              const Numeric diff = abs( aa(l,v,s,b,p,r,c) - bb(l,v,s,b,p,r,c) );
-              if( diff > maxdiff )
-                { maxdiff = diff; }
-            }
-
-    
-    if( maxdiff > maxabsdiff )
-      {
-        ostringstream os;
-        os << "Checked failed!\n";
-        if (error_message.length()) os << error_message << "\n";
-        os << "Max allowed deviation set to : " << maxabsdiff << endl
-        << "but the tensors deviate with: " << maxdiff << endl;
-        throw runtime_error(os.str());
-      }
-    
-    CREATE_OUT2;
-    out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
-}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor7Scale(Tensor7&  out,
@@ -779,44 +662,6 @@ void VectorAddScalar(Vector&   out,
       out += value;
     }
 }
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorCompare(const Vector&    vector1,
-                   const Vector&    vector2,
-                   const Numeric&   maxabsdiff,
-                   const String&    error_message,
-                   const Verbosity& verbosity)
-{
-  const Index n = vector1.nelem();
-
-  if( vector2.nelem() != n )
-    throw runtime_error( "The two vectors do not have the same size." );
-
-  Numeric maxdiff = 0.0;
-  for( Index i=0; i <n; i++ )
-    {
-      const Numeric diff = abs( vector1[i] - vector2[i] );
-      if( diff > maxdiff )
-      { maxdiff = diff; }
-    }
-    
-  if( maxdiff > maxabsdiff )
-  {
-    ostringstream os;
-    os << "Checked failed!\n";
-    if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to: " << maxabsdiff << endl
-       << "but the vectors deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
-  }
-  
-  CREATE_OUT2;
-  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
-}
-
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1146,4 +991,191 @@ void VectorSet(Vector&       x,
 {
   x = values;
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const Numeric&   n1,
+             const Numeric&   n2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const Verbosity& verbosity)
+{
+  const Numeric maxdiff = abs(n1-n2);
+  if( maxdiff > maxabsdiff )
+  {
+    ostringstream os;
+    os << "Checked failed!\n";
+    if (error_message.length()) os << error_message << "\n";
+    os << "Max allowed deviation set to: " << maxabsdiff << endl
+       << "but the value deviates with:  " << maxdiff << endl;
+    throw runtime_error(os.str());
+  }
+  
+  CREATE_OUT2;
+  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const Vector&    vector1,
+             const Vector&    vector2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const Verbosity& verbosity)
+{
+  const Index n = vector1.nelem();
+
+  if( vector2.nelem() != n )
+    throw runtime_error( "The two vectors do not have the same size." );
+
+  Numeric maxdiff = 0.0;
+  for( Index i=0; i <n; i++ )
+    {
+      const Numeric diff = abs( vector1[i] - vector2[i] );
+      if( diff > maxdiff )
+      { maxdiff = diff; }
+    }
+    
+  if( maxdiff > maxabsdiff )
+  {
+    ostringstream os;
+    os << "Checked failed!\n";
+    if (error_message.length()) os << error_message << "\n";
+    os << "Max allowed deviation set to: " << maxabsdiff << endl
+       << "but the vectors deviate with: " << maxdiff << endl;
+    throw runtime_error(os.str());
+  }
+  
+  CREATE_OUT2;
+  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const Matrix&    matrix1,
+             const Matrix&    matrix2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const Verbosity& verbosity)
+{
+  const Index nrows = matrix1.nrows();
+  const Index ncols = matrix1.ncols();
+
+  if( matrix2.nrows() != nrows  ||  matrix2.ncols() != ncols )
+    throw runtime_error( "The two matrices do not have the same size." );
+
+  Numeric maxdiff = 0.0;
+
+  for( Index r=0; r<nrows; r++ )
+    { 
+      for( Index c=0; c<ncols; c++ )
+        {
+          const Numeric diff = abs( matrix1(r,c) - matrix2(r,c) );
+          if( diff > maxdiff )
+            { maxdiff = diff; }
+        }
+    }
+
+  if( maxdiff > maxabsdiff )
+    {
+      ostringstream os;
+      os << "Checked failed!\n";
+      if (error_message.length()) os << error_message << "\n";
+      os << "Max allowed deviation set to : " << maxabsdiff << endl
+         << "but the matrices deviate with: " << maxdiff << endl;
+      throw runtime_error(os.str());
+    }
+
+  CREATE_OUT2;
+  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const Tensor7&  aa,
+             const Tensor7&   bb,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const Verbosity& verbosity)
+{
+    const Index ncols = aa.ncols();
+    const Index nrows = aa.nrows();
+    const Index npages = aa.npages();
+    const Index nbooks = aa.nbooks();
+    const Index nshelves = aa.nshelves();
+    const Index nvitrines = aa.nvitrines();
+    const Index nlibraries = aa.nlibraries();
+    
+    if(bb.ncols() != ncols   ||
+       bb.nrows() != nrows  ||
+       bb.npages() != npages   ||
+       bb.nbooks() != nbooks   ||
+       bb.nshelves() != nshelves   ||
+       bb.nvitrines() != nvitrines   ||
+       bb.nlibraries() != nlibraries       )
+        throw runtime_error( "The two tensors do not have the same size." );
+    
+    Numeric maxdiff = 0.0;
+    
+    for( Index c=0; c<ncols; c++ )
+        for( Index r=0; r<nrows; r++ )
+            for( Index p=0; p<npages; p++ )
+                for( Index b=0; b<nbooks; b++ )
+                    for( Index s=0; s<nshelves; s++ )
+                        for( Index v=0; v<nvitrines; v++ )
+                            for( Index l=0; l<nlibraries; l++ )
+            {
+              const Numeric diff = abs( aa(l,v,s,b,p,r,c) - bb(l,v,s,b,p,r,c) );
+              if( diff > maxdiff )
+                { maxdiff = diff; }
+            }
+
+    
+    if( maxdiff > maxabsdiff )
+      {
+        ostringstream os;
+        os << "Checked failed!\n";
+        if (error_message.length()) os << error_message << "\n";
+        os << "Max allowed deviation set to : " << maxabsdiff << endl
+        << "but the tensors deviate with: " << maxdiff << endl;
+        throw runtime_error(os.str());
+      }
+    
+    CREATE_OUT2;
+    out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const ArrayOfVector&    avector1,
+             const ArrayOfVector&    avector2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const Verbosity& verbosity)
+{
+    if( avector1.nelem() != avector2.nelem() )
+    {
+        ostringstream os;
+        os << "The two arrays do not have the same size." << endl
+        << "Array 1 nelem: " << avector1.nelem() << endl
+        << "Array 2 nelem: " << avector2.nelem() << endl;
+        throw runtime_error(os.str());
+    }
+
+    for (Index i = 0; i < avector1.nelem(); i++)
+    {
+        try
+        {
+            Compare(avector1[i], avector2[i], maxabsdiff, error_message, verbosity);
+        }
+        catch (runtime_error e)
+        {
+            ostringstream os;
+            os << e.what() << "Mismatch at array index: " << i;
+            throw runtime_error(os.str());
+        }
+    }
+
+}
+
 

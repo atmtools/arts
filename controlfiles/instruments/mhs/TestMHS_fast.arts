@@ -23,9 +23,9 @@ INCLUDE "TestMHS_generic.arts"
 # ---
 WriteXML( "ascii", ybatch )
 
-MatrixCreate( ybatch_ref )
+ArrayOfVectorCreate( ybatch_ref )
 ReadXML( ybatch_ref, "TestMHS.ybatch.ref.xml" )
-MatrixCompare( ybatch, ybatch_ref, 0.2,
-               "Total radiance should be close to the reference values" )
+Compare( ybatch, ybatch_ref, 0.2,
+         "Total radiance should be close to the reference values" )
 
 }

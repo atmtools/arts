@@ -138,7 +138,7 @@ NumericSet( extra_pdREFERENCE, 636.838e-09 )
 #
 yCalc
 #
-VectorCompare( y, yREFERENCE, 1e-18 )
+Compare( y, yREFERENCE, 1e-18 )
 
 
 # Bending angle
@@ -147,7 +147,7 @@ VectorCreate( vdummy )
 NumericCreate( bending_angle )
 Extract( vdummy, y_aux, 0 )
 Extract( bending_angle, vdummy, 0 )
-NumericCompare( bending_angle, bending_angleREFERENCE, 1e-4 )
+Compare( bending_angle, bending_angleREFERENCE, 1e-4 )
 
 
 # Extra path delay
@@ -155,7 +155,7 @@ NumericCompare( bending_angle, bending_angleREFERENCE, 1e-4 )
 NumericCreate( extra_pd )
 Extract( vdummy, y_aux, 1 )
 Extract( extra_pd, vdummy, 0 )
-NumericCompare( extra_pd, extra_pdREFERENCE, 1e-10 )
+Compare( extra_pd, extra_pdREFERENCE, 1e-10 )
 
 }
  

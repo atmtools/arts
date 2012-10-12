@@ -132,7 +132,7 @@ yCalc
 Copy( Jp, jacobian )
 
 # Compare
-MatrixCompare( Ja, Jp, 0.005 )
+Compare( Ja, Jp, 0.005 )
 
 
 
@@ -171,7 +171,7 @@ yCalc
 Copy( Jp, jacobian )
 
 # Compare
-MatrixCompare( Ja, Jp, 0.001 )
+Compare( Ja, Jp, 0.001 )
 
 
 
@@ -206,7 +206,7 @@ Copy( Jp, jacobian )
 
 # Compare (Note that the WF is for 1 deg change, corresponding to about
 # 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
-MatrixCompare( Ja, Jp, 10 )
+Compare( Ja, Jp, 10 )
 
 
 

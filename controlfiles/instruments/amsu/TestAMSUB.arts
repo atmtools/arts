@@ -22,9 +22,9 @@ WriteXML( "ascii", ybatch )
 
 WriteXML( "ascii", ybatch_jacobians )
 
-MatrixCreate( ybatch_ref )
+ArrayOfVectorCreate( ybatch_ref )
 ReadXML( ybatch_ref, "TestAMSUB.ybatch.ref.xml" )
-MatrixCompare( ybatch, ybatch_ref, 0.01,
-               "Total radiance should be close to the reference values" )
+Compare( ybatch, ybatch_ref, 0.01,
+         "Total radiance should be close to the reference values" )
 
 }

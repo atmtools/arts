@@ -122,8 +122,8 @@ Select( y_0, y, [ 0 ] )
 VectorCreate( y_ref )
 VectorSetConstant( y_ref, 1, 201.8 )
 
-VectorCompare( y_0, y_ref, mc_error_0,
-               "Total radiance should be close to 201.8 K" )
+Compare( y_0, y_ref, mc_error_0,
+         "Total radiance should be close to 201.8 K" )
 
 # Polarization test
 NumericCreate( mc_error_1 )
@@ -135,8 +135,8 @@ Select( y_1, y, [ 1 ] )
 
 VectorSetConstant( y_ref, 1, 7.6 )
 
-VectorCompare( y_1, y_ref, mc_error_1,
-               "Polarization difference should be close to 7.6 K" )
+Compare( y_1, y_ref, mc_error_1,
+         "Polarization difference should be close to 7.6 K" )
 
 }
 

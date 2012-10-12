@@ -115,7 +115,7 @@ iyApplyUnit
 MatrixCreate( iy0 )
 #
 ReadXML( iy0, "iyREFERENCE.xml" )
-MatrixCompare( iy, iy0, 0.01 )
+Compare( iy, iy0, 0.01 )
 
 }
  

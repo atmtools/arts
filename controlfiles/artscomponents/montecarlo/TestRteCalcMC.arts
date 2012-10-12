@@ -138,8 +138,8 @@ Print( y_0, 0 )
 Print( y_ref, 0 )
 Print( y_error_0, 0 )
 
-VectorCompare( y_0, y_ref, y_error_0,
-               "Total radiance should be close to 199.5 K" )
+Compare( y_0, y_ref, y_error_0,
+         "Total radiance should be close to 199.5 K" )
 
 }
 

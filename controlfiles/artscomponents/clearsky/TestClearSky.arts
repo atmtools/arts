@@ -125,9 +125,9 @@ Extract( odepth, y_aux, 0 )
 #WriteXML( "ascii", odepth, "y_auxREFERENCE_1D.xml" )
 VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE_1D.xml" )
-VectorCompare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-2 )
 ReadXML( yREFERENCE, "y_auxREFERENCE_1D.xml" )
-VectorCompare( odepth, yREFERENCE, 1e-3 )
+Compare( odepth, yREFERENCE, 1e-3 )
 
 
 
@@ -161,9 +161,9 @@ Extract( odepth, y_aux, 0 )
 #WriteXML( "ascii", y, "yREFERENCE_2D.xml" )
 #WriteXML( "ascii", odepth, "y_auxREFERENCE_2D.xml" )
 ReadXML( yREFERENCE, "yREFERENCE_2D.xml" )
-VectorCompare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-2 )
 ReadXML( yREFERENCE, "y_auxREFERENCE_2D.xml" )
-VectorCompare( odepth, yREFERENCE, 1e-3 )
+Compare( odepth, yREFERENCE, 1e-3 )
 
 
 
@@ -197,9 +197,9 @@ Extract( odepth, y_aux, 0 )
 #WriteXML( "ascii", y, "yREFERENCE_3D.xml" )
 #WriteXML( "ascii", odepth, "y_auxREFERENCE_3D.xml" )
 ReadXML( yREFERENCE, "yREFERENCE_3D.xml" )
-VectorCompare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-2 )
 ReadXML( yREFERENCE, "y_auxREFERENCE_3D.xml" )
-VectorCompare( odepth, yREFERENCE, 1e-3 )
+Compare( odepth, yREFERENCE, 1e-3 )
 
 } # End of Main
  

@@ -3042,6 +3042,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "Compare" ),
+        DESCRIPTION
+        (
+         "Checks the consistency between two variables.\n" 
+         "\n"
+         "The two variables are checked to not deviate outside the specified\n"
+         "value (*maxabsdiff*). An error is issued if this is not fulfilled.\n"
+         "\n"
+         "The main application of this method is to be part of the test\n"
+         "control files, and then used to check that a calculated value\n"
+         "is consistent with an old, reference, value.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "v1", "v2", "maxabsdiff", "error_message" ),
+        GIN_TYPE( "Numeric, Vector, Matrix, Tensor7, ArrayOfVector",
+                  "Numeric, Vector, Matrix, Tensor7, ArrayOfVector",
+                  "Numeric", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, "", "" ),
+        GIN_DESC( "A first variable", "A second variable", 
+                  "Threshold for maximum absolute difference.",
+                  "Additional error message.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "complex_nFromGriddedField4" ),
         DESCRIPTION
         (
@@ -5658,34 +5688,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MatrixCompare" ),
-        DESCRIPTION
-        (
-         "Checks the consistency between two matrices.\n" 
-         "\n"
-         "The two matrices are checked to not deviate outside the specified\n"
-         "value (*maxdev*). An error is issued if this is not fulfilled.\n"
-         "\n"
-         "The main application of this method is to be part of the test\n"
-         "control files, and then used to check that a calculated Jacobian\n"
-         "is consistent with an old, reference, calculation.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( ),
-        GIN( "matrix1", "matrix2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Matrix", "Matrix", "Numeric", "String" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
-        GIN_DESC( "A first matrix", "A second matrix", 
-                  "Threshold for maximum absolute difference.",
-                  "Additional error message.")
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "MatrixMatrixMultiply" ),
         DESCRIPTION
         (
@@ -6175,34 +6177,6 @@ void define_md_data_raw()
                      NODEF ),
         GIN_DESC( "Input numeric.",
                   "Value to add." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "NumericCompare" ),
-        DESCRIPTION
-        (
-         "Checks the consistency between two numerics.\n" 
-         "\n"
-         "The two numerics are checked to not deviate outside the specified\n"
-         "value (*maxabsdiff*). An error is issued if this is not fulfilled.\n"
-         "\n"
-         "The main application of this method is to be part of the test\n"
-         "control files, and then used to check that a calculated value\n"
-         "is consistent with an old, reference, value.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN( "n1", "n2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric", "String" ),
-        GIN_DEFAULT( NODEF, NODEF, "", "" ),
-        GIN_DESC( "A first vector", "A second vector", 
-                  "Threshold for maximum absolute difference.",
-                  "Additional error message.")
         ));
 
   md_data_raw.push_back
@@ -9072,35 +9046,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-     ( NAME( "Tensor7Compare" ),
-      DESCRIPTION
-      (
-       "Checks the consistency between two Tensor7 variables.\n"
-       "\n"
-       "The two tensors are checked to not deviate outside the specified\n"
-       "value (*maxdev*). An error is issued if this is not fulfilled.\n"
-       "\n"
-       "The main application of this method is to be part of the test\n"
-       "control files.\n"
-       "\n"
-       "Based on Patrick's similar method for Matrix.\n"
-       ),
-      AUTHORS( "Stefan Buehler" ),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( ),
-      GIN( "tensor1", "tensor2", "maxabsdiff", "error_message" ),
-      GIN_TYPE( "Tensor7", "Tensor7", "Numeric", "String" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "" ),
-      GIN_DESC( "A first tensor", "A second tensor",
-               "Threshold for maximum absolute difference.",
-               "Additional error message.")
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "Tensor7Scale" ),
         DESCRIPTION
         (
@@ -9261,37 +9206,6 @@ void define_md_data_raw()
         GIN_TYPE(    "Vector", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF     ),
         GIN_DESC( "Output vector", "The value to be added to the vector." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "VectorCompare" ),
-        DESCRIPTION
-        (
-         "Checks the consistency between two vectors.\n" 
-         "\n"
-         "The two vectors are checked to not deviate outside the specified\n"
-         "value (*maxabsdiff*). An error is issued if this is not fulfilled.\n"
-         "\n"
-         "The main application of this method is to be part of the test\n"
-         "control files, and then used to check that a calculated spectrum\n"
-         "is consistent with an old, reference, calculation.\n"
-         "\n"
-         "The default value for *maxabsdiff* is adopted for comparing two\n"
-         "spectra with brightness temperature as unit.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN( "vector1", "vector2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Vector", "Vector", "Numeric", "String" ),
-        GIN_DEFAULT( NODEF, NODEF, "0.01", "" ),
-        GIN_DESC( "A first vector", "A second vector", 
-                  "Threshold for maximum absolute difference.",
-                  "Additional error message.")
         ));
 
   md_data_raw.push_back
@@ -9957,8 +9871,8 @@ void define_md_data_raw()
          "Performs batch calculations for the measurement vector y.\n"
          "\n"
          "We perform *ybatch_n* jobs, starting at index *ybatch_start*. (Zero\n"
-         "based indexing, as usual.) The output matrix *ybatch* will have\n"
-         "dimension (y.nelem(),ybatch_n). So, indices in the output matrix start\n"
+         "based indexing, as usual.) The output array *ybatch* will have\n"
+         "ybatch_n elements. Indices in the output array start\n"
          "with zero, independent of *ybatch_start*.\n"
          "\n"
          "The method performs the following:\n"
@@ -9968,7 +9882,7 @@ void define_md_data_raw()
          "        a. Executes *ybatch_calc_agenda*.\n"
          "        b. If *ybatch_index* = *ybatch_start*, resizes *ybatch*\n"
          "           based on *ybatch_n* and length of *y*.\n"
-         "        c. Copies *y* to column *ybatch_index* - *ybatch_start*\n"
+         "        c. Copies *y* to *ybatch_index* - *ybatch_start*\n"
          "           of *ybatch*.\n"
          "        d. Adds 1 to *ybatch_index*.\n"
          "\n"

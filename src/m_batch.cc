@@ -141,9 +141,9 @@ void VectorExtractFromMatrix(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchCalc(Workspace&      ws, 
+void ybatchCalc(Workspace&      ws,
                 // WS Output:
-                Matrix&         ybatch,
+                ArrayOfVector&  ybatch,
                 ArrayOfMatrix&  ybatch_jacobians,
                 // WS Input:
                 const Index&    ybatch_start,
@@ -153,182 +153,107 @@ void ybatchCalc(Workspace&      ws,
                 const Index& robust,
                 const Verbosity& verbosity)
 {
-  CREATE_OUTS;
-  
-  Vector y;
-  Matrix jacobian;
-  bool is_first = true;
-  Index first_ybatch_index = 0;
+    CREATE_OUTS;
 
-  ArrayOfString fail_msg;
-  bool abort = false;
+    Vector y;
+    Matrix jacobian;
+    Index first_ybatch_index = 0;
 
-  // We have to calculate the first y so that we can size the output
-  // matrix ybatch correctly. This is a bit complicated due to the
-  // robust option: We must handle the case that the first few jobs
-  // fail. 
+    ArrayOfString fail_msg;
+    bool do_abort = false;
 
-  // We allow a start index ybatch_start that is different from 0. We
-  // will calculate ybatch_n jobs starting at the start
-  // index. Internally, we count from zero, which is the right
-  // counting for the output array ybatch. When we call
-  // ybatch_calc_agenda, we add ybatch_start to the internal index
-  // count. 
+    // We allow a start index ybatch_start that is different from 0. We
+    // will calculate ybatch_n jobs starting at the start
+    // index. Internally, we count from zero, which is the right
+    // counting for the output array ybatch. When we call
+    // ybatch_calc_agenda, we add ybatch_start to the internal index
+    // count.
 
-  // We create a counter, so that we can generate nice output about
-  // how many jobs are already done. (All parallel threads later will
-  // increment this, so that we really get an accurate total count!)
-  Index job_counter = 0;
+    // We create a counter, so that we can generate nice output about
+    // how many jobs are already done. (All parallel threads later will
+    // increment this, so that we really get an accurate total count!)
+    Index job_counter = 0;
 
-  // A flag to indicate whether we are calculating (and storing) 
-  // Jacobians. Default is that we don't. But this is set to true 
-  // if the first batch job does return a non-empty Jacobian.
-  bool store_jacobians = false;
-  
-  while (is_first && first_ybatch_index < ybatch_n)
-    {
-      ++job_counter;
+    // Resize the output arrays:
+    ybatch.resize(ybatch_n);
+    ybatch_jacobians.resize(ybatch_n);
 
-      out2 << "  Job " << job_counter << " of " << ybatch_n 
-           << ": Index " << ybatch_start+first_ybatch_index << "\n";
+    // We have to make a local copy of the Workspace and the agendas because
+    // only non-reference types can be declared firstprivate in OpenMP
+    Workspace l_ws(ws);
+    Agenda l_ybatch_calc_agenda(ybatch_calc_agenda);
 
-      try
-        {
-          ybatch_calc_agendaExecute(ws,
-                                    y,
-                                    jacobian,
-                                    ybatch_start+first_ybatch_index,
-                                    ybatch_calc_agenda);
-
-          // The size of ybatch has to be set after the first job
-          // has run successfully.
-          ybatch.resize( y.nelem(), ybatch_n); 
-
-          // Initialize with "-1" everywhere. This will also take
-          // care of the case that there were some unsuccessful
-          // jobs before the first successful one.
-          ybatch = -1;
-          
-          // Now resize also the container for all the Jacobians, ybatch_jacobians.
-
-          // Dimensions of Jacobian:
-          const Index Knr = jacobian.nrows();
-          const Index Knc = jacobian.ncols();
-          
-          if (Knr!=0 || Knc!=0) 
-            {
-              store_jacobians = true;
-
-              if (Knr!=y.nelem())
-                {
-                  ostringstream os;
-                  os << "First dimension of Jacobian must have same length as the measurement *y*.\n"
-                     << "Length of *y*: " << y.nelem() << "\n"
-                     << "Dimensions of *jacobian*: (" << Knr << ", " << Knc << ")\n";
-                  // A mismatch of the Jacobian dimension is a fatal error
-                  // and should result in program termination. By setting abort
-                  // to true, this will result in a runtime error in the catch
-                  // block even if robust == 1
-                  abort = true;
-                  throw runtime_error(os.str());
-                }
-              
-              // Resize the container for all the Jacobians:
-              ybatch_jacobians.resize(ybatch_n);
-
-              // After creation, all individual Jacobi matrices in the array will be 
-              // empty (size zero). No need for explicit initialization.
-            }
-          
-          is_first = false;
-
-          if (y.nelem())
-          {
-            ybatch(joker, first_ybatch_index) = y;
-            
-            if(store_jacobians)
-              ybatch_jacobians[first_ybatch_index] = jacobian;
-          }
-        }
-      catch (runtime_error e)
-        {
-          ostringstream aos;
-          aos << "Run-time error at ybatch_index "
-          << ybatch_start+first_ybatch_index << ": \n" << e.what();
-          fail_msg.push_back(aos.str());
-
-          if (robust && !abort)
-            {
-              ostringstream os;
-              os << "WARNING! Job at ybatch_index " << ybatch_start+first_ybatch_index << " failed.\n"
-                 << "Output variable ybatch will be set to -1 for this job."
-                 << "The runtime error produced was:\n"
-                 << e.what() << "\n";
-              out0 << os.str();
-
-              // No need to set ybatch to -1 here, since it is initialized
-              // with that value.
-            }
-          else
-            {
-              // The user wants the batch job to fail if one of the
-              // jobs goes wrong.
-              throw runtime_error(*(fail_msg.begin()));
-            }
-        }
-      first_ybatch_index++;
-    }
-
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_ybatch_calc_agenda(ybatch_calc_agenda);
-
-  // Go through the batch:
+    // Go through the batch:
 
 #pragma omp parallel for                                     \
-  if(!arts_omp_in_parallel())                                \
-  firstprivate(l_ws, l_ybatch_calc_agenda)                   \
-  private(y, jacobian)
-  for(Index ybatch_index = first_ybatch_index;
-      ybatch_index<ybatch_n;
-      ybatch_index++ )
+if(!arts_omp_in_parallel())                                \
+firstprivate(l_ws, l_ybatch_calc_agenda)                   \
+private(y, jacobian)
+    for(Index ybatch_index = first_ybatch_index;
+        ybatch_index<ybatch_n;
+        ybatch_index++ )
     {
-      Index l_job_counter;      // Thread-local copy of job counter.
+        Index l_job_counter;      // Thread-local copy of job counter.
 
-      if (abort) continue;
+        if (do_abort) continue;
 #pragma omp critical (ybatchCalc_job_counter)
-      {
-        l_job_counter = ++job_counter;
-      }
-
-      {
-        ostringstream os;
-        os << "  Job " << l_job_counter << " of " << ybatch_n 
-           << ", Index " << ybatch_start+ybatch_index << ", Thread-Id "
-           << arts_omp_get_thread_num() << "\n";
-        out2 << os.str();
-      }
-
-      try
         {
-          ybatch_calc_agendaExecute( l_ws,
-                                     y,
-                                     jacobian,
-                                     ybatch_start+ybatch_index,
-                                     l_ybatch_calc_agenda );
- 
-          if (y.nelem())
-          {
-            ybatch( joker, ybatch_index ) = y;
-            
-            if(store_jacobians)
-              ybatch_jacobians[ybatch_index] = jacobian;
-          }
+            l_job_counter = ++job_counter;
+        }
+
+        {
+            ostringstream os;
+            os << "  Job " << l_job_counter << " of " << ybatch_n
+            << ", Index " << ybatch_start+ybatch_index << ", Thread-Id "
+            << arts_omp_get_thread_num() << "\n";
+            out2 << os.str();
+        }
+
+        try
+        {
+            ybatch_calc_agendaExecute(l_ws,
+                                      y,
+                                      jacobian,
+                                      ybatch_start+ybatch_index,
+                                      l_ybatch_calc_agenda);
+
+            if (y.nelem())
+            {
+#pragma omp critical (ybatchCalc_assigny)
+                ybatch[ybatch_index] = y;
+
+                // Dimensions of Jacobian:
+                const Index Knr = jacobian.nrows();
+                const Index Knc = jacobian.ncols();
+
+                if (Knr != 0 || Knc != 0)
+                {
+                    if (Knr != y.nelem())
+                    {
+                        ostringstream os;
+                        os << "First dimension of Jacobian must have same length as the measurement *y*.\n"
+                        << "Length of *y*: " << y.nelem() << "\n"
+                        << "Dimensions of *jacobian*: (" << Knr << ", " << Knc << ")\n";
+                        // A mismatch of the Jacobian dimension is a fatal error
+                        // and should result in program termination. By setting abort
+                        // to true, this will result in a runtime error in the catch
+                        // block even if robust == 1
+#pragma omp critical (ybatchCalc_setabort)
+                        do_abort = true;
+
+                        throw runtime_error(os.str());
+                    }
+
+                    ybatch_jacobians[ybatch_index] = jacobian;
+                    
+                    // After creation, all individual Jacobi matrices in the array will be 
+                    // empty (size zero). No need for explicit initialization.
+                }
+            }
         }
       catch (runtime_error e)
         {
-          if (robust)
+          if (robust && !do_abort)
             {
               ostringstream os;
               os << "WARNING! Job at ybatch_index " << ybatch_start+ybatch_index << " failed.\n"
@@ -344,13 +269,13 @@ void ybatchCalc(Workspace&      ws,
             {
               // The user wants the batch job to fail if one of the
               // jobs goes wrong.
-#pragma omp critical (ybatchCalc_fail)
-              abort = true;
+#pragma omp critical (ybatchCalc_setabort)
+              do_abort = true;
             }
             ostringstream os;
             os << "Run-time error at ybatch_index "
             << ybatch_start+ybatch_index << ": \n" << e.what();
-#pragma omp critical (ybatchCalc_fail_msg)
+#pragma omp critical (ybatchCalc_push_fail_msg)
             fail_msg.push_back(os.str());
         }
     }
@@ -361,7 +286,7 @@ void ybatchCalc(Workspace&      ws,
         for (ArrayOfString::const_iterator it = fail_msg.begin(); it != fail_msg.end(); it++)
             os << *it << '\n';
 
-        if (abort)
+        if (do_abort)
             throw runtime_error(os.str());
         else
             out0 << os.str();
@@ -374,7 +299,7 @@ void ybatchCalc(Workspace&      ws,
 void ybatchMetProfiles(
                Workspace& ws,
                //Output
-               Matrix& ybatch,
+               ArrayOfVector& ybatch,
                //Input
                const ArrayOfArrayOfSpeciesTag& abs_species,
                const Agenda& met_profile_calc_agenda,
@@ -434,7 +359,7 @@ void ybatchMetProfiles(
   y.resize(f_grid.nelem());
   
   // The batch spectra.
-  ybatch.resize(no_profiles, f_grid.nelem());
+  ybatch.resize(no_profiles);
   
   // Loop over the number of profiles.
   for (Index i = 0; i < no_profiles; ++ i)
@@ -593,7 +518,7 @@ void ybatchMetProfiles(
       
       //putting in the spectra *y* for each profile, thus assigning y
       //to the ith row of ybatch
-      ybatch(i, Range(joker)) = y;
+      ybatch[i] = y;
       
     }// closing the loop over profile basenames
 }
@@ -603,7 +528,7 @@ void ybatchMetProfiles(
 void ybatchMetProfilesClear(
                 Workspace& ws,
                 //Output
-                Matrix& ybatch,
+                ArrayOfVector& ybatch,
                 //Input
                 const ArrayOfArrayOfSpeciesTag& abs_species,
                 const Agenda& met_profile_calc_agenda,
@@ -635,7 +560,7 @@ void ybatchMetProfilesClear(
   vmr_field_raw.resize(abs_species.nelem());
   
   y.resize(f_grid.nelem());
-  ybatch.resize(no_profiles, f_grid.nelem());
+  ybatch.resize(no_profiles);
   
   Vector sat_za_from_profile;
   sat_za_from_profile = met_amsu_data(Range(joker),3);
@@ -756,7 +681,7 @@ void ybatchMetProfilesClear(
                                       met_profile_calc_agenda );
       
       //putting in the spectra *y* for each profile
-      ybatch(i, Range(joker)) = y;
+      ybatch[i] = y;
       
     }// closing the loop over profile basenames
 }

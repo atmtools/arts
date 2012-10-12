@@ -130,7 +130,7 @@ yCalc
 #WriteXML( "ascii", y, "y.IsoRatios_H2Oorig.xml" )
 VectorCreate( yB )
 Copy( yB, y )
-VectorCompare( yA, yB, 1e-20 )
+Compare( yA, yB, 1e-20 )
 
 
 #######
@@ -166,7 +166,7 @@ yCalc
 #WriteXML( "ascii", y, "y.IsoRatios_H2Omani.xml" )
 VectorCreate( yC )
 Copy( yC, y )
-VectorCompare( yA, yC, 1e-3 )
+Compare( yA, yC, 1e-3 )
 
 }
 

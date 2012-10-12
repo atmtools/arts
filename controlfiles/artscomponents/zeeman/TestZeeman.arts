@@ -116,7 +116,7 @@ yCalc
 WriteXML( "ascii", y, "yZeeman_3D.xml")
 VectorCreate(yREFERENCE)
 ReadXML( yREFERENCE, "yREFERENCE_3D.xml" )
-VectorCompare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-2 )
 
 
 

@@ -130,7 +130,7 @@ iyCalc
 MatrixCreate( iy0 )
 #
 ReadXML( iy0, "iyREFERENCE.xml" )
-MatrixCompare( iy, iy0, 0.0001 )
+Compare( iy, iy0, 0.0001 )
 
 
 
@@ -157,7 +157,7 @@ ArrayOfStringSet( iy_aux_vars,
 
 iyCalc
 
-MatrixCompare( iy, iy0, 1e-6 )
+Compare( iy, iy0, 1e-6 )
 
 }
  

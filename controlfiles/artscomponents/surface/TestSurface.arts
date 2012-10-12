@@ -90,7 +90,7 @@ AgendaSet( surface_rtprop_agenda ){
   surfaceFlatScalarReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 AgendaSet( surface_rtprop_agenda ){
   Ignore( rte_pos )
@@ -99,7 +99,7 @@ AgendaSet( surface_rtprop_agenda ){
       surface_scalar_reflectivity, blackbody_radiation_agenda, 5, 0.5 )
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 GriddedField4Create( r_gfield4 ) 
 ReadXML( r_gfield4, "scalar_r_field_2angles.xml" )
@@ -110,11 +110,11 @@ AgendaSet( surface_rtprop_agenda ){
   surfaceFlatScalarReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 ReadXML( r_gfield4, "scalar_r_field_10angles.xml" )
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 
 
@@ -132,7 +132,7 @@ AgendaSet( surface_rtprop_agenda ){
   surfaceBlackbody
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 AgendaSet( surface_rtprop_agenda ){
   Ignore( rte_pos )
@@ -140,7 +140,7 @@ AgendaSet( surface_rtprop_agenda ){
   surfaceFlatReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 
 # r=0.8 for all elements (not realistic)
@@ -152,7 +152,7 @@ AgendaSet( surface_rtprop_agenda ){
   surfaceFlatReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 # Diagonal r, with 0.8 on the diagonal
 MatrixSet( iy_correct, [140,0,0,0] )
@@ -167,7 +167,7 @@ AgendaSet( surface_rtprop_agenda ){
   surfaceFlatReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 
 # n = (3,0) in two different ways
@@ -187,7 +187,7 @@ AgendaSet( surface_rtprop_agenda ){
   surfaceFlatRefractiveIndex
 } 
 AgendaExecute( iy_surface_agenda )
-MatrixCompare( iy, iy_correct, 1e-9 )
+Compare( iy, iy_correct, 1e-9 )
 
 
 }

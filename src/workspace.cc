@@ -4618,7 +4618,7 @@ void Workspace::define_wsv_data()
       (
        "Batch of spectra.\n"
        "\n"
-       "Each column of *ybatch* corresponds to a spectrum vector *y*. \n"
+       "Each element of *ybatch* corresponds to a spectrum vector *y*. \n"
        "See further *ybatchCalc*.\n"
        "\n"
        "Usage: Most commonly produced by *ybatch*.\n"
@@ -4626,9 +4626,10 @@ void Workspace::define_wsv_data()
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness.\n"
        "\n"
-       "Dimensions: (length(y), number of batch cases)\n"
+       "Dimensions: Number of array elements equals number of batch cases,\n"
+       "            Vectors have length(y)\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "ArrayOfVector" )));
 
  wsv_data.push_back
    (WsvRecord

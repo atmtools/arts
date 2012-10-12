@@ -1,3 +1,66 @@
+2012-10-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-319
+
+	* Two changes in this commit that break backwards-compatibility:
+
+	ybatch WSV group changed from Matrix to ArrayOfVector.
+
+	WSMs {Matrix,Numeric,Vector,Tensor7}Compare merged into one
+	supergeneric Compare function.
+
+	* src/src/m_batch.cc (ybatchCalc):
+
+	Change type of ybatch to ArrayOfVector. Remove code for separate
+	calculation of first batch job. Batch calculations are now run in
+	parallel immediately, not only after the first job is done.
+
+	(ybatchMetProfiles, ybatchMetProfilesClear):
+
+	Change type of ybatch to ArrayOfVector.
+
+	* src/methods.cc:
+
+	Merge all TYPECompare WSMs into one supergeneric Compare function.
+	{Matrix,Numeric,Vector,Tensor7}Compare -> Compare
+
+	* src/workspace.cc: Change type of ybatch from Matrix to ArrayOfVector.
+
+	* src/m_basic_types.cc:
+
+	Change name of Compare functions and gather them in one place.
+
+	Add Compare implementation for ArrayOfVector.
+
+	* controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts,
+	controlfiles/artscomponents/absorption/TestIsoRatios.arts,
+	controlfiles/artscomponents/clearsky/TestClearSky.arts,
+	controlfiles/artscomponents/doit/TestDOIT.arts,
+	controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts,
+	controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts,
+	controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts,
+	controlfiles/artscomponents/pencilbeam/TestPencilBeam.arts,
+	controlfiles/artscomponents/radiolink/TestRadioLink.arts,
+	controlfiles/artscomponents/surface/TestSurface.arts,
+	controlfiles/artscomponents/transmission/TestTransmission.arts,
+	controlfiles/artscomponents/wfuns/TestWfuns.arts,
+	controlfiles/artscomponents/zeeman/TestZeeman.arts,
+	controlfiles/instruments/amsu/TestAMSUB.arts,
+	controlfiles/instruments/amsu/TestAMSUB_fast.arts,
+	controlfiles/instruments/mhs/TestMHS.arts,
+	controlfiles/instruments/mhs/TestMHS_fast.arts:
+
+	Adapt for type change of ybatch from Matrix to ArrayOfVector.
+
+	Adapt for merge of Compare WSMs.
+	
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.ybatch.ref.xml,
+	controlfiles/instruments/amsu/TestAMSUB.ybatch.ref.xml,
+	controlfiles/instruments/mhs/TestMHS.ybatch.ref.xml:
+
+	Convert ybatch references from Matrix to ArrayOfVector.
+
 2012-10-04  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-318
