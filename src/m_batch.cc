@@ -143,8 +143,9 @@ void VectorExtractFromMatrix(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ybatchCalc(Workspace&      ws,
                 // WS Output:
-                ArrayOfVector&  ybatch,
-                ArrayOfMatrix&  ybatch_jacobians,
+                ArrayOfVector&         ybatch,
+                ArrayOfArrayOfVector&  ybatch_aux,
+                ArrayOfMatrix&         ybatch_jacobians,
                 // WS Input:
                 const Index&    ybatch_start,
                 const Index&    ybatch_n,
@@ -155,8 +156,6 @@ void ybatchCalc(Workspace&      ws,
 {
     CREATE_OUTS;
 
-    Vector y;
-    Matrix jacobian;
     Index first_ybatch_index = 0;
 
     ArrayOfString fail_msg;
@@ -176,6 +175,7 @@ void ybatchCalc(Workspace&      ws,
 
     // Resize the output arrays:
     ybatch.resize(ybatch_n);
+    ybatch_aux.resize(ybatch_n);
     ybatch_jacobians.resize(ybatch_n);
 
     // We have to make a local copy of the Workspace and the agendas because
@@ -187,8 +187,7 @@ void ybatchCalc(Workspace&      ws,
 
 #pragma omp parallel for                                     \
 if(!arts_omp_in_parallel())                                \
-firstprivate(l_ws, l_ybatch_calc_agenda)                   \
-private(y, jacobian)
+firstprivate(l_ws, l_ybatch_calc_agenda)
     for(Index ybatch_index = first_ybatch_index;
         ybatch_index<ybatch_n;
         ybatch_index++ )
@@ -211,16 +210,20 @@ private(y, jacobian)
 
         try
         {
-            ybatch_calc_agendaExecute(l_ws,
-                                      y,
-                                      jacobian,
+            Vector y;
+            ArrayOfVector y_aux;
+            Matrix jacobian;
+            
+            ybatch_calc_agendaExecute(l_ws, y, y_aux, jacobian,
                                       ybatch_start+ybatch_index,
                                       l_ybatch_calc_agenda);
 
             if (y.nelem())
             {
-#pragma omp critical (ybatchCalc_assigny)
+#pragma omp critical (ybatchCalc_assign_y)
                 ybatch[ybatch_index] = y;
+#pragma omp critical (ybatchCalc_assign_y_aux)
+                ybatch_aux[ybatch_index] = y_aux;
 
                 // Dimensions of Jacobian:
                 const Index Knr = jacobian.nrows();

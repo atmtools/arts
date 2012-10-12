@@ -1,3 +1,26 @@
+2012-10-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-321
+
+	* src/src/methods.cc: ybatchCalc now also returns ybatch_aux.
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Add ybatch_aux as output.
+
+	Move definition of y and jacobian inside the batch loop.
+
+	* src/agendas.cc: Add y_aux as output to ybatch_calc_agenda.
+
+	* src/groups.cc: Add group ArrayOfArrayOfVector.
+
+	* src/workspace.cc: Add new WSV ybatch_aux.
+
+	* src/xml_io_types.h, src/xml_io_instantiation.h,
+	src/xml_io_array_types.cc, src/nc_io_array_types.cc:
+
+	Add ArrayOfArrayOfVector support.
+
 2012-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-320

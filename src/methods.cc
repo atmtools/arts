@@ -9909,7 +9909,7 @@ void define_md_data_raw()
          "See the user guide for further practical examples.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "ybatch", "ybatch_jacobians" ),
+        OUT( "ybatch", "ybatch_aux", "ybatch_jacobians" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

@@ -640,7 +640,7 @@ void define_agenda_data()
         "Must produce a new spectrum vector (*y*) and Jacobi matrix (*jacobian*).\n"
         "See further *ybatchCalc*.\n"
         ),
-       OUTPUT( "y", "jacobian" ),
+       OUTPUT( "y", "y_aux", "jacobian" ),
        INPUT( "ybatch_index" )));
 
 }

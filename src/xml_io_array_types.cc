@@ -1170,6 +1170,85 @@ void xml_write_to_stream(ostream&                    os_xml,
 }
 
 
+//=== ArrayOfArrayOfVector====================================================
+
+//! Reads ArrayOfArrayOfVector from XML input stream
+/*!
+  \param is_xml     XML Input stream
+  \param aaVector   ArrayOfArrayOfVector return value
+  \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream&              is_xml,
+                          ArrayOfArrayOfVector& aavector,
+                          bifstream*            pbifs,
+                          const Verbosity&      verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfVector");
+
+  tag.get_attribute_value("nelem", nelem);
+  aavector.resize(nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        xml_read_from_stream(is_xml, aavector[n], pbifs, verbosity);
+    }
+  catch (runtime_error e)
+    {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfVector: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfVector to XML output stream
+/*!
+  \param os_xml     XML Output stream
+  \param aaVector   ArrayOfArrayOfVector
+  \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+  \param name       Optional name attribute
+*/
+void xml_write_to_stream(ostream&                    os_xml,
+                         const ArrayOfArrayOfVector& aaVector,
+                         bofstream*                  pbofs,
+                         const String&               name,
+                         const Verbosity&            verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "ArrayOfVector");
+  open_tag.add_attribute("nelem", aaVector.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aaVector.nelem(); n++)
+    xml_write_to_stream(os_xml, aaVector[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfSparse ==========================================================
 
 //! Reads ArrayOfSparse from XML input stream

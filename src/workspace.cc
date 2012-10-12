@@ -4621,7 +4621,7 @@ void Workspace::define_wsv_data()
        "Each element of *ybatch* corresponds to a spectrum vector *y*. \n"
        "See further *ybatchCalc*.\n"
        "\n"
-       "Usage: Most commonly produced by *ybatch*.\n"
+       "Usage: Most commonly produced by *ybatchCalc*.\n"
        "\n"
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness.\n"
@@ -4630,6 +4630,22 @@ void Workspace::define_wsv_data()
        "            Vectors have length(y)\n"
        ),
       GROUP( "ArrayOfVector" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ybatch_aux" ),
+      DESCRIPTION
+      (
+       "Data auxilary to *ybatch*.\n"
+       "\n"
+       "Each element of *ybatch_aux* corresponds to a auxiliary data *y_aux*. \n"
+       "See further *y_aux* and *ybatchCalc*.\n"
+       "\n"
+       "Usage: Most commonly produced by *ybatchCalc*.\n"
+       "\n"
+       "Dimensions: Number of array elements equals number of batch cases,\n"
+       ),
+      GROUP( "ArrayOfArrayOfVector" )));
 
  wsv_data.push_back
    (WsvRecord
