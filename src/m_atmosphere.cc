@@ -1201,8 +1201,8 @@ void basics_checkedCalc(
               os << "The surface altitude (*z_surface*) cannot be outside "
                  << "of the altitudes in *z_field*.\n"
                  << "z_surface: " << z_surface(row,col) << "\n"
-                 << "z_field(0): " << z_field(0,row,col) << "\n"
-                 << "z_field(-1): " << z_field(z_field.npages()-1,row,col) << "\n";
+                 << "min of z_field: " << z_field(0,row,col) << "\n"
+                 << "max of z_field: " << z_field(z_field.npages()-1,row,col) << "\n";
               if( atmosphere_dim > 1 )
                 os << "\nThis was found to be the case for:\n"
                    << "latitude " << lat_grid[row];

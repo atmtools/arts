@@ -3098,7 +3098,7 @@ void define_md_data_raw()
          "\n"
          "The interpolation is done in steps:\n"
          "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
-         "   2. Linear interpolation if frequency (if input data have more\n"
+         "   2. Linear interpolation in frequency (if input data have more\n"
          "      than one frequency).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
@@ -8732,7 +8732,7 @@ void define_md_data_raw()
          "   2: Interpolation in incidence angle (std. extrapolation).\n"
          "      If the grid has a length of >= 4, cubic interpolation is\n"
          "      applied. Otherwise linear interpolation.\n"
-         "   3. Linear interpolation if frequency (if input data have more\n"
+         "   3. Linear interpolation in frequency (if input data have more\n"
          "      than one frequency).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
