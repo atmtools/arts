@@ -260,13 +260,10 @@ firstprivate(l_ws, l_ybatch_calc_agenda)
             {
               ostringstream os;
               os << "WARNING! Job at ybatch_index " << ybatch_start+ybatch_index << " failed.\n"
-                 << "Output variable ybatch will be set to -1 for this job."
+                 << "y Vector in output variable ybatch will be empty for this job.\n"
                  << "The runtime error produced was:\n"
                  << e.what() << "\n";
               out0 << os.str();
-
-              // No need to set ybatch to -1 here, since it is initialized
-              // with that value.
             }
           else
             {
@@ -274,6 +271,11 @@ firstprivate(l_ws, l_ybatch_calc_agenda)
               // jobs goes wrong.
 #pragma omp critical (ybatchCalc_setabort)
               do_abort = true;
+
+              ostringstream os;
+              os << "  Job at ybatch_index "
+                 << ybatch_start+ybatch_index << " failed. Aborting...\n";
+              out1 << os.str();
             }
             ostringstream os;
             os << "Run-time error at ybatch_index "
@@ -286,6 +288,8 @@ firstprivate(l_ws, l_ybatch_calc_agenda)
     if (fail_msg.nelem())
     {
         ostringstream os;
+
+        if (!do_abort) os << "\nError messages from failed batch cases:\n";
         for (ArrayOfString::const_iterator it = fail_msg.begin(); it != fail_msg.end(); it++)
             os << *it << '\n';
 

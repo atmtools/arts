@@ -1171,7 +1171,7 @@ void Compare(const ArrayOfVector&    avector1,
         catch (runtime_error e)
         {
             ostringstream os;
-            os << e.what() << "Mismatch at array index: " << i;
+            os << e.what() << "\nMismatch at array index: " << i;
             throw runtime_error(os.str());
         }
     }

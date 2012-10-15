@@ -1,3 +1,19 @@
+2012-10-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-322
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Correct error message. Since ybatch is now an ArrayOfVector, y for
+	failed batch cases is simply empty, not -1.
+
+	Add informational output to out1 that we're aborting if a batch case
+	fails and robust==0. Gives feedback to the user that something went
+	wrong and that we will bail out of the batch loop when all the
+	currently running cases have finished (which may take a bit of time).
+
+	* src/m_basic_types.cc (Compare): Add newline in error message.
+
 2012-10-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-321
