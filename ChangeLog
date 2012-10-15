@@ -1,5 +1,15 @@
 2012-10-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-323
+
+	* src/absorption.{h,cc} (LineRecord::ARTSCAT4FromARTSCAT3):
+
+	Don't fail for lines already in ARTSCAT4 format, just skip those.
+
+	Move implementation to cc file.
+
+2012-10-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-322
 
 	* src/m_batch.cc (ybatchCalc):

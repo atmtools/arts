@@ -529,6 +529,51 @@ const IsotopologueRecord& LineRecord::IsotopologueData() const {
 }
 
 
+void LineRecord::ARTSCAT4FromARTSCAT3() {
+
+    // Skip this line if it is already ARTSCAT-4
+    if ( this->Version() == 4 ) return;
+
+    // Check that this line really is ARTSCAT-3
+    if ( this->Version() != 3 )
+    {
+        ostringstream os;
+        os << "This line is not ARTSCAT-3, it is ARTSCAT-" << this->Version();
+        throw runtime_error(os.str());
+    }
+
+    // Set version to 4:
+    mversion = 4;
+
+    const Index nbs = NBroadSpec();
+
+    // Resize foreign parameter arrays:
+    mgamma_foreign.resize(nbs);
+    mn_foreign.resize(nbs);
+    mdelta_foreign.resize(nbs);
+
+    // Loop over broadening species:
+    for (Index i=0; i<nbs; ++i) {
+
+        // Find out if this broadening species is identical to the line species:
+        if (this->Species() == BroadSpecSpecIndex(i)) {
+            // We have to copy the self parameters here.
+            mgamma_foreign[i] = msgam;
+            mn_foreign[i] =     mnself;
+            mdelta_foreign[i] = 0;
+        } else {
+            // We have to copy the foreign parameters here.
+            mgamma_foreign[i] = magam;
+            mn_foreign[i] =     mnair;
+            mdelta_foreign[i] = mpsf;
+        }
+    }
+
+    // Erase the ARTSCAT-3 foreign parameteres:
+    ARTSCAT4UnusedToNaN();
+}
+
+
 // This function reads line data in the Hitran 1986-2001 format. For the Hitran
 // 2004 data format use ReadFromHitran2004Stream.
 //
