@@ -1,3 +1,25 @@
+2012-10-16  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-324
+
+	* src/m_zeeman.cc: Added another scheme for calculating relative
+	strength of the split components. Also added another scheme to get
+	the extinction matrices that take into account dispersion. 
+	
+	(RelativeStrengthLindauAndLifshitz) seem to agree
+	perfectly with the tables used previously at applicable lines.
+	It should also work for the more general cases and regardless of
+	particle, though this has yet to be tested. For more information
+	on this, see Lindau and Lifshitz QED (volume 4).
+	
+	(KMatrixRees) seems reasonable, though it needs to be tested more
+	before I say anyone should trust it.
+	
+	Changed names of some functions and added some new (#Define) for
+	ease of using the various schemes. The current setup does not fail
+	the TestZeeman.arts controlfile. Need to make some better way to
+	switch between the different Zeeman splitting schemes in the future.
+	
 2012-10-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-323

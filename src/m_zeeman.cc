@@ -67,7 +67,7 @@ bool sortF(LineRecord i, LineRecord j) { return ( i.F() < j.F() ); };
     \author Richard Larsson
     \date   2012-08-03
 */
-void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
+void KMatrixAttenuationLenoir(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
 {
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
@@ -76,8 +76,8 @@ void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
     {
         case -1:
             K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) =   sin(theta)*sin(theta) * cos( 2 * eta );
-            K(0,2) =   sin(theta)*sin(theta) * sin( 2 * eta );
+            K(0,1) =       sin(theta)*sin(theta) * cos( 2 * eta );
+            K(0,2) =       sin(theta)*sin(theta) * sin( 2 * eta );
             K(0,3) =   2 * cos(theta);
 
             K(1,0) = K(0,1);
@@ -97,9 +97,9 @@ void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
             break;
         case  1:
             K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) =   sin(theta)*sin(theta) * cos( 2 * eta );
-            K(0,2) =   sin(theta)*sin(theta) * sin( 2 * eta );
-            K(0,3) =  -2*cos(theta);
+            K(0,1) =       sin(theta)*sin(theta) * cos( 2 * eta );
+            K(0,2) =       sin(theta)*sin(theta) * sin( 2 * eta );
+            K(0,3) = - 2 * cos(theta);
 
             K(1,0) = K(0,1);
             K(1,1) = K(0,0);
@@ -120,7 +120,7 @@ void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
             K(0,0) =   sin(theta)*sin(theta);
             K(0,1) = - sin(theta)*sin(theta) * cos( 2 * eta );
             K(0,2) = - sin(theta)*sin(theta) * sin( 2 * eta );
-            K(0,3) = 0;
+            K(0,3) =   0;
 
             K(1,0) = K(0,1);
             K(1,1) = K(0,0);
@@ -161,37 +161,239 @@ void K_mat(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
     };
 };
 
-Numeric Lande_g(const Numeric N, const Numeric J, const Numeric S)
+/*!
+ *  Defines the rotation extinction matrix as derived by the author from
+ *  the definitions of Lenoir (1967) and Mishchenko (2002).
+ * 
+ *  \param  K       Out:    The rotation extinction matrix.
+ *  \param  theta   In:     Angle between the magnetic field and the
+ *                          propagation path. In radians.
+ *  \param  eta     In:     Angle to rotate planar polarization clockwise to
+ *                          fit the general coordinate system. In radians.
+ *  \param  DM      In:     Change in the secondary rotational quantum number.
+ * 
+ *  \author Richard Larsson
+ *  \date   2012-08-03
+ */
+void KMatrixRees(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
 {
-    return (J*(J+1)+S*(S+1)-N*(N+1))/(J*(J+1))/2.0;
+    assert(K.nrows() == 4 );
+    assert(K.ncols() == 4 );
+    
+    switch( DM )
+    {
+        case -1:
+            K(0,0) =   1 + cos(theta)*cos(theta);
+            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
+            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
+            K(0,3) =   2 * cos(theta);
+            
+            K(1,0) =   K(0,1);
+            K(1,1) =   K(0,0);
+            K(1,2) =   2 * cos(theta);
+            K(1,3) =   sin(theta)*sin(theta) * sin(2*eta);
+            
+            K(2,0) =   K(0,2);
+            K(2,1) = - K(1,2);
+            K(2,2) =   K(0,0);
+            K(2,3) = - sin(theta)*sin(theta) * cos(2*eta);
+            
+            K(3,0) =   K(0,3);
+            K(3,1) = - K(1,3);
+            K(3,2) = - K(2,3);
+            K(3,3) =   K(0,0);
+            break;
+        case  1:
+            K(0,0) =   1 + cos(theta)*cos(theta);
+            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
+            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
+            K(0,3) = - 2 * cos(theta);
+            
+            K(1,0) =   K(0,1);
+            K(1,1) =   K(0,0);
+            K(1,2) = - 2 * cos(theta);
+            K(1,3) =   sin(theta)*sin(theta) * sin(2*eta);
+            
+            K(2,0) =   K(0,2);
+            K(2,1) = - K(1,2);
+            K(2,2) =   K(0,0);
+            K(2,3) = - sin(theta)*sin(theta) * cos(2*eta);
+            
+            K(3,0) =   K(0,3);
+            K(3,1) = - K(1,3);
+            K(3,2) = - K(2,3);
+            K(3,3) =   K(0,0);
+            break;
+        case  0:
+            K(0,0) =   sin(theta)*sin(theta);
+            K(0,1) =   sin(theta)*sin(theta) * cos(2*eta);
+            K(0,2) =   sin(theta)*sin(theta) * sin(2*eta);
+            K(0,3) =   0;
+            
+            K(1,0) =   K(0,1);
+            K(1,1) =   K(0,0);
+            K(1,2) =   0;
+            K(1,3) = - sin(theta)*sin(theta) * sin(2*eta);
+            
+            K(2,0) =   K(0,2);
+            K(2,1) = - K(1,2);
+            K(2,2) =   K(0,0);
+            K(2,3) =   sin(theta)*sin(theta) * cos(2*eta);
+            
+            K(3,0) =   K(0,3);
+            K(3,1) = - K(1,3);
+            K(3,2) = - K(2,3);
+            K(3,3) =   K(0,0);
+            break;
+        default: // Unity matrix
+            K(0,0) = 1;
+            K(0,1) = 0;
+            K(0,2) = 0;
+            K(0,3) = 0;
+            
+            K(1,0) = K(0,1);
+            K(1,1) = K(0,0);
+            K(1,2) = 0;
+            K(1,3) = 0;
+            
+            K(2,0) = K(0,2);
+            K(2,1) = K(1,2);
+            K(2,2) = K(0,0);
+            K(2,3) = 0;
+            
+            K(3,0) = K(0,3);
+            K(3,1) = K(1,3);
+            K(3,2) = K(2,3);
+            K(3,3) = K(0,0);
+            break;
+    };
+};
+
+Numeric Lande_g(const Numeric N, const Numeric J, const Numeric S) { return (J*(J+1)+S*(S+1)-N*(N+1))/(J*(J+1))/2.0; }
+
+/*! Calculate the Wigner 3j function value
+ *   From Wolfram-Alpha definition at http://mathworld.wolfram.com/Wigner3j-Symbol.html
+ *   
+ *   This function may be incredible slow depending on input.
+ *   
+ *   The matrix is:
+ *   | jf dj ji |
+ *   | mf dm mi |
+ *   
+ *    \param  jf
+ *    \param  dj
+ *    \param  ji
+ *    \param  mf
+ *    \param  dm
+ *    \param  mi
+ *   
+ *    \author Richard Larsson
+ *    \date   2012-10-12
+ */
+Numeric Wigner_3j_Racah_Formula(const Index jf, const Index dj, 
+                                const Index ji, const Index mf, 
+                                const Index dm, const Index mi)
+{
+    
+    Numeric sum_object=0,a;
+    Index t=0;
+    
+    while( ji - dj + t + mf >= 0 && ji - jf + t - dm >= 0 && jf + dj - ji -t>= 0 && jf - t - mf >= 0 && dj - t + dm >= 0)
+    {
+        a = t%2?1.:-1.;
+        
+        sum_object += a / ( fac(t) * fac(ji - dj + t + mf) * 
+        fac(ji - jf + t - dm) * fac(jf + dj - ji -t) * fac(jf - t - mf) * fac(dj - t + dm) );
+        
+        t++;
+    }
+    
+    a = (jf-dj-mi)%2?1.:-1.;
+    
+    return sum_object * a *    
+    sqrt(fac(jf+dj-ji) * fac(jf-dj+ji) * fac(-jf+dj+ji) / fac(jf+dj+ji+1)) *
+    sqrt(fac(jf+mf) * fac(jf-mf) * fac(dj+dm) * fac(dj-dm) * fac(ji+mi) * fac(ji-mi));
+}
+
+
+/*!
+    Return the relative strength of the split Zeeman line parts as found in
+    Lindau and Lifshitz QED Volume 4 Equation (51.8).
+    
+    Renormalized (somewhat) to one instead of two.  Note that this 
+    renormalization may cause some problem in the future because it
+    is done within the equation, which is quite complex. See the description
+    of Wigner 3j for more information and mathematics.
+    
+    Only tested for Lenoir cases.
+    
+    \param  __U__   Void.
+    \param  m       In:     Secondary rotational quantum number.
+    \param  j       In:     Spin-Orbit Coupling number.
+    \param  DJ      In:     Change in the main rotational quantum number.
+    \param  DM      In:     Change in the secondary rotational quantum number.
+    
+    \author Richard Larsson
+    \date   2012-10-15
+ */
+Numeric RelativeStrengthLindauAndLifshitz(Index, Index m, Index j, Index dj, Index dm)
+{
+    Numeric ret_val = 0;
+    
+    if( dm == 1 )
+    {
+        ret_val = Wigner_3j_Racah_Formula(j, abs(dj), j-dj, m+dm, -dm, -m) ;
+    }
+    else if( dm == -1 )
+    {
+        ret_val = Wigner_3j_Racah_Formula(j, abs(dj), j-dj, -(m+dm), -(-dm), -(-m)) ;
+    }
+    else if( dm == 0)
+    {
+        if( dj < 0 )
+            ret_val = Wigner_3j_Racah_Formula(j, abs(dj), j-dj, -m, 0 , m);
+        else if( dj > 0 )
+            ret_val = Wigner_3j_Racah_Formula(j-dj, abs(dj), j, -m, 0 , m);
+        else if( dj == 0 && dm == 0 && m == 0 )
+            ret_val = 0;
+        else
+            ret_val = Wigner_3j_Racah_Formula(j, 0, j, -m, 0 , m);
+    }
+    else
+    {
+        throw runtime_error("This cannot happen. Please notify someone or fix the problem if you see this error in Wigner_3j_Racah_Formula.");
+    }
+    
+    return dm==0?3./2.*ret_val * ret_val : 3./4. * ret_val * ret_val; // Again, div by 2 so to keep sum approx 1.
 }
 
 /*!
     Return the relative strength of the split Zeeman line parts as found in
     Table 2 of Liebe and Hufford (1989). Renormalized to one instead of two.
-
+   
     \param  n       In:     Main quantum number.
     \param  m       In:     Secondary rotational quantum number.
+    \param  __U__   Void.
     \param  DJ      In:     Change in the main rotational quantum number.
     \param  DM      In:     Change in the secondary rotational quantum number.
-
+   
     \author Richard Larsson
     \date   2012-08-03
-*/
-Numeric RelativeStrengthLenoir(Index n, Index m, Index DJ, Index DM)
+ */
+Numeric RelativeStrengthLenoir(Index n, Index m, Index , Index DJ, Index DM)
 {
-
+    
     /*
-    The following switch case is from table 2 of Liebe and Hufford, 1989.
-    */
+     *  The following switch case is from table 2 of Liebe and Hufford, 1989.
+     */
     
     Numeric N = (Numeric)n, M = (Numeric)m, relstr;
     
     switch ( DJ )
-    {//* Switch over DJ, if DJ != 1 or -1, DJ is wrong.
+    {//* Switch over DJ, if DJ != 1 or -1, DJ is wrong in Lenoir.
         case 1:
             switch ( DM )
-             {//* Switch over DM, if DM != 1, 0 or -1, DM is wrong.
+            {//* Switch over DM, if DM != 1, 0 or -1, DM is wrong.
                 case  1:
                     relstr = 3.0 * ( N+M+1 ) * ( N+M+2 ) / ( 4.0 * ( N+1 ) * ( 2*N+1 ) * ( 2*N+3 ) ) ;
                     break;
@@ -206,28 +408,28 @@ Numeric RelativeStrengthLenoir(Index n, Index m, Index DJ, Index DM)
                     break;
             };
             break;
-        case -1:
-            switch ( DM )
-            {//* Switch over DM, if DM != 1, 0 or -1, DM is wrong.
-                case  1:
-                    relstr = 3.0 * ( N-M-1 ) * ( N-M ) / ( 4.0 * N * ( 2*N+1 ) * ( 2*N-1 ) );
-                    break;
-                case  0:
-                    relstr = 3.0 * ( N * N - M * M ) / ( N * ( 2*N+1 ) * ( 2*N-1 ) );
-                    break;
                 case -1:
-                    relstr = 3.0 * ( N+M-1 ) * ( N+M ) / ( 4.0 * N * ( 2*N+1 ) * ( 2*N-1 ) );
-                    break;
-                default:
-                    relstr = -1e6;
-                    break;
-            };
-            break;
-        default:
-            relstr = -1e6;
-            break;
+                    switch ( DM )
+                    {//* Switch over DM, if DM != 1, 0 or -1, DM is wrong.
+                        case  1:
+                            relstr = 3.0 * ( N-M-1 ) * ( N-M ) / ( 4.0 * N * ( 2*N+1 ) * ( 2*N-1 ) );
+                            break;
+                        case  0:
+                            relstr = 3.0 * ( N * N - M * M ) / ( N * ( 2*N+1 ) * ( 2*N-1 ) );
+                            break;
+                        case -1:
+                            relstr = 3.0 * ( N+M-1 ) * ( N+M ) / ( 4.0 * N * ( 2*N+1 ) * ( 2*N-1 ) );
+                            break;
+                        default:
+                            relstr = -1e6;
+                            break;
     };
-    return relstr / 2.0; //FIXME? It seems the normalization used by Hufford and Liebe is to 2 and not 1... this factor might be erroneous?
+    break;
+                        default:
+                            relstr = -1e6;
+                            break;
+    };
+return relstr / 2.0; //FIXME? It seems the normalization used by Hufford and Liebe is to 2 and not 1... this factor might be erroneous?
 };
 
 /*!
@@ -333,10 +535,12 @@ Numeric FrequencyChangeDirect(Index n, Index m, Index j, Index s, Index DJ, Inde
     return fcc;
 }
 
-/* It is very common that people use the Lenoir table.
- * It would be better to use some direct equation.
+/* It is very common that people use Lenoir notations.
+ * It may be better to use some direct equation.
  * This is an easy way to switch between the systems. */
 #define FREQUENCY_CHANGE FrequencyChangeDirect
+#define K_MATRIX KMatrixAttenuationLenoir
+#define RELATIVE_STRENGTH RelativeStrengthLindauAndLifshitz
 
 void PartReturnZeeman(  Tensor3View part_abs_mat,
                         const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -369,7 +573,7 @@ void PartReturnZeeman(  Tensor3View part_abs_mat,
         
         temp1 += temp2;
     }
-    Matrix  K(4,4); K_mat(K, theta*DEG2RAD, eta*DEG2RAD, DM);
+    Matrix  K(4,4); K_MATRIX(K, theta*DEG2RAD, eta*DEG2RAD, DM);
     mult(part_abs_mat,temp1(joker,0), K);
 }
 
@@ -522,7 +726,6 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         const Numeric eta_test = vector_angle(R22, e_h);
         // Find the angle between Mishchenko vertical/horizontal and Lenoir vertical/horizontal
         eta      = (eta_test > 90.0)?-vector_angle(R22, e_v):vector_angle(R22, e_v);
-        //const Numeric eta_same = (eta_test > 90.0)?-vector_angle(R11, e_h):vector_angle(R11, e_h); //This is a code testing variable
 
         // Angle between radiation propagation and magnetic field for determining how the radiation is polarized..
         theta = vector_angle(H, R_path);
@@ -571,7 +774,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                             throw runtime_error(os.str());
                         }
                         // End   TEST(s)
-
+                        
                         // For every upper molecular magnetic moment, M
                         for ( Index M = -N+DN; M<=N-DN; M++ )
                         {
@@ -584,19 +787,19 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                             if ( DJ ==  1 )
                             { // Then all DM transitions possible for all M
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag);
-                                RS = RelativeStrengthLenoir(N, M, DJ, -1);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag);
-                                RS = RelativeStrengthLenoir(N, M, DJ,  0);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag);
-                                RS = RelativeStrengthLenoir(N, M, DJ, +1);
+                                RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
@@ -607,7 +810,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 if ( M == -J + DJ && M!=0 )
                                 { // Lower limit M only allows DM = 1
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ, +1);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
@@ -616,13 +819,13 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 else if ( M == -J + DJ + 1 && M!=0 )
                                 { // Next to lower limit M can only allow DM = 1, 0
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ, +1);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
@@ -630,13 +833,13 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 else if ( M ==  J - DJ - 1 && M!=0 )
                                 { // Next to upper limit M can only allow DM = 0, -1
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ, -1);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
@@ -644,7 +847,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 else if ( M == J - DJ && M!=0 )
                                 { // Upper limit M only allow DM = -1
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ, -1);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
@@ -652,7 +855,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
                                 { // Special case for N=1, J=0, M=0. Only allows DM = 0
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
@@ -660,19 +863,19 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 else
                                 { // All DM transitions are possible for these M(s)
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ, +1);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ,  0);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag);
-                                    RS = RelativeStrengthLenoir(N, M, DJ, -1);
+                                    RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
