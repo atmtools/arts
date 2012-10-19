@@ -883,13 +883,13 @@ void ppathWriteXMLPartial (//WS Input:
     String filename = f;
     Ppath ppath_partial = ppath;
     ArrayOfGridPos empty_gp;
-    Vector empty_v;
+    //Vector empty_v;
 
     ppath_partial.gp_p = empty_gp;
     ppath_partial.gp_lat = empty_gp;
     ppath_partial.gp_lon = empty_gp;
-    ppath_partial.nreal = empty_v;
-    ppath_partial.ngroup = empty_v;
+    //ppath_partial.nreal = empty_v;
+    //ppath_partial.ngroup = empty_v;
 
     if (file_index >= 0)
     {

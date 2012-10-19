@@ -1,3 +1,17 @@
+2012-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-326
+
+	* src/ppath.cc: A warning! Found a case where new 3D ray tracing
+	code failed and not yet fixed. 
+
+	* src/m_ppath.cc (ppathWriteXMLPartial): Using Oliver's new code,
+	it was easy to test that it is only the grid positions that make
+	the Matlab importing so slow for ppath. For this reason,
+	reintroduced nreal and ngroup.
+	(In my present test, importing the partial ppath takes about just
+	1% of the time for imprting the complete one!)
+
 2012-10-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-325

@@ -7038,10 +7038,11 @@ void define_md_data_raw()
       ( NAME( "ppathWriteXMLPartial" ),
         DESCRIPTION
         (
-         "WSM to only write a reduced Ppath omitting refractive\n"
-         "index (RefractiveIndexRealPart, GroupRefractiveIndex),\n"
-         "gp_p (PressureGridIndexPosition), gp_lat and gp_lon\n"
-         "(GridIndexPositions).\n"
+         "WSM to only write a reduced Ppath, omitting grid positions.\n"
+         "\n"
+         "The following fields are set to be empty: gp_p, gp_lat and gp_lon.\n"
+         "This cam drastically decrease the time for reading the structure\n"
+         "by some external software.\n"
          "\n"
          "If *file_index is >= 0, the variable is written to a file with name:\n"
          "   <filename>.<file_index>.xml.\n"
