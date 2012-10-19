@@ -871,3 +871,33 @@ void VectorZtanToZa1D(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathWriteXMLPartial (//WS Input:
+                           const String& file_format,
+                           const Ppath&  ppath,
+                           // WS Generic Input:
+                           const String& f,
+                           const Index&  file_index,
+                           const Verbosity& verbosity)
+{
+    String filename = f;
+    Ppath ppath_partial = ppath;
+    ArrayOfGridPos empty_gp;
+    Vector empty_v;
+
+    ppath_partial.gp_p = empty_gp;
+    ppath_partial.gp_lat = empty_gp;
+    ppath_partial.gp_lon = empty_gp;
+    ppath_partial.nreal = empty_v;
+    ppath_partial.ngroup = empty_v;
+
+    if (file_index >= 0)
+    {
+        // Create default filename if empty
+        filename_xml_with_index( filename, file_index, "ppath" );
+    }
+
+    WriteXML( file_format, ppath_partial, filename, "ppath", "", verbosity );
+}
+
+

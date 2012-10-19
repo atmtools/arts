@@ -7035,6 +7035,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ppathWriteXMLPartial" ),
+        DESCRIPTION
+        (
+         "WSM to only write a reduced Ppath omitting refractive\n"
+         "index (RefractiveIndexRealPart, GroupRefractiveIndex),\n"
+         "gp_p (PressureGridIndexPosition), gp_lat and gp_lon\n"
+         "(GridIndexPositions).\n"
+         "\n"
+         "If *file_index is >= 0, the variable is written to a file with name:\n"
+         "   <filename>.<file_index>.xml.\n"
+         "where <file_index> is the value of *file_index*.\n"
+         "\n"
+         "This means that *filename* shall here not include the .xml\n"
+         "extension. Omitting filename works as for *WriteXML*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "output_file_format", "ppath" ),
+        GIN(          "filename", "file_index" ),
+        GIN_TYPE(     "String",   "Index" ),
+        GIN_DEFAULT(  "",         "-1" ),
+        GIN_DESC( "File name. See above.",
+                  "Optional file index to append to filename."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ppath_stepGeometric" ),
         DESCRIPTION
         (
