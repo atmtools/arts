@@ -1551,7 +1551,7 @@ Numeric rslope_crossing3d(
   // to 0, that we must throw away.
   Numeric   dmin = 0;
   if( r0 == rp )
-    { dmin = 1e-12; }
+    { dmin = 1e-6; }
   
   // Find the smallest root with imaginary part = 0, and real part > 0.
   //
@@ -4037,7 +4037,7 @@ void ppath_step_geom_3d(
   Numeric   lstep;
   Index    endface;
 
-  do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+  do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start,
                   ppc, lmax, lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
@@ -4803,7 +4803,7 @@ void raytrace_3d_linear_basic(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+      do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                       r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6,
                       r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                       rsurface15, rsurface35, rsurface36, rsurface16 );

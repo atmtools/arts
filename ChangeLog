@@ -1,3 +1,11 @@
+2012-10-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-327
+
+	* src/ppath.cc (raytrace_3d_linear_basic, ppath_step_geom_3d):
+	Going back (hopefully temporarily) to old 3D ray tracing scheme.
+	Still safer than new one!
+
 2012-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-326
