@@ -2339,6 +2339,18 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "mc_min_iter" ),
+       DESCRIPTION
+       (
+        "The minimum number of iterations allowed for Monte Carlo\n"
+        "calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "mc_max_time" ),
        DESCRIPTION
        (

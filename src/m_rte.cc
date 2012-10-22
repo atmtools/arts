@@ -1091,6 +1091,7 @@ void iyMC(
    const Numeric&                    mc_std_err,
    const Index&                      mc_max_time,
    const Index&                      mc_max_iter,
+   const Index&                      mc_min_iter,
    const Verbosity&                  verbosity)
 {
   // Throw error if unsupported features are requested
@@ -1172,7 +1173,7 @@ void iyMC(
                  cloudbox_on, cloudbox_limits, 
                  pnd_field, scat_data_mono, 1, cloudbox_checked,
                  mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
-                 verbosity); 
+                 mc_min_iter, verbosity); 
                  // GH 2011-06-17, mc_z_field_is_1D);
 
       assert( y.nelem() == stokes_dim );

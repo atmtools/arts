@@ -1,3 +1,20 @@
+2012-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-328
+
+	* The minimum number of photons applied in MC can now be
+	controlled. It was before hard-coded to 100.
+
+	* controlfiles/general/general.arts: mc_min_iter set to 100
+	(that is,  consisient with older hardcoded value).
+
+	* src/m_montecarlo.cc (MCGeneral,MCIPA): Now using mc_min_iter
+	(demanding that the value is >= 100).
+
+	* src/m_rte.cc (iyMC): Added mc_min_iter.
+
+	* src/workspace.cc: Added mc_min_iter.
+
 2012-10-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-327
@@ -11,7 +28,7 @@
 	* arts-2-1-326
 
 	* src/ppath.cc: A warning! Found a case where new 3D ray tracing
-	code failed and not yet fixed. 
+	code failed and not yet fixed.
 
 	* src/m_ppath.cc (ppathWriteXMLPartial): Using Oliver's new code,
 	it was easy to test that it is only the grid positions that make

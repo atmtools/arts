@@ -27,6 +27,13 @@ ParticleSpeciesSet( part_species, [] )
 #
 MatrixSet( transmitter_pos, [] )
 
+
+#
+# MC
+#
+IndexSet( mc_min_iter, 100 )
+
+
 #
 # FOS 
 #

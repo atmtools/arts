@@ -223,6 +223,7 @@ void MCGeneral(Workspace&            ws,
                const Numeric&        std_err,
                const Index&          max_time,
                const Index&          max_iter,
+               const Index&          min_iter,
                // GH commented out 2011-06-17 unused
                // const Index&          z_field_is_1D,
                const Verbosity&      verbosity)
@@ -237,6 +238,9 @@ void MCGeneral(Workspace&            ws,
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
+
+  if( min_iter < 100 )
+    { throw runtime_error( "*mc_min_iter* must be >= 100." ); }
 
   //Check keyword input
   if (max_time<0 && max_iter<0 && std_err<0){
@@ -513,9 +517,12 @@ void MCGeneral(Workspace&            ws,
         {
           mc_error[j]=sqrt((Isquaredsum[j]/(Numeric)mc_iteration_count-y[j]*y[j])/(Numeric)mc_iteration_count);
         }
-      if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
-      if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
-      if (max_iter>0 && mc_iteration_count>=max_iter){break;}
+      if (std_err>0 && mc_iteration_count>=min_iter && mc_error[0]<std_err_i)
+        { break; }
+      if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time)
+        { break; }
+      if (max_iter>0 && mc_iteration_count>=max_iter)
+        { break; }
     }
   if ( convert_to_rjbt )
     {
@@ -563,9 +570,13 @@ void MCIPA(Workspace&            ws,
            const Numeric&        std_err,
            const Index&          max_time,
            const Index&          max_iter,
+           const Index&          min_iter,
            const Index&          z_field_is_1D,
            const Verbosity&      verbosity)
 {
+  if( min_iter < 100 )
+    { throw runtime_error( "*mc_min_iter* must be >= 100." ); }
+
   //Check keyword input
   if (max_time<0 && max_iter<0 && std_err<0){
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
@@ -817,7 +828,7 @@ void MCIPA(Workspace&            ws,
         {
           mc_error[j]=sqrt((Isquaredsum[j]/(Numeric)mc_iteration_count-y[j]*y[j])/(Numeric)mc_iteration_count);
         }
-      if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
+      if (std_err>0 && mc_iteration_count>=min_iter && mc_error[0]<std_err_i){break;}
       if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
       if (max_iter>0 && mc_iteration_count>=max_iter){break;}
     }

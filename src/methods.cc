@@ -4775,8 +4775,8 @@ void define_md_data_raw()
          "weighting the errors with the sensor repsonse matrix. The seed is\n"
          "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
          "\n"
-         "MC control arguments (mc_std_err, mc_max_time, mc_max_iter and\n"
-         "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
+         "MC control arguments (mc_std_err, mc_max_time, mc_min_iter and\n"
+         "mc_mas_iter) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
          "As or *MCGeneral*, the value of *mc_error* shall be adopted to\n"
          "*iy_unit*.\n"
@@ -4802,7 +4802,7 @@ void define_md_data_raw()
             "stokes_dim", "f_grid", "scat_data_raw", "iy_space_agenda", 
             "surface_rtprop_agenda", "abs_mat_per_species_agenda",
             "pnd_field", "iy_unit",
-            "mc_std_err", "mc_max_time", "mc_max_iter"),
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6075,13 +6075,17 @@ void define_md_data_raw()
           "Stokes vector integrated over the antenna function, and the\n"
           "estimated error in this vector respectively.\n"
           "\n"
-          "The WSV *mc_max_iter* describes the number of `photons\'\n"
+          "The WSV *mc_max_iter* describes the maximum number of `photons\'\n"
           "used in the simulation (more photons means smaller *mc_error*).\n"
           "*mc_std_err* is the desired value of mc_error. *mc_max_time* is\n"
           "the maximum allowed number of seconds for MCGeneral. The method\n"
           "will terminate once any of the max_iter, std_err, max_time\n"
           "criteria are met. If negative values are given for these\n"
-          "parameters then it isignored.\n"
+          "parameters then it is ignored.\n"
+          "\n"
+          "The WSV *mc_min_iter* sets the minimum number of photons to apply\n"
+          "before the condition set by *mc_std_err* is considered. Values\n"
+          "of *mc_min_iter* below 100 are not accepted.\n"
           "\n"
           "Negative values of *mc_seed* seed the random number generator\n"
           "according to system time, positive *mc_seed* values are taken\n"
@@ -6103,7 +6107,7 @@ void define_md_data_raw()
             "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits", 
             "pnd_field", "scat_data_mono", "basics_checked", "cloudbox_checked",
             "mc_seed", "iy_unit", 
-            "mc_std_err", "mc_max_time", "mc_max_iter"),//, "mc_z_field_is_1D" ),
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6129,7 +6133,8 @@ void define_md_data_raw()
             "lon_grid", "z_field", "refellipsoid", "z_surface", "t_field", 
             "vmr_field", "edensity_field", "cloudbox_limits", "pnd_field", 
             "scat_data_mono", "mc_seed", "iy_unit",
-            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter",
+            "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
