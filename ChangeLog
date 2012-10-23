@@ -1,3 +1,26 @@
+2012-10-24  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-332
+
+	* src/m_doit.cc (doit_conv_flagAbs, doit_conv_flagAbsBT,
+	doit_conv_flagLsq):
+	Fix hard-coded number of max. iterations in DOIT - made it a user-
+	controllable parameter (with the previously hard-coded value of 100 as
+	the default value). Also make it a user choice, whether to throw an
+	error in case of non-convergence (this seems to be the logical
+	consequence) or to accept the latest (but non-converged) scattering
+	field as result (keeping this option and making it the default in order
+	to avoid opening a can of worms NOW: a number of earlier calcs might
+	suffer from that and failing at a single freq grid point would cause the
+	whole calc to fail. we need a better fix for that!)
+
+	* src/methods.cc: adapted accordingly
+
+	* controlfiles/instruments/avhrr/avhrr_sensor_common.arts,
+	avhrr_sensor_fast.arts, avhrr_sensor_reference.arts:
+	Properly set names for a couple of datafiles to read - failed when used
+	those arts files as includes outside the arts controlfiles folder.
+
 2012-10-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-331
@@ -227,7 +250,6 @@
 
 	Convert ybatch references from Matrix to ArrayOfVector.
 
->>>>>>> .r7911
 2012-10-04  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-318

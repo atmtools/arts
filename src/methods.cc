@@ -2179,7 +2179,7 @@ void define_md_data_raw()
          "\n"
          "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
          "*GriddedFieldLatLonRegrid*. VMRs at *p_grid* levels exceeding the\n"
-         "raw VMR's pressure grid are set to 0 (using the *zeropadding* padding\n"
+         "raw VMR's pressure grid are set to 0 (using the *zeropadding*\n"
          "option of *GriddedFieldPRegrid*). For all other data (T,z) and in other\n"
          "dimensions (latitude, longitude) default 'half-grid-step' extrapolation\n"
          "is allowed and applied.\n"
@@ -3303,11 +3303,16 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_conv_flag", "doit_iteration_counter",
             "doit_i_field", "doit_i_field_old" ),
-        GIN( "epsilon" ),
-        GIN_TYPE( "Vector" ),
-        GIN_DEFAULT( NODEF ),
+        GIN( "epsilon", "max_iterations", "throw_nonconv_error" ),
+        GIN_TYPE( "Vector", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "100", "0" ),
         GIN_DESC( "Limits for convergence. A vector with length matching "
-                  "*stokes_dim* with unit [W / (m^2 Hz sr)]."
+                  "*stokes_dim* with unit [W / (m^2 Hz sr)].",
+                  "Maximum number of iterations allowed to reach convergence"
+                  "limit.",
+                  "Flag whether to accept result at max_iterations (0=default)"
+                  "or whether to throw an error in case of non-convergence at"
+                  "max_iterations"
                   )
         ));
 
@@ -3329,11 +3334,16 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_conv_flag", "doit_iteration_counter",
             "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
-        GIN( "epsilon" ),
-        GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF ),
+        GIN( "epsilon", "max_iterations", "throw_nonconv_error" ),
+        GIN_TYPE( "Vector", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "100", "0" ),
         GIN_DESC( "Limits for convergence. A vector with length matching "
-                  "*stokes_dim* with unit [K]."
+                  "*stokes_dim* with unit [K].",
+                  "Maximum number of iterations allowed to reach convergence"
+                  "limit.",
+                  "Flag whether to accept result at max_iterations (0=default)"
+                  "or whether to throw an error in case of non-convergence at"
+                  "max_iterations"
                   )
         ));
 
@@ -3358,11 +3368,16 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_conv_flag", "doit_iteration_counter", 
             "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
-        GIN( "epsilon" ),
-        GIN_TYPE( "Vector" ),
-        GIN_DEFAULT( NODEF ),
+        GIN( "epsilon", "max_iterations", "throw_nonconv_error" ),
+        GIN_TYPE( "Vector", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "100", "0" ),
         GIN_DESC( "Limits for convergence. A vector with length matching "
-                  "*stokes_dim* with unit [K]."
+                  "*stokes_dim* with unit [K].",
+                  "Maximum number of iterations allowed to reach convergence"
+                  "limit.",
+                  "Flag whether to accept result at max_iterations (0=default)"
+                  "or whether to throw an error in case of non-convergence at"
+                  "max_iterations"
                   )
         ));
   

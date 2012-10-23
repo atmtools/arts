@@ -127,6 +127,8 @@ void doit_conv_flagAbs(//WS Input and Output:
                        const Tensor6& doit_i_field_old,
                        // Keyword:
                        const Vector& epsilon,
+                       const Index& max_iterations,
+                       const Index& throw_nonconv_error,
                        const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -137,20 +139,6 @@ void doit_conv_flagAbs(//WS Input and Output:
     throw runtime_error("Convergence flag is non-zero, which means that this\n"
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
-  
-  
-  if (doit_iteration_counter > 100)
-    {
-      out1 <<"Warning in DOIT calculation:" 
-           <<"Method does not converge (number of iterations \n"
-           <<"is > 100). Either the cloud particle number density \n"
-           <<"is too large or the numerical setup for the DOIT \n"
-           <<"calculation is not correct. In case of limb \n"
-           <<"simulations please make sure that you use an \n"
-           <<"optimized zenith angle grid. \n"
-           <<"*doit_i_field* might be wrong.\n";
-      doit_conv_flag = 1;
-    }
   
   const Index N_p = doit_i_field.nvitrines();
   const Index N_lat = doit_i_field.nshelves();
@@ -179,9 +167,34 @@ void doit_conv_flagAbs(//WS Input and Output:
                         
 
   out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
-  doit_iteration_counter +=1;
 
-
+  if (doit_iteration_counter > max_iterations)
+    {
+      ostringstream out;
+      out <<"Method does not converge (number of iterations \n"
+          <<"is > " << max_iterations << "). Either the cloud "
+          <<"particle number density \n"
+          <<"is too large or the numerical setup for the DOIT \n"
+          <<"calculation is not correct. In case of limb \n"
+          <<"simulations please make sure that you use an \n"
+          <<"optimized zenith angle grid. \n"
+          <<"*doit_i_field* might be wrong.\n";
+      if( throw_nonconv_error != 0)
+        {
+          ostringstream os;
+          os << "Error in DOIT calculation:\n"
+             << out;
+          throw runtime_error( os.str() );
+        }
+      else
+        {
+          out1 << "Warning in DOIT calculation (output equals current status):\n"
+               << out;
+          doit_conv_flag = 1;
+        }
+    }
+  else
+    {
    for (Index p_index = 0; p_index < N_p; p_index++)
     { 
       for (Index lat_index = 0; lat_index < N_lat; lat_index++)
@@ -226,7 +239,8 @@ void doit_conv_flagAbs(//WS Input and Output:
   
   // Convergence test has been successful, doit_conv_flag can be set to 1.
   doit_conv_flag = 1;
-  out2 << "  Number of DOIT-iterations: " << doit_iteration_counter << "\n";
+  doit_iteration_counter +=1;
+    }
 }
       
 
@@ -241,6 +255,8 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                          const Index& f_index, 
                          // Keyword:
                          const Vector& epsilon,
+                         const Index& max_iterations,
+                         const Index& throw_nonconv_error,
                          const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -252,20 +268,6 @@ void doit_conv_flagAbsBT(//WS Input and Output:
     throw runtime_error("Convergence flag is non-zero, which means that this \n"
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
-  
-  if (doit_iteration_counter > 100)
-    {
-      out1 <<"Warning in DOIT calculation at frequency" << f_grid[f_index] 
-           << "GHz: \n"
-           <<"Method does not converge (number of iterations \n"
-           <<"is > 100). Either the cloud particle number density \n"
-           <<"is too large or the numerical setup for the DOIT \n"
-           <<"calculation is not correct. In case of limb \n"
-           <<"simulations please make sure that you use an \n"
-           <<"optimized zenith angle grid. \n"
-           <<"*doit_i_field* might be wrong.\n";
-      doit_conv_flag = 1;
-    }
   
   const Index N_p = doit_i_field.nvitrines();
   const Index N_lat = doit_i_field.nshelves();
@@ -304,9 +306,36 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   //-----------End of checks--------------------------------
 
   out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
-  doit_iteration_counter +=1;
 
-  for (Index p_index = 0; p_index < N_p; p_index++)
+  if (doit_iteration_counter > max_iterations)
+    {
+      ostringstream out;
+      out <<"At frequency" << f_grid[f_index] << "GHz \n"
+          <<"method does not converge (number of iterations \n"
+          <<"is > " << max_iterations << "). Either the cloud particle"
+          <<" number density \n"
+          <<"is too large or the numerical setup for the DOIT \n"
+          <<"calculation is not correct. In case of limb \n"
+          <<"simulations please make sure that you use an \n"
+          <<"optimized zenith angle grid. \n"
+          <<"*doit_i_field* might be wrong.\n";
+      if( throw_nonconv_error != 0)
+        {
+          ostringstream os;
+          os << "Error in DOIT calculation:\n"
+             << out;
+          throw runtime_error( os.str() );
+        }
+      else
+        {
+          out1 << "Warning in DOIT calculation (output equals current status):\n"
+               << out;
+          doit_conv_flag = 1;
+        }
+    }
+  else
+    {
+    for (Index p_index = 0; p_index < N_p; p_index++)
     { 
       for (Index lat_index = 0; lat_index < N_lat; lat_index++)
         {
@@ -348,7 +377,8 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   
   // Convergence test has been successful, doit_conv_flag can be set to 1.
   doit_conv_flag = 1;
-  out1 << "Number of DOIT-iterations:" << doit_iteration_counter << "\n";
+  doit_iteration_counter +=1;
+    }
 }
 
 
@@ -363,6 +393,8 @@ void doit_conv_flagLsq(//WS Output:
                        const Index& f_index,
                        // Keyword:
                        const Vector& epsilon,
+                       const Index& max_iterations,
+                       const Index& throw_nonconv_error,
                        const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -374,17 +406,7 @@ void doit_conv_flagLsq(//WS Output:
     throw runtime_error("Convergence flag is non-zero, which means that this \n"
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
-  
-  
-  if (doit_iteration_counter > 100)
-    throw runtime_error("Error in DOIT calculation: \n"
-                        "Method does not converge (number of iterations \n"
-                        "is > 100). Either the cloud particle number density \n"
-                        "is too large or the numerical setup for the DOIT \n"
-                        "calculation is not correct. In case of limb \n"
-                        "simulations please make sure that you use an \n"
-                        "optimized zenith angle grid. \n");
-  
+ 
   const Index N_p = doit_i_field.nvitrines();
   const Index N_lat = doit_i_field.nshelves();
   const Index N_lon = doit_i_field.nbooks();
@@ -423,8 +445,33 @@ void doit_conv_flagLsq(//WS Output:
 
  
   out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
-  doit_iteration_counter +=1;                   
   
+  if (doit_iteration_counter > max_iterations)
+    {
+      ostringstream out;
+      out <<"Method does not converge (number of iterations \n"
+          <<"is > " << max_iterations << "). Either the cloud"
+          <<" particle number density \n"
+          <<"is too large or the numerical setup for the DOIT \n"
+          <<"calculation is not correct. In case of limb \n"
+          <<"simulations please make sure that you use an \n"
+          <<"optimized zenith angle grid. \n";
+      if( throw_nonconv_error != 0)
+        {
+          ostringstream os;
+          os << "Error in DOIT calculation:\n"
+             << out;
+          throw runtime_error( os.str() );
+        }
+      else
+        {
+          out1 << "Warning in DOIT calculation (output equals current status):\n"
+               << out;
+          doit_conv_flag = 1;
+        }
+    }
+  else
+    {
   Vector lqs(4, 0.);
   
   // Will be set to zero if convergence not fullfilled
@@ -468,13 +515,9 @@ void doit_conv_flagLsq(//WS Output:
         doit_conv_flag = 0;
     }
   // end loop stokes_index
-  out1 << "lqs [I]: " << lqs[0] << "\n";
-  
-  if (doit_conv_flag == 1)
-    {
-      // Convergence test has been successful,
-      out1 << "Number of DOIT-iterations: " << doit_iteration_counter 
-           << "\n";
+  out1 << "lqs [I]: " << lqs[0] << "\n";  
+
+  doit_iteration_counter +=1;
     }
 }
 
