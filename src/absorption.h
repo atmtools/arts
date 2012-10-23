@@ -940,6 +940,7 @@ public:
         break;
       default:
         assert(false);   // We should never end up here.
+        return "";
         break;
     }
   }
