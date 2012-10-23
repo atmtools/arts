@@ -32,8 +32,10 @@ def check_tex_file(ws, filename):
     rebuiltin = re.compile(r"\\builtindoc{(.*?)}")
     rewsm = re.compile(r"\\wsmindex{(.*?)}")
     rewsv = re.compile(r"\\wsvindex{(.*?)}")
+    reag = re.compile(r"\\wsaindex{(.*?)}")
     wsms = []
     wsvs = []
+    wags = []
     builtins = []
 
     f = open(filename)
@@ -47,15 +49,16 @@ def check_tex_file(ws, filename):
         for m in wsmmatches:
             wsms.append((l, m.replace("\\", "")))
 
-        wsvmatches = rewsv.findall(line)
-        for m in wsvmatches:
-            wsvs.append((l, m.replace("\\", "")))
+        wagmatches = rewsv.findall(line)
+        for m in wagmatches:
+            wags.append((l, m.replace("\\", "")))
 
     f.close()
 
     err = []
     err.extend([(l, "WSM", m) for l, m in wsms if m not in ws.wsms])
     err.extend([(l, "WSV", m) for l, m in wsvs if m not in ws.wsvs])
+    err.extend([(l, "agenda", m) for l, m in wags if m not in ws.wsvs])
     err.extend([(l, "entity", m)
                 for l, m in builtins
                 if m not in ws.wsms and m not in ws.wsvs and m not in ws.groups])

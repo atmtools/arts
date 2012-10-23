@@ -86,5 +86,5 @@ add_test(
   )
 
 add_custom_target(check-uguide
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} DEPENDS arts arts_docs)
 

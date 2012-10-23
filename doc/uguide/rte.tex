@@ -571,7 +571,7 @@ and \wsvindex{rte\_los} (instead of \builtindoc{sensor\_pos} and
 \builtindoc{sensor\_los}). The calculated radiances are returned as the matrix
 \wsvindex{iy} (instead of the vector \builtindoc{y}). 
 No automatic unit conversion is made inside \builtindoc{iyCalc}. This is
-instead handled separately by \wsmindex{iyApplyYunit}.
+instead handled separately by \wsmindex{iyApplyUnit}.
 
 
 
@@ -605,7 +605,7 @@ AgendaSet( iy_sub_agenda ){
   iyEmissionStandard
 }
 \end{code}
-The approach is simple, \wsvindex{iyLoopFrequencies} calls
+The approach is simple, \wsmindex{iyLoopFrequencies} calls
 \builtindoc{iy\_sub\_agenda} for each single frequency in \builtindoc{f\_grid}
 and appends the output. With some details, \builtindoc{iyLoopFrequencies}
 performs a loop over the \builtindoc{f\_grid}, creates an internal
@@ -670,7 +670,7 @@ divided into different groups (more variables will/can be added):
 \end{description}
 ``Along-the-path'' means that data are provided for each point of the
 propagation path. The path is described by \wsvindex{ppath}, that is also
-returned by \wsmindex{iy\_main\_agenda}. The \builtindoc{ppath} variable
+returned by \wsaindex{iy\_main\_agenda}. The \builtindoc{ppath} variable
 contains the information needed to geo-position, for example, ``along-the path
 temperatures''.
 

@@ -1,5 +1,18 @@
 2012-10-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-330
+
+	* doc/uguide/check_refs.py: Add check for wsa_index macro.
+
+	* doc/uguide/CMakeLists.txt: Make check-uguide depend on arts_docs.
+
+	* doc/uguide/absorption.tex, doc/uguide/atmosphere.tex,
+	doc/uguide/rte.tex, doc/uguide/batch.tex:
+	
+	Fix some low hanging fruit.
+
+2012-10-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-329
 
 	* doc/uguide/check_refs.py, doc/uguide/CMakeLists.txt:
