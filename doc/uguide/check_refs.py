@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Checks that WSVs and WSMs used in tex macros \wsmindex{}, \wsmwsv{} and
-\builtindoc{} really exist.
+Checks that WSVs and WSMs used in tex macros \wsmindex{}, \wsmindex{},
+\wsaindex{} and \builtindoc{} really exist.
 
 __author__ = "Oliver Lemke"
 """

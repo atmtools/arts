@@ -1,5 +1,14 @@
 2012-10-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-331
+
+	* doc/uguide/check_refs.py: Update doc.
+
+	* doc/uguide/CMakeLists.txt: Make check-uguide depend on pdfs directly
+	instead of custom arts_docs target for compatibility with older cmake.
+
+2012-10-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-330
 
 	* doc/uguide/check_refs.py: Add check for wsa_index macro.
