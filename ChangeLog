@@ -1,5 +1,19 @@
 2012-10-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-335
+
+	* src/methods.cc:
+
+	Add doit_i_field as output to doit_conv_flag* WSMs. Change name of
+	throw_nonconv_error flag to nonconv_return_nan.
+
+	* src/m_doit.cc (doit_conv_flag*):
+
+	Return NaNs in non-convergence case instead of throwing a runtime
+	error.
+
+2012-10-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-334
 
 	* src/m_doit.cc (doit_conv_flag*):

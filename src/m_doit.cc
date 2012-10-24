@@ -122,8 +122,8 @@ void DoitAngularGridsSet(// WS Output:
 void doit_conv_flagAbs(//WS Input and Output:
                        Index& doit_conv_flag,
                        Index& doit_iteration_counter,
+                       Tensor6& doit_i_field,
                        // WS Input:
-                       const Tensor6& doit_i_field,
                        const Tensor6& doit_i_field_old,
                        // Keyword:
                        const Vector& epsilon,
@@ -182,10 +182,15 @@ void doit_conv_flagAbs(//WS Input and Output:
           <<"*doit_i_field* might be wrong.\n";
       if( throw_nonconv_error != 0)
         {
-          ostringstream os;
-          os << "Error in DOIT calculation:\n"
-             << out.str();
-          throw runtime_error( os.str() );
+// FIXME: OLE: Remove this later
+//          ostringstream os;
+//          os << "Error in DOIT calculation:\n"
+//             << out.str();
+//          throw runtime_error( os.str() );
+          out1 << "Warning in DOIT calculation (output set to NaN):\n"
+               << out.str();
+          doit_i_field = NAN;
+          doit_conv_flag = 1;
         }
       else
         {
@@ -248,8 +253,8 @@ void doit_conv_flagAbs(//WS Input and Output:
 void doit_conv_flagAbsBT(//WS Input and Output:
                          Index& doit_conv_flag,
                          Index& doit_iteration_counter,
+                         Tensor6& doit_i_field,
                          // WS Input:
-                         const Tensor6& doit_i_field,
                          const Tensor6& doit_i_field_old,
                          const Vector& f_grid,
                          const Index& f_index, 
@@ -311,7 +316,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   if (doit_iteration_counter > max_iterations)
     {
       ostringstream out;
-      out <<"At frequency" << f_grid[f_index] << "GHz \n"
+      out <<"At frequency " << f_grid[f_index] << " GHz \n"
           <<"method does not converge (number of iterations \n"
           <<"is > " << max_iterations << "). Either the cloud particle"
           <<" number density \n"
@@ -322,10 +327,15 @@ void doit_conv_flagAbsBT(//WS Input and Output:
           <<"*doit_i_field* might be wrong.\n";
       if( throw_nonconv_error != 0)
         {
-          ostringstream os;
-          os << "Error in DOIT calculation:\n"
-             << out.str();
-          throw runtime_error( os.str() );
+// FIXME: OLE: Remove this later
+//          ostringstream os;
+//          os << "Error in DOIT calculation:\n"
+//             << out.str();
+//          throw runtime_error( os.str() );
+          out1 << "Warning in DOIT calculation (output set to NaN):\n"
+               << out.str();
+          doit_i_field = NAN;
+          doit_conv_flag = 1;
         }
       else
         {
@@ -386,8 +396,8 @@ void doit_conv_flagAbsBT(//WS Input and Output:
 void doit_conv_flagLsq(//WS Output:
                        Index& doit_conv_flag,
                        Index& doit_iteration_counter,
+                       Tensor6& doit_i_field,
                        // WS Input:
-                       const Tensor6& doit_i_field,
                        const Tensor6& doit_i_field_old,
                        const Vector& f_grid,
                        const Index& f_index,
@@ -459,10 +469,15 @@ void doit_conv_flagLsq(//WS Output:
           <<"optimized zenith angle grid. \n";
       if( throw_nonconv_error != 0)
         {
-          ostringstream os;
-          os << "Error in DOIT calculation:\n"
-             << out.str();
-          throw runtime_error( os.str() );
+// FIXME: OLE: Remove this later
+//          ostringstream os;
+//          os << "Error in DOIT calculation:\n"
+//             << out.str();
+//          throw runtime_error( os.str() );
+          out1 << "Warning in DOIT calculation (output set to NaN):\n"
+               << out.str();
+          doit_i_field = NAN;
+          doit_conv_flag = 1;
         }
       else
         {

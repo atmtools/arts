@@ -3297,13 +3297,13 @@ void define_md_data_raw()
          "cloudbox and for all directions.\n"  
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "doit_conv_flag", "doit_iteration_counter" ),
+        OUT( "doit_conv_flag", "doit_iteration_counter", "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_conv_flag", "doit_iteration_counter",
             "doit_i_field", "doit_i_field_old" ),
-        GIN( "epsilon", "max_iterations", "throw_nonconv_error" ),
+        GIN( "epsilon", "max_iterations", "nonconv_return_nan" ),
         GIN_TYPE( "Vector", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "100", "0" ),
         GIN_DESC( "Limits for convergence. A vector with length matching "
@@ -3311,7 +3311,7 @@ void define_md_data_raw()
                   "Maximum number of iterations allowed to reach convergence"
                   "limit.",
                   "Flag whether to accept result at max_iterations (0=default)"
-                  "or whether to throw an error in case of non-convergence at"
+                  "or whether to return NaNs in case of non-convergence at"
                   "max_iterations"
                   )
         ));
@@ -3328,13 +3328,13 @@ void define_md_data_raw()
          "Rayleigh-Jeans brighntess temperatures.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "doit_conv_flag", "doit_iteration_counter" ),
+        OUT( "doit_conv_flag", "doit_iteration_counter", "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_conv_flag", "doit_iteration_counter",
             "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
-        GIN( "epsilon", "max_iterations", "throw_nonconv_error" ),
+        GIN( "epsilon", "max_iterations", "nonconv_return_nan" ),
         GIN_TYPE( "Vector", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "100", "0" ),
         GIN_DESC( "Limits for convergence. A vector with length matching "
@@ -3342,7 +3342,7 @@ void define_md_data_raw()
                   "Maximum number of iterations allowed to reach convergence"
                   "limit.",
                   "Flag whether to accept result at max_iterations (0=default)"
-                  "or whether to throw an error in case of non-convergence at"
+                  "or whether to return NaNs in case of non-convergence at"
                   "max_iterations"
                   )
         ));
@@ -3362,13 +3362,13 @@ void define_md_data_raw()
          "DOIT result might be wrong.\n" 
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "doit_conv_flag", "doit_iteration_counter" ),
+        OUT( "doit_conv_flag", "doit_iteration_counter", "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_conv_flag", "doit_iteration_counter", 
             "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
-        GIN( "epsilon", "max_iterations", "throw_nonconv_error" ),
+        GIN( "epsilon", "max_iterations", "nonconv_return_nan" ),
         GIN_TYPE( "Vector", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "100", "0" ),
         GIN_DESC( "Limits for convergence. A vector with length matching "
@@ -3376,7 +3376,7 @@ void define_md_data_raw()
                   "Maximum number of iterations allowed to reach convergence"
                   "limit.",
                   "Flag whether to accept result at max_iterations (0=default)"
-                  "or whether to throw an error in case of non-convergence at"
+                  "or whether to return NaNs in case of non-convergence at"
                   "max_iterations"
                   )
         ));
