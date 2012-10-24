@@ -1,3 +1,12 @@
+2012-10-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-337
+
+	* doc/uguide/check_refs.py: Agenda check was broken.
+
+	* doc/uguide/absorption.tex, doc/uguide/ppath.tex,
+	doc/uguide/scattering.tex, doc/uguide/surface.tex: Naming fixes.
+
 2012-10-24  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-336

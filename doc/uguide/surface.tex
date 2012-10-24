@@ -309,7 +309,7 @@ and \builtindoc{surface\_rmatrix} to be empty.
 %
 Several methods to incorporate a flat surface exist, including
 \wsmindex{surfaceFlatRefractiveIndex} and
-\wsmindex{surfaceFlatSingleEmissivity}. The methods differ in how the dielectric
+\wsmindex{surfaceFlatScalarReflectivity}. The methods differ in how the dielectric
 properties of the surface are given, and if these are constant or not with
 frequency.
 
@@ -318,7 +318,7 @@ The specular direction is calculated by the internal function
 \funcindex{surface\_specular\_los}\footnote{Any tilt of the surface is
   neglected when determining the specular direction. If there would be any need
   to consider surface tilt, almost complete code for this task existed in
-  \builtindoc{surface\_specular\_los} but was removed in version 1-1-876. The
+  surface\_specular\_los but was removed in version 1-1-876. The
   code can be obtained by e.g.\ checking out version 1-1-875.}. Equations
 \ref{T-eq:surface:specular_matrix}-\ref{T-eq:surface:specular_emission}
 in \theory give the values of \builtindoc{surface\_rmatrix} and

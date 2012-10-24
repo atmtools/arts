@@ -12,18 +12,19 @@ import glob
 import re
 import subprocess as sp
 
+
 class ArtsWorkspace:
     def __init__(self, bindir):
         self.arts_exe = bindir + "/src/arts"
-        self.wsms   = self.parse_arts_list(["-m", "all"])
-        self.wsvs   = self.parse_arts_list(["-w", "all"])
+        self.wsms = self.parse_arts_list(["-m", "all"])
+        self.wsvs = self.parse_arts_list(["-w", "all"])
         self.groups = self.parse_arts_list(["-g", "all"])
-
 
     def parse_arts_list(self, arts_arg):
         return [l[2:]
                 for l in
-                sp.Popen([self.arts_exe] + arts_arg, stdout=sp.PIPE).communicate()[0].splitlines()
+                sp.Popen([self.arts_exe] + arts_arg,
+                         stdout=sp.PIPE).communicate()[0].splitlines()
                 if l[0:2] == '- ']
 
 
@@ -32,7 +33,7 @@ def check_tex_file(ws, filename):
     rebuiltin = re.compile(r"\\builtindoc{(.*?)}")
     rewsm = re.compile(r"\\wsmindex{(.*?)}")
     rewsv = re.compile(r"\\wsvindex{(.*?)}")
-    reag = re.compile(r"\\wsaindex{(.*?)}")
+    rewag = re.compile(r"\\wsaindex{(.*?)}")
     wsms = []
     wsvs = []
     wags = []
@@ -40,7 +41,7 @@ def check_tex_file(ws, filename):
 
     f = open(filename)
     for line in f:
-        l+=1
+        l += 1
         binmatches = rebuiltin.findall(line)
         for m in binmatches:
             builtins.append((l, m.replace("\\", "")))
@@ -49,7 +50,11 @@ def check_tex_file(ws, filename):
         for m in wsmmatches:
             wsms.append((l, m.replace("\\", "")))
 
-        wagmatches = rewsv.findall(line)
+        wsvmatches = rewsv.findall(line)
+        for m in wsvmatches:
+            wsvs.append((l, m.replace("\\", "")))
+
+        wagmatches = rewag.findall(line)
         for m in wagmatches:
             wags.append((l, m.replace("\\", "")))
 
@@ -59,17 +64,18 @@ def check_tex_file(ws, filename):
     err.extend([(l, "WSM", m) for l, m in wsms if m not in ws.wsms])
     err.extend([(l, "WSV", m) for l, m in wsvs if m not in ws.wsvs])
     err.extend([(l, "agenda", m) for l, m in wags if m not in ws.wsvs])
-    err.extend([(l, "entity", m)
+    err.extend([(l, "workspace entity", m)
                 for l, m in builtins
-                if m not in ws.wsms and m not in ws.wsvs and m not in ws.groups])
+                if m not in ws.wsms
+                and m not in ws.wsvs and m not in ws.groups])
 
-    if err: 
+    if err:
         sys.stderr.write("%s:\n" % (filename))
         for e in err:
             sys.stderr.write("l. %d: Unknown %s %s\n" % e)
         sys.stderr.write("\n")
 
-    return err == None
+    return err is None
 
 
 def check_arts_tex_files():
@@ -85,18 +91,18 @@ def check_arts_tex_files():
 
     fail = False
     texdir = srcdir + "/*.tex"
-    texfiles = glob.glob(texdir) 
+    texfiles = glob.glob(texdir)
     if texfiles:
         for filename in texfiles:
             if os.path.basename(filename) != "common.tex":
-                if not check_tex_file(ws, filename): fail = True
+                if not check_tex_file(ws, filename):
+                    fail = True
     else:
         sys.stderr.write("Error: No tex files found in %s!\n" % (texdir))
 
-    if fail: sys.exit(1)
+    if fail:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     check_arts_tex_files()
-
-
