@@ -114,7 +114,7 @@ ParticleTypeAdd( scat_data_raw, pnd_field_raw, atmosphere_dim, f_grid, p_grid,
                  lat_grid, lon_grid, cloudbox_limits,
                  "p30f229-231T214-225r100NP-1ar1_5ice.xml",
                  "pnd_field_1D.xml" )
-
+scat_data_rawCheck
 pnd_fieldCalc
 
 

@@ -2553,11 +2553,12 @@ void Workspace::define_wsv_data()
     ( NAME( "part_species" ),
       DESCRIPTION
       (
-       "Array of Strings containing user defined input for particle number\n"
-       "density calculations performed by *pnd_fieldSetup*.\n"
+       "Array of Strings defining (scattering) particles to consider and their\n"
+       "connection to particle fields.\n"
        "\n"
-       "Each String has to have the following structure with elements separated\n"
-       "by dashes:\n"
+       "Each String contains the information for particles to be connected to\n"
+       "one specific particle field (e.g., a hydrometeor density profile). It\n"
+       "has to have the following structure with elements separated by dashes:\n"
        "\n"
        "- profile type [*String*]\n"
        "\t the type of particle bulk profile (mass content, precip rate, or\n"
@@ -2572,9 +2573,10 @@ void Workspace::define_wsv_data()
        "\t particles with matching *scat_data_meta*.type.\n"
        "- sizemin and sizemax [*Numeric*]:\n"
        "\t the minimum and maximum size (volume equivalent sphere radius in um) of\n"
-       "\t the individual particles to consider. Wildcards ('*') select all\n"
-       "\t particles on lower and upper size ends, respectively. When left out,\n"
-       "\t whole size range is considered.\n"
+       "\t the individual particles to consider. Minimum and maximum size may be\n"
+       "\t omitted (meaning full size range will be selected), the symbol '*' can\n"
+       "\t be used as a wildcard (selecting all particles at the respective size\n"
+       "\t end)."
        "\n"
        "Example: [''IWC-MH97-Ice-2-1000'', ''LWC-HM98_STCO-Water-0.1-10'', ...]\n"
        ),
@@ -3285,13 +3287,13 @@ void Workspace::define_wsv_data()
       ( NAME( "scat_data_nelem" ),
         DESCRIPTION
         (
-	  "This Array has the same size as *part_species*. \n"
-	  "\n"
-	  "Each element holds the number of scattering data files, associated\n"
-	  "with the criteria given by *part_species*.\n"
-	  "\n"
-          "Usage: WSM *ScatteringParticlesSelect* creates *scat_data_nelem*.\n"
-              ),
+         "Auxiliary array holding the number of *scat_data_raw* particle\n"
+         "entries associated with each entry in *part_species*. \n"
+         "\n"
+         "Size of *scat_data_nelem* has to be equal the size of *part_species*.\n"
+         "\n"
+         "Usage: WSM *ScatteringParticlesSelect* creates *scat_data_nelem*.\n"
+        ),
         GROUP( "ArrayOfIndex" ))); 
      
    wsv_data.push_back

@@ -7789,29 +7789,26 @@ void define_md_data_raw()
       ( NAME( "ScatteringParticlesSelect" ),
         DESCRIPTION
         (
-         "This method is a selection function for scattering particles.\n"
+         "Selects data of *scat_data_raw* corresponding to particles that\n"
+         "according to *part_species* shall be considered in the scattering\n"
+         "calculation.\n"
          "\n"
-         "In *part_species* the user defines selection criteria for:\n"
-         "\t...which type of scattering particle profile\n"
-         "\t...what particle size ditribution parametrisation\n"
-         "\t...the minimum and maximum size of the particle (in terms of volume equivalent radius)\n"
-         "to use in the scattering calculations.\n"
-   "Minimum and maximum size may be omitted or symbol \"*\" be used as a wildcard.\n"
-         "\n"
-         "The scattering particle arrays, *scat_data_raw* and *scat_data_meta_array*\n"
-         "are searched for particles, that fullfill the selection criteria. \n"
-         "Only these particles will be used for scattering calculations.\n"
-         "\n"
-         "Additionaly an *ArrayOfIndex* *scat_data_nelem* is created. This Array\n"
-         "stores the number of scattering particles, that have been selected by each\n"
-         "selection string in *part_species*\n"
+         "Selection is controlled by *part_species* settings and done based on\n"
+         "particle type and size. *scat_data_meta_array* is searched\n"
+         "for particles that fulfill the selection criteria. Selection is done\n"
+         "individually for each element of *part_species*, i.e. for each\n"
+         "considered particle field (implying a sorting of the selected\n"
+         "*scat_data_meta_array* and *scat_data_raw* according to the\n"
+         "particle field they correspond to).\n"
+         "Additionaly *scat_data_nelem* is created, which contains the number\n"
+         "of particles that have been selected for each of the particle fields.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "scat_data_raw", "scat_data_meta_array", "scat_data_nelem" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "part_species", "scat_data_raw", "scat_data_meta_array" ),
+        IN( "scat_data_raw", "scat_data_meta_array", "part_species" ),
         GIN(    ),
         GIN_TYPE(),
         GIN_DEFAULT(   ),
@@ -7846,26 +7843,34 @@ void define_md_data_raw()
          "in the database.\n"
          "\n"
          "This function can be used to check datafiles containing data for\n"
-         "randomly oriented scattering media.\n"
-         "It is checked whether the data is consistent. The integral over\n"
-         "the phase matrix should result the scattering cross section\n"
-         "<C_sca>.\n"
+         "randomly oriented scattering media. For other particle types, the\n"
+         "check is skipped and a warning is printed to screen.\n"
+         "It is checked whether that the integral over\n"
+         "the phase matrix element Z11 is equal (or: close to) the scattering\n"
+         "cross section as derived from the difference of (scalar) extinction\n"
+         "and absorption cross sections: <int_Z11> == <C_sca> = <K11> - <a1>.\n"
          "\n"
-         "The check is if:\n"
-         "<C_ext> - <C_sca> = <C_abs>\n"
+         "An error is thrown, if the product of the single scattering\n"
+         "albedo and the fractional deviation of <int_Z11> from <C_sca>\n"
+         "(which is actually equal the absolute albedo deviation) exceeds\n"
+         "the given threshold:\n"
          "\n"
-         "The result is printed on the screen.\n"
+         "( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) > threshold\n"
+         "\n"
+         "The results for all calculated quantities are printed on the screen,\n"
+         "if verbosity>1.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde", "Jana Mendrok" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data_raw" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "threshold" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "1e-3" ),
+        GIN_DESC( "Threshold for allowed deviation in albedo when using integrated "
+                  "phase matrix vs. using extinction-absorption difference." )
         ));
 
   md_data_raw.push_back

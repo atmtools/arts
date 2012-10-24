@@ -918,37 +918,88 @@ void pha_matCalc(Tensor4& pha_mat,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_rawCheck(//Input:
                         const ArrayOfSingleScatteringData& scat_data_raw,
+                        const Numeric& threshold,
                         const Verbosity& verbosity)
 {
-  CREATE_OUT1;
+  CREATE_OUT2;
 
-  xml_write_to_file("SingleScatteringData", scat_data_raw, FILE_TYPE_ASCII,
-                    verbosity);
+/* JM121024: we do not really need to write the scatt_data to file again. we
+             usually have just read them in a couple of commands before!?
+             if wanted/needed for debug cases, just uncomment the 2 lines below */
+//  xml_write_to_file("SingleScatteringData", scat_data_raw, FILE_TYPE_ASCII,
+//                    verbosity);
   
   const Index N_pt = scat_data_raw.nelem();
   
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      Numeric Csca = AngIntegrate_trapezoid
-        (PHA_MAT_DATA_RAW(0, 0, joker, 0, 0, 0, 0), ZA_DATAGRID);
+      out2 << "particle " << i_pt << "\n";
 
-      Numeric Cext = EXT_MAT_DATA_RAW(0,0,0,0,0);
+      switch (PART_TYPE){
 
-      Numeric Cabs = Cext - Csca;
+        case PARTICLE_TYPE_MACROS_ISO:
+          {
+            for (Index f = 0; f < F_DATAGRID.nelem(); f++)
+              {
+                out2 << "frequency " << F_DATAGRID[f] << "Hz\n";
+                for (Index t = 0; t < T_DATAGRID.nelem(); t++)
+                  {
+                    out2 << "Temperature " << T_DATAGRID[t] << "K\n";
 
-      Numeric Cabs_data = ABS_VEC_DATA_RAW(0,0,0,0,0);
+                    Numeric Csca = AngIntegrate_trapezoid
+                      (PHA_MAT_DATA_RAW(f, t, joker, 0, 0, 0, 0), ZA_DATAGRID);
 
-      Numeric Csca_data = Cext - Cabs_data;
+                    Numeric Cext_data = EXT_MAT_DATA_RAW(f,t,0,0,0);
+ 
+                    Numeric Cabs = Cext_data - Csca;
 
-      out1 << " Coefficients in database: \n"
-           << "Cext: " << Cext << " Cabs: " << Cabs_data << " Csca: " << Csca_data  
-           << " \n Calculated absorption cooefficient: \n"
-           << "Cabs calculated: " << Cabs   
-           << " Csca: " << Csca << "\n";
-      
+                    Numeric Cabs_data = ABS_VEC_DATA_RAW(f,t,0,0,0);
+
+                    Numeric Csca_data = Cext_data - Cabs_data;
+
+
+                    out2 << "Coefficients in database: "
+                         << "Cext: " << Cext_data << " Cabs: " << Cabs_data
+                         << " Csca: " << Csca_data << "\n"
+                         << "Calculated coefficients: "
+                         << "Cabs calc: " << Cabs   
+                         << " Csca calc: " << Csca << "\n"
+                         << "Deviations "
+                         << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
+                         << "% Csca: " << 1e2*Csca/Csca_data-1e2
+                         << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
+
+
+//                    if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
+//                  equivalent to the above (it's actually the (absolute) albedo
+//                  deviation!)
+                    if (abs(Csca-Csca_data)/Cext_data > threshold)
+                      {
+                        ostringstream os;
+                        os << "Deviations in scat_data_raw too large:\n"
+                           << "scat dev [%] " << 1e2*Csca/Csca_data-1e2
+                           << " at albedo of " << Csca_data/Cext_data << "\n"
+                           << "Check entry for particle " << i_pt << " at "
+                           << f << ".frequency and " << t << ".temperature!\n";
+                        throw runtime_error( os.str() );
+                      }
+                  }
+               }
+            break;
+          }
+
+        default:
+          {
+            CREATE_OUT0;
+            out0 << "WARNING:\n"
+                 << "scat_data_raw consistency check not implemented (yet?!) for\n"
+                 << "particle type " << PART_TYPE << "!\n";
+          }
+      }
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

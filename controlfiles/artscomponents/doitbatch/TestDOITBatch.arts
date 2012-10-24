@@ -156,7 +156,7 @@ ParticleSpeciesSet(part_species,
 # Selection/filerting of particles according to *part_species*
 #------------------------------------------------------------
 ScatteringParticlesSelect
-
+scat_data_rawCheck
 
 # 7.AGENDAS--------------------------------------------------------------
 #------------------------------------------------------------------------

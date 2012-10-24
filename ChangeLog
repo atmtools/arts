@@ -1,3 +1,20 @@
+2012-10-24  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-336
+
+	* src/m_optproperties.cc (scat_data_rawCheck):
+	Revised. Now throws an error, when deviation of C_sca from Z11 and from
+	K-a gets to large (user defined threshold). Explicit warning that method
+	only works for p20. More informative output on out2.
+
+	* src/methods.cc,workspace.cc:
+	Updated and improved(?) online-doc for ScatteringParticlesSelect,
+	scat_data_rawCheck; part_species, scat_data_nelem.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	doitbatch/TestDOITBatch.arts, montecarlo/TestRteCalcMC.arts:
+	Apply scat_data_rawCheck.
+
 2012-10-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-335
