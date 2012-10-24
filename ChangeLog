@@ -1,5 +1,12 @@
 2012-10-24  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-333
+
+	* src/m_doit.cc (doit_conv_flagAbs, doit_conv_flagAbsBT,
+	doit_conv_flagLsq): Bugfixed iteration counter incrementation.
+	
+2012-10-24  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-332
 
 	* src/m_doit.cc (doit_conv_flagAbs, doit_conv_flagAbsBT,

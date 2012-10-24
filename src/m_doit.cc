@@ -166,6 +166,7 @@ void doit_conv_flagAbs(//WS Input and Output:
   //-----------End of checks-------------------------------------------------
                         
 
+  doit_iteration_counter +=1;
   out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
 
   if (doit_iteration_counter > max_iterations)
@@ -239,7 +240,6 @@ void doit_conv_flagAbs(//WS Input and Output:
   
   // Convergence test has been successful, doit_conv_flag can be set to 1.
   doit_conv_flag = 1;
-  doit_iteration_counter +=1;
     }
 }
       
@@ -263,7 +263,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   CREATE_OUT2;
   
    //------------Check the input---------------------------------------
-  
+
   if( doit_conv_flag != 0 )
     throw runtime_error("Convergence flag is non-zero, which means that this \n"
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
@@ -305,6 +305,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   
   //-----------End of checks--------------------------------
 
+  doit_iteration_counter +=1;
   out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
 
   if (doit_iteration_counter > max_iterations)
@@ -377,7 +378,6 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   
   // Convergence test has been successful, doit_conv_flag can be set to 1.
   doit_conv_flag = 1;
-  doit_iteration_counter +=1;
     }
 }
 
@@ -444,6 +444,7 @@ void doit_conv_flagLsq(//WS Output:
   //-----------End of checks--------------------------------
 
  
+  doit_iteration_counter +=1;
   out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
   
   if (doit_iteration_counter > max_iterations)
@@ -516,8 +517,6 @@ void doit_conv_flagLsq(//WS Output:
     }
   // end loop stokes_index
   out1 << "lqs [I]: " << lqs[0] << "\n";  
-
-  doit_iteration_counter +=1;
     }
 }
 
