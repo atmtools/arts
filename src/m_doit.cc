@@ -184,13 +184,13 @@ void doit_conv_flagAbs(//WS Input and Output:
         {
           ostringstream os;
           os << "Error in DOIT calculation:\n"
-             << out;
+             << out.str();
           throw runtime_error( os.str() );
         }
       else
         {
           out1 << "Warning in DOIT calculation (output equals current status):\n"
-               << out;
+               << out.str();
           doit_conv_flag = 1;
         }
     }
@@ -324,13 +324,13 @@ void doit_conv_flagAbsBT(//WS Input and Output:
         {
           ostringstream os;
           os << "Error in DOIT calculation:\n"
-             << out;
+             << out.str();
           throw runtime_error( os.str() );
         }
       else
         {
           out1 << "Warning in DOIT calculation (output equals current status):\n"
-               << out;
+               << out.str();
           doit_conv_flag = 1;
         }
     }
@@ -461,13 +461,13 @@ void doit_conv_flagLsq(//WS Output:
         {
           ostringstream os;
           os << "Error in DOIT calculation:\n"
-             << out;
+             << out.str();
           throw runtime_error( os.str() );
         }
       else
         {
           out1 << "Warning in DOIT calculation (output equals current status):\n"
-               << out;
+               << out.str();
           doit_conv_flag = 1;
         }
     }
