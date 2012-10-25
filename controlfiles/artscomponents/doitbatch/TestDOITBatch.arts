@@ -74,7 +74,7 @@ sensorOff
 #---------------------------------------------------------------------
 ArrayOfMatrixCreate( arrayofmatrix_1 )
 #read data to ArrayOfMatrix
-ReadXML( arrayofmatrix_1, "chevallierl91_all_extract.xml" )
+ReadXML( arrayofmatrix_1, "testdata/chevallierl91_all_extract.xml" )
 
 
 # Convert to batch_atm_fields_compact AND batch_atm_fields_compact_all
@@ -175,7 +175,7 @@ doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
 # --------------------------------------------------------------------
 # For down- and up-looking geometries. 
 DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
-      19, 10, "" )
+      19, 37, "" )
 
 # For limb calculations it is very important to have a finer zenith angle
 # grid resolution about 90 degrees sza.

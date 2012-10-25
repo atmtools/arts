@@ -416,6 +416,66 @@ void chk_pnd_raw_data(
     }
 }
 
+//!  Check validity of part_species setting
+/*!
+  This function checks, whether number of elements in each particle string is
+  ok, and whether the entries for size limits are indeed numbers (or '*').
+
+	\param part_species Array of particle species tags.
+  \param delim Delimiter string of *part_species* elements.
+
+  \author Jana Mendrok
+  \date 2012-10-25
+
+*/
+void chk_part_species (
+                      const ArrayOfString& part_species,
+                      const String& delim
+                      )
+{
+  ArrayOfString strarr;
+  Numeric sizeval;
+
+  for ( Index k=0; k<part_species.nelem(); k++ )
+    {
+      part_species[k].split ( strarr, delim );
+      if ( strarr.nelem() > 5 )
+        {     
+          ostringstream os;
+          os << "Individual strings in part_species can only contain up to 5\n"
+             << "elements, but entry #" << k << " contains the following "
+             << strarr.nelem() << ":\n" << strarr << "\n";
+          throw runtime_error ( os.str() );
+        }
+
+      if ( strarr.nelem() > 3 && strarr[3] != "*" )
+        {
+          istringstream os1 ( strarr[3] );
+          os1 >> sizeval;
+          if (os1.fail())
+            {
+              ostringstream os;
+              os << "Sizemin specification can only be a number or wildcard ('*')"
+                 << ", but is '" << strarr[3] << "'\n";
+              throw runtime_error ( os.str() );
+            }
+        }
+
+      if ( strarr.nelem() > 4 && strarr[4] != "*" )
+        {
+          istringstream os1 ( strarr[4] );
+          os1 >> sizeval;
+          if (os1.fail())
+            {
+              ostringstream os;
+              os << "Sizemax specification can only be a number or wildcard ('*')"
+                 << ", but is '" << strarr[4] << "'\n";
+              throw runtime_error ( os.str() );
+            }
+        }
+    }
+}
+
 //! Check scattering data general
 /*!
   FIXME
@@ -461,12 +521,17 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta,
   CREATE_OUT2;
   out2 << "  Check scattering meta properties file "<< scat_data_meta_file << "\n";
   
+/* this check is outdated. type now is free from!
+   however, we might want to have other things checked here!?
+   - which parameters at least are needed? -> radius, ...?
+   - ...
   if  (scat_data_meta.type != "Ice" && scat_data_meta.type != "Water" && scat_data_meta.type != "Aerosol")
   {
 	  ostringstream os; 
 	  os << "Type in " << scat_data_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
 	  throw runtime_error( os.str() );
 	}
+*/
   //(more) checks need to be included
 }
 
@@ -789,7 +854,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 /*! Calculates the particle number density field for McFarquhar and Heymsfield
     (1997) size distribution. To be used for cloud ice.
 
-    \param pnd_field Particle number density field
+    \return pnd_field Particle number density field
     \param IWC_field mass content (cloud ice) field [g/m3]
     \param t_field atmospheric temperature [K]
     \param limits pnd_field boundaries (p, lat, lon)
@@ -810,6 +875,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     const Index& scat_data_start,
                     const Index& npart,
                     const String& part_string,
+                    const String& delim,
                     const Verbosity& verbosity)
 {
   ArrayOfIndex intarr;
@@ -825,8 +891,8 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   String prof_type;
 
   //split String and copy to ArrayOfString
-  parse_psd_param( psd_param, part_string);
-  parse_prof_type( prof_type, part_string);
+  parse_psd_param( psd_param, part_string, delim);
+  parse_prof_type( prof_type, part_string, delim);
 
   bool noisy = (psd_param == "MH97n");
 
@@ -927,6 +993,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const Index& scat_data_start,
                    const Index& npart,
                    const String& part_string,
+                   const String& delim,
                    const Verbosity& verbosity)
 {
   ArrayOfIndex intarr;
@@ -941,7 +1008,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   String prof_type;
 
   //split String and copy to ArrayOfString
-  parse_prof_type( prof_type, part_string);
+  parse_prof_type( prof_type, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
       dmax_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].d_max );
@@ -960,6 +1027,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   }
 
   //const bool suppress=true;
+  //const Verbosity temp_verb(0,0,0);
 
   if (dm.nelem() > 0)
   // dm.nelem()=0 implies no selected particles for the respective particle
@@ -999,6 +1067,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                 // calculate proper scaling of pnd sum from real IWC and apply
                 chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
                              p, lat, lon, prof_type, verbosity );
+//                             p, lat, lon, prof_type, temp_verb );
 
                 // writing pnd vector to wsv pnd_field
                 for ( Index i =0; i< npart; i++ )
@@ -1043,6 +1112,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                     const Index& scat_data_start,
                     const Index& npart,
                     const String& part_string,
+                    const String& delim,
                     const Verbosity& verbosity)
 {
   ArrayOfIndex intarr;
@@ -1057,7 +1127,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   String prof_type;
 
   //split String and copy to ArrayOfString
-  parse_prof_type( prof_type, part_string);
+  parse_prof_type( prof_type, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
       vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
@@ -1116,6 +1186,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
               Index n_it = 0;
 
               // initializing for proper start of while loop
+              lambda = 0.;
               rho_mean = 0.;
               mass_total = rho.sum()/Numeric(npart);
               vol_total = 1.;
@@ -1224,6 +1295,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const Index& scat_data_start,
                    const Index& npart,
                    const String& part_string,
+                   const String& delim,
                    const Verbosity& verbosity)
 {
   ArrayOfIndex intarr;
@@ -1238,7 +1310,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   String prof_type;
 
   //split String and copy to ArrayOfString
-  parse_prof_type( prof_type, part_string);
+  parse_prof_type( prof_type, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
       vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
@@ -1811,10 +1883,10 @@ void scale_H11 (Vector& pnd,
 void parse_prof_type (//WS Output:
                       String& prof_type,
                       // WS Input:
-                      const String& part_string)
+                      const String& part_string,
+                      const String& delim)
 {
   ArrayOfString strarr;
-  const String delim="-";
 
   // split part_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
@@ -1857,10 +1929,10 @@ void parse_prof_type (//WS Output:
 void parse_psd_param (//WS Output:
                       String& psd_param,
                       // WS Input:
-                      const String& part_string)
+                      const String& part_string,
+                      const String& delim)
 {
   ArrayOfString strarr;
-  const String delim="-";
 
   // split part_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
@@ -1898,10 +1970,10 @@ void parse_psd_param (//WS Output:
 void parse_part_type (//WS Output:
                       String& part_type,
                       // WS Input:
-                      const String& part_string)
+                      const String& part_string,
+                      const String& delim)
 {
   ArrayOfString strarr;
-  const String delim="-";
 
   // split part_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
@@ -1933,10 +2005,10 @@ void parse_part_size (//WS Output:
                       Numeric& sizemin,
                       Numeric& sizemax,
                       // WS Input:
-                      const String& part_string)
+                      const String& part_string,
+                      const String& delim)
 {
   ArrayOfString strarr;
-  const String delim="-";
 
   // split part_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
@@ -1963,3 +2035,4 @@ void parse_part_size (//WS Output:
     os2 >> sizemax;
   }
 }
+

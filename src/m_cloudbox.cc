@@ -732,14 +732,17 @@ void ParticleSpeciesInit (ArrayOfString&  part_species,
 void ParticleSpeciesSet (// WS Generic Output:
                          ArrayOfString&  part_species,
                          // Control Parameters:
-                         const ArrayOfString& names,
+                         const ArrayOfString& particle_tags,
+                         const String& delim,
                          const Verbosity& verbosity)
 {
   CREATE_OUT3;
   
-  part_species.resize ( names.nelem() );
+  part_species.resize ( particle_tags.nelem() );
   //assign input strings to part_species
-  part_species = names;
+  part_species = particle_tags;
+
+  chk_part_species (part_species, delim);
 
   // Print list of particle settings to the most verbose output stream:
   out3 << "  Defined particle settings: ";
@@ -865,6 +868,7 @@ void ScatteringParticleTypeAndMetaRead (//WS Output:
     out3 << "  Read scattering meta data\n";
     xml_read_from_file ( meta_data_files[i], scat_data_meta_array[i], verbosity );
 
+    //FIXME: currently nothing is done in chk_scattering_meta_data!
     chk_scattering_meta_data ( scat_data_meta_array[i],
                                meta_data_files[i], verbosity );
 
@@ -884,6 +888,7 @@ void ScatteringParticlesSelect (//WS Output:
                                 ArrayOfIndex& scat_data_nelem,
                                 // WS Input:
                                 const ArrayOfString& part_species,
+                                const String& delim,
                                 const Verbosity& verbosity)
 { 
   CREATE_OUT1;
@@ -912,10 +917,9 @@ void ScatteringParticlesSelect (//WS Output:
     Numeric sizemax;
 
     //split part_species string and copy values to parameter
-    parse_prof_type( prof_type, part_species[k]);
-    parse_part_type( part_type, part_species[k]);
-    parse_part_size(sizemin, sizemax, part_species[k]);
-    
+    parse_prof_type( prof_type, part_species[k], delim);
+    parse_part_type( part_type, part_species[k], delim);
+    parse_part_size(sizemin, sizemax, part_species[k], delim);
 
     // choosing the specified SingleScatteringData and ScatteringMetaData
     for ( Index j=0; j<scat_data_meta_array_tmp.nelem(); j++ )
@@ -1351,6 +1355,7 @@ void pnd_fieldSetup (//WS Output:
                      const ArrayOfScatteringMetaData& scat_data_meta_array,
                      const ArrayOfString& part_species,
                      const ArrayOfIndex& scat_data_nelem,
+                     const String& delim,
                      const Verbosity& verbosity)
 {
   CREATE_OUT1;
@@ -1433,9 +1438,9 @@ void pnd_fieldSetup (//WS Output:
     String psd;
 
     //split String and copy to ArrayOfString
-    parse_psd_param( psd_param, part_species[k]);
-    parse_prof_type( prof_type, part_species[k]);
-    parse_part_type( part_type, part_species[k]);
+    parse_psd_param( psd_param, part_species[k], delim);
+    parse_prof_type( prof_type, part_species[k], delim);
+    parse_part_type( part_type, part_species[k], delim);
 
     // initialize control parameters
     Vector vol_unsorted ( scat_data_nelem[k], 0.0 );
@@ -1477,7 +1482,8 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
                        scat_data_meta_array, scat_data_start,
-                       scat_data_nelem[k], part_species[k], verbosity);
+                       scat_data_nelem[k], part_species[k], delim,
+                       verbosity);
     }
 
     //---- pnd_field calculations for H11 ----------------------------
@@ -1506,7 +1512,8 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        t_field, limits,
                        scat_data_meta_array, scat_data_start,
-                       scat_data_nelem[k], part_species[k], verbosity);
+                       scat_data_nelem[k], part_species[k], delim,
+                       verbosity);
     }
 
     //---- pnd_field calculations for MP48 -------------------------------
@@ -1534,7 +1541,8 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        limits,
                        scat_data_meta_array, scat_data_start,
-                       scat_data_nelem[k], part_species[k], verbosity);
+                       scat_data_nelem[k], part_species[k], delim,
+                       verbosity);
     }
 
     // ---- pnd_field calculations for liquid water clouds ---------------------
@@ -1563,7 +1571,8 @@ void pnd_fieldSetup (//WS Output:
                        massdensity_field ( k, joker, joker, joker ),
                        limits,
                        scat_data_meta_array, scat_data_start,
-                       scat_data_nelem[k], part_species[k], verbosity);
+                       scat_data_nelem[k], part_species[k], delim,
+                       verbosity);
     }
 
     else

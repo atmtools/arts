@@ -69,6 +69,9 @@ void chk_pnd_raw_data (const ArrayOfGriddedField3& pnd_field_raw,
                        const ArrayOfIndex& cloudbox_limits,
                        const Verbosity& verbosity);
 
+void chk_part_species (const ArrayOfString& part_species,
+                       const String& delim);
+
 void chk_scattering_data (const ArrayOfSingleScatteringData& scat_data_raw,
                           const ArrayOfScatteringMetaData& scat_data_meta_array,
                           const Verbosity& verbosity);
@@ -103,6 +106,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
                     const Index& scat_data_start,
                     const Index& npart,
                     const String& part_string,
+                    const String& delim,
                     const Verbosity& verbosity);
 
 void pnd_fieldH11 (Tensor4View pnd_field,
@@ -113,6 +117,7 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const Index& scat_data_start,
                    const Index& npart,
                    const String& part_string,
+                   const String& delim,
                    const Verbosity& verbosity);
 
 void pnd_fieldMP48 (Tensor4View pnd_field,
@@ -122,6 +127,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
                     const Index& scat_data_start,
                     const Index& npart,
                     const String& part_string,
+                    const String& delim,
                     const Verbosity& verbosity);
 
 void pnd_fieldH98 (Tensor4View pnd_field,
@@ -131,6 +137,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const Index& scat_data_start,
                    const Index& npart,
                    const String& part_string,
+                   const String& delim,
                    const Verbosity& verbosity);
 
 Numeric IWCtopnd_MH97 (const Numeric iwc,
@@ -181,17 +188,21 @@ void chk_massdensity_field(bool& x,
                            const Vector& lon_grid);
 
 void parse_prof_type (String& prof_type,
-                      const String& part_string);
+                      const String& part_string,
+                      const String& delim);
 
 void parse_psd_param (String& psd_param,
-                      const String& part_string);
+                      const String& part_string,
+                      const String& delim);
 
 void parse_part_type (String& part_type,
-                      const String& part_string);
+                      const String& part_string,
+                      const String& delim);
 
 void parse_part_size (Numeric& sizemin,
                       Numeric& sizemax,
-                      const String& part_string);
+                      const String& part_string,
+                      const String& delim);
 
 #endif //cloudbox_h
 

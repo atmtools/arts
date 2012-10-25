@@ -90,7 +90,7 @@ void DoitAngularGridsSet(// WS Output:
   {
     CREATE_OUT1;
     out1 << "Warning: N_za_grid is very large which means that the \n"
-         << "calculation will be very slow. The recommended value is 19.\n";
+         << "calculation will be very slow.\n";
   }
   
   if (N_aa_grid < 6)
@@ -99,7 +99,7 @@ void DoitAngularGridsSet(// WS Output:
   {
     CREATE_OUT1;
     out1 << "Warning: N_aa_grid is very large which means that the \n"
-         << "calculation will be very slow. The recommended value is 10.\n";
+         << "calculation will be very slow.\n";
   }
   
   // Azimuth angle grid (the same is used for the scattering integral and

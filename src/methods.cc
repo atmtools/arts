@@ -2438,10 +2438,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "part_species", "atm_fields_compact", "atmosphere_dim" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "delim" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "-" ),
+        GIN_DESC( "Delimiter string of *part_species* elements." )
         ));
     
   md_data_raw.push_back
@@ -6585,10 +6585,11 @@ void define_md_data_raw()
         GOUT_TYPE( ),
         GOUT_DESC( ),
         IN(),
-        GIN( "names" ),
-        GIN_TYPE(  "ArrayOfString" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC("Array of pnd calculation parameters." )
+        GIN( "particle_tags", "delim" ),
+        GIN_TYPE(  "ArrayOfString", "String" ),
+        GIN_DEFAULT( NODEF, "-" ),
+        GIN_DESC("Array of pnd calculation parameters.",
+                 "Delimiter string of *part_species* elements." )
         ));
  
     
@@ -6916,11 +6917,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits", "massdensity_field", "t_field", "scat_data_meta_array", "part_species", "scat_data_nelem" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits",
+            "massdensity_field", "t_field", "scat_data_meta_array",
+            "part_species", "scat_data_nelem" ),
+        GIN( "delim" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "-" ),
+        GIN_DESC( "Delimiter string of *part_species* elements" )
         ));  
     
   md_data_raw.push_back
@@ -7809,10 +7812,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_data_raw", "scat_data_meta_array", "part_species" ),
-        GIN(    ),
-        GIN_TYPE(),
-        GIN_DEFAULT(   ),
-        GIN_DESC(   )
+        GIN( "delim" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "-" ),
+        GIN_DESC( "Delimiter string of *part_species* elements." )
          ));
 
   md_data_raw.push_back

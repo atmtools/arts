@@ -1458,6 +1458,7 @@ void AtmFieldsFromCompact(// WS Output:
                           const ArrayOfString& part_species,
                           const GriddedField4& atm_fields_compact,
                           const Index&  atmosphere_dim,
+                          const String& delim,
                           const Verbosity&)
 {
   // Make a handle on atm_fields_compact to save typing:
@@ -1518,8 +1519,8 @@ void AtmFieldsFromCompact(// WS Output:
   for (Index i=0; i<nsp; ++i)
     {
       const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+i];
-     String ps_species;
-      parse_prof_type(ps_species,part_species[i]);
+      String ps_species;
+      parse_prof_type(ps_species,part_species[i],delim);
       if (tf_species != ps_species)
         {
           ostringstream os;

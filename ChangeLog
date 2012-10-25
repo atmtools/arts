@@ -1,3 +1,40 @@
+2012-10-25  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-338
+
+	* src/m_cloudbox.cc
+	(ParticleSpeciesSet,ScatteringParticlesSelect,pnd_fieldSetup):
+	Introduced part_species delimiter as generic (defaulted) input
+	parameter (in future maybe make it a preset WSV, cause currently there's
+	quite a	bit of room for messing up by using different delimiter strings
+	in the different WSM calls), pass delimiter on into parse_XXX and
+	pnd_fieldXXX functions.
+	Added check of part_species validity in ParticleSpeciesSet.
+
+	* src/methods.cc
+	(ParticleSpeciesSet,ScatteringParticlesSelect,pnd_fieldSetup):
+	Introduced part_species delimiter as generic input parameter.
+
+	* src/cloudbox.cc,cloudbox.h
+	(chk_part_species):
+	Introduced. Check function for part_species strings.
+	(chk_scattering_meta_data):
+	Removed obsolete particle type check (this is free from now (except for
+	containing the part_species delimiter string)!).
+	(pnd_FieldXXX,parse_XXX):
+	Added part_species delimiter as input parameter.
+
+	* src/m_atmosphere.cc(AtmFieldsFromCompact):
+	Adapted to parse_XXX now requiring delimiter as input.
+
+	* controlfiles/testdata/chevallierl91_all_extract.xml: Moved to global
+	testdata location from controlfiles/artscomponents/doitbatch/.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts,
+	doit/TestDOIT.arts: Increased number of azimuth angles from 10 to 37 (no
+	significant impact for these cases, but as they also act as demo...).
+	Atmfield location adapted according to above change.
+
 2012-10-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-337

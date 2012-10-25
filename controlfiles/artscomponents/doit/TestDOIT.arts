@@ -136,7 +136,7 @@ doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
 # equidistant grids are used for both, scattering integral and RT calculation. 
 # This option can only be used for down-looking geometries. 
 DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
-                     19, 10, "doit_za_grid_opt.xml" )
+                     19, 37, "doit_za_grid_opt.xml" )
 
 # Main agenda for DOIT calculation
 # --------------------------------
