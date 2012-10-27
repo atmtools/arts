@@ -1,3 +1,11 @@
+2012-10-27  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-0-43
+
+	* src/m_atmosphere.cc(AtmFieldsCalc):
+	Bugfix. '^' is NOT a proper power operator. Replaced x^2 by x*x in 2D
+	version (and equiv. for 3D).
+
 2012-09-24  Gerrit Holl  <gerrit.holl@ltu.se>
 
 	* arts-2-0-42

@@ -1190,7 +1190,7 @@ void AtmFieldsCalc(//WS Output:
       gridpos_poly( gp_lat, tfr_lat_grid, lat_grid, interp_order );
             
       // Interpolation weights:
-      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)^2);
+      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)*(interp_order+1));
       // (4 interpolation weights are required for example for linear 2D interpolation)
       interpweights( itw, gp_p, gp_lat);
       
@@ -1315,7 +1315,8 @@ void AtmFieldsCalc(//WS Output:
       gridpos_poly( gp_lon, tfr_lon_grid, lon_grid, interp_order );
       
       // Interpolation weights:
-      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), (interp_order+1)^3);
+      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(),
+                  (interp_order+1)*(interp_order+1)*(interp_order+1));
       // (8 interpolation weights are required for example for linear 3D interpolation)
       interpweights( itw, gp_p, gp_lat, gp_lon );
       
