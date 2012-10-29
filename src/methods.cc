@@ -4626,6 +4626,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyCloudRadar" ),
+        DESCRIPTION
+        (
+         "Work in progress ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "ppath" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
+            "t_field", "vmr_field", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
+            "mag_v_field", "mag_w_field", "edensity_field",
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_raw",
+            "iy_aux_vars", "jacobian_do", "ppath_agenda", 
+            "abs_mat_per_species_agenda", "iy_agenda_call1", "iy_transmission", 
+            "rte_pos", "rte_los", "rte_pos2" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyEmissionStandard" ),
         DESCRIPTION
         (

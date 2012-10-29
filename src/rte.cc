@@ -1299,16 +1299,20 @@ void get_ppath_blackrad(
 
 //! get_ppath_ext
 /*!
-    Determines the particle extinction along a propagation path.
+    Determines the particle properties along a propagation path.
 
     Note that the extinction for all particle types is summed.
 
     \param   ws                  Out: The workspace
     \param   clear2cloudbox      Out: Mapping of index. See code for details. 
     \param   pnd_abs_vec         Out: Absorption vectors for particles
+                                      (defined only where particles are found)
     \param   pnd_ext_vec         Out: Extinction matrices for particles
+                                      (defined only where particles are found)
     \param   scat_data           Out: Extracted scattering data. Length of
                                       array affected by *use_mean_scat_data*.
+    \param   ppath_pnd           Out. The particle number density for each
+                                      point (also outside cloudbox).
     \param   ppath               As the WSV.    
     \param   ppath_t             Temperature for each ppath point.
     \param   stokes_dim          As the WSV.    
@@ -1326,6 +1330,7 @@ void get_ppath_ext(
         Tensor3&                       pnd_abs_vec, 
         Tensor4&                       pnd_ext_mat, 
   Array<ArrayOfSingleScatteringData>&  scat_data,
+        Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
   const Index&                         stokes_dim,
@@ -1340,8 +1345,9 @@ void get_ppath_ext(
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
 
-  // Create variable for pnd along the ppath
-  Matrix ppath_pnd( pnd_field.nbooks(), np, 0 );
+  // Pnd along the ppath
+  ppath_pnd.resize( pnd_field.nbooks(), np );
+  ppath_pnd = 0;
 
   // A variable that maps from total ppath to extension data index.
   // If outside cloudbox or all pnd=0, this variable holds -1.

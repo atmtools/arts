@@ -401,6 +401,204 @@ void iyCalc(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyCloudRadar(
+         Workspace&                   ws,
+         Matrix&                      iy,
+         ArrayOfTensor4&              iy_aux,
+         Ppath&                       ppath,
+   const Index&                       stokes_dim,
+   const Vector&                      f_grid,
+   const Index&                       atmosphere_dim,
+   const Vector&                      p_grid,
+   const Tensor3&                     z_field,
+   const Tensor3&                     t_field,
+   const Tensor4&                     vmr_field,
+   const Tensor3&                     wind_u_field,
+   const Tensor3&                     wind_v_field,
+   const Tensor3&                     wind_w_field,
+   const Tensor3&                     mag_u_field,
+   const Tensor3&                     mag_v_field,
+   const Tensor3&                     mag_w_field,
+   const Tensor3&                     edensity_field,
+   const Index&                       cloudbox_on,
+   const ArrayOfIndex&                cloudbox_limits,
+   const Tensor4&                     pnd_field,
+   const ArrayOfSingleScatteringData& scat_data_raw,
+   const ArrayOfString&               iy_aux_vars,
+   const Index&                       jacobian_do,
+   const Agenda&                      ppath_agenda,
+   const Agenda&                      abs_mat_per_species_agenda,
+   const Index&                       iy_agenda_call1,
+   const Tensor3&                     iy_transmission,
+   const Vector&                      rte_pos,      
+   const Vector&                      rte_los,      
+   const Vector&                      rte_pos2,      
+   const Verbosity&                   verbosity )
+{
+  // Throw error if unsupported features are requested
+  if( !iy_agenda_call1 )
+    throw runtime_error( 
+                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+  if( iy_transmission.ncols() )
+    throw runtime_error( "*iy_transmission* must be empty" );
+  if( !cloudbox_on )
+    throw runtime_error( 
+                    "The cloudbox must be activated (cloudbox_on must be 1)" );
+  if( jacobian_do )
+    throw runtime_error( 
+        "This method does not provide any jacobians (jacobian_do must be 0)" );
+
+  // So far restricted to roughly zenith and nadir
+  {
+    const Numeric za = abs( rte_los[0] );
+    if( za < 90  &&  za > 5 )
+      throw runtime_error( 
+                 "For upward measurement the zenith angle must be <= 5 deg." );
+    if( za > 90  &&  za < 175 )
+      throw runtime_error( 
+            "For downward  measurement the zenith angle must be >= 175 deg." );
+  }
+
+  // Determine propagation path
+  //
+  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, rte_pos2, 0, 0,
+                       t_field, z_field, vmr_field, edensity_field, f_grid, 
+                       ppath_agenda );
+
+  // Some basic sizes
+  //
+  const Index nf = f_grid.nelem();
+  const Index ns = stokes_dim;
+  const Index np = ppath.np;
+
+
+  //=== iy_aux part ===========================================================
+  Index auxPressure    = -1,
+        auxTemperature = -1;
+  //
+  const Index naux = iy_aux_vars.nelem();
+  iy_aux.resize( naux );
+  //
+  for( Index i=0; i<naux; i++ )
+    {
+      if( iy_aux_vars[i] == "Pressure" )
+        { auxPressure = i;      iy_aux[i].resize( 1, 1, 1, np ); }
+      else if( iy_aux_vars[i] == "Temperature" )
+        { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
+      else
+        {
+          ostringstream os;
+          os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
+             << "\"\nThis choice is not recognised.";
+          throw runtime_error( os.str() );
+        }
+    }
+  //===========================================================================
+
+
+  // Get atmospheric and RT quantities for each ppath point/step
+  //
+  Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                              ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
+  Matrix    ppath_vmr, ppath_pnd;
+  Tensor5   ppath_abs;
+  Tensor4   trans_partial, trans_cumulat, pnd_ext_mat;
+  Vector    scalar_tau;
+  ArrayOfIndex clear2cloudbox;
+  Array<ArrayOfSingleScatteringData> scat_data;
+  //
+  if( np > 1 )
+    {
+      get_ppath_atmvars(   ppath_p, ppath_t, ppath_vmr,
+                           ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                           ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
+                           ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                           wind_u_field, wind_v_field, wind_w_field ,
+                           mag_u_field, mag_v_field, mag_w_field );      
+      get_ppath_abs(       ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+                           ppath_p, ppath_t, ppath_vmr, 
+                           ppath_wind_u, ppath_wind_v, ppath_wind_w, 
+                           ppath_mag_u, ppath_mag_v, ppath_mag_w, 
+                           f_grid, stokes_dim, atmosphere_dim );
+      if( !cloudbox_on )
+        { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
+                           ppath, ppath_abs, f_grid, stokes_dim );
+        }
+      else
+        {
+          // Extract basic scattering data
+          Index        use_mean_scat_data = 0;
+          Tensor3      pnd_abs_vec;
+          //
+          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data, 
+                         ppath_pnd, ppath, ppath_t, stokes_dim, f_grid, 
+                         atmosphere_dim, cloudbox_limits, pnd_field, 
+                         use_mean_scat_data, scat_data_raw, verbosity );
+          // Transmission
+          get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, 
+                            ppath, ppath_abs, f_grid, stokes_dim,
+                            clear2cloudbox, pnd_ext_mat );
+        }
+    }
+
+
+  //=== iy_aux part ===========================================================
+  // Fill parts of iy_aux that are defined even for np=1.
+  //===========================================================================
+
+
+  // Do RT calculations
+  //
+  iy.resize( nf*ppath.np, ns );
+  iy = 0;
+  //
+  // Loop ppath steps
+  for( Index ip=0; ip<ppath.np; ip++ )
+    {
+      // Direction of outgoing scattered radiation (which is reverse to LOS).
+      Vector los_sca;
+      mirror_los( los_sca, ppath.los(ip,joker), atmosphere_dim );
+
+      // Obtain a length-2 vector for incoming direction
+      Vector los_inc;
+      if( atmosphere_dim == 3 )
+        { los_inc = ppath.los(ip,joker); }
+      else // Mirror back to get a correct 3D LOS
+        { mirror_los( los_inc, los_sca, 3 ); }
+      
+      // Phase matrix
+      Matrix P(ns,ns);
+
+      if( clear2cloudbox[ip] >= 0 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              pha_mat_singleCalc( P, los_sca[0], los_sca[1], los_inc[0], 
+                                  los_inc[1], scat_data[iv], stokes_dim, 
+                                  ppath_pnd(joker,ip), ppath_t[ip], verbosity );
+              
+              Numeric z = P(0,0); // No conversion yet
+
+              iy(iv*ppath.np+ip,0) = trans_cumulat(iv,0,0,ip) * z * 
+                                     trans_cumulat(iv,0,0,ip);;
+            }
+        }
+
+      //=== iy_aux part ===================================================
+      // Pressure
+      if( auxPressure >= 0 ) 
+        { iy_aux[auxPressure](0,0,0,ip) = ppath_p[ip]; }
+      // Temperature
+      if( auxTemperature >= 0 ) 
+        { iy_aux[auxTemperature](0,0,0,ip) = ppath_t[ip]; }
+      //===================================================================
+    } 
+}
+
+
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandard(
@@ -1174,8 +1372,8 @@ void iyMC(
                  pnd_field, scat_data_mono, 1, cloudbox_checked,
                  mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
                  mc_min_iter, verbosity); 
-                 // GH 2011-06-17, mc_z_field_is_1D);
-
+      //cout << "Error: "      << mc_error << endl;
+      //cout << "N photons: " << mc_iteration_count << endl;
       assert( y.nelem() == stokes_dim );
 
       iy(f_index,joker) = y;
@@ -1719,16 +1917,14 @@ void iyTransmissionStandard(
         }
       else
         {
+          Matrix       ppath_pnd;
           Tensor3      pnd_abs_vec;
           Array<ArrayOfSingleScatteringData> scat_data;
           //
           get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data, 
-                         ppath, ppath_t, stokes_dim, f_grid, atmosphere_dim,
-                         cloudbox_limits, pnd_field, use_mean_scat_data, 
-                         scat_data_raw, verbosity );
-          // *scat_data* not used. Free the memory.
-          scat_data.resize( 0 );   pnd_abs_vec.resize(0,0,0);
-          //
+                         ppath_pnd, ppath, ppath_t, stokes_dim, f_grid, 
+                         atmosphere_dim, cloudbox_limits, pnd_field, 
+                         use_mean_scat_data, scat_data_raw, verbosity );
           get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, 
                             ppath, ppath_abs, f_grid, stokes_dim,
                             clear2cloudbox, pnd_ext_mat );

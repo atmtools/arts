@@ -1,3 +1,14 @@
+2012-10-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-340
+
+	* src/m_rte.cc (iyCloudRadar): Started. So far just experimental.
+
+	* src/m_rte.cc (iyTransmissionStandard): Adopted call of
+	get_ppath_ext.
+
+	* src/rte.cc (get_ppath_ext): Added ppath_pnd as output argument.
+
 2012-10-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-339

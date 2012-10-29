@@ -217,6 +217,7 @@ void get_ppath_ext(
         Tensor3&                       pnd_abs_vec, 
         Tensor4&                       pnd_ext_mat, 
   Array<ArrayOfSingleScatteringData>&  scat_data,
+        Matrix&                        ppath_pnd,
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
   const Index&                         stokes_dim,
