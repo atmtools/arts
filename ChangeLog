@@ -1,3 +1,21 @@
+2012-10-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-341
+
+	* src/m_rte.cc (iyCloudRadar): Changed order of data inside iy.
+	Work in progress. Do not use!
+
+	(iyBackCoeff2Ze): Just started. Got stuck due to bug fix below.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts: I did not get a
+	good fit with the target/reference values, neither before or after
+	bug fix below. The values seems to be old.
+	Updated the target values, and decreased tolerance from 1.0 to 0.2 K.
+
+	* src/m_physics.cc (complex_nWaterLiebe93): A bug! sqrt was not
+	applied and the method returned the dielectric constant (eps)
+	instead of refractive index (n), with n = sqrt(eps).
+
 2012-10-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-340

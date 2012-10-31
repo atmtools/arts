@@ -400,6 +400,44 @@ void iyCalc(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyBackCoeff2Ze(
+         Matrix&                      iy,
+   const Vector&                      f_grid,
+   const Numeric&                     t_ref,
+   const Verbosity&                   verbosity )
+{
+  // Sizes and checks
+  const Index nf = f_grid.nelem();
+  //
+  if( !is_multiple( iy.nrows(), nf ) )
+    throw runtime_error( "The number of rows in *iy* must a multiple of the "
+                         "number of frequencies (f_grid)." );
+  //
+  const Index np = iy.nrows()/nf;  
+
+  // Get refractive index for water
+  Matrix complex_n;
+  complex_nWaterLiebe93( complex_n, f_grid, t_ref, verbosity );
+
+  cout << complex_n << endl;
+
+  // Common conversion factor
+  const Numeric a = 4e18/(PI*PI*PI*PI);
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      // Calculate the dielectric factor
+      Complex n( complex_n(iv,0), complex_n(iv,1) );
+      Complex n2 = n*n;
+      Complex K  = ( n2 - Numeric(1.0) ) / ( n2 + Numeric(2.0) );
+      Numeric absK = abs( K ); 
+      Numeric fac = a / ( absK * absK );
+      
+      for( Index i=0; i<np; i++ )
+        { iy(i*nf+iv,joker) *= fac; }
+    }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyCloudRadar(
@@ -449,7 +487,9 @@ void iyCloudRadar(
     throw runtime_error( 
         "This method does not provide any jacobians (jacobian_do must be 0)" );
 
-  // So far restricted to roughly zenith and nadir
+  // So far restricted to roughly zenith and nadir, and stokes_dim=1
+  if( stokes_dim != 1 )
+    throw runtime_error( "Only stokes_dim equal to 1 is handled." );
   {
     const Numeric za = abs( rte_los[0] );
     if( za < 90  &&  za > 5 )
@@ -543,14 +583,9 @@ void iyCloudRadar(
     }
 
 
-  //=== iy_aux part ===========================================================
-  // Fill parts of iy_aux that are defined even for np=1.
-  //===========================================================================
-
-
   // Do RT calculations
   //
-  iy.resize( nf*ppath.np, ns );
+  iy.resize( nf*np, ns );
   iy = 0;
   //
   // Loop ppath steps
@@ -578,10 +613,10 @@ void iyCloudRadar(
                                   los_inc[1], scat_data[iv], stokes_dim, 
                                   ppath_pnd(joker,ip), ppath_t[ip], verbosity );
               
-              Numeric z = P(0,0); // No conversion yet
+              Numeric beta = P(0,0); // No conversion yet
 
-              iy(iv*ppath.np+ip,0) = trans_cumulat(iv,0,0,ip) * z * 
-                                     trans_cumulat(iv,0,0,ip);;
+              iy(ip*nf+iv,0) = trans_cumulat(iv,0,0,ip) * beta * 
+                               trans_cumulat(iv,0,0,ip);
             }
         }
 
@@ -594,8 +629,9 @@ void iyCloudRadar(
         { iy_aux[auxTemperature](0,0,0,ip) = ppath_t[ip]; }
       //===================================================================
     } 
-}
 
+  iyBackCoeff2Ze( iy, f_grid, 290, verbosity );
+}
 
 
 
