@@ -1,3 +1,16 @@
+2012-10-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-44
+
+	* A bug fixed. You could be affected if you assume the surface to
+	a flat water body. The DOIT test example is a affected, but for
+	this particular case the resulting error is only about 0.1 K. This
+	bug is most critcal for low frequencies.
+
+	* src/m_physics.cc (complex_nWaterLiebe93): sqrt was not applied
+	and the method returned the dielectric constant (eps) instead of
+	refractive index (n), with n = sqrt(eps).
+
 2012-10-27  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-0-43

@@ -97,11 +97,11 @@ void complex_nWaterLiebe93(Matrix&         complex_n,
     { 
       const Complex  ifGHz( 0.0, f_grid[iv]/1e9 );
           
-      Complex eps = e2 + (e1-e2) / (Numeric(1.0)-ifGHz/f2) + 
-                     (e0-e1) / (Numeric(1.0)-ifGHz/f1);
+      Complex n = sqrt( e2 + (e1-e2) / (Numeric(1.0)-ifGHz/f2) + 
+                          (e0-e1) / (Numeric(1.0)-ifGHz/f1) );
     
-      complex_n(iv,0) = eps.real();
-      complex_n(iv,1) = eps.imag();
+      complex_n(iv,0) = n.real();
+      complex_n(iv,1) = n.imag();
     }
 }
 
