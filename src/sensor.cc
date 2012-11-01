@@ -35,6 +35,7 @@
 #include <stdexcept>
 #include "arts.h"
 #include "logic.h"
+#include "make_vector.h"
 #include "matpackI.h"
 #include "matpackII.h"
 #include "messages.h"
@@ -963,6 +964,56 @@ void spectrometer_matrix(
         }
     }
 }
+
+
+
+//! stokes2pol
+/*!
+   Sets up an array of vectors to convert the Stokes vector to different
+   polarsiations.
+
+   The measured value is the sum of the element product of the conversion
+   vector and the Stokes vector. Schematically:
+
+   y[iout] = sum( s2p[i].*iy(iin,joker)
+
+   The order of the vectors follow the coding described for sensor_pol, but
+   zero-based indexing is used here. That is, the first vector (s2p[0])
+   corresponds to I.
+
+   Trailing zeros are not stored, to indicate the required value of
+   *stokes_dim*.
+
+   Vectors for I, Q, U and V are always normalised to have unit length (one
+   value is 1, the remaining ones zero). The first element of remaining vectors
+   is set to nv (and other values normalised accordingly), to allow that
+   calibartion and other normalisation effects can be incorporated.
+
+   \param   s2p           Array of conversion vectors.
+   \param   nv            Norm value for polarisations beside I, Q, U and V.
+
+   \author Patrick Eriksson
+   \date   2011-11-01
+*/
+void stokes2pol( 
+            ArrayOfVector&  s2p,
+      const Numeric&        nv )
+{
+  s2p.resize(10);
+
+  s2p[0] = MakeVector( 1 );               // I
+  s2p[1] = MakeVector( 0, 1 );            // Q
+  s2p[2] = MakeVector( 0, 0, 1 );         // U
+  s2p[3] = MakeVector( 0, 0, 0, 1 );      // V
+  s2p[4] = MakeVector( nv, nv );          // Iv
+  s2p[5] = MakeVector( nv, -nv );         // Ih
+  s2p[6] = MakeVector( nv, 0, nv );       // I+45
+  s2p[7] = MakeVector( nv, 0, -nv );      // I-45
+  s2p[8] = MakeVector( nv, 0, 0, nv );    // Irhc
+  s2p[9] = MakeVector( nv, 0, 0, -nv );   // Ilhc
+}
+
+
 
 
 // Functions by Stefan, needed for HIRS:

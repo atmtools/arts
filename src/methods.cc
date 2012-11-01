@@ -4641,13 +4641,13 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "edensity_field",
             "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_raw",
-            "iy_aux_vars", "jacobian_do", "ppath_agenda", 
-            "abs_mat_per_species_agenda", "iy_agenda_call1", "iy_transmission", 
-            "rte_pos", "rte_los", "rte_pos2" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+            "iy_unit", "iy_aux_vars", "jacobian_do", "ppath_agenda", 
+            "abs_mat_per_species_agenda", "iy_transmitter_agenda",
+            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los" ),
+        GIN(      "ze_tref" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "273.15"  ),
+        GIN_DESC( "Reference temperature for conversion to Ze" )
         ));
 
   md_data_raw.push_back
@@ -10136,6 +10136,28 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yCloudRadar" ),
+        DESCRIPTION
+        (
+         "Work in progress ...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_aux" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "basics_checked", "atmosphere_dim", "iy_aux_vars", "stokes_dim",
+            "f_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
+            "cloudbox_checked", "sensor_pos", "sensor_los", "iy_main_agenda",
+            "sensor_pol_array", "range_bins" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

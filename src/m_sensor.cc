@@ -52,7 +52,6 @@
 #include "special_interp.h"
 #include "xml_io.h"
 #include "sensor.h"
-#include "make_vector.h"
 #include "sorting.h"
 #include "auto_md.h"
 
@@ -1873,22 +1872,12 @@ void sensor_responsePolarisation(// WS Output:
 {
   // Vectors for extracting polarisation components
   //
-  ArrayOfVector pv(10);
-  //
   Numeric w = 0.5;
   if( y_unit == "PlanckBT"  ||  y_unit == "RJBT"  )
     { w = 1.0; }
   //
-  pv[0] = MakeVector( 1 );             // I
-  pv[1] = MakeVector( 0, 1 );          // Q
-  pv[2] = MakeVector( 0, 0, 1 );       // U
-  pv[3] = MakeVector( 0, 0, 0, 1 );    // V
-  pv[4] = MakeVector( w, w );          // Iv
-  pv[5] = MakeVector( w, -w );         // Ih
-  pv[6] = MakeVector( w, 0, w );       // I+45
-  pv[7] = MakeVector( w, 0, -w );      // I-45
-  pv[8] = MakeVector( w, 0, 0, w );    // Irhc
-  pv[9] = MakeVector( w, 0, 0, -w );   // Ilhc
+  ArrayOfVector pv;
+  stokes2pol( pv, w );
 
   // Some sizes
   const Index nnew = sensor_pol.nelem();

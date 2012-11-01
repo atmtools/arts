@@ -121,6 +121,10 @@ void spectrometer_matrix(
       const Index&         n_sp,
       const Index&         do_norm );
 
+void stokes2pol( 
+            ArrayOfVector&  s2p,
+      const Numeric&        w );
+
 void find_effective_channel_boundaries(// Output:
                                        Vector& fmin,
                                        Vector& fmax,

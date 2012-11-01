@@ -2542,7 +2542,7 @@ void Workspace::define_wsv_data()
      (NAME( "particle_masses" ),
       DESCRIPTION
       (
-       "The mass of each particle type stored in a vector \n"
+       "The mass of each particle type stored in a vector.\n"
        "\n"
        "Usage: Set by the user.\n"
        ),
@@ -2901,6 +2901,25 @@ void Workspace::define_wsv_data()
        "Unit:  Pa\n"
        ),
       GROUP( "Numeric" )));
+
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "range_bins" ),
+      DESCRIPTION
+      (
+       "The range bins of an active instrument.\n"
+       "\n"
+       "The bins are assumed to cover a range without gaps, and the bins are\n"
+       "defined by their edges. That is, the length of this vector is the\n"
+       "number of bins + 1.\n"
+       "\n"
+       "The bins can potentially be defined in two ways, by altitude or time.\n"
+       "See the method you are using, if this variable shall hold time or\n"
+       "altitude (or maybe both options are treated).\n"
+       "\n"
+       "Unit: m or s\n"
+       ),
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3612,7 +3631,7 @@ void Workspace::define_wsv_data()
        "variable shall accordingly be set to [5,6].\n"
        "\n"
        "The conversion to Planck-BT of components 2-4 requires that component\n"
-       "1 is kept, and is put as first element.\n"
+       "1 is kept, and is then included as first element.\n"
        "\n"
        "The shift from the Stokes vector can be made at any stage when of the\n"
        "sensor response set-up. The responses used must of course be adopted\n"
@@ -3623,6 +3642,20 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        ),
       GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_pol_array" ),
+      DESCRIPTION
+      (
+       "Multiple definition of sensor polarisation.\n"
+       "\n"
+       "Defined as *sensor_pol* but used when multiple reciever polarisation\n"
+       "are possible/required.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( "ArrayOfArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord

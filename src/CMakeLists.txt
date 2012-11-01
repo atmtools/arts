@@ -175,6 +175,7 @@ add_library (artscore STATIC
   m_basic_types.cc
   m_batch.cc
   m_cloudbox.cc
+  m_cloudradar.cc
   m_disort.cc
   m_doit.cc
   m_fos.cc

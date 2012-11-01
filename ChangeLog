@@ -1,3 +1,19 @@
+2012-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-342
+
+	* src/m_sensor.cc: Some code moved to function below. And now
+	instead that function is called.
+
+	* src/sensor.cc (stokes2pol): Created.
+
+	* src/workspace.cc: Added sensor_pol_array and range_bins.
+
+	* src/CMakeLists.txt: Added m_cloudradar.cc.
+
+	* src/m_cloudradar.cc: Started this file, and moved the new
+	functions from m_rte.cc. Still work in progress.
+
 2012-10-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-341
