@@ -5080,6 +5080,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iy_transmitterCloudRadar" ),
+        DESCRIPTION
+        (
+         "Transmitter definition for cloud radar calculations.\n"
+         "\n"
+         "The method is intended to be part of *iy_transmitter_agenda*. It\n"
+         "sets *iy* to describe the transmitted pulses. The polarisation\n"
+         "state is taken from *sensor_pol*, where *sensor_pol* must contain\n"
+         "an element for each frequency in *f_grid*. The transmitted pulses \n"
+         "are set to be of unit magnitude, such as [1,1,0,0].\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "sensor_pol" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianAddAbsSpecies" ),
         DESCRIPTION
         (

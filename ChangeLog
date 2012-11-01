@@ -1,5 +1,13 @@
 2012-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-343
+
+	* src/m_cloudradar.cc (iy_transmitterCloudRadar): Created.
+
+	(yCloudRadar): Now also handling y_aux.
+
+2012-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-342
 
 	* src/m_sensor.cc: Some code moved to function below. And now

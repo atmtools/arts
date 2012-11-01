@@ -57,6 +57,37 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iy_transmitterCloudRadar(
+        Matrix&        iy,
+  const Index&         stokes_dim,
+  const Vector&        f_grid,
+  const ArrayOfIndex&  sensor_pol,
+  const Verbosity&  )
+{
+  const Index nf = f_grid.nelem();
+  
+  if( sensor_pol.nelem() != nf )
+    throw runtime_error( "The length of *f_grid* and the number of elements "
+                         "in *sensor_pol* must be equal." );
+
+  iy.resize( nf, stokes_dim );
+  iy = 0;
+
+  ArrayOfVector   s2p;
+  stokes2pol( s2p, 1 );
+
+  for( Index i=0; i<nf; i++ )
+    {
+      for( Index j=0; j<s2p[sensor_pol[i]-1].nelem(); j++ )
+        {
+          iy(i,j) = s2p[sensor_pol[i]-1][j];
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyCloudRadar(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -314,7 +345,7 @@ void yCloudRadar(
   const Index npos    = sensor_pos.nrows();
   const Index nbins   = range_bins.nelem() - 1;
   const Index nf      = f_grid.nelem();
-
+  const Index naux    = iy_aux_vars.nelem();
 
   //---------------------------------------------------------------------------
   // Input checks
@@ -378,7 +409,7 @@ void yCloudRadar(
 
   // Conversion from Stokes to sensor_pol
   ArrayOfVector   s2p;
-  stokes2pol( s2p, 1 );
+  stokes2pol( s2p, 0.5 );
 
   ArrayOfIndex npolcum(nf+1); npolcum[0]=0;
   for( Index i=0; i<nf; i++ )
@@ -386,15 +417,22 @@ void yCloudRadar(
       npolcum[i+1] = npolcum[i] + sensor_pol_array[i].nelem(); 
       for( Index j=0; j<sensor_pol_array[i].nelem(); j++ )
         {
-          if( s2p[sensor_pol_array[i][j]].nelem() > stokes_dim )
+          if( s2p[sensor_pol_array[i][j]-1].nelem() > stokes_dim )
             throw runtime_error( "Your definition of *sensor_pol_array* " 
                                  "requires a higher value for *stokes_dim*." );
         }
     }
 
+  // Size output arguments, and set to 0
   y.resize( npos*npolcum[nf]*nbins );
   y = 0;
-  y_aux.resize(0);
+  y_aux.resize( naux );
+  for( Index i=0; i<naux; i++ )
+    { 
+      y_aux[i].resize( npos*nbins ); 
+      y_aux[i] = 0; 
+    }
+
 
   // Loop positions
   for( Index p=0; p<npos; p++ )
@@ -412,7 +450,7 @@ void yCloudRadar(
                              vmr_field, f_grid, 
                              sensor_pos(p,joker), sensor_los(p,joker), 
                              rte_pos2, iy_main_agenda );
-      cout << "iy=" << iy << endl;
+
       // Check if OK path
       if( ppath.np == 1 )
         throw runtime_error( "A path consisting of a single point found. "
@@ -430,11 +468,10 @@ void yCloudRadar(
           // Get effective limits for bin
           Numeric zlow  = max( range_bins[b], min(ppath.pos(joker,0)) );
           Numeric zhigh = min( range_bins[b+1], max(ppath.pos(joker,0)) );
-          Numeric dl    = range_bins[b+1] - range_bins[b];
 
           if( zlow < zhigh )   // Otherwise bin outside range of ppath
             {
-              // Get ppath altitudes inside bin
+              // Get ppath altitudes inside bin + edges
               Index n_in = 0;
               ArrayOfIndex i_in(ppath.np);
               for( Index i=0; i<ppath.np; i++ )
@@ -446,6 +483,10 @@ void yCloudRadar(
                 { z[i+1] = ppath.pos(i_in[i],0); }
               z[n_in+1]  = zhigh;
               n_in      += 2;
+
+              // Height of layer, for reflectivity and aux, respectively
+              Numeric dl1 = range_bins[b+1] - range_bins[b];
+              Numeric dl2 = z[n_in-1] - z[0];
 
               // Convert to interpolation weights
               ArrayOfGridPos gp( n_in );
@@ -460,21 +501,39 @@ void yCloudRadar(
 
                   for( Index ip=0; ip<sensor_pol_array[iv].nelem(); ip++ )
                     {
-                      Vector refl;
+                      // Extract reflectivity for recieved polarisation
+                      Vector refl( ppath.np, 0 );
+                      Vector w = s2p[sensor_pol_array[iv][ip]-1];
+                      for( Index i=0; i<w.nelem(); i++ )
+                        { for( Index j=0; j<ppath.np; j++ )
+                            { refl[j] += I(j,i) * w[i]; } }
 
                       // Interpolate and sum up
                       Vector rv( n_in );
                       interp( rv, itw, refl, gp );
-                      const Index iout = nbins * ( p*npolcum[nf] + 
-                                                   npolcum[iv] + ip ) + b;
+                      Index iout = nbins * ( p*npolcum[nf] + 
+                                               npolcum[iv] + ip ) + b;
                       for( Index i=0; i<n_in-1; i++ )
-                        { y[iout] += (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl); }
+                        { y[iout] += (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl1); }
+
+                      // Same for aux variables (if first freq and pol)
+                      if( iv==0  && ip==0 )
+                        {
+                          for( Index a=0; a<naux; a++ )
+                            { 
+                              interp( rv, itw, iy_aux[a](0,0,0,joker), gp );
+                              iout = nbins*p + b;
+                              for( Index i=0; i<n_in-1; i++ )
+                                { y_aux[a][iout] += 
+                                    (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl2); }
+
+                            }
+                        }
                     }
                 }
             }
         }
     }
-
 }
 
 
