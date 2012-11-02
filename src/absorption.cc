@@ -2969,7 +2969,7 @@ void xsec_species( MatrixView               xsec,
   
   // Find the location of all broadening species in abs_species. Set to -1 if
   // not found. The length of array broad_spec_locations is the number of allowed
-  // broadening species (in ARTSCAT-4 Self, N2, O2, H2O, CO2, H2, H2). The value
+  // broadening species (in ARTSCAT-4 Self, N2, O2, H2O, CO2, H2, He). The value
   // means:
   // -1 = not in abs_species
   // -2 = in abs_species, but should be ignored because it is identical to Self

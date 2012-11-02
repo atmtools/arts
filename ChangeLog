@@ -1,3 +1,16 @@
+2012-11-02  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-344
+
+	* src/m_refraction.cc(refr_indexMWgeneral):
+	Added. General, planetary applicable method for refr. index calculation
+	following Newell&Baird, 1965. Reference refr. indices valid for
+	microwave (also from Newell&Baird, 1965) currently hardcoded therein.
+
+	* src/methods.cc(refr_indexMWgeneral): Added. Proper Doc TBD.
+
+	* src/absorption.cc(xsec_species): Typo fixed.
+
 2012-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-343

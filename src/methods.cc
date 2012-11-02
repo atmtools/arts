@@ -7677,6 +7677,26 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "refr_indexMWgeneral" ),
+        DESCRIPTION
+        (
+         "FIXME\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "refr_index", "refr_index_group" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "refr_index", "refr_index_group", "rte_pressure", 
+            "rte_temperature", "rte_vmr_list", "abs_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+    md_data_raw.push_back
+    ( MdRecord
       ( NAME( "rte_losGeometricFromRtePosToRtePos2" ),
         DESCRIPTION
         (
