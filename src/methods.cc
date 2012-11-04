@@ -7697,7 +7697,6 @@ void define_md_data_raw()
          "conditions. Reference refractivities are also taken from Newell&Baird (1965)\n"
          "and are vailable for N2, O2, CO2, H2, and He. Any mixture of these gases\n"
          "can be taken into account.\n"
-         "\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "refr_index", "refr_index_group" ),
