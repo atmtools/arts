@@ -21,6 +21,8 @@ verbosityInit
 # No particle/scattering species (yet)
 #
 ParticleSpeciesSet( part_species, [] )
+MatrixSet( particle_masses, [] )
+
 
 #
 # Default is that no transmitter is involved

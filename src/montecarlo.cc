@@ -449,7 +449,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                             const ArrayOfIndex&   cloudbox_limits, 
                             const Tensor4&        pnd_field,
                             const ArrayOfSingleScatteringData& scat_data_mono,
-                            const Vector&         particle_masses,
+                            const Matrix&         particle_masses,
                             const Verbosity&      verbosity)
 {
   //internal declarations
@@ -485,7 +485,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                   z_surface, 1, cloudbox_limits, local_rte_pos, local_rte_los, 
                   1, verbosity );
 
-      Matrix  pnd_ppath(particle_masses.nelem(),ppath.np);
+      Matrix  pnd_ppath(particle_masses.nrows(),ppath.np);
       Vector t_ppath(ppath.np);
       Vector   p_ppath(ppath.np);
       Matrix   vmr_ppath(vmr_field.nbooks(),ppath.np);
@@ -507,8 +507,9 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                        1, pnd_ppath(joker, i), t_ppath[i], verbosity);
           k_vec[i]=ext_mat_part(0,0);
           Vector pnd_vec=pnd_ppath(joker, i);
-          assert(pnd_vec.nelem()==particle_masses.nelem());
-          iwc_vec[i]=pnd_vec*particle_masses;//hopefully this is the dot product
+          assert(particle_masses.ncols()==1);
+          assert(pnd_vec.nelem()==particle_masses.nrows());
+          iwc_vec[i]=pnd_vec*particle_masses(joker,0);//hopefully this is the dot product
         }
       //integrate IWP and optical properties
       for (Index i = 0; i < ppath.np-1 ; ++i)

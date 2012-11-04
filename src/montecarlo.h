@@ -117,7 +117,7 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
                             const ArrayOfIndex&   cloudbox_limits, 
                             const Tensor4&        pnd_field,
                             const ArrayOfSingleScatteringData& scat_data_mono,
-                            const Vector&         particle_masses,
+                            const Matrix&         particle_masses,
                             const Verbosity&      verbosity);
 
 

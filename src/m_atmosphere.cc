@@ -1296,6 +1296,8 @@ void basics_checkedCalc(
     { 
       chk_atm_field( "edensity_field", edensity_field, atmosphere_dim, 
                                                   p_grid, lat_grid, lon_grid );
+      if( min(edensity_field) < 0 )
+        throw runtime_error( "All values in *edensity_field* must be >= 0." );
     }
 
   // Stokes and frequency grid

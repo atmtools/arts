@@ -69,6 +69,14 @@ void chk_pnd_raw_data (const ArrayOfGriddedField3& pnd_field_raw,
                        const ArrayOfIndex& cloudbox_limits,
                        const Verbosity& verbosity);
 
+void chk_pnd_field_raw_only_in_cloudbox(
+        const Index&                 dim,
+        const ArrayOfGriddedField3&  pnd_field_raw,
+        ConstVectorView              p_grid,
+        ConstVectorView              lat_grid,
+        ConstVectorView              lon_grid,
+        const ArrayOfIndex&          cloudbox_limits);
+
 void chk_part_species (const ArrayOfString& part_species,
                        const String& delim);
 

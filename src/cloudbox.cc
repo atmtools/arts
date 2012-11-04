@@ -50,6 +50,8 @@ extern const Numeric PI;
 #include "mc_antenna.h"
 #include "sorting.h"
 
+
+
 //! Check whether hydromet grid size is equal to atmospheric grid size 
 //! and if hydromet profile is zero (no cloud) in each grid point.
 /*!
@@ -126,6 +128,8 @@ void chk_massdensity_field( bool& empty_flag,
     }  
 }
 
+
+
 //! Check whether particle number density is zero at a specified pressure level
 /*!
   \param i_p Pressure index
@@ -171,6 +175,8 @@ void chk_if_pnd_zero_p(const Index& i_p,
         }
     }
 }
+
+
 
 //! Check whether particle number density is zero at a specified latitude
 /*!
@@ -218,6 +224,8 @@ void chk_if_pnd_zero_lat(const Index& i_lat,
     }
 }
 
+
+
 //! Check whether particle number density is zero at a specified longitude
 /*!
   \param i_lon          Latitude index
@@ -264,6 +272,7 @@ void chk_if_pnd_zero_lon(const Index& i_lon,
         }
     }
 }
+
 
 
 //! Check particle number density files
@@ -376,9 +385,10 @@ void chk_pnd_data(
       //chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file, verbosity);
     } 
   
-  out3 << "Particle number density data is o.k. \n";
-  
+  out3 << "Particle number density data is o.k. \n";  
 }
+
+
 
 //! Check particle number density files (pnd_field_raw)
 /*!
@@ -415,6 +425,98 @@ void chk_pnd_raw_data(
                    p_grid, lat_grid, lon_grid, cloudbox_limits, verbosity);
     }
 }
+
+
+
+//! chk_pnd_field_raw_only_in_cloudbox
+/*! 
+    Checks whether the pnd_field is zero outside the cloudbox.
+    This is of a higher level than chk_pnd_data because it does
+    not require any filename and because it works on all pnd_field_raw
+    rather than just one element. Otherwise, it is mostly a new
+    implementation of the same functionality.
+
+    \param    dim                The atmospheric dimensionality.
+    \param    pnd_field_raw      All pnd_field_raw data.
+    \param    p_grid             Pressure grid.
+    \param    lat_grid           Latitude grid.
+    \param    lon_grid           Longitude grid.
+    \param    cloudbox_limits    The edges of the cloudbox.
+
+    \author Gerrit Holl
+    \date   2011-03-24
+*/
+void chk_pnd_field_raw_only_in_cloudbox(
+        const Index&                 dim,
+        const ArrayOfGriddedField3&  pnd_field_raw,  
+        ConstVectorView              p_grid,
+        ConstVectorView              lat_grid,
+        ConstVectorView              lon_grid,
+        const ArrayOfIndex&          cloudbox_limits )
+{
+    Numeric p, lat, lon, v;
+    Index n, p_i, lat_i, lon_i;
+    // For any non-zero point, verify we're outside the cloudbox
+    for (n=0; n < pnd_field_raw.nelem(); n++) {
+        for (p_i=0; p_i < pnd_field_raw[n].data.npages(); p_i++) {
+            for (lat_i=0; lat_i < pnd_field_raw[n].data.nrows(); lat_i++) {
+                for (lon_i=0; lon_i < pnd_field_raw[n].data.ncols(); lon_i++) {
+                    v = pnd_field_raw[n].data(p_i, lat_i, lon_i);
+                    if (v != 0) {
+                        // Verify pressure is between cloudbox limits
+                        p = pnd_field_raw[n].get_numeric_grid(GFIELD3_P_GRID)[p_i];
+                        if (!((p <= p_grid[cloudbox_limits[0]]) &
+                              (p >= p_grid[cloudbox_limits[1]]))) {
+                            ostringstream os;
+                            os << "Found non-zero pnd outside cloudbox. "
+                               << "Cloudbox extends from p="
+                               << p_grid[cloudbox_limits[0]]
+                               << " Pa to p="
+                               << p_grid[cloudbox_limits[1]]
+                               << " Pa, but found pnd=" << v
+                               << "/m³ at p=" << p << " Pa.";
+                            throw runtime_error(os.str());
+                        }
+                        // Verify latitude is too
+                        if (dim > 1) {
+                            lat = pnd_field_raw[n].get_numeric_grid(GFIELD3_LAT_GRID)[lat_i];
+                            if (!((lat >= lat_grid[cloudbox_limits[2]]) &
+                                  (lat <= lat_grid[cloudbox_limits[3]]))) {
+                                ostringstream os;
+                                os << "Found non-zero pnd outside cloudbox. "
+                                   << "Cloudbox extends from lat="
+                                   << lat_grid[cloudbox_limits[2]]
+                                   << "° to lat="
+                                   << lat_grid[cloudbox_limits[3]]
+                                   << "°, but found pnd=" << v
+                                   << "/m³ at lat=" << lat << "°.";
+                                throw runtime_error(os.str());
+                            }
+                        }
+                        // Etc. for longitude
+                        if (dim > 2) {
+                            lon = pnd_field_raw[n].get_numeric_grid(GFIELD3_LON_GRID)[lon_i];
+                            if (!((lon >= lon_grid[cloudbox_limits[4]]) &
+                                  (lon <= lon_grid[cloudbox_limits[5]]))) {
+                                ostringstream os;
+                                os << "Found non-zero pnd outside cloudbox. "
+                                   << "Cloudbox extends from lon="
+                                   << lon_grid[cloudbox_limits[4]]
+                                   << "° to lat="
+                                   << lon_grid[cloudbox_limits[5]]
+                                   << "°, but found pnd=" << v
+                                   << "/m³ at lon=" << lon << "°.";
+                                throw runtime_error(os.str());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 
 //!  Check validity of part_species setting
 /*!
@@ -476,6 +578,8 @@ void chk_part_species (
     }
 }
 
+
+
 //! Check scattering data general
 /*!
   FIXME
@@ -513,7 +617,6 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data_raw,
   \author Daniel Kreyling
   \date 2010-12-02
 */
-
 void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta,
                               const String& scat_data_meta_file,
                               const Verbosity& verbosity)
@@ -534,6 +637,7 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta,
 */
   //(more) checks need to be included
 }
+
 
 
 //! Check single scattering data files
@@ -820,6 +924,7 @@ bool is_gp_inside_cloudbox(
 }
 
 
+
 /*! Checks, whether the last point of a propagation path 
   is inside the cloudbox.
 
@@ -849,6 +954,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
                                ppath_step.gp_lon[np-1],cloudbox_limits,include_boundaries);
   
 }
+
 
 
 /*! Calculates the particle number density field for McFarquhar and Heymsfield
@@ -967,6 +1073,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
       }
   }
 }
+
 
 /*! Calculates the particle number density field for Heymsfield (2011, personal
     comm.) size distribution. To be used for atmospheric ice, particularly cloud
@@ -1089,6 +1196,8 @@ void pnd_fieldH11 (Tensor4View pnd_field,
       }
   }
 }
+
+
 
 /*! Calculates the particle number density field for Marshall and Palmer (1948)
     size distribution. To be used for precipitation, particularly rain.
@@ -1272,6 +1381,8 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   }
 }
 
+
+
 /*! Calculates the particle number density field for Hess et al. (1998)
     size distribution, namely the continental stratus case. To be used for
     liquid clouds.
@@ -1383,6 +1494,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
       }
   }
 }
+
 
 
 /*! Calculates particle size distribution using MH97 parametrization.
@@ -1552,6 +1664,8 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
   return dN;
 }
 
+
+
 /*! Calculates particle size distribution using H11 parametrization.
  *  Each diameter of the scattering particles is a node in the distribution.
  *  One call of this function calculates one particle number density.  
@@ -1600,6 +1714,8 @@ Numeric IWCtopnd_H11 ( const Numeric d,
   if (isnan(dN)) dN = 0.0;
   return dN;
 }
+
+
 
 /*! Calculates particle size distribution for liquid water clouds using a gamma
  *  parametrization by Hess et al., 1998 (continental stratus).
@@ -1660,6 +1776,7 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 }
 
 
+
 /*! Calculates particle size distribution using MP48 parametrization for rain.
  *  Each diameter of the scattering particles is a node in the distribution.
  *  One call of this function calculates one particle number density.  
@@ -1688,6 +1805,8 @@ Numeric PRtopnd_MP48 (	const Numeric R,
   Numeric n = N0*exp(-lambda*D);
   return n;
 }
+
+
 
 /*! Scaling pnd values by width of size bin. 
  * Bin width is determined from preceeding and following particle size.
@@ -1735,6 +1854,8 @@ void scale_pnd  (  Vector& w,
       w[0] = y[0];
     }
 }
+
+
 
 /*! Check sum of pnd vector against total mass density value.
  *  Deviation is calculated and used to adjust the output of vector pnd.
@@ -1823,6 +1944,7 @@ void chk_pndsum (Vector& pnd,
 }
 
 
+
 /*! The H11 PSD is scaled to the initial 'ice' or 'snow' massdensity, after
  *  the distribution has been evaluated. This function applies the scaling.
          
@@ -1869,6 +1991,7 @@ void scale_H11 (Vector& pnd,
   }
 
 }
+
 
 
 /*! Splitting part_species string and parse type of massdensity_field
@@ -1918,6 +2041,8 @@ void parse_prof_type (//WS Output:
   }*/
 }
 
+
+
 /*! Splitting part_species string and parse psd_param
 	\param psd_param particle size distribution parametrization
 	\param part_string containing infos about scattering particle calculations
@@ -1958,6 +2083,8 @@ void parse_psd_param (//WS Output:
   }*/
 }
 
+
+
 /*! Splitting part_species string and parse type of particle (from ScattData array)
 
 	\param  part_type particle type (material, phase). 
@@ -1991,6 +2118,8 @@ void parse_part_type (//WS Output:
       throw runtime_error ( os.str() );
   }
 }
+
+
 
 /*! Splitting part_species string and parse min and max particle radius
 	\param sizemin min scattering particle radius

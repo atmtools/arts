@@ -2542,11 +2542,29 @@ void Workspace::define_wsv_data()
      (NAME( "particle_masses" ),
       DESCRIPTION
       (
-       "The mass of each particle type stored in a vector.\n"
+       "The mass of individual particles.\n"
+       "\n"
+       "Each row corresponds to a particle type (e.g. an element in\n"
+       "scat_data_mono*). The user is free to define different mass\n"
+       "categories and assign a mass for each category. Each column\n"
+       "of *particle_masses* corresponds to such a mass category. A\n"
+       "particle can have a non-zero mass for more than one category.\n"
+       "\n"
+       "For example, if you work with clouds, your mass categories could\n"
+       "be ice and liquid, corresponding to IWC and LWC, respectively.\n"
+       "The mass of particles inside the melting layer, having a mixed\n"
+       "phase, could be divided between the two columns of the matrix.\n"
+       "\n"
+       "Shall either be empty, or have a row size consistent with the\n"
+       "scattering variables (e.g. *pnd_field*).\n"
        "\n"
        "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  kg\n"
+       "\n"
+       "Dimensions: [ particle type, mass category ]\n"
        ),
-      GROUP( "Vector" )));
+      GROUP( "Matrix" )));
     
    wsv_data.push_back
    (WsvRecord

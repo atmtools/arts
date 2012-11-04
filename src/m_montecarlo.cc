@@ -96,7 +96,7 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
                                const ArrayOfIndex&   cloudbox_limits, 
                                const Tensor4&        pnd_field,
                                const ArrayOfSingleScatteringData& scat_data_mono,
-                               const Vector&         particle_masses,
+                               const Matrix&         particle_masses,
                                const Index&          mc_seed,
                                //Keyword params
                                const Index&          max_iter,
@@ -104,7 +104,11 @@ void mc_IWP_cloud_opt_pathCalc(Workspace& ws,
 {
   const Numeric f_mono = f_grid[f_index];
   
-  //if antenna is pencil beam jsut need a single path integral, otherwise
+  if( particle_masses.ncols() != 1 )
+    throw runtime_error(
+                 "*particle_masses* is only allowed to have a single column" );
+
+  //if antenna is pencil beam just need a single path integral, otherwise
   //for now do monte carlo integration
   if (mc_antenna.get_type()==ANTENNA_TYPE_PENCIL_BEAM)
     {

@@ -116,7 +116,7 @@ Propagation paths are calculated with the internal function
 \builtindoc{ppath\_step\_agenda} is handled by \builtindoc{ppath\_step}.
 That variable is used both as input and output to
 \builtindoc{ppath\_step\_agenda}.  The agenda gets back
-\builtindoc{ppath\_step} as returned to \builtindoc{ppath\_calc} and the
+\builtindoc{ppath\_step} as returned to \funcindex{ppath\_calc} and the
 last path point hold by the structure is accordingly the starting
 point for the new calculations. If a total propagation path shall be
 determined, the agenda is called repeatedly until the starting point
@@ -128,7 +128,7 @@ filling \builtindoc{ppath\_step} with the practical end point of the
 path. This is either the position of the sensor (true or
 hypothetical), or some point at the top of the atmosphere (determined
 by geometrical calculations starting at the sensor).
-The field \shortcode{constant} is set by \builtindoc{ppath\_calc}
+The field \shortcode{constant} is set by \funcindex{ppath\_calc}
 to the correct value if the sensor is above the model atmosphere.
 Otherwise, the field is set to be negative and is corrected by
 \builtindoc{ppath\_step\_agenda} at the first call. This procedure is
@@ -136,10 +136,10 @@ needed as the propagation path constant changes if refraction is
 considered, or not, when the sensor is placed inside the atmosphere.
 
 The agenda performs only calculations to next crossing of a grid, all
-other tasks are performed by \builtindoc{ppath\_calc}, with one exception.
+other tasks are performed by \funcindex{ppath\_calc}, with one exception.
 If there is an intersection with the surface, the calculations stop at
 this point. This is flagged by setting the background field of
-\builtindoc{ppath\_step}. Beside this, \builtindoc{ppath\_calc} checks if
+\builtindoc{ppath\_step}. Beside this, \funcindex{ppath\_calc} checks if
 the starting point of the calculations is inside the cloud box or
 below the surface level, and check if the last point of the path has
 been reached. 

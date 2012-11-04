@@ -81,6 +81,7 @@ void cloudboxOff (
          Tensor4&                     pnd_field,
          Index&                       use_mean_scat_data,
          ArrayOfSingleScatteringData& scat_data_raw,
+         Matrix&                      particle_masses,
    const Verbosity&)
 {
   cloudbox_on = 0;
@@ -90,6 +91,7 @@ void cloudboxOff (
   pnd_field.resize(0,0,0,0);
   use_mean_scat_data = -999;
   scat_data_raw.resize(0);
+  particle_masses.resize(0,0);
 }
 
 
@@ -546,27 +548,33 @@ void cloudboxSetManuallyAltitude(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudbox_checkedCalc(Index&          cloudbox_checked,
-                          const Index&    basics_checked,
-                          const Index&    atmosphere_dim,
-                          const Vector&   p_grid,
-                          const Vector&   lat_grid,
-                          const Vector&   lon_grid,
-                          const Tensor3&  wind_u_field,
-                          const Tensor3&  wind_v_field,
-                          const Tensor3&  wind_w_field,
-                          const Index&    cloudbox_on,    
-                          const ArrayOfIndex&   cloudbox_limits,
-                          const Verbosity&)
+void cloudbox_checkedCalc(      
+         Index&          cloudbox_checked,
+   const Index&          basics_checked,
+   const Index&          atmosphere_dim,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        z_field,
+   const Matrix&         z_surface,
+   const Tensor3&        wind_u_field,
+   const Tensor3&        wind_v_field,
+   const Tensor3&        wind_w_field,
+   const Index&          cloudbox_on,    
+   const ArrayOfIndex&   cloudbox_limits,
+   const Tensor4&        pnd_field,
+   const ArrayOfSingleScatteringData& scat_data_raw,
+   const Matrix&         particle_masses,
+   const Verbosity&)
 {
   // Demanded space between cloudbox and lat and lon edges [degrees]
   const Numeric llmin = 20;
 
   if( !basics_checked )
-    throw runtime_error( "The atmosphere and basic control varaibles must be "
+    throw runtime_error( "The atmosphere and basic control variables must be "
             "flagged to have passed a consistency check (basics_checked=1)." );
   
-  chk_if_bool(  "cloudbox_on", cloudbox_on );
+  chk_if_bool( "cloudbox_on", cloudbox_on );
 
   if( cloudbox_on )
     {
@@ -683,6 +691,64 @@ void cloudbox_checkedCalc(Index&          cloudbox_checked,
                   throw runtime_error( os.str() );
                 }
             }
+        }
+
+      // pnd_field
+      //
+      const Index np = scat_data_raw.nelem();
+      // Dummy variables to mimic grids of correct size
+      Vector g1( cloudbox_limits[1]-cloudbox_limits[0]+1 ), g2(0), g3(0);
+      if( atmosphere_dim >= 2 ) 
+        { g2.resize( cloudbox_limits[3]-cloudbox_limits[2]+1 ); }
+      if( atmosphere_dim == 3 ) 
+        { g3.resize( cloudbox_limits[5]-cloudbox_limits[4]+1 ); }
+      //
+      chk_atm_field( "pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3 );
+      //
+      if( min(pnd_field) < 0 )
+        throw runtime_error( "All values in *pnd_field* must be >= 0." );
+      //
+      for( Index a=0; a<g2.nelem(); a++ ) { 
+        for( Index o=0; o<g3.nelem(); o++ ) { 
+          if( max(pnd_field(joker,0,a,o)) > 0  && 
+              z_field(cloudbox_limits[0],a,o) > z_surface(a,o) )
+            throw runtime_error( "A non-zero value found in *pnd_field* at the "
+                             "lower altitude limit of the cloudbox (but the "
+                             "position is not below the surface altitude)." );
+        } }
+      if( max(pnd_field(joker,g1.nelem()-1,joker,joker)) > 0 )
+        throw runtime_error( "A non-zero value found in *pnd_field* at "
+                             "upper altitude limit of the cloudbox." );
+      if( atmosphere_dim >= 2 )
+        {
+          if( max(pnd_field(joker,joker,0,joker)) > 0 )
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "lower latitude limit of the cloudbox." );
+          if( max(pnd_field(joker,joker,g2.nelem()-1,joker)) > 0 ) 
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "upper latitude limit of the cloudbox." );
+        }
+      if( atmosphere_dim == 3 )
+        {
+          if( max(pnd_field(joker,joker,joker,0)) > 0 )
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "lower longitude limit of the cloudbox." );
+          if( max(pnd_field(joker,joker,joker,g3.nelem()-1)) > 0 ) 
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "upper longitude limit of the cloudbox." );
+        }
+
+      // particle_masses
+      //
+      if( particle_masses.nrows() > 0 )
+        {
+          if( particle_masses.nrows() != np )
+            throw runtime_error( "The WSV *particle_masses* must either be "
+                                 "empty or have a row size matching the "
+                                 "length of *scat_data_raw*." );
+          if( min(particle_masses) < 0 )
+            throw runtime_error( 
+                            "All values in *particles_masses* must be >= 0." );
         }
     }
 
@@ -826,6 +892,8 @@ void ParticleTypeAddAll (//WS Output:
                      pnd_field_file, atmosphere_dim, p_grid, lat_grid,
                      lon_grid, cloudbox_limits, verbosity);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ScatteringParticleTypeAndMetaRead (//WS Output:
@@ -1075,6 +1143,7 @@ void ParticleTypeAdd( //WS Output:
                    lon_grid, cloudbox_limits, verbosity);
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

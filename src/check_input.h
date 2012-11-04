@@ -362,14 +362,6 @@ void chk_atm_surface(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid );
 
-void chk_pnd_field_raw_only_in_cloudbox(
-        const Index&                 dim,
-        const ArrayOfGriddedField3&  pnd_field_raw,
-        ConstVectorView              p_grid,
-        ConstVectorView              lat_grid,
-        ConstVectorView              lon_grid,
-        const ArrayOfIndex&          cloudbox_limits);
-
 void chk_rte_pos( 
         const Index&      atmosphere_dim,
         ConstVectorView   rte_pos,

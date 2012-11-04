@@ -111,6 +111,7 @@ void iyCloudRadar(
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
    const ArrayOfSingleScatteringData& scat_data_raw,
+   const Matrix&                      particle_masses,
    const String&                      iy_unit,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
@@ -151,8 +152,10 @@ void iyCloudRadar(
 
 
   //=== iy_aux part ===========================================================
-  Index auxPressure    = -1,
-        auxTemperature = -1;
+  Index auxPressure     = -1,
+        auxTemperature  = -1,
+        auxTransmission = -1;
+  ArrayOfIndex auxPartCont(0), auxPartContI(0);
   //
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
@@ -163,6 +166,24 @@ void iyCloudRadar(
         { auxPressure = i;      iy_aux[i].resize( 1, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Temperature" )
         { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
+      else if( iy_aux_vars[i] == "Transmission" )
+        { auxTransmission = i;  iy_aux[i].resize( nf, ns, 1, np ); }
+      else if( iy_aux_vars[i].substr(0,18) == "Particle content, " )
+        { 
+          Index icont;
+          istringstream is(iy_aux_vars[i].substr(18,2));
+          is >> icont;
+          if( icont < 0  ||  icont>=particle_masses.ncols() )
+            {
+              ostringstream os;
+              os << "You have selected particle content category with index "
+                 << icont << ".\nThis category is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartCont.push_back(i);
+          auxPartContI.push_back(icont);
+          iy_aux[i].resize( 1, 1, 1, np );               
+        }
       else
         {
           ostringstream os;
@@ -281,6 +302,17 @@ void iyCloudRadar(
       // Temperature
       if( auxTemperature >= 0 ) 
         { iy_aux[auxTemperature](0,0,0,ip) = ppath_t[ip]; }
+      // Transmission
+      if( auxTransmission >= 0 ) 
+        { for( Index iv=0; iv<nf; iv++ ) {
+            for( Index is1=0; is1<ns; is1++ ) {
+              for( Index is2=0; is2<ns; is2++ ) {
+                iy_aux[auxTransmission](iv,is1,is2,ip) = 
+                                          trans_cumulat(iv,is1,is2,ip); } } } }
+      // Particle mass content
+      for( Index j=0; j<auxPartCont.nelem(); j++ )
+        { iy_aux[auxPartCont[j]](0,0,0,ip) = ppath_pnd(joker,ip) *
+                                      particle_masses(joker,auxPartContI[j]); }
       //===================================================================
     } 
 
@@ -451,7 +483,7 @@ void yCloudRadar(
                              sensor_pos(p,joker), sensor_los(p,joker), 
                              rte_pos2, iy_main_agenda );
 
-      // Check if OK path
+      // Check if path and size OK
       if( ppath.np == 1 )
         throw runtime_error( "A path consisting of a single point found. "
                              "This is not allowed." );
@@ -461,6 +493,9 @@ void yCloudRadar(
         throw runtime_error( "A path with strictly increasing or decreasing "
                              "altitudes must be obtained (e.g. limb "
                              "measurements are not allowed)." );
+      if( iy.nrows() != nf*ppath.np )
+        throw runtime_error( "The size of *iy* returned from *iy_main_agenda* "
+                             "is not correct (for this method)." );
 
       // Loop radar bins
       for( Index b=0; b<nbins; b++ )
@@ -521,12 +556,16 @@ void yCloudRadar(
                         {
                           for( Index a=0; a<naux; a++ )
                             { 
+                              if( iy_aux[a].nrows()>1 || iy_aux[a].npages()>1 ||
+                                  iy_aux[a].nbooks()>1 )
+                                throw runtime_error( "Auxilary variables must "
+                                                   "have size 1 for frequency "
+                                                   "and Stokes dimensions.");
                               interp( rv, itw, iy_aux[a](0,0,0,joker), gp );
                               iout = nbins*p + b;
                               for( Index i=0; i<n_in-1; i++ )
                                 { y_aux[a][iout] += 
-                                    (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl2); }
-
+                                       (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl2); }
                             }
                         }
                     }

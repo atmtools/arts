@@ -2841,12 +2841,13 @@ void define_md_data_raw()
          "Use this method if no scattering calculations shall be performed.\n"
          "\n"
          "The function sets *cloudbox_on* to 0, *cloudbox_limits*,\n"
-         "*pnd_field* and *scat_data_raw and *iy_cloudbox_agenda* to be\n"
-         "empty and *use_mean_scat_data* to -999.\n"
+         "*pnd_field*, *scat_data_raw*, *iy_cloudbox_agenda* and\n"
+         "*particle_masses* to be empty and *use_mean_scat_data* to -999.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda",
-             "pnd_field", "use_mean_scat_data", "scat_data_raw"
+        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda", 
+             "pnd_field", "use_mean_scat_data", "scat_data_raw", 
+             "particle_masses"
            ),
         GOUT(),
         GOUT_TYPE(),
@@ -3013,15 +3014,18 @@ void define_md_data_raw()
       ( NAME( "cloudbox_checkedCalc" ),
         DESCRIPTION
         (
-         "Checks consistency between the cloudbox and other variables.\n"
+         "Checks consistency between cloudbox and particle variables.\n"
          "\n"
-         "The following WSVs are treated: cloudbox_on, cloudbox_limits and\n"
+         "The following WSVs are treated: cloudbox_on, cloudbox_limits,\n"
+         "*pnd_field*, *scat_data_raw*, *particle_masses* and\n"
          "wind_u/v/w_field.\n"
+         "\n"
          "If any of these variables are changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
-         "The main check is if the cloudbox limits are OK with respect to\n"
-         "the atmospheric dimensionality and the limits of the atmosphere.\n"
+         "The main checks are if the cloudbox limits are OK with respect to\n"
+         "the atmospheric dimensionality and the limits of the atmosphere,\n"
+         "and that the particle variables match in size.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
          "is set to 1.\n"
@@ -3032,8 +3036,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "basics_checked", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "wind_u_field", "wind_v_field", "wind_w_field", 
-            "cloudbox_on", "cloudbox_limits" ),
+            "lon_grid", "z_field", "z_surface",
+            "wind_u_field", "wind_v_field", "wind_w_field", 
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_raw",
+            "particle_masses" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4639,8 +4645,8 @@ void define_md_data_raw()
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
             "t_field", "vmr_field", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field", "edensity_field",
-            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_raw",
+            "mag_v_field", "mag_w_field", "edensity_field", "cloudbox_on", 
+            "cloudbox_limits", "pnd_field", "scat_data_raw", "particle_masses",
             "iy_unit", "iy_aux_vars", "jacobian_do", "ppath_agenda", 
             "abs_mat_per_species_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los" ),

@@ -18,7 +18,7 @@
 
 The workspace method for calculating propagation paths is
 \wsmindex{ppathCalc}, but this is just a getaway function for
-\builtindoc{ppath\_calc}. The main use of \builtindoc{ppathCalc} is to
+\funcindex{ppath\_calc}. The main use of \builtindoc{ppathCalc} is to
 debug and test the path calculations, and that WSM should normally not
 be part of the control file. 
 
@@ -30,18 +30,15 @@ The master function to calculate full clear sky propagation paths is
 \funcindex{ppath\_calc}. This function is outlined in
 Algorithm \ref{alg:ppath:ppath_calc}. The function can be divided into
 three main parts, initialisation (handled by
-\builtindoc{ppath\_start\_stepping}), a repeated call of
+\funcindex{ppath\_start\_stepping}), a repeated call of
 \builtindoc{ppath\_step\_agenda} and putting data into the return
 structure (\builtindoc{ppath}).
 
 \begin{algorithm}
  \begin{algorithmic}
   \STATE{check consistency of function input}
-  \STATE{call \builtindoc{ppath\_start\_stepping} to set 
+  \STATE{call \funcindex{ppath\_start\_stepping} to set 
     \builtindoc{ppath\_step}}
-  \STATE{create an array of \builtindoc{Ppath} structures, 
-         \builtindoc{ppath\_array}}
-  \STATE{add \builtindoc{ppath\_step} to \builtindoc{ppath\_array}}
   \WHILE{radiative background not reached}
    \STATE{call \wsaindex{ppath\_step\_agenda}}
    \IF{path is at the highest pressure surface}
@@ -54,13 +51,11 @@ structure (\builtindoc{ppath}).
      \STATE{radiative background is the cloud box surface}
     \ENDIF
    \ENDIF
-   \STATE{add \builtindoc{ppath\_step} to \builtindoc{ppath\_array}}
   \ENDWHILE
   \STATE{initialise the WSV \builtindoc{ppath} to hold found number of 
          path points} 
-  \STATE{copy data from \builtindoc{ppath\_array} to \builtindoc{ppath}}
  \end{algorithmic}
- \caption{Outline of the function \builtindoc{ppath\_calc}.}
+ \caption{Outline of the function \funcindex{ppath\_calc}.}
  \label{alg:ppath:ppath_calc}
 \end{algorithm}
 

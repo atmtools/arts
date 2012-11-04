@@ -1,3 +1,61 @@
+2012-11-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-347
+
+	* src/m_cloudradar.cc: Further work.
+
+	* doc/uguide/ppath_theory.tex: Removed references to ppath_array,
+	changed to \funcindex for ppath_calc.
+
+	* doc/uguide/rte.tex: Changed reference to ppath_cal to ppath_agenda.
+
+	* doc/uguide/ppath.tex: \builtindoc was used for ppath_calc.
+	Changed to \funcindex.
+
+	* doc/uguide/winds.tex: doppler_shift -> rte_doppler.
+
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneralGaussian.arts:
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts:
+	cloudbox_checkedCalc called with explicit arguments, as for these
+	MC-WSMs scat_data_mono replaced scat_data_raw.
+
+	* particle_masses is now a mandatory "cloudbox variable", to
+	complement pnd_field and scat_data_raw. However, can be left
+	empty if particle mass is not used.
+
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts:
+	pnd_field was non-zero at lat and lon limits of the cloudbox
+	(catched by extension of cloudbox_checkedCalc). Changed lat and
+	lon extension of cloudbox from +-1.8 to +-1.9 deg (following the
+	grid of used raw pnd_field).
+
+	* controlfiles/general/general.arts: Added particle_masses, set to
+	be empty.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Added check for negative
+	values in edensity_field.
+
+	* src/cloudbox.cc (chk_pnd_field_raw_only_in_cloudbox): Moved from
+	check_input.cc, to be placed beside some very similar functions.
+
+	* src/m_cloudbox.cc (cloudboxOff): Now also returning an empty
+	particle_masses.
+
+	(cloudbox_checkedCalc): Now also performing checks on pnd_field
+	and particle_masses. Note that pnd_field is allowed to be >0 for
+	lower altitude limit of the cloudbox, if this point is at or
+	below the suface altitude.
+
+	* src/montecarlo.cc (iwp_cloud_opt_pathCalc): particle_masses
+	passed on to this function. Also adopted.
+
+	* src/m_montecarlo.cc (mc_IWP_cloud_opt_pathCalc): Only WSM that
+	used particle_masses. Adopted. Demands that particle_masses has a
+	single column.
+
+	* src/workspace.cc: Redefined the WSV particle_masses. The scope
+	is now larger and the type is changed from Vector to Matrix.
+
 2012-11-04  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-346
@@ -36,6 +94,7 @@
 
 	* src/absorption.cc(xsec_species): Typo fixed.
 
+>>>>>>> .r7969
 2012-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-343
