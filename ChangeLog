@@ -1,3 +1,22 @@
+2012-11-04  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-345
+
+	* src/m_refraction.cc
+	(refr_indexMWgeneral): Fixed. Newell&Baird method considers refractivity,
+	not refractive index (exactly as, e.g. Thayer) - fix this in TN1 (or at
+	least the upcoming reports). Gives now pretty similar results to Thayer.
+	(refr_indexThayer): Replaced requiring of H2O by assuming H2O-vmr=0 in
+	case of no H2O in abs_species, i.e., reducing it to dry air contribution
+	in these cases.
+
+	* src/methods.cc: Added description for refr_indexMWgeneral.
+
+	* controlfiles/artscomponents/[doit/TestDOIT,wfuns/TestWfuns,
+	montecarlo/TestMonteCarloGeneralGaussian,
+	montecarlo/TestMonteCarloGeneral].arts:
+	Spell fixes.
+
 2012-11-02  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-344

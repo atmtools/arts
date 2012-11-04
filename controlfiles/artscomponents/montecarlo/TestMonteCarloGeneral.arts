@@ -1,5 +1,5 @@
 #DEFINITIONS:  -*-sh-*-
-#This control file perfoems an ARTS-MC radiative transfer simulation
+#This control file performs an ARTS-MC radiative transfer simulation
 #For a single line of sight and a Pencil Beam antenna response
 
 

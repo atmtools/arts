@@ -7680,7 +7680,24 @@ void define_md_data_raw()
       ( NAME( "refr_indexMWgeneral" ),
         DESCRIPTION
         (
-         "FIXME\n"
+         "Microwave refractive index due to gases in planetary atmospheres.\n"
+         "\n"
+         "The refractivity of a specified gas mixture is calculated and added to\n"
+         "*refr_index*. To obtain the complete value, *refr_index* should\n"
+         "be set to 1 before calling this WSM. This applies also to\n"
+         "*refr_index_group.\n"
+         "\n"
+         "The expression used is non-dispersive. Hence, *refr_index* and\n"
+         "*refr_index_group* are identical.\n"
+         "\n"
+         "Uses the methodology introduced by Newell&Baird (1965) for calculating\n"
+         "refractivity of variable gas mixtures based on refractivity of the\n"
+         "individual gases at reference conditions. Assuming ideal gas law for\n"
+         "converting reference refractivity to actual pressure and temperature\n"
+         "conditions. Reference refractivities are also taken from Newell&Baird (1965)\n"
+         "and are vailable for N2, O2, CO2, H2, and He. Any mixture of these gases\n"
+         "can be taken into account.\n"
+         "\n"
          ),
         AUTHORS( "Jana Mendrok" ),
         OUT( "refr_index", "refr_index_group" ),

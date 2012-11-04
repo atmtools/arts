@@ -135,11 +135,13 @@ void refr_indexThayer(
   Index   firstH2O = find_first_species_tg( abs_species,
                                       species_index_from_species_name("H2O") );
 
+  Numeric e;
   if( firstH2O < 0 )
-    throw runtime_error(
-       "Water vapour is a required (must be a tag group in *abs_species*)." );
-
-  const Numeric   e = rte_pressure * rte_vmr_list[firstH2O];
+    //throw runtime_error(
+    //   "Water vapour is a required (must be a tag group in *abs_species*)." );
+    e = 0.;
+  else
+    e = rte_pressure * rte_vmr_list[firstH2O];
 
   const Numeric n = ( 77.6e-8 * ( rte_pressure - e ) + 
              ( 64.8e-8 + 3.776e-3 / rte_temperature ) * e ) / rte_temperature;
@@ -161,7 +163,9 @@ void refr_indexMWgeneral(
     const Verbosity& )
 {
 //FIXME: Shall n be rescaled for sum(VMW)=1? Doing so now, but is it correct?
-//       Test sensitivity to applying or not applying rescaling.
+//       Short sensitivity test (tropical, dry air, ~11km tanh) shows that
+//       vmr-normalized n fits significantly better (dtanh~0.5m) than
+//       non-normalized one (dtanh~5m).
 
 /*
    for now, hard-coding the reference refindices and refT/p. could make that
@@ -199,8 +203,6 @@ void refr_indexMWgeneral(
 /*
    further checks:
    ? non-neg T
-   ? VMRs (or refacting VMRs) have to at least add up to a threshold (see
-   xsec_species ff)
    ?
 */
 
@@ -238,10 +240,6 @@ void refr_indexMWgeneral(
   // N_tot = sum (Nref_i *     p_i/p_0 * T0/T)
   //       = sum (Nref_i * vmr_i*p/p_0 * T0/T)
   //       = p/p_0 * T0/T *  sum (  Nref_i  * vmr_i)
-  //       = p/p_0 * T0/T *  sum ( (1+Np_i) * vmr_i)
-  //       = p/p_0 * T0/T * (sum (vmr_i) + sum(Np_i * vmr_i))
-  // VMR rescale: /=sum(vmr_i)
-  //       = p/p_0 * T0/T * (1 + sum(Np_i * vmr_i)/sum(vmr_i) )
 
   const Numeric ratioT = T0/rte_temperature;
   const Numeric ratiop = rte_pressure/p0;
@@ -270,14 +268,10 @@ void refr_indexMWgeneral(
         throw runtime_error(os.str());
       }
     
-  // normalize refractive index with the considered total VMR and add offset
-  // (n=1) part:
+  // normalize refractive index with the considered total VMR:
   n /= ref_spec_vmr_sum;
-  n += 1.;
-  // as above, but with out normalization:
-  //n += ref_spec_vmr_sum;
 
-  // now applying the constant factor p/p_0 * T0/T and
+  // now applying the constant factor p/p_0 * T0/T:
   n *= (ratioT*ratiop);
 
   refr_index       += n;
