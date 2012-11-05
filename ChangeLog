@@ -8,7 +8,9 @@
 	the scattering point, and another matrix for the reversed
 	propagation. (Needed as T1*T2 != T2*T1, where T1 and T2 are
 	transmission matrices).
-	Added roubnd-trip time as aux var.
+	Added round-trip time as aux var.
+
+	* src/m_cloudradar.cc (yCloudRadar): Better handling of aux vars.
 
 2012-11-05  Jana Mendrok <jana.mendrok@ltu.se>
 
