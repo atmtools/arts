@@ -61,10 +61,13 @@ Numeric IsotopologueRecord::CalculatePartitionFctAtTemp( Numeric
 
   ArrayOfNumeric::const_iterator it;
 
+//      cout << "T: " << temperature << "\n";
   for (it=mqcoeff.begin(); it != mqcoeff.end(); it++)
     {
       result += *it * exponent;
       exponent *= temperature;
+//      cout << "it: " << it << "\n";
+//      cout << "res: " << result << ", exp: " << exponent << "\n";
     }
   return result;
 }

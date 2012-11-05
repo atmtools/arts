@@ -281,7 +281,12 @@ public:
     Numeric qtemp =
       CalculatePartitionFctAtTemp( actual_temperature    );
 
-    if ( qtemp < 0. ) 
+/*        cout << "ref_t: " << reference_temperature << ", act_t:" <<
+          actual_temperature << "\n";
+        cout << "ref_q: " << qcoeff_at_t_ref << ", act_q:" <<
+          qtemp << "\n";
+*/
+        if ( qtemp < 0. ) 
       {
         ostringstream os;
         os << "Partition function of "

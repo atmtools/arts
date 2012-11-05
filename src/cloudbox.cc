@@ -961,13 +961,14 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
     (1997) size distribution. To be used for cloud ice.
 
     \return pnd_field Particle number density field
-    \param IWC_field mass content (cloud ice) field [g/m3]
+    \param IWC_field mass content (cloud ice) field [kg/m3]
     \param t_field atmospheric temperature [K]
-    \param limits pnd_field boundaries (p, lat, lon)
+    \param limits pnd_field boundaries (indices in p, lat, lon)
     \param scat_data_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
+    \param delim Delimiter string of *part_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-03
@@ -1080,13 +1081,14 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
     ice and snow.
 
     \param pnd_field Particle number density field
-    \param IWC_field mass content (cloud ice or snow) field [g/m3]
+    \param IWC_field mass content (cloud ice or snow) field [kg/m3]
     \param t_field atmospheric temperature [K]
-    \param limits pnd_field boundaries (p, lat, lon)
+    \\param limits pnd_field boundaries (indices in p, lat, lon)
     \param scat_data_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
+    \param delim Delimiter string of *part_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-05
@@ -1204,11 +1206,12 @@ void pnd_fieldH11 (Tensor4View pnd_field,
 
     \param pnd_field Particle number density field
     \param PR_field precipitation rate field [kg/(m2*s)]
-    \param limits pnd_field boundaries (p, lat, lon)
+    \\param limits pnd_field boundaries (indices in p, lat, lon)
     \param scat_data_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
+    \param delim Delimiter string of *part_species* elements
   
   \author Jana Mendrok
   \date 2012-04-04
@@ -1388,12 +1391,13 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
     liquid clouds.
 
     \param pnd_field Particle number density field
-    \param LWC_field mass content (liquid water) field [g/m3]
-    \param limits pnd_field boundaries (p, lat, lon)
+    \param LWC_field mass content (liquid water) field [kg/m3]
+    \\param limits pnd_field boundaries (indices in p, lat, lon)
     \param scat_data_meta_array particle meta data for particles
     \param scat_data_start start index for particles handled by this distribution
     \param npart number of particles handled by this distribution
     \param part_string part_species tag for profile/distribution handled here
+    \param delim Delimiter string of *part_species* elements
   
   \author Jana Mendrok, Daniel Kreyling
   \date 2012-04-04
@@ -1745,7 +1749,7 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 	Numeric alpha = 5.0;
 	Numeric gam = 1.05;
 	
-        Numeric a4g = (alpha+4.)/gam;
+	Numeric a4g = (alpha+4.)/gam;
 	Numeric B = (alpha/gam) / pow(rc,gam); 
 	Numeric A = 0.75/PI * lwc/density * gam * pow(B,a4g) /
                     gamma_func(a4g);
@@ -1757,8 +1761,7 @@ Numeric LWCtopnd (const Numeric lwc, //[kg/m^3]
 }
 
 // ONLY FOR TESTING PURPOSES
-Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
-		   //const Numeric density,
+Numeric LWCtopnd2 (
 		   const Numeric r // [m]
 		  )
 { 	
@@ -1889,7 +1892,7 @@ void chk_pndsum (Vector& pnd,
   //cout << "p = " << p << ", pnd.nelem:" << pnd.nelem() << ", xwc: " << xwc << "\n";
   for ( Index i = 0; i<pnd.nelem(); i++ )
   {
-    // convert from particles/m^3 to g/m^3
+    // convert from particles/m^3 to kg/m^3
     x[i] = pnd[i]*density[i]*vol[i];
     /*cout<< "p = " << p << ", i: " << i << "\n"
         << "pnd[i]: " << pnd[i] << ", density[i]: " << density[i] << ", vol[i]: " << vol[i] << "\n"
@@ -1948,7 +1951,7 @@ void chk_pndsum (Vector& pnd,
 /*! The H11 PSD is scaled to the initial 'ice' or 'snow' massdensity, after
  *  the distribution has been evaluated. This function applies the scaling.
          
-      	\param xwc atmospheric massdensity [kg/m3]
+	\param xwc atmospheric massdensity [kg/m3]
 	\param density scattering particle density [kg/m3]
 	\param vol scattering particle volume [m3]
   
@@ -1956,14 +1959,15 @@ void chk_pndsum (Vector& pnd,
   \date 2011-10-31
 
 */
-void scale_H11 (Vector& pnd,
-                 const Numeric xwc,
-                 const Vector& density,
+void scale_H11 (
+		 Vector& pnd,
+		 const Numeric xwc,
+		 const Vector& density,
 		 const Vector& vol)
-		// const Index& p,
-                // const Index& lat,
-                // const Index& lon,
-                // const Verbosity& verbosity)
+		 // const Index& p,
+		 // const Index& lat,
+		 // const Index& lon,
+		 // const Verbosity& verbosity)
 
 {
   // set vector x to pnd size
@@ -1971,7 +1975,7 @@ void scale_H11 (Vector& pnd,
 
   for ( Index i = 0; i<pnd.nelem(); i++ )
   {
-    // convert from particles/m^3 to g/m^3
+    // convert from particles/m^3 to kg/m^3
     x[i] = pnd[i]*density[i]*vol[i];
     //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
   }
@@ -1998,6 +2002,7 @@ void scale_H11 (Vector& pnd,
 
 	\param  prof_type type of atmospheric particle profile 
 	\param  part_string containing infos about scattering particle calculations
+  \param delim Delimiter string of *part_species* elements
 
   \author Daniel Kreyling
   \date 2011-02-21
@@ -2046,6 +2051,7 @@ void parse_prof_type (//WS Output:
 /*! Splitting part_species string and parse psd_param
 	\param psd_param particle size distribution parametrization
 	\param part_string containing infos about scattering particle calculations
+  \param delim Delimiter string of *part_species* elements
   
   \author Daniel Kreyling
   \date 2011-02-21
@@ -2089,6 +2095,7 @@ void parse_psd_param (//WS Output:
 
 	\param  part_type particle type (material, phase). 
 	\param  part_string containing infos about scattering particle calculations
+  \param delim Delimiter string of *part_species* elements
 
   \author Jana Mendrok
   \date 2012-04-03
@@ -2125,6 +2132,7 @@ void parse_part_type (//WS Output:
 	\param sizemin min scattering particle radius
 	\param sizemax max scattering particle radius
 	\param part_string containing infos about scattering particle calculations
+  \param delim Delimiter string of *part_species* elements
   
   \author Daniel Kreyling
   \date 2011-02-21
