@@ -1,3 +1,10 @@
+2012-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-348
+
+	* src/m_cloudradar.cc (iyCloudRadar): Added Bacscattering and
+	particle field as aux variables.
+
 2012-11-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-347

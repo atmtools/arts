@@ -154,8 +154,9 @@ void iyCloudRadar(
   //=== iy_aux part ===========================================================
   Index auxPressure     = -1,
         auxTemperature  = -1,
-        auxTransmission = -1;
+        auxBackScat     = -1;
   ArrayOfIndex auxPartCont(0), auxPartContI(0);
+  ArrayOfIndex auxPartField(0), auxPartFieldI(0);
   //
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
@@ -166,8 +167,8 @@ void iyCloudRadar(
         { auxPressure = i;      iy_aux[i].resize( 1, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Temperature" )
         { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
-      else if( iy_aux_vars[i] == "Transmission" )
-        { auxTransmission = i;  iy_aux[i].resize( nf, ns, 1, np ); }
+      else if( iy_aux_vars[i] == "Backscattering" )
+        { auxBackScat = i;  iy_aux[i].resize( nf, ns, 1, np ); iy_aux[i] = 0; }
       else if( iy_aux_vars[i].substr(0,18) == "Particle content, " )
         { 
           Index icont;
@@ -182,7 +183,23 @@ void iyCloudRadar(
             }
           auxPartCont.push_back(i);
           auxPartContI.push_back(icont);
-          iy_aux[i].resize( 1, 1, 1, np );               
+          iy_aux[i].resize( 1, 1, 1, np );
+        }
+      else if( iy_aux_vars[i].substr(0,16) == "Particle field, " )
+        { 
+          Index ip;
+          istringstream is(iy_aux_vars[i].substr(16,2));
+          is >> ip;
+          if( ip < 0  ||  ip>=pnd_field.nbooks() )
+            {
+              ostringstream os;
+              os << "You have selected particle field with index "
+                 << ip << ".\nThis field is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartField.push_back(i);
+          auxPartFieldI.push_back(ip);
+          iy_aux[i].resize( 1, 1, 1, np );
         }
       else
         {
@@ -292,6 +309,11 @@ void iyCloudRadar(
               mult( iy2, P,                                iy1 );
               mult( iy(iv*np+ip,joker), 
                          trans_cumulat(iv,joker,joker,ip), iy2 );
+
+              //=== iy_aux part ===========================================
+              // Backscattering
+              if( auxBackScat >= 0 ) {
+                mult( iy_aux[auxBackScat](iv,joker,0,ip), P, iy0(iv,joker) ); }
             }
         }
 
@@ -302,17 +324,13 @@ void iyCloudRadar(
       // Temperature
       if( auxTemperature >= 0 ) 
         { iy_aux[auxTemperature](0,0,0,ip) = ppath_t[ip]; }
-      // Transmission
-      if( auxTransmission >= 0 ) 
-        { for( Index iv=0; iv<nf; iv++ ) {
-            for( Index is1=0; is1<ns; is1++ ) {
-              for( Index is2=0; is2<ns; is2++ ) {
-                iy_aux[auxTransmission](iv,is1,is2,ip) = 
-                                          trans_cumulat(iv,is1,is2,ip); } } } }
       // Particle mass content
       for( Index j=0; j<auxPartCont.nelem(); j++ )
         { iy_aux[auxPartCont[j]](0,0,0,ip) = ppath_pnd(joker,ip) *
                                       particle_masses(joker,auxPartContI[j]); }
+      // Particle field
+      for( Index j=0; j<auxPartField.nelem(); j++ )
+        { iy_aux[auxPartField[j]](0,0,0,ip) = ppath_pnd(auxPartFieldI[j],ip); }
       //===================================================================
     } 
 
@@ -338,6 +356,12 @@ void iyCloudRadar(
           Numeric fac = a*la*la*la*la / ( absK * absK ); // Alalalala!
       
           iy(Range(iv*np,np),joker) *= fac;
+
+          //=== iy_aux part ===========================================
+          // Backscattering
+          if( auxBackScat >= 0 ) {
+            iy_aux[auxBackScat](iv,joker,joker,joker) *= fac; }
+
         }
     }
   else
