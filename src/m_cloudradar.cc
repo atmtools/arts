@@ -155,7 +155,7 @@ void iyCloudRadar(
   Index auxPressure     = -1,
         auxTemperature  = -1,
         auxBackScat     = -1,
-        auxRoTrTime     = 1;;
+        auxRoTrTime     = -1;
   ArrayOfIndex auxPartCont(0), auxPartContI(0);
   ArrayOfIndex auxPartField(0), auxPartFieldI(0);
   //
@@ -350,7 +350,7 @@ void iyCloudRadar(
                                                               SPEED_OF_LIGHT; }
           else
             { iy_aux[auxRoTrTime](0,0,0,ip) = iy_aux[auxRoTrTime](0,0,0,ip-1)+
-                ppath.lstep[ip-1] * ( ppath.ngroup[ip-1]+ppath.ngroup[ip-1] ) /
+                ppath.lstep[ip-1] * ( ppath.ngroup[ip-1]+ppath.ngroup[ip] ) /
                                                               SPEED_OF_LIGHT; }
         }
       //===================================================================
@@ -473,9 +473,13 @@ void yCloudRadar(
     "Second column of *sensor_los* is not allowed to have values above 180." );
 
   // Method specific variables
+  bool is_z = max(range_bins) > 1;
   if( !is_increasing( range_bins ) )
     throw runtime_error( "The vector *range_bins* must contain strictly "
                          "increasing values." );
+  if( !is_z && min(range_bins) < 0 )
+    throw runtime_error( "The vector *range_bins* is not allowed to contain "
+                         "negative times." );
   if( sensor_pol_array.nelem() != nf )
     throw runtime_error( "The main length of *sensor_pol_array* must match "
                          "the number of frequencies." );
@@ -514,6 +518,8 @@ void yCloudRadar(
     }
 
 
+  // Are range_bins z or t?
+
   // Loop positions
   for( Index p=0; p<npos; p++ )
     {
@@ -546,35 +552,47 @@ void yCloudRadar(
         throw runtime_error( "The size of *iy* returned from *iy_main_agenda* "
                              "is not correct (for this method)." );
 
+      // Range of ppath, in altitude or time
+      Vector range(np);
+      if( is_z)
+        { range = ppath.pos(joker,0); }
+      else
+        { // Calculate round-trip time
+          range[0] = 2 * ppath.end_lstep / SPEED_OF_LIGHT;
+          for( Index i=1; i<np; i++ )
+            { range[i] = range[i-1] + ppath.lstep[i-1] * 
+                      ( ppath.ngroup[i-1]+ppath.ngroup[i] ) / SPEED_OF_LIGHT; }
+        }
+
       // Loop radar bins
       for( Index b=0; b<nbins; b++ )
         {
           // Get effective limits for bin
-          Numeric zlow  = max( range_bins[b], min(ppath.pos(joker,0)) );
-          Numeric zhigh = min( range_bins[b+1], max(ppath.pos(joker,0)) );
+          Numeric ztlow  = max( range_bins[b], min(range) );
+          Numeric zthigh = min( range_bins[b+1], max(range) );
 
-          if( zlow < zhigh )   // Otherwise bin outside range of ppath
+          if( ztlow < zthigh )   // Otherwise bin outside range of ppath
             {
               // Get ppath altitudes inside bin + edges
               Index n_in = 0;
               ArrayOfIndex i_in(np);
               for( Index i=0; i<np; i++ )
-                { if( ppath.pos(i,0) > zlow  &&  ppath.pos(i,0) < zhigh )
+                { if( range[i] > ztlow  &&  range[i] < zthigh )
                     { i_in[n_in] = i; n_in += 1; } }
-              Vector z(n_in+2);
-              z[0] = zlow;
+              Vector zt(n_in+2);
+              zt[0] = ztlow;
               for( Index i=0; i<n_in; i++ )
-                { z[i+1] = ppath.pos(i_in[i],0); }
-              z[n_in+1]  = zhigh;
+                { zt[i+1] = range[i_in[i]]; }
+              zt[n_in+1]  = zthigh;
               n_in      += 2;
 
               // Height of layer, for reflectivity and aux, respectively
               Numeric dl1 = range_bins[b+1] - range_bins[b];
-              Numeric dl2 = z[n_in-1] - z[0];
+              Numeric dl2 = zt[n_in-1] - zt[0];
 
               // Convert to interpolation weights
               ArrayOfGridPos gp( n_in );
-              gridpos( gp, ppath.pos(joker,0), z );
+              gridpos( gp, range, zt );
               Matrix itw( n_in, 2 );
               interpweights( itw, gp );
 
@@ -598,7 +616,7 @@ void yCloudRadar(
                       Index iout = nbins * ( p*npolcum[nf] + 
                                                npolcum[iv] + ip ) + b;
                       for( Index i=0; i<n_in-1; i++ )
-                        { y[iout] += (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl1); }
+                        { y[iout] += (rv[i]+rv[i+1])*(zt[i+1]-zt[i])/(2*dl1); }
 
                       // Same for aux variables
                       for( Index a=0; a<naux; a++ )
@@ -609,7 +627,7 @@ void yCloudRadar(
                               interp( rv, itw, iy_aux[a](0,0,0,joker), gp );
                               for( Index i=0; i<n_in-1; i++ )
                                 { y_aux[a][iout] += 
-                                    (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl2); }
+                                    (rv[i]+rv[i+1])*(zt[i+1]-zt[i])/(2*dl2); }
                             }
                           else if( iy_aux_vars[a] == "Backscattering" )
                             {
@@ -622,7 +640,7 @@ void yCloudRadar(
                               interp( rv, itw, refl, gp );
                               for( Index i=0; i<n_in-1; i++ )
                                 { y_aux[a][iout] += (rv[i]+rv[i+1])*
-                                                    (z[i+1]-z[i])/(2*dl1); }
+                                                    (zt[i+1]-zt[i])/(2*dl1); }
                             }
                           else
                             {
@@ -631,7 +649,6 @@ void yCloudRadar(
                                  << "is not handled by this WSM (but OK when "
                                  << "using *iyCalc*).";
                               throw runtime_error( os.str() );
-                              
                             }
                         }
                     }

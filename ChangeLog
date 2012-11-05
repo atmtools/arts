@@ -1,5 +1,12 @@
 2012-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-351
+
+	* src/m_cloudradar.cc (yCloudRadar): range_bins can now also be
+	given in time. 
+
+2012-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-350
 
 	* src/m_cloudradar.cc (iyCloudRadar): Now considering that the
