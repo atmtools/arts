@@ -154,7 +154,8 @@ void iyCloudRadar(
   //=== iy_aux part ===========================================================
   Index auxPressure     = -1,
         auxTemperature  = -1,
-        auxBackScat     = -1;
+        auxBackScat     = -1,
+        auxRoTrTime     = 1;;
   ArrayOfIndex auxPartCont(0), auxPartContI(0);
   ArrayOfIndex auxPartField(0), auxPartFieldI(0);
   //
@@ -201,6 +202,8 @@ void iyCloudRadar(
           auxPartFieldI.push_back(ip);
           iy_aux[i].resize( 1, 1, 1, np );
         }
+      else if( iy_aux_vars[i] == "Round-trip time" )
+        { auxRoTrTime = i;   iy_aux[i].resize( 1, 1, 1, np ); }
       else
         {
           ostringstream os;
@@ -274,11 +277,16 @@ void iyCloudRadar(
     }
 
 
-  // Do RT calculations
-  //
+  // Size iy and set to zero (as not filled if pnd=0)
   iy.resize( nf*np, ns );
   iy = 0;
-  //
+
+  // Transmission for reversed direction
+  Tensor3 tr_rev( nf, ns, ns );
+  for( Index iv=0; iv<nf; iv++ ) 
+    { id_mat( tr_rev(iv,joker,joker) ); }
+
+
   // Loop ppath steps
   for( Index ip=0; ip<np; ip++ )
     {
@@ -303,12 +311,16 @@ void iyCloudRadar(
                                   los_inc[1], scat_data[iv], stokes_dim, 
                                   ppath_pnd(joker,ip), ppath_t[ip], verbosity );
 
-              // Combine iy0, double ransmission and scattering matrix
+              // Combine iy0, double transmission and scattering matrix
               Vector iy1(stokes_dim), iy2(stokes_dim);
-              mult( iy1, trans_cumulat(iv,joker,joker,ip), iy0(iv,joker) );
-              mult( iy2, P,                                iy1 );
-              mult( iy(iv*np+ip,joker), 
-                         trans_cumulat(iv,joker,joker,ip), iy2 );
+              mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
+              mult( iy2, P,                      iy1 );
+              mult( iy(iv*np+ip,joker), trans_cumulat(iv,joker,joker,ip), iy2 );
+
+              // Update tr_rev
+              Matrix tmp = tr_rev(iv,joker,joker);
+              mult( tr_rev(iv,joker,joker), trans_partial(iv,joker,joker,ip),
+                                                                          tmp );
 
               //=== iy_aux part ===========================================
               // Backscattering
@@ -331,6 +343,16 @@ void iyCloudRadar(
       // Particle field
       for( Index j=0; j<auxPartField.nelem(); j++ )
         { iy_aux[auxPartField[j]](0,0,0,ip) = ppath_pnd(auxPartFieldI[j],ip); }
+      if( auxRoTrTime >= 0 ) 
+        { 
+          if( ip == 0 )
+            { iy_aux[auxRoTrTime](0,0,0,ip) = 2 * ppath.end_lstep / 
+                                                              SPEED_OF_LIGHT; }
+          else
+            { iy_aux[auxRoTrTime](0,0,0,ip) = iy_aux[auxRoTrTime](0,0,0,ip-1)+
+                ppath.lstep[ip-1] * ( ppath.ngroup[ip-1]+ppath.ngroup[ip-1] ) /
+                                                              SPEED_OF_LIGHT; }
+        }
       //===================================================================
     } 
 
@@ -437,13 +459,13 @@ void yCloudRadar(
   if( atmosphere_dim == 2 )
     {
       if( min( sensor_los(joker,0) ) < -180 )
-          throw runtime_error( "For atmosphere_dim = 2, first column of "
+        throw runtime_error( "For atmosphere_dim = 2, first column of "
                     "*sensor_los* is not allowed to have values below -180." );
     }     
   else
     {
       if( min( sensor_los(joker,0)  ) < 0 )
-          throw runtime_error( "For atmosphere_dim != 2, first column of "
+        throw runtime_error( "For atmosphere_dim != 2, first column of "
                        "*sensor_los* is not allowed to have values below 0." );
     }    
   if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
@@ -480,12 +502,14 @@ void yCloudRadar(
     }
 
   // Size output arguments, and set to 0
-  y.resize( npos*npolcum[nf]*nbins );
+  const Index ntot = npos * npolcum[nf] * nbins;
+  y.resize( ntot );
   y = 0;
+  //
   y_aux.resize( naux );
   for( Index i=0; i<naux; i++ )
     { 
-      y_aux[i].resize( npos*nbins ); 
+      y_aux[i].resize( ntot ); 
       y_aux[i] = 0; 
     }
 
@@ -508,7 +532,8 @@ void yCloudRadar(
                              rte_pos2, iy_main_agenda );
 
       // Check if path and size OK
-      if( ppath.np == 1 )
+      const Index np = ppath.np;
+      if( np == 1 )
         throw runtime_error( "A path consisting of a single point found. "
                              "This is not allowed." );
       const bool isupward = ppath.pos(1,0) > ppath.pos(0,0);
@@ -517,7 +542,7 @@ void yCloudRadar(
         throw runtime_error( "A path with strictly increasing or decreasing "
                              "altitudes must be obtained (e.g. limb "
                              "measurements are not allowed)." );
-      if( iy.nrows() != nf*ppath.np )
+      if( iy.nrows() != nf*np )
         throw runtime_error( "The size of *iy* returned from *iy_main_agenda* "
                              "is not correct (for this method)." );
 
@@ -532,8 +557,8 @@ void yCloudRadar(
             {
               // Get ppath altitudes inside bin + edges
               Index n_in = 0;
-              ArrayOfIndex i_in(ppath.np);
-              for( Index i=0; i<ppath.np; i++ )
+              ArrayOfIndex i_in(np);
+              for( Index i=0; i<np; i++ )
                 { if( ppath.pos(i,0) > zlow  &&  ppath.pos(i,0) < zhigh )
                     { i_in[n_in] = i; n_in += 1; } }
               Vector z(n_in+2);
@@ -556,18 +581,18 @@ void yCloudRadar(
               for( Index iv=0; iv<nf; iv++ )
                 {
                   // Pick out part of iy for frequency
-                  Matrix I = iy( Range(iv*ppath.np,ppath.np), joker );
+                  Matrix I = iy( Range(iv*np,np), joker );
 
                   for( Index ip=0; ip<sensor_pol_array[iv].nelem(); ip++ )
                     {
                       // Extract reflectivity for recieved polarisation
-                      Vector refl( ppath.np, 0 );
+                      Vector refl( np, 0 );
                       Vector w = s2p[sensor_pol_array[iv][ip]-1];
-                      for( Index i=0; i<w.nelem(); i++ )
-                        { for( Index j=0; j<ppath.np; j++ )
-                            { refl[j] += I(j,i) * w[i]; } }
-
-                      // Interpolate and sum up
+                      for( Index i=0; i<w.nelem(); i++ )     // Note that w can
+                        { for( Index j=0; j<np; j++ )        // be shorter than
+                            { refl[j] += I(j,i) * w[i]; } }  // stokes_dim (and
+                                                             // dot product can 
+                      // Interpolate and sum up                 not be used)
                       Vector rv( n_in );
                       interp( rv, itw, refl, gp );
                       Index iout = nbins * ( p*npolcum[nf] + 
@@ -575,21 +600,38 @@ void yCloudRadar(
                       for( Index i=0; i<n_in-1; i++ )
                         { y[iout] += (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl1); }
 
-                      // Same for aux variables (if first freq and pol)
-                      if( iv==0  && ip==0 )
-                        {
-                          for( Index a=0; a<naux; a++ )
-                            { 
-                              if( iy_aux[a].nrows()>1 || iy_aux[a].npages()>1 ||
-                                  iy_aux[a].nbooks()>1 )
-                                throw runtime_error( "Auxilary variables must "
-                                                   "have size 1 for frequency "
-                                                   "and Stokes dimensions.");
+                      // Same for aux variables
+                      for( Index a=0; a<naux; a++ )
+                        { 
+                          if( iy_aux[a].npages()==1 && iy_aux[a].nbooks()==1 &&
+                              iy_aux[a].nrows() ==1 && iy_aux[a].ncols() ==np )
+                            {
                               interp( rv, itw, iy_aux[a](0,0,0,joker), gp );
-                              iout = nbins*p + b;
                               for( Index i=0; i<n_in-1; i++ )
                                 { y_aux[a][iout] += 
-                                       (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl2); }
+                                    (rv[i]+rv[i+1])*(z[i+1]-z[i])/(2*dl2); }
+                            }
+                          else if( iy_aux_vars[a] == "Backscattering" )
+                            {
+                              // I2 matches I, but is transposed
+                              Matrix I2 = iy_aux[a](iv,joker,0,joker);
+                              refl = 0;
+                              for( Index i=0; i<w.nelem(); i++ )
+                                { for( Index j=0; j<np; j++ )
+                                    { refl[j] += I2(i,j) * w[i]; } }
+                              interp( rv, itw, refl, gp );
+                              for( Index i=0; i<n_in-1; i++ )
+                                { y_aux[a][iout] += (rv[i]+rv[i+1])*
+                                                    (z[i+1]-z[i])/(2*dl1); }
+                            }
+                          else
+                            {
+                              ostringstream os;
+                              os << "The auxiliary variable " << iy_aux_vars[a]
+                                 << "is not handled by this WSM (but OK when "
+                                 << "using *iyCalc*).";
+                              throw runtime_error( os.str() );
+                              
                             }
                         }
                     }

@@ -1,3 +1,15 @@
+2012-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-350
+
+	* src/m_cloudradar.cc (iyCloudRadar): Now considering that the
+	vector transmission is direction dependent. That is, there is now
+	a transmission matrix for the propagation from the transmitter to
+	the scattering point, and another matrix for the reversed
+	propagation. (Needed as T1*T2 != T2*T1, where T1 and T2 are
+	transmission matrices).
+	Added roubnd-trip time as aux var.
+
 2012-11-05  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-349
