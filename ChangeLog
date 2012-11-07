@@ -1,5 +1,15 @@
 2012-11-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-355
+
+	* src/m_doit.cc (doit_i_fieldUpdateSeq1D):
+
+	Remove unnecessary loop over za in limb conversion test.
+
+	Change type of doit_i_field_limb from Tensor6 to Matrix.
+
+2012-11-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-354
 
 	* src/m_doit.cc:

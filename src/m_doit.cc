@@ -895,18 +895,6 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                   (refellipsoid[0]+
                                    z_field(cloudbox_limits[1],0,0)))*RAD2DEG;
 
-  Index scat_za_index_90 = 0;
-  Index scat_za_index_theta_lim = 0;
-
-  // Find first and last index in scat_za_grid that are between
-  // 90 degrees and theta_lim
-  for (Index za = 0; za < scat_za_grid.nelem(); za++)
-  {
-    if (scat_za_grid[za] <= 90.) scat_za_index_90 = za;
-    else if (scat_za_grid[za] <= theta_lim) scat_za_index_theta_lim = za;
-    else break;
-  }
-
   // Epsilon for additional limb iterations
   Vector epsilon(4);
   epsilon[0] = 0.1;
@@ -914,7 +902,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
   epsilon[2] = 0.01;
   epsilon[3] = 0.01;
 
-  Tensor6 doit_i_field_limb;
+  Matrix doit_i_field_limb;
 
   //Only dummy variables:
   Index scat_aa_index_local = 0;
@@ -997,7 +985,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
         while (!conv_flag && limb_it < 10)
         {
           limb_it++;
-          doit_i_field_limb = doit_i_field;
+          doit_i_field_limb = doit_i_field(joker, 0, 0, scat_za_index_local, 0, joker);
           for(Index p_index = cloudbox_limits[0];
               p_index <= cloudbox_limits[1]; p_index ++)
           {
@@ -1026,26 +1014,22 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
           for (Index p_index = 0;
                conv_flag && p_index < doit_i_field.nvitrines(); p_index++)
           {
-            for (Index scat_za_index = scat_za_index_90;
-                 conv_flag && scat_za_index <= scat_za_index_theta_lim; scat_za_index++)
+            for (Index stokes_index = 0;
+                 conv_flag && stokes_index < stokes_dim; stokes_index ++)
             {
-              for (Index stokes_index = 0;
-                   conv_flag && stokes_index < stokes_dim; stokes_index ++)
-              {
-                Numeric diff =
-                doit_i_field   (p_index, 0, 0, scat_za_index, 0, stokes_index)
-                - doit_i_field_limb(p_index, 0, 0, scat_za_index, 0, stokes_index);
+              Numeric diff =
+              doit_i_field(p_index, 0, 0, scat_za_index_local, 0, stokes_index)
+              - doit_i_field_limb(p_index, stokes_index);
 
-                // If the absolute difference of the components
-                // is larger than the pre-defined values, return
-                // to *doit_i_fieldIterarte* and do next iteration
-                Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
-                if (abs(diff_bt) > epsilon[stokes_index])
-                {
-                  out2 << "Limb BT difference: " << diff_bt
-                       << " in stokes dim " << stokes_index << "\n";
-                  conv_flag = false;
-                }
+              // If the absolute difference of the components
+              // is larger than the pre-defined values, continue with
+              // another iteration
+              Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
+              if (abs(diff_bt) > epsilon[stokes_index])
+              {
+                out2 << "Limb BT difference: " << diff_bt
+                << " in stokes dim " << stokes_index << "\n";
+                conv_flag = false;
               }
             }
           }
