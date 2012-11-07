@@ -1,3 +1,20 @@
+2012-11-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-352
+
+	* src/m_cloudradar.cc (iyCloudRadar): Updated names and error
+	messages, to be consistent with changes below.
+
+	* src/m_rte.cc (iy_auxFillParticleVariables): New. Intended to be
+	a help function to iyEmissionStandard, to fill "PND, type X" and
+	"Mass content, X".
+
+	(iyEmissionStandard): Now accepts "PND, type X" and "Mass content,
+	X", but just sets the iy_aux element to be empty.
+
+	(iyTransmissionStandard): "PND,  type X" and "Mass
+	content, X" added as aux variables.
+
 2012-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-351

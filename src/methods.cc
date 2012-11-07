@@ -4725,6 +4725,14 @@ void define_md_data_raw()
          "selected by *iy_aux_vars*. Most variables require that the method\n"
          "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
          "the selection is restricted to the variables marked with *.\n"
+         "\n"
+         "In addition, these choices are accepted but no calculations are\n"
+         "done:"
+         "  \"PND, type X\": Size: [0,0,0,0].\n"
+         "  \"Mass content, X\": Size: [0,0,0,0].\n"
+         "See e.g. *iyTransmissionStandard* for a definition of these\n"
+         "variables. To fill these elements of *iy_aux* (after calling\n"
+         "this WSM), use *iy_auxFillParticleVariables*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
@@ -5021,10 +5029,11 @@ void define_md_data_raw()
          "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
          "\n"
          "In short, the propagation path is followed until the surface or\n"
-         "space is reached. At this point *iy_transmission_agenda* and the\n"
-         "radiative transfer calculations start. That is, the result of the\n"
-         "method (*iy*) is the output of *iy_transmission_agenda* times the\n"
-         "transmission from the sensor to either the surface or space.\n"
+         "space is reached. At this point *iy_transmission_agenda* is called\n"
+         "and the radiative transfer calculations start. That is, the result\n"
+         "of the method (*iy*) is the output of *iy_transmission_agenda*\n"
+         "multiplied with th transmission from the sensor to either the\n"
+         "surface or space.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Pressure\": The pressure along the propagation path.\n"
@@ -5041,6 +5050,11 @@ void define_md_data_raw()
          "     Size: [nf,ns,ns,np].\n"
          "  \"Particle extinction, summed\": The total particle extinction\n"
          "       matrix along the path. Size: [nf,ns,ns,np].\n"
+         "  \"PND, type X\": The particle number density for particle type X\n"
+         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "       This corresponds to column X in *particle_masses* (zero-\n"
+         "       based indexing). Size: [1,1,1,np].\n"
          "* \"Radiative background\": Index value flagging the radiative\n"
          "     background. The following coding is used: 0=space, 1=surface\n"
          "     and 2=cloudbox. Size: [nf,1,1,1].\n"
@@ -5073,11 +5087,32 @@ void define_md_data_raw()
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "edensity_field",
             "cloudbox_on", "cloudbox_limits", "pnd_field", 
-            "use_mean_scat_data", "scat_data_raw",
+            "use_mean_scat_data", "scat_data_raw", "particle_masses",
             "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
             "jacobian_indices", "ppath_agenda", "abs_mat_per_species_agenda",
             "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", "rte_pos2" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iy_auxFillParticleVariables" ),
+        DESCRIPTION
+        (
+         "To be written ....\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy_aux" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_aux", "basics_checked", "cloudbox_checked", 
+            "atmosphere_dim", "cloudbox_on", "cloudbox_limits", "pnd_field", 
+            "particle_masses", "ppath", "iy_aux_vars" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

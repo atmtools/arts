@@ -520,6 +520,10 @@ void iyEmissionStandard(
             { auxIy = i;           iy_aux[i].resize( nf, ns, 1, np ); }
           else if( iy_aux_vars[i] == "Optical depth" )
             { auxOptDepth = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
+          else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
+            { iy_aux[i].resize( 0, 0, 0, 0 ); }
+          else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
+            { iy_aux[i].resize( 0, 0, 0, 0 ); }
           else
             {
               ostringstream os;
@@ -1538,6 +1542,7 @@ void iyTransmissionStandard(
    const Tensor4&                     pnd_field,
    const Index&                       use_mean_scat_data,
    const ArrayOfSingleScatteringData& scat_data_raw,
+   const Matrix&                      particle_masses,
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
@@ -1600,6 +1605,8 @@ void iyTransmissionStandard(
         auxOptDepth    = -1;
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
   ArrayOfIndex auxVmrSpecies(0), auxVmrIsp(0);
+  ArrayOfIndex auxPartCont(0), auxPartContI(0);
+  ArrayOfIndex auxPartField(0), auxPartFieldI(0);
   //
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
@@ -1650,6 +1657,38 @@ void iyTransmissionStandard(
           auxAbsIsp.push_back(ispecies);
           iy_aux[i].resize( nf, ns, ns, np );               
         }
+      else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
+        { 
+          Index icont;
+          istringstream is(iy_aux_vars[i].substr(14,2));
+          is >> icont;
+          if( icont < 0  ||  icont>=particle_masses.ncols() )
+            {
+              ostringstream os;
+              os << "You have selected particle mass content category with "
+                 << "index " << icont << ".\nThis category is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartCont.push_back(i);
+          auxPartContI.push_back(icont);
+          iy_aux[i].resize( 1, 1, 1, np );
+        }
+      else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
+        { 
+          Index ip;
+          istringstream is(iy_aux_vars[i].substr(10,2));
+          is >> ip;
+          if( ip < 0  ||  ip>=pnd_field.nbooks() )
+            {
+              ostringstream os;
+              os << "You have selected particle number density field with "
+                 << "index " << ip << ".\nThis field is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartField.push_back(i);
+          auxPartFieldI.push_back(ip);
+          iy_aux[i].resize( 1, 1, 1, np );
+        }
       else if( iy_aux_vars[i] == "iy"   &&  auxIy < 0 )
         { auxIy = i;           iy_aux[i].resize( nf, ns, 1, np ); }
       else if( iy_aux_vars[i] == "Transmission"   &&  auxTrans < 0 )
@@ -1694,7 +1733,7 @@ void iyTransmissionStandard(
   //
   Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
                               ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
-  Matrix    ppath_vmr;
+  Matrix    ppath_vmr, ppath_pnd;
   Tensor5   ppath_abs;
   Tensor4   trans_partial, trans_cumulat, pnd_ext_mat;
   Vector    scalar_tau;
@@ -1719,7 +1758,6 @@ void iyTransmissionStandard(
         }
       else
         {
-          Matrix       ppath_pnd;
           Tensor3      pnd_abs_vec;
           Array<ArrayOfSingleScatteringData> scat_data;
           //
@@ -1833,16 +1871,28 @@ void iyTransmissionStandard(
               for( Index is2=0; is2<stokes_dim; is2++ ){
                 iy_aux[auxAbsSpecies[j]](iv,is1,is2,np-1) = 
                                ppath_abs(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
-      // Particle extinction
-      if( auxPartExt >= 0  && cloudbox_on  &&  clear2cloudbox[np-1] >= 0 ) 
-        { 
-          const Index ic = clear2cloudbox[np-1];
-          for( Index iv=0; iv<nf; iv++ ) {
-            for( Index is1=0; is1<ns; is1++ ){
-              for( Index is2=0; is2<ns; is2++ ){
-                iy_aux[auxPartExt](iv,is1,is2,np-1) = 
+      // Particle properties
+      if( cloudbox_on  )
+        {
+          // Extinction
+          if( auxPartExt >= 0  && clear2cloudbox[np-1] >= 0 ) 
+            { 
+              const Index ic = clear2cloudbox[np-1];
+              for( Index iv=0; iv<nf; iv++ ) {
+                for( Index is1=0; is1<ns; is1++ ){
+                  for( Index is2=0; is2<ns; is2++ ){
+                    iy_aux[auxPartExt](iv,is1,is2,np-1) = 
                                               pnd_ext_mat(iv,is1,is2,ic); } } } 
-        } 
+            } 
+          // Particle mass content
+          for( Index j=0; j<auxPartCont.nelem(); j++ )
+            { iy_aux[auxPartCont[j]](0,0,0,np-1) = ppath_pnd(joker,np-1) *
+                                      particle_masses(joker,auxPartContI[j]); }
+          // Particle field
+          for( Index j=0; j<auxPartField.nelem(); j++ )
+            { iy_aux[auxPartField[j]](0,0,0,np-1) = 
+                                            ppath_pnd(auxPartFieldI[j],np-1); }
+        }
       // Radiance for this point is handled above
       //=======================================================================
 
@@ -1984,16 +2034,30 @@ void iyTransmissionStandard(
                   for( Index is2=0; is2<stokes_dim; is2++ ){
                     iy_aux[auxAbsSpecies[j]](iv,is1,is2,ip) = 
                                  ppath_abs(auxAbsIsp[j],iv,is1,is2,ip); } } } }
-          // Particle extinction
-          if( auxPartExt >= 0  && cloudbox_on  &&  clear2cloudbox[np-1] >= 0 ) 
-            { 
-              const Index ic = clear2cloudbox[ip];
-              for( Index iv=0; iv<nf; iv++ ) {
-                for( Index is1=0; is1<ns; is1++ ){
-                  for( Index is2=0; is2<ns; is2++ ){
-                    iy_aux[auxPartExt](iv,is1,is2,ip) = 
+          // Particle properties
+          if( cloudbox_on ) 
+            {
+              // Extinction
+              if( auxPartExt >= 0  &&  clear2cloudbox[ip] >= 0 ) 
+                { 
+                  const Index ic = clear2cloudbox[ip];
+                  for( Index iv=0; iv<nf; iv++ ) {
+                    for( Index is1=0; is1<ns; is1++ ){
+                      for( Index is2=0; is2<ns; is2++ ){
+                        iy_aux[auxPartExt](iv,is1,is2,ip) = 
                                               pnd_ext_mat(iv,is1,is2,ic); } } }
+                }
+              // Particle mass content
+              for( Index j=0; j<auxPartCont.nelem(); j++ )
+                { iy_aux[auxPartCont[j]](0,0,0,ip) = ppath_pnd(joker,ip) *
+                                      particle_masses(joker,auxPartContI[j]); }
+              // Particle field
+              for( Index j=0; j<auxPartField.nelem(); j++ )
+                { iy_aux[auxPartField[j]](0,0,0,ip) = 
+                                              ppath_pnd(auxPartFieldI[j],ip); }
             }
+
+
           // Radiance 
           if( auxIy >= 0 ) 
             { iy_aux[auxIy](joker,joker,0,ip) = iy; }
@@ -2015,6 +2079,122 @@ void iyTransmissionStandard(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iy_auxFillParticleVariables(
+         ArrayOfTensor4&       iy_aux,
+   const Index&                basics_checked,
+   const Index&                cloudbox_checked,
+   const Index&                atmosphere_dim,
+   const Index&                cloudbox_on,
+   const ArrayOfIndex&         cloudbox_limits,
+   const Tensor4&              pnd_field,
+   const Matrix&               particle_masses,
+   const Ppath&                ppath,
+   const ArrayOfString&        iy_aux_vars,
+   const Verbosity& )
+{
+  // Some sizes
+  const Index np = ppath.np; 
+  const Index naux = iy_aux_vars.nelem();
+
+  // Input checks
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control variables must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  if( !cloudbox_on )
+    throw runtime_error( 
+                    "The cloudbox must be activated (cloudbox_on must be 1)" );
+  if( !cloudbox_checked )
+    throw runtime_error( "The cloudbox must be flagged to have passed a "
+                         "consistency check (cloudbox_checked=1)." );
+  if( iy_aux.nelem() != naux )
+    throw runtime_error( "*iy_aux_vars* and *iy_aux* must have the same array "
+                         "length. (You can not call this WSM before the main "
+                         "iy-WSM.)" );
+
+  // Analayse iy_aux_vars
+  ArrayOfIndex auxPartCont(0), auxPartContI(0);
+  ArrayOfIndex auxPartField(0), auxPartFieldI(0);
+  //
+  for( Index i=0; i<naux; i++ )
+    {
+      if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
+        { 
+          Index icont;
+          istringstream is(iy_aux_vars[i].substr(14,2));
+          is >> icont;
+          if( icont < 0  ||  icont>=particle_masses.ncols() )
+            {
+              ostringstream os;
+              os << "You have selected particle mass content category with "
+                 << "index " << icont << ".\nThis category is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartCont.push_back(i);
+          auxPartContI.push_back(icont);
+          iy_aux[i].resize( 1, 1, 1, np );
+        }
+      else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
+        { 
+          Index ip;
+          istringstream is(iy_aux_vars[i].substr(10,2));
+          is >> ip;
+          if( ip < 0  ||  ip>=pnd_field.nbooks() )
+            {
+              ostringstream os;
+              os << "You have selected particle number density field with "
+                 << "index " << ip << ".\nThis field is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartField.push_back(i);
+          auxPartFieldI.push_back(ip);
+          iy_aux[i].resize( 1, 1, 1, np );
+        }
+    }
+
+  if( auxPartCont.nelem() + auxPartField.nelem() > 0 )
+    {
+      // PND along the ppath
+      Matrix ppath_pnd( pnd_field.nbooks(), np, 0 );
+      //
+      for( Index ip=0; ip<np; ip++ )
+        {
+          Matrix itw( 1, Index(pow(2.0,Numeric(atmosphere_dim))) );
+
+          ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
+          GridPos gp_lat, gp_lon;
+          if( atmosphere_dim >= 2 ) { gridpos_copy( gp_lat, ppath.gp_lat[ip] );}
+          if( atmosphere_dim == 3 ) { gridpos_copy( gp_lon, ppath.gp_lon[ip] );}
+          if( is_gp_inside_cloudbox( ppath.gp_p[ip], gp_lat, gp_lon, 
+                                     cloudbox_limits, true, atmosphere_dim ) )
+            { 
+              interp_cloudfield_gp2itw( itw(0,joker), 
+                                        gpc_p[0], gpc_lat[0], gpc_lon[0], 
+                                        ppath.gp_p[ip], gp_lat, gp_lon,
+                                        atmosphere_dim, cloudbox_limits );
+              for( Index i=0; i<pnd_field.nbooks(); i++ )
+                {
+                  interp_atmfield_by_itw( ppath_pnd(i,ip), atmosphere_dim,
+                                          pnd_field(i,joker,joker,joker), 
+                                          gpc_p, gpc_lat, gpc_lon, itw );
+                }
+            }
+        }
+      
+      // Loop ppath steps
+      for( Index ip=0; ip<np; ip++ )
+        {
+          // Particle mass content
+          for( Index j=0; j<auxPartCont.nelem(); j++ )
+            { iy_aux[auxPartCont[j]](0,0,0,ip) = ppath_pnd(joker,ip) *
+                                      particle_masses(joker,auxPartContI[j]); }
+          // Particle field
+          for( Index j=0; j<auxPartField.nelem(); j++ )
+            { iy_aux[auxPartField[j]](0,0,0,ip) = 
+                                              ppath_pnd(auxPartFieldI[j],ip); }
+        }  
+    }
+}
 
 
 

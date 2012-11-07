@@ -170,32 +170,32 @@ void iyCloudRadar(
         { auxTemperature = i;   iy_aux[i].resize( 1, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Backscattering" )
         { auxBackScat = i;  iy_aux[i].resize( nf, ns, 1, np ); iy_aux[i] = 0; }
-      else if( iy_aux_vars[i].substr(0,18) == "Particle content, " )
+      else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
         { 
           Index icont;
-          istringstream is(iy_aux_vars[i].substr(18,2));
+          istringstream is(iy_aux_vars[i].substr(14,2));
           is >> icont;
           if( icont < 0  ||  icont>=particle_masses.ncols() )
             {
               ostringstream os;
-              os << "You have selected particle content category with index "
-                 << icont << ".\nThis category is not defined!";
+              os << "You have selected particle mass content category with "
+                 << "index " << icont << ".\nThis category is not defined!";
               throw runtime_error( os.str() );
             }
           auxPartCont.push_back(i);
           auxPartContI.push_back(icont);
           iy_aux[i].resize( 1, 1, 1, np );
         }
-      else if( iy_aux_vars[i].substr(0,16) == "Particle field, " )
+      else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
         { 
           Index ip;
-          istringstream is(iy_aux_vars[i].substr(16,2));
+          istringstream is(iy_aux_vars[i].substr(10,2));
           is >> ip;
           if( ip < 0  ||  ip>=pnd_field.nbooks() )
             {
               ostringstream os;
-              os << "You have selected particle field with index "
-                 << ip << ".\nThis field is not defined!";
+              os << "You have selected particle number density field with "
+                 << "index " << ip << ".\nThis field is not defined!";
               throw runtime_error( os.str() );
             }
           auxPartField.push_back(i);
