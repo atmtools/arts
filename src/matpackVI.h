@@ -867,7 +867,8 @@ public:
   // IIIIII
   Numeric& operator() ( Index        v, Index        s, Index        b,
                         Index        p, Index        r, Index        c)
-      { CHECK(s);
+    {   CHECK(v);
+        CHECK(s);
         CHECK(b);
         CHECK(p);
         CHECK(r);
