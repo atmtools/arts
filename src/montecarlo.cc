@@ -115,7 +115,7 @@ void clear_rt_vars_at_gp(Workspace&          ws,
                                     temperature, vmr_mat(joker, 0),
                                     abs_mat_per_species_agenda);
 
-  opt_prop_add_abs_mat_per_species(local_ext_mat, local_abs_vec, local_abs_mat_per_species);
+  opt_prop_sum_abs_mat_per_species(local_ext_mat, local_abs_vec, local_abs_mat_per_species);
   
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
@@ -195,7 +195,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                                     temperature,vmr_ppath(joker, 0),
                                     abs_mat_per_species_agenda);
   
-  opt_prop_add_abs_mat_per_species(local_ext_mat, local_abs_vec, local_abs_mat_per_species);
+  opt_prop_sum_abs_mat_per_species(local_ext_mat, local_abs_vec, local_abs_mat_per_species);
 
   
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));

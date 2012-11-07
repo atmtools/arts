@@ -362,21 +362,22 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            abs( doit_i_field(p_index, lat_index, lon_index, 
+                            doit_i_field(p_index, lat_index, lon_index,
                                           scat_za_index, scat_aa_index, 
                                           stokes_index) -
                                   doit_i_field_old(p_index, lat_index, 
                                               lon_index, scat_za_index,
                                               scat_aa_index, 
-                                              stokes_index ));
+                                              stokes_index );
                           
                           // If the absolute difference of the components
                           // is larger than the pre-defined values, return
                           // to *doit_i_fieldIterarte* and do next iteration
                           Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
-                          if( diff_bt > epsilon[stokes_index])
+                          if( abs(diff_bt) > epsilon[stokes_index])
                             {
-                              out1 << "BT difference: " << diff_bt <<"\n";
+                              out1 << "BT difference: " << diff_bt
+                                    << " in stokes dim " << stokes_index << "\n";
                               return;
                             }
                         }// End loop stokes_dom.
@@ -893,11 +894,33 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                    z_field(cloudbox_limits[0],0,0))/
                                   (refellipsoid[0]+
                                    z_field(cloudbox_limits[1],0,0)))*RAD2DEG;
+
+  Index scat_za_index_90 = 0;
+  Index scat_za_index_theta_lim = 0;
+
+  // Find first and last index in scat_za_grid that are between
+  // 90 degrees and theta_lim
+  for (Index za = 0; za < scat_za_grid.nelem(); za++)
+  {
+    if (scat_za_grid[za] <= 90.) scat_za_index_90 = za;
+    else if (scat_za_grid[za] <= theta_lim) scat_za_index_theta_lim = za;
+    else break;
+  }
+
+  // Epsilon for additional limb iterations
+  Vector epsilon(4);
+  epsilon[0] = 0.1;
+  epsilon[1] = 0.01;
+  epsilon[2] = 0.01;
+  epsilon[3] = 0.01;
+
+  Tensor6 doit_i_field_limb;
+
   //Only dummy variables:
   Index scat_aa_index_local = 0;
-  
-  //Loop over all directions, defined by scat_za_grid 
-  for(Index scat_za_index_local = 0; scat_za_index_local < N_scat_za; 
+
+  //Loop over all directions, defined by scat_za_grid
+  for(Index scat_za_index_local = 0; scat_za_index_local < N_scat_za;
       scat_za_index_local ++)
     {
       // This function has to be called inside the angular loop, as
@@ -909,12 +932,8 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                        spt_calc_agenda, opt_prop_part_agenda, 
                        scat_za_index_local, scat_aa_index_local, 
                        cloudbox_limits, t_field, pnd_field, verbosity);
-  
-      
-     
-      //  xml_write_to_file("ext_mat_field.xml", ext_mat_field );
-      // xml_write_to_file("abs_vec_field.xml", ext_mat_field );
-      
+
+
       //======================================================================
       // Radiative transfer inside the cloudbox
       //=====================================================================
@@ -971,36 +990,72 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
       // To be save we loop over the full cloudbox. Inside the function 
       // cloud_ppath_update1D it is checked whether the intersection point is 
       // inside the cloudbox or not.
-      else if (  scat_za_grid[scat_za_index_local] > 90. &&
-                 scat_za_grid[scat_za_index_local] < theta_lim ) 
+      else
+      {
+        bool conv_flag = false;
+        Index limb_it = 0;
+        while (!conv_flag && limb_it < 10)
         {
-          for(Index p_index = cloudbox_limits[0]; p_index
-                <= cloudbox_limits[1]; p_index ++)
+          limb_it++;
+          doit_i_field_limb = doit_i_field;
+          for(Index p_index = cloudbox_limits[0];
+              p_index <= cloudbox_limits[1]; p_index ++)
+          {
+            // For this case the cloudbox goes down to the surface and we
+            // look downwards. These cases are outside the cloudbox and
+            // not needed. Switch is included here, as ppath_step_agenda
+            // gives an error for such cases.
+            if (p_index != 0)
             {
-              // For this case the cloudbox goes down to the surface and we
-              // look downwards. These cases are outside the cloudbox and 
-              // not needed. Switch is included here, as ppath_step_agenda 
-              // gives an error for such cases.
-              if (!(p_index == 0 && scat_za_grid[scat_za_index_local] > 90.))
-                {
-                  cloud_ppath_update1D(ws, doit_i_field,  
-                                       p_index, scat_za_index_local,
-                                       scat_za_grid,
-                                       cloudbox_limits, doit_scat_field,
-                                       abs_mat_per_species_agenda, vmr_field,
-                                       ppath_step_agenda,
-                                       p_grid,  z_field, refellipsoid, 
-                                       t_field, edensity_field, f_grid, f_index,
-                                       ext_mat_field, abs_vec_field,
-                                       surface_rtprop_agenda, doit_za_interp,
-                                       verbosity);
-                }
+              cloud_ppath_update1D(ws, doit_i_field,
+                                   p_index, scat_za_index_local,
+                                   scat_za_grid,
+                                   cloudbox_limits, doit_scat_field,
+                                   abs_mat_per_species_agenda, vmr_field,
+                                   ppath_step_agenda,
+                                   p_grid,  z_field, refellipsoid,
+                                   t_field, edensity_field, f_grid, f_index,
+                                   ext_mat_field, abs_vec_field,
+                                   surface_rtprop_agenda, doit_za_interp,
+                                   verbosity);
+
             }
-        } 
+          }
+
+          conv_flag = true;
+          for (Index p_index = 0;
+               conv_flag && p_index < doit_i_field.nvitrines(); p_index++)
+          {
+            for (Index scat_za_index = scat_za_index_90;
+                 conv_flag && scat_za_index <= scat_za_index_theta_lim; scat_za_index++)
+            {
+              for (Index stokes_index = 0;
+                   conv_flag && stokes_index < stokes_dim; stokes_index ++)
+              {
+                Numeric diff =
+                doit_i_field   (p_index, 0, 0, scat_za_index, 0, stokes_index)
+                - doit_i_field_limb(p_index, 0, 0, scat_za_index, 0, stokes_index);
+
+                // If the absolute difference of the components
+                // is larger than the pre-defined values, return
+                // to *doit_i_fieldIterarte* and do next iteration
+                Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
+                if (abs(diff_bt) > epsilon[stokes_index])
+                {
+                  out2 << "Limb BT difference: " << diff_bt
+                       << " in stokes dim " << stokes_index << "\n";
+                  conv_flag = false;
+                }
+              }
+            }
+          }
+        }
+        out2 << "Limb iterations: " << limb_it << "\n";
+      }
     }// Closes loop over scat_za_grid.
 } // End of the function.
 
-                         
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 doit_i_fieldUpdateSeq3D(Workspace& ws,

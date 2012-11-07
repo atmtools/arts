@@ -1,5 +1,25 @@
 2012-11-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-354
+
+	* src/m_doit.cc:
+
+	(doit_i_fieldUpdateSeq1D): Adaptively perform additional iterations
+	for the limb case (90 < za < theta_lim) to improve overall convergence.
+
+	Clean up redundant if statements.
+
+	(doit_conv_flagAbsBT): Output diff_bt with sign.
+
+	* src/optproperties.{cc,h}, src/doit.cc, src/montecarlo.cc:
+	
+	Rename opt_prop_add_abs_mat_per_species to
+	opt_prop_sum_abs_mat_per_species
+
+	* src/cloudbox.cc (chk_scattering_data): Add _U_ to suppress warning.
+
+2012-11-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-353
 
 	* src/matpackVI.h: Add missing CHECK(v) to Tensor6View::operator().

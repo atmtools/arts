@@ -617,7 +617,7 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data_raw,
   \author Daniel Kreyling
   \date 2010-12-02
 */
-void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta,
+void chk_scattering_meta_data(const ScatteringMetaData& scat_data_meta _U_,
                               const String& scat_data_meta_file,
                               const Verbosity& verbosity)
 {

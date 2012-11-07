@@ -930,7 +930,7 @@ ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& /*assd*/)
   \author Richard Larsson
   \date   2012-07-24
 */
-void opt_prop_add_abs_mat_per_species(//Output:
+void opt_prop_sum_abs_mat_per_species(//Output:
                                       Tensor3&         ext_mat,
                                       Matrix&          abs_vec,
                                       //Input:

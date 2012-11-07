@@ -187,7 +187,7 @@ void pha_mat_labCalc(//Output:
 // Get ext_mat and abs_vec from abs_mat_per_species:
 // ========================================================
 
-void opt_prop_add_abs_mat_per_species(//Output:
+void opt_prop_sum_abs_mat_per_species(//Output:
                                       Tensor3&         ext_mat,
                                       Matrix&          abs_vec,
                                       //Input:
