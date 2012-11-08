@@ -1,3 +1,10 @@
+2012-11-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-356
+
+	* src/methods.cc: Started to document the cloud radar methods and
+	other recent changes. Not ready.
+
 2012-11-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-355

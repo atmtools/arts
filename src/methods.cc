@@ -4635,7 +4635,56 @@ void define_md_data_raw()
       ( NAME( "iyCloudRadar" ),
         DESCRIPTION
         (
-         "Work in progress ...\n"
+         "Simulation of cloud radars, restricted to single scattering.\n"
+         "\n"
+         "The WSM treats radar measurements of cloud and precipitation, on\n"
+         "the condition that multiple scattering can be ignored. Beside the\n"
+         "direct backsacttering, the two-way attenuation by gases and\n"
+         "particles is considered. Surface scattering is ignored. Further\n"
+         "details are given in AUG.\n"
+         "\n"
+         "The method could potentially be used for lidars, but multiple\n"
+         "scattering poses here a must stronger constrain for the range of\n"
+         "applications.\n"
+         "\n"
+         "The method returns the backscattering for each point of *ppath*.\n"
+         "Several frequencies can be treated in parallel. The size of *iy*\n"
+         "is [ nf*np, stokes_dim ], where nf is the length of *f_grid* and\n"
+         "np is the number of path points. The data are stored in blocks\n"
+         "of [ np, stokes_dim ]. That is, all the results for the first\n"
+         "frequency occupy the np first rows of *iy* etc.\n"
+         "\n"
+         "The polarisation state of the transmitted pulse is taken from\n"
+         "*iy_transmitter_agenda*, see further *iy_transmitterCloudRadar*\n"
+         "If the radar transmits several polarisations at the same frequency,\n"
+         "you need to handle this by using two frequencies in *f_grid*, but\n"
+         "but these can be almost identical.\n"
+         "\n"
+         "The options *iy_unit* are:\n"
+         " \"1\"  : Backscatter coefficient. Unit is 1/(m*sr). Without\n"
+         "          attenuation, this equals the scattering matrix value for\n"
+         "          the backward direction. See further AUG.\n"
+         " \"Ze\" : Equivalent reflectivity. I the conversion, \"K\" is\n"
+         "          calculated using the refractive index for liquid water,\n"
+         "          at the temperature defined by *ze_tref*.\n"
+         "\n"
+         "No Jacobian quantities are yet handled.\n"
+         "\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Pressure\": The pressure along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"Temperature\": The temperature along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"Backscattering\": The un-attenuated backscattering. Unit\n"
+         "     follows *iy_unit*. Size: [nf,ns,1,np].\n"
+         "  \"Round-trip time\": The time for the pulse to propagate. For a \n"
+         "     totally correct result, refraction must be considered (in\n"
+         "     *pppath_agenda*). Size: [1,1,1,np].\n"
+         "  \"PND, type X\": The particle number density for particle type X\n"
+         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "       This corresponds to column X in *particle_masses* (zero-\n"
+         "       based indexing). Size: [1,1,1,np].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "ppath" ),
@@ -5103,7 +5152,24 @@ void define_md_data_raw()
       ( NAME( "iy_auxFillParticleVariables" ),
         DESCRIPTION
         (
-         "To be written ....\n"
+         "Additional treatment some particle auxiliary variables.\n"
+         "\n"
+         "This WSM is intended to complement main radiative transfer methods\n"
+         "that does not handle scattering, and thus can not provide auxiliary\n"
+         "data for particle properties. The following auxiliary variables\n"
+         "are covered:\n"
+         "  \"PND, type X\": The particle number density for particle type X\n"
+         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "       This corresponds to column X in *particle_masses* (zero-\n"
+         "       based indexing). Size: [1,1,1,np].\n"
+         "\n"
+         "To complement *iyEmissionStandard* should be the main application.\n"
+         "As a preparatory step you need to set up all cloud variables in\n"
+         "standard manner. After this you need to set *cloudbox_on* to zero,\n"
+         "and in *iy_main_agenda* add these lines (after iyEmissionStandard):\n"
+         "   FlagOn(cloudbox_on)\n"
+         "   iy_auxFillParticleVariables\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy_aux" ),
@@ -10249,7 +10315,11 @@ void define_md_data_raw()
       ( NAME( "yCloudRadar" ),
         DESCRIPTION
         (
-         "Work in progress ...\n"
+         "Replaces *yCalc* for cloud radar calculations.\n"
+         "\n"
+         "To be written ....\n"
+         "\n"
+         "No Jacobian quantities are yet handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_aux" ),
