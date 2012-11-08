@@ -980,12 +980,12 @@ void ScatteringParticlesSelect (//WS Output:
   {
    
     String part_type;
-    String prof_type;
+    String partfield_name;
     Numeric sizemin;
     Numeric sizemax;
 
     //split part_species string and copy values to parameter
-    parse_prof_type( prof_type, part_species[k], delim);
+    parse_partfield_name( partfield_name, part_species[k], delim);
     parse_part_type( part_type, part_species[k], delim);
     parse_part_size(sizemin, sizemax, part_species[k], delim);
 
@@ -1025,7 +1025,7 @@ void ScatteringParticlesSelect (//WS Output:
     if (scat_data_nelem[k]<1)
       {
         ostringstream os;
-        os << "Particle species " << prof_type << " of type " << part_type
+        os << "Particle species " << partfield_name << " of type " << part_type
            << " requested.\n"
            << "But no Scattering Data found for it!\n";
         throw runtime_error ( os.str() );
@@ -1539,13 +1539,13 @@ void pnd_fieldSetup (//WS Output:
   {
 
     String psd_param;
-    String prof_type;
+    String partfield_name;
     String part_type;
     String psd;
 
     //split String and copy to ArrayOfString
     parse_psd_param( psd_param, part_species[k], delim);
-    parse_prof_type( prof_type, part_species[k], delim);
+    parse_partfield_name( partfield_name, part_species[k], delim);
     parse_part_type( part_type, part_species[k], delim);
 
     // initialize control parameters
@@ -1568,10 +1568,10 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "MH97";
 
-        //check for expected profile type
-        if ( prof_type != "IWC" )
+        //check for expected particle field name
+        if ( partfield_name != "IWC" )
         {
-            out1 << "WARNING! The profile type is unequal 'IWC'.\n"
+            out1 << "WARNING! The particle field name is unequal 'IWC'.\n"
                  << psd << " should should only be applied to cloud"
                  << " ice.\n";
         }
@@ -1597,10 +1597,10 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "H11";
 
-        //check for expected profile type
-        if ( prof_type != "IWC" && prof_type != "Snow")
+        //check for expected particle field name
+        if ( partfield_name != "IWC" && partfield_name != "Snow")
         {
-            out1 << "WARNING! The profile type is unequal 'IWC' and 'Snow'.\n"
+            out1 << "WARNING! The particle field name is unequal 'IWC' and 'Snow'.\n"
                  << psd << " should only be applied to cloud or precipitating"
                  << " ice.\n";
         }
@@ -1627,10 +1627,10 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "MP48";
 
-        //check for expected profile type
-        if ( prof_type != "Rain" && prof_type != "Snow")
+        //check for expected particle field name
+        if ( partfield_name != "Rain" && partfield_name != "Snow")
         {
-            out1 << "WARNING! The profile type is unequal 'Rain' and 'Snow'.\n"
+            out1 << "WARNING! The particle field name is unequal 'Rain' and 'Snow'.\n"
                  << psd << " should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }
@@ -1657,10 +1657,10 @@ void pnd_fieldSetup (//WS Output:
     {
         psd = "H98_STCO";
 
-        //check for expected profile type
-        if ( prof_type != "LWC")
+        //check for expected particle field name
+        if ( partfield_name != "LWC")
         {
-            out1 << "WARNING! The profile type is unequal 'LWC'.\n"
+            out1 << "WARNING! The particle field name is unequal 'LWC'.\n"
                  << psd << " should should only be applied to liquid or frozen"
                  << " precipitation.\n";
         }

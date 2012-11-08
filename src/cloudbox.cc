@@ -995,11 +995,11 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
   Vector dN ( npart, 0.0 );
 
   String psd_param;
-  String prof_type;
+  String partfield_name;
 
   //split String and copy to ArrayOfString
   parse_psd_param( psd_param, part_string, delim);
-  parse_prof_type( prof_type, part_string, delim);
+  parse_partfield_name( partfield_name, part_string, delim);
 
   bool noisy = (psd_param == "MH97n");
 
@@ -1054,7 +1054,7 @@ void pnd_fieldMH97 (Tensor4View pnd_field,
 	    
                 // calculate error of pnd sum and real XWC
                 chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, prof_type, verbosity );
+                             p, lat, lon, partfield_name, verbosity );
 	    
                 // writing pnd vector to wsv pnd_field
                 for ( Index i = 0; i< npart; i++ )
@@ -1114,10 +1114,10 @@ void pnd_fieldH11 (Tensor4View pnd_field,
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
   
-  String prof_type;
+  String partfield_name;
 
   //split String and copy to ArrayOfString
-  parse_prof_type( prof_type, part_string, delim);
+  parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
       dmax_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].d_max );
@@ -1175,8 +1175,8 @@ void pnd_fieldH11 (Tensor4View pnd_field,
 
                 // calculate proper scaling of pnd sum from real IWC and apply
                 chk_pndsum ( pnd, IWC_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, prof_type, verbosity );
-//                             p, lat, lon, prof_type, temp_verb );
+                             p, lat, lon, partfield_name, verbosity );
+//                             p, lat, lon, partfield_name, temp_verb );
 
                 // writing pnd vector to wsv pnd_field
                 for ( Index i =0; i< npart; i++ )
@@ -1236,10 +1236,10 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
 
-  String prof_type;
+  String partfield_name;
 
   //split String and copy to ArrayOfString
-  parse_prof_type( prof_type, part_string, delim);
+  parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
       vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
@@ -1363,7 +1363,7 @@ void pnd_fieldMP48 (Tensor4View pnd_field,
               // calculate error of pnd sum and real XWC
               PWC = rho_mean*PI*N0 / pow(lambda,4.);
               chk_pndsum ( pnd, PWC, vol, rho,
-                           p, lat, lon, prof_type, verbosity );
+                           p, lat, lon, partfield_name, verbosity );
 	    
               // writing pnd vector to wsv pnd_field
               for ( Index i = 0; i< npart; i++ )
@@ -1422,10 +1422,10 @@ void pnd_fieldH98 (Tensor4View pnd_field,
   Vector pnd ( npart, 0.0 );
   Vector dN ( npart, 0.0 );
 
-  String prof_type;
+  String partfield_name;
 
   //split String and copy to ArrayOfString
-  parse_prof_type( prof_type, part_string, delim);
+  parse_partfield_name( partfield_name, part_string, delim);
 
   for ( Index i=0; i < npart; i++ )
       vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
@@ -1475,7 +1475,7 @@ void pnd_fieldH98 (Tensor4View pnd_field,
 	    
                 // calculate error of pnd sum and real XWC
                 chk_pndsum ( pnd, LWC_field ( p,lat,lon ), vol, rho,
-                             p, lat, lon, prof_type, verbosity );
+                             p, lat, lon, partfield_name, verbosity );
 
                 // writing pnd vector to wsv pnd_field
                 for ( Index i =0; i< npart; i++ )
@@ -1879,7 +1879,7 @@ void chk_pndsum (Vector& pnd,
                  const Index& p,
                  const Index& lat,
                  const Index& lon,
-                 const String& prof_type,
+                 const String& partfield_name,
                  const Verbosity& verbosity)
 
 {
@@ -1915,7 +1915,7 @@ void chk_pndsum (Vector& pnd,
       os<< "ERROR: in WSM chk_pndsum in pnd_fieldSetup!\n" 
       << "Given mass density != 0, but calculated mass density == 0.\n"
       << "Seems, something went wrong in pnd_fieldSetup. Check!\n"
-      << "The problem occured for profile '"<< prof_type <<"' at: "
+      << "The problem occured for profile '"<< partfield_name <<"' at: "
       << "p = "<<p<<", lat = "<<lat<<", lon = "<<lon<<".\n";
      throw runtime_error ( os.str() );
     }
@@ -2000,7 +2000,7 @@ void scale_H11 (
 
 /*! Splitting part_species string and parse type of massdensity_field
 
-	\param  prof_type type of atmospheric particle profile 
+	\param  partfield_name name of atmospheric particle field
 	\param  part_string containing infos about scattering particle calculations
   \param delim Delimiter string of *part_species* elements
 
@@ -2008,8 +2008,8 @@ void scale_H11 (
   \date 2011-02-21
 
 */
-void parse_prof_type (//WS Output:
-                      String& prof_type,
+void parse_partfield_name (//WS Output:
+                      String& partfield_name,
                       // WS Input:
                       const String& part_string,
                       const String& delim)
@@ -2019,24 +2019,24 @@ void parse_prof_type (//WS Output:
   // split part_species string at delim and write to ArrayOfString
   part_string.split ( strarr, delim );
 
-  //first entry is particle profile type (e.g. "IWC", "LWC" etc.)
+  //first entry is particle field name (e.g. "IWC", "LWC" etc.)
   if (strarr.size()>0 && part_string[0]!=delim[0])
   {
-      prof_type = strarr[0];
+      partfield_name = strarr[0];
   }
   else
   {
       ostringstream os;
-      os << "No information on particle profile type in '" << part_string << "'\n";
+      os << "No information on particle field name in '" << part_string << "'\n";
       throw runtime_error ( os.str() );
 
   }
 
   /* no restrictions on profile naming anymore
-  if (  prof_type != "IWC" && 
-	prof_type != "Snow" &&
-	prof_type != "LWC" &&
-	prof_type != "Rain" )
+  if (  partfield_name != "IWC" && 
+	partfield_name != "Snow" &&
+	partfield_name != "LWC" &&
+	partfield_name != "Rain" )
   {
     ostringstream os;
     os << "First substring in " << part_string

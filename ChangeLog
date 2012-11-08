@@ -1,5 +1,13 @@
 2012-11-08  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-359
+
+	* src/cloudbox.h, m_atmosphere.cc, m_cloudbox.cc, cloudbox.cc,
+	workspace.cc: replaced 'prof_type' -> 'partfield_name' and
+	'profile type' -> 'particle field name'
+
+2012-11-08  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-358
 
 	* src/m_cloudbox.cc(particle_massesSet):

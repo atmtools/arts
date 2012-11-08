@@ -195,7 +195,7 @@ void chk_massdensity_field(bool& x,
                            const Vector& lat_grid,
                            const Vector& lon_grid);
 
-void parse_prof_type (String& prof_type,
+void parse_partfield_name (String& partfield_name,
                       const String& part_string,
                       const String& delim);
 
