@@ -6,11 +6,137 @@
  121108 & Started (Patrick Eriksson).\\
 \stophistory
 
-XXX
+ARTS provides some support for modelling measurements of backscattering inside
+the atmosphere. This deviates for the active measurements discussed in the
+previous chapter, as in this case the transmitter and receiver are placed at the
+same position. Here backscattering is recorded, while in the ``transmission
+case'' the attenuation through the atmosphere is probed. This has the
+consequence that the measurement data not only span the frequency and a
+polarisation dimensions, but also has a time (or distance) dimension. That is,
+the backscattering is basically reported as a function of distance from the
+sensor, for one or several frequencies frequencies and combinations of
+transmitted and received polarisations. Accordingly, these data differ in
+nature from the other types of measurements, and the standard main function 
+(\builtindoc{yCalc}) is not applicable.
+
+A very important restriction applies, only single scattering is treated. That
+is, no other scattering than the targeted backscattering is considered. This is
+frequently an acceptable simplification for precipitation and cloud radars
+observations, and such observations should be the main applications of the
+discussed workspace methods. The basic measurement approach is the same for
+lidars, but the assumption of single scattering is much less commonly met for
+such instruments.
 
 
-\section{Asd}
+\section{Theory}
 %===================
-\label{sec:asd}
+\label{sec:cradar:theory}
 
-x
+The transmitted pulses are treated to be monochromatic pencil beams. Effects
+due to antenna patterns and the geometrical distance between the instrument and
+the scattering particles are assumed to be treated as a separate
+``calibration'', and only the ``forward model'' treats only the actual
+backscattering and atmospheric extinction. 
+
+For the conditions given above, the backscattered radiation, \aStoVec{b}, can be
+written as
+\begin{equation}
+  \label{eq:cradar:bscatt1}
+  \aStoVec{b} = \aTraMat{h}\PhaMat(\Omega=0)\aTraMat{a}\aStoVec{t}.
+\end{equation}
+The terms in this equation are:
+\begin{itemize}
+\item[\aStoVec{t}] Stokes vector describing the transmitted pulse.
+\item[\aTraMat{a}] A matrix describing the transmission from the receiver to
+  the scattering point (the away direction). 
+\item[\PhaMat]$\!\!\!(\Omega=0)$ The scattering (or phase) matrix value for the
+  backward direction. 
+\item[\aTraMat{h}] As \aTraMat{a}, but for the reversed direction (the home
+  direction). Note that for vector radiative transfer, in general
+  $\aTraMat{a}\neq\aTraMat{h}$.
+\end{itemize}
+The (attenuated) ``backscatter coefficient'' recorded by the receiver is
+\begin{equation}
+  \label{eq:cradar:bscatt2}
+  \beta' = \VctStl{p} \cdot \aStoVec{b} 
+\end{equation}
+where \VctStl{p} is the (normalised) vector describing the polarisation
+response of the receiver and $\cdot$ signifies the dot product.
+
+The corresponding unattenuated backscattering coefficient is
+\begin{equation}
+  \label{eq:cradar:bscatt3}
+  \beta = \VctStl{p} \cdot \left[\PhaMat(\Omega=0)\aStoVec{t}\right]
+\end{equation}
+
+
+\section{Units}
+%===================
+\label{sec:cradar:units}
+
+The unit of $\beta$ (and $\beta'$) is 1/(m sr$^{-1}$). For radar applications
+this is not the most common choice, but is here preferred as it directly
+matches \PhaMat. It is also the standard definition in the lidar community. The
+more common definition of radar reflectivity is simply $4\pi\beta$.
+
+However, even more common is to report radar data in unit of equivalent
+reflectivity, $Z_e$. This quantity is defined as \citep[e.g.][]{donovan:01}
+\begin{equation}
+  \label{eq:cradar:ze}
+  Z_e = \frac{4\lambda_r}{\pi^4|K|^2}\beta
+\end{equation}
+where $\lambda_r$ is wavelength of the radar and the ``reference dielectric
+factor'' is calculated using the complex refractive index of ice or liquid
+water, $n$:
+\begin{equation}
+  K = \frac{n^2-1}{n^2+2}.
+\end{equation}
+
+
+
+\section{Practical usage}
+%===================
+\label{sec:cradar:usage}
+
+As for other measurements, the main radiative transfer calculations are
+performed inside \builtindoc{iy\_main\_agenda}. The workspace method to be used
+inside this agenda is \wsmindex{iyCloudRadar}. This method returns \aStoVec{b}
+for each point of the propagation path, and for each frequency in
+\builtindoc{f\_grid}. The calculated data are packed into \builtindoc{iy}. Here
+the difference to other measurement types emerge. For example, the second row
+holds \aStoVec{b} corresponding to the second point of the propagation path
+(not the second frequency). If \builtindoc{f\_grid} contains several
+frequencies, the data for the second frequency are placed below (in the row
+dimension) the data for the first frequency etc. 
+
+The polarisation of the transmitted pulses (\aStoVec{b}) are taken from
+\wsaindex{iy\_transmitter\_agenda}. The agenda shall here return a Stokes
+vector for each frequency in \builtindoc{f\_grid}, of unit intensity.
+
+The unit of returned data is selected by \wsvindex{iy\_unit}. There are two
+options ``1'' and ``Ze''. For the first option no unit conversion is performed,
+while for the second option Equation~\ref{eq:cradar:ze} is applied on all
+Stokes elements of \aStoVec{b}. In the later case, liquid water at a user
+specified temperature is used as reference. That is, $K$ is calculated for the
+refractive index of water at the specified temperature.
+
+Hence, the basic calculations are performed in standard manner, using
+\builtindoc{iy\_main\_agenda}. However, the deviating data pattern in
+\wsmindex{iy} resuylts in that an alternative to \builtindoc{yCalc} is needed
+and it is \wsmindex{yCloudRadar}. The method applies two instrument effects.
+Firstly, the polarisation response of the receiever is incorporated
+(Eq.~\ref{eq:cradar:bscatt2}). Secondly, the data are averaged as a
+function of ``range'', following the \wsvindex{range\_bins}. These range bins
+can be specified either as geomtrical altitude or the two-way propagation time.
+The range binning is described further in the built-in documentation.
+Further, the data are rearranged into a vector and returned as \builtindoc{y}.
+
+A number of auxiliary data can be obtained by \builtindoc{iyCloudRadar}, this
+including $\beta$. For a list of possible variables:
+\begin{code}
+arts -d iyCloudRadar
+\end{code}
+A difference of \builtindoc{yCloudRadar}, compared to \builtindoc{yCalc}, is
+that all auxiliary quantities provided by \builtindoc{iyCloudRadar} are
+treated.
+

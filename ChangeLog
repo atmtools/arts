@@ -1,3 +1,13 @@
+2012-11-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-360
+
+	* doc/uguide/cloudradar.tex: A basic documentation of the
+	addition, quickly written, needs revision.
+
+	* doc/uguide/symbol_defs.tex: Added defintion of "transmission
+	matrix".
+
 2012-11-08  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-359
