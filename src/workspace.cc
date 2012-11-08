@@ -943,9 +943,9 @@ void Workspace::define_wsv_data()
     ( NAME( "batch_cloudbox_limits" ),
       DESCRIPTION
       (
-       "An array of cloudbox_limits.\n"
+       "An array of *cloudbox_limits*.\n"
        "\n"
-       "This is used to hold a set of *cloudbox-limits* for batch\n"
+       "This is used to hold a set of *cloudbox_limits* for batch\n"
        "calculations. \n"
        ),
       GROUP( "ArrayOfArrayOfIndex" )));

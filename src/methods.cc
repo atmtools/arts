@@ -6704,7 +6704,36 @@ void define_md_data_raw()
         GIN_DESC()
         ));
     
-    md_data_raw.push_back
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "particle_massesSet" ),
+        DESCRIPTION
+        (
+         "Derives *particle_masses* from *scat_data_meta_array*.\n"
+         "\n"
+         "This method is supposed to be used to derive *particle_masses*\n"
+         "when *pnd_field* is internally calculated using *pnd_fieldSetup*\n"
+         "(in contrast to reading it from external sources using\n"
+         "*ParticleTypeAdd* and *pnd_fieldCalc*).\n"
+         "It extracts particle the mass information (density*volume) from\n"
+         "*scat_data_meta_array*. Different entries in *part_species* are\n"
+         "taken as different categories of particle_masses, i.e., the\n"
+         "resulting *particle_masses* matrix will contain as many columns as\n"
+         "entries exist in *part_species*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "particle_masses" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "scat_data_meta_array", "scat_data_nelem", "part_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleSpeciesInit" ),
         DESCRIPTION
@@ -6724,11 +6753,13 @@ void define_md_data_raw()
         ));
     
     
-    md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleSpeciesSet" ),
         DESCRIPTION
         (
+         "Sets the WSV *part_species*."
+         "\n"
          "With this function, the user specifies settings for the \n"
          "particle number density calculations using *pnd_fieldSetup*.\n"
          "The input is an ArrayOfString that needs to be in a specific format,\n"
@@ -6754,7 +6785,7 @@ void define_md_data_raw()
         ));
  
     
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeAddAll" ),
         DESCRIPTION
@@ -6794,10 +6825,10 @@ void define_md_data_raw()
       ( NAME( "ParticleTypeAdd" ),
         DESCRIPTION
         (
-         "This method reads single scattering data and the corresonding\n"
-         "particle number density fields.\n"
+         "Reads single scattering data and corresonding particle number\n"
+         "density fields.\n"
          "\n"
-         "The methods reads the  specified files and appends the obtained data\n"
+         "The methods reads the specified files and appends the obtained data\n"
          "to *scat_data_raw* and *pnd_field_raw*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
@@ -7755,38 +7786,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "refr_indexThayer" ),
-        DESCRIPTION
-        (
-         "Microwave refractive index due to gases in the Earth's atmosphere.\n"
-         "\n"
-         "The refractivity of dry air and water vapour is added to\n"
-         "*refr_index*. To obtain the complete value, *refr_index* should\n"
-         "be set to 1 before calling this WSM. This applies also to\n"
-         "*refr_index_group.\n"
-         "\n"
-         "The expression used is non-dispersive. Hence, *refr_index* and\n"
-         "*refr_index_group* are identical.\n"
-         "\n"
-         "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
-         "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
-         "pp. 9664).\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index", "refr_index_group" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "rte_pressure", 
-            "rte_temperature", "rte_vmr_list", "abs_species" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "refr_indexMWgeneral" ),
         DESCRIPTION
         (
@@ -7809,6 +7808,38 @@ void define_md_data_raw()
          "can be taken into account.\n"
          ),
         AUTHORS( "Jana Mendrok" ),
+        OUT( "refr_index", "refr_index_group" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "refr_index", "refr_index_group", "rte_pressure", 
+            "rte_temperature", "rte_vmr_list", "abs_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "refr_indexThayer" ),
+        DESCRIPTION
+        (
+         "Microwave refractive index due to gases in the Earth's atmosphere.\n"
+         "\n"
+         "The refractivity of dry air and water vapour is added to\n"
+         "*refr_index*. To obtain the complete value, *refr_index* should\n"
+         "be set to 1 before calling this WSM. This applies also to\n"
+         "*refr_index_group.\n"
+         "\n"
+         "The expression used is non-dispersive. Hence, *refr_index* and\n"
+         "*refr_index_group* are identical.\n"
+         "\n"
+         "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
+         "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
+         "pp. 9664).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index", "refr_index_group" ),
         GOUT(),
         GOUT_TYPE(),

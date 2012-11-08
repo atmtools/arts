@@ -1075,6 +1075,43 @@ void ScatteringParticlesSelect (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void particle_massesSet (//WS Output:
+                         Matrix& particle_masses,
+                         // WS Input:
+                         const ArrayOfScatteringMetaData& scat_data_meta_array,
+                         const ArrayOfIndex& scat_data_nelem,
+                         const ArrayOfString& part_species,
+                         const Verbosity& verbosity)
+{
+  // checks
+  if (scat_data_nelem.nelem() != part_species.nelem())
+  {
+    ostringstream os;
+    os << "Dimensions of part_species and scat_data_nelem do not agree.";
+    throw runtime_error(os.str());
+  }
+
+  // resize particle_masses to required diemsions and properly initialize values
+  particle_masses.resize ( part_species.nelem(), scat_data_meta_array.nelem() );
+  particle_masses = 0.;
+  Index scat_data_start = 0;
+
+  // calculate and set particle_masses
+  for ( Index k=0; k<part_species.nelem(); k++ )
+  {
+    for ( Index j=scat_data_start; j<scat_data_start+scat_data_nelem[k]; j++ )
+    {
+      particle_masses (k,j) =
+        scat_data_meta_array[j].density * scat_data_meta_array[j].V;
+    }
+
+    scat_data_start += scat_data_nelem[k];
+
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAdd( //WS Output:
                      ArrayOfSingleScatteringData& scat_data_raw,
                      ArrayOfGriddedField3&  pnd_field_raw,

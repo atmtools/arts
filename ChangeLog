@@ -1,3 +1,17 @@
+2012-11-08  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-358
+
+	* src/m_cloudbox.cc(particle_massesSet):
+	Added. Method to derive particle_masses from scat_data_meta, in order
+	to be able to consistently use particle_masses with ARTS internal
+	pnd_field calculation methods.
+
+	* src/methods.cc: Added particle_massesSet, some layout and formulation
+	fixes to other methods.
+
+	* src/workspace.cc: some cross-link fixes.
+
 2012-11-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-357
