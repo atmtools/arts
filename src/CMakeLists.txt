@@ -208,6 +208,7 @@ add_library (artscore STATIC
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
+  rational.cc
   refraction.cc
   rng.cc
   rte.cc
@@ -242,6 +243,7 @@ add_library (matpack STATIC
 	complex.cc
 	logic.cc
 	make_vector.cc
+	rational.cc
 	matpackI.cc
 	matpackII.cc
 	matpackIII.cc

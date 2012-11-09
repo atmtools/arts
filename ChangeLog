@@ -1,3 +1,24 @@
+2012-11-09  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-361
+
+	* src/m_zeeman.cc: Added another scheme for calculating relative
+	strength of the split components. Made it compatible with the
+	rational class in order to make half-quantum number operations
+	easier to implement in the future.
+	
+	(RelativeStrengthSMMBerdyugina) Easy to use scheme that now is
+	the standard scheme for determining relative strength. See
+	the reference in the text for more information.
+	
+	(Lande_RusselSaunders) Another way to get g. I am currently 
+	trying to find a way for g of Hund a) transitions that works 
+	in (FrequencyChangeDirect) and this g might be helpful.
+	
+	* src/rational.h/.cc: Made a rational class. There are still 
+	some operators missing in this class so it cannot be considered
+	complete. It works with src/m_zeeman.cc as far as I can tell.
+
 2012-11-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-360
