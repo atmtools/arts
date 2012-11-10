@@ -3089,10 +3089,10 @@ void define_md_data_raw()
          "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
          "be stored as:\n"
          "   GriddedField4:\n"
-         "      Vector f_grid[N_f]\n"
-         "      Vector real/imaginary[2]\n"
-         "      Vector lat_grid[N_lat]\n"
-         "      Vector lon_grid[N_lon]\n"
+         "      Vector \"Frequency\" [N_f]\n"
+         "      Vector \"Complex\"   [2]\n"
+         "      Vector \"Latitude\"  [N_lat]\n"
+         "      Vector \"Longitude\" [N_lon]\n"
          "      Tensor4 data[N_f][2][N_lat][N_lon]\n"
          "\n"
          "Grids for latitude and longitude must have a length of >= 2 (ie.\n"
@@ -7926,6 +7926,28 @@ void define_md_data_raw()
                   "Longitude of sensor position." 
                   )
         ));
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_pos_losMoveToStartOfPpath" ),
+        DESCRIPTION
+        (
+         "Sets *rte_pos* and *rte_los* to values for last point in *ppath*.\n"
+         "\n"
+         "For example, if the propagation path intersects with the surface,\n"
+         "this method gives you the position and angle of *ppath* at the\n"
+         "surface.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "rte_pos", "rte_los" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "ppath" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8997,18 +9019,18 @@ void define_md_data_raw()
          "direction for which the reflectivity shall be extracted are given\n"
          "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
          "be stored as:\n"
-         "   GriddedField4:\n"
-         "      Vector f_grid[N_f]\n"
-         "      Vector stokes_elements[N_s1]\n"
-         "      Vector stokes_elements[N_s2]\n"
-         "      Vector incidence_angle_grid[N_ia]\n"
-         "      Vector lat_grid[N_lat]\n"
-         "      Vector lon_grid[N_lon]\n"
-         "      Tensor4 data[N_f][N_s1][N_s1][N_ia][N_lat][N_lon]\n"
+         "   GriddedField6:\n"
+         "      Vector \"Frequency\"       [N_f]\n"
+         "      Vector \"Stokes element\"  [N_s1]\n"
+         "      Vector \"Stokes_element\"  [N_s2]\n"
+         "      Vector \"Incidence angle\" [N_ia]\n"
+         "      Vector \"Latitude\"        [N_lat]\n"
+         "      Vector \"Longitude\"       [N_lon]\n"
+         "      Tensor6 data[N_f][N_s1][N_s2][N_ia][N_lat][N_lon]\n"
          "\n"
          "Grids for incidence angle, latitude and longitude must have a\n"
          "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
-         "has length 1, this is taken as the reflectivity is constant,\n"
+         "has length 1, this is taken as that the reflectivity is constant,\n"
          "following the definition of *surface_scalar_reflectivity*.\n"
          "The data can cover higher Stokes dimensionalities than set by\n"
          "*stokes_dim*. Data for non-used Stokes elements are just cropped.\n"
@@ -9049,10 +9071,10 @@ void define_md_data_raw()
          "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
          "be stored as:\n"
          "   GriddedField4:\n"
-         "      Vector f_grid[N_f]\n"
-         "      Vector incidence_angle_grid[N_ia]\n"
-         "      Vector lat_grid[N_lat]\n"
-         "      Vector lon_grid[N_lon]\n"
+         "      Vector \"Frequency\"       [N_f]\n"
+         "      Vector \"Incidence angle\" [N_ia]\n"
+         "      Vector \"Latitude\"        [N_lat]\n"
+         "      Vector \"Longitude\"       [N_lon]\n"
          "      Tensor4 data[N_f][N_ia][N_lat][N_lon]\n"
          "\n"
          "Grids for incidence angle, latitude and longitude must have a\n"

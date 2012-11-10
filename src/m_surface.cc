@@ -741,6 +741,12 @@ void surface_reflectivityFromGriddedField6(
   chk_rte_pos( atmosphere_dim, rte_pos );
   chk_rte_los( atmosphere_dim, rte_los );
   r_field.checksize_strict();
+  chk_griddedfield_gridname( r_field, 0, "Frequency" );
+  chk_griddedfield_gridname( r_field, 1, "Stokes element" );
+  chk_griddedfield_gridname( r_field, 2, "Stokes element" );
+  chk_griddedfield_gridname( r_field, 3, "Incidence angle" );
+  chk_griddedfield_gridname( r_field, 4, "Latitude" );
+  chk_griddedfield_gridname( r_field, 5, "Longitude" );
   //
   const Index nf_in = r_field.data.nvitrines();
   const Index ns2   = r_field.data.nshelves();
@@ -860,6 +866,10 @@ void surface_scalar_reflectivityFromGriddedField4(
   chk_rte_pos( atmosphere_dim, rte_pos );
   chk_rte_los( atmosphere_dim, rte_los );
   r_field.checksize_strict();
+  chk_griddedfield_gridname( r_field, 0, "Frequency" );
+  chk_griddedfield_gridname( r_field, 1, "Incidence angle" );
+  chk_griddedfield_gridname( r_field, 2, "Latitude" );
+  chk_griddedfield_gridname( r_field, 3, "Longitude" );
   //
   const Index nf_in = r_field.data.nbooks();
   const Index nza   = r_field.data.npages();

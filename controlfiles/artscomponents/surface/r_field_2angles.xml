@@ -6,27 +6,27 @@
 "1"
 </String>
 </Array>
-<Vector name="Incidence angle" nelem="4">
+<Vector name="Stokes element" nelem="4">
 1.0000000e+00
 2.0000000e+00
 3.0000000e+00
 4.0000000e+00
 </Vector>
-<Vector name="Latitude" nelem="4">
+<Vector name="Stokes element" nelem="4">
 1.0000000e+00
 2.0000000e+00
 3.0000000e+00
 4.0000000e+00
 </Vector>
-<Vector name="Longitude" nelem="2">
+<Vector name="Incidence angle" nelem="2">
 0.0000000e+00
 9.0000000e+01
 </Vector>
-<Vector name="Stokes element" nelem="2">
+<Vector name="Latitude" nelem="2">
 -9.0000000e+01
 9.0000000e+01
 </Vector>
-<Vector name="Stokes element" nelem="2">
+<Vector name="Longitude" nelem="2">
 -3.6000000e+02
 3.6000000e+02
 </Vector>

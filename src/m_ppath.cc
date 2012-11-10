@@ -727,6 +727,33 @@ void rte_posSet(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_pos_losMoveToStartOfPpath(
+          Vector&    rte_pos,
+          Vector&    rte_los,
+    const Index&     atmosphere_dim,
+    const Ppath&     ppath,
+    const Verbosity&)
+{
+  const Index np = ppath.np;
+
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  if( np == 0 )
+    throw runtime_error( "The input *ppath* is empty." );
+  if( ppath.pos.nrows() != np )
+    throw runtime_error( "Internal inconsistency in *ppath* (size of data " 
+                         "does not match np)." );
+  
+  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
+  if( atmosphere_dim < 3 )
+    { rte_los = ppath.los(np-1,Range(0,1)); }
+  else
+    { rte_los = ppath.los(np-1,Range(0,2)); }
+}
+
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void TangentPointExtract(

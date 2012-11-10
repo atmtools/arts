@@ -2037,8 +2037,8 @@ void chk_griddedfield_gridname(const GriddedField& gf,
     ostringstream os;
     os << "Name of grid " << gridindex << " in GriddedField";
     if (gf.get_name().nelem()) os << " \"" << gf.get_name() << "\"";
-    os << " is \"" << gf.get_grid_name(gridindex) << "\", "
-    << "expected to be \"" << gridname << "\".";
+    os << " is \"" << gf.get_grid_name(gridindex) << "\".\n"
+    << "The expected name is \"" << gridname << "\".";
     throw runtime_error(os.str());
   }
 }

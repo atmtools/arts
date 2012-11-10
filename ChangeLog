@@ -1,3 +1,25 @@
+2012-11-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-362
+
+	* controlfiles/artscomponents/surface/create_gfields.m
+	(create_gfields): Not all grid names were correct. Created data
+	(used as test input) updated.
+
+	* src/m_surface.cc (surface_scalar_reflectivityFromGriddedField4):
+	Added checks of name of grids.
+
+	* src/check_input.cc (chk_griddedfield_gridname): Slight
+	modification of error message.
+
+	* src/m_surface.cc (surface_reflectivityFromGriddedField6): Added
+	checks of name of grids.
+
+	* src/methods.cc: Fixed some typos for
+	surface_reflectivityFromGriddedField6. Stating expected name of
+	grids for complex_nFromGriddedField4 and
+	surface_*FromGriddedField4/6.
+
 2012-11-09  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-361
