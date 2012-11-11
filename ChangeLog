@@ -1,5 +1,21 @@
 2012-11-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-364
+
+	* src/m_doit2.cc (CloudboxGetIncoming2): Started work on allowing
+	sensor and surface inside cloudbox. So far making parallel methods
+	and variables, named by adding a 2 at the end. And keep it in a
+	separate, temporary, file.
+
+	* src/m_doit.cc (CloudboxGetIncoming): For 3D, the if-statement
+	for "end points of scat_za_index" was wrong for lat and lon parts.
+	It had been fixed for pressure! Copied this to the lat and lon
+	parts.
+	A bug but (if I get it right) only one za-aa combination got wrong
+	value (and just for 3D).
+
+2012-11-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-363
 
 	* src/m_surface.cc (surface_reflectivityFromGriddedField6)

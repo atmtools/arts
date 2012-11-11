@@ -2860,12 +2860,9 @@ void CloudboxGetIncoming(Workspace&      ws,
                           // For end points of scat_za_index (0 & 180deg), we
                           // only need to perform calculations for one scat_aa
                           // and set the others to same value
-//                          if( !( ( scat_za_index == 0  ||  
-//                                   scat_za_index == (Nza-1) )  &&  
-//                                 scat_aa_index == 0 ) )
                           if( ( scat_za_index != 0  &&  
                                 scat_za_index != (Nza-1) )  ||  
-                                 scat_aa_index == 0 )
+                                scat_aa_index == 0 )
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
@@ -2904,9 +2901,9 @@ void CloudboxGetIncoming(Workspace&      ws,
 
                           // For end points of scat_za_index, we need only to
                           // perform calculations for first scat_aa
-                          if( !( ( scat_za_index == 0  ||  
-                                   scat_za_index == (Nza-1) )  &&  
-                                 scat_aa_index == 0 ) )
+                          if( ( scat_za_index != 0  &&  
+                                scat_za_index != (Nza-1) )  ||  
+                                scat_aa_index == 0 )
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 
@@ -2945,9 +2942,9 @@ void CloudboxGetIncoming(Workspace&      ws,
 
                           // For end points of scat_za_index, we need only to
                           // perform calculations for first scat_aa
-                          if( !( ( scat_za_index == 0  ||  
-                                   scat_za_index == (Nza-1) )  &&  
-                                 scat_aa_index == 0 ) )
+                          if( ( scat_za_index != 0  &&  
+                                scat_za_index != (Nza-1) )  ||  
+                                scat_aa_index == 0 )
                             {
                               get_iy( ws, iy, t_field, z_field, vmr_field, 0, 
                                       f_grid, pos, los, Vector(0), 

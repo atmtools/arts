@@ -687,7 +687,7 @@ void mcPathTraceGeneral(Workspace&            ws,
       pnd_vecArray[0]=pnd_vecArray[1];
       //perform single path step using ppath_step_geom_3d
       ppath_step_geom_3d(ppath_step, lat_grid, lon_grid, z_field,
-                         refellipsoid, z_surface, -1);
+                         refellipsoid, z_surface, -1 );
 
       // For debugging:
       // Print( ppath_step, 0, verbosity );

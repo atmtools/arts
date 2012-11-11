@@ -2803,6 +2803,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "CloudboxGetIncoming2" ),
+        DESCRIPTION
+        (
+         "Calculates incoming radiation field of the cloudbox by repeated\n"
+         "radiative transfer calculations.\n"
+         "\n"
+         "The method performs monochromatic pencil beam calculations for\n"
+         "all grid positions on the cloudbox boundary, and all directions\n"
+         "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
+         "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
+         "conditions when scattering inside the cloud box is solved by the\n"
+         "DOIT method.\n"
+         ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
+        OUT( "doit_i_field2" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", "lon_grid", 
+            "z_field", "t_field", "vmr_field", "z_surface", "cloudbox_on",
+            "cloudbox_limits", "basics_checked", "cloudbox_checked", "f_grid", 
+            "stokes_dim", "iy_unit", "blackbody_radiation_agenda", 
+            "scat_za_grid", "scat_aa_grid" ),
+        GIN(         "fill_interior" ),
+        GIN_TYPE(    "Index"         ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC(    "XXX" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "CloudboxGetIncoming1DAtm" ),
         DESCRIPTION
         (

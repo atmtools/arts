@@ -178,6 +178,7 @@ add_library (artscore STATIC
   m_cloudradar.cc
   m_disort.cc
   m_doit.cc
+  m_doit2.cc
   m_fos.cc
   m_general.cc
   m_geodetic.cc
