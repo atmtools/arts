@@ -113,7 +113,7 @@ void complex_nFromGriddedField4(
     {
       ostringstream os;
       os << "The data in *n_field* must have exactly two pages. One page each\n"
-         << "for the real and the imaginary part of the complex refractive index.";
+         << "for the real and imaginary part of the complex refractive index.";
     } 
 
   const Vector& GFlat=n_field.get_numeric_grid(gfield_latID);
@@ -159,6 +159,8 @@ void complex_nFromGriddedField4(
     { complex_n = n_f; }
   else
     {
+      chk_interpolation_grids( "Frequency interpolation", 
+                               n_field.get_numeric_grid(gfield_fID), f_grid );
       const Index nf_out = f_grid.nelem();
       complex_n.resize( nf_out, 2 );
       //
@@ -784,12 +786,20 @@ void surface_reflectivityFromGriddedField6(
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
                                                            lon_true, rte_pos );
 
+  // Ensure correct coverage of lon grid
+  Vector lon_shifted;
+  lon_shiftgrid( lon_shifted, r_field.get_numeric_grid(5), lon[0] );
+
   // Interpolate in lat and lon
   Tensor4 r_f_za( nf_in, stokes_dim, stokes_dim, nza );
   {
+    chk_interpolation_grids( "Latitude interpolation", 
+                             r_field.get_numeric_grid(4), lat[0] );
+    chk_interpolation_grids( "Longitude interpolation", 
+                             r_field.get_numeric_grid(5), lon_shifted[0] );
     GridPos gp_lat, gp_lon;
     gridpos( gp_lat, r_field.get_numeric_grid(4), lat[0] );
-    gridpos( gp_lon, r_field.get_numeric_grid(5), lon[0] );
+    gridpos( gp_lon, r_field.get_numeric_grid(5), lon_shifted[0] );
     Vector itw(4);
     interpweights( itw, gp_lat, gp_lon );
     for( Index iv=0; iv<nf_in; iv++ )
@@ -807,11 +817,13 @@ void surface_reflectivityFromGriddedField6(
   if( nza < 4 )
     { order = 1; }
   {
+    Vector incang( 1, 180-rte_los[0] );
+    chk_interpolation_grids( "Incidence angle interpolation", 
+                              r_field.get_numeric_grid(3), incang );
     ArrayOfGridPosPoly   gp(1);
     Matrix               itw(1,order+1);
     Vector               tmp(1);
-    gridpos_poly( gp, r_field.get_numeric_grid(3), Vector(1,180-rte_los[0]), 
-                                                                       order );
+    gridpos_poly( gp, r_field.get_numeric_grid(3), incang, order );
     interpweights( itw, gp );
     //
     for( Index i=0; i<nf_in; i++ )
@@ -828,6 +840,8 @@ void surface_reflectivityFromGriddedField6(
     { surface_reflectivity = r_f; }
   else
     {
+      chk_interpolation_grids( "Frequency interpolation", 
+                                r_field.get_numeric_grid(0), f_grid );
       const Index nf_out = f_grid.nelem();
       surface_reflectivity.resize( nf_out, stokes_dim, stokes_dim );
       //
@@ -898,9 +912,17 @@ void surface_scalar_reflectivityFromGriddedField4(
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
                                                            lon_true, rte_pos );
 
+  // Ensure correct coverage of lon grid
+  Vector lon_shifted;
+  lon_shiftgrid( lon_shifted, r_field.get_numeric_grid(3), lon[0] );
+
   // Interpolate in lat and lon
   Matrix r_f_za( nf_in, nza );
   {
+    chk_interpolation_grids( "Latitude interpolation", 
+                             r_field.get_numeric_grid(2), lat[0] );
+    chk_interpolation_grids( "Longitude interpolation", 
+                             r_field.get_numeric_grid(3), lon_shifted[0] );
     GridPos gp_lat, gp_lon;
     gridpos( gp_lat, r_field.get_numeric_grid(2), lat[0] );
     gridpos( gp_lon, r_field.get_numeric_grid(3), lon[0] );
@@ -923,11 +945,13 @@ void surface_scalar_reflectivityFromGriddedField4(
   if( nza < 4 )
     { order = 1; }
   {
+    Vector incang( 1, 180-rte_los[0] );
+    chk_interpolation_grids( "Incidence angle interpolation", 
+                              r_field.get_numeric_grid(1), incang );
     ArrayOfGridPosPoly   gp(1);
     Matrix               itw(1,order+1);
     Vector               tmp(1);
-    gridpos_poly( gp, r_field.get_numeric_grid(1), Vector(1,180-rte_los[0]), 
-                                                                       order );
+    gridpos_poly( gp, r_field.get_numeric_grid(1), incang, order );
     interpweights( itw, gp );
     //
     for( Index i=0; i<nf_in; i++ )
@@ -946,6 +970,8 @@ void surface_scalar_reflectivityFromGriddedField4(
     }
   else
     {
+      chk_interpolation_grids( "Frequency interpolation", 
+                                r_field.get_numeric_grid(0), f_grid );
       const Index nf_out = f_grid.nelem();
       surface_scalar_reflectivity.resize( nf_out );
       //
