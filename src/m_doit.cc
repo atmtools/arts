@@ -2572,9 +2572,8 @@ void DoitCloudboxFieldPut(//WS Output:
       bool in_cloudbox = false;
       // Check if sensor inside the cloudbox:
       //loop over all sensor positions
-      for (Index i = 0; i < sensor_pos.ncols(); i++)
+      for (Index i = 0; i < sensor_pos.nrows(); i++)
         {
-          // ??? (CE) I think this is worng 
           if(sensor_pos(i, 0) >= z_field(cloudbox_limits[0], 0, 0) &&
              sensor_pos(i, 0) <= z_field(cloudbox_limits[1], 0, 0) )
             {
