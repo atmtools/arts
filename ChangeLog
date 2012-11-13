@@ -1,3 +1,9 @@
+2012-11-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-367
+
+	* src/m_rte.cc (iyMC): Parallelize frequency loop.
+
 2012-11-13  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-366

@@ -1144,8 +1144,6 @@ void iyMC(
   //===========================================================================
 
   // Some MC variables are only local here
-  Tensor3  mc_points;
-  Index    mc_iteration_count, mc_seed;
   //
   MCAntenna mc_antenna;
   mc_antenna.set_pencil_beam();
@@ -1156,37 +1154,65 @@ void iyMC(
   pos(0,joker) = rte_pos;
   los(0,joker) = rte_los;
 
+  Workspace l_ws (ws);
+  Agenda l_iy_space_agenda (iy_space_agenda);
+  Agenda l_abs_mat_per_species_agenda (abs_mat_per_species_agenda);
+  Agenda l_surface_rtprop_agenda (surface_rtprop_agenda);
+
+  String fail_msg;
+  bool failed = false;
+
+#pragma omp parallel for                                          \
+  if(!arts_omp_in_parallel()) \
+  firstprivate(l_ws, l_iy_space_agenda, l_abs_mat_per_species_agenda, l_surface_rtprop_agenda)
   for( Index f_index=0; f_index<nf; f_index++ )
     {
-      ArrayOfSingleScatteringData   scat_data_mono;
-      
-      scat_data_monoCalc( scat_data_mono, scat_data_raw, 
-                                          f_grid, f_index, verbosity );
+      if (failed) continue;
 
-      // Seed reset for each loop. If not done, the errors 
-      // appear to be highly correlated.
-      MCSetSeedFromTime( mc_seed, verbosity );
+      try {
+          ArrayOfSingleScatteringData   scat_data_mono;
 
-      Vector y, mc_error;
-                  
-      MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna, 
-                 f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
-                 iy_space_agenda, surface_rtprop_agenda,
-                 abs_mat_per_species_agenda, p_grid, lat_grid, lon_grid, 
-                 z_field, refellipsoid, z_surface, t_field, vmr_field, 
-                 cloudbox_on, cloudbox_limits, 
-                 pnd_field, scat_data_mono, 1, cloudbox_checked,
-                 mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
-                 mc_min_iter, verbosity); 
-      //cout << "Error: "      << mc_error << endl;
-      //cout << "N photons: " << mc_iteration_count << endl;
-      assert( y.nelem() == stokes_dim );
+          scat_data_monoCalc( scat_data_mono, scat_data_raw,
+                             f_grid, f_index, verbosity );
 
-      iy(f_index,joker) = y;
+          // Seed reset for each loop. If not done, the errors
+          // appear to be highly correlated.
+          Index    mc_seed;
+          MCSetSeedFromTime( mc_seed, verbosity );
 
-      if( auxError >= 0 ) 
-        { iy_aux[auxError](f_index,joker,0,0) = mc_error; }
+          Vector y, mc_error;
+          Index    mc_iteration_count;
+          Tensor3  mc_points;
+
+          MCGeneral( l_ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna,
+                    f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
+                    l_iy_space_agenda, l_surface_rtprop_agenda,
+                    l_abs_mat_per_species_agenda, p_grid, lat_grid, lon_grid,
+                    z_field, refellipsoid, z_surface, t_field, vmr_field,
+                    cloudbox_on, cloudbox_limits,
+                    pnd_field, scat_data_mono, 1, cloudbox_checked,
+                    mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
+                    mc_min_iter, verbosity);
+          //cout << "Error: "      << mc_error << endl;
+          //cout << "N photons: " << mc_iteration_count << endl;
+          assert( y.nelem() == stokes_dim );
+
+          iy(f_index,joker) = y;
+          
+          if( auxError >= 0 ) 
+            { iy_aux[auxError](f_index,joker,0,0) = mc_error; }
+      } catch (runtime_error e) {
+          ostringstream os;
+          os << "Error for f_index = " << f_index << " (" << f_grid[f_index] << ")" << endl
+             << e.what();
+#pragma omp critical (iyMC_fail)
+          { failed = true; fail_msg = os.str(); }
+          continue;
+      }
     }
+
+    if (failed)
+        throw runtime_error(fail_msg);
 }
 
 
