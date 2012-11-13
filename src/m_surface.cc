@@ -796,10 +796,10 @@ void surface_reflectivityFromGriddedField6(
     chk_interpolation_grids( "Latitude interpolation", 
                              r_field.get_numeric_grid(4), lat[0] );
     chk_interpolation_grids( "Longitude interpolation", 
-                             r_field.get_numeric_grid(5), lon_shifted[0] );
+                             lon_shifted, lon[0] );
     GridPos gp_lat, gp_lon;
     gridpos( gp_lat, r_field.get_numeric_grid(4), lat[0] );
-    gridpos( gp_lon, r_field.get_numeric_grid(5), lon_shifted[0] );
+    gridpos( gp_lon, lon_shifted, lon[0] );
     Vector itw(4);
     interpweights( itw, gp_lat, gp_lon );
     for( Index iv=0; iv<nf_in; iv++ )
@@ -922,10 +922,10 @@ void surface_scalar_reflectivityFromGriddedField4(
     chk_interpolation_grids( "Latitude interpolation", 
                              r_field.get_numeric_grid(2), lat[0] );
     chk_interpolation_grids( "Longitude interpolation", 
-                             r_field.get_numeric_grid(3), lon_shifted[0] );
+                             lon_shifted, lon[0] );
     GridPos gp_lat, gp_lon;
     gridpos( gp_lat, r_field.get_numeric_grid(2), lat[0] );
-    gridpos( gp_lon, r_field.get_numeric_grid(3), lon[0] );
+    gridpos( gp_lon, lon_shifted, lon[0] );
     Vector itw(4);
     interpweights( itw, gp_lat, gp_lon );
     for( Index iv=0; iv<nf_in; iv++ )

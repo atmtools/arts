@@ -2262,12 +2262,12 @@ void ppath_copy(
   ppath1.constant   = ppath2.constant;
   ppath1.background = ppath2.background;
 
-  // As index 0 always is included in the copying, the end poinst is covered
+  // As index 0 always is included in the copying, the end point is covered
   ppath1.end_pos   = ppath2.end_pos;
   ppath1.end_los   = ppath2.end_los;
   ppath1.end_lstep = ppath2.end_lstep;
 
-  // Copy start point only if coptying fills up ppath1
+  // Copy start point only if copying fills up ppath1
   if( n == ppath1.np )
     {
       ppath1.start_pos   = ppath2.start_pos;

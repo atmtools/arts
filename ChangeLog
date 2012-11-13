@@ -1,3 +1,38 @@
+2012-11-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-368
+
+	* A bug fix for m_surface! (Bug created in 2-1-363)
+
+	* A bug fixed for opt_propExtract (very old one).
+
+	* (Work on introducing ppath_step_agenda into MCGeneral. Nothing
+	new active, beside bug fix in opt_propExtract. )
+
+	* src/m_cloudradar.cc (iyCloudRadar): tr_rev should not be updated
+	for ip=np-1. Fixed.
+
+	* src/m_surface.cc (surface_reflectivityFromGriddedField6): Mixed
+	up old and new grid when doing "lon-shift".
+	(surface_scalar_reflectivityFromGriddedField4): As above.
+
+	* src/montecarlo.cc (opt_propExtract): PARTICLE_TYPE_HORIZ_AL did
+	not work for za=90! Copied solution already added in
+	ext_matTransform.
+
+	BIG NOTE: Very similar code is found in opt_propExtract and
+	ext_matTransform. If you find any problem in any of these
+	functions, check also carefully if the same problem is found the
+	other one!!!
+
+	* src/ppath.cc (ppath_copy): Some typos in comments
+
+	* src/m_montecarlo.cc (MCGeneral): Added ppath_step_agenda and
+	edensity_field as input and passed on to mcPathTraceGeneral.
+
+	* src/m_rte.cc (iyMC): Added ppath_step_agenda and edensity_field
+	as input and passed on to MCGeneral.
+
 2012-11-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-367

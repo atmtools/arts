@@ -53,8 +53,6 @@
 \author Cory Davis
 \date 2005-02-19?
 */  
-
-
 void clear_rt_vars_at_gp(Workspace&          ws,
                          MatrixView          ext_mat_mono,
                          VectorView          abs_vec_mono,
@@ -69,8 +67,8 @@ void clear_rt_vars_at_gp(Workspace&          ws,
                          ConstTensor4View    vmr_field)
 {
   const Index   ns = vmr_field.nbooks();
-  Vector t_vec(1);  //vectors are required by interp_atmfield_gp2itw etc.
-  Vector   p_vec(1);//may not be efficient with unecessary vectors
+  Vector t_vec(1);   //vectors are required by interp_atmfield_gp2itw etc.
+  Vector   p_vec(1); //may not be efficient with unecessary vectors
   Matrix itw_p(1,2);
   ArrayOfGridPos ao_gp_p(1),ao_gp_lat(1),ao_gp_lon(1);
   Matrix   vmr_mat(ns,1), itw_field;
@@ -262,7 +260,7 @@ void cloud_atm_vars_by_gp(
   assert(pressure.nelem()==np);
   Index ns=vmr_field_cloud.nbooks();
   Index N_pt=pnd_field.nbooks();
-  ArrayOfGridPos gp_p_cloud = gp_p;
+  ArrayOfGridPos gp_p_cloud   = gp_p;
   ArrayOfGridPos gp_lat_cloud = gp_lat;
   ArrayOfGridPos gp_lon_cloud = gp_lon;
   Index atmosphere_dim=3;
@@ -278,11 +276,11 @@ void cloud_atm_vars_by_gp(
   const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
   const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
   const Index n3 = cloudbox_limits[5] - cloudbox_limits[4];
-  gridpos_upperend_check( gp_p_cloud[0], n1 );
+  gridpos_upperend_check( gp_p_cloud[0],      n1 );
   gridpos_upperend_check( gp_p_cloud[np-1],   n1 );
-  gridpos_upperend_check( gp_lat_cloud[0], n2 );
-  gridpos_upperend_check( gp_lat_cloud[np-1], n2);
-  gridpos_upperend_check( gp_lon_cloud[0], n3 );
+  gridpos_upperend_check( gp_lat_cloud[0],    n2 );
+  gridpos_upperend_check( gp_lat_cloud[np-1], n2 );
+  gridpos_upperend_check( gp_lon_cloud[0],    n3 );
   gridpos_upperend_check( gp_lon_cloud[np-1], n3 );
   
   // Determine the pressure at each propagation path point
@@ -328,7 +326,8 @@ void cloud_atm_vars_by_gp(
 //! cum_l_stepCalc
 
 /*!
-   Returns a vector of cumulative pathlengths for a given ppath by adding ppath.lstep
+   Returns a vector of cumulative pathlengths for a given ppath by adding
+   up ppath.lstep
 
    \param cum_l_step    Output: vector of cumulative pathlengths.
    \param ppath         a Ppath.
@@ -336,21 +335,21 @@ void cloud_atm_vars_by_gp(
    \author Cory Davis
    \date   2003-06-19
 */
-
 void cum_l_stepCalc(
-                      Vector& cum_l_step,
-                      const Ppath& ppath
-                      )
-  {
-    cum_l_step.resize(ppath.np);
-    Numeric cumsum = 0.0;
-    cum_l_step[0] = 0.0;
-    for (Index i=0; i<ppath.np-1; i++)
-      {
-        cumsum += ppath.lstep[i];
-        cum_l_step[i+1] = cumsum;
-      }
-  }             
+                    Vector& cum_l_step,
+                    const Ppath& ppath )
+{
+  cum_l_step.resize(ppath.np);
+  Numeric cumsum = 0.0;
+  cum_l_step[0]  = 0.0;
+
+  for (Index i=0; i<ppath.np-1; i++)
+    {
+      cumsum += ppath.lstep[i];
+      cum_l_step[i+1] = cumsum;
+    }
+}             
+
 
 //! findZ11max
 /*! 
@@ -573,7 +572,6 @@ atmospheric variables at the new point.
 \date 2005-2-21
 
 */
-
 void mcPathTraceGeneral(Workspace&            ws,
                         MatrixView            evol_op,
                         Vector&               abs_vec_mono,
@@ -589,6 +587,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                         bool&                 inside_cloud,
                         //Numeric&              rte_pressure,
                         //Vector&               rte_vmr_list,
+                        const Agenda&         ppath_step_agenda,
                         const Agenda&         abs_mat_per_species_agenda,
                         const Index           stokes_dim,
                         const Numeric&        f_mono,
@@ -600,6 +599,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                         const Matrix&         z_surface,
                         const Tensor3&        t_field,
                         const Tensor4&        vmr_field,
+                        const Tensor3&        edensity_field,
                         const ArrayOfIndex&   cloudbox_limits,
                         const Tensor4&        pnd_field,
                         const ArrayOfSingleScatteringData& scat_data_mono,
@@ -687,7 +687,7 @@ void mcPathTraceGeneral(Workspace&            ws,
       pnd_vecArray[0]=pnd_vecArray[1];
       //perform single path step using ppath_step_geom_3d
       ppath_step_geom_3d(ppath_step, lat_grid, lon_grid, z_field,
-                         refellipsoid, z_surface, -1 );
+                         refellipsoid, z_surface, -1);
 
       // For debugging:
       // Print( ppath_step, 0, verbosity );
@@ -827,6 +827,292 @@ void mcPathTraceGeneral(Workspace&            ws,
     }
   assert(isfinite(g));
 }
+
+void mcPathTraceGeneralTEST(Workspace&            ws,
+                        MatrixView            evol_op,
+                        Vector&               abs_vec_mono,
+                        Numeric&              temperature,
+                        MatrixView            ext_mat_mono,
+                        Rng&                  rng,
+                        Vector&               rte_pos,
+                        Vector&               rte_los,
+                        Vector&               pnd_vec,
+                        Numeric&              g,
+                        Ppath&                ppath_step2,
+                        Index&                termination_flag,
+                        bool&                 inside_cloud,
+                        const Agenda&         ppath_step_agenda,
+                        const Agenda&         abs_mat_per_species_agenda,
+                        const Index           stokes_dim,
+                        const Numeric&        f_mono,
+                        const Vector&         p_grid,
+                        const Vector&         lat_grid,
+                        const Vector&         lon_grid,
+                        const Tensor3&        z_field,
+                        const Vector&         refellipsoid,
+                        const Matrix&         z_surface,
+                        const Tensor3&        t_field,
+                        const Tensor4&        vmr_field,
+                        const Tensor3&        edensity_field,
+                        const ArrayOfIndex&   cloudbox_limits,
+                        const Tensor4&        pnd_field,
+                        const ArrayOfSingleScatteringData& scat_data_mono,
+                        const Verbosity& verbosity)
+                        // 2011-06-17 GH commented out, unused?
+                        // const Index           z_field_is_1D)
+
+{ 
+  ArrayOfMatrix evol_opArray(2);
+  ArrayOfMatrix ext_matArray(2);
+  ArrayOfVector abs_vecArray(2),pnd_vecArray(2);
+  Vector tArray(2);
+  Vector cum_l_step;
+  Vector f_grid(1,f_mono);     // Vector version of f_mono
+  Matrix T(stokes_dim,stokes_dim);
+  Numeric k;
+  Numeric ds;
+  Index   istep = 0;            // Counter for number of steps
+  Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim,0.0);
+  Matrix old_evol_op(stokes_dim,stokes_dim);
+  //g=0;k=0;ds=0;
+  //at the start of the path the evolution operator is the identity matrix
+  id_mat(evol_op);
+  evol_opArray[1]=evol_op;
+
+  //initialise Ppath with ppath_start_stepping
+  Ppath ppath_step;
+  ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
+                        lon_grid, z_field, refellipsoid, z_surface,
+                        0, cloudbox_limits, false, 
+                        rte_pos, rte_los, verbosity );
+
+  // Index in ppath_step of end point considered presently
+  Index ip = 0;
+
+  Range p_range(   cloudbox_limits[0], 
+                   cloudbox_limits[1]-cloudbox_limits[0]+1);
+  Range lat_range( cloudbox_limits[2], 
+                   cloudbox_limits[3]-cloudbox_limits[2]+1 );
+  Range lon_range( cloudbox_limits[4], 
+                   cloudbox_limits[5]-cloudbox_limits[4]+1 );
+
+  termination_flag=0;
+
+  inside_cloud=is_inside_cloudbox( ppath_step, cloudbox_limits, true );
+  
+  if (inside_cloud)
+    {
+      cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec, 
+                            temperature, abs_mat_per_species_agenda, 
+                            stokes_dim, f_mono, ppath_step.gp_p[0], 
+                            ppath_step.gp_lat[0], ppath_step.gp_lon[0],
+                            p_grid[p_range], 
+                            t_field(p_range,lat_range,lon_range), 
+                            vmr_field(joker,p_range,lat_range,lon_range),
+                            pnd_field, scat_data_mono, cloudbox_limits,
+                            ppath_step.los(0,joker), verbosity );
+    }
+  else
+    {
+      clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
+                           abs_mat_per_species_agenda, f_mono,
+                           ppath_step.gp_p[0], ppath_step.gp_lat[0], 
+                           ppath_step.gp_lon[0], p_grid, t_field, vmr_field );
+      pnd_vec = 0.0;
+    }
+
+  ext_matArray[1] = ext_mat_mono;
+  abs_vecArray[1] = abs_vec_mono;
+  tArray[1]       = temperature;
+  pnd_vecArray[1] = pnd_vec;
+
+  //draw random number to determine end point
+  Numeric r = rng.draw();
+
+  while( (evol_op(0,0)>r) && (!termination_flag) )
+    {
+      istep++;
+      //we consider more than 5000
+      // path points to be an indication on that the calcululations have
+      // got stuck in an infinite loop.
+      if( istep > 5000 )
+        {
+          throw runtime_error( "5000 path points have been reached. "
+                               "Is this an infinite loop?" );
+        }
+
+      evol_opArray[0] = evol_opArray[1];
+      ext_matArray[0] = ext_matArray[1];
+      abs_vecArray[0] = abs_vecArray[1];
+      tArray[0]       = tArray[1];
+      pnd_vecArray[0] = pnd_vecArray[1];
+
+      // Shall new ppath_step be calculated?
+      if( ip == ppath_step.np-1 ) 
+        {
+          ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
+                                    edensity_field, f_grid, ppath_step_agenda );
+          //Print( ppath_step, 0, verbosity );
+          
+          //ip = 1;
+          ip = ppath_step.np-1;
+
+          //perform single path step using ppath_step_geom_3d
+          //      ppath_step_geom_3d(ppath_step, lat_grid, lon_grid, z_field,
+          //                 refellipsoid, z_surface, -1 );
+
+          //np=ppath_step.np;//I think this should always be 2.
+          cum_l_stepCalc( cum_l_step, ppath_step );
+          inside_cloud = is_inside_cloudbox( ppath_step, cloudbox_limits, true);
+        }
+      else
+        { ip++; }
+
+
+      if( inside_cloud )
+        {
+          cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
+                                temperature, abs_mat_per_species_agenda, 
+                                stokes_dim, f_mono, ppath_step.gp_p[ip],
+                                ppath_step.gp_lat[ip], ppath_step.gp_lon[ip],
+                                p_grid[p_range], 
+                                t_field(p_range,lat_range,lon_range), 
+                                vmr_field(joker,p_range,lat_range,lon_range),
+                                pnd_field, scat_data_mono, cloudbox_limits,
+                                ppath_step.los(ip,joker), verbosity );
+        }
+      else
+        {
+          clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
+                               abs_mat_per_species_agenda, f_mono,
+                               ppath_step.gp_p[ip], ppath_step.gp_lat[ip],
+                               ppath_step.gp_lon[ip], p_grid, t_field, 
+                               vmr_field );
+          pnd_vec = 0.0;
+        }
+
+      ext_matArray[1] = ext_mat_mono;
+      abs_vecArray[1] = abs_vec_mono;
+      tArray[1]       = temperature;
+      pnd_vecArray[1] = pnd_vec;
+      opt_depth_mat   = ext_matArray[1];
+      opt_depth_mat  += ext_matArray[0];
+      opt_depth_mat  *= -cum_l_step[ip]/2;
+      //      opt_depth_mat  *= -(cum_l_step[ip]-cum_l_step[ip-1])/2;
+      incT=0;
+      if( stokes_dim == 1 )
+        { incT(0,0) = exp( opt_depth_mat(0,0) ); }
+      else if( is_diagonal( opt_depth_mat ) )
+        {
+          for ( Index j=0;j<stokes_dim;j++)
+            { incT(j,j) = exp( opt_depth_mat(j,j) ); }
+        }
+      else
+        { matrix_exp_p30( incT, opt_depth_mat ); }
+      mult( evol_op, evol_opArray[0], incT );
+      evol_opArray[1] = evol_op;
+     
+      //check whether hit ground or space
+      if( ip == ppath_step.np - 1 )
+        {
+          Index bg = ppath_what_background( ppath_step );
+          if( bg == 2 )
+            { termination_flag=2; }            //we have hit the surface
+          else if( fractional_gp(ppath_step.gp_p[ip]) >= 
+                    (Numeric)(p_grid.nelem()- 1)-1e-3 )
+            {
+              //we have left the top of the atmosphere
+              termination_flag=1;
+            }
+        }
+    } // while
+
+  const Index np = 2;
+  ppath_init_structure( ppath_step2, 3, np );
+
+  ppath_step2.pos(Range(0,np),joker) = ppath_step.pos(Range(ip-1,np),joker);
+  ppath_step2.los(Range(0,np),joker) = ppath_step.los(Range(ip-1,np),joker);
+  ppath_step2.r[Range(0,np)]         = ppath_step.r[Range(ip-1,np)];
+  ppath_step2.nreal[Range(0,np)]     = ppath_step.nreal[Range(ip-1,np)];
+  ppath_step2.ngroup[Range(0,np)]    = ppath_step.ngroup[Range(ip-1,np)];
+  ppath_step2.lstep[Range(0,np-1)]   = ppath_step.lstep[Range(ip-1,np-1)]; 
+  for( Index i=0; i<np; i++ )
+    {
+      gridpos_copy( ppath_step2.gp_p[i], ppath_step.gp_p[ip-1+i] );
+      gridpos_copy( ppath_step2.gp_lat[i], ppath_step.gp_lat[ip-1+i] );      
+      gridpos_copy( ppath_step2.gp_lon[i], ppath_step.gp_lon[ip-1+i] ); 
+    }
+  cum_l_stepCalc( cum_l_step, ppath_step2 );
+
+
+  if( termination_flag ) 
+    { //we must have reached the cloudbox boundary
+      rte_pos = ppath_step2.pos(np-1,joker);
+      rte_los = ppath_step2.los(np-1,joker);
+      g       = evol_op(0,0);
+    }
+  else
+    {
+      //find position...and evol_op..and everything else required at the new
+      //scattering/emission point
+      // GH 2011-09-14: 
+      //   log(incT(0,0)) = log(exp(opt_depth_mat(0, 0))) = opt_depth_mat(0, 0)
+      //   Avoid loss of precision, use opt_depth_mat directly
+      //k=-log(incT(0,0))/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
+      k=-opt_depth_mat(0,0)/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
+      ds=log(evol_opArray[0](0,0)/r)/k;
+      g=k*r;
+      Vector x(2,0.0);
+      //interpolate atmospheric variables required later
+      //length 2
+      ArrayOfGridPos gp(1);
+      x[1]=cum_l_step[np-1];
+      Vector itw(2);
+  
+      gridpos(gp, x, ds);
+      assert(gp[0].idx==0);
+      interpweights(itw,gp[0]);
+      interp(ext_mat_mono, itw, ext_matArray, gp[0]);
+      opt_depth_mat = ext_mat_mono;
+      opt_depth_mat+=ext_matArray[gp[0].idx];
+      opt_depth_mat*=-ds/2;
+      if ( stokes_dim == 1 )
+        {
+          incT(0,0)=exp(opt_depth_mat(0,0));
+        }
+      else if ( is_diagonal( opt_depth_mat))
+        {
+          for ( Index i=0;i<stokes_dim;i++)
+            {
+              incT(i,i)=exp(opt_depth_mat(i,i));
+            }
+        }
+      else
+        {
+          //matrix_exp(incT,opt_depth_mat,10);
+          matrix_exp_p30(incT,opt_depth_mat);
+        }
+      mult(evol_op,evol_opArray[gp[0].idx],incT);
+      interp(abs_vec_mono, itw, abs_vecArray,gp[0]);
+      temperature=interp(itw,tArray,gp[0]);
+      interp(pnd_vec, itw,pnd_vecArray,gp[0]);
+      if (np > 2)
+        {
+          gridpos(gp,cum_l_step,ds);
+          interpweights(itw,gp[0]);
+        }
+      for (Index i=0; i<2; i++)
+        {
+          rte_pos[i] = interp(itw,ppath_step2.pos(Range(joker),i),gp[0]);
+          rte_los[i] = interp(itw,ppath_step2.los(Range(joker),i),gp[0]);
+        }
+      rte_pos[2] = interp(itw,ppath_step2.pos(Range(joker),2),gp[0]);
+    }
+
+  assert(isfinite(g));
+}
+
+
 
 //! mcPathTraceIPA
 /*!
@@ -1243,74 +1529,18 @@ void opt_propCalc(
     {
       if (pnd_vec[i_pt]>0)
         {
-          opt_propExtract(ext_mat_mono_spt,abs_vec_mono_spt,scat_data_mono[i_pt],za,aa,
-                          rte_temperature,stokes_dim, verbosity);
-          ext_mat_mono_spt*=pnd_vec[i_pt];
-          abs_vec_mono_spt*=pnd_vec[i_pt];
-          ext_mat_mono+=ext_mat_mono_spt;
-          abs_vec_mono+=abs_vec_mono_spt;
+          opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
+                          scat_data_mono[i_pt], za, aa,
+                          rte_temperature, stokes_dim, verbosity);
+
+          ext_mat_mono_spt *= pnd_vec[i_pt];
+          abs_vec_mono_spt *= pnd_vec[i_pt];
+          ext_mat_mono     += ext_mat_mono_spt;
+          abs_vec_mono     += abs_vec_mono_spt;
         }
     }
 }
 
-/* PE 2011-07-07
-void opt_propCalc2(
-                  MatrixView      ext_mat_mono,
-                  VectorView      abs_vec_mono,
-                  const Numeric   za,
-                  const Numeric   aa,
-                  const ArrayOfSingleScatteringData& scat_data_mono,
-                  const Index     stokes_dim,
-                  ConstVectorView pnd_vec,
-                  const Numeric   rte_temperature
-                  )
-{
-  const Index N_pt = scat_data_mono.nelem();
-
-  if (stokes_dim > 4 || stokes_dim < 1){
-    throw runtime_error("The dimension of the stokes vector \n"
-                         "must be 1,2,3 or 4");
-  }
-  Matrix ext_mat_mono_spt(stokes_dim,stokes_dim);
-  Vector abs_vec_mono_spt(stokes_dim);
-
-  ext_mat_mono=0.0;
-  abs_vec_mono=0.0;  
-
-  // Loop over the included particle_types
-  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
-    {
-      if (pnd_vec[i_pt]>0)
-        {
-          opt_propExtract(ext_mat_mono_spt,abs_vec_mono_spt,scat_data_mono[i_pt],za,aa,
-                          rte_temperature,stokes_dim);
-          ext_mat_mono_spt*=pnd_vec[i_pt];
-          abs_vec_mono_spt*=pnd_vec[i_pt];
-          ext_mat_mono+=ext_mat_mono_spt;
-          abs_vec_mono+=abs_vec_mono_spt;
-        }
-    }
-}
-*/
-//! Extract ext_mat_mono and abs_vec_mono from a monochromatic SingleScatteringData object
-/*!
-  Given a monochromatic SingleScatteringData object, propagation directions, 
-  and the temperature, this function returns the extinction matrix and the
-  absorption coefficient vector
-  Output:
-  \param ext_mat_mono_spt the extinction matrix (spt: this is for a single particle)
-  \param abs_vec_mono_spt the absorption coefficient vector
-  Input:
-  \param scat_data a monochromatic SingleScatteringData object
-  \param za
-  \param aa
-  \param rte_temperature
-  \param stokes_dim
-
-  \author Cory Davis
-  \date 2004-07-16
-
-*/
 
 void opt_propExtract(
                      MatrixView     ext_mat_mono_spt,
@@ -1323,13 +1553,12 @@ void opt_propExtract(
                      const Verbosity& verbosity
                      )
 {
-
+  // Temperature grid position
   GridPos t_gp;
-  //interpolate over temperature
   if( scat_data.T_grid.nelem() > 1)
-    {
-      gridpos(t_gp, scat_data.T_grid, rte_temperature);
-    }
+    { gridpos( t_gp, scat_data.T_grid, rte_temperature ); }
+
+
   switch (scat_data.ptype){
 
   case PARTICLE_TYPE_GENERAL:
@@ -1394,10 +1623,10 @@ void opt_propExtract(
       assert (scat_data.ext_mat_data.ncols() == 3);
       
       // In the case of horizontally oriented particles the extinction matrix
-      // has only 3 independent non-zero elements ext_mat_monojj, K12=K21, and K34=-K43.
-      // These values are dependent on the zenith angle of propagation. The 
-      // data storage format also makes use of the fact that in this case
-      //K(za_sca)=K(180-za_sca). 
+      // has only 3 independent non-zero elements ext_mat_monojj, K12=K21, and
+      // K34=-K43. These values are dependent on the zenith angle of
+      // propagation. The data storage format also makes use of the fact that
+      // in this case K(za_sca)=K(180-za_sca).
 
       // 1st interpolate data by za_sca
       GridPos za_gp;
@@ -1407,33 +1636,34 @@ void opt_propExtract(
       Numeric K34;
       
       if( scat_data.T_grid.nelem() == 1)
-      {
-        ostringstream os;
-        os << "Given optical property data is for constant temperature only.\n"
-              "MC with p30 requires temperature-dependent optical property data\n";
-              throw runtime_error( os.str() );
-      }
-      
-      if (za>90)
         {
-          gridpos(za_gp,scat_data.za_grid,180-za);
-        }
-      else
-        {
-          gridpos(za_gp,scat_data.za_grid,za);
+          ostringstream os;
+          os << "Given optical property data are for constant temperature "
+             << "only.\nMC with p30 requires temperature-dependent optical "
+             << "property data\n";
+          throw runtime_error( os.str() );
         }
 
-      interpweights(itw,t_gp,za_gp);
-      
-      ext_mat_mono_spt=0.0;
-      abs_vec_mono_spt=0.0;
-      Kjj=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
-      ext_mat_mono_spt(0,0)=Kjj;
-      abs_vec_mono_spt[0] = interp(itw,scat_data.abs_vec_data(0,joker,joker,0,0),
-                            t_gp,za_gp);
-      if( stokes_dim == 1 ){
-        break;
-      }
+      // This fix for za=90 copied from  ext_matTransform in optproperties.cc
+      // (121113, PE).
+      ConstVectorView this_za_datagrid = 
+              scat_data.za_grid[ Range( 0, scat_data.ext_mat_data.npages() ) ];
+      if( za > 90 )
+        { gridpos( za_gp, this_za_datagrid, 180-za ); }
+      else
+        { gridpos( za_gp, this_za_datagrid, za ); }
+
+      interpweights( itw, t_gp, za_gp );
+
+      ext_mat_mono_spt = 0.0;
+      abs_vec_mono_spt = 0.0;
+      Kjj = interp(itw,scat_data.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
+      ext_mat_mono_spt(0,0) = Kjj;
+      abs_vec_mono_spt[0]   = interp( itw, 
+                       scat_data.abs_vec_data(0,joker,joker,0,0), t_gp,za_gp );
+
+      if( stokes_dim == 1 )
+        { break; }
       
       K12=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,1),t_gp,za_gp);
       ext_mat_mono_spt(1,1)=Kjj;

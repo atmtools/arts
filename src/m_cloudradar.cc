@@ -318,9 +318,12 @@ void iyCloudRadar(
               mult( iy(iv*np+ip,joker), trans_cumulat(iv,joker,joker,ip), iy2 );
 
               // Update tr_rev
-              Matrix tmp = tr_rev(iv,joker,joker);
-              mult( tr_rev(iv,joker,joker), trans_partial(iv,joker,joker,ip),
-                                                                          tmp );
+              if( ip<np-1 )
+                {
+                  Matrix tmp = tr_rev(iv,joker,joker);
+                  mult( tr_rev(iv,joker,joker), 
+                        trans_partial(iv,joker,joker,ip), tmp );
+                }
 
               //=== iy_aux part ===========================================
               // Backscattering
