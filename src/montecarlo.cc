@@ -828,56 +828,64 @@ void mcPathTraceGeneral(Workspace&            ws,
   assert(isfinite(g));
 }
 
-void mcPathTraceGeneralTEST(Workspace&            ws,
-                        MatrixView            evol_op,
-                        Vector&               abs_vec_mono,
-                        Numeric&              temperature,
-                        MatrixView            ext_mat_mono,
-                        Rng&                  rng,
-                        Vector&               rte_pos,
-                        Vector&               rte_los,
-                        Vector&               pnd_vec,
-                        Numeric&              g,
-                        Ppath&                ppath_step2,
-                        Index&                termination_flag,
-                        bool&                 inside_cloud,
-                        const Agenda&         ppath_step_agenda,
-                        const Agenda&         abs_mat_per_species_agenda,
-                        const Index           stokes_dim,
-                        const Numeric&        f_mono,
-                        const Vector&         p_grid,
-                        const Vector&         lat_grid,
-                        const Vector&         lon_grid,
-                        const Tensor3&        z_field,
-                        const Vector&         refellipsoid,
-                        const Matrix&         z_surface,
-                        const Tensor3&        t_field,
-                        const Tensor4&        vmr_field,
-                        const Tensor3&        edensity_field,
-                        const ArrayOfIndex&   cloudbox_limits,
-                        const Tensor4&        pnd_field,
-                        const ArrayOfSingleScatteringData& scat_data_mono,
-                        const Verbosity& verbosity)
-                        // 2011-06-17 GH commented out, unused?
-                        // const Index           z_field_is_1D)
-
+void mcPathTraceGeneralTEST(
+         Workspace&      ws,
+         MatrixView      evol_op,
+         Vector&         abs_vec_mono,
+         Numeric&        temperature,
+         MatrixView      ext_mat_mono,
+         Rng&            rng,
+         Vector&         rte_pos,
+         Vector&         rte_los,
+         Vector&         pnd_vec,
+         Numeric&        g,
+         Ppath&          ppath_step2,
+         Index&          termination_flag,
+         bool&           inside_cloud,
+   const Agenda&         ppath_step_agenda,
+   const Agenda&         abs_mat_per_species_agenda,
+   const Index           stokes_dim,
+   const Numeric&        f_mono,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        z_field,
+   const Vector&         refellipsoid,
+   const Matrix&         z_surface,
+   const Tensor3&        t_field,
+   const Tensor4&        vmr_field,
+   const Tensor3&        edensity_field,
+   const ArrayOfIndex&   cloudbox_limits,
+   const Tensor4&        pnd_field,
+   const ArrayOfSingleScatteringData& scat_data_mono,
+   const Verbosity&      verbosity )
 { 
   ArrayOfMatrix evol_opArray(2);
   ArrayOfMatrix ext_matArray(2);
-  ArrayOfVector abs_vecArray(2),pnd_vecArray(2);
-  Vector tArray(2);
-  Vector cum_l_step;
-  Vector f_grid(1,f_mono);     // Vector version of f_mono
-  Matrix T(stokes_dim,stokes_dim);
-  Numeric k;
-  Numeric ds;
-  Index   istep = 0;            // Counter for number of steps
-  Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim,0.0);
-  Matrix old_evol_op(stokes_dim,stokes_dim);
-  //g=0;k=0;ds=0;
+  ArrayOfVector abs_vecArray(2);
+  ArrayOfVector pnd_vecArray(2);
+  Matrix        opt_depth_mat(stokes_dim,stokes_dim);
+  Matrix        incT(stokes_dim,stokes_dim,0.0);
+  Vector        tArray(2);
+  Vector        cum_l_step;
+  Vector        f_grid(1,f_mono);     // Vector version of f_mono
+  Matrix        T(stokes_dim,stokes_dim);
+  Numeric       k;
+  Numeric       ds;
+  Index         istep = 0;  // Counter for number of steps
+  Matrix        old_evol_op(stokes_dim,stokes_dim);
+
   //at the start of the path the evolution operator is the identity matrix
   id_mat(evol_op);
   evol_opArray[1]=evol_op;
+
+  // range defining cloudbox
+  Range p_range(   cloudbox_limits[0], 
+                   cloudbox_limits[1]-cloudbox_limits[0]+1);
+  Range lat_range( cloudbox_limits[2], 
+                   cloudbox_limits[3]-cloudbox_limits[2]+1 );
+  Range lon_range( cloudbox_limits[4], 
+                   cloudbox_limits[5]-cloudbox_limits[4]+1 );
 
   //initialise Ppath with ppath_start_stepping
   Ppath ppath_step;
@@ -889,18 +897,14 @@ void mcPathTraceGeneralTEST(Workspace&            ws,
   // Index in ppath_step of end point considered presently
   Index ip = 0;
 
-  Range p_range(   cloudbox_limits[0], 
-                   cloudbox_limits[1]-cloudbox_limits[0]+1);
-  Range lat_range( cloudbox_limits[2], 
-                   cloudbox_limits[3]-cloudbox_limits[2]+1 );
-  Range lon_range( cloudbox_limits[4], 
-                   cloudbox_limits[5]-cloudbox_limits[4]+1 );
+  // Is point ip inside the cloudbox?
+  inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
+                                        ppath_step.gp_lat[ip], 
+                                        ppath_step.gp_lon[ip], 
+                                        cloudbox_limits, 0, 3 );
 
-  termination_flag=0;
-
-  inside_cloud=is_inside_cloudbox( ppath_step, cloudbox_limits, true );
-  
-  if (inside_cloud)
+  // Determine radiative properties at point
+  if( inside_cloud )
     {
       cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec, 
                             temperature, abs_mat_per_species_agenda, 
@@ -921,6 +925,7 @@ void mcPathTraceGeneralTEST(Workspace&            ws,
       pnd_vec = 0.0;
     }
 
+  // Move the data to end point containers 
   ext_matArray[1] = ext_mat_mono;
   abs_vecArray[1] = abs_vec_mono;
   tArray[1]       = temperature;
@@ -929,12 +934,12 @@ void mcPathTraceGeneralTEST(Workspace&            ws,
   //draw random number to determine end point
   Numeric r = rng.draw();
 
+  termination_flag=0;
+  
   while( (evol_op(0,0)>r) && (!termination_flag) )
     {
       istep++;
-      //we consider more than 5000
-      // path points to be an indication on that the calcululations have
-      // got stuck in an infinite loop.
+
       if( istep > 5000 )
         {
           throw runtime_error( "5000 path points have been reached. "
@@ -953,21 +958,16 @@ void mcPathTraceGeneralTEST(Workspace&            ws,
           ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
                                     edensity_field, f_grid, ppath_step_agenda );
           //Print( ppath_step, 0, verbosity );
-          
-          //ip = 1;
-          ip = ppath_step.np-1;
+          ip = 1;
 
-          //perform single path step using ppath_step_geom_3d
-          //      ppath_step_geom_3d(ppath_step, lat_grid, lon_grid, z_field,
-          //                 refellipsoid, z_surface, -1 );
-
-          //np=ppath_step.np;//I think this should always be 2.
           cum_l_stepCalc( cum_l_step, ppath_step );
-          inside_cloud = is_inside_cloudbox( ppath_step, cloudbox_limits, true);
+          inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
+                                                ppath_step.gp_lat[ip], 
+                                                ppath_step.gp_lon[ip], 
+                                                cloudbox_limits, 0, 3 );
         }
       else
         { ip++; }
-
 
       if( inside_cloud )
         {
@@ -997,9 +997,9 @@ void mcPathTraceGeneralTEST(Workspace&            ws,
       pnd_vecArray[1] = pnd_vec;
       opt_depth_mat   = ext_matArray[1];
       opt_depth_mat  += ext_matArray[0];
-      opt_depth_mat  *= -cum_l_step[ip]/2;
-      //      opt_depth_mat  *= -(cum_l_step[ip]-cum_l_step[ip-1])/2;
-      incT=0;
+      opt_depth_mat  *= -(cum_l_step[ip]-cum_l_step[ip-1])/2;
+      incT            = 0;
+
       if( stokes_dim == 1 )
         { incT(0,0) = exp( opt_depth_mat(0,0) ); }
       else if( is_diagonal( opt_depth_mat ) )
@@ -1012,19 +1012,17 @@ void mcPathTraceGeneralTEST(Workspace&            ws,
       mult( evol_op, evol_opArray[0], incT );
       evol_opArray[1] = evol_op;
      
-      //check whether hit ground or space
+      // Check whether hit ground or space.
+      // path_step_agenda just detects surface intersections, and
+      // if TOA is reached requires a special check.
       if( ip == ppath_step.np - 1 )
         {
-          Index bg = ppath_what_background( ppath_step );
-          if( bg == 2 )
-            { termination_flag=2; }            //we have hit the surface
+          if( ppath_what_background(ppath_step) )
+            { termination_flag = 2; }   //we have hit the surface
           else if( fractional_gp(ppath_step.gp_p[ip]) >= 
-                    (Numeric)(p_grid.nelem()- 1)-1e-3 )
-            {
-              //we have left the top of the atmosphere
-              termination_flag=1;
-            }
-        }
+                                          (Numeric)(p_grid.nelem() - 1)-1e-3 )
+            { termination_flag = 1; }  //we have left the top of the atmosphere
+         }
     } // while
 
   const Index np = 2;

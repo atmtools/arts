@@ -104,8 +104,6 @@ AgendaSet( doit_conv_test_agenda ){
 }
 
 AgendaSet( iy_cloudbox_agenda ){
-  Ignore (rte_pos)
-  Ignore (rte_los)
 # This is the standard method to interpolate the intensity field of the
 # cloud box if the the scattering inside the cloud box is handled by 
 # the DOIT method.
