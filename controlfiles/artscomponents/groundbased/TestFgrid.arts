@@ -102,16 +102,19 @@ VectorAddScalar( f_grid, f_grid, v0 )
 
 IndexSet( stokes_dim, 1 )
 cloudboxOff
+jacobianOff
+
 basics_checkedCalc
 cloudbox_checkedCalc
+
 StringSet( iy_unit, "RJBT" )
 
 
 
 #-- Calculate spectrum for monochromatic grid and store as y1(x1)
 
-jacobianOff
 sensorOff
+sensor_checkedCalc
 yCalc
 
 VectorCreate( x1 )
@@ -135,6 +138,7 @@ VectorAddScalar( f_grid, f_grid, v0 )
 #-- Calculate spectrum for reference grid and store as ye(x2)
 
 sensorOff
+sensor_checkedCalc
 yCalc
 
 VectorCreate( x2 )
@@ -156,6 +160,7 @@ sensor_responseFillFgrid( sensor_response, sensor_response_f,
    sensor_response_pol, sensor_response_za, sensor_response_aa, 
    sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid, 
    sensor_response_aa_grid, 3, 2 )
+sensor_checkedCalc
 yCalc
 WriteXML( output_file_format, sensor_response_f_grid, "TestFgrid.x3.xml" )
 WriteXML( output_file_format, y, "TestFgrid.y3.xml" )
@@ -165,6 +170,7 @@ sensor_responseFillFgrid( sensor_response, sensor_response_f,
    sensor_response_pol, sensor_response_za, sensor_response_aa, 
    sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid, 
    sensor_response_aa_grid, 5, 4 )
+sensor_checkedCalc
 yCalc
 WriteXML( output_file_format, sensor_response_f_grid, 
                                  "TestFgrid.x5.xml" )

@@ -99,6 +99,7 @@ Matrix1ColFromVector( sensor_los, vector_1 )
 # SensorOff means that the result of the calculation are the radiances,
 # which are not modified by sensor properties
 sensorOff
+sensor_checkedCalc
 
 
 # Agendas for clearsky radiative transfer calculation

@@ -112,6 +112,7 @@ MatrixSet( sensor_los, [     0 ] )    # Dummy value
 MatrixSet( transmitter_pos, [ 600e3, 48.3 ] )
 #
 sensorOff
+sensor_checkedCalc
 
 
 # Auxilary variables

@@ -116,6 +116,7 @@ MatrixSet( sensor_los, [ 95; 113; 135] )
 # ---
 basics_checkedCalc
 cloudbox_checkedCalc
+sensor_checkedCalc
 yCalc
 
 # OK?
@@ -153,6 +154,7 @@ Append( sensor_pos, zeros, "trailing" )
 # ---
 basics_checkedCalc
 cloudbox_checkedCalc
+sensor_checkedCalc
 yCalc
 
 # OK?
@@ -189,6 +191,7 @@ Append( sensor_los, zeros, "trailing" )
 # ---
 basics_checkedCalc
 cloudbox_checkedCalc
+sensor_checkedCalc
 yCalc
 
 # OK?

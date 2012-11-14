@@ -190,6 +190,7 @@ VectorAddScalar( f_backend, f_backend, v0 )
 AntennaOff
 sensor_responseInit
 sensor_responseBackend
+sensor_checkedCalc
 
 
 # --- Define jacobian -------------------------------------------------------
@@ -227,6 +228,7 @@ VectorNLinSpace( mblock_za_grid, 2, za_negative, 0 )
 sensor_responseInit
 sensor_responseBeamSwitching
 sensor_responseBackend
+sensor_checkedCalc
 
 yCalc
 #
@@ -247,6 +249,7 @@ sensor_responseBackendFrequencySwitching( sensor_response, sensor_response_f,
      sensor_response_aa_grid, f_backend, backend_channel_response, sensor_norm,
      f1, f_switch )
 
+sensor_checkedCalc
 yCalc
 #
 WriteXML( output_file_format, y, "TestGbased.y3.xml" )

@@ -243,9 +243,11 @@ jacobianOff
 
 #==================start==========================
 
-# Perform scattering calculation 
 basics_checkedCalc
 cloudbox_checkedCalc
+sensor_checkedCalc
+
+# Perform scattering calculation 
 CloudboxGetIncoming
 
 # Initialize Doit variables

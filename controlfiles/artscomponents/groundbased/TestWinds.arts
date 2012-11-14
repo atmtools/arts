@@ -97,10 +97,13 @@ MatrixSetConstant( sensor_pos, 1, atmosphere_dim, 0 )
 # ---- Final stuff -----------------------------------------------------------
 
 cloudboxOff
-basics_checkedCalc
-cloudbox_checkedCalc
 sensorOff
 jacobianOff
+
+basics_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+
 StringSet( iy_unit, "RJBT" )
 
 

@@ -244,6 +244,7 @@ AgendaSet( ybatch_calc_agenda ){
   # Consistency checks
   basics_checkedCalc
   cloudbox_checkedCalc  
+  sensor_checkedCalc
 
   # No unit conversion at this stage
   StringSet( iy_unit, "1" )

@@ -85,6 +85,7 @@ Extract( z_surface, z_field, 0 )
 # check basic atm&surface setup of
 basics_checkedCalc
 cloudbox_checkedCalc
+sensor_checkedCalc
 
 #now do the RT calc
 isotopologue_ratiosInitFromBuiltin
@@ -123,6 +124,7 @@ AtmFieldsCalc
 # check basic atm&surface setup of
 basics_checkedCalc
 cloudbox_checkedCalc
+sensor_checkedCalc
 
 #now do the RT calc
 ReadXML( isotopologue_ratios, "IsoRatios_H2Oorig.xml" )
@@ -159,6 +161,7 @@ AtmFieldsCalc
 # check basic atm&surface setup of
 basics_checkedCalc
 cloudbox_checkedCalc
+sensor_checkedCalc
 
 #now do the RT calc
 ReadXML( isotopologue_ratios, "IsoRatios_H2Omani.xml" )

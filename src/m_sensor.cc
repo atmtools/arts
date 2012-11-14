@@ -2442,7 +2442,141 @@ void sensor_responseWMRF(// WS Output:
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_checkedCalc(
+   Index&                            sensor_checked,
+   const Index&                      atmosphere_dim,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Matrix&                     transmitter_pos,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid,
+   const Index&                      antenna_dim,
+   const Sparse&                     sensor_response,
+   const Vector&                     sensor_response_f,
+   const ArrayOfIndex&               sensor_response_pol,
+   const Vector&                     sensor_response_za,
+   const Vector&                     sensor_response_aa,
+   const Verbosity&                  verbosity )
+{
 
+  // Some sizes
+  const Index   nf      = f_grid.nelem();
+  const Index   nza     = mblock_za_grid.nelem();
+        Index   naa     = mblock_aa_grid.nelem();   
+  if( antenna_dim == 1 )  
+    { naa = 1; }
+  const Index   n1y     = sensor_response.nrows();
+  const Index   nmblock = sensor_pos.nrows();
+  const Index   niyb    = nf * nza * naa * stokes_dim;
+
+
+  // Sensor position and LOS.
+  //
+  if( sensor_pos.ncols() != atmosphere_dim )
+    throw runtime_error( "The number of columns of sensor_pos must be "
+                         "equal to the atmospheric dimensionality." );
+  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
+    throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
+  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
+    throw runtime_error( "For 3D, sensor_los shall have two columns." );
+  if( sensor_los.nrows() != nmblock )
+    {
+      ostringstream os;
+      os << "The number of rows of sensor_pos and sensor_los must be "
+         << "identical, but sensor_pos has " << nmblock << " rows,\n"
+         << "while sensor_los has " << sensor_los.nrows() << " rows.";
+      throw runtime_error( os.str() );
+    }
+  if( max( sensor_los(joker,0) ) > 180 )
+    throw runtime_error( 
+     "First column of *sensor_los* is not allowed to have values above 180." );
+  if( atmosphere_dim == 2 )
+    {
+      if( min( sensor_los(joker,0) ) < -180 )
+          throw runtime_error( "For atmosphere_dim = 2, first column of "
+                    "*sensor_los* is not allowed to have values below -180." );
+    }     
+  else
+    {
+      if( min( sensor_los(joker,0)  ) < 0 )
+          throw runtime_error( "For atmosphere_dim != 2, first column of "
+                       "*sensor_los* is not allowed to have values below 0." );
+    }    
+  if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
+    throw runtime_error( 
+    "Second column of *sensor_los* is not allowed to have values above 180." );
+
+  // Transmission position.
+  if( transmitter_pos.ncols() > 0  &&  transmitter_pos.nrows() > 0 )
+    {
+      if( transmitter_pos.nrows() != sensor_pos.nrows() )
+        throw runtime_error( "*transmitter_pos* must either be empty or have "
+                             "the same number of rows as *sensor_pos*." );
+      if( transmitter_pos.ncols() != max(Index(2),atmosphere_dim) )
+        throw runtime_error( "*transmitter_pos* must either be empty, have "
+                             "2 for 1D/2D or 3 columns for 3D." );
+    }
+
+  // Antenna
+  //
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+  //
+  if( nza == 0 )
+    throw runtime_error( "The measurement block zenith angle grid is empty." );
+  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
+  //
+  if( antenna_dim == 1 )
+    {
+      if( mblock_aa_grid.nelem() != 0 )
+        throw runtime_error( 
+          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
+    }
+  else
+    {
+      if( atmosphere_dim < 3 )
+        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
+                                                 "used with 3D atmospheres." );
+      if( mblock_aa_grid.nelem() == 0 )
+        throw runtime_error(
+                      "The measurement block azimuthal angle grid is empty." );
+      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
+    }
+
+  // Sensor
+  //
+  if( sensor_response.ncols() != niyb ) 
+    {
+      ostringstream os;
+      os << "The *sensor_response* matrix does not have the right size,\n"
+         << "either the method *sensor_responseInit* has not been run or some\n"
+         << "of the other sensor response methods has not been correctly\n"
+         << "configured.";
+      throw runtime_error( os.str() );
+    }
+
+  // Sensor aux variables
+  //
+  if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
+      n1y != sensor_response_za.nelem() || n1y != sensor_response_za.nelem() )
+    {
+      ostringstream os;
+      os << "Sensor auxiliary variables do not have the correct size.\n"
+         << "The following variables should all have same size:\n"
+         << "length(y) for one block      : " << n1y << "\n"
+         << "sensor_response_f.nelem()    : " << sensor_response_f.nelem()
+         << "\nsensor_response_pol.nelem(): " << sensor_response_pol.nelem()
+         << "\nsensor_response_za.nelem() : " << sensor_response_za.nelem() 
+         << "\nsensor_response_aa.nelem() : " << sensor_response_za.nelem() 
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  // If here, all OK
+  sensor_checked = 1;
+}
 
 
 

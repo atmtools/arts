@@ -2245,6 +2245,7 @@ void yCalc(
    const Tensor4&                    vmr_field,
    const Index&                      cloudbox_on,
    const Index&                      cloudbox_checked,
+   const Index&                      sensor_checked,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
    const Matrix&                     sensor_pos,
@@ -2266,6 +2267,7 @@ void yCalc(
    const ArrayOfString&              iy_aux_vars,
    const Verbosity&                  verbosity )
 {
+  cout << "stokes_dim=" << stokes_dim << "\n";
   // Some sizes
   const Index   nf      = f_grid.nelem();
   const Index   nza     = mblock_za_grid.nelem();
@@ -2281,7 +2283,7 @@ void yCalc(
   // Input checks
   //---------------------------------------------------------------------------
 
-  // Basics and cloudbox OK?
+  // Basics, cloudbox, and sensor OK?
   //
   if( !basics_checked )
     throw runtime_error( "The atmosphere and basic control variables must be "
@@ -2289,108 +2291,12 @@ void yCalc(
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
+          cout << stokes_dim <<"\n";
+  if( !sensor_checked )
+    throw runtime_error( "The sensor variables must be flagged to have passed"
+                         "a consistency check (sensor_checked=1)." );
 
-  // Sensor position and LOS.
-  //
-  if( sensor_pos.ncols() != atmosphere_dim )
-    throw runtime_error( "The number of columns of sensor_pos must be "
-                         "equal to the atmospheric dimensionality." );
-  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
-    throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
-  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
-    throw runtime_error( "For 3D, sensor_los shall have two columns." );
-  if( sensor_los.nrows() != nmblock )
-    {
-      ostringstream os;
-      os << "The number of rows of sensor_pos and sensor_los must be "
-         << "identical, but sensor_pos has " << nmblock << " rows,\n"
-         << "while sensor_los has " << sensor_los.nrows() << " rows.";
-      throw runtime_error( os.str() );
-    }
-  if( max( sensor_los(joker,0) ) > 180 )
-    throw runtime_error( 
-     "First column of *sensor_los* is not allowed to have values above 180." );
-  if( atmosphere_dim == 2 )
-    {
-      if( min( sensor_los(joker,0) ) < -180 )
-          throw runtime_error( "For atmosphere_dim = 2, first column of "
-                    "*sensor_los* is not allowed to have values below -180." );
-    }     
-  else
-    {
-      if( min( sensor_los(joker,0)  ) < 0 )
-          throw runtime_error( "For atmosphere_dim != 2, first column of "
-                       "*sensor_los* is not allowed to have values below 0." );
-    }    
-  if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
-    throw runtime_error( 
-    "Second column of *sensor_los* is not allowed to have values above 180." );
-
-  // Transmission position.
-  if( transmitter_pos.ncols() > 0  &&  transmitter_pos.nrows() > 0 )
-    {
-      if( transmitter_pos.nrows() != sensor_pos.nrows() )
-        throw runtime_error( "*transmitter_pos* must either be empty or have "
-                             "the same number of rows as *sensor_pos*." );
-      if( transmitter_pos.ncols() != max(Index(2),atmosphere_dim) )
-        throw runtime_error( "*transmitter_pos* must either be empty, have "
-                             "2 for 1D/2D or 3 columns for 3D." );
-    }
-
-  // Antenna
-  //
-  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
-  //
-  if( nza == 0 )
-    throw runtime_error( "The measurement block zenith angle grid is empty." );
-  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
-  //
-  if( antenna_dim == 1 )
-    {
-      if( mblock_aa_grid.nelem() != 0 )
-        throw runtime_error( 
-          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
-    }
-  else
-    {
-      if( atmosphere_dim < 3 )
-        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
-                                                 "used with 3D atmospheres." );
-      if( mblock_aa_grid.nelem() == 0 )
-        throw runtime_error(
-                      "The measurement block azimuthal angle grid is empty." );
-      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
-    }
-
-  // Sensor
-  //
-  if( sensor_response.ncols() != niyb ) 
-    {
-      ostringstream os;
-      os << "The *sensor_response* matrix does not have the right size,\n"
-         << "either the method *sensor_responseInit* has not been run or some\n"
-         << "of the other sensor response methods has not been correctly\n"
-         << "configured.";
-      throw runtime_error( os.str() );
-    }
-
-  // Sensor aux variables
-  //
-  if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
-      n1y != sensor_response_za.nelem() || n1y != sensor_response_za.nelem() )
-    {
-      ostringstream os;
-      os << "Sensor auxiliary variables do not have the correct size.\n"
-         << "The following variables should all have same size:\n"
-         << "length(y) for one block      : " << n1y << "\n"
-         << "sensor_response_f.nelem()    : " << sensor_response_f.nelem()
-         << "\nsensor_response_pol.nelem(): " << sensor_response_pol.nelem()
-         << "\nsensor_response_za.nelem() : " << sensor_response_za.nelem() 
-         << "\nsensor_response_aa.nelem() : " << sensor_response_za.nelem() 
-         << "\n";
-      throw runtime_error( os.str() );
-    }
-
+          cout << stokes_dim <<"\n";
 
   //---------------------------------------------------------------------------
   // Allocations and resizing
@@ -2456,6 +2362,8 @@ void yCalc(
           Vector          iyb, iyb_error, yb(n1y);
           ArrayOfMatrix   diyb_dx;
           //
+          cout << stokes_dim <<"\n";
+
           iyb_calc(l_ws, iyb, iyb_aux_array[mblock_index], diyb_dx,
                    mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
                    cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
@@ -2470,6 +2378,8 @@ void yCalc(
                                                        mblock_index);
           const Index row0   = rowind.get_start();
           //
+          cout << sensor_response;
+          cout << iyb;
           mult( yb, sensor_response, iyb );
           //
           y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda

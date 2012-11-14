@@ -2608,9 +2608,9 @@ void define_md_data_raw()
         (
          "Checks consistency of the (clear sky) atmosphere.\n"
          "\n"
-         "The following WSVs are treated: f_grid, stokes_dim, p_grid,\n"
-         "lat_grid, lon_grid, t_field, z_field, vmr_field, wind_u/v/w_field,\n"
-         "refellipsoid and z_surface.\n"
+         "The following WSVs are treated: *f_grid*, *stokes_dim*, *p_grid*,\n"
+         "*lat_grid*, *lon_grid*, *t_field*, *z_field*, *vmr_field*, wind_u/v/w_field,\n"
+         "*refellipsoid* and *z_surface*.\n"
          "If any of these variables are changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
@@ -2791,8 +2791,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", "lon_grid", 
-            "z_field", "t_field", "vmr_field", "cloudbox_on","cloudbox_limits",
-            "basics_checked", "cloudbox_checked", "f_grid", "stokes_dim", 
+            "z_field", "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits",
+            "basics_checked", "cloudbox_checked", "sensor_checked",
+            "f_grid", "stokes_dim", 
             "iy_unit", "blackbody_radiation_agenda", 
             "scat_za_grid", "scat_aa_grid" ),
         GIN(),
@@ -3047,7 +3048,7 @@ void define_md_data_raw()
         (
          "Checks consistency between cloudbox and particle variables.\n"
          "\n"
-         "The following WSVs are treated: cloudbox_on, cloudbox_limits,\n"
+         "The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,\n"
          "*pnd_field*, *scat_data_raw*, *particle_masses* and\n"
          "wind_u/v/w_field.\n"
          "\n"
@@ -8201,6 +8202,42 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks consistency of the sensor variables.\n"
+         "\n"
+         "The following WSVs are treated: *sensor_pos*, *sensor_los*,\n"
+         "*transmitter_pos*, *mblock_za_grid*, *mblock_aa_grid*,\n"
+         "*antenna_dim*, *sensor_response*, *sensor_response_f*,\n"
+         "*sensor_response_pol*, *sensor_response_za*, *sensor_response_aa*.\n"
+         "If any of these variables are changed, then this method shall be\n"
+         "called again (no automatic check that this is fulfilled!).\n"
+         "\n"
+         "The main tests are that dimensions of sensor variables agree\n"
+         "with other settings, e.g., the size of f_grid, atmosphere_dim,\n"
+         "stokes_dim, etc.\n"
+         "\n"
+         "If any test fails, there is an error. Otherwise, *sensor_checked*\n"
+         "is set to 1.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "sensor_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "stokes_dim", "f_grid", "sensor_pos",
+            "sensor_los", "transmitter_pos", "mblock_za_grid", "mblock_aa_grid",
+            "antenna_dim", "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_za", "sensor_response_aa"),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensorOff" ),
         DESCRIPTION
         (
@@ -10387,10 +10424,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "basics_checked", "atmosphere_dim", "t_field", "z_field", 
-            "vmr_field", "cloudbox_on", "cloudbox_checked", "stokes_dim", 
-            "f_grid", "sensor_pos", "sensor_los", "transmitter_pos",
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "sensor_response_f",
+            "vmr_field", "cloudbox_on", "cloudbox_checked", "sensor_checked", 
+            "stokes_dim", "f_grid", "sensor_pos", "sensor_los",
+            "transmitter_pos", "mblock_za_grid", "mblock_aa_grid",
+            "antenna_dim", "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_main_agenda", "jacobian_agenda", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", "iy_aux_vars" ),

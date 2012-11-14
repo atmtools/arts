@@ -1,3 +1,20 @@
+2012-11-13  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-369
+
+	* src/m_sensor.cc,methods.cc,workspace.cc,m_rte.cc:
+	Introduced WSM sensor_checkedCalc and WSV sensor_checked in analogy to
+	[basics,cloudbox]_checked and moved all sensor-related checks previously
+	done at the beginning of yCalc to this WSM. Like
+	[basics,cloudbox]_checkedCalc, sensor_checkedCalc now needs to be called
+	before executing yCalc.
+
+	* src/m_doit.cc(CloudboxGetIncoming):
+	Now requires sensor_checked as input.
+
+	* controlfiles/*/*/Test*.arts:
+	Adapted controlfiles to the above changes.
+
 2012-11-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-368

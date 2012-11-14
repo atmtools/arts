@@ -223,6 +223,7 @@ AgendaSet( ybatch_calc_agenda ){
   # ---
   basics_checkedCalc
   cloudbox_checkedCalc
+  sensor_checkedCalc
   yCalc
 
   # Optionally write out jacobian:

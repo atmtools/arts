@@ -91,6 +91,7 @@ VectorCreate( za )
 VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
 Matrix1ColFromVector( sensor_los, za )
 
+sensor_checkedCalc
 
 
 

@@ -3568,6 +3568,21 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sensor_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for sensor related variables.\n"
+       "\n"
+       "This variable flags that sensor variables are defined in a formally\n"
+       "and practically correct way. For example, it checks for correct\n"
+       "dimensions of *sensor_pos* and *sensor_los*.\n"
+       "\n"
+       "Shall be set by *sensor_checkedCalc*. See that WSM for treated WSVs.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sensor_description_amsu" ),
       DESCRIPTION
       (
