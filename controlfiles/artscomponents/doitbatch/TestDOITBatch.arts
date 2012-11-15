@@ -49,6 +49,7 @@ NumericSet( ppath_lmax, 250 )
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.25 )
 
 AgendaSet( surface_rtprop_agenda ){
+  specular_losCalc
   InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
       lon_grid, rte_pos, t_surface )
   surfaceFlatScalarReflectivity

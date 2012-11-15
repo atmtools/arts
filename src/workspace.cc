@@ -4099,15 +4099,19 @@ void Workspace::define_wsv_data()
       GROUP( "SingleScatteringData" )));
 
   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "stokes_dim" ),
-      DESCRIPTION
-      (
-       "The dimensionality of the Stokes vector (1-4).\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       ),
-      GROUP( "Index" )));
+    (WsvRecord
+     ( NAME( "specular_los" ),
+       DESCRIPTION
+       (
+        "The specular direction (for reflection by a flat surface).\n"
+        "\n"
+        "The specualr dirtection as a standard line-of-sight vector.\n"
+        "\n"
+        "Units: degrees\n"
+        "\n"
+        "Size:  [ 1 or 2 ]\n"
+        ), 
+       GROUP( "Vector" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -4117,6 +4121,17 @@ void Workspace::define_wsv_data()
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "stokes_dim" ),
+      DESCRIPTION
+      (
+       "The dimensionality of the Stokes vector (1-4).\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       ),
+      GROUP( "Index" )));
 
    wsv_data.push_back
      (WsvRecord
@@ -4160,6 +4175,24 @@ void Workspace::define_wsv_data()
         "Size:  [ any number, 1 or 2 ]\n"
         ), 
        GROUP( "Matrix" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_normal" ),
+       DESCRIPTION
+       (
+        "The normal vector for a point at the surface.\n"
+        "\n"
+        "The vector is given as a zenith and azimuth (the later only for 3D)\n"
+        "angle, following the definition of line-of-sights. For example,\n"
+        "this vector is always [0] for 1D, as there is no surface topography\n"
+        "for this atmospheric dimensionality.\n"
+        "\n"
+        "Units: degrees\n"
+        "\n"
+        "Size:  [ 1 or 2 ]\n"
+        ), 
+       GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord

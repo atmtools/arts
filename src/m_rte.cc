@@ -2296,8 +2296,6 @@ void yCalc(
     throw runtime_error( "The sensor variables must be flagged to have passed"
                          "a consistency check (sensor_checked=1)." );
 
-          cout << stokes_dim <<"\n";
-
   //---------------------------------------------------------------------------
   // Allocations and resizing
   //---------------------------------------------------------------------------
@@ -2362,14 +2360,12 @@ void yCalc(
           Vector          iyb, iyb_error, yb(n1y);
           ArrayOfMatrix   diyb_dx;
           //
-          cout << stokes_dim <<"\n";
-
           iyb_calc(l_ws, iyb, iyb_aux_array[mblock_index], diyb_dx,
                    mblock_index, atmosphere_dim, t_field, z_field, vmr_field,
                    cloudbox_on, stokes_dim, f_grid, sensor_pos, sensor_los,
                    transmitter_pos, mblock_za_grid, mblock_aa_grid, antenna_dim,
-                   l_iy_main_agenda, j_analytical_do,
-                   jacobian_quantities, jacobian_indices, iy_aux_vars, verbosity);
+                   l_iy_main_agenda, j_analytical_do, jacobian_quantities, 
+                   jacobian_indices, iy_aux_vars, verbosity);
 
 
           // Apply sensor response matrix on iyb, and put into y

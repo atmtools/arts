@@ -1,3 +1,42 @@
+2012-11-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-371
+
+	* Input angle to interpolation in surfaceFlatReflectivity and
+	similar methods was zenith angle. This shall now be incidence angle.
+	That is, the angle to the surface normal, not zenith. This to
+	decouple specification of surface RT properties from topography.
+	The incidence angle should be <= 90 even with topography.
+	(Not an issue for 1D, testing ongoing for 3D.)
+
+	* src/m_rte.cc (yCalc): Removed a leftover cout-s.
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts:
+	* controlfiles/instruments/mhs/mhs_fast.arts:
+	* controlfiles/instruments/mhs/mhs.arts:
+	* controlfiles/instruments/amsu/amsub_fast.arts:
+	* controlfiles/instruments/amsu/amsub.arts:
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts:
+	* controlfiles/artscomponents/surface/TestSurface.arts: Adopted to
+	changes below.
+
+	* src/surface.cc (surface_specular_los): Removed. Replaced by
+	specular_losCalc.
+
+	* src/m_surface.cc (complex_nFromGriddedField4): Removed rte_los
+	as input. Not used.
+
+	(surfaceFlatScalarReflectivity):
+	(surfaceFlatReflectivity):
+	(surfaceFlatRefractiveIndex): Now using specular_los and
+	calc_incang.
+
+	(specular_losCalc): Created.
+
+	* src/surface.cc (calc_incang): Created.
+
+	* src/workspace.cc: Added surface_normal and specular_los. 
+
 2012-11-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-370

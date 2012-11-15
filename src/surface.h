@@ -37,17 +37,9 @@
 #ifndef surface_h
 #define surface_h
 
-
-void surface_specular_los(
-         Vector&     specular_los,
-   ConstVectorView   rte_pos,
+Numeric calc_incang(
    ConstVectorView   rte_los,
-   const Index&      atmosphere_dim,
-   ConstVectorView   lat_grid,
-   ConstVectorView   lon_grid,
-   ConstVectorView   refellipsoid,
-   ConstMatrixView   z_surface );
-
+   ConstVectorView   specular_los );
 
 void surface_specular_R_and_b(
               Workspace&   ws,

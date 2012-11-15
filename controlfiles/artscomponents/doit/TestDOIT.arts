@@ -68,7 +68,8 @@ MatrixSetConstant( z_surface, 1, 1, 500 )
 # Properties of surface
 
 AgendaSet( surface_rtprop_agenda ){
-   InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
+  specular_losCalc
+  InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
                            lon_grid, z_field, rte_pos, t_field )
   complex_nWaterLiebe93( complex_n, f_grid, surface_skin_t )
   surfaceFlatRefractiveIndex

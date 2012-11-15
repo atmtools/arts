@@ -3145,7 +3145,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
-            "lon_true", "rte_pos", "rte_los" ),
+            "lon_true", "rte_pos" ),
         GIN( "n_field" ),
         GIN_TYPE( "GriddedField4" ),
         GIN_DEFAULT( NODEF ),
@@ -8967,8 +8967,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "lat_grid", "lon_grid",
-            "refellipsoid", "z_surface", "rte_pos", "rte_los", 
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", "specular_los",
             "surface_skin_t", "complex_n", "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
@@ -8995,9 +8994,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "lat_grid", "lon_grid",
-            "refellipsoid", "z_surface", "rte_pos", "rte_los", 
-            "surface_skin_t", "surface_reflectivity", 
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+            "specular_los", "surface_skin_t", "surface_reflectivity", 
             "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
@@ -9022,9 +9020,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "lat_grid", "lon_grid",
-            "refellipsoid", "z_surface", "rte_pos", "rte_los", 
-            "surface_skin_t", "surface_scalar_reflectivity",
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+            "specular_los", "surface_skin_t", "surface_scalar_reflectivity",
             "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
@@ -9076,6 +9073,33 @@ void define_md_data_raw()
                   "Position of angle in *surface_los* inside ranges of zenith "
                   "angle grid. See above."
                   )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "specular_losCalc" ),
+        DESCRIPTION
+        (
+         "Calculates the specular direction for intersections with the\n"
+         "surface.\n"
+         "\n"
+         "A help method to set up the surface properties. This method\n"
+         "calculates *specular_los*, that is required in several methods\n"
+         "to convert zenith angles to incidence angles.\n"
+         "\n"
+         "The method also returns the line-of-sight for the surface normal.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "specular_los", "surface_normal" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "rte_los", "atmosphere_dim", "lat_grid", "lon_grid", 
+            "refellipsoid", "z_surface" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back

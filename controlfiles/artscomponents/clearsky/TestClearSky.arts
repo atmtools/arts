@@ -67,7 +67,7 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 # ---
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
 AgendaSet( surface_rtprop_agenda ){
-  Ignore( rte_pos )
+  specular_losCalc
   surfaceFlatScalarReflectivity
 } 
 

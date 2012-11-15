@@ -56,90 +56,26 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! surface_specular_los
-/*!
-    Calculates the specular direction, including the effect of surface 
-    topograpghy
 
-    \param   specular_los       Out: LOS corresponding to specular direction
-    \param   rte_pos            Input: As the WSV with the same name.
+//! calc_incang
+/*!
+    Calculates the incidence angle for a flat surface, based on rte_los and
+    specular_los.
+
+    \param   incang             Return: Incidence angle.
     \param   rte_los            Input: As the WSV with the same name.
-    \param   atmosphere_dim     Input: As the WSV with the same name.
-    \param   lat_grid           Input: As the WSV with the same name.
-    \param   lon_grid           Input: As the WSV with the same name.
-    \param   refellipsoid       Input: As the WSV with the same name.
-    \param   z_surface          Input: As the WSV with the same name.
+    \param   specular_los       Input: As the WSV with the same name.
 
     \author Patrick Eriksson 
-    \date   2012-07-18
+    \date   2012-11-15
 */
-void surface_specular_los(
-         Vector&     specular_los,
-   ConstVectorView   rte_pos,
+Numeric calc_incang(
    ConstVectorView   rte_los,
-   const Index&      atmosphere_dim,
-   ConstVectorView   lat_grid,
-   ConstVectorView   lon_grid,
-   ConstVectorView   refellipsoid,
-   ConstMatrixView   z_surface )
+   ConstVectorView   specular_los )
 {
-  specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
-
-  if( atmosphere_dim == 1 )
-    { specular_los[0] = 180 - rte_los[0]; }
-
-  else if( atmosphere_dim == 2 )
-    { 
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
-      GridPos gp_lat;
-      gridpos( gp_lat, lat_grid, rte_pos[1] );
-      Numeric c1;         // Radial slope of the surface
-      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
-                                                          gp_lat, rte_los[0] );
-      Vector itw(2); interpweights( itw, gp_lat );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                + interp( itw, z_surface(joker,0), gp_lat );
-      specular_los[0] = sign( rte_los[0] ) * 180 - rte_los[0] - 
-                                           2*plevel_angletilt( rv_surface, c1 );
-    }
-
-  else if( atmosphere_dim == 3 )
-    { 
-      // Calculate surface normal in South-North direction
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
-      chk_interpolation_grids( "Longitude interpolation", lon_grid, rte_pos[2]);
-      GridPos gp_lat, gp_lon;
-      gridpos( gp_lat, lat_grid, rte_pos[1] );
-      gridpos( gp_lon, lon_grid, rte_pos[2] );
-      Numeric c1, c2;
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 0 );
-      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
-      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
-                                 + interp( itw, z_surface, gp_lat, gp_lon );
-      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
-      // The same for East-West
-      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
-                       gp_lat, gp_lon, 90 );
-      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
-      // Convert to Cartesian, and determine normal by cross-product
-      Vector tangentSN(3), tangentEW(3), normal(3);
-      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
-      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
-      cross3( normal, tangentSN, tangentEW );
-      // Convert rte_los to cartesian and flip direction
-      Vector di(3);
-      zaaa2cart( di[0], di[1], di[2], rte_los[0], rte_los[1] );
-      di *= -1;
-      // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
-      Vector speccart(3);      
-      const Numeric fac = 2 * (normal * di);
-      for( Index i=0; i<3; i++ )
-        { speccart[i] = fac*normal[i] - di[i]; }
-      cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
-                                                                speccart[2] );
-   }
+  return ( 180-abs(rte_los[0]) + abs(specular_los[0]) ) / 2;
 }
+
 
 
 //! surface_specular_R_and_b

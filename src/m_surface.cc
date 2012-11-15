@@ -74,7 +74,6 @@ void complex_nFromGriddedField4(
     const Vector&          lat_true,
     const Vector&          lon_true,
     const Vector&          rte_pos,
-    const Vector&          rte_los,
     const GriddedField4&   n_field,
     const Verbosity&)
 {
@@ -89,7 +88,6 @@ void complex_nFromGriddedField4(
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
   chk_rte_pos( atmosphere_dim, rte_pos );
-  chk_rte_los( atmosphere_dim, rte_los );
   n_field.checksize_strict();
   //
   chk_griddedfield_gridname( n_field, gfield_fID, "Frequency" );
@@ -383,12 +381,8 @@ void surfaceFlatRefractiveIndex(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
-    const Vector&    lat_grid,
-    const Vector&    lon_grid,
-    const Vector&    refellipsoid,
-    const Matrix&    z_surface,
-    const Vector&    rte_pos,
     const Vector&    rte_los,
+    const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Matrix&    complex_n,
     const Agenda&    blackbody_radiation_agenda,
@@ -418,14 +412,15 @@ void surfaceFlatRefractiveIndex(
   out2 << "  Sets variables to model a flat surface\n";
   out3 << "     surface temperature: " << surface_skin_t << " K.\n";
 
-  Vector specular_los;
-  surface_specular_los( specular_los,  rte_pos, rte_los, atmosphere_dim, 
-                        lat_grid, lon_grid, refellipsoid, z_surface );
-  surface_los.resize( 1, rte_los.nelem() );
+  surface_los.resize( 1, specular_los.nelem() );
   surface_los(0,joker) = specular_los;
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
+
+  // Incidence angle
+  const Numeric incang = calc_incang( rte_los, specular_los );
+  assert( incang <= 90 );
 
   // Complex (amplitude) reflection coefficients
   Complex  Rv, Rh;
@@ -438,7 +433,7 @@ void surfaceFlatRefractiveIndex(
           Complex n2( complex_n(iv,0), complex_n(iv,1) );
 
           // Amplitude reflection coefficients
-          fresnel( Rv, Rh, Numeric(1.0), n2, 180.0-abs(rte_los[0]) );
+          fresnel( Rv, Rh, Numeric(1.0), n2, incang );
         }
 
       // Fill reflection matrix and emission vector
@@ -460,12 +455,8 @@ void surfaceFlatReflectivity(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
-    const Vector&    lat_grid,
-    const Vector&    lon_grid,
-    const Vector&    refellipsoid,
-    const Matrix&    z_surface,
-    const Vector&    rte_pos,
     const Vector&    rte_los,
+    const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Tensor3&   surface_reflectivity,
     const Agenda&    blackbody_radiation_agenda,
@@ -509,10 +500,7 @@ void surfaceFlatReflectivity(
 
   out2 << "  Sets variables to model a flat surface\n";
 
-  Vector specular_los;
-  surface_specular_los( specular_los,  rte_pos, rte_los, atmosphere_dim, 
-                        lat_grid, lon_grid, refellipsoid, z_surface );
-  surface_los.resize( 1, rte_los.nelem() );
+  surface_los.resize( 1, specular_los.nelem() );
   surface_los(0,joker) = specular_los;
 
   surface_emission.resize( nf, stokes_dim );
@@ -560,12 +548,8 @@ void surfaceFlatScalarReflectivity(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
-    const Vector&    lat_grid,
-    const Vector&    lon_grid,
-    const Vector&    refellipsoid,
-    const Matrix&    z_surface,
-    const Vector&    rte_pos,
     const Vector&    rte_los,
+    const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
     const Agenda&    blackbody_radiation_agenda,
@@ -603,10 +587,7 @@ void surfaceFlatScalarReflectivity(
   out2 << "  Sets variables to model a flat surface\n";
   out3 << "     surface temperature: " << surface_skin_t << " K.\n";
 
-  Vector specular_los;
-  surface_specular_los( specular_los,  rte_pos, rte_los, atmosphere_dim, 
-                        lat_grid, lon_grid, refellipsoid, z_surface );
-  surface_los.resize( 1, rte_los.nelem() );
+  surface_los.resize( 1, specular_los.nelem() );
   surface_los(0,joker) = specular_los;
 
   surface_emission.resize( nf, stokes_dim );
@@ -677,7 +658,7 @@ void surfaceLambertianSimple(
   // Allocate and init everything to zero
   //
   surface_los.resize( np, rte_los.nelem() );
-  surface_rmatrix.resize(np,nf,stokes_dim,stokes_dim);
+  surface_rmatrix.resize( np, nf, stokes_dim, stokes_dim );
   surface_emission.resize( nf, stokes_dim );
   //
   surface_los      = 0.0;
@@ -718,6 +699,87 @@ void surfaceLambertianSimple(
       // surface_emission
       surface_emission(iv,0) = (1-r) * b[iv];
     }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void specular_losCalc(
+         Vector&   specular_los,
+         Vector&   surface_normal,
+   const Vector&   rte_pos,
+   const Vector&   rte_los,
+   const Index&    atmosphere_dim,
+   const Vector&   lat_grid,
+   const Vector&   lon_grid,
+   const Vector&   refellipsoid,
+   const Matrix&   z_surface, 
+   const Verbosity&)
+{
+  surface_normal.resize( max( Index(1), atmosphere_dim-1 ) );
+  specular_los.resize( max( Index(1), atmosphere_dim-1 ) );
+
+  if( atmosphere_dim == 1 )
+    { 
+      surface_normal[0] = 0;
+      specular_los[0]   = 180 - rte_los[0]; 
+    }
+
+  else if( atmosphere_dim == 2 )
+    { 
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
+      GridPos gp_lat;
+      gridpos( gp_lat, lat_grid, rte_pos[1] );
+      Numeric c1;         // Radial slope of the surface
+      plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
+                                                          gp_lat, rte_los[0] );
+      Vector itw(2); interpweights( itw, gp_lat );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                + interp( itw, z_surface(joker,0), gp_lat );
+      surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
+      specular_los[0]   = sign( rte_los[0] ) * 180 - rte_los[0] + 
+                                                           2*surface_normal[0];
+    }
+
+  else if( atmosphere_dim == 3 )
+    { 
+      // Calculate surface normal in South-North direction
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
+      chk_interpolation_grids( "Longitude interpolation", lon_grid, rte_pos[2]);
+      GridPos gp_lat, gp_lon;
+      gridpos( gp_lat, lat_grid, rte_pos[1] );
+      gridpos( gp_lon, lon_grid, rte_pos[2] );
+      Numeric c1, c2;
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 0 );
+      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
+      const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
+                                 + interp( itw, z_surface, gp_lat, gp_lon );
+      const Numeric zaSN = 90 - plevel_angletilt( rv_surface, c1 );
+      // The same for East-West
+      plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
+                       gp_lat, gp_lon, 90 );
+      const Numeric zaEW = 90 - plevel_angletilt( rv_surface, c1 );
+      // Convert to Cartesian, and determine normal by cross-product
+      Vector tangentSN(3), tangentEW(3), normal(3);
+      zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
+      zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
+      cross3( normal, tangentSN, tangentEW );
+      // Convert rte_los to cartesian and flip direction
+      Vector di(3);
+      zaaa2cart( di[0], di[1], di[2], rte_los[0], rte_los[1] );
+      di *= -1;
+      // Set LOS normal vector 
+      cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
+                                                                  normal[2] );
+      // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
+      Vector speccart(3);      
+      const Numeric fac = 2 * (normal * di);
+      for( Index i=0; i<3; i++ )
+        { speccart[i] = fac*normal[i] - di[i]; }
+      cart2zaaa( specular_los[0], specular_los[1], speccart[0], speccart[1], 
+                                                                speccart[2] );
+   }
 }
 
 
