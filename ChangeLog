@@ -1,9 +1,16 @@
 2012-11-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-373
+
+	* src/ppath.cc (do_gridcell_3d_byltest2): Completed. Now the
+	active version. 
+
+2012-11-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-372
 
 	* src/ppath.cc (do_gridcell_3d_byltest2): Start on alternative
-	version of the function. 
+	version of the function.
 
 2012-11-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

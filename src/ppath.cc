@@ -3768,6 +3768,7 @@ void do_gridcell_3d_byltest2(
         const Numeric&  za_start,
         const Numeric&  aa_start,
         const Numeric&  l_start,
+        const Index&    icall,
         const Numeric&  ppc,
         const Numeric&  lmax,
         const Numeric&  lat1,
@@ -3790,6 +3791,8 @@ void do_gridcell_3d_byltest2(
   Numeric   r_start   = r_start0;
   Numeric   lat_start = lat_start0;
   Numeric   lon_start = lon_start0;
+
+  assert( icall < 4 );
 
   // Assert latitude and longitude
   assert( lat_start >= lat1 - LATLONTOL );
@@ -4051,7 +4054,7 @@ void do_gridcell_3d_byltest2(
   //
   lstep = l_end / (Numeric)n;
   Numeric l;
-  bool ready = true;     // Now used differently
+  bool ready = true; 
   // 
   for( Index j=1; j<=n; j++ )
     {
@@ -4060,8 +4063,8 @@ void do_gridcell_3d_byltest2(
                    y+dy*l, z+dz*l, dx, dy, dz, ppc, lat_start, lon_start,
                    za_start, aa_start );
  
-      if( unsafe )
-        {
+      if( unsafe && j < n)  // Last point should always be OK. To include it
+        {                   // can lead to infinite recursion
           // Check that r_v[j] is above lower pressure level and the surface.
           // This can fail around tangent points. For p-levels with constant r
           // this is easy to handle analytically, but the problem is tricky in
@@ -4101,7 +4104,7 @@ void do_gridcell_3d_byltest2(
       //cout << "Iterative call of byltest with l_start = " << l << endl;
       do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                               r_start, lat_start, lon_start, za_start, aa_start,
-                               l, ppc, lmax, lat1, lat3, lon5, lon6, 
+                               l, icall+1, ppc, lmax, lat1, lat3, lon5, lon6, 
                               r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                               rsurface15, rsurface35, rsurface36, rsurface16 );
     }
@@ -4399,18 +4402,20 @@ void ppath_step_geom_3d(
   Numeric  lstep;
   Index    endface;
   
+  /*
   do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start,
                   ppc, lmax, lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                   rsurface15, rsurface35, rsurface36, rsurface16 );
-  /*
-  do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                  r_start, lat_start, lon_start, za_start, aa_start, -1,
-                  ppc, lmax, lat1, lat3, lon5, lon6, 
-                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                  rsurface15, rsurface35, rsurface36, rsurface16 );
   */
+  do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                           r_start, lat_start, lon_start, za_start, aa_start, 
+                           -1, 0,
+                           ppc, lmax, lat1, lat3, lon5, lon6, 
+                           r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                           rsurface15, rsurface35, rsurface36, rsurface16 );
+  
   // Fill *ppath*
   const Index np = r_v.nelem();
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, Vector(np-1,lstep), 
@@ -5171,10 +5176,17 @@ void raytrace_3d_linear_basic(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
+      /*
       do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                       r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6,
                       r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                       rsurface15, rsurface35, rsurface36, rsurface16 );
+      */
+      do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                              r, lat, lon, za, aa, -1, 0, 
+                              ppc_step, -1, lat1, lat3, lon5, lon6,
+                              r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                              rsurface15, rsurface35, rsurface36, rsurface16 );
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is <= *lraytrace*, extract the found end point (if not 
