@@ -3747,6 +3747,368 @@ void do_gridcell_3d_byltest(
 
 
 
+//! do_gridcell_3d_byltest
+/*!
+    See ATD for a description of the algorithm.
+
+    \author Patrick Eriksson
+    \date   2002-11-28
+*/
+void do_gridcell_3d_byltest2(
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   lon_v,
+              Vector&   za_v,
+              Vector&   aa_v,
+              Numeric&  lstep,
+              Index&    endface,
+        const Numeric&  r_start0, 
+        const Numeric&  lat_start0,
+        const Numeric&  lon_start0,
+        const Numeric&  za_start,
+        const Numeric&  aa_start,
+        const Numeric&  l_start,
+        const Numeric&  ppc,
+        const Numeric&  lmax,
+        const Numeric&  lat1,
+        const Numeric&  lat3,
+        const Numeric&  lon5,
+        const Numeric&  lon6,
+        const Numeric&  r15a,
+        const Numeric&  r35a,
+        const Numeric&  r36a,
+        const Numeric&  r16a,
+        const Numeric&  r15b,
+        const Numeric&  r35b,
+        const Numeric&  r36b,
+        const Numeric&  r16b,
+        const Numeric&  rsurface15,
+        const Numeric&  rsurface35,
+        const Numeric&  rsurface36,
+        const Numeric&  rsurface16 )
+{
+  Numeric   r_start   = r_start0;
+  Numeric   lat_start = lat_start0;
+  Numeric   lon_start = lon_start0;
+
+  // Assert latitude and longitude
+  assert( lat_start >= lat1 - LATLONTOL );
+  assert( lat_start <= lat3 + LATLONTOL );
+  assert( !( abs( lat_start) < POLELAT  &&  lon_start < lon5 - LATLONTOL ) );
+  assert( !( abs( lat_start) < POLELAT  &&  lon_start > lon6 + LATLONTOL ) );
+
+  // Shift latitude and longitude if outside
+  if( lat_start < lat1 )
+    { lat_start = lat1; }
+  else if( lat_start > lat3 )
+    { lat_start = lat3; }
+  if( lon_start < lon5 )
+    { lon_start = lon5; }
+  else if( lon_start > lon6 )
+    { lon_start = lon6; }
+
+  // Radius of lower and upper pressure level at the start position
+  Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15a, r35a, r36a, r16a, lat_start, lon_start );
+  Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15b, r35b, r36b, r16b, lat_start, lon_start );
+
+  // Assert radius (some extra tolerance is needed for radius)
+  assert( r_start >= rlow - RTOL );
+  assert( r_start <= rupp + RTOL );
+
+  // Shift radius if outside
+  if( r_start < rlow )
+    { r_start = rlow; }
+  else if( r_start > rupp )
+    { r_start = rupp; }
+
+  // Position and LOS in cartesian coordinates
+  Numeric   x, y, z, dx, dy, dz;
+  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
+                                                          za_start, aa_start );
+
+  // Some booleans to check for recursive call
+  bool unsafe     = false;
+  bool do_surface = false;
+
+  // Determine the position of the end point
+  //
+  endface  = 0;
+  //
+  Numeric   r_end, lat_end, lon_end, l_end;
+
+  // Zenith and nadir looking are handled as special cases
+
+  // Zenith looking
+  if( za_start < ANGTOL )
+    {
+      r_end   = rupp;
+      lat_end = lat_start;
+      lon_end = lon_start;
+      l_end   = rupp - r_start;
+      endface  = 4;
+    }
+
+  // Nadir looking
+  else if( za_start > 180-ANGTOL )
+    {
+      const Numeric   rsurface = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                               rsurface15, rsurface35, rsurface36, rsurface16, 
+                                                 lat_start, lon_start );
+      
+      if( rlow > rsurface )
+        {
+          r_end  = rlow;
+          endface = 2;
+        }
+      else
+        {
+          r_end  = rsurface;
+          endface = 7;
+        }
+      lat_end = lat_start;
+      lon_end = lon_start;
+      l_end   = r_start - r_end;
+    }
+
+  else
+    {
+      unsafe = true;
+
+      // Calculate correction terms for the position to compensate for
+      // numerical inaccuracy. 
+      //
+      Numeric   r_corr, lat_corr, lon_corr;
+      //
+      cart2sph( r_corr, lat_corr, lon_corr, x, y, z, lat_start, lon_start,
+                                                     za_start,  aa_start );
+      //
+      r_corr   -= r_start;
+      lat_corr -= lat_start;
+      lon_corr -= lon_start;
+
+      // The end point is found by testing different step lengths until the
+      // step length has been determined by a precision of *l_acc*.
+      //
+      // The first step is to found a length that goes outside the grid cell, 
+      // to find an upper limit. The lower limit is set to 0. The upper
+      // limit is either set to l_start or it is estimated from the size of
+      // the grid cell.
+      // The search algorith is bisection, the next length to test is the
+      // mean value of the minimum and maximum length limits.
+      //
+      if( l_start > 0 )
+        { l_end = l_start; }
+      else
+        { // Approx length in each dimension
+          //const Numeric dr   = rupp-rlow;
+          //const Numeric dlat = DEG2RAD*rupp*(lat3-lat1);
+          //const Numeric dlon = DEG2RAD*rupp*cos(DEG2RAD*lat1)*(lon6-lon5);
+          //l_end = sqrt( dr*dr + dlat*dlat + dlon*dlon );
+          l_end = 2 * ( rupp - rlow );
+        }
+      //cout << "----- Start -----\n";
+      //
+      Numeric   l_in   = 0, l_out = l_end;
+      bool      ready  = false, startup = true;
+
+      if( rsurface15+RTOL >= r15a  ||  rsurface35+RTOL >= r35a  ||  
+          rsurface36+RTOL >= r36a  ||  rsurface16+RTOL >= r16a )
+        { do_surface = true; }
+
+      while( !ready )
+        {
+          //cout << l_end << endl;
+          cart2sph( r_end, lat_end, lon_end, x+dx*l_end, y+dy*l_end, 
+                    z+dz*l_end, lat_start, lon_start, za_start,  aa_start );
+          r_end   -= r_corr;
+          lat_end -= lat_corr;
+          lon_end -= lon_corr;
+          resolve_lon( lon_end, lon5, lon6 );              
+
+          // Special fix for north-south observations
+          if( abs( lat_start ) < POLELAT  &&  abs( lat_end ) < POLELAT  &&
+             ( abs(aa_start) < ANGTOL  ||  abs(aa_start) > 180-ANGTOL ) )
+            { lon_end = lon_start; }
+          
+          bool   inside = true;
+
+          rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15a, r35a, r36a, r16a, lat_end, lon_end );
+          
+          if( do_surface )
+            {
+              const Numeric   r_surface = 
+                           rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                           rsurface15, rsurface35, rsurface36, rsurface16, 
+                                                        lat_end, lon_end );
+              if( r_surface >= rlow  &&  r_end <= r_surface )
+                { inside = false;   endface = 7; }
+            }
+
+          if( inside ) 
+            {
+              if( lat_end < lat1 )
+                { inside = false;   endface = 1; }
+              else if( lat_end > lat3 )
+                { inside = false;   endface = 3; }
+              else if( lon_end < lon5 )
+                { inside = false;   endface = 5; }
+              else if( lon_end > lon6 )
+                { inside = false;   endface = 6; }
+              else if( r_end < rlow )
+                { inside = false;   endface = 2; }
+              else
+                {
+                  rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15b, r35b, r36b, r16b, lat_end, lon_end );
+                  if( r_end > rupp )
+                    { inside = false;   endface = 4; }
+                }
+            }              
+
+          if( startup )
+            {
+              if( inside )
+                { 
+                  l_in   = l_end;
+                  l_end *= 5; 
+                }
+              else
+                { 
+                  l_out = l_end;   
+                  l_end = ( l_out + l_in ) / 2;
+                  startup = false; 
+                  //cout << "= Startup ready \n";
+                }
+            }
+          else
+            {
+              if( inside )
+                { l_in = l_end; }
+              else
+                { l_out = l_end; }
+                            
+              if( ( l_out - l_in ) < LACC )
+                { ready = true; }
+              else
+                { l_end = ( l_out + l_in ) / 2; }
+            }
+        }
+
+      // Now when we are ready, we remove the correction terms. Otherwise
+      // we can end up in an infinite loop if the step length is smaller
+      // than the correction.
+      r_end   += r_corr;
+      lat_end += lat_corr;
+      lon_end += lon_corr;
+      resolve_lon( lon_end, lon5, lon6 );              
+
+      // Set the relevant coordinate to be consistent with found endface.
+      //
+      if( endface == 1 )
+        { lat_end = lat1; }
+      else if( endface == 2 )
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, r36a, 
+                                                    r16a, lat_end, lon_end ); }
+      else if( endface == 3 )
+        { lat_end = lat3; }
+      else if( endface == 4 )
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, r36b, 
+                                                    r16b, lat_end, lon_end ); }
+      else if( endface == 5 )
+        { lon_end = lon5; }
+      else if( endface == 6 )
+        { lon_end = lon6; }
+      else if( endface == 7 )
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15,  
+                      rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
+    }
+
+  //--- Create return vectors
+  //
+  Index n = 1;
+  //
+  if( lmax > 0 )
+    {
+      n = Index( ceil( abs( l_end / lmax ) ) );
+      if( n < 1 )
+        { n = 1; }
+    }
+  //
+  r_v.resize( n+1 );
+  lat_v.resize( n+1 );
+  lon_v.resize( n+1 );
+  za_v.resize( n+1 );
+  aa_v.resize( n+1 );
+  //
+  r_v[0]   = r_start;
+  lat_v[0] = lat_start;
+  lon_v[0] = lon_start;
+  za_v[0]  = za_start;
+  aa_v[0]  = aa_start;
+  //
+  lstep = l_end / (Numeric)n;
+  Numeric l;
+  bool ready = true;     // Now used differently
+  // 
+  for( Index j=1; j<=n; j++ )
+    {
+      l = lstep * (Numeric)j;
+      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j], x+dx*l, 
+                   y+dy*l, z+dz*l, dx, dy, dz, ppc, lat_start, lon_start,
+                   za_start, aa_start );
+ 
+      if( unsafe )
+        {
+          // Check that r_v[j] is above lower pressure level and the surface.
+          // This can fail around tangent points. For p-levels with constant r
+          // this is easy to handle analytically, but the problem is tricky in
+          // the general case with a non-spherical geometry, and this crude
+          // solution is used instead. Not the most elegant solution, but it
+          // works!
+          rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, 
+                                  r36a, r16a, lat_v[j], lon_v[j] );
+          if( do_surface )
+            {
+              const Numeric r_surface = rsurf_at_latlon( lat1, lat3, lon5, lon6,
+                                                         rsurface15, rsurface35,
+                                                         rsurface36, rsurface16,
+                                                         lat_v[j], lon_v[j] ); 
+              if( r_surface >= rlow  &&  r_v[j] < r_surface )
+                { ready = false;   break; }
+            }
+          else if( r_v[j] < rlow )
+            { ready = false;   break; }
+        }
+    }
+
+  if( ready )
+    {
+      //--- Set last point especially, which should improve the accuracy
+      r_v[n]   = r_end; 
+      lat_v[n] = lat_end;
+      lon_v[n] = lon_end;
+
+      // Shall lon values be shifted (value 0 and n+1 are already OK)?
+      for( Index j=1; j<n; j++ )
+        { resolve_lon( lon_v[j], lon5, lon6 ); }
+      //cout << "--- Ready ---" << endl;
+    }
+  else
+    { // If an "outisde" point found, restart with l as start search length
+      //cout << "Iterative call of byltest with l_start = " << l << endl;
+      do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                              r_start, lat_start, lon_start, za_start, aa_start,
+                               l, ppc, lmax, lat1, lat3, lon5, lon6, 
+                              r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                              rsurface15, rsurface35, rsurface36, rsurface16 );
+    }
+}
+
+
+
 //! do_gridcell_3d
 /*!
    Calculates the geometrical path through a 3D grid cell.
@@ -4034,15 +4396,21 @@ void ppath_step_geom_3d(
 
   // Vars to hold found path points, path step length and coding for end face
   Vector   r_v, lat_v, lon_v, za_v, aa_v;
-  Numeric   lstep;
+  Numeric  lstep;
   Index    endface;
-
+  
   do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                   r_start, lat_start, lon_start, za_start, aa_start,
                   ppc, lmax, lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                   rsurface15, rsurface35, rsurface36, rsurface16 );
-
+  /*
+  do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+                  r_start, lat_start, lon_start, za_start, aa_start, -1,
+                  ppc, lmax, lat1, lat3, lon5, lon6, 
+                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                  rsurface15, rsurface35, rsurface36, rsurface16 );
+  */
   // Fill *ppath*
   const Index np = r_v.nelem();
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, Vector(np-1,lstep), 

@@ -2267,7 +2267,6 @@ void yCalc(
    const ArrayOfString&              iy_aux_vars,
    const Verbosity&                  verbosity )
 {
-  cout << "stokes_dim=" << stokes_dim << "\n";
   // Some sizes
   const Index   nf      = f_grid.nelem();
   const Index   nza     = mblock_za_grid.nelem();
@@ -2291,7 +2290,6 @@ void yCalc(
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
-          cout << stokes_dim <<"\n";
   if( !sensor_checked )
     throw runtime_error( "The sensor variables must be flagged to have passed"
                          "a consistency check (sensor_checked=1)." );
@@ -2374,8 +2372,6 @@ void yCalc(
                                                        mblock_index);
           const Index row0   = rowind.get_start();
           //
-          cout << sensor_response;
-          cout << iyb;
           mult( yb, sensor_response, iyb );
           //
           y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
