@@ -668,17 +668,6 @@ code).
 %-
 \label{sec:ppath:3dcross}
 
-%For sensor positions outside the atmosphere, the calculations made in
-%\funcindex{ppath\_start\_stepping} involve the problem of finding the
-%position where the path leaves the atmosphere. This position is found
-%by an iterative search. The maximum radius of the uppermost pressure
-%surface is taken as first guess for the radius of the exit point.  The
-%exit latitude and longitude for this radius is determined (as
-%discussed below), and the radius for the top of the atmosphere for the
-%found position is used as radius for next iteration. This procedure is
-%repeated until the change from one iteration to next for both latitude
-%and longitude is smaller than 1\topowerten{-6}. 
-
 The starting point in for all three cases is the following
 equation system:
 \begin{eqnarray}
@@ -701,13 +690,6 @@ calculated by Equations \ref{eq:ppath:xdl} and
 \ref{eq:ppath:cart2sph}. These calculations are implemented in the
 function \funcindex{r\_crossing\_3d}.  
 
-%Similar expressions were
-%derived to find the position for the crossing of a given latitude or
-%longitude but those expressions were removed from the code as they are
-%not used with present algorithms.\footnote{The expressions mentioned
-%  can be extracted from the function
-%  \shortcode{gridcell\_crossing\_3d} in ARTS version 1-1-440.}
-
 If instead \Lat\ is given, the length to the point of interest can found by
 again squaring the three equations, but now summing the x- and y-terms
 and diving with the z-term:
@@ -715,21 +697,24 @@ and diving with the z-term:
   \tan^2(\Lat) = \frac{(z+l\DiffD z)^2}{(x+l\DiffD x)^2+(y+l\DiffD y)^2}.
 \end{equation}
 The solution of this quadratic equation is implemented in the function
-\funcindex{lat\_crossing\_3d}. The solution for $\Lat=0\degree$ is particularly
-simple ($l=-z/\DiffD z$). The case of $\Lat=90\degree$ is set to have no
-solution ($\tan(90\degree)=\infty$), and is instead assumed to be picked up as
-a crossing with one of the two longitudes defining the grid box. Another
-complication is that, as the $\tan$-term is squared, both $\pm\Lat$ can show up
-as possible solutions, and it must be tested that the found length gives a
-\Lat\ with the correct sign.
+\funcindex{lat\_crossing\_3d}\footnote{This function is presently not used. The
+  source code can be found in \texttt{ppath\_NotUsed.cc}}. The solution for
+$\Lat=0\degree$ is particularly simple ($l=-z/\DiffD z$). The case of
+$\Lat=90\degree$ is set to have no solution ($\tan(90\degree)=\infty$), and is
+instead assumed to be picked up as a crossing with one of the two longitudes
+defining the grid box. Another complication is that, as the $\tan$-term is
+squared, both $\pm\Lat$ can show up as possible solutions, and it must be
+tested that the found length gives a \Lat\ with the correct sign.
 
 For a given longitude, the x- and y-equations can be combined to give:
 \begin{equation}
   l = \frac{y-x\tan(\Lon)}{\DiffD x\tan(\Lon)-\DiffD y}.
 \end{equation}
-This case is handled by \funcindex{lon\_crossing\_3d}. If the zenith or azimuth
-angle equals 0\degree\ or 180\degree, or if the start and target longitudes are
-equal, there is no valid solution.
+This case is handled by \funcindex{lon\_crossing\_3d}\footnote{This function is
+  presently not used. The source code can be found in
+  \texttt{ppath\_NotUsed.cc}}. If the zenith or azimuth angle equals 0\degree\
+or 180\degree, or if the start and target longitudes are equal, there is no
+valid solution.
 
 
 
@@ -774,88 +759,101 @@ The polynomial to solve becomes (cf.\ Eq.~\ref{eq:ppath:psurf2})
                                         + c_2 \sin(\Theta_p)/24.   \nonumber
   \label{eq:ppath:psurf2}
 \end{eqnarray}
-The solution of this polynomial is handled by \funcindex{rslope\_crossing3d}.
+The solution of this polynomial is handled by
+\funcindex{rslope\_crossing3d}\footnote{This function is presently not used.
+  The source code can be found in \texttt{ppath\_NotUsed.cc}}.
 
 
 
-% \subsubsection{A first 3D algorithm}
-% %-
-% \label{sec:ppath:3dgeom}
+\subsubsection{A robust 3D algorithm}
+%-
+\label{sec:ppath:3dgeom}
+%
+\begin{algorithm}
+ \begin{algorithmic}
+  \STATE{calculate the spherical position $(x_0,y_0,z_0)$ and LOS vector 
+         $(\DiffD x,\DiffD y,\DiffD z)$}
+  \STATE{calculate $(\Rds_c,\Lat_c,\Lon_c)=S(x_0,y_0,z_0)-(\Rds_0,\Lat_0,\Lon_0)$, the position correction term}
+  \STATE{set $l_{in} = 0$} 
+   \IF{$l_s>0$}
+    \STATE{$l_{out} = l_s$}
+    \COMMENT{$l_s$ is a function input}
+   \ELSE
+    \STATE{set $l_s$ to 3*vertical thickness of gid cell }
+   \ENDIF
+  \WHILE{$S(x_0+l_{out}\DiffD x,y_0+l_{out}\DiffD y,z_0+l_{out}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$ is inside grid cell}
+  \STATE{$l_{out} \gets 5 * l_{out}$ }
+  \ENDWHILE
+  \STATE{set $l_{end} = (l_{in}+l_{out})/2$}
+  \STATE{set accuracy flag to false}
+  \WHILE{accuracy flag is false}
+   \STATE{calculate $(\Rds,\Lat,\Lon)=S(x_0+l_{end}\DiffD x,y_0+l_{end}\DiffD y,z_0+l_{end}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$}
+   \IF{$(\Rds,\Lat,\Lon)$ is inside grid cell}
+    \STATE{$l_{in} = l_{end}$}
+   \ELSE
+    \STATE{$l_{out} = l_{end}$}
+   \ENDIF
+   \IF{$(l_{out}-l_{in})$ smaller than specified accuracy}
+    \STATE{set accuracy flag to true}
+   \ELSE
+    \STATE{$l_{end} = (l_{in}+l_{out})/2$}
+   \ENDIF
+  \ENDWHILE
+  \STATE{$(\Rds,\Lat,\Lon)\gets(\Rds,\Lat,\Lon)+(\Rds_c,\Lat_c,\Lon_c)$}
+  \STATE{A recursive call can be neeeded, see the text.}
+ \end{algorithmic}
+ \caption{The method applied in \shortcode{do\_gridcell\_3d\_byltest} to find
+   the total length of the path step to be calculated. The symbol $S$ signifies
+   here conversion from Cartesian to spherical coordinates (Equation
+   \ref{eq:ppath:cart2sph}).}
+ \label{alg:ppath:dogridcell3d}
+\end{algorithm}
+%
+\begin{figure}[!b]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{ppath_3Dsearch}
+  \caption{Schematic of Algorithm \ref{alg:ppath:dogridcell3d}. The
+    figure shows two iterations of the algorithm to search for the
+    total length of the path step. The asterisk $(\ast)$ gives the
+    start point for the calculations and the circles $(\circ)$ are the
+    final end points of the path step. The plus signs $(+)$ shows the
+    position of the different lengths tested during the iterations.}
+  \label{fig:ppath:3Dsearch}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath
 
-% \begin{figure}
-%  \begin{center}
-%   \includegraphics*[width=0.80\hsize]{ppath_3Dsearch}
-%   \caption{Schematic of Algorithm \ref{alg:ppath:dogridcell3d}. The
-%     figure shows two iterations of the algorithm to search for the
-%     total length of the path step. The asterisk $(\ast)$ gives the
-%     start point for the calculations and the circles $(\circ)$ are the
-%     final end points of the path step. The plus signs $(+)$ shows the
-%     position of the different lengths tested during the iterations.}
-%   \label{fig:ppath:3Dsearch}  
-%  \end{center}
-% \end{figure}
-% % This figure was produced by the Matlab function mkfigs_ppath
+\noindent
+Some of the expressions presented above, for finding the crossing of a
+specified \Rds, \Lat\ or \Lon, wehre found to be sensitive to numerical
+inaccuracy and an algorith that avoids those expressions have been devised. It
+applies a straightforward ``length-search'' algorithm (Algorithm
+\ref{alg:ppath:dogridcell3d} and Figure \ref{fig:ppath:3Dsearch}). The main
+advantage of the algorithm is that a correction for the shift in position
+caused by the transformations back and fourth to the Cartesian coordinate
+system can be applied. The correction term assures that the position is not
+changed for a step of zero length, and is not moved outside the grid cell due
+to the numerical problems. The algorithm was further found to be sufficiently
+fast to be accepted. A simple bisection search to find the length of the
+propagation path step is used. Both the position and the line-of-sight for the
+other end point of the path step are calculated using a transformation to
+Cartesian coordinates. This algorithm is implemented by the function
+\funcindex{do\_gridcell\_3d\_byltest}. 
 
+The core task is to find the length of the path step. The search algorithm is
+safe with respect to all grid cell boundaries, except the lower pressure level
+where it can fail for zenith angles around 90\degree. In this case, the path
+can pass the lower pressure level and re-enter the grid cell after a short
+distance. For 1D cases, the part inside the lower cell would hold the tangent
+point, but for a non-spherical reference ellipsoid and ``titled'' pressure
+levels the tangent point can be found elsewhere. 
 
-% \begin{algorithm}
-%  \begin{algorithmic}
-%   \STATE{calculate the spherical position $(x_0,y_0,z_0)$ and LOS vector 
-%          $(\DiffD x,\DiffD y,\DiffD z)$}
-%   \STATE{calculate $(\Rds_c,\Lat_c,\Lon_c)=S(x_0,y_0,z_0)-(\Rds_0,\Lat_0,\Lon_0)$, the position correction term}
-%   \STATE{set $l_{in} = 0$} 
-%   \STATE{set $l_{out}$ to a start value}
-%   \IF{LOS is downwards}
-%    \STATE{calculate length to the tangent point, $l_{tan}$}
-%   \ELSE
-%    \STATE{set $l_{tan} = 99\topowerten{6}$ m}
-%   \ENDIF
-%   \WHILE{$S(x_0+l_{out}\DiffD x,y_0+l_{out}\DiffD y,z_0+l_{out}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$ is inside grid cell}
-%    \IF{$l_{out}<l_{tan}$ and $10l_{out}>l_{tan}$}
-%     \STATE{$l_{out} = l_{tan}$}
-%     \COMMENT{to assure that tangent point is included in search}
-%    \ELSE
-%     \STATE{$l_{out} \gets 10 * l_{out}$ }
-%    \ENDIF
-%   \ENDWHILE
-%   \STATE{set $l_{end} = (l_{in}+l_{out})/2$}
-%   \STATE{set accuracy flag to false}
-%   \WHILE{accuracy flag is false}
-%    \STATE{calculate $(\Rds,\Lat,\Lon)=S(x_0+l_{end}\DiffD x,y_0+l_{end}\DiffD y,z_0+l_{end}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$}
-%    \IF{$(\Rds,\Lat,\Lon)$ is inside grid cell}
-%     \STATE{$l_{in} = l_{end}$}
-%    \ELSE
-%     \STATE{$l_{out} = l_{end}$}
-%    \ENDIF
-%    \IF{$(l_{out}-l_{in})$ smaller than specified accuracy}
-%     \STATE{set accuracy flag to true}
-%    \ELSE
-%     \STATE{$l_{end} = (l_{in}+l_{out})/2$}
-%    \ENDIF
-%   \ENDWHILE
-%   \STATE{$(\Rds,\Lat,\Lon)\gets(\Rds,\Lat,\Lon)+(\Rds_c,\Lat_c,\Lon_c)$}
-%  \end{algorithmic}
-%  \caption{The method applied in \shortcode{do\_gridcell\_3d} to find the 
-%           total length of the path step to be calculated.
-%           The symbol $S$ signifies here conversion from Cartesian to
-%           spherical coordinates (Equation \ref{eq:ppath:cart2sph}).}
-%  \label{alg:ppath:dogridcell3d}
-% \end{algorithm}
-
-% Geometrical 3D propagation path steps are determined by the function
-% \funcindex{do\_gridcell\_3d\_byltest}. It applies a straightforward
-% ``length-search'' algorithm (Algorithm
-% \ref{alg:ppath:dogridcell3d} and Figure \ref{fig:ppath:3Dsearch}). The main
-% advantage of the algorithm is that a correction for the shift in position
-% caused by the transformations back and fourth to a Cartesian coordinate system
-% can be applied. The correction term assures that the position is not changed
-% for a step of zero length, and is not moved outside the grid cell due to the
-% numerical problems. The algorithm was further found to be sufficiently fast to
-% be accepted. A simple bisection search to find the length of the propagation
-% path step is used. Both the position and the line-of-sight for the other end
-% point of the path step are calculated using a transformation to Cartesian
-% coordinates.
-
-
+The bisection algorithm can miss such excursions to the lower grid cell.
+Analytic approaches to handle this was rejected due to numerical problems.
+Instead, all final points of the path step are checked with respect to this
+issue and if any point is found to be below the lower pressure level, the
+function is called recursively with the distance to the problematic point as
+maximum search length ($l_s$ in Algorithm~\ref{alg:ppath:dogridcell3d}).
 
 
 \section{Basic treatment of refraction}

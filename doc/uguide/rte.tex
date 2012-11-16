@@ -231,20 +231,19 @@ the path between the points. This is achieved by the variable
 \begin{figure}[p]
  \begin{center}
   \includegraphics*[width=0.99\hsize]{ppath_cases2}
-  \caption{Examples on allowed propagation paths for a 2D atmosphere. 
-    The atmosphere is plotted as in Figure~\ref{fig:fm_defs:2d} beside
-    that the points for the atmospheric fields are not emphasised.
-    The position of the sensor is indicated by an asterisk $(\ast)$,
-    the points defining the paths are plotted as circles $(\circ)$,
-    joined by a solid line. The part of the path outside the
-    atmosphere, not included in the path structure, is shown by a
-    dashed line. Path points corresponding to a tangent point are
-    marked by an extra plus sign $(\oplus)$; but note that these no
-    longer are explicitly included as path point. The shown paths include
-    the minimum set of definition points. There exists also the
-    possibility to add points inside the grid cells, for example, to
-    ensure that the distance between the path points does not exceed
-    a specified limit.}
+  \caption{Examples on allowed propagation paths for a 2D atmosphere. The
+    atmosphere is plotted as in Figure~\ref{fig:fm_defs:2d} beside that the
+    points for the atmospheric fields are not emphasised. The position of the
+    sensor is indicated by an asterisk $(\ast)$, the points defining the paths
+    are plotted as circles $(\circ)$, joined by a solid line. The part of the
+    path outside the atmosphere, not included in the path structure, is shown
+    by a dashed line. Path points corresponding to a tangent point are marked
+    by an extra plus sign $(\oplus)$; but note that these no longer are
+    explicitly included as path point (in contrast to ARTS-2.0 and earlier).
+    The shown paths include the minimum set of definition points. There exists
+    also the possibility to add points inside the grid cells, for example, to
+    ensure that the distance between the path points does not exceed a
+    specified limit.}
   \label{fig:fm_defs:ppath_cases2}
  \end{center}
 \end{figure}
@@ -1008,14 +1007,6 @@ length is set by \wsvindex{ppath\_lmax}. In many cases it should suffice to
 just include path points at the crossings of the atmospheric grids
 (\builtindoc{ppath\_lmax}$\leq0$). An exception can be limb sounding where the
 path step length can be very long around the tangent point, but a limit of
-about 25~km should suffice normally.
-
-As points are always included in the propagation paths at the
-crossings of the atmospheric grids, finer grids will give shorter path
-steps. However, it is neither good practise or efficient to use the
-atmospheric grids to control the accuracy of the radiative transfer
-calculations. An upper limit on the path step length shall be applied
-for this purpose.\footnote{Further discussion can be found in message
-  399 and 410 of the ARTS developers mailing list.}
+about 25~km should suffice normally. See also Section~\ref{sec:ppath:lmax}.
 
 

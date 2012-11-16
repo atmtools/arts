@@ -1,3 +1,18 @@
+2012-11-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-379
+
+	* doc/uguide/ppath_theory.tex: Revised 3D part. Resurrected text
+	and figure for lengt-search algorithm. 
+
+	* src/ppath.cc: Functions now not used moved to ppath_NotUsed.cc.
+
+	* doc/uguide/rte.tex (section{Calculation accuracy}): Moved one
+	paragraph to ppath.tex.
+
+	* doc/uguide/ppath.tex: Updated. Two new sub-sections, describing
+	spacing between additional points and discussing tangent points. 
+
 2012-11-16  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-378

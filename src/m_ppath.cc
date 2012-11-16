@@ -546,7 +546,6 @@ void ppath_stepRefractionBasic(
 {
   // Input checks here would be rather costly as this function is called
   // many times. 
-
   assert( ppath_lraytrace > 0 );
 
   // A call with background set, just wants to obtain the refractive index for
