@@ -236,7 +236,7 @@ Numeric geompath_lat_at_za(
    The tangent point is either real or imaginary depending on the zenith
    angle of the sensor. See geometrical_tangent_radius.
 
-   \return         Length along the path from the tangent point.
+   \return         Length along the path from the tangent point. Always >= 0.
    \param   ppc    Propagation path constant.
    \param   r      Radius of the point of concern.
 
@@ -267,7 +267,7 @@ Numeric geompath_l_at_r(
 
    \return         Radius. 
    \param   ppc    Propagation path constant.
-   \param   l      Length from the tangent point.
+   \param   l      Length from the tangent point (positive or negative).
 
    \author Patrick Eriksson
    \date   2002-05-20
@@ -277,7 +277,6 @@ Numeric geompath_r_at_l(
        const Numeric&  l )
 {
   assert( ppc >= 0 );
-  assert( l >= 0 );
   
   return sqrt( l*l + ppc*ppc );
 }
@@ -322,17 +321,19 @@ Numeric geompath_r_at_lat(
 
    Both start and end point are included in the returned vectors.
 
-   \param   r      Output: Radius of propagation path points.
-   \param   lat    Output: Latitude of propagation path points.
-   \param   za     Output: Zenith angle of propagation path points.
-   \param   lstep  Output: Distance along the path between the points. 
-   \param   ppc    Propagation path constant.
-   \param   r1     Radius for first point.
-   \param   lat1   Latitude for first point.
-   \param   za1    Zenith angle for first point.
-   \param   r2     Radius for second point.
-   \param   lmax   Length criterion for distance between path points.
-                   A negative value means no length criterion.
+   \param   r          Output: Radius of propagation path points.
+   \param   lat        Output: Latitude of propagation path points.
+   \param   za         Output: Zenith angle of propagation path points.
+   \param   lstep      Output: Distance along the path between the points. 
+   \param   ppc        Propagation path constant.
+   \param   r1         Radius for first point.
+   \param   lat1       Latitude for first point.
+   \param   za1        Zenith angle for first point.
+   \param   r2         Radius for second point.
+   \param   tanpoint   True if there is a tangent point (r-based) between 
+                       r1 and r2. Otehrwise false.
+   \param   lmax       Length criterion for distance between path points.
+                       A negative value means no length criterion.
 
    \author Patrick Eriksson
    \date   2002-07-03
@@ -347,27 +348,31 @@ void geompath_from_r1_to_r2(
        const Numeric&  lat1,
        const Numeric&  za1,
        const Numeric&  r2,
+       const bool&     tanpoint,
        const Numeric&  lmax )
 {
-  // Calculate length along the path for point 1 and 2.
-  const Numeric l1 = geompath_l_at_r( ppc, r1 );
-  const Numeric l2 = geompath_l_at_r( ppc, r2 );
-  
+  // Calculate length from tangent point, along the path for point 1 and 2.
+  // Length defined in the viewing direction, ie. negative at end of sensor
+  Numeric l1 = geompath_l_at_r( ppc, r1 );
+  if( abs(za1) > 90 )
+    { l1 *= -1; }
+  Numeric l2 = geompath_l_at_r( ppc, r2 );  
+  if( l1 < 0 ) { l2 *= -1; }
+  if( tanpoint )
+    { l2 *= -1; }
+
   // Calculate needed number of steps, considering a possible length criterion
   Index n;
   if( lmax > 0 )
     {
       // The absolute value of the length distance is needed here
-      n = Index( ceil( abs( l2 - l1 ) / lmax ) );
- 
       // We can't accept n=0, which is the case if l1 = l2
-      if( n < 1 )
-        { n = 1; }
+      n = max( Index(1), Index( ceil( abs( l2 - l1 ) / lmax ) ) );
     }
   else
     { n = 1; }
 
-  // Length of path steps (note that lstep here can be negative)
+  // Length of path steps (note that lstep here can become negative)
   lstep = ( l2 - l1 ) / (Numeric)n;
 
   // Allocate vectors and put in point 1
@@ -381,13 +386,15 @@ void geompath_from_r1_to_r2(
   // Loop steps (beside last) and calculate radius and zenith angle
   for( Index i=1; i<n; i++ )
     {
-      r[i]   = geompath_r_at_l( ppc, l1 + lstep * (Numeric)i );
-      za[i]  = geompath_za_at_r( ppc, za1, r[i] );
+      const Numeric l = l1 + lstep * (Numeric)i;
+      r[i]   = geompath_r_at_l( ppc, l );   // Sign of l does not matter here
+      // Set a zenith angle to 80 or 100 depending on sign of l
+      za[i]  = geompath_za_at_r( ppc, sign(za1)*(90-sign(l)*10), r[i] );
     }
 
   // For maximum accuracy, set last radius to be exactly r2.
-  r[n]   = r2;
-  za[n]  = geompath_za_at_r( ppc, za1, r2 );  // Don't use r[n] here
+  r[n]  = r2;                     // Don't use r[n] below
+  za[n] = geompath_za_at_r( ppc, sign(za1)*(90-sign(l2)*10), r2 );  
 
   // Ensure that zenith and nadir observations keep their zenith angle
   if( abs(za1) < ANGTOL  ||  abs(za1) > 180-ANGTOL )
@@ -3093,6 +3100,7 @@ void do_gridrange_1d(
     { r_start = rb; }
 
   Numeric r_end;
+  bool tanpoint = false;
   endface = -1;
 
   // If upward, end point radius is always rb
@@ -3109,15 +3117,15 @@ void do_gridrange_1d(
       else if( rsurface > ppc )
         { endface = 7;   r_end = rsurface; }
       
-      // The remaining option is a tangent point:
+      // The remaining option is a tangent point and back to rb
       else
-        { endface = 8;   r_end = ppc; }
+        { endface = 4;   r_end = rb;   tanpoint = true; }
     }
 
   assert( endface > 0 );
   
   geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start,
-                                                       za_start, r_end, lmax );
+                          za_start, r_end, tanpoint, lmax );
 }
 
 
@@ -3191,19 +3199,6 @@ void ppath_step_geom_1d(
   const Index np = r_v.nelem();
   ppath_end_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1),
                 Vector(np,1), z_field, refellipsoid, ip, endface, ppc );
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath, -1 );
-
-      ppath_step_geom_1d( ppath2, z_field, refellipsoid, z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
 }
 
 
@@ -3321,21 +3316,18 @@ void do_gridcell_2d(
 
   assert( endface );
 
-  // Check if there is a tangent point inside the grid cell. 
+  //Check if there is a tangent point inside the grid cell. 
+  bool tanpoint;
   const Numeric absza = abs( za_start );
   if( absza > 90  &&  ( absza - abs(lat_start-lat) ) < 90 ) 
-    { endface = 8;   r = ppc; }
+    { tanpoint = true; }
+  else
+    { tanpoint = false; }
 
   geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                                                           za_start, r, lmax );
-  // Force exact values for end point when they are know
-  if( endface == 8 )
-    {
-      if( za_start >0 )
-        { za_v[za_v.nelem()-1] = 90; }
-      else
-        { za_v[za_v.nelem()-1] = -90; }
-    }
+                          za_start, r, tanpoint, lmax );
+
+  // Force exact values for end point when they are known
   if( endface == 1  ||  endface == 3 )
     { lat_v[lat_v.nelem()-1] = lat; }
 }
@@ -3346,7 +3338,7 @@ void do_gridcell_2d(
 /*! 
    Calculates 2D geometrical propagation path steps.
 
-   Works as the same function for 1D despite that some input arguments are
+   Works as the same function for 1D, despite that some input arguments are
    of different type.
 
    \param   ppath             Output: A Ppath structure.
@@ -3403,19 +3395,6 @@ void ppath_step_geom_2d(
   ppath_end_2d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), Vector(np,1), 
                 Vector(np,1), lat_grid, z_field, refellipsoid, ip, ilat, 
                 endface, ppc );
-
-  // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath, -1 );
-
-      ppath_step_geom_2d( ppath2, lat_grid, z_field, refellipsoid, z_surface, 
-                                                                        lmax );
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
 }
 
 
@@ -3428,333 +3407,6 @@ void ppath_step_geom_2d(
     \date   2002-11-28
 */
 void do_gridcell_3d_byltest(
-              Vector&   r_v,
-              Vector&   lat_v,
-              Vector&   lon_v,
-              Vector&   za_v,
-              Vector&   aa_v,
-              Numeric&  lstep,
-              Index&    endface,
-        const Numeric&  r_start0, 
-        const Numeric&  lat_start0,
-        const Numeric&  lon_start0,
-        const Numeric&  za_start,
-        const Numeric&  aa_start,
-        const Numeric&  ppc,
-        const Numeric&  lmax,
-        const Numeric&  lat1,
-        const Numeric&  lat3,
-        const Numeric&  lon5,
-        const Numeric&  lon6,
-        const Numeric&  r15a,
-        const Numeric&  r35a,
-        const Numeric&  r36a,
-        const Numeric&  r16a,
-        const Numeric&  r15b,
-        const Numeric&  r35b,
-        const Numeric&  r36b,
-        const Numeric&  r16b,
-        const Numeric&  rsurface15,
-        const Numeric&  rsurface35,
-        const Numeric&  rsurface36,
-        const Numeric&  rsurface16 )
-{
-  Numeric   r_start   = r_start0;
-  Numeric   lat_start = lat_start0;
-  Numeric   lon_start = lon_start0;
-
-  // Assert latitude and longitude
-  assert( lat_start >= lat1 - LATLONTOL );
-  assert( lat_start <= lat3 + LATLONTOL );
-  assert( !( abs( lat_start) < POLELAT  &&  lon_start < lon5 - LATLONTOL ) );
-  assert( !( abs( lat_start) < POLELAT  &&  lon_start > lon6 + LATLONTOL ) );
-
-  // Shift latitude and longitude if outside
-  if( lat_start < lat1 )
-    { lat_start = lat1; }
-  else if( lat_start > lat3 )
-    { lat_start = lat3; }
-  if( lon_start < lon5 )
-    { lon_start = lon5; }
-  else if( lon_start > lon6 )
-    { lon_start = lon6; }
-
-  // Radius of lower and upper pressure level at the start position
-  Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15a, r35a, r36a, r16a, lat_start, lon_start );
-  Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15b, r35b, r36b, r16b, lat_start, lon_start );
-
-  // Assert radius (some extra tolerance is needed for radius)
-  assert( r_start >= rlow - RTOL );
-  assert( r_start <= rupp + RTOL );
-
-  // Shift radius if outside
-  if( r_start < rlow )
-    { r_start = rlow; }
-  else if( r_start > rupp )
-    { r_start = rupp; }
-
-  // Position and LOS in cartesian coordinates
-  Numeric   x, y, z, dx, dy, dz;
-  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
-                                                          za_start, aa_start );
-
-  // Determine the position of the end point
-  //
-  endface  = 0;
-  //
-  Numeric   r_end, lat_end, lon_end, l_end;
-
-  // Zenith and nadir looking are handled as special cases
-
-  // Zenith looking
-  if( za_start < ANGTOL )
-    {
-      r_end   = rupp;
-      lat_end = lat_start;
-      lon_end = lon_start;
-      l_end   = rupp - r_start;
-      endface  = 4;
-    }
-
-  // Nadir looking
-  else if( za_start > 180-ANGTOL )
-    {
-      const Numeric   rsurface = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                               rsurface15, rsurface35, rsurface36, rsurface16, 
-                                                 lat_start, lon_start );
-      
-      if( rlow > rsurface )
-        {
-          r_end  = rlow;
-          endface = 2;
-        }
-      else
-        {
-          r_end  = rsurface;
-          endface = 7;
-        }
-      lat_end = lat_start;
-      lon_end = lon_start;
-      l_end   = r_start - r_end;
-    }
-
-  // Check faces in number order
-  else
-    {
-      // Calculate correction terms for the position to compensate for
-      // numerical inaccuracy. 
-      //
-      Numeric   r_corr, lat_corr, lon_corr;
-      //
-      cart2sph( r_corr, lat_corr, lon_corr, x, y, z, lat_start, lon_start,
-                                                     za_start,  aa_start );
-      //
-      r_corr   -= r_start;
-      lat_corr -= lat_start;
-      lon_corr -= lon_start;
-
-      // The end point is found by testing different step lengths until the
-      // step length has been determined by a precision of *l_acc*.
-      //
-      // The first step is to found a length that goes outside the grid cell, 
-      // to find an upper limit. The lower limit is set to 0. The upper
-      // limit is found be testing lengths of 100, 1000 ... m.
-      // The search algorith is bisection, the next length to test is the
-      // mean value of the minimum and maximum length limits.
-      //
-      l_end  = 100;
-      //
-      Numeric   l_in   = 0, l_out = l_end;
-      bool      ready  = false, startup = true;
-
-      Numeric   l_tan = 99e6;
-      if( za_start > 90 )
-        { l_tan = sqrt( r_start*r_start - ppc*ppc ); }
-
-      bool   do_surface = false;
-      if( rsurface15+RTOL >= r15a  ||  rsurface35+RTOL >= r35a  ||  
-          rsurface36+RTOL >= r36a  ||  rsurface16+RTOL >= r16a )
-        { do_surface = true; }
-
-      while( !ready )
-        {
-          cart2sph( r_end, lat_end, lon_end, x+dx*l_end, y+dy*l_end, 
-                    z+dz*l_end, lat_start, lon_start, za_start,  aa_start );
-          r_end   -= r_corr;
-          lat_end -= lat_corr;
-          lon_end -= lon_corr;
-          resolve_lon( lon_end, lon5, lon6 );              
-
-          // Special fix for north-south observations
-          if( abs( lat_start ) < POLELAT  &&  abs( lat_end ) < POLELAT  &&
-             ( abs(aa_start) < ANGTOL  ||  abs(aa_start) > 180-ANGTOL ) )
-            { lon_end = lon_start; }
-          
-          bool   inside = true;
-
-          rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15a, r35a, r36a, r16a, lat_end, lon_end );
-          
-          if( do_surface )
-            {
-              const Numeric   r_surface = 
-                           rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                           rsurface15, rsurface35, rsurface36, rsurface16, 
-                                                        lat_end, lon_end );
-              if( r_surface >= rlow  &&  r_end <= r_surface )
-                { inside = false;   endface = 7; }
-            }
-
-          if( inside ) 
-            {
-              if( lat_end < lat1 )
-                { inside = false;   endface = 1; }
-              else if( lat_end > lat3 )
-                { inside = false;   endface = 3; }
-              else if( lon_end < lon5 )
-                { inside = false;   endface = 5; }
-              else if( lon_end > lon6 )
-                { inside = false;   endface = 6; }
-              else if( r_end < rlow )
-                { inside = false;   endface = 2; }
-              else
-                {
-                  rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15b, r35b, r36b, r16b, lat_end, lon_end );
-                  if( r_end > rupp )
-                    { inside = false;   endface = 4; }
-                }
-            }              
-
-          if( startup )
-            {
-              if( inside )
-                { 
-                  l_in   = l_end;
-                  if( l_end < l_tan  &&  l_end*10 > l_tan )
-                    { l_end = l_tan; }  // Check always l_tan if relevant, as 
-                  else                  // lowest radius inside grid box
-                    { l_end *= 10; }
-                }
-              else
-                { 
-                  l_out = l_end;   
-                  l_end = ( l_out + l_in ) / 2;
-                  startup = false; 
-                }
-            }
-          else
-            {
-              if( inside )
-                { l_in = l_end; }
-              else
-                { l_out = l_end; }
-                            
-              if( ( l_out - l_in ) < LACC )
-                { ready = true; }
-              else
-                { l_end = ( l_out + l_in ) / 2; }
-            }
-        }
-
-      // Now when we are ready, we remove the correction terms. Otherwise
-      // we can end up in an infinite loop if the step length is smaller
-      // than the correction.
-      r_end   += r_corr;
-      lat_end += lat_corr;
-      lon_end += lon_corr;
-      resolve_lon( lon_end, lon5, lon6 );              
-
-      // Check if there is a tangent point inside the grid cell. 
-      if( za_start > 90  &&  l_tan < l_end )
-        {
-          geompath_tanpos_3d( r_end, lat_end, lon_end, l_end, r_start, 
-                              lat_start, lon_start, za_start, aa_start, ppc );
-          resolve_lon( lon_end, lon5, lon6 );              
-          endface = 8;
-        }
-
-      // Set the relevant coordinate to be consistent with found endface.
-      //
-      if( endface == 1 )
-        { lat_end = lat1; }
-      else if( endface == 2 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, r36a, 
-                                                    r16a, lat_end, lon_end ); }
-      else if( endface == 3 )
-        { lat_end = lat3; }
-      else if( endface == 4 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, r36b, 
-                                                    r16b, lat_end, lon_end ); }
-      else if( endface == 5 )
-        { lon_end = lon5; }
-      else if( endface == 6 )
-        { lon_end = lon6; }
-      else if( endface == 7 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15,  
-                      rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
-    }
-
-  //--- Create return vectors
-  //
-  Index n = 1;
-  //
-  if( lmax > 0 )
-    {
-      n = Index( ceil( abs( l_end / lmax ) ) );
-      if( n < 1 )
-        { n = 1; }
-    }
-  //
-  r_v.resize( n+1 );
-  lat_v.resize( n+1 );
-  lon_v.resize( n+1 );
-  za_v.resize( n+1 );
-  aa_v.resize( n+1 );
-  //
-  r_v[0]   = r_start;
-  lat_v[0] = lat_start;
-  lon_v[0] = lon_start;
-  za_v[0]  = za_start;
-  aa_v[0]  = aa_start;
-  //
-  Numeric  ldouble = l_end / (Numeric)n;
-  lstep = ldouble;
-  // 
-  for( Index j=1; j<=n; j++ )
-    {
-      const Numeric   l  = ldouble * (Numeric)j;
-      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j], x+dx*l, 
-                   y+dy*l, z+dz*l, dx, dy, dz, ppc, lat_start, lon_start,
-                   za_start, aa_start );
-   }
-
-  //--- Set last point especially, which should improve the accuracy
-  r_v[n]   = r_end; 
-  lat_v[n] = lat_end;
-  lon_v[n] = lon_end;
-
-  // A tangent point?
-  if( endface == 8 ) 
-    { za_v[n] = 90; }
-
-  // Shall lon values be shifted (value 0 and n+1 are already OK)?
-  for( Index j=1; j<n; j++ )
-    { resolve_lon( lon_v[j], lon5, lon6 ); }
-}
-
-
-
-//! do_gridcell_3d_byltest
-/*!
-    See ATD for a description of the algorithm.
-
-    \author Patrick Eriksson
-    \date   2002-11-28
-*/
-void do_gridcell_3d_byltest2(
               Vector&   r_v,
               Vector&   lat_v,
               Vector&   lon_v,
@@ -4102,9 +3754,9 @@ void do_gridcell_3d_byltest2(
   else
     { // If an "outisde" point found, restart with l as start search length
       //cout << "Iterative call of byltest with l_start = " << l << endl;
-      do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
+      do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                               r_start, lat_start, lon_start, za_start, aa_start,
-                               l, icall+1, ppc, lmax, lat1, lat3, lon5, lon6, 
+                              l, icall+1, ppc, lmax, lat1, lat3, lon5, lon6, 
                               r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                               rsurface15, rsurface35, rsurface36, rsurface16 );
     }
@@ -4402,19 +4054,11 @@ void ppath_step_geom_3d(
   Numeric  lstep;
   Index    endface;
   
-  /*
   do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                  r_start, lat_start, lon_start, za_start, aa_start,
-                  ppc, lmax, lat1, lat3, lon5, lon6, 
-                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                  rsurface15, rsurface35, rsurface36, rsurface16 );
-  */
-  do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                           r_start, lat_start, lon_start, za_start, aa_start, 
-                           -1, 0,
-                           ppc, lmax, lat1, lat3, lon5, lon6, 
-                           r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                           rsurface15, rsurface35, rsurface36, rsurface16 );
+                          r_start, lat_start, lon_start, za_start, aa_start, 
+                          -1, 0, ppc, lmax, lat1, lat3, lon5, lon6, 
+                          r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                          rsurface15, rsurface35, rsurface36, rsurface16 );
   
   // Fill *ppath*
   const Index np = r_v.nelem();
@@ -4545,7 +4189,6 @@ void raytrace_1d_linear_basic(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      bool tanpoint = false;
       do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step, 
                                                        -1, r1, r3, r_surface );
       assert( r_v.nelem() == 2 );
@@ -4554,27 +4197,31 @@ void raytrace_1d_linear_basic(
       // a tangent point, we are ready).
       // Otherwise, we make a geometrical step with length *lraytrace*.
 
+      Numeric za_flagside = za;
+
       if( lstep <= lraytrace )
         {
           r     = r_v[1];
           lat   = lat_v[1];
           lcum += lstep;
-          if( endface == 8 )
-            { tanpoint = true; }
-          else
-            { ready = true; }
+          ready = true;
         }
       else
         {
-          if( za <= 90 )
-            { lstep = lraytrace; }
+          Numeric l;
+          if( za <= 90 ) 
+            { l = geompath_l_at_r(ppc_step,r) + lraytrace; }
           else
-            { lstep = -lraytrace; }
+            { 
+              l = geompath_l_at_r(ppc_step,r) - lraytrace; 
+              if( l < 0 )
+                { za_flagside = 80; }     // Tangent point passed!
+            }
 
-          r = geompath_r_at_l( ppc_step, geompath_l_at_r(ppc_step,r) + lstep );
+          r = geompath_r_at_l( ppc_step, l );
 
           lat = geompath_lat_at_za( za, lat, 
-                                          geompath_za_at_r( ppc_step, za, r) );
+                                geompath_za_at_r( ppc_step, za_flagside, r ) );
           lcum += lraytrace;
         }
 
@@ -4584,25 +4231,17 @@ void raytrace_1d_linear_basic(
                          edensity_field, f_grid, r );
 
       // Calculate LOS zenith angle at found point.
-      // The general code is very sensitive for numerical problems around the
-      // tangent point, and to get correct results in the limit of n=1 it was
-      // found better to handle tangent points seperately.
-      if( tanpoint )
-        { za = 90; }
 
-      else
-        {
-          const Numeric   ppc_local = ppc / refr_index; 
+      const Numeric ppc_local = ppc / refr_index; 
 
-          if( r >= ppc_local )
-            { za = geompath_za_at_r( ppc_local, za, r ); }
-          else  // If moved below tangent point:
-            { 
-              r = ppc_local;
-              za = 90;
-            }
+      if( r >= ppc_local )
+        { za = geompath_za_at_r( ppc_local, za_flagside, r ); }
+      else  // If moved below tangent point:
+        { 
+          r = ppc_local;
+          za = 90;
         }
-      
+
       // Store found point?
       if( ready  ||  lcum + lraytrace > lmax )
         {
@@ -4848,30 +4487,36 @@ void raytrace_2d_linear_basic(
       // a tangent point, we are ready).
       // Otherwise, we make a geometrical step with length *lraytrace*.
 
+      Numeric za_flagside = za;
+
       if( lstep <= lraytrace )
         {
           r     = r_v[1];
           dlat  = lat_v[1] - lat;
           lat   = lat_v[1];
           lcum += lstep;
-          if( endface != 8 )
-            { ready = true; }
+          ready = true; 
         }
       else
         {
-          if( abs(za) <= 90 )
-            { lstep = lraytrace; }
+          Numeric l;
+          if( abs(za) <= 90 ) 
+            { l = geompath_l_at_r(ppc_step,r) + lraytrace; }
           else
-            { lstep = -lraytrace; }
+            { 
+              l = geompath_l_at_r(ppc_step,r) - lraytrace; 
+              if( l < 0 )
+                { za_flagside = sign(za)*80; }     // Tangent point passed!
+            }
 
-          r = geompath_r_at_l( ppc_step, geompath_l_at_r(ppc_step,r) + lstep );
+          r = geompath_r_at_l( ppc_step, l );
 
           const Numeric lat_new = geompath_lat_at_za( za, lat, 
-                                          geompath_za_at_r( ppc_step, za, r) );
+                                 geompath_za_at_r( ppc_step, za_flagside, r) );
           dlat  = lat_new - lat;
           lat   = lat_new;
-          lstep = abs( lstep );
-          lcum += lstep;
+          lstep = lraytrace;
+          lcum += lraytrace;
 
           // For paths along the latitude end faces we can end up outside the
           // grid cell. We simply look for points outisde the grid cell.
@@ -4895,16 +4540,6 @@ void raytrace_2d_linear_basic(
       //
       za += (RAD2DEG * lstep / refr_index) * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
-
-      // Make sure that we don't get stuck in an infinite loop at a
-      // tangent point
-      if( endface == 8  &&  abs(za)> 90  &&  lstep < 1e-3 )
-        {
-          if( za > 0 )
-            { za = 90; }
-          else
-            { za = -90; }
-        }
 
       // Make sure that obtained *za* is inside valid range
       if( za < -180 )
@@ -5176,13 +4811,7 @@ void raytrace_3d_linear_basic(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will a geometric path exit the grid cell?
-      /*
       do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                      r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6,
-                      r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                      rsurface15, rsurface35, rsurface36, rsurface16 );
-      */
-      do_gridcell_3d_byltest2( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                               r, lat, lon, za, aa, -1, 0, 
                               ppc_step, -1, lat1, lat3, lon5, lon6,
                               r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,

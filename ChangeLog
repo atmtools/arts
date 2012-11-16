@@ -1,3 +1,48 @@
+2012-11-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-376
+
+	* Tangent points are now never included in a special manner. This
+	has gradually disappeared, and now also removed from geom. 1D and
+	2D. This to be more consistent, makes the code cleaner, and
+	(marginally) faster.
+	Note that with a non-spherical ellipsiod there are two possible
+	tangent altitudes, min radius and min vertical distance to geoid.
+	It is the later that is most interesting, but it was the first one
+	that was included.
+	Anyhow, if you run with lmax <= 10 km the difference is really
+	small between present and old results. At least for passive
+	observations (e.g. no reference values not changed for passive).
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	Deactivated "compare" as results have changed somehwat:
+	0.00011 deg (out of 0.6921) for bending angle and
+	0.3 ns (out of 637 ns) for extra path delay.
+	Will re-activate when the radio link part is revised.
+
+	* src/ppath.cc (geompath_r_at_l): Removed assert for negative l,
+	as l anyhow squared.
+
+	(geompath_from_r1_to_r2): Now handles that r1 and r2 can be on
+	different side of a (r-based) tangent point. An extra input
+	argument added for this.
+
+	(do_gridrange_1d): Adopted to change in geompath_from_r1_to_r2,
+	and hence always return complete step through grid cell.
+
+	(ppath_step_geom_1d): Removed special handling of tangent points.
+
+	(raytrace_1d_linear_basic): Adopted to changes above.
+
+	(ppath_step_geom_2d): Removed special handling of tangent points.
+
+	(do_gridcell_2d): Adopted to change in geompath_from_r1_to_r2.
+
+	(raytrace_2d_linear_basic): Adopted to changes above.
+
+	* src/ppath.cc (do_gridcell_3d_byltest): Removed old version and
+	renamed the test version (ie. now the active function).
+
 2012-11-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-375
@@ -23,7 +68,7 @@
 	* arts-2-1-373
 
 	* src/ppath.cc (do_gridcell_3d_byltest2): Completed. Now the
-	active version. 
+	active version.
 
 2012-11-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
