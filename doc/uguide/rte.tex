@@ -221,7 +221,7 @@ stored together in a structure described in Section~\ref{sec:ppath:Ppath}. The
 path points are primarily placed at the crossings of the path with the
 atmospheric grids (\builtindoc{p\_grid}, \builtindoc{lat\_grid} and
 \builtindoc{lon\_grid}). A path point is also placed at the sensor if it is
-placed inside the atmosphere. Points of surface reflections and tangent points
+placed inside the atmosphere. Points of surface reflections
 are also included if such exist. More points can also be added to the
 propagation path, for example, by setting an upper limit for the distance along
 the path between the points. This is achieved by the variable
@@ -239,7 +239,8 @@ the path between the points. This is achieved by the variable
     joined by a solid line. The part of the path outside the
     atmosphere, not included in the path structure, is shown by a
     dashed line. Path points corresponding to a tangent point are
-    marked by an extra plus sign $(\oplus)$. The shown paths include
+    marked by an extra plus sign $(\oplus)$; but note that these no
+    longer are explicitly included as path point. The shown paths include
     the minimum set of definition points. There exists also the
     possibility to add points inside the grid cells, for example, to
     ensure that the distance between the path points does not exceed

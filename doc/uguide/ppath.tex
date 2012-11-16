@@ -103,8 +103,9 @@ of the same type as \builtindoc{ppath}.
    \includegraphics*[width=0.98\hsize]{ppath_ex2}
   \caption{As Figure \ref{fig:ppath:ex1}, but with a length criterion 
     for the distance between the points defining the path.
-    The inclusion of the tangent point is not a result of this length
-    criterion, it is always included among the path points.}
+    Note: The inclusion of the tangent point was not a result of this length
+    criterion here, but it was explicitly included among the path points.
+    However, this feature has been removed!}
   \label{fig:ppath:ex2}  
  \end{center}
 \end{figure}
@@ -227,8 +228,8 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      \ref{sec:fm_defs:atmdim}). The propagation path is stored in reversed
      order, that is, the position with index 0 is the path point closest to the
      sensor (and equals \shortcode{start\_pos} if it is inside the atmosphere).
-     The full path is stored also for 1D cases with symmetry around a tangent
-     point (in contrast to ARTS-1).
+%     The full path is stored also for 1D cases with symmetry around a tangent
+%     point (in contrast to ARTS-1).
      
    \item[los] [Matrix] The line-of-sight of the propagation path at
      each point. The number of rows of the matrix is \shortcode{np}.

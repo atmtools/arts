@@ -1,3 +1,10 @@
+2012-11-13  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-377
+
+	* doc/uguide/rte.tex, ppath.tex: Removed/adapted references to
+	explicit tangent point inclusion in ppath.
+
 2012-11-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-376
