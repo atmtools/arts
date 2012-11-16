@@ -3098,14 +3098,19 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "v1", "v2", "maxabsdiff", "error_message" ),
+        GIN( "var1", "var2", "maxabsdiff", "error_message" ),
         GIN_TYPE( "Numeric, Vector, Matrix, Tensor7, ArrayOfVector",
                   "Numeric, Vector, Matrix, Tensor7, ArrayOfVector",
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, "", "" ),
         GIN_DESC( "A first variable", "A second variable", 
                   "Threshold for maximum absolute difference.",
-                  "Additional error message.")
+                  "Additional error message."),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        USES_TEMPLATES( false ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
         ));
 
   md_data_raw.push_back

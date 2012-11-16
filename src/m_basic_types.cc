@@ -994,17 +994,21 @@ void VectorSet(Vector&       x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Compare(const Numeric&   n1,
-             const Numeric&   n2,
+void Compare(const Numeric&   var1,
+             const Numeric&   var2,
              const Numeric&   maxabsdiff,
              const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
              const Verbosity& verbosity)
 {
-  const Numeric maxdiff = abs(n1-n2);
-  if( maxdiff > maxabsdiff )
+  const Numeric maxdiff = var1-var2;
+  if( abs(maxdiff) > maxabsdiff )
   {
     ostringstream os;
-    os << "Checked failed!\n";
+    os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to: " << maxabsdiff << endl
        << "but the value deviates with:  " << maxdiff << endl;
@@ -1012,34 +1016,44 @@ void Compare(const Numeric&   n1,
   }
   
   CREATE_OUT2;
-  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+  out2 << "   " << var1name << "-" << var2name
+       << " OK (maximum difference = " << maxdiff << ").\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Compare(const Vector&    vector1,
-             const Vector&    vector2,
+void Compare(const Vector&    var1,
+             const Vector&    var2,
              const Numeric&   maxabsdiff,
              const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
              const Verbosity& verbosity)
 {
-  const Index n = vector1.nelem();
+  const Index n = var1.nelem();
 
-  if( vector2.nelem() != n )
-    throw runtime_error( "The two vectors do not have the same size." );
+  if( var2.nelem() != n )
+  {
+    ostringstream os;
+    os << var1name << " (" << n << ") and "
+       << var2name << " (" << var2.nelem() << ") do not have the same size.";
+    throw runtime_error(os.str());
+  }
 
   Numeric maxdiff = 0.0;
   for( Index i=0; i <n; i++ )
     {
-      const Numeric diff = abs( vector1[i] - vector2[i] );
-      if( diff > maxdiff )
+      const Numeric diff = var1[i] - var2[i];
+      if( abs(diff) > abs(maxdiff) )
       { maxdiff = diff; }
     }
     
-  if( maxdiff > maxabsdiff )
+  if( abs(maxdiff) > maxabsdiff )
   {
     ostringstream os;
-    os << "Checked failed!\n";
+    os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to: " << maxabsdiff << endl
        << "but the vectors deviate with: " << maxdiff << endl;
@@ -1047,22 +1061,33 @@ void Compare(const Vector&    vector1,
   }
   
   CREATE_OUT2;
-  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+  out2 << "   " << var1name << "-" << var2name
+       << " OK (maximum difference = " << maxdiff << ").\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Compare(const Matrix&    matrix1,
-             const Matrix&    matrix2,
+void Compare(const Matrix&    var1,
+             const Matrix&    var2,
              const Numeric&   maxabsdiff,
              const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
              const Verbosity& verbosity)
 {
-  const Index nrows = matrix1.nrows();
-  const Index ncols = matrix1.ncols();
+  const Index nrows = var1.nrows();
+  const Index ncols = var1.ncols();
 
-  if( matrix2.nrows() != nrows  ||  matrix2.ncols() != ncols )
-    throw runtime_error( "The two matrices do not have the same size." );
+  if( var2.nrows() != nrows  ||  var2.ncols() != ncols )
+  {
+    ostringstream os;
+    os << var1name << " (" << nrows << "," << ncols << ") and "
+       << var2name << " (" << var2.nrows() << "," << var2.ncols()
+       << ") do not have the same size.";
+    throw runtime_error(os.str());
+  }
 
   Numeric maxdiff = 0.0;
 
@@ -1070,16 +1095,16 @@ void Compare(const Matrix&    matrix1,
     { 
       for( Index c=0; c<ncols; c++ )
         {
-          const Numeric diff = abs( matrix1(r,c) - matrix2(r,c) );
-          if( diff > maxdiff )
+          const Numeric diff = var1(r,c) - var2(r,c);
+          if( abs(diff) > abs(maxdiff) )
             { maxdiff = diff; }
         }
     }
 
-  if( maxdiff > maxabsdiff )
+  if( abs(maxdiff) > maxabsdiff )
     {
       ostringstream os;
-      os << "Checked failed!\n";
+      os << var1name << "-" << var2name << " FAILED!\n";
       if (error_message.length()) os << error_message << "\n";
       os << "Max allowed deviation set to : " << maxabsdiff << endl
          << "but the matrices deviate with: " << maxdiff << endl;
@@ -1087,33 +1112,42 @@ void Compare(const Matrix&    matrix1,
     }
 
   CREATE_OUT2;
-  out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+  out2 << "   " << var1name << "-" << var2name
+       << " OK (maximum difference = " << maxdiff << ").\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Compare(const Tensor7&  aa,
-             const Tensor7&   bb,
+void Compare(const Tensor7&   var1,
+             const Tensor7&   var2,
              const Numeric&   maxabsdiff,
              const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
              const Verbosity& verbosity)
 {
-    const Index ncols = aa.ncols();
-    const Index nrows = aa.nrows();
-    const Index npages = aa.npages();
-    const Index nbooks = aa.nbooks();
-    const Index nshelves = aa.nshelves();
-    const Index nvitrines = aa.nvitrines();
-    const Index nlibraries = aa.nlibraries();
+    const Index ncols = var1.ncols();
+    const Index nrows = var1.nrows();
+    const Index npages = var1.npages();
+    const Index nbooks = var1.nbooks();
+    const Index nshelves = var1.nshelves();
+    const Index nvitrines = var1.nvitrines();
+    const Index nlibraries = var1.nlibraries();
     
-    if(bb.ncols() != ncols   ||
-       bb.nrows() != nrows  ||
-       bb.npages() != npages   ||
-       bb.nbooks() != nbooks   ||
-       bb.nshelves() != nshelves   ||
-       bb.nvitrines() != nvitrines   ||
-       bb.nlibraries() != nlibraries       )
-        throw runtime_error( "The two tensors do not have the same size." );
+    if(var2.ncols() != ncols   ||
+       var2.nrows() != nrows  ||
+       var2.npages() != npages   ||
+       var2.nbooks() != nbooks   ||
+       var2.nshelves() != nshelves   ||
+       var2.nvitrines() != nvitrines   ||
+       var2.nlibraries() != nlibraries       )
+    {
+      ostringstream os;
+      os << var1name << " and " << var2name << " do not have the same size.";
+      throw runtime_error(os.str());
+    }
     
     Numeric maxdiff = 0.0;
     
@@ -1125,48 +1159,57 @@ void Compare(const Tensor7&  aa,
                         for( Index v=0; v<nvitrines; v++ )
                             for( Index l=0; l<nlibraries; l++ )
             {
-              const Numeric diff = abs( aa(l,v,s,b,p,r,c) - bb(l,v,s,b,p,r,c) );
-              if( diff > maxdiff )
+              const Numeric diff = var1(l,v,s,b,p,r,c) - var2(l,v,s,b,p,r,c);
+              if( abs(diff) > abs(maxdiff) )
                 { maxdiff = diff; }
             }
 
     
-    if( maxdiff > maxabsdiff )
+    if( abs(maxdiff) > maxabsdiff )
       {
         ostringstream os;
-        os << "Checked failed!\n";
+        os << var1name << "-" << var2name << " FAILED!\n";
         if (error_message.length()) os << error_message << "\n";
         os << "Max allowed deviation set to : " << maxabsdiff << endl
-        << "but the tensors deviate with: " << maxdiff << endl;
+           << "but the tensors deviate with: " << maxdiff << endl;
         throw runtime_error(os.str());
       }
     
     CREATE_OUT2;
-    out2 << "   Check OK (maximum difference = " << maxdiff << ").\n";
+    out2 << "   " << var1name << "-" << var2name
+         << " OK (maximum difference = " << maxdiff << ").\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Compare(const ArrayOfVector&    avector1,
-             const ArrayOfVector&    avector2,
+void Compare(const ArrayOfVector&    var1,
+             const ArrayOfVector&    var2,
              const Numeric&   maxabsdiff,
              const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
              const Verbosity& verbosity)
 {
-    if( avector1.nelem() != avector2.nelem() )
+    if( var1.nelem() != var2.nelem() )
     {
         ostringstream os;
         os << "The two arrays do not have the same size." << endl
-        << "Array 1 nelem: " << avector1.nelem() << endl
-        << "Array 2 nelem: " << avector2.nelem() << endl;
+           << var1name << " nelem: " << var1.nelem() << endl
+           << var2name << " nelem: " << var2.nelem() << endl;
         throw runtime_error(os.str());
     }
 
-    for (Index i = 0; i < avector1.nelem(); i++)
+    for (Index i = 0; i < var1.nelem(); i++)
     {
         try
         {
-            Compare(avector1[i], avector2[i], maxabsdiff, error_message, verbosity);
+            ostringstream vn1, vn2;
+            vn1 << var1name << "[" << i << "]";
+            vn2 << var2name << "[" << i << "]";
+            Compare(var1[i], var2[i], maxabsdiff, error_message,
+                    vn1.str(), vn2.str(), "", "", verbosity);
         }
         catch (runtime_error e)
         {
