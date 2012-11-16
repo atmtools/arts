@@ -1,4 +1,17 @@
-2012-11-13  Jana Mendrok <jana.mendrok@ltu.se>
+2012-11-16  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-378
+
+	* started setting up predefined agendas, the user can chose than from by
+	just copying them to the respective required agenda. WORK IN PRROGRESS.
+	commit mainly in order to have synced code on my notebook.
+
+	* controlfiles/general/agendas_new.arts: Added. Current place for
+	predefined agendas. For now, used as an include to agendas.arts.
+
+	* controlfiles/general/agendas.arts: include agendas_new.arts.
+
+2012-11-16  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-377
 

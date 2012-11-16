@@ -9,26 +9,29 @@ Arts2 {
 #  and as far as appropriate. e.g. lbl and lut abs settings.
 ######
 
+INCLUDE "agendas_new.arts"
 
 #
 # Default is "on-the-fly" absorption
 # Another option is to create an absorption table, which could save
 # (considerable) time, especially for batch calculations.
 # 
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
-AgendaSet( abs_mat_per_species_agenda ){
-  Ignore(rte_mag)
-  Ignore(ppath_los)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddOnTheFly
-  # To use the absorption lookup table, replace by:
-  #abs_mat_per_speciesInit
-  #abs_mat_per_speciesAddFromLookup
-  # To get absorption from Zeeman tag,
-  # uncomment this:
-  #abs_mat_per_speciesAddZeeman
-  # and comment out Ignore(rte_mag), Ignore(ppath_los):
+
+#
+# Default is to include emission in source term
+# 
+AgendaSet( blackbody_radiation_agenda ){
+  blackbody_radiationPlanck
 }
+
+
+#
+AgendaSet( iy_main_agenda ){
+  iyEmissionStandard
+}
+
 
 
 #
@@ -53,12 +56,6 @@ AgendaSet( surface_rtprop_agenda ){
 } 
 
 
-#
-# Default is to include emission in source term
-# 
-AgendaSet( blackbody_radiation_agenda ){
-  blackbody_radiationPlanck
-}
 
 
 #
@@ -66,17 +63,17 @@ AgendaSet( blackbody_radiation_agenda ){
 # (This will result in pure geometrical calculations. That is, refraction is 
 # neglected.)
 #
+AgendaSet( ppath_agenda ){
+  Ignore( rte_pos2 )
+  ppathStepByStep
+}
+#
 AgendaSet( ppath_step_agenda ){
   Ignore( t_field )
   Ignore( vmr_field )
   Ignore( edensity_field )
   Ignore( f_grid )
   ppath_stepGeometric
-}
-#
-AgendaSet( ppath_agenda ){
-  Ignore( rte_pos2 )
-  ppathStepByStep
 }
 
 
@@ -88,10 +85,5 @@ AgendaSet( iy_space_agenda ){
   Ignore( rte_los )
   MatrixCBR( iy, stokes_dim, f_grid )
 }
-#
-AgendaSet( iy_main_agenda ){
-  iyEmissionStandard
-}
-
 
 }
