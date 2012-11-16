@@ -1,5 +1,11 @@
 2012-11-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-375
+
+	* ChangeLog: Remove leftover conflict marker from r7969.
+
+2012-11-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-374
 
 	* src/m_basic_types.cc (Compare):
@@ -461,7 +467,6 @@
 
 	* src/absorption.cc(xsec_species): Typo fixed.
 
->>>>>>> .r7969
 2012-11-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-343
