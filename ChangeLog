@@ -1,5 +1,14 @@
 2012-11-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-381
+
+	* controlfiles/instruments/odinsmr/odin_bchannel.m:
+	* controlfiles/instruments/odinsmr/odin_antenna.m: Two functions
+	to set up Odin-SMR simulations. In contrast to old setup_input.m,
+	these functions are stand-alone (ie. Qsmr not needed).
+
+2012-11-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-380
 
 	* src/montecarlo.cc (mcPathTraceGeneralTEST): Code cleaned up. Now
