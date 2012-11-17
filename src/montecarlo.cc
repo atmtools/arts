@@ -828,6 +828,28 @@ void mcPathTraceGeneral(Workspace&            ws,
   assert(isfinite(g));
 }
 
+
+
+//! mcPathTraceGeneral
+/*!
+    Performs the tasks of pathlength sampling.
+
+    Ray tracing done (but now only as far as determined by pathlength 
+    sampling) and calculation of the evolution operator and several 
+    atmospheric variables at the new point.
+
+    The end point of the ray tracing is returned by ppath_step, where the 
+    point of concern has index ppath_step.np-1. However, a somehwat dirty trick
+    is used here to avoid copying of data. Only ppath.np is adjusted, and
+    ppath_step can contain additional points (that should not be used).
+
+    2012-11-15  Patrick Eriksson
+    Revised.  Added handling of ppath_step_agenda. Correct handling of ppath
+    steps having more than two points.
+
+    \author Cory Davis
+    \date 2005-2-21
+*/
 void mcPathTraceGeneralTEST(
          Workspace&      ws,
          MatrixView      evol_op,
@@ -839,7 +861,7 @@ void mcPathTraceGeneralTEST(
          Vector&         rte_los,
          Vector&         pnd_vec,
          Numeric&        g,
-         Ppath&          ppath_step2,
+         Ppath&          ppath_step,
          Index&          termination_flag,
          bool&           inside_cloud,
    const Agenda&         ppath_step_agenda,
@@ -867,11 +889,10 @@ void mcPathTraceGeneralTEST(
   Matrix        opt_depth_mat(stokes_dim,stokes_dim);
   Matrix        incT(stokes_dim,stokes_dim,0.0);
   Vector        tArray(2);
-  Vector        cum_l_step;
   Vector        f_grid(1,f_mono);     // Vector version of f_mono
   Matrix        T(stokes_dim,stokes_dim);
   Numeric       k;
-  Numeric       ds;
+  Numeric       ds, dl=-999;
   Index         istep = 0;  // Counter for number of steps
   Matrix        old_evol_op(stokes_dim,stokes_dim);
 
@@ -888,7 +909,6 @@ void mcPathTraceGeneralTEST(
                    cloudbox_limits[5]-cloudbox_limits[4]+1 );
 
   //initialise Ppath with ppath_start_stepping
-  Ppath ppath_step;
   ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
                         lon_grid, z_field, refellipsoid, z_surface,
                         0, cloudbox_limits, false, 
@@ -960,7 +980,6 @@ void mcPathTraceGeneralTEST(
           //Print( ppath_step, 0, verbosity );
           ip = 1;
 
-          cum_l_stepCalc( cum_l_step, ppath_step );
           inside_cloud = is_gp_inside_cloudbox( ppath_step.gp_p[ip], 
                                                 ppath_step.gp_lat[ip], 
                                                 ppath_step.gp_lon[ip], 
@@ -968,6 +987,8 @@ void mcPathTraceGeneralTEST(
         }
       else
         { ip++; }
+
+      dl = ppath_step.lstep[ip-1];
 
       if( inside_cloud )
         {
@@ -997,7 +1018,7 @@ void mcPathTraceGeneralTEST(
       pnd_vecArray[1] = pnd_vec;
       opt_depth_mat   = ext_matArray[1];
       opt_depth_mat  += ext_matArray[0];
-      opt_depth_mat  *= -(cum_l_step[ip]-cum_l_step[ip-1])/2;
+      opt_depth_mat  *= -dl/2;
       incT            = 0;
 
       if( stokes_dim == 1 )
@@ -1025,28 +1046,11 @@ void mcPathTraceGeneralTEST(
          }
     } // while
 
-  const Index np = 2;
-  ppath_init_structure( ppath_step2, 3, np );
-
-  ppath_step2.pos(Range(0,np),joker) = ppath_step.pos(Range(ip-1,np),joker);
-  ppath_step2.los(Range(0,np),joker) = ppath_step.los(Range(ip-1,np),joker);
-  ppath_step2.r[Range(0,np)]         = ppath_step.r[Range(ip-1,np)];
-  ppath_step2.nreal[Range(0,np)]     = ppath_step.nreal[Range(ip-1,np)];
-  ppath_step2.ngroup[Range(0,np)]    = ppath_step.ngroup[Range(ip-1,np)];
-  ppath_step2.lstep[Range(0,np-1)]   = ppath_step.lstep[Range(ip-1,np-1)]; 
-  for( Index i=0; i<np; i++ )
-    {
-      gridpos_copy( ppath_step2.gp_p[i], ppath_step.gp_p[ip-1+i] );
-      gridpos_copy( ppath_step2.gp_lat[i], ppath_step.gp_lat[ip-1+i] );      
-      gridpos_copy( ppath_step2.gp_lon[i], ppath_step.gp_lon[ip-1+i] ); 
-    }
-  cum_l_stepCalc( cum_l_step, ppath_step2 );
-
 
   if( termination_flag ) 
     { //we must have reached the cloudbox boundary
-      rte_pos = ppath_step2.pos(np-1,joker);
-      rte_los = ppath_step2.los(np-1,joker);
+      rte_pos = ppath_step.pos(ip,joker);
+      rte_los = ppath_step.los(ip,joker);
       g       = evol_op(0,0);
     }
   else
@@ -1057,57 +1061,49 @@ void mcPathTraceGeneralTEST(
       //   log(incT(0,0)) = log(exp(opt_depth_mat(0, 0))) = opt_depth_mat(0, 0)
       //   Avoid loss of precision, use opt_depth_mat directly
       //k=-log(incT(0,0))/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
-      k=-opt_depth_mat(0,0)/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
-      ds=log(evol_opArray[0](0,0)/r)/k;
-      g=k*r;
+      k  = -opt_depth_mat(0,0) / dl;
+      ds = log( evol_opArray[0](0,0) / r ) / k;
+      g  = k*r;
       Vector x(2,0.0);
       //interpolate atmospheric variables required later
-      //length 2
       ArrayOfGridPos gp(1);
-      x[1]=cum_l_step[np-1];
+      x[1] = dl;
       Vector itw(2);
   
-      gridpos(gp, x, ds);
-      assert(gp[0].idx==0);
-      interpweights(itw,gp[0]);
-      interp(ext_mat_mono, itw, ext_matArray, gp[0]);
-      opt_depth_mat = ext_mat_mono;
-      opt_depth_mat+=ext_matArray[gp[0].idx];
-      opt_depth_mat*=-ds/2;
-      if ( stokes_dim == 1 )
-        {
-          incT(0,0)=exp(opt_depth_mat(0,0));
-        }
-      else if ( is_diagonal( opt_depth_mat))
+      gridpos( gp, x, ds );
+      assert( gp[0].idx == 0 );
+      interpweights( itw, gp[0] );
+      interp( ext_mat_mono, itw, ext_matArray, gp[0] );
+      opt_depth_mat  = ext_mat_mono;
+      opt_depth_mat += ext_matArray[gp[0].idx];
+      opt_depth_mat *= -ds/2;
+      if( stokes_dim == 1 )
+        { incT(0,0) = exp( opt_depth_mat(0,0) ); }
+      else if( is_diagonal( opt_depth_mat) )
         {
           for ( Index i=0;i<stokes_dim;i++)
-            {
-              incT(i,i)=exp(opt_depth_mat(i,i));
-            }
+            { incT(i,i) = exp( opt_depth_mat(i,i) ); }
         }
       else
+        { matrix_exp_p30( incT, opt_depth_mat ); }
+      mult( evol_op, evol_opArray[gp[0].idx], incT );
+      interp( abs_vec_mono, itw, abs_vecArray,gp[0] );
+      temperature = interp( itw, tArray, gp[0] );
+      interp( pnd_vec, itw, pnd_vecArray, gp[0] );
+      for( Index i=0; i<2; i++ )
         {
-          //matrix_exp(incT,opt_depth_mat,10);
-          matrix_exp_p30(incT,opt_depth_mat);
+          rte_pos[i] = interp( itw, ppath_step.pos(Range(ip-1,2),i), gp[0] );
+          rte_los[i] = interp( itw, ppath_step.los(Range(ip-1,2),i), gp[0] );
         }
-      mult(evol_op,evol_opArray[gp[0].idx],incT);
-      interp(abs_vec_mono, itw, abs_vecArray,gp[0]);
-      temperature=interp(itw,tArray,gp[0]);
-      interp(pnd_vec, itw,pnd_vecArray,gp[0]);
-      if (np > 2)
-        {
-          gridpos(gp,cum_l_step,ds);
-          interpweights(itw,gp[0]);
-        }
-      for (Index i=0; i<2; i++)
-        {
-          rte_pos[i] = interp(itw,ppath_step2.pos(Range(joker),i),gp[0]);
-          rte_los[i] = interp(itw,ppath_step2.los(Range(joker),i),gp[0]);
-        }
-      rte_pos[2] = interp(itw,ppath_step2.pos(Range(joker),2),gp[0]);
+      rte_pos[2] = interp( itw, ppath_step.pos(Range(ip-1,2),2), gp[0] );
     }
 
   assert(isfinite(g));
+
+  // A dirty trick to avoid copying ppath_step
+  const Index np = ip+1;
+  ppath_step.np  = np;
+
 }
 
 

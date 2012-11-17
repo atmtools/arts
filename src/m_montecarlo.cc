@@ -246,36 +246,25 @@ void MCGeneral(Workspace&            ws,
                          "consistency check (cloudbox_checked=1)." );
 
   if( min_iter < 100 )
-    { throw runtime_error( "*mc_min_iter* must be >= 100." ); }
+    throw runtime_error( "*mc_min_iter* must be >= 100." );
 
-  //Check keyword input
-  if (max_time<0 && max_iter<0 && std_err<0){
-    throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
-  }
+  if( max_time < 0  &&  max_iter < 0  &&  std_err < 0 )
+    throw runtime_error( "At least one of std_err, max_time, and max_iter "
+                         "must be positive." );
 
   if( f_index < 0 )
-    {
-      throw runtime_error( 
-                   "The option of f_index < 0 is not handled by this method." );
-    }
+    throw runtime_error( "The option of f_index < 0 is not handled by this "
+                         "method." );
   if( f_index >= f_grid.nelem() )
-    {
-      throw runtime_error( 
-                   "*f_index* is outside the range of *f_grid*." );
-    }
+    throw runtime_error( "*f_index* is outside the range of *f_grid*." );
 
-  if (! (atmosphere_dim == 3))
+  if( atmosphere_dim != 3 )
+    throw runtime_error( "Only #D atmospheres are handled. " );
+
+  if( sensor_pos.ncols() != 3 )
     {
       ostringstream os;
-      os << "Expected atmosphere_dim: 3. ";
-      os << "Found: " << atmosphere_dim;
-      throw runtime_error(os.str());
-    }
-
-  if (! (sensor_pos.ncols() == 3))
-    {
-      ostringstream os;
-      os << "Expected number of columns in sensor_pos: 3. ";
+      os << "Expected number of columns in sensor_pos: 3.\n";
       os << "Found: " << sensor_pos.ncols();
       throw runtime_error(os.str());
     }
@@ -283,69 +272,63 @@ void MCGeneral(Workspace&            ws,
   if (! (sensor_los.ncols() == 2))
     {
       ostringstream os;
-      os << "Expected number of columns in sensor_los: 2. ";
+      os << "Expected number of columns in sensor_los: 2.\n";
       os << "Found: " << sensor_los.ncols();
       throw runtime_error(os.str());
     }
 
-  if (pnd_field.nbooks() == 0)
-    {
-      ostringstream os;
-      os << "No scattering particles found! "
-         << "Maybe you calculated the pnd_field before you set up the cloudbox?";
-      throw runtime_error(os.str());
-    }
-
   CREATE_OUT2;
-  Ppath ppath_step;
-  Rng rng;                      //Random Number generator
+  Ppath  ppath_step;
+  Rng    rng;                      //Random Number generator
   time_t start_time=time(NULL);
-  Index N_pt=pnd_field.nbooks();//Number of particle types
+  Index  N_pt = pnd_field.nbooks();//Number of particle types
   Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
   Vector Z11maxvector;//Vector holding the maximum phase function for each 
-  bool anyptype30=is_anyptype30(scat_data_mono);
+  bool  anyptype30 = is_anyptype30(scat_data_mono);
   if (anyptype30)
-    {
-      findZ11max(Z11maxvector,scat_data_mono);
-    }
+    { findZ11max(Z11maxvector,scat_data_mono); }
   rng.seed(mc_seed, verbosity);
-  bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
+  bool keepgoing,inside_cloud; 
   Numeric g,temperature,albedo,g_los_csc_theta;
-  Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
-
-    ext_mat_mono(stokes_dim,stokes_dim),q(stokes_dim,stokes_dim),newQ(stokes_dim,stokes_dim),
-    Z(stokes_dim,stokes_dim);
-  q=0.0;newQ=0.0;
-  mc_iteration_count=0;
+  Matrix  A(stokes_dim,stokes_dim), Q(stokes_dim,stokes_dim);
+  Matrix  evol_op(stokes_dim,stokes_dim), ext_mat_mono(stokes_dim,stokes_dim);
+  Matrix  q(stokes_dim,stokes_dim), newQ(stokes_dim,stokes_dim);
+  Matrix  Z(stokes_dim,stokes_dim);
+  q     = 0.0; 
+  newQ  = 0.0;
   Vector vector1(stokes_dim), abs_vec_mono(stokes_dim), I_i(stokes_dim);
   Vector Isum(stokes_dim), Isquaredsum(stokes_dim);
+  Index termination_flag = 0;
   const Numeric f_mono = f_grid[f_index];
+
+
   y.resize(stokes_dim);
-  y=0;
-  Index termination_flag=0;
+  y = 0;
+
+  mc_iteration_count = 0;
   mc_error.resize(stokes_dim);
+  mc_points.resize( p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem() );
+  mc_points = 0;
+
   //local versions of workspace
-  Matrix local_iy(1,stokes_dim),local_surface_emission(1,stokes_dim),local_surface_los;
+  Matrix  local_iy(1,stokes_dim), local_surface_emission(1,stokes_dim);
+  Matrix  local_surface_los;
   Tensor4 local_surface_rmatrix;
-  Vector local_rte_pos(2);
-  Vector local_rte_los(2);
-  Vector new_rte_los(2);
-    Index np;
-  mc_points.resize(p_grid.nelem(),lat_grid.nelem(),lon_grid.nelem());
-  mc_points=0;
+  Vector  local_rte_pos(2);
+  Vector  local_rte_los(2);
+  Vector  new_rte_los(2);
+  Index   np;
   Isum=0.0;Isquaredsum=0.0;
   Numeric std_err_i;
-  bool convert_to_rjbt=false;
+  bool    convert_to_rjbt = false;
   if ( y_unit == "RJBT" )
     { 
-      std_err_i=f_mono*f_mono*2*BOLTZMAN_CONST/
+      std_err_i = f_mono*f_mono*2*BOLTZMAN_CONST/
                                           SPEED_OF_LIGHT/SPEED_OF_LIGHT*std_err;
-      convert_to_rjbt=true;
+      convert_to_rjbt = true;
     }
   else if ( y_unit == "1" )
-    {
-      std_err_i=std_err;
-    }
+    { std_err_i = std_err; }
   else
     {
       ostringstream os;
@@ -356,31 +339,33 @@ void MCGeneral(Workspace&            ws,
       
 
   //Begin Main Loop
-  while (true)
+  while( true )
     {
-      mc_iteration_count+=1;
-      keepgoing=true; //flag indicating whether to continue tracing a photon path
+      mc_iteration_count += 1;
+      keepgoing = true; //flag indicating whether to continue tracing a photon
+
       //Sample a FOV direction
       mc_antenna.draw_los(local_rte_los,rng,sensor_los(0,joker));
       id_mat(Q);
       local_rte_pos=sensor_pos(0,joker);
       I_i=0.0;
-
       
-      while (keepgoing)
+      while( keepgoing )
         {
-          mcPathTraceGeneral( ws,
-                      evol_op, abs_vec_mono, temperature, ext_mat_mono, 
-                      rng, local_rte_pos, local_rte_los, pnd_vec, g,ppath_step,
-                      termination_flag, inside_cloud, ppath_step_agenda,
-                      abs_mat_per_species_agenda, stokes_dim, f_mono, p_grid,
-                      lat_grid, lon_grid, z_field, refellipsoid, z_surface,
-                      t_field, vmr_field, edensity_field, cloudbox_limits, 
-                      pnd_field, scat_data_mono, verbosity); 
+          mcPathTraceGeneral( ws, evol_op, abs_vec_mono, temperature, 
+                              ext_mat_mono, rng, local_rte_pos, local_rte_los, 
+                              pnd_vec, g,ppath_step, termination_flag, 
+                              inside_cloud, ppath_step_agenda, 
+                              abs_mat_per_species_agenda, stokes_dim, f_mono, 
+                              p_grid, lat_grid, lon_grid, z_field, refellipsoid,
+                              z_surface, t_field, vmr_field, edensity_field, 
+                              cloudbox_limits, pnd_field, scat_data_mono, 
+                              verbosity ); 
            
-          np=ppath_step.np;
+          np = ppath_step.np;
           mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
-                    ppath_step.gp_lon[np-1].idx)+=1;
+                                              ppath_step.gp_lon[np-1].idx) += 1;
+
           // GH 2011-09-08: if the lowest layer has large
           // extent and a thick cloud, g may be 0 due to
           // underflow, but then I_i should be 0 as well.
@@ -389,69 +374,66 @@ void MCGeneral(Workspace&            ws,
           // hence new photon.
           // GH 2011-09-14: moved this check to outside the different
           // scenarios, as this goes wrong regardless of the scenario.
-          if (g==0)
+          if( g == 0 )
             {
-              out2 << "Warning: g=0. Very thick cloud near surface? Results still reliable or not?\n";
+              out2 << "Warning: g=0. Very thick cloud near surface? "
+                   << "Results still reliable or not?\n";
               assert(I_i[0]==0);
               keepgoing = false;
             }
-          else if (termination_flag==1)
+          else if( termination_flag == 1 )
             {
-              iy_space_agendaExecute( ws, local_iy, Vector(1, f_mono), local_rte_pos,
-                                      local_rte_los, iy_space_agenda);
-
-              mult(vector1,evol_op,local_iy(0,joker));
-              mult(I_i,Q,vector1);
-              I_i/=g;
+              iy_space_agendaExecute( ws, local_iy, Vector(1,f_mono), 
+                                      local_rte_pos, local_rte_los, 
+                                      iy_space_agenda );
+              mult( vector1, evol_op, local_iy(0,joker) );
+              mult( I_i, Q, vector1 );
+              I_i /= g;
               keepgoing=false; //stop here. New photon.
             }
-          else if (termination_flag==2)
+          else if( termination_flag == 2 )
             {
               //Calculate surface properties
               surface_rtprop_agendaExecute( ws, local_surface_emission, 
-                         local_surface_los, local_surface_rmatrix, Vector(1, f_mono),
-                         local_rte_pos, local_rte_los, surface_rtprop_agenda );
-
+                                            local_surface_los, 
+                                            local_surface_rmatrix, 
+                                            Vector(1,f_mono),
+                                            local_rte_pos, local_rte_los, 
+                                            surface_rtprop_agenda );
+              
               if( local_surface_los.nrows() > 1 )
-                {
-                  throw runtime_error( 
+                throw runtime_error( 
                               "The method handles only specular reflections." );
-                }
 
               //deal with blackbody case
-              if (local_surface_los.nrows()==0)
+              if( local_surface_los.nrows() == 0 )
                 {
-                  mult(vector1,evol_op,local_surface_emission(0,joker));
-                  mult(I_i,Q,vector1);
-                  I_i/=g;
-                  keepgoing=false;
+                  mult( vector1, evol_op, local_surface_emission(0,joker) );
+                  mult( I_i, Q, vector1);
+                  I_i /= g;
+                  keepgoing = false;
                 }
               else
                 //decide between reflection and emission
                 {
-                  Numeric R11=local_surface_rmatrix(0,0,0,0);
-                  if (rng.draw()>R11)
+                  Numeric R11 = local_surface_rmatrix(0,0,0,0);
+                  if( rng.draw() > R11 )
                     {
                       //then we have emission
-                      //Matrix oneminusR(stokes_dim,stokes_dim);
-                      //id_mat(oneminusR);
-                      //oneminusR-=local_surface_rmatrix(0,0,joker,joker);
-                      //oneminusR/=1-R11;
-                      //mult(vector1,oneminusR,local_surface_emission(0,joker));
-                      mult(vector1,evol_op,local_surface_emission(0,joker));
-                      mult(I_i,Q,vector1);
-                      I_i/=g*(1-R11);
-                      keepgoing=false;
+                      mult( vector1, evol_op, local_surface_emission(0,joker) );
+                      mult( I_i, Q, vector1 );
+                      I_i /= g*(1-R11);
+                      keepgoing = false;
                     }
                   else
                     {
                       //we have reflection
-                      local_rte_los=local_surface_los(0,joker);
+                      local_rte_los = local_surface_los( 0, joker );
                       
-                      mult(q,evol_op,local_surface_rmatrix(0,0,joker,joker));
-                      mult(newQ,Q,q);
-                      Q=newQ;
-                      Q/=g*R11;
+                      mult( q, evol_op, local_surface_rmatrix(0,0,joker,joker));
+                      mult( newQ, Q, q );
+                      Q  = newQ;
+                      Q /= g*R11;
                     }
                 }
             }
@@ -459,41 +441,37 @@ void MCGeneral(Workspace&            ws,
             {
               //we have another scattering/emission point 
               //Estimate single scattering albedo
-              albedo=1-abs_vec_mono[0]/ext_mat_mono(0,0);
-              //cout<<"albedo = "<<albedo<<" ext_mat_mono(0,0) = "<<ext_mat_mono(0,0)<<" abs_vec_mono[0] = "<<abs_vec_mono[0]<<"\n";
+              albedo = 1 - abs_vec_mono[0]/ext_mat_mono(0,0);
+
               //determine whether photon is emitted or scattered
-              if (rng.draw()>albedo)
+              if( rng.draw() > albedo )
                 {
                   //Calculate emission
                   Numeric planck_value = planck( f_mono, temperature );
-                  Vector emission=abs_vec_mono;
-                  emission*=planck_value;
+                  Vector emission = abs_vec_mono;
+                  emission *= planck_value;
                   Vector emissioncontri(stokes_dim);
-                  mult(emissioncontri,evol_op,emission);
-                  emissioncontri/=(g*(1-albedo));//yuck!
-                  mult(I_i,Q,emissioncontri);
-                  keepgoing=false;
-                  //cout << "emission contri" <<  I_i[0] << "\n";
+                  mult( emissioncontri, evol_op, emission );
+                  emissioncontri /= (g*(1-albedo)); //yuck!
+                  mult( I_i, Q, emissioncontri );
+                  keepgoing = false;
                 }
               else
                 {
                   //we have a scattering event
-                  //Sample new line of sight.
-                  
-                  Sample_los (new_rte_los,g_los_csc_theta,Z,rng,local_rte_los,
-                              scat_data_mono,stokes_dim,
-                              pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature,
-                              verbosity);
+                  Sample_los( new_rte_los, g_los_csc_theta, Z, rng, 
+                              local_rte_los, scat_data_mono, stokes_dim,
+                              pnd_vec, anyptype30, Z11maxvector, 
+                              ext_mat_mono(0,0)-abs_vec_mono[0], temperature,
+                              verbosity );
                                            
-                  Z/=g*g_los_csc_theta*albedo;
+                  Z /= g * g_los_csc_theta * albedo;
                   
-                  mult(q,evol_op,Z);
-                  mult(newQ,Q,q);
-                  Q=newQ;
+                  mult( q, evol_op, Z );
+                  mult( newQ, Q, q );
+                  Q = newQ;
                   //scattering_order+=1;
-                  local_rte_los=new_rte_los;
-                  //if (silent==0){cout <<"mc_iteration_count = "<<mc_iteration_count << 
-                  //                 ", scattering_order = " <<scattering_order <<"\n";}
+                  local_rte_los = new_rte_los;
                 }
             }
           else
@@ -501,41 +479,44 @@ void MCGeneral(Workspace&            ws,
               //Must be clear sky emission point
               //Calculate emission
               Numeric planck_value = planck( f_mono, temperature );
-              Vector emission=abs_vec_mono;
-              emission*=planck_value;
+              Vector emission = abs_vec_mono;
+              emission *= planck_value;
               Vector emissioncontri(stokes_dim);
-              mult(emissioncontri,evol_op,emission);
-              emissioncontri/=g;
-              mult(I_i,Q,emissioncontri);
-              keepgoing=false;
-              //cout << "emission contri" <<  I_i[0] << "\n";
+              mult( emissioncontri, evol_op, emission );
+              emissioncontri /= g;
+              mult( I_i, Q, emissioncontri );
+              keepgoing = false;
             }
-        }
+        }  // keepgoing
+
       Isum += I_i;
-      for(Index j=0; j<stokes_dim; j++)
+
+      for( Index j=0; j<stokes_dim; j++ )
         {
-          assert(!isnan(I_i[j]));
+          assert( !isnan(I_i[j]) );
           Isquaredsum[j] += I_i[j]*I_i[j];
         }
-      y=Isum;
-      y/=(Numeric)mc_iteration_count;
+      y  = Isum;
+      y /= (Numeric)mc_iteration_count;
       for(Index j=0; j<stokes_dim; j++) 
         {
-          mc_error[j]=sqrt((Isquaredsum[j]/(Numeric)mc_iteration_count-y[j]*y[j])/(Numeric)mc_iteration_count);
+          mc_error[j] = sqrt( ( Isquaredsum[j] / 
+                                (Numeric)mc_iteration_count -y[j]*y[j] ) / 
+                              (Numeric)mc_iteration_count );
         }
-      if (std_err>0 && mc_iteration_count>=min_iter && mc_error[0]<std_err_i)
+      if( std_err>0 && mc_iteration_count>=min_iter && mc_error[0]<std_err_i )
         { break; }
-      if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time)
+      if( max_time>0 && (Index)(time(NULL)-start_time)>=max_time )
         { break; }
-      if (max_iter>0 && mc_iteration_count>=max_iter)
+      if( max_iter>0 && mc_iteration_count>=max_iter )
         { break; }
     }
-  if ( convert_to_rjbt )
+  if( convert_to_rjbt )
     {
       for(Index j=0; j<stokes_dim; j++) 
         {
-          y[j]=invrayjean(y[j],f_mono);
-          mc_error[j]=invrayjean(mc_error[j],f_mono);
+          y[j]        = invrayjean( y[j],        f_mono );
+          mc_error[j] = invrayjean( mc_error[j], f_mono );
         }
     }
 }
