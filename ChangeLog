@@ -1,3 +1,11 @@
+2012-11-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-382
+
+	* src/m_doit2.cc (CloudboxGetIncoming2): Completed? (code, not
+	documentation)
+	(iyInterpCloudboxField2): Work in progress.
+
 2012-11-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-381

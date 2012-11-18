@@ -4992,6 +4992,41 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyInterpCloudboxField2" ),
+        DESCRIPTION
+        (
+         "Interpolates the intensity field of the cloud box.\n"
+         "\n"
+         "This is the standard method to put in *iy_cloudbox_agenda* if the\n"
+         "the scattering inside the cloud box is handled by the DOIT method.\n"
+         "\n"
+         "The intensity field is interpolated to the position (specified by\n"
+         "*rte_pos*) and direction (specified by *rte_los*) given. A linear\n"
+         "interpolation is used for all dimensions.\n"
+         "\n"
+         "The intensity field on the cloux box boundaries is provided by\n"
+         "*scat_i_p/lat/lon* and these variables are interpolated if the\n"
+         "given position is at any boundary.\n"
+         "\n"
+         "Interpolation of the internal field is not yet possible.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "iy" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "doit_i_field2", "rte_pos", "rte_los", "jacobian_do", "cloudbox_on", 
+            "cloudbox_limits", "basics_checked", "cloudbox_checked",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "stokes_dim", "scat_za_grid", "scat_aa_grid", "f_grid" ),
+        GIN(       "za_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1"),
+        GIN_DESC( "Polynomial degree to use for zenith angle interpolation" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyInterpPolyCloudboxField" ),
         DESCRIPTION
         (
