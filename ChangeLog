@@ -2,6 +2,36 @@
 
 	* arts-2-1-383
 
+	* For documentation purposes, before changing MC, the reference
+	values for the MC tests were checked. For two of the tests, the
+	reference I values were found to be too high, with about 2.5K
+	(precision of test calculations about 0.35K). This change in
+	reference value could have been caused in arts-2-1-347, when the
+	cloudbox was enlarged to cover all non-zero pnd_field. The sign of
+	the change in I is consistent with more particles along the path.
+
+	But third test had already OK value. Changed without comment here?
+	No time to investigate this further.
+
+	The changes:
+
+	* controlfiles/artscomponents/montecarlo/
+	TestMonteCarloGeneralGaussian.arts:
+	I: 201.0 -> 198.8
+	Q: 7.6 -> 8.0
+
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts:
+	I: 201.8 -> 199.1
+	Q: 7.6 (no change)
+
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts: I:
+	199.5 K (Not changed, as the significant difference to new
+	calculations. And this quite close to the new values above.)
+
+2012-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-383
+
 	* src/montecarlo.cc (mcPathTraceGeneralTEST): A warning is now
 	given if the optical thickness of the path step exceeeds 4.
 

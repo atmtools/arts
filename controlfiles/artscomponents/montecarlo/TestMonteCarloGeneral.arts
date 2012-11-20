@@ -94,7 +94,7 @@ cloudbox_checkedCalc(
 #### Perform Monte Carlo RT Calculation #################################
 
 NumericSet( mc_std_err, -1 )
-IndexSet( mc_max_time, 20 )
+IndexSet( mc_max_time, 30 )
 IndexSet( mc_max_iter, -1 )
 IndexSet( mc_z_field_is_1D, 1 )
 
@@ -124,10 +124,10 @@ VectorCreate( y_0 )
 Select( y_0, y, [ 0 ] )
 
 VectorCreate( y_ref )
-VectorSetConstant( y_ref, 1, 201.8 )
+VectorSetConstant( y_ref, 1, 199.1 )
 
 Compare( y_0, y_ref, mc_error_0,
-         "Total radiance should be close to 201.8 K" )
+         "Total radiance should be close to 199.1 K" )
 
 # Polarization test
 NumericCreate( mc_error_1 )
