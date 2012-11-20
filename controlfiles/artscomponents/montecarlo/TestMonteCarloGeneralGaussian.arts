@@ -71,6 +71,8 @@ IndexSet( stokes_dim, 4 )
 
 StringSet( iy_unit, "RJBT" )
 
+NumericSet( ppath_lmax, 3e3 )
+
 MCSetSeedFromTime
 
 Print( mc_seed, 1 )
@@ -93,7 +95,6 @@ cloudbox_checkedCalc(
 NumericSet( mc_std_err, -1 )
 IndexSet( mc_max_time, 20 )
 IndexSet( mc_max_iter, -1 )
-IndexSet( mc_z_field_is_1D, 1 )
 
 MCGeneral
 
@@ -121,10 +122,10 @@ VectorCreate( y_0 )
 Select( y_0, y, [ 0 ] )
 
 VectorCreate( y_ref )
-VectorSetConstant( y_ref, 1, 198.8 )
+VectorSetConstant( y_ref, 1, 198.6 )
 
 Compare( y_0, y_ref, mc_error_0,
-         "Total radiance should be close to 198.8 K" )
+         "Total radiance should be close to 198.6 K" )
 
 # Polarization test
 NumericCreate( mc_error_1 )
@@ -134,9 +135,9 @@ NumericScale( mc_error_1, mc_error_1, 4. )
 VectorCreate( y_1 )
 Select( y_1, y, [ 1 ] )
 
-VectorSetConstant( y_ref, 1, 8.0 )
+VectorSetConstant( y_ref, 1, 7.6 )
 
 Compare( y_1, y_ref, mc_error_1,
-         "Polarization difference should be close to 8.0 K" )
+         "Polarization difference should be close to 7.6 K" )
 }
 

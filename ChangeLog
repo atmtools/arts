@@ -1,5 +1,49 @@
 2012-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-386
+
+	* New version mcPathTraceGeneral now activated. That is, MCGeneral
+	now considers ppath_step_agenda, and gives warnings if tau of any
+	path step is higher than 4.
+
+	In addition, other MC methods moved to mc_NotUSed.cc. These
+	methods could be activated on demand (then to be revised and tested).
+
+	* src/workspace.cc: mc_z_field_is_1D removed.
+
+	* src/montecarlo.cc (cum_l_stepCalc,):
+	* src/montecarlo.cc (iwp_cloud_opt_pathCalc):
+	* src/montecarlo.cc (mcPathTraceIPA):
+	* src/m_montecarlo.cc (mc_IWP_cloud_opt_pathCalc):
+	* src/m_montecarlo.cc (MCIPA):
+	* src/m_montecarlo.cc (pha_matExtractManually): All moved to
+	mc_NotUsed.
+
+	* src/montecarlo.cc (mcPathTraceGeneral): "Test version" has now
+	replaced old version.
+
+	* controlfiles/artscomponents/montecarlo/
+	  TestMonteCarloGeneralGaussian.arts:
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts:
+	ppath_lmax set to 3km (needed to avoid warnings about tau > 4).
+	Setting of mc_z_field_is_1D removed.
+
+	New reference values:
+
+	* controlfiles/artscomponents/montecarlo/
+	TestMonteCarloGeneralGaussian.arts:
+	I: 198.8 -> 198.6
+	Q: 8.0 -> 7.6
+
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloGeneral.arts:
+	I: 199.1 -> 198.3
+	Q: 7.6 -> 7.8
+
+	* controlfiles/artscomponents/montecarlo/TestRteCalcMC.arts: I:
+	I: 199.5 -> 199.4
+
+2012-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-385
 
 	* Version number here in ChangeLog was not updated.

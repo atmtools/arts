@@ -6287,31 +6287,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "mc_IWP_cloud_opt_pathCalc" ),
-        DESCRIPTION
-        (
-         "Calculates the FOV averaged ice water path and cloud optical path\n"
-         "for a given viewing direction\n"
-         ),
-        AUTHORS( "Cory Davis" ),
-        OUT( "mc_IWP", "mc_cloud_opt_path", "mc_IWP_error", 
-             "mc_cloud_opt_path_error", "mc_iteration_count" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", 
-            "p_grid", "lat_grid", "lon_grid", "refellipsoid", "z_surface", 
-            "z_field", "t_field", "vmr_field", "edensity_field", 
-            "f_grid", "f_index", "cloudbox_limits", "pnd_field", 
-            "scat_data_mono", "particle_masses", "mc_seed" ),
-        GIN( "max_iter" ),
-        GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Maximum number of iterations." )
-        ));
-  
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "MCGeneral" ),
@@ -6359,33 +6334,6 @@ void define_md_data_raw()
             "pnd_field", "scat_data_mono", "basics_checked", "cloudbox_checked",
             "mc_seed", "iy_unit", 
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "MCIPA" ),
-        DESCRIPTION
-        ( "A specialised 3D reversed Monte Carlo radiative algorithm, that\n"
-          "mimics independent pixel appoximation simulations.\n"
-          ),
-        AUTHORS( "Cory Davis" ),
-        OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
-            "stokes_dim", "atmosphere_dim", "iy_space_agenda", 
-            "surface_rtprop_agenda",  
-            "abs_mat_per_species_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "refellipsoid", "z_surface", "t_field", 
-            "vmr_field", "edensity_field", "cloudbox_limits", "pnd_field", 
-            "scat_data_mono", "mc_seed", "iy_unit",
-            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter",
-            "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6966,35 +6914,6 @@ void define_md_data_raw()
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "pha_matExtractManually" ),
-        DESCRIPTION
-        (
-         "A simple function for manually extract a single phase matrix.\n"
-         "\n"
-         "The function returns the phase matrix for a single particle, for\n"
-         "scattering from (za_in,aa_in) to (za_out,aa_out).\n"
-         "\n"
-         "Only a single particle type is handled and *scat_data_raw* must\n"
-         "have length 1. The frequency is selected by *f_grid* and *f_index*.\n"
-         "The temperature is set by *rte_temperature*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( ),
-        GOUT( "pha_mat_single" ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( 
-            "Phase matrix for a single frequency and combination of angles" ),
-        IN( "f_grid", "f_index", "stokes_dim", "scat_data_raw", 
-            "rte_temperature" ),
-        GIN( "za_out", "aa_out", "za_in", "aa_in" ),
-        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Numeric" ), 
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
-        GIN_DESC( "Outgoing zenith angle", "Outgoing azimuth angle",
-                  "Incoming zenith angle", "Incoming azimuth angle" )
         ));
 
   md_data_raw.push_back

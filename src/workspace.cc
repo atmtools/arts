@@ -2397,20 +2397,6 @@ void Workspace::define_wsv_data()
        GROUP( "Index" )));
 
   wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_z_field_is_1D" ),
-       DESCRIPTION
-       (
-        "Flag for MCGeneral and associated methods.\n"
-        "\n"
-        "If fields outside the cloud box are 1D, this flag can be set to 1\n"
-        "and the calculations will be more rapid.\n"
-        "\n"
-        "Usage: Set by the user.\n"
-        ),
-       GROUP( "Index" )));
-
-  wsv_data.push_back
    (WsvRecord
     ( NAME( "met_amsu_data" ),
       DESCRIPTION

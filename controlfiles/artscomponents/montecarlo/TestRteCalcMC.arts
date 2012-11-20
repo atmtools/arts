@@ -95,10 +95,11 @@ sensor_checkedCalc
 
 StringSet( iy_unit, "RJBT" )
 
+NumericSet( ppath_lmax, 3e3 )
+
 NumericSet( mc_std_err,       -1 )
 IndexSet(   mc_max_time,      -1 )
 IndexSet(   mc_max_iter,      100 )
-IndexSet(   mc_z_field_is_1D, 1 )
 
 AgendaSet( iy_main_agenda ){
   Ignore( rte_pos2 )
@@ -134,14 +135,14 @@ VectorCreate( y_0 )
 Select( y_0, y, [ 0 ] )
 
 VectorCreate( y_ref )
-VectorSetConstant( y_ref, 1, 199.5 )
+VectorSetConstant( y_ref, 1, 199.4 )
 
 Print( y_0, 0 )
 Print( y_ref, 0 )
 Print( y_error_0, 0 )
 
 Compare( y_0, y_ref, y_error_0,
-         "Total radiance should be close to 199.5 K" )
+         "Total radiance should be close to 199.4 K" )
 
 }
 
