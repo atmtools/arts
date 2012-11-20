@@ -6322,7 +6322,7 @@ void define_md_data_raw()
           "\n"
           "The main output variables *y* and *mc_error* represent the\n"
           "Stokes vector integrated over the antenna function, and the\n"
-          "estimated error in this vector respectively.\n"
+          "estimated error in this vector, respectively.\n"
           "\n"
           "The WSV *mc_max_iter* describes the maximum number of `photons\'\n"
           "used in the simulation (more photons means smaller *mc_error*).\n"

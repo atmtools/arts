@@ -896,6 +896,8 @@ void mcPathTraceGeneralTEST(
   Index         istep = 0;  // Counter for number of steps
   Matrix        old_evol_op(stokes_dim,stokes_dim);
 
+  CREATE_OUT0;
+
   //at the start of the path the evolution operator is the identity matrix
   id_mat(evol_op);
   evol_opArray[1]=evol_op;
@@ -1020,6 +1022,12 @@ void mcPathTraceGeneralTEST(
       opt_depth_mat  += ext_matArray[0];
       opt_depth_mat  *= -dl/2;
       incT            = 0;
+
+      if( opt_depth_mat(0,0) < -4 )
+        {
+          out0 << "WARNING: A MC path step of high optical depth ("
+               << abs(opt_depth_mat(0,0)) << ")!\n";
+        }
 
       if( stokes_dim == 1 )
         { incT(0,0) = exp( opt_depth_mat(0,0) ); }

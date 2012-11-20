@@ -230,8 +230,6 @@ void MCGeneral(Workspace&            ws,
                const Index&          max_time,
                const Index&          max_iter,
                const Index&          min_iter,
-               // GH commented out 2011-06-17 unused
-               // const Index&          z_field_is_1D,
                const Verbosity&      verbosity)
 {
   // Basic checks
@@ -277,7 +275,6 @@ void MCGeneral(Workspace&            ws,
       throw runtime_error(os.str());
     }
 
-  CREATE_OUT2;
   Ppath  ppath_step;
   Rng    rng;                      //Random Number generator
   time_t start_time=time(NULL);
@@ -288,7 +285,6 @@ void MCGeneral(Workspace&            ws,
   if (anyptype30)
     { findZ11max(Z11maxvector,scat_data_mono); }
   rng.seed(mc_seed, verbosity);
-  bool keepgoing,inside_cloud; 
   Numeric g,temperature,albedo,g_los_csc_theta;
   Matrix  A(stokes_dim,stokes_dim), Q(stokes_dim,stokes_dim);
   Matrix  evol_op(stokes_dim,stokes_dim), ext_mat_mono(stokes_dim,stokes_dim);
@@ -301,6 +297,7 @@ void MCGeneral(Workspace&            ws,
   Index termination_flag = 0;
   const Numeric f_mono = f_grid[f_index];
 
+  CREATE_OUT0;
 
   y.resize(stokes_dim);
   y = 0;
@@ -339,10 +336,17 @@ void MCGeneral(Workspace&            ws,
       
 
   //Begin Main Loop
+  //
+  bool keepgoing, oksampling; 
+  //
   while( true )
     {
+      bool inside_cloud;
+
       mc_iteration_count += 1;
-      keepgoing = true; //flag indicating whether to continue tracing a photon
+
+      keepgoing = true;    // indicating whether to continue tracing a photon
+      oksampling = true;   // gets false if g becomes zero
 
       //Sample a FOV direction
       mc_antenna.draw_los(local_rte_los,rng,sensor_los(0,joker));
@@ -376,10 +380,11 @@ void MCGeneral(Workspace&            ws,
           // scenarios, as this goes wrong regardless of the scenario.
           if( g == 0 )
             {
-              out2 << "Warning: g=0. Very thick cloud near surface? "
-                   << "Results still reliable or not?\n";
-              assert(I_i[0]==0);
-              keepgoing = false;
+              keepgoing  = false;
+              oksampling = false;              
+              mc_iteration_count -= 1;
+              out0 << "WARNING: A rejected path sampling (g=0)!\n(if this"
+                   << "happens repeatedly, try to decrease *ppath_lmax*)";
             }
           else if( termination_flag == 1 )
             {
@@ -489,28 +494,33 @@ void MCGeneral(Workspace&            ws,
             }
         }  // keepgoing
 
-      Isum += I_i;
+      if( oksampling )
+        {
+          Isum += I_i;
 
-      for( Index j=0; j<stokes_dim; j++ )
-        {
-          assert( !isnan(I_i[j]) );
-          Isquaredsum[j] += I_i[j]*I_i[j];
+          for( Index j=0; j<stokes_dim; j++ )
+            {
+              assert( !isnan(I_i[j]) );
+              Isquaredsum[j] += I_i[j]*I_i[j];
+            }
+          y  = Isum;
+          y /= (Numeric)mc_iteration_count;
+          for(Index j=0; j<stokes_dim; j++) 
+            {
+              mc_error[j] = sqrt( ( Isquaredsum[j] / 
+                                    (Numeric)mc_iteration_count - y[j]*y[j] ) / 
+                                    (Numeric)mc_iteration_count );
+            }
+          if( std_err > 0  &&  mc_iteration_count >= min_iter && 
+              mc_error[0] < std_err_i )
+            { break; }
+          if( max_time > 0  &&  (Index)(time(NULL)-start_time) >= max_time )
+            { break; }
+          if( max_iter > 0  &&  mc_iteration_count >= max_iter )
+            { break; }
         }
-      y  = Isum;
-      y /= (Numeric)mc_iteration_count;
-      for(Index j=0; j<stokes_dim; j++) 
-        {
-          mc_error[j] = sqrt( ( Isquaredsum[j] / 
-                                (Numeric)mc_iteration_count -y[j]*y[j] ) / 
-                              (Numeric)mc_iteration_count );
-        }
-      if( std_err>0 && mc_iteration_count>=min_iter && mc_error[0]<std_err_i )
-        { break; }
-      if( max_time>0 && (Index)(time(NULL)-start_time)>=max_time )
-        { break; }
-      if( max_iter>0 && mc_iteration_count>=max_iter )
-        { break; }
     }
+
   if( convert_to_rjbt )
     {
       for(Index j=0; j<stokes_dim; j++) 
