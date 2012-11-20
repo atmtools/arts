@@ -134,7 +134,7 @@ NumericScale( mc_error_1, mc_error_1, 4. )
 VectorCreate( y_1 )
 Select( y_1, y, [ 1 ] )
 
-VectorSetConstant( y_ref, 1, 8-0 )
+VectorSetConstant( y_ref, 1, 8.0 )
 
 Compare( y_1, y_ref, mc_error_1,
          "Polarization difference should be close to 8.0 K" )

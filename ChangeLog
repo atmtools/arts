@@ -1,6 +1,15 @@
 2012-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
-	* arts-2-1-383
+	* arts-2-1-385
+
+	* Version number here in ChangeLog was not updated.
+
+	* controlfiles/artscomponents/montecarlo/
+	TestMonteCarloGeneralGaussian.arts: A stupid last minute typo!
+
+2012-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-384
 
 	* For documentation purposes, before changing MC, the reference
 	values for the MC tests were checked. For two of the tests, the
