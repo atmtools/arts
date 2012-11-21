@@ -623,8 +623,8 @@ void surfaceLambertianSimple(
     const Vector&    rte_los,
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
+    const Index&     lambertian_nza,
     const Agenda&    blackbody_radiation_agenda,
-    const Index&     np,
     const Numeric&   za_pos,
     const Verbosity&)
 {
@@ -657,8 +657,8 @@ void surfaceLambertianSimple(
 
   // Allocate and init everything to zero
   //
-  surface_los.resize( np, rte_los.nelem() );
-  surface_rmatrix.resize( np, nf, stokes_dim, stokes_dim );
+  surface_los.resize( lambertian_nza, rte_los.nelem() );
+  surface_rmatrix.resize( lambertian_nza, nf, stokes_dim, stokes_dim );
   surface_emission.resize( nf, stokes_dim );
   //
   surface_los      = 0.0;
@@ -667,11 +667,11 @@ void surfaceLambertianSimple(
 
   // Help variables
   //
-  const Numeric dza = 90.0 / (Numeric)np;
-  const Vector za_lims( 0.0, np+1, dza );
+  const Numeric dza = 90.0 / (Numeric)lambertian_nza;
+  const Vector za_lims( 0.0, lambertian_nza+1, dza );
 
   // surface_los
-  for( Index ip=0; ip<np; ip++ )
+  for( Index ip=0; ip<lambertian_nza; ip++ )
     { surface_los(ip,0) = za_lims[ip] + za_pos * dza; }
 
   Vector b;
@@ -689,7 +689,7 @@ void surfaceLambertianSimple(
         { r = surface_scalar_reflectivity[iv]; }
 
       // surface_rmatrix
-      for( Index ip=0; ip<np; ip++ )
+      for( Index ip=0; ip<lambertian_nza; ip++ )
         {
           const Numeric w = r * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
                                         cos(2*DEG2RAD*za_lims[ip+1]) );

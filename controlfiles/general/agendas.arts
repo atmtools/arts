@@ -1,74 +1,131 @@
+#DEFINITIONS:  -*-sh-*-
+#
+############
+# Agenda predefinitions
+#
+# There shall be NO pre-set (default) agendas in general.arts anymore, hiding
+# them away from the user. Instead, the user is forced to explicitly set all
+# the agendas needed. Here, we predefine a range of typical agenda settings,
+# which the user can than copy into his/her setup using:
+#
+# Copy( agenda-name, predefined-agenda-name )
+#
+############
+#
+# Authors: Jana Mendrok
+#
+
+
 Arts2 {
 
-######
-# Agenda definitions
-# 
-# Move to "functional" include files?
-# Or rather to agenda-includes (also topically sorted)? those should use
-#  agendaCreate feature and (pre)define sets of typical agenda settings, where
-#  and as far as appropriate. e.g. lbl and lut abs settings.
-######
+##################################
+#    iy_main_agenda
+##################################
 
-INCLUDE "agendas_new.arts"
+###
+AgendaCreate( iy_main_agenda__Emission )
+AgendaSet( iy_main_agenda__Emission ){
+  iyEmissionStandard
+}
 
+###
+AgendaCreate( iy_main_agenda__Transmission )
+AgendaSet( iy_main_agenda__Transmission ){
+  iyTransmissionStandard
+}
+
+###
+AgendaCreate( iy_main_agenda__ScattMC )
+AgendaSet( iy_main_agenda__ScattMC ){
+  Ignore( rte_pos2 )
+  iyMC
+  Touch( ppath )
+}
+
+###
+AgendaCreate( iy_main_agenda__Radiolink )
+AgendaSet( iy_main_agenda__Radiolink ){
+  Ignore( rte_los )
+  iyRadioLink
+}
+
+
+##################################
+#    iy_space_agenda
+##################################
+
+###
+# cosmic background (standard)
 #
-# Default is "on-the-fly" absorption
-# Another option is to create an absorption table, which could save
-# (considerable) time, especially for batch calculations.
-# 
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+AgendaCreate( iy_space_agenda__CosmicBackground )
+AgendaSet( iy_space_agenda__CosmicBackground ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  MatrixCBR( iy, stokes_dim, f_grid )
+}
 
 
+##################################
+#    iy_surface_agenda
+##################################
+
+###
+# use surface_rtprop_agenda through WSM iySurfaceRtpropAgenda (standard)
 #
-# Default is to include emission in source term
+AgendaCreate( iy_surface_agenda__UseSurfaceRtprop )
+AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
+  iySurfaceRtpropAgenda
+} 
+
+
+##################################
+#    blackbody_radiation_agenda
+##################################
+
+###
+# include (Planck) emission in source term (default)
 # 
-AgendaSet( blackbody_radiation_agenda ){
+AgendaCreate( blackbody_radiation_agenda__Planck )
+AgendaSet( blackbody_radiation_agenda__Planck ){
   blackbody_radiationPlanck
 }
 
 
+
+##################################
+#    ppath_agenda
+##################################
+
+###
+# sensor-only path
 #
-AgendaSet( iy_main_agenda ){
-  iyEmissionStandard
-}
-
-
-
-#
-# Surface, upwelling radiation
-# 
-# The default model is a blackbody surface. This is a good choice only
-# if your sensor operates at a frequency where the troposphere is
-# opaque, but it is the fastest option.
-#
-# Warning: If you want to do calculations with something other than a
-# blackbody surface, you have to re-define the surface_rtprop_agenda. It
-# is not enough to just set e.g. surface_scalar_reflectivity! 
-# 
-AgendaSet( iy_surface_agenda ){
-  iySurfaceRtpropAgenda
-} 
-AgendaSet( surface_rtprop_agenda ){
-   Ignore( rte_los )
-   InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
-                           lon_grid, z_field, rte_pos, t_field )
-   surfaceBlackbody
-} 
-
-
-
-
-#
-# Agendas and variables for calculation of propagation paths:
-# (This will result in pure geometrical calculations. That is, refraction is 
-# neglected.)
-#
-AgendaSet( ppath_agenda ){
+AgendaCreate( ppath_agenda__PassiveSensorPath )
+AgendaSet( ppath_agenda__PassiveSensorPath ){
   Ignore( rte_pos2 )
   ppathStepByStep
 }
+
+###
+# transmitter-receiver (link) path
 #
-AgendaSet( ppath_step_agenda ){
+AgendaCreate( ppath_agenda__TransmitterReceiverPath )
+AgendaSet( ppath_agenda__TransmitterReceiverPath ){
+  Ignore( rte_los )
+  Ignore( cloudbox_on )
+  Ignore( ppath_inside_cloudbox_do )
+  ppathFromRtePos2
+}
+
+
+##################################
+#    ppath_step_agenda
+##################################
+
+###
+# Geometrical path calculation (i.e., refraction neglected)
+#
+AgendaCreate( ppath_step_agenda__GeometricPath )
+AgendaSet( ppath_step_agenda__GeometricPath ){
   Ignore( t_field )
   Ignore( vmr_field )
   Ignore( edensity_field )
@@ -76,14 +133,158 @@ AgendaSet( ppath_step_agenda ){
   ppath_stepGeometric
 }
 
-
+###
+# Refracted path calculation
 #
-# Agendas for clearsky radiative transfer calculation
-# 
-AgendaSet( iy_space_agenda ){
-  Ignore( rte_pos )
-  Ignore( rte_los )
-  MatrixCBR( iy, stokes_dim, f_grid )
+AgendaCreate( ppath_step_agenda__RefractedPath )
+AgendaSet( ppath_step_agenda__RefractedPath ){
+  ppath_stepRefractionBasic
 }
 
+
+
+##################################
+#    abs_mat_per_species_agenda
+##################################
+
+###
+# "on-the-fly" absorption
+#
+AgendaCreate( abs_mat_per_species_agenda__OnTheFly )
+AgendaSet( abs_mat_per_species_agenda__OnTheFly ){
+  Ignore(rte_mag)
+  Ignore(ppath_los)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddOnTheFly
+}
+
+###
+# "on-the-fly" absorption with Zeeman
+#
+AgendaCreate( abs_mat_per_species_agenda__OnTheFly_Zeeman )
+AgendaSet( abs_mat_per_species_agenda__OnTheFly_Zeeman ){
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddOnTheFly
+  abs_mat_per_speciesAddZeeman
+}
+
+###
+# absorption lookup table
+# this could save (considerable) time, especially for batch calculations.
+# 
+AgendaCreate( abs_mat_per_species_agenda__LookUpTable )
+AgendaSet( abs_mat_per_species_agenda__LookUpTable ){
+  Ignore(rte_mag)
+  Ignore(ppath_los)
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddFromLookup
+}
+
+###
+# absorption lookup table with Zeeman
+# this could save (considerable) time, especially for batch calculations.
+# 
+AgendaCreate( abs_mat_per_species_agenda__LookUpTable_Zeeman )
+AgendaSet( abs_mat_per_species_agenda__LookUpTable_Zeeman ){
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddFromLookup
+  abs_mat_per_speciesAddZeeman
+}
+
+
+##################################
+#    refr_index_agenda
+##################################
+
+###
+# no refraction (n==1.0)
+# 
+AgendaCreate( refr_index_agenda__NoRefrac )
+AgendaSet( refr_index_agenda__NoRefrac ){
+  Ignore( f_grid )
+  Ignore( rte_edensity )
+  Ignore( rte_pressure )
+  Ignore( rte_temperature )
+  Ignore( rte_vmr_list )
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+}
+
+###
+# refraction parameterization from Thayer (p,T,H2O)
+# valid in microwave for Earth
+# 
+AgendaCreate( refr_index_agenda__GasThayer )
+AgendaSet( refr_index_agenda__GasThayer ){
+  Ignore( f_grid )
+  Ignore( rte_edensity )
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+  refr_indexThayer
+}
+
+###
+# refraction parameterization 
+# valid in infrared for Earth (dry air only)
+# 
+AgendaCreate( refr_index_agenda__GasIREarth )
+AgendaSet( refr_index_agenda__GasIREarth ){
+  Ignore( f_grid )
+  Ignore( rte_edensity )
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+  refr_indexIR
+}
+
+###
+# refraction parameterization from Newell&Baird (p,T; N2,O2,CO2,H2,He)
+# valid for arbitrary planetary atmospheres in microwave
+# 
+AgendaCreate( refr_index_agenda__GasMWgeneral )
+AgendaSet( refr_index_agenda__GasMWgeneral ){
+  Ignore( f_grid )
+  Ignore( rte_edensity )
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+  refr_indexMWgeneral
+}
+
+###
+# refraction due to free electrons
+# 
+AgendaCreate( refr_index_agenda__FreeElectrons )
+AgendaSet( refr_index_agenda__FreeElectrons ){
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+  refr_indexFreeElectrons
+}
+
+###
+# combined refraction from gases (Newell&Baird) and free electrons 
+# valid for arbitrary planetary atmospheres in microwave
+# 
+AgendaCreate( refr_index_agenda__GasMWgeneralAndElectrons )
+AgendaSet( refr_index_agenda__GasMWgeneralAndElectrons ){
+  NumericSet( refr_index, 1.0 )
+  NumericSet( refr_index_group, 1.0 )
+  refr_indexMWgeneral
+  refr_indexFreeElectrons
+}
+
+
+##################################
+#    g0_agenda
+##################################
+
+###
+# Earth
+#
+AgendaCreate( g0_agenda__Earth )
+AgendaSet( g0_agenda__Earth ){
+   Ignore( lon )
+   g0Earth
+} 
+
+
+INCLUDE "agendas_surface.arts"
 }

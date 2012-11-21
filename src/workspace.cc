@@ -1915,6 +1915,21 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "lambertian_nza" ),
+      DESCRIPTION
+      (
+       "Number of zenith angles considered in Lambertian surface scattering.\n"
+       "\n"
+       "For Lambertian surface scattering, the down-welling radiation field\n"
+       "is estimated by making calculations for *lambertian_nza* directions.\n"
+       "For deatils see WSM *surfaceLambertianSimple*.\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "lat" ),
       DESCRIPTION
       (

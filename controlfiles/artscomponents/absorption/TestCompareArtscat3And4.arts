@@ -8,6 +8,8 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
 
 # This test catalogue was generated from the HITRAN catalogue in the
 # following way:
@@ -28,12 +30,8 @@ IndexSet( stokes_dim, 1 )
 
 AtmFieldsCalc
 
-AgendaSet( abs_mat_per_species_agenda ){
-    Ignore(rte_mag)
-    Ignore(ppath_los)
-    abs_mat_per_speciesInit
-    abs_mat_per_speciesAddOnTheFly
-}
+# On-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
 VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
 

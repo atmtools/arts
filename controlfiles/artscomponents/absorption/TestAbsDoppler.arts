@@ -7,11 +7,16 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
 
 
 # Number of Stokes components to be computed
 #
 IndexSet( stokes_dim, 1 )
+
+# On-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
 # Read the spectroscopic line data from the ARTS catalogue and
 # create the workspace variable `lines'.
@@ -88,12 +93,9 @@ WriteXML( output_file_format, abs_field_doppler )
 # Now with Doppler and lookup table!
 abs_lookupSetup
 abs_lookupCalc
-AgendaSet( abs_mat_per_species_agenda ){
-  Ignore(rte_mag)
-  Ignore(ppath_los)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddFromLookup
-}
+
+# absorption from LUT
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
 
 # Calculate field of absorption coefficients:
 abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_grid, 

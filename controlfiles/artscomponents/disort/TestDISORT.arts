@@ -14,6 +14,7 @@ Arts2 {
 
 INCLUDE "general/general"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
 
 
 # Frequency grid 
@@ -52,11 +53,8 @@ ReadXML( abs_lookup ){
    	
 abs_lookupAdapt
 
-AgendaSet( abs_mat_per_species_agenda ){
-   Ignore(rte_mag)
-   abs_mat_per_speciesInit
-   abs_mat_per_speciesExtractFromLookup
-}
+# absorption from LUT
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
 
 AtmFieldsCalc
 

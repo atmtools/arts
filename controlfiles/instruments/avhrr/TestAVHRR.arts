@@ -8,6 +8,30 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# blackbody surface with skin temperature interpolated from t_surface field
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+
 
 StringCreate(satellite)
 ArrayOfIndexCreate(channels)
@@ -84,11 +108,7 @@ abs_lookupCalc
 
 # Set abs_mat_per_species_agenda to use lookup table
 # ---
-AgendaSet( abs_mat_per_species_agenda ){
-  Ignore(rte_mag)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddFromLookup
-}
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
 
 # Set up RT calculation
 # =====================

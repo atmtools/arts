@@ -92,11 +92,12 @@ AgendaSet( surface_rtprop_agenda ){
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )
 
+IndexSet(lambertian_nza, 5)
 AgendaSet( surface_rtprop_agenda ){
   Ignore( rte_pos )
   surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
       f_grid, stokes_dim, atmosphere_dim, rte_los, surface_skin_t, 
-      surface_scalar_reflectivity, blackbody_radiation_agenda, 5, 0.5 )
+      surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda, 0.5 )
 } 
 AgendaExecute( iy_surface_agenda )
 Compare( iy, iy_correct, 1e-9 )

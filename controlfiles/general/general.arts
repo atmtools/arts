@@ -1,12 +1,24 @@
 #DEFINITIONS:  -*-sh-*-
 #
+############
 # General ARTS defaults
 #
-# Authors: Stefan Buehler, Patrick Eriksson, Oliver Lemke
+# The basic philosophy here is, that general.arts shall always be included by an
+# ARTS controlfile. general.arts contains such settings, which are (very often)
+# necessary, but on the other hand the user rarely wants/needs to reset (or is
+# discouraged to do so).
+# The settings done below can be divided into 3 categories:
+# 1) settings that serve (mainly) as initialisations
+# 2) settings the user is highly discouraged to change
+# 3) settings that define some meaningful, widely valid/applicable defaults
+#
+############
+#
+# Authors: Stefan Buehler, Patrick Eriksson, Oliver Lemke, Jana Mendrok
+#
+
 
 Arts2 {
-
-
 
 ############
 # PART 1 - following settings serve (mainly) as initialisations
@@ -53,21 +65,6 @@ ArrayOfStringSet( iy_aux_vars, [] )
 # instead. 
 #
 VectorSet( abs_h2o, [ -1 ] )
-
-# jm: in this basic version here as initialisation. also, no refraction (n=1)
-#  seems a sensible default setting.
-#
-# Refractive index agenda
-#
-AgendaSet( refr_index_agenda ){
-  Ignore( f_grid )
-  Ignore( rte_edensity )
-  Ignore( rte_pressure )
-  Ignore( rte_temperature )
-  Ignore( rte_vmr_list )
-  NumericSet( refr_index, 1.0 )
-  NumericSet( refr_index_group, 1.0 )
-}
 
 
 ### basics_CheckedCalc requires them to be initialised. 0 seems an ok default.
@@ -150,7 +147,5 @@ StringSet( iy_unit, "1" )
 IndexSet( ybatch_start, 0 )
 
 
-INCLUDE "agendas.arts"
-INCLUDE "planet_earth.arts"
 }
 

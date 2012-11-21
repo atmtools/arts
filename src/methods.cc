@@ -9022,14 +9022,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-            "surface_skin_t", "surface_scalar_reflectivity",
+            "surface_skin_t", "surface_scalar_reflectivity", "lambertian_nza",
             "blackbody_radiation_agenda" ),
-        GIN(         "np",    "za_pos"  ),
-        GIN_TYPE(    "Index", "Numeric" ),
-        GIN_DEFAULT( NODEF,   "0.5"     ),
-        GIN_DESC( "Number of zenith angles for calculation of down-welling " 
-                  "radition.",
-                  "Position of angle in *surface_los* inside ranges of zenith "
+        GIN(         "za_pos"  ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( "0.5"     ),
+        GIN_DESC( "Position of angle in *surface_los* inside ranges of zenith "
                   "angle grid. See above."
                   )
         ));

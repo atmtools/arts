@@ -1,5 +1,35 @@
 2012-11-21  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-389
+
+	* Continued setting up predefined agendas. Removed all AgendaSet and
+	INCLUDE	from general.arts - the user is forced now to explicitly set all
+	agendas needed. Adapted Test*.arts accordingly.
+
+	* controlfiles/general/agendas.arts: Revised completely. Containing
+	agenda predefinitions, no agenda settings(!).
+
+	* controlfiles/general/agendas_surface.arts: Added. INCLUDE to
+	agendas.arts containing predefinitions for surface_rtprop_agenda.
+
+	* controlfiles/general/agendas_new.arts:
+	Removed. Now all of this in agenda.arts.
+
+	* controlfiles/general/general.arts: Removed any INCLUDEs. Removed
+	setting of refr_index_agenda.
+
+	* controlfiles/general/planet_earth.arts: Some refurbishing.
+
+	* controlfiles/[artscomponents,instruments]/*/Test*.arts:
+	Adapted to general.arts changes - explicit setting of agendas that
+	previously were set by agenda.arts is now WITHIN the arts controlfiles.
+
+	* src/m_surface.cc,methods.cc(surfaceLambertianSimple),workspace.cc:
+	Made number of streams in lambertain calculation (formerly: np, now:
+	lambertian_nza) a WSV.
+
+2012-11-21  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-388
 
 	* doc/uguide/refr_index.tex,rte.tex,ppath.tex:

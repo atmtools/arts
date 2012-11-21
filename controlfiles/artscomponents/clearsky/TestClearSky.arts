@@ -18,6 +18,29 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# on-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 
 # Number of Stokes components to be computed
@@ -63,13 +86,15 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
             "testdata/tropical" )
 
 
-# Weakly reflecting surface (surface_skin_t set below in 1D part)
+# Weakly reflecting surface
 # ---
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
+  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
+      lon_grid, rte_pos, t_surface )
   surfaceFlatScalarReflectivity
-} 
+}
 
 
 # No sensor properties
@@ -99,13 +124,7 @@ VectorCreate( odepth )
 AtmosphereSet1D
 AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
-
-# *surface_skin_t*
-# ---
 Extract( t_surface, t_field, 0 )
-VectorCreate( t_surface1D )
-VectorExtractFromMatrix( t_surface1D, t_surface, 0, "row" )
-Extract( surface_skin_t, t_surface1D, 0 )
 
 # Definition of sensor position and LOS
 # ---
@@ -142,6 +161,7 @@ AtmosphereSet2D
 VectorLinSpace( lat_grid, -45, 45, 1 )
 AtmFieldsCalcExpand1D
 Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
 refellipsoidEarth( refellipsoid, "WGS84" )
 
 # Definition of sensor position and LOS
@@ -181,6 +201,7 @@ AtmosphereSet3D
 VectorLinSpace( lon_grid, -45, 45, 1 )
 AtmFieldsCalcExpand1D
 Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
 
 # Definition of sensor position and LOS
 # ---

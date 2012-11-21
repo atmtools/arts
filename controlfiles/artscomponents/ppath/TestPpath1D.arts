@@ -9,6 +9,10 @@
 Arts2{
 
 INCLUDE "general/general.arts"
+INCLUDE "general/agendas.arts"
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
 
 
 # Number of Stokes components to be computed
@@ -86,6 +90,12 @@ VectorSet( rte_los, [ 113 ] )
 VectorSet( rte_pos2, [] )                  # No transmitter involved
 
 
+#
+# no refraction
+#
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+
 # Calculate propagation path
 #
 ppathCalc                       
@@ -123,6 +133,12 @@ AgendaSet( forloop_agenda ){
   ppathCalc
 }
 
+
+#
+# no refraction
+#
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
 ForLoop( forloop_agenda, 0, ilast, 1  )
 
 
@@ -130,11 +146,9 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 #
 # Repeat with refraction
 #
-
-AgendaSet( ppath_step_agenda ){
-  ppath_stepRefractionBasic
-}
+Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 NumericSet( ppath_lraytrace, 1e3 )
+Copy( refr_index_agenda, refr_index_agenda__GasThayer  )
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
 

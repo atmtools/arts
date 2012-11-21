@@ -1,0 +1,173 @@
+#DEFINITIONS:  -*-sh-*-
+#
+############
+# Agenda predefinitions for surface_rtprop_agenda
+#
+# This is a sub-file to agendas.arts, separated for better overview.
+#
+############
+#
+# Authors: Jana Mendrok
+#
+
+
+Arts2 {
+
+##################################
+#    surface_rtprop_agenda
+##################################
+
+#####
+# blackbody surface
+#####
+
+# Fastest option, but only a good choice only if troposphere is opaque at the
+# frequency in question.
+
+# - preset (constant) surface skin temperature
+# this is somewhat faster than the interpolation options
+#
+AgendaCreate( surface_rtprop_agenda__Blackbody_SurfTFix )
+AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFix ){
+  Ignore( rte_los )
+  Ignore( rte_pos )
+  surfaceBlackbody
+} 
+
+# - surface skin temperature interpolated from atmospheric t_field
+#
+AgendaCreate( surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+AgendaSet( surface_rtprop_agenda__Blackbody_SurfTFromt_field ){
+   Ignore( rte_los )
+   InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
+                           lon_grid, z_field, rte_pos, t_field )
+   surfaceBlackbody
+} 
+
+
+#####
+# specular reflecting surfaces (no polarization)
+#####
+
+# - preset surface reflectivity (Vector)
+# - preset (constant) surface skin temperature
+# this is somewhat faster than the interpolation options
+#
+AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFix )
+AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFix ){
+  specular_losCalc
+  surfaceFlatScalarReflectivity
+} 
+
+# - preset surface reflectivity
+# - surface skin temperature interpolated from t_surface
+#
+AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface ){
+  specular_losCalc
+  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
+      lon_grid, rte_pos, t_surface )
+  surfaceFlatScalarReflectivity
+} 
+
+# - preset surface reflectivity
+# - surface skin temperature interpolated from atmospheric t_field
+#
+AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field )
+AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field ){
+   specular_losCalc
+   InterpAtmFieldToRtePos( surface_skin_t,
+                           atmosphere_dim, p_grid, lat_grid, lon_grid,
+                           z_field, rte_pos, t_field)
+   surfaceFlatScalarReflectivity
+}
+
+# - surface reflectivity interpolated from surface reflectivity field (GriddedField4)
+# - preset (constant) surface skin temperature
+#
+#AgendaCreate( surface_rtprop_agenda__Specular_NoPol_ReflFromField_SurfTFix )
+#AgendaSet( surface_rtprop_agenda__Specular_NoPol_ReflFromField_SurfTFix ){
+#  specular_losCalc
+#  surface_scalar_reflectivityFromGriddedField4( surface_scalar_reflectivity, 
+#      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
+#      rte_pos, rte_los, r_gfield4 )
+#  surfaceFlatScalarReflectivity
+#} 
+
+# - surface reflectivity from Liebe model
+# - surface skin temperature interpolated from atmospheric t_field
+#
+AgendaCreate( surface_rtprop_agenda__Specular_NoPol_Water_SurfTFromt_field )
+AgendaSet( surface_rtprop_agenda__Specular_NoPol_Water_SurfTFromt_field ){
+  specular_losCalc
+  InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
+                           lon_grid, z_field, rte_pos, t_field )
+  complex_nWaterLiebe93( complex_n, f_grid, surface_skin_t )
+  surfaceFlatRefractiveIndex
+}
+
+
+#####
+# specular reflecting surfaces (considering polarization)
+#####
+
+# - preset surface reflectivity (Tensor3)
+# - preset (constant) surface skin temperature
+#
+AgendaCreate( surface_rtprop_agenda__Specular_Pol_ReflFix_SurfTFix )
+AgendaSet( surface_rtprop_agenda__Specular_Pol_ReflFix_SurfTFix ){
+  specular_losCalc
+  surfaceFlatReflectivity
+} 
+
+# - surface reflectivity interpolated from surface reflectivity field (GriddedField6)
+# - preset (constant) surface skin temperature
+#
+#AgendaCreate( surface_rtprop_agenda__Specular_Pol_ReflFromField_SurfTFix )
+#AgendaSet( surface_rtprop_agenda__Specular_Pol_ReflFromField_SurfTFix ){
+#  specular_losCalc
+#  surface_reflectivityFromGriddedField6( surface_reflectivity, 
+#      stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
+#      rte_pos, rte_los, r_gfield6 )
+#  surfaceFlatReflectivity
+#} 
+
+# - preset surface refractive index (Matrix)
+# - preset (constant) surface skin temperature
+#
+AgendaCreate( surface_rtprop_agenda__Specular_Pol_RefracFix_SurfTFix )
+AgendaSet( surface_rtprop_agenda__Specular_Pol_RefracFix_SurfTFix ){
+  specular_losCalc
+  surfaceFlatRefractiveIndex
+} 
+
+# - surface refractive index interpolated from surface refractive index field (GriddedField4)
+# - preset (constant) surface skin temperature
+#
+#AgendaCreate( surface_rtprop_agenda__Specular_Pol_RefracFromField_SurfTFix )
+#AgendaSet( surface_rtprop_agenda__Specular_Pol_RefracFromField_SurfTFix ){
+#  specular_losCalc
+#  complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim, 
+#      lat_grid, lat_true, lon_true, rte_pos, r_gfield4 )
+#  surfaceFlatRefractiveIndex
+#} 
+
+
+#####
+# Lambertian reflecting surfaces (no polarization)
+#####
+
+# - preset surface reflectivity
+# - preset (constant) surface skin temperature
+# - preset number of angles, the scattering function will be evaluated on
+#
+AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix )
+AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix ){
+  Ignore( rte_pos )
+  surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
+      f_grid, stokes_dim, atmosphere_dim, rte_los, surface_skin_t, 
+      surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda )
+} 
+
+
+}

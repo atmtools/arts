@@ -10,10 +10,31 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
 INCLUDE "general/agendasDOIT.arts"
+INCLUDE "general/planet_earth.arts"
 
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
 
 # Set out put file format
 #------------------------
@@ -50,10 +71,10 @@ VectorSetConstant( surface_scalar_reflectivity, 1, 0.25 )
 
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
-  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
+  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid,
       lon_grid, rte_pos, t_surface )
   surfaceFlatScalarReflectivity
-} 
+}
 
 
 # 2. Sensor:---------------------------------------------------------
@@ -130,13 +151,8 @@ ReadXML( abs_lookup, "abs_lookupBatch.xml" )
 # Check if lookup table is fitting input
 abs_lookupAdapt
 
-# Set abs_mat_per_species_agenda to use lookup table
-AgendaSet( abs_mat_per_species_agenda ){ 
-  Ignore(rte_mag)
-  Ignore(ppath_los)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddFromLookup 
-}
+# absorption from LUT
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
 
 
 # 6.Specification of cloud-----------------------------------------------

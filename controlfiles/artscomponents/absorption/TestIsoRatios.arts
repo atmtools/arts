@@ -16,6 +16,26 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 
 VectorLinSpace( f_grid, 488e9, 491e9, 0.01e9 )
@@ -43,13 +63,8 @@ VectorCreate( za )
 VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
 Matrix1ColFromVector( sensor_los, za )
 
-# on-the-fly absorption
-AgendaSet( abs_mat_per_species_agenda ){
-  Ignore(rte_mag)
-  Ignore(ppath_los)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddOnTheFly
-}
+# On-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
 # Blackbody surface
 AgendaSet( surface_rtprop_agenda ){

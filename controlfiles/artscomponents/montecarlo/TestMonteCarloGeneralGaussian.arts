@@ -6,6 +6,21 @@
 Arts2 {
 
 INCLUDE "general/general.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# blackbody surface with skin temperature interpolated from t_surface field
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+
 
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
@@ -46,12 +61,8 @@ ReadXML( scat_data_mono, "TestMonteCarloDataPrepare.scat_data_mono.xml" )
 
 #### Define Agendas #################################################
 
-AgendaSet( abs_mat_per_species_agenda ){
-  Ignore(rte_mag)
-  Ignore(ppath_los)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddFromLookup
-}
+# absorption from LUT
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
 
 
 #### Define viewing position and line of sight #########################

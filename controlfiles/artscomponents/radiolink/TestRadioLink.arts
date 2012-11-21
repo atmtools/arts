@@ -10,6 +10,11 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# on-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
 
 # Number of Stokes components to be computed
@@ -73,18 +78,16 @@ cloudbox_checkedCalc
 
 # Propagation path agendas and variables
 #
-AgendaSet( ppath_step_agenda ){
-  ppath_stepRefractionBasic
-}
+
+# transmitter-receiver path
+Copy( ppath_agenda, ppath_agenda__TransmitterReceiverPath )
+
+# refracted path
+Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
+Copy( refr_index_agenda, refr_index_agenda__GasThayer  )
+
 NumericSet( ppath_lmax, 10e3 )
 NumericSet( ppath_lraytrace, 100 )
-#
-AgendaSet( ppath_agenda ){
-  Ignore( rte_los )
-  Ignore( cloudbox_on )
-  Ignore( ppath_inside_cloudbox_do )
-  ppathFromRtePos2
-}
 
 
 # Radiative transfer agendas and variables
@@ -94,10 +97,7 @@ AgendaSet( iy_transmitter_agenda ){
   Ignore( rte_los )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
 }
-AgendaSet( iy_main_agenda ){
-  Ignore( rte_los )
-  iyRadioLink
-}
+Copy( iy_main_agenda, iy_main_agenda__Radiolink )
 
 
 # Calculations here done through yCalc as it is then easier to extract

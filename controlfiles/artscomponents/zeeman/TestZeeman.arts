@@ -7,15 +7,31 @@ Arts2 {
 
 INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# on-the-fly absorption considering Zeeman splitting
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly_Zeeman )
+
 
 IndexSet( stokes_dim, 4 )
-
-AgendaSet( abs_mat_per_species_agenda ){
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddOnTheFly
-  abs_mat_per_speciesAddZeeman
-}
-
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
 # ---
@@ -29,7 +45,10 @@ VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 SpeciesSet( abs_species, ["H2O","O2-Z"] )
 
 # read line catalogue
-abs_linesReadFromHitran(abs_lines, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par", 61.1e9, 61.2e9)
+StringCreate( hitranfile )
+StringSet( hitranfile, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par" )
+StringSet( hitranfile, "/home/mendrok/data/lines/hitran/HITRAN08.par" )
+abs_linesReadFromHitran(abs_lines, hitranfile, 61.1e9, 61.2e9)
 #abs_linesArtscat4FromArtscat3( abs_lines )
 #WriteXML( "ascii", abs_lines, "../../controlfiles/testdata/abs_lines_60GHz.xml" )
 
@@ -63,13 +82,6 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species,
 AtmFieldsCalcExpand1D
 
 
-# Weakly reflecting surface (surface_skin_t set below in 1D part)
-# ---
-Tensor3SetConstant( surface_reflectivity, 1,4,4, 0.8 )
-AgendaSet( surface_rtprop_agenda ){
-  Ignore( rte_pos )
-  surfaceFlatReflectivity
-} 
 Extract( z_surface, z_field, 0 )
 
 
