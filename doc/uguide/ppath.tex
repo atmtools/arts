@@ -53,6 +53,9 @@ into a series of geomtrical ray tracing steps. The size of the ray tracing
 steps is selected by \wsvindex{ppath\_lraytrace}. This variable affects only
 the ray tracing part, the distance between points of the propagation path
 actually returned is controled by \builtindoc{ppath\_lmax} as above.
+At each ray tracing step, the refractive index is evaluated according to the 
+specification of \wsaindex{refr\_index\_agenda}. Several methods to determine 
+refractive index are available (see Chapter~\ref{sec:rindex}).
 
 
 
@@ -184,7 +187,7 @@ tangent point.
 Up to ARTS-2.0 minimum-radius tangent points were added as extra points to the
 propagation paths (a reminiscent from ARTS-1), but this feature has now been
 removed following the discussion in the paragraph above. However, many internal
-functions make use of the concept of tangent point (then the minimum-radius
+functions make use of the concept of tangent point (as the minimum-radius
 one). The altitude-based tangent point for a propagation path can be determined
 with the method \wsmindex{TangentPointExtract}.
 

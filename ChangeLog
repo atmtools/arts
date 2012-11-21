@@ -1,3 +1,10 @@
+2012-11-21  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-388
+
+	* doc/uguide/refr_index.tex,rte.tex,ppath.tex:
+	Expanded documentation on refraction and (gas) refractive index.
+
 2012-11-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-387

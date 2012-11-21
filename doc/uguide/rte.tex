@@ -281,7 +281,7 @@ sensor and following the path backwards by some \textindex{ray
 atmosphere, geometrical calculations are used (as there is no
 refraction in space) to find the crossing between the path and the top
 of the atmosphere where the ray tracing then starts. Paths are tracked
-backwards until the top of the atmosphere or to is an
+backwards until the top of the atmosphere or to an
 intersection with the cloud box or the surface. The propagation path
 (or paths) before a surface reflection is calculated when determining
 the up-welling radiation from the surface
@@ -292,10 +292,14 @@ paths are shown in Figures~\ref{fig:fm_defs:ppath_cases2} and
 Not all propagation paths are allowed for 2D and 3D. In short, the paths can
 only enter and leave the model atmosphere at the top of the atmosphere, as the
 atmospheric fields are treated to be undefined outside the covered latitude and
-longitude ranges. Propagation paths can be calculated separately by the method
-\wsmindex{ppathCalc}, but for standard calculations the propagation paths are
-calculated internally by \builtindoc{yCalc}. Methods and variables to control
-the path calculations are discussed in Section~\ref{sec:ppath:usage}. 
+longitude ranges.
+
+Controlled by \builtindoc{ppath\_step\_agenda}, propagation paths can be 
+calculated purely geometrically or considering refraction. When considering 
+refraction, the refractive index is determined at each point along the path 
+according to \builtindoc{refr\_index\_agenda}. Details about different methods 
+applicable within \builtindoc{refr\_index\_agenda} are given in 
+Chapter~\ref{sec:rindex}.
 
 If nothing else is stated, it assumed that all frequency components share a
 single propagation path. Another way to express this assumption is that
@@ -303,6 +307,11 @@ single propagation path. Another way to express this assumption is that
 for how to consider dispersion. In the non-dispersive case, the propagation
 path is valid for average of the first and last element in \wsvindex{f\_grid},
 as this is the frequency given to \wsaindex{refr\_index\_agenda}.
+
+Propagation paths can be calculated separately by the method
+\wsmindex{ppathCalc}, but for standard calculations the propagation paths are
+calculated internally by \builtindoc{yCalc}. Methods and variables to control
+the path calculations are discussed in Section~\ref{sec:ppath:usage}. 
 
 
 

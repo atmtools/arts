@@ -5,29 +5,39 @@
   120918 & Started (Patrick Eriksson).\\
 \stophistory
 
-
-Refractive index\index{refractive index} \dots
-
 \FIXME{Write a proper introduction. Comment on that this is not the complex
-refractive index, also covering absorption.} 
+refractive index, also covering absorption.} \dots
 
+Refractive index\index{refractive index} (here restricted to the real part of the refractive index, which is basically a complex quantity with the imaginary part expressing absorption) describes several effects of matter on propagation of electromagnetic waves. This particularly includes changes of the propagation speed of electromagnetic waves, which leads to a delay of the signal as well as a change of the propagation direction, a bending of the propagation path. The latter is commonly called refraction.
 
-\section{Monochromatic and group refractive index}
-%
-The corresponding workspace variables are \wsvindex{refr\_index} and
-\wsvindex{refr\_index\_group}. If they differ, there is
-dispersion\index{dispersion}. The monochromatic refractive index is below
-denoted as \Rfr, while the group one is written as $\Rfr_{g}$.
+Several components in the atmosphere contribute to refraction, hence to the refractive index: the gas mixture(``air''), solid and liquid constituents (clouds, precipitation, aerosols), and electrons. ARTS includes mechanisms for deriving the contributions from gases and electrons, but does not consider refraction by solid and liquid particle as their refractive index is not known to ARTS (when scattering is considered, ARTS gets their single scattering properties as input, see Chapter 6.2). However, the contribution of solid and liquid constituents to the refractive index is commonly neglected in radiative transfer models and is expected to have only small effects.
+
+Refractivity ($N$) describes the deviation of the refractive index of a medium \Rfr  from the vacuum refractive index (\Rfr$_\mathrm{vacuum}=1$): $N=\Rfr-1$. Contributions of the different components to refractivity are additive. Therefore, all ARTS methods that provide refractive index, calculate refractivity and sum it up with the input refractive index.
+
+Within ARTS, refractive index is required for calculations of refracted propagation paths and related parameters (e.g., deriving viewing angle for a given tangent altitude). \FIXME{for more?}
+
+%\section{Monochromatic and group refractive index}
+
+Whenever refractive index is required, e.g., at each point along a propagation 
+path, it is evaluated according to the mechanism specified by 
+\wsaindex{refr\_index\_agenda}. \wsaindex{refr\_index\_agenda} provides both the 
+monochromatic refractive index \wsvindex{refr\_index}, in the following denoted as \Rfr, as well 
+as the group refractive index \wsvindex{refr\_index\_group}, denoted as \Rfr$_{g}$.
+\wsvindex{refr\_index} differs from \wsvindex{refr\_index\_group} in case of dispersion\index{dispersion}, which e.g. leads to diverging propagation paths at different frequencies.
 
 \FIXME{Describe where each variable is used. Expand \dots} 
 
 
-
 \section{Gases}
 %
-The following workspace methods are at hand for calculating the summed
-refractive index of atmospheric gases: \wsmindex{refr\_indexThayer} and
-\wsmindex{refr\_indexIR}. \FIXME{Expand \dots} 
+For calculating the contribution to the refractive index from atmospheric gases, the following workspace methods are currently available in ARTS: \wsmindex{refr\_indexMWgeneral},
+\wsmindex{refr\_indexThayer} and \wsmindex{refr\_indexIR}. All of them are non-dispersive, i.e., monochromatic and group refractive index are identical.
+
+\wsmindex{refr\_indexMWgeneral} provides refractive index due to different gas mixtures as occuring in planetary atmospheres and is valid in the microwave spectral region. It uses the methodology introduced by \citet{newell65:_absolute_jap} for calculating refractivity of the gas mixture at actual pressure and temperature conditions based on the refractivity of the individual gases at reference conditions. Reference refractivities are from \citet{newell65:_absolute_jap} and available for N$_2$, O$_2$, CO$_2$, H$_2$, and He. Any mixture of these gases can be taken into account. The missing contribution from further gases (e.g. water vapor) is roughly accounted for by normalising the calculated refractivity from the five reference gases to a volume mixing ratio of 1. More details on the applied formulas are given in \theory. \FIXME{add section/chapter as soon as available} %Chapter~\ref{T-sec:ppaththeory} of \theory
+
+\wsmindex{refr\_indexThayer} calculates the microwave refractive index due to gases in the Earth’s atmosphere, considering so-called compressibility factors (to cover non-ideal gas behaviour). The refractivity of ``dry air'' and water vapour is summed. All other gases are assumed to have a negligible contribution. \citep{thayer74_improved_rs}
+
+\wsmindex{refr\_indexIR} derives the infrared refractive index due to gases in the Earth's atmosphere. Only refractivity of ``dry air'' is considered. The formula used is contributed by Michael Hoepfner, Forschungszentrum Karlsruhe.
 
 
 \section{Free electrons}
