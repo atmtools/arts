@@ -1,3 +1,15 @@
+2012-11-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-387
+
+	* src/montecarlo.cc (mcPathTraceGeneral): termination_flag was
+	before set even if the other stop criterion (evol_op<=r) had been
+	reached during the path step. This gave an undersampling of points
+	just above the surface. A test case had before an bias of about
+	0.7 K. This bias is now removed (tested to a precision of
+	1 sigma= 0.05 K).
+	After this no obvious bias in any of my test calculations :-)
+
 2012-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-386

@@ -640,17 +640,21 @@ void mcPathTraceGeneral(
       mult( evol_op, evol_opArray[0], incT );
       evol_opArray[1] = evol_op;
      
-      // Check whether hit ground or space.
-      // path_step_agenda just detects surface intersections, and
-      // if TOA is reached requires a special check.
-      if( ip == ppath_step.np - 1 )
+      if( evol_op(0,0)>r )
         {
-          if( ppath_what_background(ppath_step) )
-            { termination_flag = 2; }   //we have hit the surface
-          else if( fractional_gp(ppath_step.gp_p[ip]) >= 
+          // Check whether hit ground or space.
+          // path_step_agenda just detects surface intersections, and
+          // if TOA is reached requires a special check.
+          // But we are already ready if evol_op<=r
+          if( ip == ppath_step.np - 1 )
+            {
+              if( ppath_what_background(ppath_step) )
+                { termination_flag = 2; }   //we have hit the surface
+              else if( fractional_gp(ppath_step.gp_p[ip]) >= 
                                           (Numeric)(p_grid.nelem() - 1)-1e-3 )
-            { termination_flag = 1; }  //we have left the top of the atmosphere
-         }
+                { termination_flag = 1; }  //we are at TOA
+            }
+        }
     } // while
 
 
