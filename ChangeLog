@@ -1,3 +1,12 @@
+2012-11-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-394
+
+	* src/ppath.cc (do_gridcell_3d_byltest): Added test also with
+	respect to upper pressure level, for r_v[j]. This after getting an
+	assert also in this direction. The z_field was quite crazy, but
+	still formerly correct.
+
 2012-11-22  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-393

@@ -3315,7 +3315,9 @@ void do_gridcell_3d_byltest(
           // this is easy to handle analytically, but the problem is tricky in
           // the general case with a non-spherical geometry, and this crude
           // solution is used instead. Not the most elegant solution, but it
-          // works!
+          // works! Added later the same check for upper level, after getting
+          // assert in that direction. The z_field was crazy, but still
+          // formerly correct.
           rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, 
                                   r36a, r16a, lat_v[j], lon_v[j] );
           if( do_surface )
@@ -3330,6 +3332,12 @@ void do_gridcell_3d_byltest(
             }
           else if( r_v[j] < rlow )
             { ready = false;   break; }
+
+          rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, 
+                                  r36b, r16b, lat_v[j], lon_v[j] );
+          if( r_v[j] > rupp )
+            { ready = false;   break; }
+
         }
     }
 
