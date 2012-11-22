@@ -1430,6 +1430,7 @@ void define_md_data_raw()
            "abs_lines_per_species",
            "abs_lineshape",
            "isotopologue_ratios",
+           "isotopologue_quantum",
            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
            "rte_mag", "ppath_los", "atmosphere_dim"),
         GIN(),

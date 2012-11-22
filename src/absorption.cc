@@ -82,7 +82,7 @@ void SpeciesAuxData::initParams(Index nparams)
     for (Index isp = 0; isp < species_data.nelem(); isp++)
     {
         mparams[isp].resize(species_data[isp].Isotopologue().nelem(), nparams);
-        mparams[isp](joker, 0) = NAN;
+        mparams[isp] = NAN;
     }
 }
 
@@ -1431,12 +1431,69 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // Assign the local quantum numbers.
   if (mlower_lquanta.nelem() == 15)
   {
-      mlower_n = atoi(mlower_lquanta.substr(2,3).c_str());
-      mlower_j = atoi(mlower_lquanta.substr(6,3).c_str());
-      const Index DJ =  -  mlower_lquanta.compare(5,1,"Q");
-      const Index DN =  -  mlower_lquanta.compare(1,1,"Q");
-      mupper_n = mlower_n - DN;
-      mupper_j = mlower_j - DJ;
+      Index DN = 0, DJ = 0;
+      if(species_data[mspecies].Name()=="O2")//O2 FIXME: Different mspecies versus HITRAN?
+      {
+        mlower_n = atoi(mlower_lquanta.substr(2,3).c_str());
+        mlower_j = atoi(mlower_lquanta.substr(6,3).c_str());
+        DJ =  -  mlower_lquanta.compare(5,1,"Q");
+        DN =  -  mlower_lquanta.compare(1,1,"Q");
+        mupper_n = mlower_n - DN;
+        mupper_j = mlower_j - DJ;
+      }
+      else if(species_data[mspecies].Name()=="NO")//NO FIXME: Different mspecies versus HITRAN?
+      {
+        DJ = - mlower_lquanta.compare(3,1,"Q");
+        
+        int nom=-1, denom=0;
+        if (mlower_lquanta.substr(4,3) == "   ")
+        {
+            nom   = atoi(mlower_lquanta.substr(4,3).c_str());
+            denom = atoi(mlower_lquanta.substr(8,1).c_str());
+        }
+        else //out2 << "Hitran read error in mlower_lquanta J for species " <<  mspecies << " in line " << mf << "\n";
+        
+        if( denom == 5 ) mlower_j = Rational(nom*2+1,2);
+        else mlower_j = nom;
+        mupper_j = mlower_j - DJ;
+        
+        nom=-1;denom=0;
+        if (mlower_gquanta.substr(4,3) == "   ")
+        {
+            nom   = atoi(mlower_lquanta.substr(8,1).c_str());
+            denom = atoi(mlower_lquanta.substr(10,1).c_str());
+        }
+        else //out2 << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
+        
+        // Note that OMEGA is nom/denom
+        
+        if( nom==3&&denom==2 ) mlower_n = mlower_j+Rational(1,2);
+        else if( nom==1&&denom==2 ) mlower_n = mlower_j-Rational(1,2);
+        else mlower_n = -1;
+        
+        nom=-1;denom=0;
+        if (mupper_gquanta.substr(4,3) == "   ")
+        {
+            nom   = atoi(mupper_lquanta.substr(8,1).c_str());
+            denom = atoi(mupper_lquanta.substr(10,1).c_str());
+        }
+        else //out2 << "Hitran read error in mlower_gquanta i for species " <<  mspecies << " in line " << mf << "\n";
+        
+        // Note that OMEGA is nom/denom
+        
+        if( nom==3&&denom==2 ) mupper_n = mupper_j+Rational(1,2);
+        else if( nom==1&&denom==2 ) mupper_n = mupper_j-Rational(1,2);
+        else mupper_n = -1;
+        
+      }
+      else if(species_data[mspecies].Name()=="OH")//OH FIXME: Different mspecies versus HITRAN?
+      {
+        //pass for now
+      }
+      else if(species_data[mspecies].Name()=="ClO")//ClO FIXME: Different mspecies versus HITRAN?
+      {
+        //pass for now
+      }
   }
 
   // Accuracy index for frequency

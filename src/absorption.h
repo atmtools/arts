@@ -36,7 +36,7 @@
 #include "make_array.h"
 #include "messages.h"
 #include "abs_species_tags.h"
-
+#include "rational.h"
 
 /** The type that is used to store pointers to lineshape
     functions.  */
@@ -893,16 +893,16 @@ public:
   const String& Lower_LQuanta() const { return mlower_lquanta; }
 
   /** Upper state local quanta N */
-  Index Upper_N() const { return mupper_n; }
+  Rational Upper_N() const { return mupper_n; }
 
   /** Upper state local quanta J */
-  Index Upper_J() const { return mupper_j; }
+  Rational Upper_J() const { return mupper_j; }
 
   /** Lower state local quanta N */
-  Index Lower_N() const { return mlower_n; }
+  Rational Lower_N() const { return mlower_n; }
 
   /** Lower state local quanta J */
-  Index Lower_J() const { return mlower_j; }
+  Rational Lower_J() const { return mlower_j; }
 
   
   /** Indices of different broadening species in Gamma_foreign, 
@@ -1428,13 +1428,13 @@ private:
   /** Lower state local quanta */
   String mlower_lquanta;
   /** Upper state local N quanta */
-  Index mupper_n;
+  Rational mupper_n;
   /** Upper state local J quanta */
-  Index mupper_j;
+  Rational mupper_j;
   /** Lower state local N quanta */
-  Index mlower_n;
+  Rational mlower_n;
   /** Lower state local J quanta */
-  Index mlower_j;
+  Rational mlower_j;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotopologue data within arts

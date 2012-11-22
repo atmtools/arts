@@ -1625,7 +1625,16 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
-  wsv_data.push_back
+    wsv_data.push_back
+    (WsvRecord
+    ( NAME( "isotopologue_quantum" ),
+      DESCRIPTION
+      (
+          "\n" // FIXME: Richard
+      ),
+      GROUP( "SpeciesAuxData" )));
+    
+    wsv_data.push_back
     (WsvRecord
      ( NAME( "isotopologue_ratios" ),
        DESCRIPTION
