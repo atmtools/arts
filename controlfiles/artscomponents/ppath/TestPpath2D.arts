@@ -13,7 +13,7 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 
 # Number of Stokes components to be computed

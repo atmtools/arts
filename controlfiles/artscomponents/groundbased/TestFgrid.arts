@@ -19,7 +19,7 @@ Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )

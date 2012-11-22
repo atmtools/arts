@@ -1,0 +1,47 @@
+#DEFINITIONS:  -*-sh-*-
+#
+############
+# Venus specific settings
+#
+############
+#
+# Authors: Jana Mendrok
+#
+
+
+Arts2 {
+
+#
+# Isotopologue ratios
+#
+ReadXML( isotopologue_ratios, "planets/Venus/isotopratio_Venus.xml" )
+
+#
+# The N2 VMR value is sometimes needed for the calculation of the
+# absorption coefficient of other species.
+# The value here is from Prinn and Fegley, 1987 (provided by MPS within
+# ESA-planetary study).
+#
+VectorSet( abs_n2, [ 0.035 ] )
+
+
+#
+# Reference ellipsoid (a spherical ellipsoid must be used for 1D)
+# 
+refellipsoidVenus( refellipsoid, "Sphere" )
+
+
+#
+# Weight of dry air [g/mol]
+# (needed for hydrostatic equilibrium calculations)
+# source: http://nssdc.gsfc.nasa.gov/planetary/factsheet/venusfact.html
+# 
+NumericSet( molarmass_dry_air, 43.45 )
+
+#
+# Gravity
+# (needed for hydrostatic equilibrium calculations)
+# 
+Copy( g0_agenda, g0_agenda__Venus )
+
+}

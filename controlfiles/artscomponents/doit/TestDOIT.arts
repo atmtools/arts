@@ -31,7 +31,7 @@ Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
@@ -244,8 +244,6 @@ AgendaSet( doit_conv_test_agenda ){
 }
 
 AgendaSet( iy_cloudbox_agenda ){
-  Ignore (rte_pos)
-  Ignore (rte_los)
   iyInterpCloudboxField
 }
 
@@ -286,13 +284,13 @@ NumericSet(y_ref, 204.15)
 NumericCreate(y_0)
 Extract(y_0, y, 0)
 Compare(y_0, y_ref, 0.2,
-        "Total radiance y[0] should be close to 204.5 K")
+        "Total radiance y[0] should be close to 204.15 K")
 
 NumericSet(y_ref, 7.4)
 NumericCreate(y_1)
 Extract(y_1, y, 1)
 Compare(y_1, y_ref, 0.2,
-        "Polarization difference y[1] should be close to 7.2 K")
+        "Polarization difference y[1] should be close to 7.4 K")
 
 } # End of Main
  

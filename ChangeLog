@@ -1,3 +1,35 @@
+2012-11-22  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-393
+
+	* src/m_planets.cc,methods.cc (g0Jupiter, g0Mars, g0Venus):
+	Added. Methods for getting z=0 gravity for other planets. They don't
+	consider ellipsoid shape of the z=0 body (for now they only set a
+	Numeric), but could be added.
+
+	* src/agendas.cc (iy_cloudbox_agenda, surface_rtprop_agenda):
+	A bit of polishing of the online documentation.
+
+	* controlfiles/general/planet_[jupiter,mars,venus].arts:
+	Added. Helper-includes corresponding to planet_earth.arts for other
+	planets. Sets a couple of planet-specific constants/parameters.
+
+	* controlfiles/general/agendas.arts:
+	Added iy_cloudbox_agenda predefinitions, and g0_agenda predefinitions
+	for other planets. Renamed ppath_agenda__PassiveSensorPath to
+	ppath_agenda__FollowSensorLosPath according to Patrick's suggestion.
+
+	* controlfiles/general/agendasDOIT.arts: replace iy_cloudbox_agenda
+	setting by copied predefined agenda.
+
+	* controlfiles/[artscomponents,instruments]/*/*.arts: Replaced
+	ppath_agenda__PassiveSensorPath -> ppath_agenda__FollowSensorLosPath.
+	
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+	Adapted compare-to-reference message to actual reference value used.
+
+	* controlfiles/general/general.arts: Minor cleaning/re-sorting.
+
 2012-11-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-392

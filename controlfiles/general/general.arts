@@ -43,12 +43,6 @@ MatrixSet( transmitter_pos, [] )
 
 
 #
-# MC
-#
-IndexSet( mc_min_iter, 100 )
-
-
-#
 # FOS 
 #
 IndexSet( fos_i, 0 )
@@ -113,7 +107,17 @@ FlagOff( ppath_inside_cloudbox_do )
 output_file_formatSetAscii
 
 
-### jm: general enough? or throw away & leave setting completely to user?
+#
+# No unit conversion 
+#
+StringSet( iy_unit, "1" )
+
+#
+# Batch calculations start at index 0 by default
+#
+IndexSet( ybatch_start, 0 )
+
+
 #
 # Lineshape function
 #
@@ -125,8 +129,6 @@ output_file_formatSetAscii
 abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 
 
-### jm: this one general enough? suggest to leave here as unexperienced user might
-#  not have a good feeling for what is an appropriate value.
 #
 # Variable for calculation of propagation paths:
 #
@@ -137,14 +139,9 @@ NumericSet( ppath_lmax, 10e3 )
 
 
 #
-# No unit conversion 
+# MC
 #
-StringSet( iy_unit, "1" )
-
-#
-# Batch calculations start at index 0 by default
-#
-IndexSet( ybatch_start, 0 )
+IndexSet( mc_min_iter, 100 )
 
 
 }

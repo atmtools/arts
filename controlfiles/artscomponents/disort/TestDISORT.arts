@@ -155,9 +155,6 @@ AgendaSet( opt_prop_part_agenda ){
 }
 	
 AgendaSet(iy_cloudbox_agenda){
-    Ignore (ppath)
-    Ignore (rte_pos)
-    Ignore (rte_los)
     iyInterpCloudboxField
     }
 

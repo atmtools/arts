@@ -79,6 +79,29 @@ AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
 
 
 ##################################
+#    iy_cloudbox_agenda
+##################################
+
+###
+# linear interpolation of the intensity field of the cloud box
+# standard method in connection with DOIT scattering calculations.
+#
+AgendaCreate( iy_cloudbox_agenda__LinInterpField )
+AgendaSet( iy_cloudbox_agenda__LinInterpField ){
+  iyInterpCloudboxField
+}
+
+###
+# cubic interpolation of the intensity field of the cloud box
+# functional only for 1D
+#
+AgendaCreate( iy_cloudbox_agenda__CubInterpField1D )
+AgendaSet( iy_cloudbox_agenda__CubInterpField1D ){
+  iyInterpPolyCloudboxField
+}
+
+
+##################################
 #    blackbody_radiation_agenda
 ##################################
 
@@ -99,8 +122,8 @@ AgendaSet( blackbody_radiation_agenda__Planck ){
 ###
 # sensor-only path
 #
-AgendaCreate( ppath_agenda__PassiveSensorPath )
-AgendaSet( ppath_agenda__PassiveSensorPath ){
+AgendaCreate( ppath_agenda__FollowSensorLosPath )
+AgendaSet( ppath_agenda__FollowSensorLosPath ){
   Ignore( rte_pos2 )
   ppathStepByStep
 }
@@ -283,6 +306,36 @@ AgendaCreate( g0_agenda__Earth )
 AgendaSet( g0_agenda__Earth ){
    Ignore( lon )
    g0Earth
+} 
+
+###
+# Earth
+#
+AgendaCreate( g0_agenda__Venus )
+AgendaSet( g0_agenda__Venus ){
+   Ignore( lon )
+   Ignore( lat )
+   g0Venus
+} 
+
+###
+# Earth
+#
+AgendaCreate( g0_agenda__Mars )
+AgendaSet( g0_agenda__Mars ){
+   Ignore( lon )
+   Ignore( lat )
+   g0Mars
+} 
+
+###
+# Earth
+#
+AgendaCreate( g0_agenda__Jupiter )
+AgendaSet( g0_agenda__Jupiter ){
+   Ignore( lon )
+   Ignore( lat )
+   g0Jupiter
 } 
 
 

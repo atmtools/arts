@@ -4302,6 +4302,72 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "g0Jupiter" ),
+        DESCRIPTION
+        (
+         "Gravity at zero altitude on Jupiter.\n"
+         "\n"
+         "Sets *g0*  to mean equatorial gravity on Jupiter. Value provided by\n"
+         "MPS under ESA-planetary study (TN1).\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "g0" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "g0Mars" ),
+        DESCRIPTION
+        (
+         "Gravity at zero altitude on Mars.\n"
+         "\n"
+         "Sets *g0*  to mean equatorial gravity on Mars. Value provided by\n"
+         "MPS under ESA-planetary study (TN1).\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "g0" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "g0Venus" ),
+        DESCRIPTION
+        (
+         "Gravity at zero altitude on Venus.\n"
+         "\n"
+         "Sets *g0*  to mean equatorial gravity on Venus. Value from Ahrens\n"
+         "(1995), provided by MPS under ESA-planetary study (TN1).\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "g0" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "GriddedFieldLatLonExpand" ),
@@ -4757,7 +4823,7 @@ void define_md_data_raw()
          "outside the cloudbox (no scattering). Assumes local thermodynamic\n"
          "equilibrium for emission. The basic calculation strategy is to take\n"
          "the average of the absorption and the emission source function at\n"
-         "the end points of each step of the propagation path. For details,n"
+         "the end points of each step of the propagation path. For details\n"
          "see the user guide.\n" 
          "\n"
          "The internal radiance unit is determined by your definition of\n"

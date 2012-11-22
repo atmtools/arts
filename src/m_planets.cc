@@ -81,6 +81,35 @@ void g0Earth(
                            5.8e-6 * pow( sin(2*x), 2.0 ) );
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void g0Jupiter(            
+         Numeric&   g0,
+   const Verbosity& )
+{
+  // value from MPS, ESA-planetary
+  g0 = 23.12;
+  // value (1bar level) from http://nssdc.gsfc.nasa.gov/planetary/factsheet/jupiterfact.html
+  // g0 = 24.79;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void g0Mars(            
+         Numeric&   g0,
+   const Verbosity& )
+{
+  // value from MPS, ESA-planetary
+  g0 = 3.690;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void g0Venus(            
+         Numeric&   g0,
+   const Verbosity& )
+{
+  // value via MPS, ESA-planetary from Ahrens, 1995
+  g0 = 8.870;
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

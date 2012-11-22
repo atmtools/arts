@@ -1,0 +1,47 @@
+#DEFINITIONS:  -*-sh-*-
+#
+############
+# Mars specific settings
+#
+############
+#
+# Authors: Jana Mendrok
+#
+
+
+Arts2 {
+
+#
+# Isotopologue ratios
+#
+ReadXML( isotopologue_ratios, "planets/Mars/isotopratio_Mars.xml" )
+
+#
+# The N2 VMR value is sometimes needed for the calculation of the
+# absorption coefficient of other species.
+# The value here is from Krasnopolsky, 2011 (provided by MPS within
+# ESA-planetary study).
+#
+VectorSet( abs_n2, [ 0.0270 ] )
+
+
+#
+# Reference ellipsoid (a spherical ellipsoid must be used for 1D)
+# 
+refellipsoidMars( refellipsoid, "Sphere" )
+
+
+#
+# Weight of dry air [g/mol]
+# (needed for hydrostatic equilibrium calculations)
+# source: http://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
+# 
+NumericSet( molarmass_dry_air, 43.34 )
+
+#
+# Gravity
+# (needed for hydrostatic equilibrium calculations)
+# 
+Copy( g0_agenda, g0_agenda__Mars )
+
+}

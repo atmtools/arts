@@ -265,10 +265,10 @@ void define_agenda_data()
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
-        "Intensity at cloudbox boundary or interior.\n"
+        "Intensity at boundary or interior of the cloudbox.\n"
         "\n"
         "The task of the agenda is to determine the intensity at some point\n"
-        "at the boundary of inside the cloudbox. The actual calculations\n"
+        "at the boundary of or inside the cloudbox. The actual calculations\n"
         "inside the agenda differ depending on scattering solution method.\n"
         "If DOIT is used, an interpolating of the intensity field should be\n"
         "performed. Another option is to start backward Monte Carlo \n"
@@ -611,11 +611,15 @@ void define_agenda_data()
      ( NAME( "surface_rtprop_agenda" ),
        DESCRIPTION
        (
-        "Surface radiative properties. \n"
+        "Provides radiative properties of the surface. \n"
         "\n"
-        "See the user guide for closer definitions of the variables \n"
-        "that describe the surface radiative properties. These variables are:\n"
-        "   *surface_emission*, *surface_los* and *surface_rmatrix* \n"
+        "Provides surface emission and surface reflection coefficient matrix\n"
+        "(see user guide for closer definitions of the respective variables\n"
+        "*surface_emission*, *surface_los*, and *surface_rmatrix*) according\n"
+        "to the characteristics of the surface specified by the methods called\n"
+        "within the agenda. Typical meyhods include *surfaceBlackbody*,\n"
+        "*surfaceFlatScalarReflectivity*, *surfaceFlatReflectivity*,\n"
+        "*surfaceFlatRefractiveIndex*, and *surfaceLambertianSimple*.\n"
         ),
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "f_grid", "rte_pos", "rte_los" )));

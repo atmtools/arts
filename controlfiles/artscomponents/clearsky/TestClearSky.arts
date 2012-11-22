@@ -37,7 +37,7 @@ Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
 Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__PassiveSensorPath )
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )

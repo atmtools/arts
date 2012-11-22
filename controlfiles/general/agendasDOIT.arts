@@ -103,11 +103,7 @@ AgendaSet( doit_conv_test_agenda ){
 
 }
 
-AgendaSet( iy_cloudbox_agenda ){
-# This is the standard method to interpolate the intensity field of the
-# cloud box if the the scattering inside the cloud box is handled by 
-# the DOIT method.
-  iyInterpCloudboxField
-}
+Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__LinInterpField )
+
 
 } # End main-----------------------------------------------------------------
