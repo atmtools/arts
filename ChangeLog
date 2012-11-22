@@ -1,21 +1,28 @@
+2012-11-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-392
+
+	* src/ppath.cc (do_gridcell_3d_byltest): Check of r_v[j] when
+	surface inside grid cell was not complete.
+
 2012-11-22  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-391
 
 	* src/m_zeeman.cc: Added different Landé constants, gs, for
-	various molecules to make the frequency shifts closer to 
+	various molecules to make the frequency shifts closer to
 	measurements (previously only free electron case was resolved,
 	though gs tend toward 2 the 'less free' the electron is from
 	the nuclear	angular momentum).
-	
+
 	* controlfiles/testdata/isoquantum.xml: Should be read together
 	with all AddZeeman since it contains the values above. Changed
 	test-file to make it compatible with this new scheme.
-	
-	* src/absorption.cc: Now reads HITRAN quantum numbers 
+
+	* src/absorption.cc: Now reads HITRAN quantum numbers
 	differently for various Zeeman species. NO should be possible to
 	Zeeman split in ARTS as is, whereas OH and ClO still need some work.
-	
+
 	* src/methods.cc,src/workspace.cc,src/absorption.h: Small changes.
 
 2012-11-22  Oliver Lemke  <olemke@core-dump.info>

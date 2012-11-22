@@ -3324,7 +3324,8 @@ void do_gridcell_3d_byltest(
                                                          rsurface15, rsurface35,
                                                          rsurface36, rsurface16,
                                                          lat_v[j], lon_v[j] ); 
-              if( r_surface >= rlow  &&  r_v[j] < r_surface )
+              const Numeric r_test = max( r_surface, rlow );
+              if( r_v[j] < r_test )
                 { ready = false;   break; }
             }
           else if( r_v[j] < rlow )
