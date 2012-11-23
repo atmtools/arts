@@ -4883,7 +4883,7 @@ void define_md_data_raw()
          "the selection is restricted to the variables marked with *.\n"
          "\n"
          "In addition, these choices are accepted but no calculations are\n"
-         "done:"
+         "done:\n"
          "  \"PND, type X\": Size: [0,0,0,0].\n"
          "  \"Mass content, X\": Size: [0,0,0,0].\n"
          "See e.g. *iyTransmissionStandard* for a definition of these\n"
