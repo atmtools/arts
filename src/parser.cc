@@ -1050,9 +1050,8 @@ void ArtsParser::parse_generic_output(const MdRecord*&     mdd,
                 }
               else
                 {
-                  if (mdd->Name().length() > 6
-                      && mdd->Name().substr (mdd->Name().length() - 6)
-                      != "Create")
+                  if (mdd->Name().length() <= 6
+                      || mdd->Name().substr (mdd->Name().length() - 6) != "Create")
                     {
                       ostringstream os;
                       os << "This might be either a typo or you have to create "
