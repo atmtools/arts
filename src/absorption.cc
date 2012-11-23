@@ -2592,6 +2592,11 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 //      icecream >> mdelta_h2;
 //      icecream >> mdelta_he;
 
+      // FIXME: OLE: Added this if to catch crash for species like CO, PH3
+      // where the line in the catalog is too short. Better would be to
+      // only read the n and j for Zeeman species, but we don't have that
+      // information here
+      if (line.nelem() >= 288+12+1+12)
       {
           String qstr1 = line.substr(288,      12);
           String qstr2 = line.substr(288+12+1, 12);
