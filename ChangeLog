@@ -1,5 +1,13 @@
 2012-11-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-396
+
+	* controlfiles/artscomponents/catalogue/TestReadCataloguePerrin.arts:
+
+	Add simple testcase to read the whole Perrin catalogue.
+
+2012-11-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-395
 
 	* src/absorption.cc (LineRecord::ReadFromArtscat4Stream):
