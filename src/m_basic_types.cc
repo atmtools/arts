@@ -1201,6 +1201,8 @@ void Compare(const ArrayOfVector&    var1,
         throw runtime_error(os.str());
     }
 
+    bool failed = false;
+    ostringstream fail_msg;
     for (Index i = 0; i < var1.nelem(); i++)
     {
         try
@@ -1213,12 +1215,14 @@ void Compare(const ArrayOfVector&    var1,
         }
         catch (runtime_error e)
         {
-            ostringstream os;
-            os << e.what() << "\nMismatch at array index: " << i;
-            throw runtime_error(os.str());
+            failed = true;
+            fail_msg << endl << e.what() << endl
+                     << "Mismatch at array index: " << i << endl;
         }
     }
 
+    if (failed)
+        throw runtime_error(fail_msg.str());
 }
 
 

@@ -1,3 +1,35 @@
+2012-11-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-400
+
+	* src/doit.cc (cloud_RT_no_background):
+
+	Change averaging between the ppath steps to be consistent with the
+	clearsky part. Previously, averaging between ppath points was done for
+	temperature, pressure and vmrs. Now abs_mat_per_species is calculated
+	on each ppath point and then averaged.
+
+	Here are the differences between the old way and the new way:
+	TestDOIT:
+	  y_0-y_old OK (maximum difference = -0.0505823).
+	  y_1-y_old OK (maximum difference = 0.00250382).
+	TestDOITBatch:
+	  ybatch[0]-ybatch_old[0] OK   (maximum difference = 0.00277304).
+	  ybatch[1]-ybatch_old[1] OK   (maximum difference = 0.00306167).
+	  ybatch[2]-ybatch_old[2] FAIL (maximum difference = -0.0143527).
+	  ybatch[3]-ybatch_old[3] OK   (maximum difference = 0.00944391).
+	  ybatch[4]-ybatch_old[4] OK   (maximum difference = -0.00804398).
+	  ybatch[5]-ybatch_old[5] FAIL (maximum difference = 0.03268).
+
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.ybatch.ref.xml:
+
+	Updated reference values.
+
+	* src/m_basic_types.cc (Compare):
+
+	Don't fail immediately when comparing arrays. Instead, collect all
+	errors and throw an exception at the end.
+
 2012-11-24  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-399

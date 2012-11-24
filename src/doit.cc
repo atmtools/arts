@@ -875,47 +875,60 @@ void cloud_RT_no_background(Workspace& ws,
   Vector sca_vec_av(stokes_dim,0);
   Vector stokes_vec(stokes_dim, 0.);
   Vector rte_vmr_list_local(N_species,0.); 
-  
-  Tensor4 abs_mat_per_species_local;
+
+  // Two abs_mat_per_species to average between
+  Tensor4 abs_mat_per_species_local1;
+  Tensor4 abs_mat_per_species_local2;
+
+  // Pointers to the abs_mat_per_species of the previous and the current point.
+  // When moving through the layers, the pointers are used to move
+  // the current to the previos abs_mat_per_species with the need to
+  // copy a whole Tensor4.
+  Tensor4* cur_abs_mat_per_species = &abs_mat_per_species_local1;
+  Tensor4* prev_abs_mat_per_species = &abs_mat_per_species_local2;
+  Tensor4* tmp_abs_mat_per_species;
+
   Tensor3 ext_mat_local;
   Matrix abs_vec_local;  
 
   // Incoming stokes vector
   stokes_vec = doit_i_field_int(joker, ppath_step.np-1);
 
-  for( Index k= ppath_step.np-1; k > 0; k--)
+  for( Index k = ppath_step.np-1; k >= 0; k--)
     {
-      // Length of the path between the two layers.
-      Numeric lstep = ppath_step.lstep[k-1];
-      // Average temperature
-      Numeric rte_temperature_local = 0.5 * (t_int[k] + t_int[k-1]);
-      //
-      // Average pressure
-      Numeric rte_pressure_local = 0.5 * (p_int[k] + p_int[k-1]);
-      //
-      // Average vmrs
-      for (Index i = 0; i < N_species; i++)
-        rte_vmr_list_local[i] = 0.5 * (vmr_list_int(i,k) +
-                                       vmr_list_int(i,k-1));
-      //
-      // Calculate scalar gas absorption and add it to abs_vec 
-      // and ext_mat.
-      //
+      // Switch our abs_mat_per_species pointers around so
+      // that prev_... now points to the cur_... from previous iteration
+      tmp_abs_mat_per_species = prev_abs_mat_per_species;
+      prev_abs_mat_per_species = cur_abs_mat_per_species;
+      cur_abs_mat_per_species = tmp_abs_mat_per_species;
 
+      //
+      // Calculate scalar gas absorption
+      //
       const Vector rte_mag_dummy(1,-1.);
       const Vector ppath_los_dummy;
       
-      abs_mat_per_species_agendaExecute( ws, abs_mat_per_species_local,
+      abs_mat_per_species_agendaExecute( ws, *cur_abs_mat_per_species,
                                     f_grid[Range(f_index, 1)],
                                     0,
                                     rte_mag_dummy, ppath_los_dummy,
-                                    rte_pressure_local, 
-                                    rte_temperature_local, 
-                                    rte_vmr_list_local,
+                                    p_int[k], 
+                                    t_int[k], 
+                                    vmr_list_int(joker,k),
                                     abs_mat_per_species_agenda );
-              
-      opt_prop_sum_abs_mat_per_species(ext_mat_local, abs_vec_local, abs_mat_per_species_local);
-              
+
+      // Skip any further calculations for the first point.
+      // We need two ppath points before we can average.
+      if (k == ppath_step.np-1)
+          continue;
+    
+      // Average prev_abs_mat_per_species with cur_abs_mat_per_species
+      *prev_abs_mat_per_species += *cur_abs_mat_per_species;
+      *prev_abs_mat_per_species *= 0.5;
+        
+      opt_prop_sum_abs_mat_per_species(ext_mat_local, abs_vec_local,
+                                       *prev_abs_mat_per_species);
+        
       //
       // Add average particle extinction to ext_mat. 
       //
@@ -924,19 +937,19 @@ void cloud_RT_no_background(Workspace& ws,
           for (Index j = 0; j < stokes_dim; j++)
             {
               ext_mat_local(0,i,j) += 0.5 *
-                (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
+                (ext_mat_int(i,j,k) + ext_mat_int(i,j,k+1));
             }
           //
           // Add average particle absorption to abs_vec.
           //
           abs_vec_local(0,i) += 0.5 * 
-            (abs_vec_int(i,k) + abs_vec_int(i,k-1));
+            (abs_vec_int(i,k) + abs_vec_int(i,k+1));
           
           //
           // Averaging of sca_vec:
           //
           sca_vec_av[i] =  0.5 *
-            (sca_vec_int(i, k) + sca_vec_int(i, k-1));
+            (sca_vec_int(i, k) + sca_vec_int(i, k+1));
                   
         }
       // Frequency
@@ -944,8 +957,11 @@ void cloud_RT_no_background(Workspace& ws,
       //
       // Calculate Planck function
       //
-      Numeric rte_planck_value = planck(f, rte_temperature_local);
+      Numeric rte_planck_value = planck(f, 0.5 * (t_int[k] + t_int[k+1]));
               
+      // Length of the path between the two layers.
+      Numeric lstep = ppath_step.lstep[k];
+        
       // Some messages:
       out3 << "-----------------------------------------\n";
       out3 << "Input for radiative transfer step \n"
