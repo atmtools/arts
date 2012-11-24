@@ -2126,14 +2126,18 @@ void AtmRawRead(//WS Output:
 {
   CREATE_OUT3;
   
-  // Read the temperature field:
-  String file_name = basename + ".t.xml";
+  String tmp_basename = basename;
+  if (basename.length() && basename[basename.length()-1] != '/')
+    tmp_basename += ".";
+
+      // Read the temperature field:
+  String file_name = tmp_basename + "t.xml";
   xml_read_from_file( file_name, t_field_raw, verbosity);
   
   out3 << "Temperature field read from file: " << file_name << "\n";  
 
   // Read geometrical altitude field:
-  file_name = basename + ".z.xml";
+  file_name = tmp_basename + "z.xml";
   xml_read_from_file( file_name, z_field_raw, verbosity);
 
   out3 << "Altitude field read from file: " << file_name << "\n";  
@@ -2147,8 +2151,7 @@ void AtmRawRead(//WS Output:
   for ( Index i=0; i<abs_species.nelem(); i ++)
     {
       // Determine the name.
-      file_name =
-        basename + "." +
+      file_name = tmp_basename +
         species_data[abs_species[i][0].Species()].Name() + ".xml";
       
       // Add an element for this tag group to the vmr profiles:

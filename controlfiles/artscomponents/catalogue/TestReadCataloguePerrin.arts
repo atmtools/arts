@@ -6,12 +6,19 @@
 
 Arts2 {
 
-  SpeciesSet(abs_species,
-    ["C2H2", "CH4", "H2CO", "HCN", "HO2", "NO+", "OCS", "C2H4", "CO", "H2O",
-     "HCOOH", "HOBr", "NO", "OH", "C2H6", "CO2", "H2O2", "HCl", "HOCl", "NO2",
-     "PH3", "C3H8", "COF2", "H2S", "HF", "N2", "O", "SF6", "CH3CN", "ClO",
-     "H2SO4", "HI", "N2O", "O2", "SO", "CH3Cl", "ClONO2", "HBr", "HNO3",
-     "NH3", "O3", "SO2"])
+  # set case (for location where to look for data)
+  StringCreate( case )
+  StringSet( case, "spectroscopy/Perrin/" )
+  # derive all species we have line data for
+  abs_speciesDefineAllInScenario( abs_species, case )
+
+  # alternatively, specify the species by hand
+  #SpeciesSet(abs_species,
+  #  ["C2H2", "CH4", "H2CO", "HCN", "HO2", "NO+", "OCS", "C2H4", "CO", "H2O",
+  #   "HCOOH", "HOBr", "NO", "OH", "C2H6", "CO2", "H2O2", "HCl", "HOCl", "NO2",
+  #   "PH3", "C3H8", "COF2", "H2S", "HF", "N2", "O", "SF6", "CH3CN", "ClO",
+  #   "H2SO4", "HI", "N2O", "O2", "SO", "CH3Cl", "ClONO2", "HBr", "HNO3",
+  #   "NH3", "O3", "SO2"])
 
   # Read the line files and prepare line data
   abs_linesReadFromSplitArtscat(abs_lines, abs_species,

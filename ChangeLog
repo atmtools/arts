@@ -1,3 +1,38 @@
+2012-11-24  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-399
+
+	* src/m_abs.cc
+	(abs_speciesDefineAllInScenario): Don't add a dot between basename and
+	species if basename ends in '/', i.e. is a directory.
+	(abs_h2oSet): Don't throw an error, but set abs_h2o to [-1], if H2O is
+	not in abs_species (we need abs_h2o only for selected continua. so we
+	should at least be able to make lbl calculations without H2O).
+	(abs_coefCalc,abs_coefCalcSaveMemory): First call
+	abs_xsec_per_speciesAddConts, then abs_xsec_per_speciesAddLines. In case
+	continuum calc throws an error due to missing abs_h2o, we want to avoid
+	having done a heavy lbl calc before.
+
+	* src/m_abs_lookup.cc (abs_lookupCalc): as for abs_coefCalc (see above).
+
+	* src/absorption.cc (calc_gamma_and_deltaf_artscat4):
+	- Instead of throwing an error when broad_spec_vmr_sum <0.9, only send a
+	warning to out2 (it's anyway rescaled to vmr=1, hence we don't make big
+	errors)
+	- catch case that broad_spec_vmr_sum==0 (applying gamma_self for full
+	vmr=1). Not in effect yet as after fixing the abs_lookup-wit-artscat4
+	bug might make it obsolete (though, a catch of possible div0 seems
+	preferable anyways.)
+
+	* src/m_atmosphere.cc (AtmRawRead): Don't add a dot between basename and
+	name of atmfield if basename ends in '/', i.e. is a directory.
+
+	* controlfiles/artscomponents/catalogue/TestReadCataloguePerrin.arts:
+	Use abs_speciesDefineAllInScenario (instead of manually setting
+	abs_species) to catch ALL species with line files to test.
+
+	* controlfiles/artscomponents/clearsky/TestClearSky.arts: Fixed typo.
+
 2012-11-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-398

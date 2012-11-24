@@ -2709,12 +2709,14 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
                                     const Index this_species,
                                     const ArrayOfIndex& broad_spec_locations,
                                     const LineRecord& l_l,
-                                    const Verbosity&)
+                                    const Verbosity& verbosity)
 {
+    CREATE_OUT2;
+
     // Number of broadening species:
     const Index nbs = LineRecord::NBroadSpec();
     assert(nbs==broad_spec_locations.nelem());
-  
+
     // Theta is reference temperature divided by local temperature. Used in
     // several place by the broadening and shift formula.
     const Numeric theta = l_l.Ti0() / t;
@@ -2783,16 +2785,28 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1 )
       {
         ostringstream os;
-        os << "Error: The total VMR of all your defined broadening\n"
+//        os << "Error: The total VMR of all your defined broadening\n"
+        os << "Warning: The total VMR of all your defined broadening\n"
              << "species (including \"self\") is " << broad_spec_vmr_sum
              << ", more than 10% " << "different from 1.\n";
-        throw runtime_error(os.str());
+//        throw runtime_error(os.str());
+        out2 << os.str();
       }
     
-    // Normalize foreign gamma and deltaf with the foreign VMR sum:
-    gamma_foreign /= broad_spec_vmr_sum;
-    deltaf        /= broad_spec_vmr_sum;
-    
+    // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
+    // we have any foreign broadening species):
+//    if (broad_spec_vmr_sum != 0.)
+//      {
+        gamma_foreign /= broad_spec_vmr_sum;
+        deltaf        /= broad_spec_vmr_sum;
+/*      }
+    else
+    // If there are no foreign broadening species present, the best assumption
+    // we can make is to use gamma_self for everything:
+      {
+        gamma_foreign = gamma/p_self;
+      }
+*/    
     // Multiply by pressure. For the width we take only the foreign pressure.
     // This is consistent with that we have scaled with the sum of all foreign
     // broadening VMRs. In this way we make sure that the total foreign broadening

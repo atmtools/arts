@@ -107,7 +107,7 @@ sensorOff
 StringSet( iy_unit, "RJBT" )
 
 
-# Extract radiative nackground and optical depth as auxilary variables
+# Extract radiative background and optical depth as auxiliary variables
 # ---
 ArrayOfStringSet( iy_aux_vars, [ "Optical depth", "Radiative background" ] )
 # Create vector container for the optical depth

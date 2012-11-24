@@ -424,17 +424,6 @@ void abs_lookupCalc(// WS Output:
                   abs_xsec_per_speciesInit( abs_xsec_per_species, this_species,
                                             f_grid, abs_p, verbosity );
 
-                  abs_xsec_per_speciesAddLines( abs_xsec_per_species,
-                                                this_species,
-                                                f_grid,
-                                                abs_p,
-                                                this_t,
-                                                this_vmr,
-                                                these_lines,
-                                                this_lineshape,
-                                                isotopologue_ratios,
-                                                verbosity);
-
                   abs_xsec_per_speciesAddConts( abs_xsec_per_species,
                                                 this_species,
                                                 f_grid,
@@ -446,6 +435,17 @@ void abs_lookupCalc(// WS Output:
                                                 abs_cont_names,
                                                 abs_cont_parameters,
                                                 abs_cont_models,
+                                                verbosity);
+
+                  abs_xsec_per_speciesAddLines( abs_xsec_per_species,
+                                                this_species,
+                                                f_grid,
+                                                abs_p,
+                                                this_t,
+                                                this_vmr,
+                                                these_lines,
+                                                this_lineshape,
+                                                isotopologue_ratios,
                                                 verbosity);
 
                   // Store in the right place:

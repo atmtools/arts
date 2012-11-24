@@ -381,7 +381,7 @@ void abs_linesReadFromSplitArtscat(// WS Output:
     {
        tmpbasename += '.';
     }
-      
+
     abs_linesReadFromArts(more_abs_lines, tmpbasename + (species_data[*it].Name()) + ".xml",
                           fmin, fmax, verbosity);
     abs_lines.insert(abs_lines.end(), more_abs_lines.begin(), more_abs_lines.end());
@@ -996,7 +996,11 @@ void abs_speciesDefineAllInScenario(// WS Output:
   for ( Index i=0; i<species_data.nelem(); ++i )
     {
       const String specname = species_data[i].Name();
-      String filename = basename + "." + specname;
+      
+      String filename = basename;
+      if (basename.length() && basename[basename.length()-1] != '/')
+        filename += ".";
+      filename += specname;
 
       found_file = find_file(filename, ".xml", allpaths);
       if (!found_file) found_file = find_file(filename, ".xml.gz", allpaths);
@@ -1205,10 +1209,20 @@ void abs_h2oSet(Vector&          abs_h2o,
                              species_index_from_species_name("H2O") );
 
   if ( h2o_index < 0 )
-    throw runtime_error("No tag group contains water!");
-  
-  abs_h2o.resize( abs_vmrs.ncols() );
-  abs_h2o = abs_vmrs(h2o_index,Range(joker));   
+    // do not throw an error here - we only need abs_h2o in the continuum part.
+    // so, why throw an error if we probably do not want to calculate continuum
+    // anyways? i.e., the error throwing is moved to the continuum part, where
+    // abs_h2o is actually needed.
+    //throw runtime_error("No tag group contains water!");
+    {
+      abs_h2o.resize( 1 );
+      abs_h2o[0] = -1.;
+    }
+  else
+    {
+      abs_h2o.resize( abs_vmrs.ncols() );
+      abs_h2o = abs_vmrs(h2o_index,Range(joker));
+    }
 }
 
 
@@ -1285,17 +1299,6 @@ void abs_coefCalc(// WS Output:
   
   abs_xsec_per_speciesInit(abs_xsec_per_species, tgs, f_grid, abs_p, verbosity);
 
-  abs_xsec_per_speciesAddLines(abs_xsec_per_species,
-                               tgs,
-                               f_grid,
-                               abs_p,
-                               abs_t,
-                               abs_vmrs,
-                               abs_lines_per_species,
-                               abs_lineshape,
-                               isotopologue_ratios,
-                               verbosity);
-
   abs_xsec_per_speciesAddConts(abs_xsec_per_species,
                                tgs,
                                f_grid,
@@ -1307,6 +1310,17 @@ void abs_coefCalc(// WS Output:
                                abs_cont_names,
                                abs_cont_parameters,
                                abs_cont_models,
+                               verbosity);
+
+  abs_xsec_per_speciesAddLines(abs_xsec_per_species,
+                               tgs,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               abs_vmrs,
+                               abs_lines_per_species,
+                               abs_lineshape,
+                               isotopologue_ratios,
                                verbosity);
 
   abs_coefCalcFromXsec(abs_coef,
@@ -1393,17 +1407,6 @@ void abs_coefCalcSaveMemory(// WS Output:
 
       abs_xsec_per_speciesInit(abs_xsec_per_species, this_tg, f_grid, abs_p, verbosity);
 
-      abs_xsec_per_speciesAddLines(abs_xsec_per_species,
-                                   this_tg,
-                                   f_grid,
-                                   abs_p,
-                                   abs_t,
-                                   this_vmr,
-                                   these_lines,
-                                   this_lineshape,
-                                   isotopologue_ratios,
-                                   verbosity);
-
       abs_xsec_per_speciesAddConts(abs_xsec_per_species,
                                    this_tg,
                                    f_grid,
@@ -1415,6 +1418,17 @@ void abs_coefCalcSaveMemory(// WS Output:
                                    abs_cont_names,
                                    abs_cont_parameters,
                                    abs_cont_models,
+                                   verbosity);
+
+      abs_xsec_per_speciesAddLines(abs_xsec_per_species,
+                                   this_tg,
+                                   f_grid,
+                                   abs_p,
+                                   abs_t,
+                                   this_vmr,
+                                   these_lines,
+                                   this_lineshape,
+                                   isotopologue_ratios,
                                    verbosity);
 
       abs_coefCalcFromXsec(this_abs,
@@ -1571,7 +1585,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
       throw runtime_error(os.str());
     }
 
-  // Check that all paramters that should have the number of tag
+  // Check that all parameters that should have the number of tag
   // groups as a dimension are consistent.
   {
     const Index n_tgs    = tgs.nelem();
@@ -1871,7 +1885,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
     }
 
   // We do checks on abs_h2o and abs_n2 later, because we only want to
-  // do the check if the parameter are really needed.
+  // do the check if the parameters are really needed.
 
 
   out3 << "  Calculating continuum spectra.\n";
@@ -1976,11 +1990,12 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                       os << "The variable abs_h2o seems to be set to its global default\n"
                          << "value of -1. You have to set this to a H2O VMR profile if\n"
                          << "you want to use absorption contiua. If you are calling\n"
-                         << "absorption routines directly, or on the fly, you could\n"
-                         << "use for example the method *abs_h2oSet*.\n"
+                         << "absorption routines directly use for example the method\n"
+                         << "*abs_h2oSet*.\n"
                          << "If you are generating an absorption lookup table with\n"
-                         << "abs_lookupCalc, it should be enough to add a H2O species\n"
-                         << "to your calculation to fix this problem.";
+                         << "abs_lookupCalc or using on-the-fly absorption, it should\n"
+                         << "be enough to add a H2O species to your calculation to fix\n"
+                         << "this problem.";
                       throw runtime_error(os.str());
                     }
 
