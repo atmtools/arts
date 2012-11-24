@@ -3252,26 +3252,6 @@ void do_gridcell_3d_byltest(
       lat_end += lat_corr;
       lon_end += lon_corr;
       resolve_lon( lon_end, lon5, lon6 );              
-
-      // Set the relevant coordinate to be consistent with found endface.
-      //
-      if( endface == 1 )
-        { lat_end = lat1; }
-      else if( endface == 2 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, r36a, 
-                                                    r16a, lat_end, lon_end ); }
-      else if( endface == 3 )
-        { lat_end = lat3; }
-      else if( endface == 4 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, r36b, 
-                                                    r16b, lat_end, lon_end ); }
-      else if( endface == 5 )
-        { lon_end = lon5; }
-      else if( endface == 6 )
-        { lon_end = lon6; }
-      else if( endface == 7 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15,  
-                      rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
     }
 
   //--- Create return vectors
@@ -3307,54 +3287,76 @@ void do_gridcell_3d_byltest(
       cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j], x+dx*l, 
                    y+dy*l, z+dz*l, dx, dy, dz, ppc, lat_start, lon_start,
                    za_start, aa_start );
- 
-      if( unsafe && j < n)  // Last point should always be OK. To include it
-        {                   // can lead to infinite recursion
-          // Check that r_v[j] is above lower pressure level and the surface.
-          // This can fail around tangent points. For p-levels with constant r
-          // this is easy to handle analytically, but the problem is tricky in
-          // the general case with a non-spherical geometry, and this crude
-          // solution is used instead. Not the most elegant solution, but it
-          // works! Added later the same check for upper level, after getting
-          // assert in that direction. The z_field was crazy, but still
-          // formerly correct.
-          rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, 
-                                  r36a, r16a, lat_v[j], lon_v[j] );
-          if( do_surface )
-            {
-              const Numeric r_surface = rsurf_at_latlon( lat1, lat3, lon5, lon6,
-                                                         rsurface15, rsurface35,
-                                                         rsurface36, rsurface16,
-                                                         lat_v[j], lon_v[j] ); 
-              const Numeric r_test = max( r_surface, rlow );
-              if( r_v[j] < r_test )
+      
+      if( j < n )
+        {
+          // Shall lon values be shifted (value 0 and n+1 are already OK)?
+          resolve_lon( lon_v[j], lon5, lon6 );
+
+          
+          if( unsafe ) 
+            {          
+              // Check that r_v[j] is above lower pressure level and the
+              // surface. This can fail around tangent points. For p-levels
+              // with constant r this is easy to handle analytically, but the
+              // problem is tricky in the general case with a non-spherical
+              // geometry, and this crude solution is used instead. Not the
+              // most elegant solution, but it works! Added later the same
+              // check for upper level, after getting assert in that direction.
+              // The z_field was crazy, but still formerly correct.
+              rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, 
+                                      r36a, r16a, lat_v[j], lon_v[j] );
+              if( do_surface )
+                {
+                  const Numeric r_surface = rsurf_at_latlon( 
+                               lat1, lat3, lon5, lon6, rsurface15, rsurface35,
+                               rsurface36, rsurface16, lat_v[j], lon_v[j] ); 
+                  const Numeric r_test = max( r_surface, rlow );
+                  if(  r_v[j] < r_test )
+                    {  ready = false;   break; }
+                } 
+              else  if( r_v[j] < rlow )
+                { ready = false;   break; }
+
+              rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, 
+                                  r36b, r16b, lat_v[j], lon_v[j] );
+              if( r_v[j] > rupp )
                 { ready = false;   break; }
             }
-          else if( r_v[j] < rlow )
-            { ready = false;   break; }
-
-          rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, 
-                                  r36b, r16b, lat_v[j], lon_v[j] );
-          if( r_v[j] > rupp )
-            { ready = false;   break; }
-
+        }
+      else // j==n
+        {
+          if( unsafe )
+            {
+              // Set end point to be consistent with found endface.
+              //
+              if( endface == 1 )
+                { lat_v[n] = lat1; }
+              else if( endface == 2 )
+                { r_v[n] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                            r15a, r35a, r36a, r16a, 
+                                            lat_v[n], lon_v[n] ); }
+              else if( endface == 3 )
+                { lat_v[n] = lat3; }
+              else if( endface == 4 )
+                { r_v[n] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                            r15b, r35b, r36b, r16b, 
+                                            lat_v[n], lon_v[n] ); }
+              else if( endface == 5 )
+                { lon_v[n] = lon5; }
+              else if( endface == 6 )
+                { lon_v[n] = lon6; }
+              else if( endface == 7 )
+                { r_v[n] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                            rsurface15, rsurface35, 
+                                            rsurface36, rsurface16, 
+                                            lat_v[n], lon_v[n] ); }
+            }
         }
     }
 
-  if( ready )
-    {
-      //--- Set last point especially, which should improve the accuracy
-      r_v[n]   = r_end; 
-      lat_v[n] = lat_end;
-      lon_v[n] = lon_end;
-
-      // Shall lon values be shifted (value 0 and n+1 are already OK)?
-      for( Index j=1; j<n; j++ )
-        { resolve_lon( lon_v[j], lon5, lon6 ); }
-      //cout << "--- Ready ---" << endl;
-    }
-  else
-    { // If an "outisde" point found, restart with l as start search length
+  if( !ready )
+    { // If an "outside" point found, restart with l as start search length
       //cout << "Iterative call of byltest with l_start = " << l << endl;
       do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                               r_start, lat_start, lon_start, za_start, aa_start,

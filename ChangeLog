@@ -1,3 +1,11 @@
+2012-11-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-401
+
+	* src/ppath.cc (do_gridcell_3d_byltest): resolve_lon was applied
+	too late for final points, that could cause an assert when
+	starting the next step. Code restructured to fix this.
+
 2012-11-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-400
