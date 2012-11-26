@@ -331,7 +331,7 @@ Numeric geompath_r_at_lat(
    \param   za1        Zenith angle for first point.
    \param   r2         Radius for second point.
    \param   tanpoint   True if there is a tangent point (r-based) between 
-                       r1 and r2. Otehrwise false.
+                       r1 and r2. Otherwise false.
    \param   lmax       Length criterion for distance between path points.
                        A negative value means no length criterion.
 
@@ -2815,7 +2815,6 @@ void ppath_step_geom_1d(
    3: The face at the upper latitude point. <br>
    4: The face at the upper (geometrically) pressure level. <br>
    7: The end point is an intersection with the surface. 
-   8: The end point is a tangent point. 
 
    The corner points are names r[lat][a,b]. For example: r3b.
    The latitudes are numbered to match the end faces. This means that
@@ -3156,7 +3155,6 @@ void do_gridcell_3d_byltest(
         { l_end = l_start; }
       else
         { l_end = 2 * ( rupp - rlow ); }
-      //cout << "----- Start -----\n";
       //
       Numeric   l_in   = 0, l_out = l_end;
       bool      ready  = false, startup = true;
@@ -3167,7 +3165,6 @@ void do_gridcell_3d_byltest(
 
       while( !ready )
         {
-          //cout << l_end << endl;
           cart2sph( r_end, lat_end, lon_end, x+dx*l_end, y+dy*l_end, 
                     z+dz*l_end, lat_start, lon_start, za_start,  aa_start );
           r_end   -= r_corr;
@@ -3228,7 +3225,6 @@ void do_gridcell_3d_byltest(
                   l_out = l_end;   
                   l_end = ( l_out + l_in ) / 2;
                   startup = false; 
-                  //cout << "= Startup ready \n";
                 }
             }
           else
@@ -3357,7 +3353,6 @@ void do_gridcell_3d_byltest(
 
   if( !ready )
     { // If an "outside" point found, restart with l as start search length
-      //cout << "Iterative call of byltest with l_start = " << l << endl;
       do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
                               r_start, lat_start, lon_start, za_start, aa_start,
                               l, icall+1, ppc, lmax, lat1, lat3, lon5, lon6, 
@@ -3440,20 +3435,6 @@ void ppath_step_geom_3d(
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, Vector(np-1,lstep), 
                 Vector(np,1), Vector(np,1), lat_grid, lon_grid, z_field, 
                 refellipsoid, ip, ilat, ilon, endface, ppc );
-
-  // Make part after a tangent point 
-  if( endface == 8 )
-    {
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath, -1 );
-
-      ppath_step_geom_3d( ppath2, lat_grid, lon_grid, z_field, refellipsoid, 
-                                                             z_surface, lmax );
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
 }
 
 
@@ -4187,14 +4168,13 @@ void raytrace_3d_linear_basic(
 
       // Where will a geometric path exit the grid cell?
       do_gridcell_3d_byltest( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface,
-                              r, lat, lon, za, aa, -1, 0, 
+                              r, lat, lon, za, aa, lraytrace, 0, 
                               ppc_step, -1, lat1, lat3, lon5, lon6,
                               r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                               rsurface15, rsurface35, rsurface36, rsurface16 );
       assert( r_v.nelem() == 2 );
 
-      // If *lstep* is <= *lraytrace*, extract the found end point (if not 
-      // a tangent point, we are ready).
+      // If *lstep* is <= *lraytrace*, extract the found end point
       // Otherwise, we make a geometrical step with length *lraytrace*.
 
       if( lstep <= lraytrace )
@@ -4205,8 +4185,7 @@ void raytrace_3d_linear_basic(
           za_new = za_v[1];
           aa_new = aa_v[1];
           lcum  += lstep;
-          if( endface != 8 )
-            { ready = true; }
+          ready = true; 
         }
       else
         {

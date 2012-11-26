@@ -1,3 +1,16 @@
+2012-11-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-402
+
+	* src/ppath.cc (ppath_step_geom_3d): Removed some obsolete code
+	related to tangent points.
+
+	* src/ppath.cc (raytrace_3d_linear_basic): Call
+	do_gridcell_3d_byltest with lraytrace as start value for length
+	search, to make sure that it safes to take a path step of this
+	length. Before -1 was used, and the length lraytrace was not
+	necessarily probed.
+
 2012-11-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-401
