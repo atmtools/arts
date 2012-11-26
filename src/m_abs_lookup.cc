@@ -40,6 +40,7 @@
 #include "arts_omp.h"
 #include "interpolation_poly.h"
 #include "rng.h"
+#include "absorption.h"
 
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
@@ -81,6 +82,10 @@ void abs_lookupCalc(// WS Output:
   CREATE_OUT2;
   CREATE_OUT3;
   
+  // We need this temporary variable to make a local copy of all VMRs,
+  // where we then perturb the H2O profile as needed
+  Matrix these_all_vmrs = abs_vmrs;
+    
   // Check that correct isotopologue ratios are defined for the species
   // we want to calculate
   checkIsotopologueRatios(abs_species, isotopologue_ratios);
@@ -346,13 +351,22 @@ void abs_lookupCalc(// WS Output:
                    << abs_nls_pert[s] << ".\n";
             }
 
-          // VMR for this species:
-          this_vmr(0,joker) = abs_vmrs(i,joker);  
-          if ( i==h2o_index )
+          
+          // Make a local copy of the VMRs, and manipulate the H2O VMR within it.
+          // Note: We do not need a runtime error check that h2o_index is ok here,
+          // because earlier on we throw an error if there is no H2O species although we
+          // need it. So, if h2o_indes is -1, we here simply assume that there
+          // should not be a perturbation
+          if ( h2o_index >= 0 )
             {
-              //              out3 << "  Species is main H2O species.\n";
-              this_vmr(0,joker) *= these_nls_pert[s]; // Add perturbation
+              these_all_vmrs(h2o_index,joker) = abs_vmrs(h2o_index,joker);
+              these_all_vmrs(h2o_index,joker) *= these_nls_pert[s]; // Add perturbation
             }
+          
+          // VMR for this species (still needed by interfact to continua):
+          // FIXME: This variable may go away eventually, when the continuum
+          // part no longer needs it.
+          this_vmr(0,joker) = these_all_vmrs(i,joker);
 
           // For abs_h2o, we can always add the perturbations (it will
           // not make a difference if the species itself is also H2O).
@@ -360,6 +374,9 @@ void abs_lookupCalc(// WS Output:
           // is no H2O species. We will then set abs_h2o to
           // -1. Absorption routines that do not really need abs_h2o
           // will still run.
+          //
+          // FIXME: abs_h2o is currently still needed by the continuum part.
+          // Should go away eventually.
           if ( h2o_index == -1 )
             {
               // The case without H2O species.
@@ -369,8 +386,7 @@ void abs_lookupCalc(// WS Output:
           else
             {
               // The normal case.
-              abs_h2o = abs_vmrs(h2o_index, joker);   
-              abs_h2o *= these_nls_pert[s]; // Add perturbation
+              abs_h2o = these_all_vmrs(h2o_index, joker);
             }
 
           // Loop temperature perturbations
@@ -437,16 +453,31 @@ void abs_lookupCalc(// WS Output:
                                                 abs_cont_models,
                                                 verbosity);
 
-                  abs_xsec_per_speciesAddLines( abs_xsec_per_species,
-                                                this_species,
-                                                f_grid,
-                                                abs_p,
-                                                this_t,
-                                                this_vmr,
-                                                these_lines,
-                                                this_lineshape,
-                                                isotopologue_ratios,
-                                                verbosity);
+//                  abs_xsec_per_speciesAddLines( abs_xsec_per_species,
+//                                                this_species,
+//                                                f_grid,
+//                                                abs_p,
+//                                                this_t,
+//                                                this_vmr,
+//                                                these_lines,
+//                                                this_lineshape,
+//                                                isotopologue_ratios,
+//                                                verbosity);
+                  
+                  xsec_species( abs_xsec_per_species[0],
+                               f_grid,
+                               abs_p,
+                               this_t,
+                               these_all_vmrs,
+                               abs_species,
+                               i,
+                               these_lines[0],
+                               this_lineshape[0].Ind_ls(),
+                               this_lineshape[0].Ind_lsn(),
+                               this_lineshape[0].Cutoff(),
+                               isotopologue_ratios,
+                               verbosity );
+                  
 
                   // Store in the right place:
                   // Loop through all altitudes

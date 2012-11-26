@@ -1,3 +1,15 @@
+2012-11-26  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-404
+
+	* src/m_abs_lookup.cc (abs_lookupCalc): Made this work correctly
+	with artscat4 (fixed bug reported by Jana). Now calls xsec_species
+	directly for the line absorption calculation, instead of through
+	abs_xsec_per_speciesAddLines.
+
+	* controlfiles/artscomponents/absorption/TestCompareArtscat3And4.arts:
+	Added a test with lookup table.
+
 2012-11-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-403

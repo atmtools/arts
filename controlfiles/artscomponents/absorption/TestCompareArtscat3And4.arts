@@ -58,7 +58,34 @@ timerStop
 # WriteXML( "zascii", abs_mat_field_artscat3 )
 # WriteXML( "zascii", abs_mat_field )
 
+# Save result:
+Tensor7Create(abs_mat_field_artscat4)
+Copy(abs_mat_field_artscat4, abs_mat_field)
+
 # Compare the two results:
-Compare( abs_mat_field, abs_mat_field_artscat3, 1e-18 )
+Compare( abs_mat_field_artscat4, abs_mat_field_artscat3, 1e-18 )
+
+
+
+# Now also try a lookup table calculation:
+
+# Set up the absorption lookup table:
+abs_lookupSetup
+abs_lookupCalc
+
+# Reset absorption agenda:
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+
+# Redo calculation:
+timerStart
+abs_mat_fieldCalc
+timerStop
+
+# Save result
+Tensor7Create(abs_mat_field_artscat4lookup)
+Copy(abs_mat_field_artscat4lookup, abs_mat_field)
+
+# Compare the last two results:
+Compare( abs_mat_field_artscat4lookup, abs_mat_field_artscat4, 1e-16 )
 
 }
