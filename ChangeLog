@@ -1,3 +1,24 @@
+2012-11-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-403
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Catch std::bad_alloc. This is not perfect, because it only gives us
+	the workspace method where the allocation failed, not the exact
+	function in the code. But better than before without any clues.
+
+	* src/rte.cc (get_ppath_abs):
+
+	Add try catch around Tensor5.resize(). As this is large it is prone to
+	fail. By catching the std::bad_alloc exception here, we can give as
+	much information as possible about where the problem is to the user.
+
+	This should be done in other places where potentially large data is
+	allocated too.
+
+	* src/doit.cc (cloud_RT_no_background): Tweak comments.
+
 2012-11-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-402

@@ -259,6 +259,16 @@ void Agenda::execute(Workspace& ws) const
 
           throw runtime_error(os.str());
         }
+        catch (std::bad_alloc x)
+        {
+          aout1 << "}\n";
+
+          ostringstream os;
+          os << "Memory allocation error in method: " << mdd.Name() << '\n'
+             << x.what();
+
+          throw runtime_error(os.str());
+        }
     }
 
   aout1 << "}\n";

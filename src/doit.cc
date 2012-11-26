@@ -881,8 +881,8 @@ void cloud_RT_no_background(Workspace& ws,
   Tensor4 abs_mat_per_species_local2;
 
   // Pointers to the abs_mat_per_species of the previous and the current point.
-  // When moving through the layers, the pointers are used to move
-  // the current to the previos abs_mat_per_species with the need to
+  // When moving along the ppath points, the pointers are used to move
+  // the current to the previos abs_mat_per_species without the need to
   // copy a whole Tensor4.
   Tensor4* cur_abs_mat_per_species = &abs_mat_per_species_local1;
   Tensor4* prev_abs_mat_per_species = &abs_mat_per_species_local2;
@@ -896,7 +896,7 @@ void cloud_RT_no_background(Workspace& ws,
 
   for( Index k = ppath_step.np-1; k >= 0; k--)
     {
-      // Switch our abs_mat_per_species pointers around so
+      // Switch abs_mat_per_species pointers around so
       // that prev_... now points to the cur_... from previous iteration
       tmp_abs_mat_per_species = prev_abs_mat_per_species;
       prev_abs_mat_per_species = cur_abs_mat_per_species;
@@ -918,7 +918,7 @@ void cloud_RT_no_background(Workspace& ws,
                                     abs_mat_per_species_agenda );
 
       // Skip any further calculations for the first point.
-      // We need two ppath points before we can average.
+      // We need values at two ppath points before we can average.
       if (k == ppath_step.np-1)
           continue;
     

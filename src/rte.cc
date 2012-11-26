@@ -1166,7 +1166,16 @@ void get_ppath_abs(
   const Numeric f_doppler = ( f_grid[0] + f_grid[nf-1] ) / 2.0;
     
   // Size variable
-  ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
+  try {
+    ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
+  } catch (std::bad_alloc x) {
+      ostringstream os;
+      os << "Run-time error in function: get_ppath_abs" << endl
+         << "Memory allocation failed for ppath_abs("
+         << nabs << ", " << nf << ", " << stokes_dim << ", "
+         << stokes_dim << ", " << np << ")" << endl;
+      throw runtime_error(os.str());
+  }
 
   String fail_msg;
   bool failed = false;
