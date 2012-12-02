@@ -13,6 +13,7 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
+
 # on-the-fly absorption
 Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
@@ -20,6 +21,7 @@ Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 # Number of Stokes components to be computed
 #
 IndexSet( stokes_dim, 1 )
+
 
 # Frequency grid 
 #
@@ -100,10 +102,6 @@ AgendaSet( iy_transmitter_agenda ){
 Copy( iy_main_agenda, iy_main_agenda__Radiolink )
 
 
-# Calculations here done through yCalc as it is then easier to extract
-# auxiliary data. For this we need some additional and dummy settings, 
-# compared to use iyCalc.
-
 
 # Sensor/receiver and transmitter
 #
@@ -117,10 +115,14 @@ sensor_checkedCalc
 
 # Auxilary variables
 #
-# Other aux variables either path of iy (total loss) or can not be obtained
-# through yCalc.
+# These are the ones that can be obtained by yCalc.
 #
-ArrayOfStringSet( iy_aux_vars, [ "Bending angle", "Extra path delay" ] )
+ArrayOfStringSet( iy_aux_vars, [ 
+  "Bending angle", 
+  "Extra path delay",
+  "Free space loss", 
+  "Atmospheric loss", 
+  "Defocusing loss" ] )
 
 
 

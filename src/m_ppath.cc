@@ -435,7 +435,7 @@ void ppathFromRtePos2(
     }
 
   // Common stuff
-  ppath_set_background( ppath, 1 );
+  ppath_set_background( ppath, 9 );
   ppath.start_pos = rte_pos2;
 }
 

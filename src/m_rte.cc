@@ -1281,9 +1281,9 @@ void iyRadioLink(
   ppath_agendaExecute( ws, ppath, rte_pos, Vector(0), rte_pos2, cloudbox_on, 0,
                        t_field, z_field, vmr_field, edensity_field, f_grid, 
                        ppath_agenda );
-  if( ppath_what_background(ppath) > 2 )
-    { throw runtime_error( "Radiative background not set to \"space\" by "
-                      "*ppath_agenda*. Is correct WSM used in the agenda?" ); }
+  if( ppath_what_background(ppath) != 9 )
+    { throw runtime_error( "Radiative background not set to \"transmitter\" by"
+                     " *ppath_agenda*. Is correct WSM used in the agenda?" ); }
 
   // Some basic sizes
   //
@@ -1296,8 +1296,10 @@ void iyRadioLink(
         auxTemperature     = -1,
         auxAbsSum          = -1,
         auxFreeSpaceLoss   = -1,
+        auxFreeSpaceAtte   = -1,
         auxAtmosphericLoss = -1,
         auxDefocusingLoss  = -1,
+        auxDefocusingAtte  = -1,
         auxExtraPathDelay  = -1,
         auxBendingAngle    = -1;
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
@@ -1348,10 +1350,14 @@ void iyRadioLink(
         }
       else if( iy_aux_vars[i] == "Free space loss" )
         { auxFreeSpaceLoss = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Free space attenuation" )
+        { auxFreeSpaceAtte = i;     iy_aux[i].resize( nf, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Atmospheric loss" )
-        { auxAtmosphericLoss = i;   iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxAtmosphericLoss = i;   iy_aux[i].resize( nf, 1, 1, 1 ); } 
       else if( iy_aux_vars[i] == "Defocusing loss" )
         { auxDefocusingLoss = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Defocusing attenuation" )
+        { auxDefocusingAtte = i;    iy_aux[i].resize( nf, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Extra path delay" )
         { auxExtraPathDelay = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Bending angle" )
@@ -1378,19 +1384,19 @@ void iyRadioLink(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
-                          ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                          ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
-                          ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                          wind_u_field, wind_v_field, wind_w_field ,
-                          mag_u_field, mag_v_field, mag_w_field );      
-      get_ppath_abs(      ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
-                          ppath_p, ppath_t, ppath_vmr, 
-                          ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                          ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                          f_grid, stokes_dim, atmosphere_dim );
-      get_ppath_trans(    trans_partial, trans_cumulat,scalar_tau, 
-                           ppath, ppath_abs, f_grid, stokes_dim );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
+                         ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
+                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
+                         wind_u_field, wind_v_field, wind_w_field ,
+                         mag_u_field, mag_v_field, mag_w_field );      
+      get_ppath_abs(     ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+                         ppath_p, ppath_t, ppath_vmr, 
+                         ppath_wind_u, ppath_wind_v, ppath_wind_w, 
+                         ppath_mag_u, ppath_mag_v, ppath_mag_w, 
+                         f_grid, stokes_dim, atmosphere_dim );
+      get_ppath_trans(   trans_partial, trans_cumulat,scalar_tau, 
+                         ppath, ppath_abs, f_grid, stokes_dim );
 
     }
 
@@ -1407,7 +1413,7 @@ void iyRadioLink(
   Numeric lbg;  // Bent geometrical length of ray path
   Numeric lba;  // Bent apparent length of ray path
   //
-  lbg = ppath.start_lstep + ppath.end_lstep;
+  lbg = ppath.end_lstep;
   lba = lbg;
 
   // Do RT calculations
@@ -1438,6 +1444,9 @@ void iyRadioLink(
               for( Index is2=0; is2<stokes_dim; is2++ ){
                 iy_aux[auxAbsSpecies[j]](iv,is1,is2,np-1) = 
                                ppath_abs(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
+      // Free space
+      if( auxFreeSpaceAtte >= 0 )
+        { iy_aux[auxFreeSpaceAtte](joker,0,0,np-1) = 2/lbg; }
       //=======================================================================
 
       // Loop ppath steps
@@ -1447,7 +1456,7 @@ void iyRadioLink(
           lbg += ppath.lstep[ip];
           lba += ppath.lstep[ip] * (ppath.ngroup[ip]+ppath.ngroup[ip+1]) / 2.0;
           
-          // Include atmospheric loss
+          // Atmospheric loss of path step
           for( Index iv=0; iv<nf; iv++ )
             {
               Vector iy_temp = iy(iv,joker);
@@ -1477,10 +1486,17 @@ void iyRadioLink(
                   for( Index is2=0; is2<stokes_dim; is2++ ){
                     iy_aux[auxAbsSpecies[j]](iv,is1,is2,ip) = 
                                  ppath_abs(auxAbsIsp[j],iv,is1,is2,ip); } } } }
+          // Free space loss
+          if( auxFreeSpaceAtte >= 0 )
+            { iy_aux[auxFreeSpaceAtte](joker,0,0,ip) = 2/lbg; }
           //===================================================================
         }
 
-      // Determine free space loss
+      // Remaing length of ppath
+      lbg += ppath.start_lstep;
+      lba += ppath.start_lstep;
+
+      // Determine total free space loss
       Numeric fspl = 1 / ( 4 * PI * lbg*lbg ); 
 
       // Determine defocusing loss

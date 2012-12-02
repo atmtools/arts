@@ -1789,6 +1789,9 @@ void ppath_set_background(
     case 4:
       ppath.background = "cloud box interior";
       break;
+    case 9:
+      ppath.background = "transmitter";
+      break;
     default:
       ostringstream os;
       os << "Case number " << case_nr << " is not defined.";
@@ -1822,6 +1825,8 @@ Index ppath_what_background( const Ppath&   ppath )
     { return 3; }
   else if( ppath.background == "cloud box interior" )
     { return 4; }
+  else if( ppath.background == "transmitter" )
+    { return 9; }
   else
     {
       ostringstream os;

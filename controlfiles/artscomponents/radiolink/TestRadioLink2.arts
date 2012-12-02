@@ -2,7 +2,8 @@
 #
 # Demonstration and test of a single radio link calculations, using iyCalc.
 #
-# The link between a satellite and a surface point is simulated.
+# The link between a satellite and a surface point is simulated. The refracted
+# path is at about 5 degress above the horizon (at the surface point). 
 #
 # 2012-08-21, Patrick Eriksson
 
@@ -12,6 +13,7 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
+
 
 # on-the-fly absorption
 Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
@@ -85,7 +87,7 @@ Copy( ppath_agenda, ppath_agenda__TransmitterReceiverPath )
 # refracted path
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 Copy( refr_index_agenda, refr_index_agenda__GasThayer  )
-
+#
 NumericSet( ppath_lmax, 10e3 )
 NumericSet( ppath_lraytrace, 100 )
 
@@ -104,16 +106,19 @@ Copy( iy_main_agenda, iy_main_agenda__Radiolink )
 
 # Postion of sensor/receiver and transmitter
 #
-VectorSet( rte_pos, [ 600e3 ] )
-VectorSet( rte_pos2, [ 0, 8.3 ] )
+VectorSet( rte_pos, [ 80e3 ] )
+VectorSet( rte_pos2, [ 0, 5.1 ] )
 
 
 # Auxilary variables
 #
 ArrayOfStringSet( iy_aux_vars, [ 
-    "Pressure", "Temperature", "VMR, species 0", "Absorption, summed", 
-    "Absorption, species 1", "Free space loss", "Atmospheric loss",
-    "Defocusing loss", "Extra path delay", "Bending angle" ] )
+    "Pressure", "Temperature", "VMR, species 0", 
+    "Atmospheric loss", "Absorption, summed", 
+    "Free space loss",  "Free space attenuation", 
+    "Defocusing loss",  "Defocusing attenuation", 
+    "Extra path delay", "Bending angle" ] )
+
 
 # Run and save
 #
@@ -121,6 +126,7 @@ iyCalc
 
 WriteXML( "ascii", iy, "iy.xml" )
 WriteXML( "ascii", iy_aux, "iy_aux.xml" )
+WriteXML( "ascii", ppath, "ppath.xml" )
 
 }
  
