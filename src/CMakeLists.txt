@@ -372,6 +372,11 @@ target_link_libraries (test_sorting matpack)
 add_executable (test_readpp test_readpp.cc)
 target_link_libraries (test_readpp ${ALL_ARTS_LIBRARIES})
 
+########### next testcase ###############
+
+add_executable (test_cia test_cia.cc cia.h cia.cc)
+target_link_libraries (test_cia ${ALL_ARTS_LIBRARIES})
+
 ########### subdirs ###############
 
 add_subdirectory (libmicrohttpd)
