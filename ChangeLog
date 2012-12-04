@@ -1,5 +1,11 @@
 2012-12-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-409
+
+	* doc/uguide/transmission.tex: Some more writing ...
+
+2012-12-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-408
 
 	* Attacked some compiler warnings. (Don't know how to handle the

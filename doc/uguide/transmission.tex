@@ -19,7 +19,9 @@ transmitter and the receiver. That is, the user does not need to set a
 line-of-sight of the sensor (receiver), it is determined by the transmitter
 position. A characterisation of a radio link normally involves several
 attenuation terms not encountered for passive measurements, such as free space
-loss and defocusing.
+loss and defocusing. Faraday rotation is an additional physical mechanism that
+is of special concern for active microwave devices (it can normally be
+neglected at the higher frequencies used for passive observations).
 
 
 
@@ -90,45 +92,75 @@ the propagation path can be extracted, and also the transmission matrix
 
 
 
-\section{Radio calculations}
+\section{Radio link calculations}
 %===================
 \label{sec:radiolinks}
 
-The \wsmindex{iyRadioLink} method is in development and at this moment just
-some theory is provided:
+\subsection{Practical usage}
+%
+This type of calculations are handled by \wsmindex{iyRadioLink}. A sensor
+position must be specified, as usual. The ``sensor'' takes the place as the
+reciever of the radio link. The observation angles of the reciever are not user
+input (if any given they are just ignored), they are determined by the position
+of the transmitter. This position is given as \wsvindex{transmitter\_pos} or
+\wsvindex{rte\_pos2}, dependent on if \builtindoc{yCalc} or \builtindoc{iyCalc}
+is used. Specification of reciever and transmitter properties, beside their
+positions, is discussed in Section~\ref{sec:radiolinks:oview}. The quantities
+returned by \builtindoc{iyRadioLink} are also described in the same section
+(\ref{sec:radiolinks:oview}).
 
+It is allowed to use \builtindoc{iyRadioLink} together with pure geometrical
+propagation paths, but this option does not give realistic results as the this
+set-up misses the impact of ``defocusing'' (Sec.~\ref{sec:rlink:defoc}). With
+refrcation, the propgation path can not be determined in a strict analytical
+manner and some search algorithm is required. ARTS contains so far just a quite
+simple algorithm for this purpose, activated by applying
+\wsmindex{ppathFromRtePos2} for \wsaindex{ppath\_agenda}. In short, the search
+is started by determining the geometrical path. The closest distance between
+this path and the receiver is converted to an estimated correction for the
+``line-of-sight'' of the transmitter, the corresponding refracted path is
+determined and a new correction term is obtained. The procedure is repeated
+until a (stringent) hard-coded convergence criterion is fulfilled.
 
-\subsection{Overview}
+   
+\subsection{Definitions}
 %===================
 \label{sec:radiolinks:oview}
 
 The power received, $p_r$, by an antenna with an effective aperture size
-$A_e$ and gain $g_r$, located a distance $l$ from a transmitter, with power
-$p_t$ and gain $g_t$, can be written as
+$A_e$, located a distance $l$ from a transmitter, with power
+$p_t$ and gain $g_t$, can be expressed as
 \begin{equation}
-  p_r(l) = t_a\frac{p_tg_t}{4\pi l^2}A_e=t_a\frac{p_tg_t}{4\pi l^{2}}
-  \frac{g_r\Wvl^2}{4\pi}=t_ap_tg_tg_r\left(\frac{\Wvl}{4\pi l} \right)^2,
+  \label{eq:rlink:start}
+  p_r(l) = t_a\frac{p_tg_t}{4\pi l^2}A_e,
 \end{equation}
-where $t_a$ is the transmission due to losses caused by the atmosphere and
-\Wvl\ is the wavelength of the signal. The total atmospheric loss is the
-product between loss due to defocusing, $t_d$ (Sec.~?) and gaseous and particle
-extinction, $t_e$ (Sec.~?):
+where $t_a$ is the transmission due to losses caused by the atmosphere. This
+total atmospheric loss ($t_a$) is the product between losses due to defocusing,
+$t_d$ (Sec.~\ref{sec:rlink:defoc}) and gaseous and particle extinction, $t_e$
+(Sec.~\ref{sec:rlink:atmext}):
 \begin{equation}
   t_a = t_d t_e.
 \end{equation}
-Xxx
+The factor
+\begin{equation}
+  \label{eq:rlink:fspl}
+  t_f = \frac{1}{4\pi l^2}
+\end{equation}
+represents the pure geometrical dilution of the power, following the inverse
+square law. This effect is ecnountered also for propagation in free space, and
+it is denoted as the \emph{free space loss}. 
+
+However, it shall be noted that this deviates from what appears to be the
+standard definition of free space loss, that is $\left(\Wvl/(4 \pi
+l)\right)^2$, where \Wvl\ is the wavelength of the signal. This expression
+encompasses the relationship between the reciever's effective antenna area and
+its gain, and to keep atmospheric and sensor effects clearly seperated in ARTS,
+\builtindoc{iyRadioLink} defines free space loss according to
+Equation~\ref{eq:rlink:fspl}.
+
 \begin{equation}
   p_r(l) = t_d t_e \left(\frac{1}{4\pi l} \right)^2 p_t',
 \end{equation}
-
-
-
-
-\subsection{Determining the propagation path}
-%===================
-\label{sec:radiolinks:ppath}
-
-Use \wsmindex{ppathFromRtePos2}.
 
 
 \subsection{Free space loss}
@@ -167,7 +199,8 @@ should be noted that this ``extinction coefficient'' is non-linear, it varies
 with the distance from the transmitting antenna. 
 
 
-\subsection{Extra path delay}
+
+\subsection{Bending angle and extra path delay}
 %
 An electromagnetic wave that travels a path of given optical path 
 length arrives with the same phase shift as if it had travelled a 
@@ -204,7 +237,23 @@ where \(d_{a}\) is the along-path delay
 and \(d_{g}\) is the geometric delay.
 
 
-%%% Local Variables: 
-%%% mode: latex
-%%% TeX-master: "arts_user"
-%%% End: 
+
+\subsection{Defocusing}
+\label{sec:rlink:defoc}
+%
+\dots
+
+
+
+\subsection{Atmospheric extinction}
+\label{sec:rlink:atmext}
+%
+\dots
+
+
+
+\subsection{Faraday rotation}
+\label{sec:rlink:farrot}
+%
+\dots
+
