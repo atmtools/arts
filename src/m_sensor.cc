@@ -2459,7 +2459,7 @@ void sensor_checkedCalc(
    const ArrayOfIndex&               sensor_response_pol,
    const Vector&                     sensor_response_za,
    const Vector&                     sensor_response_aa,
-   const Verbosity&                  verbosity )
+   const Verbosity& )
 {
 
   // Some sizes
@@ -2560,17 +2560,20 @@ void sensor_checkedCalc(
   // Sensor aux variables
   //
   if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
-      n1y != sensor_response_za.nelem() || n1y != sensor_response_za.nelem() )
+      n1y != sensor_response_za.nelem() || 
+      ( antenna_dim==2 && n1y != sensor_response_aa.nelem() ) )
     {
       ostringstream os;
       os << "Sensor auxiliary variables do not have the correct size.\n"
          << "The following variables should all have same size:\n"
-         << "length(y) for one block      : " << n1y << "\n"
+         << "length of y for one block    : " << n1y << "\n"
          << "sensor_response_f.nelem()    : " << sensor_response_f.nelem()
          << "\nsensor_response_pol.nelem(): " << sensor_response_pol.nelem()
          << "\nsensor_response_za.nelem() : " << sensor_response_za.nelem() 
-         << "\nsensor_response_aa.nelem() : " << sensor_response_za.nelem() 
          << "\n";
+      if( antenna_dim == 2 )
+        { os << "sensor_response_aa.nelem() : " << sensor_response_aa.nelem() 
+             << "\n"; }
       throw runtime_error( os.str() );
     }
 

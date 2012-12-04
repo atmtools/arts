@@ -1522,6 +1522,8 @@ void iyRadioLink(
         { iy_aux[auxFreeSpaceLoss] = fspl; }
       if( auxDefocusingLoss >= 0 )
         { iy_aux[auxDefocusingLoss] = dfl; }
+      if( auxDefocusingAtte >= 0 )
+        { iy_aux[auxDefocusingAtte] = -999; }  // So far just a dummy value
       //=======================================================================
 
       // Include free space and defocusing losses

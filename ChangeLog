@@ -1,5 +1,23 @@
 2012-12-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-408
+
+	* Attacked some compiler warnings. (Don't know how to handle the
+	one appearing in m_cloudbox.cc.)
+
+	* src/m_surface.cc (surfaceFlatReflectivity): Removed input
+	rte_los, as now not used.
+	(surfaceFlatScalarReflectivity): As above.
+
+	* src/m_sensor.cc (sensor_checkedCalc): sensor_response_za was
+	used where it should be sensor_response_aa. And antenna_dim was
+	not considered properly when checking sensor_response_aa.
+
+	* src/m_rte.cc (iyRadioLink): Setting defocusing attenuation to a
+	dummy value (to avoid compilation warning).
+
+2012-12-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-407
 
 	* doc/uguide/transmission.tex: Started to revise and extend this
