@@ -6,19 +6,20 @@
  120921 & A first, but incomplete, version (Patrick Eriksson).\\
 \stophistory
 
-The term ``transmission calculations'' refer here to situations when
+The term ``transmission calculations'' refers here to situations when
 atmospheric and surface emission can be neglected. These calculations can be
 divided into two main types. The first one is when just the transmission of the
 atmosphere is diagnosed (Sec.~\ref{sec:transmission}). The observation geometry
-is here given exactly as for emission simulations, by a position and a
+is given exactly as for emission simulations, by a position and a
 line-of-sight.
 
-The second main type is radio link budgets (Sec.~\ref{sec:radiolinks}). In this
-case, a core problem is to determine the propagation path between transmitter
-and receiver. That is, the line-of-sight of the sensor (receiver) is not set by
-the user, it is determined by the transmitter position. A characterisation of a
-radio link normally involves several attenuation terms not encountered for
-passive measurements, such as free space loss and defocusing.
+The second main type is radio link budgets (Sec.~\ref{sec:radiolinks}). For
+this case, the propagation path is deermined solely by the position of the
+transmitter and the receiver. That is, the user does not need to set a
+line-of-sight of the sensor (receiver), it is determined by the transmitter
+position. A characterisation of a radio link normally involves several
+attenuation terms not encountered for passive measurements, such as free space
+loss and defocusing.
 
 
 
@@ -27,8 +28,8 @@ passive measurements, such as free space loss and defocusing.
 %===================
 \label{sec:transmission}
 
-This section discusses the \wsmindex{iyTransmissionStandard} workspace method
-and is relevant if you want to calculate the transmission through the
+This section discusses the \wsmindex{iyTransmissionStandard} workspace method,
+that is relevant if you want to calculate the transmission through the
 atmosphere for a given position and line-of-sight. The set-up is largely the
 same as for simulations involving emission, such as that the observation
 geometry is defined by \wsvindex{sensor\_pos} and \wsvindex{sensor\_los} (or
@@ -36,9 +37,8 @@ geometry is defined by \wsvindex{sensor\_pos} and \wsvindex{sensor\_los} (or
 The first main difference is that \wsaindex{iy\_transmitter\_agenda} replaces
 \wsaindex{iy\_space\_agenda} and \wsaindex{iy\_surface\_agenda}. The second
 main difference is that handling of cloud scattering is built-in and the need
-to define \wsaindex{iy\_cloudbox\_agenda} vanishes. The differences appear
-inside \wsaindex{iy\_main\_agenda}, \wsmindex{yCalc} is independent of the type
-of radiative transfer calculations. Further,
+to define \wsaindex{iy\_cloudbox\_agenda} vanishes. These differences appear
+inside \wsaindex{iy\_main\_agenda}. Further,
 \builtindoc{blackbody\_radiation\_agenda} can be left undefined).
 
 As for emission measurements (Sec.~\ref{sec:fm_defs:calcproc},
@@ -52,14 +52,14 @@ The next step is to call \builtindoc{iy\_transmitter\_agenda}. It should be
 noted that the same agenda is called independently if the radiative background
 is space or the surface. It is up to the user to decide if these two cases
 shall be distinguished in some manner (no workspace method for this task exists
-yet). A standard choice \builtindoc{iy\_transmitter\_agenda} is
-\wsmindex{MatrixUnitIntensity}. If this workspace method is used, the output of
-\builtindoc{iyTransmissionStandard} shows you the fraction of unpolarised
-radiation that is transmitted through the atmosphere, and the polarisation
-state of the transmitted part. 
+yet). For these calculations, the standard choice for
+\builtindoc{iy\_transmitter\_agenda} is \wsmindex{MatrixUnitIntensity}. If this
+workspace method is used, the output of \builtindoc{iyTransmissionStandard}
+shows you the fraction of unpolarised radiation that is transmitted through the
+atmosphere, and the polarisation state of the transmitted part.
 
 The radiative transfer expression applied is
-(cf.~Eq.~\ref{eq:fm_defs:vrte_step}):
+(cf.~Eq.~\ref{eq:fm_defs:vrte_step})
 \begin{equation}
   \label{eq:trans:vrte}
   \StoVec_{i+1} = e^{-\bar{\ExtMat}s} \StoVec_i 
@@ -81,7 +81,7 @@ calculations are started at the surface.
 
 See the built-in documentation (\builtindoc{iyTransmissionStandard}) for a full
 list of possible auxiliary quantities. These data include quantities that make
-it possible to determine the (vector) transmission for different parts of the
+it possible to determine the transmission for different parts of the
 propagation path. For example, the state of \builtindoc{iy} at each point of
 the propagation path can be extracted, and also the transmission matrix
 (Eq.~\ref{eq:rte:transmat}) for each path step is accessible.
@@ -96,6 +96,32 @@ the propagation path can be extracted, and also the transmission matrix
 
 The \wsmindex{iyRadioLink} method is in development and at this moment just
 some theory is provided:
+
+
+\subsection{Overview}
+%===================
+\label{sec:radiolinks:oview}
+
+The power received, $p_r$, by an antenna with an effective aperture size
+$A_e$ and gain $g_r$, located a distance $l$ from a transmitter, with power
+$p_t$ and gain $g_t$, can be written as
+\begin{equation}
+  p_r(l) = t_a\frac{p_tg_t}{4\pi l^2}A_e=t_a\frac{p_tg_t}{4\pi l^{2}}
+  \frac{g_r\Wvl^2}{4\pi}=t_ap_tg_tg_r\left(\frac{\Wvl}{4\pi l} \right)^2,
+\end{equation}
+where $t_a$ is the transmission due to losses caused by the atmosphere and
+\Wvl\ is the wavelength of the signal. The total atmospheric loss is the
+product between loss due to defocusing, $t_d$ (Sec.~?) and gaseous and particle
+extinction, $t_e$ (Sec.~?):
+\begin{equation}
+  t_a = t_d t_e.
+\end{equation}
+Xxx
+\begin{equation}
+  p_r(l) = t_d t_e \left(\frac{1}{4\pi l} \right)^2 p_t',
+\end{equation}
+
+
 
 
 \subsection{Determining the propagation path}
