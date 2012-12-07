@@ -12,7 +12,7 @@ The term ``transmission calculations'' refers here to situations when
 atmospheric and surface emission can be neglected. These calculations can be
 divided into two main types. The first one is when just the transmission of the
 atmosphere is diagnosed (Sec.~\ref{sec:transmission}). The observation geometry
-is given exactly as for emission simulations, by a position and a
+is then given exactly as for emission simulations, by a position and a
 line-of-sight.
 
 The second main type is radio link budgets (Sec.~\ref{sec:rlinks}). For
@@ -43,7 +43,7 @@ The first main difference is that \wsaindex{iy\_transmitter\_agenda} replaces
 main difference is that handling of cloud scattering is built-in and the need
 to define \wsaindex{iy\_cloudbox\_agenda} vanishes. These differences appear
 inside \wsaindex{iy\_main\_agenda}. Further,
-\builtindoc{blackbody\_radiation\_agenda} can be left undefined).
+\builtindoc{blackbody\_radiation\_agenda} can be left undefined.
 
 As for emission measurements (Sec.~\ref{sec:fm_defs:calcproc},
 Algorithm~\ref{alg:fm_defs:iyCSagenda}) the first main operation is to
@@ -70,7 +70,7 @@ The radiative transfer expression applied is
 \end{equation}
 where the extinction matrix is determined in the same manner as for emission
 cases (Sec.~\ref{sec:fm_defs:rad_bkgr}). In situations where the matrix
-\ExtMat\ is diagonal, the scalar form shown in Eq.~\ref{eq:fm_defs:rte_step2})
+\ExtMat\ is diagonal, the scalar form shown in Eq.~\ref{eq:fm_defs:rte_step2}
 is used.
 
 The method determines automatically if any part of the propagation path is
@@ -80,12 +80,12 @@ pure absorbing species. For this method, scattering is purely a loss mechanism,
 there is no gain by scattering into the line-of-sight
 
 A related concern is the treatment of the surface. In standard usage of the
-method, there is no signal reflected by the surface. The radiative transfer
+method, there is no signal reflected by the surface, and the radiative transfer
 calculations are started at the surface.
 
-See the built-in documentation (\builtindoc{iyTransmissionStandard}) for a full
-list of possible auxiliary quantities. These data include quantities that make
-it possible to determine the transmission for different parts of the
+See the built-in documentation of \builtindoc{iyTransmissionStandard} for a
+full list of possible auxiliary quantities. These data include quantities that
+make it possible to determine the transmission for different parts of the
 propagation path. For example, the state of \builtindoc{iy} at each point of
 the propagation path can be extracted, and also the transmission matrix
 (Eq.~\ref{eq:rte:transmat}) for each path step is accessible.
@@ -132,13 +132,13 @@ until a (stringent) hard-coded convergence criterion is fulfilled.
 The radiance law is not applicable for the signal from a point source.
 The power received, $p_r$, by an antenna with an effective aperture size
 $A_e$, located a distance $l$ from a transmitter, with power
-$p_t$ and gain $g_t$, can be expressed as \citet[e.g.][]{ippolito:satco:08}
+$p_t$ and gain $g_t$, can be expressed as \citep[e.g.][]{ippolito:satco:08}
 \begin{equation}
   \label{eq:rlink:start}
   p_r(l) = t_a\frac{p_tg_t}{4\pi l^2}A_e,
 \end{equation}
 where $t_a$ is the transmission due to losses caused by the atmosphere. This
-total atmospheric loss ($t_a$) is the product between losses due to defocusing,
+total atmospheric loss is the product between losses due to defocusing,
 $t_d$ (Sec.~\ref{sec:rlink:defoc}) and gaseous and particle extinction, $t_e$
 (Sec.~\ref{sec:rlink:atmext}):
 \begin{equation}
@@ -151,7 +151,7 @@ The factor
 \end{equation}
 represents the pure geometrical dilution of the power, following the inverse
 square law. This effect is encountered also for propagation in free space, and,
-accordingly, it is denoted as the \emph{free space loss}. Please note that
+accordingly, it is denoted as the free space loss. Please note that
 other definitions of this quantity exists, see Section~\ref{sec:rlinks:free}.
 
 With these definitions, Equation~\ref{eq:rlink:start} can be written as
@@ -165,9 +165,9 @@ Section~\ref{sec:rlinks:free}.
 The method \wsmindex{iyRadioLink} reports $p_r$ as \builtindoc{iy}, i.e.\ $p_r$
 is treated as the main quantities. All loss terms ($t_d$, $t_e$ and $t_f$) can
 be obtained as auxiliary data (\builtindoc{iy\_aux}). The auxiliary variables
-include also extra path delay, bending and Faraday rotation. Some of these
-terms can be obtained as attenuation/rotation (per length) along the
-propagation path. 
+include also extra path delay, bending angle and Faraday rotation. Some of
+these terms can be obtained as attenuation/rotation/delay (per length) along the
+propagation path.
 
 Note the distinction between ``loss'' and ``attenuation''. The first term
 refers here to path-integrated transmission factors, while the second term
@@ -198,9 +198,9 @@ above in Equation~\ref{eq:rlink:fspl}:
 \begin{displaymath}
   t_f = \frac{1}{4\pi l^2}.
 \end{displaymath}
-It shall be noted, \underline{and stressed}, that this deviates from what
-appears to be a more common (even standard?) definition of free space loss,
-that is $\left(\Wvl/(4 \pi l)\right)^2$, where \Wvl\ is the wavelength of the
+\underline{Its is stressed} that this deviates from what
+appears to be a more common (even standard?) definition of free space loss:
+$\left(\Wvl/(4 \pi l)\right)^2$, where \Wvl\ is the wavelength of the
 signal. This expression encompasses the relationship between the receiver's
 effective antenna area and its gain ($A_e=g_r\Wvl^2/(4\pi)$). This later
 definition was avoided to keep atmospheric and sensor effects clearly separated
@@ -212,7 +212,7 @@ factors such as $p_t$, $g_t$ and $A_e$ separately, and let ARTS handle the pure
 radiative propagation effects. In this case, $p_t'$ (Eq.~\ref{eq:rlink:pr})
 shall be set to unity (\wsmindex{MatrixUnitIntensity} handles this case). If
 e.g. Faraday rotation or particle scattering is considered,
-\builtindoc{stokes\-dim} must be $>1$ and also the polarisation of the
+\builtindoc{stokes\_dim} must be $>1$ and also the polarisation of the
 transmitted signal is of concern, and must be included in the specification of
 $p_t'$ (e.g.\ $p_t'=[1,\pm1,0,0]$ when V or H is transmitted). The next step
 towards a more complete treatment of the transmitter should be to include $p_t$
@@ -270,7 +270,7 @@ The geometrical length of the bent ray path is
 l_r\equiv\int_{\mathrm{ray}}1\DiffD s.
 \label{eq:rlink:lr}
 \end{equation}
-to recall what you probably heard during our physics lessons, some quotes from
+To recall what you probably heard during our physics lessons, some quotes from
 the Wikipedia entry on optical path length: \emph{Fermat's principle states
   that the path light takes between two points is the path that has the minimum
   optical path length. An electromagnetic wave that travels a path of given
@@ -382,8 +382,8 @@ exponential scale height \(H\), \citep{haugstad:78:turbu}
 where \(\alpha\) is the bending angle (Eq.~\ref{eq:rlink:bangle}), \(L_{r}\) is
 the distance from the tangent point to the receiver, and \(R\) is the planet
 radius. An alternative form of the equations above, also
-also valid for an atmosphere with a non-exponential scale height, given in
-\citep{kursinski:00:thegp}, is
+also valid for an atmosphere with a non-exponential scale height is
+\citep{kursinski:00:thegp}
 \begin{eqnarray}
  \label{eq:kur1}
  M_{\alpha} &=& \left[1+\frac{\DiffD \alpha}{\DiffD a} 
@@ -392,25 +392,24 @@ also valid for an atmosphere with a non-exponential scale height, given in
  M_{\beta} &=& \left[1-\frac{\alpha}{R}
               \frac{{L_{t}L_{r}}}{L_{r}+L_{t}} \right]^{-1},
 \end{eqnarray}
-where \(L_{t}\) is the distance from the tangent point to the receiver and
-\(a\)=\(\Rfr\Rds\sin(\ZntAng)\) is denoted as the impact parameter (and is
-equal to the ``propagation path constant'' defined in
-Eq.~\ref{T-eq:ppath:snellspherical} of \theory).
+where $L_{t}$ and $L_{r}$ is the distance between the tangent point and the
+transmitter and receiver, respectively, and \(a\)=\(\Rfr\Rds\sin(\ZntAng)\) is
+denoted as the impact parameter (and is equal to the ``propagation path
+constant'' defined in Eq.~\ref{T-eq:ppath:snellspherical} of \theory).
 
 Default in \wsmindex{iyRadioLink} is to calculate defocusing following
 Equations~\ref{eq:kur1} and \ref{eq:kur2}. However, those expressions are not
 general (as mentioned, they assume 1D) and do not allow calculation of a
-defocusing attenuation term (i.e. the change in defocusing loos per length
+defocusing attenuation term (i.e. the change in defocusing loss per length
 unit). For these reasons, an alternative, pure numerical, algorithm has been
 implemented and is being tested. In short, propagation paths are calculated for
 small shifts in zenith angle, and also azimuth angle for 3D. The distance
 between these paths are determined, for common lengths along the bent path
 following Equation~\ref{eq:rlink:lr}. The found distances are compared to the
-expected distances according to free space propagation, and the ratios can be
-determined to total defocusing and local defocusing attenuation. See further
+expected distances according to free space propagation, and their ratios can be
+converted to total defocusing and local defocusing attenuation. Why a more
+analytically oriented solution was rejected is described in
 Section~\ref{sec:rlink:defoc2}.
-
-
 
 
 \subsection{Atmospheric extinction}
@@ -429,7 +428,7 @@ Not yet implemented.
 
 
 
-\subsection{Justification for pure numerical defocusing algorithm}
+\subsection{Some additional defocusing theory}
 \label{sec:rlink:defoc2}
 %
 The derivations of, for example, \citet{haugstad:78:turbu} were made using the
@@ -470,131 +469,17 @@ we have for small bending angles \citep{haugstad:78:turbu}
 \nabla \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}\approx
 \frac{\DiffD \alpha}{\DiffD z}+\frac{\DiffD \beta}{\DiffD y}
 \end{equation}
- where \(\alpha\) and  \(\beta\) is the bending angle in the \(xz\)-plane
-and \(xy\)-plane, respectively (\(\alpha\) and  \(\beta\) can in this
-case be seen as  the \(z\) and \(y\) component of the propagation
-direction vector).
-The bending
-angle is an integrated measure of the refractive index in 
-the atmosphere traversed by the ray. That is, at a given point
-along the propagation path, the bending angle depends
-on the history of the path, and hence also Equation~\ref{eq:raydiv}.
-This means, for example, that if we only perform calculations
-along the propagation path and do not consider the history of the path, 
-it will be problematic to approximate the \(\alpha\) term in 
-Equation \ref{eq:raydiv} as
-\begin{equation}
-\frac{\DiffD \alpha(x,y,z)}{\DiffD z}\approx
-\frac{\alpha(x,y,z+\Delta z)-\alpha(x,y,z)}{\Delta z},
-\end{equation}
-as \(\alpha(x,y,z+\Delta z)\) will not be known.
-A solution to handle this term analytically, that is, the required 
-integrals to solve, in a spherically symmetric atmosphere (and for small bending angles) is given in \citet{haugstad:78:turbu}. 
-During the literature review no suitable solution for ARTS for
-the general case was found.
-This means that an alternative solution to the problem will be considered.
+where \(\alpha\) and \(\beta\) is the bending angle in the \(xz\)-plane and
+\(xy\)-plane, respectively (\(\alpha\) and \(\beta\) can in this case be seen
+as the \(z\) and \(y\) component of the propagation direction vector). The
+bending angle is an integrated measure of the refractive index in the
+atmosphere traversed by the ray. That is, at a given point along the
+propagation path, the bending angle depends on the history of the path. This
+has the consequence, that if we only perform calculations along the propagation
+path and do not consider the history of the path, it will be problematic to
+approximate the \(\alpha\) term in Equation \ref{eq:raydiv}. A solution to the
+problem for a spherically symmetric atmosphere (and for small bending angles)
+is given in \citet{haugstad:78:turbu}. No suitable solution of analytical
+character for the general case has been found, and instead a pure numerical
+approach was implemented (Section~\ref{sec:rlink:defoc2}).
 
-The algorithm to be implemented in ARTS to handle defocusing will be based on
-basic geometrical optical principles, although one approximation that
-significantly reduces the computation complexity will be applied. The theory
-behind the algorithm, the algorithm itself, and the approximation will now be
-described.
-
-If we consider the wavefront of a narrow tube of all rays proceeding from an
-area element \(\Delta A_{1}\) to a corresponding area element \(\Delta A_{2}\)
-we have from the intensity law of geometrical optics that
-\begin{equation}
-I_{1}\Delta A_{1}=I_{2} \Delta A_{2}.
-\end{equation}
-If we now consider the case that the wavefront is plane when passing \(\Delta
-A_{1}\) and there is a gradient in refractive index in the orthogonal direction
-to the path to \(\Delta A_{2}\). We then have that, at a distance \(s\) from
-\(\Delta A_{1}\),
-\begin{equation}
-I_{2}(s)=I_{1}\frac{\Delta A_{1}}{\Delta A_{2}(s)}=I_{1}M(s),
-\end{equation}
-where \(M(s)\) can be seen as the overall defocusing factor. Furthermore, the
-change in intensity (at \(s=0\)) due to defocusing would then be
-\begin{eqnarray}
-\label{eq:defocloss}
-\frac{\DiffD I_{2}(s=0)}{\DiffD s} &=&
--I_{1}(s=0)\frac{\Delta A_{1}}{\Delta A_{2}^{2}(s=0)}\frac{\DiffD}{\DiffD s}\Delta A_{2}(s=0)  \nonumber \\
-&=& 
--I_{2}(s=0)\frac{1}{\Delta A_{1}}\frac{\DiffD}{\DiffD s}\Delta A_{2}(s=0).
-\end{eqnarray}
-The algorithm to handle the along path defocusing in ARTS will be approximated
-by an algorithm that at each point along the propagation path treats the
-incoming wavefront of a "tube" of rays to be plane and orthogonal to
-propagation direction. At each point we will calculate the defocusing loss (or
-gain) for such a "tube" of rays. The along path defocusing will be modelled
-according to Equation~\ref{eq:defocloss}, that is, similar to how extinction is
-modelled. The loss term can, with the approximation applied, be calculated
-without knowledge of the history of the ray-path.
-
-
-The numerical methodology to handle or calculate the loss term will now be
-described. To estimate the defocusing along the path, let say at point
-\(P_{1}\) with a propagation direction vector \(\mathbf{t}_{1}\), we make the
-assumption that the wavefront of a "tube" rays is flat when entering this
-point. We will then calculate how neighbouring ray-paths around \(P_{1}\) will
-bend and change the area of the "tube" as they proceed. This will be done by
-considering the bending of four neighbouring rays with points in the plane
-orthogonal to the propagation direction (the plane defined by the point
-\(P_{1}\) and with normal vector \(\mathbf{t}_{1}\)). Two of these points
-considered will be displaced by a distance \(\pm 1/2\Delta l\) in the
-"vertical" direction from \(P_{1}\) and we denote these by \(P_{1north}\) and
-\(P_{1south}\). We denote the distance between those points by \(\Delta
-l_{v}\). The other two points (\(P_{1east}\) and \( P_{1west}\)) will have a
-horizontally displacement of \(\pm 1/2\Delta l\) from \(P_{1}\) , and we denote
-this distance by \(\Delta l_{h}\). To be clear, all of these five rays are
-assumed to have \(\mathbf{t}_{1}\) as propagation direction vector at the point
-of concern, and the area enclosing the incoming rays is
-\begin{equation}
-\Delta A_{1}= \Delta l_{v}\Delta l_{h}=\Delta l^{2},
-\end{equation}
-and the loss term then reads
-\begin{eqnarray}
-\frac{1}{\Delta A_{1}}\frac{\DiffD}{\DiffD s}\Delta A_{1} &=&
-%\frac{\Delta l_{h}}{\Delta l_{v} \Delta l_{h}}\frac{\DiffD}{\DiffD s}\Delta l_{v}+
-%\frac{\Delta l_{l}}{\Delta l_{v} \Delta l_{h}}\frac{\DiffD}{\DiffD s}\Delta l_{h}
-\frac{1}{\Delta l_{v} }\frac{\DiffD}{\DiffD s}\Delta l_{v}+
-\frac{1}{\Delta l_{h}}\frac{\DiffD}{\DiffD s}\Delta l_{h} \nonumber \\
-&\approx& \frac{\Delta l_{v}(\Delta s)/\Delta l_{v}-1}{\Delta s}+
- \frac{\Delta l_{h}(\Delta s)/\Delta l_{h}-1}{\Delta s},
-\end{eqnarray}
-where \(\Delta s\) is a small path length step in the propagation direction of the centre ray. 
-That is, the loss term can be separated into two terms (one for the vertical defocusing and
-one for the horizontal defocusing).
-
-For each ray we calculate new propagation direction vectors, with the aim to find out the vertical and horizontal widths 
-(\(\Delta l_{v}(\Delta s)\) and \(\Delta l_{h}(\Delta s)\)) 
-of our "tube" of rays after propagating the centre ray a distance \(\Delta s\).
-We should calculate the widths of our "tube" of rays at the wavefront,
-which means that we must take the refractive indexes around the
-considered points into account.
-We propagate the centre ray an optical path length
-of \(\Delta s\)\(n_{1}\), where \(n_{1}\) is the refractive index
-at point \(P_{1}\). 
-The surrounding rays should then also
-be propagated an optical path length of \(\Delta s\)\(n_{1}\),
-before we "measure" the widths of the tube at the wavefront.
-In this way, each ray will arrive  to their new position 
-simultaneously in time (or with the same phase shift).
-That means for example that if we propagate the centre ray a distance 
-\(\Delta s\),
-the ray passing \(P_{1north}\) should be propagated
-a distance  \(\Delta s \cdot n_{1} / n_{1north}\), where 
-\(n_{1north}\) is the refractive index at point \( P_{1north}\).
-The new position of the ray passing \(P_{1north}\) is then accordingly
-\begin{equation}
-P_{2north}=P_{1north}+{\bf{t}}_{1north}\Delta s \frac{n_{1}}{n_{1north}},
-\end{equation}
-where \(\mathbf{t}_{1north}\) is the updated propagation direction vector 
-for the ray leaving point \(P_{1}\). The new positions \(P_{2south}\),\(P_{2east}\), and \(P_{2west}\)
-are found in an analogous manner. 
-We then have that
-\begin{equation}
-\Delta l_{v}(\Delta s)=|P_{2north}-P_{2south}|,
-\end{equation}
-where \(| |\) measures the distance between the two points, and 
-the horizontal width is found in analogous manner.
