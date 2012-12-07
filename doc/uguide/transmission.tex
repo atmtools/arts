@@ -13,8 +13,8 @@ atmosphere is diagnosed (Sec.~\ref{sec:transmission}). The observation geometry
 is given exactly as for emission simulations, by a position and a
 line-of-sight.
 
-The second main type is radio link budgets (Sec.~\ref{sec:radiolinks}). For
-this case, the propagation path is deermined solely by the position of the
+The second main type is radio link budgets (Sec.~\ref{sec:rlinks}). For
+this case, the propagation path is determined solely by the position of the
 transmitter and the receiver. That is, the user does not need to set a
 line-of-sight of the sensor (receiver), it is determined by the transmitter
 position. A characterisation of a radio link normally involves several
@@ -94,25 +94,25 @@ the propagation path can be extracted, and also the transmission matrix
 
 \section{Radio link calculations}
 %===================
-\label{sec:radiolinks}
+\label{sec:rlinks}
 
 \subsection{Practical usage}
 %
-This type of calculations are handled by \wsmindex{iyRadioLink}. A sensor
+This type of calculations is handled by \wsmindex{iyRadioLink}. A sensor
 position must be specified, as usual. The ``sensor'' takes the place as the
-reciever of the radio link. The observation angles of the reciever are not user
+receiver of the radio link. The observation angles of the receiver are not user
 input (if any given they are just ignored), they are determined by the position
 of the transmitter. This position is given as \wsvindex{transmitter\_pos} or
 \wsvindex{rte\_pos2}, dependent on if \builtindoc{yCalc} or \builtindoc{iyCalc}
-is used. Specification of reciever and transmitter properties, beside their
-positions, is discussed in Section~\ref{sec:radiolinks:oview}. The quantities
-returned by \builtindoc{iyRadioLink} are also described in the same section
-(\ref{sec:radiolinks:oview}).
+is used. Specification of receiver and transmitter properties, beside their
+positions, is discussed in Section~\ref{sec:rlinks:oview}. The quantities
+returned by \builtindoc{iyRadioLink} are also described in
+Section~\ref{sec:rlinks:oview}.
 
 It is allowed to use \builtindoc{iyRadioLink} together with pure geometrical
 propagation paths, but this option does not give realistic results as the this
 set-up misses the impact of ``defocusing'' (Sec.~\ref{sec:rlink:defoc}). With
-refrcation, the propgation path can not be determined in a strict analytical
+refraction, the propagation path can not be determined in a strict analytical
 manner and some search algorithm is required. ARTS contains so far just a quite
 simple algorithm for this purpose, activated by applying
 \wsmindex{ppathFromRtePos2} for \wsaindex{ppath\_agenda}. In short, the search
@@ -125,11 +125,12 @@ until a (stringent) hard-coded convergence criterion is fulfilled.
    
 \subsection{Definitions}
 %===================
-\label{sec:radiolinks:oview}
+\label{sec:rlinks:oview}
 
+The radiance law is not applicable for the signal from a point source.
 The power received, $p_r$, by an antenna with an effective aperture size
 $A_e$, located a distance $l$ from a transmitter, with power
-$p_t$ and gain $g_t$, can be expressed as
+$p_t$ and gain $g_t$, can be expressed as \citet[e.g.][]{ippolito:satco:08}
 \begin{equation}
   \label{eq:rlink:start}
   p_r(l) = t_a\frac{p_tg_t}{4\pi l^2}A_e,
@@ -147,94 +148,151 @@ The factor
   t_f = \frac{1}{4\pi l^2}
 \end{equation}
 represents the pure geometrical dilution of the power, following the inverse
-square law. This effect is ecnountered also for propagation in free space, and
-it is denoted as the \emph{free space loss}. 
+square law. This effect is encountered also for propagation in free space, and,
+accordingly, it is denoted as the \emph{free space loss}. Please note that
+other definitions of this quantity exists, see Section~\ref{sec:rlinks:free}.
 
-However, it shall be noted that this deviates from what appears to be the
-standard definition of free space loss, that is $\left(\Wvl/(4 \pi
-l)\right)^2$, where \Wvl\ is the wavelength of the signal. This expression
-encompasses the relationship between the reciever's effective antenna area and
-its gain, and to keep atmospheric and sensor effects clearly seperated in ARTS,
-\builtindoc{iyRadioLink} defines free space loss according to
-Equation~\ref{eq:rlink:fspl}.
-
+With these definitions, Equation~\ref{eq:rlink:start} can be written as
 \begin{equation}
-  p_r(l) = t_d t_e \left(\frac{1}{4\pi l} \right)^2 p_t',
+  \label{eq:rlink:pr}
+  p_r(l) = t_d t_e t_f p_t',
 \end{equation}
+where $p_t'=p_tg_tA_e$, a term discussed further in
+Section~\ref{sec:rlinks:free}.
+
+The method \wsmindex{iyRadioLink} reports $p_r$ as \builtindoc{iy}, i.e.\ $p_r$
+is treated as the main quantities. All loss terms ($t_d$, $t_e$ and $t_f$) can
+be obtained as auxiliary data (\builtindoc{iy\_aux}). The auxiliary variables
+include also extra path delay, bending and Faraday rotation. Some of these
+terms can be obtained as attenuation/rotation (per length) along the
+propagation path. 
+
+Note the distinction between ``loss'' and ``attenuation''. The first term
+refers here to path-integrated transmission factors, while the second term
+refers to local attenuation coefficients. That is, losses are dimensionless
+values, between 0 and 1, while the unit of attenuation is $1/m$. See the
+following sections for details.
+
+The quantity returned in \builtindoc{iy} is also what ends up in
+\builtindoc{y}, outputted by \builtindoc{yCalc}. For increased flexibility, the
+method \FIXME{Add name when implemented} allows the user to replace the content
+of \builtindoc{iy} with some of the auxiliary variables. For example, for radio
+link calculations bending angle can frequently be seen as the primary
+observation, and this case can be handled by \FIXME{Add name when implemented}.
+The constrain for allowing this swap of variables is that the auxiliary
+variable to replace $p_r$ must have the same data dimensions. In practice, this
+means that the auxiliary variable is a function of frequency, possibly being a
+Stokes vector for each frequency. Variables fulfilling this constrain are:
+defocusing loss ($t_d$), atmospheric extinction loss ($t_e$), free space loss
+($t_f$), bending angle, extra path delay, and (total) Faraday rotation.
 
 
-\subsection{Free space loss}
+\subsection{Free space loss and sensor characteristics}
 %===================
-\label{sec:radiolinks:ppath}
-The radiance law is not applicable for the signal from a point source.
-According to \citet{ippolito:satco:08}, the signal intensity at a distance
-\(s\), in free space, from a transmitting antenna, with a gain \(g_{t}\) is
-defined as
-\begin{equation}
- I(s)=\frac{p_{t}g_{t}}{4\pi s^{2}},
-\end{equation}
-where \(p_{t}\) is the transmitted power. The power \(p_{r}\) received by a
-receiving antenna with an effective aperture \(A_{e}\) and gain \(g_{r}\)
-located a distance \(s\) from the transmitting antenna is
-\begin{equation}
-\label{eq:fsl}
-p_{r}(s)=\frac{p_{t}g_{t}}{4\pi s^{2}}A_{e}=\frac{p_{t}g_{t}}{4\pi s^{2}}
-\frac{g_{r}\Wvl^{2}}{4\pi}=
-p_{t}g_{t}g_{r}\left(\frac{\Wvl}{4\pi s} \right)^{2},
-\end{equation}
-where the last term  
-to the right (or actually the reciprocal) is denoted as the
-free space path loss (\(F\)):
-\begin{equation}
-F\equiv\frac{p_{t}g_{t}g_{r}}{p_{r}}=\left(\frac{4\pi s}{\Wvl}\right)^{2}.
-\end{equation}
-Taking the derivative of \(\Mpi(s)\) gives
+\label{sec:rlinks:free}
+
+It is repeated that (total) free space loss is in ARTS defined as given
+above in Equation~\ref{eq:rlink:fspl}:
+\begin{displaymath}
+  t_f = \frac{1}{4\pi l^2}.
+\end{displaymath}
+It shall be noted, \underline{and stressed}, that this deviates from what
+appears to be a more common (even standard?) definition of free space loss,
+that is $\left(\Wvl/(4 \pi l)\right)^2$, where \Wvl\ is the wavelength of the
+signal. This expression encompasses the relationship between the receiver's
+effective antenna area and its gain ($A_e=g_r\Wvl^2/(4\pi)$). This later
+definition was avoided to keep atmospheric and sensor effects clearly separated
+in ARTS,
+
+Hence, the definition of free space loss has consequences for how to specify
+sensor characteristics. A possible choice is to treat pure multiplicative
+factors such as $p_t$, $g_t$ and $A_e$ separately, and let ARTS handle the pure
+radiative propagation effects. In this case, $p_t'$ (Eq.~\ref{eq:rlink:pr})
+shall be set to unity (\wsmindex{MatrixUnitIntensity} handles this case). If
+e.g. Faraday rotation or particle scattering is considered,
+\builtindoc{stokes\-dim} must be $>1$ and also the polarisation of the
+transmitted signal is of concern, and must be included in the specification of
+$p_t'$ (e.g.\ $p_t'=[1,\pm1,0,0]$ when V or H is transmitted). The next step
+towards a more complete treatment of the transmitter should be to include $p_t$
+and $g_t$ in $p_t'$. In any case, \builtindoc{iyRadioLink} expects
+\wsaindex{iy\_transmitter\_agenda} to return $p_t'$, for each frequency in
+\builtindoc{f\_grid}.
+
+So far ARTS has no dedicated support to handle characteristics of receivers in
+radio link configurations. The first step here should be to consider $A_e$, but
+the simplest way to achieve this is to include $A_e$ in $p_t'$ (and it is here
+where the definition of free space loss comes into play, as with the standard
+definition $p_t'$ should instead include $g_r$). Some functionality developed
+for passive sensors could also be of use for radio links, but this has not yet
+been tested practically (even less validated) and these options are not
+commented further.
+
+Setting $\Mpi=p_r$ (to be consistent in the nomenclature used elsewhere) and
+taking the derivative of \(\Mpi(s)\) gives
 \begin{equation}
 \label{eq:fsplarts}
  \frac{\DiffD\Mpi(s)}{\DiffD s}=-\frac{2}{s}I(s).
 \end{equation}
-This equals the Beer-Lambert with an absorbance of $2/s$. With other words, the
-free space loss can be treated as an ordinary extinction term. However, it
-should be noted that this ``extinction coefficient'' is non-linear, it varies
-with the distance from the transmitting antenna. 
-
+This equals the Beer-Lambert law with an attenuation coefficient of $2/s$. With
+other words, the free space loss can be also treated as an ordinary extinction
+term, and when ``free space attenuation'', $k_f$ is requested as an auxiliary
+variable it is calculated as
+\begin{equation}
+ k_f=\frac{2}{s}.
+\end{equation}
+This extinction coefficient can be seen as non-linear, as it varies with the
+distance from the transmitter. If the transmitter is placed inside the
+atmosphere, $k_f$ becomes infinity for the path point corresponding to $l=0$.
+The $k_f$-coefficient is not dependent on the definition differences of (total)
+free space loss discussed above.
 
 
 \subsection{Bending angle and extra path delay}
 %
-An electromagnetic wave that travels a path of given optical path 
-length arrives with the same phase shift as if it had travelled a 
-path of that physical length in a vacuum. 
-In the absence of an atmosphere a signal
-sent from a transmitter in the direction towards a receiver would
-follow a straight line, i.e. the shortest geometric distance
-between the two instruments. Moreover, the signal would propagate
-with the speed of light.
-The geometric distance \(D\) between the transmitter and receiver is
+In the absence of an atmosphere a signal sent from a transmitter in the
+direction towards a receiver would follow a straight line, i.e. the shortest
+geometric distance between the two instruments. Moreover, the signal would
+propagate with the speed of light. The geometric distance, $l_g$, between the
+transmitter and receiver is
 \begin{equation}
-D\equiv\int_{straight\,line}1\DiffD s
+l_g\equiv\int_{\mathrm{geometric}}1\DiffD s
 \end{equation}
 In the presence of an atmosphere, two changes follow,
-the speed of the signal is retarded and the ray direction gets 
-bent. 
-The apparent bent ray-path length is
+the speed of the signal is retarded and the ray path gets 
+bent. The optical path length is defined as
 \begin{equation}
-L\equiv\int_{bent\,ray-path}\Rfr(s)\DiffD s.
+l_o\equiv\int_{\mathrm{ray}}\Rfr(s)\DiffD s.
 \end{equation}
-One can also define the geometric bent ray-path length as
+The geometrical length of the bent ray path is
 \begin{equation}
-G\equiv\int_{bent\,ray-path}1\DiffD s.
+l_r\equiv\int_{\mathrm{ray}}1\DiffD s.
 \end{equation}
-The total delay expressed in units of length is 
+to recall what you probably heard during our physics lessons, some quotes from
+the Wikipedia entry on optical path length: \emph{Fermat's principle states
+  that the path light takes between two points is the path that has the minimum
+  optical path length. An electromagnetic wave that travels a path of given
+  optical path length arrives with the same phase shift as if it had travelled
+  a path of that physical length in a vacuum.}
+
+The total delay, compared if there would be vacuum between transmitter and
+receiver, expressed in units of length, is
 \begin{equation}
-d \equiv L-D \ge 0,
+d \equiv l_o-l_g \ge 0,
 \end{equation}
-which can also be expressed as
+which can be expressed also as
 \begin{equation} 
-d=d_{a}+d_{g}=(L-G)+(G-D)
+d = (l_o-l_r) + (l_r-l_g) = d_{n}+d_{g},
 \end{equation}
-where \(d_{a}\) is the along-path delay
-and \(d_{g}\) is the geometric delay.
+where $d_{n}$ is the along-path delay due to decreased propagation velocity,
+and $d_{g}$ is delay due to deviation from geometric propagation (refraction).
+
+The (total) extra path delay, in units of seconds, is
+\begin{equation} 
+\Delta t = \frac{d}{c},
+\end{equation}
+and is provided by \builtindoc{iyRadioLink} as an auxiliary variable. In
+addition, $d_n/c$ can be obtained, then denoted as ``local path retardation''
+and have the unit s/m.
 
 
 
@@ -248,7 +306,9 @@ and \(d_{g}\) is the geometric delay.
 \subsection{Atmospheric extinction}
 \label{sec:rlink:atmext}
 %
-\dots
+Atmospheric absorption and scattering are handled exactly as for
+\builtindoc{iyTransmissionStandard}, this including to only handle scattering
+out-of-the propagation path.
 
 
 
