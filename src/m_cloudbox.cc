@@ -1367,16 +1367,15 @@ void pnd_fieldCalc(//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldExpand1D(Tensor4&        pnd_field,
                        const Index&    atmosphere_dim,
-                       const Index&    cloudbox_checked,    
                        const Index&    cloudbox_on,    
                        const ArrayOfIndex&   cloudbox_limits,
                        const Index&    nzero,
                        const Verbosity&)
 {
-  if( !cloudbox_checked )
+/*  if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
-
+*/
   if( atmosphere_dim == 1 )
     { throw runtime_error( "No use in calling this method for 1D." ); }
   if( !cloudbox_on )
@@ -1392,7 +1391,7 @@ void pnd_fieldExpand1D(Tensor4&        pnd_field,
   const Index   nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
         Index   nlon = 1;
   if( atmosphere_dim == 3 )  
-    { nlon = cloudbox_limits[5] - cloudbox_limits[5] + 1; }
+    { nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1; }
 
   if( pnd_field.npages() != np  ||  pnd_field.nrows() != 1  ||  
       pnd_field.ncols() != 1 )

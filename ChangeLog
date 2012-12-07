@@ -1,3 +1,18 @@
+2012-12-07  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-411
+
+	* src/m_cloudbox.cc (pnd_fieldExpand1D): Bugfix - lon-dim calc of
+	expanded cloudbox had a typo. Remove cloudbox_checked as input -
+	that didn't deliver any additional security  (cloudbox_checkedCalc
+	should anyway be done on the expanded fields again), but required some
+	else unnecessary, messy settings before (e.g. cloudbox_checkedCalc
+	requires basics_checked, which requires z_surface to be set, i.e.,
+	requires to set 1D z_surface and update/change to 2/3D later on.)
+
+	* src/methods.cc: Adapted pnd_fieldExpand1D according to above.
+	Additional minor fixes (cross-links, ...) on doc in a number of methods.
+
 2012-12-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-410

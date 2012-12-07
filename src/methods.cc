@@ -2785,6 +2785,10 @@ void define_md_data_raw()
          "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
          "conditions when scattering inside the cloud box is solved by the\n"
          "DOIT method.\n"
+         "\n"
+         "Can only handle *iy_unit*=1 (intensity in terms of radiances). Other\n"
+         "output units need to be derived by unit conversion later on (e.g.\n"
+         "after yCalc).\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUT( "scat_i_p", "scat_i_lat", "scat_i_lon" ),
@@ -4675,11 +4679,11 @@ void define_md_data_raw()
          "The method allows a change of unit, as a post-processing step,\n"
          "ignoring the n2-law of radiance.\n"
          "\n"         
-         "The conversion made inside *iyEmissionStandard* is mimiced\n"
-         "and see that method for constraints and selection of output units.\n"
-         "This with the restriction that the n2-law can be ignored. The later\n"
-         "is the case if the sensor is placed in space, or if the refractive\n"
-         "only devaites slightly from unity.\n"
+         "The conversion made inside *iyEmissionStandard* is mimiced,\n"
+         "see that method for constraints and selection of output units.\n"
+         "Restricted to that the n2-law can be ignored. This assumption\n"
+         "is valid if the sensor is placed in space, or if the refractive\n"
+         "index only deviates slightly from unity.\n"
          "\n"
          "It is stressed that there is no automatic check that the method is\n"
          "applied correctly, it is up to the user to ensure that the input\n"
@@ -4688,7 +4692,7 @@ void define_md_data_raw()
          "Beside *iy*, these auxilary quantities are modified:\n"
          "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
          "\n"
-         "Please note that *diy*dx* is not handled.\n"
+         "Please note that *diy_dx* is not handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux" ),
@@ -7090,18 +7094,18 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldExpand1D" ),
         DESCRIPTION
         (
-         "Maps a 1D pnd_field to 2D or 3D pnd_field.\n"
+         "Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.\n"
          "\n"
-         "This method takes a 1D *pnd_field* and converts it to 2D or 3D\n"
-         "\"cloud\". It is assumed that a complet 1D case has been created\n"
+         "This method takes a 1D *pnd_field* and converts it to a 2D or 3D\n"
+         "\"cloud\". It is assumed that a complete 1D case has been created,\n"
          "and after this *atmosphere_dim*, *lat_grid*, *lon_grid* and\n"
-         "*cloudbox_limits* have been changed to a 2D or 3D case. This\n"
-         "without changing the vertical extension of the cloudbox.\n"
+         "*cloudbox_limits* have been changed to a 2D or 3D case (without\n"
+         "changing the vertical extent of the cloudbox.\n"
          "\n"
          "No modification of *pnd_field* is made for the pressure dimension.\n"
-         "At the latitude and longitude cloudbox edges *pnd_field* is set to\n"
+         "At the latitude and longitude cloudbox edge points *pnd_field* is set to\n"
          "zero. This corresponds to nzero=1. If you want a larger margin between\n"
-         "the lat and lon cloudbox edgess and the \"cloud\" you increase\n"
+         "the lat and lon cloudbox edges and the \"cloud\" you increase\n"
          "*nzero*, where *nzero* is the number of grid points for which\n"
          "*pnd_field* shall be set to 0, counted from each lat and lon edge.\n"
          "\n"
@@ -7112,8 +7116,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "pnd_field", "atmosphere_dim", "cloudbox_checked", "cloudbox_on", 
-            "cloudbox_limits" ),
+        IN( "pnd_field", "atmosphere_dim",
+            "cloudbox_on", "cloudbox_limits" ),
         GIN( "nzero" ),
         GIN_TYPE( "Index"),
         GIN_DEFAULT( "1" ),
