@@ -1,10 +1,12 @@
 \chapter{Transmission calculations}
  \label{sec:trans}
 
-
 \starthistory
- 120921 & A first, but incomplete, version (Patrick Eriksson).\\
+ 120921 & A first, but incomplete, version (Patrick Eriksson). Partly based on
+ text written by Bengt Rydberg.\\
 \stophistory
+
+\graphicspath{{Figs/transmission/}}
 
 The term ``transmission calculations'' refers here to situations when
 atmospheric and surface emission can be neglected. These calculations can be
@@ -247,7 +249,7 @@ The $k_f$-coefficient is not dependent on the definition differences of (total)
 free space loss discussed above.
 
 
-\subsection{Bending angle and extra path delay}
+\subsection{Extra path delay}
 %
 In the absence of an atmosphere a signal sent from a transmitter in the
 direction towards a receiver would follow a straight line, i.e. the shortest
@@ -266,6 +268,7 @@ l_o\equiv\int_{\mathrm{ray}}\Rfr(s)\DiffD s.
 The geometrical length of the bent ray path is
 \begin{equation}
 l_r\equiv\int_{\mathrm{ray}}1\DiffD s.
+\label{eq:rlink:lr}
 \end{equation}
 to recall what you probably heard during our physics lessons, some quotes from
 the Wikipedia entry on optical path length: \emph{Fermat's principle states
@@ -295,11 +298,118 @@ addition, $d_n/c$ can be obtained, then denoted as ``local path retardation''
 and have the unit s/m.
 
 
+\subsection{Bending angle}
+%
+The bending angle is a measure on the deviation from geometric propagation.
+Using the nomenclature defined in Figure~\ref{fig:rlink:bangle}, the bending
+angle, $\alpha$, can be calculated as \citep[e.g.][Eq.~6]{schreiner:99}
+\begin{displaymath}
+  \alpha = \phi_{\mathrm{GPS}} + \phi_{\mathrm{LEO}} + \theta - \pi.
+\end{displaymath}
+This equation is derived assuming what in ARTS is denoted as a 1D atmosphere.
+ARTS operates with zenith angles and the equation above becomes
+\begin{figure*}[!tb]
+ \begin{center}
+  \includegraphics*[width=0.7\hsize]{bangle.png}\\
+  \caption{Illustration of the bending angle of a satellite-to-satellite radio
+    occultation \citep[copied from][Fig.~2]{schreiner:99}.}
+ \end{center}
+ \label{fig:rlink:bangle}
+\end{figure*}
+\begin{equation} 
+  \alpha = \aZntAng{t} - \aZntAng{r} + \theta,
+  \label{eq:rlink:bangle}
+\end{equation}
+where \aZntAng{t} and \aZntAng{r} is the zenith angle of propagation path, at
+the transmitter and the receiver, respectively. This equation is applied for
+all atmospheric dimensionalities, hence, any bending in the horizontal plane,
+that can occur for 3D, is neglected.
+
+A remark here is that the ARTS' zenith angles for the path are the ones to
+observe the propagating radiation, and
+e.g.\ $\aZntAng{r}=\pi-\phi_{\mathrm{LEO}}$. Equation~\ref{T-eq:ppath:dlat} in
+\theory (note the difference in notation) shows that that without refraction
+$\theta=\aZntAng{t} - \aZntAng{r}$, and Equation~\ref{eq:rlink:bangle} is
+consistent with a zero bending angle for propagation in vacuum. Consequently,
+ARTS should theoretically return a bending angle of zero if geometrical path
+calculations are selected, but due to limited calculation precision a small
+deviation from zero can be found.
+
+The bending along the path [rad/m] is expressed as
+\begin{equation} 
+  \frac{\DiffD \alpha}{\DiffD s} = \frac{\DiffD \ZntAng}{\DiffD s} - 
+                                   \frac{\DiffD \theta }{\DiffD s},
+  \label{eq:rlink:dbangleds}
+\end{equation}
+where $\DiffD\ZntAng/\DiffD s$ is the change in zenith angle along the path,
+and $\DiffD\theta/\DiffD s$ is the same for the angular distance to the
+transmitter, both calculated by local polynomial fits of the angles.
+
+
 
 \subsection{Defocusing}
 \label{sec:rlink:defoc}
 %
-\dots
+A special effect for radio links is defocusing. This effect is caused by the
+fact that refraction varies over the wavefront. In short, defocusing occurs if
+neighbouring ray-paths diverge more quickly than for free space propagation.
+This is the typical situation for limb sounding and due to the vertical
+variation, causing an additional divergence of the transmitted power. The
+opposite, focusing, is also possible. In fact, already for an ideal spherically
+symmetric atmosphere a focusing effect takes place in the horizontal
+dimension, caused by the curvature of the planet. In this case, the middle
+point of the beam experiences the highest refractive index and has then the
+lowest propagation speed. This, in addition to symmetry around the middle
+point, counteracts partly the free space divergence of the power.
+
+The defocusing effect of a transmitted signal with intensity \(I_{0}\) can be
+described as \citep{haugstad:78:turbu,kursinski:00:thegp}
+\begin{equation}
+\label{eq:foc1}
+I=I_{0}M_{\alpha}M_{\beta},
+\end{equation}
+where \(M_{\alpha}\) and \(M_{\beta}\) is the vertical and horizontal
+defocusing factors, respectively. In general, the defocusing effect is fairly
+complex in a modelling perspective, although for special cases the defocusing
+factors can be calculated analytically. Such analytic expressions can be used
+for "test cases" of more general solutions. For a signal transmitted in a limb
+geometry through a spherical symmetric atmosphere (i.e.\ 1D), with an
+exponential scale height \(H\), \citep{haugstad:78:turbu}
+\begin{eqnarray}
+ M_{\alpha} &=& \left[1+\frac{\alpha L_{r}}{H} \right]^{-1}, \nonumber \\
+ M_{\beta}  &=& \left[1-\frac{\alpha L_{r}}{R} \right]^{-1}, \nonumber
+\end{eqnarray}
+where \(\alpha\) is the bending angle (Eq.~\ref{eq:rlink:bangle}), \(L_{r}\) is
+the distance from the tangent point to the receiver, and \(R\) is the planet
+radius. An alternative form of the equations above, also
+also valid for an atmosphere with a non-exponential scale height, given in
+\citep{kursinski:00:thegp}, is
+\begin{eqnarray}
+ \label{eq:kur1}
+ M_{\alpha} &=& \left[1+\frac{\DiffD \alpha}{\DiffD a} 
+               \frac{{L_{t}L_{r}}}{L_{r}+L_{t}} \right]^{-1}, \\
+\label{eq:kur2}
+ M_{\beta} &=& \left[1-\frac{\alpha}{R}
+              \frac{{L_{t}L_{r}}}{L_{r}+L_{t}} \right]^{-1},
+\end{eqnarray}
+where \(L_{t}\) is the distance from the tangent point to the receiver and
+\(a\)=\(\Rfr\Rds\sin(\ZntAng)\) is denoted as the impact parameter (and is
+equal to the ``propagation path constant'' defined in
+Eq.~\ref{T-eq:ppath:snellspherical} of \theory).
+
+Default in \wsmindex{iyRadioLink} is to calculate defocusing following
+Equations~\ref{eq:kur1} and \ref{eq:kur2}. However, those expressions are not
+general (as mentioned, they assume 1D) and do not allow calculation of a
+defocusing attenuation term (i.e. the change in defocusing loos per length
+unit). For these reasons, an alternative, pure numerical, algorithm has been
+implemented and is being tested. In short, propagation paths are calculated for
+small shifts in zenith angle, and also azimuth angle for 3D. The distance
+between these paths are determined, for common lengths along the bent path
+following Equation~\ref{eq:rlink:lr}. The found distances are compared to the
+expected distances according to free space propagation, and the ratios can be
+determined to total defocusing and local defocusing attenuation. See further
+Section~\ref{sec:rlink:defoc2}.
+
 
 
 
@@ -315,5 +425,176 @@ out-of-the propagation path.
 \subsection{Faraday rotation}
 \label{sec:rlink:farrot}
 %
-\dots
+Not yet implemented.
 
+
+
+\subsection{Justification for pure numerical defocusing algorithm}
+\label{sec:rlink:defoc2}
+%
+The derivations of, for example, \citet{haugstad:78:turbu} were made using the
+framework of geometrical optics. In this framework, the equation describing the
+propagation direction of a ray can be written as
+\begin{equation}
+\label{eq:eik}
+\Rfr\frac{\DiffD \bf{\Rds}}{\DiffD s}=\nabla S,
+\end{equation}
+where \(S\) (often called eikonal) is a function describing the wavefront
+(\(S(\bf{\Rds})\)=constant represents a wave front). According to
+\cite{born:80} the intensity ratio of any two points along a ray can be
+expressed as
+\begin{equation}
+\frac{I_{2}}{I_{1}}=\frac{\Rfr_{2}}{\Rfr_{1}}
+\exp \left(-\int_{s_{1}}^{s_{2}}\frac{\nabla^{2}S}{n}ds\right),
+\end{equation}
+where the integrand 
+or the along path contribution to the intensity variation is
+\begin{eqnarray}
+\label{eq:def4}
+\frac{\nabla^{2}S}{n} &=& \frac{\nabla \cdot \nabla S}{n}
+=\frac{\nabla \cdot \left(\Rfr\frac{\DiffD \bf{\Rds}}{\DiffD s}\right)}{\Rfr} \nonumber \\
+& = & 
+\frac{\nabla \Rfr}{\Rfr} \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}
++\nabla \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}=
+\frac{1}{\Rfr}\frac{\DiffD \Rfr}{\DiffD s}+\nabla \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}. 
+\end{eqnarray}
+The first term on the right hand side of Equation~\ref{eq:def4}
+is related to the along path variation of refractive index and it is 
+an unproblematic term in a modelling perspective.
+The second term on the right hand side of Equation~\ref{eq:def4}
+is the divergence of the vector pointing in the direction 
+of the ray.  If the signal initially is travelling in the \(x\)-direction,
+we have for small bending angles \citep{haugstad:78:turbu}
+\begin{equation}
+\label{eq:raydiv}
+\nabla \cdot \frac{\DiffD \bf{\Rds}}{\DiffD s}\approx
+\frac{\DiffD \alpha}{\DiffD z}+\frac{\DiffD \beta}{\DiffD y}
+\end{equation}
+ where \(\alpha\) and  \(\beta\) is the bending angle in the \(xz\)-plane
+and \(xy\)-plane, respectively (\(\alpha\) and  \(\beta\) can in this
+case be seen as  the \(z\) and \(y\) component of the propagation
+direction vector).
+The bending
+angle is an integrated measure of the refractive index in 
+the atmosphere traversed by the ray. That is, at a given point
+along the propagation path, the bending angle depends
+on the history of the path, and hence also Equation~\ref{eq:raydiv}.
+This means, for example, that if we only perform calculations
+along the propagation path and do not consider the history of the path, 
+it will be problematic to approximate the \(\alpha\) term in 
+Equation \ref{eq:raydiv} as
+\begin{equation}
+\frac{\DiffD \alpha(x,y,z)}{\DiffD z}\approx
+\frac{\alpha(x,y,z+\Delta z)-\alpha(x,y,z)}{\Delta z},
+\end{equation}
+as \(\alpha(x,y,z+\Delta z)\) will not be known.
+A solution to handle this term analytically, that is, the required 
+integrals to solve, in a spherically symmetric atmosphere (and for small bending angles) is given in \citet{haugstad:78:turbu}. 
+During the literature review no suitable solution for ARTS for
+the general case was found.
+This means that an alternative solution to the problem will be considered.
+
+The algorithm to be implemented in ARTS to handle defocusing will be based on
+basic geometrical optical principles, although one approximation that
+significantly reduces the computation complexity will be applied. The theory
+behind the algorithm, the algorithm itself, and the approximation will now be
+described.
+
+If we consider the wavefront of a narrow tube of all rays proceeding from an
+area element \(\Delta A_{1}\) to a corresponding area element \(\Delta A_{2}\)
+we have from the intensity law of geometrical optics that
+\begin{equation}
+I_{1}\Delta A_{1}=I_{2} \Delta A_{2}.
+\end{equation}
+If we now consider the case that the wavefront is plane when passing \(\Delta
+A_{1}\) and there is a gradient in refractive index in the orthogonal direction
+to the path to \(\Delta A_{2}\). We then have that, at a distance \(s\) from
+\(\Delta A_{1}\),
+\begin{equation}
+I_{2}(s)=I_{1}\frac{\Delta A_{1}}{\Delta A_{2}(s)}=I_{1}M(s),
+\end{equation}
+where \(M(s)\) can be seen as the overall defocusing factor. Furthermore, the
+change in intensity (at \(s=0\)) due to defocusing would then be
+\begin{eqnarray}
+\label{eq:defocloss}
+\frac{\DiffD I_{2}(s=0)}{\DiffD s} &=&
+-I_{1}(s=0)\frac{\Delta A_{1}}{\Delta A_{2}^{2}(s=0)}\frac{\DiffD}{\DiffD s}\Delta A_{2}(s=0)  \nonumber \\
+&=& 
+-I_{2}(s=0)\frac{1}{\Delta A_{1}}\frac{\DiffD}{\DiffD s}\Delta A_{2}(s=0).
+\end{eqnarray}
+The algorithm to handle the along path defocusing in ARTS will be approximated
+by an algorithm that at each point along the propagation path treats the
+incoming wavefront of a "tube" of rays to be plane and orthogonal to
+propagation direction. At each point we will calculate the defocusing loss (or
+gain) for such a "tube" of rays. The along path defocusing will be modelled
+according to Equation~\ref{eq:defocloss}, that is, similar to how extinction is
+modelled. The loss term can, with the approximation applied, be calculated
+without knowledge of the history of the ray-path.
+
+
+The numerical methodology to handle or calculate the loss term will now be
+described. To estimate the defocusing along the path, let say at point
+\(P_{1}\) with a propagation direction vector \(\mathbf{t}_{1}\), we make the
+assumption that the wavefront of a "tube" rays is flat when entering this
+point. We will then calculate how neighbouring ray-paths around \(P_{1}\) will
+bend and change the area of the "tube" as they proceed. This will be done by
+considering the bending of four neighbouring rays with points in the plane
+orthogonal to the propagation direction (the plane defined by the point
+\(P_{1}\) and with normal vector \(\mathbf{t}_{1}\)). Two of these points
+considered will be displaced by a distance \(\pm 1/2\Delta l\) in the
+"vertical" direction from \(P_{1}\) and we denote these by \(P_{1north}\) and
+\(P_{1south}\). We denote the distance between those points by \(\Delta
+l_{v}\). The other two points (\(P_{1east}\) and \( P_{1west}\)) will have a
+horizontally displacement of \(\pm 1/2\Delta l\) from \(P_{1}\) , and we denote
+this distance by \(\Delta l_{h}\). To be clear, all of these five rays are
+assumed to have \(\mathbf{t}_{1}\) as propagation direction vector at the point
+of concern, and the area enclosing the incoming rays is
+\begin{equation}
+\Delta A_{1}= \Delta l_{v}\Delta l_{h}=\Delta l^{2},
+\end{equation}
+and the loss term then reads
+\begin{eqnarray}
+\frac{1}{\Delta A_{1}}\frac{\DiffD}{\DiffD s}\Delta A_{1} &=&
+%\frac{\Delta l_{h}}{\Delta l_{v} \Delta l_{h}}\frac{\DiffD}{\DiffD s}\Delta l_{v}+
+%\frac{\Delta l_{l}}{\Delta l_{v} \Delta l_{h}}\frac{\DiffD}{\DiffD s}\Delta l_{h}
+\frac{1}{\Delta l_{v} }\frac{\DiffD}{\DiffD s}\Delta l_{v}+
+\frac{1}{\Delta l_{h}}\frac{\DiffD}{\DiffD s}\Delta l_{h} \nonumber \\
+&\approx& \frac{\Delta l_{v}(\Delta s)/\Delta l_{v}-1}{\Delta s}+
+ \frac{\Delta l_{h}(\Delta s)/\Delta l_{h}-1}{\Delta s},
+\end{eqnarray}
+where \(\Delta s\) is a small path length step in the propagation direction of the centre ray. 
+That is, the loss term can be separated into two terms (one for the vertical defocusing and
+one for the horizontal defocusing).
+
+For each ray we calculate new propagation direction vectors, with the aim to find out the vertical and horizontal widths 
+(\(\Delta l_{v}(\Delta s)\) and \(\Delta l_{h}(\Delta s)\)) 
+of our "tube" of rays after propagating the centre ray a distance \(\Delta s\).
+We should calculate the widths of our "tube" of rays at the wavefront,
+which means that we must take the refractive indexes around the
+considered points into account.
+We propagate the centre ray an optical path length
+of \(\Delta s\)\(n_{1}\), where \(n_{1}\) is the refractive index
+at point \(P_{1}\). 
+The surrounding rays should then also
+be propagated an optical path length of \(\Delta s\)\(n_{1}\),
+before we "measure" the widths of the tube at the wavefront.
+In this way, each ray will arrive  to their new position 
+simultaneously in time (or with the same phase shift).
+That means for example that if we propagate the centre ray a distance 
+\(\Delta s\),
+the ray passing \(P_{1north}\) should be propagated
+a distance  \(\Delta s \cdot n_{1} / n_{1north}\), where 
+\(n_{1north}\) is the refractive index at point \( P_{1north}\).
+The new position of the ray passing \(P_{1north}\) is then accordingly
+\begin{equation}
+P_{2north}=P_{1north}+{\bf{t}}_{1north}\Delta s \frac{n_{1}}{n_{1north}},
+\end{equation}
+where \(\mathbf{t}_{1north}\) is the updated propagation direction vector 
+for the ray leaving point \(P_{1}\). The new positions \(P_{2south}\),\(P_{2east}\), and \(P_{2west}\)
+are found in an analogous manner. 
+We then have that
+\begin{equation}
+\Delta l_{v}(\Delta s)=|P_{2north}-P_{2south}|,
+\end{equation}
+where \(| |\) measures the distance between the two points, and 
+the horizontal width is found in analogous manner.
