@@ -5172,16 +5172,17 @@ void define_md_data_raw()
             "lon_grid", "z_field", "t_field", "vmr_field", "abs_species",
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "edensity_field", 
-            "refellipsoid", "z_surface", 
-            "cloudbox_on", "cloudbox_limits", "iy_aux_vars", "jacobian_do", 
+            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits", 
+            "pnd_field", "use_mean_scat_data","scat_data_raw", 
+            "particle_masses", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", "ppath_step_agenda",
             "abs_mat_per_species_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_pos2"
              ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(         "defocmethod" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC(     "Selection of defocusing calculation method." )
         ));
 
   md_data_raw.push_back

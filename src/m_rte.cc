@@ -1251,6 +1251,10 @@ void iyRadioLink(
    const Matrix&                     z_surface,
    const Index&                      cloudbox_on,
    const ArrayOfIndex&               cloudbox_limits,
+   const Tensor4&                     pnd_field,
+   const Index&                       use_mean_scat_data,
+   const ArrayOfSingleScatteringData& scat_data_raw,
+   const Matrix&                      particle_masses,
    const ArrayOfString&              iy_aux_vars,
    const Index&                      jacobian_do,
    const Agenda&                     ppath_agenda,
@@ -1261,19 +1265,20 @@ void iyRadioLink(
    const Tensor3&                    iy_transmission,
    const Vector&                     rte_pos,      
    const Vector&                     rte_pos2,      
+   const Index&                      defocmethod,
    const Verbosity&                  verbosity )
 {
   // Throw error if unsupported features are requested
-  if( cloudbox_on  || cloudbox_limits.nelem() )
-    throw runtime_error( "Cloudbox not yet handled." );
   if( !iy_agenda_call1 )
     throw runtime_error( 
                   "Recursive usage not possible (iy_agenda_call1 must be 1)" );
   if( iy_transmission.ncols() )
     throw runtime_error( "*iy_transmission* must be empty" );
   if( jacobian_do )
-    throw runtime_error( "This method does not yet provide any jacobians and "
+    throw runtime_error( "This method does not provide any jacobians and "
                          "*jacobian_do* must be 0." );
+  if( defocmethod < 1 || defocmethod > 2 )
+    throw runtime_error( "Allowed choices for *defocmethod* is 1 and 2." );
   diy_dx.resize(0);
 
 
@@ -1291,10 +1296,21 @@ void iyRadioLink(
   const Index ns = stokes_dim;
   const Index np = ppath.np;
 
+  // Transmitted signal
+  //
+  iy_transmitter_agendaExecute( ws, iy, f_grid, 
+                                ppath.pos(np-1,Range(0,atmosphere_dim)),
+                                ppath.los(np-1,joker), iy_transmitter_agenda );
+  if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+    { throw runtime_error( "The size of *iy* returned from "
+                                 "*iy_transmitter_agenda* is not correct." ); }
+
+
   //=== iy_aux part ===========================================================
   Index auxPressure        = -1,
         auxTemperature     = -1,
         auxAbsSum          = -1,
+        auxPartExt         = -1,
         auxFreeSpaceLoss   = -1,
         auxFreeSpaceAtte   = -1,
         auxAtmosphericLoss = -1,
@@ -1304,6 +1320,8 @@ void iyRadioLink(
         auxBendingAngle    = -1;
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
   ArrayOfIndex auxVmrSpecies(0), auxVmrIsp(0);
+  ArrayOfIndex auxPartCont(0), auxPartContI(0);
+  ArrayOfIndex auxPartField(0), auxPartFieldI(0);
   //
   const Index naux = iy_aux_vars.nelem(); 
   iy_aux.resize( naux );
@@ -1332,6 +1350,12 @@ void iyRadioLink(
         }
       else if( iy_aux_vars[i] == "Absorption, summed" )
         { auxAbsSum = i;   iy_aux[i].resize( nf, ns, ns, np ); }
+      else if( iy_aux_vars[i] == "Particle extinction, summed" )
+        { 
+          auxPartExt = i;   
+          iy_aux[i].resize( nf, ns, ns, np ); 
+          iy_aux[i] = 0;
+        }
       else if( iy_aux_vars[i].substr(0,20) == "Absorption, species " )
         { 
           Index ispecies;
@@ -1348,6 +1372,38 @@ void iyRadioLink(
           auxAbsIsp.push_back(ispecies);
           iy_aux[i].resize( nf, ns, ns, np );               
         }
+      else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
+        { 
+          Index icont;
+          istringstream is(iy_aux_vars[i].substr(14,2));
+          is >> icont;
+          if( icont < 0  ||  icont>=particle_masses.ncols() )
+            {
+              ostringstream os;
+              os << "You have selected particle mass content category with "
+                 << "index " << icont << ".\nThis category is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartCont.push_back(i);
+          auxPartContI.push_back(icont);
+          iy_aux[i].resize( 1, 1, 1, np );
+        }
+      else if( iy_aux_vars[i].substr(0,10) == "PND, type " )
+        { 
+          Index ip;
+          istringstream is(iy_aux_vars[i].substr(10,2));
+          is >> ip;
+          if( ip < 0  ||  ip>=pnd_field.nbooks() )
+            {
+              ostringstream os;
+              os << "You have selected particle number density field with "
+                 << "index " << ip << ".\nThis field is not defined!";
+              throw runtime_error( os.str() );
+            }
+          auxPartField.push_back(i);
+          auxPartFieldI.push_back(ip);
+          iy_aux[i].resize( 1, 1, 1, np );
+        }
       else if( iy_aux_vars[i] == "Free space loss" )
         { auxFreeSpaceLoss = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Free space attenuation" )
@@ -1357,7 +1413,12 @@ void iyRadioLink(
       else if( iy_aux_vars[i] == "Defocusing loss" )
         { auxDefocusingLoss = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Defocusing attenuation" )
-        { auxDefocusingAtte = i;    iy_aux[i].resize( nf, 1, 1, np ); }
+        {
+          if( defocmethod < 2 )
+            throw runtime_error( "The auxiliary variable \"Defocusing "
+                    "attenuation\" requires that *defocmethod* is set to 2." );
+          auxDefocusingAtte = i;    iy_aux[i].resize( nf, 1, 1, np ); 
+        }
       else if( iy_aux_vars[i] == "Extra path delay" )
         { auxExtraPathDelay = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Bending angle" )
@@ -1377,10 +1438,11 @@ void iyRadioLink(
   //
   Vector    ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
                               ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
-  Matrix    ppath_vmr;
+  Matrix    ppath_vmr, ppath_pnd;
   Tensor5   ppath_abs;
-  Tensor4   trans_partial, trans_cumulat;
+  Tensor4   trans_partial, trans_cumulat, pnd_ext_mat;
   Vector    scalar_tau;
+  ArrayOfIndex clear2cloudbox;
   //
   if( np > 1 )
     {
@@ -1395,18 +1457,25 @@ void iyRadioLink(
                          ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                          ppath_mag_u, ppath_mag_v, ppath_mag_w, 
                          f_grid, stokes_dim, atmosphere_dim );
-      get_ppath_trans(   trans_partial, trans_cumulat,scalar_tau, 
-                         ppath, ppath_abs, f_grid, stokes_dim );
-
+      if( !cloudbox_on )
+        { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
+                           ppath, ppath_abs, f_grid, stokes_dim );
+        }
+      else
+        {
+          Tensor3      pnd_abs_vec;
+          Array<ArrayOfSingleScatteringData> scat_data;
+          //
+          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data, 
+                         ppath_pnd, ppath, ppath_t, stokes_dim, f_grid, 
+                         atmosphere_dim, cloudbox_limits, pnd_field, 
+                         use_mean_scat_data, scat_data_raw, verbosity );
+          get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, 
+                            ppath, ppath_abs, f_grid, stokes_dim,
+                            clear2cloudbox, pnd_ext_mat );
+        }
     }
 
-  // Transmitted signal
-  //
-  iy_transmitter_agendaExecute( ws, iy, f_grid, rte_pos, Vector(0),
-                                iy_transmitter_agenda ); 
-  if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
-    { throw runtime_error( "The size of *iy* returned from "
-                                 "*iy_transmitter_agenda* is not correct." ); }
 
   // Ppath length variables
   //
@@ -1444,6 +1513,28 @@ void iyRadioLink(
               for( Index is2=0; is2<stokes_dim; is2++ ){
                 iy_aux[auxAbsSpecies[j]](iv,is1,is2,np-1) = 
                                ppath_abs(auxAbsIsp[j],iv,is1,is2,np-1); } } } }
+      // Particle properties
+      if( cloudbox_on  )
+        {
+          // Extinction
+          if( auxPartExt >= 0  && clear2cloudbox[np-1] >= 0 ) 
+            { 
+              const Index ic = clear2cloudbox[np-1];
+              for( Index iv=0; iv<nf; iv++ ) {
+                for( Index is1=0; is1<ns; is1++ ){
+                  for( Index is2=0; is2<ns; is2++ ){
+                    iy_aux[auxPartExt](iv,is1,is2,np-1) = 
+                                              pnd_ext_mat(iv,is1,is2,ic); } } } 
+            } 
+          // Particle mass content
+          for( Index j=0; j<auxPartCont.nelem(); j++ )
+            { iy_aux[auxPartCont[j]](0,0,0,np-1) = ppath_pnd(joker,np-1) *
+                                      particle_masses(joker,auxPartContI[j]); }
+          // Particle field
+          for( Index j=0; j<auxPartField.nelem(); j++ )
+            { iy_aux[auxPartField[j]](0,0,0,np-1) = 
+                                            ppath_pnd(auxPartFieldI[j],np-1); }
+        }
       // Free space
       if( auxFreeSpaceAtte >= 0 )
         { iy_aux[auxFreeSpaceAtte](joker,0,0,np-1) = 2/lbg; }
@@ -1457,10 +1548,30 @@ void iyRadioLink(
           lba += ppath.lstep[ip] * (ppath.ngroup[ip]+ppath.ngroup[ip+1]) / 2.0;
           
           // Atmospheric loss of path step
-          for( Index iv=0; iv<nf; iv++ )
+          if( stokes_dim == 1 )
             {
-              Vector iy_temp = iy(iv,joker);
-              mult( iy(iv,joker), trans_partial(iv,joker,joker,ip), iy_temp );
+              for( Index iv=0; iv<nf; iv++ )  
+                { iy(iv,0) = iy(iv,0) * trans_partial(iv,0,0,ip); }
+            }
+          else
+            {
+              for( Index iv=0; iv<nf; iv++ )  
+                {
+                  // Unpolarised absorption:
+                  if( is_diagonal( trans_partial(iv,joker,joker,ip) ) )
+                    {
+                      for( Index is=0; is<ns; is++ )
+                        { iy(iv,is) = iy(iv,is) * trans_partial(iv,is,is,ip); }
+                    }
+                  // The general case:
+                  else
+                    {
+                      // Transmitted term
+                      Vector t1(ns);
+                      mult( t1, trans_partial(iv,joker,joker,ip), iy(iv,joker));
+                      iy(iv,joker) = t1;
+                    }
+                }
             }
 
           //=== iy_aux part ===================================================
@@ -1486,48 +1597,78 @@ void iyRadioLink(
                   for( Index is2=0; is2<stokes_dim; is2++ ){
                     iy_aux[auxAbsSpecies[j]](iv,is1,is2,ip) = 
                                  ppath_abs(auxAbsIsp[j],iv,is1,is2,ip); } } } }
+          // Particle properties
+          if( cloudbox_on ) 
+            {
+              // Extinction
+              if( auxPartExt >= 0  &&  clear2cloudbox[ip] >= 0 ) 
+                { 
+                  const Index ic = clear2cloudbox[ip];
+                  for( Index iv=0; iv<nf; iv++ ) {
+                    for( Index is1=0; is1<ns; is1++ ){
+                      for( Index is2=0; is2<ns; is2++ ){
+                        iy_aux[auxPartExt](iv,is1,is2,ip) = 
+                                              pnd_ext_mat(iv,is1,is2,ic); } } }
+                }
+              // Particle mass content
+              for( Index j=0; j<auxPartCont.nelem(); j++ )
+                { iy_aux[auxPartCont[j]](0,0,0,ip) = ppath_pnd(joker,ip) *
+                                      particle_masses(joker,auxPartContI[j]); }
+              // Particle field
+              for( Index j=0; j<auxPartField.nelem(); j++ )
+                { iy_aux[auxPartField[j]](0,0,0,ip) = 
+                                              ppath_pnd(auxPartFieldI[j],ip); }
+            }
           // Free space loss
           if( auxFreeSpaceAtte >= 0 )
             { iy_aux[auxFreeSpaceAtte](joker,0,0,ip) = 2/lbg; }
           //===================================================================
         }
 
+
+      //=== iy_aux part =======================================================
+      if( auxAtmosphericLoss >= 0 )
+        { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }
+      //=======================================================================
+
+
       // Remaing length of ppath
       lbg += ppath.start_lstep;
       lba += ppath.start_lstep;
 
+
       // Determine total free space loss
       Numeric fspl = 1 / ( 4 * PI * lbg*lbg ); 
+      //
+      if( auxFreeSpaceLoss >= 0 )
+        { iy_aux[auxFreeSpaceLoss] = fspl; }
+
 
       // Determine defocusing loss
       Numeric dfl = 1;
-      if( 0 )
+      if( defocmethod == 1 )
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, edensity_field, -1, 
                               refellipsoid, z_surface, ppath, verbosity ); 
         }
-      else
+      else if( defocmethod == 2 )
         {
           defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, edensity_field, -1, 
                               refellipsoid, z_surface, ppath, verbosity ); 
+          if( auxDefocusingAtte >= 0 )
+            { iy_aux[auxDefocusingAtte] = -999; }  // So far just a dummy value
         }
-
-      //=== iy_aux part =======================================================
-      if( auxAtmosphericLoss >= 0 )
-        { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }
-      if( auxFreeSpaceLoss >= 0 )
-        { iy_aux[auxFreeSpaceLoss] = fspl; }
       if( auxDefocusingLoss >= 0 )
         { iy_aux[auxDefocusingLoss] = dfl; }
-      if( auxDefocusingAtte >= 0 )
-        { iy_aux[auxDefocusingAtte] = -999; }  // So far just a dummy value
-      //=======================================================================
+
+
 
       // Include free space and defocusing losses
       iy *= fspl*dfl;
+
 
       // Extra path delay
       if( auxExtraPathDelay >= 0 )
@@ -1549,6 +1690,7 @@ void iyRadioLink(
           //
           iy_aux[auxExtraPathDelay] = ( lba - lgd ) / SPEED_OF_LIGHT;
         }
+
 
       // Bending angle
       if( auxBendingAngle >= 0 )
@@ -1626,12 +1768,11 @@ void iyTransmissionStandard(
   const Index np = ppath.np;
   const Index nq = jacobian_quantities.nelem();
 
-  // Get transmitted signal
+  // Transmitted signal
   //
-  iy_transmitter_agendaExecute( ws, iy, 
-                                f_grid, ppath.pos(np-1,Range(0,atmosphere_dim)),
+  iy_transmitter_agendaExecute( ws, iy, f_grid, 
+                                ppath.pos(np-1,Range(0,atmosphere_dim)),
                                 ppath.los(np-1,joker), iy_transmitter_agenda );
-  //
   if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
     {
       ostringstream os;
@@ -1802,7 +1943,7 @@ void iyTransmissionStandard(
                            f_grid, stokes_dim, atmosphere_dim );
       if( !cloudbox_on )
         { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
-                           ppath, ppath_abs, f_grid, stokes_dim );
+                           ppath, ppath_abs, f_grid, stokes_dim ); 
         }
       else
         {
@@ -2104,8 +2245,6 @@ void iyTransmissionStandard(
                 { iy_aux[auxPartField[j]](0,0,0,ip) = 
                                               ppath_pnd(auxPartFieldI[j],ip); }
             }
-
-
           // Radiance 
           if( auxIy >= 0 ) 
             { iy_aux[auxIy](joker,joker,0,ip) = iy; }
