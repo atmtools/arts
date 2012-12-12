@@ -125,6 +125,13 @@ void defocusing_sat2sat(
   const Ppath&       ppath,
   const Verbosity&   verbosity );
 
+Numeric dotprod_with_los(
+  ConstVectorView   los, 
+  const Numeric&    u,
+  const Numeric&    v,
+  const Numeric&    w,
+  const Index&      atmosphere_dim );
+
 void ext2trans(
          MatrixView   trans_mat,
    ConstMatrixView    ext_mat_av,

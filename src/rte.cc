@@ -711,7 +711,54 @@ void defocusing_sat2sat(
 
 
 
-//! ext2trans
+//! dotprod_with_los
+/*!
+    Calculates the dot product between a field and a LOS
+
+    The line-of-sight shall be given as in the ppath structure (i.e. the
+    viewing direction), but the dot product is calculated for the photon
+    direction. The field is specified by its three components.
+
+    The returned value can be written as |f|*cos(theta), where |f| is the field
+    strength, and theta the angle between the field and photon vectors.
+
+    \return                    The result of the dot product
+    \param   los               Pppath line-of-sight.
+    \param   u                 U-component of field.
+    \param   v                 V-component of field.
+    \param   w                 W-component of field.
+    \param   atmosphere_dim    As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2012-12-12
+*/
+Numeric dotprod_with_los(
+  ConstVectorView   los, 
+  const Numeric&    u,
+  const Numeric&    v,
+  const Numeric&    w,
+  const Index&      atmosphere_dim )
+{
+  // Strength of field
+  const Numeric f = sqrt( u*u + v*v + w*w );
+
+  // Zenith and azimuth angle for field (in radians) 
+  const Numeric za_f = acos( w/f );
+  const Numeric aa_f = atan2( u, v );
+
+  // Zenith and azimuth angle ffor photon direction (in radians)
+  Vector los_p;
+  mirror_los( los_p, los, atmosphere_dim );
+  const Numeric za_p = DEG2RAD * los_p[0];
+  const Numeric aa_p = DEG2RAD * los_p[1];
+  
+  return f * ( cos(za_f) * cos(za_p) +
+               sin(za_f) * sin(za_p) * cos(aa_f-aa_p) );
+}    
+
+
+
+//! 
 /*!
     Converts an extinction matrix to a transmission matrix
 
@@ -1228,14 +1275,10 @@ void get_ppath_abs(
         
       // Magnetic field
       //
-      Vector rte_mag(1,-1.);
-      if( ppath_mag_v[ip]!=0 || ppath_mag_u[ip]!=0 || ppath_mag_w[ip]!=0 )
-        {
-          rte_mag.resize(3); //FIXME: email Patrick about u,v,w order
-          rte_mag[0] = ppath_mag_u[ip];
-          rte_mag[1] = ppath_mag_v[ip];
-          rte_mag[2] = ppath_mag_w[ip];
-        }
+      Vector rte_mag(3);
+      rte_mag[0] = ppath_mag_u[ip];
+      rte_mag[1] = ppath_mag_v[ip];
+      rte_mag[2] = ppath_mag_w[ip];
 
       // Call agenda
       //

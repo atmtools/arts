@@ -3130,15 +3130,17 @@ void Workspace::define_wsv_data()
     ( NAME( "rte_mag" ),
       DESCRIPTION
       (
-       "The magnetic field .\n"
+       "The magnetic field at a single point.\n"
        "\n"
-       "The main purpose of this WSV is for the Zeeman effect."
-       "If this set to length 1 and a value of -1.0 (within a margin),"
-       "then the Zeeman effect will be ignored."
+       "The main purpose of this WSV is for the Zeeman effect.\n"
        "\n"
-       "Units: [ T_x, T_y, T_z ] or [ flag ]\n"
+       "See *mag_u_field* etc. for a definition of the different components.\n"
+       "This is a vector of length three, even if any of the fields is set\n"
+       "to be empty.\n"
        "\n"
-       "Size:  [ 3 ] or [ 1 ]\n"
+       "Units: T\n"
+       "\n"
+       "Size:  [ u-component, v-component, w-component ]\n"
        ),
       GROUP( "Vector" )));
    

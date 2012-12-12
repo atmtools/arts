@@ -1316,6 +1316,8 @@ void iyRadioLink(
         auxAtmosphericLoss = -1,
         auxDefocusingLoss  = -1,
         auxDefocusingAtte  = -1,
+        auxFarRotTotal     = -1,
+        auxFarRotSpeed     = -1,
         auxExtraPathDelay  = -1,
         auxBendingAngle    = -1;
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
@@ -1419,6 +1421,11 @@ void iyRadioLink(
                     "attenuation\" requires that *defocmethod* is set to 2." );
           auxDefocusingAtte = i;    iy_aux[i].resize( nf, 1, 1, np ); 
         }
+      else if( iy_aux_vars[i] == "Faraday rotation" )
+        { auxFarRotTotal = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
+      else if( iy_aux_vars[i] == "Faraday speed" )
+        { auxFarRotSpeed = i;    iy_aux[i].resize( nf, 1, 1, np ); 
+                                 iy_aux[i] = 0; }
       else if( iy_aux_vars[i] == "Extra path delay" )
         { auxExtraPathDelay = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Bending angle" )
@@ -1489,6 +1496,18 @@ void iyRadioLink(
   //
   if( np > 1 )
     {
+      // Faraday rotation
+      // 
+      Numeric frotk = 2.62e-13;
+      Numeric frot1=0, frot2=0; // rad/m
+      //
+      if( ppath_mag_u[np-1]!=0 || ppath_mag_v[np-1]!=0 || ppath_mag_w[np-1]!=0 )
+        { 
+          frot1 = frotk * dotprod_with_los( ppath.los(np-1,joker),
+                                    ppath_mag_u[np-1], ppath_mag_v[np-1],
+                                    ppath_mag_w[np-1], atmosphere_dim );
+        }
+
       //=== iy_aux part =======================================================
       // iy_aux for point np-1:
       // Pressure
@@ -1538,6 +1557,10 @@ void iyRadioLink(
       // Free space
       if( auxFreeSpaceAtte >= 0 )
         { iy_aux[auxFreeSpaceAtte](joker,0,0,np-1) = 2/lbg; }
+      // Faraday speed
+      if( auxFarRotSpeed >= 0  &&  frot1 != 0 )
+        { for( Index iv=0; iv<nf; iv++ ) {
+            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = frot1; } }
       //=======================================================================
 
       // Loop ppath steps
@@ -1546,7 +1569,28 @@ void iyRadioLink(
           // Lengths
           lbg += ppath.lstep[ip];
           lba += ppath.lstep[ip] * (ppath.ngroup[ip]+ppath.ngroup[ip+1]) / 2.0;
-          
+
+          // Faraday rotation
+          //
+          if( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || ppath_mag_w[ip]!=0 )
+            { 
+              frot2 = frotk * dotprod_with_los( ppath.los(ip,joker),
+                                              ppath_mag_u[ip], ppath_mag_v[ip],
+                                              ppath_mag_w[ip], atmosphere_dim );
+              // Faraday speed
+              if( auxFarRotSpeed >= 0 )
+                { for( Index iv=0; iv<nf; iv++ ) {
+                    iy_aux[auxFarRotSpeed](iv,0,0,np-1) = frot2; } }
+            }
+          //
+          if( frot1 != 0  || frot2 != 0 )
+            { for( Index iv=0; iv<nf; iv++ ) {
+                // Apply Faraday rotation
+            } }
+          //
+          frot1 = frot2;
+
+
           // Atmospheric loss of path step
           if( stokes_dim == 1 )
             {

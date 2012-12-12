@@ -1,5 +1,17 @@
 2012-12-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-415
+
+	* src/m_rte.cc (iyRadioLink): Started on Faraday rotation.
+
+	* src/rte.cc (get_ppath_abs): Adopted to below. The [-1] option
+	would never happen.
+
+	* src/workspace.cc: Changed description if rte_mag, mainly
+	removing the option of [-1].
+
+2012-12-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-414
 
 	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
