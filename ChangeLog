@@ -1,3 +1,12 @@
+2012-12-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-416
+
+	* src/m_rte.cc (iyRadioLink): Some more work on Faraday rotation.
+	Mainly to figure out the correct combination of basic constants
+	(e, m, c etc.) when using SI units. The factor 2.34e4 given in
+	several places, is now calculated from fundamental constants.
+
 2012-12-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-415

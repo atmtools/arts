@@ -61,7 +61,9 @@ extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
-
+extern const Numeric ELECTRON_CHARGE;
+extern const Numeric ELECTRON_MASS;
+extern const Numeric VACUUM_PERMITTIVITY;
 
 
 
@@ -1497,15 +1499,20 @@ void iyRadioLink(
   if( np > 1 )
     {
       // Faraday rotation
-      // 
-      Numeric frotk = 2.62e-13;
+      // (abs as e defined as negative)
+      static const Numeric FRconst = abs( 
+                        ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
+                        ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
+                          ELECTRON_MASS * ELECTRON_MASS ) );
+      cout << FRconst <<endl;
+
       Numeric frot1=0, frot2=0; // rad/m
       //
       if( ppath_mag_u[np-1]!=0 || ppath_mag_v[np-1]!=0 || ppath_mag_w[np-1]!=0 )
         { 
-          frot1 = frotk * dotprod_with_los( ppath.los(np-1,joker),
-                                    ppath_mag_u[np-1], ppath_mag_v[np-1],
-                                    ppath_mag_w[np-1], atmosphere_dim );
+          frot1 = FRconst * dotprod_with_los( ppath.los(np-1,joker),
+                                          ppath_mag_u[np-1], ppath_mag_v[np-1],
+                                          ppath_mag_w[np-1], atmosphere_dim );
         }
 
       //=== iy_aux part =======================================================
@@ -1560,7 +1567,8 @@ void iyRadioLink(
       // Faraday speed
       if( auxFarRotSpeed >= 0  &&  frot1 != 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = frot1; } }
+            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = frot1 / 
+                                                   (f_grid[iv]*f_grid[iv]); } }
       //=======================================================================
 
       // Loop ppath steps
@@ -1574,19 +1582,32 @@ void iyRadioLink(
           //
           if( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || ppath_mag_w[ip]!=0 )
             { 
-              frot2 = frotk * dotprod_with_los( ppath.los(ip,joker),
+              frot2 = FRconst * dotprod_with_los( ppath.los(ip,joker),
                                               ppath_mag_u[ip], ppath_mag_v[ip],
                                               ppath_mag_w[ip], atmosphere_dim );
               // Faraday speed
               if( auxFarRotSpeed >= 0 )
                 { for( Index iv=0; iv<nf; iv++ ) {
-                    iy_aux[auxFarRotSpeed](iv,0,0,np-1) = frot2; } }
+                    iy_aux[auxFarRotSpeed](iv,0,0,ip) = frot2 /
+                                                   (f_grid[iv]*f_grid[iv]); } }
             }
           //
           if( frot1 != 0  || frot2 != 0 )
-            { for( Index iv=0; iv<nf; iv++ ) {
-                // Apply Faraday rotation
-            } }
+            { 
+              for( Index iv=0; iv<nf; iv++ ) 
+                {
+                  const Numeric fr_angle = (frot1+frot2)*ppath.lstep[ip]/2.0;
+
+                  
+
+                  // Faraday rotation
+                  if( auxFarRotTotal >= 0 )
+                    { 
+                      iy_aux[auxFarRotTotal](iv,0,0,ip) += 
+                                          fr_angle / ( f_grid[iv]*f_grid[iv] );
+                    }
+                } 
+            }
           //
           frot1 = frot2;
 
