@@ -59,12 +59,8 @@
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
-extern const String ABSSPECIES_MAINTAG;
-extern const String TEMPERATURE_MAINTAG;
-extern const Numeric ELECTRON_CHARGE;
-extern const Numeric ELECTRON_MASS;
-extern const Numeric VACUUM_PERMITTIVITY;
-
+extern const String  ABSSPECIES_MAINTAG;
+extern const String  TEMPERATURE_MAINTAG;
 
 
 
@@ -574,7 +570,9 @@ void iyEmissionStandard(
   //
   if( np > 1 )
     {
-      Vector ppath_ne;
+      Vector  ppath_ne, farrot_c1; 
+      Numeric farrot_c2;
+      //
       get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
                           ppath_wind_u, ppath_wind_v, ppath_wind_w,
                           ppath_mag_u, ppath_mag_v, ppath_mag_w, ppath_ne,
@@ -587,8 +585,10 @@ void iyEmissionStandard(
                           ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                           ppath_mag_u, ppath_mag_v, ppath_mag_w, 
                           f_grid, stokes_dim, atmosphere_dim );
-      get_ppath_trans(    trans_partial, trans_cumulat,scalar_tau, 
-                          ppath, ppath_abs, f_grid, stokes_dim );
+      get_ppath_trans(    trans_partial, trans_cumulat, scalar_tau, farrot_c1,
+                          farrot_c2, ppath, ppath_abs, ppath_mag_u, 
+                          ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
+                          f_grid, stokes_dim );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
                           ppath, ppath_t, f_grid );
     }
@@ -1426,9 +1426,9 @@ void iyRadioLink(
           auxDefocusingAtte = i;    iy_aux[i].resize( nf, 1, 1, np ); 
         }
       else if( iy_aux_vars[i] == "Faraday rotation" )
-        { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 );  iy_aux[i] = 0; }
+        { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Faraday speed" )
-        { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); iy_aux[i] = 0; }
+        { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Extra path delay" )
         { auxExtraPathDelay = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Bending angle" )
@@ -1451,7 +1451,8 @@ void iyRadioLink(
   Matrix    ppath_vmr, ppath_pnd;
   Tensor5   ppath_abs;
   Tensor4   trans_partial, trans_cumulat, pnd_ext_mat;
-  Vector    scalar_tau;
+  Vector    scalar_tau, farrot_c1;
+  Numeric   farrot_c2;
   ArrayOfIndex clear2cloudbox;
   //
   if( np > 1 )
@@ -1469,8 +1470,11 @@ void iyRadioLink(
                          ppath_mag_u, ppath_mag_v, ppath_mag_w, 
                          f_grid, stokes_dim, atmosphere_dim );
       if( !cloudbox_on )
-        { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
-                           ppath, ppath_abs, f_grid, stokes_dim );
+        { 
+          get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
+                           farrot_c2, ppath, ppath_abs, ppath_mag_u, 
+                           ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
+                           f_grid, stokes_dim );
         }
       else
         {
@@ -1499,28 +1503,6 @@ void iyRadioLink(
   //
   if( np > 1 )
     {
-      // Faraday rotation
-      // (abs as e defined as negative)
-      static const Numeric FRconst = abs( 
-                        ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
-                        ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
-                          ELECTRON_MASS * ELECTRON_MASS ) );
-      // Mueller matrix for Faraday rotation (fill constant positions)
-      Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
-      FRmat(0,0) = 1;
-      if( stokes_dim == 4 )
-        { FRmat(3,3) = 1; }
-      //
-      Numeric frot1=0, frot2=0; // Rotation speed at path points, rad/m
-      //
-      if( ppath_mag_u[np-1]!=0 || ppath_mag_v[np-1]!=0 || ppath_mag_w[np-1]!=0 )
-        { 
-          frot1 = FRconst * ppath_ne[np-1] * dotprod_with_los( 
-                                          ppath.los(np-1,joker),
-                                          ppath_mag_u[np-1], ppath_mag_v[np-1],
-                                          ppath_mag_w[np-1], atmosphere_dim );
-        }
-
       //=== iy_aux part =======================================================
       // iy_aux for point np-1:
       // Pressure
@@ -1571,9 +1553,9 @@ void iyRadioLink(
       if( auxFreeSpaceAtte >= 0 )
         { iy_aux[auxFreeSpaceAtte](joker,0,0,np-1) = 2/lbg; }
       // Faraday speed
-      if( auxFarRotSpeed >= 0  &&  frot1 != 0 )
+      if( auxFarRotSpeed >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = frot1 / 
+            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = farrot_c1[np-1] / 
                                                    (f_grid[iv]*f_grid[iv]); } }
       //=======================================================================
 
@@ -1584,57 +1566,7 @@ void iyRadioLink(
           lbg += ppath.lstep[ip];
           lba += ppath.lstep[ip] * (ppath.ngroup[ip]+ppath.ngroup[ip+1]) / 2.0;
 
-          // Faraday rotation
-          //
-          if( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || ppath_mag_w[ip]!=0 )
-            { 
-              frot2 = FRconst * ppath_ne[ip] * dotprod_with_los( 
-                                              ppath.los(ip,joker),
-                                              ppath_mag_u[ip], ppath_mag_v[ip],
-                                              ppath_mag_w[ip], atmosphere_dim );
-              // iy_aux: Faraday speed
-              if( auxFarRotSpeed >= 0 )
-                { for( Index iv=0; iv<nf; iv++ ) {
-                    iy_aux[auxFarRotSpeed](iv,0,0,ip) = frot2 /
-                                                   (f_grid[iv]*f_grid[iv]); } }
-            }
-          //
-          if( frot1 != 0  || frot2 != 0 )
-            { 
-              for( Index iv=0; iv<nf; iv++ ) 
-                {
-                  // Rotation for the step
-                  const Numeric rot_angle = 0.5*(frot1+frot2) *
-                    ppath.lstep[ip] / ( f_grid[iv]*f_grid[iv] );
-
-                  // Complete Mueller matrix and apply
-                  if( stokes_dim > 1 )
-                    {
-                      const Numeric cterm = cos( 2*rot_angle );
-                      FRmat(1,1) = cterm;
-                      //
-                      if( stokes_dim > 2 )
-                        {
-                          const Numeric sterm = sin( 2*rot_angle );
-                          FRmat(2,1) = sterm;
-                          FRmat(1,2) = -sterm;
-                          FRmat(2,2) = cterm;
-                        }                   
-                    }
-                  //
-                  Vector t1(ns);
-                  mult( t1, FRmat, iy(iv,joker));
-                  iy(iv,joker) = t1;
-
-                  // iy_aux: Faraday rotation
-                  if( auxFarRotTotal >= 0 )
-                    { iy_aux[auxFarRotTotal](iv,0,0,0) += rot_angle; }
-                } 
-            }
-          //
-          frot1 = frot2;
-
-          // Atmospheric loss of path step
+          // Atmospheric loss of path step + Faraday rotation
           if( stokes_dim == 1 )
             {
               for( Index iv=0; iv<nf; iv++ )  
@@ -1709,6 +1641,11 @@ void iyRadioLink(
           // Free space loss
           if( auxFreeSpaceAtte >= 0 )
             { iy_aux[auxFreeSpaceAtte](joker,0,0,ip) = 2/lbg; }
+          // Faraday speed
+          if( auxFarRotSpeed >= 0 )
+            { for( Index iv=0; iv<nf; iv++ ) {
+                iy_aux[auxFarRotSpeed](iv,0,0,ip) = farrot_c1[ip] / 
+                                                   (f_grid[iv]*f_grid[iv]); } }
           //===================================================================
         }
 
@@ -1716,6 +1653,10 @@ void iyRadioLink(
       //=== iy_aux part =======================================================
       if( auxAtmosphericLoss >= 0 )
         { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }
+      if( auxFarRotTotal >= 0 )
+        { for( Index iv=0; iv<nf; iv++ ) {
+            iy_aux[auxFarRotTotal](iv,0,0,0) = farrot_c2 / 
+                                                   (f_grid[iv]*f_grid[iv]); } }
       //=======================================================================
 
 
@@ -2031,8 +1972,13 @@ void iyTransmissionStandard(
                            ppath_mag_u, ppath_mag_v, ppath_mag_w, 
                            f_grid, stokes_dim, atmosphere_dim );
       if( !cloudbox_on )
-        { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
-                           ppath, ppath_abs, f_grid, stokes_dim ); 
+        { 
+          Vector  farrot_c1; 
+          Numeric farrot_c2;
+          get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
+                           farrot_c2, ppath, ppath_abs, ppath_mag_u, 
+                           ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
+                           f_grid, stokes_dim );
         }
       else
         {

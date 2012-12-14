@@ -57,6 +57,10 @@ extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
+extern const Numeric ELECTRON_CHARGE;
+extern const Numeric ELECTRON_MASS;
+extern const Numeric VACUUM_PERMITTIVITY;
+
 
 /*===========================================================================
   === The functions in alphabetical order
@@ -1524,7 +1528,7 @@ void get_ppath_ext(
     step. It has np-1 columns.
 
     The argument trans_cumalat holds the transmission between the path point
-    with index 1 and each propagation path point. The transmission is valid for
+    with index 0 and each propagation path point. The transmission is valid for
     the photon travelling direction. It has np columns.
 
     The output variables are sized inside the function. The dimension order is 
@@ -1547,8 +1551,15 @@ void get_ppath_trans(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
+        Vector&         farrot_c1,
+        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
+  ConstVectorView       ppath_mag_u, 
+  ConstVectorView       ppath_mag_v, 
+  ConstVectorView       ppath_mag_w, 
+  ConstVectorView       ppath_ne, 
+  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim )
 {
@@ -1562,14 +1573,40 @@ void get_ppath_trans(
   trans_cumulat.resize( nf, stokes_dim, stokes_dim, np );
   //
   scalar_tau.resize( nf );
-  scalar_tau  = 0;
-  
+  scalar_tau = 0;
+  //
+  farrot_c1.resize( np );
+  farrot_c1 = 0;
+  farrot_c2 = 0;
+
+  // Variables for Faraday rotation
+  //
+  // All the constants joined (abs as e defined as negative)
+  static const Numeric FRconst = abs( 
+                        ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
+                        ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
+                          ELECTRON_MASS * ELECTRON_MASS ) );
+  // Mueller matrix for Faraday rotation (fill constant positions)
+  Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
+  FRmat(0,0) = 1;
+  if( stokes_dim == 4 )
+    { FRmat(3,3) = 1; }
+
+
   // Loop ppath points (in the anti-direction of photons)  
   //
   Tensor3 abssum_old, abssum_this( nf, stokes_dim, stokes_dim );
   //
   for( Index ip=0; ip<np; ip++ )
     {
+      // Faraday rotation
+      if( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || ppath_mag_w[ip]!=0 )
+        { 
+          farrot_c1[ip] = FRconst * ppath_ne[ip] * dotprod_with_los( 
+                        ppath.los(ip,joker), ppath_mag_u[ip], ppath_mag_v[ip],
+                                             ppath_mag_w[ip], atmosphere_dim );
+        }
+
       // If first point, calculate sum of absorption and set transmission
       // to identity matrix.
       if( ip == 0 )
@@ -1587,8 +1624,18 @@ void get_ppath_trans(
 
       else
         {
+          // Any Faraday rotation?
+          Numeric rot_c = 0;  // Rotation for step, without f^2-factor
+          if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
+            { 
+              // Rotation for the step
+              rot_c = ppath.lstep[ip-1] * 0.5*(farrot_c1[ip-1]+farrot_c1[ip]);
+              farrot_c2 += rot_c;
+            }
+          
           for( Index iv=0; iv<nf; iv++ ) 
             {
+              // Transmission due to absorption
               Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
@@ -1598,15 +1645,41 @@ void get_ppath_trans(
                           ( abssum_old(iv,is1,is2) + abssum_this(iv,is1,is2) );
                 } }
               scalar_tau[iv] -= ntau(0,0); 
-              // The function below checks if ntau ir diagonal or not
+              // (the function below checks if ntau ir diagonal or not)
               matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
-              // Note that multiplication below depends on ppath loop order
+
+              // Include Faraday rotation?
+              if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
+                { 
+                  // Rotation for the step
+                  const Numeric rot_angle = rot_c / (f_grid[iv]*f_grid[iv]);
+
+                  // Fill up Mueller matrix and include in trans_partial
+                  if( stokes_dim > 1 )
+                    {
+                      const Numeric cterm = cos( 2*rot_angle );
+                      FRmat(1,1) = cterm;
+                      //
+                      if( stokes_dim > 2 )
+                        {
+                          const Numeric sterm = sin( 2*rot_angle );
+                          FRmat(2,1) = sterm;
+                          FRmat(1,2) = -sterm;
+                          FRmat(2,2) = cterm;
+                        }                   
+                      Matrix Mtmp = trans_partial(iv,joker,joker,ip-1);
+                      // (the multiplication order below is arbitrary)
+                      mult( trans_partial(iv,joker,joker,ip-1), Mtmp, FRmat );
+                    }
+                } 
+              
+              // Cumulative transmission
+              // (note that multiplication below depends on ppath loop order)
               mult( trans_cumulat(iv,joker,joker,ip), 
                     trans_cumulat(iv,joker,joker,ip-1), 
                     trans_partial(iv,joker,joker,ip-1) );
             }
         }
-
       abssum_old = abssum_this;
     }
 }

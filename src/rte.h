@@ -242,8 +242,15 @@ void get_ppath_trans(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
+        Vector&         farrot_c1,
+        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
+  ConstVectorView       ppath_mag_u, 
+  ConstVectorView       ppath_mag_v, 
+  ConstVectorView       ppath_mag_w, 
+  ConstVectorView       ppath_ne, 
+  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim );
 

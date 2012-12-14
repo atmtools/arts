@@ -258,8 +258,13 @@ void iyCloudRadar(
                            ppath_mag_u, ppath_mag_v, ppath_mag_w, 
                            f_grid, stokes_dim, atmosphere_dim );
       if( !cloudbox_on )
-        { get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
-                           ppath, ppath_abs, f_grid, stokes_dim );
+        { 
+          Vector  farrot_c1; 
+          Numeric farrot_c2;
+          get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
+                           farrot_c2, ppath, ppath_abs, ppath_mag_u, 
+                           ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
+                           f_grid, stokes_dim );
         }
       else
         {
