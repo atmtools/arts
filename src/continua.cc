@@ -5782,6 +5782,13 @@ void MPM85O2AbsModel (MatrixView          pxsec,
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
+      // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
+      if (vmr[i] == 0.)
+      {
+          pxsec(joker, i) = 0.;
+          continue;
+      }
+
       // check if O2-VMR will cause an underflow due to division by zero:
       if (vmr[i] < VMRCalcLimit)
   {
@@ -6070,6 +6077,13 @@ void MPM87O2AbsModel (MatrixView          pxsec,
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
+      // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
+      if (vmr[i] == 0.)
+      {
+          pxsec(joker, i) = 0.;
+          continue;
+      }
+
       // check if O2-VMR will cause an underflow due to division by zero:
       if (vmr[i] < VMRCalcLimit)
   {
@@ -6340,6 +6354,13 @@ void MPM89O2AbsModel (MatrixView          pxsec,
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
+      // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
+      if (vmr[i] == 0.)
+      {
+          pxsec(joker, i) = 0.;
+          continue;
+      }
+
       // check if O2-VMR will cause an underflow due to division by zero:
       if (vmr[i] < VMRCalcLimit)
   {
@@ -6611,6 +6632,13 @@ void MPM92O2AbsModel (MatrixView          pxsec,
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
+      // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
+      if (vmr[i] == 0.)
+      {
+          pxsec(joker, i) = 0.;
+          continue;
+      }
+
       // check if O2-VMR will cause an underflow due to division by zero:
       if (vmr[i] < VMRCalcLimit)
   {
@@ -6884,6 +6912,13 @@ void MPM93O2AbsModel (MatrixView          pxsec,
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
+      // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
+      if (vmr[i] == 0.)
+      {
+          pxsec(joker, i) = 0.;
+          continue;
+      }
+
       // check if O2-VMR will cause an underflow due to division by zero:
       if (vmr[i] < VMRCalcLimit)
   {
@@ -7275,6 +7310,13 @@ void PWR93O2AbsModel (MatrixView        pxsec,
   if(!arts_omp_in_parallel())
   for ( Index i=0; i<n_p; ++i )
     {
+      // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
+      if (vmr[i] == 0.)
+      {
+          pxsec(joker, i) = 0.;
+          continue;
+      }
+
       // check if O2-VMR will cause an underflow due to division by zero:
       if (vmr[i] < VMRCalcLimit)
       {
@@ -7472,6 +7514,13 @@ void MPM93_O2_continuum (MatrixView          pxsec,
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
+      // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
+      if (vmr[i] == 0.)
+      {
+          pxsec(joker, i) = 0.;
+          continue;
+      }
+
       if (vmr[i] < VMRCalcLimit) // make sure that division by zero is excluded
   {
     ostringstream os;
