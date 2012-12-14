@@ -1023,6 +1023,7 @@ void get_iy_of_background(
     \param   ppath_mag_u       Out: U-mag for each ppath point.
     \param   ppath_mag_v       Out: V-mag for each ppath point.
     \param   ppath_mag_w       Out: W-mag for each ppath point.
+    \param   ppath_ne          Out: Free electron density for each ppath point.
     \param   ppath             As the WSV.
     \param   atmosphere_dim    As the WSV.
     \param   p_grid            As the WSV.
@@ -1036,6 +1037,7 @@ void get_iy_of_background(
     \param   mag_u_field       As the WSV.
     \param   mag_v_field       As the WSV.
     \param   mag_w_field       As the WSV.
+    \param   edensity_field    As the WSV.
 
     \author Patrick Eriksson 
     \date   2009-10-05
@@ -1050,6 +1052,7 @@ void get_ppath_atmvars(
         Vector&      ppath_mag_u,
         Vector&      ppath_mag_v,
         Vector&      ppath_mag_w,
+        Vector&      ppath_ne,
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
@@ -1060,7 +1063,8 @@ void get_ppath_atmvars(
   ConstTensor3View   wind_w_field,
   ConstTensor3View   mag_u_field,
   ConstTensor3View   mag_v_field,
-  ConstTensor3View   mag_w_field )
+  ConstTensor3View   mag_w_field,
+  ConstTensor3View   edensity_field )
 {
   const Index   np  = ppath.np;
   // Pressure:
@@ -1089,7 +1093,6 @@ void get_ppath_atmvars(
     }
 
   // Winds:
-  //
   ppath_wind_w.resize(np);
   if( wind_w_field.npages() > 0 ) 
     { 
@@ -1123,7 +1126,6 @@ void get_ppath_atmvars(
     { ppath_wind_u = 0; }
 
   // Magnetic field:
-  //
   ppath_mag_w.resize(np);
   if( mag_w_field.npages() > 0 )
     {
@@ -1155,6 +1157,16 @@ void get_ppath_atmvars(
     }
   else
     { ppath_mag_u = 0; }
+
+  // Free electrons
+  ppath_ne.resize(np);
+  if( edensity_field.npages() > 0 )
+    {
+      interp_atmfield_by_itw( ppath_ne,  atmosphere_dim, edensity_field,
+                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
+  else
+    { ppath_ne = 0; }
 }
 
 

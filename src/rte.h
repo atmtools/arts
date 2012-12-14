@@ -171,16 +171,17 @@ void get_iy_of_background(
   const Agenda&           iy_cloudbox_agenda,
   const Verbosity&        verbosity);
 
-void get_ppath_atmvars(
-        Vector&      ppath_p,
-        Vector&      ppath_t,
-        Matrix&      ppath_vmr,
-        Vector&      ppath_wind_u,
-        Vector&      ppath_wind_v,
+void get_ppath_atmvars( 
+        Vector&      ppath_p, 
+        Vector&      ppath_t, 
+        Matrix&      ppath_vmr, 
+        Vector&      ppath_wind_u, 
+        Vector&      ppath_wind_v, 
         Vector&      ppath_wind_w,
         Vector&      ppath_mag_u,
         Vector&      ppath_mag_v,
         Vector&      ppath_mag_w,
+        Vector&      ppath_ne,
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
@@ -191,7 +192,8 @@ void get_ppath_atmvars(
   ConstTensor3View   wind_w_field,
   ConstTensor3View   mag_u_field,
   ConstTensor3View   mag_v_field,
-  ConstTensor3View   mag_w_field );
+  ConstTensor3View   mag_w_field,
+  ConstTensor3View   edensity_field );
 
 void get_ppath_abs( 
         Workspace&      ws,

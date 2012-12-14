@@ -244,12 +244,14 @@ void iyCloudRadar(
   //
   if( np > 1 )
     {
+      Vector ppath_ne;
       get_ppath_atmvars(   ppath_p, ppath_t, ppath_vmr,
                            ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                           ppath_mag_u,  ppath_mag_v,  ppath_mag_w,
+                           ppath_mag_u, ppath_mag_v, ppath_mag_w, ppath_ne,
                            ppath, atmosphere_dim, p_grid, t_field, vmr_field,
                            wind_u_field, wind_v_field, wind_w_field ,
-                           mag_u_field, mag_v_field, mag_w_field );      
+                           mag_u_field, mag_v_field, mag_w_field, 
+                           edensity_field );      
       get_ppath_abs(       ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
                            ppath_p, ppath_t, ppath_vmr, 
                            ppath_wind_u, ppath_wind_v, ppath_wind_w, 
