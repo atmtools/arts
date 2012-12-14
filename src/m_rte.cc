@@ -1267,7 +1267,7 @@ void iyRadioLink(
    const Tensor3&                    iy_transmission,
    const Vector&                     rte_pos,      
    const Vector&                     rte_pos2,      
-   const Index&                      defocmethod,
+   const Index&                      defocus_method,
    const Verbosity&                  verbosity )
 {
   // Throw error if unsupported features are requested
@@ -1279,8 +1279,8 @@ void iyRadioLink(
   if( jacobian_do )
     throw runtime_error( "This method does not provide any jacobians and "
                          "*jacobian_do* must be 0." );
-  if( defocmethod < 1 || defocmethod > 2 )
-    throw runtime_error( "Allowed choices for *defocmethod* is 1 and 2." );
+  if( defocus_method < 1 || defocus_method > 2 )
+    throw runtime_error( "Allowed choices for *defocus_method* is 1 and 2." );
   diy_dx.resize(0);
 
 
@@ -1418,16 +1418,15 @@ void iyRadioLink(
         { auxDefocusingLoss = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Defocusing attenuation" )
         {
-          if( defocmethod < 2 )
+          if( defocus_method < 2 )
             throw runtime_error( "The auxiliary variable \"Defocusing "
-                    "attenuation\" requires that *defocmethod* is set to 2." );
+                 "attenuation\" requires that *defocus_method* is set to 2." );
           auxDefocusingAtte = i;    iy_aux[i].resize( nf, 1, 1, np ); 
         }
       else if( iy_aux_vars[i] == "Faraday rotation" )
-        { auxFarRotTotal = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 );  iy_aux[i] = 0; }
       else if( iy_aux_vars[i] == "Faraday speed" )
-        { auxFarRotSpeed = i;    iy_aux[i].resize( nf, 1, 1, np ); 
-                                 iy_aux[i] = 0; }
+        { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); iy_aux[i] = 0; }
       else if( iy_aux_vars[i] == "Extra path delay" )
         { auxExtraPathDelay = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Bending angle" )
@@ -1485,7 +1484,6 @@ void iyRadioLink(
         }
     }
 
-
   // Ppath length variables
   //
   Numeric lbg;  // Bent geometrical length of ray path
@@ -1504,9 +1502,13 @@ void iyRadioLink(
                         ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
                         ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
                           ELECTRON_MASS * ELECTRON_MASS ) );
-      cout << FRconst <<endl;
-
-      Numeric frot1=0, frot2=0; // rad/m
+      // Mueller matrix for Faraday rotation (fill constant positions)
+      Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
+      FRmat(0,0) = 1;
+      if( stokes_dim == 4 )
+        { FRmat(3,3) = 1; }
+      //
+      Numeric frot1=0, frot2=0; // Rotation speed at path points, rad/m
       //
       if( ppath_mag_u[np-1]!=0 || ppath_mag_v[np-1]!=0 || ppath_mag_w[np-1]!=0 )
         { 
@@ -1585,7 +1587,7 @@ void iyRadioLink(
               frot2 = FRconst * dotprod_with_los( ppath.los(ip,joker),
                                               ppath_mag_u[ip], ppath_mag_v[ip],
                                               ppath_mag_w[ip], atmosphere_dim );
-              // Faraday speed
+              // iy_aux: Faraday speed
               if( auxFarRotSpeed >= 0 )
                 { for( Index iv=0; iv<nf; iv++ ) {
                     iy_aux[auxFarRotSpeed](iv,0,0,ip) = frot2 /
@@ -1596,21 +1598,36 @@ void iyRadioLink(
             { 
               for( Index iv=0; iv<nf; iv++ ) 
                 {
-                  const Numeric fr_angle = (frot1+frot2)*ppath.lstep[ip]/2.0;
+                  // Rotation for the step
+                  const Numeric rot_angle = 0.5*(frot1+frot2) *
+                    ppath.lstep[ip] / ( f_grid[iv]*f_grid[iv] );
 
-                  
-
-                  // Faraday rotation
-                  if( auxFarRotTotal >= 0 )
-                    { 
-                      iy_aux[auxFarRotTotal](iv,0,0,ip) += 
-                                          fr_angle / ( f_grid[iv]*f_grid[iv] );
+                  // Complete Mueller matrix and apply
+                  if( stokes_dim > 1 )
+                    {
+                      const Numeric cterm = cos( 2*rot_angle );
+                      FRmat(1,1) = cterm;
+                      //
+                      if( stokes_dim > 2 )
+                        {
+                          const Numeric sterm = sin( 2*rot_angle );
+                          FRmat(2,1) = sterm;
+                          FRmat(1,2) = -sterm;
+                          FRmat(2,2) = cterm;
+                        }                   
                     }
+                  //
+                  Vector t1(ns);
+                  mult( t1, FRmat, iy(iv,joker));
+                  iy(iv,joker) = t1;
+
+                  // iy_aux: Faraday rotation
+                  if( auxFarRotTotal >= 0 )
+                    { iy_aux[auxFarRotTotal](iv,0,0,0) += rot_angle; }
                 } 
             }
           //
           frot1 = frot2;
-
 
           // Atmospheric loss of path step
           if( stokes_dim == 1 )
@@ -1711,13 +1728,13 @@ void iyRadioLink(
 
       // Determine defocusing loss
       Numeric dfl = 1;
-      if( defocmethod == 1 )
+      if( defocus_method == 1 )
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, edensity_field, -1, 
                               refellipsoid, z_surface, ppath, verbosity ); 
         }
-      else if( defocmethod == 2 )
+      else if( defocus_method == 2 )
         {
           defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 

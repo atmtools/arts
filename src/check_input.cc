@@ -1908,7 +1908,7 @@ void chk_rte_pos(
               os << "For 1D, " << vname << " must have length 2.";
               throw runtime_error(os.str());
             }
-          if( rte_pos[1] < -90  ||  rte_pos[1] > 90 )
+          if( rte_pos[1] < -180  ||  rte_pos[1] > 180 )
             {
               ostringstream os;
               os << "For 1D, the latitude in " << vname << " must be in the "

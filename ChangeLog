@@ -1,3 +1,22 @@
+2012-12-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-417
+
+	* src/m_rte.cc (iyRadioLink): More work on Faraday rotation.
+	Overall code is in place, but Ne not yet included in the
+	calculation.
+
+	* src/check_input.cc (chk_rte_pos): Check of rte_pos2 demanded 1D
+	latitudes to be inside +-90. Higher values are needed when working
+	with links to GPS datellites. Limit now set at 180 deg.
+
+	* src/rte.cc (defocusing_sat2sat): Had to change the way correct
+	usage is checked, as with ionopshere a satellite can be inside the
+	model atmosphere.
+
+	* src/m_basic_types.cc (Tensor4AddScalar): Created, following the
+	corresponding WSM for Tensor3.
+
 2012-12-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-416

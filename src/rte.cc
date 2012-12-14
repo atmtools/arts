@@ -647,9 +647,9 @@ void defocusing_sat2sat(
   const Ppath&       ppath,
   const Verbosity&   verbosity )
 {
-  if( ppath.start_lstep == 0  ||  ppath.end_lstep == 0 )
+  if( ppath.end_los[0] <= 90 )
     throw runtime_error( "The function *defocusing_sat2sat* can only be used "
-                         "for satellite-to-satellite cases." );
+                         "for limb sounding geometry." );
 
   // Index of tangent point
   Index it;

@@ -455,6 +455,26 @@ void Tensor3SetConstant(Tensor3&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor4AddScalar(Tensor4&  out,
+                      const Tensor4&  in,
+                      const Numeric&  value,
+                      const Verbosity&)
+{
+  // Note that in and out can be the same vector
+  if (&out==&in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out += value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize( in.nbooks(), in.npages(), in.nrows(), in.ncols() );
+    out = in;
+    out += value;
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4Scale(Tensor4&  out,
                   const Tensor4&  in,
                   const Numeric&  value,

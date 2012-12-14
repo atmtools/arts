@@ -5179,10 +5179,10 @@ void define_md_data_raw()
             "abs_mat_per_species_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_pos2"
              ),
-        GIN(         "defocmethod" ),
-        GIN_TYPE(    "Index" ),
+        GIN(      "defocos_method" ),
+        GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),
-        GIN_DESC(     "Selection of defocusing calculation method." )
+        GIN_DESC( "Selection of defocusing calculation method." )
         ));
 
   md_data_raw.push_back
@@ -9344,6 +9344,29 @@ void define_md_data_raw()
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF     ),
         GIN_DESC( "Tensor value." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Tensor4AddScalar" ),
+        DESCRIPTION
+        (
+         "Adds a scalar value to all elements of a tensor4.\n"
+         "\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "tout"    ),
+        GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC( "Output tensor." ),
+        IN(),
+        GIN(         "tin",     "value"   ),
+        GIN_TYPE(    "Tensor4", "Numeric" ),
+        GIN_DEFAULT( NODEF    , NODEF     ),
+        GIN_DESC( "Input tensor.",
+                  "The value to be added to the tensor." )
         ));
 
   md_data_raw.push_back
