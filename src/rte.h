@@ -42,6 +42,7 @@
 
 #include "agenda_class.h"
 #include "arts.h"
+#include "auto_md.h"
 #include "complex.h"          
 #include "jacobian.h"
 #include "ppath.h"
@@ -49,16 +50,6 @@
 #include "matpackII.h"
 #include "matpackIII.h"
 #include "optproperties.h"
-
-
-
-// A macro to loop analytical jacobian quantities
-#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
-  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) \
-    { \
-      if( jacobian_quantities[iq].Analytical() ) \
-        { what_to_do } \
-    } 
 
 
 
@@ -258,8 +249,15 @@ void get_ppath_trans2(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
+        Vector&         farrot_c1,
+        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
+  ConstVectorView       ppath_mag_u, 
+  ConstVectorView       ppath_mag_v, 
+  ConstVectorView       ppath_mag_w, 
+  ConstVectorView       ppath_ne, 
+  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim,
   const ArrayOfIndex&   clear2cloudbox,

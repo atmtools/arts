@@ -1536,13 +1536,27 @@ void get_ppath_ext(
 
     The scalar optical thickness is calculated in parellel.
 
-    \param   trans_partial Out: Transmission for each path step.
-    \param   trans_cumulat Out: Transmission to each path point.
-    \param   scalar_tau    Out: Total (scalar) optical thickness of path
-    \param   ppath         As the WSV.    
-    \param   ppath_abs     See get_ppath_abs.
-    \param   f_grid        As the WSV.    
-    \param   stokes_dim    As the WSV.
+    Farday rotation is included in the transmission Mueller matrices. In
+    addition, coefficinets for filling associated auxiliary variables are
+    provided: farrot_c1 and c2. The first one corresponds to the local rotation
+    speed [rad*Hz*hz/m] at each ppath point (a vector), and the second the
+    total rotation [rad*Hz*Hz] (a scalar). The actual Faraday rotation is
+    obtained by dividing with the frequency squared.
+
+    \param   trans_partial  Out: Transmission for each path step.
+    \param   trans_cumulat  Out: Transmission to each path point.
+    \param   scalar_tau     Out: Total (scalar) optical thickness of path
+    \param   farrot_c1      Out: Coefficient for local Faradation rot. speed 
+    \param   farrot_c2      Out: Coefficient for total Faradation rotatation
+    \param   ppath          As the WSV.    
+    \param   ppath_abs      See get_ppath_abs.
+    \param   ppath_mag_u    See get_ppath_abs.
+    \param   ppath_mag_v    See get_ppath_abs.
+    \param   ppath_mag_w    See get_ppath_abs.
+    \param   ppath_ne       See get_ppath_abs.
+    \param   atmosphere_dim As the WSV.    
+    \param   f_grid         As the WSV.    
+    \param   stokes_dim     As the WSV.
 
     \author Patrick Eriksson 
     \date   2012-08-15
@@ -1579,6 +1593,9 @@ void get_ppath_trans(
   farrot_c1 = 0;
   farrot_c2 = 0;
 
+  // If any problems for Faraday rotation is found, remember to also update
+  // get_ppath_trans2.
+
   // Variables for Faraday rotation
   //
   // All the constants joined (abs as e defined as negative)
@@ -1600,7 +1617,8 @@ void get_ppath_trans(
   for( Index ip=0; ip<np; ip++ )
     {
       // Faraday rotation
-      if( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || ppath_mag_w[ip]!=0 )
+      if( ppath_ne[ip]!=0  &&  ( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || 
+                                                       ppath_mag_w[ip]!=0 ) )
         { 
           farrot_c1[ip] = FRconst * ppath_ne[ip] * dotprod_with_los( 
                         ppath.los(ip,joker), ppath_mag_u[ip], ppath_mag_v[ip],
@@ -1696,8 +1714,15 @@ void get_ppath_trans(
     \param   trans_partial    Out: Transmission for each path step.
     \param   trans_cumulat    Out: Transmission to each path point.
     \param   scalar_tau       Out: Total (scalar) optical thickness of path
+    \param   farrot_c1        Out: Coefficient for local Faradation rot. speed 
+    \param   farrot_c2        Out: Coefficient for total Faradation rotatation
     \param   ppath            As the WSV.    
     \param   ppath_abs        See get_ppath_abs.
+    \param   ppath_mag_u      See get_ppath_abs.
+    \param   ppath_mag_v      See get_ppath_abs.
+    \param   ppath_mag_w      See get_ppath_abs.
+    \param   ppath_ne         See get_ppath_abs.
+    \param   atmosphere_dim   As the WSV.    
     \param   f_grid           As the WSV.    
     \param   stokes_dim       As the WSV.
     \param   clear2cloudbox   See get_ppath_ext.
@@ -1710,8 +1735,15 @@ void get_ppath_trans2(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
+        Vector&         farrot_c1,
+        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
+  ConstVectorView       ppath_mag_u, 
+  ConstVectorView       ppath_mag_v, 
+  ConstVectorView       ppath_mag_w, 
+  ConstVectorView       ppath_ne, 
+  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim,
   const ArrayOfIndex&   clear2cloudbox,
@@ -1728,6 +1760,26 @@ void get_ppath_trans2(
   //
   scalar_tau.resize( nf );
   scalar_tau  = 0;
+  //
+  farrot_c1.resize( np );
+  farrot_c1 = 0;
+  farrot_c2 = 0;
+
+  // If any problems for Faraday rotation is found, remember to also update
+  // get_ppath_trans.
+
+  // Variables for Faraday rotation
+  //
+  // All the constants joined (abs as e defined as negative)
+  static const Numeric FRconst = abs( 
+                        ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
+                        ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
+                          ELECTRON_MASS * ELECTRON_MASS ) );
+  // Mueller matrix for Faraday rotation (fill constant positions)
+  Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
+  FRmat(0,0) = 1;
+  if( stokes_dim == 4 )
+    { FRmat(3,3) = 1; }
   
   // Loop ppath points (in the anti-direction of photons)  
   //
@@ -1735,6 +1787,15 @@ void get_ppath_trans2(
   //
   for( Index ip=0; ip<np; ip++ )
     {
+      // Faraday rotation
+      if( ppath_ne[ip]!=0  &&  ( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || 
+                                                       ppath_mag_w[ip]!=0 ) )
+        { 
+          farrot_c1[ip] = FRconst * ppath_ne[ip] * dotprod_with_los( 
+                        ppath.los(ip,joker), ppath_mag_u[ip], ppath_mag_v[ip],
+                                             ppath_mag_w[ip], atmosphere_dim );
+        }
+
       // If first point, calculate sum of absorption and set transmission
       // to identity matrix.
       if( ip == 0 )
@@ -1762,10 +1823,20 @@ void get_ppath_trans2(
 
       else
         {
+          // Any Faraday rotation?
+          Numeric rot_c = 0;  // Rotation for step, without f^2-factor
+          if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
+            { 
+              // Rotation for the step
+              rot_c = ppath.lstep[ip-1] * 0.5*(farrot_c1[ip-1]+farrot_c1[ip]);
+              farrot_c2 += rot_c;
+            }
+
           const Index ic = clear2cloudbox[ip];
           //
           for( Index iv=0; iv<nf; iv++ ) 
             {
+              // Transmission due to absorption and scattering
               Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
@@ -1778,8 +1849,34 @@ void get_ppath_trans2(
                           ( extsum_old(iv,is1,is2) + extsum_this(iv,is1,is2) );
                 } }
               scalar_tau[iv] -= ntau(0,0); 
-              // The function below checks if ntau ir diagonal or not
+              // (the function below checks if ntau ir diagonal or not)
               matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
+
+              // Include Faraday rotation?
+              if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
+                { 
+                  // Rotation for the step
+                  const Numeric rot_angle = rot_c / (f_grid[iv]*f_grid[iv]);
+
+                  // Fill up Mueller matrix and include in trans_partial
+                  if( stokes_dim > 1 )
+                    {
+                      const Numeric cterm = cos( 2*rot_angle );
+                      FRmat(1,1) = cterm;
+                      //
+                      if( stokes_dim > 2 )
+                        {
+                          const Numeric sterm = sin( 2*rot_angle );
+                          FRmat(2,1) = sterm;
+                          FRmat(1,2) = -sterm;
+                          FRmat(2,2) = cterm;
+                        }                   
+                      Matrix Mtmp = trans_partial(iv,joker,joker,ip-1);
+                      // (the multiplication order below is arbitrary)
+                      mult( trans_partial(iv,joker,joker,ip-1), Mtmp, FRmat );
+                    }
+                } 
+
               // Note that multiplication below depends on ppath loop order
               mult( trans_cumulat(iv,joker,joker,ip), 
                     trans_cumulat(iv,joker,joker,ip-1), 

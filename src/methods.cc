@@ -4806,7 +4806,8 @@ void define_md_data_raw()
             "t_field", "vmr_field", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "edensity_field", "cloudbox_on", 
-            "cloudbox_limits", "pnd_field", "scat_data_raw", "particle_masses",
+            "cloudbox_limits", "pnd_field", "use_mean_scat_data",
+            "scat_data_raw", "particle_masses",
             "iy_unit", "iy_aux_vars", "jacobian_do", "ppath_agenda", 
             "abs_mat_per_species_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los" ),
@@ -5335,16 +5336,42 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iy_transmitterCloudRadar" ),
+      ( NAME( "iy_transmitterMultiplePol" ),
         DESCRIPTION
         (
-         "Transmitter definition for cloud radar calculations.\n"
+         "Transmitter definition handling multiple polarisations.\n"
          "\n"
          "The method is intended to be part of *iy_transmitter_agenda*. It\n"
          "sets *iy* to describe the transmitted pulses. The polarisation\n"
          "state is taken from *sensor_pol*, where *sensor_pol* must contain\n"
          "an element for each frequency in *f_grid*. The transmitted pulses \n"
          "are set to be of unit magnitude, such as [1,1,0,0].\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "stokes_dim", "f_grid", "sensor_pol" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iy_transmitterSinglePol" ),
+        DESCRIPTION
+        (
+         "Transmitter definition involving a single polarisation.\n"
+         "\n"
+         "The method is intended to be part of *iy_transmitter_agenda*. It\n"
+         "sets *iy* to describe the transmitted pulses. The polarisation\n"
+         "state is taken from *sensor_pol*, where *sensor_pol* must contain\n"
+         "a single value. This polarisation state is applied for all\n"
+         "frequencies. The transmitted pulses are set to be of unit\n"
+         "magnitude, such as [1,1,0,0].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy" ),

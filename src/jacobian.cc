@@ -24,9 +24,15 @@
 */
 
 #include "arts.h"
+#include "auto_md.h"
+#include "check_input.h"
 #include "jacobian.h"
 #include "special_interp.h"
 #include "physics_funcs.h"
+
+extern const String  ABSSPECIES_MAINTAG;
+extern const String  TEMPERATURE_MAINTAG;
+
 
 ostream& operator << (ostream& os, const RetrievalQuantity& ot)
 {
@@ -36,8 +42,251 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
             << "\n     Analytical = " << ot.Analytical();
 }
 
+
+
+
 /*===========================================================================
-  === The functions in alphabetical order
+  === Help sub-functions to handle analytical jacobians (in alphabetical order)
+  ===========================================================================*/
+
+
+//! diy_from_path_to_rgrids
+/*!
+    Maps jacobian data for points along the propagation path, to
+    jacobian retrieval grid data.
+
+    \param   diy_dx              Out: Jacobians for selected retrieval grids.
+    \param   jacobian_quantity   As the WSV.
+    \param   diy_dpath           Jacobians along the propagation path.
+    \param   atmosphere_dim      As the WSV.
+    \param   ppath               As the WSV.
+    \param   ppath_p             The pressure at each ppath point.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
+// A small help function, to make the code below cleaner
+void from_dpath_to_dx(
+        MatrixView   diy_dx,
+   ConstMatrixView   diy_dq,
+   const Numeric&    w )
+{
+  for( Index irow=0; irow<diy_dx.nrows(); irow++ )
+    { 
+      for( Index icol=0; icol<diy_dx.ncols(); icol++ )
+        { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
+    }
+}
+// Kept as a local function as long as just used here.
+// We trust here gridpos, and "extrapolation points" are identified simply
+// by a fd outside [0,1].
+void add_extrap( ArrayOfGridPos&   gp )
+{
+  for( Index i=0; i<gp.nelem(); i++ )
+    { 
+      if( gp[i].fd[0] < 0 ) 
+        {  
+          gp[i].fd[0] = 0; 
+          gp[i].fd[1] = 1; 
+        }
+      else if( gp[i].fd[0] > 1 ) 
+        {  
+          gp[i].fd[0] = 1; 
+          gp[i].fd[1] = 0; 
+        }
+    }
+}
+//
+void diy_from_path_to_rgrids(
+         Tensor3View          diy_dx,
+   const RetrievalQuantity&   jacobian_quantity,
+   ConstTensor3View           diy_dpath,
+   const Index&               atmosphere_dim,
+   const Ppath&               ppath,
+   ConstVectorView            ppath_p )
+{
+  // We want here an extrapolation to infinity -> 
+  //                                        extremly high extrapolation factor
+  const Numeric   extpolfac = 1.0e99;
+
+  // Retrieval grid of interest
+  Vector r_grid;
+
+  if( ppath.np > 1 )  // Otherwise nothing to do here
+    {
+      // Pressure
+      r_grid = jacobian_quantity.Grids()[0];
+      Index            nr1 = r_grid.nelem();
+      ArrayOfGridPos   gp_p(ppath.np);
+      p2gridpos( gp_p, r_grid, ppath_p, extpolfac );
+      add_extrap( gp_p );
+
+      // Latitude
+      Index            nr2 = 1;
+      ArrayOfGridPos   gp_lat;
+      if( atmosphere_dim > 1 )
+        {
+          gp_lat.resize(ppath.np);
+          r_grid = jacobian_quantity.Grids()[1];
+          nr2    = r_grid.nelem();
+          gridpos( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
+          add_extrap( gp_lat );
+        }
+
+      // Longitude
+      ArrayOfGridPos   gp_lon;
+      if( atmosphere_dim > 2 )
+        {
+          gp_lon.resize(ppath.np);
+          r_grid = jacobian_quantity.Grids()[2];
+          gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
+          add_extrap( gp_lon );
+        }
+      
+      //- 1D
+      if( atmosphere_dim == 1 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              if( gp_p[ip].fd[0] < 1 )
+                {
+                  from_dpath_to_dx( diy_dx(gp_p[ip].idx,joker,joker),
+                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[1] );
+                }
+              if( gp_p[ip].fd[0] > 0 )
+                {
+                  from_dpath_to_dx( diy_dx(gp_p[ip].idx+1,joker,joker),
+                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[0] );
+                }
+            }
+        }
+
+      //- 2D
+      else if( atmosphere_dim == 2 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
+              // Low lat, low p
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+              // Low lat, high p
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+              // High lat, low p
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+              // High lat, high p
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+            }
+        }
+
+      //- 3D
+      else if( atmosphere_dim == 3 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              Index   ix = nr2*nr1*gp_lon[ip].idx +
+                           nr1*gp_lat[ip].idx + gp_p[ip].idx;
+              // Low lon, low lat, low p
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
+              // Low lon, low lat, high p
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
+              // Low lon, high lat, low p
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
+              // Low lon, high lat, high p
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
+
+              // Increase *ix* (to be valid for high lon level)
+              ix += nr2*nr1;
+
+              // High lon, low lat, low p
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
+              // High lon, low lat, high p
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
+              // High lon, high lat, low p
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
+              // High lon, high lat, high p
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
+            }
+        }
+    }
+}
+
+
+
+//! Help function for analytical jacobian calculations
+/*!
+    The function determines which terms in jacobian_quantities that are 
+    analytical absorption species and temperature jacobians. 
+
+    *abs_species_i* and *is_t* shall be sized to have the same length
+    as *jacobian_quantities*. For analytical absorption species
+    jacobians, *abs_species_i* is set to the matching index in
+    *abs_species*. Otherwise, to -1. For analytical temperature
+    jacobians, *is_t* is set to 1. Otherwise to 0.
+
+    \param   abs_species_i         Out: Matching index in abs_species 
+    \param   is_t                  Out: Flag for: Is a temperature jacobian?
+    \param   jacobian_quantities   As the WSV.
+    \param   abs_species           As the WSV.
+
+
+    \author Patrick Eriksson 
+    \date   2009-10-07
+*/
+void get_pointers_for_analytical_jacobians( 
+         ArrayOfIndex&               abs_species_i, 
+         ArrayOfIndex&               is_t,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfSpeciesTag&   abs_species )
+{
+
+  FOR_ANALYTICAL_JACOBIANS_DO( 
+    //
+    if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
+      { is_t[iq] = 1; }
+    else
+      { is_t[iq] = 0; }
+    //
+    if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
+      {
+        ArrayOfSpeciesTag  atag;
+        array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
+        abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
+      }
+    else
+      { abs_species_i[iq] = -1; }
+  )
+}
+
+
+
+
+
+/*===========================================================================
+  === Other functions, in alphabetical order
   ===========================================================================*/
 
 //! Calculate the number density field

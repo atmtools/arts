@@ -1,0 +1,131 @@
+\chapter{Faraday rotation}
+ \label{sec:faraday}
+
+\starthistory
+ 121216 & Written (PE), partly based on text written originally by 
+          Bengt Rydberg.
+\stophistory
+
+The polarisation state of an electromagnetic wave propagating through a plasma
+with a static magnetic field will be changed, normally denoted as Faraday
+rotation. The effect is present for both passive and active signals, but
+Faraday rotation is proportional to $\Frq^{-2}$ and can in general be neglected
+for emission measurements due to the relatively high frequencies applied. For
+Earth, the effect can in general be neglected for frequencies above
+$\sim$5\,GHz. Hence, \textindex{Faraday rotation} is a special consideration
+for radio/microwave radiative transfer. A brief theoretical description is
+found below in Section~\ref{sec:faraday:theory}. 
+
+
+
+\section{Practical usage}
+\label{sec:faraday:arts}
+%
+Faraday rotation is not yet treated by the DOIT and MC scattering modules.
+Beside this, the effect is automatically considered as soon as both the
+magnetic field and the free electron number density deviate from zero (this is
+checked for each point of the propagation paths separately). The resulting
+rotation is then included in the radiative transfer following
+Equation~\ref{eq:faraday:mueller}. This means that Faraday rotation is treated
+fully by e.g.\ \wsmindex{iyTransmissionStandard} and
+\wsmindex{iyRadioLink} (as these WSMs do not use MC or DOIT), and also for 
+\wsmindex{iyEmissionStandard} in the case of ``clear-sky''. 
+
+However, a constrain for a correct treatment of the Faraday effect is that the
+Stokes dimensionality (\wsvindex{stokes\_dim}) is set to 3 or 4, which can be
+understood by Equation~\ref{eq:faraday:mueller}. The workspace variables
+corresponding to free electrons and the magnetic field are introduced in
+Section~\ref{sec:atm:ionosp}.
+
+Information on the actual rotation can be obtained as auxiliary data by
+\builtindoc{iyTransmissionStandard} and \builtindoc{iyRadioLink}. The total
+rotation along the path is selected as ``Faraday rotation''. The unit is [rad].
+The rotation per length unit (Eq.~\ref{eq:faraday:speed}) is selected as
+``Faraday speed''. The unit is [rad/m].
+
+
+
+
+\section{Theory}
+\label{sec:faraday:theory}
+
+A wave propagating through the ionosphere will force free electrons to move in
+curved paths. If the incident wave is circularly polarised, the motion of the
+electrons will be circular. The refractive index will then not be a single
+constant, but depending on polarisation. More precisely, left and right hand
+polarised waves will propagate with different speeds. Moreover, a plane
+polarised wave can be thought of as a linear superposition of a left and a
+right hand polarised wave with equal amplitudes but different phase. The plane
+of polarisation will then rotate as the wave is propagating through the media,
+an effect denoted as Faraday rotation.
+
+Birefringance \index{birefringance} is an associated mechanism, but it is not
+yet treated by ARTS. This later effect originates also on the fact that right-
+and left-hand circular polarisation have different refractive index. This can
+result in that the two polarisations obtain different propagation paths. For
+frequencies close to the ``plasma frequency'' the birefringance can be a strong
+effect, but for higher frequencies it should be secondary to Faraday rotation.
+Expressed roughly, a difference in optical path for the two circular
+polarisation of a quarter of a wavelength changes the polarisation state
+strongly by Faraday rotation, while additional effects coming from a difference
+in propagation path (birefringance) should be negligible.
+
+According to \citep{rybicki:radia:79}, using Gaussian (cgs) units, the angle of
+rotation (\(\vartheta_{F}\)) of a plane polarised wave can be described as
+\begin{displaymath}
+\vartheta_{F}=
+\frac{e^{3}}{2\pi \speedoflight^2 m^{2}\Frq^{2}}
+\int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s},  
+\end{displaymath}
+which converted to SI units becomes
+\begin{equation}
+\vartheta_{F}=\frac{e^{3}}{8\pi^2 \speedoflight\epsilon_{0}m^{2}\Frq^{2}}
+\int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s},    
+\end{equation}
+where \(n_{e}(s)\) is the density of electrons at point \(s\),
+\(\mathbf{B_{geo}}(s)\) is the geomagnetic field at point \(s\), and \(\cdot\)
+denotes the dot (scalar) product. Accordingly, the Faraday rotation is
+proportional to the part of the magnetic field along the propagation path,
+field normal to the path gives no effect.
+
+The change in rotation angle along the
+propagation path is then given by
+\begin{equation}
+  \frac{\DiffD \vartheta_{F}}{\DiffD s}=\frac{e^{3}}{8\pi 
+    \speedoflight\epsilon_{0}m^{2}\Frq^{2}}n_{e}(s) {\bf B_{geo}} (s) \cdot 
+    \hat{\bf s}. 
+ \label{eq:faraday:speed}
+\end{equation}
+The effect on the Stokes vector of the rotation of the electric field can be
+described by a Mueller matrix \citep{goldstein:polar:03,meissner:06:polar}:
+\begin{equation}
+\left[
+\begin{array}{c}
+\StoI_{F}\\
+\StoQ_{F}\\
+\StoU_{F}\\
+\StoV_{F}\\
+\end{array}
+\right]
+= \left[
+\begin{array}{cccc}
+1 & 0 & 0 & 0 \\
+0 & \cos(2\vartheta_{F}) & -\sin(2\vartheta_{F}) & 0 \\
+0 & \sin(2\vartheta_{F}) & \cos(2\vartheta_{F}) & 0\\
+0 & 0 & 0 & 1\\
+\end{array}
+\right]
+\left[
+\begin{array}{c}
+\StoI\\
+\StoQ\\
+\StoU\\
+\StoV\\
+\end{array}
+\right], 
+\label{eq:faraday:mueller}
+\end{equation}
+and we see that only the plane polarised components of the Stokes vector will
+be affected by Faraday rotation.
+
+

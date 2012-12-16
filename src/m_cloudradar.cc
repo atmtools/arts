@@ -57,37 +57,6 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iy_transmitterCloudRadar(
-        Matrix&        iy,
-  const Index&         stokes_dim,
-  const Vector&        f_grid,
-  const ArrayOfIndex&  sensor_pol,
-  const Verbosity&  )
-{
-  const Index nf = f_grid.nelem();
-  
-  if( sensor_pol.nelem() != nf )
-    throw runtime_error( "The length of *f_grid* and the number of elements "
-                         "in *sensor_pol* must be equal." );
-
-  iy.resize( nf, stokes_dim );
-  iy = 0;
-
-  ArrayOfVector   s2p;
-  stokes2pol( s2p, 1 );
-
-  for( Index i=0; i<nf; i++ )
-    {
-      for( Index j=0; j<s2p[sensor_pol[i]-1].nelem(); j++ )
-        {
-          iy(i,j) = s2p[sensor_pol[i]-1][j];
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void iyCloudRadar(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -110,6 +79,7 @@ void iyCloudRadar(
    const Index&                       cloudbox_on,
    const ArrayOfIndex&                cloudbox_limits,
    const Tensor4&                     pnd_field,
+   const Index&                       use_mean_scat_data,
    const ArrayOfSingleScatteringData& scat_data_raw,
    const Matrix&                      particle_masses,
    const String&                      iy_unit,
@@ -269,17 +239,19 @@ void iyCloudRadar(
       else
         {
           // Extract basic scattering data
-          Index        use_mean_scat_data = 0;
-          Tensor3      pnd_abs_vec;
+          Tensor3 pnd_abs_vec;
+          Vector  farrot_c1; 
+          Numeric farrot_c2;
           //
           get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data, 
                          ppath_pnd, ppath, ppath_t, stokes_dim, f_grid, 
                          atmosphere_dim, cloudbox_limits, pnd_field, 
                          use_mean_scat_data, scat_data_raw, verbosity );
           // Transmission
-          get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, 
-                            ppath, ppath_abs, f_grid, stokes_dim,
-                            clear2cloudbox, pnd_ext_mat );
+          get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
+                            farrot_c2, ppath, ppath_abs, ppath_mag_u, 
+                            ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
+                            f_grid, stokes_dim, clear2cloudbox, pnd_ext_mat );
         }
     }
 

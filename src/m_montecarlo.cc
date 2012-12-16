@@ -38,6 +38,7 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 
 #include "messages.h"
 #include "arts.h"
+#include "auto_md.h"
 #include "ppath.h"
 #include "matpackI.h"
 #include "special_interp.h"
@@ -46,7 +47,6 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include <cmath>
 #include "rte.h"
 #include "lin_alg.h"
-#include "auto_md.h"
 #include "logic.h"
 #include "physics_funcs.h"
 #include "xml_io.h"

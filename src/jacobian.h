@@ -119,6 +119,20 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot);
 
 typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
 
+
+
+// A macro to loop analytical jacobian quantities
+#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
+  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) \
+    { \
+      if( jacobian_quantities[iq].Analytical() ) \
+        { what_to_do } \
+    } 
+
+
+
+
+
 //======================================================================
 //             Functions related to calculation of Jacobian
 //======================================================================
@@ -140,6 +154,14 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
                             const String&        lon_retr_name,
                             const Index&         dim);
 
+void diy_from_path_to_rgrids(
+         Tensor3View          diy_dx,
+   const RetrievalQuantity&   jacobian_quantity,
+   ConstTensor3View           diy_dpath,
+   const Index&               atmosphere_dim,
+   const Ppath&               ppath,
+   ConstVectorView            ppath_p );
+
 void get_perturbation_gridpos(      ArrayOfGridPos& gp,
                               const Vector&         atm_grid,
                               const Vector&         jac_grid,
@@ -152,6 +174,12 @@ void get_perturbation_limit(       ArrayOfIndex& limit,
 void get_perturbation_range(       Range& range,
                              const Index& index,
                              const Index& length);
+
+void get_pointers_for_analytical_jacobians( 
+         ArrayOfIndex&               abs_species_i, 
+         ArrayOfIndex&               is_t,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfSpeciesTag&   abs_species );
 
 void perturbation_field_1d(       VectorView      field,
                             const ArrayOfGridPos& p_gp,
