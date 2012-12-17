@@ -355,9 +355,9 @@ density of \textindex{free electrons}. The corresponding workspace variable is
 the additional refractive bending of the propagation path caused by free
 electrons (Sec.~\ref{sec:rindex:freee}).
 
-To consider Faraday rotation and Zeeman splitting (see \theory,
-\ref{T-sec:at:zeeman}), also the \textindex{magnetic field} must be specified.
-This vector field is broken down into three scalar fields:
+To consider Faraday rotation (Sec.~\ref{sec:faraday}) and Zeeman splitting
+(\theory, \ref{T-sec:at:zeeman}), also the \textindex{magnetic field} must be
+specified. This vector field is broken down into three scalar fields:
 \wsvindex{mag\_u\_field}, \wsvindex{mag\_v\_field} and
 \wsvindex{mag\_w\_field}. See the built-in documentation for definition of
 these variables. All three components must throughout be specified (but can be
@@ -365,6 +365,10 @@ set to zero for a part of, or the complete, atmosphere). However, some
 component can be irrelevant for the calculations, depending on atmospheric
 dimension and the physical mechanism of concern. For example, the u-component
 has no influence on Faraday rotation for 1D and 2D cases.
+
+Both free electron density and the magnetic field are allowed to be zero, for
+the complete atmosphere, or parts of it.
+
 
 
 %%% Local Variables: 

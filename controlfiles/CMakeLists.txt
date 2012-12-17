@@ -45,6 +45,9 @@ arts_test_run_ctlfile(fast.groundbased.winds
 arts_test_run_ctlfile(fast.transmission
                       artscomponents/transmission/TestTransmission.arts)
 
+arts_test_run_ctlfile(fast.faraday
+                      artscomponents/faraday/TestFaradayRotation.arts)
+
 arts_test_run_ctlfile(fast.radiolink.sat2sat
                       artscomponents/radiolink/TestRadioLink.arts)
 arts_test_run_ctlfile(fast.radiolink.sat2surface

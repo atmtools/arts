@@ -11,7 +11,7 @@ with a static magnetic field will be changed, normally denoted as Faraday
 rotation. The effect is present for both passive and active signals, but
 Faraday rotation is proportional to $\Frq^{-2}$ and can in general be neglected
 for emission measurements due to the relatively high frequencies applied. For
-Earth, the effect can in general be neglected for frequencies above
+Earth, the effect can in general be neglected above
 $\sim$5\,GHz. Hence, \textindex{Faraday rotation} is a special consideration
 for radio/microwave radiative transfer. A brief theoretical description is
 found below in Section~\ref{sec:faraday:theory}. 
@@ -21,10 +21,10 @@ found below in Section~\ref{sec:faraday:theory}.
 \section{Practical usage}
 \label{sec:faraday:arts}
 %
-Faraday rotation is not yet treated by the DOIT and MC scattering modules.
+Faraday rotation is not treated by the DOIT and MC scattering modules.
 Beside this, the effect is automatically considered as soon as both the
 magnetic field and the free electron number density deviate from zero (this is
-checked for each point of the propagation paths separately). The resulting
+checked for each step of the propagation paths). The resulting
 rotation is then included in the radiative transfer following
 Equation~\ref{eq:faraday:mueller}. This means that Faraday rotation is treated
 fully by e.g.\ \wsmindex{iyTransmissionStandard} and
@@ -52,12 +52,12 @@ The rotation per length unit (Eq.~\ref{eq:faraday:speed}) is selected as
 A wave propagating through the ionosphere will force free electrons to move in
 curved paths. If the incident wave is circularly polarised, the motion of the
 electrons will be circular. The refractive index will then not be a single
-constant, but depending on polarisation. More precisely, left and right hand
-polarised waves will propagate with different speeds. Moreover, a plane
-polarised wave can be thought of as a linear superposition of a left and a
-right hand polarised wave with equal amplitudes but different phase. The plane
-of polarisation will then rotate as the wave is propagating through the media,
-an effect denoted as Faraday rotation.
+constant, but depending on polarisation (i.e.\ anisotropic). More precisely,
+left and right hand polarised waves will propagate with different speeds.
+Moreover, as a plane polarised wave can be thought of as a linear superposition
+of a left and a right hand polarised wave with equal amplitudes, but different
+phase, the plane of polarisation will then rotate as the wave is propagating
+through the media. This is denoted as Faraday rotation.
 
 Birefringance \index{birefringance} is an associated mechanism, but it is not
 yet treated by ARTS. This later effect originates also on the fact that right-
@@ -80,13 +80,14 @@ rotation (\(\vartheta_{F}\)) of a plane polarised wave can be described as
 which converted to SI units becomes
 \begin{equation}
 \vartheta_{F}=\frac{e^{3}}{8\pi^2 \speedoflight\epsilon_{0}m^{2}\Frq^{2}}
-\int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s},    
+\int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s} \approx
+\frac{23648}{\Frq^2} \int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s},    
 \end{equation}
 where \(n_{e}(s)\) is the density of electrons at point \(s\),
 \(\mathbf{B_{geo}}(s)\) is the geomagnetic field at point \(s\), and \(\cdot\)
 denotes the dot (scalar) product. Accordingly, the Faraday rotation is
 proportional to the part of the magnetic field along the propagation path,
-field normal to the path gives no effect.
+the field normal to the path gives no effect.
 
 The change in rotation angle along the
 propagation path is then given by

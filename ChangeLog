@@ -1,3 +1,22 @@
+2012-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-422
+
+	* controlfiles/testdata: Added a number of 1D files to also cover
+	the ionosphere. Ne and magnetic field extracted from IRI and IGRF.
+	For T and Z just a simple extension of Fascod tropical. Should be
+	replaced with better data.
+
+	* controlfiles/artscomponents/faraday/: New test case.
+
+	* src/methods.cc: Added description of Farday aux vars, for
+	iyTransmissionStandard.
+
+	* doc/uguide/faraday.tex (section{Theory}): Some polishing.
+
+	* doc/uguide/atmosphere.tex (section{Description of the
+	ionosphere}): Slightly extended.
+
 2012-12-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-421
