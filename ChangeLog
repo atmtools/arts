@@ -1,5 +1,33 @@
 2012-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-423
+
+	* All around Faraday rotation should now hopefully be in place.
+	The result of the test case checked by integrating(Ne*B) in
+	Matlab. So it looks OK.
+
+	* controlfiles/artscomponents/faraday/TestFaradayRotation.arts:
+	Changed min pressure, and now using HSE to recreate altitudes for
+	IRI and IGRF, by "incverting" what Jana did.
+	Reference data updated.
+
+	* controlfiles/testdata/tropical.expanded.t.xml: Changed
+	ionopsheric temperature to 200, to be closer to what Jana used when
+	calculating p for IRI and IGRF.
+
+	* doc/uguide/cloudradar.tex: Changed status in history from
+	Started to Written.
+
+	* doc/uguide/transmission.tex: Removed the old Faraday section
+	stub, and some small fixes. Status now set to "Written"
+
+	* doc/uguide/faraday.tex (chapter{Faraday rotation}): Added some
+	references for additional support, and a comment about that a
+	numerical value on the Wikipedia page on "Faraday effect" is slightly
+	wrong.
+
+2012-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-422
 
 	* controlfiles/testdata: Added a number of 1D files to also cover

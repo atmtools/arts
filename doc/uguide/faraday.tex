@@ -2,7 +2,7 @@
  \label{sec:faraday}
 
 \starthistory
- 121216 & Written (PE), partly based on text written originally by 
+ 121217 & Written (PE), partly based on text written originally by 
           Bengt Rydberg.
 \stophistory
 
@@ -77,11 +77,15 @@ rotation (\(\vartheta_{F}\)) of a plane polarised wave can be described as
 \frac{e^{3}}{2\pi \speedoflight^2 m^{2}\Frq^{2}}
 \int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s},  
 \end{displaymath}
-which converted to SI units becomes
+which converted to SI units becomes \citep{kraus:66}\footnote{The two versions
+  of this equation are also found in Wikipedia (under \emph{Faraday effect}),
+  but expressed using \Wvl\ and an error for the numerical factor
+  (2012-12-17). The value $2.365\cdot10^4$, derived from the fundamental
+  constants, is confirmed by \citet{wright:03}.}
 \begin{equation}
 \vartheta_{F}=\frac{e^{3}}{8\pi^2 \speedoflight\epsilon_{0}m^{2}\Frq^{2}}
 \int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s} \approx
-\frac{23648}{\Frq^2} \int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s},    
+\frac{23648}{\Frq^2} \int_{0}^{d}n_{e}(s) {\bf B_{geo}} (s) \cdot  {\bf \DiffD s},
 \end{equation}
 where \(n_{e}(s)\) is the density of electrons at point \(s\),
 \(\mathbf{B_{geo}}(s)\) is the geomagnetic field at point \(s\), and \(\cdot\)

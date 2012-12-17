@@ -5,7 +5,7 @@
 # The rotation for a signal transmitted along the zenith direction is
 # calculated.
 #
-# 2012-12-15, Patrick Eriksson
+# 2012-12-17, Patrick Eriksson
 
 Arts2 {
 
@@ -54,7 +54,7 @@ abs_lines_per_speciesSetEmpty
 
 # A pressure grid rougly matching 0 to 1000 km, in steps of 2km.
 #
-VectorNLogSpace( p_grid, 501, 1013e2, 1e-58 )
+VectorNLogSpace( p_grid, 501, 1013e2, 1e-80 )
 
 
 # Surface altitude
@@ -93,6 +93,19 @@ ReadXML( raw3, "testdata/bw_igrf11_2000_0latlon.xml" )
 GriddedFieldPRegrid( raw3, p_grid, raw3 )
 FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, raw3 )
 
+
+# Apply HSE
+#
+# (this roughly recreates the original altitudes for the input electron density
+#  and magnetic field)
+#
+VectorSet( lat_true, [0] )
+VectorSet( lon_true, [0] )
+NumericSet( p_hse, 1013e2 )
+NumericSet( z_hse_accuracy, 10 )
+#
+basics_checkedCalc
+z_fieldFromHSE
 
 
 # No scattering
