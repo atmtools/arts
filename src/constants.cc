@@ -353,6 +353,7 @@ extern const String POINTING_CALCMODE_A = "Recalculate iyb";
 extern const String POINTING_CALCMODE_B = "Interpolate iyb";
 
 extern const String POLYFIT_MAINTAG     = "Polynomial baseline fit";
+extern const String SINEFIT_MAINTAG     = "Sinusoidal baseline fit";
 
 extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
 

@@ -5585,13 +5585,50 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
-            "sensor_response_pol_grid", "sensor_response_f_grid",
-            "sensor_response_za_grid", "sensor_pos" ),
+            "sensor_response_pol_grid", "sensor_response_za_grid", 
+            "sensor_pos" ),
         GIN( "poly_order", "no_pol_variation", "no_los_variation", 
              "no_mblock_variation" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "0", "0", "0" ),
         GIN_DESC( "Polynomial order to use for the fit.", 
+                  "Set to 1 if the baseline off-set is the same for all "
+                  "Stokes components.", 
+                  "Set to 1 if the baseline off-set is the same for all "
+                  "line-of-sights (inside each measurement block).", 
+                  "Set to 1 if the baseline off-set is the same for all "
+                  "measurement blocks." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianAddSinefit" ),
+        DESCRIPTION
+        (
+         "Includes sinusoidal baseline fit in the Jacobian.\n"
+         "\n"
+         "Works as *jacobianAddPolyFit*, beside that a series of sine and\n"
+         "cosine terms are used for the baseline fit.\n"
+         "\n"
+         "For each value in *period_lengths one sine and one cosine term are\n"
+         "included (in mentioned order). By these two terms the amplitude and\n"
+         "\"phase\" for each period length can be determined. The sine and\n"
+         "cosine terms have value 0 and 1, respectively, for first frequency.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", 
+            "sensor_response_pol_grid", "sensor_response_za_grid", 
+            "sensor_pos" ),
+        GIN( "period_lengths", "no_pol_variation", "no_los_variation", 
+             "no_mblock_variation" ),
+        GIN_TYPE( "Vector", "Index", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "0", "0", "0" ),
+        GIN_DESC( "Period lengths of the fit.", 
                   "Set to 1 if the baseline off-set is the same for all "
                   "Stokes components.", 
                   "Set to 1 if the baseline off-set is the same for all "
@@ -5847,6 +5884,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianCalcSinefit" ),
+        DESCRIPTION
+        (
+         "Calculates jacobians for sinusoidal baseline fit.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
+         "and should normally not be called by the user.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "mblock_index", "iyb", "yb", "sensor_response",
+            "sensor_response_pol_grid", "sensor_response_f_grid", 
+            "sensor_response_za_grid", 
+            "jacobian_quantities", "jacobian_indices" ),
+        GIN( "period_index" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Index among the period length specified for add-method." ),
+        SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianCalcTemperatureAnalytical" ),
         DESCRIPTION
         (
@@ -5942,7 +6005,7 @@ void define_md_data_raw()
          "The Jacobian quantities are initialised to be empty.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        OUT( "jacobian_quantities", "jacobian_indices","jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

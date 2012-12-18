@@ -1,5 +1,23 @@
 2012-12-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-426
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts: Now also
+	testing sine fit.
+
+	* src/m_jacobian.cc (jacobianAddPolyfit): sensor_response_f_grid
+	no longer input argument (only used in a removed check).
+
+	(jacobianInit): Now setting jacobian_indices to be empty.
+	Before jacobian_indeces did not match the other variables if
+	jacobianInit was called several times.
+
+	(jacobianCalcSinefit):
+	(jacobianAddSinefit): Added these WSMs, introducing sinusoidal
+	baseline fits.
+
+2012-12-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-425
 
 	* controlfiles/artscomponents/groundbased/yREFERENCE.xml: Forgot

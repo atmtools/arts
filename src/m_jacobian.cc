@@ -51,6 +51,8 @@
 #include "physics_funcs.h"
 #include "rte.h"
 
+extern const Numeric PI;
+
 extern const String ABSSPECIES_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_A;
@@ -60,6 +62,7 @@ extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
 extern const String POLYFIT_MAINTAG;
+extern const String SINEFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 
 
@@ -145,10 +148,12 @@ void jacobianClose(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianInit(
         ArrayOfRetrievalQuantity&  jacobian_quantities,
+        ArrayOfArrayOfIndex&       jacobian_indices,
         Agenda&                    jacobian_agenda,
   const Verbosity& )
 {
   jacobian_quantities.resize(0);
+  jacobian_indices.resize(0);
   jacobian_agenda = Agenda();
   jacobian_agenda.set_name( "jacobian_agenda" );
 }
@@ -163,9 +168,9 @@ void jacobianOff(
         ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity&                 verbosity )
 {
-  jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
-  jacobian_do   = 0;
-  jacobian_indices.resize(0);
+  jacobian_do = 0;
+  jacobianInit( jacobian_quantities, jacobian_indices, jacobian_agenda, 
+                                                                   verbosity );
 }
 
 
@@ -1096,7 +1101,6 @@ void jacobianAddPolyfit(
         ArrayOfRetrievalQuantity&  jq,
         Agenda&                    jacobian_agenda,
   const ArrayOfIndex&              sensor_response_pol_grid,
-  const Vector&                    sensor_response_f_grid,
   const Vector&                    sensor_response_za_grid,
   const Matrix&                    sensor_pos,
   const Index&                     poly_order,
@@ -1107,25 +1111,15 @@ void jacobianAddPolyfit(
 {
   // Check that poly_order is >= 0
   if( poly_order < 0 )
-    throw runtime_error(
-      "The polynomial order has to be >= 0.");
+    throw runtime_error( "The polynomial order has to be >= 0.");
 
-  // Compare poly_order with number of frequency points
-  if( poly_order > sensor_response_f_grid.nelem() - 1 )
-    {
-      ostringstream os;
-      os << "The polynomial order can not exceed the length of\n"
-         << "*sensor_response_f_grid* -1.";
-      throw runtime_error(os.str());
-    }
- 
   // Check that polyfit is not already included in the jacobian.
   for( Index it=0; it<jq.nelem(); it++ )
     {
       if( jq[it].MainTag() == POLYFIT_MAINTAG )
         {
           ostringstream os;
-          os << "Polynomial baseline fit is already included in\n"
+          os << "Sinusoidal baseline fit is already included in\n"
              << "*jacobian_quantities*.";
           throw runtime_error(os.str());
         }
@@ -1261,6 +1255,191 @@ void jacobianCalcPolyfit(
                 { col1 += p; }
 
               jacobian(row2+p,col1) = w[f];
+            }
+        }
+    }
+}
+
+
+
+
+
+//----------------------------------------------------------------------------
+// Sinusoidal baseline fits:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddSinefit(
+        Workspace&                 ws _U_,
+        ArrayOfRetrievalQuantity&  jq,
+        Agenda&                    jacobian_agenda,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_za_grid,
+  const Matrix&                    sensor_pos,
+  const Vector&                    period_lengths,
+  const Index&                     no_pol_variation,
+  const Index&                     no_los_variation,
+  const Index&                     no_mblock_variation,
+  const Verbosity& )
+{
+  const Index np = period_lengths.nelem();
+
+  // Check that poly_order is >= 0
+  if( np == 0 )
+    throw runtime_error( "No sinusoidal periods has benn given.");
+
+  // Check that polyfit is not already included in the jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == SINEFIT_MAINTAG )
+        {
+          ostringstream os;
+          os << "Polynomial baseline fit is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // "Grids"
+  //
+  // Grid dimensions correspond here to 
+  //   1: polynomial order
+  //   2: polarisation
+  //   3: viewing direction
+  //   4: measurement block
+  //
+  ArrayOfVector grids(4);
+  //
+  if( no_pol_variation )
+    grids[1] = Vector(1,1);
+  else
+    grids[1] = Vector(0,sensor_response_pol_grid.nelem(),1);
+  if( no_los_variation )
+    grids[2] = Vector(1,1);
+  else
+    grids[2] = Vector(0,sensor_response_za_grid.nelem(),1); 
+  if( no_mblock_variation )
+    grids[3] = Vector(1,1);
+  else
+    grids[3] = Vector(0,sensor_pos.nrows(),1);
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq = RetrievalQuantity();
+  rq.MainTag( SINEFIT_MAINTAG );
+  rq.Mode( "" );
+  rq.Analytical( 0 );
+  rq.Perturbation( 0 );
+
+  // Each sinefit coeff. pair is treated as a retrieval quantity
+  //
+  for( Index i=0; i<np; i++ )
+    {
+      ostringstream sstr;
+      sstr << "Period " << i;
+      rq.Subtag( sstr.str() ); 
+
+      // "Grid" has length 2, set to period length
+      grids[0] = Vector( 2, period_lengths[i] );
+      rq.Grids( grids );
+
+      // Add it to the *jacobian_quantities*
+      jq.push_back( rq );
+
+      // Add pointing method to the jacobian agenda
+      jacobian_agenda.append( "jacobianCalcSinefit", i );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcSinefit(
+        Matrix&                    jacobian,
+  const Index&                     mblock_index,
+  const Vector&                    iyb _U_,
+  const Vector&                    yb _U_,
+  const Sparse&                    sensor_response,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_f_grid,
+  const Vector&                    sensor_response_za_grid,
+  const ArrayOfRetrievalQuantity&  jacobian_quantities,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Index&                     period_index,
+  const Verbosity& )
+{  
+  // Find the retrieval quantity related to this method
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+  bool found = false;
+  Index iq;
+  ostringstream sstr;
+  sstr << "Period " << period_index;
+  for( iq=0; iq<jacobian_quantities.nelem() && !found; iq++ )
+    {
+      if( jacobian_quantities[iq].MainTag() == SINEFIT_MAINTAG  && 
+          jacobian_quantities[iq].Subtag() == sstr.str() )
+        {
+          found = true;
+          break;
+        }
+    }
+  if( !found )
+    {
+      throw runtime_error( "There is no Sinefit jacobian defined, in general " 
+                           "or for the selected period length.\n");
+    }
+
+  // Size and check of sensor_response
+  //
+  const Index nf     = sensor_response_f_grid.nelem();
+  const Index npol   = sensor_response_pol_grid.nelem();
+  const Index nza    = sensor_response_za_grid.nelem();
+
+  // Make vectors with values to distribute over *jacobian*
+  //
+  // (period length stored in grid 0)
+  ArrayOfVector jg   = jacobian_quantities[iq].Grids();
+  //
+  Vector s(nf), c(nf); 
+  //
+  for( Index f=0; f<nf; f++ )
+    {
+      Numeric a = (sensor_response_f_grid[f]-sensor_response_f_grid[0]) * 
+                                                             2 * PI / jg[0][0];
+      s[f] = sin( a );
+      c[f] = cos( a );
+    }
+
+  
+  // Fill J
+  //
+  const Index n1     = jg[1].nelem();
+  const Index n2     = jg[2].nelem();
+  const Index n3     = jg[3].nelem();
+  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
+  const Index row4   = rowind.get_start();
+        Index col4   = jacobian_indices[iq][0];
+
+  if( n3 > 1 )
+    { col4 += mblock_index*n2*n1*2; }
+      
+  for( Index l=0; l<nza; l++ )
+    {
+      const Index row3 = row4 + l*nf*npol;
+      const Index col3 = col4 + l*n1*2;
+
+      for( Index f=0; f<nf; f++ )
+        {
+          const Index row2 = row3 + f*npol;
+
+          for( Index p=0; p<npol; p++ )
+            {
+              Index col1 = col3;
+              if( n1 > 1 )
+                { col1 += p*2; }
+
+              jacobian(row2+p,col1)   = s[f];
+              jacobian(row2+p,col1+1) = c[f];
             }
         }
     }
