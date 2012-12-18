@@ -1,5 +1,19 @@
 2012-12-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-427
+
+	* src/montecarlo.cc (cloudy_rt_vars_at_gp, clear_rt_vars_at_gp):
+	* src/m_abs_lookup.cc (abs_mat_fieldCalc):
+	* src/doit.cc (cloud_RT_no_background)
+	(cloud_ppath_update1D_planeparallel):
+	* src/disort.cc (dtauc_ssalbCalc): rte_mag now set to [0 0 0]
+
+	* src/m_zeeman.cc (abs_mat_per_speciesAddZeeman): Option
+	rte_mag=[-1] removed. Instead, the case of rte_mag=[0 0 0] catched.
+	Built-in doc changed accordingly.
+
+2012-12-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-426
 
 	* controlfiles/artscomponents/wfuns/TestWfuns.arts: Now also

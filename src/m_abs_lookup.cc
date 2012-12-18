@@ -2329,7 +2329,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                 a_vmr_list    = vmr_field( Range(joker),
                                            ipr, ila, ilo );
 
-                const Vector rte_mag_dummy(1,-1.);
+                const Vector rte_mag_dummy(3,0);
                 const Vector ppath_los_dummy;
 
                 // Execute agenda to calculate local absorption.

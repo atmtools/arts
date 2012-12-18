@@ -739,8 +739,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
     Vector R_path_los;
     mirror_los(R_path_los, ppath_los, atmosphere_dim);
     
-    const Numeric margin    = 1e-3;
-    bool          do_zeeman = false;
+    bool do_zeeman = false;
 
     /*
         This function will, for each Zeeman species, make a local
@@ -772,17 +771,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
     if( abs_mat_per_species.nbooks() != abs_species.nelem() )
         throw runtime_error("Species dimension of abs_mat_per_species not equal to length of abs_species.");
     if( rte_mag.nelem() != 3 )
-    {
-        if( rte_mag.nelem() == 1 )
-            if(abs(rte_mag[0]+1) < margin)
-                do_zeeman = false; //If no magnetic field, do not do Zeeman
-            else
-                throw runtime_error("rte_mag have the length of a flag"
-                " but not the content of such.");
-        else
-            throw runtime_error("rte_mag does not have the length of"
-                    " a flag nor the length of a magnetic field vector.");
-    }
+      throw runtime_error("*rte_mag* must have length 3.");
     // End   TEST(s)
     Vector local_f_grid;
     // Make pointer point to original.
@@ -824,7 +813,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
     AbsInputFromRteScalars( abs_p, abs_t, abs_vmrs,                        // Output
                             rte_pressure, rte_temperature, rte_vmr_list,  //Input
                             verbosity);                                  // Verbose!
-    if(do_zeeman == 1)
+    if( do_zeeman  && ( rte_mag[0]!=0 || rte_mag[1]!=0 || rte_mag[2]!=0 ) )
     {
         //Get the magnitude of the magnetic field and store a local unit Vector for simplified angle calculations.
         const Numeric H_mag = sqrt( rte_mag * rte_mag );

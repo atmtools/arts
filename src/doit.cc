@@ -905,7 +905,7 @@ void cloud_RT_no_background(Workspace& ws,
       //
       // Calculate scalar gas absorption
       //
-      const Vector rte_mag_dummy(1,-1.);
+      const Vector rte_mag_dummy(3,0);
       const Vector ppath_los_dummy;
       
       abs_mat_per_species_agendaExecute( ws, *cur_abs_mat_per_species,
@@ -1373,7 +1373,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // and ext_mat.
               //
 
-              const Vector rte_mag_dummy(1,-1.);
+              const Vector rte_mag_dummy(3,0);
 	      const Vector ppath_los_dummy;
                 
               abs_mat_per_species_agendaExecute(ws, abs_mat_per_species,
@@ -1490,7 +1490,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // and ext_mat.
               //
                 
-              const Vector rte_mag_dummy(1,-1.);
+              const Vector rte_mag_dummy(3,0);
 	      const Vector ppath_los_dummy;
               
               abs_mat_per_species_agendaExecute( ws, abs_mat_per_species,

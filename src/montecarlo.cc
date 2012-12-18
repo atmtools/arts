@@ -104,7 +104,7 @@ void clear_rt_vars_at_gp(Workspace&          ws,
 
   temperature = t_vec[0];
 
-  const Vector rte_mag_dummy(1,-1.);
+  const Vector rte_mag_dummy(3,0);
   const Vector ppath_los_dummy;
   
   //calcualte absorption coefficient
@@ -184,7 +184,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
 
-  const Vector rte_mag_dummy(1,-1.);
+  const Vector rte_mag_dummy(3,0);
   const Vector ppath_los_dummy;
   
   //rte_vmr_list    = vmr_ppath(joker,0);

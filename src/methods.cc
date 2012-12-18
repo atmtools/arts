@@ -1416,8 +1416,6 @@ void define_md_data_raw()
         "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
         "however, when this Zeeman splitting method is used, the number of\n"
         "lines is increased to about 45,000. This is a time consuming method.\n"
-        "\n"
-        "If rte_mag is of length 1 and contains -1.0 scalar calculations will follow.\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT("abs_mat_per_species"),
