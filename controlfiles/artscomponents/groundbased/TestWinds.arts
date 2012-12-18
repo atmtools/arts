@@ -1,4 +1,5 @@
 #DEFINITIONS:  -*-sh-*-
+#
 # Simple simulations of ground-based measurements of ozone at 110.8 GHz,
 # to test impact of winds.
 #
@@ -29,9 +30,9 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
-
 # Number of Stokes components to be computed
 IndexSet( stokes_dim, 1 )
+
 
 # ---- f_grid ----------------------------------------------------------------
 
@@ -52,9 +53,9 @@ SpeciesSet( abs_species, [ "O3", "H2O" ] )
 # Dimensionality of the atmosphere
 AtmosphereSet1D
 
-# A pressure grid rougly matching 0 to 88 km in about 1 km steps.
+# A pressure grid rougly matching 0 to 88 km in about 500 m steps.
 IndexCreate( np )
-IndexSet( np, 90 )
+IndexSet( np, 180 )
 VectorNLogSpace( p_grid, np, 1.013e5, 0.5 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
@@ -72,7 +73,7 @@ VectorSet( lon_grid, [-10, 10] )
 #AtmosphereSet1D
 #AtmosphereSet2D
 AtmosphereSet3D
-MatrixSet( sensor_los, [80,45] )
+MatrixSet( sensor_los, [30,50] )
 
 #AtmFieldsCalc
 AtmFieldsCalcExpand1D
@@ -80,9 +81,9 @@ AtmFieldsCalcExpand1D
 nrowsGet( nrows, t_field )
 ncolsGet( ncols, t_field )
 
-Tensor3SetConstant( wind_u_field,np, nrows, ncols, 100 )
+Tensor3SetConstant( wind_u_field,np, nrows, ncols, 50 )
 Tensor3SetConstant( wind_v_field,np, nrows, ncols, 100 )
-Tensor3SetConstant( wind_w_field,np, nrows, ncols, 10 )
+Tensor3SetConstant( wind_w_field,np, nrows, ncols, 2 )
 
 
 
@@ -124,11 +125,33 @@ StringSet( iy_unit, "RJBT" )
 
 
 
-# ---- Calculate and save ----------------------------------------------------
+# ---- Calculate -------------------------------------------------------------
 
 yCalc
 
-WriteXML( output_file_format, y, "TestWinds.y.xml" )
-WriteXML( output_file_format, y_f, "TestWinds.y_f.xml" )
+#WriteXML( "ascii", f_grid, "f.xml" )
+#WriteXML( "ascii", y, "yREFERENCE.xml" )
+
+# Expected results
+#
+VectorCreate( yREFERENCE )
+#
+ReadXML( yREFERENCE, "yREFERENCE.xml" )
+#
+Compare( y, yREFERENCE, 1e-4 )
+
+
+
+
+# ---- Without winds ----------------------------------------------------
+
+#Tensor3SetConstant( wind_u_field,np, nrows, ncols, 0 )
+#Tensor3SetConstant( wind_v_field,np, nrows, ncols, 0 )
+#Tensor3SetConstant( wind_w_field,np, nrows, ncols, 0 )
+
+#yCalc
+
+#WriteXML( output_file_format, y, "TestWinds.y0.xml" )
+
 
 }

@@ -38,10 +38,17 @@ refellipsoidMars( refellipsoid, "Sphere" )
 # 
 NumericSet( molarmass_dry_air, 43.34 )
 
+
 #
 # Gravity
 # (needed for hydrostatic equilibrium calculations)
 # 
 Copy( g0_agenda, g0_agenda__Mars )
+
+
+#
+# Sidereal rotation period (1.025957 Earth day)
+# 
+NumericSet( planet_rotation_period, 88643 )
 
 }

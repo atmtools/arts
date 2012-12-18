@@ -36,10 +36,17 @@ refellipsoidEarth( refellipsoid, "Sphere" )
 # 
 NumericSet( molarmass_dry_air, 28.966 )
 
+
 #
 # Gravity
 # (needed for hydrostatic equilibrium calculations)
 # 
 Copy( g0_agenda, g0_agenda__Earth )
+
+
+#
+# Sidereal rotation period (23h 56min 4.1 s)
+# 
+NumericSet( planet_rotation_period, 86164.1 )
 
 }

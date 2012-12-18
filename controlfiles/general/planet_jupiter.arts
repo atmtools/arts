@@ -36,10 +36,18 @@ refellipsoidJupiter( refellipsoid, "Sphere" )
 # 
 NumericSet( molarmass_dry_air, 2.22 )
 
+
 #
 # Gravity
 # (needed for hydrostatic equilibrium calculations)
 # 
 Copy( g0_agenda, g0_agenda__Jupiter )
+
+
+#
+# Sidereal rotation period (9 h 55 m 30 s)
+# 
+NumericSet( planet_rotation_period, 35730 )
+
 
 }

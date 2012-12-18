@@ -10592,6 +10592,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "wind_u_fieldIncludePlanetRotation" ),
+        DESCRIPTION
+        (
+         "Maps the planet's rotation to an imaginary wind.\n"
+         "\n"
+         "This method is of relevance if the observation platform is not\n"
+         "following the planet's rotation, and Doppler effects must be\n"
+         "considered. Examples include full disk observations from another\n"
+         "planet or a satellite not in orbit of the observed planet.\n"
+         "\n"
+         "The rotation of the planet is not causing any Doppler shift for\n"
+         "1D and 2D simulations, and the method can only be used for 3D.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "wind_u_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+            "refellipsoid", "z_field", "planet_rotation_period" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "z_fieldFromHSE" ),
         DESCRIPTION
         (

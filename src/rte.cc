@@ -750,7 +750,7 @@ Numeric dotprod_with_los(
   const Numeric za_f = acos( w/f );
   const Numeric aa_f = atan2( u, v );
 
-  // Zenith and azimuth angle ffor photon direction (in radians)
+  // Zenith and azimuth angle for photon direction (in radians)
   Vector los_p;
   mirror_los( los_p, los, atmosphere_dim );
   const Numeric za_p = DEG2RAD * los_p[0];
@@ -1261,32 +1261,9 @@ void get_ppath_abs(
       //
       if( ppath_wind_v[ip]!=0 || ppath_wind_u[ip]!=0 || ppath_wind_w[ip]!=0 )
         {
-          // za and aa of winds and LOS
-          const Numeric v = sqrt( ppath_wind_u[ip]*ppath_wind_u[ip] +
-                                  ppath_wind_v[ip]*ppath_wind_v[ip] +
-                                  ppath_wind_w[ip]*ppath_wind_w[ip] );
-
-          Numeric aa_w = 0, aa_p = 0; // Azimuth for wind and ppath-los [rad]
-          if( atmosphere_dim < 3 )
-            {
-              if( ppath_wind_v[ip]<0 )
-                { aa_w = PI; }  // Negative v-winds for 1 and 2D
-              if( atmosphere_dim == 2  &&  ppath.los(ip,0) < 0 )
-                { aa_p = PI; }  // Negative sensor za for 2D
-            }
-          else //3D
-            {
-              aa_w = atan2( ppath_wind_u[ip], ppath_wind_v[ip] );
-              aa_p = DEG2RAD * ppath.los(ip,1);
-            }
-          const Numeric za_w = acos( ppath_wind_w[ip] / v );
-          const Numeric za_p = DEG2RAD * fabs( ppath.los(ip,0) );
-          //
-          // Actual shift
-          const Numeric costerm = cos(za_w) * cos(za_p) +
-                                  sin(za_w) * sin(za_p)*cos(aa_w-aa_p);
-
-          rte_doppler = -v * f_doppler * costerm / SPEED_OF_LIGHT;
+          rte_doppler = ( f_doppler / SPEED_OF_LIGHT ) * dotprod_with_los( 
+                       ppath.los(ip,joker), ppath_wind_u[ip], ppath_wind_v[ip], 
+                                            ppath_wind_w[ip], atmosphere_dim );
         }
         
       // Magnetic field

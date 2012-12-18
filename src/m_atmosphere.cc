@@ -68,6 +68,7 @@ extern const Index GFIELD4_LAT_GRID;
 extern const Index GFIELD4_LON_GRID;
 
 extern const Numeric DEG2RAD;
+extern const Numeric PI;
 extern const Numeric GAS_CONSTANT;
 
 /*===========================================================================
@@ -2239,6 +2240,52 @@ void p_gridFromZRaw(//WS Output
        ostringstream os;
        os << "z_field_raw needs to be monotonous, but this is not the case.\n";
        throw runtime_error( os.str() );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void wind_u_fieldIncludePlanetRotation(
+         Tensor3&   wind_u_field,
+   const Index&     atmosphere_dim,
+   const Vector&    p_grid,
+   const Vector&    lat_grid,
+   const Vector&    lon_grid,
+   const Vector&    refellipsoid,
+   const Tensor3&   z_field,
+   const Numeric&   planet_rotation_period,
+   const Verbosity&)
+{
+  if( atmosphere_dim < 3 )
+    throw runtime_error( "No need to use this method for 1D and 2D." );
+
+  const Index  np = p_grid.nelem();
+  const Index  na = lat_grid.nelem();
+  const Index  no = lon_grid.nelem();
+  
+  chk_atm_field( "z_field", z_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+  if( wind_u_field.npages() > 0 ) 
+    { chk_atm_field( "wind_u_field", wind_u_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );}
+  else
+    { wind_u_field.resize( np, na, no ); }
+
+  const Numeric k1 = 2 * PI / planet_rotation_period;
+
+  for( Index a=0; a<na; a++ )
+    {
+      const Numeric k2 = k1 * cos( DEG2RAD*lat_grid[a] );
+      const Numeric re = refell2r( refellipsoid, lat_grid[a] );
+
+      for( Index o=0; o<no; o++ )
+        {
+          for( Index p=0; p<np; p++ )
+            {
+              wind_u_field(p,a,o) += k2 * ( re + z_field(p,a,o) );
+            }
+        }
     }
 }
 
