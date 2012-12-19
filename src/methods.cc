@@ -5717,6 +5717,35 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianAddWind" ),
+        DESCRIPTION
+        (
+         "Includes one atmospheric wind component in the Jacobian.\n"
+         "\n"
+         "The method follows the aptetrn of other jacobian methods. The\n"
+         "calculations can only be performed by analytical expressions.\n"
+         "\n"
+         "The wind component argument can be: \"u\", \"v\" or \"w\". \n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN( "g1", "g2", "g3", "component" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "v" ),
+        GIN_DESC( "Pressure retrieval grid.",
+                  "Latitude retrieval grid.",
+                  "Longitude retreival grid.",
+                  "Wind component to retrieve"
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianCalcAbsSpeciesAnalytical" ),
         DESCRIPTION
         (
@@ -6018,6 +6047,31 @@ void define_md_data_raw()
             "antenna_dim", "sensor_response", "iy_main_agenda", 
             "g0_agenda", "molarmass_dry_air", "p_hse", "z_hse_accuracy", 
             "jacobian_quantities", "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcWindAnalytical" ),
+        DESCRIPTION
+        (
+         "This function doesn't do anything. It just exists to satisfy\n"
+         "the input and output requirement of the *jacobian_agenda*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddWind and should normally not be called\n"
+         "by the user.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "mblock_index", "iyb", "yb" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

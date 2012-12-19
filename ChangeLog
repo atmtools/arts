@@ -1,5 +1,24 @@
 2012-12-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-429
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts: Added a call
+	of jacobianAddWind.
+
+	* src/m_transmitter.cc (iyTransmissionStandard): Added handling of
+	wind jacobians.
+
+	* src/m_rte.cc (iyEmissionStandard): Added handling of wind jacobians.
+	No detailed test performed yet.q
+
+	* src/jacobian.cc (get_pointers_for_analytical_jacobians):
+	Extended to cover winds.
+
+	* src/m_jacobian.cc (jacobianAddWind)
+	(jacobianCalcWindAnalytical): New WSMs.
+
+2012-12-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-428
 
 	* doc/uguide/wfuns.tex: Some small fixes. Updated frequency section. 

@@ -248,6 +248,9 @@ jacobianAddSinefit( jacobian_quantities, jacobian_agenda,
     sensor_response_pol_grid, sensor_response_za_grid, sensor_pos, 
     [200e6,40e6], 0, 0, 0 )
 
+jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
+
 jacobianClose
 
 yCalc

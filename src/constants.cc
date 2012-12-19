@@ -359,3 +359,5 @@ extern const String SINEFIT_MAINTAG     = "Sinusoidal baseline fit";
 
 extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
 
+extern const String WIND_MAINTAG        = "Wind";
+

@@ -403,10 +403,11 @@ void iyEmissionStandard(
       // "temperature flag" (for analytical jacobians).
       //
       ArrayOfTensor3  diy_dpath; 
-      ArrayOfIndex    abs_species_i, is_t; 
+      ArrayOfIndex    abs_species_i, is_t, wind_i; 
       //
       const Numeric   dt = 0.1;
-            Tensor5   ppath_at2;
+      const Numeric   dw = 5;
+            Tensor5   ppath_at2, ppath_awu, ppath_awv, ppath_aww;
             Matrix    ppath_bt2;
       //
       if( j_analytical_do )
@@ -420,30 +421,61 @@ void iyEmissionStandard(
           diy_dpath.resize( nq ); 
           abs_species_i.resize( nq ); 
           is_t.resize( nq ); 
+          wind_i.resize( nq ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
             diy_dpath[iq].resize( np, nf, ns ); 
             diy_dpath[iq] = 0.0;
           )
-          get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
+            get_pointers_for_analytical_jacobians( abs_species_i, is_t, wind_i,
                                             jacobian_quantities, abs_species );
           //
           // Determine if temperature is among the analytical jac. quantities.
           // If yes, get emission and absorption for disturbed temperature
-          Index do_t = 0;
-          for( Index iq=0; iq<is_t.nelem() && do_t==0; iq++ )
-            { if( is_t[iq] ) { do_t = 1; } }
-          if( do_t )
-            {
-              Vector t2 = ppath_t;
-              t2 += dt;
-              get_ppath_abs(      ws, ppath_at2, abs_mat_per_species_agenda, 
+          // Same for wind, but disturb only absorption
+          for( Index iq=0; iq<is_t.nelem(); iq++ )
+            { 
+              if( is_t[iq] ) 
+                { 
+                  Vector t2 = ppath_t;   t2 += dt;
+                  get_ppath_abs(  ws, ppath_at2, abs_mat_per_species_agenda, 
                                   ppath, ppath_p, t2, ppath_vmr, 
                                   ppath_wind_u, ppath_wind_v, ppath_wind_w, 
                                   ppath_mag_u, ppath_mag_v, ppath_mag_w, 
                                   f_grid, stokes_dim, atmosphere_dim );
-              get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
-                                  ppath, t2, f_grid );
+                  get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
+                                      ppath, t2, f_grid );
+                }
+              else if( wind_i[iq] )
+                {
+                  if( wind_i[iq] == 1 )
+                    {
+                      Vector w2 = ppath_wind_u;   w2 += dw;
+                      get_ppath_abs(  ws, ppath_awu, abs_mat_per_species_agenda,
+                                      ppath, ppath_p, ppath_t, ppath_vmr, 
+                                      w2, ppath_wind_v, ppath_wind_w, 
+                                      ppath_mag_u, ppath_mag_v, ppath_mag_w, 
+                                      f_grid, stokes_dim, atmosphere_dim );
+                    }
+                  else if( wind_i[iq] == 2 )
+                    {
+                      Vector w2 = ppath_wind_v;   w2 += dw;
+                      get_ppath_abs(  ws, ppath_awv, abs_mat_per_species_agenda,
+                                      ppath, ppath_p, ppath_t, ppath_vmr, 
+                                      ppath_wind_u, w2, ppath_wind_w, 
+                                      ppath_mag_u, ppath_mag_v, ppath_mag_w, 
+                                      f_grid, stokes_dim, atmosphere_dim );
+                    }
+                  else if( wind_i[iq] == 3 )
+                    {
+                      Vector w2 = ppath_wind_w;   w2 += dw;
+                      get_ppath_abs(  ws, ppath_aww, abs_mat_per_species_agenda,
+                                      ppath, ppath_p, ppath_t, ppath_vmr, 
+                                      ppath_wind_u, ppath_wind_v, w2, 
+                                      ppath_mag_u, ppath_mag_v, ppath_mag_w, 
+                                      f_grid, stokes_dim, atmosphere_dim );
+                    }
+                }
             }
         }
       //#######################################################################
@@ -544,11 +576,10 @@ void iyEmissionStandard(
                         {
                           for( Index iv=0; iv<nf; iv++ )
                             {
-                              // The terms associated with Dtau/Dk:
                               const Numeric k1 = 
-                                            ppath_abs(joker,iv,0,0,ip  ).sum();
+                                             ppath_abs(joker,iv,0,0,ip  ).sum();
                               const Numeric k2 = 
-                                            ppath_abs(joker,iv,0,0,ip+1).sum();
+                                             ppath_abs(joker,iv,0,0,ip+1).sum();
                               const Numeric dkdt1 = 
                                ( ppath_at2(joker,iv,0,0,ip  ).sum() - k1 ) / dt;
                               const Numeric dkdt2 =
@@ -596,6 +627,53 @@ void iyEmissionStandard(
                                 } //hse
                             }  // frequency
                         }  // if is_t
+
+                      // Winds
+                      else if( wind_i[iq] )
+                        {
+                          Numeric dkdx1, dkdx2; 
+                          for( Index iv=0; iv<nf; iv++ )
+                            {
+                              const Numeric k1 = 
+                                             ppath_abs(joker,iv,0,0,ip  ).sum();
+                              const Numeric k2 = 
+                                             ppath_abs(joker,iv,0,0,ip+1).sum();
+                              // u
+                              if( wind_i[iq] == 1 )
+                                {
+                                  dkdx1 = 
+                                    (ppath_awu(joker,iv,0,0,ip  ).sum()-k1)/dw;
+                                  dkdx2 =
+                                    (ppath_awu(joker,iv,0,0,ip+1).sum()-k2)/dw;
+                                }
+                              // v
+                              else if( wind_i[iq] == 2 )
+                                {
+                                  dkdx1 = 
+                                    (ppath_awv(joker,iv,0,0,ip  ).sum()-k1)/dw;
+                                  dkdx2 =
+                                    (ppath_awv(joker,iv,0,0,ip+1).sum()-k2)/dw;
+                                }
+                              // w
+                              else if( wind_i[iq] == 3 )
+                                {
+                                  dkdx1 = 
+                                    (ppath_aww(joker,iv,0,0,ip  ).sum()-k1)/dw;
+                                  dkdx2 =
+                                    (ppath_aww(joker,iv,0,0,ip+1).sum()-k2)/dw;
+                                }
+                              // Stokes component 1
+                              diy_dpath[iq](ip  ,iv,0) += Y[iv] * dkdx1;
+                              diy_dpath[iq](ip+1,iv,0) += Y[iv] * dkdx2;
+                              // Higher stokes components
+                              for( Index is=1; is<ns; is++ )
+                                { 
+                                  const Numeric Z = -X[iv] * iy(iv,is); 
+                                  diy_dpath[iq](ip  ,iv,is) += Z * dkdx1;
+                                  diy_dpath[iq](ip+1,iv,is) += Z * dkdx2;
+                                }
+                            }
+                        }
                     } // if analytical
                 } // for iq
             }
