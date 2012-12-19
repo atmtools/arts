@@ -235,8 +235,10 @@ Compare( Ja, Jp, 10 )
 jacobianInit
 
 # Another test of jacobianAddFreqShiftAndStretch is found in Groundbased
-jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
-                                f_grid, "interp", 50e3, 1 )
+jacobianAddFreqShift( jacobian_quantities, jacobian_agenda, f_grid, 
+    sensor_pos, sensor_time, 0, 50e3 )
+jacobianAddFreqStretch( jacobian_quantities, jacobian_agenda, f_grid, 
+    sensor_pos, sensor_time, 0, 50e3 )
 
 jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
     sensor_response_pol_grid, sensor_response_za_grid, sensor_pos, 

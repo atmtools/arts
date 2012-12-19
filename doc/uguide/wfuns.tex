@@ -57,9 +57,6 @@ of general character, while the available quantities are discussed in the
 remaining sections (Section~\ref{sec:wfuns:absspecies} and forward).
 
 
-\FIXME{Explain how \wsvindex{diy\_dx} is related to the terms used in this
-  section.}
-
 
 \section{Introduction}
 %==============================================================================
@@ -133,10 +130,10 @@ The retrieval quantities are defined separately, before calling
 \builtindoc{yCalc}. This process is started by calling \wsmindex{jacobianInit}.
 The retrieval quantities are then introduced through workspace methods named as
 jacobianAdd{\it Something}. For example, for atmospheric temperature the method
-is \builtindoc{jacobianAddTemperature}. The order in which these ``add
-methods'' is called does not matter.
+is \builtindoc{jacobianAddTemperature}. It does not matter in which order these
+``add methods'' are called.
 
-Finalise the definition of retrieval quantities by calling
+The definition of retrieval quantities is finalised by calling
 \wsmindex{jacobianClose}. To disable the calculation of WFs, skip all above,
 and just use \wsmindex{jacobianOff}. The methods named jacobianCalc{\it
   Something} shall never be used directly. Neither needs the user to consider
@@ -258,7 +255,6 @@ Element $j$ of $\VctStl{z}_i$ is
 To obtain WFs for absorption species, use \wsmindex{jacobianAddAbsSpecies}. The
 method handles one species at the time. The calculations can either be done in
 in ``analytical'' or ``perturbation'' manner.
-
 For gases, the WFs can be provided for several units of the gas abundance:
 \begin{description}
 \item[vmr] Volume mixing ratio (a value between 0 and 1). The WF divided by
@@ -284,7 +280,7 @@ calculations there are no other selections to be made.
 
 \subsection{Perturbation calculations}
 %
-For these pure numerical calculations, also the size of the perturbation must
+For pure numerical calculations, also the size of the perturbation must
 be specified ($\Delta x$ in Eq.~\ref{eq:wfuns:perturb}). The perturbation shall
 given following the unit selected. The same value is applied for all WFs (which
 can cause practical problems \dots).
@@ -391,7 +387,7 @@ A constraint for the analytical expressions above is that the effect of the
 variable must only be local. Main examples on non-local effects should occur
 through hydrostatic equilibrium applies and refraction. Significant impact of a
 gas through these mechanisms should only be found for water vapour in the
-(lower?) troposphere.
+lower troposphere.
 
 
 
@@ -540,7 +536,7 @@ is matched to the pressure of the observation point.
 %==============================================================================
 \label{sec:wfuns:sensorpointing}
 
-The term ``sensor pointing'' pointing refers to deviations between nominal and
+The term ``sensor pointing'' refers to deviations between nominal and
 actual viewing direction of the sensor. So far, only deviations in zenith angle
 can be considered. The workspace method to initiate such WFs is
 \wsmindex{jacobianAddPointingZa}.
@@ -550,8 +546,9 @@ polynomial variation. hence, the basis functions described in
 Section~\ref{sec:wfuns:basis2} are applied. The time is taken from
 \wsvindex{sensor\_time}. If the pointing error is assumed to be constant with
 time, the polynomial order to select is 0, and so on. As a special case, the
-polynomial order -1 signifies here that the pointing off-set is totally
-uncorrelated between the spectra (sometime called ``pointing jitter'').
+polynomial order -1 signifies here that the pointing off-set is so highly
+varying that an off-set must be assigned to each spectrum
+(sometime called ``pointing jitter'').
 
 The WFs can be calculated in two manners:
 \begin{description}
@@ -580,12 +577,13 @@ This class of WFs treats deviations between nominal and actually recorded
 frequencies. Such differences can originate in several ways, but the exact
 origin can normally be ignored and the effect can be modelled as the backend
 (spectrometer, filter bank \dots) channels are shifted from their nominal
-position. The workspace method to define these WFs is
-\wsmindex{jacobianAddFreqShiftAndStretch}. The WFs can so far only be
-determined by applying an interpolation of existing monochromatic data
-(``interp''), then shifted \verb|df| from the nominal values.
+position. The workspace methods to define such WFs are
+\wsmindex{jacobianAddFreqShift} and \wsmindex{jacobianAddFreqStretch}. These
+WFs can so far only be determined by applying an interpolation of existing
+monochromatic data, then shifted \verb|df| from the nominal
+values.
 
-The method operates with two terms, ``shift'' and ``stretch''. This follows
+The methods treats either the ``shift'' or ``stretch'' effects. This follows
 standard nomenclature. A ``shift'' is an off-set that is of the same size for
 all backend channels. That is, if only a shift is assumed, the nominal
 distances between the channels are assumed to be valid. The shift term is
@@ -597,6 +595,9 @@ nominal channel position increases linearly from the middle point of the
 backend. In terms of the basis functions Section~\ref{sec:wfuns:basis2}, shift
 and stretch correspond to polynomial order 0 and 1.
 
+Both frequency shift and stretch can be assumed to be time varying, where
+exactly the same polynomial approach as for pointing is applied. This
+including the case of setting the order to -1.
 
 
 

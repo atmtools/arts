@@ -5441,38 +5441,73 @@ void define_md_data_raw()
          
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianAddFreqShiftAndStretch" ),
+      ( NAME( "jacobianAddFreqShift" ),
         DESCRIPTION
         (
-         "Includes a frequency fit in the Jacobian.\n"
+         "Includes a frequency for of shift type in the Jacobian.\n"
          "\n"
          "Retrieval of deviations between nominal and actual backend\n"
-         "frequencies can be included by this method. The calculations can be\n"
-         "performed in the following ways:\n"
-         "   calcmode = \"interp\": Interpolation of monochromatic spectra,\n"
-         "      shifted with *df* from nominal values.\n"
+         "frequencies can be included by this method. The assumption here is\n"
+         "that the deviation is a constant off-set, a shift, common for all\n"
+         "frequencies.\n"
          "\n"
-         "The frequencies can be fitted with 1 or 2 variables. The first one\n"
-         "is a \"shift\". That is, an off-set common for all backend channels.\n"
-         "The second variable is \"stretch\", that is included only if\n"
-         "*do_stretch* is set to 1. The stretch is a frequency shift that goes\n"
-         "from -x at the first channel and increases linearly to reach x at\n"
-         "the last channel, where x is the retrieved value.\n"
+         "The frequency shift can be modelled to be time varying. The time\n"
+         "variation is then described by a polynomial (with standard base\n"
+         "functions). For example, a polynomial order of 0 means that the\n"
+         "shift is constant in time. If the shift is totally uncorrelated\n"
+         "between the spectra, set the order to -1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "f_grid" ),
-        GIN( "calcmode", "df", "do_stretch" ),
-        GIN_TYPE( "String", "Numeric", "Index" ),
-        GIN_DEFAULT( "interp", "100e3", "0" ),
-        GIN_DESC( "Calculation method. See above",
-                  "Size of perturbation to apply.", 
-                  "Flag to also include frequency stretch."
+        IN( "jacobian_quantities", "jacobian_agenda", "f_grid", "sensor_pos",
+            "sensor_time" ),
+        GIN( "poly_order", "df" ),
+        GIN_TYPE( "Index", "Numeric" ),
+        GIN_DEFAULT( "0", "100e3" ),
+        GIN_DESC( "Order of polynomial to describe the time variation of "
+                  "frequency shift.",
+                  "Size of perturbation to apply."
                   )
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianAddFreqStretch" ),
+        DESCRIPTION
+        (
+         "Includes a frequency for of stretch type in the Jacobian.\n"
+         "\n"
+         "Retrieval of deviations between nominal and actual backend\n"
+         "frequencies can be included by this method. The assumption here is\n"
+         "that the deviation varies linearly over the frequency range\n"
+         "(following ARTS basis function for polynomial order 1).\n"
+         "\n"
+         "The frequency shift can be modelled to be time varying. The time\n"
+         "variation is then described by a polynomial (with standard base\n"
+         "functions). For example, a polynomial order of 0 means that the\n"
+         "shift is constant in time. If the shift is totally uncorrelated\n"
+         "between the spectra, set the order to -1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", "f_grid", "sensor_pos",
+            "sensor_time" ),
+        GIN( "poly_order", "df" ),
+        GIN_TYPE( "Index", "Numeric" ),
+        GIN_DEFAULT( "0", "100e3" ),
+        GIN_DESC( "Order of polynomial to describe the time variation of "
+                  "frequency stretch.",
+                  "Size of perturbation to apply."
+                  )
+        ));
+
+
 
   /*
     md_data_raw.push_back
@@ -5737,15 +5772,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcFreqShiftAndStretchInterp" ),
+      ( NAME( "jacobianCalcFreqShift" ),
         DESCRIPTION
         (
-         "Calculates frequency shift and stretch jacobians by interpolation\n"
+         "Calculates frequency shift jacobians by interpolation\n"
          "of *iyb*.\n"
          "\n"
-         "This function is added to *jacobian_agenda* by\n"
-         "jacobianAddFreqShiftAndStretch and should normally\n"
-         "not be called by the user.\n"
+         "This function is added to *jacobian_agenda* by jacobianAddFreqShift\n"
+         "and should normally not be called by the user.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian" ),
@@ -5753,11 +5787,39 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian",
-            "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", 
+            "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", "sensor_los", 
             "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "sensor_response_pol_grid", 
-            "sensor_response_f_grid", "sensor_response_za_grid", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "sensor_response", "sensor_time", "jacobian_quantities", 
+            "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcFreqStretch" ),
+        DESCRIPTION
+        (
+         "Calculates frequency stretch jacobians by interpolation\n"
+         "of *iyb*.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by jacobianAddFreqStretch\n"
+         "and should normally not be called by the user.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian",
+            "mblock_index", "iyb", "yb", "stokes_dim", "f_grid", "sensor_los", 
+            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_response", "sensor_response_pol_grid",
+            "sensor_response_f_grid", "sensor_response_za_grid",
+            "sensor_time", "jacobian_quantities", 
+            "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

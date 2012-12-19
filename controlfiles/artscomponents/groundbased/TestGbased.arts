@@ -204,25 +204,9 @@ AntennaOff
 sensor_responseInit
 sensor_responseBackend
 sensor_checkedCalc
-
-
-# --- Define jacobian -------------------------------------------------------
 #
-# Jacobians are tested/demonstrated mainly elsewhere, but some jacobians 
-# are better tested here 
+jacobianOff
 #
-jacobianInit
-jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
-                                f_grid, "interp", 50e3, 1 )
-StringCreate( calcmethod )
-StringSet( calcmethod, "analytical" )
-#StringSet( calcmethod, "perturbation" )
-jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
-    "on", calcmethod, 1 )
-jacobianClose
-
-
 yCalc
 #
 WriteXML( output_file_format, y, "TestGbased.y1.xml" )
