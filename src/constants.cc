@@ -344,8 +344,6 @@ extern const Index GFIELD4_AA_GRID = 3;
 extern const String ABSSPECIES_MAINTAG  = "Absorption species";
 
 extern const String FREQUENCY_MAINTAG   = "Frequency";
-extern const String FREQUENCY_SUBTAG_A  = "Shift + Stretch";
-extern const String FREQUENCY_CALCMODE_A= "Interpolate iyb";
 extern const String FREQUENCY_SUBTAG_0  = "Shift";
 extern const String FREQUENCY_SUBTAG_1  = "Stretch";
 

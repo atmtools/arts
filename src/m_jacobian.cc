@@ -55,10 +55,8 @@ extern const Numeric PI;
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
-extern const String FREQUENCY_SUBTAG_A;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
-extern const String FREQUENCY_CALCMODE_A;
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
@@ -1127,6 +1125,10 @@ void jacobianCalcPointingZaInterp(
   const ArrayOfArrayOfIndex&       jacobian_indices,
   const Verbosity& )
 {
+  if( mblock_za_grid.nelem() < 2 )
+    throw runtime_error( "The method demands that *mblock_za_grid* has a "
+                         "length of > 1." );
+
   // Set some useful variables.  
   RetrievalQuantity rq;
   ArrayOfIndex ji;
