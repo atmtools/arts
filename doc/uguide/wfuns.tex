@@ -601,6 +601,7 @@ including the case of setting the order to -1.
 
 
 
+
 \section{Polynomial baseline fit}
 %==============================================================================
 \label{sec:wfuns:polyfit}
@@ -617,7 +618,8 @@ giving a single spectrum, the measured spectrum \MsrVct\ is modelled as
   \label{eq:polyfit}
   \MsrVct = \MsrVct' + \sum_{i=0}^n x_i\VctStl{z}_i,
 \end{equation}
-where $\MsrVct'$ is the ``baseline free'' spectrum.
+where $\MsrVct'$ is the ``baseline free'' spectrum, and $x_i$ and
+$\VctStl{z}_i$ are introduced in Section~\ref{sec:wfuns:basis2}.
 
 WFs for such baseline models are obtained by \wsmindex{jacobianAddPolyfit}. For
 single spectra measurements, the only consideration is the polynomial order to
@@ -627,4 +629,57 @@ some cases, it could be assumed that the baseline is common between data for
 different polarisations, viewing directions or measurement blocks, and flags
 can be set to mimic such assumptions.
 
+For a given set of retrieved $x_i$, the simplest way to determine the estimated
+baseline is to perform a muliplication between the relevant parts of the
+Jacobian and the state vector:
+\begin{equation}
+  \aWfnMtr{p}\aSttVct{p},
+  \label{eq:bline:recreate}
+\end{equation}
+where $p$ indicates the $n+1$ columns/elements corresponding to $x_i$.
+
+
+\section{Sinusoidal baseline fit}
+%==============================================================================
+\label{sec:wfuns:sinefit}
+
+If the baseline has components of sinusoidal character there is also a second
+option, provided the method \wsmindex{jacobianAddSinefit}. The baseline is
+in this method modelled as \citep{kuntz:97}
+\begin{equation}
+  \label{eq:sinefit}
+  \MsrVct = \MsrVct' + \sum_{i=1}^n 
+       a_i\sin\left(\frac{2\pi(\Frq-\aFrq{1})}{l_i}\right)+
+       b_i\cos\left(\frac{2\pi(\Frq-\aFrq{1})}{l_i}\right)
+\end{equation}
+where $a_i$ and $b_i$ are the coefficients to be retrieved, \Frq\ is frequency,
+\aFrq{i} is a reference frequency and $l_i$ is period length. The reference
+frequency (\aFrq{i}) is in practice taken as the first frequency of the
+spectrometer. 
+
+The period lengths ($l_i$) are user input. For each given period length, the
+corresponding sine and cosine terms are included in the Jacobian. As for the
+polynomial fit, there exist options to set the baseline to be common between
+different polarisations, viewing directions or measurement blocks.
+Equation~\ref{eq:bline:recreate} is also applicable for sinusoidal baseline
+fits.
+
+An alternative way to express the expression above is
+\begin{equation}
+  \label{eq:sinefit2}
+  \MsrVct = \MsrVct' + \sum_{i=1}^n A_i
+             \sin\left(\frac{2\pi(\Frq-\aFrq{1})}{l_i} + \phi_i\right)
+\end{equation}
+where
+\begin{equation}
+  A_i = \sqrt{a_i^2+b_i^2}
+\end{equation}
+and
+\begin{equation}
+  \tan{\phi_i} = \frac{a_i}{b_i}.
+\end{equation}
+Equation~\ref{eq:sinefit} is used to define the weighting functions as this
+gives a linear retrieval problem, in contrast to if Equation~\ref{eq:sinefit2}
+would be used, that would require an iterative process to determine $A_i$
+and $\phi_i$.
 

@@ -237,11 +237,9 @@ surface topography can be made.
 
 
 
-\section{Surface XXX}
+\section{Surface radiative properties}
 %===================
 \label{sec:fm_defs:surface}
-
-\FIXME{This section is moved from another chapter. Incorporate it into this chapter.}
 
 If there is an interception of the propagation path by the surface, emission
 and scattering by the surface must be considered. This is the task of
@@ -264,9 +262,8 @@ The emission from the surface $(\MpiVct_e)$ is stored in
 \wsvindex{surface\_emission}, the directions $l$ for which downward
 travelling intensities are given by \wsvindex{surface\_los}, and the
 reflection coefficients $(\mathbf{R})$ are stored in
-\wsvindex{surface\_rmatrix}. These workspace variables are set by
-\wsaindex{surface\_rtprop\_agenda}. Surface reflections and emission are
-discussed further in Section~\ref{sec:surf:eandr}.
+\wsvindex{surface\_rmatrix}. 
+
 \begin{figure}
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ground_refl}
@@ -275,24 +272,8 @@ discussed further in Section~\ref{sec:surf:eandr}.
  \end{center}
 \end{figure}
 
-
-
-
-
-\section{Surface emission and reflection}
-\label{sec:surf:eandr}
-%===================
-
-An introduction to the treatment of surface emission and reflections is given
-in Section \ref{sec:fm_defs:surface}. As described in that section, the surface
-properties are described by three workspace variables and the methods developed
-to handle different surface properties set these variables:
-\wsvindex{surface\_emission}, \wsvindex{surface\_los} and
-\wsvindex{surface\_rmatrix}. The sections below outlines the methods available,
-how these set the output variables.
-Section~\ref{T-sec:surface} of \theory\ provides the theoretical
-background.
-
+Some special cases are discussed below. Section~\ref{T-sec:surface} of \theory\
+provides the theoretical background.
 
 
 \subsection{Blackbody surface}
@@ -321,7 +302,7 @@ The specular direction is calculated by the internal function
   surface\_specular\_los but was removed in version 1-1-876. The
   code can be obtained by e.g.\ checking out version 1-1-875.}. Equations
 \ref{T-eq:surface:specular_matrix}-\ref{T-eq:surface:specular_emission}
-in \theory give the values of \builtindoc{surface\_rmatrix} and
+in \theory\ give the values of \builtindoc{surface\_rmatrix} and
 \builtindoc{surface\_emission}.
 
 
@@ -355,7 +336,7 @@ Equation~\ref{T-eq:surface:brdf1} of \theory)
   \label{eq:surface:brdf2}
   w = \int_{\theta_a}^{\theta_b} \! \int_{\phi_a}^{\phi_b} 
   \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
-  \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
+  \sin(\theta) \, \DiffD\phi \, \DiffD\theta,
 \end{equation}
 that gives
 \begin{equation}

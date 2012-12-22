@@ -1,3 +1,14 @@
+2012-12-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-431
+
+	* doc/uguide/surface.tex: Some editing to incorporate a
+	sub-section moved to this chapter. This removed one of the
+	existing FIXME.
+
+	* doc/uguide/wfuns.tex: A smaller extension of polyfit section.
+	Added section on sinefit.
+
 2012-12-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-430
