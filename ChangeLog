@@ -1,3 +1,19 @@
+2012-12-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-432
+
+	* controlfiles/artscomponents/clearsky/TestClearSky2.arts: New
+	test, mainly to test iyReplaceFromAux. Added as a slow one.
+
+	* src/m_sensor.cc (ySimpleSpectrometer): New.
+
+	* doc/uguide/transmission.tex: Added reference to iyReplaceFromAux.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	iyReplaceFromAux now used.
+
+	* src/m_rte.cc (iyReplaceFromAux): New.
+
 2012-12-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-431

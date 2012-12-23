@@ -5186,6 +5186,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyReplaceFromAux" ),
+        DESCRIPTION
+        (
+         "Change of main output variable.\n"
+         "\n"
+         "With this method you can replace the content of *iy* with one of\n"
+         "the auxiliary variables. The selected variable (by *aux_var*) must\n"
+         "be part of *iy_aux_vars*. The corresponding data from *iy_aux* are\n"
+         "copied to form a new *iy* (*iy_aux* is left unchanged). Elements of\n"
+         "*iy* correponding to Stokes elements not covered by the auxiliary\n"
+         "variable are just set to zero.\n"
+         "\n"
+         "Jacobian variables are not handled.\n"         
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy", "iy_aux", "iy_aux_vars", "jacobian_do" ),
+        GIN(      "aux_var" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Auxiliary variable to insert as *iy*." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iySurfaceRtpropAgenda" ),
         DESCRIPTION
         (
@@ -10765,6 +10793,35 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ySimpleSpectrometer" ),
+        DESCRIPTION
+        (
+         "Converts *iy* to *y* assuming a fixed frequency resolution.\n"
+         "\n"
+         "This is a short-cut, avoiding *yCalc*, that can be used to convert\n"
+         "monochromatic pencil beam data to spectra with a fixed resolution.\n"
+         "\n"
+         "The method mimics a spectrometer with rectangular response\n"
+         "functions, all having the same width (*df*). The position of\n"
+         "the first spectrometer channel is set to f_grid[0]+df/2.\n"
+         "The centre frequency of channels are returned as *y_f*.\n"
+         "\n"
+         "Auxiliary variables and *jacobian* are not handled.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy", "stokes_dim", "f_grid" ),
+        GIN(      "df" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Selected frequency resolution." )
         ));
 
   md_data_raw.push_back

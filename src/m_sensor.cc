@@ -2584,6 +2584,74 @@ void sensor_checkedCalc(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ySimpleSpectrometer(
+         Vector&         y,
+         Vector&         y_f,
+   const Matrix&         iy,
+   const Index&          stokes_dim,
+   const Vector&         f_grid,
+   const Numeric&        df,
+   const Verbosity&      verbosity )
+{
+  // Some dummy values
+  const Index sensor_norm = 1, atmosphere_dim = 1;
+
+  // Init sensor reponse
+  //
+  Index        antenna_dim;
+  Vector       mblock_za_grid, mblock_aa_grid, sensor_response_f;
+  Vector       sensor_response_za, sensor_response_aa, sensor_response_f_grid;
+  Vector       sensor_response_za_grid, sensor_response_aa_grid;
+  ArrayOfIndex sensor_response_pol, sensor_response_pol_grid;
+  Sparse       sensor_response;
+  //
+  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid, verbosity );
+
+
+  sensor_responseInit( sensor_response, sensor_response_f, 
+                  sensor_response_pol, sensor_response_za, sensor_response_aa, 
+                  sensor_response_f_grid, sensor_response_pol_grid, 
+                  sensor_response_za_grid, sensor_response_aa_grid, f_grid, 
+                  mblock_za_grid, mblock_aa_grid, antenna_dim, atmosphere_dim, 
+                  stokes_dim, sensor_norm, verbosity );
+
+  // Center position of "channels"
+  Vector f_backend;
+  linspace( f_backend, f_grid[0]+df/2, last(f_grid), df );
+
+  // Create channel response
+  ArrayOfGriddedField1 r;
+  backend_channel_responseFlat( r, df, verbosity );
+
+  // New sensor response
+  sensor_responseBackend( sensor_response, sensor_response_f, 
+                          sensor_response_pol, sensor_response_za,
+                          sensor_response_aa, sensor_response_f_grid,
+                          sensor_response_pol_grid, sensor_response_za_grid,
+                          sensor_response_aa_grid, f_backend, r, sensor_norm,
+                          verbosity );
+
+  // Some sizes
+  const Index nf = f_grid.nelem();
+  const Index n = sensor_response.nrows();
+
+  // Convert iy to a vector
+  //
+  Vector iyb( nf*stokes_dim );
+  //
+  for( Index is=0; is<stokes_dim; is++ )
+    { iyb[Range(is,nf,stokes_dim)] = iy(joker,is); }
+
+  // y and y_f
+  //
+  y_f = sensor_response_f;
+  y.resize( n );
+  mult( y, sensor_response, iyb );
+}
+
+
+
 
 
 

@@ -1,0 +1,134 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Demonstration and test of simple ARTS 1D, 2D and 3D clear sky calculations.
+#
+# Observations from a satellite is treated, with three viewing directions:
+#   1: Cold space (ie. above the model atmosphere)
+#   2: Limb sounding
+#   3: Downward observation.
+#
+# For the test sequence (ie. "make check") this is a first test on that the
+# full chain around yCalc is working. Calculation of optical depth as an
+# auxilary variable is included and tested.
+#
+# Author: Patrick Eriksson
+
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# on-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+# Clearsky = No scattering
+#
+cloudboxOff
+
+# No jacobian calculation
+#
+jacobianOff
+
+
+# Read a line file and a matching small frequency grid
+# ---
+ReadXML( abs_lines, "abs_lines.xml" )
+VectorNLinSpace( f_grid, 4001, 321e9, 329e9 )
+
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
+# ---
+VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+
+
+# Definition of species
+# ---
+SpeciesSet( abs_species,
+            ["H2O-SelfContStandardType, H2O-ForeignContStandardType, H2O", 
+             "N2-SelfContStandardType",
+             "O3"] )
+
+
+# Sort the line file according to species
+# ---
+abs_lines_per_speciesCreateFromLines
+
+
+# Atmospheric scenario
+# ---
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "testdata/tropical" )
+
+
+# Weakly reflecting surface
+# ---
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
+AgendaSet( surface_rtprop_agenda ){
+  specular_losCalc
+  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
+      lon_grid, rte_pos, t_surface )
+  surfaceFlatScalarReflectivity
+}
+
+
+# We select here to use Rayleigh-Jean brightness temperatures
+# ---
+StringSet( iy_unit, "RJBT" )
+
+
+# Atmosphere and surface
+# ---
+AtmosphereSet1D
+AtmFieldsCalc
+Extract( z_surface, z_field, 0 )
+Extract( t_surface, t_field, 0 )
+
+
+# Definition of sensor position and LOS
+# ---
+VectorSet( rte_pos, [600e3] )
+VectorSet( rte_los, [113.4] )
+VectorSet( rte_pos2, [] )     # A dummy value
+
+# Perform RT calculations
+# ---
+basics_checkedCalc
+cloudbox_checkedCalc
+iyCalc
+
+WriteXML( "ascii", f_grid, "f_grid.xml" )
+WriteXML( "ascii", iy, "iy.xml" )
+
+
+ySimpleSpectrometer( y, y_f, iy, stokes_dim, f_grid, 200e6 )
+
+WriteXML( "ascii", y_f, "y_f.xml" )
+WriteXML( "ascii", y, "y.xml" )
+
+}

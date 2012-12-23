@@ -113,6 +113,7 @@ void iyApplyUnit(
 
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyCalc(
          Workspace&        ws,
@@ -824,6 +825,8 @@ void iyEmissionStandard(
 
 
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyLoopFrequencies(
          Workspace&        ws,
@@ -896,6 +899,8 @@ void iyLoopFrequencies(
         { diy_dx[q](joker,i,joker) = diy_dx1[q](joker,0,joker); }
     }
 }
+
+
 
 
 
@@ -1063,6 +1068,65 @@ void iyMC(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iyReplaceFromAux(
+         Matrix&            iy,
+   const ArrayOfTensor4&    iy_aux,
+   const ArrayOfString&     iy_aux_vars,
+   const Index&             jacobian_do,
+   const String&            aux_var,
+   const Verbosity& )
+{
+  if( iy_aux.nelem() != iy_aux_vars.nelem() )
+    throw runtime_error( "*iy_aux* and *iy_aux_vars* must have the same "
+                         "number of elements." );
+  
+  if( jacobian_do )
+    throw runtime_error( "This method can not provide any jacobians and "
+                         "*jacobian_do* must be 0." );
+
+  bool ready = false;
+
+  for( Index i=0; i<iy_aux.nelem() && !ready; i++ )
+    {
+      if( iy_aux_vars[i] == aux_var )
+        {
+          if( iy_aux[i].nrows() > 1  ||  iy_aux[i].ncols() > 1 )
+            {
+              throw runtime_error( "If an auxiliary variable shall be inserted "
+                     "in *iy*, its row and page dimensions must have size 1." );
+            }
+          if( iy_aux[i].nbooks() != iy.nrows() )
+            {
+              throw runtime_error( "If an auxiliary variable shall be inserted "
+                                   "in *iy*, its frequency dimension must match"
+                                   "the length of existing *iy*." );
+            }
+
+          iy = 0;
+          
+          for( Index iv=0; iv<iy.nrows(); iv++ ) 
+            {
+              for( Index is=0; is<iy_aux[i].npages(); is++ )
+                {
+                  iy(iv,is) = iy_aux[i](iv,is,0,0);
+                }
+            }
+          
+          ready = true;
+        }
+    }
+
+  if( !ready )
+    throw runtime_error( "The selected auxiliary variable to insert in *iy* "
+                         "is either not defined at all or is not set." );
+
+}
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iy_auxFillParticleVariables(
          ArrayOfTensor4&       iy_aux,
    const Index&                basics_checked,
@@ -1178,6 +1242,8 @@ void iy_auxFillParticleVariables(
         }  
     }
 }
+
+
 
 
 
