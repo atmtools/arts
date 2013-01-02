@@ -29,6 +29,7 @@
  */
 
 #include "cia.h"
+#include "interpolation_poly.h"
 
 /** Interpolate CIA data.
  
@@ -36,15 +37,18 @@
  Uses second order interpolation in both coordinates, if grid length allows,
  otherwise first order or no interpolation.
  
- /retval result CIA value for given frequency grid and temperature.
- /param frequency Frequency grid
- /param temperature Scalar temparature
- /param cia_data The CIA dataset to interpolate */
+ /param[out] result CIA value for given frequency grid and temperature.
+ /param[in] frequency Frequency grid
+ /param[in] temperature Scalar temparature
+ /param[in] cia_data The CIA dataset to interpolate */
 void cia_interpolation(VectorView result,
                        ConstVectorView frequency,
                        const Numeric& temperature,
                        const GriddedField2& cia_data)
 {
+    // Assert that result vector has right size:
+    assert(result.nelem()==frequency.nelem());
+    
     // Get data grids:
     ConstVectorView f_grid = cia_data.get_numeric_grid(1);
     ConstVectorView T_grid = cia_data.get_numeric_grid(2);
@@ -81,5 +85,35 @@ void cia_interpolation(VectorView result,
                                 temperature,
                                 T_order);
     }
-
+    
+    // Find frequency grid positions:
+    ArrayOfGridPosPoly f_gp(frequency.nelem()), T_gp(1);
+    gridpos_poly(f_gp, f_grid, frequency, f_order);
+ 
+    // Do the rest of the interpolation.
+    if (T_order == 0)
+      {
+        // No temperature interpolation in this case, just a frequency interpolation.
+        
+        Matrix itw(f_gp.nelem(),f_order+1);
+        interpweights(itw,f_gp);
+        interp(result, itw, cia_data.data(joker,0), f_gp);
+      }
+    else
+      {
+        // Temperature and frequency interpolation.
+        
+        // Find temperature grid position:
+        gridpos_poly(T_gp, T_grid, temperature, T_order);
+    
+        // Calculate combined interpolation weights:
+        Tensor3 itw(f_gp.nelem(),T_gp.nelem(),(f_order+1)*(T_order+1));
+        interpweights(itw,f_gp, T_gp);
+        
+        // Make a matrix view of the results vector:
+        MatrixView result_matrix(result);
+        
+        // Actual interpolation:
+        interp(result_matrix, itw, cia_data.data, f_gp, T_gp);
+      }
 }

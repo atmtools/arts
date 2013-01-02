@@ -62,9 +62,9 @@ public:
      Check whether there is a suitable dataset in the cia_record and do the 
      interpolation.
      
-     /retval result CIA value for given frequency grid and temperature.
-     /param frequency Frequency grid
-     /param temperature Scalar temparature */
+     /param[out] result CIA value for given frequency grid and temperature.
+     /param[in] frequency Frequency grid
+     /param[in] temperature Scalar temparature */
     void extract(VectorView result,
                  ConstVectorView frequency,
                  const Numeric& temperature) const
@@ -77,9 +77,9 @@ public:
      Use the vector version, if you can, it is more efficient. This is just a 
      convenience wrapper for it.
      
-     /return Scalar CIA value at given frequency and temperature.
-     /param frequency Scalar frequency
-     /param temperature Scalar temparature */
+     /param[out] Scalar CIA value at given frequency and temperature.
+     /param[in] frequency Scalar frequency
+     /param[in] temperature Scalar temparature */
     Numeric extract(const Numeric& frequency,
                     const Numeric& temperature) const
     {

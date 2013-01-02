@@ -1,3 +1,10 @@
+2013-01-02  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-434
+
+	* src/cia.{h,cc}: First draft of CIA data interpolation. Not yet
+	tested at all. Should next be tested in test_cia.cc.
+
 2012-12-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-433
