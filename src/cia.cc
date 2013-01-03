@@ -34,8 +34,8 @@
 /** Interpolate CIA data.
  
  Interpolate CIA data to given frequency vector and given scalar temperature.
- Uses second order interpolation in both coordinates, if grid length allows,
- otherwise first order or no interpolation.
+ Uses third order interpolation in both coordinates, if grid length allows,
+ otherwise lower order or no interpolation.
  
  /param[out] result CIA value for given frequency grid and temperature.
  /param[in] frequency Frequency grid
@@ -50,11 +50,23 @@ void cia_interpolation(VectorView result,
     assert(result.nelem()==frequency.nelem());
     
     // Get data grids:
-    ConstVectorView f_grid = cia_data.get_numeric_grid(1);
-    ConstVectorView T_grid = cia_data.get_numeric_grid(2);
+    ConstVectorView f_grid = cia_data.get_numeric_grid(0);
+    ConstVectorView T_grid = cia_data.get_numeric_grid(1);
 
     // Decide on interpolation orders:
-    const Index f_order = 2;
+    const Index f_order = 3;
+    
+    // The frequency grid has to have enough points for this interpolation
+    // order, otherwise throw a runtime error.
+    if ( f_grid.nelem() < f_order+1 )
+      {
+        ostringstream os;
+        os << "Not enough frequency grid points in CIA data.\n"
+           << "You have only " << f_grid.nelem() << " grid points.\n"
+           << "But need at least " << f_order+1 << ".";
+        throw runtime_error(os.str());
+      }
+
 
     // For T we have to be adaptive, since sometimes there is only one T in
     // the data
@@ -66,8 +78,11 @@ void cia_interpolation(VectorView result,
         case 2:
             T_order = 1;
             break;
-        default:
+        case 3:
             T_order = 2;
+            break;
+        default:
+            T_order = 3;
             break;
     }
     

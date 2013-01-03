@@ -35,9 +35,7 @@
 #include "matpackI.h"
 #include "mystring.h"
 #include "gridded_fields.h"
-#include "interpolation_poly.h"
 #include "check_input.h"
-#include "gridded_fields.h"
 
 
 /* Header with implementation. */

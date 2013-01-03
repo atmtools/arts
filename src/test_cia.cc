@@ -24,10 +24,37 @@
 */
 
 #include "cia.h"
+#include "make_vector.h"
 
 void test01()
 {
-    cia_record x;
+    cout << "Testing CIA Interpolation.\n";
+    GriddedField2 cia_data;
+    
+    Matrix A(5,3,0.);
+    A(2,1) = 1;
+    //    cout << "A:" << A << endl;
+    
+    cia_data.data = A;
+    cia_data.set_grid(0, MakeVector(1,2,3,4,5));
+    cia_data.set_grid(1, MakeVector(100,200,300));
+    
+    cout << "cia_data:" << cia_data << endl;
+    
+    
+    // Output frequencies and temperature:
+    Vector f_out(1,9,0.5);
+    cout << "f_out:" << f_out << endl;
+    Numeric T_out = 150;
+    cout << "T_out:" << T_out << endl;
+
+    Vector result(9);
+    cia_interpolation(result,
+                      f_out,
+                      T_out,
+                      cia_data);
+    cout << "result:" << result << endl;
+
 }
 
 int main()
