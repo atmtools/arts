@@ -1,3 +1,15 @@
+2013-01-07  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-436
+
+	* src/check_input.[cc,h] (chk_atm_vecfield_lat90): Nicer error message
+	when problems at poles. Increased (temporarily?) deviation threshold to
+	1 per mille. We might need a better lon-regridding routine here (as
+	vector fields do not vary linearily, but sinusoidal), but current issues
+	anyway seem to already be in the original data (AI JM: check that data!).
+
+	* src/m_atmosphere.cc (basics_checkedCalc): minor layout fix.
+
 2013-01-03  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-435

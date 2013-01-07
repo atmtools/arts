@@ -1199,7 +1199,7 @@ void basics_checkedCalc(
                    z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
             {
               ostringstream os;
-              os << "The surface altitude (*z_surface*) cannot be outside "
+              os << "The surface altitude (*z_surface*) cannot be outside\n"
                  << "of the altitudes in *z_field*.\n"
                  << "z_surface: " << z_surface(row,col) << "\n"
                  << "min of z_field: " << z_field(0,row,col) << "\n"

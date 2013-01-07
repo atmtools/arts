@@ -1654,8 +1654,18 @@ void chk_atm_vecfield_lat90(
 
       // redefine ratio deviation threshold of vector lengths to ratio of
       // squared vector lengths, cause don't want to calc squareroot everytime.
-      // (vec1**2/vec2**2 - 1) / (vec1/vec2 - 1) = vec1/vec2 + 1
-      // and with vec1~vec2                      = 2
+      // (val1**2/val2**2 - 1) / (val1/val2 - 1) = val1/val2 + 1
+      // and with val1~val2                      = 2
+      // i.e., (val1**2/val2**2 - 1) ~ 2 * (val1/val2 - 1)
+      //
+      // with val1/1 = sqrt(vec1/2), hence val1/2**2 = vec1/2
+      //       (vec1/vec2 - 1) ~ 2 * (sqrt(vec1)/sqrt(vec2) - 1)
+      //       (sqrt(vec1)/sqrt(vec2) - 1) ~ (vec1/vec2 - 1) / 2
+      // 
+      // we want to check: sqrt(vec1)/sqrt(vec2) - 1. < threshold
+      // i.e., with the above,
+      //       (vec1/vec2 - 1) / 2 < threshold
+      //       (vec1/vec2 - 1) < threshold*2
       Numeric th = threshold * 2.;
 
       // No variation at the South pole!
@@ -1666,23 +1676,21 @@ void chk_atm_vecfield_lat90(
             {
               for( Index ic=1; ic<ncols; ic++ )
                 {
-                  vec1 = x1(ip,0,ic)*x1(ip,0,ic)+x2(ip,0,ic)*x2(ip,0,ic);
-                  vec2 =
-                    x1(ip,0,ic-1)*x1(ip,0,ic-1)+x2(ip,0,ic-1)*x2(ip,0,ic-1);
+                  vec1 = x1(ip,0,ic)*x1(ip,0,ic) + x2(ip,0,ic)*x2(ip,0,ic);
+                  vec2 = x1(ip,0,ic-1)*x1(ip,0,ic-1) + x2(ip,0,ic-1)*x2(ip,0,ic-1);
                   if( fabs( vec1/vec2-1. ) > th )
                     {
                       ostringstream os;
                       os << "The variables *" << x1_name <<  "* and *" << x2_name
-                         << "* are assumed to be two horizontal components of a "
-                         << "vector field. They cover the South pole. "
-                         << "At the pole, the data (here: the total length of "
-                         << "the horizontal vector) can not "
-                         << "vary with longitude, but this appears to be the "
-                         << "case.";
-/*                      os << " Difference found at p-level " << ip
-                         << " between longitude grid points " << ic-1 << " and "
-                         << ic << ". values are " << vec1 << " and " << vec2
-                         << ", a deviation of " << fabs((vec1/vec2-1.)*1e2) << "%.";*/
+                         << "* are assumed\n"
+                         << "to be two horizontal components of a vector field.\n"
+                         << "At the pole, the data (here: the total length of\n"
+                         << "the horizontal vector) can NOT vary with longitude,\n"
+                         << "but this appears to be the case on the South pole.\n"
+                         << "The threshold is " << threshold << ", but the actual\n"
+                         << "deviation at pressure level " << ip << " and longitude\n"
+                         << "points " << ic-1 << " and " << ic << " is "
+                         << sqrt(vec1)/sqrt(vec2)-1.;
                       throw runtime_error( os.str() );
                     }
                 }
@@ -1697,23 +1705,21 @@ void chk_atm_vecfield_lat90(
             {
               for( Index ic=1; ic<ncols; ic++ )
                 {
-                  vec1 = x1(ip,ir,ic)*x1(ip,ir,ic)+x2(ip,ir,ic)*x2(ip,ir,ic);
-                    vec2 =
-                    x1(ip,ir,ic-1)*x1(ip,ir,ic-1)+x2(ip,ir,ic-1)*x2(ip,ir,ic-1);
+                  vec1 = x1(ip,ir,ic)*x1(ip,ir,ic) + x2(ip,ir,ic)*x2(ip,ir,ic);
+                  vec2 = x1(ip,ir,ic-1)*x1(ip,ir,ic-1) + x2(ip,ir,ic-1)*x2(ip,ir,ic-1);
                   if( fabs( vec1/vec2-1. ) > th )
                     {
                       ostringstream os;
-                      os << "The variables *" << x1_name <<  "* and *" << x1_name
-                         << "* are assumed to be two horizontal components of a"
-                         << "vector field. They cover the North pole."
-                         << "At the pole, the data (here: the total length of"
-                         << "the horizontal vector) can not "
-                         << "vary with longitude, but this appears to be the "
-                         << "case.";
-/*                      os << " Difference found at p-level " << ip
-                         << " between longitude grid points " << ic-1 << " and "
-                         << ic << ". values are " << vec1 << " and " << vec2
-                         << ", a deviation of " << fabs((vec1/vec2-1.)*1e2) << "%.";*/
+                      os << "The variables *" << x1_name <<  "* and *" << x2_name
+                         << "* are assumed\n"
+                         << "to be two horizontal components of a vector field.\n"
+                         << "At the pole, the data (here: the total length of\n"
+                         << "the horizontal vector) can NOT vary with longitude,\n"
+                         << "but this appears to be the case on the North pole.\n"
+                         << "The threshold is " << threshold << ", but the actual\n"
+                         << "deviation at pressure level " << ip << " and longitude\n"
+                         << "points " << ic-1 << " and " << ic << " is "
+                         << sqrt(vec1)/sqrt(vec2)-1.;
                       throw runtime_error( os.str() );
                     }
                 }

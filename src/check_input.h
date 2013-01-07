@@ -347,7 +347,7 @@ void chk_atm_vecfield_lat90(
         ConstTensor3View  x2, 
         const Index&      dim,
         ConstVectorView   lat_grid,
-        const Numeric&    threshold = 1e-4 );
+        const Numeric&    threshold = 1e-3 );
 
 void chk_latlon_true(
    const Index&      atmosphere_dim,
