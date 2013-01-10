@@ -1,0 +1,15 @@
+#
+# include file for deriving abs_species and atm fields from available scenario
+# data
+#
+
+Arts2{
+
+# derive abs species from scenario data
+abs_speciesDefineAllInScenario( abs_species, atmcase )
+
+# get corresponding atmospheric data
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
+            abs_species, atmcase )
+
+}

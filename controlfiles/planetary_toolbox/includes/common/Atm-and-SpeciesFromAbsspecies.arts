@@ -1,0 +1,14 @@
+#
+# include file for deriving manually setting abs_species and deriving respective
+# atmospheric field data
+#
+
+Arts2{
+
+SpeciesSet( abs_species, aostrtmp )
+
+# get atmospheric data
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
+            abs_species, atmcase )
+
+}

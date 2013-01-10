@@ -1,5 +1,19 @@
 2013-01-10  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-438
+
+	* controlfiles/planetary_toolbox/PassiveMW.arts: Removed.
+
+	* controlfiles/planetary_toolbox/includes/[common,jupiter/]*.arts:
+	Added. Folders for collections of functional include controlfiles for
+	the planetary toolbox. Several controlfiles added, documentation still
+	to be done.
+
+	* controlfiles/planetary_toolbox/validation/[common,passive]/:
+	Added. Structure for validation cases (controlfiles & output(?)).
+
+2013-01-10  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-437
 
 	* src/absorption.cc (calc_gamma_and_deltaf_artscat4):

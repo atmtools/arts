@@ -1,0 +1,14 @@
+#
+# include file for getting absorption on-the-fly
+#
+
+Arts2{
+
+# Read the line files and prepare line data
+abs_linesReadFromSplitArtscat( abs_lines, abs_species, "spectroscopy/Perrin/", 0., 3e12 )
+abs_lines_per_speciesCreateFromLines
+
+# do on-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+
+}
