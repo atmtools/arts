@@ -78,6 +78,8 @@ String add_basedir(const String& path);
 
 void get_dirname(String& dirname, const String& path);
 
+void list_directory(ArrayOfString& files, String dirname);
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   IO manipulation classes for parsing nan and inf

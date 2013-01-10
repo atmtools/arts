@@ -63,6 +63,7 @@ int main()
           << "#include \"gridded_fields.h\"\n\n"
           << "#include \"jacobian.h\"\n\n"
           << "#include \"agenda_class.h\"\n\n"
+          << "#include \"cia.h\"\n\n"
           << "#include \"mc_interp.h\"\n\n"
           << "#include \"mc_antenna.h\"\n\n";
 

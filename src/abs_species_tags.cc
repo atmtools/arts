@@ -60,6 +60,9 @@ SpeciesTag::SpeciesTag(String def)
   // Turn Zeeman off by default
   mzeeman = false;
 
+  // Set CIA species to -1 by default
+  mcia = -1;
+
   // We cannot set a default value for the isotopologue, because the
   // default should be `ALL' and the value for `ALL' depends on the
   // species. 
@@ -149,7 +152,7 @@ SpeciesTag::SpeciesTag(String def)
           return;
         }
     }
-    
+
   // Check for joker:
   if ( "*" == isoname )
     {
@@ -160,6 +163,21 @@ SpeciesTag::SpeciesTag(String def)
     {
       // The user wants no lines at all. Set this accordingly:
       misotopologue = -1;
+    }
+  else if ( "cia" == isoname )     // Check for "cia":
+    {
+      // The user wants this to use the CIA catalog:
+      misotopologue = -1;
+      mcia = species_index_from_species_name(def);
+        
+      if ( 0 > mcia )
+        {
+          ostringstream os;
+          os << "CIA species \"" << def << "\" is not a valid species.";
+          throw runtime_error(os.str());
+        }
+
+      def = "";
     }
   else
     {

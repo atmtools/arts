@@ -112,6 +112,17 @@ void Workspace::define_wsv_data()
 
   // New name: abs_coef
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_cia_data" ),
+      DESCRIPTION
+      (
+       "Cia catalog.\n"
+       "Outer dimension corresponds to species in *abs_species*.\n"
+       "Inner dimension contains one element for each CIA species tag.\n"
+       ),
+      GROUP( "ArrayOfArrayOfCiaRecord" )));
+
+  wsv_data.push_back
     (WsvRecord
      ( NAME( "abs_coef" ),
        DESCRIPTION

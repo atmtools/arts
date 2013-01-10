@@ -2771,6 +2771,45 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_cia_dataInit" ),
+        DESCRIPTION
+        (
+         "Sets *abs_cia_data* to default empty state.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_cia_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "abs_cia_dataReadFromCia" ),
+        DESCRIPTION
+        (
+         "Read data from an CIA catalogue for all CIA molecules defined\n"
+         "in *abs_species*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_cia_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN( "catalogpath" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Path to the CIA catalog directory." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "CloudboxGetIncoming" ),
         DESCRIPTION
         (

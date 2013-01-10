@@ -1,3 +1,53 @@
+2013-01-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-439
+
+	* Intermediate commit of work in progress.
+
+	* src/cia.{h,cc}, src/test_cia.{cc}:
+
+	Add dummy output operator for CiaRecord.
+
+	typedef for ArrayOfArrayOfCiaRecord.
+
+	cia_record -> CiaRecord.
+
+	Fix doxygen macros.
+
+	(CiaRecord::ReadFromCia, SetSpecies): Added.
+
+	Rename member variables for to mspecies and mdata.
+
+	* src/file.{cc,h} (list_directory):
+
+	Add function to get a list of files in directory.
+
+	* src/methods.cc: Add abs_cia_dataInit and abs_cia_dataReadFromCia.
+
+	* src/groups.cc: Add ArrayOfArrayOfCiaRecord.
+
+	* src/make_auto_md_h.cc, src/make_auto_workspace_h.cc:
+
+	Include cia.h in generated code.
+
+	* src/workspace.cc: Add WSV abs_cia_data.
+
+	* src/src/abs_species_tags.{cc,h}:
+
+	Add mcia member to SpeciesTag.
+
+	(SpeciesTag::SpeciesTag): Parse CIA tags.
+
+	* src/m_cia.cc: New file.
+
+	* src/nc_io_array_types.cc, src/nc_io_types.h,
+	src/xml_io_array_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Add ArrayOfArrayOfCiaRecord. No implemententations, just skeleton.
+
+	* src/CMakeLists.txt: Add cia.cc and m_cia.cc to artscore.
+
 2013-01-10  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-438

@@ -39,6 +39,7 @@
 #include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "cia.h"
 #include "gas_abs_lookup.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
@@ -104,6 +105,7 @@ TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
 TMPL_XML_READ_WRITE_STREAM(Array<IsotopologueRecord> )
 TMPL_XML_READ_WRITE_STREAM(Array<SpeciesRecord> )
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfCiaRecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField1)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField2)

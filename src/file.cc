@@ -42,6 +42,11 @@
 #include <cstdio>
 #include <limits>
 
+// For getdir
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -416,7 +421,7 @@ String expand_path(const String& path)
 
 
 /*!
- Adds base direcotry to the given path if it is a relative path.
+ Adds base directory to the given path if it is a relative path.
  
  \param[in] path  String with path
  
@@ -439,7 +444,7 @@ String add_basedir(const String& path)
 }
 
 
-//! Return the parent directory of a path
+//! Return the parent directory of a path.
 /** 
  Extracts the parent directory part of the given path.
  
@@ -466,6 +471,34 @@ void get_dirname(String& dirname, const String& path)
   }
 }
 
+
+//! Return list of files in directory.
+/**
+ Returns list of all files in the given path.
+
+ \param[out] files    List of files
+ \param[in]  dirname  Parent directory of path
+
+ \author Oliver Lemke
+ */
+void list_directory(ArrayOfString& files, String dirname)
+{
+    DIR *dp;
+    struct dirent *dirp;
+    if((dp  = opendir(dirname.c_str())) == NULL)
+    {
+        ostringstream os;
+        os << "Error(" << errno << ") opening " << dirname << endl;
+        throw runtime_error(os.str());
+    }
+
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        files.push_back(string(dirp->d_name));
+    }
+
+    closedir(dp);
+}
 
 ////////////////////////////////////////////////////////////////////////////
 //   IO manipulation classes for parsing nan and inf

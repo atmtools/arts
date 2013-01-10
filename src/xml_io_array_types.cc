@@ -206,6 +206,43 @@ void xml_write_to_stream(ostream&                        os_xml,
 
 
 
+//=== ArrayOfArrayOfCiaRecord ===========================================
+
+//! Reads ArrayOfArrayOfCiaRecord from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param alspec   ArrayOfArrayOfCiaRecord return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml              _U_,
+                          ArrayOfArrayOfCiaRecord& aacr _U_,
+                          bifstream* pbifs             _U_,
+                          const                        Verbosity&)
+{
+  // FIXME: OLE: Implement this.
+  throw runtime_error("Boo. Not yet implemented.");
+}
+
+
+//! Writes ArrayOfArrayOfCiaRecord to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param alspec   ArrayOfArrayOfCiaRecord
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml                    _U_,
+                         const ArrayOfArrayOfCiaRecord& aacr _U_,
+                         bofstream* pbofs                   _U_,
+                         const String&  name                _U_,
+                         const                              Verbosity&)
+
+{
+  // FIXME: OLE: Implement this.
+  throw runtime_error("Boo. Not yet implemented.");
+} 
+
+
 //=== ArrayOfPpath =========================================================
 
 //! Reads ArrayOfPpath from XML input stream

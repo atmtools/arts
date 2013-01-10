@@ -87,6 +87,7 @@ TMPL_XML_READ_WRITE(Verbosity)
 
 TMPL_XML_READ_WRITE(Array<IsotopologueRecord> )
 TMPL_XML_READ_WRITE(Array<SpeciesRecord> )
+TMPL_XML_READ_WRITE(ArrayOfArrayOfCiaRecord)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfGriddedField1)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfGriddedField2)

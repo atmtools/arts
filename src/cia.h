@@ -52,20 +52,31 @@ void cia_interpolation(VectorView result,
  
  \author Stefan Buehler
  \date   2000-08-21  */
-class cia_record {
+class CiaRecord {
     
 public:
+
+    /** Set CIA species.
+     \param[in] first CIA Species
+     \param[in] second CIA Species
+     */
+    void SetSpecies(Index first, Index second)
+    {
+        mspecies[0] = first;
+        mspecies[1] = second;
+    }
+
     /** Vector version of extract.
 
-     Check whether there is a suitable dataset in the cia_record and do the 
+     Check whether there is a suitable dataset in the CiaRecord and do the 
      interpolation.
      
-     /param[out] result CIA value for given frequency grid and temperature.
-     /param[in] frequency Frequency grid
-     /param[in] temperature Scalar temparature */
-    void extract(VectorView result,
-                 ConstVectorView frequency,
-                 const Numeric& temperature) const
+     \param[out] result CIA value for given frequency grid and temperature.
+     \param[in] frequency Frequency grid
+     \param[in] temperature Scalar temparature */
+    void extract(VectorView /* result */,
+                 ConstVectorView /* frequency */,
+                 const Numeric& /* temperature */) const
     {
       // FIXME
     }
@@ -75,9 +86,9 @@ public:
      Use the vector version, if you can, it is more efficient. This is just a 
      convenience wrapper for it.
      
-     /param[out] Scalar CIA value at given frequency and temperature.
-     /param[in] frequency Scalar frequency
-     /param[in] temperature Scalar temparature */
+     \return Scalar CIA value at given frequency and temperature.
+     \param[in] frequency Scalar frequency
+     \param[in] temperature Scalar temparature */
     Numeric extract(const Numeric& frequency,
                     const Numeric& temperature) const
     {
@@ -88,6 +99,11 @@ public:
       
       return result[0];
     }
+
+    /** Read CIA catalog file. */
+    void ReadFromCia(const String& filename,
+                     const Verbosity& verbosity);
+    
 private:
     /** The data itself, directly from the HITRAN file. 
      
@@ -99,7 +115,7 @@ private:
      Gridded field dimension 2: Temperature.
      
      */
-    ArrayOfGriddedField2 data;
+    ArrayOfGriddedField2 mdata;
     /** The pair of molecules associated with these CIA data.
      
      Molecules are specified by their ARTS internal mspecies index! (This has
@@ -108,7 +124,11 @@ private:
      
      We use a plain C array here, since the length of this is always 2.
      */
-    Index species[2];
+    Index mspecies[2];
 };
+
+ostream& operator<<(ostream& os, const CiaRecord& cr);
+
+typedef Array< Array<CiaRecord> > ArrayOfArrayOfCiaRecord;
 
 #endif // cia_h

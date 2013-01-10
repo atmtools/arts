@@ -50,7 +50,8 @@ public:
                  misotopologue(-1),
                  mlf(0.),
                  muf(0.),
-                 mzeeman(false)
+                 mzeeman(false),
+                 mcia(-1)
   { /* Nothing to be done here. */ }
 
   // Documentation is with implementation.
@@ -78,6 +79,9 @@ public:
   /** Zeeman flag:
       If true, calculate Zeeman for this tag. */
   bool Zeeman() const { return mzeeman; }
+
+  /** Species index of the 2nd CIA species */
+  Index Cia() const { return mcia; }
 
   //! Comparison operator for species tags.
   /*!
@@ -123,6 +127,10 @@ private:
   //! Zeeman flag.
   /*! True if Zeeman calculation should be done for this tag. */
   bool mzeeman;
+    
+  //! 2nd CIA species index.
+  /*! Contains the species index of the second CIA species that should be used for this tag. */
+  Index mcia;
 };
 
 

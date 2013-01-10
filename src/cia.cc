@@ -30,6 +30,8 @@
 
 #include "cia.h"
 #include "interpolation_poly.h"
+#include "file.h"
+
 
 /** Interpolate CIA data.
  
@@ -37,10 +39,10 @@
  Uses third order interpolation in both coordinates, if grid length allows,
  otherwise lower order or no interpolation.
  
- /param[out] result CIA value for given frequency grid and temperature.
- /param[in] frequency Frequency grid
- /param[in] temperature Scalar temparature
- /param[in] cia_data The CIA dataset to interpolate */
+ \param[out] result CIA value for given frequency grid and temperature.
+ \param[in] frequency Frequency grid
+ \param[in] temperature Scalar temperature
+ \param[in] cia_data The CIA dataset to interpolate */
 void cia_interpolation(VectorView result,
                        ConstVectorView frequency,
                        const Numeric& temperature,
@@ -132,3 +134,39 @@ void cia_interpolation(VectorView result,
         interp(result_matrix, itw, cia_data.data, f_gp, T_gp);
       }
 }
+
+
+//! Read CIA catalog file.
+/*!
+ Reads the given CIA catalog file into this CiaRecord.
+
+ \param[in]  filename  Path of catalog file to read.
+ \param[in]  verbosity.
+ \return os
+ */
+void CiaRecord::ReadFromCia(const String& filename, const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+
+    ifstream is;
+
+    out2 << "  Reading file: " << filename << "\n";
+    open_input_file(is, filename);
+
+}
+
+
+//! Output operator for CiaRecord
+/*!
+ Outputs the grids for the given CiaRecord.
+
+ \param[in,out]  os  Output stream.
+ \param[in]      cr  CiaRecord.
+ \return os
+ */
+ostream& operator<<(ostream& os, const CiaRecord& /* cr */)
+{
+    os << "CiaRecord output operator not yet implemented." << endl;
+    return os;
+}
+
