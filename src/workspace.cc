@@ -371,13 +371,13 @@ void Workspace::define_wsv_data()
        (
         "An absorption lookup table.\n"
         "\n"
-        "This holds an absorption lookup table, as well as all information that\n"
+        "It holds an absorption lookup table, as well as all information that\n"
         "is necessary to use the table to extract absorption. Extraction\n"
         "routines are implemented as member functions. \n"
         "\n"
-        "This has quite a complicated structure. See Doxygen documentation for\n"
-        "class GasAbsLookup for details. See also the Arts User Guide, \n"
-        "Chapter 3.1 (\"The gas absorption lookup table\").\n"
+        "It has quite a complicated structure. See Doxygen documentation for\n"
+        "class GasAbsLookup for details. See also the Arts User Guide \n"
+        "Section \"The gas absorption lookup table\".\n"
         ), 
        GROUP( "GasAbsLookup" )));
 

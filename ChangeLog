@@ -1,3 +1,24 @@
+2013-01-10  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-437
+
+	* src/absorption.cc (calc_gamma_and_deltaf_artscat4):
+	Set in effect catch for broad_spec_vmr_sum==0 with additional catch of
+	vmr_self==0 simultaneously (that can happen now that we apply
+	zero-padding in AtmFieldsCalc when p_grid exceeds range of all gas
+	profiles of the atm scenario).
+	!!! In the latter case, xsec will be 0 - needs to be confirmed whether
+	this is consistent with the general use of LUT (in general,
+	abscoefs=xsec*vmr are 0 for vmr=0, but xsec are defined to be
+	independent of vmr. that is, with the current solution we could get
+	problems when trying to use this LUT for non-zero vmr) !!!
+
+	* src/m_abs_lookup.cc (abs_lookupInit):
+	Proper initialization of (empty) abs_lookup.
+
+	* src/workspace.cc (abs_lookup):
+	Corrected reference to corresponding section in AUG.
+
 2013-01-07  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-436

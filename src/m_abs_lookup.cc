@@ -47,12 +47,13 @@ extern const Index GFIELD4_P_GRID;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupInit(GasAbsLookup& /* x */, const Verbosity& verbosity)
+void abs_lookupInit(GasAbsLookup& x, const Verbosity& verbosity)
 {
   ArtsOut2 out2(verbosity);
   // Nothing to do here.
   // That means, we rely on the default constructor.
 
+  x = GasAbsLookup();
   out2 << "  Created an empty gas absorption lookup table.\n";
 }
 

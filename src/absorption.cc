@@ -2795,18 +2795,24 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
     
     // Normalize foreign gamma and deltaf with the foreign VMR sum (but only if
     // we have any foreign broadening species):
-//    if (broad_spec_vmr_sum != 0.)
-//      {
+    if (broad_spec_vmr_sum != 0.)
+      {
         gamma_foreign /= broad_spec_vmr_sum;
         deltaf        /= broad_spec_vmr_sum;
-/*      }
-    else
+      }
+    else if (p_self > 0.)
     // If there are no foreign broadening species present, the best assumption
-    // we can make is to use gamma_self for everything:
+    // we can make is to use gamma_self in place of gamma_foreign. for deltaf
+    // there is no equivalent solution, as we don't have a Delta_self and don't
+    // know which other Delta we should apply (in this case delta_f gets 0,
+    // which should be okayish):
       {
         gamma_foreign = gamma/p_self;
       }
-*/    
+    // It can happen that broad_spec_vmr_sum==0 AND p_self==0 (e.g., when p_grid
+    // exceeds the given atmosphere and zero-padding is applied). In this case,
+    // both gamma_foreign and deltaf are 0 and we leave it like that.
+
     // Multiply by pressure. For the width we take only the foreign pressure.
     // This is consistent with that we have scaled with the sum of all foreign
     // broadening VMRs. In this way we make sure that the total foreign broadening
