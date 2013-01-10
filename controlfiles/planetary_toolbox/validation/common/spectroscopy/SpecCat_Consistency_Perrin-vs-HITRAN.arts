@@ -85,13 +85,14 @@ abs_lookupSetup
 abs_lookupCalc
 WriteXML( "ascii", abs_lookup, "ARTS3-from-HITRAN08_LUT_inatm.xml" )
 
-# calculate abs matrix field (the field of vector abscoeffs)
-abs_mat_fieldCalc
-WriteXML( "ascii", abs_mat_field, "ARTS3-from-HITRAN08_absmatfield_inatm.xml" )
-
-# calculate abs matrix field (the field of vector abscoeffs)
+# calculate scalar abs coefs on LUT's p-grid (abs_p)
 abs_coefCalc
 WriteXML( "ascii", abs_coef_per_species, "ARTS3-from-HITRAN08_abscoef_inatm.xml" )
+
+# calculate abs matrix field (the field of vector abscoeffs) on the case's
+#   atmospheric grid (p/lat/lon_grid)
+abs_mat_fieldCalc
+WriteXML( "ascii", abs_mat_field, "ARTS3-from-HITRAN08_absmatfield_inatm.xml" )
 
 
 #######
@@ -106,11 +107,16 @@ abs_lines_per_speciesCreateFromLines
 # create the LUT
 abs_lookupSetup
 abs_lookupCalc
-WriteXML( "ascii", abs_lookup, "ARTS4-from-HITRAN08_LUT.xml" )
+WriteXML( "ascii", abs_lookup, "ARTS4-from-HITRAN08_LUT_inatm.xml" )
 
-# calculate abs matrix field (the field of vector abscoeffs)
+# calculate scalar abs coefs on LUT's p-grid (abs_p)
+abs_coefCalc
+WriteXML( "ascii", abs_coef_per_species, "ARTS4-from-HITRAN08_abscoef_inatm.xml" )
+
+# calculate abs matrix field (the field of vector abscoeffs) on the case's
+#   atmospheric grid (p/lat/lon_grid)
 abs_mat_fieldCalc
-WriteXML( "ascii", abs_mat_field, "ARTS4-from-HITRAN08_absmatfield.xml" )
+WriteXML( "ascii", abs_mat_field, "ARTS4-from-HITRAN08_absmatfield_inatm.xml" )
 
 
 #######
@@ -125,11 +131,16 @@ abs_lines_per_speciesCreateFromLines
 # create the LUT
 abs_lookupSetup
 abs_lookupCalc
-WriteXML( "ascii", abs_lookup, "Perrin_LUT.xml" )
+WriteXML( "ascii", abs_lookup, "Perrin_LUT_inatm.xml" )
 
-# calculate abs matrix field (the field of vector abscoeffs)
+# calculate scalar abs coefs on LUT's p-grid (abs_p)
+abs_coefCalc
+WriteXML( "ascii", abs_coef_per_species, "Perrin_abscoef_inatm.xml" )
+
+# calculate abs matrix field (the field of vector abscoeffs) on the case's
+#   atmospheric grid (p/lat/lon_grid)
 abs_mat_fieldCalc
-WriteXML( "ascii", abs_mat_field, "Perrin_absmatfield.xml" )
+WriteXML( "ascii", abs_mat_field, "Perrin_absmatfield_inatm.xml" )
 
 
 #-------------------------------------------------------------------------------
@@ -159,13 +170,14 @@ abs_lookupSetup
 abs_lookupCalc
 WriteXML( "ascii", abs_lookup, "ARTS3-from-HITRAN08_LUT_outatm.xml" )
 
-# calculate abs matrix field (the field of vector abscoeffs)
-abs_mat_fieldCalc
-WriteXML( "ascii", abs_mat_field, "ARTS3-from-HITRAN08_absmatfield_outatm.xml" )
-
-# calculate abs matrix field (the field of vector abscoeffs)
+# calculate scalar abs coefs on LUT's p-grid (abs_p)
 abs_coefCalc
 WriteXML( "ascii", abs_coef_per_species, "ARTS3-from-HITRAN08_abscoef_outatm.xml" )
+
+# calculate abs matrix field (the field of vector abscoeffs) on the case's
+#   atmospheric grid (p/lat/lon_grid)
+abs_mat_fieldCalc
+WriteXML( "ascii", abs_mat_field, "ARTS3-from-HITRAN08_absmatfield_outatm.xml" )
 
 
 #######
@@ -182,13 +194,14 @@ abs_lookupSetup
 abs_lookupCalc
 WriteXML( "ascii", abs_lookup, "ARTS4-from-HITRAN08_LUT_outatm.xml" )
 
-# calculate abs matrix field (the field of vector abscoeffs)
-abs_mat_fieldCalc
-WriteXML( "ascii", abs_mat_field, "ARTS4-from-HITRAN08_absmatfield_outatm.xml" )
-
-# calculate abs matrix field (the field of vector abscoeffs)
+# calculate scalar abs coefs on LUT's p-grid (abs_p)
 abs_coefCalc
 WriteXML( "ascii", abs_coef_per_species, "ARTS4-from-HITRAN08_abscoef_outatm.xml" )
+
+# calculate abs matrix field (the field of vector abscoeffs) on the case's
+#   atmospheric grid (p/lat/lon_grid)
+abs_mat_fieldCalc
+WriteXML( "ascii", abs_mat_field, "ARTS4-from-HITRAN08_absmatfield_outatm.xml" )
 
 
 #######
@@ -205,12 +218,13 @@ abs_lookupSetup
 abs_lookupCalc
 WriteXML( "ascii", abs_lookup, "Perrin_LUT_outatm.xml" )
 
-# calculate abs matrix field (the field of vector abscoeffs)
-abs_mat_fieldCalc
-WriteXML( "ascii", abs_mat_field, "Perrin_absmatfield_outatm.xml" )
-
-# calculate abs matrix field (the field of vector abscoeffs)
+# calculate scalar abs coefs on LUT's p-grid (abs_p)
 abs_coefCalc
 WriteXML( "ascii", abs_coef_per_species, "Perrin_abscoef_outatm.xml" )
+
+# calculate abs matrix field (the field of vector abscoeffs) on the case's
+#   atmospheric grid (p/lat/lon_grid)
+abs_mat_fieldCalc
+WriteXML( "ascii", abs_mat_field, "Perrin_absmatfield_outatm.xml" )
 
 }

@@ -129,6 +129,9 @@ void Workspace::define_wsv_data()
        (
         "The matrix of total scalar absorption coefficients.\n"
         "\n"
+        "Contains the gas absorption summed over all species as a function of\n"
+        "*f_grid* and *abs_p*, i.e., for a single atmospheric profile.\n"
+        "\n"
         "This variable is not used explicitly in a standard calculation, where\n"
         "absorption comes from the lookup table *abs_lookup*. However, it is\n"
         "useful for testing the methods that actually calculate line-by-line\n"
@@ -149,8 +152,8 @@ void Workspace::define_wsv_data()
        (
         "Scalar absorption coefficients individually per tag group.\n"
         "\n"
-        "The Array contains one matrix of absorption coefficients for each tag\n"
-        " group, where the matrix format is the same as that of *abs_coef*\n"
+        "The Array contains one matrix of absorption coefficients for each\n"
+        "tag group, where the matrix format is the same as that of *abs_coef*\n"
         ),
        GROUP( "ArrayOfMatrix" )));
 
@@ -386,9 +389,9 @@ void Workspace::define_wsv_data()
         "is necessary to use the table to extract absorption. Extraction\n"
         "routines are implemented as member functions. \n"
         "\n"
-        "It has quite a complicated structure. See Doxygen documentation for\n"
-        "class GasAbsLookup for details. See also the Arts User Guide \n"
-        "Section \"The gas absorption lookup table\".\n"
+        "It has quite a complicated structure. For details see the Arts User\n"
+        "Guide section \"The gas absorption lookup table\" or the source code\n"
+        "documentation in gas_abs_lookup.h.\n"
         ), 
        GROUP( "GasAbsLookup" )));
 
@@ -514,8 +517,8 @@ void Workspace::define_wsv_data()
       (
        "Gas absorption field.\n"
        "\n"
-       "Contains the gas absorption for all species as a function of\n"
-       "*f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
+       "Contains the (polarized) gas absorption coefficients for all species\n"
+       "as a function of *f_grid*, *p_grid*, *lat_grid*, and *lon_grid*. \n"
        "\n"
        "This is mainly for testing and plotting gas absorption. For RT\n"
        "calculations, gas absorption is calculated or extracted locally,\n"
@@ -524,7 +527,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       1/m\n"
        "\n"
-       "Dimensions: [species, f_grid, stokes_dim, stokes_dim, p_grid, lat_grid, lon_grid]\n"
+       "Dimensions: [species, f_grid, *stokes_dim*, stokes_dim, p_grid, lat_grid, lon_grid]\n"
         ),
       GROUP( "Tensor7" )));
 

@@ -226,10 +226,11 @@ void define_md_data_raw()
       ( NAME( "abs_coefCalc" ),
         DESCRIPTION
         (
-         "Calculate absorption coefficients.\n"
+         "Calculate (scalar) absorption coefficients.\n"
          "\n"
          "This function calculates both the total absorption (*abs_coef*), and\n"
-         "the absorption per species (*abs_coef_per_species*).\n"
+         "the absorption per species (*abs_coef_per_species*) for a single set\n"
+         "of atmospheric profiles (*abs_p*, *abs_t*, *abs_vmrs*).\n"
          "\n"
          "The method calls four other  methods:\n"
          "\n"
@@ -1249,7 +1250,8 @@ void define_md_data_raw()
       ( NAME( "abs_mat_fieldCalc" ),
         DESCRIPTION
         (
-         "Calculate gas absorption for all points in the atmosphere.\n"
+         "Calculate (vector) gas absorption coefficients for all points in the\n"
+         "atmosphere.\n"
          "\n"
          "This is useful in two different contexts:\n"
          "\n"

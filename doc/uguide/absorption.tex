@@ -628,6 +628,37 @@ be used inside the agenda \wsaindex{abs\_mat\_per\_species\_agenda},
 which is used in several places where absorption matrices are
 needed, both inside the scattering box and outside.
 
+\subsection{Format of the lookup table}
+Usually the user does not need to bother with it, as ARTS provides methods to
+create, read and write, and extract data from the lookup table. However,
+sometimes one desires to analyze, e.g., the absorption cross section data
+calculated and sored in the lookup table. Therefore we give a short description
+of the format of the absorption lookup table here. More detailed information can
+be found in the source code, where the \typeindex{GasAbsLookup} class is
+implemented -- specifically in \fileindex{gas\_abs\_lookup.h}.
+
+The absorption lookup table is a compound type variable comprising of (in this
+order; variable type of each entry shown in parantheses)
+\begin{itemize}
+\item \textbf{species:} an array of the species tags the lookup table is valid for
+(ArrayOfArrayOfSpeciesTag)
+\item \textbf{nonlinear\_species:} an array indicating the species that require non-linear treatment
+(ArrayOfIndex)
+\item \textbf{f\_grid:} the frequency grid (Vector)
+\item \textbf{p\_grid:} the pressure grid (Vector)
+\item \textbf{vmrs\_ref:} the reference profiles of volume mixing ratios (VMRs) for all species
+associated with the pressure (Matrix; dimension: [number of species, number of
+pressure levels])
+\item \textbf{t\_ref:} the reference temperature profile associated with the
+pressure grid (Vector)
+\item \textbf{t\_pert:} the temperature perturbations (Vector)
+\item \textbf{nls\_pert:} the VMR perturbations of the non-linear species in
+terms of fractional units of the reference VMRs (Vector)
+\item \textbf{xsec:} the absorption cross sections (Tensor4; dimension: [number
+of temperature perturbations, number of species (and non-linear species
+perturbations), number of frequencies, number of pressure levels])
+\end{itemize}
+
 \section{Stand-alone gas absorption calculation}
 \label{sec:absorption:abs-only}
 
