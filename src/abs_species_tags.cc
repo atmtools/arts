@@ -400,9 +400,6 @@ String get_tag_group_name( const ArrayOfSpeciesTag& tg )
 */
 String get_species_name( const ArrayOfSpeciesTag& tg )
 {
-  // Species lookup data:
-  extern const Array<SpeciesRecord> species_data;
-
   // Get species index of first tag:
   Index spec_ind = tg[0].Species();
 
@@ -419,11 +416,8 @@ String get_species_name( const ArrayOfSpeciesTag& tg )
           throw runtime_error( os.str() );
         }
     }
-  
-  // A reference to the relevant record of the species data:
-  const  SpeciesRecord& spr = species_data[spec_ind];
 
-  return spr.Name();
+  return species_name_from_species_index( spec_ind );
 }
 
 //! Find first occurrence of species in tag groups.
@@ -545,6 +539,37 @@ Index species_index_from_species_name( String name )
   return mspecies;
 }
 
+//! Return species name for given species index.
+/*!
+ This is useful in connection with other functions that use a species
+ index.
+ 
+ Does an assertion that the index really corresponds to a species.
+ 
+ \param spec_ind Species index.
+ 
+ \return Species name
+ 
+ \author Stefan Buehler
+ \date   2013-01-04
+ */
+String species_name_from_species_index( const Index spec_ind )
+{
+    // Species lookup data:
+    extern const Array<SpeciesRecord> species_data;
+
+    // Assert that spec_ind is inside species data. (This is an assertion,
+    // because species indices should never be user input, but set by the
+    // program automatically, based on species names.)
+    assert( spec_ind>=0 );
+    assert( spec_ind<species_data.nelem() );
+    
+    // A reference to the relevant record of the species data:
+    const  SpeciesRecord& spr = species_data[spec_ind];
+    
+    return spr.Name();
+}
+    
 //! Converts a String to ArrayOfSpeciesTag
 /*!
    This function is used when preparing strings read from e.g. control

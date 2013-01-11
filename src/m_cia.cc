@@ -1,4 +1,5 @@
-/* Copyright (C) 2012 Oliver Lemke <olemke@core-dump.info>
+/* Copyright (C) 2012 Oliver Lemke <olemke@core-dump.info> and Stefan 
+   Buehler <sbuehler@ltu.se>. 
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,6 +19,7 @@
 /*!
   \file   m_cia.cc
   \author Oliver Lemke <olemke@core-dump.info>
+  \author Stefan Buehler
   \date   2012-12-04
 
   \brief  Workspace methods for CIA catalog.
@@ -35,6 +37,23 @@ void abs_cia_dataInit(// WS Output:
                      const Verbosity&)
 {
     abs_cia_data.resize(0);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_per_speciesAddCIA(// WS Output:
+                                ArrayOfMatrix& abs_xsec_per_species,
+                                // WS Input:
+                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const Vector& f_grid,
+                                const Vector& abs_p,
+                                const Vector& abs_t,
+                                const Matrix& abs_vmrs,
+                                const ArrayOfArrayOfCiaRecord& abs_cia_data,
+                                // Verbosity object:
+                                const Verbosity& verbosity)
+{
+  // FIXME
 }
 
 

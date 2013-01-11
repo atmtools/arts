@@ -55,7 +55,31 @@ void cia_interpolation(VectorView result,
 class CiaRecord {
     
 public:
+    /** Return each molecule name (as a string) that is associated with this CiaRecord.
+     
+     The CiaRecord is defined for a pair of molecules!
+     
+     \param[in] i Must be either 0 or 1. Then the first or second name of the pair 
+                  is returned.
+     
+     */
+    String get_molecule_name(const Index i) const;
+    
+    
+    /** Set each molecule name (from a string) that is associated with this CiaRecord.
+     
+     The CiaRecord is defined for a pair of molecules. The molecule names are 
+     internally stored as species indices.
+     
+     \param[in] i Must be either 0 or 1. Then the first or second name of the pair
+     is returned.
+     \param[in] name The molecule name as a string, e.g., "H2O".
+     
+     */
+    void set_molecule_name(const Index i,
+                           const String& name);
 
+     
     /** Set CIA species.
      \param[in] first CIA Species
      \param[in] second CIA Species
@@ -81,6 +105,7 @@ public:
       // FIXME
     }
 
+    
     /** Scalar version of extract.
      
      Use the vector version, if you can, it is more efficient. This is just a 
@@ -126,6 +151,7 @@ private:
      */
     Index mspecies[2];
 };
+
 
 ostream& operator<<(ostream& os, const CiaRecord& cr);
 

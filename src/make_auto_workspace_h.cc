@@ -58,14 +58,15 @@ int main()
           << "#include \"m_general.h\"\n"
           << "#include \"supergeneric.h\"\n"
           << "#include \"ppath.h\"\n"
-          << "#include \"gas_abs_lookup.h\"\n\n"
-          << "#include \"optproperties.h\"\n\n"
-          << "#include \"gridded_fields.h\"\n\n"
-          << "#include \"jacobian.h\"\n\n"
-          << "#include \"agenda_class.h\"\n\n"
-          << "#include \"cia.h\"\n\n"
-          << "#include \"mc_interp.h\"\n\n"
-          << "#include \"mc_antenna.h\"\n\n";
+          << "#include \"gas_abs_lookup.h\"\n"
+          << "#include \"optproperties.h\"\n"
+          << "#include \"gridded_fields.h\"\n"
+          << "#include \"jacobian.h\"\n"
+          << "#include \"agenda_class.h\"\n"
+          << "#include \"mc_interp.h\"\n"
+          << "#include \"mc_antenna.h\"\n"
+          << "#include \"cia.h\"\n"
+          << "\n";
 
       ////////////////////////////////////////////////////////////////////
       // WorkspaceMemoryHandler class

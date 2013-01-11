@@ -165,6 +165,8 @@ String get_species_name( const ArrayOfSpeciesTag& tg );
 
 Index species_index_from_species_name( String name );
 
+String species_name_from_species_index( const Index spec_ind );
+
 Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
                              const Index& spec );
 

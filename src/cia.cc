@@ -30,6 +30,7 @@
 
 #include "cia.h"
 #include "interpolation_poly.h"
+#include "abs_species_tags.h"
 #include "file.h"
 
 
@@ -133,6 +134,43 @@ void cia_interpolation(VectorView result,
         // Actual interpolation:
         interp(result_matrix, itw, cia_data.data, f_gp, T_gp);
       }
+}
+
+
+// Documentation in header file.
+String CiaRecord::get_molecule_name(const Index i) const
+{
+    // Assert that i is 0 or 1:
+    assert(i>=0);
+    assert(i<=1);
+
+    // The function species_name_from_species_index internally does an assertion
+    // that the species with this index really exists.
+    return species_name_from_species_index( mspecies[i] );
+}
+
+// Documentation in header file.
+void CiaRecord::set_molecule_name(const Index i,
+                       const String& name)
+{
+    // Assert that i is 0 or 1:
+    assert(i>=0);
+    assert(i<=1);
+    
+    // Find out the species index for name:
+    Index spec_ind = species_index_from_species_name(name);
+
+    // Function species_index_from_species_name returns -1 if the species does
+    // not exist. Check this:
+    if ( spec_ind < 0 )
+      {
+        ostringstream os;
+        os << "Species does not exist in ARTS: " << name;
+        throw runtime_error(os.str());
+      }
+
+    // Assign species:
+    mspecies[i] = spec_ind;
 }
 
 

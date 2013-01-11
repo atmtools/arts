@@ -110,15 +110,36 @@ void Workspace::define_wsv_data()
     Patrick Eriksson 2002-05-08
   ----------------------------------------------------------------------*/
 
-  // New name: abs_coef
   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_cia_data" ),
+    (WsvRecord
+     ( NAME( "abs_cia_data" ),
       DESCRIPTION
       (
-       "Cia catalog.\n"
-       "Outer dimension corresponds to species in *abs_species*.\n"
-       "Inner dimension contains one element for each CIA species tag.\n"
+       "HITRAN Collision Induced Absorption (CIA) Data\n"
+       "\n"
+       "This variable holds HITRAN CIA data. The data itself is described in:\n"
+       "Richard, C. et al. (2012), New section of the HITRAN database:\n"
+       "Collision-induced absorption (CIA), J. Quant. Spectrosc. Radiat.\n"
+       "Transfer, 113, 1276-1285, doi:10.1016/j.jqsrt.2011.11.004.\n"
+       " \n"
+       "Dimensions: \n"
+       "\n"
+       "The outer array dimension in the ArrayOfArrayOfCiaRecord\n"
+       "is the same as that of *abs_species*. There will be CIA data only for\n"
+       "those species that contain a CIA tag, for all other species it will be\n"
+       "empty. The inner array dimension corresponds to the number of CIA tags\n"
+       "for this species (there could be for example both N2-N2 and N2-H2) in\n"
+       "the same species.\n"
+       "\n"
+       "FIXME: Somewhere there should be a description of the CIA tag system.\n"
+       "\n"
+       "Each individual CiaRecord holds the complete information from one\n"
+       "HITRAN CIA file. For the given pair of molecules A HITRAN CIA data\n"
+       "file can hold several datasets (data for different temperatures but\n"
+       "fixed frequency range).\n"
+       "\n"
+       "Units: The data is in the original HITRAN units of cm^5*molecule^-2\n"
+       "       FIXME: Better use our own SI units?\n"
        ),
       GROUP( "ArrayOfArrayOfCiaRecord" )));
 

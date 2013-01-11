@@ -649,9 +649,9 @@ int main()
           << "#include \"jacobian.h\"\n"
           << "#include \"mc_antenna.h\"\n"
           << "#include \"m_general.h\"\n"
-          << "#include \"cia.h\"\n"
           << "#include \"parser.h\"\n"
           << "#include \"workspace_ng.h\"\n"
+          << "#include \"cia.h\"\n"
           << "\n";
 
       ofs << "// This is only used for a consistency check. You can get the\n"

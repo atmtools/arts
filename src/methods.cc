@@ -1683,6 +1683,26 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+     ( NAME( "abs_xsec_per_speciesAddCIA" ),
+      DESCRIPTION
+      (
+       "Calculate absorption cross sections per tag group for HITRAN CIA continua.\n"
+       ),
+      AUTHORS( "Stefan Buehler" ),
+      OUT( "abs_xsec_per_species" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_xsec_per_species", "abs_species", "f_grid", "abs_p", "abs_t",
+          "abs_vmrs", "abs_cia_data" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "abs_xsec_per_speciesAddConts" ),
         DESCRIPTION
         (
@@ -1693,7 +1713,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
+        IN( "abs_xsec_per_species", "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
             "abs_vmrs", "abs_cont_names", "abs_cont_parameters",
             "abs_cont_models" ),
         GIN(),
@@ -1715,7 +1735,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "f_grid", "abs_p", "abs_t", 
+        IN( "abs_xsec_per_species", "abs_species", "f_grid", "abs_p", "abs_t",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "isotopologue_ratios" ),
         GIN(),

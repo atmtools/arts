@@ -1,3 +1,29 @@
+2013-01-11  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-442
+
+	* src/abs_species_tags.{h,cc} (species_name_from_species_index): Added
+	this new helper function.
+
+	* src/m_cia.cc (abs_xsec_per_speciesAddCIA): Added stubb for this method.
+
+	* src/make_auto_md_h.cc: Cosmetics.
+
+	* src/make_auto_workspace_h.cc: Cosmetics.
+
+	* src/methods.cc (abs_xsec_per_speciesAddCIA): Added.
+	(abs_xsec_per_speciesAddConts): Added missing abs_xsec_per_species
+	in input list.
+	(abs_xsec_per_speciesAddLines): Added missing abs_xsec_per_species
+	in input list.
+
+	* src/cia.{h,cc}: More members for CiaRecord: get_molecule_name,
+	set_molecule_name.
+
+	* src/CMakeLists.txt: Added m_cia.cc to target test_cia.
+
+	* src/workspace.cc (abs_cia_data): More extensive built-in documentation.
+
 2013-01-10  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-441
