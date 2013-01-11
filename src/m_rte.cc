@@ -663,6 +663,9 @@ void iyEmissionStandard(
                                   dkdx2 =
                                     (ppath_aww(joker,iv,0,0,ip+1).sum()-k2)/dw;
                                 }
+                              else
+                                { assert(0); }
+
                               // Stokes component 1
                               diy_dpath[iq](ip  ,iv,0) += Y[iv] * dkdx1;
                               diy_dpath[iq](ip+1,iv,0) += Y[iv] * dkdx2;

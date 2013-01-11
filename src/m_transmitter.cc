@@ -1123,6 +1123,9 @@ void iyTransmissionStandard(
                                   dkdx2 =
                                     (ppath_aww(joker,iv,0,0,ip+1).sum()-k2)/dw;
                                 }
+                              else
+                                { assert(0); }
+
                               // All Stokes components equal
                               for( Index is=0; is<stokes_dim; is++ )
                                 { 
