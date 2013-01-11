@@ -124,7 +124,7 @@ void Workspace::define_wsv_data()
        " \n"
        "Dimensions: \n"
        "\n"
-       "The outer array dimension in the ArrayOfArrayOfCiaRecord\n"
+       "The outer array dimension in the ArrayOfArrayOfCIARecord\n"
        "is the same as that of *abs_species*. There will be CIA data only for\n"
        "those species that contain a CIA tag, for all other species it will be\n"
        "empty. The inner array dimension corresponds to the number of CIA tags\n"
@@ -133,7 +133,7 @@ void Workspace::define_wsv_data()
        "\n"
        "FIXME: Somewhere there should be a description of the CIA tag system.\n"
        "\n"
-       "Each individual CiaRecord holds the complete information from one\n"
+       "Each individual CIARecord holds the complete information from one\n"
        "HITRAN CIA file. For the given pair of molecules A HITRAN CIA data\n"
        "file can hold several datasets (data for different temperatures but\n"
        "fixed frequency range).\n"
@@ -141,7 +141,7 @@ void Workspace::define_wsv_data()
        "Units: The data is in the original HITRAN units of cm^5*molecule^-2\n"
        "       FIXME: Better use our own SI units?\n"
        ),
-      GROUP( "ArrayOfArrayOfCiaRecord" )));
+      GROUP( "ArrayOfArrayOfCIARecord" )));
 
   wsv_data.push_back
     (WsvRecord

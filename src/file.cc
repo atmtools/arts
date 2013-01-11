@@ -494,7 +494,7 @@ void list_directory(ArrayOfString& files, String dirname)
 
     while ((dirp = readdir(dp)) != NULL)
     {
-        files.push_back(string(dirp->d_name));
+        files.push_back(String(dirp->d_name));
     }
 
     closedir(dp);

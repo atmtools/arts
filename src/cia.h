@@ -52,23 +52,23 @@ void cia_interpolation(VectorView result,
  
  \author Stefan Buehler
  \date   2000-08-21  */
-class CiaRecord {
+class CIARecord {
     
 public:
-    /** Return each molecule name (as a string) that is associated with this CiaRecord.
+    /** Return each molecule name (as a string) that is associated with this CIARecord.
      
-     The CiaRecord is defined for a pair of molecules!
+     The CIARecord is defined for a pair of molecules!
      
      \param[in] i Must be either 0 or 1. Then the first or second name of the pair 
                   is returned.
      
      */
-    String get_molecule_name(const Index i) const;
+    String MoleculeName(const Index i) const;
     
     
-    /** Set each molecule name (from a string) that is associated with this CiaRecord.
+    /** Set each molecule name (from a string) that is associated with this CIARecord.
      
-     The CiaRecord is defined for a pair of molecules. The molecule names are 
+     The CIARecord is defined for a pair of molecules. The molecule names are 
      internally stored as species indices.
      
      \param[in] i Must be either 0 or 1. Then the first or second name of the pair
@@ -76,8 +76,8 @@ public:
      \param[in] name The molecule name as a string, e.g., "H2O".
      
      */
-    void set_molecule_name(const Index i,
-                           const String& name);
+    void SetMoleculeName(const Index i,
+                         const String& name);
 
      
     /** Set CIA species.
@@ -90,15 +90,16 @@ public:
         mspecies[1] = second;
     }
 
+
     /** Vector version of extract.
 
-     Check whether there is a suitable dataset in the CiaRecord and do the 
+     Check whether there is a suitable dataset in the CIARecord and do the 
      interpolation.
      
      \param[out] result CIA value for given frequency grid and temperature.
      \param[in] frequency Frequency grid
      \param[in] temperature Scalar temparature */
-    void extract(VectorView /* result */,
+    void Extract(VectorView /* result */,
                  ConstVectorView /* frequency */,
                  const Numeric& /* temperature */) const
     {
@@ -114,33 +115,43 @@ public:
      \return Scalar CIA value at given frequency and temperature.
      \param[in] frequency Scalar frequency
      \param[in] temperature Scalar temparature */
-    Numeric extract(const Numeric& frequency,
+    Numeric Extract(const Numeric& frequency,
                     const Numeric& temperature) const
     {
       Vector result(1);
       const Vector freqvec(1, frequency);
       
-      extract(result, freqvec, temperature);
+      Extract(result, freqvec, temperature);
       
       return result[0];
     }
 
+
     /** Read CIA catalog file. */
-    void ReadFromCia(const String& filename,
+    void ReadFromCIA(const String& filename,
                      const Verbosity& verbosity);
     
 private:
+
+    /** Append dataset to mdata. */
+    void AppendDataset(const Vector& freq,
+                       const ArrayOfNumeric& temp,
+                       const ArrayOfVector& cia);
+
+
     /** The data itself, directly from the HITRAN file. 
      
      Dimensions:
      Array dimension: Dataset. One file (one molecule pair) can have
                             different datasets, typically for different temperature
                             or frequency ranges.
-     Gridded field dimension 1: Frequency.
-     Gridded field dimension 2: Temperature.
+     Gridded field dimension 1: Frequency [Hz].
+     Gridded field dimension 2: Temperature [K].
+     Data: FIXME: Document units!!!
      
      */
     ArrayOfGriddedField2 mdata;
+
     /** The pair of molecules associated with these CIA data.
      
      Molecules are specified by their ARTS internal mspecies index! (This has
@@ -153,8 +164,8 @@ private:
 };
 
 
-ostream& operator<<(ostream& os, const CiaRecord& cr);
+ostream& operator<<(ostream& os, const CIARecord& cr);
 
-typedef Array< Array<CiaRecord> > ArrayOfArrayOfCiaRecord;
+typedef Array< Array<CIARecord> > ArrayOfArrayOfCIARecord;
 
 #endif // cia_h

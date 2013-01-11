@@ -105,7 +105,7 @@ TMPL_NC_READ_WRITE_FILE(SpeciesTag)
 
 TMPL_NC_READ_WRITE_FILE(Array<IsotopologueRecord> )
 TMPL_NC_READ_WRITE_FILE(Array<SpeciesRecord> )
-TMPL_NC_READ_WRITE_FILE(ArrayOfArrayOfCiaRecord)
+TMPL_NC_READ_WRITE_FILE(ArrayOfArrayOfCIARecord)
 TMPL_NC_READ_WRITE_FILE(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_NC_READ_WRITE_FILE(ArrayOfArrayOfGriddedField1)
 TMPL_NC_READ_WRITE_FILE(ArrayOfArrayOfGriddedField3)

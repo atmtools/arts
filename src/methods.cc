@@ -2812,7 +2812,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_cia_dataReadFromCia" ),
+      ( NAME( "abs_cia_dataReadFromCIA" ),
         DESCRIPTION
         (
          "Read data from an CIA catalogue for all CIA molecules defined\n"

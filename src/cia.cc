@@ -33,6 +33,7 @@
 #include "abs_species_tags.h"
 #include "file.h"
 
+extern const Numeric SPEED_OF_LIGHT;
 
 /** Interpolate CIA data.
  
@@ -138,7 +139,7 @@ void cia_interpolation(VectorView result,
 
 
 // Documentation in header file.
-String CiaRecord::get_molecule_name(const Index i) const
+String CIARecord::MoleculeName(const Index i) const
 {
     // Assert that i is 0 or 1:
     assert(i>=0);
@@ -150,8 +151,8 @@ String CiaRecord::get_molecule_name(const Index i) const
 }
 
 // Documentation in header file.
-void CiaRecord::set_molecule_name(const Index i,
-                       const String& name)
+void CIARecord::SetMoleculeName(const Index i,
+                                const String& name)
 {
     // Assert that i is 0 or 1:
     assert(i>=0);
@@ -176,13 +177,13 @@ void CiaRecord::set_molecule_name(const Index i,
 
 //! Read CIA catalog file.
 /*!
- Reads the given CIA catalog file into this CiaRecord.
+ Reads the given CIA catalog file into this CIARecord.
 
  \param[in]  filename  Path of catalog file to read.
  \param[in]  verbosity.
  \return os
  */
-void CiaRecord::ReadFromCia(const String& filename, const Verbosity& verbosity)
+void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
 {
     CREATE_OUT2;
 
@@ -191,20 +192,189 @@ void CiaRecord::ReadFromCia(const String& filename, const Verbosity& verbosity)
     out2 << "  Reading file: " << filename << "\n";
     open_input_file(is, filename);
 
+    // Number of points for spectral range in current dataset
+    Index npoints = -1;
+
+    // Min/max wave numbers for this dataset
+    Numeric wave_min = -1.;
+    Numeric wave_max = -1.;
+
+    // Current dataset index
+    Index ndataset = -1;
+
+    // Current set in dataset
+    Index nset = -1;
+
+    // Frequency, temp and cia values for current dataset
+    Vector freq;
+    ArrayOfNumeric temp;
+    ArrayOfVector cia;
+
+    // Keep track of current line in file
+    Index nline = 0;
+
+    mdata.resize(0);
+    while (is)
+    {
+        String line;
+
+        // Extract needed information from dataset header line
+        //////////////////////////////////////////////////////
+        nline++;
+        getline(is,line);
+        if (is.eof()) continue;
+
+        if (line.nelem() < 100)
+        {
+            ostringstream os;
+            os << "Error in line " << nline
+            << " reading CIA catalog file " << filename << endl
+            << "Header line unexpectedly short: " << endl << line;
+
+            throw runtime_error(os.str());
+        }
+
+        if (is.bad())
+        {
+            ostringstream os;
+            os << "Error in line " << nline
+            << " reading CIA catalog file " << filename << endl;
+
+            throw runtime_error(os.str());
+        }
+
+        line.erase(0, 20);
+
+        istringstream istr(line);
+
+        // Data for current set
+        Index set_npoints;
+        Numeric set_temp;
+        Numeric set_wave_min, set_wave_max;
+
+        istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
+        if (!istr)
+        {
+            ostringstream os;
+            os << "Error in line " << nline
+            << " reading CIA catalog file " << filename << endl;
+
+            throw runtime_error(os.str());
+        }
+
+        // If the min/max wave numbers of this set are different from the
+        // previous one, a new dataset starts
+        if (npoints == -1 || wave_min != set_wave_min || wave_max != set_wave_max)
+        {
+            if (ndataset != -1)
+                AppendDataset(freq, temp, cia);
+
+            npoints = set_npoints;
+            ndataset++;
+            wave_min = set_wave_min;
+            wave_max = set_wave_max;
+            nset = 0;
+            freq.resize(set_npoints);
+            temp.resize(0);
+            cia.resize(0);
+        }
+        if (npoints != set_npoints)
+        {
+            ostringstream os;
+            os << "Error in line " << nline
+            << " reading CIA catalog file " << filename << endl
+            << "Inconsistent number of data points. Expected " << npoints
+            << ", got " << set_npoints;
+
+            throw runtime_error(os.str());
+        }
+
+        temp.push_back(set_temp);
+        cia.push_back(Vector(npoints));
+
+        // Read dataset
+        ////////////////////
+        for (Index i = 0; i < npoints; i++)
+        {
+            Numeric w, c;
+
+            nline++;
+            getline(is,line);
+            istr.str(line);
+            istr >> w >> c;
+
+            if (is.bad() || istr.bad())
+            {
+                ostringstream os;
+                os << "Error in line " << nline
+                << " reading CIA catalog file " << filename << ":" << endl
+                << line;
+
+                throw runtime_error(os.str());
+            }
+
+            // Convert wavenumbers to Herz
+            freq[i] = 100. * w * SPEED_OF_LIGHT;
+
+            cia[nset][i] = c;
+        }
+
+        nset++;
+    }
+
+    if (is.bad())
+    {
+        ostringstream os;
+        os << "Error in line " << nline
+        << " reading CIA catalog file " << filename << endl;
+
+        throw runtime_error(os.str());
+    }
+
+    AppendDataset(freq, temp, cia);
+
+//    // For debugging
+//    for(Index i = 0; i < mdata.nelem(); i++)
+//    {
+//        cout << i << " ";
+//        cout << mdata[i].get_numeric_grid(0).nelem() << " ";
+//        cout << mdata[i].get_numeric_grid(1).nelem() << endl;
+//    }
 }
 
 
-//! Output operator for CiaRecord
+/** Append data dataset to mdata. */
+void CIARecord::AppendDataset(const Vector& freq,
+                              const ArrayOfNumeric& temp,
+                              const ArrayOfVector& cia)
+{
+    GriddedField2 dataset;
+    dataset.resize(freq.nelem(), temp.nelem());
+    dataset.set_grid(0, freq);
+    dataset.set_grid_name(0, "Frequency");
+
+    Vector temp_t;
+    temp_t = temp;
+    dataset.set_grid(1, temp_t);
+    dataset.set_grid_name(0, "Temperature");
+
+    for (Index t = 0; t < temp.nelem(); t++)
+        dataset.data(joker, t) = cia[t];
+    mdata.push_back(dataset);
+}
+
+
+//! Output operator for CIARecord
 /*!
- Outputs the grids for the given CiaRecord.
+ Outputs the grids for the given CIARecord.
 
  \param[in,out]  os  Output stream.
- \param[in]      cr  CiaRecord.
+ \param[in]      cr  CIARecord.
  \return os
  */
-ostream& operator<<(ostream& os, const CiaRecord& /* cr */)
+ostream& operator<<(ostream& os, const CIARecord& /* cr */)
 {
-    os << "CiaRecord output operator not yet implemented." << endl;
+    os << "CIARecord output operator not yet implemented." << endl;
     return os;
 }
 

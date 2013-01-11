@@ -206,16 +206,16 @@ void xml_write_to_stream(ostream&                        os_xml,
 
 
 
-//=== ArrayOfArrayOfCiaRecord ===========================================
+//=== ArrayOfArrayOfCIARecord ===========================================
 
-//! Reads ArrayOfArrayOfCiaRecord from XML input stream
+//! Reads ArrayOfArrayOfCIARecord from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param alspec   ArrayOfArrayOfCiaRecord return value
+  \param alspec   ArrayOfArrayOfCIARecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream& is_xml              _U_,
-                          ArrayOfArrayOfCiaRecord& aacr _U_,
+                          ArrayOfArrayOfCIARecord& aacr _U_,
                           bifstream* pbifs             _U_,
                           const                        Verbosity&)
 {
@@ -224,15 +224,15 @@ void xml_read_from_stream(istream& is_xml              _U_,
 }
 
 
-//! Writes ArrayOfArrayOfCiaRecord to XML output stream
+//! Writes ArrayOfArrayOfCIARecord to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param alspec   ArrayOfArrayOfCiaRecord
+  \param alspec   ArrayOfArrayOfCIARecord
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void xml_write_to_stream(ostream& os_xml                    _U_,
-                         const ArrayOfArrayOfCiaRecord& aacr _U_,
+                         const ArrayOfArrayOfCIARecord& aacr _U_,
                          bofstream* pbofs                   _U_,
                          const String&  name                _U_,
                          const                              Verbosity&)

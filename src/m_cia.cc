@@ -33,7 +33,7 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cia_dataInit(// WS Output:
-                     ArrayOfArrayOfCiaRecord& abs_cia_data,
+                     ArrayOfArrayOfCIARecord& abs_cia_data,
                      const Verbosity&)
 {
     abs_cia_data.resize(0);
@@ -49,7 +49,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                                 const Vector& abs_p,
                                 const Vector& abs_t,
                                 const Matrix& abs_vmrs,
-                                const ArrayOfArrayOfCiaRecord& abs_cia_data,
+                                const ArrayOfArrayOfCIARecord& abs_cia_data,
                                 // Verbosity object:
                                 const Verbosity& verbosity)
 {
@@ -58,18 +58,13 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_cia_dataReadFromCia(// WS Output:
-                            ArrayOfArrayOfCiaRecord& abs_cia_data,
+void abs_cia_dataReadFromCIA(// WS Output:
+                            ArrayOfArrayOfCIARecord& abs_cia_data,
                             // WS Input:
                             const ArrayOfArrayOfSpeciesTag& abs_species,
                             const String& catalogpath,
                             const Verbosity& verbosity)
 {
-    CREATE_OUT2;
-    
-    // Species lookup data:
-    extern const Array<SpeciesRecord> species_data;
-
     ArrayOfString subfolders;
     subfolders.push_back("Main-Folder/");
     subfolders.push_back("Alternate-Folder/");
@@ -84,9 +79,10 @@ void abs_cia_dataReadFromCia(// WS Output:
                 continue;
             
             ostringstream cia_name;
+
             cia_name
-            << species_data[abs_species[sp][iso].Species()].Name() << "-"
-            << species_data[abs_species[sp][iso].Cia()].Name();
+            << species_name_from_species_index(abs_species[sp][iso].Species()) << "-"
+            << species_name_from_species_index(abs_species[sp][iso].Cia());
 
             if (cia_name)
             {
@@ -99,12 +95,10 @@ void abs_cia_dataReadFromCia(// WS Output:
                     checked_dirs.push_back(catalogpath + "/"
                                            + subfolders[dir]
                                            + cia_name.str() + "/");
-                    try
-                    {
+                    try {
                         list_directory(files, *(checked_dirs.end()-1));
                     }
-                    catch (runtime_error e)
-                    {
+                    catch (runtime_error e) {
                         continue;
                     }
 
@@ -113,20 +107,19 @@ void abs_cia_dataReadFromCia(// WS Output:
                         if (files[i].find(cia_name.str()) != 0
                             || files[i].rfind(".cia") != files[i].length() - 4)
                         {
-                            files.erase(files.begin()+i);
+                            files.erase(files.begin() + i);
                         }
                     }
                     if (files.nelem())
                     {
-                        CiaRecord ciar;
+                        CIARecord ciar;
 
                         found = true;
                         String catfile = *(checked_dirs.end()-1) + files[0];
-                        out2 << cia_name.str() << " matched: " << catfile << "\n";
 
                         ciar.SetSpecies(abs_species[sp][iso].Species(),
-                                                        abs_species[sp][iso].Cia());
-                        ciar.ReadFromCia(catfile, verbosity);
+                                        abs_species[sp][iso].Cia());
+                        ciar.ReadFromCIA(catfile, verbosity);
 
                         abs_cia_data[sp].push_back(ciar);
                     }
@@ -135,12 +128,13 @@ void abs_cia_dataReadFromCia(// WS Output:
                 if (!found)
                 {
                     ostringstream os;
-                    os << "Error: No catalog file found for Cia species " << cia_name.str() << endl;
-                    os << "Looked in directories: " << checked_dirs;
+                    os << "Error: No catalog file found for CIA species "
+                    << cia_name.str() << endl
+                    << "Looked in directories: " << checked_dirs;
+
                     throw runtime_error(os.str());
                 }
             }
         }
     }
-    CREATE_OUT0;
 }

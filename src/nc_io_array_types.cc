@@ -219,7 +219,7 @@ void nca_write_to_file(const int ncid, const ArrayOfVector& aov, const Verbosity
 
 TMPL_NC_READ_WRITE_FILE_DUMMY(Array<IsotopologueRecord> )
 TMPL_NC_READ_WRITE_FILE_DUMMY(Array<SpeciesRecord> )
-TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfCiaRecord)
+TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfCIARecord)
 TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGriddedField1)
 TMPL_NC_READ_WRITE_FILE_DUMMY(ArrayOfArrayOfGriddedField3)
