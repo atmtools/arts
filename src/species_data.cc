@@ -946,15 +946,15 @@ void define_basic_species_data()
          ) ) );
 
   // HC3N
-  // Isotopologue Ratios: 3 3 3 3 3 3
+  // Isotopologue Ratios: 1 3 3 3 3 3
   // Note: added with Hitran 2008, where lines are available, but no entry on
   // species parameters in molparams.txt yet. Name and Mass are temporary
   // guesses. DEGFR from JPL.
   // We took HCCCN from JPL, which has also HCCNC and HNCCC, but we assume those
-  // to different species.
+  // to be different species.
   // (temporary) name convention:
   //       hitran convention  --  our convention  -- jpl species
-  //               ?                  12224             HCCCN
+  //             1224                 12224             HCCCN
   //               -                  12234             HCCC-13-N
   //               -                  12324             HCC-13-CN
   //               -                  13224             HC-13-CCN
@@ -965,14 +965,14 @@ void define_basic_species_data()
       ( NAME("HC3N"),
         DEGFR(2),
         ISOTOPOLOGUES
-        (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
-         //             |                |         |       |       |
-         REC("12224"    ,.964205e+00    ,51.00    ,-1     ,441    ,TAGS(51001)),
-         REC("12234"    ,.106947e-01    ,52.00    ,-1     ,-1     ,TAGS(52001)),
-         REC("12324"    ,.106947e-01    ,52.00    ,-1     ,-1     ,TAGS(52002)),
-         REC("13224"    ,.106947e-01    ,52.00    ,-1     ,-1     ,TAGS(52003)),
-         REC("12225"    ,.356590e-02    ,52.00    ,-1     ,-1     ,TAGS(52004)),
-         REC("22224"    ,.144600e-03    ,52.00    ,-1     ,-1     ,TAGS(52005))
+        (//  Name,      Isotop. Ratio,   Mass,         MY-tag, HI-tag, JPL-tag
+         //             |                |             |       |       |
+         REC("12224"    ,.963346E+00    ,51.010899    ,-1     ,441    ,TAGS(51001)),
+         REC("12234"    ,.106852e-01    ,52.00        ,-1     ,-1     ,TAGS(52001)),
+         REC("12324"    ,.106852e-01    ,52.00        ,-1     ,-1     ,TAGS(52002)),
+         REC("13224"    ,.106852e-01    ,52.00        ,-1     ,-1     ,TAGS(52003)),
+         REC("12225"    ,.356272e-02    ,52.00        ,-1     ,-1     ,TAGS(52004)),
+         REC("22224"    ,.144472e-03    ,52.00        ,-1     ,-1     ,TAGS(52005))
          ) ) );
 
   // CS

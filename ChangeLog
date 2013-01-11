@@ -1,5 +1,11 @@
 2013-01-10  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-441
+
+	* src/species_data.cc: Updated HC3N data with latest HITRAN info.
+
+2013-01-10  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-440
 
 	* doc/uguide/absorption.tex:
