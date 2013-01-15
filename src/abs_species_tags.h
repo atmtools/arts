@@ -50,7 +50,7 @@ public:
                  misotopologue(-1),
                  mlf(0.),
                  muf(0.),
-                 mzeeman(false),
+                 mtype(-1),
                  mcia(-1)
   { /* Nothing to be done here. */ }
 
@@ -76,10 +76,6 @@ public:
       If this is <0 it means no upper limit. */
   Numeric Uf() const { return muf; }
 
-  /** Zeeman flag:
-      If true, calculate Zeeman for this tag. */
-  bool Zeeman() const { return mzeeman; }
-
   /** Species index of the 2nd CIA species */
   Index Cia() const { return mcia; }
 
@@ -104,8 +100,24 @@ public:
     return true;
   }
 
-private:
 
+  /** Enum for type of this tag.
+   
+  See private member mtype for more explanations.   */
+   enum {
+       TYPE_PLAIN,
+       TYPE_ZEEMAN,
+       TYPE_PREDEF,
+       TYPE_CIA
+   };
+  
+
+  /** Return the type of this tag.
+   
+   See private member mtype for more explanations.   */
+  Index Type() const { return mtype; }
+    
+private:
   //! Molecular species index.
   Index mspecies;
 
@@ -124,13 +136,22 @@ private:
   /*! If this is <0 it means no upper limit. */
   Numeric muf;
 
-  //! Zeeman flag.
-  /*! True if Zeeman calculation should be done for this tag. */
-  bool mzeeman;
-    
+  /** Type of this tag.
+   
+   The type can be:
+   <PRE>
+   TYPE_PLAIN:  A normal line-by-line tag
+   TYPE_ZEEMAN: A line-by-line tag with Zeeman calculation
+   TYPE_PREDEF: A tag for a predefined absorption model (continuum or full absorption model)
+   TYPE_CIA:    A HITRAN collision induces absorption (CIA) tag
+   </PRE>
+   */
+  Index mtype;
+
   //! 2nd CIA species index.
   /*! Contains the species index of the second CIA species that should be used for this tag. */
   Index mcia;
+
 };
 
 
@@ -177,7 +198,7 @@ Index find_next_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
 void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
                                     const String& names );
 
-
+bool is_zeeman(const ArrayOfSpeciesTag& tg);
 
 
 //--------------------------------------------------------------------------------

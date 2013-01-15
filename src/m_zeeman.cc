@@ -761,7 +761,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
 
     // Begin TEST(s)
     for(Index II = 0; II<abs_species.nelem(); II++)
-        if(abs_species[II][0].Zeeman()) { do_zeeman = true; break; } // If any species is Zeeman, do it.
+        if(is_zeeman(abs_species[II])) { do_zeeman = true; break; } // If any species is Zeeman, do it.
     if( abs_mat_per_species.ncols()  != 4 )
         throw runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
     if( abs_mat_per_species.nrows()  != 4 )
@@ -869,7 +869,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                               temp_abs_lines_pi, temp_abs_lines_dt; // pi, default
 
             // If the species isn't Zeeman, look at the next species
-            if(!abs_species[II][0].Zeeman()) continue;
+            if(!is_zeeman(abs_species[II])) continue;
             // Else loop over all the lines in the species.
             for (Index ii = 0; ii< abs_lines_per_species[II].nelem(); ii++)
             {
@@ -1097,7 +1097,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         for(Index II = 0; II<abs_species.nelem(); II++)
         {
             // If the species isn't Zeeman, look at the next species.
-            if(!abs_species[II][0].Zeeman()) continue;
+            if(!is_zeeman(abs_species[II])) continue;
             
             Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
             Part_Return_Zeeman(   part_abs_mat, abs_species, abs_lineshape,

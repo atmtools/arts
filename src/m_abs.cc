@@ -1669,7 +1669,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
       // We do the LBL calculation only if:
       // - The line list is not empty, and
       // - The species is not a Zeeman species.
-      if ( 0 < ll.nelem() && tgs[i].nelem() && !tgs[i][0].Zeeman() )
+      if ( 0 < ll.nelem() && tgs[i].nelem() && !is_zeeman(tgs[i]) )
         {
           // As a safety check, check that the species of the first
           // line matches the species we should have according to
@@ -1899,37 +1899,10 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       // are continuum tags:  
       for ( Index s=0; s<tgs[i].nelem(); ++s )
         {
-          // First of all, we have to make sure that this is not a
-          // tag that means `all isotopologues', because this should not
-          // include continuum. For such tags, tag.Isotopologue() will
-          // return the number of isotopologues (i.e., one more than the
-          // allowed index range).
-          if ( tgs[i][s].Isotopologue() <
-               species_data[tgs[i][s].Species()].Isotopologue().nelem() )
+          // Continuum tags in the sense that we talk about here
+          // (including complete absorption models) are marked by a special type.
+          if (tgs[i][s].Type() == SpeciesTag::TYPE_PREDEF)
             {
-              // If we get here, it means that the tag describes a
-              // specific isotopologue. Could be a continuum tag!
-                
-              // The if clause below checks for continuum tags.
-              // It does the following:
-              //
-              // 1. species_data contains the lookup table of species
-              //          specific data. We need the right entry in this
-              //          table. The index of this is obtained by calling member function
-              //          Species() on the tag. Thus we have:
-              //          species_data[tgs[i][s].Species()].
-              //
-              // 2. Member function Isotopologue() on the above biest gives
-              //    us the array of isotopologue specific data. This we have
-              //    to subscribe with the right isotopologue index, which we
-              //    get by calling member function Isotopologue on the
-              //    tag. Thus we have:
-              //    Isotopologue()[tgs[i][s].Isotopologue()]
-              //
-              // 3. Finally, from the isotopologue data we need to get the flag
-              //    whether this is a continuum.
-              if ( species_data[tgs[i][s].Species()].Isotopologue()[tgs[i][s].Isotopologue()].isContinuum() )
-                {
                   // We have identified a continuum tag!
 
                   // Get only the continuum name. The full tag name is something like:
@@ -2067,7 +2040,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                 }
             }
         }
-    }
+    
 
 }
 

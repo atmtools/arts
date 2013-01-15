@@ -57,12 +57,12 @@ SpeciesTag::SpeciesTag(String def)
   mlf = -1;
   muf = -1;
 
-  // Turn Zeeman off by default
-  mzeeman = false;
-
   // Set CIA species to -1 by default
   mcia = -1;
 
+  // Set type to normal LBL species by default
+  mtype = TYPE_PLAIN;
+  
   // We cannot set a default value for the isotopologue, because the
   // default should be `ALL' and the value for `ALL' depends on the
   // species. 
@@ -118,7 +118,7 @@ SpeciesTag::SpeciesTag(String def)
 
       if ("Z" == isoname)
         {
-          mzeeman = true;
+          mtype = TYPE_ZEEMAN;
           // Zeeman flag was present, now extract the isotopologue name:
           n    = def.find('-');    // find the '-'
           if (n != def.npos )
@@ -145,7 +145,7 @@ SpeciesTag::SpeciesTag(String def)
       def  = "";
       if ("Z" == isoname)
         {
-          mzeeman = true;
+          mtype = TYPE_ZEEMAN;
           // This means that there is nothing else to parse. Apparently
           // the user wants all isotopologues and no frequency limits.
           misotopologue = spr.Isotopologue().nelem();
@@ -159,14 +159,15 @@ SpeciesTag::SpeciesTag(String def)
       // The user wants all isotopologues. Set this accordingly:
       misotopologue = spr.Isotopologue().nelem();
     }
-  else if ( "nl" == isoname )     // Check for "nl":
-    {
-      // The user wants no lines at all. Set this accordingly:
-      misotopologue = -1;
-    }
-  else if ( "cia" == isoname )     // Check for "cia":
+//  else if ( "nl" == isoname )     // Check for "nl":
+//    {
+//      // The user wants no lines at all. Set this accordingly:
+//      misotopologue = -1;
+//    }
+  else if ( "CIA" == isoname )     // Check for "cia":
     {
       // The user wants this to use the CIA catalog:
+      mtype = TYPE_CIA;
       misotopologue = -1;
       mcia = species_index_from_species_name(def);
         
@@ -199,6 +200,11 @@ SpeciesTag::SpeciesTag(String def)
             os << name << "-" << ins[i] << "\n";
           throw runtime_error(os.str());
         }
+      
+      // Check if the found isotopologue represents a predefined model
+      // (continuum or full absorption model) and set the type accordingly:
+      if ( !isdigit(isoname[0]) )
+          mtype = TYPE_PREDEF;
     }
 
   if ( 0 == def.nelem() )
@@ -275,74 +281,81 @@ SpeciesTag::SpeciesTag(String def)
 */
 String SpeciesTag::Name() const 
 {
-  // Species lookup data:
-  extern const Array<SpeciesRecord> species_data;
-  // A reference to the relevant record of the species data:
-  const  SpeciesRecord& spr = species_data[mspecies];
-  // For return value:
-  ostringstream os;
-
-  // First the species name:
-  os << spr.Name() << "-";
-
-  // Zeeman flag.
-  if (mzeeman) os << "Z-";
-
-  // Now the isotopologue. Can be "nl", a single isotopologue or ALL.
-  if ( misotopologue == spr.Isotopologue().nelem() )
-    {
-      // One larger than allowed means all isotopologues!
-      os << "*-";
-    }
-  else if ( misotopologue == -1 )
-    {
-      // -1 means no lines!
-      os << "nl-";
-    }
-  else
-    {
-      os << spr.Isotopologue()[misotopologue].Name() << "-";
-    }
-
-  // Now the frequency limits, if there are any. For this we first
-  // need to determine the floating point precision.
-
-  // Determine the precision, depending on whether Numeric is double
-  // or float:  
-  int precision;
+    // Species lookup data:
+    extern const Array<SpeciesRecord> species_data;
+    // A reference to the relevant record of the species data:
+    const  SpeciesRecord& spr = species_data[mspecies];
+    // For return value:
+    ostringstream os;
+    
+    // First the species name:
+    os << spr.Name() << "-";
+    
+    // Is this a CIA tag?
+    if (mtype==TYPE_CIA)
+      {
+        os << "CIA";
+      }
+    else
+      {
+        // Zeeman flag.
+        if (mtype==TYPE_ZEEMAN) os << "Z-";
+        
+        // Now the isotopologue. Can be a single isotopologue or ALL.
+        if ( misotopologue == spr.Isotopologue().nelem() )
+          {
+            // One larger than allowed means all isotopologues!
+            os << "*-";
+          }
+        else if ( misotopologue == -1 )
+          {
+            // -1 means no lines!
+            os << "nl-";
+          }
+        else
+          {
+            os << spr.Isotopologue()[misotopologue].Name() << "-";
+          }
+        
+        // Now the frequency limits, if there are any. For this we first
+        // need to determine the floating point precision.
+        
+        // Determine the precision, depending on whether Numeric is double
+        // or float:
+        int precision;
 #ifdef USE_FLOAT
-  precision = FLT_DIG;
+        precision = FLT_DIG;
 #else
 #ifdef USE_DOUBLE
-  precision = DBL_DIG;
+        precision = DBL_DIG;
 #else
 #error Numeric must be double or float
 #endif
 #endif
-
-  if ( 0 > mlf )
-    {
-      // mlf < 0 means no lower limit.
-      os << "*-";
-    }
-  else
-    {
-      os << setprecision(precision);
-      os << mlf << "-";
-    }
-
-  if ( 0 > muf )
-    {
-      // muf < 0 means no upper limit.
-      os << "*";
-    }
-  else
-    {
-      os << setprecision(precision);
-      os << muf;
-    }
-
-  return os.str();
+        
+        if ( 0 > mlf )
+          {
+            // mlf < 0 means no lower limit.
+            os << "*-";
+          }
+        else
+          {
+            os << setprecision(precision);
+            os << mlf << "-";
+          }
+        
+        if ( 0 > muf )
+          {
+            // muf < 0 means no upper limit.
+            os << "*";
+          }
+        else
+          {
+            os << setprecision(precision);
+            os << muf;
+          }
+      }
+    return os.str();
 }
 
 ostream& operator << (ostream& os, const SpeciesTag& ot)
@@ -618,15 +631,52 @@ void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
   {
     SpeciesTag this_tag(tag_def[s]);
 
-    // Safety check: For s>0 check that the tags belong to the same species.
+    // Safety checks:
     if (s>0)
-    if ( tags[0].Species() != this_tag.Species() )
-      throw runtime_error("Tags in a tag group must belong to the same species.");
+      {
+        // Tags inside a group must belong to the same species.
+        if ( tags[0].Species() != this_tag.Species() )
+            throw runtime_error("Tags in a tag group must belong to the same species.");
 
+        // Zeeman tags and plain line by line tags must not be mixed. (Because
+        // there can be only one line list per tag group.)
+        if (
+            ((tags[0].Type()==SpeciesTag::TYPE_ZEEMAN) &&
+             (this_tag.Type()==SpeciesTag::TYPE_PLAIN))
+            ||
+            ((tags[0].Type()==SpeciesTag::TYPE_PLAIN) &&
+             (this_tag.Type()==SpeciesTag::TYPE_ZEEMAN))
+            )
+            throw runtime_error("Zeeman tags and plain line-by-line tags must "
+                                "not be mixed in the same tag group.");
+      }
+    
     tags.push_back(this_tag);
   }
 }
-   
+
+
+/**
+ Is this a Zeeman tag group?
+
+ It is not enough to just look at the first tag to find out if this is a Zeeman
+ tag group, since there could be some predefined absorption or CIA tag first.
+ 
+ \return true if this is a Zeeman tag group, otherwise false.
+ \param  tg  The tag group to check
+ 
+ \author Stefan Buehler
+ \date   2013-01-15 */
+bool is_zeeman(const ArrayOfSpeciesTag& tg)
+{
+    for ( Index s=0; s<tg.nelem(); ++s )
+        if (tg[s].Type()==SpeciesTag::TYPE_ZEEMAN)
+            return true;
+        
+    return false;
+}
+
+
 /** 
    Returns the index among some tag groups for an array of tag Strings. 
    

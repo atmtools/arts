@@ -1,3 +1,36 @@
+2013-01-15  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-446
+
+	* src/abs_species_tags.{h,cc}
+	(SpeciesTag): Removed member mzeeman, instead added member mtype,
+	which can be TYPE_PLAIN, TYPE_ZEEMAN, TYPE_PREDEF, TYPE_CIA. Added
+	also public member function Type() for this and removed public
+	member function Zeeman(). Adapted member functions to this change.
+	(is_zeeman): Added this function for ArrayOfSpeciesTag, which can
+	be used if a tag group is a Zeeman group. This has to be checked
+	for the whole group, not just for the first tag, since the Zeeman
+	tags could be in the middle. They could be mixed with continuum
+	tags (but not with normal line-by-line tags.)
+
+	* src/absorption.cc: Cosmetics.
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddLines): Adapted to new
+	is_zeeman function.
+	(abs_xsec_per_speciesAddConts): Adapted to new SpeciesTag::Type() function.
+
+	* src/m_abs_lookup.cc (abs_lookupCalc): Adapted to new
+	is_zeeman function.
+
+	* src/m_zeeman.cc (abs_mat_per_speciesAddZeeman): Adapted to new
+	is_zeeman function.
+
+	* controlfiles/artscomponents/cia: Added. For CIA testing.
+
+	* controlfiles/artscomponents/cia/TestCIA.arts: Added.
+
+	* controlfiles/artscomponents/cia/README.txt: Added.
+
 2013-01-15  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-445

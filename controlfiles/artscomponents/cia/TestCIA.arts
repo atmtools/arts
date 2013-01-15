@@ -1,0 +1,44 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# An example ARTS controlfile that calculates absorption
+# coefficients. 
+# SAB 16.06.2000
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+
+SpeciesSet( abs_species, [ "N2-CIAfunCKDMT100, N2-CIArotCKDMT100",
+	                   "N2-CIA-N2" ] )
+#SpeciesSet( abs_species, [ "N2-CIAfunCKDMT100, N2-CIArotCKDMT100" ] )
+
+abs_cia_dataReadFromCIA( abs_cia_data, 
+                         abs_species, 
+			 "/Volumes/storage3/data/catalogue/cia/CIA" )
+
+VectorNLinSpace( f_grid, 100, 0, 75e12 )
+
+VectorSet( abs_p, [1000e2] )
+
+VectorSet( abs_t, [240] )
+
+MatrixSet( abs_vmrs, [0.7808; 0.7808] )
+#MatrixSet( abs_vmrs, [0.7808] )
+
+VectorSet( abs_n2, [ 0.7808 ] )
+
+VectorSet( abs_h2o, [ 0 ] )
+
+abs_xsec_per_speciesInit
+
+abs_xsec_per_speciesAddConts
+
+abs_xsec_per_speciesAddCIA
+
+WriteXML ( "ascii", abs_xsec_per_species )
+
+
+}
+

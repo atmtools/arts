@@ -300,8 +300,9 @@ void abs_lookupCalc(// WS Output:
   // Loop species:
   for ( Index i=0,spec=0; i<n_species; ++i )
     {
-      //Skipping Zeeman species
-      if ( abs_species[i][0].Zeeman() ) { continue; }
+      // Skipping Zeeman species. (Mixed tag groups between Zeeman and other
+      // species are not allowed.)
+      if ( is_zeeman(abs_species[i]) ) { continue; }
 
       // spec is the index for the second dimension of abs_lookup.xsec.
       

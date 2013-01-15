@@ -264,7 +264,8 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
 
             for (Index this_iso = first_iso; this_iso <= last_iso; this_iso++)
             {
-                // If this tag is not a continuum, the isotopologue ratio shall not nan or < 0.
+                // If this tag is not a continuum, the isotopologue ratio shall
+                // not be nan or < 0.
                 if (!species_data[sp].Isotopologue()[this_iso].isContinuum())
                 {
                     if (isnan(sad.getParam(sp, this_iso, 0))
