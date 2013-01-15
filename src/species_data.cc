@@ -891,6 +891,7 @@ void define_basic_species_data()
         (//  Name,      Isotop. Ratio, Mass,         MY-tag, HI-tag, JPL-tag
          //             |                |             |       |       |
          REC("2161"     ,.985930E+00    ,32.026215    ,-1     ,391    ,TAGS(32003))
+//         REC("2261"     ,1.0?    ,33.00        ,-1     ,-1     ,TAGS(33004)) //in JPL this is seems to be taken as separate species (IsoCorr=0)
          ) ) );
 
   // CH3Br

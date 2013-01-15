@@ -52,10 +52,12 @@
 
   Here we assumed that either
 
+  atomic: Q = T
   linear: Q = T
   non-linear: Q = T^1.5
 
-  These numbers are from Axel von Engeln, May 2005.
+  These numbers are from Axel von Engeln, May 2005 (except atomic: Jana Mendrok,
+  Jan2013).
 */
 
 /*! \name Some #defines for better readability */
@@ -585,11 +587,11 @@ iso(it_isotopologue,	"166" ,	Qcoeff(-2.341264e+02,  8.164256e+00,  2.506193e-02,
 
 
   // O
-  // Coeff: 1
+  // Coeff: 2
   spec(it_species, it_isotopologue, "O");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
-iso(it_isotopologue,    "6",    Qcoeff( -1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));  
+iso(it_isotopologue,    "6",    Qcoeff(4.956057e+00,  8.070975e-05,  4.987684e-05,  -1.028970e-07 ));  
 
 
 
@@ -671,11 +673,12 @@ iso(it_isotopologue,	"231" ,	Qcoeff(-5.653328e+03,  1.396050e+02,  -9.531910e-02
 
 
   // CH3OH
-  // Coeff: 1
+  // Coeff: 2
   spec(it_species, it_isotopologue, "CH3OH");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
-iso(it_isotopologue,	"2161" ,  Qcoeff(0.000000e+00,  0.000000e+00,  0.000000e+00,  0.000000e+00 ));
+iso(it_isotopologue,	"2161" ,  Qcoeff(-6.340560e+01,  5.621709e+00,  6.341163e-02,  8.161605e-05 ));
+//iso(it_isotopologue,	"2261" ,  Qcoeff( ));
 
 
 
@@ -812,13 +815,15 @@ iso(it_isotopologue,	"12" ,  Qcoeff( 2.575211e+00,  8.914624e-02,  1.491752e-05,
 
   // He
   // Coeff: 0
-  // Note: As for O, partition function is unknown. Anyway, He is only needed as
+  // Note: Partition function is unknown. Anyway, He is only needed as
   // broadening species, i.e., partition functions are not needed for
-  // calculation, just as equivalent entry to species_data.
+  // calculation, just as equivalent entry to species_data. Nevertheless, we
+  // want to avoid negative values (this would throw a runtime error), instead
+  // we set the partition function to a constant, positive value.
   spec(it_species, it_isotopologue, "He");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
-iso(it_isotopologue,	"4",  Qcoeff( -1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
+iso(it_isotopologue,	"4",  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
 
 
 

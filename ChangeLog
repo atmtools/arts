@@ -1,3 +1,20 @@
+2013-01-15  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-445
+
+	* src/partition_function_data.cc: Replaced infunctional data: O and He
+	were constant -1, which triggers a runtime error. CH3OH was constant 0,
+	which would have caused an uncaught bug (division by 0) if ever used.
+	For CH3OH and O TIPS provides constant 0, which is rubbish. Replaced
+	those by JPL data instead. He set to constant 1.
+
+	* src/absorption.h (CalculatePartitionFctRatio):
+	Make sure qtemp==0 throws a runtime error, too, avoiding div0.
+
+	* 3rdparty/partFct/partition_functions.py:
+	Added functionality for deriving partition function coefficients from
+	JPL for CH3OH and O.
+
 2013-01-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-444

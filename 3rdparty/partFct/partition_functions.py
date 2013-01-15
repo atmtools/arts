@@ -34,14 +34,14 @@ def do_JPL(tag='44013',lowT=9.,highT=300.,do_vib=False):
   Complete chain for deriving partition function polynomial coefficients for
    one JPL species.
 
-  Output is printed to scree in a format to allow direct pasting into ARTS'
+  Output is printed to screen in a format to allow direct pasting into ARTS'
    partition_function_data.cc.
-  Usually default of lowT and highT is 150 and 300K, respectively. But for 
-   sufficient fit for C3H8, which is currently the only species implemented here
-   (for others see partition_function.cc), 9-300K fit is necessary.
+  For TIPS we usually use lowT=150K and highT=300K, respectively. However, 
+   for a sufficient fit with JPL 9-300K looks more reasonable and is used here
+   (that has the disadvantage, though, that at low T Q(T) can fall below zero).
   Usually JPL partition functions need to be corrected for vibrational
-   contribution. However, for C3H8 this seems to already be included (see
-   d044013.cat).
+   contribution. However, for some species this seems to already be included,
+   namely: C3H8 (d044013.cat), CH3OH (d032003.cat).
 
   Parameters
   ----------
@@ -221,16 +221,22 @@ def get_data_JPL_1spec(tag,do_vib=True):
     #that's the catdir version, which are the log10 of the Q(T), and sorted for decreasing T.
     #QT=N.array([3.0190, 2.8322, 2.5696, 2.1242, 1.6863, 1.2685, 0.9367])
     #QT=10**N.fliplr(QT.reshape(1,-1)).reshape(-1)
-    if do_vib:
-      vib = get_vib_levels(tag)
-      QT = add_vib(QT,T,vib)
-    nn = get_Texponent(degF)
+  elif tag=='32003': #CH3OH (this is in TIPS, but with Q(T)=const=0 which is bullshit)
+    degF = 3
+    QT = N.array([19.5433,68.7464,230.2391,731.0698,2437.7654,5267.8635,9473.1198],dtype=N.float)
+  elif tag=='16001': #O (this is in TIPS, but with Q(T)=const=0 which is bullshit)
+    degF = 0
+    QT = N.array([5.000,5.000,5.007,5.156,5.770,6.324,6.741],dtype=N.float)
   #elif tag=='':
   else:
     assert 1==0, \
       'No partition function data available for tag %s (tag is unknown).' %tag
   assert QT.size==nT, \
     'Something went wrong. QT must have %i elemnts, but has %i' %(nT,QT.size)
+  if do_vib:
+    vib = get_vib_levels(tag)
+    QT = add_vib(QT,T,vib)
+  nn = get_Texponent(degF)
   return QT,nn
   
 
@@ -254,13 +260,21 @@ def get_vib_levels(tag):
   Returns
   -------
   vib : array of float
-      vibrational energy levels of species TAG   
+      vibrational energy levels of species TAG. If not indicated otherwise,
+      vib levels are taken from webbook.nist.gov/chemistry/form-ser.html
   '''
   if tag=='44013': #C3H8
-    #from webbook.nist.gov/chemistry/vib-ser.html
+    #table had some levels listed more than once with different mode type,
+    # hence we assume they are two different transistions and have to be
+    # handled additively.
     vib=N.array([  216,  268,  369,  748,  869,  922,  940, 1054, 1158, 1192,
                   1278, 1338, 1378, 1392, 1451, 1462, 1464, 1472, 1476, 2887,
-                  2962, 2967, 2968, 2973, 2977],dtype=N.float)
+                  2887, 2962, 2967, 2968, 2968, 2973, 2977],dtype=N.float)
+  elif tag=='32003': #CH3OH
+    vib=N.array([  200,  295, 1033, 1060, 1165, 1345, 1455, 1477, 1477, 2844,
+                  2960, 3000, 3681])
+  elif tag=='16001': #O; has no vib levels
+    vib=N.array([])
   #elif tag=='':
   else:
     print('No vib data available for tag %s.' %tag)
@@ -288,9 +302,13 @@ def get_Texponent(degF):
     nn = 1.
   elif degF==3:
     nn = 1.5
+  elif degF==0:
+    #that's for atomic species. no temp.exp. found in literature. linear in T
+    # seems safest.
+    nn = 1.
   else:
     assert 1==0, \
-      'Sorry, temperature exponent for degree of freedom = %i is unknown.'
+      'Sorry, temperature exponent for degree of freedom = %i is unknown.' %degF
   return nn
   
 
@@ -317,12 +335,13 @@ def add_vib(qtt,tt,vib):
       vibrationally corrected partition functions   
   '''
   
-  cm2t= 1.43875 #conversion factor cm^-1 -> K
   qttv=N.copy(qtt)
-  for i in N.arange(qtt.size):
-    for j in N.arange(vib.size):
-      a=-vib[j]*cm2t/tt[i]
-      if a>=-80: qttv[i]=qttv[i]/(1-N.exp(a))
+  if (vib.size>0):
+    cm2t= 1.43875 #conversion factor cm^-1 -> K
+    for i in N.arange(qtt.size):
+      for j in N.arange(vib.size):
+        a=-vib[j]*cm2t/tt[i]
+        if a>=-80: qttv[i]=qttv[i]/(1-N.exp(a))
   return qttv
   
 

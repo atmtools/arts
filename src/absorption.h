@@ -286,16 +286,17 @@ public:
         cout << "ref_q: " << qcoeff_at_t_ref << ", act_q:" <<
           qtemp << "\n";
 */
-        if ( qtemp < 0. ) 
-      {
-        ostringstream os;
-        os << "Partition function of "
-           << "Isotopologue " << mname
-//           << " is unknown.";
-           << " at T=" << actual_temperature << "K is negative.";
-        throw runtime_error(os.str());
-      }
-    return qcoeff_at_t_ref / qtemp;
+        if ( qtemp > 0. ) 
+            return qcoeff_at_t_ref / qtemp;
+        else
+          {
+            ostringstream os;
+            os << "Partition function of "
+               << "Isotopologue " << mname
+//               << " is unknown.";
+               << " at T=" << actual_temperature << "K is zero or negative.";
+            throw runtime_error(os.str());
+          }
   }
 
 private:
