@@ -139,6 +139,39 @@ void cia_interpolation(VectorView result,
 
 
 // Documentation in header file.
+void CIARecord::Extract(VectorView      result,
+                        ConstVectorView frequency,
+                        const Numeric&  temperature ) const
+{
+    // If there is more than one dataset available for this species pair,
+    // we have to decide on which one to use. The rest is done by helper function
+    // cia_interpolate.
+    
+    // Temporary vector for interpolation results:
+    Vector res_temp(result.nelem());
+    
+    // Loop through the available datasets
+    for (Index i=0; i<mdata.nelem(); ++i) {
+
+        // Get a handle on this dataset:
+        const GriddedField2& this_cia = mdata[i];
+        
+        cia_interpolation(res_temp,
+                          frequency,
+                          temperature,
+                          this_cia);
+        
+        result += res_temp;
+        // FIXME: It makes no sense to simply add up the different CIA data sets.
+        // We need a way for the user to explicitly select which one he/she wants.
+
+    }
+    
+
+}
+
+
+// Documentation in header file.
 String CIARecord::MoleculeName(const Index i) const
 {
     // Assert that i is 0 or 1:
@@ -313,10 +346,12 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
                 throw runtime_error(os.str());
             }
 
-            // Convert wavenumbers to Herz
+            // Convert wavenumbers to Herz:
             freq[i] = 100. * w * SPEED_OF_LIGHT;
 
-            cia[nset][i] = c;
+            // Convert binary absorption cross-sections from
+            // cm^5 molec^(-2) to m^5 molec^(-2):
+            cia[nset][i] = c / 1e10;
         }
 
         nset++;

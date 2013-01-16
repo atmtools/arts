@@ -2815,8 +2815,15 @@ void define_md_data_raw()
       ( NAME( "abs_cia_dataReadFromCIA" ),
         DESCRIPTION
         (
-         "Read data from an CIA catalogue for all CIA molecules defined\n"
+         "Read data from a CIA data file for all CIA molecules defined\n"
          "in *abs_species*.\n"
+         "\n"
+         "The units in the HITRAN file are:\n"
+         "Frequency: cm^(-1)\n"
+         "Binary absorption cross-section: cm^5 molec^(-2)\n"
+         "\n"
+         "Upon reading we convert this to the ARTS internal SI units \n"
+         "of Hz and m^5 molec^(-2).\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "abs_cia_data" ),

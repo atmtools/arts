@@ -22,7 +22,7 @@
   \author Stefan Buehler
   \date   2012-12-04
 
-  \brief  Workspace methods for CIA catalog.
+  \brief  Workspace methods for HITRAN CIA data.
 
 */
 
@@ -30,6 +30,9 @@
 #include "absorption.h"
 #include "file.h"
 #include "cia.h"
+#include "messages.h"
+#include "physics_funcs.h"
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cia_dataInit(// WS Output:
@@ -53,7 +56,117 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                                 // Verbosity object:
                                 const Verbosity& verbosity)
 {
-  // FIXME
+    CREATE_OUTS;
+
+  {
+    // Check that all parameters that should have the number of tag
+    // groups as a dimension are consistent:
+    const Index n_tgs    = abs_species.nelem();
+    const Index n_xsec   = abs_xsec_per_species.nelem();
+    const Index nr_vmrs  = abs_vmrs.nrows();
+    const Index n_cia    = abs_cia_data.nelem();
+    
+    if (n_tgs != n_xsec  ||
+        n_tgs != nr_vmrs  ||
+        n_tgs != n_cia)
+      {
+        ostringstream os;
+        os << "The following variables must all have the same dimension:\n"
+           << "abs_species:          " << n_tgs << "\n"
+           << "abs_xsec_per_species: " << n_xsec << "\n"
+           << "abs_vmrs.nrows:       " << nr_vmrs << "\n"
+           << "abs_cia_data:         " << n_cia;
+        throw runtime_error(os.str());
+      }
+  }
+
+  {
+    // Check that all parameters that should have the the dimension of p_grid
+    // are consistent:
+    const Index n_p      = abs_p.nelem();
+    const Index n_t      = abs_t.nelem();
+    const Index nc_vmrs  = abs_vmrs.ncols();
+    
+    if (n_p != n_t  ||
+        n_p != nc_vmrs)
+      {
+        ostringstream os;
+        os << "The following variables must all have the same dimension:\n"
+        << "abs_p:          " << n_p << "\n"
+        << "abs_t:          " << n_t << "\n"
+        << "abs_vmrs.ncols: " << nc_vmrs;
+        throw runtime_error(os.str());
+      }
+  }
+    
+    // Allocate a vector with dimension frequencies for constructing our
+    // cross-sections before adding them (more efficient to allocate this here
+    // outside of the loops)
+    Vector xsec_temp(f_grid.nelem());
+    
+    // Loop over CIA data sets.
+    // Index i loops through the outer array (different primary gases),
+    // index s through the inner array (different secondary gases).
+    for (Index i = 0; i < abs_cia_data.nelem(); i++)
+        for (Index s = 0; s < abs_cia_data[i].nelem(); s++)
+          {
+            // Get convenient references of this CIA data record and this
+            // absorption cross-section record:
+            const CIARecord& this_cia = abs_cia_data[i][s];
+            Matrix&          this_xsec = abs_xsec_per_species[i];
+            
+            {
+              // Some nice output to out2:
+              ostringstream os;
+              os << "  CIA Species found: "
+                 << this_cia.MoleculeName(0) << "-CIA-"
+                 << this_cia.MoleculeName(1) << "\n";
+              out2 << os.str();
+            }
+            
+            // Check that the dimension of this_xsec is
+            // consistent with abs_p and f_grid.
+            if (this_xsec.nrows()!=f_grid.nelem()) {
+                ostringstream os;
+                os << "Wrong dimension of abs_xsec_per_species.nrows for species "
+                   << i << ":\n"
+                   << "should match f_grid (" << f_grid.nelem() << ") but is "
+                   << this_xsec.nrows() << ".";
+                throw runtime_error(os.str());
+            }
+            if (this_xsec.ncols()!=abs_p.nelem()) {
+                ostringstream os;
+                os << "Wrong dimension of abs_xsec_per_species.ncols for species "
+                << i << ":\n"
+                << "should match abs_p (" << abs_p.nelem() << ") but is "
+                << this_xsec.ncols() << ".";
+                throw runtime_error(os.str());
+            }
+            
+            // Find out index of VMR for the second CIA species.
+            // (The index for the first species is simply i.)
+            Index i_sec = find_first_species_tg(abs_species, this_cia.Species(1));
+
+            // Loop over pressure:
+            for (Index ip = 0; ip < abs_p.nelem(); ip++)
+              {
+                // Get the binary absorption cross sections from the CIA data:
+                this_cia.Extract(xsec_temp, f_grid, abs_t[ip]);
+                
+                // We have to multiply with the number density of the second CIA species.
+                // We do not have to multiply with the first, since we still
+                // want to return a (unary) absorption cross-section, not an
+                // absorption coefficient.
+                
+                // Calculate number density from pressure and temperature.
+                const Numeric n = abs_vmrs(i_sec,ip) * number_density(abs_p[ip],abs_t[ip]);
+                xsec_temp *= n;
+                
+                // Add to result variable:
+                this_xsec(joker,ip) += xsec_temp;
+              }
+            
+          }
 }
 
 
@@ -71,11 +184,14 @@ void abs_cia_dataReadFromCIA(// WS Output:
     
     abs_cia_data.resize(abs_species.nelem());
 
+    // Loop species tag groups to find CIA tags.
+    // Index sp loops through the tag groups, index iso through the tags within
+    // each group. Despite the name, iso does not denote the isotope!
     for (Index sp = 0; sp < abs_species.nelem(); sp++)
     {
         for (Index iso = 0; iso < abs_species[sp].nelem(); iso++)
         {
-            if (abs_species[sp][iso].Cia() == -1)
+            if (abs_species[sp][iso].Type() != SpeciesTag::TYPE_CIA)
                 continue;
             
             ostringstream cia_name;
@@ -128,7 +244,7 @@ void abs_cia_dataReadFromCIA(// WS Output:
                 if (!found)
                 {
                     ostringstream os;
-                    os << "Error: No catalog file found for CIA species "
+                    os << "Error: No data file found for CIA species "
                     << cia_name.str() << endl
                     << "Looked in directories: " << checked_dirs;
 

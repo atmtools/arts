@@ -59,7 +59,7 @@ public:
      
      The CIARecord is defined for a pair of molecules!
      
-     \param[in] i Must be either 0 or 1. Then the first or second name of the pair 
+     \param[in] i Must be either 0 or 1. Then the first or second name of the pair
                   is returned.
      
      */
@@ -80,11 +80,26 @@ public:
                          const String& name);
 
      
+    /** Return CIA species index.
+     
+     \param[in] i Must be either 0 or 1. Then the first or second species index
+     is returned.
+     */
+    Index Species(const Index i) const
+    {
+      // Assert that i is 0 or 1:
+      assert(i>=0);
+      assert(i<=1);
+      
+      return mspecies[i];
+    }
+
+    
     /** Set CIA species.
      \param[in] first CIA Species
      \param[in] second CIA Species
      */
-    void SetSpecies(Index first, Index second)
+    void SetSpecies(const Index first, const Index second)
     {
         mspecies[0] = first;
         mspecies[1] = second;
@@ -99,12 +114,9 @@ public:
      \param[out] result CIA value for given frequency grid and temperature.
      \param[in] frequency Frequency grid
      \param[in] temperature Scalar temparature */
-    void Extract(VectorView /* result */,
-                 ConstVectorView /* frequency */,
-                 const Numeric& /* temperature */) const
-    {
-      // FIXME
-    }
+    void Extract(VectorView      result,
+                 ConstVectorView frequency,
+                 const Numeric&  temperature ) const;
 
     
     /** Scalar version of extract.

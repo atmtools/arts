@@ -1,3 +1,28 @@
+2013-01-16  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-447
+
+        * src/cia.{h,cc}
+	(CIARecord::Species): Added this function, which returns the
+	contents of mspecies.
+	(CIARecord::Extract): Started on implementation of this, but
+	realized that guessing the right dataset is too difficult, we have
+	to make this a user choice.
+	(CIARecord::ReadFromCIA): Now converts the binary absorption
+	cross-sections to ARTS SI units.
+
+        * src/m_cia.cc
+	(abs_xsec_per_speciesAddCIA): Implemented this.
+	(abs_cia_dataReadFromCIA): To decide whether this is a CIA
+	species, Use SpeciesTag.Type() function instead
+	of SpeciesTag.Cia()
+
+        * src/methods.cc (abs_cia_dataReadFromCIA): Added built-in
+	documentation on units.
+
+        * src/workspace.cc (abs_cia_data): Revised built-in
+	documentation.
+
 2013-01-15  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-446
