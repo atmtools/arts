@@ -105,8 +105,8 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
     Vector xsec_temp(f_grid.nelem());
     
     // Loop over CIA data sets.
-    // Index i loops through the outer array (different primary gases),
-    // index s through the inner array (different secondary gases).
+    // Index i loops through the outer array (different tag groups),
+    // index s through the inner array (different tags within each goup).
     for (Index i = 0; i < abs_cia_data.nelem(); i++)
         for (Index s = 0; s < abs_cia_data[i].nelem(); s++)
           {

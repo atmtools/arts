@@ -41,32 +41,69 @@ extern const Numeric SPEED_OF_LIGHT;
  Uses third order interpolation in both coordinates, if grid length allows,
  otherwise lower order or no interpolation.
  
- \param[out] result CIA value for given frequency grid and temperature.
- \param[in] frequency Frequency grid
+ \param[out] result     CIA value for given frequency grid and temperature.
+ \param[in] f_grid      Frequency grid
  \param[in] temperature Scalar temperature
- \param[in] cia_data The CIA dataset to interpolate */
+ \param[in] cia_data    The CIA dataset to interpolate */
 void cia_interpolation(VectorView result,
-                       ConstVectorView frequency,
+                       ConstVectorView f_grid,
                        const Numeric& temperature,
                        const GriddedField2& cia_data)
 {
+    const Index nf = f_grid.nelem();
+    
     // Assert that result vector has right size:
-    assert(result.nelem()==frequency.nelem());
+    assert(result.nelem()==nf);
     
     // Get data grids:
-    ConstVectorView f_grid = cia_data.get_numeric_grid(0);
-    ConstVectorView T_grid = cia_data.get_numeric_grid(1);
-
+    ConstVectorView data_f_grid = cia_data.get_numeric_grid(0);
+    ConstVectorView data_T_grid = cia_data.get_numeric_grid(1);
+    
+    // Initialize result to zero (important for those frequencies outside the data grid).
+    result = 0;
+    
+    // We want to return result zero for all f_grid points that are outside the
+    // data_f_grid, because some CIA datasets are defined only where the absorption
+    // is not zero. So, we have to find out which part of f_grid is inside
+    // data_f_grid.
+    Index i_fstart, i_fstop;
+    
+    for (i_fstart=0; i_fstart<nf; ++i_fstart)
+        if (f_grid[i_fstart] >= data_f_grid[0]) break;
+    
+    // Return directly if all frequencies are below data_f_grid:
+    if (i_fstart==nf) return;
+    
+    for (i_fstop=nf-1; i_fstop>=0; --i_fstop)
+        if (f_grid[i_fstop] <= data_f_grid[data_f_grid.nelem()]) break;
+    
+    // Return directly if all frequencies are above data_f_grid:
+    if (i_fstop==-1) return;
+    
+    // Extent for active frequency vector:
+    const Index f_extent = i_fstop-i_fstart+1;
+    
+    // If we are here, then there has to be at least one active frequency,
+    // unless I screwed it up somehow. Assert this:
+    assert(f_extent>0);
+    
+    // This is the part of f_grid for which we have to do the interpolation.
+    ConstVectorView f_grid_active = f_grid[Range(i_fstart, f_extent)];
+    
+    // We have to create a matching view on the result vector:
+    VectorView result_active = result[Range(i_fstart, i_fstop-i_fstart+1)];
+    
+    
     // Decide on interpolation orders:
     const Index f_order = 3;
     
     // The frequency grid has to have enough points for this interpolation
     // order, otherwise throw a runtime error.
-    if ( f_grid.nelem() < f_order+1 )
+    if ( data_f_grid.nelem() < f_order+1 )
       {
         ostringstream os;
         os << "Not enough frequency grid points in CIA data.\n"
-           << "You have only " << f_grid.nelem() << " grid points.\n"
+           << "You have only " << data_f_grid.nelem() << " grid points.\n"
            << "But need at least " << f_order+1 << ".";
         throw runtime_error(os.str());
       }
@@ -75,7 +112,7 @@ void cia_interpolation(VectorView result,
     // For T we have to be adaptive, since sometimes there is only one T in
     // the data
     Index T_order;
-    switch (T_grid.nelem()) {
+    switch (data_T_grid.nelem()) {
         case 1:
             T_order = 0;
             break;
@@ -92,22 +129,22 @@ void cia_interpolation(VectorView result,
     
     // Check if frequency is inside the range covered by the data:
     chk_interpolation_grids("Frequency interpolation for CIA continuum",
-                                f_grid,
-                                frequency,
+                                data_f_grid,
+                                f_grid_active,
                                 f_order);
     
 
     // Check if temperature is inside the range covered by the data:
     if (T_order > 0) {
         chk_interpolation_grids("Temperature interpolation for CIA continuum",
-                                T_grid,
+                                data_T_grid,
                                 temperature,
                                 T_order);
     }
     
     // Find frequency grid positions:
-    ArrayOfGridPosPoly f_gp(frequency.nelem()), T_gp(1);
-    gridpos_poly(f_gp, f_grid, frequency, f_order);
+    ArrayOfGridPosPoly f_gp(f_grid_active.nelem()), T_gp(1);
+    gridpos_poly(f_gp, data_f_grid, f_grid_active, f_order);
  
     // Do the rest of the interpolation.
     if (T_order == 0)
@@ -116,31 +153,38 @@ void cia_interpolation(VectorView result,
         
         Matrix itw(f_gp.nelem(),f_order+1);
         interpweights(itw,f_gp);
-        interp(result, itw, cia_data.data(joker,0), f_gp);
+        interp(result_active, itw, cia_data.data(joker,0), f_gp);
       }
     else
       {
         // Temperature and frequency interpolation.
         
         // Find temperature grid position:
-        gridpos_poly(T_gp, T_grid, temperature, T_order);
+        gridpos_poly(T_gp, data_T_grid, temperature, T_order);
     
         // Calculate combined interpolation weights:
         Tensor3 itw(f_gp.nelem(),T_gp.nelem(),(f_order+1)*(T_order+1));
         interpweights(itw,f_gp, T_gp);
         
         // Make a matrix view of the results vector:
-        MatrixView result_matrix(result);
+        MatrixView result_matrix(result_active);
         
         // Actual interpolation:
         interp(result_matrix, itw, cia_data.data, f_gp, T_gp);
       }
+    
+    // Set negative values to zero. (These could happen due to overshooting
+    // of the higher order interpolation.)
+    for (Index i=0; i<result_active.nelem(); ++i)
+        if (result_active[i]<0)
+            result_active = 0;
+    
 }
 
 
 // Documentation in header file.
 void CIARecord::Extract(VectorView      result,
-                        ConstVectorView frequency,
+                        ConstVectorView f_grid,
                         const Numeric&  temperature ) const
 {
     // If there is more than one dataset available for this species pair,
@@ -157,7 +201,7 @@ void CIARecord::Extract(VectorView      result,
         const GriddedField2& this_cia = mdata[i];
         
         cia_interpolation(res_temp,
-                          frequency,
+                          f_grid,
                           temperature,
                           this_cia);
         

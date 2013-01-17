@@ -11,7 +11,9 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 
 SpeciesSet( abs_species, [ "N2-CIAfunCKDMT100, N2-CIArotCKDMT100",
-	                   "N2-CIA-N2" ] )
+	                   "N2-CIA-N2-0",
+	                   "N2-CIA-N2-1",
+	                   "N2-CIA-N2-2" ] )
 #SpeciesSet( abs_species, [ "N2-CIAfunCKDMT100, N2-CIArotCKDMT100" ] )
 
 abs_cia_dataReadFromCIA( abs_cia_data, 
@@ -24,7 +26,7 @@ VectorSet( abs_p, [1000e2] )
 
 VectorSet( abs_t, [240] )
 
-MatrixSet( abs_vmrs, [0.7808; 0.7808] )
+MatrixSet( abs_vmrs, [0.7808; 0.7808; 0.7808; 0.7808] )
 #MatrixSet( abs_vmrs, [0.7808] )
 
 VectorSet( abs_n2, [ 0.7808 ] )

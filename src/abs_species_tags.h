@@ -79,6 +79,9 @@ public:
   /** Species index of the 2nd CIA species */
   Index Cia() const { return mcia; }
 
+  /** CIA dataset index inside this CIA file. */
+  Index CiaDataset() const { return mcia_dataset; }
+
   //! Comparison operator for species tags.
   /*!
     This returns false as soon as a singe discrepancy is
@@ -152,6 +155,9 @@ private:
   /*! Contains the species index of the second CIA species that should be used for this tag. */
   Index mcia;
 
+  //! CIA dataset index.
+  /*! A CIA file contains several datasets. This index specifies which one we want. */
+  Index mcia_dataset;
 };
 
 

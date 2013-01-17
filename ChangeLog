@@ -1,13 +1,34 @@
+2013-01-17  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-452
+
+        * src/abs_species_tags.{h,cc}
+	(SpeciesTag::CiaDataset): Added this function (and associated
+	private member) to store the index of the dataset to use (inside
+	the CIA file), which is also now appended at the end of the CIA
+	species tag.
+	(SpeciesTag::SpeciesTag): Parse also the new dataset index at the
+	end of the CIA tag. It must be present!
+	(SpeciesTag::Name): Fixed broken CIA tag name output. Not testet!
+
+        * src/cia.{h,cc}
+	(cia_interpolation): Continued to work on this.
+
+        * src/m_cia.cc: Cosmetics.
+
+        * controlfiles/artscomponents/cia/TestCIA.arts: Updated for new
+	CIA tag names with dataset index.
+
 2013-01-17  Richard Larsson <ric.larsson@gmail.com>
 
 	* arts-2-1-451
 
-	* licenses/*: Added various license agreements to this folder so 
+	* licenses/*: Added various license agreements to this folder so
 	that it is clear what code is reusable with ARTS.
-	
+
 	* src/lineshapes.cc: Added Algorithm 916 (see code for details) to
 	calculate the Faddeeva function. The Faddeeva function offers a
-	solution to both the Voigt and Faraday-Voigt lineshapes. The 
+	solution to both the Voigt and Faraday-Voigt lineshapes. The
 	current implementation is very slow, as it calculates the line shapes
 	twice even though one calculation is mathematically sufficient. I
 	suggest a complex_xsec function returning two vectors in a future
@@ -15,19 +36,19 @@
 	line shapes. The line shapes were tested within the limit of the
 	Zeeman model paper and deemed OK.
 
-	* src/Faddeeva.{cc,hh}: Added. The bulk of the new line shape code 
+	* src/Faddeeva.{cc,hh}: Added. The bulk of the new line shape code
 	is in here. These files fall under the MIT/X11 licence. More in the files.
-	
+
 	* src/CMakeLists.txt: Faddeeva should be in list in list.
 
 	* src/workspace.cc: Added a phase lineshape variable.
-	
+
 	* src/methods.cc: Require another lineshape variable for m_zeeman.cc.
-	
+
 	* src/m_zeeman.cc: Split phase from attenuatiion polararization matrices.
 	Requires another line shape without caring which type, though for physical
 	reason this line shape should be Faraday-Voigt.
-	
+
 	* controlfiles/artscomponents/zeeman/*: Changed necessary bits to work since
 	a new line shape changes results. Change in reference is on order of 0.02 K.
 

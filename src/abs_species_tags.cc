@@ -46,6 +46,9 @@
 */
 SpeciesTag::SpeciesTag(String def) 
 {
+  // Save input string for error messages:
+  String def_original = def;
+    
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
   // Name of species and isotopologue (aux variables):
@@ -169,7 +172,23 @@ SpeciesTag::SpeciesTag(String def)
       // The user wants this to use the CIA catalog:
       mtype = TYPE_CIA;
       misotopologue = -1;
-      mcia = species_index_from_species_name(def);
+
+      // We have to read in the second species, and the dataset index
+      n    = def.find('-');    // find the '-'
+
+      if (n == def.npos )
+        {
+          ostringstream os;
+          os << "Invalid species tag " << def_original << ".\n"
+             << "I am missing a minus sign (and a dataset index after that.)";
+          throw runtime_error(os.str());
+        }
+
+      String otherspec = def.substr(0,n);    // Extract before '-'
+      def.erase(0,n+1);                      // Remove from def
+
+    
+      mcia = species_index_from_species_name(otherspec);
         
       if ( 0 > mcia )
         {
@@ -177,6 +196,21 @@ SpeciesTag::SpeciesTag(String def)
           os << "CIA species \"" << def << "\" is not a valid species.";
           throw runtime_error(os.str());
         }
+
+      // Convert remaining def to dataset index.
+      
+      // Check that everything remaining is just numbers.
+      for (Index i=0; i<def.nelem(); ++i)
+          if (!isdigit(def[i])) {
+              ostringstream os;
+              os << "Invalid species tag " << def_original << ".\n"
+                 << "The tag should end with a dataset index";
+              throw runtime_error(os.str());
+          }
+      
+      // Do the conversion from string to index:
+      istringstream is(def);
+      is >> mcia_dataset;
 
       def = "";
     }
@@ -294,7 +328,10 @@ String SpeciesTag::Name() const
     // Is this a CIA tag?
     if (mtype==TYPE_CIA)
       {
-        os << "CIA";
+        os << "CIA-"
+           << species_name_from_species_index(mcia) << "-"
+           << mcia_dataset;
+        
       }
     else
       {

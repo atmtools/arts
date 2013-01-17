@@ -112,10 +112,10 @@ public:
      interpolation.
      
      \param[out] result CIA value for given frequency grid and temperature.
-     \param[in] frequency Frequency grid
+     \param[in] f_grid Frequency grid
      \param[in] temperature Scalar temparature */
     void Extract(VectorView      result,
-                 ConstVectorView frequency,
+                 ConstVectorView f_grid,
                  const Numeric&  temperature ) const;
 
     
