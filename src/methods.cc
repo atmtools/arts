@@ -2043,15 +2043,16 @@ void define_md_data_raw()
          "e.g. ArrayOfIndex to ArrayOfIndex. Or a single element to an array\n"
          "such as a Tensor3 to an ArrayOfTensor3.\n"
          "\n"
-         "Vectors and Matrices are supported as well:"
-         "When appending a Vector to another Vector, the 'dimension' argument\n"
-         "is ignored."
-         "When appending a Matrix to another Matrix or a Vector to a Matrix,"
-         "the third argument indicates the dimension to append to.\n"
-         "'leading' means to append to row-wise, 'trailing' means column-wise.\n"
+         "Appending two vectors works as for array variables.\n"
          "\n"
-         "This method is not implemented for all types, just for those where an\n"
-         "append makes sense. (See variable list below.).\n"
+         "Both another matrix or a vector can be appended to a matrix. In\n"
+         "addition, for matrices, the 'append diminsion' can be selected.\n" 
+         "The third argument, *dimension*, indicates how to append, where\n"
+         "\"leading\" means to append to row-wise, and \"trailing'\" means\n"
+         "column-wise.\n"
+         "\n"
+         "This method is not implemented for all types, just for those where\n"
+         "an append makes sense. (See variable list below.).\n"
          ),
         AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT(),
@@ -7584,10 +7585,13 @@ void define_md_data_raw()
             "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", 
             "edensity_field", "f_grid", "refellipsoid", "z_surface", 
             "rte_pos", "rte_pos2" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(         "dl_target", "dl_ok"   ),
+        GIN_TYPE(    "Numeric",   "Numeric" ),
+        GIN_DEFAULT( "1e-4",      "1e-1"    ),
+        GIN_DESC( "Target for length error. Iteration stops when this value "
+                  "is reached",
+                  "Maximum allowed length error. An error is issued if "
+                  "this value not is met." )
         ));
   
   md_data_raw.push_back

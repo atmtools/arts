@@ -119,6 +119,8 @@ void ppathFromRtePos2(
     const Matrix&         z_surface,
     const Vector&         rte_pos,
     const Vector&         rte_pos2,
+    const Numeric&       dl_target,
+    const Numeric&        dl_ok,
     const Verbosity&      verbosity )
 {
   //--- Check input -----------------------------------------------------------
@@ -173,27 +175,46 @@ void ppathFromRtePos2(
   H(joker,0) = -1; 
   H(0,1) = 99e99;    // A value to indicate infinite error
   H(1,1) = -99e99;   // A value to indicate infinite error
-  H(0,3) = 99e99;   // A value to indicate infinite error
-  H(1,3) = 99e99;   // A value to indicate infinite error
- 
+  H(0,3) = 99e99;    // A value to indicate infinite error
+  H(1,3) = 99e99;    // A value to indicate infinite error
+
   // Iterate until convergence for rte_los
   rte_los = rte_los_geom;  // We start with geomtrical angles
   Index   ready = false;   // True when convergence criteria fulfilled
   Index   counter=0;       // Number of tries
-  Numeric dl;              // Path length error
-  const Numeric dlmax=1e-4;// Max error in path length allowed
+  Numeric dl=1e9;          // Path length error
   Numeric ds;              // Spatial error
   Index   surface_hits=0;  // Number of tries ending up in the surface
-  Ppath   ppt;             // Test ppath
+  Ppath   ppt, ppt_old;    // Present and old test ppath
   // The point of ppath closest to rte_pos2 (on "l12 sphere"), and 
   // its index, radius and cartesian coordinates
   Vector  posc( max( Index(2), atmosphere_dim ) );
   Index   ip;
   Numeric rc, xc, yc=0, zc, dxip, dyip=0, dzip;
+  // The last variables must be remembered for old test path
+  Index   ip_old = -1;
+  Numeric rc_old = -999, xc_old   = -999, yc_old   = -999, zc_old   = -999;
+  Numeric dl_old = -999, dxip_old = -999, dyip_old = -999, dzip_old = -999;
   //
   while( !ready )
     {
       out3 << "    Trying rte_los: [" << rte_los << "]\n";
+
+      // Save old ppt stuff
+      if( counter )
+        {
+          ppath_init_structure( ppt_old, atmosphere_dim, ppt.np );
+          ppath_copy( ppt_old, ppt, ppt.np );
+          ip_old   = ip; 
+          dl_old   = dl;
+          rc_old   = rc; 
+          xc_old   = xc; 
+          yc_old   = yc; 
+          zc_old   = zc;
+          dxip_old = dxip;   
+          dyip_old = dyip;   
+          dzip_old = dzip;
+        }
 
       // Path for present rte_los (no cloudbox!)
       ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
@@ -293,9 +314,11 @@ void ppathFromRtePos2(
               distance3D( ds, rc, latc, lonc, r2, rte_pos2[1], rte_pos2[2] );
               dl = sqrt( l12*l12 + ds*ds ) - l12;
             }
+          //cout << "-----\n" << H << "\n-----\n" << endl;
+          
 
           // Converged?
-          if( dl < dlmax )
+          if( dl <= dl_target )
             { ready = true;  } 
           
           // Otherwise, calculate new rte_los
@@ -308,6 +331,9 @@ void ppathFromRtePos2(
               //cout << rte_los[0] - rte_los_geom[0] << " " << dza << endl;
 
               // Any improvement compared to existing results in H
+              //
+              bool improving = true;
+              //
               if( dza > 0   &&  dza < H(0,1) )
                 { 
                   H(0,0)=1;  H(0,1)=dza; H(0,2)=rte_los[0]; 
@@ -321,32 +347,57 @@ void ppathFromRtePos2(
                   if( atmosphere_dim == 3 ) { H(1,5) = rte_los[1]; }
                 } 
               else // Ending up here means "jitter" in ppath calculation
-                { 
-                  if( H(0,3) < H(1,3) )  { dl = H(0,3);   ds = H(0,4); }
-                  else                   { dl = H(1,3);   ds = H(1,4); }
-                  ostringstream os;
-                  os << "The smallest path length error achieved is: " << dl
-                     << " m\nwhich is above the set accuracy limit of  : " 
-                     << dlmax << " m.\nGeographically, the closest "
-                     << "match with *rte_pos2* is " << ds << " m.\n"
-                     << "This can (hopefully) be improved by decreasing the"
-                     << " value of\n*ppath_lraytrace*, and maybe also the "
-                     << "one of *ppath_lmax*.\n";
-                  throw runtime_error( os.str() );
-                }
+                { improving = false; }
 
-              // Select new rte_los. If both rows of H filled, use bisection. 
-              // Otherwise use dza.
-              if( H(0,0) > 0   &&   H(1,0) > 0 )
-                { rte_los[0] = H(1,2) - (H(0,2)-H(1,2)) * H(1,1) / 
+              if( improving )
+                {
+                  // Select new rte_los. If both rows of H filled, use
+                  // bisection. Otherwise use dza.
+                  if( H(0,0) > 0   &&   H(1,0) > 0 )
+                    { rte_los[0] = H(1,2) - (H(0,2)-H(1,2)) * H(1,1) / 
                                                              (H(0,1)-H(1,1)); }
-              else
-                { rte_los[0] -= dza; }
+                  else
+                    { rte_los[0] -= dza; }
 
-              // For azimuth angle, we just apply the "miss angle"
-              if( atmosphere_dim == 3 )
-                { rte_los[1] -= los[1] - rte_los_geom[1]; }
-              //cout << "-----\n" << H << "\n-----\n" << endl;
+                  // For azimuth angle, we just apply the "miss angle"
+                  if( atmosphere_dim == 3 )
+                    { rte_los[1] -= los[1] - rte_los_geom[1]; }
+                }
+              else
+                {
+                  // OK or fail?
+                  if( dl_old <= dl_ok )
+                    { 
+                      // Switch back to old ppt and rc, and we are ready
+                      ppath_init_structure( ppt, atmosphere_dim, ppt_old.np );
+                      ppath_copy( ppt, ppt_old, ppt_old.np );
+                      ip    = ip_old; 
+                      dl    = dl_old;
+                      rc    = rc_old; 
+                      xc    = xc_old; 
+                      yc    = yc_old; 
+                      zc    = zc_old;
+                      dxip  = dxip_old;   
+                      dyip  = dyip_old;   
+                      dzip  = dzip_old;
+                      ready = true;  
+                    } 
+                  else
+                    {
+                      if( H(0,3) < H(1,3) )  { dl = H(0,3);   ds = H(0,4); }
+                      else                   { dl = H(1,3);   ds = H(1,4); }
+                      ostringstream os;
+                      os << "The smallest path length error achieved is: " 
+                         << dl_old
+                         << " m\nwhich is above the set accuracy limit of  : " 
+                         << dl_ok << " m.\nGeographically, the closest "
+                         << "match with *rte_pos2* is " << ds << " m.\n"
+                         << "This can potentially be improved by decreasing the"
+                         << " value of\n*ppath_lraytrace*, and maybe also the "
+                         << "one of *ppath_lmax*.\n";
+                      throw runtime_error( os.str() );
+                    }
+                }
             }
         }
 
@@ -800,8 +851,9 @@ void TangentPointPrint(
     }
   else
     {
-      os << "    z: " << ppath.pos(it,0)/1e3 << " km\n" 
-         << "  lat: " << ppath.pos(it,1) << " deg";
+      os << "Tangent point position:\n-----------------------\n"
+         << "     z = " << ppath.pos(it,0)/1e3 << " km\n" 
+         << "   lat = " << ppath.pos(it,1) << " deg";
         if( ppath.pos.ncols() == 3 )
           os << "\n   lon: " << ppath.pos(it,2) << " deg";
     }
