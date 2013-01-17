@@ -1429,6 +1429,7 @@ void define_md_data_raw()
            "abs_species",
            "abs_lines_per_species",
            "abs_lineshape",
+           "abs_lineshape_zeeman_phase",
            "isotopologue_ratios",
            "isotopologue_quantum",
            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",

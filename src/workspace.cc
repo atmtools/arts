@@ -393,6 +393,19 @@ void Workspace::define_wsv_data()
         "may use different lineshapes.\n"
        ),
        GROUP( "ArrayOfLineshapeSpec" )));
+    
+    wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_lineshape_zeeman_phase" ),
+      DESCRIPTION
+      (
+          "Lineshape specification: function, norm, cutoff. There is one entry for\n"
+          "each abs_tag, not for each species. This means if you have several\n"
+          "abs_tags for different isotopologues or transitions of a species, you\n"
+          "may use different lineshapes.\n\n"
+          "This function will act as the Faraday rotation for Zeeman species.\n"
+      ),
+      GROUP( "ArrayOfLineshapeSpec" )));
 
   wsv_data.push_back
     (WsvRecord

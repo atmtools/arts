@@ -36,7 +36,7 @@
 #include "matpackI.h"
 #include "array.h"
 #include "absorption.h"
-
+#include "Faddeeva.hh"
 
 /*! The dummy line shape. This lineshape does nothing. It only exists,
     because formally you have to specify a lineshape also for
@@ -1661,7 +1661,124 @@ void lineshape_CO2_drayson(Vector&         ls,
 }
 
 
+/*! The Voigt line shape. Based on rewritten Faddeeva 
+  function algorithm 916 - real part. For more information 
+  read:
+  MOFREH R. ZAGHLOUL and AHMED N. ALI
+  Algorithm 916: Computing the Faddeyeva and Voigt Functions
+  ACM Transactions on Mathematical Software, Vol. 38, No. 2, Article 15, Publication date: December 2011.
 
+  The main bulk of code is in Faddeeva.cc and written by Steven G. Johnson of MIT.
+  Keep Faddeeva.{cc,hh} up to date in speed and accuracy by watching:
+  http://ab-initio.mit.edu/Faddeeva sometimes.
+
+  \retval ls            The shape function.
+  \retval xvector       Auxillary parameter to store frequency grid.
+  \param  f0            Line center frequency.
+  \param  gamma         The pressure broadening parameter.
+  \param  sigma         The Doppler broadening parameter.
+  \param  f_grid        The frequency grid.
+
+  \author Richard Larsson 2013-01-17
+
+ */ 
+void faddeeva_voigt_algorithm_916_real(Vector&         ls,
+                                       Vector&         xvector,
+                                       const Numeric   f0,
+                                       const Numeric   gamma,
+                                       const Numeric   sigma,
+                                       ConstVectorView f_grid)
+
+{
+    const Index nf = f_grid.nelem();
+    
+    // PI
+    extern const Numeric PI;
+    
+    // constant sqrt(1/pi)
+    const Numeric sqrt_invPI =  sqrt(1/PI);
+    
+    // constant normalization factor for voigt
+    Numeric fac = 1.0 / sigma * sqrt_invPI;
+    
+    // Ratio of the Lorentz halfwidth to the Doppler halfwidth
+    Numeric YNUMERIC = gamma / sigma;
+    
+    // frequency in units of Doppler
+    for (Index ii=0; ii<nf; ii++)
+    {
+        xvector[ii] = (f_grid[ii] - f0) / sigma;
+    }
+    
+    for (Index ii=0; ii<nf; ii++)
+    {
+        std::complex<Numeric> z(xvector[ii], YNUMERIC);
+        
+        z = Faddeeva::w(z);
+        
+        ls[ii] = fac * z.real();
+    }
+}
+
+
+/*! The Faraday-Voigt line shape. Based on rewritten Faddeeva 
+  function algorithm 916 - imaginary part. For more information 
+  read:
+  MOFREH R. ZAGHLOUL and AHMED N. ALI
+  Algorithm 916: Computing the Faddeyeva and Voigt Functions
+  ACM Transactions on Mathematical Software, Vol. 38, No. 2, Article 15, Publication date: December 2011.
+
+  The main bulk of code is in Faddeeva.cc and written by Steven G. Johnson of MIT.
+  Keep Faddeeva.{cc,hh} up to date in speed and accuracy by watching:
+  http://ab-initio.mit.edu/Faddeeva sometimes.
+
+  \retval ls            The shape function.
+  \retval xvector       Auxillary parameter to store frequency grid.
+  \param  f0            Line center frequency.
+  \param  gamma         The pressure broadening parameter.
+  \param  sigma         The Doppler broadening parameter.
+  \param  f_grid        The frequency grid.
+
+  \author Richard Larsson 2013-01-17
+
+ */ 
+void faddeeva_voigt_algorithm_916_imag(Vector&         ls,
+                                       Vector&         xvector,
+                                       const Numeric   f0,
+                                       const Numeric   gamma,
+                                       const Numeric   sigma,
+                                       ConstVectorView f_grid)
+
+{
+    const Index nf = f_grid.nelem();
+    
+    // PI
+    extern const Numeric PI;
+    
+    // constant sqrt(1/pi)
+    const Numeric sqrt_invPI =  sqrt(1/PI);
+    
+    // constant normalization factor for voigt
+    Numeric fac = 1.0 / sigma * sqrt_invPI;
+    
+    // Ratio of the Lorentz halfwidth to the Doppler halfwidth
+    Numeric YNUMERIC = gamma / sigma;
+    
+    // frequency in units of Doppler
+    for (Index ii=0; ii<nf; ii++)
+    {
+        xvector[ii] = (f_grid[ii] - f0) / sigma;
+    }
+    
+    for (Index ii=0; ii<nf; ii++)
+    {
+        std::complex<Numeric> z(xvector[ii], YNUMERIC);
+        
+        z = Faddeeva::w(z);
+        
+        ls[ii] = fac * z.imag();
+    }
+}
 
 
 
@@ -1857,6 +1974,17 @@ void define_lineshape_data()
       "valid for 238 K.",
       lineshape_CO2_drayson));
 
+    lineshape_data.push_back
+    (LineshapeRecord
+    ("Faddeeva_Imaginary_Algorithm_916",
+    "Faraday-Voigt function as per Faddeeva function solution by JPL.",
+    faddeeva_voigt_algorithm_916_imag));
+    
+    lineshape_data.push_back
+    (LineshapeRecord
+    ("Faddeeva_Real_Algorithm_916",
+     "Faraday-Voigt function as per Faddeeva function solution by JPL.",
+     faddeeva_voigt_algorithm_916_real));
 }
 
 /*! The lookup data for the different normalization factors to the

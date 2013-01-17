@@ -155,6 +155,7 @@ add_library (artscore STATIC
   disort.cc
   docserver.cc
   doit.cc
+  Faddeeva.cc
   fastem.cc
   file.cc
   gas_abs_lookup.cc

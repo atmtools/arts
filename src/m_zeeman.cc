@@ -44,7 +44,8 @@ extern const Numeric LANDE_GS;
  * This is an easy way to switch between the schemes. */
 #define FREQUENCY_CHANGE FrequencyChangeDirectWithGS // Direct is obviously best if you understand Lande.
 #define EFFECTIVE_LANDE_G Lande_gs // Lande is not well understood though. gs agrees most with other models. gs seems best for now.
-#define K_MATRIX KMatrixAttenuationLenoir // Lenoir is best understood. The diffraction/refraction terms are poorly understood in Rees, though it seems to mirror things.
+#define K_MATRIX_ATTENUATION KMatrixRees_Attenuation // Lenoir is best understood. The diffraction/refraction terms are poorly understood in Rees, though it seems to mirror things.
+#define K_MATRIX_PHASE KMatrixRees_Phase // Lenoir is best understood. The diffraction/refraction terms are poorly understood in Rees, though it seems to mirror things.
 #define RELATIVE_STRENGTH RelativeStrengthSMMBerdyugina // SMMBerdyugina seems best and agrees most with Pardo O2
 
 
@@ -187,7 +188,7 @@ void KMatrixAttenuationLenoir(MatrixView K, const Numeric theta, const Numeric e
  *  \author Richard Larsson
  *  \date   2012-08-03
  */
-void KMatrixRees(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
+void KMatrixRees_Phase(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
 {
     assert(K.nrows() == 4 );
     assert(K.ncols() == 4 );
@@ -195,10 +196,10 @@ void KMatrixRees(MatrixView K, const Numeric theta, const Numeric eta, const Ind
     switch( DM )
     {
         case -1:
-            K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
-            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
-            K(0,3) =   2 * cos(theta);
+            K(0,0) =   0;
+            K(0,1) =   0;
+            K(0,2) =   0;
+            K(0,3) =   0;
             
             K(1,0) =   K(0,1);
             K(1,1) =   K(0,0);
@@ -216,10 +217,10 @@ void KMatrixRees(MatrixView K, const Numeric theta, const Numeric eta, const Ind
             K(3,3) =   K(0,0);
             break;
         case  1:
-            K(0,0) =   1 + cos(theta)*cos(theta);
-            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
-            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
-            K(0,3) = - 2 * cos(theta);
+            K(0,0) =   0;
+            K(0,1) =   0;
+            K(0,2) =   0;
+            K(0,3) =   0;
             
             K(1,0) =   K(0,1);
             K(1,1) =   K(0,0);
@@ -237,9 +238,9 @@ void KMatrixRees(MatrixView K, const Numeric theta, const Numeric eta, const Ind
             K(3,3) =   K(0,0);
             break;
         case  0:
-            K(0,0) =   sin(theta)*sin(theta);
-            K(0,1) =   sin(theta)*sin(theta) * cos(2*eta);
-            K(0,2) =   sin(theta)*sin(theta) * sin(2*eta);
+            K(0,0) =   0;
+            K(0,1) =   0;
+            K(0,2) =   0;
             K(0,3) =   0;
             
             K(1,0) =   K(0,1);
@@ -251,6 +252,115 @@ void KMatrixRees(MatrixView K, const Numeric theta, const Numeric eta, const Ind
             K(2,1) = - K(1,2);
             K(2,2) =   K(0,0);
             K(2,3) =   sin(theta)*sin(theta) * cos(2*eta);
+            
+            K(3,0) =   K(0,3);
+            K(3,1) = - K(1,3);
+            K(3,2) = - K(2,3);
+            K(3,3) =   K(0,0);
+            break;
+        default: // Nil matrix since this should not be
+            K(0,0) = 0;
+            K(0,1) = 0;
+            K(0,2) = 0;
+            K(0,3) = 0;
+            
+            K(1,0) = K(0,1);
+            K(1,1) = K(0,0);
+            K(1,2) = 0;
+            K(1,3) = 0;
+            
+            K(2,0) = K(0,2);
+            K(2,1) = K(1,2);
+            K(2,2) = K(0,0);
+            K(2,3) = 0;
+            
+            K(3,0) = K(0,3);
+            K(3,1) = K(1,3);
+            K(3,2) = K(2,3);
+            K(3,3) = K(0,0);
+            break;
+    };
+};
+
+
+/*!
+ *  Defines the rotation extinction matrix as derived by the author from
+ *  the definitions of Lenoir (1967) and Mishchenko (2002).
+ * 
+ *  \param  K       Out:    The rotation extinction matrix.
+ *  \param  theta   In:     Angle between the magnetic field and the
+ *                          propagation path. In radians.
+ *  \param  eta     In:     Angle to rotate planar polarization clockwise to
+ *                          fit the general coordinate system. In radians.
+ *  \param  DM      In:     Change in the secondary rotational quantum number.
+ * 
+ *  \author Richard Larsson
+ *  \date   2012-08-03
+ */
+void KMatrixRees_Attenuation(MatrixView K, const Numeric theta, const Numeric eta, const Index DM)
+{
+    assert(K.nrows() == 4 );
+    assert(K.ncols() == 4 );
+    
+    switch( DM )
+    {
+        case -1:
+            K(0,0) =   1 + cos(theta)*cos(theta);
+            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
+            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
+            K(0,3) =   2 * cos(theta);
+            
+            K(1,0) =   K(0,1);
+            K(1,1) =   K(0,0);
+            K(1,2) =   0;
+            K(1,3) =   0;
+            
+            K(2,0) =   K(0,2);
+            K(2,1) = - K(1,2);
+            K(2,2) =   K(0,0);
+            K(2,3) =   0;
+            
+            K(3,0) =   K(0,3);
+            K(3,1) = - K(1,3);
+            K(3,2) = - K(2,3);
+            K(3,3) =   K(0,0);
+            break;
+        case  1:
+            K(0,0) =   1 + cos(theta)*cos(theta);
+            K(0,1) = - sin(theta)*sin(theta) * cos(2*eta);
+            K(0,2) = - sin(theta)*sin(theta) * sin(2*eta);
+            K(0,3) = - 2 * cos(theta);
+            
+            K(1,0) =   K(0,1);
+            K(1,1) =   K(0,0);
+            K(1,2) =   0;
+            K(1,3) =   0;
+            
+            K(2,0) =   K(0,2);
+            K(2,1) = - K(1,2);
+            K(2,2) =   K(0,0);
+            K(2,3) =   0;
+            
+            K(3,0) =   K(0,3);
+            K(3,1) = - K(1,3);
+            K(3,2) = - K(2,3);
+            K(3,3) =   K(0,0);
+            break;
+        case  0:
+            K(0,0) =   sin(theta)*sin(theta);
+            K(0,1) =   sin(theta)*sin(theta) * cos(2*eta);
+            K(0,2) =   sin(theta)*sin(theta) * sin(2*eta);
+            K(0,3) =   0;
+            
+            K(1,0) =   K(0,1);
+            K(1,1) =   K(0,0);
+            K(1,2) =   0;
+            K(1,3) =   0;
+            
+            K(2,0) =   K(0,2);
+            K(2,1) = - K(1,2);
+            K(2,2) =   K(0,0);
+            K(2,3) =   0;
             
             K(3,0) =   K(0,3);
             K(3,1) = - K(1,3);
@@ -678,43 +788,61 @@ Numeric FrequencyChangeDirectWithGS(Rational n, Rational m, Rational j, Numeric 
     
     Numeric fcc;
     
-    //NEEDED: Special rule for which g-value to use.
     
     // special case is for fitting with Lenoir. 
     fcc = (!(j == 0 && DJ == -1)) ? 
-    - H_mag * (M_lo) * EFFECTIVE_LANDE_G(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON + 
-    H_mag * (M_up)   * EFFECTIVE_LANDE_G(N_up,J_up,S,GS) / PLANCK_CONST * BOHR_MAGNETON : 
-    H_mag * (M_lo)   * EFFECTIVE_LANDE_G(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON ;
+    -
+    H_mag * (M_lo) * EFFECTIVE_LANDE_G(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON + 
+    H_mag * (M_up) * EFFECTIVE_LANDE_G(N_up,J_up,S,GS) / PLANCK_CONST * BOHR_MAGNETON : 
+    H_mag * (M_lo) * EFFECTIVE_LANDE_G(N_lo,J_lo,S,GS) / PLANCK_CONST * BOHR_MAGNETON ;
     
     return fcc;
 }
 
+
 /*!
-Helper function. This is the only place where m_zeeman interacts with other absorption protocols.
+  Helper function. This is the only place where m_zeeman interacts with other absorption protocols.
 */
 void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesTag& abs_species, const ArrayOfLineshapeSpec& abs_lineshape, 
+                          const ArrayOfLineshapeSpec& abs_lineshape_zeeman_phase,
                           const ArrayOfLineRecord& lr, const SpeciesAuxData& isotopologue_ratios, const Matrix& abs_vmrs, const Vector& abs_p,
                           const Vector& abs_t, const Vector& f_grid, const Numeric& theta, const Numeric& eta, const Index& DM, const Index& this_species,
                           const Verbosity& verbosity )
 {
     assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
     
-    Matrix temp1(f_grid.nelem(), 1, 0.);
+    Matrix attenuation(f_grid.nelem(), 1, 0.);
+    Matrix magneto_optics(f_grid.nelem(), 1, 0.);
     
     for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
     {
-        Matrix temp2(f_grid.nelem(), 1, 0.);
+        Matrix real(f_grid.nelem(), 1, 0.), imag(f_grid.nelem(), 1, 0.);;
         
-        xsec_species( temp2, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
+        xsec_species( real, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
                     abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
                     isotopologue_ratios, verbosity ); // Now in cross section
         
-        temp2 *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+        xsec_species( imag, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
+                      abs_lineshape_zeeman_phase[i].Ind_ls(), abs_lineshape_zeeman_phase[i].Ind_lsn(), abs_lineshape_zeeman_phase[i].Cutoff(),
+                      isotopologue_ratios, verbosity ); // Now in cross section
         
-        temp1 += temp2;
+        real *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+        imag *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+        imag *= 2;
+        
+        attenuation += real;
+        magneto_optics += imag;
     }
-    Matrix  K(4,4); K_MATRIX(K, theta*DEG2RAD, eta*DEG2RAD, DM);
-    mult(part_abs_mat,temp1(joker,0), K);
+    Matrix  K_a(4,4), K_b(4,4);
+    K_MATRIX_ATTENUATION(K_a, theta*DEG2RAD, eta*DEG2RAD, DM);
+    K_MATRIX_PHASE(K_b, theta*DEG2RAD, eta*DEG2RAD, DM);
+    
+    Tensor3 temp_part_abs_mat=part_abs_mat;
+    mult(part_abs_mat,attenuation(joker,0), K_a);
+    mult(temp_part_abs_mat,magneto_optics(joker,0), K_b);
+    
+    part_abs_mat+=temp_part_abs_mat;
+    
 }
 
 
@@ -724,6 +852,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
 				      const ArrayOfArrayOfSpeciesTag& abs_species,
 				      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
 				      const ArrayOfLineshapeSpec& abs_lineshape,
+                                     const ArrayOfLineshapeSpec& abs_lineshape_zeeman_phase,
                                      const SpeciesAuxData& isotopologue_ratios,
                                      const SpeciesAuxData& isotopologue_quantum,
 				      const Numeric& rte_pressure,
@@ -739,7 +868,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
     Vector R_path_los;
     mirror_los(R_path_los, ppath_los, atmosphere_dim);
     
-    bool do_zeeman = false;
+    const Numeric margin    = 1e-4;
+    bool          do_zeeman = false;
 
     /*
         This function will, for each Zeeman species, make a local
@@ -909,7 +1039,6 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                 RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
                                 RS_sum += RS;
-                                
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
@@ -1038,7 +1167,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 throw runtime_error("If this happens, something is horribly wrong... did some of the tests above fail?");
                             }
                         }
-                        if (abs(RS_sum-1.)>1e-4) //Reasonable confidence?
+                        if (abs(RS_sum-1.)>margin) //Reasonable confidence?
                         {
                             ostringstream os;
                             os << "The sum of relative strengths is not close to one. This is severly problematic and"
@@ -1064,28 +1193,28 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
             Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
             
             // Add Pi contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
                               temp_abs_lines_pi, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, 0, II, verbosity );
             abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
         
             // Add Sigma minus contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
                               temp_abs_lines_sm, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, -1, II, verbosity );
             abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
             
             // Add Sigma plus contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
                                 temp_abs_lines_sp, isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                                 theta, eta, 1, II, verbosity );
             abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
             
             // Add Default contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
                               temp_abs_lines_dt, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, 1023, II, verbosity );
@@ -1100,7 +1229,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
             if(!is_zeeman(abs_species[II])) continue;
             
             Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
-            Part_Return_Zeeman(   part_abs_mat, abs_species, abs_lineshape,
+            Part_Return_Zeeman(   part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
                                 abs_lines_per_species[II], isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                                 0,0,1023, II, verbosity );

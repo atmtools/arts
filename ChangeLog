@@ -1,3 +1,36 @@
+2013-01-17  Richard Larsson <ric.larsson@gmail.com>
+
+	* arts-2-1-451
+
+	* licenses/*: Added various license agreements to this folder so 
+	that it is clear what code is reusable with ARTS.
+	
+	* src/lineshapes.cc: Added Algorithm 916 (see code for details) to
+	calculate the Faddeeva function. The Faddeeva function offers a
+	solution to both the Voigt and Faraday-Voigt lineshapes. The 
+	current implementation is very slow, as it calculates the line shapes
+	twice even though one calculation is mathematically sufficient. I
+	suggest a complex_xsec function returning two vectors in a future
+	update instead of returning the real and complex values as separate
+	line shapes. The line shapes were tested within the limit of the
+	Zeeman model paper and deemed OK.
+
+	* src/Faddeeva.{cc,hh}: Added. The bulk of the new line shape code 
+	is in here. These files fall under the MIT/X11 licence. More in the files.
+	
+	* src/CMakeLists.txt: Faddeeva should be in list in list.
+
+	* src/workspace.cc: Added a phase lineshape variable.
+	
+	* src/methods.cc: Require another lineshape variable for m_zeeman.cc.
+	
+	* src/m_zeeman.cc: Split phase from attenuatiion polararization matrices.
+	Requires another line shape without caring which type, though for physical
+	reason this line shape should be Faraday-Voigt.
+	
+	* controlfiles/artscomponents/zeeman/*: Changed necessary bits to work since
+	a new line shape changes results. Change in reference is on order of 0.02 K.
+
 2013-01-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-450
