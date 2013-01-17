@@ -52,6 +52,7 @@ void Append(// WS Generic Output:
     out.push_back(in[i]);
 }
 
+
 /* Implementation for array types to append single element */
 template< class T >
 void Append(// WS Generic Output:
@@ -64,6 +65,7 @@ void Append(// WS Generic Output:
   // Append in to end of out:
   out.push_back(in);
 }
+
 
 /* Implementation for Vector */
 void Append(// WS Generic Output:
@@ -85,6 +87,7 @@ void Append(// WS Generic Output:
   // Copy in to last part of out:
   out[Range(dummy.nelem(),in.nelem())] = in;
 }
+
 
 /* Implementation for Matrix */
 void Append(// WS Generic Output:
@@ -117,6 +120,40 @@ void Append(// WS Generic Output:
   }
   else throw runtime_error("Dimension must be either \"leading\" or \"trailing\".");
 }
+
+
+/* Implementation for Matrix/Vector */
+void Append(// WS Generic Output:
+            Matrix& out,
+            // WS Generic Input:
+            const Vector& in,
+            const String& direction,
+            const Verbosity&)
+{
+  // Get backup of out:
+  Matrix dummy = out;
+
+  if (direction == "leading")
+  {
+    if (out.ncols() != in.nelem())
+      throw runtime_error("Number of elements in the input Vector has to match the number of columns in the output Matrix.");
+
+    out.resize(dummy.nrows() + 1, dummy.ncols());
+    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+    out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(in);
+  }
+  else if (direction == "trailing")
+  {
+    if (out.nrows() != in.nelem())
+        throw runtime_error("Number of elements in the input Vector has to match the number of rows in the output Matrix.");
+
+    out.resize(dummy.nrows(), dummy.ncols() + 1);
+    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+    out(Range(0, in.nelem()), Range(dummy.ncols(), 1)) = in;
+  }
+  else throw runtime_error("Dimension must be either \"leading\" or \"trailing\".");
+}
+
 
 /* Implementation for String */
 void Append(// WS Generic Output:

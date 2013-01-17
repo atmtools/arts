@@ -2036,17 +2036,18 @@ void define_md_data_raw()
       ( NAME( "Append" ),
         DESCRIPTION
         (
-         "Append a workspace variable to another workspace variable.\n"
+         "Append one workspace variable to another.\n"
          "\n"
-         "This method can append an array to an array of the same type,\n"
+         "This method can append an array to another array of the same type,\n"
          "e.g. ArrayOfIndex to ArrayOfIndex. Or a single element to an array\n"
          "such as a Tensor3 to an ArrayOfTensor3.\n"
          "\n"
-         "In addition to that Vector and Matrices are also supported.\n"
-         "For Matrices the third argument indicates the dimension to\n"
-         "append to. 'leading' means to append to the leftmost dimension\n"
-         "(row-wise for Matrix), 'trailing' to the rightmost dimension\n"
-         "(right-most for matrices).\n"
+         "Vectors and Matrices are supported as well:"
+         "When appending a Vector to another Vector, the 'dimension' argument\n"
+         "is ignored."
+         "When appending a Matrix to another Matrix or a Vector to a Matrix,"
+         "the third argument indicates the dimension to append to.\n"
+         "'leading' means to append to row-wise, 'trailing' means column-wise.\n"
          "\n"
          "This method is not implemented for all types, just for those where an\n"
          "append makes sense. (See variable list below.).\n"
@@ -2054,13 +2055,13 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT(),
         GOUT( "out" ),
-        GOUT_TYPE( "Vector, Matrix, String, " +
+        GOUT_TYPE( "Vector, Matrix, Matrix, String, " +
                    ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE ),
         GOUT_DESC( "The variable to append to." ),
         IN(),
         GIN( "in",
              "dimension" ),
-        GIN_TYPE( "Vector, Matrix, String, " +
+        GIN_TYPE( "Vector, Matrix, Vector, String, " +
                   ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE,
                   "String" ),
         GIN_DEFAULT( NODEF,

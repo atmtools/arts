@@ -1,5 +1,14 @@
 2013-01-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-450
+
+	* src/m_append.h, src/methods.cc (Append):
+
+	Clarify built-in docs and add support for appending Vectors row- or
+	column-wise to Matrices.
+
+2013-01-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-449
 
 	* ChangeLog: Part of a sentence got lost.
