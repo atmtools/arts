@@ -1,11 +1,18 @@
 2013-01-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-449
+
+	* ChangeLog: Part of a sentence got lost.
+
+2013-01-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-448
 
 	* src/doit.{cc,h} (doit_scat_fieldNormalize):
 
 	New function to scale doit_scat_field with correction factor derived
-	from difference between 
+	from difference between scattered field and scattered extinction
+	field.
 
 	* src/methods.cc, src/m_doit.cc (doit_i_fieldUpdateSeq1D):
 
