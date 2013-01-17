@@ -196,7 +196,17 @@ AgendaSet( doit_scat_field_agenda ){
 
 AgendaSet( doit_rte_agenda ){
   # Sequential update for 1D
-  doit_i_fieldUpdateSeq1D
+  doit_i_fieldUpdateSeq1D(
+		  doit_i_field,
+		  doit_scat_field,
+		  cloudbox_limits, abs_mat_per_species_agenda,
+		  vmr_field, spt_calc_agenda, scat_za_grid,
+		  scat_aa_grid, pnd_field,
+		  opt_prop_part_agenda, ppath_step_agenda,
+		  p_grid, z_field, refellipsoid, t_field,
+		  edensity_field, f_grid, f_index,
+		  surface_rtprop_agenda, doit_za_interp,
+		  1, 0.05 )
   # Alternatives:
   # Plane parallel approximation for determination of propagation path steps
   #doit_i_fieldUpdateSeq1DPP

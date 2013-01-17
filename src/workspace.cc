@@ -1205,6 +1205,8 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
        "        N_za, N_aa, N_i ]\n"
+       "\n"
+       "Note: For 1D, the size of the azimuth angle dimension (N_aa) is always 1.\n"
        ),
        GROUP( "Tensor6" )));
 
@@ -1332,7 +1334,7 @@ void Workspace::define_wsv_data()
     ( NAME( "doit_scat_field" ),
       DESCRIPTION
       (
-       "Scattered field field inside the cloudbox.\n"
+       "Scattered field inside the cloudbox.\n"
        "\n"
        "This variable holds the value of the scattering integral for all\n"
        "points inside the cloudbox. For more information refer to AUG.\n"

@@ -244,7 +244,6 @@ void za_gridOpt(//Output:
                 const Numeric& acc,
                 const Index& scat_za_interp);
 
-
 void iy_interp_cloudbox_field(Matrix&               iy,
                               const Tensor7&        scat_i_p,
                               const Tensor7&        scat_i_lat,
@@ -264,6 +263,18 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                               const String&         interpmeth,
                               const Verbosity&      verbosity);
 
-
+void doit_scat_fieldNormalize(Workspace& ws,
+                              Tensor6& doit_scat_field,
+                              const Tensor6& doit_i_field,
+                              const ArrayOfIndex& cloudbox_limits,
+                              const Agenda& spt_calc_agenda,
+                              const Index& atmosphere_dim,
+                              const Vector& scat_za_grid,
+                              const Vector& scat_aa_grid,
+                              const Tensor4& pnd_field,
+                              const Agenda& opt_prop_part_agenda,
+                              const Tensor3& t_field,
+                              const Numeric& norm_error_threshold,
+                              const Verbosity& verbosity);
 
 #endif //doit_h

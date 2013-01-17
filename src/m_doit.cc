@@ -60,6 +60,7 @@
 #include "wsv_aux.h"
 #include "geodetic.h"
 
+
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
   
@@ -585,10 +586,10 @@ void doit_i_fieldIterate(Workspace& ws,
     doit_scat_field_agendaExecute(ws, doit_scat_field_local,
                                   doit_i_field,
                                   doit_scat_field_agenda);
-    
+
     // Update doit_i_field.
     out2 << "  Execute doit_rte_agenda. \n";
-    doit_rte_agendaExecute(ws, doit_i_field, doit_scat_field_local, 
+    doit_rte_agendaExecute(ws, doit_i_field, doit_scat_field_local,
                            doit_rte_agenda);
 
     //Convergence test.
@@ -751,7 +752,7 @@ doit_i_fieldUpdate1D(Workspace& ws,
         {
           if ( (p_index!=0) || (scat_za_grid[scat_za_index_local] <= 90.))
             {
-              cloud_ppath_update1D_noseq(ws, doit_i_field, 
+              cloud_ppath_update1D_noseq(ws, doit_i_field,
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
@@ -775,8 +776,8 @@ void
 doit_i_fieldUpdateSeq1D(Workspace& ws,
                         // WS Input and Output:
                         Tensor6& doit_i_field,
+                        Tensor6& doit_scat_field,
                         // WS Input:
-                        const Tensor6& doit_scat_field,
                         const ArrayOfIndex& cloudbox_limits,
                         // Calculate scalar gas absorption:
                         const Agenda& abs_mat_per_species_agenda,
@@ -784,7 +785,8 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         // Optical properties for single particle type:
                         const Agenda& spt_calc_agenda,
                         const Vector& scat_za_grid,
-                        const Tensor4& pnd_field, 
+                        const Vector& scat_aa_grid,
+                        const Tensor4& pnd_field,
                         // Optical properties for gases and particles:
                         const Agenda& opt_prop_part_agenda,
                         // Propagation path calculation:
@@ -799,11 +801,13 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Index& f_index,
                         const Agenda& surface_rtprop_agenda, //STR
                         const Index& doit_za_interp,
+                        const Index& normalize,
+                        const Numeric& norm_error_threshold,
                         const Verbosity& verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
-  
+
   out2<<"  doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
 
@@ -864,7 +868,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1, 1, 1, 
                    N_scat_za, 1, stokes_dim));
   
-  // FIXME: Check *vmr_field* 
+  // FIXME: Check *vmr_field*
   
   // -------------- End of checks --------------------------------------
   
@@ -907,6 +911,23 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
   //Only dummy variables:
   Index scat_aa_index_local = 0;
 
+  if (normalize)
+    {
+      Tensor4 si, sei, si_corr;
+      doit_scat_fieldNormalize(ws,
+                               doit_scat_field,
+                               doit_i_field,
+                               cloudbox_limits,
+                               spt_calc_agenda,
+                               1,
+                               scat_za_grid, scat_aa_grid,
+                               pnd_field,
+                               opt_prop_part_agenda,
+                               t_field,
+                               norm_error_threshold,
+                               verbosity);
+    }
+
   //Loop over all directions, defined by scat_za_grid
   for(Index scat_za_index_local = 0; scat_za_index_local < N_scat_za;
       scat_za_index_local ++)
@@ -918,7 +939,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
       // *opt_prop_part_agenda*.
       cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
                        spt_calc_agenda, opt_prop_part_agenda, 
-                       scat_za_index_local, scat_aa_index_local, 
+                       scat_za_index_local, scat_aa_index_local,
                        cloudbox_limits, t_field, pnd_field, verbosity);
 
 
@@ -938,7 +959,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D(ws, doit_i_field, 
+              cloud_ppath_update1D(ws, doit_i_field,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    abs_mat_per_species_agenda, vmr_field,
@@ -958,7 +979,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D(ws, doit_i_field,  
+              cloud_ppath_update1D(ws, doit_i_field,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    abs_mat_per_species_agenda, vmr_field,
@@ -1226,7 +1247,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(ws, doit_i_field, 
+                          cloud_ppath_update3D(ws, doit_i_field,
                                                p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1258,7 +1279,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(ws, doit_i_field, 
+                          cloud_ppath_update3D(ws, doit_i_field,
                                                p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1302,7 +1323,7 @@ doit_i_fieldUpdateSeq3D(Workspace& ws,
                           for(Index lon_index = lon_low; lon_index <= lon_up; 
                               lon_index ++)
                             {
-                              cloud_ppath_update3D(ws, doit_i_field, 
+                              cloud_ppath_update3D(ws, doit_i_field,
                                                    p_index, 
                                                    lat_index, 
                                                    lon_index, scat_za_index, 
@@ -1460,7 +1481,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
           for(Index p_index = cloudbox_limits[1] -1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D_planeparallel(ws, doit_i_field, 
+              cloud_ppath_update1D_planeparallel(ws, doit_i_field,
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
@@ -1483,7 +1504,7 @@ doit_i_fieldUpdateSeq1DPP(Workspace& ws,
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D_planeparallel(ws, doit_i_field,  
+              cloud_ppath_update1D_planeparallel(ws, doit_i_field,
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
@@ -2003,7 +2024,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
    
   // Number of zenith angles.
   const Index Nza = scat_za_grid.nelem();
-   
+
   if (scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180.)
     throw runtime_error("The range of *scat_za_grid* must [0 180].");
    
@@ -2011,7 +2032,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
   const Index Naa = scat_aa_grid.nelem();
    
   if (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.)
-    throw runtime_error("The range of *scat_za_grid* must [0 360]."); 
+    throw runtime_error("The range of *scat_aa_grid* must [0 360].");
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
@@ -2078,7 +2099,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
     out1 << "Warning: doit_za_grid_size is very large which means that the \n"
          << "calculation will be very slow. The recommended value is 19.\n";
   }
-  
+
   // ------ end of checks -----------------------------------------------
   
   // Initialize variables *pha_mat* and *pha_mat_spt*
@@ -2087,7 +2108,6 @@ doit_scat_fieldCalcLimb(Workspace& ws,
 
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(), doit_za_grid_size,
                             scat_aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
-
 
   // Create the grids for the calculation of the scattering integral.
   Vector za_grid;

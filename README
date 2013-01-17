@@ -145,5 +145,5 @@ cmake -DENABLE_DISORT=1 ..
 
 Use C++11 and the new libc++ (currently only supported in Xcode builds):
 
-cmake -G Xcode -DWITH_XCODE_LIBCPP ..
+cmake -G Xcode -DWITH_XCODE_LIBCPP=1 ..
 

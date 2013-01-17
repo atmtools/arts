@@ -2295,8 +2295,166 @@ void iy_interp_cloudbox_field(Matrix&               iy,
     }
 }
 
-            
-                    
 
-  
-  
+//! Normalization of scattered field
+/*!
+ Calculate the scattered extinction field and apply the
+ derived correction factor to doit_scat_field.
+ 
+ Only 1D is supported.
+ 
+ \param[in,out] ws Current workspace
+ \param[in,out] doit_scat_field Scattered field
+ \param[in]     cloudbox_limits WS Input
+ \param[in]     spt_calc_agenda WS Input
+ \param[in]     atmopshere_dim WS Input
+ \param[in]     scat_za_grid WS Input
+ \param[in]     scat_aa_grid WS Input
+ \param[in]     pnd_field WS Input
+ \param[in]     opt_prop_part_agenda WS Input
+ \param[in]     t_field WS Input
+ \param[in]     norm_error_threshold  Normalization error threshold
+ \param[in]     verbosity Verbosity
+ 
+ \author Oliver Lemke
+ \date 2013-01-17
+ */
+void
+doit_scat_fieldNormalize(Workspace& ws,
+                         Tensor6& doit_scat_field,
+                         const Tensor6& doit_i_field,
+                         const ArrayOfIndex& cloudbox_limits,
+                         const Agenda& spt_calc_agenda,
+                         const Index& atmosphere_dim,
+                         const Vector& scat_za_grid,
+                         const Vector& scat_aa_grid,
+                         const Tensor4& pnd_field,
+                         const Agenda& opt_prop_part_agenda,
+                         const Tensor3& t_field,
+                         const Numeric& norm_error_threshold,
+                         const Verbosity& verbosity)
+{
+    if (atmosphere_dim != 1)
+        throw runtime_error("Only 1D is supported here for now");
+
+    CREATE_OUT0;
+    CREATE_OUT2;
+
+    // Number of zenith angles.
+    const Index Nza = scat_za_grid.nelem();
+
+    if (scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180.)
+        throw runtime_error("The range of *scat_za_grid* must [0 180].");
+
+    // Number of azimuth angles.
+    const Index Naa = scat_aa_grid.nelem();
+
+    if (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.)
+        throw runtime_error("The range of *scat_aa_grid* must [0 360].");
+
+    // Get stokes dimension from *doit_scat_field*:
+    const Index stokes_dim = doit_scat_field.ncols();
+    assert(stokes_dim > 0 || stokes_dim < 5);
+
+    // To use special interpolation functions for atmospheric fields we
+    // use ext_mat_field and abs_vec_field:
+    Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+                          stokes_dim, stokes_dim, 0.);
+    Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+                          stokes_dim, 0.);
+
+    const Index Np = doit_scat_field.nvitrines();
+
+    Tensor5 doit_scat_ext_field(doit_scat_field.nvitrines(),
+                                doit_scat_field.nshelves(),
+                                doit_scat_field.nbooks(),
+                                doit_scat_field.npages(),
+                                doit_scat_field.nrows(),
+                                0.);
+
+    Index scat_aa_index_local = 0;
+
+    // Calculate scattering extinction field
+    for(Index scat_za_index_local = 0; scat_za_index_local < Nza;
+        scat_za_index_local ++)
+    {
+        // This function has to be called inside the angular loop, as
+        // spt_calc_agenda takes *scat_za_index* and *scat_aa_index*
+        // from the workspace.
+        // *scat_p_index* is needed for communication with agenda
+        // *opt_prop_part_agenda*.
+        cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field,
+                         spt_calc_agenda, opt_prop_part_agenda,
+                         scat_za_index_local, scat_aa_index_local,
+                         cloudbox_limits, t_field, pnd_field, verbosity);
+
+        for(Index p_index = 0;
+            p_index <= (cloudbox_limits[1] - cloudbox_limits[0]);
+            p_index ++)
+        {
+            // For all in p_grid (in cloudbox):
+            // I_ext = (ext_mat_field - abs_vec_field) * doit_i_field
+            // equivalent to:
+            // I_ext = I * (K11-a1) + Q * (K12 - a2) + U * (K13 - a3) + V * (K14 - a4)
+            for (Index i = 0; i < stokes_dim; i++)
+            {
+                doit_scat_ext_field(p_index, 0, 0, scat_za_index_local, 0)
+                += doit_i_field(p_index, 0, 0, scat_za_index_local, 0, i)
+                * (ext_mat_field(p_index, 0, 0, 0, i) - abs_vec_field(p_index, 0, 0, i));
+            }
+        }
+    }
+
+    Numeric corr_max = .0;
+    Index corr_max_p_index = -1;
+
+    for (Index p_index = 0; p_index < Np; p_index++)
+    {
+        // Calculate scattering integrals
+        const Numeric scat_int
+        = AngIntegrate_trapezoid(doit_scat_field(p_index, 0, 0, joker, 0, 0),
+                                 scat_za_grid);
+
+        const Numeric scat_ext_int
+        = AngIntegrate_trapezoid(doit_scat_ext_field(p_index, 0, 0, joker, 0),
+                                 scat_za_grid);
+
+        // Calculate factor between scattered extinction field integral
+        // and scattered field integral
+        const Numeric corr_factor = scat_ext_int / scat_int;
+
+        // If no scattering is present, the correction factor can become
+        // inf or nan. We just don't apply it for those cases.
+        if (!isnan(corr_factor) && !isinf(corr_factor))
+        {
+            if (abs(corr_factor) > abs(corr_max))
+            {
+                corr_max = corr_factor;
+                corr_max_p_index = p_index;
+            }
+            if (abs(1.-corr_factor) > norm_error_threshold)
+            {
+                ostringstream os;
+                os <<   "ERROR: DOIT correction factor exceeds threshold: "
+                << setprecision(4) <<  1.-corr_factor << " at p_index " << p_index << "\n";
+                throw runtime_error(os.str());
+            }
+            else if (abs(1.-corr_factor) > norm_error_threshold/2.)
+            {
+                out0 << "  WARNING: DOIT correction factor above threshold/2: "
+                << 1.-corr_factor << " at p_index " << p_index << "\n";
+            }
+
+            // Scale scattered field with correction factor
+            doit_scat_field(p_index, 0, 0, joker, 0, joker) *= corr_factor;
+        }
+    }
+
+    if (corr_max_p_index != -1)
+    {
+        out2 << "  Max. DOIT correction factor in this iteration: " << 1.-corr_max
+        << " at p_index " << corr_max_p_index << "\n";
+    }
+}
+
+

@@ -1,3 +1,40 @@
+2013-01-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-448
+
+	* src/doit.{cc,h} (doit_scat_fieldNormalize):
+
+	New function to scale doit_scat_field with correction factor derived
+	from difference between 
+
+	* src/methods.cc, src/m_doit.cc (doit_i_fieldUpdateSeq1D):
+
+	Add parameters scat_aa_grid, normalize and norm_error_threshold. Make
+	doit_scat_field input and output.
+
+	Call doit_scat_fieldNormalize if turned on.
+
+	(doit_i_fieldUpdate1D, doit_i_fieldUpdateSeq1DPP):
+
+	Set doit_i_field also as input.
+
+	* src/doit.{cc,h} (doit_scat_fieldNormalize):
+
+	Add new function for calculate the scattered extinction field and
+	apply correction factor to doit_scat_field.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts:
+
+	Turn on new normalization in doit_i_fieldUpdateSeq1D.
+
+	* controlfiles/general/agendasDOIT.arts:
+
+	Add comment with example code to turn on new normalization in DOIT.
+
+	* src/workspace.cc: Fix typo.
+
+	* README: Add missing =1.
+
 2013-01-16  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-447
