@@ -43,14 +43,19 @@ extern const Numeric SPEED_OF_LIGHT;
  otherwise lower order or no interpolation.
  
  \param[out] result     CIA value for given frequency grid and temperature.
- \param[in] f_grid      Frequency grid
- \param[in] temperature Scalar temperature
- \param[in] cia_data    The CIA dataset to interpolate */
+ \param[in] f_grid      Frequency grid.
+ \param[in] temperature Scalar temperature.
+ \param[in] cia_data    The CIA dataset to interpolate.
+ \param[in] verbosity   Standard verbosity object.
+ */
 void cia_interpolation(VectorView result,
                        ConstVectorView f_grid,
                        const Numeric& temperature,
-                       const GriddedField2& cia_data)
+                       const GriddedField2& cia_data,
+                       const Verbosity& verbosity)
 {
+    CREATE_OUTS;
+
     const Index nf = f_grid.nelem();
     
     // Assert that result vector has right size:
@@ -59,6 +64,19 @@ void cia_interpolation(VectorView result,
     // Get data grids:
     ConstVectorView data_f_grid = cia_data.get_numeric_grid(0);
     ConstVectorView data_T_grid = cia_data.get_numeric_grid(1);
+    
+  {
+    // Some detailed information to the most verbose output stream:
+    ostringstream os;
+    os   << "    f_grid:      " << f_grid[0] << " - "
+         << f_grid[nf-1] << " Hz\n"
+         << "    data_f_grid: " << data_f_grid[0] << " - "
+         << data_f_grid[data_f_grid.nelem()-1] << " Hz\n"
+         << "    temperature: " << temperature << " K\n"
+         << "    data_T_grid: " << data_T_grid[0] << " - "
+         << data_T_grid[data_T_grid.nelem()-1] << " K\n";
+    out3 << os.str();
+  }
     
     // Initialize result to zero (important for those frequencies outside the data grid).
     result = 0;
@@ -76,7 +94,7 @@ void cia_interpolation(VectorView result,
     if (i_fstart==nf) return;
     
     for (i_fstop=nf-1; i_fstop>=0; --i_fstop)
-        if (f_grid[i_fstop] <= data_f_grid[data_f_grid.nelem()]) break;
+        if (f_grid[i_fstop] <= data_f_grid[data_f_grid.nelem()-1]) break;
     
     // Return directly if all frequencies are above data_f_grid:
     if (i_fstop==-1) return;
@@ -84,15 +102,24 @@ void cia_interpolation(VectorView result,
     // Extent for active frequency vector:
     const Index f_extent = i_fstop-i_fstart+1;
     
-    // If we are here, then there has to be at least one active frequency,
-    // unless I screwed it up somehow. Assert this:
-    assert(f_extent>0);
+  {
+    ostringstream os;
+    os << "    " << f_extent << " frequency extraction points starting at "
+       << "frequency index " << i_fstart << ".\n";
+    out3 << os.str();
+  }
+    
+    // If f_extent is less than one, then the entire data_f_grid is between two
+    // grid points of f_grid. (So that we do not have any f_grid points inside
+    // data_f_grid.) Return also in this case.
+    if (f_extent < 1) return;
+    
     
     // This is the part of f_grid for which we have to do the interpolation.
     ConstVectorView f_grid_active = f_grid[Range(i_fstart, f_extent)];
     
     // We have to create a matching view on the result vector:
-    VectorView result_active = result[Range(i_fstart, i_fstop-i_fstart+1)];
+    VectorView result_active = result[Range(i_fstart, f_extent)];
     
     
     // Decide on interpolation orders:
@@ -165,20 +192,32 @@ void cia_interpolation(VectorView result,
     
         // Calculate combined interpolation weights:
         Tensor3 itw(f_gp.nelem(),T_gp.nelem(),(f_order+1)*(T_order+1));
-        interpweights(itw,f_gp, T_gp);
+        interpweights(itw, f_gp, T_gp);
         
         // Make a matrix view of the results vector:
         MatrixView result_matrix(result_active);
+      
+        cout << "result_matrix r/c: " << result_matrix.nrows() << " / "
+             << result_matrix.ncols() << endl;
+        cout << "result_matrix before: " << result_matrix << endl;
+        
+        cout << "cia_data: " << cia_data.data << endl;
         
         // Actual interpolation:
         interp(result_matrix, itw, cia_data.data, f_gp, T_gp);
-      }
+
+        cout << "result_matrix after: " << result_matrix << endl;
+}
     
+    cout << "result_active before: " << result_active << endl;
+
     // Set negative values to zero. (These could happen due to overshooting
     // of the higher order interpolation.)
     for (Index i=0; i<result_active.nelem(); ++i)
         if (result_active[i]<0)
             result_active = 0;
+
+    cout << "result_active after: " << result_active << endl;
     
 }
 
@@ -206,27 +245,31 @@ Index cia_get_index(ArrayOfCIARecord cia_data, Index sp1, Index sp2)
 void CIARecord::Extract(VectorView      result,
                         ConstVectorView f_grid,
                         const Numeric&  temperature,
-                        const Index&    dataset) const
+                        const Index&    dataset,
+                        const Verbosity& verbosity) const
 {
     // If there is more than one dataset available for this species pair,
     // we have to decide on which one to use. The rest is done by helper function
     // cia_interpolate.
     
-    // Temporary vector for interpolation results:
-    Vector res_temp(result.nelem());
-
     // Make sure dataset index exists
-    assert(dataset < mdata.nelem());
+    if ( dataset >= mdata.nelem() )
+      {
+        ostringstream os;
+        os << "There are only " << mdata.nelem() << " datasets in this CIA file.\n"
+           << "But you are trying to use dataset " << dataset << ". (Zero-based indexing.)";
+        throw runtime_error(os.str());
+      }
+
 
     // Get a handle on this dataset:
     const GriddedField2& this_cia = mdata[dataset];
 
-    cia_interpolation(res_temp,
+    cia_interpolation(result,
                       f_grid,
                       temperature,
-                      this_cia);
-
-    result += res_temp;
+                      this_cia,
+                      verbosity);
 }
 
 
@@ -414,7 +457,7 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
 
             // Convert wavenumbers to Herz:
             freq[i] = 100. * w * SPEED_OF_LIGHT;
-
+          
             // Convert binary absorption cross-sections from
             // cm^5 molec^(-2) to m^5 molec^(-2):
             cia[nset][i] = c / 1e10;

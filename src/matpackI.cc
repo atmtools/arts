@@ -218,7 +218,9 @@ ConstIterator1D ConstVectorView::end() const
 /** Conversion to const 1 column matrix. */
 ConstVectorView::operator ConstMatrixView() const
 {
-  return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
+    return ConstMatrixView(mdata+mrange.mstart,
+                           Range(0,mrange.mextent,mrange.mstride),
+                           Range(0,1));
 }
 
 /** A special constructor, which allows to make a ConstVectorView from
@@ -517,7 +519,9 @@ VectorView VectorView::operator-=(const ConstVectorView& x)
 /** Conversion to 1 column matrix. */
 VectorView::operator MatrixView()
 {
-  return MatrixView(mdata,mrange,Range(mrange.mstart,1));
+    return MatrixView(mdata+mrange.mstart,
+                      Range(0,mrange.mextent,mrange.mstride),
+                      Range(0,1));
 }
 
 /** Conversion to plain C-array.

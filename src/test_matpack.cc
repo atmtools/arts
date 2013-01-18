@@ -794,6 +794,23 @@ void test41()
   cout << "Vector:     " << v1 << endl;
 }
 
+// Test behaviour of VectorView::operator MatrixView, for which I have fixed
+// a bug today.
+// SAB 2013-01-18
+void test42()
+{
+    cout << "test42\n";
+    Vector x = MakeVector(1,2,3,4,5,6,7,8,9,10);
+    cout << "x: " << x << endl;
+
+    VectorView y = x[Range(2,4,2)];
+    cout << "y: " << y << endl;
+    
+    MatrixView z(y);
+    cout << "z: " << z << endl;
+    
+}
+    
 int main()
 {
 //   test1();
@@ -837,7 +854,8 @@ int main()
 //  test38();
 //  test39();
 //  test40();
-  test41();
+//  test41();
+    test42();
 
   return 0;
 }

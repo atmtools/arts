@@ -47,7 +47,8 @@ typedef Array<CIARecord> ArrayOfCIARecord;
 void cia_interpolation(VectorView result,
                        ConstVectorView frequency,
                        const Numeric& temperature,
-                       const GriddedField2& cia_data);
+                       const GriddedField2& cia_data,
+                       const Verbosity& verbosity);
 
 Index cia_get_index(ArrayOfCIARecord cia_data, Index sp1, Index sp2);
 
@@ -142,8 +143,8 @@ public:
 
 
     /** Set CIA species.
-     \param[in] first CIA Species
-     \param[in] second CIA Species
+     \param[in] first CIA Species.
+     \param[in] second CIA Species.
      */
     void SetSpecies(const Index first, const Index second)
     {
@@ -158,13 +159,16 @@ public:
      interpolation.
      
      \param[out] result CIA value for given frequency grid and temperature.
-     \param[in] f_grid Frequency grid
-     \param[in] temperature Scalar temparature
-     \param[in] dataset Index of dataset to use */
+     \param[in] f_grid Frequency grid.
+     \param[in] temperature Scalar temparature.
+     \param[in] dataset Index of dataset to use.
+     \param[in] verbosity   Standard verbosity object.
+     */
     void Extract(VectorView      result,
                  ConstVectorView f_grid,
                  const Numeric&  temperature,
-                 const Index& dataset) const;
+                 const Index& dataset,
+                 const Verbosity& verbosity) const;
 
 
     /** Scalar version of extract.
@@ -175,15 +179,18 @@ public:
      \return Scalar CIA value at given frequency and temperature.
      \param[in] frequency Scalar frequency
      \param[in] temperature Scalar temparature
-     \param[in] dataset Index of dataset to use */
+     \param[in] dataset Index of dataset to use 
+     \param[in] verbosity   Standard verbosity object.
+     */
     Numeric Extract(const Numeric& frequency,
                     const Numeric& temperature,
-                    const Index& dataset) const
+                    const Index& dataset,
+                    const Verbosity& verbosity) const
     {
       Vector result(1);
       const Vector freqvec(1, frequency);
       
-      Extract(result, freqvec, temperature, dataset);
+      Extract(result, freqvec, temperature, dataset, verbosity);
       
       return result[0];
     }
@@ -209,7 +216,7 @@ private:
                             or frequency ranges.
      Gridded field dimension 1: Frequency [Hz].
      Gridded field dimension 2: Temperature [K].
-     Data: FIXME: Document units!!!
+     Data: Binary absorption cross-sections in m^5 molec^(-2) 
      
      */
     ArrayOfGriddedField2 mdata;

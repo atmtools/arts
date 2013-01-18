@@ -106,7 +106,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
             const SpeciesTag& this_species = abs_species[i][s];
 
             // Check if this is a CIA tag
-            if (this_species.CIASecond() == -1)
+            if (this_species.Type() != SpeciesTag::TYPE_CIA)
                 continue;
               
             // Get convenient references of this CIA data record and this
@@ -124,8 +124,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
               // Some nice output to out2:
               ostringstream os;
               os << "  CIA Species found: "
-                 << this_cia.MoleculeName(0) << "-CIA-"
-                 << this_cia.MoleculeName(1) << "\n";
+                 << this_species.Name() << "\n";
               out2 << os.str();
             }
             
@@ -156,7 +155,8 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
             for (Index ip = 0; ip < abs_p.nelem(); ip++)
               {
                 // Get the binary absorption cross sections from the CIA data:
-                this_cia.Extract(xsec_temp, f_grid, abs_t[ip], this_species.CIADataset());
+                this_cia.Extract(xsec_temp, f_grid, abs_t[ip],
+                                 this_species.CIADataset(), verbosity);
                 
                 // We have to multiply with the number density of the second CIA species.
                 // We do not have to multiply with the first, since we still
