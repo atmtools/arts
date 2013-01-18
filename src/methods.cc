@@ -2796,25 +2796,6 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_cia_dataInit" ),
-        DESCRIPTION
-        (
-         "Sets *abs_cia_data* to default empty state.\n"
-         ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT( "abs_cia_data" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "abs_cia_dataReadFromCIA" ),
         DESCRIPTION
         (
@@ -2838,6 +2819,26 @@ void define_md_data_raw()
         GIN_TYPE( "String" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Path to the CIA catalog directory." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "CIAInfo" ),
+        DESCRIPTION
+        (
+         "Read data from a CIA data file for all CIA molecules defined\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "catalogpath", "cia_tags" ),
+        GIN_TYPE( "String", "ArrayOfString" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Path to the CIA catalog directory.",
+                  "Array of CIA tags to view, e.g. [ \"N2-N2\", \"H2-H2\" ]" )
         ));
 
   md_data_raw.push_back

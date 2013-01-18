@@ -103,6 +103,44 @@ public:
     }
 
     
+    /** Return number of datasets in this record.
+     */
+    Index DatasetCount() const { return mdata.nelem(); }
+
+    
+    /** Return frequency grid for given dataset.
+     */
+    ConstVectorView FrequencyGrid(Index dataset) const
+    {
+        if (dataset > mdata.nelem())
+            throw runtime_error("Invalid dataset index.");
+
+        return mdata[dataset].get_numeric_grid(0);
+    }
+    
+    
+    /** Return temperatur grid for given dataset.
+     */
+    ConstVectorView TemperatureGrid(Index dataset) const
+    {
+        if (dataset > mdata.nelem())
+            throw runtime_error("Invalid dataset index.");
+
+        return mdata[dataset].get_numeric_grid(1);
+    }
+
+
+    /** Return CIA data.
+     */
+    const GriddedField2& Dataset(Index dataset) const
+    {
+        if (dataset > mdata.nelem())
+            throw runtime_error("Invalid dataset index.");
+
+        return mdata[dataset];
+    }
+
+
     /** Set CIA species.
      \param[in] first CIA Species
      \param[in] second CIA Species

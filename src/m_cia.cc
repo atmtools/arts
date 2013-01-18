@@ -34,14 +34,7 @@
 #include "physics_funcs.h"
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_cia_dataInit(// WS Output:
-                     ArrayOfCIARecord& abs_cia_data,
-                     const Verbosity&)
-{
-    abs_cia_data.resize(0);
-}
-
+extern const Numeric SPEED_OF_LIGHT;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddCIA(// WS Output:
@@ -193,8 +186,8 @@ void abs_cia_dataReadFromCIA(// WS Output:
     ArrayOfString subfolders;
     subfolders.push_back("Main-Folder/");
     subfolders.push_back("Alternate-Folder/");
-    
-    abs_cia_data.resize(abs_species.nelem());
+
+    abs_cia_data.resize(0);
 
     // Loop species tag groups to find CIA tags.
     // Index sp loops through the tag groups, index iso through the tags within
@@ -273,4 +266,64 @@ void abs_cia_dataReadFromCIA(// WS Output:
             }
         }
     }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void CIAInfo(// Generic Input:
+             const String& catalogpath,
+             const ArrayOfString& cia_tags,
+             const Verbosity& verbosity)
+{
+    CREATE_OUT1;
+
+    ArrayOfArrayOfSpeciesTag species_tags;
+
+    for (Index i = 0; i < cia_tags.nelem(); i++)
+    {
+        ArrayOfSpeciesTag this_species_tag;
+
+        ArrayOfString species_names;
+
+        cia_tags[i].split(species_names, "-");
+
+        if (species_names.nelem() != 2)
+        {
+            ostringstream os;
+            os << "ERROR: Cannot parse CIA tag: " << cia_tags[i];
+            throw runtime_error(os.str());
+        }
+
+        this_species_tag.push_back(SpeciesTag(species_names[0]
+                                              + "-CIA-"
+                                              + species_names[1]
+                                              + "-0"));
+
+        species_tags.push_back(this_species_tag);
+    }
+
+    ArrayOfCIARecord cia_data;
+
+    abs_cia_dataReadFromCIA(cia_data, species_tags, catalogpath, verbosity);
+
+    out1 << "CIA tag; Spectral range [cm-1]; Temp range [K]; # of sets\n";
+    for (Index i = 0; i < cia_data.nelem(); i++)
+        for (Index j = 0; j < cia_data[i].DatasetCount(); j++)
+        {
+            Vector temp_grid = cia_data[i].TemperatureGrid(j);
+            Vector freq_grid = cia_data[i].FrequencyGrid(j);
+
+            ostringstream os;
+            os << setprecision(2) << std::fixed << "  "
+            << cia_data[i].MoleculeName(0) << "-CIA-" << cia_data[i].MoleculeName(1)
+            << "-" << j
+            << "; " << freq_grid[0] / 100. / SPEED_OF_LIGHT
+            << " - " << freq_grid[freq_grid.nelem()-1] / 100. / SPEED_OF_LIGHT
+            << std::fixed
+            << "; " << temp_grid[0] << " - " << temp_grid[temp_grid.nelem()-1]
+            << "; " << temp_grid.nelem()
+            << "\n";
+
+            out1 << os.str();
+        }
 }

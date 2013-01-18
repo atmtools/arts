@@ -28,6 +28,7 @@
  \date   2012-11-30
  */
 
+#include <cmath>
 #include "cia.h"
 #include "interpolation_poly.h"
 #include "abs_species_tags.h"
@@ -336,21 +337,23 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
 
         line.erase(0, 20);
 
-        istringstream istr(line);
-
         // Data for current set
         Index set_npoints;
         Numeric set_temp;
         Numeric set_wave_min, set_wave_max;
 
-        istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
-        if (!istr)
         {
-            ostringstream os;
-            os << "Error in line " << nline
-            << " reading CIA catalog file " << filename << endl;
+            istringstream istr(line);
+            istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
 
-            throw runtime_error(os.str());
+            if (!istr)
+            {
+                ostringstream os;
+                os << "Error in line " << nline
+                << " reading CIA catalog file " << filename << endl;
+
+                throw runtime_error(os.str());
+            }
         }
 
         // If the min/max wave numbers of this set are different from the
@@ -391,10 +394,12 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
 
             nline++;
             getline(is,line);
-            istr.str(line);
+
+            istringstream istr(line);
+            w = c = NAN;
             istr >> w >> c;
 
-            if (is.bad() || istr.bad())
+            if (isnan(w) || isnan(c) || is.bad() || istr.bad())
             {
                 ostringstream os;
                 os << "Error in line " << nline
