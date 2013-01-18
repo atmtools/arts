@@ -36,7 +36,7 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cia_dataInit(// WS Output:
-                     ArrayOfArrayOfCIARecord& abs_cia_data,
+                     ArrayOfCIARecord& abs_cia_data,
                      const Verbosity&)
 {
     abs_cia_data.resize(0);
@@ -52,7 +52,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                                 const Vector& abs_p,
                                 const Vector& abs_t,
                                 const Matrix& abs_vmrs,
-                                const ArrayOfArrayOfCIARecord& abs_cia_data,
+                                const ArrayOfCIARecord& abs_cia_data,
                                 // Verbosity object:
                                 const Verbosity& verbosity)
 {
@@ -64,18 +64,18 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
     const Index n_tgs    = abs_species.nelem();
     const Index n_xsec   = abs_xsec_per_species.nelem();
     const Index nr_vmrs  = abs_vmrs.nrows();
-    const Index n_cia    = abs_cia_data.nelem();
-    
+//    const Index n_cia    = abs_cia_data.nelem();
+
     if (n_tgs != n_xsec  ||
-        n_tgs != nr_vmrs  ||
-        n_tgs != n_cia)
+        n_tgs != nr_vmrs) //  ||
+//        n_tgs != n_cia)
       {
         ostringstream os;
         os << "The following variables must all have the same dimension:\n"
            << "abs_species:          " << n_tgs << "\n"
            << "abs_xsec_per_species: " << n_xsec << "\n"
-           << "abs_vmrs.nrows:       " << nr_vmrs << "\n"
-           << "abs_cia_data:         " << n_cia;
+           << "abs_vmrs.nrows:       " << nr_vmrs << "\n";
+//           << "abs_cia_data:         " << n_cia;
         throw runtime_error(os.str());
       }
   }
@@ -107,12 +107,24 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
     // Loop over CIA data sets.
     // Index i loops through the outer array (different tag groups),
     // index s through the inner array (different tags within each goup).
-    for (Index i = 0; i < abs_cia_data.nelem(); i++)
-        for (Index s = 0; s < abs_cia_data[i].nelem(); s++)
+    for (Index i = 0; i < abs_species.nelem(); i++)
+        for (Index s = 0; s < abs_species[i].nelem(); s++)
           {
+            const SpeciesTag& this_species = abs_species[i][s];
+
+            // Check if this is a CIA tag
+            if (this_species.CIASecond() == -1)
+                continue;
+              
             // Get convenient references of this CIA data record and this
             // absorption cross-section record:
-            const CIARecord& this_cia = abs_cia_data[i][s];
+            Index this_cia_index = cia_get_index(abs_cia_data,
+                                                 this_species.Species(),
+                                                 this_species.CIASecond());
+
+            assert(this_cia_index != -1);
+
+            const CIARecord& this_cia = abs_cia_data[this_cia_index];
             Matrix&          this_xsec = abs_xsec_per_species[i];
             
             {
@@ -151,7 +163,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
             for (Index ip = 0; ip < abs_p.nelem(); ip++)
               {
                 // Get the binary absorption cross sections from the CIA data:
-                this_cia.Extract(xsec_temp, f_grid, abs_t[ip]);
+                this_cia.Extract(xsec_temp, f_grid, abs_t[ip], this_species.CIADataset());
                 
                 // We have to multiply with the number density of the second CIA species.
                 // We do not have to multiply with the first, since we still
@@ -172,7 +184,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_cia_dataReadFromCIA(// WS Output:
-                            ArrayOfArrayOfCIARecord& abs_cia_data,
+                            ArrayOfCIARecord& abs_cia_data,
                             // WS Input:
                             const ArrayOfArrayOfSpeciesTag& abs_species,
                             const String& catalogpath,
@@ -196,9 +208,17 @@ void abs_cia_dataReadFromCIA(// WS Output:
             
             ostringstream cia_name;
 
+            Index cia_index = cia_get_index(abs_cia_data,
+                                            abs_species[sp][iso].Species(),
+                                            abs_species[sp][iso].CIASecond());
+
+            // If cia_index is not -1, we have already read this datafile earlier
+            if (cia_index != -1)
+                continue;
+
             cia_name
             << species_name_from_species_index(abs_species[sp][iso].Species()) << "-"
-            << species_name_from_species_index(abs_species[sp][iso].Cia());
+            << species_name_from_species_index(abs_species[sp][iso].CIASecond());
 
             if (cia_name)
             {
@@ -234,10 +254,10 @@ void abs_cia_dataReadFromCIA(// WS Output:
                         String catfile = *(checked_dirs.end()-1) + files[0];
 
                         ciar.SetSpecies(abs_species[sp][iso].Species(),
-                                        abs_species[sp][iso].Cia());
+                                        abs_species[sp][iso].CIASecond());
                         ciar.ReadFromCIA(catfile, verbosity);
 
-                        abs_cia_data[sp].push_back(ciar);
+                        abs_cia_data.push_back(ciar);
                     }
                 }
 

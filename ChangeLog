@@ -1,3 +1,30 @@
+2013-01-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-455
+
+	* src/abs_species_tags.{h,cc} (SpeciesTag):
+
+	mcia -> mcia_second, Cia() -> CIASecond, CiaDataset -> CIADataset
+
+	* src/cia.{h,cc}
+
+	(cia_get_index): Helper to find index in CIA data.
+
+	(Extract): Add parameter dataset index. Use index instead of loop.
+
+	* src/m_cia (abs_xsec_per_speciesAddCIA, abs_cia_dataReadFromCIA):
+
+	Adapt for changed type of abs_cia_data.
+
+	* src/nc_io_types.h, src/xml_io_instantiation.h, src/xml_io_types.h,
+	src/workspace.cc, src/nc_io_array_types.cc, src/xml_io_array_types.cc,
+	src/groups.cc:
+
+	Change type of abs_cia_data to ArrayOfCIARecord.
+
+	Remove ArrayOfArrayOfCIARecord as a group and add ArrayOfCIARecord
+	instead.
+
 2013-01-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-454

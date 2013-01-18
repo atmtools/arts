@@ -51,7 +51,8 @@ public:
                  mlf(0.),
                  muf(0.),
                  mtype(-1),
-                 mcia(-1)
+                 mcia_second(-1),
+                 mcia_dataset(-1)
   { /* Nothing to be done here. */ }
 
   // Documentation is with implementation.
@@ -77,10 +78,10 @@ public:
   Numeric Uf() const { return muf; }
 
   /** Species index of the 2nd CIA species */
-  Index Cia() const { return mcia; }
+  Index CIASecond() const { return mcia_second; }
 
   /** CIA dataset index inside this CIA file. */
-  Index CiaDataset() const { return mcia_dataset; }
+  Index CIADataset() const { return mcia_dataset; }
 
   //! Comparison operator for species tags.
   /*!
@@ -153,7 +154,7 @@ private:
 
   //! 2nd CIA species index.
   /*! Contains the species index of the second CIA species that should be used for this tag. */
-  Index mcia;
+  Index mcia_second;
 
   //! CIA dataset index.
   /*! A CIA file contains several datasets. This index specifies which one we want. */

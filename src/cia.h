@@ -38,11 +38,19 @@
 #include "check_input.h"
 
 
+class CIARecord;
+
+typedef Array<CIARecord> ArrayOfCIARecord;
+
+
 /* Header with implementation. */
 void cia_interpolation(VectorView result,
                        ConstVectorView frequency,
                        const Numeric& temperature,
                        const GriddedField2& cia_data);
+
+Index cia_get_index(ArrayOfCIARecord cia_data, Index sp1, Index sp2);
+
 
 /** CIA data for a single pair of molecules.
  
@@ -113,12 +121,14 @@ public:
      
      \param[out] result CIA value for given frequency grid and temperature.
      \param[in] f_grid Frequency grid
-     \param[in] temperature Scalar temparature */
+     \param[in] temperature Scalar temparature
+     \param[in] dataset Index of dataset to use */
     void Extract(VectorView      result,
                  ConstVectorView f_grid,
-                 const Numeric&  temperature ) const;
+                 const Numeric&  temperature,
+                 const Index& dataset) const;
 
-    
+
     /** Scalar version of extract.
      
      Use the vector version, if you can, it is more efficient. This is just a 
@@ -126,14 +136,16 @@ public:
      
      \return Scalar CIA value at given frequency and temperature.
      \param[in] frequency Scalar frequency
-     \param[in] temperature Scalar temparature */
+     \param[in] temperature Scalar temparature
+     \param[in] dataset Index of dataset to use */
     Numeric Extract(const Numeric& frequency,
-                    const Numeric& temperature) const
+                    const Numeric& temperature,
+                    const Index& dataset) const
     {
       Vector result(1);
       const Vector freqvec(1, frequency);
       
-      Extract(result, freqvec, temperature);
+      Extract(result, freqvec, temperature, dataset);
       
       return result[0];
     }
@@ -177,7 +189,5 @@ private:
 
 
 ostream& operator<<(ostream& os, const CIARecord& cr);
-
-typedef Array< Array<CIARecord> > ArrayOfArrayOfCIARecord;
 
 #endif // cia_h

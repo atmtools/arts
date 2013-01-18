@@ -182,10 +182,30 @@ void cia_interpolation(VectorView result,
 }
 
 
+/** Get the index in cia_data for the two given species.
+ 
+ \param[in] cia_data CIA data array
+ \param[in] sp1 First species index
+ \param[in] sp2 Second species index
+
+ \returns Index of this species combination in cia_data. -1 if not found.
+ */
+Index cia_get_index(ArrayOfCIARecord cia_data, Index sp1, Index sp2)
+{
+    for (Index i = 0; i < cia_data.nelem(); i++)
+        if ((cia_data[i].Species(0) == sp1 && cia_data[i].Species(1) ==  sp2)
+            || (cia_data[i].Species(0) == sp2 && cia_data[i].Species(1) ==  sp1))
+            return i;
+
+    return -1;
+}
+
+
 // Documentation in header file.
 void CIARecord::Extract(VectorView      result,
                         ConstVectorView f_grid,
-                        const Numeric&  temperature ) const
+                        const Numeric&  temperature,
+                        const Index&    dataset) const
 {
     // If there is more than one dataset available for this species pair,
     // we have to decide on which one to use. The rest is done by helper function
@@ -193,25 +213,19 @@ void CIARecord::Extract(VectorView      result,
     
     // Temporary vector for interpolation results:
     Vector res_temp(result.nelem());
-    
-    // Loop through the available datasets
-    for (Index i=0; i<mdata.nelem(); ++i) {
 
-        // Get a handle on this dataset:
-        const GriddedField2& this_cia = mdata[i];
-        
-        cia_interpolation(res_temp,
-                          f_grid,
-                          temperature,
-                          this_cia);
-        
-        result += res_temp;
-        // FIXME: It makes no sense to simply add up the different CIA data sets.
-        // We need a way for the user to explicitly select which one he/she wants.
+    // Make sure dataset index exists
+    assert(dataset < mdata.nelem());
 
-    }
-    
+    // Get a handle on this dataset:
+    const GriddedField2& this_cia = mdata[dataset];
 
+    cia_interpolation(res_temp,
+                      f_grid,
+                      temperature,
+                      this_cia);
+
+    result += res_temp;
 }
 
 

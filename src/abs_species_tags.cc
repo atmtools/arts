@@ -61,7 +61,7 @@ SpeciesTag::SpeciesTag(String def)
   muf = -1;
 
   // Set CIA species to -1 by default
-  mcia = -1;
+  mcia_second = -1;
 
   // Set type to normal LBL species by default
   mtype = TYPE_PLAIN;
@@ -188,9 +188,9 @@ SpeciesTag::SpeciesTag(String def)
       def.erase(0,n+1);                      // Remove from def
 
     
-      mcia = species_index_from_species_name(otherspec);
+      mcia_second = species_index_from_species_name(otherspec);
         
-      if ( 0 > mcia )
+      if ( 0 > mcia_second )
         {
           ostringstream os;
           os << "CIA species \"" << def << "\" is not a valid species.";
@@ -329,7 +329,7 @@ String SpeciesTag::Name() const
     if (mtype==TYPE_CIA)
       {
         os << "CIA-"
-           << species_name_from_species_index(mcia) << "-"
+           << species_name_from_species_index(mcia_second) << "-"
            << mcia_dataset;
         
       }

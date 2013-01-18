@@ -146,7 +146,7 @@ void Workspace::define_wsv_data()
        "Frequencies: Hz\n"
        "Binary absorption cross-sections: m^5*molecule^-2\n"
        ),
-      GROUP( "ArrayOfArrayOfCIARecord" )));
+      GROUP( "ArrayOfCIARecord" )));
 
   wsv_data.push_back
     (WsvRecord
