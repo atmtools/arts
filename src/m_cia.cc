@@ -306,7 +306,7 @@ void CIAInfo(// Generic Input:
 
     abs_cia_dataReadFromCIA(cia_data, species_tags, catalogpath, verbosity);
 
-    out1 << "CIA tag; Spectral range [cm-1]; Temp range [K]; # of sets\n";
+    out1 << "  CIA tag; Spectral range [cm-1]; Temp range [K]; # of sets\n";
     for (Index i = 0; i < cia_data.nelem(); i++)
         for (Index j = 0; j < cia_data[i].DatasetCount(); j++)
         {

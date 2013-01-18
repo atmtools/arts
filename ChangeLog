@@ -1,5 +1,15 @@
 2013-01-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-458
+
+	* src/cia.cc (CIARecord::ReadFromCIA):
+
+	Reuse istringstream. Better input error checking.
+
+	* src/methods.cc: Update docs for CIAInfo.
+
+2013-01-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-457
 
 	* src/cia.{h,cc}:

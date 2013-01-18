@@ -306,6 +306,8 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
     Index nline = 0;
 
     mdata.resize(0);
+    istringstream istr;
+
     while (is)
     {
         String line;
@@ -339,21 +341,21 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
 
         // Data for current set
         Index set_npoints;
-        Numeric set_temp;
-        Numeric set_wave_min, set_wave_max;
+        Numeric set_temp = NAN;
+        Numeric set_wave_min = NAN;
+        Numeric set_wave_max = NAN;
 
+        istr.str(line);
+        istr.clear();
+        istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
+
+        if (!istr || isnan(set_temp) || isnan(set_wave_min) || isnan(set_wave_max))
         {
-            istringstream istr(line);
-            istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
+            ostringstream os;
+            os << "Error in line " << nline
+            << " reading CIA catalog file " << filename << endl;
 
-            if (!istr)
-            {
-                ostringstream os;
-                os << "Error in line " << nline
-                << " reading CIA catalog file " << filename << endl;
-
-                throw runtime_error(os.str());
-            }
+            throw runtime_error(os.str());
         }
 
         // If the min/max wave numbers of this set are different from the
@@ -395,8 +397,9 @@ void CIARecord::ReadFromCIA(const String& filename, const Verbosity& verbosity)
             nline++;
             getline(is,line);
 
-            istringstream istr(line);
             w = c = NAN;
+            istr.str(line);
+            istr.clear();
             istr >> w >> c;
 
             if (isnan(w) || isnan(c) || is.bad() || istr.bad())

@@ -2826,7 +2826,8 @@ void define_md_data_raw()
       ( NAME( "CIAInfo" ),
         DESCRIPTION
         (
-         "Read data from a CIA data file for all CIA molecules defined\n"
+         "Display information about the given CIA tags.\n"
+         "The CIA tags shown are in the same format as needed by *SpeciesSet*.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
