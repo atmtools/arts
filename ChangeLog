@@ -1,3 +1,13 @@
+2013-01-18  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-456
+
+	* src/gas_abs_lookup.cc (Extract): Implemented feature requested
+	by Jana: Throw a runtime error if one of the reference VMR
+	profiles is zero, but abs_vmrs is not. (This means that the lookup
+	table was calculated with a reference profile of zero for that
+	gas.) Not yet tested, since I don't have a suitable test case.
+
 2013-01-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-455

@@ -643,7 +643,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
   // 3. Checks on the input variables:
 
-  // Assert that abs_vmrs has the right dimension:
+  // Check that abs_vmrs has the right dimension:
   if ( !is_size( abs_vmrs, n_species ) )
     {
       ostringstream os;
@@ -652,9 +652,9 @@ void GasAbsLookup::Extract( Matrix&         sga,
          << "Have you used abs_lookupAdapt?";
       throw runtime_error( os.str() );
     }
+    
 
-
-  // 4. Set up some things we will need later on: 
+  // 4. Set up some things we will need later on:
 
   // Set the start and extent for the frequency loop:
   Index f_start, f_extent;
@@ -750,6 +750,23 @@ void GasAbsLookup::Extract( Matrix&         sga,
       // Index into p_grid:
       const Index this_p_grid_index = pgp[0].idx[pi];
 
+      // Throw a runtime error if one of the reference VMR profiles is zero, but
+      // abs_vmrs is not. (This means that the lookup table was calculated with a
+      // reference profile of zero for that gas.)
+      for (Index si=0; si<n_species; ++si)
+          if ( (vmrs_ref(si,pi) == 0) &&
+               (abs_vmrs[si]    != 0) )
+            {
+                  ostringstream os;
+                  os << "Reference VMR profile is zero, you cannot extract\n"
+                     << "Absorption for this species.\n"
+                     << "Species: " << si
+                     << " (" << get_species_name(species[si]) << ")\n"
+                     << "Lookup table pressure level: " << pi
+                     << " (" <<  p_grid[pi] << " Pa).";
+                  throw runtime_error( os.str() );
+            }
+    
       // Flag for temperature interpolation, if this is not 0 we want
       // to do T interpolation: 
       const Index do_T = n_t_pert;
@@ -1057,8 +1074,9 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // with the total number density n, times the VMR of the
   // species: 
   for ( Index si=0; si<n_species; ++si )
-    sga(si,Range(joker)) *= ( n * abs_vmrs[si] );
+      sga(si,Range(joker)) *= ( n * abs_vmrs[si] );
 
+    
   // That's it, we're done!
 }
 
