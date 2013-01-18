@@ -7587,7 +7587,7 @@ void define_md_data_raw()
             "rte_pos", "rte_pos2" ),
         GIN(         "dl_target", "dl_ok"   ),
         GIN_TYPE(    "Numeric",   "Numeric" ),
-        GIN_DEFAULT( "1e-4",      "1e-1"    ),
+        GIN_DEFAULT( "1e-4",      "0.5"    ),
         GIN_DESC( "Target for length error. Iteration stops when this value "
                   "is reached",
                   "Maximum allowed length error. An error is issued if "

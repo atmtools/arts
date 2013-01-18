@@ -189,7 +189,7 @@ void ppathFromRtePos2(
   // The point of ppath closest to rte_pos2 (on "l12 sphere"), and 
   // its index, radius and cartesian coordinates
   Vector  posc( max( Index(2), atmosphere_dim ) );
-  Index   ip;
+  Index   ip=-999;
   Numeric rc, xc, yc=0, zc, dxip, dyip=0, dzip;
   // The last variables must be remembered for old test path
   Index   ip_old = -1;

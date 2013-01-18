@@ -1,0 +1,154 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Demonstration and test of a single radio link calculation, using yCalc.
+#
+# The link between two satellites is simulated.
+#
+# 2012-08-20, Patrick Eriksson
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+
+# on-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+
+# Frequency grid 
+#
+VectorSet( f_grid, [ 1e9, 5e9, 10e9 ] )
+
+
+# A pressure grid rougly matching 0 to 80 km, in steps of 250.
+#
+VectorNLogSpace( p_grid, 321, 1013e2, 1 )
+
+
+# Definition of species
+# 
+SpeciesSet( abs_species,
+            ["H2O-PWR98", 
+             "N2-SelfContStandardType",
+             "O2-PWR93"] )
+
+
+# No line data needed here
+# 
+abs_lines_per_speciesSetEmpty
+
+
+# Dimensionality of the atmosphere
+#
+AtmosphereSet1D
+
+# Atmospheric profiles
+# 
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            "testdata/tropical" )
+#
+AtmFieldsCalc( t_field, z_field, vmr_field, p_grid, 
+               lat_grid, lon_grid, t_field_raw, z_field_raw, 
+               vmr_field_raw, atmosphere_dim, 3 )
+
+
+# Surface altitude
+MatrixSetConstant( z_surface, 1, 1, 0 )
+
+
+# No scattering
+#
+cloudboxOff
+
+# No jacobian calculations
+#
+jacobianOff
+
+# Check model atmosphere
+# 
+basics_checkedCalc
+cloudbox_checkedCalc
+
+
+# Propagation path agendas and variables
+#
+
+# transmitter-receiver path
+#Copy( ppath_agenda, ppath_agenda__TransmitterReceiverPath )
+AgendaSet( ppath_agenda ){
+  Ignore( rte_los )
+  Ignore( cloudbox_on )
+  Ignore( ppath_inside_cloudbox_do )
+  ppathFromRtePos2( ppath, rte_los, ppath_step_agenda, basics_checked, 
+      atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field, 
+      edensity_field, f_grid, refellipsoid, z_surface, rte_pos, rte_pos2, 
+      1e-4, 0.5 )
+  TangentPointPrint( ppath, 0 )
+}
+
+# refracted path
+Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
+Copy( refr_index_agenda, refr_index_agenda__GasThayer  )
+
+NumericSet( ppath_lmax, 1e3 )
+NumericSet( ppath_lraytrace, 100 )
+
+
+# Radiative transfer agendas and variables
+#
+AgendaSet( iy_transmitter_agenda ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  MatrixUnitIntensity( iy, stokes_dim, f_grid )
+}
+Copy( iy_main_agenda, iy_main_agenda__Radiolink )
+
+
+
+# Sensor/receiver and transmitter
+#
+IndexCreate( npos )
+VectorCreate( transmitter_lat )
+#
+IndexSet( npos, 201 )
+VectorNLinSpace( transmitter_lat, npos, 46.8, 49.8 )
+#
+MatrixSetConstant( sensor_pos,      npos, 1, 600e3 )
+MatrixSetConstant( sensor_los,      npos, 1, 0     )    # Dummy value
+MatrixSetConstant( transmitter_pos, npos, 1, 600e3 )
+Append( transmitter_pos, transmitter_lat, "trailing" )
+#
+sensorOff
+sensor_checkedCalc
+
+
+# Auxilary variables
+#
+# These are the ones that can be obtained by yCalc.
+#
+ArrayOfStringSet( iy_aux_vars, [ 
+  "Bending angle", 
+  "Extra path delay",
+  "Free space loss", 
+  "Atmospheric loss", 
+  "Defocusing loss" ] )
+
+
+
+# Calculate and save
+#
+yCalc
+#
+WriteXML( "ascii", y, "y.xml" )
+WriteXML( "ascii", y_aux, "y_aux.xml" )
+
+}
+ 

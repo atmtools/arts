@@ -1,3 +1,15 @@
+2013-01-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-454
+
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	Missed to do svn add on the file.
+
+	* src/m_ppath.cc (ppathFromRtePos2): Init ip to dummy value of -999,
+	to avoid compiler warning. And changed defualt for dl_ok to 0.5.
+	Seems to cover the worst case for TestRadioOccultation.arts (tried
+	500 angles).
+
 2013-01-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-453
@@ -11,7 +23,7 @@
 	that accuracy can not be achived. To achieve this, variables and
 	code added so that the previous ppath can be selected as the solution.
 
-	* src/methods.cc: Some further polishing of the text for Append. 
+	* src/methods.cc: Some further polishing of the text for Append.
 
 	* src/m_ppath.cc (TangentPointPrint): Extended the output somewhat.
 
