@@ -1,15 +1,9 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration and test of simple ARTS 1D, 2D and 3D clear sky calculations.
+# Demonstration and test of a simple ARTS 1D clear sky calculations.
 #
-# Observations from a satellite is treated, with three viewing directions:
-#   1: Cold space (ie. above the model atmosphere)
-#   2: Limb sounding
-#   3: Downward observation.
-#
-# For the test sequence (ie. "make check") this is a first test on that the
-# full chain around yCalc is working. Calculation of optical depth as an
-# auxilary variable is included and tested.
+# Observations from a satellite is treated, with a single observation angle.
+# RT is done by iyCalc and ySimpleSpectrometer is used.
 #
 # Author: Patrick Eriksson
 

@@ -1,3 +1,11 @@
+2013-01-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-460
+
+	* controlfiles/artscomponents/clearsky/TestClearSky2.arts:
+	Corrected header text. Last ChangeLog message for this file is
+	wrong. This file tests particularly ySimpleSpectrometer.
+
 2013-01-18  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-459
