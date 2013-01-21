@@ -218,9 +218,12 @@ ConstIterator1D ConstVectorView::end() const
 /** Conversion to const 1 column matrix. */
 ConstVectorView::operator ConstMatrixView() const
 {
-    return ConstMatrixView(mdata+mrange.mstart,
-                           Range(0,mrange.mextent,mrange.mstride),
-                           Range(0,1));
+    // The old version (before 2013-01-18) of this was:
+    //    return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
+    // Bus this was a bug! The problem is that the matrix index operator adds
+    // the mstart from both row and columm range object to mdata
+    
+    return ConstMatrixView(mdata,mrange,Range(0,1));
 }
 
 /** A special constructor, which allows to make a ConstVectorView from
@@ -519,9 +522,12 @@ VectorView VectorView::operator-=(const ConstVectorView& x)
 /** Conversion to 1 column matrix. */
 VectorView::operator MatrixView()
 {
-    return MatrixView(mdata+mrange.mstart,
-                      Range(0,mrange.mextent,mrange.mstride),
-                      Range(0,1));
+    // The old version (before 2013-01-18) of this was:
+    //    return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
+    // Bus this was a bug! The problem is that the matrix index operator adds
+    // the mstart from both row and columm range object to mdata
+    
+    return MatrixView(mdata,mrange,Range(0,1));
 }
 
 /** Conversion to plain C-array.

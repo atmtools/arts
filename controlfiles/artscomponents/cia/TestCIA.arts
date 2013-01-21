@@ -24,6 +24,7 @@ VectorNLinSpace( f_grid, 100, 0, 75e12 )
 VectorSet( abs_p, [1000e2] )
 
 VectorSet( abs_t, [240] )
+#VectorSet( abs_t, [310] )
 
 MatrixSet( abs_vmrs, [0.7808; 0.7808; 0.7808] )
 #MatrixSet( abs_vmrs, [0.7808] )
@@ -39,6 +40,7 @@ abs_xsec_per_speciesAddConts
 abs_xsec_per_speciesAddCIA
 
 WriteXML ( "ascii", abs_xsec_per_species )
+WriteXML ( "ascii", f_grid )
 
 
 }

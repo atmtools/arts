@@ -197,27 +197,27 @@ void cia_interpolation(VectorView result,
         // Make a matrix view of the results vector:
         MatrixView result_matrix(result_active);
       
-        cout << "result_matrix r/c: " << result_matrix.nrows() << " / "
-             << result_matrix.ncols() << endl;
-        cout << "result_matrix before: " << result_matrix << endl;
+//        cout << "result_matrix r/c: " << result_matrix.nrows() << " / "
+//             << result_matrix.ncols() << endl;
+//        cout << "result_matrix before: " << result_matrix << endl;
         
-        cout << "cia_data: " << cia_data.data << endl;
+        //        cout << "cia_data: " << cia_data.data << endl;
         
         // Actual interpolation:
         interp(result_matrix, itw, cia_data.data, f_gp, T_gp);
 
-        cout << "result_matrix after: " << result_matrix << endl;
-}
+//        cout << "result_matrix after: " << result_matrix << endl;
+      }
     
-    cout << "result_active before: " << result_active << endl;
+//    cout << "result_active before: " << result_active << endl;
 
     // Set negative values to zero. (These could happen due to overshooting
     // of the higher order interpolation.)
     for (Index i=0; i<result_active.nelem(); ++i)
         if (result_active[i]<0)
-            result_active = 0;
+            result_active[i] = 0;
 
-    cout << "result_active after: " << result_active << endl;
+//    cout << "result_active after: " << result_active << endl;
     
 }
 

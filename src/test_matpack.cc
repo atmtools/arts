@@ -806,11 +806,18 @@ void test42()
     VectorView y = x[Range(2,4,2)];
     cout << "y: " << y << endl;
     
-    MatrixView z(y);
-    cout << "z: " << z << endl;
+    ConstMatrixView z(y);
+    cout << "z:\n" << z << endl;
+
+    cout << "Every other z:\n" << z(Range(1,2,2),joker) << endl;
     
+    // Try write access also:
+    MatrixView zz(y);
+    zz(Range(1,2,2),joker) = 0;
+    cout << "zz:\n" << zz << endl;
+    cout << "New x: " << x << endl;
 }
-    
+
 int main()
 {
 //   test1();

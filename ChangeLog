@@ -1,3 +1,16 @@
+2013-01-21  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-462
+
+        * src/cia.cc (cia_interpolation): Fixed (last?) bug. Validation ongoing.
+
+        * src/matpackI.cc
+	(VectorView::operator MatrixView): Cosmetic changes to my fix from
+	last Friday.
+	(ConstVectorView::operator ConstMatrixView): Ditto.
+
+	* src/test_matpack.cc (test42): Expanded the test.
+
 2013-01-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-461
