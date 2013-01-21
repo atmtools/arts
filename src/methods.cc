@@ -1688,6 +1688,11 @@ void define_md_data_raw()
       DESCRIPTION
       (
        "Calculate absorption cross sections per tag group for HITRAN CIA continua.\n"
+       "\n"
+       "This interpolates the cross sections from *abs_cia_data*.\n"
+       "\n"
+       "The robust option is intended only for testing. Do not use for normal\n"
+       "runs, since subsequent functions will not be able to deal with NAN values.\n"
        ),
       AUTHORS( "Stefan Buehler" ),
       OUT( "abs_xsec_per_species" ),
@@ -1696,10 +1701,10 @@ void define_md_data_raw()
       GOUT_DESC(),
       IN( "abs_xsec_per_species", "abs_species", "f_grid", "abs_p", "abs_t",
           "abs_vmrs", "abs_cia_data" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
+      GIN(      "robust" ),
+      GIN_TYPE( "Index"),
+      GIN_DEFAULT( "0" ),
+      GIN_DESC( "Set to 1 to suppress runtime errors (and return NAN values instead).")
       ));
     
   md_data_raw.push_back

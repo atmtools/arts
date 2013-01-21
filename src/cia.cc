@@ -46,12 +46,14 @@ extern const Numeric SPEED_OF_LIGHT;
  \param[in] f_grid      Frequency grid.
  \param[in] temperature Scalar temperature.
  \param[in] cia_data    The CIA dataset to interpolate.
+ \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
  \param[in] verbosity   Standard verbosity object.
  */
 void cia_interpolation(VectorView result,
                        ConstVectorView f_grid,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
+                       const Index& robust,
                        const Verbosity& verbosity)
 {
     CREATE_OUTS;
@@ -164,10 +166,22 @@ void cia_interpolation(VectorView result,
 
     // Check if temperature is inside the range covered by the data:
     if (T_order > 0) {
-        chk_interpolation_grids("Temperature interpolation for CIA continuum",
-                                data_T_grid,
-                                temperature,
-                                T_order);
+        try {
+            chk_interpolation_grids("Temperature interpolation for CIA continuum",
+                                    data_T_grid,
+                                    temperature,
+                                    T_order);
+        } catch (runtime_error e) {
+            //            cout << "Gotcha!\n";
+            if (robust) {
+                // Just return NANs, but continue.
+                result_active = NAN;
+                return;
+            } else {
+                // Re-throw the exception.
+                throw runtime_error(e.what());
+            }
+        }
     }
     
     // Find frequency grid positions:
@@ -246,6 +260,7 @@ void CIARecord::Extract(VectorView      result,
                         ConstVectorView f_grid,
                         const Numeric&  temperature,
                         const Index&    dataset,
+                        const Index& robust,
                         const Verbosity& verbosity) const
 {
     // If there is more than one dataset available for this species pair,
@@ -269,6 +284,7 @@ void CIARecord::Extract(VectorView      result,
                       f_grid,
                       temperature,
                       this_cia,
+                      robust,
                       verbosity);
 }
 

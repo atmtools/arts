@@ -1,5 +1,22 @@
 2013-01-21  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-2-1-463
+
+	* src/cia.{h,cc}: Introduced robust option for CIA extraction. If
+	set to 1, then being outside the temperature range of the data
+	will not give a runtime error, only return NAN. The default is 0,
+	which means that there will be a runtime error.
+
+        * src/m_cia.cc: Ditto.
+
+        * src/test_cia.cc: Adapted to robust option.
+
+        * src/methods.cc (abs_xsec_per_speciesAddCIA): Added the robust option.
+
+        * src/m_basic_types.h (nelemGet): Implemented for group ArrayOfArrayOfSpeciesTag.
+
+2013-01-21  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-2-1-462
 
         * src/cia.cc (cia_interpolation): Fixed (last?) bug. Validation ongoing.

@@ -46,6 +46,8 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                                 const Vector& abs_t,
                                 const Matrix& abs_vmrs,
                                 const ArrayOfCIARecord& abs_cia_data,
+                                // WS Generic Input:
+                                const Index& robust,
                                 // Verbosity object:
                                 const Verbosity& verbosity)
 {
@@ -156,7 +158,8 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
               {
                 // Get the binary absorption cross sections from the CIA data:
                 this_cia.Extract(xsec_temp, f_grid, abs_t[ip],
-                                 this_species.CIADataset(), verbosity);
+                                 this_species.CIADataset(),
+                                 robust, verbosity);
                 
                 // We have to multiply with the number density of the second CIA species.
                 // We do not have to multiply with the first, since we still

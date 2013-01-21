@@ -129,6 +129,7 @@ NGET_GENERIC (nelem, ArrayOfGriddedField4)
 NGET_GENERIC (nelem, ArrayOfArrayOfMatrix)
 NGET_GENERIC (nelem, ArrayOfArrayOfTensor3)
 NGET_GENERIC (nelem, ArrayOfArrayOfTensor6)
+NGET_GENERIC (nelem, ArrayOfArrayOfSpeciesTag)
 
 NGET_GENERIC (ncols, Matrix)
 NGET_GENERIC (ncols, Sparse)

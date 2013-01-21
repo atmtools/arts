@@ -48,6 +48,7 @@ void cia_interpolation(VectorView result,
                        ConstVectorView frequency,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
+                       const Index& robust,
                        const Verbosity& verbosity);
 
 Index cia_get_index(ArrayOfCIARecord cia_data, Index sp1, Index sp2);
@@ -162,12 +163,14 @@ public:
      \param[in] f_grid Frequency grid.
      \param[in] temperature Scalar temparature.
      \param[in] dataset Index of dataset to use.
+     \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
      \param[in] verbosity   Standard verbosity object.
      */
     void Extract(VectorView      result,
                  ConstVectorView f_grid,
                  const Numeric&  temperature,
                  const Index& dataset,
+                 const Index& robust,
                  const Verbosity& verbosity) const;
 
 
@@ -180,17 +183,19 @@ public:
      \param[in] frequency Scalar frequency
      \param[in] temperature Scalar temparature
      \param[in] dataset Index of dataset to use 
+     \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
      \param[in] verbosity   Standard verbosity object.
      */
     Numeric Extract(const Numeric& frequency,
                     const Numeric& temperature,
                     const Index& dataset,
+                    const Index& robust,
                     const Verbosity& verbosity) const
     {
       Vector result(1);
       const Vector freqvec(1, frequency);
       
-      Extract(result, freqvec, temperature, dataset, verbosity);
+      Extract(result, freqvec, temperature, dataset, robust, verbosity);
       
       return result[0];
     }
