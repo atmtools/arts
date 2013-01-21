@@ -52,7 +52,8 @@ void test01()
     cia_interpolation(result,
                       f_out,
                       T_out,
-                      cia_data);
+                      cia_data,
+                      Verbosity(3,3,0));
     cout << "result:" << result << endl;
 
 }
