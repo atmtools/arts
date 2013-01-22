@@ -4153,13 +4153,13 @@ void define_md_data_raw()
       ( NAME( "ForLoop" ),
         DESCRIPTION
         (
-         "A simple for loop.\n"
+         "A simple for-loop.\n"
          "\n"
          "This method is handy when you quickly want to test out a calculation\n"
          "with a set of different settings.\n"
          "\n"
-         "It does a for loop from start to stop in steps of step. (Who would\n"
-         "have guessed that.) For each iteration, the agenda *forloop_agenda* is\n"
+         "It does a for-loop from start to stop in steps of step (who would\n"
+         "have guessed that). For each iteration, the agenda *forloop_agenda* is\n"
          "executed. Inside the agenda, the variable *forloop_index* is available\n"
          "as index counter.\n"
          "\n"
@@ -4457,7 +4457,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Expands the latitude and longitude grid of the GriddedField to\n"
-         "[-90, 90] and [0,360], respectively. Expansion is only done in"
+         "[-90, 90] and [0,360], respectively. Expansion is only done in\n"
          "the dimension(s), where the grid size is 1.\n"
          "The values from the input data will be duplicated to accomodate\n"
          "for the larger size of the output field.\n"
@@ -4509,12 +4509,13 @@ void define_md_data_raw()
         (
          "Interpolates the input field along the pressure dimension to *p_grid*.\n"
          "\n"
-         "If zero-padding is applied, pressures that are outside the input\n"
-         "pressure grid are set to 0. This is thought, e.g., for VMR fields\n"
-         "that outside the given pressure can safely assumed to be zero. Using\n"
-         "zeropadding for altitude and temperature fields is strongly\n"
-         "discouraged (it will work here, though, but likely trigger errors\n"
-         "later on."
+         "If zero-padding is applied (zeropadding=1), pressures that are\n"
+         "outside the *p_grid* are set to 0. This is thought, e.g., for VMR\n"
+         "fields that outside the given pressure can safely be assumed to be\n"
+         "zero.\n"
+         "Note: Using zeropadding for altitude and temperature fields is\n"
+         "strongly discouraged (it will work here, though, but likely trigger\n"
+         "errors later on).\n"
          "Extrapolation is allowed within the common 0.5grid-step margin,\n"
          "but is overruled by zeropadding.\n"
          "gfield_raw_out and gfield_raw_in can be the same variable.\n"
@@ -4950,7 +4951,7 @@ void define_md_data_raw()
          "* \"Radiative background\": Index value flagging the radiative\n"
          "     background. The following coding is used: 0=space, 1=surface\n"
          "     and 2=cloudbox. Size: [nf,1,1,1].\n"
-         "  \"iy\": The radiance at each point along the path (*iiy_unit* is.\n"
+         "  \"iy\": The radiance at each point along the path (*iy_unit* is.\n"
          "     considered). Size: [nf,ns,1,np].\n"
          "* \"Optical depth\": The scalar optical depth between the\n"
          "     observation point and the end of the primary propagation path\n"
@@ -10894,7 +10895,7 @@ void define_md_data_raw()
          "the first spectrometer channel is set to f_grid[0]+df/2.\n"
          "The centre frequency of channels are returned as *y_f*.\n"
          "\n"
-         "Auxiliary variables and *jacobian* are not handled.\n"
+         "Auxiliary variables and *jacobian*s are not handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f" ),

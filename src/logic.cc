@@ -432,8 +432,7 @@ bool is_diagonal( ConstMatrixView A )
   desired number of digits. The comparison statement comes from
   Oliver: ( abs(a-b) <= epsilon * max(a,b) )
 
-  I only modified it to make sure that the right side also is
-  positive. (Both a and b could be negative.)
+  Modified to make sure that negative numbers are also treated correctly.
 
   The variable epsilon gives the number of digits used for the
   comparison. (epsilon = 0.0001 for a comparison up to the 5th digit)
@@ -448,7 +447,7 @@ bool is_same_within_epsilon( const Numeric& a,
                              const Numeric& b,
                              const Numeric& epsilon )
 {
-  if ( abs(a-b) <= abs( epsilon * max(a,b) ) )
+  if ( abs(a-b) <= epsilon * max(abs(a),abs(b)) )
     return true;
   else
     return false;

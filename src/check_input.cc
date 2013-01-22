@@ -44,6 +44,7 @@
 #include "array.h"
 #include "logic.h"
 #include "gridded_fields.h"
+#include <cfloat>
 
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
@@ -1391,7 +1392,7 @@ void chk_atm_field(
             {
               for( Index ir=0; ir<nrows; ir++ )
                 {
-                  if( fabs(x(ip,ir,ic)-x(ip,ir,0)) > 0 )
+                  if( !is_same_within_epsilon(x(ip,ir,ic),x(ip,ir,0),2*DBL_EPSILON) )
                     {
                       ostringstream os;
                       os << "The variable *" << x_name <<  "* covers 360 "
@@ -1414,13 +1415,18 @@ void chk_atm_field(
                 {
                   for( Index ic=1; ic<ncols; ic++ )
                     {
-                      if( fabs(x(ip,0,ic)-x(ip,0,ic-1)) > 0 )
+                      if( !is_same_within_epsilon(x(ip,0,ic),x(ip,0,ic-1),2*DBL_EPSILON) )
                         {
                           ostringstream os;
-                          os << "The variable *" << x_name <<  "* covers the South "
-                             << "pole. The data corresponding to the pole can not "
-                             << "vary with longitude, but this appears to be the "
+                          os << "The variable *" << x_name <<  "* covers the South\n"
+                             << "pole. The data corresponding to the pole can not\n"
+                             << "vary with longitude, but this appears to be the\n"
                              << "case.";
+/*                             << "case: at " << ip << ".th  pressure it has val\n"
+                             << x(ip,0,ic-1) << ", but " << x(ip,0,ic)
+                             << " (i.e., a diff of " << fabs(x(ip,0,ic)-x(ip,0,ic-1))
+                             << ") at " << ic-1 << "th and " << ic << "th longitudes!\n";
+*/
                           throw runtime_error( os.str() );
                         }
                     }
@@ -1434,13 +1440,18 @@ void chk_atm_field(
                 {
                   for( Index ic=1; ic<ncols; ic++ )
                     {
-                      if( fabs(x(ip,ir,ic)-x(ip,ir,ic-1)) > 0 )
+                      if( !is_same_within_epsilon(x(ip,ir,ic),x(ip,ir,ic-1),2*DBL_EPSILON) )
                         {
                           ostringstream os;
-                          os << "The variable *" << x_name <<  "* covers the North "
-                             << "pole. The data corresponding to the pole can not "
+                          os << "The variable *" << x_name <<  "* covers the North\n"
+                             << "pole. The data corresponding to the pole can not\n"
                              << "vary with longitude, but this appears to be the "
                              << "case.";
+/*                             << "case: at " << ip << ".th  pressure it has val\n"
+                             << x(ip,ir,ic-1) << ", but " << x(ip,ir,ic)
+                             << " (i.e., a diff of " << fabs(x(ip,ir,ic)-x(ip,ir,ic-1))
+                             << ") at " << ic-1 << "th and " << ic << "th longitudes!\n";
+*/
                           throw runtime_error( os.str() );
                         }
                     }
@@ -1527,7 +1538,7 @@ void chk_atm_field(
             {
               for( Index ir=0; ir<nrows; ir++ )
                 {
-                  if( fabs(x(is,ip,ir,ic)-x(is,ip,ir,0)) > 0 )
+                  if( !is_same_within_epsilon(x(is,ip,ir,ic),x(is,ip,ir,0),2*DBL_EPSILON) )
                     {
                       ostringstream os;
                       os << "The variable *" << x_name <<  "* covers 360 "
@@ -1551,7 +1562,7 @@ void chk_atm_field(
             {
               for( Index ic=1; ic<ncols; ic++ )
                 {
-                  if( fabs(x(is,ip,0,ic)-x(is,ip,0,ic-1)) > 0 )
+                  if( !is_same_within_epsilon(x(is,ip,0,ic),x(is,ip,0,ic-1),2*DBL_EPSILON) )
                     {
                       ostringstream os;
                       os << "The variable *" << x_name <<  "* covers the South "
@@ -1575,7 +1586,7 @@ void chk_atm_field(
             {
               for( Index ic=1; ic<ncols; ic++ )
                 {
-                  if( fabs(x(is,ip,ir,ic)-x(is,ip,ir,ic-1)) > 0 )
+                  if( !is_same_within_epsilon(x(is,ip,ir,ic),x(is,ip,ir,ic-1),2*DBL_EPSILON) )
                     {
                       ostringstream os;
                       os << "The variable *" << x_name <<  "* covers the North "
@@ -1816,7 +1827,7 @@ void chk_atm_surface(
           const Index ic = ncols-1;
           for( Index ir=0; ir<nrows; ir++ )
             {
-              if( fabs(x(ir,ic)-x(ir,0)) > 0 )
+              if( !is_same_within_epsilon(x(ir,ic),x(ir,0),2*DBL_EPSILON) )
                 {
                   ostringstream os;
                   os << "The variable *" << x_name <<  "* covers 360 "
@@ -1833,7 +1844,7 @@ void chk_atm_surface(
         {
           for( Index ic=1; ic<ncols; ic++ )
             {
-              if( fabs(x(0,ic)-x(0,ic-1)) > 0 )
+              if( !is_same_within_epsilon(x(0,ic),x(0,ic-1),2*DBL_EPSILON) )
                 {
                   ostringstream os;
                   os << "The variable *" << x_name <<  "* covers the South "
@@ -1850,7 +1861,7 @@ void chk_atm_surface(
           const Index ir = nrows-1;
           for( Index ic=1; ic<ncols; ic++ )
             {
-              if( fabs(x(ir,ic)-x(ir,ic-1)) > 0 )
+              if( !is_same_within_epsilon(x(ir,ic),x(ir,ic-1),2*DBL_EPSILON) )
                 {
                   ostringstream os;
                   os << "The variable *" << x_name <<  "* covers the North "

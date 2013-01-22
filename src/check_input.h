@@ -47,6 +47,7 @@
 #include "matpackVII.h"
 #include "mystring.h"
 #include "gridded_fields.h"
+//#include <cfloat>
 
 
 /*===========================================================================
@@ -348,6 +349,7 @@ void chk_atm_vecfield_lat90(
         const Index&      dim,
         ConstVectorView   lat_grid,
         const Numeric&    threshold = 1e-3 );
+//        const Numeric&    threshold = 2*DBL_EPSILON );
 
 void chk_latlon_true(
    const Index&      atmosphere_dim,

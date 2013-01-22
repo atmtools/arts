@@ -1,3 +1,19 @@
+2013-01-22  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-464
+
+	* src/check_input.cc (chk_atm_field, chk_atm_surface):
+	Replaced all checks for fabs(a-b)>0 (in checking constancy at poles and
+	cyclicity at longitudes) by is_same_within_epsilon(a,b,2*DBL_EPSILON) to
+	avoid number accuracy issues.
+
+	* src/logic.cc (is_same_within_epsilon): Minor bug fix (correct handling
+	of negative numbers)
+
+	* src/methods.cc,workspace.cc: Cosmetics.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): Cosmetics.
+
 2013-01-21  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-463
@@ -7,21 +23,21 @@
 	will not give a runtime error, only return NAN. The default is 0,
 	which means that there will be a runtime error.
 
-        * src/m_cia.cc: Ditto.
+	* src/m_cia.cc: Ditto.
 
-        * src/test_cia.cc: Adapted to robust option.
+	* src/test_cia.cc: Adapted to robust option.
 
-        * src/methods.cc (abs_xsec_per_speciesAddCIA): Added the robust option.
+	* src/methods.cc (abs_xsec_per_speciesAddCIA): Added the robust option.
 
-        * src/m_basic_types.h (nelemGet): Implemented for group ArrayOfArrayOfSpeciesTag.
+	* src/m_basic_types.h (nelemGet): Implemented for group ArrayOfArrayOfSpeciesTag.
 
 2013-01-21  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-462
 
-        * src/cia.cc (cia_interpolation): Fixed (last?) bug. Validation ongoing.
+	* src/cia.cc (cia_interpolation): Fixed (last?) bug. Validation ongoing.
 
-        * src/matpackI.cc
+	* src/matpackI.cc
 	(VectorView::operator MatrixView): Cosmetic changes to my fix from
 	last Friday.
 	(ConstVectorView::operator ConstMatrixView): Ditto.
@@ -46,13 +62,13 @@
 
 	* arts-2-1-459
 
-        * src/cia.{h,cc}: Debugging. But the CIA data as read from the
+	* src/cia.{h,cc}: Debugging. But the CIA data as read from the
 	HITRAN files right now seem strange: Mostly negative values!
 	Perhaps still a bug in the reading routine?
 
-        * src/m_cia.cc: Cosmetics.
+	* src/m_cia.cc: Cosmetics.
 
-        * src/matpackI.cc
+	* src/matpackI.cc
 	(VectorView::operator MatrixView): This function
 	contained a bug that was triggered in the case that the original
 	VectorView had a non-zero start. Fixed now.
@@ -60,7 +76,7 @@
 
 	* src/test_matpack.cc (test42): Test the matpack bugfixes.
 
-        * controlfiles/artscomponents/cia/TestCIA.arts: Work in progress.
+	* controlfiles/artscomponents/cia/TestCIA.arts: Work in progress.
 
 2013-01-18  Oliver Lemke  <olemke@core-dump.info>
 
@@ -156,7 +172,7 @@
 
 	* arts-2-1-452
 
-        * src/abs_species_tags.{h,cc}
+	* src/abs_species_tags.{h,cc}
 	(SpeciesTag::CiaDataset): Added this function (and associated
 	private member) to store the index of the dataset to use (inside
 	the CIA file), which is also now appended at the end of the CIA
@@ -165,12 +181,12 @@
 	end of the CIA tag. It must be present!
 	(SpeciesTag::Name): Fixed broken CIA tag name output. Not testet!
 
-        * src/cia.{h,cc}
+	* src/cia.{h,cc}
 	(cia_interpolation): Continued to work on this.
 
-        * src/m_cia.cc: Cosmetics.
+	* src/m_cia.cc: Cosmetics.
 
-        * controlfiles/artscomponents/cia/TestCIA.arts: Updated for new
+	* controlfiles/artscomponents/cia/TestCIA.arts: Updated for new
 	CIA tag names with dataset index.
 
 2013-01-17  Richard Larsson <ric.larsson@gmail.com>
@@ -263,7 +279,7 @@
 
 	* arts-2-1-447
 
-        * src/cia.{h,cc}
+	* src/cia.{h,cc}
 	(CIARecord::Species): Added this function, which returns the
 	contents of mspecies.
 	(CIARecord::Extract): Started on implementation of this, but
@@ -272,16 +288,16 @@
 	(CIARecord::ReadFromCIA): Now converts the binary absorption
 	cross-sections to ARTS SI units.
 
-        * src/m_cia.cc
+	* src/m_cia.cc
 	(abs_xsec_per_speciesAddCIA): Implemented this.
 	(abs_cia_dataReadFromCIA): To decide whether this is a CIA
 	species, Use SpeciesTag.Type() function instead
 	of SpeciesTag.Cia()
 
-        * src/methods.cc (abs_cia_dataReadFromCIA): Added built-in
+	* src/methods.cc (abs_cia_dataReadFromCIA): Added built-in
 	documentation on units.
 
-        * src/workspace.cc (abs_cia_data): Revised built-in
+	* src/workspace.cc (abs_cia_data): Revised built-in
 	documentation.
 
 2013-01-15  Stefan Buehler  <sbuehler(at)ltu.se>

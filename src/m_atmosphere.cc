@@ -1261,8 +1261,8 @@ void basics_checkedCalc(
   // Magnetic field
   if( mag_w_field.npages() > 0 )
     { 
-      chk_atm_field( "mag_w_field", mag_w_field, atmosphere_dim, 
-                                                  p_grid, lat_grid, lon_grid );
+      chk_atm_field( "mag_w_field (vertical magfield component)",
+                     mag_w_field, atmosphere_dim, p_grid, lat_grid, lon_grid );
     }
   if( mag_u_field.npages() > 0 )
     { 

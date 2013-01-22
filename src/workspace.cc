@@ -4722,7 +4722,7 @@ void Workspace::define_wsv_data()
        "\n"
        "In contrast to *iy_aux*, this variable can only hold quantities such\n"
        "as total transmission, and other quantites that could be the result\n"
-       "ofg a complete radiative transfer calculation. The data are weighted\n"
+       "of a complete radiative transfer calculation. The data are weighted\n"
        "with sensor properties in the same way as for *y*.\n"
        "\n"
        "See also *iy_aux_vars*.\n"
