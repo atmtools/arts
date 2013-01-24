@@ -1,3 +1,15 @@
+2013-01-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-465
+
+	* src/m_atmosphere.cc (AtmRawRead):
+
+	Bug fix. Resize vmr_field_raw to 0 before starting to append to it.
+
+	* src/cia.cc (CIARecord::AppendDataset):
+
+	Fix temperature grid index.
+
 2013-01-22  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-464

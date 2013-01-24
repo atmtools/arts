@@ -516,7 +516,7 @@ void CIARecord::AppendDataset(const Vector& freq,
     Vector temp_t;
     temp_t = temp;
     dataset.set_grid(1, temp_t);
-    dataset.set_grid_name(0, "Temperature");
+    dataset.set_grid_name(1, "Temperature");
 
     for (Index t = 0; t < temp.nelem(); t++)
         dataset.data(joker, t) = cia[t];

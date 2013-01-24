@@ -2143,6 +2143,8 @@ void AtmRawRead(//WS Output:
 
   out3 << "Altitude field read from file: " << file_name << "\n";  
 
+  // Clear out vmr_field_raw
+  vmr_field_raw.resize(0);
 
   // The species lookup data:
 
