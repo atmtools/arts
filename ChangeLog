@@ -1,3 +1,10 @@
+2013-01-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-466
+
+	* src/m_transmitter.cc (iyRadioLink): Added impact parameter as
+	aux variable.
+
 2013-01-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-465

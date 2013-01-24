@@ -55,6 +55,7 @@
 #include "rte.h"
 #include "sensor.h"
 
+extern const Numeric DEG2RAD;
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 
@@ -148,6 +149,7 @@ void iyRadioLink(
         auxTemperature     = -1,
         auxAbsSum          = -1,
         auxPartExt         = -1,
+        auxImpactParam     = -1,
         auxFreeSpaceLoss   = -1,
         auxFreeSpaceAtte   = -1,
         auxAtmosphericLoss = -1,
@@ -243,6 +245,8 @@ void iyRadioLink(
           auxPartFieldI.push_back(ip);
           iy_aux[i].resize( 1, 1, 1, np );
         }
+      else if( iy_aux_vars[i] == "Impact parameter" )
+        { auxImpactParam = i;       iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Free space loss" )
         { auxFreeSpaceLoss = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Free space attenuation" )
@@ -485,11 +489,23 @@ void iyRadioLink(
 
       //=== iy_aux part =======================================================
       if( auxAtmosphericLoss >= 0 )
-        { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }
+        { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }      
       if( auxFarRotTotal >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
             iy_aux[auxFarRotTotal](iv,0,0,0) = farrot_c2 / 
                                                    (f_grid[iv]*f_grid[iv]); } }
+      if( auxImpactParam >= 0 )
+        { 
+          // Equals n*r*sin(theta)
+          // Radius of rte_pos
+          const Numeric r1 = rte_pos[0] + pos2refell_r( atmosphere_dim, 
+                                   refellipsoid, lat_grid, lon_grid, rte_pos );
+          iy_aux[auxImpactParam](joker,0,0,0) = r1 * 
+                                               sin( DEG2RAD*ppath.end_los[0] );
+          // Include n if reciever inside the atmosphere
+          if( ppath.end_lstep == 0 )
+            { iy_aux[auxImpactParam](joker,0,0,0) *= ppath.nreal[ppath.np-1]; }
+        }
       //=======================================================================
 
 
