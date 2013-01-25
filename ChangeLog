@@ -1,3 +1,10 @@
+2013-01-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-467
+
+	* src/m_ppath.cc (ppathFromRtePos2V2): Trying to make a better
+	version of the method. Not yet reached the critical part.
+
 2013-01-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-466

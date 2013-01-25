@@ -7601,6 +7601,28 @@ void define_md_data_raw()
                   "Maximum allowed length error. An error is issued if "
                   "this value not is met." )
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppathFromRtePos2V2" ),
+        DESCRIPTION
+        (
+         "So far just testing ....\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "ppath", "rte_los" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath_step_agenda", "basics_checked", "atmosphere_dim", "p_grid", 
+            "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", 
+            "edensity_field", "f_grid", "refellipsoid", "z_surface", 
+            "rte_pos", "rte_pos2" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
   
   md_data_raw.push_back
     ( MdRecord
