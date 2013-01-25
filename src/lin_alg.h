@@ -65,4 +65,10 @@ id_mat(MatrixView I);
 
 Numeric det(ConstMatrixView A);
 
+
+void linreg(
+       Vector&    p,
+  ConstVectorView x, 
+  ConstVectorView y );
+
 #endif    // linalg_h

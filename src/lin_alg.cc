@@ -40,6 +40,8 @@
 #include "array.h"
 #include "logic.h"
 
+
+
 //! LU decomposition.
 /*!
   This function performes a LU Decomposition of the matrix A.
@@ -49,8 +51,7 @@
   \param indx Output: Vector that records the row permutation.
   \param A Input: Matrix for which the LU decomposition is performed
 */
-void 
-ludcmp(MatrixView LU,
+void ludcmp(MatrixView LU,
        ArrayOfIndex& indx, 
        ConstMatrixView A) 
 {
@@ -124,8 +125,6 @@ ludcmp(MatrixView LU,
         }
     }
 }
-
- 
  
 
 
@@ -140,8 +139,7 @@ ludcmp(MatrixView LU,
   \param b  Input: Right-hand-side vector of equation system.
   \param indx Input: Pivoting information (output of function ludcp).
 */
-void 
-lubacksub(VectorView x, 
+void lubacksub(VectorView x, 
           ConstMatrixView LU, 
           ConstVectorView b, 
           const ArrayOfIndex& indx)
@@ -308,8 +306,7 @@ Numeric norm_inf(ConstMatrixView A)
 /*! 
   \param I Output: identity matrix
 */
-void 
-id_mat(MatrixView I)
+void id_mat(MatrixView I)
 {
 
   const Index n = I.ncols();
@@ -319,6 +316,8 @@ id_mat(MatrixView I)
   for(Index i=0; i<n; i++)
     I(i,i) = 1.;
 }
+
+
 
 /*!
     Determinant of N by N matrix. Simple recursive method.
@@ -361,4 +360,47 @@ Numeric det(ConstMatrixView A)
         ret_val += ((j%2 == 0)?-1.:1.) * tempNum * A(0,j);
     }
     return ret_val;
+}
+
+
+
+/*!
+    Determines coefficients for linear regression
+
+    Performs a least squares estimation of the model
+
+       y = p[0] + p[1] * x
+
+    \param  p   Out: Fitted coefficients. 
+    \param  x   In: x-value of data points 
+    \param  y   In: y-value of data points
+
+    \author Patrick Eriksson
+    \date   2013-01-25
+*/
+void linreg(
+       Vector&    p,
+  ConstVectorView x, 
+  ConstVectorView y ) 
+{
+  const Index n = x.nelem();
+  
+  assert( y.nelem() == n );
+
+  p.resize(2);
+
+  // Algorithm found at e.g. 
+  // http://en.wikipedia.org/wiki/Simple_linear_regression
+
+  Numeric s1=0, s2=0, s3=0, s4=0;
+  for( Index i=0; i<n; i++ )
+    {
+      s1 += x[i] * y[i];
+      s2 += x[i];
+      s3 += y[i];
+      s4 += x[i] * x[i];
+    }
+    
+  p[1] = ( s1 - (s2*s3)/n ) / ( s4 - s2*s2/n ); 
+  p[0] = s3/n - p[1]*s2/n;
 }

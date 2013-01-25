@@ -46,6 +46,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
+#include "lin_alg.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "ppath.h"
