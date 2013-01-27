@@ -257,6 +257,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           ConstTensor4View vmr_field,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
+                          const Numeric&   ppath_lraytrace,
                           ConstVectorView  p_grid,
                           ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
@@ -300,9 +301,9 @@ void cloud_ppath_update1D(Workspace& ws,
   ppath_step.gp_p[0].fd[1] = 1;
   
   // Call ppath_step_agenda: 
-  ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            edensity_field, Vector(1,f_grid[f_index]), 
-                            ppath_step_agenda );
+  ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, z_field, 
+                            vmr_field, edensity_field, 
+                            Vector(1,f_grid[f_index]), ppath_step_agenda );
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -398,6 +399,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 ConstTensor4View vmr_field,
                                 // Propagation path calculation:
                                 const Agenda& ppath_step_agenda,
+                                const Numeric&   ppath_lraytrace,
                                 ConstVectorView  p_grid,
                                 ConstTensor3View z_field,
                                 ConstVectorView refellipsoid,
@@ -441,9 +443,9 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   ppath_step.gp_p[0].fd[1] = 1;
   
   // Call ppath_step_agenda: 
-  ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            edensity_field, Vector(1,f_grid[f_index]), 
-                            ppath_step_agenda );
+  ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, z_field, 
+                            vmr_field, edensity_field, 
+                            Vector(1,f_grid[f_index]), ppath_step_agenda );
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -582,6 +584,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           ConstTensor4View vmr_field,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
+                          const Numeric&  ppath_lraytrace,
                           ConstVectorView p_grid,
                           ConstVectorView lat_grid,
                           ConstVectorView lon_grid,
@@ -647,9 +650,9 @@ void cloud_ppath_update3D(Workspace& ws,
   ppath_step.gp_lon[0].fd[1] = 1.;
 
   // Call ppath_step_agenda: 
-  ppath_step_agendaExecute( ws, ppath_step, t_field, z_field, vmr_field,
-                            edensity_field, Vector(1,f_grid[f_index]), 
-                            ppath_step_agenda);
+  ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, z_field, 
+                            vmr_field, edensity_field, 
+                            Vector(1,f_grid[f_index]), ppath_step_agenda);
 
     // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the

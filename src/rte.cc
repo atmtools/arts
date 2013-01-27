@@ -382,7 +382,7 @@ void bending_angle1d(
 // Used of both methods below, where +-dza applied.
 // 1e-3 corresponds to roughly 100 m difference in 
 // tangent altitude for limb sounding cases. 
-const Numeric dza = 1e-3;
+const Numeric dza = 5e-4;
 
 
 //! defocusing_general_sub
@@ -422,6 +422,7 @@ void defocusing_general_sub(
   ConstVectorView    rte_pos,
   const Numeric&     lo0,
   const Agenda&      ppath_step_agenda,
+  const Numeric&     ppath_lraytrace,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
   ConstVectorView    lat_grid,
@@ -450,7 +451,7 @@ void defocusing_general_sub(
   ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-              rte_pos, rte_los, 0, verbosity );
+              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
 
   // Calcualte cumulative optical path for ppx
   Vector lox( ppx.np );
@@ -553,6 +554,7 @@ void defocusing_general(
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
+  const Numeric&     ppath_lraytrace,
   const Verbosity&   verbosity )
 {
   // Optical and physical path between transmitter and reciver
@@ -576,9 +578,9 @@ void defocusing_general(
   rte_los[0] += dza;
   //
   defocusing_general_sub( ws, pos1, rte_los, rte_pos, lo, ppath_step_agenda, 
-                          atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-                          z_field, vmr_field, edensity_field, f_grid, 
-                          refellipsoid, z_surface, verbosity );
+                          ppath_lraytrace, atmosphere_dim, p_grid, lat_grid, 
+                          lon_grid, t_field, z_field, vmr_field, edensity_field,
+                          f_grid, refellipsoid, z_surface, verbosity );
 
   // Same thing with negative zenit angle off-set
   Vector  pos2;
@@ -586,9 +588,9 @@ void defocusing_general(
   rte_los[0] -= dza;
   //
   defocusing_general_sub( ws, pos2, rte_los, rte_pos, lo, ppath_step_agenda, 
-                          atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-                          z_field, vmr_field, edensity_field, f_grid, 
-                          refellipsoid, z_surface, verbosity );
+                          ppath_lraytrace, atmosphere_dim, p_grid, lat_grid, 
+                          lon_grid, t_field, z_field, vmr_field, edensity_field,
+                          f_grid, refellipsoid, z_surface, verbosity );
 
   // Calculate distance between pos1 and 2, and derive the loss factor
   Numeric l12;
@@ -649,6 +651,7 @@ void defocusing_sat2sat(
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
+  const Numeric&     ppath_lraytrace,
   const Verbosity&   verbosity )
 {
   if( ppath.end_los[0] <= 90 )
@@ -687,7 +690,7 @@ void defocusing_sat2sat(
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-              rte_pos, rte_los, 0, verbosity );
+              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
   bending_angle1d( alpha1, ppt );
   alpha1 *= DEG2RAD;
   find_tanpoint( it, ppt );
@@ -698,7 +701,7 @@ void defocusing_sat2sat(
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-              rte_pos, rte_los, 0, verbosity );
+              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
   bending_angle1d( alpha2, ppt );
   alpha2 *= DEG2RAD;
   find_tanpoint( it, ppt );

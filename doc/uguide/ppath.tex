@@ -31,7 +31,7 @@ by \wsaindex{ppath\_agenda}. The standard choice for this agenda is
 repeatedly in order to trace the path backwards, starting at the sensor. This
 set-up is assumed throughout this chapter. A slighltly different selection of
 workspace methods is required for radio link calculations, see further
-Section~\ref{sec:radiolinks:ppath}.
+Section~\ref{sec:rlinks}.
 
 The exact ray tracing algorithm to be applied for the calculation of
 propagation path is selected through \wsaindex{ppath\_step\_agenda}
@@ -218,11 +218,13 @@ interpolation. The fields of \builtindoc{Ppath} are as follows:
      position is identical to the sensor position and that position can be used
      to determinate the radiative background (see below).
 
-   \item[constant] [Numeric] The propagation path constant. Such a
-     constant can be assigned to all geometrical paths and for 1D
-     cases (with or without refraction). This field can be
-     initiated to a negative value to indicate that the constant is
-     undefined or not yet set. 
+   \item[constant] [Numeric] The propagation path constant. It is defined as
+     the product: $\Rds n \sin(\ZntAng)$ (see Chapter~\ref{T-sec:ppath:refr1D}
+     of \theory), at the position of the sensor. This is a true constant for
+     the path just for 1D atmospheres, but can be useful also in other cases.
+     For example, it equals the impact parameter normally used to define limb
+     radio occultations. This field is initiated -1, to indicate that the
+     constant is not yet set.
 
    \item[background] [String] The radiative background for the propagation
      path. The possible options for this field are 'space', 'surface', 'cloud

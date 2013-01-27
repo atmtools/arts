@@ -389,9 +389,10 @@ void linreg(
 
   p.resize(2);
 
-  // Algorithm found at e.g. 
+  // Basic algorithm found at e.g. 
   // http://en.wikipedia.org/wiki/Simple_linear_regression
-
+  // The basic algorithm is as follows:
+  /*
   Numeric s1=0, s2=0, s3=0, s4=0;
   for( Index i=0; i<n; i++ )
     {
@@ -403,4 +404,28 @@ void linreg(
     
   p[1] = ( s1 - (s2*s3)/n ) / ( s4 - s2*s2/n ); 
   p[0] = s3/n - p[1]*s2/n;
+  */
+
+  // A version abit more numerical stable:
+  // Mean value of x is removed before the fit: x' = (x-mean(x)) 
+  // This corresponds to that s2 in version above becomes 0
+  // y = a + b*x'
+  // p[1] = b
+  // p[0] = a - p[1]*mean(x)
+
+  Numeric s1=0, xm=0, s3=0, s4=0;
+
+  for( Index i=0; i<n; i++ )
+    { xm += x[i]/n; }
+
+  for( Index i=0; i<n; i++ )
+    {
+      const Numeric xv = x[i] - xm;
+      s1 += xv * y[i];
+      s3 += y[i];
+      s4 += xv * xv;
+    }
+    
+  p[1] = s1 / s4; 
+  p[0] = s3/n - p[1]*xm;
 }

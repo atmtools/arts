@@ -202,7 +202,7 @@ AgendaSet( doit_rte_agenda ){
 		  cloudbox_limits, abs_mat_per_species_agenda,
 		  vmr_field, spt_calc_agenda, scat_za_grid,
 		  scat_aa_grid, pnd_field,
-		  opt_prop_part_agenda, ppath_step_agenda,
+		  opt_prop_part_agenda, ppath_step_agenda, ppath_lraytrace,
 		  p_grid, z_field, refellipsoid, t_field,
 		  edensity_field, f_grid, f_index,
 		  surface_rtprop_agenda, doit_za_interp,

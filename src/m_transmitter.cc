@@ -103,6 +103,7 @@ void iyRadioLink(
    const Tensor3&                     iy_transmission,
    const Vector&                      rte_pos,      
    const Vector&                      rte_pos2,      
+   const Numeric&                     ppath_lraytrace,
    const Index&                       defocus_method,
    const Verbosity&                   verbosity )
 {
@@ -121,28 +122,24 @@ void iyRadioLink(
 
 
   //- Determine propagation path
-  ppath_agendaExecute( ws, ppath, rte_pos, Vector(0), rte_pos2, cloudbox_on, 0,
-                       t_field, z_field, vmr_field, edensity_field, f_grid, 
-                       ppath_agenda );
-  if( ppath_what_background(ppath) != 9 )
-    { throw runtime_error( "Radiative background not set to \"transmitter\" by"
-                     " *ppath_agenda*. Is correct WSM used in the agenda?" ); }
+  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, Vector(0), 
+                       rte_pos2, cloudbox_on, 0, t_field, z_field, vmr_field, 
+                       edensity_field, f_grid, ppath_agenda );
+
+  //- Check ppath, and set np to zero if ground intersection
+  const Index radback = ppath_what_background(ppath);
+  if( !( radback == 9  ||  radback == 2 ) )
+    { throw runtime_error( "Radiative background not set to \"transmitter\" or "
+       "\"surface\" by *ppath_agenda*. Is correct WSM used in the agenda?" ); }
+  //
+  if( radback == 2 )
+    { ppath.np = 0; }
 
   // Some basic sizes
   //
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
   const Index np = ppath.np;
-
-  // Transmitted signal
-  //
-  iy_transmitter_agendaExecute( ws, iy, f_grid, 
-                                ppath.pos(np-1,Range(0,atmosphere_dim)),
-                                ppath.los(np-1,joker), iy_transmitter_agenda );
-  if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
-    { throw runtime_error( "The size of *iy* returned from "
-                                 "*iy_transmitter_agenda* is not correct." ); }
-
 
   //=== iy_aux part ===========================================================
   Index auxPressure        = -1,
@@ -279,6 +276,25 @@ void iyRadioLink(
         }
     }
   //===========================================================================
+
+
+  // If ground set iy to zero, and return (iy_aux already set to be empty)
+  if( radback == 2 )
+    {
+      iy.resize( nf, stokes_dim );
+      iy = 0;
+      return;
+    }
+
+
+  // Transmitted signal
+  //
+  iy_transmitter_agendaExecute( ws, iy, f_grid, 
+                                ppath.pos(np-1,Range(0,atmosphere_dim)),
+                                ppath.los(np-1,joker), iy_transmitter_agenda );
+  if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+    { throw runtime_error( "The size of *iy* returned from "
+                                 "*iy_transmitter_agenda* is not correct." ); }
 
 
   // Get atmospheric and attenuation quantities for each ppath point/step
@@ -496,15 +512,8 @@ void iyRadioLink(
                                                    (f_grid[iv]*f_grid[iv]); } }
       if( auxImpactParam >= 0 )
         { 
-          // Equals n*r*sin(theta)
-          // Radius of rte_pos
-          const Numeric r1 = rte_pos[0] + pos2refell_r( atmosphere_dim, 
-                                   refellipsoid, lat_grid, lon_grid, rte_pos );
-          iy_aux[auxImpactParam](joker,0,0,0) = r1 * 
-                                               sin( DEG2RAD*ppath.end_los[0] );
-          // Include n if reciever inside the atmosphere
-          if( ppath.end_lstep == 0 )
-            { iy_aux[auxImpactParam](joker,0,0,0) *= ppath.nreal[ppath.np-1]; }
+          assert( ppath.constant >= 0 );
+          iy_aux[auxImpactParam](joker,0,0,0) = ppath.constant; 
         }
       //=======================================================================
 
@@ -526,15 +535,15 @@ void iyRadioLink(
       if( defocus_method == 1 )
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
-                              vmr_field, edensity_field, -1, 
-                              refellipsoid, z_surface, ppath, verbosity ); 
+                              vmr_field, edensity_field, -1, refellipsoid, 
+                              z_surface, ppath, ppath_lraytrace, verbosity ); 
         }
       else if( defocus_method == 2 )
         {
           defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
-                              vmr_field, edensity_field, -1, 
-                              refellipsoid, z_surface, ppath, verbosity ); 
+                              vmr_field, edensity_field, -1, refellipsoid, 
+                              z_surface, ppath, ppath_lraytrace, verbosity ); 
           if( auxDefocusingAtte >= 0 )
             { iy_aux[auxDefocusingAtte] = -999; }  // So far just a dummy value
         }
@@ -624,7 +633,8 @@ void iyTransmissionStandard(
    const Tensor3&                     iy_transmission,
    const Vector&                      rte_pos,      
    const Vector&                      rte_los,      
-   const Vector&                      rte_pos2,      
+   const Vector&                      rte_pos2,
+   const Numeric&                     ppath_lraytrace,      
    const Verbosity&                   verbosity )
 {
   // Throw error if unsupported features are requested
@@ -637,9 +647,9 @@ void iyTransmissionStandard(
 
   // Determine propagation path
   //
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, rte_pos2, 0, 0,
-                       t_field, z_field, vmr_field, edensity_field, f_grid, 
-                       ppath_agenda );
+  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2, 
+                       0, 0, t_field, z_field, vmr_field, edensity_field, 
+                       f_grid, ppath_agenda );
 
   // Some basic sizes
   //

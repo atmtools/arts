@@ -69,6 +69,7 @@ void ppathCalc(
           Workspace&      ws,
           Ppath&          ppath,
     const Agenda&         ppath_agenda,
+    const Numeric&        ppath_lraytrace,
     const Index&          basics_checked,
     const Tensor3&        t_field,
     const Tensor3&        z_field,
@@ -91,8 +92,8 @@ void ppathCalc(
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
 
-  ppath_agendaExecute( ws, ppath, rte_pos, rte_los, rte_pos2, cloudbox_on, 
-                       ppath_inside_cloudbox_do, t_field, z_field,
+  ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2,
+                       cloudbox_on, ppath_inside_cloudbox_do, t_field, z_field,
                        vmr_field, edensity_field, f_grid, ppath_agenda );
 }
 
@@ -118,6 +119,368 @@ void ppathFromRtePos2V2(
     const Matrix&         z_surface,
     const Vector&         rte_pos,
     const Vector&         rte_pos2,
+    const Numeric&        ppath_lraytrace,
+    const Verbosity&      verbosity )
+{
+  //--- Check input -----------------------------------------------------------
+  if( !basics_checked )
+    throw runtime_error( "The atmosphere and basic control variables must be "
+            "flagged to have passed a consistency check (basics_checked=1)." );
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_pos( atmosphere_dim, rte_pos2, true );
+  //---------------------------------------------------------------------------
+
+ 
+  // Geometric LOS from rte_pos to rte_pos2
+  Vector rte_los_geom;
+  rte_losGeometricFromRtePosToRtePos2( rte_los_geom, atmosphere_dim, lat_grid, 
+                        lon_grid, refellipsoid, rte_pos, rte_pos2, verbosity );
+
+  // Radius of rte_pos and rte_pos2
+  const Numeric r1 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                              lon_grid, rte_pos ) + rte_pos[0];
+  const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                            lon_grid, rte_pos2 ) + rte_pos2[0];
+
+  // Geometric distance between rte_pos and rte_pos2, effective 2D-lat for
+  // rte_pos and and Cartesian coordinates of rte_pos:
+  Numeric l12, lat1=0, x1, y1=0, z1;
+  if( atmosphere_dim <= 2 )
+    { 
+      if( atmosphere_dim == 2 )
+        { lat1 = rte_pos[1]; }
+      distance2D( l12, r1, lat1, r2, rte_pos2[1] ); 
+      pol2cart( x1, z1, r1, lat1 );
+    } 
+  else
+    { 
+      distance3D( l12, r1, rte_pos[1],  rte_pos[2], 
+                       r2, rte_pos2[1], rte_pos2[2] ); 
+      sph2cart( x1, y1, z1, r1, rte_pos[1], rte_pos[2] );
+    }
+
+  // Add handling of 2D with negative za !!!!!!
+
+  // Define remaining variables used in the while-loop below
+  //
+  // Basic bookkeeping variables
+  Numeric za_upp_limit = 180;
+  Numeric za_low_limit = 0;
+  //
+  // Various variables associated with the ppath, and the point of the path
+  // closest to the transmitter
+  Ppath   ppt;                // "Test ppath"
+  Index   ip  = -999;         // Index of closest ppath point
+  Numeric dxip, dyip=0, dzip; // Cartesian LOS of the closest ppath point
+  //
+  // Data for the intersection of the l12-sphere
+  Vector  posc(max( Index(2),atmosphere_dim));
+  Numeric rc, xc, yc=0, zc;   
+
+  CREATE_OUT2;
+  CREATE_OUT3;
+
+  Vector t_za(99), t_dza(99);
+  Index  it = -1;
+
+  const Numeric za_accuracy = 1e-5;
+
+  // Keep trying until ready or ground intersetion determined
+  //
+  bool  ready  = false;
+  bool  ground = false;
+  bool  failed = false;
+  Index ntries = 0;
+  //
+  while( !ready && !ground )
+    {
+      out2 << "    Trying rte_los: [" << rte_los << "]\n";
+
+      // Path for present rte_los (no cloudbox!)
+      ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+                  lon_grid, t_field, z_field, vmr_field, edensity_field,
+                  f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+                  rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
+
+      // Find the point closest to rte_pos2, on the side towards rte_pos. 
+      // We do this by looking at the distance to rte_pos, that should be 
+      // as close to l12 as possible, but not exceed it.
+      Numeric lip = 99e99;
+      ip = ppt.np;
+      //
+      while( lip >= l12  &&  ip > 0 )
+        {
+          ip--;
+          if( atmosphere_dim <= 2 )
+            { distance2D( lip, r1, lat1, ppt.r[ip], ppt.pos(ip,1) ); }
+          else
+            { distance3D( lip, r1, rte_pos[1], rte_pos[2], 
+                          ppt.r[ip], ppt.pos(ip,1), ppt.pos(ip,2) ); }
+        }
+
+      Numeric za_new, daa=0;
+
+      // Surface intersection:
+      // Not OK if the ground position is too far from rte_pos2. 
+      // (30 km selected to allow misses of smaller size when rte_pos2 is at
+      // surface level, but surface interference never OK if rte_pos above TOA)
+      if( ppath_what_background(ppt) == 2  &&  ip == ppt.np-1  
+                                                           &&  l12-lip > 30e3 )
+        { 
+          za_new       = rte_los[0] - 1; 
+          za_upp_limit = rte_los[0]; 
+        }
+
+      // Ppath OK
+      else
+        {
+          // Estimate ppath at the distance of l12, and calculate size
+          // of "miss" (measured in diffference in geometric angles)
+          Vector  los;
+          Numeric dza;          
+          if( atmosphere_dim <= 2 )
+            { 
+              // Convert pos and los for point ip to cartesian coordinates
+              Numeric xip, zip;
+              poslos2cart( xip, zip, dxip, dzip, ppt.r[ip], ppt.pos(ip,1), 
+                                                              ppt.los(ip,0) );
+              // Find where the extension from point ip crosses the l12 
+              // sphere: point c
+              Numeric latc;
+              line_circle_intersect( xc, zc, xip, zip, dxip, dzip, x1, z1, l12);
+              cart2pol( rc, latc, xc, zc, ppt.pos(ip,1), ppt.los(ip,0) );
+              posc[1] = latc;
+              posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
+                                                    lat_grid, lon_grid, posc );
+              rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, 
+                  lat_grid, lon_grid, refellipsoid, rte_pos, posc, verbosity );
+              dza = los[0] - rte_los_geom[0];
+            }
+          else
+            { 
+              // Convert pos and los for point ip to cartesian coordinates
+              Numeric xip, yip, zip;
+              poslos2cart( xip, yip, zip, dxip, dyip, dzip, ppt.r[ip], 
+                           ppt.pos(ip,1), ppt.pos(ip,2), 
+                           ppt.los(ip,0), ppt.los(ip,1) );
+              // Find where the extension from point ip crosses the l12 
+              // sphere: point c
+              Numeric latc, lonc;
+              line_sphere_intersect( xc, yc, zc, xip, yip, zip, 
+                                           dxip, dyip, dzip, x1, y1, z1, l12 );
+              cart2sph( rc, latc, lonc, xc, yc, zc, ppt.pos(ip,1), 
+                           ppt.pos(ip,2), ppt.los(ip,0), ppt.los(ip,1) );
+              posc[1] = latc;
+              posc[2] = lonc;
+              posc[0] = rc - pos2refell_r( atmosphere_dim, refellipsoid, 
+                                                    lat_grid, lon_grid, posc );
+            }
+          //
+          rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, 
+                  lat_grid, lon_grid, refellipsoid, rte_pos, posc, verbosity );
+          //
+          dza = los[0] - rte_los_geom[0];
+
+          // Update bookkeeping variables
+          it++;
+          t_za[it]  = rte_los[0];
+          t_dza[it] = dza; 
+          cout << "[\n";
+          for( Index k=0; k<=it; k++ )
+            {
+              cout << fixed << setprecision(7) << t_za[k] << " " 
+                   << t_dza[k] << endl;
+            }
+          cout << "];\n";
+          //
+          if( dza > 0  &&  rte_los[0] < za_upp_limit )
+            { za_upp_limit = rte_los[0]; }
+          else if( dza < 0  &&  rte_los[0] > za_low_limit )
+            { za_low_limit = rte_los[0]; }
+          cout << za_low_limit << " - " << za_upp_limit << endl;
+
+          // Ready ?
+          if( abs(dza) <= za_accuracy )
+            { ready = true; }
+          else if( za_upp_limit - za_low_limit <= za_accuracy/10 )
+            { 
+              failed = true; 
+              cout << "Zenith angle search range closed !!!\n";
+              break; 
+            }
+          // Catch non-convergence (just for extra safety, za-range should be
+          // closed quicker than this)
+          ntries += 1;
+          if( ntries >= 100 )
+            { 
+              failed = true; 
+              cout << "Too many iterations !!!\n";
+              break; 
+            }
+
+          // Estimate new angle
+          if( it < 1 )
+            { za_new = rte_los[0] - dza; }
+          else
+            {
+              // Estimate new angle by linear regression over some of the
+              // last calculations
+              const Index nfit = min( it+1, (Index)3 );
+              const Index i0 = it - nfit + 1;
+              Vector p;
+              linreg( p, t_za[Range(i0,nfit)], t_dza[Range(i0,nfit)] );
+              za_new = -p[0]/p[1];
+            }
+          //
+          if( atmosphere_dim == 3 )
+            { daa = los[1] - rte_los_geom[1]; }
+        }
+
+      // Update rte_losif not ready
+      if( !ready && !failed )
+        {
+          // Update rte_los. Use bisection of za_new is basically
+          // identical to old angle, or is outside lower or upper
+          // limit. Otherwise use reult of linear reg.
+          if( isinf(za_new)                                 ||  
+              isnan(za_new)                                 ||  
+              abs(za_new-rte_los[0]) < 0.99*za_accuracy ||
+              za_new <= za_low_limit                        || 
+              za_new >= za_upp_limit                         )
+            { 
+              rte_los[0] = (za_low_limit+za_upp_limit)/2;  
+            }
+          else
+            { 
+              rte_los[0] = za_new;
+              if( atmosphere_dim == 3 )
+                { rte_los[1] -= daa; }
+            }
+        }
+      cout << "New rte_los: " << rte_los << endl;
+    } // while
+  //--------------------------------------------------------------------------
+
+  if( failed )
+    {
+      throw runtime_error( "Some failure ...." );
+    }
+
+
+  // Create final ppath. 
+  // If ground intersection: Set to length 1 and ground background,  
+  // to flag non-OK path
+  // Otherwise: Fill path and set background to transmitter
+
+  if( ground )
+    { 
+      ppath_init_structure( ppath, atmosphere_dim, 1 ); 
+      ppath_set_background( ppath, 2 );
+    }
+
+  else
+    {
+      // Distance between point ip of ppt and posc
+      Numeric ll;
+      if( atmosphere_dim <= 2 )
+        { distance2D( ll, rc, posc[1], ppt.r[ip], ppt.pos(ip,1) ); }
+      else
+        { distance3D( ll, rc, posc[1], posc[2], ppt.r[ip], ppt.pos(ip,1), 
+                                                           ppt.pos(ip,2) ); }
+
+      // Last point of ppt closest to rte_pos2. No point to add, maybe
+      // calculate start_lstep and start_los:
+      if( ip == ppt.np-1 )
+        { 
+          ppath_init_structure( ppath, atmosphere_dim, ppt.np );
+          ppath_copy( ppath, ppt, -1 );
+          if( ppath_what_background( ppath ) == 1 )
+            { 
+              ppath.start_lstep= ll; 
+              Numeric d1, d2=0, d3;
+          if( atmosphere_dim <= 2 )
+            { cart2poslos( d1, d3, ppath.start_los[0], xc, zc, dxip, dzip, 
+                           ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           ppt.pos(ip,1), ppt.los(ip,0) ); }
+          else
+            { cart2poslos( d1, d2, d3, ppath.start_los[0], ppath.start_los[1],
+                           xc, yc, zc, dxip, dyip, dzip, 
+                           ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           ppt.pos(ip,1), ppt.pos(ip,2), 
+                           ppt.los(ip,0), ppt.los(ip,1) ); }
+            }
+        }
+      // rte_pos2 inside the atmosphere (posc entered as end point) 
+      else
+        {
+          ppath_init_structure( ppath, atmosphere_dim, ip+2 );
+          ppath_copy( ppath, ppt, ip+1 );
+          //
+          const Index i = ip+1;
+          if( atmosphere_dim <= 2 )
+            { cart2poslos( ppath.r[i], ppath.pos(i,1), ppath.los(i,0), xc, zc, 
+                           dxip, dzip, ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           ppt.pos(ip,1), ppt.los(ip,0) ); }
+          else
+            { cart2poslos( ppath.r[i], ppath.pos(i,1), ppath.pos(i,2), 
+                           ppath.los(i,0), ppath.los(i,1), xc, yc, zc, 
+                           dxip, dyip, dzip, 
+                           ppt.r[ip]*sin(DEG2RAD*ppt.los(ip,0)),
+                           ppt.pos(ip,1), ppt.pos(ip,2), 
+                           ppt.los(ip,0), ppt.los(ip,1) ); }
+          //
+          ppath.pos(i,joker) = posc;
+          ppath.lstep[i-1]   = ll;
+          ppath.start_los    = ppath.los(i,joker);
+          
+          // n by linear interpolation
+          assert( ll < ppt.lstep[i-1] );
+          const Numeric w = ll/ppt.lstep[i-1];
+          ppath.nreal[i]  = (1-w)*ppt.nreal[i-1]  + w*ppt.nreal[i];
+          ppath.ngroup[i] = (1-w)*ppt.ngroup[i-1] + w*ppt.ngroup[i];
+
+          // Grid positions
+          GridPos gp_lat, gp_lon;
+          rte_pos2gridpos( ppath.gp_p[i], gp_lat, gp_lon, 
+                           atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                           ppath.pos(i,Range(0,atmosphere_dim)) );
+          if( atmosphere_dim >= 2 )
+            { 
+              gridpos_copy( ppath.gp_lat[i], gp_lat );
+              if( atmosphere_dim == 3 )
+                { gridpos_copy( ppath.gp_lon[i], gp_lon ); }
+            }
+        }
+
+      // Common stuff
+      ppath_set_background( ppath, 9 );
+      ppath.start_pos = rte_pos2;
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathFromRtePos2V2Old(      
+          Workspace&      ws,
+          Ppath&          ppath,
+          Vector&         rte_los,
+    const Agenda&         ppath_step_agenda,
+    const Index&          basics_checked,
+    const Index&          atmosphere_dim,
+    const Vector&         p_grid,
+    const Vector&         lat_grid,
+    const Vector&         lon_grid,
+    const Tensor3&        t_field,
+    const Tensor3&        z_field,
+    const Tensor4&        vmr_field,
+    const Tensor3&        edensity_field,
+    const Vector&         f_grid,
+    const Vector&         refellipsoid,
+    const Matrix&         z_surface,
+    const Vector&         rte_pos,
+    const Vector&         rte_pos2,
+    const Numeric&        ppath_lraytrace,
     const Verbosity&      verbosity )
 {
   //--- Check input -----------------------------------------------------------
@@ -162,9 +525,8 @@ void ppathFromRtePos2V2(
   // Define remaining variables used in the while-loop below
   //
   // Basic bookkeeping variables
-  Numeric lowest_za_groundhit = 180;
-  Numeric closest_za_positive = 180;
-  Numeric closest_za_negative = 0;
+  Numeric za_upp_limit = 180;
+  Numeric za_low_limit = 0;
   //
   // First try rte_los is taken from the geometric path
   Vector rte_los_try = rte_los_geom;
@@ -186,11 +548,15 @@ void ppathFromRtePos2V2(
   Index  it = -1;
 
   const Numeric za_accuracy = 1e-5;
+  const Numeric nlfac = 2;
 
   // Keep trying until ready or ground intersetion determined
   //
-  bool ready  = false;
-  bool ground = false;
+  bool  ready  = false;
+  bool  ground = false;
+  bool  failed = false;
+  Index ntries = 0;
+  //
   while( !ready && !ground )
     {
       out2 << "    Trying rte_los: [" << rte_los_try << "]\n";
@@ -199,7 +565,7 @@ void ppathFromRtePos2V2(
       ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
                   lon_grid, t_field, z_field, vmr_field, edensity_field,
                   f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-                  rte_pos, rte_los_try, 0, verbosity );
+                  rte_pos, rte_los_try, ppath_lraytrace, 0, verbosity );
 
       // Find the point closest to rte_pos2, on the side towards rte_pos. 
       // We do this by looking at the distance to rte_pos, that should be 
@@ -224,18 +590,21 @@ void ppathFromRtePos2V2(
       if( ppath_what_background(ppt) == 2  &&  ip == ppt.np-1  
                                                            &&  l12-lip > 30e3 )
         { 
-          if( rte_los_try[0] < lowest_za_groundhit )
-            { lowest_za_groundhit = rte_los_try[0]; }
+          if( rte_los_try[0] < za_upp_limit )
+            { za_upp_limit = rte_los_try[0]; }
 
           // New za by bisection or a fixed step
-          const Numeric ground_dza = 0.5;
-          const Numeric za_unc     = rte_los_try[0] - closest_za_negative;
+          const Numeric ground_dza = 1;
+          const Numeric za_unc     = rte_los_try[0] - za_low_limit;
           if( za_unc > 2*ground_dza )
             { rte_los_try[0] -= ground_dza; }
           else
             {
-              if( za_unc <= za_accuracy )
-                { ground = true; }
+              if( za_unc <= za_accuracy/nlfac )
+                { 
+                  ground = true; 
+                  cout << "Ground intersection confirmed !!!\n";
+                }
               else
                 { rte_los_try[0] -= za_unc/2.0; }
             }
@@ -288,38 +657,113 @@ void ppathFromRtePos2V2(
           //
           rte_losGeometricFromRtePosToRtePos2( los, atmosphere_dim, 
                   lat_grid, lon_grid, refellipsoid, rte_pos, posc, verbosity );
+
+
+          // Ready or update rte_los_try
+          //
           dza = los[0] - rte_los_geom[0];
+          //
+          it++;
+          t_za[it]  = rte_los_try[0];
+          t_dza[it] = dza; 
+          cout << "[\n";
+          for( Index k=0; k<=it; k++ )
+            {
+              cout << fixed << setprecision(7) << t_za[k] << " " 
+                   << t_dza[k] << endl;
+            }
+          cout << "];\n";
           //
           if( abs(dza) <= za_accuracy )
             { ready = true; }
           else
             {
-              if( dza >= 0  &&  rte_los_try[0] < closest_za_positive )
-                { closest_za_positive = rte_los_try[0]; }
-              else if( dza <= 0  &&  rte_los_try[0] > closest_za_negative )
-                { closest_za_negative = rte_los_try[0]; }
+              if( dza > 0  &&  rte_los_try[0] < za_upp_limit )
+                { za_upp_limit = rte_los_try[0]; }
+              else if( dza < 0  &&  rte_los_try[0] > za_low_limit )
+                { za_low_limit = rte_los_try[0]; }
 
-              it++;
-              t_za[it]  = rte_los_try[0];
-              t_dza[it] = dza; 
+              cout << za_low_limit << " - " << za_upp_limit << endl;
+
+              if( za_upp_limit - za_low_limit <= za_accuracy/nlfac )
+                { 
+                  failed = true; 
+                  cout << "Zenith angle search range closed !!!\n";
+                  break; 
+                }
+
+
+              //it++;
+              //t_za[it]  = rte_los_try[0];
+              //t_dza[it] = dza; 
 
               if( it < 1 )
                 {
-                  if( rte_los_try[0]-dza <= lowest_za_groundhit )
-                    { rte_los_try[0] -= dza; }
+                  if( dza > 0 )
+                    {
+                      if( rte_los_try[0]-dza > za_low_limit )
+                        { rte_los_try[0] -= dza; }
+                      else
+                        { rte_los_try[0] = (rte_los_try[0]+za_low_limit)/2; }
+                    }
                   else
-                    { rte_los_try[0] = (rte_los_try[0]+lowest_za_groundhit)/2;}
+                    {
+                      if( rte_los_try[0]-dza < za_upp_limit )
+                        { rte_los_try[0] -= dza; }
+                      else
+                        { rte_los_try[0] = (rte_los_try[0]+za_upp_limit)/2; }
+                    }
                   if( atmosphere_dim == 3 )
                     { rte_los_try[1] -= los[1] - rte_los_geom[1]; }
                 }
               else
                 {
-                  
+                  // Estimate new angle by linear regression over some of the
+                  // last calculations
+                  const Index nfit = min( it+1, (Index)3 );
+                  const Index i0 = it - nfit + 1;
+                  Vector p;
+                  linreg( p, t_za[Range(i0,nfit)], t_dza[Range(i0,nfit)] );
+                  const Numeric za_new = -p[0]/p[1];
+
+                  // Update rte_los_try. Use bisection of za_new is basically
+                  // identical to old angle, or is outside lower or upper
+                  // limit. Otherwise use reult of linear reg.
+                  if( isinf(za_new) ||  isnan(za_new)  ||   
+                      abs(za_new-rte_los_try[0]) < 0.99*za_accuracy )
+                    { rte_los_try[0] = (za_low_limit+za_upp_limit)/2; }
+                  else if( za_new <= za_low_limit )
+                    { rte_los_try[0] = (rte_los_try[0]+za_low_limit)/2; }
+                  else if( za_new >= za_upp_limit )
+                    { rte_los_try[0] = (rte_los_try[0]+za_upp_limit)/2; }
+                  else
+                    { 
+                      rte_los_try[0] = za_new;
+                      if( atmosphere_dim == 3 )
+                        { rte_los_try[1] -= los[1] - rte_los_geom[1]; }
+                    }
                 }
+              cout << "New rte_los:\n" << rte_los_try << endl;
             }
+        }  // else
+
+      // Catch non-convergence (just for extra safety, za-range should be
+      // closed quicker than this)
+      ntries += 1;
+      if( ntries >= 100 )
+        { 
+          failed = true; 
+          cout << "Too many iterations !!!\n";
+          break; 
         }
     } // while
   //--------------------------------------------------------------------------
+
+  if( failed )
+    {
+      throw runtime_error( "Some failure ...." );
+    }
+
 
   // Create final ppath. 
   // If ground intersection: Set to length 1 and ground background,  
@@ -437,6 +881,7 @@ void ppathFromRtePos2(
     const Matrix&         z_surface,
     const Vector&         rte_pos,
     const Vector&         rte_pos2,
+    const Numeric&        ppath_lraytrace,
     const Numeric&        dl_target,
     const Numeric&        dl_ok,
     const Verbosity&      verbosity )
@@ -538,7 +983,7 @@ void ppathFromRtePos2(
       ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
                   lon_grid, t_field, z_field, vmr_field, edensity_field,
                   f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-                  rte_pos, rte_los, 0, verbosity );
+                  rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
 
       // Find the point closest to rte_pos2, on the side towards rte_pos. 
       // We do this by looking at the distance to rte_pos, that should be 
@@ -832,12 +1277,13 @@ void ppathStepByStep(
     const ArrayOfIndex&   cloudbox_limits,
     const Vector&         rte_pos,
     const Vector&         rte_los,
+    const Numeric&        ppath_lraytrace,
     const Verbosity&      verbosity)
 {
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
               lon_grid, t_field, z_field, vmr_field, edensity_field, f_grid, 
               refellipsoid, z_surface, cloudbox_on, cloudbox_limits, rte_pos, 
-              rte_los, ppath_inside_cloudbox_do, verbosity );
+              rte_los, ppath_lraytrace, ppath_inside_cloudbox_do, verbosity );
 }
 
 

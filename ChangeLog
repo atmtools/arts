@@ -1,8 +1,53 @@
+2013-01-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-468
+
+	* src/m_ppath.cc (ppathFromRtePos2V2): Work in progress ...
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts: Adopted call of
+	doit_i_fieldUpdateSeq1D.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	Adopted call of iyRadioLink.
+
+	* controlfiles/general/general.arts: ppath_lraytarce now set (to 1
+	km).
+
+	* src/rte.cc (defocusing_general_sub, defocusing_general)
+	(defocusing_sat2sat):
+	* src/m_montecarlo.cc (MCGeneral):
+	* src/montecarlo.cc (mcPathTraceGeneral):
+	* src/m_transmitter.cc (iyRadioLink, iyTransmissionStandard):
+	* src/m_rte.cc (iyEmissionStandard, iyMC):
+	* src/m_doit.cc (doit_i_fieldUpdate1D, doit_i_fieldUpdateSeq1D)
+	(doit_i_fieldUpdateSeq3D):
+	* src/m_cloudradar.cc (iyCloudRadar):
+	* src/doit.cc (cloud_ppath_update1D, cloud_ppath_update1D_noseq)
+	(cloud_ppath_update3D):
+	* src/m_ppath.cc:
+	* src/ppath.cc (ppath_calc): Adopted calls of ppath_agenda
+	and ppath_step agenda. Had to add ppath_lraytrace as input to most
+	of the functions.
+
+	* src/agendas.cc: Added ppath_lraytrace as input to ppath_agenda
+	and ppath_step agenda, to allow algorithms to adjust this
+	variable.
+
+	* src/lin_alg.cc (linreg): Made a bit more robust regarding
+	numerical problems, by instead making fit for x' = (x-mean(x)).
+
+	* src/m_transmitter.cc (iyRadioLink): Impact parameter now set through
+	ppath.constant. Now also handling the case of surface
+	intersections (iy retiunred as 0 and iy_aux empty).
+
+	* doc/uguide/ppath.tex: Improved description of ppath.constant,
+	and fixed dead section reference.
+
 2013-01-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-468
 
-	* src/lin_alg.cc (linreg): Created. 
+	* src/lin_alg.cc (linreg): Created.
 
 2013-01-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

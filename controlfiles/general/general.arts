@@ -130,12 +130,17 @@ abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 
 
 #
-# Variable for calculation of propagation paths:
+# Variables for calculation of propagation paths:
 #
 # The value for ppath_lmax of 10e3 is OK for limb sounding, and 
-# also for down-looking if not very accutate results are demanded.
+# also for down-looking if not very accurate results are demanded.
 #
 NumericSet( ppath_lmax, 10e3 )
+#
+# The value for ppath_lraytrace of 1e3 should be OK in general for passive
+# obersvation, but lower values are needed for simulating radio links
+#
+NumericSet( ppath_lraytrace, 1e3 )
 
 
 #

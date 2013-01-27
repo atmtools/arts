@@ -507,9 +507,9 @@ void define_agenda_data()
         "for radio link calculations).\n"
         ),
        OUTPUT( "ppath" ),
-       INPUT( "rte_pos", "rte_los", "rte_pos2", "cloudbox_on", 
-              "ppath_inside_cloudbox_do", "t_field", "z_field", "vmr_field",
-              "edensity_field", "f_grid" )));
+       INPUT( "ppath_lraytrace", "rte_pos", "rte_los", "rte_pos2",
+              "cloudbox_on", "ppath_inside_cloudbox_do", "t_field", "z_field", 
+              "vmr_field", "edensity_field", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord
@@ -554,8 +554,8 @@ void define_agenda_data()
         "number of new points of each step can exceed one.\n"
         ),
        OUTPUT( "ppath_step" ),
-       INPUT( "ppath_step", "t_field", "z_field", "vmr_field", 
-              "edensity_field", "f_grid" )));
+       INPUT( "ppath_step", "ppath_lraytrace", "t_field", "z_field", 
+              "vmr_field", "edensity_field", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord

@@ -69,6 +69,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           // Gas absorption:
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
+                          const Numeric&   ppath_lraytrace,
                           ConstVectorView p_grid,
                           ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
@@ -100,6 +101,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 // Gas absorption:
                                 // Propagation path calculation:
                                 const Agenda& ppath_step_agenda,
+                                const Numeric&   ppath_lraytrace,
                                 ConstVectorView  p_grid,
                                 ConstTensor3View z_field,
                                 ConstVectorView refellipsoid,
@@ -159,6 +161,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           // Gas absorption:
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
+                          const Numeric&   ppath_lraytrace,
                           ConstVectorView p_grid,
                           ConstVectorView lat_grid,
                           ConstVectorView lon_grid,

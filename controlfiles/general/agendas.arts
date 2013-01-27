@@ -153,6 +153,7 @@ AgendaSet( ppath_step_agenda__GeometricPath ){
   Ignore( vmr_field )
   Ignore( edensity_field )
   Ignore( f_grid )
+  Ignore( ppath_lraytrace )
   ppath_stepGeometric
 }
 
