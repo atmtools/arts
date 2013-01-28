@@ -82,17 +82,7 @@ cloudbox_checkedCalc
 #
 
 # transmitter-receiver path
-#Copy( ppath_agenda, ppath_agenda__TransmitterReceiverPath )
-AgendaSet( ppath_agenda ){
-  Ignore( rte_los )
-  Ignore( cloudbox_on )
-  Ignore( ppath_inside_cloudbox_do )
-  ppathFromRtePos2( ppath, rte_los, ppath_step_agenda, basics_checked, 
-      atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, z_field, vmr_field, 
-      edensity_field, f_grid, refellipsoid, z_surface, rte_pos, rte_pos2, 
-      1e-4, 0.5 )
-  TangentPointPrint( ppath, 0 )
-}
+Copy( ppath_agenda, ppath_agenda__TransmitterReceiverPath )
 
 # refracted path
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )

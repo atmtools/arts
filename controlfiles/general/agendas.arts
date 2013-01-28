@@ -133,9 +133,9 @@ AgendaSet( ppath_agenda__FollowSensorLosPath ){
 #
 AgendaCreate( ppath_agenda__TransmitterReceiverPath )
 AgendaSet( ppath_agenda__TransmitterReceiverPath ){
-  Ignore( rte_los )
-  Ignore( cloudbox_on )
+  Ignore(cloudbox_on)
   Ignore( ppath_inside_cloudbox_do )
+  rte_losGeometricFromRtePosToRtePos2
   ppathFromRtePos2
 }
 

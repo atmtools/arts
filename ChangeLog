@@ -1,3 +1,22 @@
+2013-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-469
+
+	* controlfiles/general/agendas.arts: Adopted definition of
+	ppath_agenda__TransmitterReceiverPath.
+
+	* src/m_ppath.cc (ppathFromRtePos2): Now switched to use new version
+	of the method. (Old version deleted)
+
+	* src/m_transmitter.cc (iyRadioLink): Now also accepting "unvalid"
+	ppaths. This gives iy=NaN.
+
+	* src/ppath.cc (ppath_set_background,ppath_what_background):
+	Defined string for case 0 to be "unvalid" (before just "").
+
+	* src/lin_alg.cc: Added type casting where dividing with an integer
+	number.
+
 2013-01-27  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-468

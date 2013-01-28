@@ -416,7 +416,7 @@ void linreg(
   Numeric s1=0, xm=0, s3=0, s4=0;
 
   for( Index i=0; i<n; i++ )
-    { xm += x[i]/n; }
+    { xm += x[i]/Numeric(n); }
 
   for( Index i=0; i<n; i++ )
     {
@@ -427,5 +427,5 @@ void linreg(
     }
     
   p[1] = s1 / s4; 
-  p[0] = s3/n - p[1]*xm;
+  p[0] = s3/Numeric(n) - p[1]*xm;
 }

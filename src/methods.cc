@@ -7586,32 +7586,7 @@ void define_md_data_raw()
          "as usual.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath", "rte_los" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath_step_agenda", "basics_checked", "atmosphere_dim", "p_grid", 
-            "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", 
-            "edensity_field", "f_grid", "refellipsoid", "z_surface", 
-            "rte_pos", "rte_pos2", "ppath_lraytrace" ),
-        GIN(         "dl_target", "dl_ok"   ),
-        GIN_TYPE(    "Numeric",   "Numeric" ),
-        GIN_DEFAULT( "1e-4",      "0.5"    ),
-        GIN_DESC( "Target for length error. Iteration stops when this value "
-                  "is reached",
-                  "Maximum allowed length error. An error is issued if "
-                  "this value not is met." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppathFromRtePos2V2" ),
-        DESCRIPTION
-        (
-         "So far just testing ....\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "ppath", "rte_los" ),
+        OUT( "ppath", "rte_los", "ppath_lraytrace" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -7619,12 +7594,12 @@ void define_md_data_raw()
             "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field", 
             "edensity_field", "f_grid", "refellipsoid", "z_surface", 
             "rte_pos", "rte_pos2", "rte_los", "ppath_lraytrace" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "za_accuracy", "pplrt_factor", "pplrt_lowest" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( "2e-5", "5", "0.5"),
+        GIN_DESC( "a", "b", "c" )
         ));
-  
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ppathStepByStep" ),

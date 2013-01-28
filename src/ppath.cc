@@ -1756,7 +1756,7 @@ void ppath_init_structure(
    change of the strings and checking of the what case that is valid.
 
    The case numbers are:                    <br>
-      0. Not yet set.                       <br>
+      0. Unvalid.                           <br>
       1. Space.                             <br>
       2. The surface.                       <br>
       3. The cloud box boundary.            <br>
@@ -1775,7 +1775,7 @@ void ppath_set_background(
   switch ( case_nr )
     {
     case 0:
-      ppath.background = "";
+      ppath.background = "unvalid";
       break;
     case 1:
       ppath.background = "space";
@@ -1815,7 +1815,7 @@ void ppath_set_background(
 */
 Index ppath_what_background( const Ppath&   ppath )
 {
-  if( ppath.background == "" )
+  if( ppath.background == "unvalid" )
     { return 0; }
   else if( ppath.background == "space" )
     { return 1; }

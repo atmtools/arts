@@ -128,11 +128,13 @@ void iyRadioLink(
 
   //- Check ppath, and set np to zero if ground intersection
   const Index radback = ppath_what_background(ppath);
-  if( !( radback == 9  ||  radback == 2 ) )
-    { throw runtime_error( "Radiative background not set to \"transmitter\" or "
-       "\"surface\" by *ppath_agenda*. Is correct WSM used in the agenda?" ); }
-  //
-  if( radback == 2 )
+  if( !( radback == 0  ||  radback == 2  ||  radback == 9 ) )
+    { throw runtime_error( "Radiative background not set to \"transmitter\", "
+                           "\"surface\" or \"unvalid\" by *ppath_agenda*.\n"
+                           "Is correct WSM used in the agenda?" ); }
+  // 
+  // A fix to make iy_aux empty when there is no data to add
+  if( radback == 0  || radback == 2 )
     { ppath.np = 0; }
 
   // Some basic sizes
@@ -278,8 +280,14 @@ void iyRadioLink(
   //===========================================================================
 
 
-  // If ground set iy to zero, and return (iy_aux already set to be empty)
-  if( radback == 2 )
+  // Handle cases whn no link was establsihed
+  if( radback == 0 )
+    {
+      iy.resize( nf, stokes_dim );
+      iy = 0.0/0.0;   // Should be NaN
+      return;
+    }
+  else if( radback == 2 )
     {
       iy.resize( nf, stokes_dim );
       iy = 0;
