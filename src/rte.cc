@@ -2010,14 +2010,20 @@ void iyb_calc(
                                      z_field, vmr_field, f_grid, rte_pos, los, 
                                      rte_pos2, l_iy_main_agenda );
 
-              // Check that aux data can be handled
+              // Check that aux data can be handled and has correct size
               for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
                 {
-                  if( iy_aux_array[iang][q].ncols() > 1  ||  
-                      iy_aux_array[iang][q].nrows() > 1 )
-                    { throw runtime_error( "For calculations using yCalc, "
-                       "*iy_aux_vars* can not include\nvariables of "
-                       "along-the-path or extinction matrix type."); }
+                  if( iy_aux_array[iang][q].ncols() != 1  ||  
+                      iy_aux_array[iang][q].nrows() != 1 )
+                    { 
+                      throw runtime_error( "For calculations using yCalc, "
+                                "*iy_aux_vars* can not include\nvariables of "
+                                "along-the-path or extinction matrix type."); 
+                    }
+                  assert( iy_aux_array[iang][q].npages() == 1  ||
+                          iy_aux_array[iang][q].npages() == stokes_dim );
+                  assert( iy_aux_array[iang][q].nbooks() == 1  ||
+                          iy_aux_array[iang][q].nbooks() == nf  );
                 }              
 
               // Start row in iyb etc. for present LOS
@@ -2055,7 +2061,8 @@ void iyb_calc(
         }
     }  // End za loop
 
-  if (failed) throw runtime_error("Run-time error in function: iyb_calc\n" + fail_msg);
+  if( failed )
+    throw runtime_error("Run-time error in function: iyb_calc\n" + fail_msg);
 
   // Compile iyb_aux
   //

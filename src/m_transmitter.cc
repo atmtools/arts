@@ -132,10 +132,9 @@ void iyRadioLink(
     { throw runtime_error( "Radiative background not set to \"transmitter\", "
                            "\"surface\" or \"unvalid\" by *ppath_agenda*.\n"
                            "Is correct WSM used in the agenda?" ); }
-  // 
-  // A fix to make iy_aux empty when there is no data to add
+  // np should already be 1, but for extra safety ...
   if( radback == 0  || radback == 2 )
-    { ppath.np = 0; }
+    { ppath.np = 1; }
 
   // Some basic sizes
   //
@@ -281,16 +280,18 @@ void iyRadioLink(
 
 
   // Handle cases whn no link was establsihed
-  if( radback == 0 )
+  if( radback == 0  || radback == 2 )
     {
+      Numeric fillvalue = 0;
+      if( radback == 0 )
+        { fillvalue = 0.0/0.0; }  // // Should give NaN
+      //
       iy.resize( nf, stokes_dim );
-      iy = 0.0/0.0;   // Should be NaN
-      return;
-    }
-  else if( radback == 2 )
-    {
-      iy.resize( nf, stokes_dim );
-      iy = 0;
+      iy = fillvalue;
+      //
+      for( Index i=0; i<naux; i++ )
+        { iy_aux[i] = fillvalue; }
+      //
       return;
     }
 
