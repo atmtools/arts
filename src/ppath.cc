@@ -3291,10 +3291,6 @@ void do_gridcell_3d_byltest(
       
       if( j < n )
         {
-          // Shall lon values be shifted (value 0 and n+1 are already OK)?
-          resolve_lon( lon_v[j], lon5, lon6 );
-
-          
           if( unsafe ) 
             {          
               // Check that r_v[j] is above lower pressure level and the
@@ -3354,6 +3350,9 @@ void do_gridcell_3d_byltest(
                                             lat_v[n], lon_v[n] ); }
             }
         }
+
+      // Shall lon values be shifted (value 0 is already OK)?
+      resolve_lon( lon_v[j], lon5, lon6 );
     }
 
   if( !ready )
