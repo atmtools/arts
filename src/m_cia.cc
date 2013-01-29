@@ -153,6 +153,15 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
             // (The index for the first species is simply i.)
             Index i_sec = find_first_species_tg(abs_species, this_cia.Species(1));
 
+            // Catch the case that the VMR for the second species does not exist:
+            if (i_sec < 0) {
+                ostringstream os;
+                os << "VMR profile for second species in CIA species pair does not exist.\n"
+                   << "Tag " << this_species.Name() << " needs a VMR profile of "
+                   << this_cia.MoleculeName(1) << "!" ;
+                throw runtime_error(os.str());
+            }
+            
             // Loop over pressure:
             for (Index ip = 0; ip < abs_p.nelem(); ip++)
               {
