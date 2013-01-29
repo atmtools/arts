@@ -1,3 +1,12 @@
+2013-01-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-472
+
+	* src/interpolation_poly.cc (gridpos_poly_longitudinal):
+
+	Add missing call to chk_interpolation_grids for the case when the lons
+	don't have to be shifted. Fixes bug reported by Jana.
+
 2013-01-29  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-471

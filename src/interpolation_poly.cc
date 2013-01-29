@@ -290,7 +290,10 @@ void gridpos_poly_longitudinal(const String&   error_msg,
             gridpos_poly(gp, shifted_old_grid, new_grid, order, extpolfac);
         }
         else
+        {
+            chk_interpolation_grids(error_msg, old_grid, new_grid, order, extpolfac);
             gridpos_poly(gp, old_grid, new_grid, order, extpolfac);
+        }
     }
 }
 
