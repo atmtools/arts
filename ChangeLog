@@ -1,3 +1,21 @@
+2013-01-29  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-471
+
+	* controlfiles/artscomponents/arts-xml-data/*.arts:
+	Added. Controlfiles for testing the data (format, functionality on
+	rather crude level, ...). Currently restricted to data added for the
+	planetary toolbox. For the moment includes tests of basic and suppl. atm
+	fields data for all 4 planets, surface fields for earth; more to come).
+	Currently not part of a check target (but shall become, once a target
+	for cases applying arts-xml-data package is created - Oliver!?!)
+
+	* controlfiles/general/agendas_surface.arts:
+	Another predefined surface agenda added (lambertian refl. with
+	surface_skin_t from t_field).
+
+	* src/[methods,workspace].cc: some spellfixes.
+
 2013-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-470

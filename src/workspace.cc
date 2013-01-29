@@ -1986,7 +1986,7 @@ void Workspace::define_wsv_data()
        "\n"
        "For Lambertian surface scattering, the down-welling radiation field\n"
        "is estimated by making calculations for *lambertian_nza* directions.\n"
-       "For deatils see WSM *surfaceLambertianSimple*.\n"
+       "For details see WSM *surfaceLambertianSimple*.\n"
        "\n"
        "Usage:      Set by the user.\n"
        ),
@@ -3805,7 +3805,7 @@ void Workspace::define_wsv_data()
        "\n"
        "The sensor positions are specified as a matrix, where the number of\n"
        "columns shall be equal to *atmosphere_dim*. Column 1 shall contain\n"
-       "the altitude of observation posotion, column 2 the latitude and the \n"
+       "the altitude of the sensor platform, column 2 the latitude and the \n"
        "last column the longitude. The number of rows corresponds to the\n"
        "number of measurement blocks.\n" 
        "\n"

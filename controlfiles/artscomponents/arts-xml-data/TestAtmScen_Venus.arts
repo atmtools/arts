@@ -1,0 +1,174 @@
+#
+# Testing functionality (meeting format requirements, etc.) of basic atmospheric
+#  scenario data.
+#
+# General test setup: reading in raw data, regridding to common p-grid (1D),
+#  executing standard pre-RT calc internal test method basics_checkedCalc.
+#
+#
+# This case is for Venus and specifically tests
+#
+# (CASES A-E)
+#  - the five Venus scenarions: Venus.spicav.night, Venus.spicav.night_cold,
+#     Venus.vira.night, Venus.vira.day, Venus.vira.day_highlat
+#  - t, z, and all abs species vmr (the ones that follow the basename convention
+#     are caught by abs_speciesDefineAllInScenario and AtmRawRead; others are
+#     derived manually) in the case folder AND in the "unused/" subfolder (for
+#     the latter we have to tweak abs_species setting a little).
+#  - regridding to a pressure grid taken from the read-in altitude grid
+#
+
+Arts2 {
+INCLUDE "general/general.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_venus.arts"
+
+
+# some seeting in order to be able to use basics_checkedCalc
+#####
+IndexSet( stokes_dim, 1 )
+VectorSet( f_grid, [300e9] )
+
+# 1-dimensional atmosphere
+AtmosphereSet1D
+
+GriddedField3Create( gf3tmp )
+StringCreate( caseext )
+StringCreate( casefull )
+StringCreate( atmcase )
+IndexCreate( ncases )
+
+
+# set basic case folder
+StringCreate( basename )
+StringSet( basename, "planets/Venus/MPS/" )
+
+# Array with case names
+ArrayOfStringCreate( atmcasearray )
+ArrayOfStringSet( atmcasearray,
+  ["Venus.spicav.night", "Venus.spicav.night_cold", "Venus.vira.night",
+   "Venus.vira.day", "Venus.vira.day_highlat"] )
+
+
+#####
+# CASES A-C (night, 10+7+2 vmr profiles) and D-E (day, 14+7+2 vmr profiles)
+#####
+
+# we go with a foorloop through the different cases
+#  day & night have different number of abs_species, but identical species that
+#  have to be added manually (not following standard basename or "unused/"
+#  species, respectively).
+
+AgendaSet( forloop_agenda ){
+
+  # construct atmcase name
+  Copy( atmcase, basename )
+  Extract( casefull, atmcasearray, forloop_index )
+  Append( atmcase, casefull )
+  StringSet( caseext, "/" )
+  Append( atmcase, caseext )
+  Append( atmcase, casefull )
+  Print( atmcase )
+
+  # derive absspecies with standard name from scenario
+  abs_speciesDefineAllInScenario( abs_species, atmcase )
+  #WriteXMLIndexed( "ascii", forloop_index,
+  #                 abs_species, "TestAtmScen_Venus_allInScen.abs_species" )
+  AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
+              abs_species, atmcase )
+
+  # adding species or variants that do not follow the general naming convention
+  abs_speciesAdd( abs_species, ["H2O-162"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".H2O-162_high" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  abs_speciesAdd( abs_species, ["H2O-162"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".H2O-162_low" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  abs_speciesAdd( abs_species, ["H2O-162"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".H2O-162_mid" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  abs_speciesAdd( abs_species, ["H2O-162"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".H2O-162_uncorrected" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  abs_speciesAdd( abs_species, ["H2O"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".H2O_high" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  abs_speciesAdd( abs_species, ["H2O"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".H2O_low" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  abs_speciesAdd( abs_species, ["H2O"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".H2O_mid" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  # reset atmcase name for profiles in "unused/" folder
+  Copy( atmcase, basename )
+  Extract( casefull, atmcasearray, forloop_index )
+  Append( atmcase, casefull )
+  StringSet( caseext, "/unused/" )
+  Append( atmcase, caseext )
+  Append( atmcase, casefull )
+  Print( atmcase )
+
+  # add the profiles (and a dummy abs_species) of the unused species
+  abs_speciesAdd( abs_species, ["N2"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".S2" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  abs_speciesAdd( abs_species, ["N2"] )
+  Copy( casefull, atmcase )
+  StringSet( caseext, ".SO3" )
+  Append( casefull, caseext )
+  ReadXML( gf3tmp, casefull )
+  Append( vmr_field_raw, gf3tmp )
+
+  # now derive common p_grid and regrid atm fields to this
+  p_gridFromZRaw(	p_grid, z_field_raw, 0 )
+  AtmFieldsCalc
+
+  # surface also needed for basics_checkedCalc
+  Extract( z_surface, z_field, 0 )
+
+  basics_checkedCalc
+  #WriteXML( "ascii", p_grid )
+  #WriteXML( "ascii", z_field )
+  #WriteXML( "ascii", t_field )
+  #WriteXML( "ascii", vmr_field_raw )
+  #WriteXMLIndexed( "ascii", forloop_index, vmr_field )
+}
+
+nelemGet( ncases, atmcasearray )
+IndexStepDown( ncases, ncases )
+ForLoop( forloop_agenda, 0, ncases, 1  )
+
+}
+ 

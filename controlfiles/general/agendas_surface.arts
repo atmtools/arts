@@ -169,5 +169,18 @@ AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFix ){
       surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda )
 } 
 
+# - preset surface reflectivity
+# - surface skin temperature interpolated from atmospheric t_field
+# - user set number of angles, the scattering function will be evaluated on
+#
+AgendaCreate( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field )
+AgendaSet( surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field ){
+  InterpAtmFieldToRtePos( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
+                           lon_grid, z_field, rte_pos, t_field )
+  surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
+      f_grid, stokes_dim, atmosphere_dim, rte_los, surface_skin_t, 
+      surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda )
+} 
+
 
 }
