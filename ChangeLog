@@ -1,3 +1,14 @@
+2013-01-29  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-473
+
+	* src/m_atmosphere.cc (z_fieldFromHSE): Downgraded missing-H2O-error to
+	a warning (when no H2O tag setting h2o_vmr=0. of course.). Deviations
+	between including and excluding H2O in tropical atmo are <30m for
+	z<100km and <50m for z<1500km (so, H2O not that relevant at all :-O ).
+
+	* src/[m_basic_types,methods].cc (Compare): Added Tensor3 capability.
+
 2013-01-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-472

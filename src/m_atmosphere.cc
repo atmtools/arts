@@ -2325,7 +2325,7 @@ void z_fieldFromHSE(
    const Numeric&     molarmass_dry_air,
    const Numeric&     p_hse,
    const Numeric&     z_hse_accuracy,
-   const Verbosity&)
+   const Verbosity&   verbosity)
 {
   // Some general variables
   const Index np   = p_grid.nelem();
@@ -2342,8 +2342,16 @@ void z_fieldFromHSE(
                          "consistency check (basics_checked=1)." );
   //
   if( firstH2O < 0 )
-    throw runtime_error(
-       "Water vapour is a requiered (must be a tag group in *abs_species*)." );
+    {
+      ostringstream os;
+      os << "No water vapour tag group in *abs_species*.\n"
+         << "Be aware that this leads to significant variations in atmospheres\n"
+         << "that contain considerable amounts of water vapour (e.g. Earth)!\n";
+      CREATE_OUT1;
+      out1 << os.str();
+      //throw runtime_error(
+      //   "Water vapour is required (must be a tag group in *abs_species*)." );
+    }
   //
   if( p_hse>p_grid[0]  ||  p_hse < p_grid[np-1] )
     {
@@ -2433,8 +2441,16 @@ void z_fieldFromHSE(
                   const Numeric g = ( g1 + g2 ) / 2.0;
 
                   //Average water vapour VMR
-                  const Numeric hm = 0.5* ( vmr_field(firstH2O,ip,ilat,ilon)
-                                        + vmr_field(firstH2O,ip+1,ilat,ilon) );
+                  Numeric hm;
+                  if( firstH2O < 0 )
+                    {
+                      hm = 0.0;
+                    }
+                  else
+                    {
+                      hm = 0.5* ( vmr_field(firstH2O,ip,ilat,ilon)
+                                + vmr_field(firstH2O,ip+1,ilat,ilon) );
+                    }
   
                   // Average virtual temperature (no liquid water)
                   // (cf. e.g. Eq. 3.16 in Wallace&Hobbs)
