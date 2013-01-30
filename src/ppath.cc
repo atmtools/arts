@@ -2560,6 +2560,7 @@ void ppath_end_3d(
                                   r15a, r35a, r36a, r16a, lat_v[i], lon_v[i] );
       const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                   r15b, r35b, r36b, r16b, lat_v[i], lon_v[i] );
+
       // Position and LOS
       ppath.r[i]      = r_v[i];
       ppath.pos(i,1)  = lat_v[i];
@@ -3288,6 +3289,9 @@ void do_gridcell_3d_byltest(
       cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j], x+dx*l, 
                    y+dy*l, z+dz*l, dx, dy, dz, ppc, lat_start, lon_start,
                    za_start, aa_start );
+
+      // Shall lon values be shifted (value 0 is already OK)?
+      resolve_lon( lon_v[j], lon5, lon6 );
       
       if( j < n )
         {
@@ -3350,9 +3354,6 @@ void do_gridcell_3d_byltest(
                                             lat_v[n], lon_v[n] ); }
             }
         }
-
-      // Shall lon values be shifted (value 0 is already OK)?
-      resolve_lon( lon_v[j], lon5, lon6 );
     }
 
   if( !ready )
