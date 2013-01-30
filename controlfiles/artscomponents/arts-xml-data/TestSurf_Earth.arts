@@ -3,20 +3,34 @@
 #  data.
 #
 # General test setup: reading in raw data (including a basic atmosphere),
-#  expanding (where necessary), regridding (incl. extracting), executing
-#  standard pre-RT calc internal test method basics_checkedCalc.
+#  extracting/regridding, executing standard pre-RT calc internal test method
+#  basics_checkedCalc, and performing some RT simulations in order to apply data
+#  that has no dedicated check method (e.g., when only used through agendas like
+#  surface reflectivity).
 #
 #
 # This case is for Earth and specifically tests
 #
-#  - 
+#  - surface altitude: reading in raw 3D data, preprocess into z_surface variable
+#      - within a 3D (global) case (CASE A)
+#      - as 1D (extract one point) case (CASE B)
+#  - land-sea-mask: used as basic data to derive land/sea dependent
+#     reflectivities (maps mask value to refl=0.05 for land and 0.4 for sea)
+#      - reading 3D raw data
+#      - applying surface_rt_prop agenda on-the run extraction of mask value and
+#         derivation of reflectivity at surface reflection point (CASE A-2;
+#         CASE A-1 using fixed surface reflectivity for comparison)
+#      - extracting at single point & used in 1D case (CASE B; sensor viewing
+#        and lat/lon_true adjusted such that similar region observed as for
+#        CASEs A)
 #
-
-# z_surf: reading in (3D), using for 3D (blow up other atmo) and 1D (extract a point), apply basics_checkedCalc
-# surfmask: read in (3D)
-# (a) extract a point (1D) and calc reflectivity from that(0/1->0.6/0.95). use fixed reflectivity.
-# (b) use 3D field by extracting mask value and calc scalar reflectivity within surface_prop agenda
-# do a full RT calc to test this (as applied only within the RT calc itself, and not tested by any check before usage)
+#  - CASEs A-1, A-2, and B RT calculation results compared for consistency
+#     (setup such that A-1 and A-2 have the exactly same sensor setup, A-2
+#     looking to ocean and A-1 reflectivity set to the one of ocean; B has same
+#     viewing geometry looking at similar point (but one point only!) as
+#     cases A. Hence, results of A-1 and A-2 shall be identical, while results
+#     from B shall be "close".)
+#      
 
 Arts2 {
 INCLUDE "general/general.arts"
@@ -39,8 +53,8 @@ IndexSet( lambertian_nza, 4 )
 VectorCreate( lat_grid3D )
 VectorCreate( lon_grid3D )
 VectorLinSpace( lat_grid3D, -90, 90, 18 )
-#VectorLinSpace( lon_grid3D, -20, 350, 18 )
-VectorLinSpace( lon_grid3D, 20, 90, 2 )
+VectorLinSpace( lon_grid3D, 0, 360, 18 )
+#VectorLinSpace( lon_grid3D, 20, 90, 2 )
 
 # alternatively, the geocoordinates for the 1D case (before switching on, check
 #  to not overwrite them further down)
@@ -66,9 +80,6 @@ StringSet( surfmaskname, "LandSeaMask_ERA40_1.0Degree" )
 #StringSet( surfmaskname, "LandSeaMask_ERA40_0.25Degree" )
 StringCreate( casefull )
 StringCreate( caseext )
-
-IndexCreate( interp_order )
-IndexSet( interp_order, 1 )
 
 
 # some settings in order to be able to use basics_checkedCalc
@@ -123,12 +134,12 @@ MatrixSetConstant( sensor_pos, itmp, 1, 600e3 )
 MatrixSetConstant( mtmp, itmp, 1, 0. )
 Append( sensor_pos, mtmp, "trailing" )
 # sensor longitutde
-MatrixSetConstant( mtmp, itmp, 1, 50. )
+MatrixSetConstant( mtmp, itmp, 1, 170. )
 Append( sensor_pos, mtmp, "trailing" )
 
 
 #####
-# we start out with 3D (both fields are 3D)
+# CASEs A: we start out with 3D (both fields are 3D)
 #####
 
 AtmosphereSet3D
@@ -143,7 +154,9 @@ Append( casefull, zsurfname )
 ReadXML( gf2tmp, casefull )
 GriddedFieldLatLonRegrid( gf2tmp, lat_grid, lon_grid, gf2tmp )
 FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
-#Extract( z_surface, z_field, 1 )
+
+basics_checkedCalc
+
 
 # reading surface mask; no regridding here. we need to do that as 1D inside the
 #  surface_rtprop_agenda, as we only know then which exact point(s) we need. for
@@ -154,12 +167,14 @@ Append( casefull, surfmaskname )
 GriddedField2Create( lsmask )
 ReadXML( lsmask, casefull )
 
-basics_checkedCalc
-
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc
 sensor_checkedCalc
-#Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+
+
+# CASE A-1
+#####
+
 VectorSet( surface_scalar_reflectivity, [0.4] )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field )
 yCalc
@@ -167,6 +182,10 @@ yCalc
 VectorCreate( y_3D_fixRef )
 Copy( y_3D_fixRef, y )
 #Print( y )
+
+
+# CASE A-2
+#####
 
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
@@ -197,19 +216,20 @@ Compare( y_3D_fixRef, y_3D_extRef, 1e-8 )
 
 
 #####
-# now for the fun of it, we do a 1D case, too
+# CASE B: now for the fun of it, we do a 1D case, too
 #####
 
 # basic atmospheric fields
 AtmosphereSet1D
 AtmFieldsCalc
+
+# sensor in 1D (zenith angles like for 3D. no azimtuh of course)
 VectorExtractFromMatrix( lat_true, sensor_pos, 1, "column")
 Select( lat_true, lat_true, [0] )
 VectorExtractFromMatrix( lon_true, sensor_pos, 2, "column")
 Select( lon_true, lon_true, [0] )
 VectorExtractFromMatrix( vtmp, sensor_los, 0, "column" )
 Matrix1ColFromVector( sensor_los, vtmp )
-#MatrixSet( sensor_los, [180;130;115;113.8] )
 nrowsGet( itmp, sensor_los )
 MatrixSetConstant( sensor_pos, itmp, atmosphere_dim, 600e3 )
 
@@ -220,8 +240,10 @@ Append( casefull, zsurfname )
 ReadXML( gf2tmp, casefull )
 GriddedFieldLatLonRegrid( gf2tmp, lat_true, lon_true, gf2tmp )
 FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
-#Extract( z_surface, z_field, 1 )
 #Print( z_surface )
+
+basics_checkedCalc
+
 
 # reading surface mask (need to do that again as we didn't keep the "raw"
 #  gridded field) and extracting a single point for 1D
@@ -240,7 +262,6 @@ VectorScale( surface_scalar_reflectivity, surface_scalar_reflectivity, ntmp )
 VectorAddScalar( surface_scalar_reflectivity, surface_scalar_reflectivity, refl_sea )
 #Print( surface_scalar_reflectivity )
 
-basics_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc

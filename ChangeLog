@@ -1,3 +1,14 @@
+2013-01-30  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-481
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts:
+	Added. Data testing controlfile for Venus surface data.
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts:
+	Polished that one (testing of Earth surface characterization data) a
+	little.
+
 2013-01-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-480
