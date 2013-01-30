@@ -43,7 +43,11 @@ NumericSet( molarmass_dry_air, 43.34 )
 # Gravity
 # (needed for hydrostatic equilibrium calculations)
 # 
-Copy( g0_agenda, g0_agenda__Mars )
+AgendaSet( g0_agenda ){
+   Ignore( lon )
+   Ignore( lat )
+   g0Mars
+} 
 
 
 #

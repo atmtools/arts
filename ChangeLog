@@ -1,5 +1,19 @@
 2013-01-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-478
+
+	* controlfiles/general/planet_earth.arts:
+	* controlfiles/general/planet_venus.arts:
+	* controlfiles/general/planet_mars.arts:
+	* controlfiles/general/planet_jupiter.arts: g0_agenda now defined
+	locally.
+
+	* controlfiles/general/agendas.arts: Removed all definitions of
+	g0_agenda-s. This to make the planet files totally independent of
+	this file.
+
+2013-01-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-477
 
 	* src/ppath.cc (do_gridcell_3d_byltest): My fix yesterday was not

@@ -296,49 +296,9 @@ AgendaSet( refr_index_agenda__GasMWgeneralAndElectrons ){
 }
 
 
-##################################
-#    g0_agenda
-##################################
-
 ###
-# Earth
+# all surface agendas are placed in s special file
 #
-AgendaCreate( g0_agenda__Earth )
-AgendaSet( g0_agenda__Earth ){
-   Ignore( lon )
-   g0Earth
-} 
-
-###
-# Earth
-#
-AgendaCreate( g0_agenda__Venus )
-AgendaSet( g0_agenda__Venus ){
-   Ignore( lon )
-   Ignore( lat )
-   g0Venus
-} 
-
-###
-# Earth
-#
-AgendaCreate( g0_agenda__Mars )
-AgendaSet( g0_agenda__Mars ){
-   Ignore( lon )
-   Ignore( lat )
-   g0Mars
-} 
-
-###
-# Earth
-#
-AgendaCreate( g0_agenda__Jupiter )
-AgendaSet( g0_agenda__Jupiter ){
-   Ignore( lon )
-   Ignore( lat )
-   g0Jupiter
-} 
-
-
 INCLUDE "agendas_surface.arts"
+
 }
