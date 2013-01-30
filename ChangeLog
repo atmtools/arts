@@ -1,3 +1,11 @@
+2013-01-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-480
+
+	* src/m_atmosphere.cc (GriddedFieldLatLonRegrid):
+
+	Fix copy/paste error in loop for GriddedField4.
+
 2013-01-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-479

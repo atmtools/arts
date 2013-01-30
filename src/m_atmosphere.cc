@@ -988,7 +988,7 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
 
     if (is_lon_cyclic(in_lon_grid))
     {
-        for (Index g0 = 0; g0 < in_grid1.nelem(); g0++)
+        for (Index g0 = 0; g0 < in_grid0.nelem(); g0++)
             for (Index g1 = 0; g1 < in_grid1.nelem(); g1++)
                 for (Index lat = 0; lat < in_lat_grid.nelem(); lat++)
                 {
