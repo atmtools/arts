@@ -4843,16 +4843,20 @@ void ppath_start_stepping(
   //-- 3D ---------------------------------------------------------------------
   else
     {
-      // End position and LOS
-      ppath.end_pos[0] = rte_pos[0];
-      ppath.end_pos[1] = rte_pos[1];
-      ppath.end_pos[2] = rte_pos[2];
-      ppath.end_los[0] = rte_los[0];
-      ppath.end_los[1] = rte_los[1];
-
       // Index of last latitude and longitude
       const Index llat = lat_grid.nelem() - 1;
       const Index llon = lon_grid.nelem() - 1;
+
+      // Adjust longitude of rte_pos to range used in lon_grid
+      Numeric lon2use = rte_pos[2];
+      resolve_lon( lon2use, lon_grid[0], lon_grid[llon] );
+
+      // End position and LOS
+      ppath.end_pos[0] = rte_pos[0];
+      ppath.end_pos[1] = rte_pos[1];
+      ppath.end_pos[2] = lon2use;
+      ppath.end_los[0] = rte_los[0];
+      ppath.end_los[1] = rte_los[1];
 
       // Is sensor inside range of lat_grid and lon_grid?
       // If yes, determine TOA altitude at sensor position
@@ -4862,11 +4866,11 @@ void ppath_start_stepping(
       Numeric    r_e;  // Ellipsoid radius at sensor position
       Numeric    z_toa   = -99e99;
       if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat]  &&
-          rte_pos[2] > lon_grid[0]  &&  rte_pos[2] < lon_grid[llon] )
+          lon2use > lon_grid[0]  &&  lon2use < lon_grid[llon] )
         { 
           islatlonin = true; 
           gridpos( gp_lat, lat_grid, rte_pos[1] );
-          gridpos( gp_lon, lon_grid, rte_pos[2] );
+          gridpos( gp_lon, lon_grid, lon2use );
           interpweights( itw, gp_lat, gp_lon );
           z_toa = interp( itw, z_field(lp,joker,joker), gp_lat, gp_lon );
           r_e   = refell2d( refellipsoid, lat_grid, gp_lat );
@@ -4962,8 +4966,8 @@ void ppath_start_stepping(
           // Handle cases when the sensor appears to look the wrong way in
           // the west-east direction. We demand that the sensor is inside the
           // range of lon_grid even if all longitudes are covered.
-          if( ( rte_pos[2] <= lon_grid[0]     &&  rte_los[1] < 0 )  || 
-              ( rte_pos[2] >= lon_grid[llon]  &&  rte_los[1] > 0 ) )
+          if( ( lon2use <= lon_grid[0]     &&  rte_los[1] < 0 )  || 
+              ( lon2use >= lon_grid[llon]  &&  rte_los[1] > 0 ) )
             {
               ostringstream os;
               os << "The sensor is east or west (or at the limit) of the "
@@ -5009,7 +5013,7 @@ void ppath_start_stepping(
             {
               ppath.pos(0,0) = rte_pos[0];
               ppath.pos(0,1) = rte_pos[1]; 
-              ppath.pos(0,1) = rte_pos[2]; 
+              ppath.pos(0,1) = lon2use; 
               ppath.r[0]     = r_e + rte_pos[0];
               ppath.los(0,0) = rte_los[0];
               ppath.los(0,1) = rte_los[1];
@@ -5040,7 +5044,7 @@ void ppath_start_stepping(
               
               // Sensor pos and LOS in cartesian coordinates
               Numeric   x, y, z, dx, dy, dz;
-              poslos2cart( x, y, z, dx, dy, dz, r_p, rte_pos[1], rte_pos[2], 
+              poslos2cart( x, y, z, dx, dy, dz, r_p, rte_pos[1], lon2use, 
                                                      rte_los[0], rte_los[1] );
 
               // Iterate until solution found or moving out from model atm.
@@ -5058,7 +5062,7 @@ void ppath_start_stepping(
                     {
                       // Calculate lat and lon for entrance point at rt 
                       r_crossing_3d( latt, lont, lt, rt, r_p, rte_pos[1], 
-                                     rte_pos[2], rte_los[0], ppath.constant, 
+                                     lon2use, rte_los[0], ppath.constant, 
                                      x, y, z, dx, dy, dz );
                       resolve_lon( lont, lon_grid[0], lon_grid[llon] ); 
 
@@ -5097,7 +5101,7 @@ void ppath_start_stepping(
                 {
                   ppath.pos(0,0) = rte_pos[0];
                   ppath.pos(0,1) = rte_pos[1]; 
-                  ppath.pos(0,1) = rte_pos[2]; 
+                  ppath.pos(0,1) = lon2use; 
                   ppath.r[0]     = r_e + rte_pos[0];
                   ppath.los(0,0) = rte_los[0];
                   ppath.los(0,1) = rte_los[1];
@@ -5114,7 +5118,7 @@ void ppath_start_stepping(
                   cart2poslos( ppath.r[0], ppath.pos(0,1), ppath.pos(0,2),
                                ppath.los(0,0), ppath.los(0,1),x+dx*lt, y+dy*lt,
                                z+dz*lt, dx, dy, dz, ppath.constant, rte_pos[1],
-                               rte_pos[2], rte_los[0], rte_los[1] );
+                               lon2use, rte_los[0], rte_los[1] );
                   assert( abs( ppath.r[0] -rt ) < RTOL );
                   resolve_lon( ppath.pos(0,2), lon_grid[0], lon_grid[llon] ); 
                   //

@@ -1,5 +1,16 @@
 2013-01-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-479
+
+	* src/ppath.cc (ppath_start_stepping): Made a small change that
+	should allow the sensor longitude and lon_grid to have different
+	lon-ranges. For example, a lon_grid between -100 and 0 and a sensor
+	longitude of 310 should now work. Before it was a bit random if
+	such cases were OK or not, as pointed out by Jana. (Not heavily
+	tested, I leave this to Jana!)
+
+2013-01-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-478
 
 	* controlfiles/general/planet_earth.arts:
