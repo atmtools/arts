@@ -267,8 +267,7 @@ void gridpos_poly_longitudinal(const String&   error_msg,
                                const Index     order,
                                const Numeric&  extpolfac)
 {
-    bool global_lons = is_same_within_epsilon(old_grid[old_grid.nelem()-1] - old_grid[0],
-                                              360., 0.001);
+    bool global_lons = is_lon_cyclic(old_grid);
 
     if (global_lons)
         gridpos_poly_cyclic_longitudinal(gp, old_grid, new_grid, order, extpolfac);
@@ -324,7 +323,7 @@ void gridpos_poly_cyclic_longitudinal(ArrayOfGridPosPoly& gp,
                                       const Index     order,
                                       const Numeric&  extpolfac)
 {
-    assert(is_same_within_epsilon(old_grid[old_grid.nelem()-1] - old_grid[0], 360., 0.001));
+    assert(is_lon_cyclic(old_grid));
 
     Index new_n = old_grid.nelem() - 1;
     ConstVectorView old_grid_n1 = old_grid[Range(0, new_n)];

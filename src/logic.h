@@ -94,6 +94,10 @@ bool is_same_within_epsilon( const Numeric& a,
                              const Numeric& b,
                              const Numeric& epsilon );
 
+bool is_lon_cyclic( ConstVectorView grid,
+                    const Numeric& epsilon = 0.001 );
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Template functions (have to be here in the .h file).
 ////////////////////////////////////////////////////////////////////////////

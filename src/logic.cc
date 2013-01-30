@@ -441,8 +441,8 @@ bool is_diagonal( ConstMatrixView A )
   \param b Another number.
   \param epsilon The epsilon of the required agreement.
 
-\return True if the two numbers are the same.
-*/
+  \return True if the two numbers are the same.
+ */
 bool is_same_within_epsilon( const Numeric& a,
                              const Numeric& b,
                              const Numeric& epsilon )
@@ -452,3 +452,21 @@ bool is_same_within_epsilon( const Numeric& a,
   else
     return false;
 }
+
+
+//! Check if the given longitude grid is cyclic.
+/*!
+ Checks whether the grid spans 0 to 360 degrees.
+
+ \param grid Longitude grid.
+ \param epsilon The epsilon of the required agreement.
+
+ \return True if the grid is cyclic.
+ */
+bool is_lon_cyclic( ConstVectorView grid,
+                    const Numeric& epsilon )
+{
+    return is_same_within_epsilon(grid[grid.nelem()-1] - grid[0],
+                                  360., epsilon);
+}
+

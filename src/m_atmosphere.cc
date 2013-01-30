@@ -42,6 +42,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <cfloat>
 #include "agenda_class.h"
 #include "arts.h"
 #include "auto_md.h"
@@ -70,6 +71,12 @@ extern const Index GFIELD4_LON_GRID;
 extern const Numeric DEG2RAD;
 extern const Numeric PI;
 extern const Numeric GAS_CONSTANT;
+
+//! Data value accuracy requirement for values at 0 and 360 deg if longitudes are cyclic
+/*!
+ */
+extern const Numeric EPSILON_LON_CYCLIC = 2*DBL_EPSILON;
+
 
 /*===========================================================================
  *=== Helper functions
@@ -811,6 +818,34 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
     ArrayOfGridPosPoly gp_lon;
     Tensor3 itw;
 
+    // If lon grid is cyclic, the data values at 0 and 360 must match
+    const ConstVectorView& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+    const ConstVectorView& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
+
+    if (is_lon_cyclic(in_lon_grid))
+    {
+        for (Index lat = 0; lat < in_lat_grid.nelem(); lat++)
+        {
+            if (!is_same_within_epsilon(gfraw_in.data(lat, 0),
+                                        gfraw_in.data(lat, in_lon_grid.nelem()-1),
+                                        EPSILON_LON_CYCLIC))
+            {
+                ostringstream os;
+                os << "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n"
+                << "Mismatch at latitude index    : "
+                << lat << " (" << in_lat_grid[lat] << " degrees)\n"
+                << "Value at 0 degrees longitude  : "
+                << gfraw_in.data(lat, 0) << "\n"
+                << "Value at 360 degrees longitude: "
+                << gfraw_in.data(lat, in_lon_grid.nelem()-1) << "\n"
+                << "Difference                    : "
+                << gfraw_in.data(lat, in_lon_grid.nelem()-1) - gfraw_in.data(lat, 0) << "\n"
+                << "Allowed difference            : " << EPSILON_LON_CYCLIC;
+                throw runtime_error(os.str());
+            }
+        }
+    }
+
     GriddedFieldLatLonRegridHelper(gp_lat, gp_lon, itw, gfraw_out,
                                    gfraw_in, lat_grid_index, lon_grid_index,
                                    lat_true, lon_true, interp_order,
@@ -856,6 +891,38 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
     ArrayOfGridPosPoly gp_lat;
     ArrayOfGridPosPoly gp_lon;
     Tensor3 itw;
+
+    // If lon grid is cyclic, the data values at 0 and 360 must match
+    const ConstVectorView& in_grid0 = gfraw_in.get_numeric_grid(0);
+    const ConstVectorView& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+    const ConstVectorView& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
+
+    if (is_lon_cyclic(in_lon_grid))
+    {
+        for (Index g0 = 0; g0 < in_grid0.nelem(); g0++)
+            for (Index lat = 0; lat < in_lat_grid.nelem(); lat++)
+            {
+                if (!is_same_within_epsilon(gfraw_in.data(g0, lat, 0),
+                                            gfraw_in.data(g0, lat, in_lon_grid.nelem()-1),
+                                            EPSILON_LON_CYCLIC))
+                {
+                    ostringstream os;
+                    os << "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n"
+                    << "Mismatch at 1st grid index    : "
+                    << g0 << " (" << in_grid0[g0] << ")\n"
+                    << "         at latitude index    : "
+                    << lat << " (" << in_lat_grid[lat] << " degrees)\n"
+                    << "Value at 0 degrees longitude  : "
+                    << gfraw_in.data(g0, lat, 0) << "\n"
+                    << "Value at 360 degrees longitude: "
+                    << gfraw_in.data(g0, lat, in_lon_grid.nelem()-1) << "\n"
+                    << "Difference                    : "
+                    << gfraw_in.data(g0, lat, in_lon_grid.nelem()-1) - gfraw_in.data(g0, lat, 0) << "\n"
+                    << "Allowed difference            : " << EPSILON_LON_CYCLIC;
+                    throw runtime_error(os.str());
+                }
+            }
+    }
 
     GriddedFieldLatLonRegridHelper(gp_lat, gp_lon, itw, gfraw_out,
                                    gfraw_in, lat_grid_index, lon_grid_index,
@@ -912,6 +979,42 @@ void GriddedFieldLatLonRegrid(// WS Generic Output:
                                    gfraw_in, lat_grid_index, lon_grid_index,
                                    lat_true, lon_true, interp_order,
                                    verbosity);
+
+    // If lon grid is cyclic, the data values at 0 and 360 must match
+    const ConstVectorView& in_grid0 = gfraw_in.get_numeric_grid(0);
+    const ConstVectorView& in_grid1 = gfraw_in.get_numeric_grid(1);
+    const ConstVectorView& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+    const ConstVectorView& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
+
+    if (is_lon_cyclic(in_lon_grid))
+    {
+        for (Index g0 = 0; g0 < in_grid1.nelem(); g0++)
+            for (Index g1 = 0; g1 < in_grid1.nelem(); g1++)
+                for (Index lat = 0; lat < in_lat_grid.nelem(); lat++)
+                {
+                    if (!is_same_within_epsilon(gfraw_in.data(g0, g1, lat, 0),
+                                                gfraw_in.data(g0, g1, lat, in_lon_grid.nelem()-1),
+                                                EPSILON_LON_CYCLIC))
+                    {
+                        ostringstream os;
+                        os << "Data values at 0 and 360 degrees for a cyclic longitude grid must match: \n"
+                        << "Mismatch at 1st grid index    : "
+                        << g0 << " (" << in_grid0[g0] << ")\n"
+                        << "         at 2nd grid index    : "
+                        << g1 << " (" << in_grid1[g1] << ")\n"
+                        << "         at latitude index    : "
+                        << lat << " (" << in_lat_grid[lat] << " degrees)\n"
+                        << "Value at 0 degrees longitude  : "
+                        << gfraw_in.data(g0, g1, lat, 0) << "\n"
+                        << "Value at 360 degrees longitude: "
+                        << gfraw_in.data(g0, g1, lat, in_lon_grid.nelem()-1) << "\n"
+                        << "Difference                    : "
+                        << gfraw_in.data(g0, g1, lat, in_lon_grid.nelem()-1) - gfraw_in.data(g0, g1, lat, 0) << "\n"
+                        << "Allowed difference            : " << EPSILON_LON_CYCLIC;
+                        throw runtime_error(os.str());
+                    }
+            }
+    }
 
     // Interpolate:
     for (Index i = 0; i < gfraw_in.data.nbooks(); i++)
