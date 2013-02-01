@@ -1055,6 +1055,23 @@ void define_basic_species_data()
 
 
 
+  // H
+  // Isotopologue Ratios: 0
+  // Note: H is spectroscopically inert, but now needed as broadening/continuum
+  // species for planetary atmospheres. Hence we need it to be defined as
+  // absorption species.
+  // All parameters guessed.
+  species_data.push_back
+    ( SpeciesRecord
+     ( NAME("H"),
+      DEGFR(2),
+      ISOTOPOLOGUES
+      (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
+       //             |                |         |       |       |
+       REC("1"       ,1.00            , 1.00    ,-1     ,-1     ,TAGS())
+       ) ) );
+
+    
   // He
   // Isotopologue Ratios: 0
   // Note: He is spectroscopically inert, but now needed as broadening/continuum

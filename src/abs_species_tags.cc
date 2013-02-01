@@ -189,7 +189,7 @@ SpeciesTag::SpeciesTag(String def)
 
     
       mcia_second = species_index_from_species_name(otherspec);
-        
+      
       if ( 0 > mcia_second )
         {
           ostringstream os;

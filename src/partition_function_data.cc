@@ -808,11 +808,23 @@ iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,
   spec(it_species, it_isotopologue, "H2");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
-iso(it_isotopologue,	"11" ,  Qcoeff(-5.989204e-01,  3.716024e-02, -4.849594e-05,  5.867598e-08 ));
-iso(it_isotopologue,	"12" ,  Qcoeff( 2.575211e+00,  8.914624e-02,  1.491752e-05, -1.505173e-08 ));
+  iso(it_isotopologue,	"11" ,  Qcoeff(-5.989204e-01,  3.716024e-02, -4.849594e-05,  5.867598e-08 ));
+  iso(it_isotopologue,	"12" ,  Qcoeff( 2.575211e+00,  8.914624e-02,  1.491752e-05, -1.505173e-08 ));
 
 
+  // He
+  // Coeff: 0
+  // Note: Partition function is unknown. Anyway, He is only needed as
+  // broadening species, i.e., partition functions are not needed for
+  // calculation, just as equivalent entry to species_data. Nevertheless, we
+  // want to avoid negative values (this would throw a runtime error), instead
+  // we set the partition function to a constant, positive value.
+  spec(it_species, it_isotopologue, "H");
+  //                    Name            c0              c1              c2              c3
+  //                    |               |               |               |               |
+  iso(it_isotopologue,	"1",  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
 
+    
   // He
   // Coeff: 0
   // Note: Partition function is unknown. Anyway, He is only needed as
@@ -823,7 +835,7 @@ iso(it_isotopologue,	"12" ,  Qcoeff( 2.575211e+00,  8.914624e-02,  1.491752e-05,
   spec(it_species, it_isotopologue, "He");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
-iso(it_isotopologue,	"4",  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
+  iso(it_isotopologue,	"4",  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
 
 
 

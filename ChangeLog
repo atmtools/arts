@@ -1,3 +1,12 @@
+2013-02-01  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-483
+
+	* src/species_data.cc (H): Added missing species H, needed for CIA
+	continua.
+
+	* src/partition_function_data.cc (H): Ditto.
+
 2013-02-01  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-482
