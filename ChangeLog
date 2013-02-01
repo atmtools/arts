@@ -1,3 +1,11 @@
+2013-02-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-484
+
+	* src/m_ppath.cc (ppathFromRtePos2): Fixed and tuned the criterion
+	for determining that a ground-intersection is found (there was a
+	sign error in the logical expression).
+
 2013-02-01  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-483

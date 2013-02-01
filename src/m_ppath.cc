@@ -304,7 +304,7 @@ void ppathFromRtePos2(
             }
           else if( za_upp_limit - za_low_limit <= za_accuracy/10 )
             { 
-              if( max(t_dza) < 2*za_accuracy )
+              if( max(t_dza) < -10*za_accuracy )
                 {
                   ground = true; 
                   out3 << "    Ground intersection determined !!!\n";
