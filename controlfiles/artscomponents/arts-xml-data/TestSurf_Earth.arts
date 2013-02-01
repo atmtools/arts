@@ -147,8 +147,7 @@ Copy( lat_grid, lat_grid3D )
 Copy( lon_grid, lon_grid3D )
 AtmFieldsCalcExpand1D
 
-# reading the surface altitude field (need to do that again as we didn't keep
-#  the "raw" gridded field) and extracting a single point for 1D
+# reading the surface altitude field
 Copy( casefull, surfpath )
 Append( casefull, zsurfname )
 ReadXML( gf2tmp, casefull )

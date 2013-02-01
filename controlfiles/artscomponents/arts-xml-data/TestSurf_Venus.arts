@@ -18,7 +18,7 @@
 #  - surface refractive index data (CASE B):
 #      - reading 3D raw data
 #      - in surface_rt_prop_agenda deriving saurface emission/reflection field
-#         from complex refractive index data (using )
+#         from complex refractive index data (using surfaceFlatRefractiveIndex)
 #      - all in 3D only
 #      
 
@@ -35,24 +35,11 @@ VectorCreate( lon_grid3D )
 VectorLinSpace( lat_grid3D, -90, 90, 18 )
 VectorLinSpace( lon_grid3D, -20, 350, 18 )
 
-# alternatively, the geocoordinates for the 1D case (before switching on, check
-#  to not overwrite them further down)
-#VectorSet( lat_true, [32.] )
-#VectorSet( lon_true, [40.] )
-
 
 GriddedField2Create( gf2tmp )
-Tensor4Create( t4tmp )
 MatrixCreate( mtmp )
-VectorCreate( vtmp )
-NumericCreate( ntmp )
 IndexCreate( itmp )
 
-# this is an auxiliary grid for extracting complex numbers from surface complex
-#  refractive index data
-# NOT TO BE CHANGED
-VectorCreate( comp_grid )
-VectorSet( comp_grid, [0,1] )
 
 StringCreate( basename )
 StringSet( basename, "planets/Venus/MPS/" )
@@ -134,8 +121,7 @@ Copy( lon_grid, lon_grid3D )
 AtmFieldsCalcExpand1D
 Extract( z_surface, z_field, 1 )
 
-# reading the surface altitude field (need to do that again as we didn't keep
-#  the "raw" gridded field) and extracting a single point for 1D
+# reading and regridding the surface temperature field
 Copy( casefull, basename )
 Append( casefull, tsurfname )
 ReadXML( gf2tmp, casefull )
@@ -177,7 +163,7 @@ AgendaSet( surface_rtprop_agenda ){
 #Print( y )
 
 
-# CASE A-2
+# CASE A
 #####
 
 # surface temp from t_surface field

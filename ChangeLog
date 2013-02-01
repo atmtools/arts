@@ -1,3 +1,13 @@
+2013-02-01  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-482
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	Added. Data testing controlfile for Mars surface data.
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_[Earth,Venus].arts:
+	Cosmetics.
+
 2013-01-30  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-481
