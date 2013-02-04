@@ -105,6 +105,7 @@ void iyRadioLink(
    const Vector&                      rte_pos2,      
    const Numeric&                     ppath_lraytrace,
    const Index&                       defocus_method,
+   const Numeric&                     defocus_shift,
    const Verbosity&                   verbosity )
 {
   // Throw error if unsupported features are requested
@@ -545,14 +546,16 @@ void iyRadioLink(
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, edensity_field, -1, refellipsoid, 
-                              z_surface, ppath, ppath_lraytrace, verbosity ); 
+                              z_surface, ppath, ppath_lraytrace, 
+                              defocus_shift, verbosity ); 
         }
       else if( defocus_method == 2 )
         {
           defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, edensity_field, -1, refellipsoid, 
-                              z_surface, ppath, ppath_lraytrace, verbosity ); 
+                              z_surface, ppath, ppath_lraytrace,
+                              defocus_shift, verbosity );
           if( auxDefocusingAtte >= 0 )
             { iy_aux[auxDefocusingAtte] = -999; }  // So far just a dummy value
         }

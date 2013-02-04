@@ -1,3 +1,17 @@
+2013-02-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-486
+
+	* src/rte.cc (defocusing_general): Now taking dza from calling
+	function (before hard-coded).
+
+	(defocusing_sat2sat): As above + fixed error in calculation
+	(impact paramater was mixed up with geometrical ztan) + now not
+	crashes if any of the two extra calculations hits the surface.
+
+	* src/m_transmitter.cc (iyRadioLink): Made angular shift to use
+	for defoc-calculations a method input.
+
 2013-02-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-485

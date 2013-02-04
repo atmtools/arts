@@ -343,10 +343,10 @@ void apply_iy_unit2(
 /*!
     Calculates the bending angle for a 1D atmosphere.
 
-    The expression used assumes a 1D atmosphere, that allows the bendng angle
+    The expression used assumes a 1D atmosphere, that allows the bending angle
     to be calculated by start and end LOS. This is an approximation for 2D and
     3D, but a very small one and the function should in general be OK also for
-    2D and 3D. 
+    2D and 3D.
 
     The expression is taken from Kursinski et al., The GPS radio occultation
     technique, TAO, 2000.
@@ -376,13 +376,6 @@ void bending_angle1d(
   // phi_t = ppath.start_los[0]
 }
 
-
-
-// Size of disturbance for calculating defocusing.
-// Used of both methods below, where +-dza applied.
-// 1e-3 corresponds to roughly 100 m difference in 
-// tangent altitude for limb sounding cases. 
-const Numeric dza = 5e-4;
 
 
 //! defocusing_general_sub
@@ -533,6 +526,8 @@ void defocusing_general_sub(
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
     \param    ppath               As the WSV with the same name.
+    \param    ppath_lraytrace     As the WSV with the same name.
+    \param    dza                 Size of angular shift to apply.
     \param    verbosity           As the WSV with the same name.
 
     \author Patrick Eriksson 
@@ -555,6 +550,7 @@ void defocusing_general(
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Numeric&     ppath_lraytrace,
+  const Numeric&     dza,
   const Verbosity&   verbosity )
 {
   // Optical and physical path between transmitter and reciver
@@ -630,6 +626,8 @@ void defocusing_general(
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
     \param    ppath               As the WSV with the same name.
+    \param    ppath_lraytrace     As the WSV with the same name.
+    \param    dza                 Size of angular shift to apply.
     \param    verbosity           As the WSV with the same name.
 
     \author Patrick Eriksson 
@@ -652,6 +650,7 @@ void defocusing_sat2sat(
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Numeric&     ppath_lraytrace,
+  const Numeric&     dza,
   const Verbosity&   verbosity )
 {
   if( ppath.end_los[0] <= 90 )
@@ -670,33 +669,23 @@ void defocusing_sat2sat(
   for( Index i=0; i<it; i++ )
     { lr += ppath.lstep[i]; }
 
-  // Bending angle
-  Numeric alpha;
-  bending_angle1d( alpha, ppath );
-  alpha *= DEG2RAD;
+  // Bending angle and impact parameter for centre ray
+  Numeric alpha0, a0;
+  bending_angle1d( alpha0, ppath );
+  alpha0 *= DEG2RAD;
+  a0      = ppath.constant; 
 
   // Azimuth loss term (Eq 18.5 in Kursinski et al.)
   const Numeric lf = lr*lt / (lr+lt);
-  const Numeric alt = 1 / ( 1 - alpha*lf / refellipsoid[0] );
+  const Numeric alt = 1 / ( 1 - alpha0*lf / refellipsoid[0] );
 
   // Calculate two new ppaths to get dalpha/da
-  Numeric   alpha1, a1, alpha2, a2;
+  Numeric   alpha1, a1, alpha2, a2, dada;
   Ppath     ppt;
   Vector    rte_pos = ppath.end_pos[Range(0,atmosphere_dim)];
   Vector    rte_los = ppath.end_los;
   //
-  rte_los[0] += dza;
-  adjust_los( rte_los, atmosphere_dim );
-  ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
-              lon_grid, t_field, z_field, vmr_field, edensity_field,
-              f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
-              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
-  bending_angle1d( alpha1, ppt );
-  alpha1 *= DEG2RAD;
-  find_tanpoint( it, ppt );
-  a1 = ppt.pos(it,0);
-  //
-  rte_los[0] -= 2*dza;
+  rte_los[0] -= dza;
   adjust_los( rte_los, atmosphere_dim );
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
               lon_grid, t_field, z_field, vmr_field, edensity_field,
@@ -704,10 +693,27 @@ void defocusing_sat2sat(
               rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
   bending_angle1d( alpha2, ppt );
   alpha2 *= DEG2RAD;
-  find_tanpoint( it, ppt );
-  a2 = ppt.pos(it,0);
+  a2      = ppt.constant; 
   //
-  const Numeric dada = (alpha2-alpha1) / (a2-a1); 
+  rte_los[0] += 2*dza;
+  adjust_los( rte_los, atmosphere_dim );
+  ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
+              lon_grid, t_field, z_field, vmr_field, edensity_field,
+              f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
+              rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
+  // This path can hit the surface. And we need to check if ppt is OK.
+  // Otherwise use the centre ray as the second one.
+  if( ppath_what_background(ppt) == 1 )
+    {
+      bending_angle1d( alpha1, ppt );
+      alpha1 *= DEG2RAD;
+      a1      = ppt.constant; 
+      dada    = (alpha2-alpha1) / (a2-a1); 
+    }
+  else
+    {
+      dada    = (alpha2-alpha0) / (a2-a0);       
+    }
 
   // Zenith loss term (Eq 18 in Kursinski et al.)
   const Numeric zlt = 1 / ( 1 - dada*lf );

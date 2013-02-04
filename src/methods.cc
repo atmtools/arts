@@ -5282,10 +5282,11 @@ void define_md_data_raw()
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_pos2",
             "ppath_lraytrace"
              ),
-        GIN(      "defocos_method" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Selection of defocusing calculation method." )
+        GIN(      "defocos_method", "defocus_shift" ),
+        GIN_TYPE( "Index", "Numeric" ),
+        GIN_DEFAULT( "1", "5e-4" ),
+        GIN_DESC( "Selection of defocusing calculation method.",
+                  "Angular shift to apply in defocusing estimates." )
         ));
 
   md_data_raw.push_back

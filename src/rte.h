@@ -97,6 +97,7 @@ void defocusing_general(
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Numeric&     ppath_lraytrace,
+  const Numeric&     dza,
   const Verbosity&   verbosity );
 
 void defocusing_sat2sat( 
@@ -116,6 +117,7 @@ void defocusing_sat2sat(
   ConstMatrixView    z_surface,
   const Ppath&       ppath,
   const Numeric&     ppath_lraytrace,
+  const Numeric&     dza,
   const Verbosity&   verbosity );
 
 Numeric dotprod_with_los(
