@@ -2828,6 +2828,28 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_cia_dataReadFromXML" ),
+        DESCRIPTION
+        (
+         "Read data from a CIA XML file and check that all CIA tags defined\n"
+         "in *abs_species* are present in the file.\n"
+         "\n"
+         "The units of the data are described in *abs_cia_dataReadFromCIA*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_cia_data" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species" ),
+        GIN( "filename" ),
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "" ),
+        GIN_DESC( "Name of the XML file." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "CIAInfo" ),
         DESCRIPTION
         (

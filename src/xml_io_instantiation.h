@@ -63,6 +63,7 @@ TMPL_XML_READ_WRITE(Vector)
 //=== Compound Types =======================================================
 
 TMPL_XML_READ_WRITE(Agenda)
+TMPL_XML_READ_WRITE(CIARecord)
 TMPL_XML_READ_WRITE(GriddedField1)
 TMPL_XML_READ_WRITE(GriddedField2)
 TMPL_XML_READ_WRITE(GriddedField3)

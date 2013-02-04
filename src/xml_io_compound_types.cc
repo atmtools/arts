@@ -46,6 +46,86 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
+//=== CIARecord ================================================
+
+//! Reads CIARecord from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param irecord  SpeciesRecord return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          CIARecord& cr,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity)
+{
+    ArtsXMLTag    tag(verbosity);
+    String        name;
+    String molecule1;
+    String molecule2;
+    Index species1;
+    Index species2;
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("CIARecord");
+    tag.get_attribute_value("molecule1", molecule1);
+    tag.get_attribute_value("molecule2", molecule2);
+
+    species1 = species_index_from_species_name(molecule1);
+    species2 = species_index_from_species_name(molecule2);
+
+    if (species1 == -1)
+    {
+        ostringstream os;
+        os << "Unknown species (1st molecule) in CIARecord: " << molecule1;
+        throw runtime_error(os.str());
+    }
+    if (species2 == -1)
+    {
+        ostringstream os;
+        os << "Unknown species (2nd molecule) in CIARecord: " << molecule2;
+        throw runtime_error(os.str());
+    }
+
+    cr.SetSpecies(species1, species2);
+
+    xml_read_from_stream(is_xml, cr.mdata, pbifs, verbosity);
+
+    tag.read_from_stream(is_xml);
+    tag.check_name("/CIARecord");
+}
+
+
+//! Writes CIARecord to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param irecord  CIARecord
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const CIARecord& cr,
+                         bofstream* pbofs,
+                         const String& name _U_, const Verbosity& verbosity)
+{
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("CIARecord");
+  open_tag.add_attribute("molecule1", cr.MoleculeName(0));
+  open_tag.add_attribute("molecule2", cr.MoleculeName(1));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(os_xml, cr.Data(), pbofs, "", verbosity);
+
+  close_tag.set_name("/CIARecord");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+
 //=== GasAbsLookup ===========================================================
 
 //! Reads GasAbsLookup from XML input stream

@@ -81,6 +81,7 @@ TMPL_XML_READ_WRITE_STREAM(Vector)
 //=== Compound Types =======================================================
 
 TMPL_XML_READ_WRITE_STREAM(Agenda)
+TMPL_XML_READ_WRITE_STREAM(CIARecord)
 TMPL_XML_READ_WRITE_STREAM(GriddedField1)
 TMPL_XML_READ_WRITE_STREAM(GriddedField2)
 TMPL_XML_READ_WRITE_STREAM(GriddedField3)

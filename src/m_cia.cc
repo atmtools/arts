@@ -32,6 +32,8 @@
 #include "cia.h"
 #include "messages.h"
 #include "physics_funcs.h"
+#include "auto_md.h"
+#include "xml_io.h"
 
 
 extern const Numeric SPEED_OF_LIGHT;
@@ -277,6 +279,63 @@ void abs_cia_dataReadFromCIA(// WS Output:
                 }
             }
         }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_cia_dataReadFromXML(// WS Output:
+                             ArrayOfCIARecord& abs_cia_data,
+                             // WS Input:
+                             const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const String& filename,
+                             const Verbosity& verbosity)
+{
+    xml_read_from_file(filename, abs_cia_data, verbosity);
+
+    // Check that all CIA tags from abs_species are present in the
+    // XML file
+
+    vector<String> missing_tags;
+
+    // Loop species tag groups to find CIA tags.
+    // Index sp loops through the tag groups, index iso through the tags within
+    // each group. Despite the name, iso does not denote the isotope!
+    for (Index sp = 0; sp < abs_species.nelem(); sp++)
+    {
+        for (Index iso = 0; iso < abs_species[sp].nelem(); iso++)
+        {
+            if (abs_species[sp][iso].Type() != SpeciesTag::TYPE_CIA)
+                continue;
+
+            Index cia_index = cia_get_index(abs_cia_data,
+                                            abs_species[sp][iso].Species(),
+                                            abs_species[sp][iso].CIASecond());
+
+            // If cia_index is -1, this CIA tag was not present in the input file
+            if (cia_index == -1)
+            {
+                missing_tags.push_back(species_name_from_species_index(abs_species[sp][iso].Species())
+                                       + "-"
+                                       + species_name_from_species_index(abs_species[sp][iso].CIASecond()));
+            }
+        }
+    }
+
+    if (missing_tags.size())
+    {
+        ostringstream os;
+        bool first = true;
+
+        os
+        << "Error: The following CIA tag(s) are missing in input file: ";
+        for (size_t i = 0; i < missing_tags.size(); i++)
+        {
+            if (!first) os << ", ";
+            else first = false;
+            os << missing_tags[i];
+        }
+        throw runtime_error(os.str());
     }
 }
 

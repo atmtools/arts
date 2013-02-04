@@ -205,44 +205,6 @@ void xml_write_to_stream(ostream&                        os_xml,
 }
 
 
-
-//=== ArrayOfCIARecord ===========================================
-
-//! Reads ArrayOfCIARecord from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param alspec   ArrayOfCIARecord return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml        _U_,
-                          ArrayOfCIARecord& aacr _U_,
-                          bifstream* pbifs       _U_,
-                          const Verbosity&)
-{
-  // FIXME: OLE: Implement this.
-  throw runtime_error("Boo. Not yet implemented.");
-}
-
-
-//! Writes ArrayOfCIARecord to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param alspec   ArrayOfCIARecord
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml              _U_,
-                         const ArrayOfCIARecord& aacr _U_,
-                         bofstream* pbofs             _U_,
-                         const String&  name          _U_,
-                         const Verbosity&)
-
-{
-  // FIXME: OLE: Implement this.
-  throw runtime_error("Boo. Not yet implemented.");
-} 
-
-
 //=== ArrayOfPpath =========================================================
 
 //! Reads ArrayOfPpath from XML input stream
@@ -966,6 +928,86 @@ void xml_write_to_stream(ostream&                   os_xml,
   os_xml << '\n';
 }
 
+
+
+//=== ArrayOfCIARecord ===========================================
+
+//! Reads ArrayOfCIARecord from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param alspec   ArrayOfCIARecord return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfCIARecord& acr,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity)
+{
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "CIARecord");
+
+  tag.get_attribute_value("nelem", nelem);
+  acr.resize(nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        xml_read_from_stream(is_xml, acr[n], pbifs, verbosity);
+    }
+  catch (runtime_error e)
+    {
+      ostringstream os;
+      os << "Error reading ArrayOfCIARecord: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+
+//! Writes ArrayOfCIARecord to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param alspec   ArrayOfCIARecord
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void xml_write_to_stream(ostream&                os_xml,
+                         const ArrayOfCIARecord& acr,
+                         bofstream*              pbofs,
+                         const String&           name,
+                         const Verbosity&        verbosity)
+
+{
+    ArtsXMLTag open_tag(verbosity);
+    ArtsXMLTag close_tag(verbosity);
+
+    open_tag.set_name("Array");
+    if (name.length())
+        open_tag.add_attribute("name", name);
+
+    open_tag.add_attribute("type", "CIARecord");
+    open_tag.add_attribute("nelem", acr.nelem());
+
+    open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    for (Index n = 0; n < acr.nelem(); n++)
+        xml_write_to_stream(os_xml, acr[n], pbofs, "", verbosity);
+
+    close_tag.set_name("/Array");
+    close_tag.write_to_stream(os_xml);
+    
+    os_xml << '\n';
+}
 
 
 

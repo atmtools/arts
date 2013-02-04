@@ -1,3 +1,25 @@
+2013-02-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-485
+
+	* src/xml_io_array_types.cc, src/xml_io_compound_types.cc,
+	src/xml_io_instantiation.h, src/xml_io_types.h:
+
+	Implement XML reading/writing of CIARecord and ArrayOfCIARecord.
+
+	* src/methods.cc, src/m_cia.cc:
+
+	Add abs_cia_dataReadFromXML. Reads CIA data from XML file and checks
+	that all CIA species from abs_species are defined in that file.
+
+	* src/cia.h (CIARecord):
+
+	Change runtime errors to assertions in getters.
+
+	Add getter for const reference to mdata.
+
+	Be friend with xml_read_from_stream.
+
 2013-02-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-484

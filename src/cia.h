@@ -37,7 +37,8 @@
 #include "gridded_fields.h"
 #include "check_input.h"
 
-
+// Declare existance of some classes:
+class bifstream;
 class CIARecord;
 
 typedef Array<CIARecord> ArrayOfCIARecord;
@@ -114,8 +115,8 @@ public:
      */
     ConstVectorView FrequencyGrid(Index dataset) const
     {
-        if (dataset > mdata.nelem())
-            throw runtime_error("Invalid dataset index.");
+        assert(dataset >= 0);
+        assert(dataset < mdata.nelem());
 
         return mdata[dataset].get_numeric_grid(0);
     }
@@ -125,21 +126,29 @@ public:
      */
     ConstVectorView TemperatureGrid(Index dataset) const
     {
-        if (dataset > mdata.nelem())
-            throw runtime_error("Invalid dataset index.");
+        assert(dataset >= 0);
+        assert(dataset < mdata.nelem());
 
         return mdata[dataset].get_numeric_grid(1);
     }
 
 
-    /** Return CIA data.
+    /** Return CIA dataset.
      */
     const GriddedField2& Dataset(Index dataset) const
     {
-        if (dataset > mdata.nelem())
-            throw runtime_error("Invalid dataset index.");
+        assert(dataset >= 0);
+        assert(dataset < mdata.nelem());
 
         return mdata[dataset];
+    }
+
+
+    /** Return CIA data.
+     */
+    const ArrayOfGriddedField2& Data() const
+    {
+        return mdata;
     }
 
 
@@ -205,6 +214,11 @@ public:
     void ReadFromCIA(const String& filename,
                      const Verbosity& verbosity);
     
+    friend void xml_read_from_stream( istream& is_xml,
+                                     CIARecord& cr,
+                                     bifstream *pbifs,
+                                     const Verbosity& verbosity);
+
 private:
 
     /** Append dataset to mdata. */
