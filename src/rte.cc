@@ -388,7 +388,8 @@ void bending_angle1d(
     \param    pos                 Out: Position of ppath at optical distance lo0
     \param    rte_los             In/out: Direction for transmitted signal 
                                   (disturbed from nominal value)
-    \param    rte_pos             Position of transmitter.
+    \param    rte_pos             Out: Position of transmitter.
+    \param    background          Out: Raditaive background of ppath.
     \param    lo0                 Optical path length between transmitter 
                                   and receiver.
     \param    ppath_step_agenda   As the WSV with the same name.
@@ -412,6 +413,7 @@ void defocusing_general_sub(
         Workspace&   ws,
         Vector&      pos,
         Vector&      rte_los,
+        Index&       background,
   ConstVectorView    rte_pos,
   const Numeric&     lo0,
   const Agenda&      ppath_step_agenda,
@@ -445,6 +447,8 @@ void defocusing_general_sub(
               lon_grid, t_field, z_field, vmr_field, edensity_field,
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
+  //
+  background = ppath_what_background( ppx );
 
   // Calcualte cumulative optical path for ppx
   Vector lox( ppx.np );
@@ -562,7 +566,7 @@ void defocusing_general(
     }
   // Extract rte_pos and rte_los
   const Vector rte_pos = ppath.start_pos[Range(0,atmosphere_dim)];
-
+  //
   Vector rte_los0(max(Index(1),atmosphere_dim-1)), rte_los;
   mirror_los( rte_los, ppath.start_los, atmosphere_dim );
   rte_los0 = rte_los[Range(0,max(Index(1),atmosphere_dim-1))];
@@ -570,32 +574,67 @@ void defocusing_general(
   // A new ppath with positive zenith angle off-set
   //
   Vector  pos1;
+  Index   backg1;
+  //
   rte_los     = rte_los0;
   rte_los[0] += dza;
   //
-  defocusing_general_sub( ws, pos1, rte_los, rte_pos, lo, ppath_step_agenda, 
-                          ppath_lraytrace, atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, t_field, z_field, vmr_field, edensity_field,
-                          f_grid, refellipsoid, z_surface, verbosity );
+  defocusing_general_sub( ws, pos1, rte_los, backg1, rte_pos, lo, 
+                          ppath_step_agenda, ppath_lraytrace, atmosphere_dim, 
+                          p_grid, lat_grid, lon_grid, t_field, z_field, 
+                          vmr_field, edensity_field, f_grid, refellipsoid, 
+                          z_surface, verbosity );
 
   // Same thing with negative zenit angle off-set
   Vector  pos2;
+  Index   backg2;
+  //
   rte_los     = rte_los0;  // Use rte_los0 as rte_los can have been "adjusted"
   rte_los[0] -= dza;
   //
-  defocusing_general_sub( ws, pos2, rte_los, rte_pos, lo, ppath_step_agenda, 
-                          ppath_lraytrace, atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, t_field, z_field, vmr_field, edensity_field,
-                          f_grid, refellipsoid, z_surface, verbosity );
+  defocusing_general_sub( ws, pos2, rte_los, backg2, rte_pos, lo, 
+                          ppath_step_agenda, ppath_lraytrace, atmosphere_dim, 
+                          p_grid, lat_grid, lon_grid, t_field, z_field, 
+                          vmr_field, edensity_field, f_grid, refellipsoid, 
+                          z_surface, verbosity );
 
   // Calculate distance between pos1 and 2, and derive the loss factor
-  Numeric l12;
-  if( atmosphere_dim < 3 )
-    { distance2D( l12, pos1[0], pos1[1], pos2[0], pos2[1] ); }
+  // All appears OK:
+  if( backg1 == backg2 )
+    {
+      Numeric l12;
+      if( atmosphere_dim < 3 )
+        { distance2D( l12, pos1[0], pos1[1], pos2[0], pos2[1] ); }
+      else
+        { distance3D( l12, pos1[0], pos1[1], pos1[2], 
+                           pos2[0], pos2[1], pos2[2] ); }
+      //
+      dlf = lp*2*DEG2RAD*dza /  l12;
+    }
+  // If different backgrounds, then only use the second calculation
   else
-    { distance3D( l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2] ); }
-  //
-  dlf = lp*2*DEG2RAD*dza /  l12;
+    {
+      Numeric l12;
+      if( atmosphere_dim == 1 )
+        { 
+          const Numeric r = refellipsoid[0];
+          distance2D( l12, r+ppath.end_pos[0], 0, pos2[0], pos2[1] ); 
+        }
+      else if( atmosphere_dim == 2 )
+        { 
+          const Numeric r = refell2r( refellipsoid, ppath.end_pos[1] );
+          distance2D( l12, r+ppath.end_pos[0], ppath.end_pos[1], 
+                                                        pos2[0], pos2[1] ); 
+        }
+      else
+        { 
+          const Numeric r = refell2r( refellipsoid, ppath.end_pos[1] );
+          distance3D( l12, r+ppath.end_pos[0], ppath.end_pos[1], 
+                             ppath.end_pos[2], pos2[0], pos2[1], pos2[2] ); 
+        }
+      //
+      dlf = lp*DEG2RAD*dza /  l12;
+    }
 }
 
 
@@ -653,7 +692,7 @@ void defocusing_sat2sat(
   const Numeric&     dza,
   const Verbosity&   verbosity )
 {
-  if( ppath.end_los[0] <= 90 )
+  if( ppath.start_lstep == 0  ||  ppath.end_lstep == 0  )
     throw runtime_error( "The function *defocusing_sat2sat* can only be used "
                          "for limb sounding geometry." );
 
@@ -702,6 +741,8 @@ void defocusing_sat2sat(
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
   // This path can hit the surface. And we need to check if ppt is OK.
+  // (remember this function only deals with sat-to-sat links and OK 
+  // background here is be space) 
   // Otherwise use the centre ray as the second one.
   if( ppath_what_background(ppt) == 1 )
     {

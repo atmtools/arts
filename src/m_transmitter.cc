@@ -133,7 +133,7 @@ void iyRadioLink(
     { throw runtime_error( "Radiative background not set to \"transmitter\", "
                            "\"surface\" or \"unvalid\" by *ppath_agenda*.\n"
                            "Is correct WSM used in the agenda?" ); }
-  // np should already be 1, but for extra safety ...
+  // np should already be 1 fon non-OK cases, but for extra safety ...
   if( radback == 0  || radback == 2 )
     { ppath.np = 1; }
 
@@ -245,30 +245,30 @@ void iyRadioLink(
           iy_aux[i].resize( 1, 1, 1, np );
         }
       else if( iy_aux_vars[i] == "Impact parameter" )
-        { auxImpactParam = i;       iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxImpactParam = i;       iy_aux[i].resize( 1, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Free space loss" )
-        { auxFreeSpaceLoss = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxFreeSpaceLoss = i;     iy_aux[i].resize( 1, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Free space attenuation" )
-        { auxFreeSpaceAtte = i;     iy_aux[i].resize( nf, 1, 1, np ); }
+        { auxFreeSpaceAtte = i;     iy_aux[i].resize( 1, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Atmospheric loss" )
         { auxAtmosphericLoss = i;   iy_aux[i].resize( nf, 1, 1, 1 ); } 
       else if( iy_aux_vars[i] == "Defocusing loss" )
-        { auxDefocusingLoss = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxDefocusingLoss = i;    iy_aux[i].resize( 1, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Defocusing attenuation" )
         {
-          if( defocus_method < 2 )
+          if( defocus_method < 1 )
             throw runtime_error( "The auxiliary variable \"Defocusing "
-                 "attenuation\" requires that *defocus_method* is set to 2." );
-          auxDefocusingAtte = i;    iy_aux[i].resize( nf, 1, 1, np ); 
+                 "attenuation\" requires that *defocus_method* is set to 1." );
+          auxDefocusingAtte = i;    iy_aux[i].resize( 1, 1, 1, np ); 
         }
       else if( iy_aux_vars[i] == "Faraday rotation" )
         { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Faraday speed" )
         { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); }
       else if( iy_aux_vars[i] == "Extra path delay" )
-        { auxExtraPathDelay = i;    iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxExtraPathDelay = i;    iy_aux[i].resize( 1, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Bending angle" )
-        { auxBendingAngle = i;      iy_aux[i].resize( nf, 1, 1, 1 ); } 
+        { auxBendingAngle = i;      iy_aux[i].resize( 1, 1, 1, 1 ); } 
       else
         {
           ostringstream os;
@@ -543,13 +543,6 @@ void iyRadioLink(
       // Determine defocusing loss
       Numeric dfl = 1;
       if( defocus_method == 1 )
-        { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
-                              p_grid, lat_grid, lon_grid, t_field, z_field, 
-                              vmr_field, edensity_field, -1, refellipsoid, 
-                              z_surface, ppath, ppath_lraytrace, 
-                              defocus_shift, verbosity ); 
-        }
-      else if( defocus_method == 2 )
         {
           defocusing_general( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
@@ -558,6 +551,13 @@ void iyRadioLink(
                               defocus_shift, verbosity );
           if( auxDefocusingAtte >= 0 )
             { iy_aux[auxDefocusingAtte] = -999; }  // So far just a dummy value
+        }
+      else if( defocus_method == 2 )
+        { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
+                              p_grid, lat_grid, lon_grid, t_field, z_field, 
+                              vmr_field, edensity_field, -1, refellipsoid, 
+                              z_surface, ppath, ppath_lraytrace, 
+                              defocus_shift, verbosity ); 
         }
       if( auxDefocusingLoss >= 0 )
         { iy_aux[auxDefocusingLoss] = dfl; }

@@ -1,3 +1,20 @@
+2013-02-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-487
+
+	* src/rte.cc (defocusing_general_sub): Now also returning
+	radiative background.
+	(defocusing_general): Now also handling the case if the lower of the
+	calculations hits the ground.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	Adopted to change below.
+
+	* src/m_transmitter.cc (iyRadioLink): Now "method 1" is the more
+	general defocus algorithm. Realised that size of some aux vars
+	could be made even more compact. Also started to write
+	documentation in methods.cc.
+
 2013-02-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-486

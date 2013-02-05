@@ -5263,7 +5263,30 @@ void define_md_data_raw()
       ( NAME( "iyRadioLink" ),
         DESCRIPTION
         (
-         "Method in development ...\n"
+         "Radiative transfer for radio links.\n"
+         "\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Pressure\": The pressure along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"Temperature\": The temperature along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
+         "     For example, adding the string \"VMR, species 0\" extracts the\n"
+         "     VMR of the first species. Size: [1,1,1,np].\n"
+         "  \"Absorption, summed\": The total absorption matrix along the\n"
+         "     path. Size: [nf,ns,ns,np].\n"
+         "  \"Absorption, species X\": The absorption matrix along the path\n"
+         "     for an individual species (X works as for VMR).\n"
+         "     Size: [nf,ns,ns,np].\n"
+         "  \"Particle extinction, summed\": The total particle extinction\n"
+         "       matrix along the path. Size: [nf,ns,ns,np].\n"
+         "  \"PND, type X\": The particle number density for particle type X\n"
+         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "       This corresponds to column X in *particle_masses* (zero-\n"
+         "       based indexing). Size: [1,1,1,np].\n"
+         "  \"Impact parameter, X\": \n"
+         "       Size: [nf,1,1,1].\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
