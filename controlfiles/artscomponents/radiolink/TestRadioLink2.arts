@@ -119,9 +119,8 @@ VectorSet( rte_pos2, [ 0, 5.1 ] )
 ArrayOfStringSet( iy_aux_vars, [ 
     "Pressure", "Temperature", "VMR, species 0", 
     "Atmospheric loss", "Absorption, summed", 
-    "Free space loss",  "Free space attenuation", 
-    "Defocusing loss",  "Defocusing attenuation", 
-    "Extra path delay", "Bending angle" ] )
+    "Free space loss", "Free space attenuation", 
+    "Defocusing loss", "Extra path delay", "Bending angle" ] )
 
 
 # Run and save

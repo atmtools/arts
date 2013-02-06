@@ -22,6 +22,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/rte.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/faraday.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/transmission.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/cloudradar.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/absorption.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/refr_index.tex"

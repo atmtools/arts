@@ -57,6 +57,7 @@
 
 extern const Numeric DEG2RAD;
 extern const Numeric PI;
+extern const Numeric RAD2DEG;
 extern const Numeric SPEED_OF_LIGHT;
 
 
@@ -153,7 +154,6 @@ void iyRadioLink(
         auxFreeSpaceAtte   = -1,
         auxAtmosphericLoss = -1,
         auxDefocusingLoss  = -1,
-        auxDefocusingAtte  = -1,
         auxFarRotTotal     = -1,
         auxFarRotSpeed     = -1,
         auxExtraPathDelay  = -1,
@@ -254,13 +254,6 @@ void iyRadioLink(
         { auxAtmosphericLoss = i;   iy_aux[i].resize( nf, 1, 1, 1 ); } 
       else if( iy_aux_vars[i] == "Defocusing loss" )
         { auxDefocusingLoss = i;    iy_aux[i].resize( 1, 1, 1, 1 ); }
-      else if( iy_aux_vars[i] == "Defocusing attenuation" )
-        {
-          if( defocus_method < 1 )
-            throw runtime_error( "The auxiliary variable \"Defocusing "
-                 "attenuation\" requires that *defocus_method* is set to 1." );
-          auxDefocusingAtte = i;    iy_aux[i].resize( 1, 1, 1, np ); 
-        }
       else if( iy_aux_vars[i] == "Faraday rotation" )
         { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Faraday speed" )
@@ -419,7 +412,7 @@ void iyRadioLink(
       // Faraday speed
       if( auxFarRotSpeed >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = farrot_c1[np-1] / 
+            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = RAD2DEG*farrot_c1[np-1] / 
                                                    (f_grid[iv]*f_grid[iv]); } }
       //=======================================================================
 
@@ -507,7 +500,7 @@ void iyRadioLink(
           // Faraday speed
           if( auxFarRotSpeed >= 0 )
             { for( Index iv=0; iv<nf; iv++ ) {
-                iy_aux[auxFarRotSpeed](iv,0,0,ip) = farrot_c1[ip] / 
+                iy_aux[auxFarRotSpeed](iv,0,0,ip) = RAD2DEG*farrot_c1[ip] / 
                                                    (f_grid[iv]*f_grid[iv]); } }
           //===================================================================
         }
@@ -518,7 +511,7 @@ void iyRadioLink(
         { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }      
       if( auxFarRotTotal >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotTotal](iv,0,0,0) = farrot_c2 / 
+            iy_aux[auxFarRotTotal](iv,0,0,0) = RAD2DEG*farrot_c2 / 
                                                    (f_grid[iv]*f_grid[iv]); } }
       if( auxImpactParam >= 0 )
         { 
@@ -549,8 +542,6 @@ void iyRadioLink(
                               vmr_field, edensity_field, -1, refellipsoid, 
                               z_surface, ppath, ppath_lraytrace,
                               defocus_shift, verbosity );
-          if( auxDefocusingAtte >= 0 )
-            { iy_aux[auxDefocusingAtte] = -999; }  // So far just a dummy value
         }
       else if( defocus_method == 2 )
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
@@ -579,7 +570,7 @@ void iyRadioLink(
                              pos2refell_r( atmosphere_dim, refellipsoid, 
                                          lat_grid, lon_grid, ppath.start_pos );
 
-          // Geomtrical distance between start and end point
+          // Geometrical distance between start and end point
           Numeric lgd ;
           if( atmosphere_dim <= 2 )
             { distance2D( lgd, r1, ppath.end_pos[1], r2, ppath.start_pos[1] ); }
@@ -899,7 +890,7 @@ void iyTransmissionStandard(
   // Faraday rotation, total
   if( auxFarRotTotal >= 0 )
     { for( Index iv=0; iv<nf; iv++ ) {
-        iy_aux[auxFarRotTotal](iv,0,0,0) = farrot_c2 / 
+        iy_aux[auxFarRotTotal](iv,0,0,0) = RAD2DEG*farrot_c2 / 
                                                    (f_grid[iv]*f_grid[iv]); } }
   //===========================================================================
 
@@ -1038,7 +1029,7 @@ void iyTransmissionStandard(
       // Faraday speed
       if( auxFarRotSpeed >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = farrot_c1[np-1] / 
+            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = RAD2DEG*farrot_c1[np-1] / 
                                                    (f_grid[iv]*f_grid[iv]); } }
       //=======================================================================
 
@@ -1255,7 +1246,7 @@ void iyTransmissionStandard(
           // Faraday speed
           if( auxFarRotSpeed >= 0 )
             { for( Index iv=0; iv<nf; iv++ ) {
-                iy_aux[auxFarRotSpeed](iv,0,0,ip) = farrot_c1[ip] / 
+                iy_aux[auxFarRotSpeed](iv,0,0,ip) = RAD2DEG*farrot_c1[ip] / 
                                                    (f_grid[iv]*f_grid[iv]); } }
           //===================================================================
         } 

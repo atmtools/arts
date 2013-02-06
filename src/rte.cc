@@ -1564,9 +1564,9 @@ void get_ppath_ext(
     The scalar optical thickness is calculated in parellel.
 
     Farday rotation is included in the transmission Mueller matrices. In
-    addition, coefficinets for filling associated auxiliary variables are
+    addition, coefficients for filling associated auxiliary variables are
     provided: farrot_c1 and c2. The first one corresponds to the local rotation
-    speed [rad*Hz*hz/m] at each ppath point (a vector), and the second the
+    speed [rad*Hz*Hz/m] at each ppath point (a vector), and the second the
     total rotation [rad*Hz*Hz] (a scalar). The actual Faraday rotation is
     obtained by dividing with the frequency squared.
 

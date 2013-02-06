@@ -1,3 +1,30 @@
+2013-02-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-488
+
+	* doc/uguide/transmission.tex: Chapter revised and updated. Now
+	synced with the source code.
+
+	* doc/uguide/CMakeLists.txt: transmission.tex was not included.
+
+	* controlfiles/artscomponents/faraday/farrot_totalREFERENCE.xml:
+	Converted data from rad to deg.
+
+	* doc/uguide/faraday.tex (section{Practical usage}): Units
+	updated, follwoing the changes below.
+
+	* src/m_transmitter.cc (iyTransmissionStandard, iyRadioLink):
+	Changed output unit for Faraday rotation variables fro rad to deg.
+	This to be consistent with the fact that degrees is used elsewhere
+	for input and output angles.
+	That is, we are not using the SI unit for angles (but better being
+	consistent, than partly doing this) !!!
+
+	* src/rte.cc (get_ppath_trans): Fixed bad spelling in header text.
+
+	* src/methods.cc: Wrote on-line doc for iyRadioLink. Updated text
+	for ppathFromRtePos2.
+
 2013-02-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-487

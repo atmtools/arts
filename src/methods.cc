@@ -4980,7 +4980,7 @@ void define_md_data_raw()
          "     (ie. the optical depth to the surface, cloudbox or space.)\n"
          "     Size: [nf,1,1,1].\n"
          "where\n"
-         "  nf: Number of freqiencies.\n"
+         "  nf: Number of frequencies.\n"
          "  ns: Number of Stokes elements.\n"
          "  np: Number of propagation path points.\n"
          "\n"
@@ -5104,7 +5104,7 @@ void define_md_data_raw()
          "    (The later part of the text string is required. It is used as\n"
          "    a flag to yCalc for how to apply the sensor data.)\n"
          "where\n"
-         "  nf: Number of freqiencies.\n"
+         "  nf: Number of frequencies.\n"
          "  ns: Number of Stokes elements.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
@@ -5263,7 +5263,41 @@ void define_md_data_raw()
       ( NAME( "iyRadioLink" ),
         DESCRIPTION
         (
-         "Radiative transfer for radio links.\n"
+         "Radiative transfer for (active) radio links.\n"
+         "\n"
+         "The method assumes that *ppath*agenda* is set up to return the\n"
+         "propagation path between the transmitter and the receiver. The\n" 
+         "position of the transmitter is given as *rte_pos*, and the\n"
+         "\"sensor\" is taken as the receiver.\n"
+         "\n"
+         "The primary output (*y*) is the received signal, where the signal\n"
+         "transmitted is taken from *iy_transmitter_agenda*. That is, *y*\n"
+         "is a Stokes vector for each frequency considered. Several other\n"
+         "possible measurements quantities, such as the bending angle, can\n"
+         "be obtained as the auxiliary data (see lost below).\n"
+         "\n"
+         "If it is found that no link can be obtained due to intersection of\n"
+         "the ground, all data are set to zero. If no link could be\n"
+         "determined for other reasons (due to critical refraction or\n"
+         "numerical problems), all data are set to NaN.\n"
+         "\n"
+         "This method is just intended for approximative calculations for\n"
+         "cases corresponding to relatively simple ray tracing. A detailed,\n"
+         "and more exact, treatment of several effects require more advanced\n"
+         "calculation approaches. Here a simple geometrical optics approach\n"
+         "is followed. See the user guide for details.\n"
+         "\n"
+         "Defocusing is a special consideration for radio links. Two\n"
+         "algorithms are at hand for estimating defocusing, simply denoted\n"
+         "as method 1 and 2:\n"
+         " 1: This algorithm is of general character. Defocusing is estimated\n"
+         "    by making two path calculations with slightly shifted zenith\n"
+         "    angles.\n"
+         " 2: This method is restricted to satellite-to-satellite links, and\n"
+         "    using a standard expression for such links, based on the\n"
+         "    vertical gradient of the bending angle.\n"
+         "Both methods are described more in detail in the user guide.\n"
+         "The argument *defocus_shift* is used by both methods.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Pressure\": The pressure along the propagation path.\n"
@@ -5285,8 +5319,35 @@ void define_md_data_raw()
          "  \"Mass content, X\": The particle content for mass category X.\n"
          "       This corresponds to column X in *particle_masses* (zero-\n"
          "       based indexing). Size: [1,1,1,np].\n"
-         "  \"Impact parameter, X\": \n"
-         "       Size: [nf,1,1,1].\n"
+         "* \"Impact parameter\": As normally defined for GNRSS radio\n"
+         "       occultations (this equals the propagation path constant,\n"
+         "       r*n*sin(theta)). Size: [1,1,1,1].\n"
+         "* \"Free space loss\": The total loss due to the inverse square\n"
+         "       law. Size: [1,1,1,1].\n"
+         "  \"Free space attenuation\": The local attenuation due to the\n"
+         "       inverse square law. Size: [1,1,1,np].\n"
+         "* \"Atmospheric loss\": Total atmospheric attenuation, reported as\n"
+         "       the transmission. Size: [nf,1,1,1].\n"
+         "* \"Defocusing loss\": The total loss between the transmitter and\n"
+         "       receiver due to defocusing. Given as a transmission.\n"
+         "       Size: [1,1,1,1].\n"
+         "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
+         "     each frequency. Size: [nf,1,1,1].\n"
+         "* \"Faraday speed\": The rotation per length unit [deg/m], at each\n"
+         "     path point and each frequency. Size: [nf,1,1,np].\n"
+         "* \"Extra path delay\": The time delay of the signal [s], compared\n"
+         "       to the case of propagation through vacuum. Size: [1,1,1,1].\n"
+         "* \"Bending angle\": As normally defined for GNRSS radio\n"
+         "       occultations, in [deg]. Size: [1,1,1,1].\n"
+         "where\n"
+         "  nf: Number of frequencies.\n"
+         "  ns: Number of Stokes elements.\n"
+         "  np: Number of propagation path points.\n"
+         "\n"
+         "The auxiliary data are returned in *iy_aux* with quantities\n"
+         "selected by *iy_aux_vars*. Most variables require that the method\n"
+         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
+         "the selection is restricted to the variables marked with *.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
@@ -5308,7 +5369,7 @@ void define_md_data_raw()
         GIN(      "defocos_method", "defocus_shift" ),
         GIN_TYPE( "Index", "Numeric" ),
         GIN_DEFAULT( "1", "5e-4" ),
-        GIN_DESC( "Selection of defocusing calculation method.",
+        GIN_DESC( "Selection of defocusing calculation method. See above.",
                   "Angular shift to apply in defocusing estimates." )
         ));
 
@@ -5419,12 +5480,12 @@ void define_md_data_raw()
          "     observation point and the end of the primary propagation path\n"
          "     (ie. the optical depth to the surface or space.)\n"
          "     Size: [nf,1,1,1].\n"
-         "* \"Faraday rotation\": Total rotation [rad] along the path, for\n"
+         "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
          "     each frequency. Size: [nf,1,1,1].\n"
-         "* \"Faraday speed\": The rotation per length unit [rad/m], at each\n"
+         "* \"Faraday speed\": The rotation per length unit [deg/m], at each\n"
          "     path point and each frequency. Size: [nf,1,1,np].\n"
          "where\n"
-         "  nf: Number of freqiencies.\n"
+         "  nf: Number of frequencies.\n"
          "  ns: Number of Stokes elements.\n"
          "  np: Number of propagation path points.\n"
          "\n"
@@ -7617,12 +7678,10 @@ void define_md_data_raw()
          "and returned. The method determines the path in a pure numerical\n"
          "manner, where a simple algorithm is applied. The task is to find\n"
          "the value of *rte_los* (at *rte_pos*) linking the two positions.\n"
-         "The starting value for *rte_los* is determined by determining the\n"
-         "geomtrical path. This is followed by repeated propagation path\n"
-         "calculations (starting at *rte_pos*). The closest distance between\n"
-         "the path and *rte_pos2* is converted to a correction for *rte_los*\n"
-         "and a new path is calculated. This is repeated until the internal\n"
-         "convergence criterion is fulfilled.\n"
+         "\n"
+         "See the user guide for a description of the search algorithm,\n"
+         "including a more detailed definition of *za_accuracy*, \n"
+         "*pplrt_factor* and *pplrt_lowest*.\n"
          "\n"
          "The standard application of this method should be to radio link\n"
          "calculations, where *rte_pos2* corresponds to a transmitter, and\n"
@@ -7643,7 +7702,13 @@ void define_md_data_raw()
         GIN( "za_accuracy", "pplrt_factor", "pplrt_lowest" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( "2e-5", "5", "0.5"),
-        GIN_DESC( "a", "b", "c" )
+        GIN_DESC( 
+                 "Required accuracy, in form of the maximum allowed angular "
+                 "off-set [deg].",
+                 "The factor with which ppath_lraytrace is decreased if "
+                 "no solution is found.",
+                 "Lowest value ppath_lraytrace to consider. The calculations "
+                 "are halted if this length is passed.")
         ));
 
   md_data_raw.push_back
