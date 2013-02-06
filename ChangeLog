@@ -1,3 +1,28 @@
+2013-02-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-489
+
+	* Bug fixed in N2-CIAfunCKDMT100 continuum reported by Josef Gasteiger.
+	This indexing bug caused wrong values of different magnitude depending
+	on frequency range, operating system and compiler version.
+
+	* src/continua.cc:
+
+	(XINT_FUN): Add second implementation that takes a ConstVectorView as
+	input.
+
+	(CKD_mt_CIArot_n2): Replace C-type Numeric arrays with Vectors to
+	enable boundary checks.
+
+	(CKD_mt_CIAfun_n2): Replace C-type Numeric arrays with Vectors to
+	enable boundary checks.
+
+	Fix array-index-out-of-bounds access by extending the size of the
+	coefficient array k by one 0-value.
+
+	* Bounds-checking for the other continua will be added next to see if
+	any of them are affected by similar bugs.
+
 2013-02-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-488
