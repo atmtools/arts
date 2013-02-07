@@ -213,7 +213,7 @@ void abs_cia_dataReadFromCIA(// WS Output:
             if (abs_species[sp][iso].Type() != SpeciesTag::TYPE_CIA)
                 continue;
             
-            ostringstream cia_name;
+            ArrayOfString cia_names;
 
             Index cia_index = cia_get_index(abs_cia_data,
                                             abs_species[sp][iso].Species(),
@@ -223,21 +223,25 @@ void abs_cia_dataReadFromCIA(// WS Output:
             if (cia_index != -1)
                 continue;
 
-            cia_name
-            << species_name_from_species_index(abs_species[sp][iso].Species()) << "-"
-            << species_name_from_species_index(abs_species[sp][iso].CIASecond());
+            cia_names.push_back(species_name_from_species_index(abs_species[sp][iso].Species())
+                + "-" + species_name_from_species_index(abs_species[sp][iso].CIASecond()));
 
-            if (cia_name)
+            cia_names.push_back(species_name_from_species_index(abs_species[sp][iso].CIASecond())
+                + "-" + species_name_from_species_index(abs_species[sp][iso].Species()));
+
+            ArrayOfString checked_dirs;
+
+            bool found = false;
+            for (Index fname = 0; !found && fname < cia_names.nelem(); fname++)
             {
-                ArrayOfString checked_dirs;
+                String cia_name = cia_names[fname];
 
-                bool found = false;
                 for (Index dir = 0; !found && dir < subfolders.nelem(); dir++)
                 {
                     ArrayOfString files;
                     checked_dirs.push_back(catalogpath + "/"
                                            + subfolders[dir]
-                                           + cia_name.str() + "/");
+                                           + cia_name + "/");
                     try {
                         list_directory(files, *(checked_dirs.end()-1));
                     }
@@ -247,7 +251,7 @@ void abs_cia_dataReadFromCIA(// WS Output:
 
                     for (Index i = files.nelem()-1; i >= 0; i--)
                     {
-                        if (files[i].find(cia_name.str()) != 0
+                        if (files[i].find(cia_name) != 0
                             || files[i].rfind(".cia") != files[i].length() - 4)
                         {
                             files.erase(files.begin() + i);
@@ -267,16 +271,16 @@ void abs_cia_dataReadFromCIA(// WS Output:
                         abs_cia_data.push_back(ciar);
                     }
                 }
+            }
 
-                if (!found)
-                {
-                    ostringstream os;
-                    os << "Error: No data file found for CIA species "
-                    << cia_name.str() << endl
-                    << "Looked in directories: " << checked_dirs;
+            if (!found)
+            {
+                ostringstream os;
+                os << "Error: No data file found for CIA species "
+                << cia_names[0] << endl
+                << "Looked in directories: " << checked_dirs;
 
-                    throw runtime_error(os.str());
-                }
+                throw runtime_error(os.str());
             }
         }
     }
