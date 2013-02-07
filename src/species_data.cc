@@ -1088,6 +1088,21 @@ void define_basic_species_data()
          REC("4"       ,1.00            , 4.00    ,-1     ,-1     ,TAGS())
          ) ) );
 
+    // Ar
+    // Isotopologue Ratios: 0
+    // Note: Ar is spectroscopically inert, but now needed as broadening/continuum
+    // species for planetary atmospheres. Hence we need it to be defined as
+    // absorption species.
+    // All parameters guessed.
+    species_data.push_back
+    ( SpeciesRecord
+     ( NAME("Ar"),
+      DEGFR(2),
+      ISOTOPOLOGUES
+      (//  Name,      Isotop. Ratio,   Mass,     MY-tag, HI-tag, JPL-tag
+       //             |                |         |       |       |
+       REC("8"       ,1.00            , 18.00    ,-1     ,-1     ,TAGS())
+       ) ) );
 
 
 // You also have to change the entry in the file

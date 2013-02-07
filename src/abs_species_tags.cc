@@ -193,7 +193,7 @@ SpeciesTag::SpeciesTag(String def)
       if ( 0 > mcia_second )
         {
           ostringstream os;
-          os << "CIA species \"" << def << "\" is not a valid species.";
+          os << "CIA species \"" << otherspec << "\" is not a valid species.";
           throw runtime_error(os.str());
         }
 

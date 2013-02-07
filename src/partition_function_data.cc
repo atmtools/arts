@@ -838,6 +838,18 @@ iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,
   iso(it_isotopologue,	"4",  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
 
 
+  // Ar
+  // Coeff: 0
+  // Note: Partition function is unknown. Anyway, Ar is only needed as
+  // broadening species, i.e., partition functions are not needed for
+  // calculation, just as equivalent entry to species_data. Nevertheless, we
+  // want to avoid negative values (this would throw a runtime error), instead
+  // we set the partition function to a constant, positive value.
+  spec(it_species, it_isotopologue, "Ar");
+  //                    Name            c0              c1              c2              c3
+  //                    |               |               |               |               |
+  iso(it_isotopologue,	"8",  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
+
 
   // particles
   // Coeff:       1      1
