@@ -1,5 +1,29 @@
 2013-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-495
+
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	Changed as cfile below.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts: Last
+	commit gave error for this test, on Hudson. I also tried three
+	different platform/compiler combinations and got three different
+	results! (though one looked to match Hudson). My only conclusion
+	is that compiler differences give slightly different link paths,
+	which cause significant errors for the estimation of defocusing.
+	The bending angle sensitivity to the compiler differences seems to
+	be below 1e-4 deg, but this is not sufficient!
+
+	Now changed to a shorter ray tracing length. And using second
+	defocus method (that appears to be more stable). Relative
+	difference for defocus between compilers seems to be about 0.5%
+	with these settings. High to be just a compiler issue, but OK.
+
+	* src/methods.cc (iyRadioLink): Changed default for defocus_shift
+	to 1e-3. Old value too low considering the problems discussed above.
+
+2013-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-494
 
 	* controlfiles/artscomponents/faraday/test_faraday.m: A small file

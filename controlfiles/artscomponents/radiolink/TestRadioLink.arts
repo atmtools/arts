@@ -89,7 +89,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 Copy( refr_index_agenda, refr_index_agenda__GasThayer  )
 
 NumericSet( ppath_lmax, 10e3 )
-NumericSet( ppath_lraytrace, 1e3 )
+NumericSet( ppath_lraytrace, 100 )
 
 
 # Radiative transfer agendas and variables
@@ -99,7 +99,17 @@ AgendaSet( iy_transmitter_agenda ){
   Ignore( rte_los )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
 }
-Copy( iy_main_agenda, iy_main_agenda__Radiolink )
+AgendaSet( iy_main_agenda ){
+  Ignore( rte_los )
+  iyRadioLink( iy, iy_aux, ppath, diy_dx, stokes_dim, f_grid, atmosphere_dim, 
+    p_grid, lat_grid, lon_grid, z_field, t_field, vmr_field, abs_species, 
+    wind_u_field, wind_v_field, wind_w_field, mag_u_field, mag_v_field, 
+    mag_w_field, edensity_field, refellipsoid, z_surface, cloudbox_on, 
+    cloudbox_limits, pnd_field, use_mean_scat_data, scat_data_raw, 
+    particle_masses, iy_aux_vars, jacobian_do, ppath_agenda, ppath_step_agenda,
+    abs_mat_per_species_agenda, iy_transmitter_agenda, iy_agenda_call1, 
+    iy_transmission, rte_pos, rte_pos2, ppath_lraytrace, 2 ) 
+}
 
 
 
@@ -107,7 +117,7 @@ Copy( iy_main_agenda, iy_main_agenda__Radiolink )
 #
 MatrixSet( sensor_pos, [ 600e3 ] )
 MatrixSet( sensor_los, [     0 ] )    # Dummy value
-MatrixSet( transmitter_pos, [ 600e3, 48 ] )
+MatrixSet( transmitter_pos, [ 600e3, 47.8 ] )
 #
 sensorOff
 sensor_checkedCalc
@@ -131,12 +141,12 @@ NumericCreate( bending_angleREFERENCE )
 NumericCreate( extra_pdREFERENCE )
 NumericCreate( impact_parREFERENCE )
 #
-VectorSet( yREFERENCE, [ 8.19899e-16, 8.07548e-16 ] )
-NumericSet( bending_angleREFERENCE, 0.491005 )
-NumericSet( extra_pdREFERENCE, 383.18e-09 )
-NumericSet( impact_parREFERENCE, 6.3869142e+06 )
+VectorSet( yREFERENCE, [1.07394e-15, 1.06776e-15 ] )
+NumericSet( bending_angleREFERENCE, 0.37803 )
+NumericSet( extra_pdREFERENCE, 259.1e-09 )
+NumericSet( impact_parREFERENCE, 6.389047041e+06 )
 #
-# Free space, defrocusing and atmospheric loss part of y, and no need to check
+# Free space, defocusing and atmospheric loss part of y, and no need to check
 # those terms 
 
 
@@ -144,7 +154,10 @@ NumericSet( impact_parREFERENCE, 6.3869142e+06 )
 #
 yCalc
 #
-Compare( y, yREFERENCE, 1e-18 )
+#Print(y)
+#Print(y_aux)
+#
+Compare( y, yREFERENCE, 1e-17 )
 
 
 # Bending angle
@@ -153,7 +166,7 @@ VectorCreate( vdummy )
 NumericCreate( bending_angle )
 Extract( vdummy, y_aux, 0 )
 Extract( bending_angle, vdummy, 0 )
-Compare( bending_angle, bending_angleREFERENCE, 1e-2 )
+Compare( bending_angle, bending_angleREFERENCE, 1e-4 )
 
 
 # Extra path delay
@@ -163,12 +176,13 @@ Extract( vdummy, y_aux, 1 )
 Extract( extra_pd, vdummy, 0 )
 Compare( extra_pd, extra_pdREFERENCE, 1e-9 )
 
+
 # Impact parameter
 #
 NumericCreate( impact_par )
 Extract( vdummy, y_aux, 2 )
 Extract( impact_par, vdummy, 0 )
-Compare( impact_par, impact_parREFERENCE, 1 )
+Compare( impact_par, impact_parREFERENCE, 5 )
 
 }
  
