@@ -1,5 +1,15 @@
 2013-02-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-492
+
+	* src/m_general.{cc,h} (Print):
+
+	Implement Print for ArrayOfCIARecord. Same output format as CIAInfo.
+
+	* src/m_cia.cc (CIAInfo): Use new Print() for output.
+
+2013-02-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-491
 
 	* src/m_cia.cc (abs_cia_dataReadFromCIA):

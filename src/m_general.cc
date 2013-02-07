@@ -63,6 +63,9 @@
 #include "geodetic.h"
 #include "workspace_ng.h"
 
+
+extern const Numeric SPEED_OF_LIGHT;
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -105,6 +108,37 @@ void Print(// WS Generic Input:
   }
   CREATE_OUTS;
   SWITCH_OUTPUT (level, os.str ());
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Print(// WS Generic Input:
+           const ArrayOfCIARecord& cia_data,
+           // Keywords:
+           const Index&         level,
+           const Verbosity&     verbosity)
+{
+    CREATE_OUTS;
+
+    ostringstream os;
+    os << "  CIA tag; Spectral range [cm-1]; Temp range [K]; # of sets\n";
+    for (Index i = 0; i < cia_data.nelem(); i++)
+        for (Index j = 0; j < cia_data[i].DatasetCount(); j++)
+        {
+            Vector temp_grid = cia_data[i].TemperatureGrid(j);
+            Vector freq_grid = cia_data[i].FrequencyGrid(j);
+
+            os << setprecision(2) << std::fixed << "  "
+            << cia_data[i].MoleculeName(0) << "-CIA-" << cia_data[i].MoleculeName(1)
+            << "-" << j
+            << "; " << freq_grid[0] / 100. / SPEED_OF_LIGHT
+            << " - " << freq_grid[freq_grid.nelem()-1] / 100. / SPEED_OF_LIGHT
+            << std::fixed
+            << "; " << temp_grid[0] << " - " << temp_grid[temp_grid.nelem()-1]
+            << "; " << temp_grid.nelem()
+            << "\n";
+        }
+    SWITCH_OUTPUT(level, os.str());
 }
 
 
