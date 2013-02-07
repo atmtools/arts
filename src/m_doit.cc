@@ -805,6 +805,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                         const Index& doit_za_interp,
                         const Index& normalize,
                         const Numeric& norm_error_threshold,
+                        const Index& norm_debug,
                         const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -927,6 +928,7 @@ doit_i_fieldUpdateSeq1D(Workspace& ws,
                                opt_prop_part_agenda,
                                t_field,
                                norm_error_threshold,
+                               norm_debug,
                                verbosity);
     }
 

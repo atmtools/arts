@@ -3700,11 +3700,12 @@ void define_md_data_raw()
             "ppath_lraytrace", "p_grid", "z_field", "refellipsoid", 
             "t_field", "edensity_field", "f_grid", "f_index", 
             "surface_rtprop_agenda", "doit_za_interp" ),
-        GIN( "normalize", "norm_error_threshold" ),
-        GIN_TYPE( "Index", "Numeric" ),
-        GIN_DEFAULT( "0", "0.05" ),
+        GIN( "normalize", "norm_error_threshold", "norm_debug" ),
+        GIN_TYPE( "Index", "Numeric", "Index" ),
+        GIN_DEFAULT( "0", "0.05", "0" ),
         GIN_DESC( "Apply normalization to scattered field.",
-                  "Error threshold for scattered field correction factor.")
+                  "Error threshold for scattered field correction factor.",
+                  "Debugging flag. Set to 1 to output normalization factor to out0.")
         ));
 
   md_data_raw.push_back

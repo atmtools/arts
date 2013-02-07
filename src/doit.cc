@@ -2335,6 +2335,7 @@ doit_scat_fieldNormalize(Workspace& ws,
                          const Agenda& opt_prop_part_agenda,
                          const Tensor3& t_field,
                          const Numeric& norm_error_threshold,
+                         const Index& norm_debug,
                          const Verbosity& verbosity)
 {
     if (atmosphere_dim != 1)
@@ -2453,10 +2454,18 @@ doit_scat_fieldNormalize(Workspace& ws,
         }
     }
 
+
+    ArtsOut& norm_out = out2;
+    if (norm_debug) norm_out = out0;
+
     if (corr_max_p_index != -1)
     {
-        out2 << "  Max. DOIT correction factor in this iteration: " << 1.-corr_max
+        norm_out << "  Max. DOIT correction factor in this iteration: " << 1.-corr_max
         << " at p_index " << corr_max_p_index << "\n";
+    }
+    else
+    {
+        norm_out << "  No DOIT correction performed in this iteration.\n";
     }
 }
 

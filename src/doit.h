@@ -278,6 +278,7 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Agenda& opt_prop_part_agenda,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
+                              const Index& norm_debug,
                               const Verbosity& verbosity);
 
 #endif //doit_h

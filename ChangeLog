@@ -1,5 +1,16 @@
 2013-02-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-493
+
+	* src/methods.cc, src/m_doit.cc (doit_i_fieldUpdateSeq1D),
+	src/doit.{h,cc} (doit_scat_fieldNormalize):
+
+	Temporarily add a debug flag that can be set to 1 to always output the
+	max. DOIT normalization factor for the current iteration to out0
+	instead of out2.
+
+2013-02-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-492
 
 	* src/m_general.{cc,h} (Print):
