@@ -1,3 +1,22 @@
+2013-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-494
+
+	* controlfiles/artscomponents/faraday/test_faraday.m: A small file
+	for further testing of the obtained rotation. The result was found
+	to deviate with less than 0.002 deg to the calculation done in
+	this file.
+
+	* controlfiles/artscomponents/faraday/TestFaradayRotation.arts:
+	Sharpened the compare accuracy for the rotation part.
+
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	Revised, comparsion added, and included as a slow check.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	Changed settings somewhat and activated comparison to references.
+
 2013-02-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-493

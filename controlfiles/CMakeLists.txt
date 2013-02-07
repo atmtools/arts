@@ -53,6 +53,8 @@ arts_test_run_ctlfile(fast.radiolink.sat2sat
                       artscomponents/radiolink/TestRadioLink.arts)
 arts_test_run_ctlfile(fast.radiolink.sat2surface
                       artscomponents/radiolink/TestRadioLink2.arts)
+arts_test_run_ctlfile(slow.radiolink.occultation
+                      artscomponents/radiolink/TestRadioOccultation.arts)
 
 arts_test_run_ctlfile(fast.doit artscomponents/doit/TestDOIT.arts)
 arts_test_run_ctlfile(slow.doitbatch

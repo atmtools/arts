@@ -25,7 +25,7 @@ IndexSet( stokes_dim, 1 )
 
 # Frequency grid 
 #
-VectorSet( f_grid, [ 1e9, 5e9, 10e9 ] )
+VectorSet( f_grid, [ 0.5e9, 1e9 ] )
 
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 250.
@@ -89,7 +89,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 Copy( refr_index_agenda, refr_index_agenda__GasThayer  )
 
 NumericSet( ppath_lmax, 10e3 )
-NumericSet( ppath_lraytrace, 100 )
+NumericSet( ppath_lraytrace, 1e3 )
 
 
 # Radiative transfer agendas and variables
@@ -107,7 +107,7 @@ Copy( iy_main_agenda, iy_main_agenda__Radiolink )
 #
 MatrixSet( sensor_pos, [ 600e3 ] )
 MatrixSet( sensor_los, [     0 ] )    # Dummy value
-MatrixSet( transmitter_pos, [ 600e3, 48.3 ] )
+MatrixSet( transmitter_pos, [ 600e3, 48 ] )
 #
 sensorOff
 sensor_checkedCalc
@@ -120,9 +120,7 @@ sensor_checkedCalc
 ArrayOfStringSet( iy_aux_vars, [ 
   "Bending angle", 
   "Extra path delay",
-  "Free space loss", 
-  "Atmospheric loss", 
-  "Defocusing loss" ] )
+  "Impact parameter" ] )
 
 
 
@@ -131,17 +129,22 @@ ArrayOfStringSet( iy_aux_vars, [
 VectorCreate( yREFERENCE )
 NumericCreate( bending_angleREFERENCE )
 NumericCreate( extra_pdREFERENCE )
+NumericCreate( impact_parREFERENCE )
 #
-VectorSet( yREFERENCE, [ 5.44894e-16, 5.27306e-16, 4.99902e-16 ] )
-NumericSet( bending_angleREFERENCE, 0.6921 )
-NumericSet( extra_pdREFERENCE, 636.838e-09 )
+VectorSet( yREFERENCE, [ 8.19899e-16, 8.07548e-16 ] )
+NumericSet( bending_angleREFERENCE, 0.491005 )
+NumericSet( extra_pdREFERENCE, 383.18e-09 )
+NumericSet( impact_parREFERENCE, 6.3869142e+06 )
+#
+# Free space, defrocusing and atmospheric loss part of y, and no need to check
+# those terms 
 
 
 # Calculate and check iy
 #
 yCalc
 #
-#Compare( y, yREFERENCE, 1e-18 )
+Compare( y, yREFERENCE, 1e-18 )
 
 
 # Bending angle
@@ -150,7 +153,7 @@ VectorCreate( vdummy )
 NumericCreate( bending_angle )
 Extract( vdummy, y_aux, 0 )
 Extract( bending_angle, vdummy, 0 )
-#Compare( bending_angle, bending_angleREFERENCE, 1e-4 )
+Compare( bending_angle, bending_angleREFERENCE, 1e-2 )
 
 
 # Extra path delay
@@ -158,7 +161,14 @@ Extract( bending_angle, vdummy, 0 )
 NumericCreate( extra_pd )
 Extract( vdummy, y_aux, 1 )
 Extract( extra_pd, vdummy, 0 )
-#Compare( extra_pd, extra_pdREFERENCE, 1e-10 )
+Compare( extra_pd, extra_pdREFERENCE, 1e-9 )
+
+# Impact parameter
+#
+NumericCreate( impact_par )
+Extract( vdummy, y_aux, 2 )
+Extract( impact_par, vdummy, 0 )
+Compare( impact_par, impact_parREFERENCE, 1 )
 
 }
  

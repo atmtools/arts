@@ -128,16 +128,21 @@ ArrayOfStringSet( iy_aux_vars, [
 iyCalc
 
 
-# Set "Atmospheric loss" is main variable
-# (To demonstrate iyReplaceFromAux. If yCalc is used, iyReplaceFromAux shall be
-# included in iy_main_agenda)
+# Set "Atmospheric loss" is main variable:
+# (If yCalc is used, iyReplaceFromAux shall be included in iy_main_agenda)
 #
 iyReplaceFromAux( iy, iy_aux, iy_aux_vars, jacobian_do, "Atmospheric loss" )
 
 
-#WriteXML( "ascii", iy, "iy.xml" )
-#WriteXML( "ascii", iy_aux, "iy_aux.xml" )
+#WriteXML( "ascii", iy, "iyREFERENCE.xml" )
 #WriteXML( "ascii", ppath, "ppath.xml" )
+
+
+# OK?
+# ---
+MatrixCreate( iyREFERENCE )
+ReadXML( iyREFERENCE, "iyREFERENCE.xml" )
+Compare( iy, iyREFERENCE, 1e-5)
 
 }
  

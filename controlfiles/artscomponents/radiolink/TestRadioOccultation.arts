@@ -1,10 +1,11 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration and test of a single radio link calculation, using yCalc.
+# Demonstration of a radio occultation calculation.
 #
-# The link between two satellites is simulated.
+# The link between two satellites is simulated. Just a few satellite positions
+# are included for speed considerations.
 #
-# 2012-08-20, Patrick Eriksson
+# 2013-02-07, Patrick Eriksson
 
 Arts2 {
 
@@ -25,7 +26,7 @@ IndexSet( stokes_dim, 1 )
 
 # Frequency grid 
 #
-VectorSet( f_grid, [ 1e9, 5e9, 10e9 ] )
+VectorSet( f_grid, [ 1e9 ] )
 
 
 # A pressure grid rougly matching 0 to 80 km, in steps of 250.
@@ -88,8 +89,8 @@ Copy( ppath_agenda, ppath_agenda__TransmitterReceiverPath )
 Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
 Copy( refr_index_agenda, refr_index_agenda__GasThayer  )
 
-NumericSet( ppath_lmax, 1e3 )
-NumericSet( ppath_lraytrace, 100 )
+NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_lraytrace, 200 )
 
 
 # Radiative transfer agendas and variables
@@ -108,8 +109,8 @@ Copy( iy_main_agenda, iy_main_agenda__Radiolink )
 IndexCreate( npos )
 VectorCreate( transmitter_lat )
 #
-IndexSet( npos, 201 )
-VectorNLinSpace( transmitter_lat, npos, 46.8, 49.8 )
+IndexSet( npos, 6 )
+VectorNLinSpace( transmitter_lat, npos, 47, 48.5 )
 #
 MatrixSetConstant( sensor_pos,      npos, 1, 600e3 )
 MatrixSetConstant( sensor_los,      npos, 1, 0     )    # Dummy value
@@ -133,12 +134,26 @@ ArrayOfStringSet( iy_aux_vars, [
 
 
 
-# Calculate and save
+# Calculate
 #
 yCalc
+
+
+# Extract bending angle
 #
-WriteXML( "ascii", y, "y.xml" )
-WriteXML( "ascii", y_aux, "y_aux.xml" )
+VectorCreate( ba )
+Extract( ba, y_aux, 0 )
+
+#WriteXML( "ascii", ba, "baREFERENCE.xml" )
+
+
+
+# OK?
+# ---
+VectorCreate( baREFERENCE )
+ReadXML( baREFERENCE, "baREFERENCE.xml" )
+Compare( ba, baREFERENCE, 1e-4)
+
 
 }
  
