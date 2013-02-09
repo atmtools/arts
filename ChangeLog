@@ -1,3 +1,15 @@
+2013-02-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-496
+
+	* src/continua.cc (CKD_mt_100_self_h2o, CKD_mt_100_foreign_h2o,
+	CKD_mt_co2, CKD_mt_co2, CKD_mt_CIAfun_o2):
+
+	Use Vector instead of Numeric C-style arrays. O2-CIAfunCKDMT100 was
+	suffering from the same indexing bug as N2-CIAfunCKDMT100, leading to a
+	negative peak right at the upper end of the valid range of the
+	continua.
+
 2013-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-495
