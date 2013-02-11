@@ -138,11 +138,8 @@ void dtauc_ssalbCalc(Workspace& ws,
      Numeric ext = 0.;
      Numeric abs = 0.;
  
-     if ((ext_vector[i] && ext_vector[i+1])!=0 )
-       {
-         ext=.5*(ext_vector[i]+ext_vector[i+1]);
-         abs=.5*(abs_vector[i]+abs_vector[i+1]);
-       }
+     ext=.5*(ext_vector[i]+ext_vector[i+1]);
+     abs=.5*(abs_vector[i]+abs_vector[i+1]);
 
      if (ext!=0)
        ssalb[Np_cloud-2-i]=(ext-abs)/ext;
