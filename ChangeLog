@@ -1,5 +1,30 @@
 2013-02-11  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-498
+
+	* Add support for testcases that depend on arts-xml-data. cmake will
+	look for a-x-d in the same path as the arts source or at a custom
+	location specified by the user with:
+
+	cmake -DARTS_XML_DATA_PATH=/home/myname/arts-xml-data ..
+
+	If a-x-d is not found, tests depending on it will not be run.
+
+	Look at the bottom of controlfiles/CMakeLists.txt for an example on
+	how to define testcases that need a-x-d.
+
+	* CMakeLists.txt: Add support for ARTS_XML_DATA_PATH.
+
+	* cmake/modules/ArtsTestcases.cmake:
+
+	Add -D option to arts call if arts-xml-data path is defined.
+
+	* controlfiles/CMakeLists.txt: Add example for a-x-d dependency.
+
+	* README: Updated with info about ARTS_XML_DATA_PATH.
+
+2013-02-11  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-497
 
 	* src/file.cc (file_exists):

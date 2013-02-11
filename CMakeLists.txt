@@ -262,6 +262,23 @@ if (TEST_JOBS)
 endif (TEST_JOBS)
 
 
+########### Path to arts-xml-data ##########
+if (ARTS_XML_DATA_PATH)
+  get_filename_component (ARTS_XML_DATA_DIR "${ARTS_XML_DATA_PATH}" ABSOLUTE)
+else (ARTS_XML_DATA_PATH)
+  get_filename_component (ARTS_XML_DATA_DIR "../arts-xml-data" ABSOLUTE)
+endif (ARTS_XML_DATA_PATH)
+
+if (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
+  message(WARNING "Cannot determine location of arts-xml-data!
+Depending tests will be disabled.
+Please specify arts-xml-data location with
+cmake -DARTS_XML_DATA_PATH=PATH_TO_ARTS_XML_DATA ..")
+  unset (ARTS_XML_DATA_DIR)
+else (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
+  message(STATUS "Found arts-xml-data in ${ARTS_XML_DATA_DIR}")
+endif (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")
+
 if (CMAKE_GENERATOR STREQUAL "Xcode")
   set (CTEST_MISC_OPTIONS -C \${CONFIGURATION})
 endif (CMAKE_GENERATOR STREQUAL "Xcode")

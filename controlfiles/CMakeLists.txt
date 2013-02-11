@@ -94,3 +94,9 @@ arts_test_run_ctlfile(slow.hirs instruments/hirs/TestHIRS.arts)
 
 #arts_test_run_ctlfile(slow.avhrr instruments/avhrr/TestAVHRR.arts)
 
+
+if (ARTS_XML_DATA_DIR)
+  #arts_test_run_ctlfile(fast.jupiter
+  #    planetary_toolbox/validation/passive/jupiter/TestAtmScen_Jupiter.arts)
+endif (ARTS_XML_DATA_DIR)
+

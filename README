@@ -74,7 +74,17 @@ TESTS
 
 'make check' will run several test cases to ensure that arts is working
 properly. Use 'make check-all' to run all available controlfiles, including
-computation time-intensive ones. By default, the tests are executed serially.
+computation time-intensive ones.
+
+Some tests depend on the arts-xml-data package. cmake automatically looks if it
+is available in the same location as arts itself. If necessary, a custom path
+can be specified:
+
+cmake -DARTS_XML_DATA_PATH=/home/myname/arts-xml-data ..
+
+If arts-xml-data cannot be found, those tests are ignored.
+
+By default, the tests are executed serially.
 If you want to run them concurrently, you can use:
 
 cmake -DTEST_JOBS=X ..
