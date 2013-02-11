@@ -1991,6 +1991,47 @@ void MaTipping_H2O_foreign_continuum (MatrixView        pxsec,
 Numeric XINT_FUN( const Numeric V1A,
                   const Numeric /* V2A */,
                   const Numeric DVA,
+                  ConstVectorView A,
+                  const Numeric VI)
+{
+
+// ----------------------------------------------------------------------
+  //     THIS SUBROUTINE INTERPOLATES THE A ARRAY STORED
+  //     FROM V1A TO V2A IN INCREMENTS OF DVA INTO XINT
+// ----------------------------------------------------------------------
+
+  const Numeric ONEPL  = 1.001;     // original value given in F77 code
+  // FIXME const Numeric ONEMI  = 0.999;     // original value given in F77 code
+
+  //const Numeric ONEPL  = 0.001;  // modified value for C/C++ code
+
+  Numeric RECDVA = 1.00e0/DVA;
+
+  int J      = (int) ((VI-V1A)*RECDVA + ONEPL) ;
+  Numeric VJ = V1A + DVA * (Numeric)(J-1);
+  Numeric P  = RECDVA * (VI-VJ);
+  Numeric C  = (3.00e0-2.00e0*P) * P * P;
+  Numeric B  = 0.500e0 * P * (1.00e0-P);
+  Numeric B1 = B * (1.00e0-P);
+  Numeric B2 = B * P;
+
+  Numeric xint = -A[J-1] * B1             +
+                  A[J]   * (1.00e0-C+B2)  +
+                  A[J+1] * (C+B1)         -
+                  A[J+2] * B2;
+
+  /*
+  cout << (J-1) << " <-> " << (J+2)
+       << ",  V=" << VI << ", VJ=" << VJ << "\n";
+  cout << "xint=" << xint  << " " << A[J-1] << " " << A[J] << " " << A[J+1] << " " << A[J+2] << "\n";
+  */
+
+  return xint;
+}
+
+Numeric XINT_FUN( const Numeric V1A,
+                  const Numeric /* V2A */,
+                  const Numeric DVA,
                   const Numeric A[],
                   const Numeric VI)
 {
@@ -3319,18 +3360,13 @@ void CKD_mt_100_self_h2o (MatrixView          pxsec,
       return;
     }
 
-  Numeric SH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
-  Numeric SH2OT1[NPTC+addF77fields]; // [cm^3/molecules]
+  Vector SH2OT0(NPTC+addF77fields, 0.); // [cm^3/molecules]
+  Vector SH2OT1(NPTC+addF77fields, 0.); // [cm^3/molecules]
 
   for (Index J = 1 ; J <= NPTC ; ++J)
     {
       Index I = I1+J;
-      if ( (I < 1) || (I > SL296_ckd_mt_100_npt) )
-  {
-    SH2OT0[J] = 0.0e0;   // at T=296 K
-    SH2OT1[J] = 0.0e0;   // at T=260 K
-  }
-      else
+      if ( (I > 0) && (I <= SL296_ckd_mt_100_npt) )
   {
     SH2OT0[J] = SL296_ckd_mt_100[I];    // at T=296 K
     SH2OT1[J] = SL260_ckd_mt_100[I];    // at T=260 K
@@ -3361,8 +3397,7 @@ void CKD_mt_100_self_h2o (MatrixView          pxsec,
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined
       // CKD wavenumber grid.
-      Numeric k[NPTC+addF77fields]; // [1/cm]
-      k[0] = 0.00e0; // not used array field
+      Vector k(NPTC+addF77fields, 0.); // [1/cm]
       for (Index J = 1 ; J <= NPTC ; ++J)
   {
     Numeric VJ   = V1C + (DVC * (Numeric)(J-1));
@@ -3539,16 +3574,12 @@ void CKD_mt_100_foreign_h2o (MatrixView          pxsec,
       return;
     }
 
-  Numeric FH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
+  Vector FH2OT0(NPTC+addF77fields, 0.); // [cm^3/molecules]
 
   for (Index J = 1 ; J <= NPTC ; ++J)
     {
       Index I = I1+J;
-      if ( (I < 1) || (I > FH2O_ckd_mt_100_npt) )
-  {
-    FH2OT0[J] = 0.0e0;
-  }
-      else
+      if ( (I > 0) && (I <= FH2O_ckd_mt_100_npt) )
   {
     FH2OT0[J] = FH2O_ckd_mt_100[I];
   }
@@ -3576,8 +3607,7 @@ void CKD_mt_100_foreign_h2o (MatrixView          pxsec,
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined
       // CKD wavenumber grid.
-      Numeric k[NPTC+addF77fields]; // [1/cm]
-      k[0] = 0.00e0; // not used array field
+      Vector k(NPTC+addF77fields, 0.); // [1/cm]
       for (Index J = 1 ; J <= NPTC ; ++J)
   {
     Numeric VJ   = V1C + (DVC * (Numeric)(J-1));
@@ -3940,16 +3970,12 @@ void CKD_mt_co2 (MatrixView          pxsec,
       return;
     }
 
-  Numeric FCO2T0[NPTC+addF77fields]; // [cm^3/molecules]
+  Vector FCO2T0(NPTC+addF77fields, 0.); // [cm^3/molecules]
 
   for (Index J = 1 ; J <= NPTC ; ++J)
     {
       Index I = I1+J;
-      if ( (I < 1) || (I > FCO2_ckd_mt_100_npt) )
-  {
-    FCO2T0[J] = 0.0e0;
-  }
-      else
+      if ( (I > 0) && (I <= FCO2_ckd_mt_100_npt) )
   {
     FCO2T0[J] = FCO2_ckd_mt_100[I];
   }
@@ -3974,8 +4000,7 @@ void CKD_mt_co2 (MatrixView          pxsec,
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined
       // CKD wavenumber grid.
-      Numeric k[NPTC+addF77fields]; // [1/cm]
-      k[0] = 0.00e0; // not used array field
+      Vector k(NPTC+addF77fields, 0.); // [1/cm]
       for (Index J = 1 ; J <= NPTC ; ++J)
   {
     Numeric VJ   = V1C + (DVC * (Numeric)(J-1));
@@ -4187,18 +4212,13 @@ void CKD_mt_CIArot_n2 (MatrixView         pxsec,
       return;
     }
 
-  Numeric C0[NPTC+addF77fields]; // [cm^3/molecules]
-  Numeric C1[NPTC+addF77fields]; // [cm^3/molecules]
+  Vector C0(NPTC+addF77fields, 0.); // [cm^3/molecules]
+  Vector C1(NPTC+addF77fields, 0.); // [cm^3/molecules]
 
   for (Index J = 1 ; J <= NPTC ; ++J)
     {
       Index I = I1+J;
-      if ( (I < 1) || (I > N2N2_CT296_ckd_mt_100_npt) )
-  {
-    C0[J] = 0.0e0;   // at T=296 K
-    C1[J] = 0.0e0;   // at T=260 K
-  }
-      else
+      if ( (I > 0) && (I <= N2N2_CT296_ckd_mt_100_npt) )
   {
     C0[J] = N2N2_CT296_ckd_mt_100[I];    // at T=296 K
     C1[J] = N2N2_CT220_ckd_mt_100[I];    // at T=260 K
@@ -4225,11 +4245,9 @@ void CKD_mt_CIArot_n2 (MatrixView         pxsec,
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined
       // CKD wavenumber grid.
-      Numeric k[NPTC+addF77fields]; // [1/cm]
-      k[0] = 0.00e0; // not used array field
+      Vector k(NPTC+addF77fields, 0.); // [1/cm]
       for (Index J = 1 ; J <= NPTC ; ++J)
   {
-    k[J] = 0.000e0;
     Numeric VJ  = V1C + (DVC * (Numeric)(J-1));
     Numeric SN2 = 0.000e0;
     if ( (C0[J] > 0.000e0) && (C1[J] > 0.000e0) )
@@ -4400,13 +4418,11 @@ void CKD_mt_CIAfun_n2 (MatrixView          pxsec,
       return;
     }
 
-  Numeric xn2[NPTC+addF77fields];
-  Numeric xn2t[NPTC+addF77fields];
+  Vector xn2(NPTC+addF77fields, 0.);
+  Vector xn2t(NPTC+addF77fields, 0.);
 
   for (Index J = 1 ; J <= NPTC ; ++J)
     {
-      xn2[J]  = 0.000e0;
-      xn2t[J] = 0.000e0;
       Index I = I1+J;
       if ( (I > 0) && (I <= N2N2_N2F_ckd_mt_100_npt) )
   {
@@ -4442,11 +4458,9 @@ void CKD_mt_CIAfun_n2 (MatrixView          pxsec,
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined
       // CKD wavenumber grid.
-      Numeric k[NPTC+addF77fields]; // [1/cm]
-      k[0] = 0.000e0; // not used array field
+      Vector k(NPTC+addF77fields+1, 0.); // [1/cm]
       for (Index J = 1 ; J <= NPTC ; ++J)
   {
-    k[J] = 0.000e0;
     Numeric VJ  = V1C + (DVC * (Numeric)(J-1));
     Numeric SN2 = 0.000e0;
     if (xn2[J] > 0.000e0)
@@ -4613,13 +4627,11 @@ void CKD_mt_CIAfun_o2 (MatrixView         pxsec,
       return;
     }
 
-  Numeric xo2[NPTC+addF77fields];
-  Numeric xo2t[NPTC+addF77fields];
+  Vector xo2(NPTC+addF77fields, 0.);
+  Vector xo2t(NPTC+addF77fields, 0.);
 
   for (Index J = 1 ; J <= NPTC ; ++J)
     {
-      xo2[J]  = 0.000e0;
-      xo2t[J] = 0.000e0;
       Index I = I1+J;
       if ( (I > 0) && (I <= O2O2_O2F_ckd_mt_100_npt) )
   {
@@ -4650,8 +4662,7 @@ void CKD_mt_CIAfun_o2 (MatrixView         pxsec,
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined
       // CKD wavenumber grid.
-      Numeric k[NPTC+addF77fields]; // [1/cm]
-      k[0] = 0.00e0; // not used array field
+      Vector k(NPTC+addF77fields+1, 0.); // [1/cm]
       for (Index J = 1 ; J <= NPTC ; ++J)
   {
     Numeric VJ  = V1C + (DVC * (Numeric)(J-1));

@@ -1,3 +1,30 @@
+2013-02-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-0-46
+
+	* Backport continua fixes from 2.1.496 and 2.1.489
+
+	* Bug fixed in N2-CIAfunCKDMT100 and O2-CIAfunCKDMT100 continuum
+	reported by Josef Gasteiger. An indexing bug led to a negative peak
+	right at the upper end of the valid range of the continua.
+
+	* src/continua.cc:
+
+	(XINT_FUN): Add second implementation that takes a ConstVectorView as
+	input.
+
+	(CKD_mt_CIAfun_n2, CKD_mt_CIAfun_o2):
+
+	Replace C-type Numeric arrays with Vectors to enable boundary checks.
+
+	Fix array-index-out-of-bounds access by extending the size of the
+	coefficient array k by one 0-value.
+
+	(CKD_mt_CIArot_n2, CKD_mt_100_self_h2o, CKD_mt_100_foreign_h2o,
+	CKD_mt_co2, CKD_mt_co2):
+
+	Replace C-type Numeric arrays with Vectors to enable boundary checks.
+
 2012-11-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-45
