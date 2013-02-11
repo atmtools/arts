@@ -46,6 +46,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -329,13 +330,21 @@ int check_newline(const String& s)
 bool file_exists(const String& filename)
 {
     bool exists = false;
-    fstream fin;
-    fin.open(filename.c_str(), ios::in);
-    if (fin.is_open())
+
+    struct stat st;
+    lstat(filename.c_str(), &st);
+
+    if(!S_ISDIR(st.st_mode))
     {
-      exists=true;
+        fstream fin;
+        fin.open(filename.c_str(), ios::in);
+        if (fin.is_open())
+        {
+            exists=true;
+        }
+        fin.close();
     }
-    fin.close();
+
     return exists;
 }
 
