@@ -1,0 +1,167 @@
+\chapter{Radiative transfer basics}
+ \label{sec:rte_basics}
+
+
+ \starthistory
+ 130212 & Started (Patrick Eriksson).\\
+ \stophistory
+
+ This chapter introduces some basic radiative transfer nomenclature and
+ equations. The radiative transfer equation is here presented in quite general
+ terms, while special cases and solutions are discussed in later parts of the
+ document. 
+
+
+\section{Stokes dimensionality}
+%==============================================================================
+\label{sec:fm_defs:polarisation}
+
+The full polarisation state of radiation can be described by the Stokes vector,
+and is the formalism applied in ARTS. The vector can be defined in different
+ways, but it has always four elements. The Stokes vector, \StoVec, is here
+written as
+\begin{equation}
+  \label{eq:fm_defs:stokevec}
+  \StoVec = \left[
+  \begin{array}{c}
+   \StoI\\ \StoQ \\ \StoU\\ \StoV
+  \end{array}
+  \right],
+\end{equation}
+where the first component (\StoI) is the full intensity of the
+radiation, the second component (\StoQ) is the difference between
+vertical and horizontal polarisation, the third component (\StoU) is the
+difference for $\pm$45$^\circ$ polarisation and the last component
+(\StoV) is the difference between left and right circular polarisation.
+That is:
+\begin{eqnarray}
+  \StoI &=&   \Iv + \Ih = \Ipff + \Imff = \Ilhc + \Irhc, \\
+  \StoQ &=&   \Iv - \Ih,                                 \\
+  \StoU &=&   \Ipff - \Imff,                             \\
+  \StoV &=&   \Ilhc - \Irhc,                             
+\end{eqnarray}
+where \Iv, \Ih, \Ipff, and \Imff\ are the intensity of the component linearly
+polarised at the vertical, horizontal, +45\degree\ and -45\degree\ direction,
+respectively, and \Irhc, and \Ilhc\ are the intensity for the right- and
+left-hand circular components. Further details on polarisation and the
+definition of the Stokes vector are found in \theory,
+Section~\ref{T-sec:polarization}.
+
+ARTS is a fully polarised forward model, but can be run with a smaller
+number of Stokes components. The selection is made with the workspace
+variable \wsvindex{stokes\_dim}. For example, gaseous absorption and
+emission are in general unpolarised, and if not scattering has to be
+considered it is sufficient to only include the first Stokes
+components in the simulations. To include higher order Stokes
+components results only, in this case, in slower calculations. The
+general case is here denoted as \textindex{vector radiative transfer},
+while \textindex{scalar radiative transfer} refers to the case when
+only the first Stokes component is considered.
+ 
+
+
+\section{The radiative transfer equation}
+%==============================================================================
+\label{sec:rteq}
+
+The radiative transfer problem can only be expressed in general terms as a
+differential equation. One version for vector radiative transfer is
+\begin{equation}
+    \label{eq:VRTE0}
+  \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} =
+    -\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
+    \VctStl{j}_e(\Frq,\PPos,\PDir) + \VctStl{j}_s(\Frq,\PPos,\PDir),  
+\end{equation}
+where \Frq\ is frequency, \PPos\ represents the atmospheric position, \PDir\ is
+the propagation direction (at \PPos), $s$ is distance along \PDir, $\ExtMat$ is
+the extinction matrix, $\VctStl{j}_e$ is the emission at the point
+and $\VctStl{j}_s$ represents the scattering from other directions into the
+propagation direction.
+
+
+\subsection{Main cases}
+\label{sec:rteq:cases}
+%
+One of the general assumptions in ARTS is that local thermodynamic equilibrium
+(LTE) can be assumed. If we for the moment assume that scattering can be
+totally neglected then Equation~\ref{eq:VRTE0} becomes
+\begin{equation}
+  \label{eq:VRTE1}
+  \frac{\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} =
+    \ExtMat_a(\Frq,\PPos,\PDir)\left[ \VctStl{s}- \StoVec(\Frq,\PPos,\PDir)
+    \right],
+\end{equation}
+where $\ExtMat_a$ is denoted as the absorption matrix (to flag that it contains
+no contribution from scattering) and \VctStl{s} can be seen as the emission
+source vector, defined as
+\begin{equation}
+  \VctStl{s} = [B(\Frq,\PPos),0,0,0]^T,
+\end{equation}
+where $B$ is the Planck function, describing blackbody radiation. Cases, where
+Equation~\ref{eq:VRTE1} is valid, are in ARTS denoted as ``clear-sky''
+radiative transfer (implying LTE if nothing else is stated). The discussion of
+such radiative transfer calculations is continued in Section~\ref{sec:rte}. The
+atmospheric quantities contributing to $\ExtMat_a$ already for clear-sky
+conditions are denoted as ``absorbing species''.
+
+Some additional conditions are required to put scattering into the picture. If
+scattering is of incoherent and elastic nature, the extension of 
+Equation~\ref{eq:VRTE1} is
+\begin{eqnarray}
+  \label{eq:VRTE2}
+  \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} &=&
+    -\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
+    \ExtMat_a(\Frq,\PPos,\PDir)\VctStl{s} + \\ \nonumber
+    &&+ \int_{4\pi} \DiffD\PDir' \PhaMat(\Frq,\PPos,\PDir,\PDir')
+    \StoVec(\Frq,\PPos,\PDir'),
+\end{eqnarray}
+where $\PhaMat$ is the scattering (or phase) matrix (and
+$\ExtMat\neq\ExtMat_a$). The aerosol, cloud or precipitation objects that
+cause \PhaMat\ to deviate from zero (and contribute to \ExtMat\ and $\ExtMat_a$)
+are simply denoted as ``particles'', and the solution of
+Equation~\ref{eq:VRTE2} is referred to as ``scattering calculations''. ARTS
+includes several modules to handle scattering, introduced in the last part of
+this document.
+
+Equation~\ref{eq:VRTE2} is discussed quite thoroughly in \ref{T-sec:rte_theory}
+of \theory. This including that for some conditions also the ``n2-law of
+radiance'' must be considered to obtain completely exact results. For further
+discussion of this issue, see first of all Section~\ref{sec:fm_defs:unit}.
+
+
+
+\subsection{Some comments and nomenclature}
+\label{sec:rteq:names}
+%
+The equations above treat a single frequency and a single direction, at a
+time, and can be said to describe monochromatic pencil beam radiative
+transfer. For simplicity, the frequency and direction are left out from many of
+the equations in this user guide. 
+Some further information around the involved radiative quantities:
+\begin{description}
+\item[\StoVec] As workspace variable denoted as \wsvindex{iy}. The variable can
+  hold \StoVec\ for a range of frequencies, but covers only radiative transfer
+  along a single propagation path. Please note the distinction to \wsvindex{y},
+  that holds radiances from several frequencies and pencil beams, possibly
+  weighted with some instrument responses.
+%\item[\ExtMat] In the most general case, this matrix can cover three
+%  different physical mechanisms: absorption, scattering and magneto-optical
+%  effects. The sum of absorption and scattering is denoted as extinction.
+%  An example on magneto-optical effect is Faraday rotation, that is not
+%  changing the radiation intensity, but the polarisation state.
+%
+%  Inside ARTS, \ExtMat\ treated as a sum of two parts:
+%  $\ExtMat=\ExtMat_a\ExtMat_p$, where the first part, $\ExtMat_a$, corresponds
+%  to the ``absorbing species'', while the second part, $\ExtMat_a$, covers the
+%  extinction of the (scattering) ``particles''. As workspace variables,
+%  $\ExtMat_a$ and $\ExtMat_p$ are called \wsvindex{propmat\_clearsky} and
+%  \wsvindex{propmat\_particle}, respectively.
+
+\item[B] The corresponding workspace variable is
+  \wsvindex{blackbody\_radiation}.
+
+%\item[$\VctStl{j}_e$] is denoted as the \wsvindex{emission\_vector}. 
+
+
+
+\end{description}

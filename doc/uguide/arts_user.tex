@@ -99,10 +99,11 @@ Boston, MA 02111-1307, USA.
   claudia.emde (at) dlr.de & & \\
   \hline
   Patrick Eriksson$^b$ &  & Editor, 
-  Sections \ref{sec:atmosphere}, \ref{sec:rte}, 
-  \ref{sec:rindex}, \ref{sec:ppath}, \ref{sec:surface}, 
-  \ref{sec:winds}, \ref{sec:sensor}, \ref{sec:wfuns}, \ref{sec:faraday},\\  
-  patrick.eriksson (at) chalmers.se & &  \ref{sec:trans}, and \ref{sec:cradar}. \\
+  Sections \ref{sec:atmosphere}, \ref{sec:rte_basics}, 
+  \ref{sec:rindex}, \ref{sec:rte}, \ref{sec:ppath}, \ref{sec:surface}, 
+  \ref{sec:sensor}, \ref{sec:wfuns}, \ref{sec:winds},\\  
+  patrick.eriksson (at) chalmers.se & &   \ref{sec:faraday}, \ref{sec:trans}, 
+  and \ref{sec:cradar}. \\
   \hline
   Oliver Lemke$^a$ & & Latex fixes.\\
   olemke (at) core-dump.info & & \\
@@ -113,14 +114,17 @@ Boston, MA 02111-1307, USA.
 
 \noindent
 The present address is given for active contributors, while for others
-the address to the institute where the work was performed is given:\\
+the address to the institute where the work was performed is given:
+
 $^a$ Department of Computer Science, Electrical and Space Engineering,
 Division of Space Technology, Lule{\aa} University of Technology, Box
-812, SE-98128 Kiruna, Sweden. \\
+812, SE-98128 Kiruna, Sweden. 
+
 $^b$ Department of Earth and Space Sciences, Chalmers University of Technology,
-SE-41296 Gothenburg, Sweden. \\
+SE-41296 Gothenburg, Sweden. 
+
 $^c$ Institute of Environmental Physics, University of Bremen, P.O. Box 33044, 
-D-28334 Bremen, Germany. \\
+D-28334 Bremen, Germany. 
 %$^d$ Institute for Atmospheric and Environmental Science, University of 
 %Edinburgh, EH93JZ Edinburgh, Scotland, UK. \\
 
@@ -143,25 +147,40 @@ D-28334 Bremen, Germany. \\
 % === The chapters
 %============================================================================
 
-
+\part{Overview}
+%-----
 \include{concept}
-
 \include{in_and_out}
 \include{atmosphere}
-\include{rte}
+\include{rte_basics}
+
+
+\part{Atmospheric properties}
+%-----
 \include{absorption}
 \include{refr_index}
+\include{clouds}
+
+
+\part{Radiative transfer: clear-sky + 
+      general functionality}
+%-----
+\include{rte}
 \include{ppath}
 \include{surface}
-\include{winds}
-\include{clouds}
-\include{scattering}
 \include{sensor}
 \include{wfuns}
+\include{winds}
 \include{faraday}
 \include{transmission}
-\include{cloudradar}
 \include{batch}
+
+
+\part{Radiative transfer: dedicated 
+      scattering methods}
+%-----
+\include{scattering}
+\include{cloudradar}
 
 
 

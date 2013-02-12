@@ -1,4 +1,4 @@
-\chapter{Clear-sky emission radiative transfer}
+\chapter{Clear-sky radiative transfer}
  \label{sec:rte}
 
 
@@ -20,15 +20,15 @@ developed for emission measurements, and such observations remain the standard
 case in ARTS. 
 
 A basic assumption for this chapter is thus that there is no particle
-scattering. This is denoted as clear-sky calculations. Cases involving
-scattering are restricted to the ``cloud box''
+scattering. This is denoted as clear-sky calculations. 
+Scattering is restricted to the ``cloud box''
 (Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more demanding calculations
 are restricted to a smaller domain of the model atmosphere, and the radiative
 transfer in that domain is mainly treated by dedicated workspace methods. For
 pure transmission measurements (where scattering into the line-of-sight is
 neglected), see Chapter~\ref{sec:trans}. This chapter discusses only the direct
-radiative transfer, calculation of partial derivatives (i.e.\ the
-Jacobian or weighting functions) is discussed in Section~\ref{sec:wfuns}. 
+radiative transfer, partial derivatives (i.e.\ the
+Jacobian or weighting functions) are discussed in Section~\ref{sec:wfuns}. 
 
 Absorption by atmospheric gases does normally not depend on polarisation but
 exceptions exist, where Zeeman splitting is one example. Both polarised and
@@ -69,54 +69,6 @@ Figure~\ref{fig:ycalc_flow}, outlining a standard radiative transfer emission
 calculation. The chapter focuses on overall raditaive transfer and sensor
 aspects, while details for the different agendas are found in subsequent
 chapters.
-
-
-
-\section{Stokes dimensionality}
-%==============================================================================
-\label{sec:fm_defs:polarisation}
-
-The full polarisation state of radiation can be described by the Stokes
-vector. The vector can be defined in different ways, but it has always
-four elements. The Stokes vector, \StoVec, is here written as
-\begin{equation}
-  \label{eq:fm_defs:stokevec}
-  \StoVec = \left[
-  \begin{array}{c}
-   \StoI\\ \StoQ \\ \StoU\\ \StoV
-  \end{array}
-  \right],
-\end{equation}
-where the first component (\StoI) is the full intensity of the
-radiation, the second component (\StoQ) is the difference between
-vertical and horizontal polarisation, the third component (\StoU) is the
-difference for $\pm$45$^\circ$ polarisation and the last component
-(\StoV) is the difference between left and right circular polarisation.
-That is:
-\begin{eqnarray}
-  \StoI &=&   \Iv + \Ih = \Ipff + \Imff = \Ilhc + \Irhc, \\
-  \StoQ &=&   \Iv - \Ih,                                 \\
-  \StoU &=&   \Ipff - \Imff,                             \\
-  \StoV &=&   \Ilhc - \Irhc,                             
-\end{eqnarray}
-where \Iv, \Ih, \Ipff, and \Imff\ are the intensity of the component linearly
-polarised at the vertical, horizontal, +45\degree\ and -45\degree\ direction,
-respectively, and \Irhc, and \Ilhc\ are the intensity for the right- and
-left-hand circular components. Further details on polarisation and the
-definition of the Stokes vector are found in \theory,
-Section~\ref{T-sec:polarization}.
-
-ARTS is a fully polarised forward model, but can be run with a smaller
-number of Stokes components. The selection is made with the workspace
-variable \wsvindex{stokes\_dim}. For example, gaseous absorption and
-emission are in general unpolarised, and if not scattering has to be
-considered it is sufficient to only include the first Stokes
-components in the simulations. To include higher order Stokes
-components results only, in this case, in slower calculations. The
-general case is here denoted as \textindex{vector radiative transfer},
-while \textindex{scalar radiative transfer} refers to the case when
-only the first Stokes component is considered.
- 
 
 
 

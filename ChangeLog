@@ -1,5 +1,20 @@
 2013-02-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-501
+
+	* doc/uguide/rte.tex: Section on Stokes vector moved to
+	rte_basics.tex.
+
+	* doc/uguide/CMakeLists.txt: Added file below.
+
+	* doc/uguide/rte_basics.tex: New chapter. Just started.
+
+	* doc/uguide/arts_user.tex: Intrododuced parts. The sections
+	rearranged to obtain an OK part structure. And included the new
+	chapter above.
+
+2013-02-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-500
 
 	* controlfiles/artscomponents/wfuns/TestWfuns.arts: Added a comment.
