@@ -3131,31 +3131,6 @@ void Workspace::define_wsv_data()
      ),
     GROUP( "Numeric" )));
   
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "rte_do_vmr_jacs" ),
-      DESCRIPTION
-      (
-       "Index of gas species for which *rte_agenda* shall calculate "
-       "VMR jacobians (with respect to changes along the propagation path).\n"
-       "\n"
-       "These indexes refer to the position in *abs_species*.\n"
-       "\n"
-       "Usage:   Set internally, by *RteCalc*.\n"
-      ),
-      GROUP( "ArrayOfIndex" )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "rte_do_t_jacs" ),
-      DESCRIPTION
-      (
-       "Flag to *rte_agenda* to calculate jacobians for temperature.\n"
-       "\n"
-       "Usage:   Set internally, by *RteCalc*.\n"
-      ),
-      GROUP( "Index" )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "rte_edensity" ),

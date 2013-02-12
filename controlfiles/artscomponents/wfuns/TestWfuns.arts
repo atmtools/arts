@@ -1,4 +1,5 @@
 #DEFINITIONS:  -*-sh-*-
+#
 # This is a test of weighting function calculations.
 #
 # The test is based on the Odin-SMR 501 GHz case found in another folder.
@@ -55,7 +56,8 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 VectorNLogSpace( p_grid, 321, 1000e2, 1 )
 
 # Atmospheric profiles here taken from Fascod
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+  "testdata/tropical" )
 #
 AtmFieldsCalc
 
@@ -157,6 +159,10 @@ Compare( Ja, Jp, 0.005 )
 # Temperature, without HSE
 #
 ##############################################################################
+
+# For limb sounding, the analytical expressions do not cover all effects
+# related to HSE and refraction and HSE must be "off" here to get consistent
+# results. 
 
 # Stuff needed for HSE
 NumericSet( p_hse, 1000e2 )

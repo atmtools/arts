@@ -5923,7 +5923,7 @@ void define_md_data_raw()
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
         GIN( "g1", "g2", "g3", "hse", "method", "dt" ),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, "off", "analytical", "1" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "on", "analytical", "0.1" ),
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
@@ -5940,10 +5940,12 @@ void define_md_data_raw()
         (
          "Includes one atmospheric wind component in the Jacobian.\n"
          "\n"
-         "The method follows the aptetrn of other jacobian methods. The\n"
-         "calculations can only be performed by analytical expressions.\n"
+         "The method follows the pattern of other Jacobian methods. The\n"
+         "calculations can only be performed by analytic expressions.\n"
          "\n"
-         "The wind component argument can be: \"u\", \"v\" or \"w\". \n"
+         "As mentioned, the wind components are assumed to be retrieved\n"
+         "separately, and, hence, the argument *component* can be \"u\",\n"
+         "\"v\" or \"w\". \n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
