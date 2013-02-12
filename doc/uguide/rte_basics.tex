@@ -1,15 +1,15 @@
 \chapter{Radiative transfer basics}
  \label{sec:rte_basics}
 
+\starthistory
+ 130212 & A first basic version (Patrick Eriksson).\\
+\stophistory
 
- \starthistory
- 130212 & Started (Patrick Eriksson).\\
- \stophistory
+This chapter introduces some basic radiative transfer nomenclature and
+equations. The radiative transfer equation is here presented in quite general
+terms, while special cases and solutions are discussed in later parts of the
+document.
 
- This chapter introduces some basic radiative transfer nomenclature and
- equations. The radiative transfer equation is here presented in quite general
- terms, while special cases and solutions are discussed in later parts of the
- document. 
 
 
 \section{Stokes dimensionality}
@@ -76,7 +76,7 @@ where \Frq\ is frequency, \PPos\ represents the atmospheric position, \PDir\ is
 the propagation direction (at \PPos), $s$ is distance along \PDir, $\ExtMat$ is
 the extinction matrix, $\VctStl{j}_e$ is the emission at the point
 and $\VctStl{j}_s$ represents the scattering from other directions into the
-propagation direction.
+propagation direction. 
 
 
 \subsection{Main cases}
@@ -84,24 +84,23 @@ propagation direction.
 %
 One of the general assumptions in ARTS is that local thermodynamic equilibrium
 (LTE) can be assumed. If we for the moment assume that scattering can be
-totally neglected then Equation~\ref{eq:VRTE0} becomes
+totally neglected, then Equation~\ref{eq:VRTE0} becomes
 \begin{equation}
   \label{eq:VRTE1}
   \frac{\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} =
-    \ExtMat_a(\Frq,\PPos,\PDir)\left[ \VctStl{s}- \StoVec(\Frq,\PPos,\PDir)
+    \AbsMat(\Frq,\PPos,\PDir)\left[ \VctStl{s}- \StoVec(\Frq,\PPos,\PDir)
     \right],
 \end{equation}
-where $\ExtMat_a$ is denoted as the absorption matrix (to flag that it contains
-no contribution from scattering) and \VctStl{s} can be seen as the emission
-source vector, defined as
+where $\AbsMat$ is denoted as the absorption matrix and \VctStl{s} can be seen
+as the emission source vector, defined as
 \begin{equation}
   \VctStl{s} = [B(\Frq,\PPos),0,0,0]^T,
 \end{equation}
-where $B$ is the Planck function, describing blackbody radiation. Cases, where
+where $B$ is the Planck function, describing blackbody radiation. Cases where
 Equation~\ref{eq:VRTE1} is valid, are in ARTS denoted as ``clear-sky''
 radiative transfer (implying LTE if nothing else is stated). The discussion of
 such radiative transfer calculations is continued in Section~\ref{sec:rte}. The
-atmospheric quantities contributing to $\ExtMat_a$ already for clear-sky
+atmospheric quantities contributing to $\AbsMat$ already for clear-sky
 conditions are denoted as ``absorbing species''.
 
 Some additional conditions are required to put scattering into the picture. If
@@ -111,27 +110,70 @@ Equation~\ref{eq:VRTE1} is
   \label{eq:VRTE2}
   \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} &=&
     -\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
-    \ExtMat_a(\Frq,\PPos,\PDir)\VctStl{s} + \\ \nonumber
+    \AbsMat(\Frq,\PPos,\PDir)\VctStl{s} + \\ \nonumber
     &&+ \int_{4\pi} \DiffD\PDir' \PhaMat(\Frq,\PPos,\PDir,\PDir')
     \StoVec(\Frq,\PPos,\PDir'),
 \end{eqnarray}
-where $\PhaMat$ is the scattering (or phase) matrix (and
-$\ExtMat\neq\ExtMat_a$). The aerosol, cloud or precipitation objects that
-cause \PhaMat\ to deviate from zero (and contribute to \ExtMat\ and $\ExtMat_a$)
-are simply denoted as ``particles'', and the solution of
-Equation~\ref{eq:VRTE2} is referred to as ``scattering calculations''. ARTS
-includes several modules to handle scattering, introduced in the last part of
-this document.
+where $\PhaMat$ is the scattering (or phase) matrix. The aerosol, cloud or
+precipitation objects that cause \PhaMat\ to deviate from zero (and contribute
+to both \ExtMat\ and $\AbsMat$) are simply denoted as ``particles'', and the
+solution of Equation~\ref{eq:VRTE2} is referred to as ``scattering
+calculations''. ARTS includes several modules to handle scattering, introduced
+in the last part of this document.
 
-Equation~\ref{eq:VRTE2} is discussed quite thoroughly in \ref{T-sec:rte_theory}
-of \theory. This including that for some conditions also the ``n2-law of
-radiance'' must be considered to obtain completely exact results. For further
-discussion of this issue, see first of all Section~\ref{sec:fm_defs:unit}.
-
+Equation~\ref{eq:VRTE2} is discussed thoroughly in \ref{T-sec:rte_theory} of
+\theory. This including that for some conditions also the ``n2-law of
+radiance'' must be considered to obtain completely exact results, see further
+Section~\ref{sec:fm_defs:unit}.
 
 
-\subsection{Some comments and nomenclature}
-\label{sec:rteq:names}
+
+\subsection{Absorption, extinction and propagation matrices}
+\label{sec:rteq:propmat}
+
+Extinction is the combined attenuation due to absorption and scattering. For
+practical reasons, the extinction between absorbing species and particles are
+kept seperated. The total absorption matrix is
+\begin{equation}
+  \label{eq:absmattotal}
+  \AbsMat = \aAbsMat{a} + \aAbsMat{p}, 
+\end{equation}
+where $a$ and $p$ refers to absorbing species and particles, respectively. The
+total extinction matrix is
+\begin{equation}
+  \label{eq:extmattotal}
+  \ExtMat = \aAbsMat{a} + \aExtMat{p}, 
+\end{equation}
+where \aExtMat{p} is the particle extinction matrix
+($\aExtMat{a}=\aAbsMat{s}$).
+
+In some case, \aAbsMat{a} can also contain effects of magneto-optical type. An
+example of such an effect is Faraday rotation. A common feature of
+magneto-optical effects is that they not affect the intensity (\StoI), but
+change the polarisation state. To indicate that not just absorption is
+included, \AbsMat\ is by some authors denoted as the propagation matrix. This
+name is not used here, to follow a more common nomenclature. The possibility
+that \AbsMat\ can contain magneto-optical terms is in ARTS taken as implicit.
+Instead, the particle absorption (\aAbsMat{p}) and extinction (\aExtMat{p})
+matrices are together denoted as the particle propagation matrices. 
+
+
+\subsection{Emission and absorption vectors}
+\label{sec:rteq:evec}
+
+The fact that only the first element of \VctStl{s} is non-zero has the
+consequence, that, in the case of LTE, the emission vector ($\VctStl{j}_e$) can
+be written as
+\begin{equation}
+  \label{eq:evec}
+  \VctStl{j}_e = B \AbsVec,
+\end{equation}
+where \AbsVec\ is denoted as the absorption vector, and equals the first column
+of \AbsMat.
+
+
+\subsection{Comments and related workspace variables}
+\label{sec:rteq:wsv}
 %
 The equations above treat a single frequency and a single direction, at a
 time, and can be said to describe monochromatic pencil beam radiative
@@ -144,24 +186,20 @@ Some further information around the involved radiative quantities:
   along a single propagation path. Please note the distinction to \wsvindex{y},
   that holds radiances from several frequencies and pencil beams, possibly
   weighted with some instrument responses.
-%\item[\ExtMat] In the most general case, this matrix can cover three
-%  different physical mechanisms: absorption, scattering and magneto-optical
-%  effects. The sum of absorption and scattering is denoted as extinction.
-%  An example on magneto-optical effect is Faraday rotation, that is not
-%  changing the radiation intensity, but the polarisation state.
-%
-%  Inside ARTS, \ExtMat\ treated as a sum of two parts:
-%  $\ExtMat=\ExtMat_a\ExtMat_p$, where the first part, $\ExtMat_a$, corresponds
-%  to the ``absorbing species'', while the second part, $\ExtMat_a$, covers the
-%  extinction of the (scattering) ``particles''. As workspace variables,
-%  $\ExtMat_a$ and $\ExtMat_p$ are called \wsvindex{propmat\_clearsky} and
-%  \wsvindex{propmat\_particle}, respectively.
-
-\item[B] The corresponding workspace variable is
-  \wsvindex{blackbody\_radiation}.
-
-%\item[$\VctStl{j}_e$] is denoted as the \wsvindex{emission\_vector}. 
-
-
-
+\item[\aAbsMat{a}] The corresponding workspace variable is
+  \wsvindex{absmat\_clearsky}, obtained through
+  \wsaindex{absmat\_clearsky\_agenda}.
+\item[\aAbsMat{p} and \aExtMat{p}] are matched by \wsvindex{absmat\_particle}
+  and \wsvindex{extmat\_particle} that are both output of
+  \wsaindex{propmat\_particle\_agenda}.
+\item[B] As workspace variable called \wsvindex{blackbody\_radiation}, and 
+  obatined by \wsaindex{blackbody\_radiation\_agenda}.
+\item[$\VctStl{j}_e$] is denoted as \wsvindex{emission\_vector}, and the
+  corresponding agenda is \wsaindex{emission\_vector\_agenda}.
+\item[\PhaMat] has no direct correspondance as workspace variable. This as the
+  different scattering methods differ in how \PhaMat\ is most efficiently is
+  represented. Instead the methods extract the needed information directly from
+  the general variable \wsvindex{scat\_data\_raw} (that also holds the basic
+  data for determining \aAbsMat{p} and \aExtMat{p}), by dedicated internal
+  functions.
 \end{description}

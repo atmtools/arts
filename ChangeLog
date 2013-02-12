@@ -1,5 +1,12 @@
 2013-02-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-502
+
+	* doc/uguide/rte_basics.tex: Completed a first version of the
+	chapter (with tentative WSV names).
+
+2013-02-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-501
 
 	* doc/uguide/rte.tex: Section on Stokes vector moved to
