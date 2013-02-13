@@ -168,9 +168,16 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
             for (Index ip = 0; ip < abs_p.nelem(); ip++)
               {
                 // Get the binary absorption cross sections from the CIA data:
-                this_cia.Extract(xsec_temp, f_grid, abs_t[ip],
-                                 this_species.CIADataset(),
-                                 robust, verbosity);
+                try {
+                    this_cia.Extract(xsec_temp, f_grid, abs_t[ip],
+                                     this_species.CIADataset(),
+                                     robust, verbosity);
+                } catch (runtime_error e) {
+                    ostringstream os;
+                    os << "Problem with CIA species " << this_species.Name() << ":\n"
+                       << e.what();
+                    throw runtime_error(os.str());
+                }
                 
                 // We have to multiply with the number density of the second CIA species.
                 // We do not have to multiply with the first, since we still
