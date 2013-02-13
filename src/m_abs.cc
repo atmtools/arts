@@ -2324,24 +2324,19 @@ void WriteMolTau(//WS Input
   if ((retval = nc_put_var_double (ncid, wvl_varid, &wvl[0])))
     ncerror (retval, "nc_put_var");
 
-  double tau[z_field.npages()-1][f_grid.nelem()];
-
-  // Initialize tau
-  for (int iz=0; iz<z_field.npages()-1; iz++)
-    for (int iv=0; iv<f_grid.nelem(); iv++)
-      tau[iz][iv] = 0.0;
+  Matrix tau(z_field.npages()-1, f_grid.nelem(), 0.);
 
   // Calculate average tau for layers
   for (int is=0; is<abs_field.nshelves(); is++)
     for (int iz=0; iz<z_field.npages()-1; iz++)
       for (int iv=0; iv<f_grid.nelem(); iv++)
         // sum up all species
-        tau[iz][iv] += 0.5 * (abs_field(is,f_grid.nelem()-1-iv,z_field.npages()-1-iz,0,0)+
+        tau(iz, iv) += 0.5 * (abs_field(is,f_grid.nelem()-1-iv,z_field.npages()-1-iz,0,0)+
                               abs_field(is,f_grid.nelem()-1-iv,z_field.npages()-2-iz,0,0))
           *(z_field(z_field.npages()-1-iz,0,0)-z_field(z_field.npages()-2-iz,0,0));
   
   
-  if ((retval = nc_put_var_double (ncid, tau_varid, &tau[0][0])))
+  if ((retval = nc_put_var_double (ncid, tau_varid, tau.get_c_array())))
     ncerror (retval, "nc_put_var");
   
   // Close the file
