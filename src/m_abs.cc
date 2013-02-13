@@ -2458,28 +2458,21 @@ void WriteMolTau(//WS Input
   const Index fgne = f_grid.nelem();
   const Index amfnb = abs_mat_field.nbooks();
 
-  double tau[zfnp][fgne][amfnb][amfnb];
-
-  // Initialize tau
-    for (int iz =0; iz<zfnp; iz++)
-        for (int iv=0; iv<fgne; iv++)
-            for (int is1=0; iv<amfnb; iv++)
-                for (int is2=0; iv<amfnb; iv++)
-                    tau[iz][iv][is1][is2] = 0.0;
+  Tensor4 tau(zfnp, fgne, amfnb, amfnb, 0.);
 
   // Calculate average tau for layers
   for (int is=0; is<abs_mat_field.nlibraries(); is++)
     for (int iz=0; iz<zfnp; iz++)
       for (int iv=0; iv<fgne; iv++)
-          for (int is1=0; iv<amfnb; iv++)
-              for (int is2=0; iv<amfnb; iv++)
+          for (int is1=0; is1<amfnb; is1++)
+              for (int is2=0; is2<amfnb; is2++)
                 // sum up all species
-                tau[iz][iv][is1][is2] += 0.5 * (abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-1-iz,0,0)+
+                tau(iz, iv, is1, is2) += 0.5 * (abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-1-iz,0,0)+
                                     abs_mat_field(is,f_grid.nelem()-1-iv,is1,is2,z_field.npages()-2-iz,0,0))
                 *(z_field(z_field.npages()-1-iz,0,0)-z_field(z_field.npages()-2-iz,0,0));
+
   
-  
-  if ((retval = nc_put_var_double (ncid, tau_varid, &tau[0][0][0][0])))
+  if ((retval = nc_put_var_double (ncid, tau_varid, tau.get_c_array())))
     nca_error (retval, "nc_put_var");
   
   // Close the file
