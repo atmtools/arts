@@ -26,120 +26,120 @@
 
 class ArtsParser {
 public:
-  ArtsParser(Agenda& tasklist, String controlfile, const Verbosity& verbosity);
+    ArtsParser(Agenda& tasklist, String controlfile, const Verbosity& verbosity);
 
-  void parse_tasklist ();
+    void parse_tasklist ();
 
 private:
-  void parse_main();
+    void parse_main();
 
-  void parse_agenda(Agenda& tasklist);
+    void parse_agenda(Agenda& tasklist);
 
-  void parse_method(Index& id, 
-                    ArrayOfIndex&  output,
-                    ArrayOfIndex&  input,
-                    Agenda&        tasks,
-                    ArrayOfIndex&  auto_vars,
-                    Array<TokVal>& auto_vars_values,
-                    String&        include_file,
-                    bool no_eot=false);
+    void parse_method(Index&         id,
+                      ArrayOfIndex&  output,
+                      ArrayOfIndex&  input,
+                      Agenda&        tasks,
+                      ArrayOfIndex&  auto_vars,
+                      Array<TokVal>& auto_vars_values,
+                      String&        include_file,
+                      bool           no_eot=false);
 
-  void parse_generic_input(const MdRecord*&     mdd,
-                                 Index&         id,
-                                 String&        methodname,
-                                 ArrayOfIndex&  input,
-                                 ArrayOfIndex&  auto_vars,
-                                 Array<TokVal>& auto_vars_values,
-                                 bool&          first,
-                                 bool&          still_supergeneric,
-                                 String&        supergeneric_args,
-                                 Index&         supergeneric_index);
+    void parse_generic_input(const MdRecord*& mdd,
+                             Index&           id,
+                             String&          methodname,
+                             ArrayOfIndex&    input,
+                             ArrayOfIndex&    auto_vars,
+                             Array<TokVal>&   auto_vars_values,
+                             bool&            first,
+                             bool&            still_supergeneric,
+                             String&          supergeneric_args,
+                             Index&           supergeneric_index);
 
-  void parse_generic_output(const MdRecord*&     mdd,
-                                  Index&         id,
-                                  String&        methodname,
-                                  ArrayOfIndex&  output,
-                                  bool&          first,
-                                  bool&          still_supergeneric,
-                                  String&        supergeneric_args,
-                                  Index&         supergeneric_index);
+    void parse_generic_output(const MdRecord*& mdd,
+                              Index&           id,
+                              String&          methodname,
+                              ArrayOfIndex&    output,
+                              bool&            first,
+                              bool&            still_supergeneric,
+                              String&          supergeneric_args,
+                              Index&           supergeneric_index);
 
-  void parse_specific_input(const MdRecord*      mdd,
-                                  ArrayOfIndex&  input,
-                                  ArrayOfIndex&  auto_vars,
-                                  Array<TokVal>& auto_vars_values,
-                                  bool&          first);
+    void parse_specific_input(const MdRecord* mdd,
+                              ArrayOfIndex&   input,
+                              ArrayOfIndex&   auto_vars,
+                              Array<TokVal>&  auto_vars_values,
+                              bool&           first);
 
-  void parse_specific_output(const MdRecord*     mdd,
-                                   ArrayOfIndex& output,
-                                   bool&         first);
+    void parse_specific_output(const MdRecord* mdd,
+                               ArrayOfIndex&   output,
+                               bool&           first);
 
-  void parse_method_args(const MdRecord*&     mdd,
-                               Index&         id,
-                               String&        methodname,
-                               ArrayOfIndex&  output,
-                               ArrayOfIndex&  input,
-                               ArrayOfIndex&  auto_vars,
-                               Array<TokVal>& auto_vars_values);
+    void parse_method_args(const MdRecord*& mdd,
+                           Index&           id,
+                           String&          methodname,
+                           ArrayOfIndex&    output,
+                           ArrayOfIndex&    input,
+                           ArrayOfIndex&    auto_vars,
+                           Array<TokVal>&   auto_vars_values);
 
-  String set_gin_to_default(const MdRecord*       mdd,
-                                  ArrayOfIndex&   auto_vars,
-                                  Array<TokVal>&  auto_vars_values,
-                                  Index           keyword_index);
+    String set_gin_to_default(const MdRecord* mdd,
+                              ArrayOfIndex&   auto_vars,
+                              Array<TokVal>&  auto_vars_values,
+                              Index           keyword_index);
 
-  void tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
-                                  const Array<TokVal>& auto_vars_values,
-                                  const Index          method_type,
-                                        Agenda&        tasklist);
+    void tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
+                                    const Array<TokVal>& auto_vars_values,
+                                    const Index          method_type,
+                                    Agenda&              tasklist);
 
-  bool is_whitespace(const char c);
+    bool is_whitespace(const char c);
 
-  void eat_whitespace();
+    void eat_whitespace();
 
-  void eat_whitespace_from_string(String& str, size_t& pos);
+    void eat_whitespace_from_string(String& str, size_t& pos);
 
-  void read_name(String& name);
+    void read_name(String& name);
 
-  Index read_name_or_value(      String&        name,
-                                 ArrayOfIndex&  auto_vars,
-                                 Array<TokVal>& auto_vars_values,
-                           const String&        default_name,
-                           const MdRecord*      mdd,
-                           const Index          group);
+    Index read_name_or_value(String&         name,
+                             ArrayOfIndex&   auto_vars,
+                             Array<TokVal>&  auto_vars_values,
+                             const String&   default_name,
+                             const MdRecord* mdd,
+                             const Index     group);
 
-  void assertain_character(char c);
+    void assertain_character(char c);
 
-  void parse_String(String& res);
+    void parse_String(String& res);
 
-  void read_integer(String& res);
+    void read_integer(String& res);
 
-  void read_numeric(String& res);
+    void read_numeric(String& res);
 
-  void parse_integer(Index& n);
+    void parse_integer(Index& n);
 
-  void parse_numeric(Numeric& n);
+    void parse_numeric(Numeric& n);
 
-  void parse_Stringvector(ArrayOfString& res);
+    void parse_Stringvector(ArrayOfString& res);
 
-  void parse_intvector(ArrayOfIndex& res);
+    void parse_intvector(ArrayOfIndex& res);
 
-  void parse_numvector(Vector& res);
+    void parse_numvector(Vector& res);
 
-  void parse_matrix(Matrix& res);
+    void parse_matrix(Matrix& res);
 
-  bool parse_numvector_from_string (Vector& res, String& str);
+    bool parse_numvector_from_string (Vector& res, String& str);
 
-  bool parse_stringarray_from_string (ArrayOfString& res, String& str);
+    bool parse_stringarray_from_string (ArrayOfString& res, String& str);
 
-  Agenda& mtasklist;
+    Agenda& mtasklist;
 
-  String mcfile;
+    String mcfile;
 
-  SourceText msource;
+    SourceText msource;
 
-  Index mcfile_version;
-  
-  const Verbosity& verbosity;
+    Index mcfile_version;
+    
+    const Verbosity& verbosity;
 };
 
 #endif /* parser_h */
