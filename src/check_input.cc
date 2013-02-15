@@ -1385,20 +1385,22 @@ void chk_atm_field(
   if( dim == 3  )
     {
       // If all lons are covered, check if cyclic
-      if( (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+      if( is_lon_cyclic(lon_grid) )
         {
           const Index ic = ncols-1;
           for( Index ip=0; ip<npages; ip++ )
             {
               for( Index ir=0; ir<nrows; ir++ )
                 {
-                  if( !is_same_within_epsilon(x(ip,ir,ic),x(ip,ir,0),2*DBL_EPSILON) )
+                  if( !is_same_within_epsilon(x(ip,ir,ic),x(ip,ir,0),4*DBL_EPSILON) )
                     {
                       ostringstream os;
                       os << "The variable *" << x_name <<  "* covers 360 "
                          << "degrees in the longitude direction, but the field "
                          << "seems to deviate between first and last longitude "
-                         << "point. The field must be \"cyclic\".";
+                         << "point. The field must be \"cyclic\".\n"
+                         << "Difference: " << setprecision(16) << x(ip,ir,ic)- x(ip,ir,0) << "\n"
+                         << "Epsilon   : " << 4*DBL_EPSILON * max(x(ip,ir,ic),x(ip,ir,0));
                       throw runtime_error( os.str() );
                     }
                 }
