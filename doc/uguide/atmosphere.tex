@@ -11,11 +11,11 @@
 This section discusses the model atmosphere: how it is defined, its boundaries
 and the variables describing the basic properties. One aspect that can cause
 confusion is that several vertical coordinates must be used
-(Section~\ref{sec:fm_defs:altitudes}). The main vertical coordinate is pressure
+(Sec.~\ref{sec:fm_defs:altitudes}). The main vertical coordinate is pressure
 and atmospheric quantities are defined as a function of pressure
-(Section~\ref{sec:fm_defs:grids}), but the effective vertical coordinate from a
+(Sec.~\ref{sec:fm_defs:grids}), but the effective vertical coordinate from a
 geometrical perspective (such as the determination of propagation paths) is the
-radius (Section~\ref{sec:fm_defs:atmdim}). Pressures and radii are linked by
+radius (Sec.~\ref{sec:fm_defs:atmdim}). Pressures and radii are linked by
 specifying the geometrical altitudes (\builtindoc{z\_field}).
 
 
@@ -49,7 +49,7 @@ specifying the geometrical altitudes (\builtindoc{z\_field}).
   
 \item[Geometrical altitude\index{geometrical altitude}] The term geometrical
   altitude signifies here the difference in radius between a point and the
-  reference ellipsoid (Section \ref{sec:fm_defs:geoid}) along the vector to the
+  reference ellipsoid (Sec.~\ref{sec:fm_defs:geoid}) along the vector to the
   centre of the coordinate system (Equation \ref{eq:fm_defs:zsurface}). This is
   consistent with the usage of geocentric latitudes (see below). Hence, the
   altitude is not measured along the local zenith direction.
@@ -188,37 +188,39 @@ level.
 
 A \textindex{latitude} grid (\wsvindex{lat\_grid}) must be specified for 2D and
 3D. For 2D, the latitudes shall be treated as the angular distance along the
-orbit track, as described above in Section \ref{sec:fm_defs:atmdim}. The
+orbit track, as described above in Section~\ref{sec:fm_defs:atmdim}. The
 latitude angle is throughout calculated for the vector going from the centre of
 the coordinate system to the point of concern. Hence, the latitudes here
 correspond to the definition of the geocentric latitude, and not geodetic
-latitudes (see Section \ref{sec:ppath:geoid}). This is in accordance to the
-definition of geometric altitudes (Section~\ref{sec:fm_defs:altitudes}). For
+latitudes (Sec.~\ref{sec:ppath:geoid}). This is in accordance to the
+definition of geometric altitudes (Sec.~\ref{sec:fm_defs:altitudes}). For
 3D, a \textindex{longitude} grid (\wsvindex{lon\_grid}) must also be specified.
-Valid ranges for latitude and longitude values are given in Section
-\ref{sec:fm_defs:atmdim}. If the longitude and latitude grids are not used for
-the selected atmospheric dimensionality, then the longitude grid (for 1D and
-2D) and the latitude grid (for 1D) must be set to be empty.
-
+Valid ranges for latitude and longitude values are given in
+Section~\ref{sec:fm_defs:atmdim}. If the longitude and latitude grids are not
+used for the selected atmospheric dimensionality, then the longitude grid (for
+1D and 2D) and the latitude grid (for 1D) must be set to be empty.
 
 The atmosphere is treated to be undefined outside the latitude and longitude
 ranges covered by the grids, if not the whole globe is covered. This results in
 that a propagation path is not allowed to cross a latitude or longitude end
 face of the atmosphere, if such exists, it can only enter or leave the
 atmosphere through the top of the atmosphere (the uppermost pressure level).
-See further Section \ref{sec:fm_defs:ppaths}. The volume covered by the grids
+See further Section~\ref{sec:fm_defs:ppaths}. The volume covered by the grids
 is denoted as the \textindex{model atmosphere}.
 
 The basic atmospheric quantities are represented by their values at each
 crossing of the involved grids (indicated by thick dots in Figure
-\ref{fig:fm_defs:2d}), or for 1D at each pressure
-level (thick dots in Figure \ref{fig:fm_defs:1d}). This representation is
-denoted as the field\index{atmospheric field} of the quantity. The field must,
-at least, be specified for the geometric altitude of the pressure levels
+\ref{fig:fm_defs:2d}), or for 1D at each pressure level (thick dots in Figure
+\ref{fig:fm_defs:1d}). This representation is denoted as the
+field\index{atmospheric field} of the quantity. The field must, at least, be
+specified for the geometric altitude of the pressure levels
 (\wsvindex{z\_field}), the temperature (\wsvindex{t\_field}) and considered
-atmospheric species (\builtindoc{vmr\_field}). The fields are assumed to be
-piece-wise linear functions vertically (with pressure altitude as the vertical
-coordinate, Section \ref{sec:fm_defs:altitudes}), and along the latitude and
+atmospheric species (\wsvindex{abs\_species\_field}). The content and units of
+\builtindoc{abs\_species\_field} are discussed in
+Section~\ref{sec:rteq:absspecies}.
+
+All the fields are assumed to be piece-wise linear functions vertically (with
+pressure altitude as the vertical coordinate), and along the latitude and
 longitude edges of 2D and 3D grid boxes. For points inside 2D and 3D grid
 boxes, multidimensional linear interpolation is applied (that is, bi-linear
 interpolation for 2D etc.). Note especially that this is also valid for the
@@ -273,11 +275,11 @@ values in \wsvindex{z\_field}.
 \label{sec:fm_defs:surf}
 
 Geometrical altitudes are specified as the vertical distance to the reference
-ellipsoid (\wsvindex{refellipsoid}), discussed further in Section
-\ref{sec:fm_defs:geoid}. The lower boundary of the atmosphere is denoted as the
-surface. The surface is specified by its geometrical altitude on the latitude
-and longitude grids. The workspace variable holding these data is called
-\wsvindex{z\_surface}.
+ellipsoid (\wsvindex{refellipsoid}), discussed further in
+Section~\ref{sec:fm_defs:geoid}. The lower boundary of the atmosphere is
+denoted as the surface. The surface is specified by its geometrical altitude on
+the latitude and longitude grids. The workspace variable holding these data is
+called \wsvindex{z\_surface}.
 
 It is not allowed that there is an altitude gap between the surface and
 the lowermost pressure level.  That is, the surface pressure must be
@@ -291,9 +293,10 @@ pressure level, the pressure grid can extend below the surface level.
 \label{sec:fm_defs:cloudbox}
 In order to save computational time, calculations involving scattering are
 limited to a special atmospheric domain. This atmospheric region is denoted as
-the \textindex{cloud box}. The cloud box is discussed here as it acts as an
-additional atmospheric limit when calculating propagation paths (see Section
-\ref{sec:fm_defs:rte}).
+the \textindex{cloud box}. The cloud box acts as an additional atmospheric
+limit when calculating propagation paths (Sec.~\ref{sec:fm_defs:rte}).
+The distribution of scattering matter inside the cloud box is specified by
+\wsvindex{pnd\_field}, see further Section~\ref{sec:rteq:absspecies}.
 
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This
@@ -310,7 +313,7 @@ use the method \wsmindex{cloudboxOff} when no scattering calculations
 shall be performed. This method assigns dummy values to all workspace
 variables not needed when scattering is neglected.
 
-\begin{figure}[!tb]
+\begin{figure}[!t]
  \begin{center}
   \includegraphics*[width=0.98\hsize]{atm_dim_3dcross}
   \caption{A latitudinal, or longitudinal, cross section of a 3D atmosphere. 
@@ -346,28 +349,46 @@ optical thickness of the atmosphere between the surface and cloud box
 is sufficiently high.
 
 
-\section{Description of the ionosphere}
-\label{sec:atm:ionosp}
+\section{Wind and magnetic vector fields}
+\label{sec:atm:vecfields}
 %
-The primary additional variable for the \textindex{ionosphere} is the number
-density of \textindex{free electrons}. The corresponding workspace variable is
-\wsvindex{edensity\_field}. This variable is needed, for example, to include
-the additional refractive bending of the propagation path caused by free
-electrons (Sec.~\ref{sec:rindex:freee}).
+The atmospheric fields discussed above are scalar quantities, while some
+atmospheric variables can be seen as vector fields. However, in ARTS input
+vector fields are broken down into the zonal, meridional and vertical component
+and given as three scalar fields. This division into scalar values is used to
+allow that one or several of the components easily can be set to zero, which is
+done be setting the corresponding workspace variable to be empty. Following the
+standard naming scheme for winds, the components are denoted as
+\begin{description}
+\item[u] The zonal component. A positive value signifies an Eastward direction
+  (e.g.\ a wind moving towards higher longitudes).
+\item[v] The meridional component. A positive value signifies a Northward
+  direction (e.g.\ a wind moving towards higher latitudes).
+\item[w] The vertical component. A positive value signifies an upward direction
+  (e.g.\ a wind moving towards higher altitudes).
+\end{description}
+
+
+The workspace variables to describe the wind vector field are
+\wsvindex{wind\_u\_field}, \wsvindex{wind\_v\_field} and
+\wsvindex{wind\_w\_field}. As described above, one, two or all of these
+variables can be set to be empty, if the corresponding wind component is zero.
+Winds affect the radiative transfer by inducing Doppler shifts, see further
+Chapter~\ref{sec:winds}. 
+
 
 To consider Faraday rotation (Sec.~\ref{sec:faraday}) and Zeeman splitting
-(\theory, \ref{T-sec:at:zeeman}), also the \textindex{magnetic field} must be
-specified. This vector field is broken down into three scalar fields:
-\wsvindex{mag\_u\_field}, \wsvindex{mag\_v\_field} and
-\wsvindex{mag\_w\_field}. See the built-in documentation for definition of
-these variables. All three components must throughout be specified (but can be
-set to zero for a part of, or the complete, atmosphere). However, some
-component can be irrelevant for the calculations, depending on atmospheric
-dimension and the physical mechanism of concern. For example, the u-component
-has no influence on Faraday rotation for 1D and 2D cases.
-
-Both free electron density and the magnetic field are allowed to be zero, for
-the complete atmosphere, or parts of it.
+(\theory, Sec.~\ref{T-sec:at:zeeman}), also the \textindex{magnetic field} must
+be specified. The three component fields are \wsvindex{mag\_u\_field},
+\wsvindex{mag\_v\_field} and \wsvindex{mag\_w\_field}. All three components
+must throughout be specified (but can be set to zero for a part of, or the
+complete, atmosphere). However, some component can be irrelevant for the
+calculations, depending on atmospheric dimension and the physical mechanism of
+concern. For example, the u-component has no influence on Faraday rotation for
+1D and 2D cases. (The internal representation of the magnetic field at a
+specific point is handled by \wsvindex{rte\_mag}. For this variable the three
+components are stored together, and thus the local magnetic field is
+represented as a vector.)
 
 
 

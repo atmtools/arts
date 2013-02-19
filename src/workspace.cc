@@ -4588,9 +4588,6 @@ void Workspace::define_wsv_data()
       (
        "Meridional component of the magnetic field.\n"
        "\n"
-       "This wind component is defined differently for the atmospheric\n"
-       "dimensionalities.\n"
-       "\n"       
        "The North-South wind component. Air moving towards higher\n"
        "latitudes is a positive wind.\n"
        "\n"       

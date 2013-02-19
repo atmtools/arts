@@ -1,3 +1,25 @@
+2013-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-508
+
+	* src/workspace.cc (define_wsv_data): Removed old (now incorrect)
+	comment for wind_v_field.
+
+	* doc/uguide/atmosphere.tex: Changed to the Ionopsheric section to
+	instead treat vector fields, as a common discussion area for wind
+	and magnetic fields. Chapter also updated with respect to
+	abs_species_field.
+
+	* doc/uguide/common.tex: The text was poorly centered on page.
+	Decreased \voffset with 0.5 cm, and increased \textheight to 23cm
+	(+1cm).
+
+	* doc/uguide/CMakeLists.txt:
+	* doc/uguide/arts_user.tex: Included chapter below.
+
+	* doc/uguide/complete_calcs.tex: New chapter. Fileld with some new
+	text and stuff from rte.tex.
+
 2013-02-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-507

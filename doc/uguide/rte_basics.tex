@@ -2,13 +2,12 @@
  \label{sec:rte_basics}
 
 \starthistory
- 130218 & A first version (Patrick Eriksson).\\
+ 130218 & Written by Patrick Eriksson.\\
 \stophistory
 
 This chapter introduces some basic radiative transfer nomenclature and
-equations. The radiative transfer equation is here presented in quite general
-terms, while special cases and solutions are discussed in later parts of the
-document.
+equations. The radiative transfer equation is here presented in general terms,
+while special cases and solutions are discussed in later parts of the document.
 
 
 
@@ -50,13 +49,14 @@ Section~\ref{T-sec:polarization}.
 ARTS is a fully polarised forward model, but can be run with a smaller number
 of Stokes components. The selection is made with the workspace variable
 \wsvindex{stokes\_dim}. For example, gaseous absorption and emission are in
-general unpolarised, and if not scattering has to be considered it is
-sufficient to only include the first Stokes components in the simulations (ie.\
-\builtindoc{stokes\_dim} set to 1). In this case, to include higher order
-Stokes components results only in slower calculations. Simulations where
-\builtindoc{stokes\_dim} is two or higher are denoted as \textindex{vector
-  radiative transfer}, while \textindex{scalar radiative transfer} refers to
-the case when only the first Stokes component is considered.
+general unpolarised, and if not particle and surface scattering have to be
+considered it is sufficient to only include the first Stokes components in the
+simulations (ie.\ \builtindoc{stokes\_dim} set to 1). In this case, to include
+higher order Stokes components results only in slower calculations. Simulations
+where \builtindoc{stokes\_dim} is two or higher are denoted as
+\textindex{vector radiative transfer}, while \textindex{scalar radiative
+  transfer} refers to the case when only the first Stokes component is
+considered.
  
 
 
@@ -225,6 +225,11 @@ The two equations below are discussed thoroughly in \ref{T-sec:rte_theory} of
 radiance'' must be considered to obtain completely exact results (see also
 Section~\ref{sec:fm_defs:unit}).
 
+The equations below treat a single frequency and a single direction,
+at a time, and can be said to describe monochromatic pencil beam radiative
+transfer. For simplicity, the frequency and direction are left out from many of
+the equations in this user guide.
+
 \subsubsection{Clear-sky radiative transfer}
 %
 If we for the moment assume that scattering can be totally neglected, then
@@ -261,17 +266,3 @@ modules to handle scattering, introduced in the last part of this document.\\
 
 
 
-%\section{Including the sensor}
-%%==============================================================================
-%\label{sec:ppp}
-%
-%The equations above treat a single frequency and a single direction,
-%at a time, and can be said to describe monochromatic pencil beam radiative
-%transfer. For simplicity, the frequency and direction are left out from many of
-%the equations in this user guide.
-%
-%The Stokes vector is as workspace variable denoted as \wsvindex{iy}. The
-%variable can hold \StoVec\ for a range of frequencies, but covers only
-%radiative transfer along a single propagation path. Please note the distinction
-%to \wsvindex{y} (see Section~\ref{sec:rte}), that holds radiances from several
-%frequencies and pencil beams, possibly weighted with some instrument responses.
