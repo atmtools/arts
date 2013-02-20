@@ -3,7 +3,7 @@
 	* arts-2-1-512
 
 	* Quite a lot of changes, but should for most simulations not
-	reqire any changes of your cfile. The exception is of you define
+	require any changes of your cfile. The exception is of you define
 	some agendas without using the pre-defined ones. You can then need
 	to change some rte_xyz to rtp_xyz. Ask me if you are in doubt.
 
