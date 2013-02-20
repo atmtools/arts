@@ -804,42 +804,40 @@ Numeric FrequencyChangeDirectWithGS(Rational n, Rational m, Rational j, Numeric 
   Helper function. This is the only place where m_zeeman interacts with other absorption protocols.
 */
 void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesTag& abs_species, const ArrayOfLineshapeSpec& abs_lineshape, 
-                          const ArrayOfLineshapeSpec& abs_lineshape_zeeman_phase,
                           const ArrayOfLineRecord& lr, const SpeciesAuxData& isotopologue_ratios, const Matrix& abs_vmrs, const Vector& abs_p,
                           const Vector& abs_t, const Vector& f_grid, const Numeric& theta, const Numeric& eta, const Index& DM, const Index& this_species,
                           const Verbosity& verbosity )
 {
     assert( part_abs_mat.npages() == f_grid.nelem() && part_abs_mat.ncols() == 4 && part_abs_mat.nrows() == 4 );
     
-    Matrix attenuation(f_grid.nelem(), 1, 0.);
-    Matrix magneto_optics(f_grid.nelem(), 1, 0.);
+    Matrix A(f_grid.nelem(), 1, 0.);
+    Matrix B(f_grid.nelem(), 1, 0.);
     
     for ( Index i=0; i<abs_species[this_species].nelem(); ++i )
     {
-        Matrix real(f_grid.nelem(), 1, 0.), imag(f_grid.nelem(), 1, 0.);;
+        Matrix attenuation(f_grid.nelem(), 1, 0.), phase(f_grid.nelem(), 1, 0.);;
         
-        xsec_species( real, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
+        xsec_species( attenuation, phase, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
                     abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
                     isotopologue_ratios, verbosity ); // Now in cross section
+
+        if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
+            {  }
         
-        xsec_species( imag, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
-                      abs_lineshape_zeeman_phase[i].Ind_ls(), abs_lineshape_zeeman_phase[i].Ind_lsn(), abs_lineshape_zeeman_phase[i].Cutoff(),
-                      isotopologue_ratios, verbosity ); // Now in cross section
+        attenuation *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+        phase *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
+        phase *= 2; // phase matrix is twice as large according to sources.
         
-        real *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
-        imag *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
-        imag *= 2;
-        
-        attenuation += real;
-        magneto_optics += imag;
+        A += attenuation;
+        B += phase;
     }
     Matrix  K_a(4,4), K_b(4,4);
     K_MATRIX_ATTENUATION(K_a, theta*DEG2RAD, eta*DEG2RAD, DM);
     K_MATRIX_PHASE(K_b, theta*DEG2RAD, eta*DEG2RAD, DM);
     
     Tensor3 temp_part_abs_mat=part_abs_mat;
-    mult(part_abs_mat,attenuation(joker,0), K_a);
-    mult(temp_part_abs_mat,magneto_optics(joker,0), K_b);
+    mult(part_abs_mat,A(joker,0), K_a);
+    mult(temp_part_abs_mat,B(joker,0), K_b);
     
     part_abs_mat+=temp_part_abs_mat;
     
@@ -852,7 +850,6 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
 				      const ArrayOfArrayOfSpeciesTag& abs_species,
 				      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
 				      const ArrayOfLineshapeSpec& abs_lineshape,
-                                     const ArrayOfLineshapeSpec& abs_lineshape_zeeman_phase,
                                      const SpeciesAuxData& isotopologue_ratios,
                                      const SpeciesAuxData& isotopologue_quantum,
 				      const Numeric& rte_pressure,
@@ -990,7 +987,9 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         }
         
         Numeric DF, RS; // Delta Frequency and Relative Strength
-
+theta=0,eta=0;
+        //cout << "theta = [theta,"<<theta<<"];eta=[eta,"<<eta<<"];B=[B,"<<sqrt(rte_mag*rte_mag)<<"];\n";
+        
         // For all species
         for(Index II = 0; II<abs_species.nelem(); II++)
         {
@@ -1005,6 +1004,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
             {
                 // local LineRecord
                 LineRecord temp_LR = abs_lines_per_species[II][ii];
+                //cout<<temp_LR.F()<< endl << temp_LR.I0()<<endl;
                 const Rational J  = temp_LR.Lower_J();
                 const Rational N  = temp_LR.Lower_N();
                 const Numeric S   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 1);
@@ -1018,7 +1018,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                 {
                     if ( true )
                     {
-
+                        //cout << "\n\n RSpi=[];RSsm=[];RSsp=[];DFpi=[];DFsm=[];DFsp=[];\n";
                         for ( Rational M = -J+DJ; M<=J-DJ; M++ )
                         {
                             /*
@@ -1035,6 +1035,9 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
+                                //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
+                                //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
+                                
                                 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                 RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1042,6 +1045,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
+                                //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
+                                //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
                                 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
                                 RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
@@ -1049,6 +1054,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
+                                //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
+                                //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
                             }
                             else if ( DJ ==  0 )
                             { // Then all DM transitions possible for all M
@@ -1058,7 +1065,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sm.push_back(temp_LR);
-                            
+                            //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
+                            //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                             if( ! (M == 0) )
                             {
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
@@ -1067,6 +1075,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
+                                //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
+                                //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
                             }
                             
                             DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
@@ -1075,6 +1085,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sp.push_back(temp_LR);
+                            //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
+                            //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
                             }
                             else if ( DJ == -1 )
                             { // Then certain M results in blocked DM transitions
@@ -1086,6 +1098,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
+                                    //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
+                                    //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
                                     
                                 }
                                 else if ( M == -J + DJ + 1 && M!=0 )
@@ -1096,6 +1110,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
+                                    //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
+                                    //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1103,6 +1119,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
+                                    //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
                                 }
                                 else if ( M ==  J - DJ - 1 && M!=0 )
                                 { // Next to upper limit M can only allow DM = 0, -1
@@ -1112,6 +1130,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
+                                    //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
@@ -1119,6 +1139,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
+                                    //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
+                                    //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                                 }
                                 else if ( M == J - DJ && M!=0 )
                                 { // Upper limit M only allow DM = -1
@@ -1128,6 +1150,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
+                                    //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
+                                    //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                                 }
                                 else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
                                 { // Special case for N=1, J=0, M=0. Only allows DM = 0
@@ -1137,6 +1161,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
+                                    //cout << "RSpi = [RSpi," << RS<<"];"<<endl;
                                 }
                                 else
                                 { // All DM transitions are possible for these M(s)
@@ -1146,6 +1172,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
+                                    //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
+                                    //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1153,6 +1181,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
+                                    //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
@@ -1160,6 +1190,8 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
+                                    //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
+                                    //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                                 }
                             }
                             else
@@ -1193,28 +1225,28 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
             Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
             
             // Add Pi contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_pi, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, 0, II, verbosity );
             abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
         
             // Add Sigma minus contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_sm, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, -1, II, verbosity );
             abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
             
             // Add Sigma plus contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                                 temp_abs_lines_sp, isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                                 theta, eta, 1, II, verbosity );
             abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
             
             // Add Default contribution to final abs_mat_per_species
-            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
+            Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_dt, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, 1023, II, verbosity );
@@ -1229,7 +1261,7 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
             if(!is_zeeman(abs_species[II])) continue;
             
             Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
-            Part_Return_Zeeman(   part_abs_mat, abs_species, abs_lineshape, abs_lineshape_zeeman_phase,
+            Part_Return_Zeeman(   part_abs_mat, abs_species, abs_lineshape,
                                 abs_lines_per_species[II], isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                                 0,0,1023, II, verbosity );

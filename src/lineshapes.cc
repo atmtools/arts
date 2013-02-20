@@ -43,12 +43,13 @@
     continuum tags. It has to have the same arguments as all the other
     lineshapes, though...
 
-    \retval ls            The shape function.
-    \retval X             Auxillary parameter, only used in Voigt fct.
-    \param  f0            Line center frequency.
-    \param  gamma         The pressure broadening parameter.
-    \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_grid        The frequency grid.
+    \retval ls_attenuation              The shape function.
+    \retval ls_phase                    The shape function.
+    \retval X                           Auxillary parameter, only used in Voigt fct.
+    \param  f0                          Line center frequency.
+    \param  gamma                       The pressure broadening parameter.
+    \param  sigma                       The Doppler broadening parameter. (Not used.)
+    \param  f_grid                      The frequency grid.
 
     \throw  runtime_error This exception is always thrown when the
                           function is called.  
@@ -56,7 +57,8 @@
     \date   2001-01-16 
     \author Stefan Buehler 
 */
-void lineshape_no_shape(  Vector&         ls _U_,
+void lineshape_no_shape(  Vector&         ls_attenuation _U_,
+                          Vector&         ls_phase _U_,
                           Vector&         X _U_,
                           const Numeric   f0 _U_,
                           const Numeric   gamma _U_,
@@ -71,16 +73,18 @@ void lineshape_no_shape(  Vector&         ls _U_,
 
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
-    \retval ls            The shape function.
-    \retval X             Auxillary parameter, only used in Voigt fct.
-    \param  f0            Line center frequency.
-    \param  gamma         The pressure broadening parameter.
-    \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_grid        The frequency grid.
+    \retval ls_attenuation              The shape function.
+    \retval ls_phase                    The shape function.
+    \retval X                           Auxillary parameter, only used in Voigt fct.
+    \param  f0                          Line center frequency.
+    \param  gamma                       The pressure broadening parameter.
+    \param  sigma                       The Doppler broadening parameter. (Not used.)
+    \param  f_grid                      The frequency grid.
 
     \author Stefan Buehler 
     \date 2000-06-16 */
-void lineshape_lorentz(Vector&         ls,
+void lineshape_lorentz(Vector&         ls_attenuation,
+                       Vector&         ls_phase _U_,
                        Vector&         X _U_,
                        const Numeric   f0,
                        const Numeric   gamma,
@@ -99,22 +103,24 @@ void lineshape_lorentz(Vector&         ls,
 
   for ( Index i=0; i<nf; ++i )
     {
-      ls[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
+      ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
     }
 }
 
 /*! The Doppler line shape.
 
-    \retval ls            The shape function.
-    \retval x             Auxillary parameter, only used in Voigt fct.
-    \param  f0            Line center frequency.
-    \param  gamma         The pressure broadening parameter. (Not used.)
-    \param  sigma         The Doppler broadening parameter.
-    \param  f_grid        The frequency grid.
+    \retval ls_attenuation              The shape function.
+    \retval ls_phase                    The shape function.
+    \retval x                           Auxillary parameter, only used in Voigt fct.
+    \param  f0                          Line center frequency.
+    \param  gamma                       The pressure broadening parameter. (Not used.)
+    \param  sigma                       The Doppler broadening parameter.
+    \param  f_grid                      The frequency grid.
 
     \author Axel von Engeln
     \date 2000-12-06 */
-void lineshape_doppler(Vector&         ls,
+void lineshape_doppler(Vector&         ls_attenuation,
+                       Vector&         ls_phase _U_,
                        Vector&         x _U_,
                        const Numeric   f0,
                        const Numeric   gamma _U_,
@@ -127,14 +133,14 @@ void lineshape_doppler(Vector&         ls,
   extern const Numeric PI;
   const Numeric sqrtPI = sqrt(PI);
 
-  //  assert( ls.nelem() == nf );
+  //  assert( ls_attenuation.nelem() == nf );
 
   Numeric sigma2 = sigma * sigma;
   Numeric fac = 1.0 / (sqrtPI * sigma);
   
   for ( Index i=0; i<nf ; ++i )
     {
-      ls[i] = fac * exp( - pow( f_grid[i]-f0, 2) / sigma2 );
+      ls_attenuation[i] = fac * exp( - pow( f_grid[i]-f0, 2) / sigma2 );
     }
 }
 
@@ -170,7 +176,7 @@ long bfun6_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \retval ls            The shape function.
+    \retval ls_attenuation            The shape function.
     \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
@@ -226,7 +232,8 @@ long bfun6_(Numeric y, Numeric x)
     \author Oliver Lemke and Axel von Engeln
     \date 2000-09-27
 */ 
-void lineshape_voigt_kuntz6(Vector&         ls,
+void lineshape_voigt_kuntz6(Vector&         ls_attenuation,
+                            Vector&         ls_phase _U_,
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
@@ -447,7 +454,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
       i__1 = lauf[((i2 + 1) << 2) - 1];
       for (i1 = lauf[(i2 << 2) - 1]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+        ls_attenuation[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
                          (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
                         * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
                         x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -490,7 +497,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
       i__1 = lauf[((i2 + 1) << 2) - 2];
       for (i1 = lauf[(i2 << 2) - 2]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+        ls_attenuation[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
                         e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
                         e6 + x2)))));
         /* L5: */
@@ -516,7 +523,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
       i__1 = lauf[((i2 + 1) << 2) - 3];
       for (i1 = lauf[(i2 << 2) - 3]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+        ls_attenuation[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
                         + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
         /* L6: */
       }
@@ -539,7 +546,7 @@ void lineshape_voigt_kuntz6(Vector&         ls,
       for (i1 = lauf[(i2 << 2) - 4]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
         b2 = b1 - x2;
-        ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+        ls_attenuation[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
         /* L8: */
       }
     }
@@ -584,7 +591,7 @@ long int bfun3_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \retval ls            The shape function.
+    \retval ls_attenuation            The shape function.
     \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
@@ -639,7 +646,8 @@ long int bfun3_(Numeric y, Numeric x)
 
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
-void lineshape_voigt_kuntz3(Vector&         ls,
+void lineshape_voigt_kuntz3(Vector&         ls_attenuation,
+                            Vector&         ls_phase _U_,
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
@@ -806,7 +814,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
       i__1 = lauf[(i2 + 1) * 5 - 1];
       for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+        ls_attenuation[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
                          (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
                         * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
                         x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -849,7 +857,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
       i__1 = lauf[(i2 + 1) * 5 - 2];
       for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+        ls_attenuation[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
                         e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
                         e6 + x2)))));
         /* L5: */
@@ -875,7 +883,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
       i__1 = lauf[(i2 + 1) * 5 - 3];
       for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+        ls_attenuation[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
                         + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
         /* L6: */
       }
@@ -897,7 +905,7 @@ void lineshape_voigt_kuntz3(Vector&         ls,
       for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
         b2 = b1 - x2;
-        ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+        ls_attenuation[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
         /* L7: */
       }
     }
@@ -915,7 +923,7 @@ L8:
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 5];
       for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-        ls[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
+        ls_attenuation[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
         /* L9: */
       }
     }
@@ -957,7 +965,7 @@ long bfun4_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \retval ls            The shape function.
+    \retval ls_attenuation            The shape function.
     \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
@@ -1012,7 +1020,8 @@ long bfun4_(Numeric y, Numeric x)
 
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
-void lineshape_voigt_kuntz4(Vector&         ls,
+void lineshape_voigt_kuntz4(Vector&         ls_attenuation,
+                            Vector&         ls_phase _U_,
                             Vector&         x,
                             const Numeric   f0,
                             const Numeric   gamma,
@@ -1233,7 +1242,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
       i__1 = lauf[(i2 + 1) * 5 - 1];
       for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+        ls_attenuation[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
                          (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
                         * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
                         x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -1276,7 +1285,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
       i__1 = lauf[(i2 + 1) * 5 - 2];
       for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+        ls_attenuation[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
                         e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
                         e6 + x2)))));
         /* L5: */
@@ -1302,7 +1311,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
       i__1 = lauf[(i2 + 1) * 5 - 3];
       for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+        ls_attenuation[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
                         + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
         /* L6: */
       }
@@ -1324,7 +1333,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
       for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
         x2 = x[i1-1] * x[i1-1];
         b2 = b1 - x2;
-        ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+        ls_attenuation[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
         /* L7: */
       }
     }
@@ -1342,7 +1351,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 5];
       for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-        ls[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
+        ls_attenuation[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
         /* L9: */
       }
     }
@@ -1354,7 +1363,7 @@ void lineshape_voigt_kuntz4(Vector&         ls,
 /*! The Voigt line shape. Drayson approximation of the Voigt line
   shape.
 
-    \retval ls            The shape function.
+    \retval ls_attenuation            The shape function.
     \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
@@ -1395,7 +1404,8 @@ void lineshape_voigt_kuntz4(Vector&         ls,
 
 /***  ROUTINE COMPUTES THE VOIGT FUNCTION Y/PI*INTEGRAL FROM ***/
 /***   - TO + INFINITY OF EXP(-T*T)/(Y*Y+(X-T)*(X-T)) DT     ***/
-void lineshape_voigt_drayson(Vector&         ls,
+void lineshape_voigt_drayson(Vector&         ls_attenuation,
+                             Vector&         ls_phase _U_,
                              Vector&         x,
                              const Numeric   f0,
                              const Numeric   gamma,
@@ -1492,7 +1502,7 @@ void lineshape_voigt_drayson(Vector&         ls,
           UU = Y+U*UU;
           VV = x[K]-U*VV;
         }
-      ls[K] = UU/(UU*UU+VV*VV)/1.772454*fac;
+      ls_attenuation[K] = UU/(UU*UU+VV*VV)/1.772454*fac;
       continue;
   L110: Y2 = Y*Y;
       if (x[K]+Y >= 5.) goto L113;
@@ -1512,21 +1522,21 @@ void lineshape_voigt_drayson(Vector&         ls,
           UU = -UU*Y2;
           VV = VV+V*UU;
         }
-      ls[K] = 1.128379*VV*fac;
+      ls_attenuation[K] = 1.128379*VV*fac;
       continue;
   L112: Y2 = Y*Y;
       if (Y < 11.-.6875*x[K]) goto L113;
       /***  REGION IIIB: 2-POINT GAUSS-HERMITE QUADRATURE. ***/
       U = x[K]-XX[3];
       V = x[K]+XX[3];
-      ls[K] = Y*(HH[3]/(Y2+U*U)+HH[3]/(Y2+V*V))*fac;
+      ls_attenuation[K] = Y*(HH[3]/(Y2+U*U)+HH[3]/(Y2+V*V))*fac;
       continue;
       /***  REGION IIIA: 4-POINT GAUSS-HERMITE QUADRATURE. ***/
   L113: U = x[K]-XX[1];
       V = x[K]+XX[1];
       UU = x[K]-XX[2];
       VV = x[K]+XX[2];
-      ls[K] = Y*(HH[1]/(Y2+U*U)+HH[1]/(Y2+V*V)+HH[2]/(Y2+UU*UU)+HH[2]/(Y2+
+      ls_attenuation[K] = Y*(HH[1]/(Y2+U*U)+HH[1]/(Y2+V*V)+HH[2]/(Y2+UU*UU)+HH[2]/(Y2+
                                                                       VV*VV))*fac;
       continue;
   }
@@ -1584,7 +1594,7 @@ void chi_cousin(
 
 /*! A CO2 IR line shape.
 
-    \retval ls            The shape function.
+    \retval ls_attenuation            The shape function.
     \retval X             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
@@ -1593,7 +1603,8 @@ void chi_cousin(
 
     \author Patrick Eriksson 
     \date 2000-09-04 */
-void lineshape_CO2_lorentz(Vector&         ls,
+void lineshape_CO2_lorentz(Vector&         ls_attenuation,
+                           Vector&         ls_phase _U_,
                            Vector&         X _U_,
                            const Numeric   f0,
                            const Numeric   gamma,
@@ -1619,7 +1630,7 @@ void lineshape_CO2_lorentz(Vector&         ls,
       chi_cousin( chi, df );      
 
       // chi * Lorentz
-      ls[i] =  chi * fac / ( df * df + gamma2 );
+      ls_attenuation[i] =  chi * fac / ( df * df + gamma2 );
     }
 }
 
@@ -1627,7 +1638,7 @@ void lineshape_CO2_lorentz(Vector&         ls,
 
 /*! A CO2 IR line shape.
 
-    \retval ls            The shape function.
+    \retval ls_attenuation            The shape function.
     \retval X             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
@@ -1636,14 +1647,15 @@ void lineshape_CO2_lorentz(Vector&         ls,
 
     \author Patrick Eriksson 
     \date 2000-09-04 */
-void lineshape_CO2_drayson(Vector&         ls,
+void lineshape_CO2_drayson(Vector&         ls_attenuation,
+                           Vector&         ls_phase _U_,
                            Vector&         X,
                            const Numeric   f0,
                            const Numeric   gamma,
                            const Numeric   sigma,
                            ConstVectorView f_grid)
 {
-  lineshape_voigt_drayson(  ls, X, f0, gamma, sigma, f_grid );
+    lineshape_voigt_drayson(  ls_attenuation, ls_phase, X, f0, gamma, sigma, f_grid );
 
   const Index nf = f_grid.nelem();
   for ( Index i=0; i<nf; ++i )
@@ -1656,13 +1668,13 @@ void lineshape_CO2_drayson(Vector&         ls,
       chi_cousin( chi, df );      
 
       // chi * Lorentz
-      ls[i] *=  chi;
+      ls_attenuation[i] *=  chi;
     }
 }
 
 
-/*! The Voigt line shape. Based on rewritten Faddeeva 
-  function algorithm 916 - real part. For more information 
+/*! The Voigt and Faraday-Voigt line shape. Based on rewritten Faddeeva 
+  function algorithm 916. For more information 
   read:
   MOFREH R. ZAGHLOUL and AHMED N. ALI
   Algorithm 916: Computing the Faddeyeva and Voigt Functions
@@ -1672,7 +1684,7 @@ void lineshape_CO2_drayson(Vector&         ls,
   Keep Faddeeva.{cc,hh} up to date in speed and accuracy by watching:
   http://ab-initio.mit.edu/Faddeeva sometimes.
 
-  \retval ls            The shape function.
+  \retval ls_attenuation            The shape function.
   \retval xvector       Auxillary parameter to store frequency grid.
   \param  f0            Line center frequency.
   \param  gamma         The pressure broadening parameter.
@@ -1682,7 +1694,8 @@ void lineshape_CO2_drayson(Vector&         ls,
   \author Richard Larsson 2013-01-17
 
  */ 
-void faddeeva_voigt_algorithm_916_real(Vector&         ls,
+void faddeeva_algorithm_916(     Vector&         ls_attenuation,
+                                       Vector&         ls_phase,
                                        Vector&         xvector,
                                        const Numeric   f0,
                                        const Numeric   gamma,
@@ -1707,7 +1720,7 @@ void faddeeva_voigt_algorithm_916_real(Vector&         ls,
     // frequency in units of Doppler
     for (Index ii=0; ii<nf; ii++)
     {
-        xvector[ii] = (f_grid[ii] - f0) / sigma;
+        xvector[ii] = (f0 - f_grid[ii]) / sigma;
     }
     
     for (Index ii=0; ii<nf; ii++)
@@ -1716,67 +1729,8 @@ void faddeeva_voigt_algorithm_916_real(Vector&         ls,
         
         z = Faddeeva::w(z);
         
-        ls[ii] = fac * z.real();
-    }
-}
-
-
-/*! The Faraday-Voigt line shape. Based on rewritten Faddeeva 
-  function algorithm 916 - imaginary part. For more information 
-  read:
-  MOFREH R. ZAGHLOUL and AHMED N. ALI
-  Algorithm 916: Computing the Faddeyeva and Voigt Functions
-  ACM Transactions on Mathematical Software, Vol. 38, No. 2, Article 15, Publication date: December 2011.
-
-  The main bulk of code is in Faddeeva.cc and written by Steven G. Johnson of MIT.
-  Keep Faddeeva.{cc,hh} up to date in speed and accuracy by watching:
-  http://ab-initio.mit.edu/Faddeeva sometimes.
-
-  \retval ls            The shape function.
-  \retval xvector       Auxillary parameter to store frequency grid.
-  \param  f0            Line center frequency.
-  \param  gamma         The pressure broadening parameter.
-  \param  sigma         The Doppler broadening parameter.
-  \param  f_grid        The frequency grid.
-
-  \author Richard Larsson 2013-01-17
-
- */ 
-void faddeeva_voigt_algorithm_916_imag(Vector&         ls,
-                                       Vector&         xvector,
-                                       const Numeric   f0,
-                                       const Numeric   gamma,
-                                       const Numeric   sigma,
-                                       ConstVectorView f_grid)
-
-{
-    const Index nf = f_grid.nelem();
-    
-    // PI
-    extern const Numeric PI;
-    
-    // constant sqrt(1/pi)
-    const Numeric sqrt_invPI =  sqrt(1/PI);
-    
-    // constant normalization factor for voigt
-    Numeric fac = 1.0 / sigma * sqrt_invPI;
-    
-    // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-    Numeric YNUMERIC = gamma / sigma;
-    
-    // frequency in units of Doppler
-    for (Index ii=0; ii<nf; ii++)
-    {
-        xvector[ii] = (f_grid[ii] - f0) / sigma;
-    }
-    
-    for (Index ii=0; ii<nf; ii++)
-    {
-        std::complex<Numeric> z(xvector[ii], YNUMERIC);
-        
-        z = Faddeeva::w(z);
-        
-        ls[ii] = fac * z.imag();
+        ls_attenuation[ii] = fac * z.real();
+        ls_phase[ii] = fac * z.imag();
     }
 }
 
@@ -1976,15 +1930,9 @@ void define_lineshape_data()
 
     lineshape_data.push_back
     (LineshapeRecord
-    ("Faddeeva_Imaginary_Algorithm_916",
-    "Faraday-Voigt function as per Faddeeva function solution by JPL.",
-    faddeeva_voigt_algorithm_916_imag));
-    
-    lineshape_data.push_back
-    (LineshapeRecord
-    ("Faddeeva_Real_Algorithm_916",
-     "Faraday-Voigt function as per Faddeeva function solution by JPL.",
-     faddeeva_voigt_algorithm_916_real));
+    ("Faddeeva_Algorithm_916",
+    "Voigt and Faraday-Voigt function as per Faddeeva function solution by JPL.",
+    faddeeva_algorithm_916));
 }
 
 /*! The lookup data for the different normalization factors to the

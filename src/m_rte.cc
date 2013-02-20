@@ -693,7 +693,9 @@ void iyEmissionStandard(
             }
           else
             {
-              for( Index iv=0; iv<nf; iv++ )  
+#pragma omp parallel for \
+  if(!arts_omp_in_parallel())
+    for( Index iv=0; iv<nf; iv++ )  
                 {
                   // Unpolarised absorption:
                   if( is_diagonal( trans_partial(iv,joker,joker,ip) ) )

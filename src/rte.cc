@@ -1630,12 +1630,6 @@ void get_ppath_trans(
                         ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
                         ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
                           ELECTRON_MASS * ELECTRON_MASS ) );
-  // Mueller matrix for Faraday rotation (fill constant positions)
-  Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
-  FRmat(0,0) = 1;
-  if( stokes_dim == 4 )
-    { FRmat(3,3) = 1; }
-
 
   // Loop ppath points (in the anti-direction of photons)  
   //
@@ -1656,7 +1650,9 @@ void get_ppath_trans(
       // to identity matrix.
       if( ip == 0 )
         { 
-          for( Index iv=0; iv<nf; iv++ ) 
+            #pragma omp parallel for \
+            if(!arts_omp_in_parallel())
+                for( Index iv=0; iv<nf; iv++ ) 
             {
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
@@ -1677,8 +1673,9 @@ void get_ppath_trans(
               rot_c = ppath.lstep[ip-1] * 0.5*(farrot_c1[ip-1]+farrot_c1[ip]);
               farrot_c2 += rot_c;
             }
-          
-          for( Index iv=0; iv<nf; iv++ ) 
+#pragma omp parallel for \
+  if(!arts_omp_in_parallel())
+    for( Index iv=0; iv<nf; iv++ ) 
             {
               // Transmission due to absorption
               Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
@@ -1702,6 +1699,12 @@ void get_ppath_trans(
                   // Fill up Mueller matrix and include in trans_partial
                   if( stokes_dim > 1 )
                     {
+                      // Mueller matrix for Faraday rotation (fill constant positions)
+                      Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
+                      FRmat(0,0) = 1;
+                      if( stokes_dim == 4 )
+                      { FRmat(3,3) = 1; }
+                        
                       const Numeric cterm = cos( 2*rot_angle );
                       FRmat(1,1) = cterm;
                       //

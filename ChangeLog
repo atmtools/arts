@@ -1,3 +1,29 @@
+2013-02-20  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-511
+
+	* src/absorption.cc (xsec_species): Returns both phase and attenuation line
+	shape. This halves the time spent in line shape functions for Zeeman and it
+	is in preparation for the addition of first order line mixing (which still
+	will require an additional database).
+	
+	* src/rte.cc (get_ppath_trans): Halves the time spent on Faraday rotation
+	for special cases by moving matrix definition and adding parallellisation.
+	
+	* src/m_abs.cc,m_abs_lookup.cc (several places): Changed to allow for phase 
+	and attenuation	shapes. Also prepared for line mixing.
+	
+	* src/workspace.cc: abs_lineshape_zeeman_phase is now gone. 
+	abs_xsec_per_species is replaces by abs_xsec_per_species_attenuation and
+	abs_xsec_per_species_phase.
+	
+	* src/lineshapes.cc: Line shapes now accept and returns a phase line shape.
+	Only algorithm 916 returns phase so far.
+	
+	* src/absorption.h,m_abs_lookup.cc: Changed necessary parts.
+	
+	* src/m_rte.cc: Slight speed improvement for special cases.
+
 2013-02-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-510
@@ -63,6 +89,7 @@
 
 	* doc/uguide/rte_basics.tex: Revised.
 
+>>>>>>> .r8218
 2013-02-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-506

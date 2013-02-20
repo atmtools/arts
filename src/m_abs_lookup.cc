@@ -103,7 +103,8 @@ void abs_lookupCalc(// WS Output:
   Matrix these_abs_coef;
 
   // Absorption cross sections per tag group. 
-  ArrayOfMatrix abs_xsec_per_species;
+  ArrayOfMatrix abs_xsec_per_species_attenuation;
+  ArrayOfMatrix abs_xsec_per_species_phase;
 
 
   // 2. Determine various important sizes:
@@ -407,7 +408,7 @@ void abs_lookupCalc(// WS Output:
   if(!arts_omp_in_parallel()                                   \
      && (these_t_pert_nelem >= arts_omp_get_max_threads() ||   \
          these_t_pert_nelem >= abs_p.nelem()))                 \
-  private(this_t, abs_xsec_per_species)
+         private(this_t, abs_xsec_per_species_attenuation, abs_xsec_per_species_phase)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
               // Skip remaining iterations if an error occurred
@@ -439,10 +440,10 @@ void abs_lookupCalc(// WS Output:
                   // The sequence of function calls here is inspired from
                   // abs_coefCalcSaveMemory. 
 
-                  abs_xsec_per_speciesInit( abs_xsec_per_species, this_species,
-                                            f_grid, abs_p, verbosity );
+                  abs_xsec_per_speciesInit( abs_xsec_per_species_attenuation, abs_xsec_per_species_phase,
+                                            this_species, f_grid, abs_p, verbosity );
 
-                  abs_xsec_per_speciesAddConts( abs_xsec_per_species,
+                  abs_xsec_per_speciesAddConts( abs_xsec_per_species_attenuation,
                                                 this_species,
                                                 f_grid,
                                                 abs_p,
@@ -466,7 +467,8 @@ void abs_lookupCalc(// WS Output:
 //                                                isotopologue_ratios,
 //                                                verbosity);
                   
-                  xsec_species( abs_xsec_per_species[0],
+                  xsec_species(abs_xsec_per_species_attenuation[0],
+                               abs_xsec_per_species_phase[0],
                                f_grid,
                                abs_p,
                                this_t,
@@ -480,13 +482,15 @@ void abs_lookupCalc(// WS Output:
                                isotopologue_ratios,
                                verbosity );
                   
-
+                    if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
+                    {  }
+                  
                   // Store in the right place:
                   // Loop through all altitudes
                   for ( Index p=0; p<n_p_grid; ++p )
                     {
                       abs_lookup.xsec( j, spec, Range(joker), p )
-                        = abs_xsec_per_species[0](Range(joker),p);
+                        = abs_xsec_per_species_attenuation[0](Range(joker),p);
 
                       // There used to be a division by the number density
                       // n here. This is no longer necessary, since

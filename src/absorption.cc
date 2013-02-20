@@ -2871,7 +2871,8 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
     \date   2012-09-03
 
 */
-void xsec_species( MatrixView               xsec,
+void xsec_species( MatrixView               xsec_attenuation,
+                   MatrixView               xsec_phase,
                    ConstVectorView          f_grid,
                    ConstVectorView          abs_p,
                    ConstVectorView          abs_t,
@@ -2919,7 +2920,8 @@ void xsec_species( MatrixView               xsec,
   // normalization factor of the lineshape here, so that we don't need
   // so many free store allocations.  the last element is used to
   // calculate the value at the cutoff frequency
-  Vector ls(nf+1);
+  Vector ls_attenuation(nf+1);
+  Vector ls_phase(nf+1);
   Vector fac(nf+1);
 
   const bool cut = (cutoff != -1) ? true : false;
@@ -3041,17 +3043,26 @@ void xsec_species( MatrixView               xsec,
 
   // Check that the dimension of xsec is indeed [f_grid.nelem(),
   // abs_p.nelem()]:
-  if ( xsec.nrows() != nf || xsec.ncols() != np )
+  if ( xsec_attenuation.nrows() != nf || xsec_attenuation.ncols() != np )
     {
       ostringstream os;
       os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
-         << "[xsec.nrows(),xsec.ncols()] = [" << xsec.nrows()
-         << ", " << xsec.ncols() << "]\n"
+         << "[xsec_attenuation.nrows(),xsec_attenuation.ncols()] = [" << xsec_attenuation.nrows()
+         << ", " << xsec_attenuation.ncols() << "]\n"
          << "f_grid.nelem() = " << nf << '\n'
          << "abs_p.nelem() = " << np;
       throw runtime_error(os.str());
     }
-  
+   if ( xsec_phase.nrows() != nf || xsec_phase.ncols() != np )
+    {
+      ostringstream os;
+      os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
+         << "[xsec_phase.nrows(),xsec_phase.ncols()] = [" << xsec_phase.nrows()
+         << ", " << xsec_phase.ncols() << "]\n"
+         << "f_grid.nelem() = " << nf << '\n'
+         << "abs_p.nelem() = " << np;
+      throw runtime_error(os.str());
+    } 
   
   // Find the location of all broadening species in abs_species. Set to -1 if
   // not found. The length of array broad_spec_locations is the number of allowed
@@ -3072,7 +3083,7 @@ void xsec_species( MatrixView               xsec,
 #pragma omp parallel for                               \
   if(!arts_omp_in_parallel()                           \
      && (np >= arts_omp_get_max_threads() || np > nl)) \
-  firstprivate(ls, fac, f_local, aux)
+     firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
   for ( Index i=0; i<np; ++i )
     {
       if (failed) continue;
@@ -3096,7 +3107,8 @@ void xsec_species( MatrixView               xsec,
       // Get handle on xsec for this pressure level i.
       // Watch out! This is output, we have to be careful not to
       // introduce race conditions when writing to it.
-      VectorView xsec_i = xsec(Range(joker),i);
+      VectorView xsec_i_attenuation = xsec_attenuation(Range(joker),i);
+      VectorView xsec_i_phase = xsec_phase(Range(joker),i);
 
       
 //       if (omp_in_parallel())
@@ -3118,14 +3130,15 @@ void xsec_species( MatrixView               xsec,
         {
           n_lbl_threads = arts_omp_get_max_threads();
         }
-      Matrix xsec_accum(n_lbl_threads, xsec_i.nelem(), 0);
+      Matrix xsec_accum_attenuation(n_lbl_threads, xsec_i_attenuation.nelem(), 0);
+      Matrix xsec_accum_phase(n_lbl_threads, xsec_i_phase.nelem(), 0);
 
 
       // Loop all lines:
 
 #pragma omp parallel for                                            \
   if(!arts_omp_in_parallel())                                       \
-  firstprivate(ls, fac, f_local, aux) 
+      firstprivate(ls_attenuation, ls_phase, fac, f_local, aux) 
       for ( Index l=0; l< nl; ++l )
         {
           // Skip remaining iterations if an error occurred
@@ -3156,7 +3169,8 @@ void xsec_species( MatrixView               xsec,
               Index nfls = nf;      
 
               // The baseline to substract for cutoff frequency
-              Numeric base=0.0;
+              Numeric base_attenuation=0.0;
+              Numeric base_phase=0.0;
 
               // abs_lines[l] is used several times, this construct should be
               // faster (Oliver Lemke)
@@ -3379,7 +3393,7 @@ void xsec_species( MatrixView               xsec,
                   //                    << nfls << endl;
 
                   // Calculate the line shape:
-                  lineshape_data[ind_ls].Function()(ls,
+                  lineshape_data[ind_ls].Function()(ls_attenuation,ls_phase,
                                                     aux,F0,gamma,sigma,
                                                     f_local[Range(i_f_min,nfls)]);
 
@@ -3390,10 +3404,12 @@ void xsec_species( MatrixView               xsec,
 
                   // Get a handle on the range of xsec that we want to change.
                   // We use nfl here, which could be one less than nfls.
-                  VectorView this_xsec = xsec_accum(arts_omp_get_thread_num(), Range(i_f_min,nfl));
+                  VectorView this_xsec_attenuation      = xsec_accum_attenuation(arts_omp_get_thread_num(), Range(i_f_min,nfl));
+                  VectorView this_xsec_phase            = xsec_accum_phase(arts_omp_get_thread_num(), Range(i_f_min,nfl));
 
                   // Get handles on the range of ls and fac that we need.
-                  VectorView this_ls  = ls[Range(0,nfl)];
+                  VectorView this_ls_attenuation  = ls_attenuation[Range(0,nfl)];
+                  VectorView this_ls_phase  = ls_phase[Range(0,nfl)];
                   VectorView this_fac = fac[Range(0,nfl)];
 
                   // cutoff ?
@@ -3401,11 +3417,13 @@ void xsec_species( MatrixView               xsec,
                     {
                       // The index nfls-1 should be exactly the index pointing
                       // to the value at the cutoff frequency.
-                      base = ls[nfls-1];
+                      base_attenuation = ls_attenuation[nfls-1];
+                      base_phase = ls_phase[nfls-1];
 
                       // Subtract baseline from xsec. 
                       // this_xsec -= base;
-                      this_ls -= base;
+                      this_ls_attenuation -= base_attenuation;
+                      this_ls_phase       -= base_phase;
                     }
 
                   // Add line to xsec. 
@@ -3431,10 +3449,13 @@ void xsec_species( MatrixView               xsec,
                     // We use ls as a dummy to compute the product, then add it
                     // to this_xsec.
 
-                    this_ls *= this_fac;
-                    this_ls *= factors;
-
-                    this_xsec += this_ls;
+                    this_ls_attenuation *= this_fac;
+                    this_ls_attenuation *= factors;
+                    this_ls_phase *= this_fac;
+                    this_ls_phase *= factors;
+                    
+                    this_xsec_attenuation += this_ls_attenuation;
+                    this_xsec_phase += this_ls_phase;
 
                   }
                 }
@@ -3452,11 +3473,14 @@ void xsec_species( MatrixView               xsec,
       if (failed) continue;
 
       // Now we just have to add up all the rows of xsec_accum:
-      for (Index j=0; j<xsec_accum.nrows(); ++j)
+      for (Index j=0; j<xsec_accum_attenuation.nrows(); ++j)
         {
-          xsec_i += xsec_accum(j, Range(joker));
+          xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
         }
-
+      for (Index j=0; j<xsec_accum_phase.nrows(); ++j)
+        {
+            xsec_i_phase += xsec_accum_phase(j, Range(joker));
+        }
     } // end of parallel pressure loop
 
   if (failed) throw runtime_error("Run-time error in function: xsec_species\n" + fail_msg);

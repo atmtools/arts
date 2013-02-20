@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2000-2012
    Stefan Buehler   <sbuehler@ltu.se>
    Patrick Eriksson <patrick.eriksson@chalmers.se>
@@ -1295,11 +1296,13 @@ void abs_coefCalc(// WS Output:
   // Dimension checks are performed in the executed functions
 
   // allocate local variable to hold the cross sections per tag group
-  ArrayOfMatrix abs_xsec_per_species;
+  ArrayOfMatrix abs_xsec_per_species_attenuation, abs_xsec_per_species_phase;
   
-  abs_xsec_per_speciesInit(abs_xsec_per_species, tgs, f_grid, abs_p, verbosity);
+  abs_xsec_per_speciesInit(abs_xsec_per_species_attenuation, 
+                           abs_xsec_per_species_phase,
+                           tgs, f_grid, abs_p, verbosity);
 
-  abs_xsec_per_speciesAddConts(abs_xsec_per_species,
+  abs_xsec_per_speciesAddConts(abs_xsec_per_species_attenuation,
                                tgs,
                                f_grid,
                                abs_p,
@@ -1312,7 +1315,8 @@ void abs_coefCalc(// WS Output:
                                abs_cont_models,
                                verbosity);
 
-  abs_xsec_per_speciesAddLines(abs_xsec_per_species,
+  abs_xsec_per_speciesAddLines(abs_xsec_per_species_attenuation,
+                               abs_xsec_per_species_phase,
                                tgs,
                                f_grid,
                                abs_p,
@@ -1322,10 +1326,13 @@ void abs_coefCalc(// WS Output:
                                abs_lineshape,
                                isotopologue_ratios,
                                verbosity);
+  
+  if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
+                {  }
 
   abs_coefCalcFromXsec(abs_coef,
                        abs_coef_per_species,
-                       abs_xsec_per_species,
+                       abs_xsec_per_species_attenuation,
                        abs_vmrs,
                        abs_p,
                        abs_t,
@@ -1358,7 +1365,7 @@ void abs_coefCalcSaveMemory(// WS Output:
   // Dimension checks are performed in the executed functions
 
   // Allocate local variable to hold the cross sections per tag group:
-  ArrayOfMatrix abs_xsec_per_species;
+  ArrayOfMatrix abs_xsec_per_species_attenuation, abs_xsec_per_species_phase;
 
   // Allocate local variable to hold the absorption for each tag group:
   Matrix this_abs;
@@ -1405,9 +1412,11 @@ void abs_coefCalcSaveMemory(// WS Output:
       // List of lineshapes:
       this_lineshape[0] = abs_lineshape[i];
 
-      abs_xsec_per_speciesInit(abs_xsec_per_species, this_tg, f_grid, abs_p, verbosity);
+      abs_xsec_per_speciesInit(abs_xsec_per_species_attenuation, 
+                               abs_xsec_per_species_phase, 
+                               this_tg, f_grid, abs_p, verbosity);
 
-      abs_xsec_per_speciesAddConts(abs_xsec_per_species,
+      abs_xsec_per_speciesAddConts(abs_xsec_per_species_attenuation,
                                    this_tg,
                                    f_grid,
                                    abs_p,
@@ -1420,7 +1429,8 @@ void abs_coefCalcSaveMemory(// WS Output:
                                    abs_cont_models,
                                    verbosity);
 
-      abs_xsec_per_speciesAddLines(abs_xsec_per_species,
+      abs_xsec_per_speciesAddLines(abs_xsec_per_species_attenuation,
+                                   abs_xsec_per_species_phase,
                                    this_tg,
                                    f_grid,
                                    abs_p,
@@ -1430,10 +1440,13 @@ void abs_coefCalcSaveMemory(// WS Output:
                                    this_lineshape,
                                    isotopologue_ratios,
                                    verbosity);
-
+      
+      if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
+                {  }
+      
       abs_coefCalcFromXsec(this_abs,
                            this_abs_coef_per_species,
-                           abs_xsec_per_species,
+                           abs_xsec_per_species_attenuation,
                            this_vmr,
                            abs_p,
                            abs_t,
@@ -1528,7 +1541,8 @@ void abs_coefCalcFromXsec(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesInit(// WS Output:
-                              ArrayOfMatrix&   abs_xsec_per_species,
+                              ArrayOfMatrix&   abs_xsec_per_species_attenuation,
+                              ArrayOfMatrix&   abs_xsec_per_species_phase,
                               // WS Input:
                               const ArrayOfArrayOfSpeciesTag& tgs,
                               const Vector&    f_grid,
@@ -1540,15 +1554,18 @@ void abs_xsec_per_speciesInit(// WS Output:
   
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
-  abs_xsec_per_species.resize( tgs.nelem() );
+  abs_xsec_per_species_attenuation.resize( tgs.nelem() );
+  abs_xsec_per_species_phase.resize( tgs.nelem() );
 
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero:
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
       // Make this element of abs_coef_per_species the right size:
-      abs_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
-      abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.
+      abs_xsec_per_species_attenuation[i].resize( f_grid.nelem(), abs_p.nelem() );
+      abs_xsec_per_species_attenuation[i] = 0;       // Matpack can set all elements like this.
+      abs_xsec_per_species_phase[i].resize( f_grid.nelem(), abs_p.nelem() );
+      abs_xsec_per_species_phase[i] = 0;       // Matpack can set all elements like this.
     }
 
   ostringstream os;
@@ -1561,7 +1578,8 @@ void abs_xsec_per_speciesInit(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLines(// WS Output:
-                                  ArrayOfMatrix&                   abs_xsec_per_species,
+                                  ArrayOfMatrix&                   abs_xsec_per_species_attenuation,
+                                  ArrayOfMatrix&                   abs_xsec_per_species_phase,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
                                   const Vector&                    f_grid,
@@ -1589,7 +1607,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
   // groups as a dimension are consistent.
   {
     const Index n_tgs    = tgs.nelem();
-    const Index n_xsec   = abs_xsec_per_species.nelem();
+    const Index n_xsec   = abs_xsec_per_species_attenuation.nelem();
     const Index n_vmrs   = abs_vmrs.nrows();
     const Index n_lines  = abs_lines_per_species.nelem();
     const Index n_shapes = abs_lineshape.nelem();
@@ -1603,7 +1621,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
         ostringstream os;
         os << "The following variables must all have the same dimension:\n"
            << "tgs:          " << tgs.nelem() << "\n"
-           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
+           << "abs_xsec_per_species:  " << abs_xsec_per_species_attenuation.nelem() << "\n"
            << "abs_vmrs:         " << abs_vmrs.nrows() << "\n"
            << "abs_lines_per_species: " << abs_lines_per_species.nelem() << "\n"
            << "abs_lineshape:    " << abs_lineshape.nelem() << "\n"
@@ -1765,8 +1783,9 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                     }
                 }
             }
-
-          xsec_species( abs_xsec_per_species[i],
+            
+            xsec_species( abs_xsec_per_species_attenuation[i],
+                        abs_xsec_per_species_phase[i],
                         f_grid,
                         abs_p,
                         abs_t,
@@ -1782,6 +1801,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
           // Note that we call xsec_species with a row of abs_vmrs,
           // selected by the above Matpack expression. This is
           // possible, because xsec_species is using Views.
+          
         }
 
       {
@@ -1797,7 +1817,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddConts(// WS Output:
-                                  ArrayOfMatrix&                   abs_xsec_per_species,
+                                  ArrayOfMatrix&                   abs_xsec_per_species_attenuation,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
                                   const Vector&                    f_grid,
@@ -1817,7 +1837,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
   // groups as a dimension are consistent.
   {
     const Index n_tgs    = tgs.nelem();
-    const Index n_xsec   = abs_xsec_per_species.nelem();
+    const Index n_xsec   = abs_xsec_per_species_attenuation.nelem();
     const Index n_vmrs   = abs_vmrs.nrows();
 
     if ( n_tgs != n_xsec || n_tgs != n_vmrs )
@@ -1825,7 +1845,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
         ostringstream os;
         os << "The following variables must all have the same dimension:\n"
            << "tgs:          " << tgs.nelem() << "\n"
-           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
+           << "abs_xsec_per_species:  " << abs_xsec_per_species_attenuation.nelem() << "\n"
            << "abs_vmrs.nrows():      " << abs_vmrs.nrows();
         throw runtime_error(os.str());
       }
@@ -2024,7 +2044,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // abs_vmrs(i,Range(joker)). The other vmr variable, `abs_h2o'
                   // contains the real H2O vmr, which is needed for
                   // the oxygen continuum.
-                  xsec_continuum_tag( abs_xsec_per_species[i],
+                  xsec_continuum_tag( abs_xsec_per_species_attenuation[i],
                                       name,
                                       abs_cont_parameters[n],
                                       abs_cont_models[n], 

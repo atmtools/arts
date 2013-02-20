@@ -393,19 +393,6 @@ void Workspace::define_wsv_data()
         "may use different lineshapes.\n"
        ),
        GROUP( "ArrayOfLineshapeSpec" )));
-    
-    wsv_data.push_back
-    (WsvRecord
-    ( NAME( "abs_lineshape_zeeman_phase" ),
-      DESCRIPTION
-      (
-          "Lineshape specification: function, norm, cutoff. There is one entry for\n"
-          "each abs_tag, not for each species. This means if you have several\n"
-          "abs_tags for different isotopologues or transitions of a species, you\n"
-          "may use different lineshapes.\n\n"
-          "This function will act as the Faraday rotation for Zeeman species.\n"
-      ),
-      GROUP( "ArrayOfLineshapeSpec" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -720,10 +707,10 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "abs_xsec_per_species" ),
+     ( NAME( "abs_xsec_per_species_attenuation" ),
        DESCRIPTION
        (
-        "Absorption cross sections.\n"
+        "Absorption cross sections attenuation.\n"
         "\n"
         "This variable contains absorption cross section xsec individually for\n"
         "each tag group. The Array contains one matrix for each tag group, the\n"
@@ -736,6 +723,24 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "ArrayOfMatrix" )));
 
+    wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_xsec_per_species_phase" ),
+      DESCRIPTION
+      (
+          "Absorption cross sections phase.\n"
+          "\n"
+          "This variable contains absorption cross section xsec individually for\n"
+          "each tag group. The Array contains one matrix for each tag group, the\n"
+          "matrix format is the same as that of abs_coef.\n"
+          "\n"
+          "Dimensions: [abs_species](f_grid, abs_p)\n"
+          "\n"
+          "Unit:       m^2 (alpha = xsec * n * VMR),\n"
+          "            where n is total density.\n"
+      ),
+      GROUP( "ArrayOfMatrix" )));
+    
   wsv_data.push_back
    (WsvRecord
     ( NAME( "antenna_dim" ),

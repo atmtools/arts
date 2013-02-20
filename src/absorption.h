@@ -42,6 +42,7 @@
     functions.  */
 typedef void (*lsf_type)(Vector&,
                          Vector&,
+                         Vector&,
                          const Numeric,
                          const Numeric,
                          const Numeric,
@@ -1493,7 +1494,8 @@ ostream& operator<< (ostream& os, const SpeciesAuxData& sad);
 void define_species_map();
 
 
-void xsec_species( MatrixView               xsec,
+void xsec_species(MatrixView               xsec_attenuation,
+                  MatrixView               xsec_phase,
                   ConstVectorView          f_grid,
                   ConstVectorView          abs_p,
                   ConstVectorView          abs_t,
