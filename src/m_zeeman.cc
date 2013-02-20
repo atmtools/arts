@@ -987,8 +987,6 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         }
         
         Numeric DF, RS; // Delta Frequency and Relative Strength
-theta=0,eta=0;
-        //cout << "theta = [theta,"<<theta<<"];eta=[eta,"<<eta<<"];B=[B,"<<sqrt(rte_mag*rte_mag)<<"];\n";
         
         // For all species
         for(Index II = 0; II<abs_species.nelem(); II++)
@@ -1004,7 +1002,6 @@ theta=0,eta=0;
             {
                 // local LineRecord
                 LineRecord temp_LR = abs_lines_per_species[II][ii];
-                //cout<<temp_LR.F()<< endl << temp_LR.I0()<<endl;
                 const Rational J  = temp_LR.Lower_J();
                 const Rational N  = temp_LR.Lower_N();
                 const Numeric S   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 1);
@@ -1018,7 +1015,6 @@ theta=0,eta=0;
                 {
                     if ( true )
                     {
-                        //cout << "\n\n RSpi=[];RSsm=[];RSsp=[];DFpi=[];DFsm=[];DFsp=[];\n";
                         for ( Rational M = -J+DJ; M<=J-DJ; M++ )
                         {
                             /*
@@ -1035,9 +1031,6 @@ theta=0,eta=0;
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
-                                //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
-                                //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
-                                
                                 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                 RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1045,8 +1038,6 @@ theta=0,eta=0;
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
-                                //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
-                                //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
                                 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
                                 RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
@@ -1054,8 +1045,6 @@ theta=0,eta=0;
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
-                                //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
-                                //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
                             }
                             else if ( DJ ==  0 )
                             { // Then all DM transitions possible for all M
@@ -1065,8 +1054,6 @@ theta=0,eta=0;
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sm.push_back(temp_LR);
-                            //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
-                            //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                             if( ! (M == 0) )
                             {
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
@@ -1075,8 +1062,6 @@ theta=0,eta=0;
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
-                                //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
-                                //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
                             }
                             
                             DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
@@ -1085,8 +1070,6 @@ theta=0,eta=0;
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sp.push_back(temp_LR);
-                            //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
-                            //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
                             }
                             else if ( DJ == -1 )
                             { // Then certain M results in blocked DM transitions
@@ -1098,8 +1081,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
-                                    //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
-                                    //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
                                     
                                 }
                                 else if ( M == -J + DJ + 1 && M!=0 )
@@ -1110,8 +1091,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
-                                    //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
-                                    //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1119,8 +1098,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
-                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
-                                    //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
                                 }
                                 else if ( M ==  J - DJ - 1 && M!=0 )
                                 { // Next to upper limit M can only allow DM = 0, -1
@@ -1130,8 +1107,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
-                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
-                                    //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
@@ -1139,8 +1114,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
-                                    //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
-                                    //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                                 }
                                 else if ( M == J - DJ && M!=0 )
                                 { // Upper limit M only allow DM = -1
@@ -1150,8 +1123,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
-                                    //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
-                                    //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                                 }
                                 else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
                                 { // Special case for N=1, J=0, M=0. Only allows DM = 0
@@ -1161,8 +1132,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
-                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
-                                    //cout << "RSpi = [RSpi," << RS<<"];"<<endl;
                                 }
                                 else
                                 { // All DM transitions are possible for these M(s)
@@ -1172,8 +1141,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
-                                    //cout << "DFsp = [DFsp," << DF<<"];"<<endl;
-                                    //cout << "RSsp = [RSsp," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1181,8 +1148,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
-                                    //cout << "DFpi = [DFpi," << DF<<"];"<<endl;
-                                    //cout << "RSpi = [RSpi," <<RS<<"];"<<endl;
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
@@ -1190,8 +1155,6 @@ theta=0,eta=0;
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
-                                    //cout << "DFsm = [DFsm," << DF<<"];"<<endl;
-                                    //cout << "RSsm = [RSsm," <<RS<<"];"<<endl;
                                 }
                             }
                             else

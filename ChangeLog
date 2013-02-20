@@ -1,3 +1,9 @@
+2013-02-20  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-513
+	
+	* src/m_zeeman.cc: My last update broke Zeeman.
+
 2013-02-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-512
@@ -38,7 +44,7 @@
 	Totally new WSV: rte_alonglos_v, rtp_pos
 
 	In addition, rte_vmr_list renamed to rtp_abs_species
-
+	
 2013-02-20  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-511
