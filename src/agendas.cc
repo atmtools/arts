@@ -59,15 +59,15 @@ void define_agenda_data()
         "This agenda calculates absorption coefficients for all gas species\n"
         "as a function of the given atmospheric state for one point in the\n"
         "atmosphere. The result is returned in *abs_mat_per_species*, the\n"
-        "atmospheric state has to be specified by *rte_pressure*,\n"
-        "*rte_temperature*, *rte_mag*, and *rte_vmr_list*.\n"
+        "atmospheric state has to be specified by *rtp_pressure*,\n"
+        "*rtp_temperature*, *rtp_mag*, and *rtp_abs_species*.\n"
         "\n"
         "The methods inside this agenda may require a lot of additional\n"
         "input variables, such as *abs_species*, etc.\n"
         ),
        OUTPUT( "abs_mat_per_species" ),
-       INPUT(  "f_grid", "rte_doppler", "rte_mag", "ppath_los", "rte_pressure", "rte_temperature",
-               "rte_vmr_list" )));
+       INPUT(  "f_grid", "rtp_doppler", "rtp_mag", "rtp_los", "rtp_pressure", 
+               "rtp_temperature", "rtp_abs_species" )));
   
   agenda_data.push_back
     (AgRecord
@@ -77,10 +77,10 @@ void define_agenda_data()
         "Returns *blackbody_radiation*.\n"
         "\n"
         "The task of this agenda is to return *blackbody_radiation* for the\n"
-        "given temperature (*rte_temperature*).\n"
+        "given temperature (*rtp_temperature*).\n"
         ),
        OUTPUT( "blackbody_radiation" ),
-       INPUT( "rte_temperature", "f_grid" )));
+       INPUT( "rtp_temperature", "f_grid" )));
  
  agenda_data.push_back
     (AgRecord
@@ -279,7 +279,7 @@ void define_agenda_data()
         "shall be determined.\n"
         ),
        OUTPUT( "iy" ),
-       INPUT( "f_grid", "rte_pos", "rte_los" )));
+       INPUT( "f_grid", "rtp_pos", "rtp_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -311,13 +311,13 @@ void define_agenda_data()
         "Possible terms to include in this agenda include cosmic background\n"
         "radiation and solar radiation.\n"
         "\n"
-        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "A function calling this agenda shall set *rtp_pos* and *rtp_los* to\n"
         "the position and line-of-sight for which the entering radiation \n"
         "shall be determined. The position and line-of-sight must be known, \n"
         "for example, when radiation from the sun is considered.\n"
         ),
        OUTPUT( "iy" ),
-       INPUT( "f_grid", "rte_pos", "rte_los" )));
+       INPUT( "f_grid", "rtp_pos", "rtp_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -351,14 +351,14 @@ void define_agenda_data()
         "The standard choice should be to make use of *surface_rtprop_agenda*\n"
         "through the WSM *iySurfaceRtpropAgenda*.\n"
         "\n"
-        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "A function calling this agenda shall set *rtp_pos* and *rtp_los* to\n"
         "the position and line-of-sight for which the upwelling radiation\n"
         "shall be determined.\n"
         ),
        OUTPUT( "iy", "diy_dx" ),
        INPUT( "iy_transmission", "cloudbox_on", 
               "jacobian_do", "t_field", "z_field", "vmr_field", "f_grid",
-              "iy_main_agenda", "rte_pos", "rte_los", "rte_pos2" )));
+              "iy_main_agenda", "rtp_pos", "rtp_los", "rte_pos2" )));
 
   agenda_data.push_back
     (AgRecord
@@ -373,7 +373,7 @@ void define_agenda_data()
         "an artificial device.\n"
         ),
        OUTPUT( "iy" ),
-       INPUT( "f_grid", "rte_pos", "rte_los" )));
+       INPUT( "f_grid", "rtp_pos", "rtp_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -487,7 +487,7 @@ void define_agenda_data()
         ),
        OUTPUT( "pha_mat_spt"),
        INPUT( "pha_mat_spt", "scat_za_index", "scat_lat_index", "scat_lon_index",
-              "scat_p_index", "scat_aa_index", "rte_temperature")));
+              "scat_p_index", "scat_aa_index", "rtp_temperature")));
        
   agenda_data.push_back
     (AgRecord
@@ -569,8 +569,8 @@ void define_agenda_data()
         "group velocity.\n"
         ),
        OUTPUT( "refr_index", "refr_index_group" ),
-       INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list", 
-               "rte_edensity", "f_grid" )));
+       INPUT(  "rtp_pressure", "rtp_temperature", "rtp_abs_species", 
+               "rtp_edensity", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord
@@ -603,7 +603,7 @@ void define_agenda_data()
        OUTPUT( "ext_mat_spt", "abs_vec_spt"),
        INPUT(  "ext_mat_spt", "abs_vec_spt",
                "scat_p_index", "scat_lat_index", "scat_lon_index",
-               "rte_temperature", "scat_za_index", "scat_aa_index"
+               "rtp_temperature", "scat_za_index", "scat_aa_index"
                )));
 
   agenda_data.push_back
@@ -622,7 +622,7 @@ void define_agenda_data()
         "*surfaceFlatRefractiveIndex*, and *surfaceLambertianSimple*.\n"
         ),
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
-       INPUT( "f_grid", "rte_pos", "rte_los" )));
+       INPUT( "f_grid", "rtp_pos", "rtp_los" )));
 
   agenda_data.push_back
     (AgRecord

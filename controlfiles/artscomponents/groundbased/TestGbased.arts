@@ -159,8 +159,8 @@ z_fieldFromHSE
 # This to faciliate comparison of spectra from the different observation modes
 
 AgendaSet( iy_space_agenda ){
-  Ignore( rte_pos )
-  Ignore( rte_los )
+  Ignore( rtp_pos )
+  Ignore( rtp_los )
   nelemGet( nelem, f_grid )
   MatrixSetConstant( iy, nelem, stokes_dim, 0 )
 }

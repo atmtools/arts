@@ -2931,21 +2931,6 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppath_los" ),
-      DESCRIPTION
-      (
-       "A propagation path step.\n"
-       "\n"
-       "The main intention of this variable is communication with the agenda\n"
-       "*abs_mat_per_species_agenda*.\n"
-       "\n"
-       "This is simply a way to pass on ppath.los[ip,joker].\n"
-       "\n"
-       ),
-      GROUP( "Vector" )));
-   
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "ppath_lraytrace" ),
       DESCRIPTION
       (
@@ -3117,39 +3102,23 @@ void Workspace::define_wsv_data()
       GROUP( "Vector" )));
 
   wsv_data.push_back
-  (WsvRecord
-   ( NAME( "rte_doppler" ),
-    DESCRIPTION
-    (
-     "A doppler shift for radiative transfer calculations.\n"
-     "\n"
-     "This scalar variable can hold the local doppler shift. It is intended\n"
-     "mainly for communication with various methods and agendas, such as\n"
-     "methods and agendas calculating absorption coefficients.\n"
-     "\n"
-     "Positive values mean that the spectrum is shifted towards higher\n"
-     "frequencies\n"
-     "\n"
-     "Usage: Communication variable.\n"
-     "\n"
-     "Units: [ Hz ]\n"
-     ),
-    GROUP( "Numeric" )));
-  
-  wsv_data.push_back
    (WsvRecord
-    ( NAME( "rte_edensity" ),
+    ( NAME( "rte_alonglos_v" ),
       DESCRIPTION
       (
-       "An electron density for radiative transfer calculations.\n"
+       "Velocity along the line-of-sight to consider for a RT calculation.\n"
        "\n"
-       "This scalar variable can hold the local electron density. It is\n"
-       "intended mainly for communication with various methods and agendas,\n"
-       "such as methods and agendas calculating refractive index.\n"
+       "This variable gives the velocity of the imaginary detector in\n"
+       "monochromatic pencil beam calculations. The relevant velocity is\n"
+       "the projection along the line-of-sight (ie. total velocity shall not\n"
+       "be given). A positive value means a movement of the detector in the\n"
+       "same direction as the line-of-sight.\n"
        "\n"
-       "Usage: Communication variable.\n"
+       "This variable is required to include Doppler effects due to\n"
+       "velocities of the observer, relative the centre of the coordinate\n"
+       "system used that is fixed to the planets centre point.\n"
        "\n"
-       "Units: [ 1/m3 ]\n"
+       "Unit: [ m/s ]\n"
        ),
       GROUP( "Numeric" )));
 
@@ -3158,10 +3127,11 @@ void Workspace::define_wsv_data()
     ( NAME( "rte_los" ),
       DESCRIPTION
       (
-       "A line-of-sight for radiative transfer calculations.\n"
+       "A line-of-sight for (complete) radiative transfer calculations.\n"
        "\n"
-       "The main purpose of this WSV and *rte_pos* is communication with \n"
-       "different agendas involved in the RTE calculations.\n"
+       "This variable gives the observation direction for monochromatic\n"
+       "pencil beam calculations. Hence, it is the line-of-sight at the end\n"
+       "point of the propagation path.\n"
        "\n"
        "For 1D and 2D cases, *rte_los* is a vector of length 1 holding the \n"
        "zenith angle. For 3D, the length of the vector is 2, where the\n"
@@ -3179,35 +3149,17 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rte_mag" ),
-      DESCRIPTION
-      (
-       "The magnetic field at a single point.\n"
-       "\n"
-       "The main purpose of this WSV is for the Zeeman effect.\n"
-       "\n"
-       "See *mag_u_field* etc. for a definition of the different components.\n"
-       "This is a vector of length three, even if any of the fields is set\n"
-       "to be empty.\n"
-       "\n"
-       "Units: T\n"
-       "\n"
-       "Size:  [ u-component, v-component, w-component ]\n"
-       ),
-      GROUP( "Vector" )));
-   
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "rte_pos" ),
       DESCRIPTION
       (
-       "A geographical position for radiative transfer calculations.\n"
+       "A geographical position for starting radiative transfer calculations.\n"
        "\n"
-       "The main purpose of this WSV and *rte_los* is communication with \n"
-       "different agendas involved in the RTE calculations.\n"
-        "\n"
+       "This variable gives the observation position for monochromatic\n"
+       "pencil beam calculations. Hence, it is the end point of the\n"
+       "propagation path.\n"
+       "\n"
        "This variable is a vector with a length equalling the atmospheric\n"
-       "dimensionality. The first element is the geomtrical altitude.\n"
+       "dimensionality. The first element is the geometrical altitude.\n"
        "Element 2 is the latitude and element 3 is the longitude.\n"
        "\n"
        "Usage: See above. \n"
@@ -3223,11 +3175,14 @@ void Workspace::define_wsv_data()
     ( NAME( "rte_pos2" ),
       DESCRIPTION
       (
-       "A second geographical position for radiative transfer calculations.\n"
+       "A second geographical position to define the geometry for\n"
+       "radiative transfer calculations.\n"
        "\n"
-       "Used when the propagation path is defined by two positions, instead\n"
-       "of a position and a line-of-sight. That is, this variable basically\n"
-       "replaces *rte_los* for the cases of consideration.\n"
+       "This variable is used when the propagation path is defined by two\n"
+       "positions, instead of a position (*rte_pos*) and a line-of-sight\n"
+       "(*rte_los*). That is, this variable basically replaces *rte_los*\n"
+       "for the cases of consideration. In practice, *rte_los* is determined\n"
+       "by finding the propagation path between *rte_pos* and *rte_pos2*.\n"
        "\n"
        "As *rte_pos* with the exception that a \"latitude\" must also be\n"
        "specified for 1D. This is the angular distance to *rte_pos*, where\n"
@@ -3243,14 +3198,118 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rte_pressure" ),
+    ( NAME( "rtp_doppler" ),
       DESCRIPTION
       (
-       "A pressure for radiative transfer calculations.\n"
+       "Doppler shift at a radiative transfer point.\n"
        "\n"
-       "This scalar variable can hold the local pressure. It is intended\n"
-       "mainly for communication with various methods and agendas, such as\n"
-       "methods and agendas calculating absorption coefficients.\n"
+       "This scalar variable holds the local Doppler shift. Positive values\n"
+       "mean that the spectrum is shifted towards higher frequencies\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ Hz ]\n"
+       ),
+      GROUP( "Numeric" )));
+  
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rtp_edensity" ),
+      DESCRIPTION
+      (
+       "Electron density at a radiative transfer point.\n"
+       "\n"
+       "This scalar variable holds the local electron density.\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ 1/m3 ]\n"
+       ),
+      GROUP( "Numeric" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rtp_mag" ),
+      DESCRIPTION
+      (
+       "Magnetic field at a radiative transfer point.\n"
+       "\n"
+       "See *mag_u_field* etc. for a definition of the different components.\n"
+       "For this variable the components are put together and thus defines\n"
+       "magnetic field vector. Hence, this is a vector of length three, even\n"
+       "if any of the input fields is set to be empty.\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: T\n"
+       "\n"
+       "Size:  [ u-component, v-component, w-component ]\n"
+       ),
+      GROUP( "Vector" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rtp_los" ),
+      DESCRIPTION
+      (
+       "Line-of-sight at a radiative transfer point.\n"
+       "\n"
+       "This variable holds the local line-of-sight. The angles of this\n"
+       "vector are defined as for *rte_los*.\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ degree, degree ]\n"
+       "\n"
+       "Size:  [ 1 or 2 ]\n"
+       ),
+      GROUP( "Vector" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rtp_pos" ),
+      DESCRIPTION
+      (
+       "Position of a radiative transfer point.\n"
+       "\n"
+       "This angles vector is defined as *rte_pos*, but holds position along\n"
+       "the propgation path, or the start point for new paths, in contrast\n"
+       "to *rte_pos* that is position of the (imaginary) detector.\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ m, degree, degree ]\n"
+       "\n"
+       "Size:  [ atmosphere_dim ]\n"
+       ),
+      GROUP( "Vector" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rtp_pressure" ),
+      DESCRIPTION
+      (
+       "Pressure at a radiative transfer point.\n"
+       "\n"
+       "This scalar variable holds the local pressure.\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
        "\n"
        "Usage: Communication variable.\n"
        "\n"
@@ -3260,14 +3319,16 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rte_temperature" ),
+    ( NAME( "rtp_temperature" ),
       DESCRIPTION
       (
-       "A temperature for radiative transfer calculations.\n"
+       "Temperature at a radiative transfer point.\n"
        "\n"
        "This scalar variable can hold the local temperature. It is intended\n"
        "mainly for communication with various methods and agendas, such as\n"
        "methods and agendas calculating absorption coefficients.\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
        "\n"
        "Usage: Communication variable.\n"
        "\n"
@@ -3277,19 +3338,20 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rte_vmr_list" ),
+    ( NAME( "rtp_abs_species" ),
       DESCRIPTION
       (
-       "A list of VMR values for radiative transfer calculations.\n"
+       "Absorption species abundances for radiative transfer calculations.\n"
        "\n"
-       "This vector variable holds the local VMR value for all used species\n"
-       "(as given by *abs_species*). It is intended mainly for communication\n"
-       "with various methods and agendas, such as methods and agendas \n"
-       "calculating absorption coefficients.\n"
+       "This vector variable holds the local abundance of the constituents\n"
+       "included in *abs_species*.\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
        "\n"
        "Usage: Communication variable.\n"
        "\n"
-       "Units: [ Absolute value ]\n"
+       "Units: [ Differ between the elements, can be VMR, g/m3 or #/m3. ]\n"
        "\n"
        "Size:  Should match abs_species.nelem()\n"
        ),
@@ -4527,10 +4589,7 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "\n"
-       "Usage:      Calculated internally.\n"
-       "\n"
-       "Unit:        absolute numbers \n"
+       "Units: [ Differ between the elements, can be VMR, g/m3 or #/m3. ]\n"
        "\n"
        "Dimensions: [species, p_grid, lat_grid, lon_grid]\n"
         ),

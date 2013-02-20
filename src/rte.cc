@@ -378,6 +378,51 @@ void bending_angle1d(
 
 
 
+//! calc_doppler
+/*!
+    Calculates the Doppler shift at a point along the path.
+
+    \param    rtp_doppler      Out: Doppler shift.
+    \param    f_grid           As the WSV.
+    \param    atmosphere_dim   As the WSV.
+    \param    rte_alonglos_v   As the WSV.
+    \param    rtp_los          As the WSV.
+    \param    wind_u           Local u-wind.
+    \param    wind_v           Local v-wind.
+    \param    wind_w           Local w-wind.
+
+    \author Patrick Eriksson 
+    \date   2012-04-05
+*/
+void calc_doppler( 
+        Numeric&   rtp_doppler,
+  ConstVectorView  f_grid, 
+  const Index&     atmosphere_dim,
+  const Numeric&   rte_alonglos_v,
+  const Numeric&   rtp_los,
+  const Numeric&   wind_u,
+  const Numeric&   wind_v,
+  const Numeric&   wind_w )
+{
+  // Frequency to apply for Doppler shift
+  const Numeric f_doppler = ( f_grid[0] + f_grid[f_grid.nelem()-1] ) / 2.0;
+
+  // Doppler relevant velocity
+  //
+  Numeric v_doppler = rte_alonglos_v;
+  //
+  if( wind_v != 0  ||  wind_u != 0  ||  wind_w != 0 )
+    {
+      v_doppler += dotprod_with_los( rtp_los, wind_u, wind_v, 
+                                                      wind_w, atmosphere_dim );
+    }
+
+  // Convert to a frequency shift
+  rtp_doppler = f_doppler * v_doppler / SPEED_OF_LIGHT;
+}
+
+
+
 //! defocusing_general_sub
 /*!
     Just to avoid duplicatuion of code in *defocusing_general*.
@@ -1141,7 +1186,7 @@ void get_ppath_atmvars(
   for( Index is=0; is<ns; is++ )
     {
       interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
-                              vmr_field( is, joker, joker,  joker ), 
+                              vmr_field( is, joker, joker, joker ), 
                               ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
                               itw_field );
     }

@@ -14,8 +14,8 @@ AtmosphereSet1D
 cloudboxOff
 jacobianOff
 VectorSet( f_grid, [10e9] )
-VectorSet( rte_pos, [0] )
-VectorSet( rte_los, [140] )
+VectorSet( rtp_pos, [0] )
+VectorSet( rtp_los, [140] )
 VectorSet( rte_pos2, [] )       # No transmitter involved
 VectorSet( lat_true, [54] )     # 0.8 point between South and North poles 
 VectorSet( lon_true, [23] )
@@ -63,7 +63,7 @@ AgendaSet( iy_main_agenda ){
 AgendaSet( blackbody_radiation_agenda ){
   IndexCreate( nf )
   nelemGet( nf, f_grid )
-  VectorSetConstant( blackbody_radiation, nf, rte_temperature )
+  VectorSetConstant( blackbody_radiation, nf, rtp_temperature )
 }
 
 
@@ -94,9 +94,9 @@ Compare( iy, iy_correct, 1e-9 )
 
 IndexSet(lambertian_nza, 5)
 AgendaSet( surface_rtprop_agenda ){
-  Ignore( rte_pos )
+  Ignore( rtp_pos )
   surfaceLambertianSimple( surface_los, surface_rmatrix, surface_emission, 
-      f_grid, stokes_dim, atmosphere_dim, rte_los, surface_skin_t, 
+      f_grid, stokes_dim, atmosphere_dim, rtp_los, surface_skin_t, 
       surface_scalar_reflectivity, lambertian_nza, blackbody_radiation_agenda, 0.5 )
 } 
 AgendaExecute( iy_surface_agenda )
@@ -108,7 +108,7 @@ AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   surface_scalar_reflectivityFromGriddedField4( surface_scalar_reflectivity, 
       stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
-      rte_pos, rte_los, r_gfield4 )
+      rtp_pos, rtp_los, r_gfield4 )
   surfaceFlatScalarReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
@@ -129,8 +129,8 @@ IndexSet( stokes_dim, 4 )
 MatrixSet( iy_correct, [300,0,0,0] )
 
 AgendaSet( surface_rtprop_agenda ){
-  Ignore( rte_los )
-  Ignore( rte_pos )
+  Ignore( rtp_los )
+  Ignore( rtp_pos )
   surfaceBlackbody
 } 
 AgendaExecute( iy_surface_agenda )
@@ -166,7 +166,7 @@ AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   surface_reflectivityFromGriddedField6( surface_reflectivity, 
       stokes_dim, f_grid, atmosphere_dim, lat_grid, lat_true, lon_true, 
-      rte_pos, rte_los, r_gfield6 )
+      rtp_pos, rtp_los, r_gfield6 )
   surfaceFlatReflectivity
 } 
 AgendaExecute( iy_surface_agenda )
@@ -187,7 +187,7 @@ ReadXML( r_gfield4, "complex_n_field.xml" )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   complex_nFromGriddedField4( complex_n, stokes_dim, f_grid, atmosphere_dim, 
-      lat_grid, lat_true, lon_true, rte_pos, r_gfield4 )
+      lat_grid, lat_true, lon_true, rtp_pos, r_gfield4 )
   surfaceFlatRefractiveIndex
 } 
 AgendaExecute( iy_surface_agenda )

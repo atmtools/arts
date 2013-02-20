@@ -43,6 +43,12 @@ MatrixSet( transmitter_pos, [] )
 
 
 #
+# Default assmption is that the sensor cause no Doppler effect
+#
+NumericSet( rte_alonglos_v, 0 )
+
+
+#
 # FOS 
 #
 IndexSet( fos_i, 0 )

@@ -214,7 +214,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        IN( "rtp_pressure", "rtp_temperature", "rtp_abs_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1345,8 +1345,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_mat_per_species", "abs_lookup", "abs_lookup_is_adapted",
             "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
-            "f_grid",
-            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler" ),
+            "f_grid", "rtp_pressure", "rtp_temperature", "rtp_abs_species", 
+            "rtp_doppler" ),
         GIN("extpolfac"),
         GIN_TYPE("Numeric"),
         GIN_DEFAULT("10"),
@@ -1364,14 +1364,14 @@ void define_md_data_raw()
          "*abs_mat_per_speciesAddFromLookup*. It is a shortcut for putting in some\n"
          "other methods explicitly, namely:\n"
          "\n"
-         "  1. *NumericScale*( rte_doppler, rte_doppler, -1 )\n"
-         "  2. *VectorAddScalar*( f_grid, f_grid, rte_doppler )\n"
+         "  1. *NumericScale*( rtp_doppler, rtp_doppler, -1 )\n"
+         "  2. *VectorAddScalar*( f_grid, f_grid, rtp_doppler )\n"
          "  3. *AbsInputFromRteScalars*\n"
          "  4. *abs_h2oSet*\n"
          "  5. *abs_coefCalc*\n"
          "  6. *abs_mat_per_speciesAddFromAbsCoefPerSpecies*\n"
          "\n"
-         "Sub-methods 2 and 3 are called only if rte_doppler is not zero.\n"
+         "Sub-methods 2 and 3 are called only if rtp_doppler is not zero.\n"
          "The treatment of the Doppler-shift here is exact, since the underlying\n"
          "frequency grid is shifted.\n"
          "\n"
@@ -1393,7 +1393,7 @@ void define_md_data_raw()
             "abs_cont_models",
             "abs_cont_parameters",
             "isotopologue_ratios",
-            "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler"
+            "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler"
            ),
         GIN(),
         GIN_TYPE(),
@@ -1431,8 +1431,8 @@ void define_md_data_raw()
            "abs_lineshape",
            "isotopologue_ratios",
            "isotopologue_quantum",
-           "rte_pressure", "rte_temperature", "rte_vmr_list", "rte_doppler",
-           "rte_mag", "ppath_los", "atmosphere_dim"),
+           "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler",
+           "rtp_mag", "rtp_los", "atmosphere_dim"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2791,7 +2791,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "rte_temperature" ),
+        IN( "f_grid", "rtp_temperature" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3223,10 +3223,9 @@ void define_md_data_raw()
          "Extracts complex refractive index from a field of such data.\n"
          "\n"
          "This method allows to specify a field of *complex_n* for\n"
-         "automatic interpolation to points of interest. The position and\n"
-         "direction for which the reflectivity shall be extracted are given\n"
-         "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
-         "be stored as:\n"
+         "automatic interpolation to points of interest. The position\n"
+         "for which refraction shall be extracted is given by *rtp_pos*.\n"
+         "The reflectivity field is expected to be stored as:\n"
          "   GriddedField4:\n"
          "      Vector \"Frequency\" [N_f]\n"
          "      Vector \"Complex\"   [2]\n"
@@ -3252,7 +3251,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
-            "lon_true", "rte_pos" ),
+            "lon_true", "rtp_pos" ),
         GIN( "n_field" ),
         GIN_TYPE( "GriddedField4" ),
         GIN_DEFAULT( NODEF ),
@@ -4712,7 +4711,7 @@ void define_md_data_raw()
         (
          "Point interpolation of atmospheric fields.\n" 
          "\n"
-         "The standard choice for *pos* should be *rte_pos*.\n"
+         "The standard choice for *pos* should be *rtp_pos*.\n"
          "\n"
          "Linear interpolation is applied.\n"         
          ),
@@ -4735,7 +4734,7 @@ void define_md_data_raw()
         (
          "Point interpolation of surface fields.\n" 
          "\n"
-         "The standard choice for *pos* should be *rte_pos*.\n"
+         "The standard choice for *pos* should be *rtp_pos*.\n"
          "\n"
          "Linear interpolation is applied.\n"         
          ),
@@ -4756,7 +4755,8 @@ void define_md_data_raw()
       ( NAME( "isotopologue_ratiosInitFromBuiltin" ),
         DESCRIPTION
         (
-         "Initialize isotopologue ratios with default values from built-in species data.\n"
+         "Initialize isotopologue ratios with default values from built-in\n"
+         "species data.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "isotopologue_ratios" ),
@@ -5138,7 +5138,7 @@ void define_md_data_raw()
          "the scattering inside the cloud box is handled by the DOIT method.\n"
          "\n"
          "The intensity field is interpolated to the position (specified by\n"
-         "*rte_pos*) and direction (specified by *rte_los*) given. A linear\n"
+         "*rtp_pos*) and direction (specified by *rtp_los*) given. A linear\n"
          "interpolation is used for all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
@@ -5153,7 +5153,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
-            "rte_pos", "rte_los", "jacobian_do","cloudbox_on", 
+            "rtp_pos", "rtp_los", "jacobian_do","cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", 
             "scat_za_grid", "scat_aa_grid", "f_grid" ),
@@ -5174,7 +5174,7 @@ void define_md_data_raw()
          "the scattering inside the cloud box is handled by the DOIT method.\n"
          "\n"
          "The intensity field is interpolated to the position (specified by\n"
-         "*rte_pos*) and direction (specified by *rte_los*) given. A linear\n"
+         "*rtp_pos*) and direction (specified by *rtp_los*) given. A linear\n"
          "interpolation is used for all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
@@ -5188,7 +5188,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field2", "rte_pos", "rte_los", "jacobian_do", "cloudbox_on", 
+        IN( "doit_i_field2", "rtp_pos", "rtp_los", "jacobian_do", "cloudbox_on", 
             "cloudbox_limits", "basics_checked", "cloudbox_checked",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "stokes_dim", "scat_za_grid", "scat_aa_grid", "f_grid" ),
@@ -5214,7 +5214,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
-            "rte_pos", "rte_los", "jacobian_do", "cloudbox_on", 
+            "rtp_pos", "rtp_los", "jacobian_do", "cloudbox_on", 
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", "scat_za_grid", 
             "scat_aa_grid", "f_grid" ),
@@ -5422,7 +5422,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "iy_transmission", "jacobian_do", "atmosphere_dim", "t_field", 
             "z_field", "vmr_field", "cloudbox_on", "stokes_dim", "f_grid", 
-            "rte_pos", "rte_los", "rte_pos2", "iy_main_agenda", 
+            "rtp_pos", "rtp_los", "rte_pos2", "iy_main_agenda", 
             "surface_rtprop_agenda"
           ),
         GIN(),
@@ -7136,7 +7136,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "ext_mat_spt", "abs_vec_spt", "scat_data_raw", "scat_za_grid", 
             "scat_aa_grid", "scat_za_index", "scat_aa_index", 
-            "f_index", "f_grid", "rte_temperature",
+            "f_index", "f_grid", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
@@ -7161,7 +7161,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ext_mat_spt", "abs_vec_spt", "scat_data_mono", "scat_za_grid", 
-            "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
+            "scat_aa_grid", "scat_za_index", "scat_aa_index", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
@@ -7436,7 +7436,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "pha_mat_spt", "scat_data_raw", "scat_za_grid", "scat_aa_grid", 
             "scat_za_index", "scat_aa_index", "f_index", "f_grid",
-            "rte_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
+            "rtp_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
             "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
@@ -7459,7 +7459,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "pha_mat_spt", "scat_data_mono", "doit_za_grid_size",
-            "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
+            "scat_aa_grid", "scat_za_index", "scat_aa_index", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
@@ -7487,7 +7487,7 @@ void define_md_data_raw()
         IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
             "doit_za_grid_size",
             "scat_aa_grid", 
-            "scat_za_index", "scat_aa_index", "rte_temperature",
+            "scat_za_index", "scat_aa_index", "rtp_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
@@ -8245,7 +8245,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "f_grid", "rte_edensity" ),
+        IN( "refr_index", "refr_index_group", "f_grid", "rtp_edensity" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8275,8 +8275,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "rte_pressure", 
-            "rte_temperature" ),
+        IN( "refr_index", "refr_index_group", "rtp_pressure", 
+            "rtp_temperature" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8311,8 +8311,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "rte_pressure", 
-            "rte_temperature", "rte_vmr_list", "abs_species" ),
+        IN( "refr_index", "refr_index_group", "rtp_pressure", 
+            "rtp_temperature", "rtp_abs_species", "abs_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8343,8 +8343,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "refr_index", "refr_index_group", "rte_pressure", 
-            "rte_temperature", "rte_vmr_list", "abs_species" ),
+        IN( "refr_index", "refr_index_group", "rtp_pressure", 
+            "rtp_temperature", "rtp_abs_species", "abs_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9431,7 +9431,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", "specular_los",
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", "specular_los",
             "surface_skin_t", "complex_n", "blackbody_radiation_agenda" ),
         GIN(),
         GIN_TYPE(),
@@ -9526,7 +9526,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rtp_los", 
             "surface_skin_t", "surface_scalar_reflectivity", "lambertian_nza",
             "blackbody_radiation_agenda" ),
         GIN(         "za_pos"  ),
@@ -9556,7 +9556,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "rte_los", "atmosphere_dim", "lat_grid", "lon_grid", 
+        IN( "rtp_pos", "rtp_los", "atmosphere_dim", "lat_grid", "lon_grid", 
             "refellipsoid", "z_surface" ),
         GIN(),
         GIN_TYPE(),
@@ -9574,7 +9574,7 @@ void define_md_data_raw()
          "This method allows to specify a field of surface reflectivity for\n"
          "automatic interpolation to points of interest. The position and\n"
          "direction for which the reflectivity shall be extracted are given\n"
-         "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
+         "by *rtp_pos* and *rtp_los*. The reflectivity field is expected to\n"
          "be stored as:\n"
          "   GriddedField6:\n"
          "      Vector \"Frequency\"       [N_f]\n"
@@ -9608,7 +9608,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
-            "lon_true", "rte_pos", "rte_los" ),
+            "lon_true", "rtp_pos", "rtp_los" ),
         GIN( "r_field" ),
         GIN_TYPE( "GriddedField6" ),
         GIN_DEFAULT( NODEF ),
@@ -9625,7 +9625,7 @@ void define_md_data_raw()
          "This method allows to specify a field of surface reflectivity for\n"
          "automatic interpolation to points of interest. The position and\n"
          "direction for which the reflectivity shall be extracted are given\n"
-         "by *rte_pos* and *rte_los*. The reflectivity field is expected to\n"
+         "by *rtp_pos* and *rtp_los*. The reflectivity field is expected to\n"
          "be stored as:\n"
          "   GriddedField4:\n"
          "      Vector \"Frequency\"       [N_f]\n"
@@ -9653,7 +9653,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "lat_grid", "lat_true", 
-            "lon_true", "rte_pos", "rte_los" ),
+            "lon_true", "rtp_pos", "rtp_los" ),
         GIN( "r_field" ),
         GIN_TYPE( "GriddedField4" ),
         GIN_DEFAULT( NODEF ),

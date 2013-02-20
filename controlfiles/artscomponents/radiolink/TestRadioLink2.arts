@@ -97,8 +97,8 @@ NumericSet( ppath_lraytrace, 100 )
 VectorSet( rte_los, [] )   # Dummy value
 #
 AgendaSet( iy_transmitter_agenda ){
-  Ignore( rte_pos )
-  Ignore( rte_los )
+  Ignore( rtp_pos )
+  Ignore( rtp_los )
   MatrixUnitIntensity( iy, stokes_dim, f_grid )
 }
 # Here we use the numerical defocusing method, flagged by as 2

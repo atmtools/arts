@@ -1,27 +1,70 @@
+2013-02-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-512
+
+	* Quite a lot of changes, but should for most simulations not
+	reqire any changes of your cfile. The exception is of you define
+	some agendas without using the pre-defined ones. You can then need
+	to change some rte_xyz to rtp_xyz. Ask me if you are in doubt.
+
+	* src/rte.cc (calc_doppler): Created.
+
+	* controlfiles/general/general.arts
+	* controlfiles/general/agendas.arts
+	* controlfiles/general/agendas_surface.arts
+	* controlfiles/artscomponents/surface/TestSurface.arts
+	* controlfiles/artscomponents/transmission/TestTransmission.arts
+	* controlfiles/artscomponents/groundbased/TestGbased.arts
+	* controlfiles/artscomponents/doitbatch/TestDOITBatch.arts
+	* controlfiles/artscomponents/faraday/TestFaradayRotation.arts
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts
+	* controlfiles/artscomponents/radiolink/TestRadioLink2.arts
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	Adopted to new WSV names.
+
+	* src/methods.cc: Adopted to WSV changes below + fixed some
+	incorrect doc-text.
+
+	* src/workspace.cc: Tried to introduce a clearer distinction
+	between variables defining a calculation to solve the radiative
+	transfer equation (rte_xyz), and variables at a point along the
+	path needed to calculate radiative transfer properties (rtp_xyz).
+	"rtp" can also stand for radiative transfer point, select the full
+	name you prefer
+	This means that several variables before starting with rte now
+	starts with rtp, for example, we now have rtp_temperature. Note
+	that ppath_los is renamed to rtp_los for consistency.
+
+	Totally new WSV: rte_alonglos_v, rtp_pos
+
+	In addition, rte_vmr_list renamed to rtp_abs_species
+
 2013-02-20  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-511
 
-	* src/absorption.cc (xsec_species): Returns both phase and attenuation line
-	shape. This halves the time spent in line shape functions for Zeeman and it
-	is in preparation for the addition of first order line mixing (which still
-	will require an additional database).
-	
-	* src/rte.cc (get_ppath_trans): Halves the time spent on Faraday rotation
-	for special cases by moving matrix definition and adding parallellisation.
-	
-	* src/m_abs.cc,m_abs_lookup.cc (several places): Changed to allow for phase 
-	and attenuation	shapes. Also prepared for line mixing.
-	
-	* src/workspace.cc: abs_lineshape_zeeman_phase is now gone. 
+	* src/absorption.cc (xsec_species): Returns both phase and
+	attenuation line shape. This halves the time spent in line shape
+	functions for Zeeman and it is in preparation for the addition of
+	first order line mixing (which still will require an additional
+	database).
+
+	* src/rte.cc (get_ppath_trans): Halves the time spent on Faraday
+	rotation for special cases by moving matrix definition and adding
+	parallellisation.
+
+	* src/m_abs.cc,m_abs_lookup.cc (several places): Changed to allow
+	for phase and attenuation shapes. Also prepared for line mixing.
+
+	* src/workspace.cc: abs_lineshape_zeeman_phase is now gone.
 	abs_xsec_per_species is replaces by abs_xsec_per_species_attenuation and
 	abs_xsec_per_species_phase.
-	
-	* src/lineshapes.cc: Line shapes now accept and returns a phase line shape.
-	Only algorithm 916 returns phase so far.
-	
+
+	* src/lineshapes.cc: Line shapes now accept and returns a phase
+	line shape. Only algorithm 916 returns phase so far.
+
 	* src/absorption.h,m_abs_lookup.cc: Changed necessary parts.
-	
+
 	* src/m_rte.cc: Slight speed improvement for special cases.
 
 2013-02-20  Oliver Lemke  <olemke@core-dump.info>
