@@ -3,6 +3,7 @@
 
 
  \starthistory
+ 130220 & Revised after parts moved to a new chapter (Patrick Eriksson).\\
  120831 & Added flowchart and sections on polarised absorption, 
        \builtindoc{iyCalc}, auxiliary data and dispersion (Patrick Eriksson).\\
  110611 & Extended and general revision (Patrick Eriksson).\\
@@ -11,13 +12,12 @@
 
 \graphicspath{{Figs/rte/}}
 
-This section serves as a general overview of the variables and the approach
-used to handle the actual radiative transfer calculations. This includes how
-effects caused by the sensor and surface are incorporated. Measurements of
-thermal emission in absence of particle scattering are used as example, and the
-basic theory for such simulations is also covered. The first ARTS version was
-developed for emission measurements, and such observations remain the standard
-case in ARTS. 
+This section discusses variables and the approach used to handle the actual
+radiative transfer calculations. This includes how effects caused by the sensor
+and surface are incorporated. Measurements of thermal emission in absence of
+particle scattering are used as example, and the basic theory for such
+simulations is also covered. The first ARTS version was developed for emission
+measurements, and such observations remain the standard case in ARTS.
 
 A basic assumption for this chapter is thus that there is no particle
 scattering. This is denoted as clear-sky calculations. 
@@ -36,12 +36,11 @@ unpolarised absorption is handled. Even if the gaseous absorption in itself is
 unpolarised, the expressions to apply must allow that polarisation signals
 from the surface and the cloud box are correctly propagated to the sensor.
 
-
-The content of this chapter corresponds roughly to the flowchart displayed in
-Figure~\ref{fig:ycalc_flow}, outlining a standard radiative transfer emission
-calculation. The chapter focuses on overall raditaive transfer and sensor
-aspects, while details for the different agendas are found in subsequent
-chapters.
+For an introduction to a complete radiative transfer calculations, see
+Chapter~\ref{sec:complcalcs}. For example, the content of this chapter
+corresponds roughly to the flowchart displayed in Figure~\ref{fig:ycalc_flow},
+outlining a standard radiative transfer emission calculation. In fact, this
+chapter can be seen as a direct continuation of Chapter~\ref{sec:complcalcs}.
 
 
 
@@ -49,10 +48,11 @@ chapters.
 %===================
 \label{sec:fm_defs:calcproc}
 
-The structure handling complete radiative transfer calculations is
-fixed, where the main workspace method is denoted as \wsmindex{yCalc}. That is,
-most ARTS control files include a call of \builtindoc{yCalc} and this section
-outlines this method and the associated main variables.
+The structure handling complete radiative transfer calculations is fixed, where
+the main workspace method is denoted as \wsmindex{yCalc}
+(Fig.~\ref{fig:ycalc_flow}). That is, most ARTS control files include a call of
+\builtindoc{yCalc} and this section outlines this method and the associated
+main variables.
 
 The calculation approach fits with the formalism presented in Sections
 \ref{T-sec:formalism:fm}-\ref{T-sec:formalism:sensor} of \theory, where the
@@ -298,42 +298,21 @@ propagation path effectively starts at the surface.
 This section describes how the core radiative transfer equation is solved
 practically in ARTS. As mentioned, in this chapter focus is put on emission
 measurements. Local thermodynamic equilibrium (LTE) is throughout assumed.
-
-\subsection{General theory (LTE and no scattering)}
-
-The complete vector radiative transfer equation, including scattering, is given
-by Equation \ref{T-eq:rtetheory:VRTE} in \theory. As scattering here is
-neglected and, hence, all extinction is caused by absorption, the equation can
-be written as
+The equation to solve is Equation~\ref{eq:VRTE1}:
 \begin{equation}
-  \label{eq:rte:vrte0}
-  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat(\StoVec-\VctStl{b}),
+  \frac{\DiffD\StoVec}{\DiffD \PpathLng} = \aAbsMat{a}\left[ \EmsVec- \StoVec
+  \right] = -\aAbsMat{a}\StoVec + B\aAbsVec{a},\nonumber
 \end{equation}
-where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the distance
-along the propagation path, \ExtMat\ is the absorption matrix and \VctStl{b} is
-the emission source term. Just one element of the vector \VctStl{b} is non-zero:
-\begin{equation}
-  \label{eq:rte:bvec}
-  \VctStl{b} = [\,B\,0\,0\,0\,]^T,
-\end{equation}
-where the scalar $B$ equals the Planck function describing blackbody radiation
-(discussed below, Eq.~\ref{eq:planck}).
-Hence, Equation~\ref{eq:rte:vrte0} can be simplified to
-\begin{equation}
-  \label{eq:rte:vrte}
-  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
-\end{equation}
-where \AbsVec\ is denoted as the absorption vector. In this case of no
-scattering (and LTE), \AbsVec\ is identical to the first column of \ExtMat.
-See further \theory, Section~\ref{T-sec:rte_theory}. 
+where the involved quantities are defined and discussed in
+Section~\ref{sec:rteq}.
 
 
 \subsection{Unpolarised absorption}
 
 Let's start with the simpler case of non-polarised absorption (that is, the
 absorption is independent of polarisation state). For unpolarised absorption the
-matrix \ExtMat\ is diagonal, with all diagonal elements equal, and only the
-first of the elements of \AbsVec\ is non-zero.
+matrix \\aAbsMat{a}\ is diagonal, with all diagonal elements equal, and only the
+first of the elements of \aAbsVec{a})\ is non-zero.
 
 The radiative transfer equation above can be solved in many ways, and with
 different level of refinement. The standard approach in ARTS is to solve the
@@ -342,26 +321,27 @@ first Stokes element the following expression is applied (compare \theory,
 Equation~\ref{T-eq:rtetheory:layer})
 \begin{equation}
   \label{eq:fm_defs:rte_step}
-  I_{i+1} = I_ie^{-\aOth{i}} + \bar{B}_i(1-e^{-\aOth{i}}),
+  \aStoI{i+1} = \aStoI{i}ie^{-\aOth{i}} + \bar{\Planck}_i(1-e^{-\aOth{i}}),
 \end{equation}
 with
 \begin{eqnarray}
-  \bar{B}_i &=& (B(T_i)+B(T_{i+1}))/2, \\
-  \aOth{i} &=& \Delta s_i(k_i+k_{i+1})/2,  
+  \bar{\Planck}_i &=& (\Planck(\aTmp{i})+\Planck(\aTmp{i+1}))/2, \\
+  \aOth{i} &=& \Delta\aPpathLng{i}(\aAbsCoef{i}+\aAbsCoef{i+1})/2,  
   \label{eq:taustep}
 \end{eqnarray}
-where $I_i$, $T_i$ and $k_i$ are the radiance, temperature and absorption
-coefficient, respectively, at point $i$ of the propagation path, and $\Delta
-s_i$ is the distance along the path between point $i$ and $i+1$. That is,
-$\bar{B}_i$ is a Planck function average of the path step, and the absorption
-is assumed to vary linearly between the two points. The start value of \Mpi\ is
-governed by the radiative background (Section \ref{sec:fm_defs:rad_bkgr}).
+where \aStoI{i}, \aTmp{i}\ and \aAbsCoef{i}\ are the radiance, temperature and
+absorption coefficient, respectively, at point $i$ of the propagation path, and
+$\Delta\aPpathLng{i}$ is the distance along the path between point $i$ and
+$i+1$. That is, $\bar{B}_i$ is an average of the Planck function at the path
+step end points, and the absorption is assumed to vary linearly between the two
+points. The start value of \StoI\ is governed by the radiative background
+(Section \ref{sec:fm_defs:rad_bkgr}).
 
 A consequence of unpolarised absorption is that also the emission is
 unpolarised, and the emission term vanishes for higher Stokes elements.
 Accordingly, the expression for the second Stokes component is
 \begin{equation}
-  Q_{i+1}(\Frq) = Q_i(\Frq)e^{-\aOth{i}}.
+  \aStoQ{i+1}(\Frq) = \aStoQ{i}(\Frq)e^{-\aOth{i}}.
   \label{eq:fm_defs:rte_step2}
 \end{equation}
 The third and forth Stokes component are handled likewise. The expressions
@@ -372,14 +352,14 @@ An alternative way to perform the calculations for the first Stokes element
 would be
 \begin{equation}
   \label{eq:fm_defs:rte_alt}
-  I = \sum_i \mathcal{T}_{i+1} \bar{B}_i(1-e^{-\aOth{i}}),
+  \StoI = \sum_i \aTrnMat{i+1} \bar{\Planck}_i(1-e^{-\aOth{i}}),
 \end{equation}
-where $I$ is the final intensity and $\mathcal{T}_i$ is the transmission
+where \StoI\ is the final intensity and \aTrnMat{i}\ is the transmission
 between the sensor and point $i$. This calculation approach is not used as it
-fits poorer with the calculation of weighting functions ($I_i$ must be known,
-Section~\ref{sec:wfuns}). However, the calculation of weighting functions is
-simplified if $\mathcal{T}_i$ is at hand, and this quantity is also tracked by
-\builtindoc{iyEmissionStandard}.
+fits poorer with the calculation of weighting functions (\aStoI{i} must be
+known, Section~\ref{sec:wfuns}). However, the calculation of weighting
+functions is simplified if \aTrnMat{i}\ is at hand, and this quantity is
+also tracked by \builtindoc{iyEmissionStandard}.
 
 
 \subsection{Polarised absorption}
@@ -390,28 +370,29 @@ for the different Stokes components can here not be separated, and
 matrix-vector notation is required: 
 \begin{equation}
   \label{eq:fm_defs:vrte_step}
-  \StoVec_{i+1} = e^{-\bar{\ExtMat}s} \StoVec_i + 
-                  (\IdnMtr-e^{-\bar{\ExtMat}s})\bar{\VctStl{b}},
+  \aStoVec{i+1} = e^{-\Delta\aPpathLng{i}\bar{\ExtMat}} \aStoVec{i} + 
+                  (\IdnMtr-e^{-\bar{\ExtMat}\Delta\aPpathLng{i}})\bar{\EmsVec},
 \end{equation}
 where \IdnMtr\ is the identity matrix. The extinction matrices and \VctStl{b}
 at point $i$ and $i+1$ are averaged (element-wise) to give $\bar{\ExtMat}$ and
-$\bar{\VctStl{b}}$, respectively, in line with Equation~\ref{eq:taustep}. The
+$\bar{\EmsVec}$, respectively, in line with Equation~\ref{eq:taustep}. The
 calculation of the transmission matrix,
 \begin{equation}
-  \VctStl{T} = e^{-\bar{\ExtMat}s},
+  \TrnMat = e^{-\Delta\aPpathLng{i}\bar{\ExtMat}},
   \label{eq:rte:transmat}
 \end{equation}
 involves a matrix exponential, that is calculated by the Pad\'e approximations,
 as described in \developer, Section \ref{D-sec:lin_alg:mat_exp}. Only the first
-element of $\bar{\VctStl{b}}$ is non-zero, and only the first column of the
-matrix corresponding to the term $(\IdnMtr-e^{-\bar{\ExtMat}s})$ is of interest.
+element of $\bar{\EmsVec}$ is non-zero, and only the first column of the matrix
+corresponding to the term $(\IdnMtr-e^{-\Delta\aPpathLng{i}\bar{\ExtMat}})$ is
+of interest.
 
 
 
 \subsection{Blackbody and cosmic background radiation}
 
-The term $B$ is set by \wsaindex{blackbody\_radiation\_agenda}. The setting of
-this agenda basically determines the unit of the final outcome of
+The term \Planck\ is set by \wsaindex{blackbody\_radiation\_agenda}. The
+setting of this agenda basically determines the unit of the final outcome of
 Eq.~\ref{eq:fm_defs:rte_step}, see further Sec.~\ref{sec:fm_defs:unit}. For
 radiance calculations, the standard workspace method to use inside
 \builtindoc{blackbody\_radiation\_agenda} is
@@ -437,9 +418,7 @@ radiation that has to be considered, the standard method for inclusion in
 of \builtindoc{Ignore}). Please, note that
 \builtindoc{blackbody\_radiation\_agenda} and \builtindoc{iy\_space\_agenda},
 as well as \wsaindex{iy\_surface\_agenda}, must be defined in a consistent
-manner, that they use the same unit for $B$.
-
-
+manner (that they use the same unit for \Planck).
 
 
 
@@ -464,7 +443,7 @@ to other units is provided by \builtindoc{iyEmissionStandard}, while other
 methods have no support at all (ie.\ they ignore \builtindoc{iy\_unit}). It is
 also possible to change the unit as a post-processing step by
 \wsmindex{yApplyUnit} (or \wsmindex{iyApplyUnit}), but some restrictions apply
-and there no automatic checks if the input data have correct unit. Further
+and there are no automatic checks if the input data have correct unit. Further
 considerations and expressions for the unit conversion are discussed in the
 ARTS-2 journal paper \citep[][Sec.~5.7]{eriksson:arts2:11}.
 
@@ -622,7 +601,7 @@ ArrayOfStringSet( iy_aux_vars,
 \end{code}
 The data are outputted in a single variable, \wsvindex{iy\_aux}. This variable
 is an array of Tensor4. All dimensions are used when storing e.g.\ the
-absorption matrix along the propagation path (for all frequencies of
+propagation matrix along the path (for all frequencies of
 \builtindoc{f\_grid}). For other types of quantities, one or several dimensions
 are set to have length 1. See the built-in documentation for further details,
 such as the order of the data dimensions.
@@ -642,7 +621,7 @@ also an error if ``along-the-path'' auxiliary data are selected.
 
 To simplify the practical usage this mechanism to extract auxiliary data,
 \builtindoc{iyEmissionStandard} also accepts some other variable, related to
-partcile properties, but do not trigger any calculations. The corresponding
+particle properties, but do not trigger any calculations. The corresponding
 elements of \builtindoc{iy\_aux} can at a later stage be filled with
 \builtindoc{iy\_auxFillParticleVariables}. This feature can be useful for
 checking if any particles are found along the propagation path, to determine if

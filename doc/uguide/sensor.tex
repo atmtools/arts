@@ -6,35 +6,30 @@
  \stophistory
 
 
+A sensor model is needed because a practical instrument gives consistently
+spectra deviating from the hypothetical monochromatic pencil beam spectra
+provided by the atmospheric part of the forward model. For a radio
+(heterodyne) instrument, the most influential sensor parts are the antenna,
+the mixer, the sideband filter and the spectrometer. The response (as a
+function of frequency, zenith angle \dots) of such instrument parts is here
+denoted as the sensor characteristics.
 
-%
-% Introduction
-%
+The treatment of sensor variables is introduced in
+Section~\ref{sec:fm_defs:sensor1}. As described in that section, the position
+and line-of-sight (\builtindoc{sensor\_pos} and \builtindoc{sensor\_los}) are
+treated separately, while remaining sensor characteristics are summarised by a
+``response matrix'' denoted as \wsvindex{sensor\_response}. This matrix is
+applied following Equation~\ref{eq:fm_defs:measseq}. The purpose of this
+section is to describe how data on sensor characteristics are inputted to
+obtain a \builtindoc{sensor\_response} that matches your particular
+instrument.
 
- A sensor model is needed because a practical instrument gives consistently
- spectra deviating from the hypothetical monochromatic pencil beam spectra
- provided by the atmospheric part of the forward model. For a radio
- (heterodyne) instrument, the most influential sensor parts are the antenna,
- the mixer, the sideband filter and the spectrometer. The response (as a
- function of frequency, zenith angle \dots) of such instrument parts is here
- denoted as the sensor characteristics.
-
- The treatment of sensor variables is introduced in
- Section~\ref{sec:fm_defs:sensor1}. As described in that section, the position
- and line-of-sight (\builtindoc{sensor\_pos} and \builtindoc{sensor\_los}) are
- treated separately, while remaining sensor characteristics are summarised by a
- ``response matrix'' denoted as \wsvindex{sensor\_response}. This matrix is
- applied following Equation~\ref{eq:fm_defs:measseq}. The purpose of this
- section is to describe how data on sensor characteristics are inputted to
- obtain a \builtindoc{sensor\_response} that matches your particular
- instrument.
-
- The implementation follows closely \citet{eriksson:06}. That article provides
- also a more careful description of the approach of applying a response matrix,
- and the equations used to convert different type of characteristics to
- response values. As a user of ARTS, the main practical issue is to understand
- the different file formats used for the different sensor parts. For the
- moment, this is only described mainly through the on-line documentation.
+The implementation follows closely \citet{eriksson:06}. That article provides
+also a more careful description of the approach of applying a response matrix,
+and the equations used to convert different type of characteristics to
+response values. As a user of ARTS, the main practical issue is to understand
+the different file formats used for the different sensor parts. For the
+moment, this is only described mainly through the on-line documentation.
 
 
 \section{General}

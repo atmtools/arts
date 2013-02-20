@@ -1,3 +1,28 @@
+2013-02-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-509
+
+	* doc/uguide/surface.tex: Now using symbol_defs more heavily. Some
+	changes to be consistent with rte_basic.tex.
+
+	* src/methods.cc: Gin-variable of refellipsoidOrbitPlane had a
+	name inconsistent with header text.
+
+	* doc/uguide/rte.tex: Revised. Made consistent with rte_basic.tex
+	and using symbol_defs throughout.
+
+	* doc/uguide/symbol_defs.tex: Introduced emission soure and
+	general source vectors, and transmission matrix. And changed the
+	symbol for the Stokes vector to small i, to be consistent with all
+	other vectors.
+
+	* doc/uguide/rte_basics.tex: Now strictly following symbol_defs.
+
+	* doc/uguide/rte_basics.tex:
+	* doc/uguide/complete_calcs.tex:
+	* doc/uguide/atmosphere.tex: Smaller fixes after a quick reading
+	of these chapters.
+
 2013-02-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-508

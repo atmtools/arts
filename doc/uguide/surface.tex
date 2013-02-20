@@ -42,8 +42,9 @@ eccentricity, $e$:
  e = \sqrt{1-\aRds{e}^2/\aRds{p}^2}.
  \label{eq:ppath:eccentricity} 
 \end{equation}
-Examples on workspace methods to set the reference ellipsoid include 
-\wsmindex{refellipsoidEarth} and \wsmindex{refellipsoidMars}.
+Workspace methods to set the reference ellipsoid for a particular planet
+include \wsmindex{refellipsoidEarth}, \wsmindex{refellipsoidMars} and
+\wsmindex{refellipsoidMars}. 
 
 The radius of the ellipsoid for a given (geocentric) latitude, \Lat, is
 \begin{equation}
@@ -249,20 +250,18 @@ and the rest of this section outlines how this workspace method works. The
 upwelling radiation from the surface can be written as
 (Figure~\ref{fig:fm_defs:surface_refl})
 \begin{equation}
-  \MpiVct_s^u = \MpiVct_e + \sum_l^{} \mathbf{R}_l \MpiVct_l^d
+  \aStoI{a}^u = \aStoI{e} + \sum_l^{} \mathbf{R}_l \aStoI{l}^d
   \label{eq:fm_defs:surfacerefl}
 \end{equation}
-where \MpiVct\ is the Stokes vector for one frequency, $\MpiVct_s^u$
-is the total upward travelling intensity from the surface along the
-propagation path, $\MpiVct_e$ is the emission from the surface,
-$\MpiVct_l^d$ is the downward travelling intensity reaching the
-surface along direction $l$, and $\mathbf{R}_l$ is the reflection
-coefficient matrix from direction $l$ to the present propagation path.
-The emission from the surface $(\MpiVct_e)$ is stored in
-\wsvindex{surface\_emission}, the directions $l$ for which downward
-travelling intensities are given by \wsvindex{surface\_los}, and the
-reflection coefficients $(\mathbf{R})$ are stored in
-\wsvindex{surface\_rmatrix}. 
+where \StoI\ indicates the Stokes vector for one frequency, $\aStoI{a}^u$ is
+the total upward travelling intensity from the surface along the propagation
+path, \aStoI{e}\ is the emission from the surface, $\aStoI{l}^d$ is the
+downward travelling intensity reaching the surface along direction $l$, and
+$\mathbf{R}_l$ is the reflection coefficient matrix from direction $l$ to the
+present propagation path. The emission from the surface \aStoI{e}\ is stored
+in \wsvindex{surface\_emission}, the directions $l$ for which downward
+travelling intensities are given by \wsvindex{surface\_los}, and the reflection
+coefficients $(\mathbf{R})$ are stored in \wsvindex{surface\_rmatrix}.
 
 \begin{figure}
  \begin{center}
@@ -280,8 +279,8 @@ provides the theoretical background.
 %
 If the surface can be assumed to act as a blackbody, the workspace method
 \wsmindex{surfaceBlackbody} can be used. This method sets
-\builtindoc{surface\_emission} to $[B,0,0,0]^T$, and \builtindoc{surface\_los}
-and \builtindoc{surface\_rmatrix} to be empty.
+\builtindoc{surface\_emission} to $[\Planck,0,0,0]^T$, and
+\builtindoc{surface\_los} and \builtindoc{surface\_rmatrix} to be empty.
 
 
 
@@ -290,9 +289,9 @@ and \builtindoc{surface\_rmatrix} to be empty.
 %
 Several methods to incorporate a flat surface exist, including
 \wsmindex{surfaceFlatRefractiveIndex} and
-\wsmindex{surfaceFlatScalarReflectivity}. The methods differ in how the dielectric
-properties of the surface are given, and if these are constant or not with
-frequency.
+\wsmindex{surfaceFlatScalarReflectivity}. The methods differ in how the
+dielectric properties of the surface are given, and if these are constant or
+not with frequency.
 
 In the case of specular reflections, \builtindoc{surface\_los} has the length 1.
 The specular direction is calculated by the internal function
@@ -345,11 +344,10 @@ that gives
 Thus, this value is a combination of the surface reflectivity and an solid
 angle weight.
 
-
 The emission (\builtindoc{surface\_emission}) becomes:
 \begin{equation}
   \label{eq:surface:blambertian} 
-  \VctStl{b} =  \left[\begin{array}{c} r_dB \\ 0 \\0\\0 \end{array}\right].
+  \EmsVec =  \left[\begin{array}{c} r_d\Planck \\ 0 \\0\\0 \end{array}\right].
 \end{equation}
 
 

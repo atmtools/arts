@@ -8163,7 +8163,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "refellipsoid" ),
-        GIN( "re" ),
+        GIN( "orbitinc" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Orbit inclination." )

@@ -278,8 +278,8 @@
 \newcommand{\aLat}[1]    {\ensuremath{\alpha_{#1}}}  
 
 % Length along the propagation path
-\newcommand{\PpathLng}        {\ensuremath{l}}  
-\newcommand{\aPpathLng}[1]    {\ensuremath{l_{#1}}}  
+\newcommand{\PpathLng}        {\ensuremath{s}}  
+\newcommand{\aPpathLng}[1]    {\ensuremath{s_{#1}}}  
 
 % Longitude
 \newcommand{\Lon}        {\ensuremath{\beta}}  
@@ -330,7 +330,24 @@
 \newcommand{\WindVe}      {\ensuremath{v_w}}  
 
 
-% --- Quantities concerning scattering  -------------------
+% --- Radiative transfer quantities -------------------
+
+% Stokes vector
+\newcommand{\StoVec}    {\ensuremath{{\bf i}}}
+\newcommand{\aStoVec}[1]{\ensuremath{{\bf i}_{#1}}}
+\newcommand{\StoI}      {\ensuremath{I}}
+\newcommand{\aStoI}[1]  {\ensuremath{I_{#1}}}
+\newcommand{\StoQ}      {\ensuremath{Q}}
+\newcommand{\aStoQ}[1]  {\ensuremath{Q_{#1}}}
+\newcommand{\StoU}      {\ensuremath{U}}
+\newcommand{\StoV}      {\ensuremath{V}}
+
+% Degree of polarisation
+\newcommand{\DgrPlr}      {\ensuremath{p}}
+
+% Propagation direction and position
+\newcommand{\PDir}      {\ensuremath{{\bf \hat{n}}}}
+\newcommand{\PPos}      {\ensuremath{{\bf r}}}
 
 % Total extinction matrix
 \newcommand{\ExtMat}    {\ensuremath{{\bf K}}}
@@ -344,6 +361,17 @@
 \newcommand{\AbsVec}    {\ensuremath{{\bf a}}}
 \newcommand{\aAbsVec}[1]{\ensuremath{{\bf a}_{#1}}}     
 
+% Emission source vector
+\newcommand{\EmsVec}    {\ensuremath{{\bf b}}}
+
+% Source vector
+\newcommand{\SrcVec}    {\ensuremath{{\bf j}}}
+\newcommand{\aSrcVec}[1]{\ensuremath{{\bf j}_{#1}}}     
+
+% Transmission Mueller matrix
+\newcommand{\TrnMat}    {\ensuremath{{\bf T}}}
+\newcommand{\aTrnMat}[1]{\ensuremath{{\bf T}_{#1}}}
+
 % Phase matrix
 \newcommand{\PhaMat}    {\ensuremath{{\bf Z}}}
 \newcommand{\aPhaMat}[1]{\ensuremath{{\bf Z}_{#1}}}
@@ -351,20 +379,6 @@
 % Scattering matrix
 \newcommand{\ScaMat}    {\ensuremath{{\bf F}}}
 \newcommand{\aScaMat}[1]{\ensuremath{{\bf F}_{#1}}}
-
-% Stokes vector
-\newcommand{\StoVec}    {\ensuremath{{\bf I}}}
-\newcommand{\aStoVec}[1]{\ensuremath{{\bf I}_{#1}}}
-\newcommand{\StoI}      {\ensuremath{I}}
-\newcommand{\aStoI}[1]  {\ensuremath{I_{#1}}}
-\newcommand{\StoQ}      {\ensuremath{Q}}
-\newcommand{\StoU}      {\ensuremath{U}}
-\newcommand{\StoV}      {\ensuremath{V}}
-
-
-% Propagation direction and position
-\newcommand{\PDir}      {\ensuremath{{\bf \hat{n}}}}
-\newcommand{\PPos}      {\ensuremath{{\bf r}}}
 
 % Particle density
 \newcommand{\PDen}      {\ensuremath{n^p}}
@@ -381,7 +395,7 @@
 \newcommand{\aSFld}[1]  {\ensuremath{{\mathcal S}^{(#1)}}}
 
 % Scattering Integral vector
-\newcommand{\SVec}      {\ensuremath{{\bf S}}}
+\newcommand{\SVec}      {\ensuremath{{\bf s}}}
 
 % Amplitude matrix
 \newcommand{\AmpMat}    {\ensuremath{{\bf S}}}

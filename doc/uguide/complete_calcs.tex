@@ -2,7 +2,7 @@
  \label{sec:complcalcs}
 
 \starthistory
- 130219 & Written by Patrick Eriksson.\\
+ 130219 & First version by Patrick Eriksson.\\
 \stophistory
 
 \graphicspath{{Figs/rte/}}
@@ -17,19 +17,19 @@ calculations, and how the sensor is introduced.
 
 \section{Overview}
 %
-An attempt to illustrate an ``standard'' ARTS calculation is found in Figure~
+An attempt to illustrate a ``standard'' ARTS calculation is found in Figure~
 \ref{fig:ycalc_flow}. The figure shows that most calculation tasks are handled
 by an agenda. For example, \builtindoc{ppath\_agenda} has the task of
-determining the propagation path for given observation geometry. In principle,
-the agenda could solve the task by loading data from a file, but most likely it
-will use some of the dedicated workspace methods. These workspace methods are
-targeted towards different observation types, for example, radio link
-calculations require special consideration. Anyhow, the main message here is
-that by using the agenda concept, a very high degree of flexibility can be
-achieved and new features can be added fairly simply. On the other hand, the
-concept require that the user actually apply methods that make sense for the
-agenda. The code of ARTS performs some consistency check of the agenda output,
-but this identified mistakes only to a certain degree.
+determining the propagation path for the given observation geometry. In
+principle, the agenda could solve the task by loading data from a file, but
+most likely it will use some of the dedicated workspace methods. These
+workspace methods are targeted towards different observation types, for
+example, radio link calculations require special consideration. Anyhow, the
+main message here is that by using the agenda concept, a very high degree of
+flexibility can be achieved and new features can be added fairly simply. On the
+other hand, the concept require that the user actually apply methods that make
+sense for the agenda. The code of ARTS performs some consistency checks of the
+agenda output, but this can only catch some types of mistakes.
 
 Complete radiative transfer calculations are normally performed by
 \wsmindex{yCalc}. This method incorporates sensor responses and has the
@@ -74,15 +74,15 @@ weighting by the antenna pattern.
 On the other hand, atmospheric radiative transfer is performed for
 monochromatic frequencies, along pencil beam directions. The outcome of one
 such calculation is the Stokes vector for each frequency considered, and as
-workspace variable this quantity is denoted as \wsvindex{iy}. Hence, note the
-distinction to \builtindoc{y} that can contain information from a number of
+workspace variable this quantity is denoted as \wsvindex{iy}. Please, note the
+distinction to \builtindoc{y}, that can contain information from a number of
 monochromatic pencil beam calculations, as shown in
 Section~\ref{sec:fm_defs:seqsandblocks}.
 
 Further, the term ``iy'' is not restricted to the final outcome of atmospheric
-radiative transfer, it is also used to indicate that quantities are of
-monochromatic pencil beam character. For example, the agenda returning the
-radiation entering the atmosphere from space is named as
+radiative transfer, it is also used to indicate that quantities and operations
+are of monochromatic pencil beam character. For example, the agenda returning
+the radiation entering the atmosphere from space is named as
 \builtindoc{iy\_space\_agenda} to indicate that the agenda output is directly
 associated with the calculation of \builtindoc{iy}. If only a single
 \builtindoc{iy} is of concern, the radiative transfer can be performed by
@@ -139,8 +139,8 @@ inside the cloud box.
 
 One or several spectra can be calculated for each position as described in
 Section~\ref{sec:fm_defs:seqsandblocks}. The corresponding workspace variable
-for single pencil beam calculations is \wsvindex{rte\_pos}, that is the input
-to e.g.\ \wsaindex{iy\_main\_agenda} and \wsmindex{iyCalc}. 
+for single pencil beam calculations is \wsvindex{rte\_pos}, that is an input
+argument to e.g.\ \wsaindex{iy\_main\_agenda} and \wsmindex{iyCalc}.
 
 
 
@@ -252,15 +252,16 @@ variables associated with this transfer matrix where
 \wsvindex{antenna\_dim}, \wsvindex{mblock\_za\_grid} and
 \wsvindex{mblock\_aa\_grid} are the compulsory ones.
 
-The variable \builtindoc{antenna\_dim} gives the dimensionality of the
-antenna pattern\index{antenna pattern dimensionality}, where the
-options are 1 and 2, standing for 1D and 2D, respectively. A 1D
-antenna dimensionality means that the azimuth extension of the
-antenna pattern is neglected, there is only a zenith angle variation
-of the response. A 2D antenna pattern is converted to a 1D pattern by
-integrating the azimuth response for each zenith angle. For cases
-with 1D antenna patterns, \builtindoc{mblock\_aa\_grid} must be set to
-be an empty vector.
+The variable \builtindoc{antenna\_dim} gives the dimensionality of the antenna
+pattern\index{antenna pattern dimensionality}, where the options are 1 and 2,
+standing for 1D and 2D, respectively. A 1D antenna dimensionality means that
+the azimuth extension of the antenna pattern is neglected, there is only a
+zenith angle variation of the response. A 2D antenna pattern is converted to a
+1D pattern by integrating the azimuth response for each zenith angle. For cases
+with 1D antenna patterns, \builtindoc{mblock\_aa\_grid} must be set to be an
+empty vector. 
+
+See further Chapter~\ref{sec:sensor}, where inclusion of sensor characteristics is described in .
 
 
 
@@ -268,15 +269,12 @@ be an empty vector.
 %===================
 \label{sec:fm_defs:seqsandblocks}
 
-The series of observations modelled by the simulations is denoted as
-the \textindex{measurement sequence}. That is, a measurement sequence
-covers all spectra recorded at all considered sensor positions. A
-measurement sequence consists of one or several \textindex{measurement
-  block}s. The observations inside the various blocks differ only with
-an off-set of the line-of-sight, all other factors should be common
-for all blocks. A block can be treated as a measurement cycle that is
-repeated, an integer number of times, to form the measurement
-sequence. 
+The series of observations modelled by the simulations is denoted as the
+\textindex{measurement sequence}. That is, a measurement sequence covers all
+spectra recorded at all considered sensor positions. A measurement sequence
+consists of one or several \textindex{measurement block}s. A measurement block
+can be treated as a measurement cycle that is repeated, an integer number of
+times, to form the measurement sequence.
 
 A measurement block covers one or several recorded spectra, depending
 on the measurement conditions and the atmospheric dimensionality. A
@@ -303,10 +301,7 @@ intermediate solution, to let the extent of the blocks be several
 spectra (but not the full measurement sequence). This could be the
 case when the atmospheric dimensionality is 2D or 3D, and the sensor
 is moving but the movement during some subsequent spectra can be
-neglected. If this can be done must be judged by comparing the
-movement of the sensor during the extent of the considered block size
-and the spatial resolution, in the direction of the movement, that is
-hoped to be achieved. 
+neglected. 
 
 The pencil beam spectra for each line-of-sight are appended vertically to form
 a common vector, \aMpiVct{b}. Values are put in following the order in

@@ -2,7 +2,7 @@
  \label{sec:rte_basics}
 
 \starthistory
- 130218 & Written by Patrick Eriksson.\\
+ 130218 & First version by Patrick Eriksson.\\
 \stophistory
 
 This chapter introduces some basic radiative transfer nomenclature and
@@ -69,18 +69,15 @@ The radiative transfer problem can only be expressed in a general manner as a
 differential equation. One version for vector radiative transfer is
 \begin{equation}
   \label{eq:VRTE0}
-  \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} =
+  \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD \PpathLng} =
     -\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
-    \VctStl{j}_e(\Frq,\PPos,\PDir) + \VctStl{j}_s(\Frq,\PPos,\PDir),  
+    \aSrcVec{e}(\Frq,\PPos,\PDir) + \aSrcVec{s}(\Frq,\PPos,\PDir),  
 \end{equation}
 where \Frq\ is frequency, \PPos\ represents the atmospheric position, \PDir\ is
-the propagation direction (at \PPos), $s$ is distance along \PDir, $\ExtMat$ is
-the propagation matrix, $\VctStl{j}_e$ represents the emission at the point,
-and $\VctStl{j}_s$ treats the scattering from other directions into the
-propagation direction.
-
-
-
+the propagation direction (at \PPos), \PpathLng\ is distance along \PDir,
+\ExtMat\ is the propagation matrix, \aSrcVec{e}\ represents the emission at
+the point, and \aSrcVec{s}\ covers the scattering from other directions into
+the propagation direction.
 
 
 
@@ -93,25 +90,28 @@ can together be denoted as extinction, referring to that these two mechanisms
 result in a decrease of the intensity (\StoI). A common name for \ExtMat\ is
 also the extinction matrix. The extinction processes also affect the \StoQ,
 \StoU\ and \StoV\ elements of the Stokes vector. If the degree of polarisation
-($p$)
+(\DgrPlr)
 \begin{equation}
   \label{eq:degreeofpol}
-  p = \frac{\sqrt{\StoQ^2+\StoU^2+\StoV^2}}{\StoI}
+  \DgrPlr = \frac{\sqrt{\StoQ^2+\StoU^2+\StoV^2}}{\StoI}
 \end{equation}
 is kept constant or not depend on symmetry properties of the attenuating media.
-For example, absorption of atmospheric gases is not changing $p$ as long as the
-molecules have no preferred orientation, which is a valid assumption beside
-when there is a significant Zeeman effect.
+For example, absorption of atmospheric gases is not changing \DgrPlr\ as long
+as the molecules have no preferred orientation, which is a valid assumption
+beside when there is a significant Zeeman effect. Non-polarising absorption
+corresponds to that the propgation matrix can be written as $\AbsCoef\IdnMtr$,
+where \AbsCoef\ is the absorption coefficient and \IdnMtr\ is the identity
+matrix.
 
 There are also examples on effects that change the polarisation state of the
 Stokes vector without affecting \StoI. These effects are caused by an
 interaction with the magnetic field, and are thus denoted magneto-optical.
 Ionospheric Faraday rotation can (approximately) be seen as a pure
-magneto-optical effect, while the Zeeman effect both cause non-isotropic
+magneto-optical effect, while the Zeeman effect cause both non-isotropic
 absorption and has magneto-optical aspects.
 
-%As Equation~\ref{eq:VRTE0} indicates, source mechanisms are emission and
-%scattering.
+As Equation~\ref{eq:VRTE0} indicates, there are two source mechanisms that can
+act to increase the intensity: emission and scattering.
 
 
 \subsection{Absorbing species and particles}
@@ -125,14 +125,14 @@ atmospheric matter:
   scattering can be neglected. The set of ``species'' to consider is described
   by the workspace variable \wsvindex{abs\_species}, and the associated
   atmospheric fields are gathered into \wsvindex{abs\_species\_field}. The unit
-  for the fields can vary, for gases it is volume mixing ratio, while
+  for the fields varies, for gases it is volume mixing ratio, while
   particle mass concentrations are given in $g/m^3$ and electron density in
   $m^{-3}$.
 \item[Particles] This second class treats all matter causing significant
-  scattering (and likely also causing absorption). The amount of scattering
-  matter is given particle number density fields ($m^{-3}$), denoted as
-  \wsvindex{pnd\_field}. The radiative properties of each particle type are
-  stored in \wsvindex{scat\_data\_raw}.
+  scattering (and likely also adding to the absorption). The amount of
+  scattering matter is given as particle number density fields ($m^{-3}$),
+  denoted as \wsvindex{pnd\_field}. The radiative properties of each particle
+  type are stored in \wsvindex{scat\_data\_raw}.
 \end{description}
 Atmospheric quantities are not hard-coded to belong to any of these matter
 classes, as the practical division depends on the conditions of the
@@ -177,28 +177,26 @@ On the condition of LTE, the emission vector ($\VctStl{j}_e$) in
 Equation~\ref{eq:VRTE0} can be written as
 \begin{equation}
   \label{eq:evec1}
-  \VctStl{j}_e = B \AbsVec,
+  \aSrcVec{e} = \Planck \AbsVec,
 \end{equation}
-where $B$ is the Planck function (a scalar value), describing blackbody
+where \Planck\ is the Planck function (a scalar value), describing blackbody
 radiation. The related workspace variables are \wsvindex{blackbody\_radiation}
-and \wsaindex{blackbody\_radiation\_agenda}. The vector $\VctStl{j}_e$ is
+and \wsaindex{blackbody\_radiation\_agenda}. The vector \aSrcVec{e}\ is
 denoted as \wsvindex{emission\_vector}, and is calculated by
 \wsaindex{emission\_vector\_agenda}.
-
-
 
 The quantity \AbsVec\ is denoted as the absorption vector. For clear-sky
 calculations the absorption vector is given by \aAbsMat{a}, as in this case the
 emission vector can be calculated as
 \begin{equation}
   \label{eq:evec2}
-  \VctStl{j}_e = \aAbsMat{a}\VctStl{s},
+  \aSrcVec{e} = \aAbsMat{a}\EmsVec,
 \end{equation}
-where \VctStl{s} can be seen as the emission source vector, defined as
+where \EmsVec\ can be seen as the emission source vector, defined as
 \begin{equation}
-  \VctStl{s} = [B,0,0,0]^T.
+  \EmsVec = [\Planck,0,0,0]^T.
 \end{equation}
-Hence, as only the first element of \VctStl{s}\ is non-zero, the absorption
+Hence, as only the first element of \EmsVec\ is non-zero, the absorption
 vector is in this case equal to the first column of \aAbsMat{a}.
 
 The absorption vector can not be extracted from \aExtMat{p}\ as this
@@ -236,14 +234,14 @@ If we for the moment assume that scattering can be totally neglected, then
 Equation~\ref{eq:VRTE0} can be simplified to
 \begin{equation}
   \label{eq:VRTE1}
-  \frac{\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} =
-  \aAbsMat{a}(\Frq,\PPos,\PDir)\left[ \VctStl{s}- \StoVec(\Frq,\PPos,\PDir)
-  \right] \quad \left( = -\aAbsMat{a}\StoVec + B\aAbsVec{a}\right).
+  \frac{\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD \PpathLng} =
+  \aAbsMat{a}(\Frq,\PPos,\PDir)\left[ \EmsVec(\Frq,\PPos,\PDir)- 
+  \StoVec(\Frq,\PPos,\PDir)\right] \quad 
+  \left( = -\aAbsMat{a}\StoVec + B\aAbsVec{a}\right).
 \end{equation}
-Cases where Equation~\ref{eq:VRTE1} is valid, are in ARTS denoted as
-``clear-sky'' radiative transfer (as mentioned and implying LTE if nothing else
-is stated). The discussion of such radiative transfer calculations is continued
-in Section~\ref{sec:rte}. 
+Cases where Equation~\ref{eq:VRTE1} is valid, are in ARTS denoted as clear-sky
+radiative transfer (implying LTE if nothing else is stated). The discussion of
+such radiative transfer calculations is continued in Section~\ref{sec:rte}.
 
 
 \subsubsection{Radiative transfer with scattering}
@@ -253,11 +251,11 @@ scattering is of incoherent and elastic nature, the extension of
 Equation~\ref{eq:VRTE1} is
 \begin{eqnarray}
   \label{eq:VRTE2}
-  \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD s} &=&
+  \frac {\DiffD\StoVec(\Frq,\PPos,\PDir)}{\DiffD \PpathLng} &=&
     -\ExtMat(\Frq,\PPos,\PDir) \StoVec(\Frq,\PPos,\PDir) +
      B\aAbsVec{a}(\Frq,\PPos,\PDir) + \\ \nonumber
-    &&+ \int_{4\pi} \DiffD\PDir' \PhaMat(\Frq,\PPos,\PDir,\PDir')
-    \StoVec(\Frq,\PPos,\PDir'),
+    &&+ \int_{4\pi} \PhaMat(\Frq,\PPos,\PDir,\PDir')
+    \StoVec(\Frq,\PPos,\PDir')\,\DiffD\PDir' ,
 \end{eqnarray}
 where $\PhaMat$ is the scattering (or phase) matrix.  ARTS includes several
 modules to handle scattering, introduced in the last part of this document.\\

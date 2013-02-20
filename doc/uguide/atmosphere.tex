@@ -2,7 +2,7 @@
  \label{sec:atmosphere}
 
 \starthistory
- 120831 & Revised by Patrick Eriksson.\\ 
+ 130219 & Revised by Patrick Eriksson.\\ 
  020315 & First version by Patrick Eriksson.\\
 \stophistory
 
@@ -28,11 +28,10 @@ specifying the geometrical altitudes (\builtindoc{z\_field}).
 \item[Pressure\index{pressure}] The main altitude coordinate is
   pressure. This is most clearly manifested by the fact that the
   vertical atmospheric grid consists of equal-pressure levels.
-  The vertical grid is consistently denoted as the pressure grid and
+  The vertical grid is accordingly denoted as the pressure grid and
   the corresponding workspace variable is \wsvindex{p\_grid}. The
   choice of having pressure as main altitude coordinate results in
-  that atmospheric quantities are retrieved as a function of pressure,
-  not as a function of geometrical altitude.
+  that atmospheric quantities are retrieved as a function of pressure.
   
 \item[Pressure altitude\index{pressure altitude}] A basic assumption
   in ARTS is that atmospheric quantities (temperature, geometric
@@ -130,7 +129,7 @@ dimensionality is most easily set by the functions \wsmindex{AtmosphereSet1D},
   measurements where the atmosphere is observed inside the orbit plane. The 2D
   ``latitude'' can then be taken as the angular distance along the satellite
   track. A 2D-latitude of e.g.\ 100\degree\ will then correspond to a
-  2D-latitude of 80\degree. The atmosphere is normally treated to be undefined
+  3D-latitude of 80\degree. The atmosphere is normally treated to be undefined
   outside the considered plane, but some scattering calculations may treat the
   surrounding atmosphere in an simplified manner. A 2D atmosphere is shown in
   Figure~\ref{fig:fm_defs:2d}.
@@ -293,10 +292,9 @@ pressure level, the pressure grid can extend below the surface level.
 \label{sec:fm_defs:cloudbox}
 In order to save computational time, calculations involving scattering are
 limited to a special atmospheric domain. This atmospheric region is denoted as
-the \textindex{cloud box}. The cloud box acts as an additional atmospheric
-limit when calculating propagation paths (Sec.~\ref{sec:fm_defs:rte}).
-The distribution of scattering matter inside the cloud box is specified by
-\wsvindex{pnd\_field}, see further Section~\ref{sec:rteq:absspecies}.
+the \textindex{cloud box}. The distribution of scattering matter inside the
+cloud box is specified by \wsvindex{pnd\_field}, see further
+Section~\ref{sec:rteq:absspecies}.
 
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This
@@ -354,11 +352,12 @@ is sufficiently high.
 %
 The atmospheric fields discussed above are scalar quantities, while some
 atmospheric variables can be seen as vector fields. However, in ARTS input
-vector fields are broken down into the zonal, meridional and vertical component
-and given as three scalar fields. This division into scalar values is used to
-allow that one or several of the components easily can be set to zero, which is
-done be setting the corresponding workspace variable to be empty. Following the
-standard naming scheme for winds, the components are denoted as
+vector fields are broken down into the zonal, meridional and vertical
+components and are given as three scalar fields. This division into scalar values
+is used to allow that one or several of the components easily can be set to
+zero, which is done be setting the corresponding workspace variable to be
+empty. Following the standard naming scheme for winds, the components are
+denoted as
 \begin{description}
 \item[u] The zonal component. A positive value signifies an Eastward direction
   (e.g.\ a wind moving towards higher longitudes).
@@ -367,8 +366,6 @@ standard naming scheme for winds, the components are denoted as
 \item[w] The vertical component. A positive value signifies an upward direction
   (e.g.\ a wind moving towards higher altitudes).
 \end{description}
-
-
 The workspace variables to describe the wind vector field are
 \wsvindex{wind\_u\_field}, \wsvindex{wind\_v\_field} and
 \wsvindex{wind\_w\_field}. As described above, one, two or all of these
