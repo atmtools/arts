@@ -289,6 +289,14 @@ add_custom_target(check
 add_custom_target(check-all
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} DEPENDS arts)
 
+if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  string (REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_RELWITHDEBINFO
+          ${CMAKE_C_FLAGS_RELWITHDEBINFO})
+  string (REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO
+          ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+endif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+
+
 ########### subdirectories ###############
 
 add_subdirectory (src)
