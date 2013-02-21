@@ -1,3 +1,26 @@
+2013-02-21  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-515
+
+        * src/m_abs.cc (abs_linesReadFromSplitArtscat): Use
+	SpeciesTag::Type() to decide on type of species tag.
+
+        * src/absorption.cc (checkIsotopologueRatios): Rewritten. Use
+	abs_species only to decide what species to check. For the check
+	itself, rely only on the built in species data and the external
+	isotopologue ratio data.
+
+        * src/species_data.cc: Corrected outdated H2O comment.
+
+        * src/agendas.cc (abs_xsec_per_species_agenda):
+	Added. Name may still change.
+
+        * src/workspace.cc (abs_xsec_per_species_agenda): Added. Name may
+	still change.
+
+        * controlfiles/general/agendas.arts: Added defaults for
+	abs_xsec_per_species_agenda.
+
 2013-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-514
@@ -17,7 +40,7 @@
 2013-02-20  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-513
-	
+
 	* src/m_zeeman.cc: My last update broke Zeeman.
 
 2013-02-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>

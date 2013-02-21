@@ -56,7 +56,7 @@ void define_agenda_data()
      ( NAME( "abs_mat_per_species_agenda" ),
        DESCRIPTION
        (
-        "This agenda calculates absorption coefficients for all gas species\n"
+        "This agenda calculates the absorption coefficient matrix for all gas species\n"
         "as a function of the given atmospheric state for one point in the\n"
         "atmosphere. The result is returned in *abs_mat_per_species*, the\n"
         "atmospheric state has to be specified by *rtp_pressure*,\n"
@@ -69,6 +69,31 @@ void define_agenda_data()
        INPUT(  "f_grid", "rtp_doppler", "rtp_mag", "rtp_los", "rtp_pressure", 
                "rtp_temperature", "rtp_abs_species" )));
   
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "abs_xsec_per_species_agenda" ),
+      DESCRIPTION
+      (
+       "Calculate scalar gas absorption cross sections.\n"
+       "\n"
+       "Basically, this agenda calculates absorption for all the tags defined\n"
+       "in abs_species. It is used both in the calculation of an absorption\n"
+       "lookup table, and in on-the-fly calculations. Typical effects to\n"
+       "include here are:\n"
+       "\n"
+       "Explicit line-by-line calculation (*abs_xsec_per_speciesAddLines*),\n"
+       "\n"
+       "Continua and complete absorption models (*abs_xsec_per_speciesAddConts*), and\n"
+       "\n"
+       "HITRAN style CIA continua (*abs_xsec_per_speciesAddCIA*)\n"
+       "\n"
+       "The only kind of absorption tag not handled here are Zeeman tags\n"
+       "and free electron density tags, because they need additional input\n"
+       "and because they return an absorption matrix, rather than a scalar.\n"
+       ),
+      OUTPUT( "abs_xsec_per_species_attenuation" ),
+      INPUT(  "abs_species", "f_grid", "abs_p", "abs_t", "abs_vmrs" )));
+
   agenda_data.push_back
     (AgRecord
      ( NAME( "blackbody_radiation_agenda" ),

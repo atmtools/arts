@@ -217,6 +217,34 @@ AgendaSet( abs_mat_per_species_agenda__LookUpTable_Zeeman ){
 
 
 ##################################
+#    abs_xsec_per_species_agenda
+##################################
+
+###
+# Without CIA (only explicit lines and 
+# "classical" continua / full abosorption models)
+#
+AgendaCreate( abs_xsec_per_species_agenda__noCIA )
+AgendaSet( abs_xsec_per_species_agenda__noCIA ){
+  abs_xsec_per_speciesInit
+  abs_xsec_per_speciesAddLines
+  abs_xsec_per_speciesAddConts
+}
+
+###
+# With CIA 
+#
+AgendaCreate( abs_xsec_per_species_agenda__withCIA )
+AgendaSet( abs_xsec_per_species_agenda__withCIA ){
+  abs_xsec_per_speciesInit
+  abs_xsec_per_speciesAddLines
+  abs_xsec_per_speciesAddConts
+  abs_xsec_per_speciesAddCIA
+}
+
+
+
+##################################
 #    refr_index_agenda
 ##################################
 

@@ -742,6 +742,15 @@ void Workspace::define_wsv_data()
       GROUP( "ArrayOfMatrix" )));
     
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "abs_xsec_per_species_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+    
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "antenna_dim" ),
       DESCRIPTION

@@ -360,14 +360,18 @@ void abs_linesReadFromSplitArtscat(// WS Output:
     for (ArrayOfSpeciesTag::const_iterator sp = asp->begin();
          sp != asp->end(); sp++)
     {
-      // If the Isotopologue number is equal to the number of Isotopologues for that species,
-      // it means 'all isotopologues', in which case we have to read a catalog.
-      // Continua don't need a catalog.
-      if (sp->Isotopologue() == species_data[sp->Species()].Isotopologue().nelem()
-          || !species_data[sp->Species()].Isotopologue()[sp->Isotopologue()].isContinuum())
-          {
-            unique_species.insert(sp->Species());
-          }
+      // Of the four different types of SpeciesTags, only PLAIN and ZEEMAN
+      // actually require explicit spectral lines.
+      if (sp->Type()==SpeciesTag::TYPE_PLAIN ||
+          sp->Type()==SpeciesTag::TYPE_ZEEMAN) {
+          unique_species.insert(sp->Species());
+      }
+      
+//      if (sp->Isotopologue() == species_data[sp->Species()].Isotopologue().nelem()
+//          || !species_data[sp->Species()].Isotopologue()[sp->Isotopologue()].isContinuum())
+//          {
+//            unique_species.insert(sp->Species());
+//          }
     }
   
   // Read catalogs for each identified species and put them all into

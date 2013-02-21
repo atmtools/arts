@@ -180,13 +180,13 @@ void define_basic_species_data()
   // H2O
   // Isotopologue Ratio: 1 1 1 1 1 1 3 
   //
-  // Some tags relate to empirical continuum correction terms. Thomas,
-  // this would be the place to add additional continuum tags, should
+  // Some tags relate to empirical continuum correction terms.
+  // This would be the place to add additional continuum tags, should
   // this be necessary. Continuum tags must come after the other tags
-  // and have -1 for all data entries, like in my example below. Not
+  // and have NAN for all data entries, like in my example below. Not
   // even the isotipic ratio is used for continuum tags.
   //
-  // The isotopologue ratio of -1 is used to identify continuum tags in
+  // The isotopologue ratio of NAN is used to identify continuum tags in
   // the absorption routines!
   // 
   // You also have to change the entry in the file
