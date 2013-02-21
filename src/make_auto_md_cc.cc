@@ -116,9 +116,6 @@ int main()
           // write. 
           ArrayOfIndex  vo=mdd.Out();   // Output 
           const ArrayOfIndex& vi = mdd.InOnly(); // Input
-#ifndef NDEBUG
-          const ArrayOfIndex& voutonly = mdd.OutOnly(); // Output only
-#endif
           ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
           ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
           // vo and vi contain handles of workspace variables, 
@@ -194,12 +191,33 @@ int main()
 #define DUMMY_COLS DUMMY_ELEMS
 #define DUMMY_ROWS DUMMY_ELEMS
 #define DUMMY_PAGES DUMMY_ELEMS
-          for (Index j=0; j < voutonly.nelem(); j++)
+#define DUMMY_BOOKS DUMMY_ELEMS
+#define DUMMY_SHELVES DUMMY_ELEMS
+#define DUMMY_VITRINES DUMMY_ELEMS
+#define DUMMY_LIBRARIES DUMMY_ELEMS
+
+
+        // Determine indexes of variables in vo that are only use as output
+        ArrayOfIndex voutonly; // Output only
+        for (Index k=0; k<vo.nelem(); ++k)
+        {
+            bool output_only = true;
+            for (ArrayOfIndex::const_iterator j=mdd.In().begin(); j != mdd.In().end(); ++j)
+                if (vo[k] == *j)
+                {
+                    output_only = false;
+                    break;
+                }
+
+            if (output_only) voutonly.push_back(k);
+        }
+
+        for (Index j=0; j < voutonly.nelem(); j++)
           {
             ostringstream docstr;
-            docstr << "  " << "// " << wsv_data[voutonly[j]].Name() << " is Output only.\n";
+            docstr << "  " << "// " << wsv_data[vo[voutonly[j]]].Name() << " is Output only.\n";
 
-            String gname = wsv_group_names[wsv_data[voutonly[j]].Group()];
+            String gname = wsv_group_names[wsv_data[vo[voutonly[j]]].Group()];
             ostringstream initstr;
             if (gname == "Numeric")
               initstr << " = NAN;";
@@ -211,17 +229,47 @@ int main()
               initstr << ".resize(" << DUMMY_ROWS << ","
                                     << DUMMY_COLS << ");";
             else if (gname == "Tensor3")
-              initstr << ".resize(" << DUMMY_PAGES << ","
-                                    << DUMMY_ROWS  << ","
-                                    << DUMMY_COLS  << ");";
-            
-            
+              initstr << ".resize("
+                << DUMMY_PAGES << ","
+                << DUMMY_ROWS  << ","
+                << DUMMY_COLS  << ");";
+            else if (gname == "Tensor4")
+                initstr << ".resize("
+                << DUMMY_BOOKS << ","
+                << DUMMY_PAGES << ","
+                << DUMMY_ROWS  << ","
+                << DUMMY_COLS  << ");";
+            else if (gname == "Tensor5")
+                initstr << ".resize("
+                << DUMMY_SHELVES << ","
+                << DUMMY_BOOKS << ","
+                << DUMMY_PAGES << ","
+                << DUMMY_ROWS  << ","
+                << DUMMY_COLS  << ");";
+            else if (gname == "Tensor6")
+                initstr << ".resize("
+                << DUMMY_VITRINES << ","
+                << DUMMY_SHELVES << ","
+                << DUMMY_BOOKS << ","
+                << DUMMY_PAGES << ","
+                << DUMMY_ROWS  << ","
+                << DUMMY_COLS  << ");";
+            else if (gname == "Tensor7")
+                initstr << ".resize("
+                << DUMMY_LIBRARIES << ","
+                << DUMMY_VITRINES << ","
+                << DUMMY_SHELVES << ","
+                << DUMMY_BOOKS << ","
+                << DUMMY_PAGES << ","
+                << DUMMY_ROWS  << ","
+                << DUMMY_COLS  << ");";
+
             if (initstr.str().length())
             {
               ofs << "  (*(("
-              << wsv_group_names[wsv_data[voutonly[j]].Group()]
-              << " *)ws[" << voutonly[j]
-              << "]))" << initstr.str();
+              << wsv_group_names[wsv_data[vo[voutonly[j]]].Group()]
+                << " *)ws[mr.Out()[" << voutonly[j]
+                << "]]))" << initstr.str();
             }
             ofs << docstr.str();
             

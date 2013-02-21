@@ -1,3 +1,26 @@
+2013-02-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-516
+
+	* src/make_auto_md_cc.cc:
+
+	Bug fix: Workspace method parameters that are defined to be
+	exclusively used as output are initialized to a specific values in
+	debug mode. Due to the bug, always the default variable was
+	initialized, not the variable that was actually passed to the WSM,
+	e.g.:
+
+	IndexCreate(i)
+	AtmosphereSet1D(i, lat_grid, lon_grid)
+	Print(i)
+	Print(atmosphere_dim)
+
+	This code should throw an error in the 2nd Print statement that
+	atmosphere_dim is uninitialized. Instead, although i was initialized
+	correctly to 1, also atmosphere_dim was set to -1.
+
+	Added initialization code for Tensor4-7.
+
 2013-02-21  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-515
