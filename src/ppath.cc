@@ -1448,6 +1448,27 @@ void plevel_slope_3d(
   Index ilat = gridpos2gridrange( gp_lat, abs( aa ) >= 0 );
   Index ilon = gridpos2gridrange( gp_lon, aa >= 0 );
 
+  // Allow that we are at the upper edge of the grids only for special cases:
+  const Index llat = lat_grid.nelem() - 1;
+  // At North pole:
+  if( ilat >= llat )
+    {
+      if( lat_grid[llat] > POLELAT )
+        { ilat = llat - 1; }
+      else
+        { throw runtime_error( "The upper latitude end of the atmosphere "
+                               "reached, that is not allowed." ); }
+    }
+  // Complete 360deg lon coverage:
+  if( ilon >= lon_grid.nelem() - 1 )
+    {
+      if( is_lon_cyclic( lon_grid ) )
+        { ilon = 0; }
+      else
+        { throw runtime_error( "The upper longitude end of the atmosphere "
+                               "reached, that is not allowed." ); }
+    }
+
   // Restore latitude and longitude values
   Vector  itw(2);
   Numeric  lat, lon;

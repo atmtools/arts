@@ -73,7 +73,7 @@ void complex_nFromGriddedField4(
     const Vector&          lat_grid,
     const Vector&          lat_true,
     const Vector&          lon_true,
-    const Vector&          rte_pos,
+    const Vector&          rtp_pos,
     const GriddedField4&   n_field,
     const Verbosity&)
 {
@@ -87,7 +87,7 @@ void complex_nFromGriddedField4(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
-  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
   n_field.checksize_strict();
   //
   chk_griddedfield_gridname( n_field, gfield_fID, "Frequency" );
@@ -120,16 +120,16 @@ void complex_nFromGriddedField4(
   // Determine true geographical position
   Vector lat(1), lon(1);
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
-                                                           lon_true, rte_pos );
+                                                           lon_true, rtp_pos );
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
   lon_shiftgrid( lon_shifted, GFlon, lon[0] );
 
   // Check if lat/lon we need are actually covered
-  chk_if_in_range( "rte_pos.lat", lat[0], GFlat[0],
+  chk_if_in_range( "rtp_pos.lat", lat[0], GFlat[0],
                     GFlat[nlat-1] );
-  chk_if_in_range( "rte_pos.lon", lon[0], lon_shifted[0],
+  chk_if_in_range( "rtp_pos.lon", lon[0], lon_shifted[0],
                     lon_shifted[nlon-1] );
 
   // Interpolate in lat and lon
@@ -227,8 +227,8 @@ void iySurfaceRtpropAgenda(
     const Index&            cloudbox_on,
     const Index&            stokes_dim,
     const Vector&           f_grid,
-    const Vector&           rte_pos,
-    const Vector&           rte_los,
+    const Vector&           rtp_pos,
+    const Vector&           rtp_los,
     const Vector&           rte_pos2,
     const Agenda&           iy_main_agenda,
     const Agenda&           surface_rtprop_agenda,
@@ -236,8 +236,8 @@ void iySurfaceRtpropAgenda(
 {
   // Input checks
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_rte_pos( atmosphere_dim, rte_pos );
-  chk_rte_los( atmosphere_dim, rte_los );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
 
   // Call *surface_rtprop_agenda*
   Matrix    surface_los;
@@ -245,7 +245,7 @@ void iySurfaceRtpropAgenda(
   Matrix    surface_emission;
   //
   surface_rtprop_agendaExecute( ws, surface_emission, surface_los, 
-                                surface_rmatrix, f_grid, rte_pos, rte_los,
+                                surface_rmatrix, f_grid, rtp_pos, rtp_los,
                                 surface_rtprop_agenda );
 
   // Check output of *surface_rtprop_agenda*
@@ -254,7 +254,7 @@ void iySurfaceRtpropAgenda(
   //
   if( nlos )   // if 0, blackbody ground and not all checks are needed
     {
-      if( surface_los.ncols() != rte_los.nelem() )
+      if( surface_los.ncols() != rtp_los.nelem() )
         throw runtime_error( 
                         "Number of columns in *surface_los* is not correct." );
       if( nlos != surface_rmatrix.nbooks() )
@@ -305,7 +305,7 @@ void iySurfaceRtpropAgenda(
             iy_main_agendaExecute( ws, iy, iy_aux, ppath, diy_dx, 0, 
                                    iy_trans_new, ArrayOfString(0), 
                                    cloudbox_on, jacobian_do, t_field, 
-                                   z_field, vmr_field, f_grid, rte_pos, 
+                                   z_field, vmr_field, f_grid, rtp_pos, 
                                    los, rte_pos2, iy_main_agenda );
           }
 
@@ -381,7 +381,7 @@ void surfaceFlatRefractiveIndex(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
-    const Vector&    rte_los,
+    const Vector&    rtp_los,
     const Vector&    specular_los,
     const Numeric&   surface_skin_t,
     const Matrix&    complex_n,
@@ -419,7 +419,7 @@ void surfaceFlatRefractiveIndex(
   surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
 
   // Incidence angle
-  const Numeric incang = calc_incang( rte_los, specular_los );
+  const Numeric incang = calc_incang( rtp_los, specular_los );
   assert( incang <= 90 );
 
   // Complex (amplitude) reflection coefficients
@@ -618,7 +618,7 @@ void surfaceLambertianSimple(
     const Vector&    f_grid,
     const Index&     stokes_dim,
     const Index&     atmosphere_dim,
-    const Vector&    rte_los,
+    const Vector&    rtp_los,
     const Numeric&   surface_skin_t,
     const Vector&    surface_scalar_reflectivity,
     const Index&     lambertian_nza,
@@ -655,7 +655,7 @@ void surfaceLambertianSimple(
 
   // Allocate and init everything to zero
   //
-  surface_los.resize( lambertian_nza, rte_los.nelem() );
+  surface_los.resize( lambertian_nza, rtp_los.nelem() );
   surface_rmatrix.resize( lambertian_nza, nf, stokes_dim, stokes_dim );
   surface_emission.resize( nf, stokes_dim );
   //
@@ -705,8 +705,8 @@ void surfaceLambertianSimple(
 void specular_losCalc(
          Vector&   specular_los,
          Vector&   surface_normal,
-   const Vector&   rte_pos,
-   const Vector&   rte_los,
+   const Vector&   rtp_pos,
+   const Vector&   rtp_los,
    const Index&    atmosphere_dim,
    const Vector&   lat_grid,
    const Vector&   lon_grid,
@@ -720,33 +720,33 @@ void specular_losCalc(
   if( atmosphere_dim == 1 )
     { 
       surface_normal[0] = 0;
-      specular_los[0]   = 180 - rte_los[0]; 
+      specular_los[0]   = 180 - rtp_los[0]; 
     }
 
   else if( atmosphere_dim == 2 )
     { 
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
       GridPos gp_lat;
-      gridpos( gp_lat, lat_grid, rte_pos[1] );
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
       Numeric c1;         // Radial slope of the surface
       plevel_slope_2d( c1, lat_grid, refellipsoid, z_surface(joker,0), 
-                                                          gp_lat, rte_los[0] );
+                                                          gp_lat, rtp_los[0] );
       Vector itw(2); interpweights( itw, gp_lat );
       const Numeric rv_surface = refell2d( refellipsoid, lat_grid, gp_lat )
                                 + interp( itw, z_surface(joker,0), gp_lat );
       surface_normal[0] = -plevel_angletilt( rv_surface, c1 );
-      specular_los[0]   = sign( rte_los[0] ) * 180 - rte_los[0] + 
+      specular_los[0]   = sign( rtp_los[0] ) * 180 - rtp_los[0] + 
                                                            2*surface_normal[0];
     }
 
   else if( atmosphere_dim == 3 )
     { 
       // Calculate surface normal in South-North direction
-      chk_interpolation_grids( "Latitude interpolation", lat_grid, rte_pos[1] );
-      chk_interpolation_grids( "Longitude interpolation", lon_grid, rte_pos[2]);
+      chk_interpolation_grids( "Latitude interpolation", lat_grid, rtp_pos[1] );
+      chk_interpolation_grids( "Longitude interpolation", lon_grid, rtp_pos[2]);
       GridPos gp_lat, gp_lon;
-      gridpos( gp_lat, lat_grid, rte_pos[1] );
-      gridpos( gp_lon, lon_grid, rte_pos[2] );
+      gridpos( gp_lat, lat_grid, rtp_pos[1] );
+      gridpos( gp_lon, lon_grid, rtp_pos[2] );
       Numeric c1, c2;
       plevel_slope_3d( c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, 
                        gp_lat, gp_lon, 0 );
@@ -763,9 +763,9 @@ void specular_losCalc(
       zaaa2cart( tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0 );
       zaaa2cart( tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90 );
       cross3( normal, tangentSN, tangentEW );
-      // Convert rte_los to cartesian and flip direction
+      // Convert rtp_los to cartesian and flip direction
       Vector di(3);
-      zaaa2cart( di[0], di[1], di[2], rte_los[0], rte_los[1] );
+      zaaa2cart( di[0], di[1], di[2], rtp_los[0], rtp_los[1] );
       di *= -1;
       // Set LOS normal vector 
       cart2zaaa( surface_normal[0], surface_normal[1], normal[0], normal[1], 
@@ -791,8 +791,8 @@ void surface_reflectivityFromGriddedField6(
     const Vector&          lat_grid,
     const Vector&          lat_true,
     const Vector&          lon_true,
-    const Vector&          rte_pos,
-    const Vector&          rte_los,
+    const Vector&          rtp_pos,
+    const Vector&          rtp_los,
     const GriddedField6&   r_field,
     const Verbosity&)
 {
@@ -800,8 +800,8 @@ void surface_reflectivityFromGriddedField6(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
-  chk_rte_pos( atmosphere_dim, rte_pos );
-  chk_rte_los( atmosphere_dim, rte_los );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
   r_field.checksize_strict();
   chk_griddedfield_gridname( r_field, 0, "Frequency" );
   chk_griddedfield_gridname( r_field, 1, "Stokes element" );
@@ -844,7 +844,7 @@ void surface_reflectivityFromGriddedField6(
   // Determine true geographical position
   Vector lat(1), lon(1);
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
-                                                           lon_true, rte_pos );
+                                                           lon_true, rtp_pos );
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
@@ -877,7 +877,7 @@ void surface_reflectivityFromGriddedField6(
   if( nza < 4 )
     { order = 1; }
   {
-    Vector incang( 1, 180-rte_los[0] );
+    Vector incang( 1, 180-rtp_los[0] );
     chk_interpolation_grids( "Incidence angle interpolation", 
                               r_field.get_numeric_grid(3), incang );
     ArrayOfGridPosPoly   gp(1);
@@ -928,8 +928,8 @@ void surface_scalar_reflectivityFromGriddedField4(
     const Vector&          lat_grid,
     const Vector&          lat_true,
     const Vector&          lon_true,
-    const Vector&          rte_pos,
-    const Vector&          rte_los,
+    const Vector&          rtp_pos,
+    const Vector&          rtp_los,
     const GriddedField4&   r_field,
     const Verbosity&)
 {
@@ -937,8 +937,8 @@ void surface_scalar_reflectivityFromGriddedField4(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
   chk_latlon_true( atmosphere_dim, lat_grid, lat_true, lon_true );
-  chk_rte_pos( atmosphere_dim, rte_pos );
-  chk_rte_los( atmosphere_dim, rte_los );
+  chk_rte_pos( atmosphere_dim, rtp_pos );
+  chk_rte_los( atmosphere_dim, rtp_los );
   r_field.checksize_strict();
   chk_griddedfield_gridname( r_field, 0, "Frequency" );
   chk_griddedfield_gridname( r_field, 1, "Incidence angle" );
@@ -970,7 +970,7 @@ void surface_scalar_reflectivityFromGriddedField4(
   // Determine true geographical position
   Vector lat(1), lon(1);
   pos2true_latlon( lat[0], lon[0], atmosphere_dim, lat_grid, lat_true, 
-                                                           lon_true, rte_pos );
+                                                           lon_true, rtp_pos );
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
@@ -1005,7 +1005,7 @@ void surface_scalar_reflectivityFromGriddedField4(
   if( nza < 4 )
     { order = 1; }
   {
-    Vector incang( 1, 180-rte_los[0] );
+    Vector incang( 1, 180-rtp_los[0] );
     chk_interpolation_grids( "Incidence angle interpolation", 
                               r_field.get_numeric_grid(1), incang );
     ArrayOfGridPosPoly   gp(1);

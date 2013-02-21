@@ -1,3 +1,19 @@
+2013-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-514
+
+	* src/m_surface.cc: Changed rte_pos and rte_los to rtp_pos and
+	rtp_los, following renaming of WSVs.
+
+	* src/ppath.cc (plevel_slope_3d): Nadir cases exactly at upper
+	longitude end, with 360 deg lon-coverage, failed. Found be
+	Richard. This special case now fixed. Fixed also the parallel case
+	of nadir measurements exactly at the North pole. (No change should
+	be required for lower lon end and South pole.)
+
+	Note that nadir measurements exactly at end points are in gernal
+	not allowed. But the two cases above are exceptions.
+
 2013-02-20  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-513
