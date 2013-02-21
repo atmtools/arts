@@ -1,3 +1,30 @@
+2013-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-517
+
+	* Treatment of Doppler shifts streamlined. Now possible to include
+	sensor movement (but so far only on iyCalc level), and prepared
+	for frequency dependent shift.
+
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	Adopted call of iyRadioLink.
+
+	* src/make_array.h: Had to add define MakeArray for 37 arguments.
+	(iyRadioLink appearently has this record for input arguments).
+
+	* src/m_transmitter.cc (iyTransmissionStandard, iyRadioLink):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_cloudradar.cc (iyCloudRadar): Adopted to changes below.
+	And now also taking rte_alonglos_v as input (passed on to
+	get_ppath_doppler).
+
+	* src/rte.cc (get_ppath_xxxx): Now winds and mag-field stored as
+	vectors even for ppath_wind and ppath_mag.
+	(get_ppath_doppler): New. Returns frequency dependent Doppler shift.
+	(calc_doppler): Removed (replaced by function above).
+	(get_ppath_abs): Now using ppath_doppler.
+
 2013-02-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-516

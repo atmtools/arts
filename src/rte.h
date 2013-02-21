@@ -170,12 +170,8 @@ void get_ppath_atmvars(
         Vector&      ppath_p, 
         Vector&      ppath_t, 
         Matrix&      ppath_vmr, 
-        Vector&      ppath_wind_u, 
-        Vector&      ppath_wind_v, 
-        Vector&      ppath_wind_w,
-        Vector&      ppath_mag_u,
-        Vector&      ppath_mag_v,
-        Vector&      ppath_mag_w,
+        Matrix&      ppath_wind, 
+        Matrix&      ppath_mag,
         Vector&      ppath_ne,
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
@@ -198,15 +194,10 @@ void get_ppath_abs(
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
   ConstMatrixView       ppath_vmr, 
-  ConstVectorView       ppath_wind_u, 
-  ConstVectorView       ppath_wind_v, 
-  ConstVectorView       ppath_wind_w,
-  ConstVectorView       ppath_mag_u,
-  ConstVectorView       ppath_mag_v,
-  ConstVectorView       ppath_mag_w,
+  ConstMatrixView       ppath_doppler, 
+  ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
-  const Index&          stokes_dim,
-  const Index&          atmosphere_dim );
+  const Index&          stokes_dim );
 
 void get_ppath_blackrad( 
         Workspace&   ws,
@@ -215,6 +206,14 @@ void get_ppath_blackrad(
   const Ppath&       ppath,
   ConstVectorView    ppath_t, 
   ConstVectorView    f_grid );
+
+void get_ppath_doppler( 
+        Matrix&    ppath_doppler,
+  const Ppath&     ppath,
+  ConstVectorView  f_grid, 
+  const Index&     atmosphere_dim,
+  const Numeric&   rte_alonglos_v,
+  ConstMatrixView  ppath_wind );
 
 void get_ppath_ext( 
         ArrayOfIndex&                  clear2cloudbox,
@@ -241,9 +240,7 @@ void get_ppath_trans(
         Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstVectorView       ppath_mag_u, 
-  ConstVectorView       ppath_mag_v, 
-  ConstVectorView       ppath_mag_w, 
+  ConstMatrixView       ppath_mag, 
   ConstVectorView       ppath_ne, 
   const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
@@ -257,9 +254,7 @@ void get_ppath_trans2(
         Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstVectorView       ppath_mag_u, 
-  ConstVectorView       ppath_mag_v, 
-  ConstVectorView       ppath_mag_w, 
+  ConstMatrixView       ppath_mag, 
   ConstVectorView       ppath_ne, 
   const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
@@ -325,7 +320,7 @@ void rte_step_std(
          ConstVectorView abs_vec_av,
          ConstVectorView sca_vec_av, 
          const Numeric& l_step,
-         const Numeric& rte_planck_value );
+         const Numeric& rtp_planck_value );
 
 void surface_calc(
               Matrix&         iy,

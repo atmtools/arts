@@ -104,6 +104,7 @@ void iyRadioLink(
    const Tensor3&                     iy_transmission,
    const Vector&                      rte_pos,      
    const Vector&                      rte_pos2,      
+   const Numeric&                     rte_alonglos_v,      
    const Numeric&                     ppath_lraytrace,
    const Index&                       defocus_method,
    const Numeric&                     defocus_shift,
@@ -302,9 +303,8 @@ void iyRadioLink(
 
   // Get atmospheric and attenuation quantities for each ppath point/step
   //
-  Vector       ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
-               ppath_ne, ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
-  Matrix       ppath_vmr, ppath_pnd;
+  Vector       ppath_p, ppath_t, ppath_ne;
+  Matrix       ppath_vmr, ppath_pnd, ppath_mag, ppath_wind, ppath_doppler;
   Tensor5      ppath_abs;
   Tensor4      trans_partial, trans_cumulat, pnd_ext_mat;
   Vector       scalar_tau, farrot_c1;
@@ -313,24 +313,21 @@ void iyRadioLink(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
-                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                         ppath_mag_u, ppath_mag_v, ppath_mag_w, ppath_ne,
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_u_field, wind_v_field, wind_w_field,
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
+                         ppath_ne, ppath, atmosphere_dim, p_grid, t_field, 
+                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field,
                          edensity_field);      
+      get_ppath_doppler( ppath_doppler, ppath, f_grid,  atmosphere_dim, 
+                         rte_alonglos_v, ppath_wind );
       get_ppath_abs(     ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
-                         ppath_p, ppath_t, ppath_vmr, 
-                         ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                         ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                         f_grid, stokes_dim, atmosphere_dim );
+                         ppath_p, ppath_t, ppath_vmr, ppath_doppler, 
+                         ppath_mag, f_grid, stokes_dim );
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
-                           farrot_c2, ppath, ppath_abs, ppath_mag_u, 
-                           ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
-                           f_grid, stokes_dim );
+                           farrot_c2, ppath, ppath_abs, ppath_mag, 
+                           ppath_ne, atmosphere_dim, f_grid, stokes_dim );
         }
       else
         {
@@ -342,9 +339,9 @@ void iyRadioLink(
                          atmosphere_dim, cloudbox_limits, pnd_field, 
                          use_mean_scat_data, scat_data_raw, verbosity );
           get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
-                            farrot_c2, ppath, ppath_abs, ppath_mag_u, 
-                            ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
-                            f_grid, stokes_dim, clear2cloudbox, pnd_ext_mat );
+                            farrot_c2, ppath, ppath_abs, ppath_mag, ppath_ne, 
+                            atmosphere_dim, f_grid, stokes_dim, clear2cloudbox,
+                            pnd_ext_mat );
         }
     }
 
@@ -637,6 +634,7 @@ void iyTransmissionStandard(
    const Vector&                      rte_pos,      
    const Vector&                      rte_los,      
    const Vector&                      rte_pos2,
+   const Numeric&                     rte_alonglos_v,      
    const Numeric&                     ppath_lraytrace,      
    const Verbosity&                   verbosity )
 {
@@ -819,9 +817,8 @@ void iyTransmissionStandard(
 
   // Get atmospheric and RT quantities for each ppath point/step
   //
-  Vector       ppath_p, ppath_t, ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                                 ppath_mag_u,  ppath_mag_v,  ppath_mag_w;
-  Matrix       ppath_vmr, ppath_pnd;
+  Vector       ppath_p, ppath_t;
+  Matrix       ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_doppler;
   Tensor5      ppath_abs;
   Tensor4      trans_partial, trans_cumulat, pnd_ext_mat;
   Vector       scalar_tau, farrot_c1;
@@ -831,24 +828,21 @@ void iyTransmissionStandard(
   if( np > 1 )
     {
       Vector ppath_ne;
-      get_ppath_atmvars(   ppath_p, ppath_t, ppath_vmr,
-                           ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                           ppath_mag_u, ppath_mag_v, ppath_mag_w, ppath_ne,
-                           ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                           wind_u_field, wind_v_field, wind_w_field ,
-                           mag_u_field, mag_v_field, mag_w_field,
-                           edensity_field );      
-      get_ppath_abs(       ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
-                           ppath_p, ppath_t, ppath_vmr, 
-                           ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                           ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                           f_grid, stokes_dim, atmosphere_dim );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
+                         ppath_ne, ppath, atmosphere_dim, p_grid, t_field, 
+                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                         mag_u_field, mag_v_field, mag_w_field,
+                         edensity_field );      
+      get_ppath_doppler( ppath_doppler, ppath, f_grid,  atmosphere_dim, 
+                         rte_alonglos_v, ppath_wind );
+      get_ppath_abs(     ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+                         ppath_p, ppath_t, ppath_vmr, ppath_doppler, 
+                         ppath_mag, f_grid, stokes_dim );
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
-                           farrot_c2, ppath, ppath_abs, ppath_mag_u, 
-                           ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
-                           f_grid, stokes_dim );
+                           farrot_c2, ppath, ppath_abs, ppath_mag, 
+                           ppath_ne, atmosphere_dim, f_grid, stokes_dim );
         }
       else
         {
@@ -860,9 +854,9 @@ void iyTransmissionStandard(
                          atmosphere_dim, cloudbox_limits, pnd_field, 
                          use_mean_scat_data, scat_data_raw, verbosity );
           get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
-                            farrot_c2, ppath, ppath_abs, ppath_mag_u, 
-                            ppath_mag_v, ppath_mag_w, ppath_ne, atmosphere_dim,
-                            f_grid, stokes_dim, clear2cloudbox, pnd_ext_mat );
+                            farrot_c2, ppath, ppath_abs, ppath_mag, ppath_ne, 
+                            atmosphere_dim, f_grid, stokes_dim, clear2cloudbox,
+                            pnd_ext_mat );
         }
     }
 
@@ -940,39 +934,37 @@ void iyTransmissionStandard(
                 { 
                   Vector t2 = ppath_t;   t2 += dt;
                   get_ppath_abs( ws, ppath_at2, abs_mat_per_species_agenda, 
-                                 ppath, ppath_p, t2, ppath_vmr, 
-                                 ppath_wind_u, ppath_wind_v, ppath_wind_w, 
-                                 ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                                 f_grid, stokes_dim, atmosphere_dim );
+                                 ppath, ppath_p, t2, ppath_vmr, ppath_wind,
+                                 ppath_mag, f_grid, stokes_dim );
                 }
               else if( wind_i[iq] )
                 {
                   if( wind_i[iq] == 1 )
                     {
-                      Vector w2 = ppath_wind_u;   w2 += dw;
-                      get_ppath_abs(  ws, ppath_awu, abs_mat_per_species_agenda,
-                                      ppath, ppath_p, ppath_t, ppath_vmr, 
-                                      w2, ppath_wind_v, ppath_wind_w, 
-                                      ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                                      f_grid, stokes_dim, atmosphere_dim );
+                      Matrix d2, w2 = ppath_wind;   w2(0,joker) += dw;
+                      get_ppath_doppler( d2, ppath, f_grid,  atmosphere_dim, 
+                                         rte_alonglos_v, w2 );
+                      get_ppath_abs( ws, ppath_awu, abs_mat_per_species_agenda,
+                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     d2, ppath_mag, f_grid, stokes_dim );
                     }
                   else if( wind_i[iq] == 2 )
                     {
-                      Vector w2 = ppath_wind_v;   w2 += dw;
-                      get_ppath_abs(  ws, ppath_awv, abs_mat_per_species_agenda,
-                                      ppath, ppath_p, ppath_t, ppath_vmr, 
-                                      ppath_wind_u, w2, ppath_wind_w, 
-                                      ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                                      f_grid, stokes_dim, atmosphere_dim );
+                      Matrix d2, w2 = ppath_wind;   w2(1,joker) += dw;
+                      get_ppath_doppler( d2, ppath, f_grid,  atmosphere_dim, 
+                                         rte_alonglos_v, w2 );
+                      get_ppath_abs( ws, ppath_awv, abs_mat_per_species_agenda,
+                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     d2, ppath_mag, f_grid, stokes_dim );
                     }
                   else if( wind_i[iq] == 3 )
                     {
-                      Vector w2 = ppath_wind_w;   w2 += dw;
-                      get_ppath_abs(  ws, ppath_aww, abs_mat_per_species_agenda,
-                                      ppath, ppath_p, ppath_t, ppath_vmr, 
-                                      ppath_wind_u, ppath_wind_v, w2, 
-                                      ppath_mag_u, ppath_mag_v, ppath_mag_w, 
-                                      f_grid, stokes_dim, atmosphere_dim );
+                      Matrix d2, w2 = ppath_wind;   w2(0,joker) += dw;
+                      get_ppath_doppler( d2, ppath, f_grid,  atmosphere_dim, 
+                                         rte_alonglos_v, w2 );
+                      get_ppath_abs( ws, ppath_aww, abs_mat_per_species_agenda,
+                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     d2, ppath_mag, f_grid, stokes_dim );
                     }
                 }
             }

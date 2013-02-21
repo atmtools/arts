@@ -378,51 +378,6 @@ void bending_angle1d(
 
 
 
-//! calc_doppler
-/*!
-    Calculates the Doppler shift at a point along the path.
-
-    \param    rtp_doppler      Out: Doppler shift.
-    \param    f_grid           As the WSV.
-    \param    atmosphere_dim   As the WSV.
-    \param    rte_alonglos_v   As the WSV.
-    \param    rtp_los          As the WSV.
-    \param    wind_u           Local u-wind.
-    \param    wind_v           Local v-wind.
-    \param    wind_w           Local w-wind.
-
-    \author Patrick Eriksson 
-    \date   2012-04-05
-*/
-void calc_doppler( 
-        Numeric&   rtp_doppler,
-  ConstVectorView  f_grid, 
-  const Index&     atmosphere_dim,
-  const Numeric&   rte_alonglos_v,
-  const Numeric&   rtp_los,
-  const Numeric&   wind_u,
-  const Numeric&   wind_v,
-  const Numeric&   wind_w )
-{
-  // Frequency to apply for Doppler shift
-  const Numeric f_doppler = ( f_grid[0] + f_grid[f_grid.nelem()-1] ) / 2.0;
-
-  // Doppler relevant velocity
-  //
-  Numeric v_doppler = rte_alonglos_v;
-  //
-  if( wind_v != 0  ||  wind_u != 0  ||  wind_w != 0 )
-    {
-      v_doppler += dotprod_with_los( rtp_los, wind_u, wind_v, 
-                                                      wind_w, atmosphere_dim );
-    }
-
-  // Convert to a frequency shift
-  rtp_doppler = f_doppler * v_doppler / SPEED_OF_LIGHT;
-}
-
-
-
 //! defocusing_general_sub
 /*!
     Just to avoid duplicatuion of code in *defocusing_general*.
@@ -1038,17 +993,17 @@ void get_iy_of_background(
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
 
-  // Set rte_pos and rte_los to match the last point in ppath.
+  // Set rtp_pos and rtp_los to match the last point in ppath.
   //
   // Note that the Ppath positions (ppath.pos) for 1D have one column more
   // than expected by most functions. Only the first atmosphere_dim values
   // shall be copied.
   //
-  Vector rte_pos, rte_los;
-  rte_pos.resize( atmosphere_dim );
-  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
-  rte_los.resize( ppath.los.ncols() );
-  rte_los = ppath.los(np-1,joker);
+  Vector rtp_pos, rtp_los;
+  rtp_pos.resize( atmosphere_dim );
+  rtp_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
+  rtp_los.resize( ppath.los.ncols() );
+  rtp_los = ppath.los(np-1,joker);
 
   out3 << "Radiative background: " << ppath.background << "\n";
 
@@ -1063,7 +1018,7 @@ void get_iy_of_background(
     case 1:   //--- Space ---------------------------------------------------- 
       {
         agenda_name = "iy_space_agenda";
-        iy_space_agendaExecute( ws, iy, f_grid, rte_pos, rte_los, 
+        iy_space_agendaExecute( ws, iy, f_grid, rtp_pos, rtp_los, 
                                 iy_space_agenda );
       }
       break;
@@ -1073,7 +1028,7 @@ void get_iy_of_background(
         agenda_name = "iy_surface_agenda";
         iy_surface_agendaExecute( ws, iy, diy_dx, iy_transmission, cloudbox_on,
                                   jacobian_do, t_field, z_field, vmr_field,
-                                  f_grid, iy_main_agenda, rte_pos, rte_los, 
+                                  f_grid, iy_main_agenda, rtp_pos, rtp_los, 
                                   rte_pos2, iy_surface_agenda );
       }
       break;
@@ -1082,7 +1037,7 @@ void get_iy_of_background(
     case 4:
       {
         agenda_name = "iy_cloudbox_agenda";
-        iy_cloudbox_agendaExecute( ws, iy, f_grid, rte_pos, rte_los, 
+        iy_cloudbox_agendaExecute( ws, iy, f_grid, rtp_pos, rtp_los, 
                                    iy_cloudbox_agenda );
       }
       break;
@@ -1116,12 +1071,8 @@ void get_iy_of_background(
     \param   ppath_p           Out: Pressure for each ppath point.
     \param   ppath_t           Out: Temperature for each ppath point.
     \param   ppath_vmr         Out: VMR values for each ppath point.
-    \param   ppath_wind_u      Out: U-wind for each ppath point.
-    \param   ppath_wind_v      Out: V-wind for each ppath point.
-    \param   ppath_wind_w      Out: W-wind for each ppath point.
-    \param   ppath_mag_u       Out: U-mag for each ppath point.
-    \param   ppath_mag_v       Out: V-mag for each ppath point.
-    \param   ppath_mag_w       Out: W-mag for each ppath point.
+    \param   ppath_wind        Out: Wind vector for each ppath point.
+    \param   ppath_mag         Out: Mag. field vector for each ppath point.
     \param   ppath_ne          Out: Free electron density for each ppath point.
     \param   ppath             As the WSV.
     \param   atmosphere_dim    As the WSV.
@@ -1145,12 +1096,8 @@ void get_ppath_atmvars(
         Vector&      ppath_p, 
         Vector&      ppath_t, 
         Matrix&      ppath_vmr, 
-        Vector&      ppath_wind_u, 
-        Vector&      ppath_wind_v, 
-        Vector&      ppath_wind_w,
-        Vector&      ppath_mag_u,
-        Vector&      ppath_mag_v,
-        Vector&      ppath_mag_w,
+        Matrix&      ppath_wind, 
+        Matrix&      ppath_mag,
         Vector&      ppath_ne,
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
@@ -1192,70 +1139,44 @@ void get_ppath_atmvars(
     }
 
   // Winds:
-  ppath_wind_w.resize(np);
-  if( wind_w_field.npages() > 0 ) 
-    { 
-      interp_atmfield_by_itw( ppath_wind_w,  atmosphere_dim, wind_w_field, 
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-    }
-  else
-    { ppath_wind_w = 0; }
+  ppath_wind.resize(3,np);
+  ppath_wind = 0;
   //
-  ppath_wind_v.resize(np);
+  if( wind_u_field.npages() > 0 ) 
+    { 
+      interp_atmfield_by_itw( ppath_wind(0,joker), atmosphere_dim, wind_u_field,
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
   if( wind_v_field.npages() > 0 ) 
     { 
-      interp_atmfield_by_itw( ppath_wind_v,  atmosphere_dim, wind_v_field, 
-                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+      interp_atmfield_by_itw( ppath_wind(1,joker), atmosphere_dim, wind_v_field,
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
-  else
-    { ppath_wind_v = 0; }
-  //
-  ppath_wind_u.resize(np);
-  if( atmosphere_dim > 2 )
-    {
-      if( wind_u_field.npages() > 0 ) 
-        { 
-          interp_atmfield_by_itw( ppath_wind_u,  atmosphere_dim, wind_u_field, 
-                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-        }
-      else
-        { ppath_wind_u = 0; }
+  if( wind_w_field.npages() > 0 ) 
+    { 
+      interp_atmfield_by_itw( ppath_wind(2,joker), atmosphere_dim, wind_w_field,
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
-  else
-    { ppath_wind_u = 0; }
 
   // Magnetic field:
-  ppath_mag_w.resize(np);
-  if( mag_w_field.npages() > 0 )
-    {
-      interp_atmfield_by_itw( ppath_mag_w,  atmosphere_dim, mag_w_field,
-                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-    }
-  else
-    { ppath_mag_w = 0; }
+  ppath_mag.resize(3,np);
+  ppath_mag = 0;
   //
-  ppath_mag_v.resize(np);
+  if( mag_u_field.npages() > 0 )
+    {
+      interp_atmfield_by_itw( ppath_mag(0,joker), atmosphere_dim, mag_u_field,
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
   if( mag_v_field.npages() > 0 )
     {
-      interp_atmfield_by_itw( ppath_mag_v,  atmosphere_dim, mag_v_field,
-                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+      interp_atmfield_by_itw( ppath_mag(1,joker), atmosphere_dim, mag_v_field,
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
-  else
-    { ppath_mag_v = 0; }
-  //
-  ppath_mag_u.resize(np);
-  if( atmosphere_dim > 2 )
+  if( mag_w_field.npages() > 0 )
     {
-      if( mag_u_field.npages() > 0 )
-        {
-          interp_atmfield_by_itw( ppath_mag_u,  atmosphere_dim, mag_u_field,
-                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-        }
-      else
-        { ppath_mag_u = 0; }
+      interp_atmfield_by_itw( ppath_mag(2,joker), atmosphere_dim, mag_w_field,
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
-  else
-    { ppath_mag_u = 0; }
 
   // Free electrons
   ppath_ne.resize(np);
@@ -1284,15 +1205,10 @@ void get_ppath_atmvars(
     \param   ppath_p             Pressure for each ppath point.
     \param   ppath_t             Temperature for each ppath point.
     \param   ppath_vmr           VMR values for each ppath point.
-    \param   ppath_wind_u        U-wind for each ppath point.
-    \param   ppath_wind_v        V-wind for each ppath point.
-    \param   ppath_wind_w        W-wind for each ppath point.
-    \param   ppath_mag_u         U-mag for each ppath point.
-    \param   ppath_mag_v         V-mag for each ppath point.
-    \param   ppath_mag_w         W-mag for each ppath point.
+    \param   ppath_doppler       See get_ppath_doppler.
+    \param   ppath_mag           See get_ppath_atmvars.
     \param   f_grid              As the WSV.    
     \param   stokes_dim          As the WSV.
-    \param   atmosphere_dim      As the WSV.    
 
     \author Patrick Eriksson 
     \date   2012-08-15
@@ -1305,24 +1221,16 @@ void get_ppath_abs(
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
   ConstMatrixView       ppath_vmr, 
-  ConstVectorView       ppath_wind_u, 
-  ConstVectorView       ppath_wind_v, 
-  ConstVectorView       ppath_wind_w,
-  ConstVectorView       ppath_mag_u,
-  ConstVectorView       ppath_mag_v,
-  ConstVectorView       ppath_mag_w,
+  ConstMatrixView       ppath_doppler, 
+  ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
-  const Index&          stokes_dim,
-  const Index&          atmosphere_dim )
+  const Index&          stokes_dim )
 {
   // Sizes
   const Index   nf   = f_grid.nelem();
   const Index   np   = ppath.np;
   const Index   nabs = ppath_vmr.nrows();
 
-  // Frequency to apply for Doppler shift
-  const Numeric f_doppler = ( f_grid[0] + f_grid[nf-1] ) / 2.0;
-    
   // Size variable
   try {
     ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
@@ -1350,32 +1258,15 @@ void get_ppath_abs(
     {
       if (failed) continue;
 
-      // Doppler shift
-      //
-      Numeric rte_doppler = 0;
-      //
-      if( ppath_wind_v[ip]!=0 || ppath_wind_u[ip]!=0 || ppath_wind_w[ip]!=0 )
-        {
-          rte_doppler = ( f_doppler / SPEED_OF_LIGHT ) * dotprod_with_los( 
-                       ppath.los(ip,joker), ppath_wind_u[ip], ppath_wind_v[ip], 
-                                            ppath_wind_w[ip], atmosphere_dim );
-        }
-        
-      // Magnetic field
-      //
-      Vector rte_mag(3);
-      rte_mag[0] = ppath_mag_u[ip];
-      rte_mag[1] = ppath_mag_v[ip];
-      rte_mag[2] = ppath_mag_w[ip];
-
       // Call agenda
       //
       Tensor4  abs_mat_per_species;
       //
       try {
           abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
-              rte_doppler, rte_mag, ppath.los(ip,joker), ppath_p[ip], 
-              ppath_t[ip], ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
+                            ppath_doppler(0,ip), ppath_mag(joker,ip), 
+                            ppath.los(ip,joker), ppath_p[ip], ppath_t[ip], 
+                            ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
       } catch (runtime_error e) {
 #pragma omp critical (get_ppath_abs_fail)
           { failed = true; fail_msg = e.what(); }
@@ -1383,7 +1274,6 @@ void get_ppath_abs(
       }
 
       // Copy to output argument
-      //
       ppath_abs(joker,joker,joker,joker,ip) = abs_mat_per_species;
     }
 
@@ -1432,6 +1322,61 @@ void get_ppath_blackrad(
       blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
                                          f_grid, blackbody_radiation_agenda );
       ppath_blackrad(joker,ip) = bvector;
+    }
+}
+
+
+
+//! get_ppath_doppler
+/*!
+    Determines the Doppler shift along the propagation path.
+
+    ppath_doppler [ nf + np ]
+
+    \param   ppath_doppler    Out: Doppler shift
+    \param   ppath            Propagation path.
+    \param   f_grid           As the WSV.    
+    \param   atmosphere_dim   As the WSV.
+    \param   rte_alonglos_v   As the WSV.
+    \param   ppath_wind       See get_ppath_atmvars.
+
+    \author Patrick Eriksson 
+    \date   2013-02-21
+*/
+void get_ppath_doppler( 
+        Matrix&    ppath_doppler,
+  const Ppath&     ppath,
+  ConstVectorView  f_grid, 
+  const Index&     atmosphere_dim,
+  const Numeric&   rte_alonglos_v,
+  ConstMatrixView  ppath_wind )
+{
+  // Sizes
+  const Index   nf = f_grid.nelem();
+  const Index   np = ppath.np;
+
+  ppath_doppler.resize(nf,np);
+  ppath_doppler = 0; 
+
+  // Doppler relevant velocity
+  //
+  for( Index ip=0; ip<np; ip++ )
+    {
+      Numeric v_doppler = rte_alonglos_v;
+
+      if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
+                                     ppath_wind(2,ip) != 0  )
+        {
+          v_doppler += dotprod_with_los( ppath.los(ip,joker), ppath_wind(0,ip),
+                          ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
+        }
+
+      if( v_doppler != 0 )
+        { 
+          const Numeric a = v_doppler / SPEED_OF_LIGHT;
+          for( Index iv=0; iv<nf; iv++ )
+            { ppath_doppler(iv,ip) = a * f_grid[iv]; }
+        }
     }
 }
 
@@ -1556,17 +1501,17 @@ void get_ppath_ext(
       if( i>=0 )
         {
           // Direction of outgoing scattered radiation (which is reversed to
-          // LOS). Note that rte_los2 is only used for extracting scattering
+          // LOS). Note that rtp_los2 is only used for extracting scattering
           // properties.
-          Vector rte_los2;
-          mirror_los( rte_los2, ppath.los(ip,joker), atmosphere_dim );
+          Vector rtp_los2;
+          mirror_los( rtp_los2, ppath.los(ip,joker), atmosphere_dim );
 
           // Extinction and absorption
           if( use_mean_scat_data )
             {
               Vector   abs_vec( stokes_dim );
               Matrix   ext_mat( stokes_dim, stokes_dim );
-              opt_propCalc( ext_mat, abs_vec, rte_los2[0], rte_los2[1], 
+              opt_propCalc( ext_mat, abs_vec, rtp_los2[0], rtp_los2[1], 
                             scat_data[0], stokes_dim, ppath_pnd(joker,ip), 
                             ppath_t[ip], verbosity);
               for( Index iv=0; iv<nf; iv++ )
@@ -1580,8 +1525,8 @@ void get_ppath_ext(
               for( Index iv=0; iv<nf; iv++ )
                 { 
                   opt_propCalc( pnd_ext_mat(iv,joker,joker,i), 
-                                pnd_abs_vec(iv,joker,i), rte_los2[0], 
-                                rte_los2[1], scat_data[iv], stokes_dim,
+                                pnd_abs_vec(iv,joker,i), rtp_los2[0], 
+                                rtp_los2[1], scat_data[iv], stokes_dim,
                                 ppath_pnd(joker,ip), ppath_t[ip], verbosity );
                 }
             }
@@ -1622,9 +1567,7 @@ void get_ppath_ext(
     \param   farrot_c2      Out: Coefficient for total Faradation rotatation
     \param   ppath          As the WSV.    
     \param   ppath_abs      See get_ppath_abs.
-    \param   ppath_mag_u    See get_ppath_abs.
-    \param   ppath_mag_v    See get_ppath_abs.
-    \param   ppath_mag_w    See get_ppath_abs.
+    \param   ppath_mag      See get_ppath_atmvars.
     \param   ppath_ne       See get_ppath_abs.
     \param   atmosphere_dim As the WSV.    
     \param   f_grid         As the WSV.    
@@ -1641,9 +1584,7 @@ void get_ppath_trans(
         Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstVectorView       ppath_mag_u, 
-  ConstVectorView       ppath_mag_v, 
-  ConstVectorView       ppath_mag_w, 
+  ConstMatrixView       ppath_mag, 
   ConstVectorView       ppath_ne, 
   const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
@@ -1683,12 +1624,12 @@ void get_ppath_trans(
   for( Index ip=0; ip<np; ip++ )
     {
       // Faraday rotation
-      if( ppath_ne[ip]!=0  &&  ( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || 
-                                                       ppath_mag_w[ip]!=0 ) )
+      if( ppath_ne[ip]!=0  &&  ( ppath_mag(0,ip)!=0 || ppath_mag(1,ip)!=0 || 
+                                                       ppath_mag(2,ip)!=0 ) )
         { 
           farrot_c1[ip] = FRconst * ppath_ne[ip] * dotprod_with_los( 
-                        ppath.los(ip,joker), ppath_mag_u[ip], ppath_mag_v[ip],
-                                             ppath_mag_w[ip], atmosphere_dim );
+                        ppath.los(ip,joker), ppath_mag(0,ip), ppath_mag(1,ip),
+                                             ppath_mag(2,ip), atmosphere_dim );
         }
 
       // If first point, calculate sum of absorption and set transmission
@@ -1793,9 +1734,7 @@ void get_ppath_trans(
     \param   farrot_c2        Out: Coefficient for total Faradation rotatation
     \param   ppath            As the WSV.    
     \param   ppath_abs        See get_ppath_abs.
-    \param   ppath_mag_u      See get_ppath_abs.
-    \param   ppath_mag_v      See get_ppath_abs.
-    \param   ppath_mag_w      See get_ppath_abs.
+    \param   ppath_mag        See get_ppath_atmvars.
     \param   ppath_ne         See get_ppath_abs.
     \param   atmosphere_dim   As the WSV.    
     \param   f_grid           As the WSV.    
@@ -1814,9 +1753,7 @@ void get_ppath_trans2(
         Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstVectorView       ppath_mag_u, 
-  ConstVectorView       ppath_mag_v, 
-  ConstVectorView       ppath_mag_w, 
+  ConstMatrixView       ppath_mag, 
   ConstVectorView       ppath_ne, 
   const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
@@ -1863,12 +1800,12 @@ void get_ppath_trans2(
   for( Index ip=0; ip<np; ip++ )
     {
       // Faraday rotation
-      if( ppath_ne[ip]!=0  &&  ( ppath_mag_u[ip]!=0 || ppath_mag_v[ip]!=0 || 
-                                                       ppath_mag_w[ip]!=0 ) )
+      if( ppath_ne[ip]!=0  &&  ( ppath_mag(0,ip)!=0 || ppath_mag(1,ip)!=0 || 
+                                                       ppath_mag(2,ip)!=0 ) )
         { 
           farrot_c1[ip] = FRconst * ppath_ne[ip] * dotprod_with_los( 
-                        ppath.los(ip,joker), ppath_mag_u[ip], ppath_mag_v[ip],
-                                             ppath_mag_w[ip], atmosphere_dim );
+                        ppath.los(ip,joker), ppath_mag(0,ip), ppath_mag(1,ip),
+                                             ppath_mag(2,ip), atmosphere_dim );
         }
 
       // If first point, calculate sum of absorption and set transmission
@@ -2083,13 +2020,13 @@ void iyb_calc(
               else 
                 { adjust_los( los, atmosphere_dim ); }
 
-              //--- rte_pos 1 and 2
+              //--- rtp_pos 1 and 2
               //
-              Vector rte_pos, rte_pos2(0);
+              Vector rtp_pos, rtp_pos2(0);
               //
-              rte_pos = sensor_pos( mblock_index, joker );              
+              rtp_pos = sensor_pos( mblock_index, joker );              
               if( transmitter_pos.nrows() )
-                { rte_pos2 = transmitter_pos( mblock_index, joker ); }
+                { rtp_pos2 = transmitter_pos( mblock_index, joker ); }
 
               // Calculate iy and associated variables
               //
@@ -2102,8 +2039,8 @@ void iyb_calc(
               iy_main_agendaExecute( l_ws, iy, iy_aux_array[iang], ppath,
                                      diy_dx, 1, iy_transmission, iy_aux_vars, 
                                      cloudbox_on, j_analytical_do, t_field, 
-                                     z_field, vmr_field, f_grid, rte_pos, los, 
-                                     rte_pos2, l_iy_main_agenda );
+                                     z_field, vmr_field, f_grid, rtp_pos, los, 
+                                     rtp_pos2, l_iy_main_agenda );
 
               // Check that aux data can be handled and has correct size
               for( Index q=0; q<iy_aux_array[iang].nelem(); q++ )
@@ -2425,7 +2362,7 @@ void pos2true_latlon(
     \param   abs_vec_av         Input: Averaged absorption vector.
     \param   sca_vec_av         Input: averaged scattering vector.
     \param   lstep             Input: The length of the RTE step.
-    \param   rte_planck_value   Input: Blackbody radiation.
+    \param   rtp_planck_value   Input: Blackbody radiation.
 
     \author Claudia Emde and Patrick Eriksson, 
     \date   2002-11-22
@@ -2438,7 +2375,7 @@ void rte_step_std(//Output and Input:
               ConstVectorView abs_vec_av,
               ConstVectorView sca_vec_av,
               const Numeric& lstep,
-              const Numeric& rte_planck_value )
+              const Numeric& rtp_planck_value )
 {
   //Stokes dimension:
   Index stokes_dim = stokes_vec.nelem();
@@ -2448,7 +2385,7 @@ void rte_step_std(//Output and Input:
   assert(is_size(ext_mat_av, stokes_dim, stokes_dim));
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
-  assert( rte_planck_value >= 0 );
+  assert( rtp_planck_value >= 0 );
   assert( lstep >= 0 );
   assert (!is_singular( ext_mat_av ));
 
@@ -2471,7 +2408,7 @@ void rte_step_std(//Output and Input:
     {
       trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
       stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) +
-                       (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) /
+                       (abs_vec_av[0] * rtp_planck_value + sca_vec_av[0]) /
         ext_mat_av(0,0) * (1 - trans_mat(0,0));
     }
 
@@ -2492,7 +2429,7 @@ void rte_step_std(//Output and Input:
       //   assert( ext_mat_av(0,0) == abs_vec_av[0] );
       //   Numeric transm = exp( -lstep * abs_vec_av[0] );
       stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) +
-                      (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) /
+                      (abs_vec_av[0] * rtp_planck_value + sca_vec_av[0]) /
                       ext_mat_av(0,0) * (1 - trans_mat(0,0));
 
       // Stokes dims > 1
@@ -2520,7 +2457,7 @@ void rte_step_std(//Output and Input:
 
       Vector B_abs_vec(stokes_dim);
       B_abs_vec = abs_vec_av;
-      B_abs_vec *= rte_planck_value;
+      B_abs_vec *= rtp_planck_value;
       
       for (Index i=0; i<stokes_dim; i++)
         b[i] = B_abs_vec[i] + sca_vec_av[i];  // b = abs_vec * B + sca_vec
