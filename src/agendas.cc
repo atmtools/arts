@@ -71,7 +71,7 @@ void define_agenda_data()
   
   agenda_data.push_back
     (AgRecord
-     ( NAME( "abs_xsec_per_species_agenda" ),
+     ( NAME( "abs_xsec_agenda" ),
       DESCRIPTION
       (
        "Calculate scalar gas absorption cross sections.\n"

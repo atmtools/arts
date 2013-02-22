@@ -1759,7 +1759,7 @@ void define_md_data_raw()
          "The initialization is\n"
          "necessary, because methods *abs_xsec_per_speciesAddLines*\n"
          "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
-         "The size is determined from *tgs*.\n"
+         "The size is determined from *abs_species*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_xsec_per_species_attenuation", "abs_xsec_per_species_phase" ),
@@ -9299,7 +9299,38 @@ void define_md_data_raw()
                   "Right sparse matrix." )
         ));
 
-  // This is duplicate with the 1-0 method tgsDefine. Merge!
+  md_data_raw.push_back
+    ( MdRecord
+     ( NAME( "SpeciesPartitionLookupOnthefly" ),
+      DESCRIPTION
+      (
+       "Set *abs_species_lookup* and *abs_species_onthefly*.\n"
+       "\n"
+       "The user specifies *abs_species*, and a vector with indices of the\n"
+       "species to put into *abs_species_lookup*. The remaining species are\n"
+       "then automatically put into *abs_species_onthefly*. As a special case,\n"
+       "giving [-1] will put all species into *abs_species_lookup*. (And giving\n"
+       "an empty vector will put all species into *abs_species_onthefly*.)\n"
+       "\n"
+       "Calling this without any arguments is like calling it with an empty\n"
+       "vector, so all species will be treated on-the-fly.\n"
+       "\n"
+       "Zeeman species and free electron content must not be put into\n"
+       "*abs_species_lookup*. Trying to do this will result in a runtime\n"
+       "error.\n"
+       ),
+      AUTHORS( "Stefan Buehler" ),
+      OUT( "abs_species_lookup", "abs_species_onthefly" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_species" ),
+      GIN( "lookup"),
+      GIN_TYPE( "ArrayOfIndex" ),
+      GIN_DEFAULT( "[]" ),
+      GIN_DESC( "Indices of species for lookup table." )
+      ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "SpeciesSet" ),

@@ -1,3 +1,23 @@
+2013-02-22  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-518
+
+        * src/methods.cc (SpeciesPartitionLookupOnthefly): Added.
+
+        * src/m_abs_lookup.cc (SpeciesPartitionLookupOnthefly): Added.
+
+        * src/agendas.cc
+	(abs_xsec_agenda): Renamed from abs_xsec_per_species_agenda.
+
+        * src/workspace.cc
+	(abs_species_active): Added.
+	(abs_species_lookup): Added.
+	(abs_species_onthefly): Added.
+	(abs_xsec_agenda): Renamed from abs_xsec_per_species_agenda.
+
+        * controlfiles/general/agendas.arts
+	(abs_xsec_agenda): Renamed from abs_xsec_per_species_agenda.
+
 2013-02-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-517

@@ -630,6 +630,56 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "abs_species_active" ),
+      DESCRIPTION
+      (
+       "Indices of active absorption species.\n"
+       "\n"
+       "This variable selects, which absorption species are active in\n"
+       "*abs_xsec_agenda*. See also: *abs_species_lookup*,\n"
+       "*abs_species_onthefly*. \n"
+       "\n"
+       "Dimension: A vector with one element for every active species, at max\n"
+       "           same number of elements as abs_species.\n"
+       ),
+      GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "abs_species_lookup" ),
+      DESCRIPTION
+      (
+       "Indices of absorption species for lookup table generation.\n"
+       "\n"
+       "This variable selects, which absorption species should be used for the\n"
+       "calculation of the absorption lookup table. \n"
+       "\n"
+       "See also: *abs_species_active*, *abs_species_onthefly*. \n"
+       "\n"
+       "Dimension: A vector with one element for every active species, at max\n"
+       "           same number of elements as abs_species.\n"
+      ),
+      GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "abs_species_onthefly" ),
+      DESCRIPTION
+      (
+       "Indices of absorption species for on-the-fly absorption.\n"
+       "\n"
+       "This variable selects, which absorption species should be used for\n"
+       "on-the-fly absorption calculation. \n"
+       "\n"
+       "See also: *abs_species_active*, *abs_species_lookup*. \n"
+       "\n"
+       "Dimension: A vector with one element for every active species, at max\n"
+       "           same number of elements as abs_species.\n"
+      ),
+      GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+    (WsvRecord
     ( NAME( "abs_t" ),
       DESCRIPTION
       (
@@ -743,7 +793,7 @@ void Workspace::define_wsv_data()
     
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "abs_xsec_per_species_agenda" ),
+     ( NAME( "abs_xsec_agenda" ),
       DESCRIPTION
       (
        "See agendas.cc.\n"
