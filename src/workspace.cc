@@ -760,7 +760,7 @@ void Workspace::define_wsv_data()
      ( NAME( "abs_xsec_per_species_attenuation" ),
        DESCRIPTION
        (
-        "Absorption cross sections attenuation.\n"
+        "Absorption cross sections for the attenuation.\n"
         "\n"
         "This variable contains absorption cross section xsec individually for\n"
         "each tag group. The Array contains one matrix for each tag group, the\n"
@@ -778,7 +778,7 @@ void Workspace::define_wsv_data()
     ( NAME( "abs_xsec_per_species_phase" ),
       DESCRIPTION
       (
-          "Absorption cross sections phase.\n"
+          "Absorption cross sections for the phase.\n"
           "\n"
           "This variable contains absorption cross section xsec individually for\n"
           "each tag group. The Array contains one matrix for each tag group, the\n"
@@ -1749,7 +1749,10 @@ void Workspace::define_wsv_data()
     ( NAME( "isotopologue_quantum" ),
       DESCRIPTION
       (
-          "\n" // FIXME: Richard
+          "Quantum physical values not easily available in other databases.\n"
+          "\n"
+          "Example:\n"
+          "This variable should contain spin and g_s for the Zeeman effect to work\n"
       ),
       GROUP( "SpeciesAuxData" )));
     

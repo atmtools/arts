@@ -1312,7 +1312,6 @@ void define_md_data_raw()
       ( NAME( "abs_mat_per_speciesAddFromLookup" ),
         DESCRIPTION
         (
-            //FIXME: Richard
          "Extract gas absorption coefficients from lookup table.\n"
          "\n"
          "This extracts the absorption coefficient for all non-Zeeman species in\n"
@@ -1732,8 +1731,8 @@ void define_md_data_raw()
       ( NAME( "abs_xsec_per_speciesAddLines" ),
         DESCRIPTION
         (
-         "Calculates the line spectrum for each tag group and adds\n"
-         "it to abs_xsec_per_species.\n"
+         "Calculates the line spectrum for both attenuation and phase\n"
+         "for each tag group and adds it to abs_xsec_per_species_*.\n"
          ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
         OUT( "abs_xsec_per_species_attenuation", "abs_xsec_per_species_phase" ),

@@ -1,3 +1,12 @@
+2013-02-22  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-519
+
+	* src/workspace.cc,methods.cc: Updated the documentation.
+	
+	* controlfiles/artscomponents/zeeman/TestZeeman.arts: Was broken by my last 
+	update.
+
 2013-02-22  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-518
