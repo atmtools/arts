@@ -3,76 +3,76 @@
 
 
  \starthistory
- 121218 & Written by Patrick Eriksson.\\
+ 130223 & Restructured to include effects beside winds (PE).\\
+ 121218 & First version by Patrick Eriksson.\\
  \stophistory
 
 %\graphicspath{{Figs/rte/}}
 
  The default assumption in ARTS can be expressed as the atmosphere is assumed
- to be static and the observation platform is at a constant geographical during
- each merasurement, while any relative movement between the atmosphere and the
- sensor will cause Doppler effects. For the moment ARTS is handling two sources
- to Doppler shifts: winds and the planets rotation.
-
- Atmospheric transport is not considered by ARTS, but winds can still be of
- importance due to the \textindex{Doppler effect} they can cause. This effect
- is most significant at high altitudes where the line shape is narrow, and a
- frequency shift of absorption and emission is most easily discerned. The
- effect depends also on the angle between the wind vector and the
- line-of-sight.
-
- ARTS applies an Earth-Centred, Earth-Fixed, (ECEF) coordinate system. This
- implies that the receiver follows the planet's rotation. If, for example, the
- sensor is placed on another planet, or is in a transit orbit, the rotation of
- the observed planet will cause Doppler effects. This is treated in ARTS by
- short-cut, the rotational movement can be translated to an imaginary wind by
- the method \wsmindex{wind\_u\_fieldIncludePlanetRotation}.
+ to be static and the observation platform is static during each measurement,
+ while any relative movement between the atmosphere and the sensor will cause
+ Doppler effects. ARTS handles three sources to Doppler
+ shifts: winds, rotation of the planet and sensor velocity.
 
 
-\section{Definition of winds}
+\section{Winds}
 %==============================================================================
 \label{sec:winds:defs}
 
-\subsection{Needed input}
-%
+Atmospheric transport is not considered by ARTS, but winds can still be of
+importance due to the \textindex{Doppler effect} they can cause. This effect is
+most significant at high altitudes where the line shape is narrow, and a
+frequency shift of absorption and emission is most easily discerned.
+
 The workspace variables to specify winds are \wsvindex{wind\_u\_field},
 \wsvindex{wind\_v\_field} and \wsvindex{wind\_w\_field}, below denoted as
 \WindWE, \WindSN\ and \WindVe, respectively. The user need to set all these
-three variables. It is allowed for all three wind components to set the
+three variables. It is allowed, for all three wind components, to set the
 variable to be empty, which is shorthand for saying that the wind is zero
-throughout the atmosphere. Otherwise, the size of the variable is required to
-match the atmospheric grids. 
+throughout the atmosphere (Sec.~\ref{sec:atm:vecfields}). Otherwise, the size
+of the variable is required to match the atmospheric grids.
 
 No further input is required, a Doppler shift is added as soon as any of the
-winds is non-zero (with exceptions discussed in
-Section~\ref{sec:winds:limitations}). For clarity, even though a setting of
+winds is non-zero (exceptions discussed in
+Sec.~\ref{sec:winds:limitations}). For clarity, even though a setting of
 \builtindoc{wind\_u\_field} always is demanded, this wind component has no
 effect on Doppler shifts for 1D and 2D calculations, as the wind moves at an
-angle of 90$^\circ$ from the observation plane.
+angle of 90$^\circ$ from the observation plane (Sec.~\ref{sec:atm:vecfields}).
 
-The definition of the wind components is
-\begin{itemize}
-\item[\WindWE] The zonal wind, where a positive wind is defined as air moving
-  from west to east (i.e.\ towards higher longitudes).
-\item[\WindSN] The meridional wind, where a positive wind is defined as air
-  moving from south to north (i.e.\ towards higher latitudes).
-\item[\WindVe] The vertical wind, where a positive wind is defined as air
-  moving upwards.
-\end{itemize}
 
+\section{Planet rotation}
+%==============================================================================
+
+ARTS applies an Earth-Centred, Earth-Fixed, (ECEF) coordinate system. This
+implies that a ground-based receiver follows the planet's rotation. On the
+other hand, if e.g.\ the sensor is placed on another planet, or is in a transit
+orbit, the rotation of the observed planet will cause Doppler effects. This is
+treated in ARTS by a short-cut, the rotational movement can be translated to an
+imaginary wind by the method \wsmindex{wind\_u\_fieldIncludePlanetRotation}.
+
+
+\section{Sensor velocity}
+%==============================================================================
+
+The feature is not yet fully implemented, but a rudimentary inclusion of the
+sensor's velocity can be made by the \wsvindex{rte\_alonglos\_v} workspace
+variable. The variable shall be set to the sensor velocity component along the
+viewing direction. For the moment, this velocity is assumed to be the same for
+all pencil beam calculations.
 
 
 \section{Limitations}
 \label{sec:winds:limitations}
 %
-For efficiency reasons, a single Doppler shift is applied for all frequencies.
-That is, broadband calculations could be treated in an approximative manner. A
-general (but slow) way to overcome this simplification is to use the same
-mechanism as for including dispersion, as discussed in
-Section~\ref{sec:fm_defs:dispersion}. If \wsmindex{iyLoopFrequencies} is
-applied, the Doppler shift will be calculated for every frequency seperately.
+For efficiency reasons, when extracting particle extinction (absorption and
+scattering) the mean Doppler shift along the propagation path is applied (but
+the shift varies with frequency). This allows to at least include larger shifts
+caused by e.g. satellite velocity. The smaller shifts (due to winds) are here
+of less importance as the particle extinction is quite smooth with frequency.
 
-Winds are neglected inside the DOIT and MC scattering modules.
+The above is valid for transmission type calculations. Doppler shifts are so
+far totally neglected inside the DOIT and MC scattering modules.
 
 
 
@@ -109,19 +109,13 @@ where \aZntAng{l}\ and \aAzmAng{l}\ are the angles of the line-of-sight.
 Finally, as the winds do not reach relativistic values, the Doppler shift can
 be calculated as
 \begin{equation}
-  \Delta\Frq = \frac{-\Wind\aFrq{0}\cos\gamma}{\speedoflight},
+  \Delta\Frq = \frac{-\Wind\cos\gamma\aFrq{0}}{\speedoflight},
 \end{equation}
 where \aFrq{0}\ is the rest frequency and \speedoflight\ is the speed of light.
 The core part of these calculations is implemented in the genral internal
-function \funcindex{dotprod\_with\_los}.
+function \funcindex{dotprod\_with\_los}. The negative sign 
+is caused by the fact the ``line-of-sight'' is the observation direction, not
+the direction of the EM waves.
 
-In practise, \aFrq{0}\ is taken as the mean of the end values of
-\builtindoc{f\_grid}. The sign of the expression can be understood by the fact
-that if the wind and line-of-sight are aligned and going in the same direction,
-the air movement is directly away from the sensor, that gives a shift towards
-lower frequencies. As workspace variable $\Delta\Frq$ is denoted as
-\wsvindex{rte\_doppler}, and is applied on \wsvindex{f\_grid} when extracting
-the (non-polarised) absorption (where a single $\Delta\Frq$ is applied on the
-complete \wsvindex{f\_grid}, as also mentioned in
-Section~\ref{sec:winds:limitations}).
+
 

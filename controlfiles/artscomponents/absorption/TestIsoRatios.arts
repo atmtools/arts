@@ -68,10 +68,10 @@ Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
 
 # Blackbody surface
 AgendaSet( surface_rtprop_agenda ){
-  Ignore( rte_los )
+  Ignore( rtp_los )
   InterpAtmFieldToRtePos(surface_skin_t, atmosphere_dim,
                          p_grid, lat_grid, lon_grid, z_field,
-                         rte_pos, t_field)
+                         rtp_pos, t_field)
   surfaceBlackbody
 }
 

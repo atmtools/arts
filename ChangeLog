@@ -1,11 +1,54 @@
+2013-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-520
+
+	* Doppler shift now also included in call of
+	blackbody_radiation_agenda, as well as when calculating particle
+	extinction. However, for efficiency reasons, for particles only
+	the mean shift along the path is considered. This as it is time
+	consuming to extract the data from scat_data_raw. So this is done
+	assuming a constant shift along the path. This allows to at least
+	include big shifts caused by e.g. satellite velocity. The smaller
+	shifts are here of less importance as the particle extinction is
+	quite smooth with frequency.
+
+	* doc/uguide/winds.tex: Chapter revised.
+
+	* doc/uguide/atmosphere.tex (section{Wind and magnetic vector fields}):
+	* doc/uguide/rte.tex (section{Dispersion}): Some smaller changes
+	related to revision of the Doppler chapter.
+
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts:
+	* controlfiles/artscomponents/groundbased/TestGbased.arts: Removed
+	some obselete stuff related to jacobians.
+
+	* doc/uguide/matrix_vector.tex: Added that the mean function is
+	defined for vector and matrix. Also added a small note that min.
+	max and mean for matrices is for the complete matrix.
+
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts:
+	Changed rte_ to rtp_, where necessary.
+
+	* src/m_transmitter.cc (iyTransmissionStandard, iyRadioLink):
+	* src/m_cloudradar.cc (iyCloudRadar):
+	* src/m_rte.cc (iyEmissionStandard): Adopted to changes in rte.cc.
+
+	* src/rte.cc (get_ppath_f): get_ppath_doppler renamed, as now
+	shifted f_grid is returned, and not only the shift.
+
+	(get_ppath_abs): Temporary solution for rtp_doppler, until
+	settled how to handle frequency shifts for abslookup.
+
+	(get_ppath_blackrad,get_ppath_ext): Now takes ppath_f as input.
+
 2013-02-22  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-519
 
 	* src/workspace.cc,methods.cc: Updated the documentation.
-	
-	* controlfiles/artscomponents/zeeman/TestZeeman.arts: Was broken by my last 
-	update.
+
+	* controlfiles/artscomponents/zeeman/TestZeeman.arts: Was broken
+	by my last update.
 
 2013-02-22  Stefan Buehler  <sbuehler(at)ltu.se>
 

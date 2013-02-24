@@ -194,7 +194,7 @@ void get_ppath_abs(
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
   ConstMatrixView       ppath_vmr, 
-  ConstMatrixView       ppath_doppler, 
+  ConstMatrixView       ppath_f, 
   ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim );
@@ -205,15 +205,7 @@ void get_ppath_blackrad(
   const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_t, 
-  ConstVectorView    f_grid );
-
-void get_ppath_doppler( 
-        Matrix&    ppath_doppler,
-  const Ppath&     ppath,
-  ConstVectorView  f_grid, 
-  const Index&     atmosphere_dim,
-  const Numeric&   rte_alonglos_v,
-  ConstMatrixView  ppath_wind );
+  ConstMatrixView    ppath_f );
 
 void get_ppath_ext( 
         ArrayOfIndex&                  clear2cloudbox,
@@ -224,13 +216,21 @@ void get_ppath_ext(
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
   const Index&                         stokes_dim,
-  ConstVectorView                      f_grid, 
+  ConstMatrixView                      ppath_f, 
   const Index&                         atmosphere_dim,
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
   const Index&                         use_mean_scat_data,
   const ArrayOfSingleScatteringData&   scat_data_raw,
   const Verbosity&                     verbosity );
+
+void get_ppath_f( 
+        Matrix&    ppath_f,
+  const Ppath&     ppath,
+  ConstVectorView  f_grid, 
+  const Index&     atmosphere_dim,
+  const Numeric&   rte_alonglos_v,
+  ConstMatrixView  ppath_wind );
 
 void get_ppath_trans( 
         Tensor4&        trans_partial,

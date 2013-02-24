@@ -294,10 +294,11 @@ an active area of research in programming techniques how to make this
 kind of expression efficient. None of the available solutions works,
 so ARTS has to live without it.
 
-\subsubsection{Maximum and minimum:}
+\subsubsection{Maximum, minimum and mean:}
 \begin{code}
 cout << max(a);
 cout << min(a);
+cout << mean(a);
 \end{code}
 
 \subsubsection{Scalar product:}
@@ -512,11 +513,14 @@ a = 1.0;                        // Assign 1 to all elements.
 You can use the operators `+=', `-=', `*=', and `/=', which operate
 element-vise, just as for Vector.
 
-\subsubsection{Maximum and minimum:}
+\subsubsection{Maximum, minimum and mean:}
 \begin{code}
 cout << max(a);
 cout << min(a);
+cout << mean(a);
 \end{code}
+These operations act on the complete matrix. Hence, the output is a scalar
+value.
 
 \subsubsection{Arbitrary single-argument math functions:}
 

@@ -211,7 +211,6 @@ yCalc
 #
 WriteXML( output_file_format, y, "TestGbased.y1.xml" )
 WriteXML( output_file_format, y_f, "TestGbased.f.xml" )
-WriteXML( output_file_format, jacobian, "TestGbased.J1.xml" )
 
 
 

@@ -353,39 +353,46 @@ is sufficiently high.
 The atmospheric fields discussed above are scalar quantities, while some
 atmospheric variables can be seen as vector fields. However, in ARTS input
 vector fields are broken down into the zonal, meridional and vertical
-components and are given as three scalar fields. This division into scalar values
-is used to allow that one or several of the components easily can be set to
-zero, which is done be setting the corresponding workspace variable to be
+components and are given as three scalar fields. This division into scalar
+values is used to allow that one or several of the components easily can be set
+to zero, which is done be setting the corresponding workspace variable to be
 empty. Following the standard naming scheme for winds, the components are
 denoted as
 \begin{description}
-\item[u] The zonal component. A positive value signifies an Eastward direction
-  (e.g.\ a wind moving towards higher longitudes).
+\item[u] The zonal component. A positive value signifies an Eastward direction.
 \item[v] The meridional component. A positive value signifies a Northward
-  direction (e.g.\ a wind moving towards higher latitudes).
-\item[w] The vertical component. A positive value signifies an upward direction
-  (e.g.\ a wind moving towards higher altitudes).
+  direction.
+\item[w] The vertical component. A positive value signifies an upward
+  direction.
 \end{description}
 The workspace variables to describe the wind vector field are
 \wsvindex{wind\_u\_field}, \wsvindex{wind\_v\_field} and
-\wsvindex{wind\_w\_field}. As described above, one, two or all of these
-variables can be set to be empty, if the corresponding wind component is zero.
-Winds affect the radiative transfer by inducing Doppler shifts, see further
-Chapter~\ref{sec:winds}. 
+\wsvindex{wind\_w\_field}. To clarify the definition of the vector components
+above, the winds components are defined as follows
+\begin{itemize}
+\item[\WindWE] A positive wind is defined as air moving
+  from west to east, i.e.\ towards higher longitudes.
+\item[\WindSN] A positive wind is defined as air
+  moving from south to north, i.e.\ towards higher latitudes.
+\item[\WindVe] A positive wind is defined as air
+  moving upwards, i.e.\ towards higher altitudes.
+\end{itemize}
+As described above, one, two or all of these variables can be set to be empty,
+if the corresponding wind component is zero. Winds affect the radiative
+transfer by inducing Doppler shifts, see further Chapter~\ref{sec:winds}.
 
 
 To consider Faraday rotation (Sec.~\ref{sec:faraday}) and Zeeman splitting
 (\theory, Sec.~\ref{T-sec:at:zeeman}), also the \textindex{magnetic field} must
 be specified. The three component fields are \wsvindex{mag\_u\_field},
 \wsvindex{mag\_v\_field} and \wsvindex{mag\_w\_field}. All three components
-must throughout be specified (but can be set to zero for a part of, or the
-complete, atmosphere). However, some component can be irrelevant for the
-calculations, depending on atmospheric dimension and the physical mechanism of
-concern. For example, the u-component has no influence on Faraday rotation for
-1D and 2D cases. (The internal representation of the magnetic field at a
-specific point is handled by \wsvindex{rte\_mag}. For this variable the three
-components are stored together, and thus the local magnetic field is
-represented as a vector.)
+must be specified (but can be set to zero for a part of, or the complete,
+atmosphere). However, some component can be irrelevant for the calculations.
+For example, the u-component has no influence on Faraday rotation for 1D and 2D
+cases. (The internal representation of the magnetic field at a specific point
+is handled by \wsvindex{rte\_mag}. For this variable the three components are
+stored together, and thus the local magnetic field is represented as a vector.)
+
 
 
 

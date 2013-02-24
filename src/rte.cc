@@ -1205,7 +1205,7 @@ void get_ppath_atmvars(
     \param   ppath_p             Pressure for each ppath point.
     \param   ppath_t             Temperature for each ppath point.
     \param   ppath_vmr           VMR values for each ppath point.
-    \param   ppath_doppler       See get_ppath_doppler.
+    \param   ppath_f             See get_ppath_f.
     \param   ppath_mag           See get_ppath_atmvars.
     \param   f_grid              As the WSV.    
     \param   stokes_dim          As the WSV.
@@ -1221,7 +1221,7 @@ void get_ppath_abs(
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
   ConstMatrixView       ppath_vmr, 
-  ConstMatrixView       ppath_doppler, 
+  ConstMatrixView       ppath_f, 
   ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim )
@@ -1263,8 +1263,9 @@ void get_ppath_abs(
       Tensor4  abs_mat_per_species;
       //
       try {
-          abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
-                            ppath_doppler(0,ip), ppath_mag(joker,ip), 
+        const Numeric rtp_doppler = ppath_f(0,ip) - f_grid[0];
+        abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
+                            rtp_doppler, ppath_mag(joker,ip), 
                             ppath.los(ip,joker), ppath_p[ip], ppath_t[ip], 
                             ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
       } catch (runtime_error e) {
@@ -1294,7 +1295,7 @@ void get_ppath_abs(
     \param   ppath_blackrad    Out: Emission source term at each ppath point 
     \param   blackbody_radiation_agenda   As the WSV.    
     \param   ppath_t           Temperature for each ppath point.
-    \param   f_grid            As the WSV.    
+    \param   ppath_f           See get_ppath_f.
 
     \author Patrick Eriksson 
     \date   2012-08-15
@@ -1305,10 +1306,10 @@ void get_ppath_blackrad(
   const Agenda&      blackbody_radiation_agenda,
   const Ppath&       ppath,
   ConstVectorView    ppath_t, 
-  ConstVectorView    f_grid )
+  ConstMatrixView    ppath_f )
 {
   // Sizes
-  const Index   nf = f_grid.nelem();
+  const Index   nf = ppath_f.nrows();
   const Index   np = ppath.np;
 
   // Loop path and call agenda
@@ -1320,63 +1321,9 @@ void get_ppath_blackrad(
       Vector   bvector;
       
       blackbody_radiation_agendaExecute( ws, bvector, ppath_t[ip],
-                                         f_grid, blackbody_radiation_agenda );
+                                         ppath_f(joker,ip), 
+                                         blackbody_radiation_agenda );
       ppath_blackrad(joker,ip) = bvector;
-    }
-}
-
-
-
-//! get_ppath_doppler
-/*!
-    Determines the Doppler shift along the propagation path.
-
-    ppath_doppler [ nf + np ]
-
-    \param   ppath_doppler    Out: Doppler shift
-    \param   ppath            Propagation path.
-    \param   f_grid           As the WSV.    
-    \param   atmosphere_dim   As the WSV.
-    \param   rte_alonglos_v   As the WSV.
-    \param   ppath_wind       See get_ppath_atmvars.
-
-    \author Patrick Eriksson 
-    \date   2013-02-21
-*/
-void get_ppath_doppler( 
-        Matrix&    ppath_doppler,
-  const Ppath&     ppath,
-  ConstVectorView  f_grid, 
-  const Index&     atmosphere_dim,
-  const Numeric&   rte_alonglos_v,
-  ConstMatrixView  ppath_wind )
-{
-  // Sizes
-  const Index   nf = f_grid.nelem();
-  const Index   np = ppath.np;
-
-  ppath_doppler.resize(nf,np);
-  ppath_doppler = 0; 
-
-  // Doppler relevant velocity
-  //
-  for( Index ip=0; ip<np; ip++ )
-    {
-      Numeric v_doppler = rte_alonglos_v;
-
-      if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
-                                     ppath_wind(2,ip) != 0  )
-        {
-          v_doppler += dotprod_with_los( ppath.los(ip,joker), ppath_wind(0,ip),
-                          ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
-        }
-
-      if( v_doppler != 0 )
-        { 
-          const Numeric a = v_doppler / SPEED_OF_LIGHT;
-          for( Index iv=0; iv<nf; iv++ )
-            { ppath_doppler(iv,ip) = a * f_grid[iv]; }
-        }
     }
 }
 
@@ -1419,7 +1366,7 @@ void get_ppath_ext(
   const Ppath&                         ppath,
   ConstVectorView                      ppath_t, 
   const Index&                         stokes_dim,
-  ConstVectorView                      f_grid, 
+  ConstMatrixView                      ppath_f, 
   const Index&                         atmosphere_dim,
   const ArrayOfIndex&                  cloudbox_limits,
   const Tensor4&                       pnd_field,
@@ -1427,7 +1374,7 @@ void get_ppath_ext(
   const ArrayOfSingleScatteringData&   scat_data_raw,
   const Verbosity&                     verbosity )
 {
-  const Index nf = f_grid.nelem();
+  const Index nf = ppath_f.nrows();
   const Index np = ppath.np;
 
   // Pnd along the ppath
@@ -1475,16 +1422,18 @@ void get_ppath_ext(
   //
   if( use_mean_scat_data )
     {
-      const Numeric f0 = (f_grid[0]+f_grid[nf-1])/2.0;
+      const Numeric f = (mean(ppath_f(0,joker))+mean(ppath_f(nf-1,joker)))/2.0;
       scat_data.resize( 1 );
-      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f0), 0, 
+      scat_data_monoCalc( scat_data[0], scat_data_raw, Vector(1,f), 0, 
                           verbosity );
     }
   else
     {
       scat_data.resize( nf );
       for( Index iv=0; iv<nf; iv++ )
-        { scat_data_monoCalc( scat_data[iv], scat_data_raw, f_grid, iv, 
+        { 
+          const Numeric f = mean(ppath_f(iv,joker));
+          scat_data_monoCalc( scat_data[iv], scat_data_raw, Vector(1,f), 0, 
                               verbosity ); 
         }
     }
@@ -1530,6 +1479,64 @@ void get_ppath_ext(
                                 ppath_pnd(joker,ip), ppath_t[ip], verbosity );
                 }
             }
+        }
+    }
+}
+
+
+
+//! get_ppath_f
+/*!
+    Determines the Doppler shifted frequencies along the propagation path.
+
+    ppath_doppler [ nf + np ]
+
+    \param   ppath_f          Out: Doppler shifted f_grid
+    \param   ppath            Propagation path.
+    \param   f_grid           Original f_grid.
+    \param   atmosphere_dim   As the WSV.
+    \param   rte_alonglos_v   As the WSV.
+    \param   ppath_wind       See get_ppath_atmvars.
+
+    \author Patrick Eriksson 
+    \date   2013-02-21
+*/
+void get_ppath_f( 
+        Matrix&    ppath_f,
+  const Ppath&     ppath,
+  ConstVectorView  f_grid, 
+  const Index&     atmosphere_dim,
+  const Numeric&   rte_alonglos_v,
+  ConstMatrixView  ppath_wind )
+{
+  // Sizes
+  const Index   nf = f_grid.nelem();
+  const Index   np = ppath.np;
+
+  ppath_f.resize(nf,np);
+
+  // Doppler relevant velocity
+  //
+  for( Index ip=0; ip<np; ip++ )
+    {
+      Numeric v_doppler = rte_alonglos_v;
+
+      if( ppath_wind(1,ip) != 0  ||  ppath_wind(0,ip) != 0  ||  
+                                     ppath_wind(2,ip) != 0  )
+        {
+          v_doppler += dotprod_with_los( ppath.los(ip,joker), ppath_wind(0,ip),
+                          ppath_wind(1,ip), ppath_wind(2,ip), atmosphere_dim );
+        }
+
+      if( v_doppler == 0 )
+        {
+          ppath_f(joker,ip) = f_grid;
+        }
+      else
+        { 
+          const Numeric a = 1 + v_doppler / SPEED_OF_LIGHT;
+          for( Index iv=0; iv<nf; iv++ )
+            { ppath_f(iv,ip) = a * f_grid[iv]; }
         }
     }
 }

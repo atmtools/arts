@@ -206,7 +206,7 @@ void iyCloudRadar(
   // Get atmospheric and RT quantities for each ppath point/step
   //
   Vector    ppath_p, ppath_t;
-  Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_doppler;
+  Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
   Tensor5   ppath_abs;
   Tensor4   trans_partial, trans_cumulat, pnd_ext_mat;
   Vector    scalar_tau;
@@ -216,23 +216,23 @@ void iyCloudRadar(
   if( np > 1 )
     {
       Vector ppath_ne;
-      get_ppath_atmvars(   ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
-                           ppath_ne, ppath, atmosphere_dim, p_grid, t_field, 
-                           vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                           mag_u_field, mag_v_field, mag_w_field,
-                           edensity_field );
-      get_ppath_doppler(   ppath_doppler, ppath, f_grid,  atmosphere_dim, 
-                           rte_alonglos_v, ppath_wind );
-      get_ppath_abs(       ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
-                           ppath_p, ppath_t, ppath_vmr, ppath_doppler,
-                           ppath_mag, f_grid, stokes_dim );
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
+                         ppath_ne, ppath, atmosphere_dim, p_grid, t_field, 
+                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                         mag_u_field, mag_v_field, mag_w_field,
+                         edensity_field );
+      get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
+                         rte_alonglos_v, ppath_wind );
+      get_ppath_abs(     ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+                         ppath_p, ppath_t, ppath_vmr, ppath_f, ppath_mag, 
+                         f_grid, stokes_dim );
       if( !cloudbox_on )
         { 
           Vector  farrot_c1; 
           Numeric farrot_c2;
-          get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
-                           farrot_c2, ppath, ppath_abs, ppath_mag, ppath_ne, 
-                           atmosphere_dim, f_grid, stokes_dim );
+          get_ppath_trans(  trans_partial, trans_cumulat, scalar_tau, farrot_c1,
+                            farrot_c2, ppath, ppath_abs, ppath_mag, ppath_ne, 
+                            atmosphere_dim, f_grid, stokes_dim );
         }
       else
         {
@@ -241,11 +241,10 @@ void iyCloudRadar(
           Vector  farrot_c1; 
           Numeric farrot_c2;
           //
-          get_ppath_ext( clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data, 
-                         ppath_pnd, ppath, ppath_t, stokes_dim, f_grid, 
-                         atmosphere_dim, cloudbox_limits, pnd_field, 
-                         use_mean_scat_data, scat_data_raw, verbosity );
-          // Transmission
+          get_ppath_ext(    clear2cloudbox, pnd_abs_vec, pnd_ext_mat, scat_data,
+                            ppath_pnd, ppath, ppath_t, stokes_dim, ppath_f, 
+                            atmosphere_dim, cloudbox_limits, pnd_field, 
+                            use_mean_scat_data, scat_data_raw, verbosity );
           get_ppath_trans2( trans_partial, trans_cumulat, scalar_tau, farrot_c1,
                             farrot_c2, ppath, ppath_abs, ppath_mag, ppath_ne, 
                             atmosphere_dim, f_grid, stokes_dim, clear2cloudbox,
