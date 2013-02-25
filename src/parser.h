@@ -31,6 +31,22 @@ public:
     void parse_tasklist ();
 
 private:
+    typedef struct {
+        String name;
+        Index line;
+        Index column;
+    } NamedArgument;
+
+    typedef vector<NamedArgument> NamedArguments;
+
+    void find_named_arguments(vector<NamedArgument>& named_args);
+
+    void skip_to_next_argument();
+
+    void get_argument_index_by_name(Index& arg_index,
+                                    NamedArguments& named_args,
+                                    String name);
+
     void parse_main();
 
     void parse_agenda(Agenda& tasklist);
@@ -53,7 +69,10 @@ private:
                              bool&            first,
                              bool&            still_supergeneric,
                              String&          supergeneric_args,
-                             Index&           supergeneric_index);
+                             Index&           supergeneric_index,
+                             NamedArguments&  named_args,
+                             bool             call_by_name
+                             );
 
     void parse_generic_output(const MdRecord*& mdd,
                               Index&           id,
@@ -62,17 +81,27 @@ private:
                               bool&            first,
                               bool&            still_supergeneric,
                               String&          supergeneric_args,
-                              Index&           supergeneric_index);
+                              Index&           supergeneric_index,
+                              NamedArguments&  named_args,
+                              bool             call_by_name
+                              );
 
     void parse_specific_input(const MdRecord* mdd,
                               ArrayOfIndex&   input,
                               ArrayOfIndex&   auto_vars,
                               Array<TokVal>&  auto_vars_values,
-                              bool&           first);
+                              bool&           first,
+                              NamedArguments& named_args,
+                              bool            call_by_name
+                              );
 
     void parse_specific_output(const MdRecord* mdd,
                                ArrayOfIndex&   output,
-                               bool&           first);
+                               bool&           first,
+                               NamedArguments& named_args,
+                               bool            call_by_name
+                               );
+
 
     void parse_method_args(const MdRecord*& mdd,
                            Index&           id,

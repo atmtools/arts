@@ -385,6 +385,11 @@ The built-in documentation further states that argument
 empty string). Because of this, the argument can actually be omitted,
 so `\shortcode{WriteXML( "ascii", v )}' will also work.
 
+Alternatively, workspace methods can be called with named arguments. All omitted
+arguments will be set to their default values. \shortcode{WriteXML( in=v )} is
+equivalent to calling \shortcode{WriteXML( output\_file\_format, v )}. Note that
+named arguments can not be mixed with positional arguments.
+
 One additional rule has to be mentioned here. If all arguments to a
 method are specific, and the user wants to use all the predefined
 variables, then the entire argument list (including parentheses) may

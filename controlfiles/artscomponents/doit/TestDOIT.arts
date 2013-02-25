@@ -61,7 +61,7 @@ ReadXML( p_grid, "p_grid.xml" )
 SpeciesSet( abs_species, [ "H2O", "N2", "O2"] )
 
 # Atmospheric profiles
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "testdata/tropical" )
+AtmRawRead( basename="testdata/tropical" )
 
 # Gas absorption from lookup table 
 # ---------------------------------
@@ -113,19 +113,16 @@ sensorOff
 # Set the cloudbox limits (pressure units)
 # Alternative: cloudboxSetManuallyAltitude (specification in [km])
 # ----------------------------------------------------------------
-cloudboxSetManually( cloudbox_on, cloudbox_limits, atmosphere_dim, p_grid,
-                     lat_grid, lon_grid, 71617.7922264, 17111.6808705,
-                     0, 0, 0, 0 )
+cloudboxSetManually( p1=71617.7922264, p2=17111.6808705,
+                     lat1=0, lat2=0, lon1=0, lon2=0 )
 
 # Specification of cloud
 # -----------------------
 ParticleTypeInit
 
 # Only one particle type is added in this example 
-ParticleTypeAdd( scat_data_raw, pnd_field_raw, atmosphere_dim, f_grid, p_grid,
-                 lat_grid, lon_grid, cloudbox_limits,
-                 "p30f229-231T214-225r100NP-1ar1_5ice.xml",
-                 "pnd_field_1D.xml" )
+ParticleTypeAdd( filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 filename_pnd_field="pnd_field_1D.xml" )
 scat_data_rawCheck
 pnd_fieldCalc
 
@@ -137,7 +134,7 @@ pnd_fieldCalc
 # about 90°.
 # If "polynomial" is selected one has to use an optimized grid. Please     
 # use *doit_za_grid_optCalc* to optimize the grid.
-doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
+doit_za_interpSet( interp_method="linear" )
 
 # As one needs for the RT calculations in limb direction a much finer
 # zenith angle grid resolution as for the computation of the scattering 
@@ -147,8 +144,8 @@ doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
 # be given by a file. If no filename is specified (za_grid_opt_file = ""), the 
 # equidistant grids are used for both, scattering integral and RT calculation. 
 # This option can only be used for down-looking geometries. 
-DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
-                     19, 37, "doit_za_grid_opt.xml" )
+DoitAngularGridsSet( N_za_grid=19, N_aa_grid=37,
+                     za_grid_opt_file="doit_za_grid_opt.xml" )
 
 # Main agenda for DOIT calculation
 # --------------------------------
@@ -168,7 +165,7 @@ AgendaSet( doit_mono_agenda ){
   # Put solution into interface for clearsky calculation   
   DoitCloudboxFieldPut
   # Write the radiation field inside the cloudbox:
-  WriteXML( output_file_format, doit_i_field )
+  WriteXML( in=doit_i_field )
 }
 
 # Definitions for methods used in *i_fieldIterate*:
@@ -196,17 +193,8 @@ AgendaSet( doit_scat_field_agenda ){
 
 AgendaSet( doit_rte_agenda ){
   # Sequential update for 1D
-  doit_i_fieldUpdateSeq1D(
-		  doit_i_field,
-		  doit_scat_field,
-		  cloudbox_limits, abs_mat_per_species_agenda,
-		  vmr_field, spt_calc_agenda, scat_za_grid,
-		  scat_aa_grid, pnd_field,
-		  opt_prop_part_agenda, ppath_step_agenda, ppath_lraytrace,
-		  p_grid, z_field, refellipsoid, t_field,
-		  edensity_field, f_grid, f_index,
-		  surface_rtprop_agenda, doit_za_interp,
-		  1, 0.05 )
+  doit_i_fieldUpdateSeq1D( normalize=1,
+                           norm_error_threshold=0.05 )
   # Alternatives:
   # Plane parallel approximation for determination of propagation path steps
   #doit_i_fieldUpdateSeq1DPP
@@ -236,9 +224,7 @@ AgendaSet( opt_prop_part_agenda ){
 # ----------------------
 AgendaSet( doit_conv_test_agenda ){
   # Give limits for all Stokes components in Rayleigh Jeans BT:
-  doit_conv_flagAbsBT( doit_conv_flag, doit_iteration_counter, doit_i_field,
-                       doit_i_field_old, f_grid, f_index,
-                       [0.1, 0.01, 0.01, 0.01] )
+  doit_conv_flagAbsBT( epsilon=[0.1, 0.01, 0.01, 0.01] )
 
   # Alternative: Give limits in radiances
   #doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, doit_i_field,

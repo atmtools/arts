@@ -13,189 +13,99 @@ abs_cont_descriptionInit
 # H2O continuum
 #
 # Rosenkranz-type H2O-H2O continuum:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-SelfContStandardType",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-SelfContStandardType",
+                            model="Rosenkranz" )
 
 # Rosenkranz-type H2O-dry air continuum
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-ForeignContStandardType",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-ForeignContStandardType",
+                            model="Rosenkranz" )
 
 # Rosenkranz H2O full absorption model
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-PWR98",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-PWR98",
+                            model="Rosenkranz" )
 
 # Liebe 1993 H2O full absorption model
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-MPM93",
-                            "MPM93",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-MPM93",
+                            model="MPM93" )
 
 # Ma Tipping Continuum model
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-ForeignContMaTippingType",
-                            "MaTipping",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-ForeignContMaTippingType",
+                            model="MaTipping" )
 
 # MPM93-type H2O-air continuum
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-ContMPM93",
-                            "MPM93",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-ContMPM93",
+                            model="MPM93" )
 
 # CKD2.4 original parameters
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-SelfContCKD24",
-                            "CKD24",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-SelfContCKD24",
+                            model="CKD24" )
 
 # CKD2.4 original parameters
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-ForeignContCKD24",
-                            "CKD24",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="H2O-ForeignContCKD24",
+                            model="CKD24" )
 
 #
 # CKD MT 1.00 self continuum original parameters:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-SelfContCKDMT100",
-                            "CKDMT100",
-                            [ ]
-                          )
+abs_cont_descriptionAppend( tagname="H2O-SelfContCKDMT100",
+                            model="CKDMT100" )
 #
 # CKD MT 1.00 H2O foreign continuum original parameters:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-ForeignContCKDMT100",
-                            "CKDMT100", 
-                            [ ]
-                          )
+abs_cont_descriptionAppend( tagname="H2O-ForeignContCKDMT100",
+                            model="CKDMT100" )
 #
 #  Cruz-Pol et al. 98 Continuum:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "H2O-CP98",
-                            "CruzPol", 
-                            [ ]
-                          )
+abs_cont_descriptionAppend( tagname="H2O-CP98",
+                            model="CruzPol" )
 
 
 #
 # O2 continuum 
 #
 # Standard O2-air continuum
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "O2-SelfContStandardType",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="O2-SelfContStandardType",
+                            model="Rosenkranz" )
 
 # Rosenkranz 1998 full oxygen continuum
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "O2-PWR98",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="O2-PWR98",
+                            model="Rosenkranz" )
 
 # Rosenkranz 1993 full oxygen continuum
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "O2-PWR93",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="O2-PWR93",
+                            model="Rosenkranz" )
 
 # Liebe 1993 O2 full absorption model
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "O2-MPM93",
-                            "MPM93",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="O2-MPM93",
+                            model="MPM93" )
 
 #
 # Thibault et  al. from CKD F77 program:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "O2-CIAfunCKDMT100",
-                            "CKDMT100",
-                            [ ]
-                          )
+abs_cont_descriptionAppend( tagname="O2-CIAfunCKDMT100",
+                            model="CKDMT100" )
 #
 
 #
 # N2 continuum
 #
 # Rosenkranz N2-N2 continuum (only N2-N2 broadening)
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "N2-SelfContStandardType",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="N2-SelfContStandardType",
+                            model="Rosenkranz" )
 
 # MPM93 N2-N2 continuum (only N2-N2 broadening)
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "N2-SelfContMPM93",
-                            "MPM93",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="N2-SelfContMPM93",
+                            model="MPM93" )
 
 # Borysow-Frommhold original parameters
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "N2-SelfContBorysow",
-                            "BF86",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="N2-SelfContBorysow",
+                            model="BF86" )
 
 # Borysow-Frommhold from CKD F77 program:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "N2-CIArotCKDMT100",
-                            "CKDMT100",
-                            [ ]
-                          )
+abs_cont_descriptionAppend( tagname="N2-CIArotCKDMT100",
+                            model="CKDMT100" )
 #
 #
 # Lafferty et  al. from CKD F77 program:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "N2-CIAfunCKDMT100",
-                            "CKDMT100",
-                            [ ] 
-                          )
+abs_cont_descriptionAppend( tagname="N2-CIAfunCKDMT100",
+                            model="CKDMT100" )
 
 #
 
@@ -203,31 +113,18 @@ abs_cont_descriptionAppend( abs_cont_names,
 # CO2 continuum 
 #
 # Rosenkranz CO2-CO2 continuum:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "CO2-SelfContPWR93",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="CO2-SelfContPWR93",
+                            model="Rosenkranz" )
 
 # Rosenkranz CO2-N2 continuum:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            "CO2-ForeignContPWR93",
-                            "Rosenkranz",
-                            [ ] )
+abs_cont_descriptionAppend( tagname="CO2-ForeignContPWR93",
+                            model="Rosenkranz" )
 
 
 #
 # far line wing continuum from CKD F77 program:
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-	                    "CO2-CKDMT100",
-                            "CKDMT100",
-                            [ ] 
-                          )
+abs_cont_descriptionAppend( tagname="CO2-CKDMT100",
+                            model="CKDMT100" )
 
 
 #
@@ -235,30 +132,15 @@ abs_cont_descriptionAppend( abs_cont_names,
 #
 
 # Rosenkranz liquid cloud
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-	                    "liquidcloud-MPM93",
-                            "MPM93",
-                            [ ] 
-                          )
+abs_cont_descriptionAppend( tagname="liquidcloud-MPM93",
+                            model="MPM93" )
 
 # Rosenkranz ice cloud
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-	                    "icecloud-MPM93",
-                            "MPM93",
-                            [ ] 
-                          )
+abs_cont_descriptionAppend( tagname="icecloud-MPM93",
+                            model="MPM93" )
 
 # Rosenkranz rain
-abs_cont_descriptionAppend( abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-	                    "rain-MPM93",
-                            "MPM93",
-                            [ ] 
-                          )
+abs_cont_descriptionAppend( tagname="rain-MPM93",
+                            model="MPM93" )
 
 }

@@ -50,6 +50,129 @@ void ArtsParser::parse_tasklist ()
 }
 
 
+/** Find named arguments.
+
+ This method is used to determine the position and the names of named arguments.
+
+ \param[out] named_args List of named arguments.
+
+ \author Oliver Lemke
+ */
+void ArtsParser::find_named_arguments(vector<NamedArgument>& named_args)
+{
+    NamedArgument current_argument;
+
+    named_args.resize(0);
+
+    while (msource.Current() != ')')
+    {
+        read_name(current_argument.name);
+        eat_whitespace();
+        if (msource.Current() != '=')
+        {
+            ostringstream os;
+            os << "Expected '=', but got '" << msource.Current() << "'.\n"
+            << "Mixing positional and named arguments is not allowed.";
+            throw UnexpectedChar( os.str(),
+                                 msource.File(),
+                                 msource.Line(),
+                                 msource.Column() );
+        }
+
+        msource.AdvanceChar();
+        eat_whitespace();
+
+        current_argument.line = msource.LineRaw();
+        current_argument.column = msource.ColumnRaw();
+        named_args.push_back(current_argument);
+
+        skip_to_next_argument();
+    }
+}
+
+
+/** Skips forward to the next argument.
+
+ \author Oliver Lemke
+ */
+void ArtsParser::skip_to_next_argument()
+{
+    Index bracket_level = 0;
+    bool inside_quotes = false;
+    char prev_char = 0;
+    Index starting_line = msource.LineRaw();
+    Index starting_col = msource.ColumnRaw();
+
+    while ((bracket_level || inside_quotes)
+           || (msource.Current() != ',' && msource.Current() != ')'))
+    {
+        try {
+            switch (msource.Current())
+            {
+                case '[': bracket_level++; break;
+                case ']':
+                    bracket_level--;
+                    if (bracket_level < 0)
+                        throw ParseError("Too many closing brackets",
+                                         msource.File(),
+                                         msource.Line(),
+                                         msource.Column() );
+                    break;
+                case '"':
+                    if (prev_char != '\\')
+                        inside_quotes = !inside_quotes;
+                    break;
+            }
+
+            prev_char = msource.Current();
+            msource.AdvanceChar();
+        }
+        catch (const Eot& x)
+        {
+            msource.SetPosition(starting_line, starting_col);
+            throw ParseError("Unexpectedly reached end of file.\nProbably a runaway argument.",
+                             msource.File(),
+                             msource.Line(),
+                             msource.Column() );
+        }
+    }
+
+    if (msource.Current() == ',')
+    {
+        try {
+            msource.AdvanceChar();
+        }
+        catch (const Eot& x)
+        {
+
+            throw ParseError( "blablup",
+                      msource.File(),
+                      msource.Line(),
+                      msource.Column() );
+        }
+        eat_whitespace();
+    }
+}
+
+
+/** Return the index of the argument with the given name.
+
+ \author Oliver Lemke
+ */
+void ArtsParser::get_argument_index_by_name(Index& arg_index,
+                                            NamedArguments& named_args,
+                                            String name)
+{
+    for (arg_index = 0; arg_index < (Index)named_args.size(); arg_index++)
+    {
+        if (named_args[(size_t)arg_index].name == name)
+            return;
+    }
+
+    arg_index = -1;
+}
+
+
 /** The main function of the parser. This will parse the entire
     text.
 
@@ -671,14 +794,14 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
     // md_data.
 
     // Find method raw id in raw map:
-    const map<String, Index>::const_iterator i = MdRawMap.find(methodname);
-    if ( i == MdRawMap.end() )
+    const map<String, Index>::const_iterator md_raw_id = MdRawMap.find(methodname);
+    if ( md_raw_id == MdRawMap.end() )
         throw UnknownMethod(methodname,
                             msource.File(),
                             msource.Line(),
                             msource.Column());
 
-    id = i->second;
+    id = md_raw_id->second;
 
     // Get a convenient handle on the data record for this method. We
     // have to use a pointer here, not a reference, because we later
@@ -701,25 +824,83 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
 
     if (msource.Current() == '(')
     {
-        bool first = true;        // To skip the first comma.
         String supergeneric_args;
         Index supergeneric_index = -1;
+        NamedArguments named_arguments;
+        Index this_method_end_line = -1;
+        Index this_method_end_column = -1;
+        bool call_by_name = false;
 
         msource.AdvanceChar();
         eat_whitespace();
 
-        parse_specific_output(mdd, output, first);
+        // Peak at the first method argument to determine if the method
+        // is called with positional or named arguments
+        if (isalpha(msource.Current()))
+        {
+            Index line = msource.LineRaw();
+            Index column = msource.ColumnRaw();
+            String name = "";
+
+            read_name(name);
+            eat_whitespace();
+
+            if (msource.Current() == '=')
+            {
+                msource.AdvanceChar();
+                eat_whitespace();
+
+                msource.SetPosition(line, column);
+                find_named_arguments(named_arguments);
+
+                call_by_name = true;
+
+                this_method_end_line = msource.LineRaw();
+                this_method_end_column = msource.ColumnRaw();
+            }
+
+            msource.SetPosition(line, column);
+        }
+
+        bool is_first_arg = true;
+        parse_specific_output(mdd, output, is_first_arg, named_arguments, call_by_name);
 
         parse_generic_output(mdd, id, methodname, output,
-                             first, still_supergeneric, supergeneric_args,
-                             supergeneric_index);
+                             is_first_arg, still_supergeneric, supergeneric_args,
+                             supergeneric_index, named_arguments, call_by_name);
 
-        parse_specific_input(mdd, input, auto_vars, auto_vars_values, first);
+        parse_specific_input(mdd, input, auto_vars, auto_vars_values, is_first_arg,
+                             named_arguments, call_by_name);
 
         parse_generic_input(mdd, id, methodname, input,
                             auto_vars, auto_vars_values,
-                            first, still_supergeneric, supergeneric_args,
-                            supergeneric_index);
+                            is_first_arg, still_supergeneric, supergeneric_args,
+                            supergeneric_index, named_arguments, call_by_name);
+
+        // Named arguments are not parsed in order. We have to set the cursor
+        // to the end of the method call after all named arguments have been parsed.
+        if (call_by_name)
+            msource.SetPosition(this_method_end_line, this_method_end_column);
+
+        // If we're here and still have named arguments left means that
+        // the user specified too many for this method
+        if (call_by_name && named_arguments.size())
+        {
+            ostringstream os;
+
+            os << "Too many arguments passed to " << mdd->Name() << ": ";
+            bool first = true;
+            for (size_t i = 0; i < named_arguments.size(); i++)
+            {
+                if (!first) os << ", ";
+                else first = false;
+                os << named_arguments[i].name;
+            }
+            throw ParseError(os.str(),
+                             msource.File(),
+                             msource.Line(),
+                             msource.Column());
+        }
 
         assert(!still_supergeneric);
         assertain_character(')');
@@ -731,11 +912,12 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
             ostringstream os;
             os << "This method has generic output. "
             << "You have to pass a variable!";
-            throw ParseError( os.str(),
+            throw ParseError(os.str(),
                              msource.File(),
                              msource.Line(),
-                             msource.Column() );
+                             msource.Column());
         }
+
         // If the parenthesis were omitted we still have to add the implicit
         // outputs and inputs to the methods input and output variable lists
         ArrayOfIndex vo=mdd->Out();
@@ -827,7 +1009,9 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
                                      bool&            first,
                                      bool&            still_supergeneric,
                                      String&          supergeneric_args,
-                                     Index&           supergeneric_index _U_)
+                                     Index&           supergeneric_index _U_,
+                                     NamedArguments&  named_args,
+                                     bool             call_by_name)
 {
     String wsvname;
     Index wsvid;
@@ -838,20 +1022,36 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
     // Then parse all generic input variables
     for ( Index j=0 ; j<mdd->GInType().nelem() ; ++j )
     {
-        if (first)
-            first = false;
+        Index this_arg_index = 0;
+        
+        if (call_by_name)
+        {
+            get_argument_index_by_name(this_arg_index, named_args, mdd->GIn()[j]);
+
+            if (this_arg_index != -1)
+            {
+                msource.SetPosition(named_args[this_arg_index].line,
+                                    named_args[this_arg_index].column);
+                named_args.erase(named_args.begin()+this_arg_index);
+            }
+        }
         else
         {
-            if (msource.Current() != ')')
+            if (first)
+                first = false;
+            else
             {
-                assertain_character(',');
-                eat_whitespace();
+                if (msource.Current() != ')')
+                {
+                    assertain_character(',');
+                    eat_whitespace();
+                }
             }
         }
 
-        // If there is a comma or a closing brace means no value was
-        // specified and we use the default value instead (if there is one)
-        if (msource.Current() == ',' || msource.Current() == ')')
+        // If no value was specified and we use the default value instead (if there is one)
+        if ((call_by_name && this_arg_index == -1)
+            || msource.Current() == ',' || msource.Current() == ')')
         {
             wsvname = set_gin_to_default(mdd, auto_vars, auto_vars_values, j);
         }
@@ -864,6 +1064,14 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
                                    mdd, mdd->GInType()[j]) == -1
                 && mdd->SetMethod())
             {
+                if (msource.Current() == '=')
+                {
+                    throw UnexpectedChar("Unexpected '=' sign encountered.\n"
+                                         "Mixing positional and named arguments is not allowed.",
+                                         msource.File(),
+                                         msource.Line(),
+                                         msource.Column() );
+                }
                 throw ParseError("Only constants can be passed to Set methods.\n"
                                  "You might want to use the *Copy* here.",
                                  msource.File(),
@@ -1006,7 +1214,9 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
                                       bool&            first,
                                       bool&            still_supergeneric,
                                       String&          supergeneric_args,
-                                      Index&           supergeneric_index)
+                                      Index&           supergeneric_index,
+                                      NamedArguments&  named_args,
+                                      bool             call_by_name)
 {
     String wsvname;
     Index wsvid;
@@ -1017,12 +1227,36 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
     // Parse all generic output variables
     for ( Index j=0 ; j<mdd->GOut().nelem() ; ++j )
     {
-        if (first)
-            first = false;
+        if (call_by_name)
+        {
+            Index this_arg_index;
+
+            get_argument_index_by_name(this_arg_index, named_args, mdd->GOut()[j]);
+
+            if (this_arg_index == -1)
+            {
+                ostringstream os;
+                os << "This method has generic output. "
+                << "You have to pass a variable!";
+                throw ParseError(os.str(),
+                                 msource.File(),
+                                 msource.Line(),
+                                 msource.Column() );
+            }
+
+            msource.SetPosition(named_args[this_arg_index].line,
+                                named_args[this_arg_index].column);
+            named_args.erase(named_args.begin()+this_arg_index);
+        }
         else
         {
-            assertain_character(',');
-            eat_whitespace();
+            if (first)
+                first = false;
+            else
+            {
+                assertain_character(',');
+                eat_whitespace();
+            }
         }
 
         read_name(wsvname);
@@ -1042,15 +1276,15 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
                     << ") first. Replace TYPE with the\n"
                     << "WSV group your variable should belong to.";
 
-                    throw UnknownWsv( os.str(),
+                    throw UnknownWsv(os.str(),
                                      msource.File(),
                                      msource.Line(),
-                                     msource.Column() );
+                                     msource.Column());
                 }
                 else
                 {
                     if (mdd->Name().length() <= 6
-                        || mdd->Name().substr (mdd->Name().length() - 6) != "Create")
+                        || mdd->Name().substr(mdd->Name().length() - 6) != "Create")
                     {
                         ostringstream os;
                         os << "This might be either a typo or you have to create "
@@ -1204,11 +1438,13 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
                                       ArrayOfIndex&   input,
                                       ArrayOfIndex&   auto_vars,
                                       Array<TokVal>&  auto_vars_values,
-                                      bool&           first)
+                                      bool&           first,
+                                      NamedArguments& named_args,
+                                      bool            call_by_name)
 {
     extern const ArrayOfString wsv_group_names;
 
-    // There are two lists of parameters that we have to read.
+    // There are two lists of arguments that we have to read.
     ArrayOfIndex  vo=mdd->Out();  // Output
     const ArrayOfIndex &vi = mdd->InOnly(); // Input
 
@@ -1219,25 +1455,48 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
     {
         String wsvname;
 
-        if (first)
-            first = false;
+        if (call_by_name)
+        {
+            Index this_arg_index;
+
+            wsvname = Workspace::wsv_data[*ins].Name();
+
+            get_argument_index_by_name(this_arg_index, named_args, wsvname);
+
+            if (this_arg_index != -1)
+            {
+                msource.SetPosition(named_args[this_arg_index].line,
+                                    named_args[this_arg_index].column);
+                named_args.erase(named_args.begin()+this_arg_index);
+
+                read_name_or_value(wsvname, auto_vars, auto_vars_values,
+                                   Workspace::wsv_data[*ins].Name(),
+                                   mdd, Workspace::wsv_data[*ins].Group());
+            }
+        }
         else
         {
-            try
+            if (first)
+                first = false;
+            else
             {
-                assertain_character(',');
+                try
+                {
+                    assertain_character(',');
+                }
+                catch (UnexpectedChar)
+                {
+                    ostringstream os;
+                    os << "Expected input WSV *" << Workspace::wsv_data[*ins].Name() << "*";
+                }
+                eat_whitespace();
             }
-            catch (UnexpectedChar)
-            {
-                ostringstream os;
-                os << "Expected input WSV *" << Workspace::wsv_data[*ins].Name() << "*";
-            }
-            eat_whitespace();
-        }
 
-        read_name_or_value(wsvname, auto_vars, auto_vars_values,
-                           Workspace::wsv_data[*ins].Name(),
-                           mdd, Workspace::wsv_data[*ins].Group());
+            read_name_or_value(wsvname, auto_vars, auto_vars_values,
+                               Workspace::wsv_data[*ins].Name(),
+                               mdd, Workspace::wsv_data[*ins].Group());
+            
+        }
 
         {
             // Find Wsv id:
@@ -1275,14 +1534,16 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
  \param[in]  mdd     Pointer to the current WSM
  \param[out] output  Indexes of output variables for the WSM
  \param[in]  first   If set to false, there must be a comma before the first WSV
- in the controlfile
+                     in the controlfile
 
  \author Oliver Lemke
  \date   2008-03-05
  */
 void ArtsParser::parse_specific_output(const MdRecord* mdd,
                                        ArrayOfIndex&   output,
-                                       bool&           first)
+                                       bool&           first,
+                                       NamedArguments& named_args,
+                                       bool            call_by_name)
 {
     extern const ArrayOfString wsv_group_names;
 
@@ -1295,27 +1556,48 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
     {
         String wsvname;
 
-        if (first)
-            first = false;
+        if (call_by_name)
+        {
+            Index this_arg_index=0;
+
+            wsvname = Workspace::wsv_data[*outs].Name();
+
+            get_argument_index_by_name(this_arg_index, named_args,
+                                       wsvname);
+            
+            if (this_arg_index != -1)
+            {
+                msource.SetPosition(named_args[this_arg_index].line,
+                                    named_args[this_arg_index].column);
+                named_args.erase(named_args.begin()+this_arg_index);
+
+                read_name(wsvname);
+            }
+        }
         else
         {
-            try
+            if (first)
+                first = false;
+            else
             {
-                assertain_character(',');
+                try
+                {
+                    assertain_character(',');
+                }
+                catch (UnexpectedChar)
+                {
+                    ostringstream os;
+                    os << "Expected output WSV *" << Workspace::wsv_data[*outs].Name() << "*";
+                    throw ParseError(os.str(),
+                                     msource.File(),
+                                     msource.Line(),
+                                     msource.Column());
+                }
+                eat_whitespace();
             }
-            catch (UnexpectedChar)
-            {
-                ostringstream os;
-                os << "Expected output WSV *" << Workspace::wsv_data[*outs].Name() << "*";
-                throw ParseError(os.str(),
-                                 msource.File(),
-                                 msource.Line(),
-                                 msource.Column());
-            }
-            eat_whitespace();
-        }
 
-        read_name(wsvname);
+            read_name(wsvname);
+        }
 
         {
             wsvid = -1;
@@ -1583,8 +1865,8 @@ void ArtsParser::read_name(String& name)
     name, starting at position specified by line and column.
 
     \param[out] name       WSV name or value
-    \param[out] auto_vars  Indexes of automatically created variables.
-    \param[out] auto_vars_values    Values of automatically created variables.
+    \param[in,out] auto_vars        Indexes of automatically created variables.
+    \param[in,out] auto_vars_values Values of automatically created variables.
     \param[in]  default_name        Default WSV name.
     \param[in]  mdd        Pointer to the current WSM
     \param[in]  group      Expected WSV group index
@@ -1610,7 +1892,7 @@ Index ArtsParser::read_name_or_value(String&         name,
     if (group == get_wsv_group_id ("Any"))
     {
         ostringstream os;
-        os << "Passing constants as supergeneric parameters is not supported.";
+        os << "Passing constants as supergeneric arguments is not supported.";
         throw ParseError (os.str (),
                           msource.File(),
                           msource.Line(),
@@ -1687,7 +1969,7 @@ Index ArtsParser::read_name_or_value(String&         name,
     {
         extern const ArrayOfString wsv_group_names;
         ostringstream os;
-        os << "Unsupported parameter type: " << wsv_group_names[group];
+        os << "Unsupported argument type: " << wsv_group_names[group];
         throw ParseError (os.str(),
                           msource.File(),
                           msource.Line(),

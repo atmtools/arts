@@ -132,7 +132,9 @@ IndexSet( ybatch_start, 0 )
 # Van-Vleck and Huber normalization factor,
 # cutoff at 750 GHz, consistent with Clough and Rosenkranz
 #
-abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
+abs_lineshapeDefine( shape="Voigt_Kuntz6",
+                     forefactor="VVH",
+                     cutoff=750e9 )
 
 
 #

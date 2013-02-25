@@ -1,3 +1,57 @@
+2013-02-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-521
+
+	* New controlfile feature: Named arguments!
+
+	Besides calling a workspace method with positional arguments, it is now
+	possible to use named arguments. Omitted arguments will be set to
+	their defaults. For specific inputs/outputs the default WSV will be
+	used and for generic in/out the default value.
+
+	For example, calling a method with all the default arguments and only
+	pass in two custom values for the generic input required this code
+	before:
+
+	doit_i_fieldUpdateSeq1D(
+		  doit_i_field, doit_scat_field, cloudbox_limits,
+		  abs_mat_per_species_agenda, vmr_field, spt_calc_agenda,
+		  scat_za_grid, scat_aa_grid, pnd_field, opt_prop_part_agenda,
+		  ppath_step_agenda, ppath_lraytrace, p_grid, z_field,
+		  refellipsoid, t_field, edensity_field, f_grid, f_index,
+		  surface_rtprop_agenda, doit_za_interp,
+		  1, 0.05 )
+	
+	now one can simply write:
+
+	doit_i_fieldUpdateSeq1D( normalize=1,
+                                 norm_error_threshold=0.05 )
+	
+	* src/parser.{h,cc}: Add named argument support.
+
+	* src/sourcetext.h (SourceText):
+
+	Add new member functions LineRaw, ColumnRaw and SetPosition.
+
+	* src/methods.cc:
+
+	Make generic input/output variables names more consistent. Generic
+	output in ...Set... WSMs is called 'out', generic input that is usually
+	given as a literal is called 'value' (e.g. in VectorSet or
+	MatrixSetConstant), otherwise 'in'.
+
+	Add docs for FieldFromGriddedField.
+
+	Set default value for userparam to [] in abs_cont_descriptionAppend.
+
+	* controlfiles/general/continua.arts,
+	controlfiles/general/general.arts,
+	controlfiles/artscomponents/doit/TestDOIT.arts:
+
+	Updated to use named arguments.
+
+	* doc/uguide/concept.tex: Add paragraph about named arguments.
+
 2013-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-520

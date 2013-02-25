@@ -77,9 +77,22 @@ public:
       with the current position. */
   Index Line();
 
+  /** Return the line index. */
+  Index LineRaw() { return mLine; }
+
+  /** Return the column index. */
+  Index ColumnRaw() { return mColumn; }
+
   /** Return the current column. */
   Index Column() { return mColumn+1; }
 
+  /** Set current position. */
+  void SetPosition(Index line, Index column)
+    {
+        mLine = line;
+        mColumn = column;
+    }
+    
   /** This sets the pointer to the first existing character in the
       text. (First few lines could be empty). */
   void Init();
