@@ -42,7 +42,6 @@ IndexCreate( ncases )
 # set basic case folder
 StringCreate( basename )
 StringSet( basename, "planets/Mars/MPS/" )
-StringSet( basename, "/storage4/home/mendrok/projects/MicrowavePropagationToolbox/WorkPackageData/WP2000/Mars/MPS/" )
 
 # Arrays with (sub)case names
 ArrayOfStringCreate( seasoncasearray )

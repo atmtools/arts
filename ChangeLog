@@ -1,5 +1,16 @@
 2013-02-27  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-525
+
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScen_Mars.arts,
+	TestAtmScenSup_Mars.arts:
+	Bugfix (get data from arts-xml-data, not from Jana's homedir!).
+
+	* controlfiles/artscomponents/arts-xml-data/TestSurf_Mars.arts:
+	Removed leftover Print calls.
+
+2013-02-27  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-524
 
 	* CMakeLists.txt: Introduced a target check-xmldata (which does exactly

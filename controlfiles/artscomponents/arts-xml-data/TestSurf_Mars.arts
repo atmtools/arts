@@ -161,7 +161,7 @@ Append( atmcase, atmext )
 Append( casefull, atmcase )
 Append( casefull, caseext )
 Append( casefull, atmcase )
-Print( casefull, 0 )
+#Print( casefull, 0 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
             abs_species, casefull )
@@ -216,7 +216,7 @@ AgendaSet( surface_rtprop_agenda ){
    surfaceFlatScalarReflectivity
 }
 yCalc
-Print( y, 0 )
+#Print( y, 0 )
 
 
 
@@ -249,7 +249,7 @@ AgendaSet( surface_rtprop_agenda ){
    surfaceFlatRefractiveIndex
 } 
 yCalc
-Print( y, 0 )
+#Print( y, 0 )
 
 
 #####
@@ -311,9 +311,9 @@ AgendaSet( forloop_agenda_dust ){
   cloudbox_checkedCalc
   sensor_checkedCalc
 
-  Print( casefull, 0 )
+  #Print( casefull, 0 )
   yCalc
-  Print( y, 0 )
+  #Print( y, 0 )
 }
 
 AgendaCreate( forloop_agenda_time )
