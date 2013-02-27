@@ -1,5 +1,14 @@
 2013-02-27  Jana Mendrok <jana.mendrok@ltu.se>
 
+	* arts-2-1-526
+
+	* controlfiles/artscomponents/absorption/TestIsoRatios.arts,
+	IsoRatios_H2Oorig.xml, IsoRatios_H2Omani.xml:
+	Fixed isoratio test case (broken by slightly changed requirements on
+	which isoratios have to be present).
+
+2013-02-27  Jana Mendrok <jana.mendrok@ltu.se>
+
 	* arts-2-1-525
 
 	* controlfiles/artscomponents/arts-xml-data/TestAtmScen_Mars.arts,

@@ -143,6 +143,7 @@ sensor_checkedCalc
 
 #now do the RT calc
 ReadXML( isotopologue_ratios, "IsoRatios_H2Oorig.xml" )
+WriteXML("ascii", isotopologue_ratios, "IRfromH2Oorig.xml")
 yCalc
 #WriteXML( "ascii", y, "y.IsoRatios_H2Oorig.xml" )
 VectorCreate( yB )
