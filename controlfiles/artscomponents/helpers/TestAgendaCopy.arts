@@ -1,0 +1,33 @@
+#
+# Testing and demonstrating how to use user-defined agenda variants.
+#
+# Jana Mendrok 2013-02-26
+
+Arts2{
+
+AgendaCreate( abs_mat_per_species_agenda__OnTheFly )
+AgendaSet( abs_mat_per_species_agenda__OnTheFly ){
+  Ignore( rtp_mag )
+  Ignore( rtp_los )
+  abs_mat_per_speciesInit
+  abs_mat_per_speciesAddOnTheFly
+}
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+
+
+AgendaCreate( mybatch )
+AgendaSet( mybatch ){
+  Touch( y )
+  Touch( y_aux )
+  Touch( jacobian )
+  Print( ybatch_index )
+}
+
+IndexSet( ybatch_start, 0 )
+IndexSet( ybatch_n, 10 )
+
+Copy( ybatch_calc_agenda, mybatch )
+ybatchCalc
+
+}
+

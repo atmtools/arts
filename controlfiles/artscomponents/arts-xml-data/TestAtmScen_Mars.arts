@@ -16,6 +16,7 @@
 #     subfolder).
 #  - regridding to a pressure grid taken from the read-in altitude grid
 #
+# Jana Mendrok 2013-02-26
 
 Arts2 {
 INCLUDE "general/general.arts"

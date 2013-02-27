@@ -1,0 +1,34 @@
+#
+# Check functionality of Toolbox spectroscopic line data and consistency of
+#  these with HITRAN spectroscopic catalogues.
+#
+# Version for Fascod species.
+#
+# CAUTION:
+#   - HITRAN data is NOT included in the toolbox! Hence, for running the part
+#      that uses HITRAN it is required that the user gets his/her own copy of
+#      the HITRAN catalogue (and adapt path to the catalogue accordingly).
+#   - This is a time consuming test!
+#
+# Jana Mendrok 2013-02-26
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+StringCreate( ext )
+StringSet( ext, "WithFascode" )
+
+# set atmospheric scenario
+StringCreate( atmcase )
+StringSet( atmcase, "planets/Earth/Fascod/tropical/tropical" )
+
+# derive abs species from scenario data
+abs_speciesDefineAllInScenario( abs_species, atmcase )
+
+INCLUDE "TestSpectro_core.arts"
+
+}

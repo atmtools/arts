@@ -17,6 +17,10 @@ install (DIRECTORY artscomponents
 
 #######################
 ### ARTS Components ###
+arts_test_run_ctlfile(fast.forloop artscomponents/helpers/TestForloop.arts)
+arts_test_run_ctlfile(fast.agendacopy artscomponents/helpers/TestAgendaCopy.arts)
+arts_test_run_ctlfile(fast.hse artscomponents/helpers/TestHSE.arts)
+
 arts_test_run_ctlfile(fast.absorption artscomponents/absorption/TestAbs.arts)
 arts_test_run_ctlfile(fast.absorption.doppler
                       artscomponents/absorption/TestAbsDoppler.arts)
@@ -79,6 +83,7 @@ arts_test_run_ctlfile(slow.wfuns artscomponents/wfuns/TestWfuns.arts)
 
 #arts_test_run_ctlfile(slow.disort artscomponents/disort/TestDISORT.arts)
 
+
 ###################
 ### Instruments ###
 arts_test_run_ctlfile(fast.odinsmr instruments/odinsmr/TestOdinSMR.arts)
@@ -94,9 +99,41 @@ arts_test_run_ctlfile(slow.hirs instruments/hirs/TestHIRS.arts)
 
 #arts_test_run_ctlfile(slow.avhrr instruments/avhrr/TestAVHRR.arts)
 
-
 if (ARTS_XML_DATA_DIR)
-  #arts_test_run_ctlfile(fast.jupiter
-  #    planetary_toolbox/validation/passive/jupiter/TestAtmScen_Jupiter.arts)
+
+  arts_test_run_ctlfile(fast.regrid artscomponents/helpers/TestRegridding.arts)
+
+  arts_test_run_ctlfile(fast.ppath.planetrefrac
+                        artscomponents/ppath/TestRefractPlanets.arts)
+
+  ################
+  ### XML Data ###
+  arts_test_run_ctlfile(xmldata.atm.mars
+                        artscomponents/arts-xml-data/TestAtmScen_Mars.arts)
+  arts_test_run_ctlfile(xmldata.atm.venus
+                        artscomponents/arts-xml-data/TestAtmScen_Venus.arts)
+  arts_test_run_ctlfile(xmldata.atm.jupiter
+                        artscomponents/arts-xml-data/TestAtmScen_Jupiter.arts)
+
+  arts_test_run_ctlfile(xmldata.atmsup.earth
+                        artscomponents/arts-xml-data/TestAtmScenSup_Earth.arts)
+  arts_test_run_ctlfile(xmldata.atmsup.mars
+                        artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts)
+  arts_test_run_ctlfile(xmldata.atmsup.venus
+                        artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts)
+  arts_test_run_ctlfile(xmldata.atmsup.jupiter
+                        artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts)
+
+  arts_test_run_ctlfile(xmldata.surf.earth
+                        artscomponents/arts-xml-data/TestSurf_Earth.arts)
+  arts_test_run_ctlfile(xmldata.surf.mars
+                        artscomponents/arts-xml-data/TestSurf_Mars.arts)
+  arts_test_run_ctlfile(xmldata.surf.venus
+                        artscomponents/arts-xml-data/TestSurf_Venus.arts)
+
+  arts_test_run_ctlfile(xmldata.isoratios
+                        artscomponents/arts-xml-data/TestIsoRatios.arts)
 endif (ARTS_XML_DATA_DIR)
+
+
 

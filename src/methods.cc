@@ -2057,7 +2057,7 @@ void define_md_data_raw()
          "Both another matrix or a vector can be appended to a matrix. In\n"
          "addition, for matrices, the 'append dimension' can be selected.\n" 
          "The third argument, *dimension*, indicates how to append, where\n"
-         "\"leading\" means to append row-wise, and \"trailing'\" means\n"
+         "\"leading\" means to append row-wise, and \"trailing\" means\n"
          "column-wise.\n"
          "\n"
          "This method is not implemented for all types, just for those where\n"

@@ -56,8 +56,7 @@ StringSet( catfolder, "spectroscopy/Perrin/" )
 #######
 
 # frequency grid (full toolbox range)
-#VectorLinSpace( f_grid, 0e9, 3000e9, 0.1e9 )
-VectorLinSpace( f_grid, 0.1e9, 10e9, 0.1e9 )
+VectorLinSpace( f_grid, 0e9, 3000e9, 0.1e9 )
 WriteXML( "ascii", f_grid )
 
 # set the pressure grids

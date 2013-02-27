@@ -22,6 +22,7 @@
 #    slightly larger p-range than the original data in order to test the
 #    extrapolation and zero-padding features).
 #
+# Jana Mendrok 2013-02-26
 
 Arts2 {
 INCLUDE "general/general.arts"

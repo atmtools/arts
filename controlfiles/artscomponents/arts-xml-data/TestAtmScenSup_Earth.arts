@@ -24,6 +24,7 @@
 #  xml-data for long time, applied in calculations, hence further testing is not
 #  necessary.
 #
+# Jana Mendrok 2013-02-26
 
 Arts2 {
 INCLUDE "general/general.arts"
@@ -344,4 +345,4 @@ IndexStepDown( ncases, ncases )
 ForLoop( forloop_agenda, 0, ncases, 1 )
 
 }
- 
+

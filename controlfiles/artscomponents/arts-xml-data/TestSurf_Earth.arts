@@ -31,6 +31,7 @@
 #     cases A. Hence, results of A-1 and A-2 shall be identical, while results
 #     from B shall be "close".)
 #      
+# Jana Mendrok 2013-02-26
 
 Arts2 {
 INCLUDE "general/general.arts"
@@ -190,9 +191,9 @@ AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
    InterpAtmFieldToRtePos( surface_skin_t,
                            atmosphere_dim, p_grid, lat_grid, lon_grid,
-                           z_field, rte_pos, t_field)
-   Select( lat_true, rte_pos, [1] )
-   Select( lon_true, rte_pos, [2] )
+                           z_field, rtp_pos, t_field)
+   Select( lat_true, rtp_pos, [1] )
+   Select( lon_true, rtp_pos, [2] )
    GriddedFieldLatLonRegrid( lsmask, lat_true, lon_true, lsmask )
    FieldFromGriddedField( mtmp, p_grid, lat_true, lon_true, lsmask )
    VectorExtractFromMatrix( surface_scalar_reflectivity, mtmp, 0, "row" )
@@ -272,5 +273,6 @@ yCalc
 #WriteXML( "ascii", y, "TestSurf_Earth.y.1D.xml" )
 #Print( y )
 Compare( y, y_3D_extRef, 0.1 )
+
 }
- 
+

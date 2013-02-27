@@ -22,6 +22,7 @@
 #  - wind (given: 2 1D cases with 1 component)
 #      - both expanded to global 3D case with p_grid from altitude grid
 #
+# Jana Mendrok 2013-02-26
 
 Arts2 {
 INCLUDE "general/general.arts"
@@ -346,4 +347,4 @@ basics_checkedCalc
 #WriteXML( "ascii", wind_w_field )
 
 }
- 
+

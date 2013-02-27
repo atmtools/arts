@@ -1,9 +1,49 @@
+2013-02-27  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-524
+
+	* CMakeLists.txt: Introduced a target check-xmldata (which does exactly
+	that - executing the arts-xml-data tests) and adapted make check setup
+	such that xmldata tests are NOT executed with this one.
+
+	* controlfiles/CMakeLists.txt:
+	Introduced further tests, particular xmldata tests.
+
+	* controlfiles/artscomponents/helpers/TestForloop.arts, TestHSE.arts,
+	TestRegridding.arts, TestAgendaCopy.arts:
+	Added. Tests of some ARTS helper methods.
+
+	* controlfiles/artscomponents/arts-xml-data/TestIsoRatios.arts,
+	TestSpectro*.arts, spectrotest.py:
+	Added. Tests of toolbox spectroscopic and isotopologue ratio data.
+	CAUTION: TestSpectro*.arts require HITRAN data, hence are not included
+	in the make check target. Also, they need quite a bit of runtime.
+	Nevertheless, they are part of the ESA planetary toolbox test cases,
+	hence we want to have them in the repository.
+
+	* controlfiles/artscomponents/ppath/TestRefractPlanets.arts:
+	Added. Testing MWgeneral refraction method.
+
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScen*.arts,
+	TestAtmScenSup*.arts, TestSurf*.arts:
+	Minor modifications.
+
+	* AUTHORS: Added myself.
+
+	* src/methods.cc: Spellfix.
+
+	* controlfiles/planetary_toolbox/validation/common/spectroscopy/
+	SpecCat_Consistency_Perrin-vs-HITRAN.arts:
+	Corrected f_grid setup.
+
+	* doc/uguide/absorption_theory.tex: Minor layout fix.
+
 2013-02-27  Mathias Milz  <mathias.milz@ltu.se>
 
 	* arts-2-1-523
 
 	* controlfiles/testdata/chevallierl91_all_extract.xml: 
-	  included information of the sourde of these profiles.
+	included information of the source of these profiles.
 
 2013-02-21  Richard Larsson  <ric.larsson@gmail.com>
 
@@ -34,18 +74,18 @@
 	before:
 
 	doit_i_fieldUpdateSeq1D(
-		  doit_i_field, doit_scat_field, cloudbox_limits,
-		  abs_mat_per_species_agenda, vmr_field, spt_calc_agenda,
-		  scat_za_grid, scat_aa_grid, pnd_field, opt_prop_part_agenda,
-		  ppath_step_agenda, ppath_lraytrace, p_grid, z_field,
-		  refellipsoid, t_field, edensity_field, f_grid, f_index,
-		  surface_rtprop_agenda, doit_za_interp,
-		  1, 0.05 )
+	          doit_i_field, doit_scat_field, cloudbox_limits,
+	          abs_mat_per_species_agenda, vmr_field, spt_calc_agenda,
+	          scat_za_grid, scat_aa_grid, pnd_field, opt_prop_part_agenda,
+	          ppath_step_agenda, ppath_lraytrace, p_grid, z_field,
+	          refellipsoid, t_field, edensity_field, f_grid, f_index,
+	          surface_rtprop_agenda, doit_za_interp,
+	          1, 0.05 )
 	
 	now one can simply write:
 
 	doit_i_fieldUpdateSeq1D( normalize=1,
-                                 norm_error_threshold=0.05 )
+	                         norm_error_threshold=0.05 )
 	
 	* src/parser.{h,cc}: Add named argument support.
 

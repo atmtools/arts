@@ -1,0 +1,152 @@
+#
+# Check functionality of isotopologue ratio from file implementation and
+#  functionality of given data in file
+#
+# We take an atmospheric scenario from Earth
+#   CASE A: do a small RT calculation with this based on ARTS built-in
+#           (valid for Earth) isotopologue ratios, write them to file
+#   CASE B: re-read the isotopologue ratios written in CASE A and repeat the
+#           previous calculation (this should give identical results)
+#   CASE C(1-3): read the isotopologue ratios prepared for Mars, Venus, and Jupiter and repeat #           the above calculation again (no result check, only being functional)
+#
+# Jana Mendrok 2013-02-26
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# Planck as blackbody radiation
+Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+
+VectorLinSpace( f_grid, 10e9, 3000e9, 10e9 )
+#WriteXML( "ascii", f_grid )
+VectorNLogSpace( p_grid, 41, 1000e2, 0.1 )
+
+# monchromatic pencilbeam 1D scalar clearsky RT without Jacobians
+AtmosphereSet1D
+IndexSet( stokes_dim, 1 )
+cloudboxOff
+jacobianOff
+sensorOff
+
+# output radiances in Planck-Tb
+StringSet( iy_unit, "PlanckBT" )
+
+# On-the-fly absorption
+Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+
+# Blackbody surface
+AgendaSet( surface_rtprop_agenda ){
+  Ignore( rtp_los )
+  InterpAtmFieldToRtePos(surface_skin_t, atmosphere_dim,
+                         p_grid, lat_grid, lon_grid, z_field,
+                         rtp_pos, t_field)
+  surfaceBlackbody
+}
+
+# set atmospheric scenario
+StringCreate( atmcase )
+StringSet( atmcase, "planets/Earth/Fascod/tropical/tropical" )
+
+# derive abs species from scenario data
+abs_speciesDefineAllInScenario( abs_species, atmcase )
+
+# Atmospheric scenario
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
+            atmcase )
+AtmFieldsCalc
+
+# Surface at bottom of defined atosphere
+Extract( z_surface, z_field, 0 )
+
+# use planetary catalogue
+abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 3e12)
+abs_lines_per_speciesCreateFromLines
+
+
+# sensor position and LOS
+# set the sensor exactly at the surface (as we are in 1D this has exactly 1 element)
+Copy( sensor_pos, z_surface )
+# also one LOS direction. slant uplooking.
+MatrixSetConstant( sensor_los, 1, 1, 60. )
+
+
+# check basic atm&surface setup of
+basics_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+
+
+#######
+# CASE A: BuiltIn (Earth) isotoplogue ratios
+#######
+
+#now initialize the isotopologue ratios from builtin
+isotopologue_ratiosInitFromBuiltin
+
+#do the RT calc
+yCalc
+
+#WriteXML( "ascii", y, "y.IsoRatios_EarthBuiltin.xml" )
+VectorCreate( yA )
+Copy( yA, y )
+
+#store the isotopologue ratios from builtin such that we can read them in in the next step
+WriteXML("ascii", isotopologue_ratios )
+
+
+#######
+# CASE B: isotopologue ratios (Earth) read from file
+#######
+
+#read in the isotopologue ratios from file
+ReadXML( isotopologue_ratios )
+
+#repeat the RT calc
+yCalc
+
+#WriteXML( "ascii", y, "y.IsoRatios_EarthReadFromFile.xml" )
+VectorCreate( yB )
+Copy( yB, y )
+Compare( yA, yB, 1e-20 )
+
+
+#######
+# CASEs C: repeat reading in and doing RT with isotopologue ratios from file for
+#  the different planets (isotopologue data from toolbox data collection)
+#######
+
+
+ReadXML( isotopologue_ratios, "planets/Venus/isotopratio_Venus" )
+yCalc
+#WriteXML( "ascii", y, "y.IsoRatios_Venus.xml" )
+
+ReadXML( isotopologue_ratios, "planets/Mars/isotopratio_Mars" )
+yCalc
+#WriteXML( "ascii", y, "y.IsoRatios_Mars.xml" )
+
+ReadXML( isotopologue_ratios, "planets/Jupiter/isotopratio_Jupiter" )
+yCalc
+#WriteXML( "ascii", y, "y.IsoRatios_Jupiter.xml" )
+
+}
+

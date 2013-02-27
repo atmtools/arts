@@ -17,6 +17,7 @@
 #  - wind (given: one 1D case per scenario with all 3 components)
 #      - all expanded to global 3D case with p_grid from altitude grid
 #
+# Jana Mendrok 2013-02-26
 
 Arts2 {
 INCLUDE "general/general.arts"
@@ -257,4 +258,4 @@ Copy( forloop_agenda, forloop_agenda_season )
 ForLoop( forloop_agenda, 0, ncases, 1  )
 
 }
- 
+
