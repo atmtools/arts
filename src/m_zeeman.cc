@@ -845,21 +845,24 @@ void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesT
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
-				      const Vector& f_grid,
-				      const ArrayOfArrayOfSpeciesTag& abs_species,
-				      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-				      const ArrayOfLineshapeSpec& abs_lineshape,
-                                     const SpeciesAuxData& isotopologue_ratios,
-                                     const SpeciesAuxData& isotopologue_quantum,
-				      const Numeric& rte_pressure,
-				      const Numeric& rte_temperature,
-				      const Vector& rte_vmr_list,
-				      const Numeric& rte_doppler,
-				      const Vector& rte_mag,
-				      const Vector& ppath_los,
-				      const Index& atmosphere_dim,
-				      const Verbosity& verbosity)
+void abs_mat_per_speciesAddZeeman(  Tensor4& abs_mat_per_species,
+                                    const Vector& f_grid,
+                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                    const ArrayOfLineshapeSpec& abs_lineshape,
+                                    const SpeciesAuxData& isotopologue_ratios,
+                                    const SpeciesAuxData& isotopologue_quantum,
+                                    const Numeric& rte_pressure,
+                                    const Numeric& rte_temperature,
+                                    const Vector& rte_vmr_list,
+                                    const Numeric& rte_doppler,
+                                    const Vector& rte_mag,
+                                    const Vector& ppath_los,
+                                    const Index& atmosphere_dim,
+                                    const Index& manual_zeeman_angles_on,
+                                    const Numeric& manual_zeeman_theta,
+                                    const Numeric& manual_zeeman_eta,
+                                    const Verbosity& verbosity)
 {
     CREATE_OUT3;
     Vector R_path_los;
@@ -946,6 +949,12 @@ void abs_mat_per_speciesAddZeeman(Tensor4& abs_mat_per_species,
         const Numeric H_mag = sqrt( rte_mag * rte_mag );
         
         Numeric theta, eta;
+        if(manual_zeeman_angles_on!=0)
+        { // Leaving it up to the user to manually tag the angles for simplified magnetic fields.
+            eta   = manual_zeeman_eta;
+            theta = manual_zeeman_theta;
+        }
+        else
         { // Getting angles from coordinate system
         Vector H(3);
             H  = rte_mag;

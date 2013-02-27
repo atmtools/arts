@@ -1,3 +1,16 @@
+2013-02-21  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-522
+
+	* src/m_zeeman.cc: Now takes manual angles given the right GIN. Useful with
+	Oliver's named argument implementation to make simplistic magnetic field 
+	calculations without having to recompile the code or having to specifically
+	customize the magnetic field.
+	
+	* src/methods.cc: manual_zeeman_angles_on, manual_zeeman_theta and
+	manual_zeeman_eta are added as GIN to abs_mat_per_speciesAddZeeman.
+	The first is a tag that will set eta and theta to the other two accordingly.
+
 2013-02-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-521

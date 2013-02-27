@@ -1417,6 +1417,12 @@ void define_md_data_raw()
         "Note that between 55 GHz and 65 GHz there is usually ~700 O_2 lines,\n"
         "however, when this Zeeman splitting method is used, the number of\n"
         "lines is increased to about 45,000. This is a time consuming method.\n"
+        "\n"
+        "The GIN variables will change the angles assocated to the Zeeman effect.\n"
+        "The user is adviced to either ignore or set all three at the same time,\n"
+        "the user is also advided to read the theory guide to understand what the\n"
+        "different angles mean. manual_zeeman_angles_on different from zero activates\n"
+        "the other two.\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT("abs_mat_per_species"),
@@ -1432,10 +1438,10 @@ void define_md_data_raw()
            "isotopologue_quantum",
            "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler",
            "rtp_mag", "rtp_los", "atmosphere_dim"),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN("manual_zeeman_angles_on","manual_zeeman_theta","manual_zeeman_eta"),
+        GIN_TYPE("Index","Numeric","Numeric"),
+        GIN_DEFAULT("0","0","0"),
+        GIN_DESC("Manual angles tag","Manual theta given positive tag","Manual eta given positive tag")
         ));
 
   md_data_raw.push_back
