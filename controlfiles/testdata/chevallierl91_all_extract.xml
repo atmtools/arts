@@ -1,6 +1,14 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">                        
-<comment>                                                
+<comment>         
+The profiles were taken from the following profile sets:
+Profile #1: Index 4999 in chevallierl91_all_ccol.xml
+Profile #2: Index 5000 in chevallierl91_all_ccol.xml
+Profile #3: Index 4987 in chevallierl91_all_t.xml
+Profile #4: Index 2255 in chevallierl91_all_t.xml
+Profile #5: Index 3095 in chevallierl91_all_q.xml
+Profile #6: Index 3235 in chevallierl91_all_q.xml
+                                       
 This file contains one matrix for each atmospheric state.
 Each matrix row corresponds to one pressure level. The   
 meaning of the columns is:                               
