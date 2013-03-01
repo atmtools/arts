@@ -87,7 +87,7 @@ void SpeciesAuxData::initParams(Index nparams)
 }
 
 
-bool SpeciesAuxData::ReadFromStream(istream& is, Index nparams, const Verbosity& verbosity)
+bool SpeciesAuxData::ReadFromStream(String& artsid, istream& is, Index nparams, const Verbosity& verbosity)
 {
     CREATE_OUT3;
 
@@ -180,7 +180,6 @@ bool SpeciesAuxData::ReadFromStream(istream& is, Index nparams, const Verbosity&
     // read the arts identifier String
     istringstream icecream(line);
 
-    String artsid;
     icecream >> artsid;
 
     if (artsid.length() != 0)

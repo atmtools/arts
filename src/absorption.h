@@ -416,7 +416,8 @@ public:
     const ArrayOfMatrix& getParams() const { return mparams; }
 
     /** Read parameters from input stream. */
-    bool ReadFromStream(istream& is, Index nparams, const Verbosity& verbosity);
+    bool ReadFromStream(String& artsid, istream& is, Index nparams,
+                        const Verbosity& verbosity);
 
 private:
     ArrayOfMatrix mparams;

@@ -56,6 +56,11 @@ private:
   Array< stack<WsvStruct *> > ws;
 
 public:
+#ifndef NDEBUG
+  //! Only for debugging
+  String context;
+#endif
+
   static Array<WsvRecord> wsv_data;
 
   /*! The map associated with wsv_data. */

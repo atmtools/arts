@@ -43,6 +43,9 @@ map<String, Index> Workspace::WsvMap;
   Create the stacks for the WSVs.
 */
 Workspace::Workspace () : ws(0)
+#ifndef NDEBUG
+, context("")
+#endif
 {
 }
 
@@ -127,6 +130,9 @@ void Workspace::initialize ()
 */
 Workspace::Workspace (const Workspace& workspace) : ws(workspace.ws.nelem())
 {
+#ifndef NDEBUG
+  context = workspace.context;
+#endif
   for (Index i=0; i < workspace.ws.nelem(); i++)
     {
       WsvStruct *wsvs = new WsvStruct;
@@ -152,6 +158,10 @@ Workspace::Workspace (const Workspace& workspace) : ws(workspace.ws.nelem())
 */
 Workspace::~Workspace ()
 {
+#ifndef NDEBUG
+#pragma omp critical (ws_destruct)
+    if (context != "") cout << "WS destruct: " << context << endl;
+#endif
   for (int i = 0; i < ws.nelem (); i++)
     {
       WsvStruct *wsvs;

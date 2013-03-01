@@ -1,3 +1,17 @@
+2013-03-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-527
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream<SpeciesAuxData>):
+
+	Throw an error if a tag is defined twice in input file.
+
+	* src/absorption.{cc,h} (SpeciesAuxData::ReadFromStream):
+
+	Return the name of the current tag.
+
+	* src/workspace_ng.{h,cc} (Workspace): Add some debugging code.
+
 2013-02-27  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-526

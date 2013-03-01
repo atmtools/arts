@@ -1223,10 +1223,34 @@ void xml_read_from_stream(istream&           is_xml,
         throw runtime_error(os.str());
     }
 
-    sad.initParams(nparam);
-    for (Index i = 0; i < nelem; i++)
+    Index n;
+    try
     {
-        sad.ReadFromStream(is_xml, nparam, verbosity);
+        ArrayOfString artstags;
+        sad.initParams(nparam);
+        for (n = 0; n < nelem; n++)
+        {
+            String artstag;
+            sad.ReadFromStream(artstag, is_xml, nparam, verbosity);
+
+            if (find_first(artstags, artstag) == -1)
+                artstags.push_back(artstag);
+            else
+            {
+                ostringstream os;
+                os << "SpeciesAuxData for " << artstag << " already defined.\n"
+                << "Duplicates are not allowed in input file.";
+                throw runtime_error(os.str());
+            }
+        }
+    }
+    catch (runtime_error e)
+    {
+        ostringstream os;
+        os << "Error reading SpeciesAuxData: "
+        << "\n Element: " << n
+        << "\n" << e.what();
+        throw runtime_error(os.str());
     }
 
     tag.read_from_stream(is_xml);
