@@ -1748,6 +1748,7 @@ void AtmFieldsCalc(//WS Output:
                    const Index&          atmosphere_dim,
                    // WS Generic Input:
                    const Index& interp_order,
+                   const Index& vmr_zeropadding,
                    const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -1794,7 +1795,16 @@ void AtmFieldsCalc(//WS Output:
       z_field = temp_gfield3.data;
 
       ArrayOfGriddedField3 temp_agfield3;
-      GriddedFieldPRegrid(temp_agfield3, p_grid, vmr_field_raw, interp_order, 1, verbosity);
+      try {
+        GriddedFieldPRegrid(temp_agfield3, p_grid, vmr_field_raw, interp_order,
+                            vmr_zeropadding, verbosity);
+      } catch (runtime_error e) {
+          ostringstream os;
+          os << e.what() << "\n"
+             << "Note that you can explicitly set vmr_zeropadding to 1 in the method call.";
+          throw runtime_error(os.str());
+
+      }
       FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
     }
 
@@ -1939,7 +1949,16 @@ void AtmFieldsCalc(//WS Output:
 
       ArrayOfGriddedField3 temp_agfield3;
       GriddedFieldLatLonRegrid(temp_agfield3, lat_grid, lon_grid, vmr_field_raw, interp_order, verbosity);
-      GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3, interp_order, 1, verbosity);
+      try {
+        GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3, interp_order,
+                            vmr_zeropadding, verbosity);
+      } catch (runtime_error e) {
+          ostringstream os;
+          os << e.what() << "\n"
+             << "Note that you can explicitly set vmr_zeropadding to 1 in the method call.";
+          throw runtime_error(os.str());
+
+      }
       FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
     }
   else
@@ -1963,6 +1982,7 @@ void AtmFieldsCalcExpand1D(Tensor3&              t_field,
                            const ArrayOfGriddedField3& vmr_field_raw,
                            const Index&          atmosphere_dim,
                            const Index&          interp_order,
+                           const Index&          vmr_zeropadding,
                            const Verbosity&      verbosity)
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -1978,7 +1998,7 @@ void AtmFieldsCalcExpand1D(Tensor3&              t_field,
   Tensor4   vmr_temp;
   AtmFieldsCalc(t_temp, z_temp, vmr_temp, p_grid, vempty, vempty, 
                 t_field_raw, z_field_raw, vmr_field_raw, 1, interp_order,
-                verbosity);
+                vmr_zeropadding, verbosity);
 
   // Move values from the temporary tensors to the return arguments
   const Index   np = p_grid.nelem();

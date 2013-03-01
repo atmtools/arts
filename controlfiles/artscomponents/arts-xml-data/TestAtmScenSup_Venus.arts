@@ -150,7 +150,7 @@ AgendaSet( forloop_agenda_scen ){
   AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
               abs_species, atmcase )
   p_gridFromZRaw(	p_grid, z_field_raw, 0 )
-  AtmFieldsCalc
+  AtmFieldsCalc( vmr_zeropadding=1 )
 
   # surface also needed for basics_checkedCalc
   Extract( z_surface, z_field, 0 )

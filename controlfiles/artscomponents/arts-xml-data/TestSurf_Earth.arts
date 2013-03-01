@@ -146,7 +146,7 @@ Append( sensor_pos, mtmp, "trailing" )
 AtmosphereSet3D
 Copy( lat_grid, lat_grid3D )
 Copy( lon_grid, lon_grid3D )
-AtmFieldsCalcExpand1D
+AtmFieldsCalcExpand1D( vmr_zeropadding=1 )
 
 # reading the surface altitude field
 Copy( casefull, surfpath )
@@ -221,7 +221,7 @@ Compare( y_3D_fixRef, y_3D_extRef, 1e-8 )
 
 # basic atmospheric fields
 AtmosphereSet1D
-AtmFieldsCalc
+AtmFieldsCalc( vmr_zeropadding=1 )
 
 # sensor in 1D (zenith angles like for 3D. no azimtuh of course)
 VectorExtractFromMatrix( lat_true, sensor_pos, 1, "column")

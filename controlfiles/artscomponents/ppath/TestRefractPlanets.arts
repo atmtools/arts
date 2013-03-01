@@ -183,7 +183,7 @@ VectorNLogSpace( p_grid, 41, 9.2e6, 4.9e2 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
             "planets/Venus/MPS/Venus.vira.day/Venus.vira.day" )
-AtmFieldsCalc
+AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 
 basics_checkedCalc
@@ -209,7 +209,7 @@ VectorNLogSpace( p_grid, 41, 1.0e5, 1.8e3 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
             "planets/Jupiter/MPS/Jupiter.mean/Jupiter.mean" )
-AtmFieldsCalc
+AtmFieldsCalc( vmr_zeropadding=1 )
 Extract( z_surface, z_field, 0 )
 
 basics_checkedCalc

@@ -154,7 +154,7 @@ AgendaSet( forloop_agenda ){
 
   # now derive common p_grid and regrid atm fields to this
   p_gridFromZRaw(	p_grid, z_field_raw, 0 )
-  AtmFieldsCalc
+  AtmFieldsCalc( vmr_zeropadding=1 )
 
   # surface also needed for basics_checkedCalc
   Extract( z_surface, z_field, 0 )

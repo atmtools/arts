@@ -71,9 +71,7 @@ ReadXML( t_field_raw, "testdata/tropical.expanded.t.xml" )
 ReadXML( z_field_raw, "testdata/tropical.expanded.z.xml" )
 
 # Interpolate to p_grid (VMR is "zero padded")
-AtmFieldsCalc( t_field, z_field, vmr_field, p_grid, 
-               lat_grid, lon_grid, t_field_raw, z_field_raw, 
-               vmr_field_raw, atmosphere_dim )
+AtmFieldsCalc( vmr_zeropadding=1 )
 
 GriddedField3Create( raw3 )
 

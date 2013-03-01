@@ -1,5 +1,37 @@
 2013-03-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-528
+
+	* WARNING! Zeropadding of VMRs in AtmFieldsCalc and
+	AtmFieldsCalcExpand1D has to be enabled explicitly now!
+
+	* src/m_atmosphere.cc, src/methods.cc (AtmFieldsCalc,
+	AtmFieldsCalcExpand1D):
+
+	Add flag vmr_zeropadding that is off by default to avoid accidental
+	padding without the user noticing.
+
+	Move description of interp_order from the general method description
+	into GIN_DESC.
+
+	* controlfiles/artscomponents/ppath/TestRefractPlanets.arts:
+
+	Enable vmr_zeropadding in AtmFieldsCalc for Venus and Jupiter.
+
+	* controlfiles/artscomponents/helpers/TestHSE.arts,
+	controlfiles/artscomponents/faraday/TestFaradayRotation.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScen_Venus.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScen_Jupiter.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Earth.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Earth.arts,
+	controlfiles/artscomponents/arts-xml-data/TestSurf_Venus.arts:
+
+	Enable vmr_zeropadding in AtmFieldsCalc and AtmFieldsCalcExpand1D.
+
+2013-03-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-527
 
 	* src/xml_io_compound_types.cc (xml_read_from_stream<SpeciesAuxData>):

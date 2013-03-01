@@ -2216,9 +2216,6 @@ void define_md_data_raw()
          "option of *GriddedFieldPRegrid*). For all other data (T,z) and in other\n"
          "dimensions (latitude, longitude) default 'half-grid-step' extrapolation\n"
          "is allowed and applied.\n"
-         "\n"
-         "With parameter interp_order you can control the order of \n"
-         "interpolation. The default is 1 (linear interpolation).\n"
          ),
         AUTHORS( "Claudia Emde", "Stefan Buehler" ),
         OUT( "t_field", "z_field", "vmr_field" ),
@@ -2227,10 +2224,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
             "vmr_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Interpolation order." )
+        GIN( "interp_order", "vmr_zeropadding" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "1", "0" ),
+        GIN_DESC( "Interpolation order (1=linear interpolation).",
+                  "Pad VMRs with zeroes to fit the pressure grid if necessary." )
         ));
 
   md_data_raw.push_back
@@ -2249,9 +2247,6 @@ void define_md_data_raw()
          "The method deals only with the atmospheric fields, and to create\n"
          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
          "ellipsoid is set to be a sphere.\n"
-         "\n"
-         "With parameter interp_order you can control the order of \n"
-         "interpolation. The default is 1 (linear interpolation).\n"
          ),
         AUTHORS( "Patrick Eriksson", "Claudia Emde", "Stefan Buehler" ),
         OUT( "t_field", "z_field", "vmr_field" ),
@@ -2260,10 +2255,11 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
             "vmr_field_raw", "atmosphere_dim" ),
-        GIN( "interp_order" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Interpolation order." )
+        GIN( "interp_order", "vmr_zeropadding" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "1", "0" ),
+        GIN_DESC( "Interpolation order (1=linear interpolation).",
+                  "Pad VMRs with zeroes to fit the pressure grid if necessary." )
         ));
 
   md_data_raw.push_back
