@@ -1,5 +1,11 @@
 2013-03-04  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-530
+
+	* README: Add info on how to compile with LLVM/Clang.
+
+2013-03-04  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-529
 
 	* Having fun with compiler bugs.

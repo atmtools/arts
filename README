@@ -130,10 +130,31 @@ cmake -DWERROR=1 ..
 INTEL COMPILER
 ==============
 
-If you want to compile with the Intel compiler, start with an empty build
+If you want to compile with the Intel compiler[1], start with an empty build
 directory and run:
 
 CC=icc CXX=icpc cmake ..
+
+[1] http://software.intel.com/c-compilers
+
+
+LLVM/CLANG COMPILER
+===================
+
+If you want to compile with the LLVM/Clang compiler[1], start with an empty build
+directory and run:
+
+CC=clang CXX=clang++ cmake ..
+
+Optionally, you can enable C++11 support and the new implementation of the standard
+C++ library[2] (if available):
+
+CC=clang CXX=clang++ CXXFLAGS="-std=c++11 -stdlib=libc++" cmake ..
+
+Note that at this point, clang does support OpenMP.
+
+[1] http://clang.llvm.org
+[2] http://libcxx.llvm.org
 
 
 MAC OS X / XCODE
