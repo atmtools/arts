@@ -1223,7 +1223,7 @@ void xml_read_from_stream(istream&           is_xml,
         throw runtime_error(os.str());
     }
 
-    Index n;
+    Index n = 0;
     try
     {
         ArrayOfString artstags;

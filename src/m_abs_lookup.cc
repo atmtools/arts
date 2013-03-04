@@ -2368,6 +2368,7 @@ void abs_mat_fieldCalc( Workspace& ws,
   bool failed = false;
 
   // Now we have to loop all points in the atmosphere:
+  if (n_pressures)
 #pragma omp parallel for                                                 \
   if(!arts_omp_in_parallel() && n_pressures >= n_frequencies) \
   firstprivate(l_ws, l_amps_agenda)                                       \

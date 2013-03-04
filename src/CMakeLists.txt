@@ -47,16 +47,14 @@ target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
 install (TARGETS arts RUNTIME DESTINATION bin)
 
-if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set_source_files_properties (continua.cc PROPERTIES
-                               COMPILE_FLAGS "-fno-strict-aliasing")
-  set_source_files_properties (binio.cc PROPERTIES
-                               COMPILE_FLAGS "-fno-strict-aliasing")
-  set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-  set_source_files_properties (partition_function_data.cc PROPERTIES
-                               COMPILE_FLAGS "-O0")
-  set_source_files_properties (species_data.cc PROPERTIES COMPILE_FLAGS "-O0")
-endif (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+set_source_files_properties (continua.cc PROPERTIES
+                             COMPILE_FLAGS "-fno-strict-aliasing")
+set_source_files_properties (binio.cc PROPERTIES
+                             COMPILE_FLAGS "-fno-strict-aliasing")
+set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
+set_source_files_properties (partition_function_data.cc PROPERTIES
+                             COMPILE_FLAGS "-O0")
+set_source_files_properties (species_data.cc PROPERTIES COMPILE_FLAGS "-O0")
 
 ########### next target ###############
 
@@ -196,6 +194,7 @@ add_library (artscore STATIC
   m_sensor.cc
   m_surface.cc
   m_transmitter.cc
+  m_xml.cc
   m_zeeman.cc
   math_funcs.cc
   mc_antenna.cc

@@ -64,10 +64,7 @@ ReadXML (Workspace&    ws _U_,
          const String& f,
          // WS Generic Input Names:
          const String& f_name,
-         const Verbosity& verbosity)
-{
-  ReadXML (v, v_name, f, f_name, verbosity);
-}
+         const Verbosity& verbosity);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -117,11 +114,7 @@ WriteXML (Workspace& ws _U_,
           // WS Generic Input Names:
           const String& v_name,
           const String& f_name,
-          const Verbosity& verbosity)
-{
-  WriteXML (file_format, v, f, v_name, f_name, verbosity);
-}
-
+          const Verbosity& verbosity);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
@@ -157,41 +150,7 @@ WriteXMLIndexed (Workspace& ws _U_,
                  // WS Generic Input Names:
                  const String& v_name,
                  const String& f_name,
-                 const Verbosity& verbosity)
-{
-  WriteXMLIndexed (file_format, file_index, v, f, v_name, f_name, verbosity);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void
-output_file_formatSetAscii (// WS Output:
-                            String& file_format,
-                            const Verbosity&)
-{
-  file_format = "ascii";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void
-output_file_formatSetZippedAscii (// WS Output:
-                                  String& file_format,
-                                  const Verbosity&)
-{
-  file_format = "zascii";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void
-output_file_formatSetBinary (// WS Output:
-                             String& file_format,
-                             const Verbosity&)
-{
-  file_format = "binary";
-}
-
+                 const Verbosity& verbosity);
 
 #endif // m_xml_h
 

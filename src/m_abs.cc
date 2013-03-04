@@ -45,6 +45,7 @@
 #include "continua.h"
 #include "make_vector.h"
 #include "check_input.h"
+#include "m_xml.h"
 #include "xml_io.h"
 #include "parameters.h"
 

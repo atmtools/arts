@@ -60,6 +60,8 @@ if (NO_ASSERT)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
 endif (NO_ASSERT)
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
+
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
 check_include_file (string.h    HAVE_STRING_H)

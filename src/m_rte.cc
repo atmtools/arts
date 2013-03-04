@@ -1011,6 +1011,7 @@ void iyMC(
   String fail_msg;
   bool failed = false;
 
+  if (nf)
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel()) \
   firstprivate(l_ws, l_ppath_step_agenda, l_iy_space_agenda, l_abs_mat_per_species_agenda, l_surface_rtprop_agenda)
@@ -1362,6 +1363,7 @@ void yCalc(
   String fail_msg;
   bool failed = false;
 
+  if (nmblock)
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && \
      nmblock>=arts_omp_get_max_threads() && \

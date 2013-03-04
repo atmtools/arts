@@ -1251,6 +1251,7 @@ void get_ppath_abs(
   Workspace l_ws (ws);
   Agenda l_abs_mat_per_species_agenda (abs_mat_per_species_agenda);
   //
+  if (np)
 #pragma omp parallel for \
   if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
   firstprivate(l_ws, l_abs_mat_per_species_agenda)
@@ -1270,12 +1271,12 @@ void get_ppath_abs(
                             ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
       } catch (runtime_error e) {
 #pragma omp critical (get_ppath_abs_fail)
-          { failed = true; fail_msg = e.what(); }
-          continue;
+          { failed = true; fail_msg = e.what();}
       }
 
       // Copy to output argument
-      ppath_abs(joker,joker,joker,joker,ip) = abs_mat_per_species;
+      if (!failed)
+          ppath_abs(joker,joker,joker,joker,ip) = abs_mat_per_species;
     }
 
     if (failed)
@@ -1643,9 +1644,11 @@ void get_ppath_trans(
       // to identity matrix.
       if( ip == 0 )
         { 
-            #pragma omp parallel for \
-            if(!arts_omp_in_parallel())
-                for( Index iv=0; iv<nf; iv++ ) 
+#if !(__APPLE__) || (__INTEL_COMPILER)
+#pragma omp parallel for \
+  if(!arts_omp_in_parallel())
+#endif
+          for( Index iv=0; iv<nf; iv++ )
             {
               for( Index is1=0; is1<stokes_dim; is1++ ) {
                 for( Index is2=0; is2<stokes_dim; is2++ ) {
@@ -1666,9 +1669,11 @@ void get_ppath_trans(
               rot_c = ppath.lstep[ip-1] * 0.5*(farrot_c1[ip-1]+farrot_c1[ip]);
               farrot_c2 += rot_c;
             }
+#if !(__APPLE__) || (__INTEL_COMPILER)
 #pragma omp parallel for \
   if(!arts_omp_in_parallel())
-    for( Index iv=0; iv<nf; iv++ ) 
+#endif
+          for( Index iv=0; iv<nf; iv++ )
             {
               // Transmission due to absorption
               Matrix ntau(stokes_dim,stokes_dim);  // -1*tau
@@ -2000,6 +2005,7 @@ void iyb_calc(
   bool failed = false;
 
   // Start of actual calculations
+  if (nza)
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel() && nza>=arts_omp_get_max_threads())  \
   firstprivate(l_ws, l_iy_main_agenda)

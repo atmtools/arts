@@ -185,6 +185,7 @@ void ybatchCalc(Workspace&      ws,
 
     // Go through the batch:
 
+    if (ybatch_n)
 #pragma omp parallel for                                     \
 if(!arts_omp_in_parallel())                                \
 firstprivate(l_ws, l_ybatch_calc_agenda)

@@ -75,7 +75,7 @@ Numeric IsotopologueRecord::CalculatePartitionFctAtTemp( Numeric
 
 void SpeciesAuxData::initParams(Index nparams)
 {
-    extern Array<SpeciesRecord> species_data;
+    extern const Array<SpeciesRecord> species_data;
 
     mparams.resize(species_data.nelem());
 
@@ -290,7 +290,7 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
 
 void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad)
 {
-    extern Array<SpeciesRecord> species_data;
+    extern const Array<SpeciesRecord> species_data;
 
     sad.initParams(1);
 
@@ -3067,6 +3067,7 @@ void xsec_species( MatrixView               xsec_attenuation,
   bool failed = false;
 
   // Loop all pressures:
+  if (np)
 #pragma omp parallel for                               \
   if(!arts_omp_in_parallel()                           \
      && (np >= arts_omp_get_max_threads() || np > nl)) \
@@ -3122,7 +3123,7 @@ void xsec_species( MatrixView               xsec_attenuation,
 
 
       // Loop all lines:
-
+      if (nl)
 #pragma omp parallel for                                            \
   if(!arts_omp_in_parallel())                                       \
       firstprivate(ls_attenuation, ls_phase, fac, f_local, aux) 

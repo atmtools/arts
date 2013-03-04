@@ -51,6 +51,7 @@
 #include "messages.h"
 #include "ppath.h"
 #include "special_interp.h"
+#include "m_xml.h"
 #include "xml_io.h"
 #include "refraction.h"
 #include "m_general.h"
