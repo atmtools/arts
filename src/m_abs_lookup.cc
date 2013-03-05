@@ -1799,16 +1799,18 @@ void abs_lookupSetupWide(// WS Output:
   // 3. Fix reference H2O profile and abs_nls_pert
   // ---------------------------------------------
 
-  // We take a constant reference profile of 1000ppm (=1e-3)
-
-  Numeric h2o_ref = 1e-3;
+  // We take a constant reference profile of 1000ppm (=1e-3) for H2O
+  Numeric const h2o_ref = 1e-3;
+  
+  // And 1 ppt (1e-9) as default for all VMRs
+  Numeric const other_ref = 1e-9;
 
   // We have to assign this value to all pressures of the H2O profile,
   // and 0 to all other profiles.
 
   // abs_vmrs has dimension [n_species, np].
   abs_vmrs.resize(abs_species.nelem(), np);
-  abs_vmrs = 0;
+  abs_vmrs = other_ref;
   
   // We look for O2 and N2, and assign constant values to them.
   // The values are from Wallace&Hobbs, 2nd edition.

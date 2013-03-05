@@ -1,5 +1,14 @@
 2013-03-05  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-2-1-534
+
+	* src/m_abs_lookup.cc (abs_lookupSetupWide) Set all plain VMRs
+	(except N2, O2, H2O) to a default value of 1e9 (was 0
+	before). Zero works for LBL absorption, but may be problematic for
+	continua. 
+
+2013-03-05  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-2-1-533
 
         * src/gas_abs_lookup.cc (GasAbsLookup::Extract): Commented out
