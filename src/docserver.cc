@@ -1579,7 +1579,7 @@ void Docserver::insert_error_message(const string& error)
   */
 void Docserver::insert_title(const string& title)
 {
-  get_os() << "<h1>"DOCSERVER_NAME;
+  get_os() << "<h1>" DOCSERVER_NAME;
   if (title.length())
     get_os() << " &mdash; " << title;
   get_os() << "</h1>" << endl;
