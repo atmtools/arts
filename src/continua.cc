@@ -12914,7 +12914,7 @@ void xsec_continuum_tag (MatrixView             xsec,
    really represents a valid continuum model.
 
    The given name should be something like
-   `ContStandardSelf'. The function simply checks if there is a
+   'H2O-ContStandardSelf'. The function simply checks if there is a
    species H2O with an isotopologue ContStandardSelf.
 
    For user-friendliness, the function also compiles a list of allowed

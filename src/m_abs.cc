@@ -1879,13 +1879,6 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       throw runtime_error(os.str());
     }
 
-  // ...and that indeed the names match valid continuum models:
-  for ( Index i=0; i<abs_cont_names.nelem(); ++i )
-    {
-      check_continuum_model(abs_cont_names[i]);
-    }
-
-
   // Check that abs_p, abs_t, and abs_vmrs have the same
   // dimension. This could be a user error, so we throw a
   // runtime_error. 
@@ -1936,10 +1929,6 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                     species_data[tgs[i][s].Species()].Name() + "-"
                     + species_data[tgs[i][s].Species()].Isotopologue()[tgs[i][s].Isotopologue()].Name();
   
-                  // Check that this corresponds to a valid continuum
-                  // model:
-                  check_continuum_model(name);
-
                   // Check, if we have parameters for this model. For
                   // this, the model name must be listed in
                   // abs_cont_names.

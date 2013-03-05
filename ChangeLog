@@ -1,3 +1,14 @@
+2013-03-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-535
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddConts):
+
+	Remove check_continuum_model calls. These have already been checked
+	earlier and cost a lot of time.
+
+	* src/continua.cc (check_continuum_model): Correct example tag in docs.
+
 2013-03-05  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-534
