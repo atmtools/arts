@@ -93,6 +93,7 @@ Tensor3SetConstant( edensity_field, 0, 0, 0, 0.0 )
 IndexSet( abs_p_interp_order,   5 )
 IndexSet( abs_t_interp_order,   7 )
 IndexSet( abs_nls_interp_order, 5 )
+IndexSet( abs_f_interp_order, 0 )
 
 #
 # Variable for calculation of propagation paths:

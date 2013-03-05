@@ -747,26 +747,26 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
-      // Index into p_grid:
-      const Index this_p_grid_index = pgp[0].idx[pi];
-
       // Throw a runtime error if one of the reference VMR profiles is zero, but
       // abs_vmrs is not. (This means that the lookup table was calculated with a
       // reference profile of zero for that gas.)
-      for (Index si=0; si<n_species; ++si)
-          if ( (vmrs_ref(si,pi) == 0) &&
-               (abs_vmrs[si]    != 0) )
-            {
-                  ostringstream os;
-                  os << "Reference VMR profile is zero, you cannot extract\n"
-                     << "Absorption for this species.\n"
-                     << "Species: " << si
-                     << " (" << get_species_name(species[si]) << ")\n"
-                     << "Lookup table pressure level: " << pi
-                     << " (" <<  p_grid[pi] << " Pa).";
-                  throw runtime_error( os.str() );
-            }
-    
+//      for (Index si=0; si<n_species; ++si)
+//        if ( (vmrs_ref(si,pi) == 0) &&
+//            (abs_vmrs[si]    != 0) )
+//        {
+//          ostringstream os;
+//          os << "Reference VMR profile is zero, you cannot extract\n"
+//          << "Absorption for this species.\n"
+//          << "Species: " << si
+//          << " (" << get_species_name(species[si]) << ")\n"
+//          << "Lookup table pressure level: " << pi
+//          << " (" <<  p_grid[pi] << " Pa).";
+//          throw runtime_error( os.str() );
+//        }
+      
+      // Index into p_grid:
+      const Index this_p_grid_index = pgp[0].idx[pi];
+
       // Flag for temperature interpolation, if this is not 0 we want
       // to do T interpolation: 
       const Index do_T = n_t_pert;

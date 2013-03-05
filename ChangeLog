@@ -1,3 +1,16 @@
+2013-03-05  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-533
+
+        * src/gas_abs_lookup.cc (GasAbsLookup::Extract): Commented out
+	runtime error check that reference VMR is not zero.
+
+        * src/workspace.cc (abs_f_interp_order): Added this WSV. (Not yet
+	used anywhere.)
+
+        * controlfiles/general/general.arts: Initialize abs_f_interp_order
+	to zero (no frequency interpolation).
+
 2013-03-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-532

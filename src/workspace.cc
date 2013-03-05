@@ -366,6 +366,26 @@ void Workspace::define_wsv_data()
     
     wsv_data.push_back
     (WsvRecord
+     ( NAME( "abs_f_interp_order" ),
+      DESCRIPTION
+      (
+       "Frequency interpolation order for absorption lookup table.\n"
+       "\n"
+       "The interpolation order to use when interpolating the absorption\n"
+       "lookup table in frequency. This is in particular needed for\n"
+       "calculations with Doppler shift, so that absorption is interpolated to\n"
+       "the shifted frequency grid. One is linear interpolation, two\n"
+       "quadratic, and so on.\n"
+       "\n"
+       "As a special case, order 0 in this particular case means no\n"
+       "interpolation. In that case f_grid must match exactly the grid inside\n"
+       "the lookup table. This is the global default value, set in\n"
+       "general.arts.\n" 
+       ),
+      GROUP( "Index" )));
+    
+    wsv_data.push_back
+    (WsvRecord
      ( NAME( "abs_h2o" ),
        DESCRIPTION
        (
