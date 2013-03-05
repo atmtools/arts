@@ -1208,7 +1208,8 @@ void pnd_fieldCalc(//WS Output:
                    const ArrayOfGriddedField3& pnd_field_raw,
                    const Index& atmosphere_dim,
                    const ArrayOfIndex& cloudbox_limits,
-                   const Verbosity&)
+                   const Index& zeropadding,
+                   const Verbosity& verbosity)
 {
   // Basic checks of input variables
   //
@@ -1260,41 +1261,46 @@ void pnd_fieldCalc(//WS Output:
   chk_pnd_field_raw_only_in_cloudbox(atmosphere_dim, pnd_field_raw,
                                      p_grid, lat_grid, lon_grid,
                                      cloudbox_limits);
-      
+
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
-      //Resize variables
-      pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, 1, 1 );
-      
-      // Gridpositions:
-      ArrayOfGridPos gp_p(Np_cloud);
-         
-      // Interpolate pnd_field. 
-      // Loop over the particle types:
-      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        // FIXME: OLE: This is an ugly fix to maintain backwards-compatibility.
+        // We set the gridnames explicitly to not require changes of the
+        // input files
+        ArrayOfGriddedField3 pnd_field_raw_tmp = pnd_field_raw;
+        for (Index i = 0; i < pnd_field_raw_tmp.nelem(); i++)
         {
-          // Calculate grid positions:
-          p2gridpos( gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID), 
-                     p_grid_cloud );
-
-          // Interpolation weights:
-          Matrix itw(Np_cloud, 2);
-
-          interpweights( itw, gp_p);
-          // Interpolate:
-          interp( pnd_field(i,joker,0,0), itw, 
-                  pnd_field_raw[i].data(joker,0,0), gp_p );
+            pnd_field_raw_tmp[i].set_grid_name(0, "Pressure");
+            pnd_field_raw_tmp[i].set_grid_name(1, "Latitude");
+            pnd_field_raw_tmp[i].set_grid_name(2, "Longitude");
         }
-    }
 
+        ArrayOfGriddedField3 pnd_field_tmp;
+
+        GriddedFieldPRegrid(pnd_field_tmp, p_grid_cloud, pnd_field_raw_tmp,
+                            1, zeropadding, verbosity);
+
+        FieldFromGriddedField(pnd_field,
+                              p_grid_cloud,
+                              pnd_field_tmp[0].get_numeric_grid(1),
+                              pnd_field_tmp[0].get_numeric_grid(2),
+                              pnd_field_tmp, verbosity);
+    }
   else if(atmosphere_dim == 2)
     {
       const Index Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
 
       ConstVectorView lat_grid_cloud = 
         lat_grid[Range(cloudbox_limits[2],Nlat_cloud)];           
-      
+
+      if (zeropadding)
+        {
+          // FIXME: OLE: Implement this
+          CREATE_OUT0;
+          out0 << "WARNING: zeropadding currently only supported for 1D.";
+        }
+
       //Resize variables
       pnd_field.resize( pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, 1 );
       
@@ -1326,7 +1332,14 @@ void pnd_fieldCalc(//WS Output:
       const Index Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
       const Index Nlon_cloud = cloudbox_limits[5]-cloudbox_limits[4]+1;
 
-      ConstVectorView lat_grid_cloud = 
+      if (zeropadding)
+        {
+          // FIXME: OLE: Implement this
+          CREATE_OUT0;
+          out0 << "WARNING: zeropadding currently only supported for 1D.";
+        }
+
+      ConstVectorView lat_grid_cloud =
         lat_grid[Range(cloudbox_limits[2],Nlat_cloud)];           
       ConstVectorView lon_grid_cloud = 
         lon_grid[Range(cloudbox_limits[4],Nlon_cloud)];

@@ -7515,10 +7515,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "pnd_field_raw", "atmosphere_dim",
             "cloudbox_limits" ),
-        GIN(),
-        GIN_TYPE(), 
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "zeropadding" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "Allow zeropadding of pnd_field." )
         ));
 
   md_data_raw.push_back
