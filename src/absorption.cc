@@ -2770,7 +2770,8 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
 //  }
     
     // Check that sum of self and all foreign VMRs is not too far from 1:
-    if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1 )
+    if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
+         && (out2.in_main_agenda() || out2.sufficient_priority_agenda()) )
       {
         ostringstream os;
 //        os << "Error: The total VMR of all your defined broadening\n"

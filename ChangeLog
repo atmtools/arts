@@ -1,5 +1,19 @@
 2013-03-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-536
+
+	* src/absorption.cc (calc_gamma_and_deltaf_artscat4):
+
+	Only send the warning about the total VMR being more than 10% different
+	from 1. to out2 if the user can actually see it (verbosity>=2).
+	Speeds up arts.ctlfile.xmldata.surf.mars by a factor of 2 because the
+	warning happens 11.8 million times. This output is unlikely to be ever
+	seen because it only appears inside an agenda. Only running arts
+	with -r202 will make this warning visible (and produce a 1.3 GB rep
+	file). I think we'll have to rethink our logging strategy.
+
+2013-03-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-535
 
 	* src/m_abs.cc (abs_xsec_per_speciesAddConts):
