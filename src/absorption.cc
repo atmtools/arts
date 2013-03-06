@@ -2762,23 +2762,15 @@ void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
         }
     }
 
-//  {
-//    CREATE_OUT3;
-//    ostringstream os;
-//    os << "  Broad_spec_vmr_sum: " << broad_spec_vmr_sum << "\n";
-//    out3 << os.str();
-//  }
-    
     // Check that sum of self and all foreign VMRs is not too far from 1:
     if ( abs(vmrs[this_species]+broad_spec_vmr_sum-1) > 0.1
-         && (out2.in_main_agenda() || out2.sufficient_priority_agenda()) )
+         && out2.sufficient_priority() )
       {
         ostringstream os;
-//        os << "Error: The total VMR of all your defined broadening\n"
         os << "Warning: The total VMR of all your defined broadening\n"
-             << "species (including \"self\") is " << broad_spec_vmr_sum
+             << "species (including \"self\") is "
+             << vmrs[this_species]+broad_spec_vmr_sum
              << ", more than 10% " << "different from 1.\n";
-//        throw runtime_error(os.str());
         out2 << os.str();
       }
     

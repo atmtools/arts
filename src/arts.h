@@ -139,12 +139,26 @@ void arts_exit_with_error_message(const String& m, ArtsOut &os);
 
 //---------------< Global macro definitions: >---------------
 
+#ifndef NDEBUG
+
 // Use this macro around function parameter names and variable definitions
 // which are only used in assertions
-#ifndef NDEBUG
 #define DEBUG_ONLY(...) __VA_ARGS__
+
+// Use this macro to output a counter value everytime a
+// certain place is reached
+#define DEBUG_COUNTER(n) \
+{ \
+  static Index n = 0; \
+  cerr << #n << ": " << ++n << endl; \
+}
+
 #else
+
 #define DEBUG_ONLY(...)
+
+#define DEBUG_COUNTER(n)
+
 #endif
 
 #endif // arts_h

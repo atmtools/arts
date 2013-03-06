@@ -1,3 +1,33 @@
+2013-03-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-537
+
+	* cmake/modules/ArtsTestcases.cmake:
+
+	Raise the report level for test cases from -r002 to -r022.
+	Then one can see useful information on the screen when manually
+	running testcases with, e. g. 'ctest -V -R fast.faraday'
+
+	* src/messages.h:
+
+	(sufficient_priority_agenda): Move the in_main_agenda check into here.
+
+	(sufficient_priority): New method. Returns true if current output
+	priority is sufficient for either screen or file.
+
+	(ArtsOut::operator<<): Remove in_main_agenda check.
+
+	* src/absorption.cc (calc_gamma_and_deltaf_artscat4):
+
+	Correct output value to vmrs[this_species]+broad_spec_vmr_sum in
+	warning.
+
+	Use out2.sufficient_priority().
+
+	* src/arts.h: Add convenience macro DEBUG_COUNTER(n). This will create
+	a static variable and output the name of the counter and its value
+	everytime that code is reached.
+
 2013-03-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-536

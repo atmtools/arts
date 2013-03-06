@@ -91,20 +91,25 @@ public:
   int get_priority () const { return priority; }
   const Verbosity& get_verbosity () const { return verbosity; }
   
+  //! Does the current message have sufficient priority for output?
+  /*!
+   \return true if priority is sufficient, otherwise false. */
+  bool sufficient_priority() const
+  {
+    return (sufficient_priority_agenda()
+            && (sufficient_priority_screen() || sufficient_priority_file()));
+  }
+
   //! Does the current message have sufficient priority for agenda?
-  /*! 
-   \param priority Priority of current message.
-   
+  /*!
    \return true if priority is sufficient, otherwise false. */
   bool sufficient_priority_agenda() const
   {
-    return verbosity.get_agenda_verbosity() >= priority;
+    return (in_main_agenda() || verbosity.get_agenda_verbosity() >= priority);
   }
   
   //! Does the current message have sufficient priority for screen?
-  /*! 
-   \param priority Priority of current message.
-   
+  /*!
    \return true if priority is sufficient, otherwise false. */
   bool sufficient_priority_screen() const
   {
@@ -112,15 +117,16 @@ public:
   }
   
   //! Does the current message have sufficient priority for file?
-  /*! 
-   \param priority Priority of current message.
-   
+  /*!
    \return true if priority is sufficient, otherwise false. */
   bool sufficient_priority_file() const
   {
     return verbosity.get_file_verbosity() >= priority;
   }
   
+  //! Are we in the main agenda?
+  /*!
+   \return true if in main agenda, otherwise false. */
   bool in_main_agenda() const
   {
     return verbosity.is_main_agenda();
@@ -164,7 +170,7 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
   // output must be fulfilled in addition to the condition for
   // screen or file. 
   
-  if (aos.in_main_agenda() || aos.sufficient_priority_agenda())
+  if (aos.sufficient_priority_agenda())
   {
     // We are marking the actual output operations as omp
     // critical, to somewhat reduce the mess when several threads
