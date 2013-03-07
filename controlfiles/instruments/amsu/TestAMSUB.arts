@@ -7,6 +7,9 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
 # Basic settings (already needed in sensor part)
 # ---
 AtmosphereSet1D

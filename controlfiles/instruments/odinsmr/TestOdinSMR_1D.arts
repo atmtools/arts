@@ -21,6 +21,9 @@ IndexSet( stokes_dim, 1 )
 #
 INCLUDE "odinsmr_501_1D.arts"
 
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 

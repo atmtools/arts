@@ -1204,7 +1204,23 @@ void abs_lineshape_per_tgDefine(// WS Output:
 }
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+//! abs_h2oSet.
+/*!
+ Sets abs_h2o to the profile of the first tag group containing
+ water.
+ 
+ This is necessary, because for example *abs_coefCalc* requires abs_h2o
+ to contain the water vapour profile(the reason for this is the
+ calculation of oxygen line broadening requires water vapour profile).
+ Then this function can be used to copy the profile of the first tag
+ group of water.
+ 
+ \author Stefan Buehler
+ 
+ \param[out] abs_h2o    WS Output
+ \param[in]     abs_species WS Input
+ \param[in]     abs_vmrs WS Input
+ */
 void abs_h2oSet(Vector&          abs_h2o,
                 const ArrayOfArrayOfSpeciesTag& abs_species,
                 const Matrix&    abs_vmrs,
@@ -1215,24 +1231,24 @@ void abs_h2oSet(Vector&          abs_h2o,
                              species_index_from_species_name("H2O") );
 
   if ( h2o_index < 0 )
-    // do not throw an error here - we only need abs_h2o in the continuum part.
-    // so, why throw an error if we probably do not want to calculate continuum
-    // anyways? i.e., the error throwing is moved to the continuum part, where
-    // abs_h2o is actually needed.
-    //throw runtime_error("No tag group contains water!");
-    {
-      abs_h2o.resize( 1 );
-      abs_h2o[0] = -1.;
-    }
-  else
-    {
-      abs_h2o.resize( abs_vmrs.ncols() );
-      abs_h2o = abs_vmrs(h2o_index,Range(joker));
-    }
+    throw runtime_error("No tag group contains water!");
+
+  abs_h2o.resize( abs_vmrs.ncols() );
+  abs_h2o = abs_vmrs(h2o_index,Range(joker));
 }
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+//!  abs_n2Set.
+/*!
+ Sets abs_n2 to the profile of the first tag group containing
+ molecular nitrogen. See *abs_h2oSet* for more details.
+ 
+ \author Stefan Buehler
+ 
+ \param[out] abs_n2    WS Output
+ \param[in]     abs_species WS Input
+ \param[in]     abs_vmrs WS Input
+ */
 void abs_n2Set(Vector&            abs_n2,
                const ArrayOfArrayOfSpeciesTag& abs_species,
                const Matrix&    abs_vmrs,
@@ -1275,193 +1291,6 @@ void AbsInputFromAtmFields (// WS Output:
   abs_p = p_grid;
   abs_t = t_field (joker, 0, 0);
   abs_vmrs = vmr_field (joker, joker, 0, 0);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_coefCalc(// WS Output:
-                  Matrix&                         abs_coef,
-                  ArrayOfMatrix&                  abs_coef_per_species,
-                  // WS Input:                 
-                  const ArrayOfArrayOfSpeciesTag& tgs,
-                  const Vector&                   f_grid,
-                  const Vector&                   abs_p,
-                  const Vector&                   abs_t,
-                  const Vector&                   abs_n2,
-                  const Vector&                   abs_h2o,
-                  const Matrix&                   abs_vmrs,
-                  const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                  const ArrayOfLineshapeSpec&     abs_lineshape,
-                  const ArrayOfString&            abs_cont_names,
-                  const ArrayOfString&            abs_cont_models,
-                  const ArrayOfVector&            abs_cont_parameters,
-                  const SpeciesAuxData&           isotopologue_ratios,
-                  const Verbosity&                verbosity)
-{
-  // Dimension checks are performed in the executed functions
-
-  // allocate local variable to hold the cross sections per tag group
-  ArrayOfMatrix abs_xsec_per_species_attenuation, abs_xsec_per_species_phase;
-  
-  abs_xsec_per_speciesInit(abs_xsec_per_species_attenuation, 
-                           abs_xsec_per_species_phase,
-                           tgs, f_grid, abs_p, verbosity);
-
-  abs_xsec_per_speciesAddConts(abs_xsec_per_species_attenuation,
-                               tgs,
-                               f_grid,
-                               abs_p,
-                               abs_t,
-                               abs_n2,
-                               abs_h2o,
-                               abs_vmrs,
-                               abs_cont_names,
-                               abs_cont_parameters,
-                               abs_cont_models,
-                               verbosity);
-
-  abs_xsec_per_speciesAddLines(abs_xsec_per_species_attenuation,
-                               abs_xsec_per_species_phase,
-                               tgs,
-                               f_grid,
-                               abs_p,
-                               abs_t,
-                               abs_vmrs,
-                               abs_lines_per_species,
-                               abs_lineshape,
-                               isotopologue_ratios,
-                               verbosity);
-  
-  if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
-                {  }
-
-  abs_coefCalcFromXsec(abs_coef,
-                       abs_coef_per_species,
-                       abs_xsec_per_species_attenuation,
-                       abs_vmrs,
-                       abs_p,
-                       abs_t,
-                       verbosity);
-
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_coefCalcSaveMemory(// WS Output:
-                            Matrix&                         abs_coef,
-                            // WS Input:                 
-                            const ArrayOfArrayOfSpeciesTag& tgs,
-                            const Vector&                   f_grid,
-                            const Vector&                   abs_p,
-                            const Vector&                   abs_t,
-                            const Vector&                   abs_n2,
-                            const Vector&                   abs_h2o,
-                            const Matrix&                   abs_vmrs,
-                            const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                            const ArrayOfLineshapeSpec&     abs_lineshape,
-                            const ArrayOfString&            abs_cont_names,
-                            const ArrayOfString&            abs_cont_models,
-                            const ArrayOfVector&            abs_cont_parameters,
-                            const SpeciesAuxData&           isotopologue_ratios,
-                            const Verbosity& verbosity)
-{
-  CREATE_OUT3;
-  
-  // Dimension checks are performed in the executed functions
-
-  // Allocate local variable to hold the cross sections per tag group:
-  ArrayOfMatrix abs_xsec_per_species_attenuation, abs_xsec_per_species_phase;
-
-  // Allocate local variable to hold the absorption for each tag group:
-  Matrix this_abs;
-
-  // Allocate local variable to hold abs_coef_per_species for each tag
-  // group. This is just a dummy, we need it, since it is a formal
-  // argument of abs_coefCalcFromXsec.
-  ArrayOfMatrix this_abs_coef_per_species;
-
-  // Define variable to hold a dummy list of tag groups with only 1 element:
-  ArrayOfArrayOfSpeciesTag this_tg(1);
-
-  // Local list of VMRs, only 1 element:
-  Matrix this_vmr(1,abs_p.nelem());
-
-  // Local abs_lines_per_species, only 1 element:
-  ArrayOfArrayOfLineRecord these_lines(1);
-
-  // Local lineshape list, only 1 element:
-  ArrayOfLineshapeSpec     this_lineshape(1);
-
-  // Initialize the output variable abs_coef:
-  abs_coef.resize( f_grid.nelem(), abs_p.nelem() );
-  abs_coef = 0;                      // Matpack can set all elements like this.
-
-  out3 << "  Number of tag groups to do: " << tgs.nelem() << "\n";
-
-  // Loop over all species:
-  for ( Index i=0; i<tgs.nelem(); ++i )
-    {
-      out3 << "  Doing tag group " << i << ".\n";
-
-      // Get a dummy list of tag groups with only the current element:
-      this_tg[0].resize(tgs[i].nelem());
-      this_tg[0] = tgs[i];
-
-      // VMR for this species:
-      this_vmr(0,joker) = abs_vmrs(i,joker);
-
-      // List of lines:
-      these_lines[0].resize(abs_lines_per_species[i].nelem());
-      these_lines[0] = abs_lines_per_species[i];
-
-      // List of lineshapes:
-      this_lineshape[0] = abs_lineshape[i];
-
-      abs_xsec_per_speciesInit(abs_xsec_per_species_attenuation, 
-                               abs_xsec_per_species_phase, 
-                               this_tg, f_grid, abs_p, verbosity);
-
-      abs_xsec_per_speciesAddConts(abs_xsec_per_species_attenuation,
-                                   this_tg,
-                                   f_grid,
-                                   abs_p,
-                                   abs_t,
-                                   abs_n2,
-                                   abs_h2o,
-                                   this_vmr,
-                                   abs_cont_names,
-                                   abs_cont_parameters,
-                                   abs_cont_models,
-                                   verbosity);
-
-      abs_xsec_per_speciesAddLines(abs_xsec_per_species_attenuation,
-                                   abs_xsec_per_species_phase,
-                                   this_tg,
-                                   f_grid,
-                                   abs_p,
-                                   abs_t,
-                                   this_vmr,
-                                   these_lines,
-                                   this_lineshape,
-                                   isotopologue_ratios,
-                                   verbosity);
-      
-      if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
-                {  }
-      
-      abs_coefCalcFromXsec(this_abs,
-                           this_abs_coef_per_species,
-                           abs_xsec_per_species_attenuation,
-                           this_vmr,
-                           abs_p,
-                           abs_t,
-                           verbosity);
-
-      // Add absorption of this species to total absorption:
-      assert(abs_coef.nrows()==this_abs.nrows());
-      assert(abs_coef.ncols()==this_abs.ncols());
-      abs_coef += this_abs;
-    }
 }
 
 
@@ -1550,6 +1379,7 @@ void abs_xsec_per_speciesInit(// WS Output:
                               ArrayOfMatrix&   abs_xsec_per_species_phase,
                               // WS Input:
                               const ArrayOfArrayOfSpeciesTag& tgs,
+                              const ArrayOfIndex& abs_species_active,
                               const Vector&    f_grid,
                               const Vector&    abs_p,
                               const Verbosity& verbosity
@@ -1563,10 +1393,12 @@ void abs_xsec_per_speciesInit(// WS Output:
   abs_xsec_per_species_phase.resize( tgs.nelem() );
 
   // Loop abs_xsec_per_species and make each matrix the right size,
-  // initializing to zero:
-  for ( Index i=0; i<tgs.nelem(); ++i )
+  // initializing to zero.
+  // But skip inactive species, loop only over the active ones.
+  for ( Index ii=0; ii<abs_species_active.nelem(); ++ii )
     {
-      // Make this element of abs_coef_per_species the right size:
+      const Index i = abs_species_active[ii];
+      // Make this element of abs_xsec_per_species the right size:
       abs_xsec_per_species_attenuation[i].resize( f_grid.nelem(), abs_p.nelem() );
       abs_xsec_per_species_attenuation[i] = 0;       // Matpack can set all elements like this.
       abs_xsec_per_species_phase[i].resize( f_grid.nelem(), abs_p.nelem() );
@@ -1587,6 +1419,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   ArrayOfMatrix&                   abs_xsec_per_species_phase,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
+                                  const ArrayOfIndex& abs_species_active,
                                   const Vector&                    f_grid,
                                   const Vector&                    abs_p,
                                   const Vector&                    abs_t,
@@ -1597,6 +1430,10 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
+  
+  // Check that correct isotopologue ratios are defined for the species
+  // we want to calculate
+  checkIsotopologueRatios(tgs, isotopologue_ratios);
   
   // Check that all temperatures are at least 0 K. (Negative Kelvin
   // temperatures are unphysical.)  
@@ -1672,8 +1509,10 @@ void abs_xsec_per_speciesAddLines(// WS Output:
   //  out2 << "  Total number of transistions : " << nlines << "\n";
 
   // Call xsec_species for each tag group.
-  for ( Index i=0; i<tgs.nelem(); ++i )
+  for ( Index ii=0; ii<abs_species_active.nelem(); ++ii )
     {
+      const Index i = abs_species_active[ii];
+
       // Get a pointer to the line list for the current species. This
       // is just so that we don't have to type abs_lines_per_species[i] over
       // and over again.
@@ -1825,11 +1664,10 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                   ArrayOfMatrix&                   abs_xsec_per_species_attenuation,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
+                                  const ArrayOfIndex& abs_species_active,
                                   const Vector&                    f_grid,
                                   const Vector&                    abs_p,
                                   const Vector&                    abs_t,
-                                  const Vector&                    abs_n2,
-                                  const Vector&                    abs_h2o,
                                   const Matrix&                    abs_vmrs,
                                   const ArrayOfString&             abs_cont_names,
                                   const ArrayOfVector&             abs_cont_parameters,
@@ -1837,6 +1675,9 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
+  
+  // Needed for some continua, and set here from abs_vmrs:
+  Vector abs_h2o, abs_n2;
   
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
@@ -1902,16 +1743,18 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       throw runtime_error(os.str());
     }
 
-  // We do checks on abs_h2o and abs_n2 later, because we only want to
-  // do the check if the parameters are really needed.
+  // We set abs_h2o and abs_n2 later, because we only want to
+  // do it if the parameters are really needed.
 
 
   out3 << "  Calculating continuum spectra.\n";
 
   // Loop tag groups:
-  for ( Index i=0; i<tgs.nelem(); ++i )
+  for ( Index ii=0; ii<abs_species_active.nelem(); ++ii )
     {
-      extern const Array<SpeciesRecord> species_data; 
+      const Index i = abs_species_active[ii];
+
+      extern const Array<SpeciesRecord> species_data;
 
       // Go through the tags in the current tag group to see if they
       // are continuum tags:  
@@ -1961,77 +1804,9 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // of options. The actual field of the array is n:
                   const String ContOption = abs_cont_models[n];
 
-
-                  // ------------------------------------------------------------------
-                  // Now is the time to check whether abs_h2o and
-                  // abs_n2 are ok!
-
-                  // abs_h2o has a global scalar default value of -1. We throw an
-                  // appropriate error message here if we find this, since most
-                  // continuum models require it. (abs_h2o is the H2O VMR to be used
-                  // for the continua of other species, such as O2.)
-
-                  if ( -.99 > abs_h2o[0] )
-                    {
-                      ostringstream os;
-                      os << "The variable abs_h2o seems to be set to its global default\n"
-                         << "value of -1. You have to set this to a H2O VMR profile if\n"
-                         << "you want to use absorption contiua. If you are calling\n"
-                         << "absorption routines directly use for example the method\n"
-                         << "*abs_h2oSet*.\n"
-                         << "If you are generating an absorption lookup table with\n"
-                         << "abs_lookupCalc or using on-the-fly absorption, it should\n"
-                         << "be enough to add a H2O species to your calculation to fix\n"
-                         << "this problem.";
-                      throw runtime_error(os.str());
-                    }
-
-                  // If h2o_abs is not set to the default value, it
-                  // must have the same size as the pressure grid:
-                  if ( abs_h2o.nelem() != abs_p.nelem() )
-                    {
-                      ostringstream os;
-                      os << "Variable abs_h2o must have the same dimension as abs_p.\n"
-                         << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
-                         << "abs_p.nelem() = " << abs_p.nelem();
-                      throw runtime_error(os.str());
-                    }
-
-                  // For abs_n2 the situation is slightly
-                  // different. The global scalar default value is a
-                  // reasonable estimate for the N2 profile, so we
-                  // just have to expand it to a vector here. Because
-                  // we cannot modify abs_n2, we have to make a local
-                  // copy in any case.
-
-                    Vector n2_prof(abs_p.nelem());
-                    if ( abs_n2.nelem() == abs_p.nelem() )
-                      {
-                        n2_prof = abs_n2;
-                      }
-                    else
-                      {
-                        if (1==abs_n2.nelem())
-                          {
-                            // We seem to have found the global
-                            // default value. Expand this to a vector
-                            // with the right length, by copying it to
-                            // all elements of n2_prof.
-                            n2_prof = abs_n2[0];         
-                          }
-                        else
-                          {
-                            ostringstream os;
-                            os << "Variable abs_n2 must have dimension 1, or\n"
-                               << "the same dimension as abs_p.\n"
-                               << "abs_n2.nelem() = " << abs_n2.nelem() << '\n'
-                               << "abs_p.nelem() = " << abs_p.nelem();
-                            throw runtime_error(os.str());
-                          }
-                      }
-
-                  // ------------------------------------------------------------------
-
+                  // Set abs_h2o and abs_n2, from the first matching species.
+                  abs_h2oSet(abs_h2o, tgs, abs_vmrs, verbosity);
+                  abs_n2Set(abs_n2, tgs, abs_vmrs, verbosity);
 
                   // Add the continuum for this tag. The parameters in
                   // this call should be clear. The vmr is in
@@ -2045,7 +1820,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                       f_grid,
                                       abs_p,
                                       abs_t,
-                                      n2_prof,
+                                      abs_n2,
                                       abs_h2o,
                                       abs_vmrs(i,Range(joker)),
                                       verbosity );
@@ -2214,29 +1989,22 @@ void abs_mat_per_speciesInit(//WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddOnTheFly(// WS Output:
-                           Tensor4& abs_mat_per_species,
-                           // WS Input:
-                           const Vector& f_grid,
-                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                           const Vector& abs_n2,
-                           const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                           const ArrayOfLineshapeSpec& abs_lineshape,
-                           const ArrayOfString& abs_cont_names,
-                           const ArrayOfString& abs_cont_models,
-                           const ArrayOfVector& abs_cont_parameters,
-                           const SpeciesAuxData& isotopologue_ratios,
-                           const Numeric& rte_pressure,
-                           const Numeric& rte_temperature,
-                           const Vector& rte_vmr_list,
-                           const Numeric& rte_doppler,
-                           const Verbosity& verbosity)
+void abs_mat_per_speciesAddOnTheFly(// Workspace reference:
+                                    Workspace& ws,
+                                    // WS Output:
+                                    Tensor4& abs_mat_per_species,
+                                    // WS Input:
+                                    const Vector& f_grid,
+                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                    const Numeric& rtp_pressure,
+                                    const Numeric& rtp_temperature,
+                                    const Vector& rtp_abs_species,
+                                    const Numeric& rtp_doppler,
+                                    const Agenda& abs_xsec_agenda,
+                                    // Verbosity object:
+                                    const Verbosity& verbosity)
 {
   CREATE_OUT3;
-
-  // Check that correct isotopologue ratios are defined for the species
-  // we want to calculate
-  checkIsotopologueRatios(abs_species, isotopologue_ratios);
 
   // Define communication variables for the actual absorption calculation:
   
@@ -2267,18 +2035,18 @@ void abs_mat_per_speciesAddOnTheFly(// WS Output:
   // constrast to the frequency selection, we here want to modify the
   // actual frequency values inside!
   Vector local_doppler_f_grid;
-  if (0==rte_doppler)
+  if (0==rtp_doppler)
   {
     out3 << "  Doppler shift: None\n";
   }
   else
   {
     ostringstream os;
-    os << "  Doppler shift: " << rte_doppler << " Hz\n";
+    os << "  Doppler shift: " << rtp_doppler << " Hz\n";
     out3 << os.str();
     
     Numeric local_doppler;
-    NumericScale( local_doppler, rte_doppler, -1, verbosity );
+    NumericScale( local_doppler, rtp_doppler, -1, verbosity );
     // I could just have multiplied by -1 directly, but I like using
     // the WSM here.
     
@@ -2291,29 +2059,36 @@ void abs_mat_per_speciesAddOnTheFly(// WS Output:
   AbsInputFromRteScalars(abs_p,
                          abs_t,
                          abs_vmrs,
-                         rte_pressure,
-                         rte_temperature,
-                         rte_vmr_list,
+                         rtp_pressure,
+                         rtp_temperature,
+                         rtp_abs_species,
                          verbosity);
   
-  abs_h2oSet(abs_h2o, abs_species, abs_vmrs, verbosity);
+  // Absorption cross sections per tag group.
+  ArrayOfMatrix abs_xsec_per_species;
+
+  // Make all species active:
+  ArrayOfIndex abs_species_active(abs_species.nelem());
+  for (Index i=0; i<abs_species.nelem(); ++i)
+    abs_species_active[i] = i;
   
-  abs_coefCalc(abs_coef,
-               abs_coef_per_species,
-               abs_species,
-               *f_grid_pointer,
-               abs_p,
-               abs_t,
-               abs_n2,
-               abs_h2o,
-               abs_vmrs,
-               abs_lines_per_species,
-               abs_lineshape,
-               abs_cont_names,
-               abs_cont_models,
-               abs_cont_parameters,
-               isotopologue_ratios,
-               verbosity);
+  
+  // Call agenda to calculate absorption:
+  abs_xsec_agendaExecute(ws,
+                         abs_xsec_per_species,
+                         abs_species,
+                         abs_species_active,
+                         *f_grid_pointer,
+                         abs_p,
+                         abs_t,
+                         abs_vmrs,
+                         abs_xsec_agenda);
+
+  // Calculate absorption coefficients from cross sections:
+  abs_coefCalcFromXsec(abs_coef, abs_coef_per_species,
+                       abs_xsec_per_species,
+                       abs_vmrs, abs_p, abs_t, verbosity);
+  
   
   // Now add abs_coef_per_species to abs_mat_per_species:
   abs_mat_per_speciesAddFromAbsCoefPerSpecies(abs_mat_per_species,

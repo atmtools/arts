@@ -13,6 +13,8 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 
 # on-the-fly absorption
 Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )

@@ -1,3 +1,63 @@
+2013-03-07  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-539
+
+	* Quite a big absorption part overhaul. Not completely finished,
+	there will be some polishing in the next days. All check-all
+	targets run (except for something with the userguide that was
+	already broken). I did not try to fix other controlfiles that are
+	not part of check-all. In generally, just including the following
+	should make your controlfile work again:
+
+	# Agenda for scalar gas absorption calculation
+	Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+	* src/absorption.h (abs_n2Set, abs_h2oSet): Moved declarations
+	here, since these are no longer WSMs.
+
+        * src/gas_abs_lookup.h (GasAbsLookup): Updated friend function declarations.
+
+        * src/m_abs.cc
+	(abs_h2oSet): Removed fancy treatment if no H2O is found. Instead,
+	throw runtime error directly, just as abs_n2Set does.
+	(abs_coefCalc): Removed this method, which is no longer needed.
+	(abs_coefCalcSaveMemory): Ditto.
+	(abs_xsec_per_speciesInit, abs_xsec_per_speciesAddLines)
+	(abs_xsec_per_speciesAddConts): Added input variable
+	abs_species_active to all of these methods. Absorption is
+	calculated only for the active species. (This feature is needed
+	when abs_xsec_agenda is executed for absorption lookup table generation.)
+	(abs_xsec_per_speciesAddConts): Now set h2o_abs and n2_abs
+	internally (using the dedicated helper functions).
+	(abs_mat_per_speciesAddOnTheFly): Use new agenda
+	abs_xsec_agenda. Removed input variables that are specific to
+	certain absorption methods, such as the	line list,
+	etc.. Eliminated call of abs_coefCalc.
+
+        * src/m_cia.cc (abs_xsec_per_speciesAddCIA): Added input variable
+	abs_species_active. Absorption is calculated only for the active
+	species.
+
+        * src/methods.cc (abs_coefCalc, abs_coefCalcSaveMemory)
+	(abs_h2oSet, abs_n2Set): Eliminated these WSMs.
+
+        * src/m_abs_lookup.cc
+	(abs_lookupCalc): Use new agenda
+	abs_xsec_agenda, which considerably simplifies things. Removed
+	input variables that are specific to certain absorption methods,
+	such as line list, continuum models, etc..
+	(calc_lookup_error, abs_lookupTestAccuracy, abs_lookupTestAccMC):
+	Use new agenda abs_xsec_agenda.
+
+        * src/agendas.cc (abs_xsec_agenda): Added input variable
+	abs_species_active.
+
+	* src/workspace.cc (abs_h2o, abs_n2): Eliminated these WSVs.
+
+        * controlfiles/*: Added
+	Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+	to most controlfiles. Removed calls of abs_h2oSet and abs_n2Set.
+
 2013-03-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-538

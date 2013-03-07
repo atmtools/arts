@@ -59,26 +59,23 @@ void abs_lookupInit(GasAbsLookup& x, const Verbosity& verbosity)
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupCalc(// WS Output:
+void abs_lookupCalc(// Workspace reference:
+                    Workspace& ws,
+                    // WS Output:
                     GasAbsLookup& abs_lookup,
                     Index& abs_lookup_is_adapted,
                     // WS Input:
                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                    const ArrayOfLineshapeSpec&     abs_lineshape,
                     const ArrayOfArrayOfSpeciesTag& abs_nls,
-                    const Vector&                   f_grid,
-                    const Vector&                   abs_p,
-                    const Matrix&                   abs_vmrs,
-                    const Vector&                   abs_t,
-                    const Vector&                   abs_t_pert,
-                    const Vector&                   abs_nls_pert,
-                    const Vector&                   abs_n2,
-                    const ArrayOfString&            abs_cont_names,
-                    const ArrayOfString&            abs_cont_models,
-                    const ArrayOfVector&            abs_cont_parameters,
-                    const SpeciesAuxData&           isotopologue_ratios,
-                    const Verbosity&                verbosity)
+                    const Vector& f_grid,
+                    const Vector& abs_p,
+                    const Matrix& abs_vmrs,
+                    const Vector& abs_t,
+                    const Vector& abs_t_pert,
+                    const Vector& abs_nls_pert,
+                    const Agenda& abs_xsec_agenda,
+                    // Verbosity object:
+                    const Verbosity& verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
@@ -87,10 +84,6 @@ void abs_lookupCalc(// WS Output:
   // where we then perturb the H2O profile as needed
   Matrix these_all_vmrs = abs_vmrs;
     
-  // Check that correct isotopologue ratios are defined for the species
-  // we want to calculate
-  checkIsotopologueRatios(abs_species, isotopologue_ratios);
-
   // We will be calling an absorption agenda one species at a
   // time. This is better than doing all simultaneously, because is
   // saves memory and allows for consistent treatment of nonlinear
@@ -103,8 +96,7 @@ void abs_lookupCalc(// WS Output:
   Matrix these_abs_coef;
 
   // Absorption cross sections per tag group. 
-  ArrayOfMatrix abs_xsec_per_species_attenuation;
-  ArrayOfMatrix abs_xsec_per_species_phase;
+  ArrayOfMatrix abs_xsec_per_species;
 
 
   // 2. Determine various important sizes:
@@ -128,6 +120,10 @@ void abs_lookupCalc(// WS Output:
   ArrayOfArrayOfLineRecord these_lines(1);
   ArrayOfLineshapeSpec this_lineshape(1);
 
+  // List of active species for agenda call. Will always be filled with only
+  // one species.
+  ArrayOfIndex abs_species_active(1);
+  
   // Local copy of nls_pert and t_pert:
   Vector these_nls_pert;        // Is resized every time when used
   Vector these_t_pert;          // Is resized later on
@@ -204,15 +200,6 @@ void abs_lookupCalc(// WS Output:
       throw runtime_error( os.str() );
     }
 
-  // abs_lines_per_species must match abs_species:
-  if (abs_lines_per_species.nelem() != abs_species.nelem())
-    {
-      ostringstream os;
-      os << "Dimensions of *abs_species* and *abs_lines_per_species* must match. "
-         << "*abs_species*: " << abs_species.nelem() << " elements. "
-         << "*abs_lines_per_species*: " << abs_lines_per_species.nelem() << " elements.";
-      throw runtime_error( os.str() );      
-    }
 
   // VMR matrix must match species list and pressure levels:
   chk_size( "abs_vmrs",
@@ -311,22 +298,14 @@ void abs_lookupCalc(// WS Output:
       out2 << "  Doing species " << i+1 << " of " << n_species << ": "
            << abs_species[i] << ".\n";
 
+      // Set active species:
+      abs_species_active[0] = i;
+      
       // Get a dummy list of tag groups with only the current element:
       this_species[0].resize(abs_species[i].nelem());
       this_species[0] = abs_species[i];
 
-      // List of lines:
-      these_lines[0].resize(abs_lines_per_species[i].nelem());
-      these_lines[0] = abs_lines_per_species[i];
       
-      // List of lineshapes. This requires special treatment: If there
-      // is only 1 lineshape given, the same lineshape should be used
-      // for all species.
-      if (1==abs_lineshape.nelem())
-        this_lineshape[0] = abs_lineshape[0];
-      else
-        this_lineshape[0] = abs_lineshape[i];
-
       // Set up these_nls_pert. This is done so that we can use the
       // same loop over the perturbations, independent of
       // whether we have nonlinear species or not.
@@ -437,60 +416,25 @@ void abs_lookupCalc(// WS Output:
                   this_t = abs_lookup.t_ref;
                   this_t += these_t_pert[j];
       
-                  // The sequence of function calls here is inspired from
-                  // abs_coefCalcSaveMemory. 
-
-                  abs_xsec_per_speciesInit( abs_xsec_per_species_attenuation, abs_xsec_per_species_phase,
-                                            this_species, f_grid, abs_p, verbosity );
-
-                  abs_xsec_per_speciesAddConts( abs_xsec_per_species_attenuation,
-                                                this_species,
-                                                f_grid,
-                                                abs_p,
-                                                this_t,
-                                                abs_n2,
-                                                abs_h2o,
-                                                this_vmr,
-                                                abs_cont_names,
-                                                abs_cont_parameters,
-                                                abs_cont_models,
-                                                verbosity);
-
-//                  abs_xsec_per_speciesAddLines( abs_xsec_per_species,
-//                                                this_species,
-//                                                f_grid,
-//                                                abs_p,
-//                                                this_t,
-//                                                this_vmr,
-//                                                these_lines,
-//                                                this_lineshape,
-//                                                isotopologue_ratios,
-//                                                verbosity);
                   
-                  xsec_species(abs_xsec_per_species_attenuation[0],
-                               abs_xsec_per_species_phase[0],
-                               f_grid,
-                               abs_p,
-                               this_t,
-                               these_all_vmrs,
-                               abs_species,
-                               i,
-                               these_lines[0],
-                               this_lineshape[0].Ind_ls(),
-                               this_lineshape[0].Ind_lsn(),
-                               this_lineshape[0].Cutoff(),
-                               isotopologue_ratios,
-                               verbosity );
+                  // Call agenda to calculate absorption:
+                  abs_xsec_agendaExecute(ws,
+                                         abs_xsec_per_species,
+                                         abs_species,
+                                         abs_species_active,
+                                         f_grid,
+                                         abs_p,
+                                         this_t,
+                                         these_all_vmrs,
+                                         abs_xsec_agenda);
                   
-                    if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
-                    {  }
                   
                   // Store in the right place:
                   // Loop through all altitudes
                   for ( Index p=0; p<n_p_grid; ++p )
                     {
                       abs_lookup.xsec( j, spec, Range(joker), p )
-                        = abs_xsec_per_species_attenuation[0](Range(joker),p);
+                        = abs_xsec_per_species[i](Range(joker),p);
 
                       // There used to be a division by the number density
                       // n here. This is no longer necessary, since
@@ -2511,19 +2455,14 @@ void p_gridFromGasAbsLookup(Vector&             p_grid,
   ignored according to the "ignore_errors" flag.
 */
 Numeric calc_lookup_error(// Parameters for lookup table:
+                          Workspace& ws,
                           const GasAbsLookup& al,
                           const Index&        abs_p_interp_order,  
                           const Index&        abs_t_interp_order,  
                           const Index&        abs_nls_interp_order,
                           const bool          ignore_errors,
                           // Parameters for LBL:
-                          const Vector&                   abs_n2,
-                          const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                          const ArrayOfLineshapeSpec&     abs_lineshape,
-                          const ArrayOfString&            abs_cont_names,
-                          const ArrayOfString&            abs_cont_models,
-                          const ArrayOfVector&            abs_cont_parameters,
-                          const SpeciesAuxData&           isotopologue_ratios,
+                          const Agenda& abs_xsec_agenda,
                           // Parameters for both:
                           const Numeric&      local_p,
                           const Numeric&      local_t,
@@ -2590,22 +2529,17 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                           verbosity);
     
   // Add result of LBL calculation to abs_mat_per_species:
-  abs_mat_per_speciesAddOnTheFly(abs_mat_per_species,
-                            al.f_grid,
-                            al.species,
-                            abs_n2,
-                            abs_lines_per_species,
-                            abs_lineshape,
-                            abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            isotopologue_ratios,
-                            local_p,
-                            local_t,
-                            local_vmrs,
-                            0,
-                            verbosity);
-  // Last argument above is the Doppler shift (usually
+  abs_mat_per_speciesAddOnTheFly(ws,
+                                 abs_mat_per_species,
+                                 al.f_grid,
+                                 al.species,
+                                 local_p,
+                                 local_t,
+                                 local_vmrs,
+                                 0,
+                                 abs_xsec_agenda,
+                                 verbosity);
+  // Argument 0 above is the Doppler shift (usually
   // rte_doppler). Should be zero in this case.
 
   // Sum up for all species, to get total absorption:
@@ -2635,20 +2569,17 @@ Numeric calc_lookup_error(// Parameters for lookup table:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupTestAccuracy(// WS Input:
-                            const GasAbsLookup&             abs_lookup,
-                            const Index&                    abs_lookup_is_adapted, 
-                            const Index&                    abs_p_interp_order,
-                            const Index&                    abs_t_interp_order,
-                            const Index&                    abs_nls_interp_order,
-                            const Vector&                   abs_n2,
-                            const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                            const ArrayOfLineshapeSpec&     abs_lineshape,
-                            const ArrayOfString&            abs_cont_names,
-                            const ArrayOfString&            abs_cont_models,
-                            const ArrayOfVector&            abs_cont_parameters,
-                            const SpeciesAuxData&           isotopologue_ratios,
-                            const Verbosity&                verbosity)
+void abs_lookupTestAccuracy(// Workspace reference:
+                            Workspace& ws,
+                            // WS Input:
+                            const GasAbsLookup& abs_lookup,
+                            const Index& abs_lookup_is_adapted,
+                            const Index& abs_p_interp_order,
+                            const Index& abs_t_interp_order,
+                            const Index& abs_nls_interp_order,
+                            const Agenda& abs_xsec_agenda,
+                            // Verbosity object:
+                            const Verbosity& verbosity)
 {
   CREATE_OUT2;
   
@@ -2727,22 +2658,17 @@ void abs_lookupTestAccuracy(// WS Input:
         // value for exactly the reference H2O profile. We multiply
         // with the first perturbation.
         local_vmrs[h2o_index] *= al.nls_pert[0];
-
+        
         Numeric max_abs_rel_diff =
-          calc_lookup_error(// Parameters for lookup table:
+          calc_lookup_error(ws,
+                            // Parameters for lookup table:
                             al,
                             abs_p_interp_order,  
                             abs_t_interp_order,  
                             abs_nls_interp_order,
                             true,                       // ignore errors
                             // Parameters for LBL:
-                            abs_n2,
-                            abs_lines_per_species,
-                            abs_lineshape,
-                            abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            isotopologue_ratios,
+                            abs_xsec_agenda,
                             // Parameters for both:
                             local_p,
                             local_t,
@@ -2799,20 +2725,15 @@ void abs_lookupTestAccuracy(// WS Input:
         local_vmrs[h2o_index] *= inbet_nls_pert[ni];
 
         Numeric max_abs_rel_diff =
-          calc_lookup_error(// Parameters for lookup table:
+          calc_lookup_error(ws,
+                            // Parameters for lookup table:
                             al,
                             abs_p_interp_order,  
                             abs_t_interp_order,  
                             abs_nls_interp_order,
                             true,                       // ignore errors
                             // Parameters for LBL:
-                            abs_n2,
-                            abs_lines_per_species,
-                            abs_lineshape,
-                            abs_cont_names,
-                            abs_cont_models,
-                            abs_cont_parameters,
-                            isotopologue_ratios,
+                            abs_xsec_agenda,
                             // Parameters for both:
                             local_p,
                             local_t,
@@ -2878,20 +2799,15 @@ void abs_lookupTestAccuracy(// WS Input:
       local_vmrs[h2o_index] *= al.nls_pert[0];
 
       Numeric max_abs_rel_diff =
-        calc_lookup_error(// Parameters for lookup table:
+        calc_lookup_error(ws,
+                          // Parameters for lookup table:
                           al,
                           abs_p_interp_order,  
                           abs_t_interp_order,  
                           abs_nls_interp_order,
                           true,                         // ignore errors
                           // Parameters for LBL:
-                          abs_n2,
-                          abs_lines_per_species,
-                          abs_lineshape,
-                          abs_cont_names,
-                          abs_cont_models,
-                          abs_cont_parameters,
-                          isotopologue_ratios,
+                          abs_xsec_agenda,
                           // Parameters for both:
                           local_p,
                           local_t,
@@ -2936,20 +2852,15 @@ void abs_lookupTestAccuracy(// WS Input:
       local_vmrs[h2o_index] *= inbet_nls_pert[ni];
 
       Numeric max_abs_rel_diff =
-        calc_lookup_error(// Parameters for lookup table:
+        calc_lookup_error(ws,
+                          // Parameters for lookup table:
                           al,
                           abs_p_interp_order,  
                           abs_t_interp_order,  
                           abs_nls_interp_order,
                           true,                         // ignore errors
                           // Parameters for LBL:
-                          abs_n2,
-                          abs_lines_per_species,
-                          abs_lineshape,
-                          abs_cont_names,
-                          abs_cont_models,
-                          abs_cont_parameters,
-                          isotopologue_ratios,
+                          abs_xsec_agenda,
                           // Parameters for both:
                           local_p,
                           local_t,
@@ -2996,21 +2907,18 @@ void abs_lookupTestAccuracy(// WS Input:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupTestAccMC(// WS Input:
-                         const GasAbsLookup&             abs_lookup,
-                         const Index&                    abs_lookup_is_adapted, 
-                         const Index&                    abs_p_interp_order,
-                         const Index&                    abs_t_interp_order,
-                         const Index&                    abs_nls_interp_order,
-                         const Vector&                   abs_n2,
-                         const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                         const ArrayOfLineshapeSpec&     abs_lineshape,
-                         const ArrayOfString&            abs_cont_names,
-                         const ArrayOfString&            abs_cont_models,
-                         const ArrayOfVector&            abs_cont_parameters,
-                         const SpeciesAuxData&           isotopologue_ratios,
-                         const Index&                    mc_seed,
-                         const Verbosity&                verbosity)
+void abs_lookupTestAccMC(// Workspace reference:
+                         Workspace& ws,
+                         // WS Input:
+                         const GasAbsLookup& abs_lookup,
+                         const Index& abs_lookup_is_adapted,
+                         const Index& abs_p_interp_order,
+                         const Index& abs_t_interp_order,
+                         const Index& abs_nls_interp_order,
+                         const Index& mc_seed,
+                         const Agenda& abs_xsec_agenda,
+                         // Verbosity object:
+                         const Verbosity& verbosity)
 {
   CREATE_OUT2;
   CREATE_OUT3;
@@ -3152,20 +3060,15 @@ void abs_lookupTestAccMC(// WS Input:
       
       // Get error between table and LBL calculation for these conditions:
       
-      max_abs_rel_diff[i] = calc_lookup_error(// Parameters for lookup table:
+      max_abs_rel_diff[i] = calc_lookup_error(ws,
+                                              // Parameters for lookup table:
                                               al,
                                               abs_p_interp_order,  
                                               abs_t_interp_order,  
                                               abs_nls_interp_order,
                                               true,                       // ignore errors
                                               // Parameters for LBL:
-                                              abs_n2,
-                                              abs_lines_per_species,
-                                              abs_lineshape,
-                                              abs_cont_names,
-                                              abs_cont_models,
-                                              abs_cont_parameters,
-                                              isotopologue_ratios,
+                                              abs_xsec_agenda,
                                               // Parameters for both:
                                               this_p,
                                               this_t,  

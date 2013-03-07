@@ -16,13 +16,6 @@ Arts2 {
 #
 ReadXML( isotopologue_ratios, "planets/Mars/isotopratio_Mars.xml" )
 
-#
-# The N2 VMR value is sometimes needed for the calculation of the
-# absorption coefficient of other species.
-# The value here is from Krasnopolsky, 2011 (provided by MPS within
-# ESA-planetary study).
-#
-VectorSet( abs_n2, [ 0.0270 ] )
 
 
 #

@@ -29,6 +29,8 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_venus.arts"
 
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 
 # the 3D geo grid to test
 VectorCreate( lat_grid3D )

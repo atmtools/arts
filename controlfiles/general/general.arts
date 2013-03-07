@@ -58,13 +58,6 @@ IndexSet( fos_i, 0 )
 #
 ArrayOfStringSet( iy_aux_vars, [] )
 
-#
-# The H2O VMR value is sometimes needed for the calculation of the
-# absorption coefficient of other species. We cannot set this to a
-# meaningful default value, since it is very variable. Set it to -1
-# instead. 
-#
-VectorSet( abs_h2o, [ -1 ] )
 
 
 ### basics_CheckedCalc requires them to be initialised. 0 seems an ok default.

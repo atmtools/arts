@@ -384,15 +384,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
     
-    wsv_data.push_back
-    (WsvRecord
-     ( NAME( "abs_h2o" ),
-       DESCRIPTION
-       (
-        "The total water profile associated with the pressures in *abs_p* [-]\n"
-       ),
-       GROUP( "Vector" )));
-
   wsv_data.push_back
     (WsvRecord
      ( NAME( "abs_lines" ),
@@ -604,15 +595,6 @@ void Workspace::define_wsv_data()
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
-
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "abs_n2" ),
-      DESCRIPTION
-      (
-       "The total nitrogen profile associated with the pressures in *abs_p* [-]\n"
-      ),
-      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord

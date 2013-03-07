@@ -11,6 +11,9 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
 # This test catalogue was generated from the HITRAN catalogue in the
 # following way:
 #abs_linesReadFromHitran( abs_lines,

@@ -223,50 +223,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_coefCalc" ),
-        DESCRIPTION
-        (
-         "Calculate (scalar) absorption coefficients.\n"
-         "\n"
-         "This function calculates both the total absorption (*abs_coef*), and\n"
-         "the absorption per species (*abs_coef_per_species*) for a single set\n"
-         "of atmospheric profiles (*abs_p*, *abs_t*, *abs_vmrs*).\n"
-         "\n"
-         "The method calls four other  methods:\n"
-         "\n"
-         "1. *abs_xsec_per_speciesInit*:\n"
-         "   Initialize *abs_xsec_per_species*\n"
-         "\n"
-         "2. *abs_xsec_per_speciesAddLines*:\n"
-         "   Calculate cross sections per tag group for line spectra.\n"
-         "\n"
-         "3. *abs_xsec_per_speciesAddConts*:\n"
-         "   Calculate cross sections per tag group for continua.\n"
-         "\n"
-         "4. *abs_coefCalcFromXsec*:\n"
-         "   Calculate absorption coefficients from the cross sections by\n"
-         "   multiplying each cross section by n*VMR.\n"
-         "\n"
-         "This is done once for each tag group (output *abs_coef_per_species*),\n"
-         "and for the sum of all tag groups (output *abs_coef*).\n"
-         ),
-        AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
-        OUT( "abs_coef"  , "abs_coef_per_species" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
-            "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
-            "abs_cont_names", "abs_cont_models", 
-            "abs_cont_parameters", "isotopologue_ratios" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "abs_coefCalcFromXsec" ),
         DESCRIPTION
         (
@@ -283,36 +239,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_xsec_per_species_attenuation", "abs_vmrs", "abs_p", "abs_t" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_coefCalcSaveMemory" ),
-        DESCRIPTION
-        (
-         "Calculate absorption coefficients, trying to conserve memory.\n"
-         "\n"
-         "This function calculates only the total absorption (*abs_coef*),\n"
-         "NOT the absorption per tag group (*abs_coef_per_species*).\n"
-         "\n"
-         "This means you cannot use it if you want to calculate Jacobians\n"
-         "later.\n"
-         "\n"
-         "The implementation follows abs_coefCalc.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_coef" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
-            "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
-            "abs_cont_names", "abs_cont_models", 
-            "abs_cont_parameters", "isotopologue_ratios" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -379,32 +305,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_h2oSet" ),
-        DESCRIPTION
-        (
-         "Sets abs_h2o to the profile of the first tag group containing\n"
-         "water.\n" 
-         "\n"
-         "This is necessary, because for example *abs_coefCalc* requires abs_h2o\n"
-         "to contain the water vapour profile(the reason for this is the\n"
-         "calculation of oxygen line broadening requires water vapour profile).\n"
-         "Then this function can be used to copy the profile of the first tag\n"
-         "group of water.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_h2o" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "abs_vmrs" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -943,8 +843,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", 
-            "abs_lines_per_species",
-            "abs_lineshape",
             "abs_nls",
             "f_grid",
             "abs_p",
@@ -952,11 +850,7 @@ void define_md_data_raw()
             "abs_t", 
             "abs_t_pert", 
             "abs_nls_pert",
-            "abs_n2",
-            "abs_cont_names",
-            "abs_cont_models", 
-            "abs_cont_parameters",
-            "isotopologue_ratios"
+            "abs_xsec_agenda"
             ),
         GIN(),
         GIN_TYPE(),
@@ -1190,13 +1084,7 @@ void define_md_data_raw()
             "abs_p_interp_order",
             "abs_t_interp_order",
             "abs_nls_interp_order",
-            "abs_n2",
-            "abs_lines_per_species", 
-            "abs_lineshape", 
-            "abs_cont_names", 
-            "abs_cont_models", 
-            "abs_cont_parameters",
-            "isotopologue_ratios" ),
+            "abs_xsec_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1231,14 +1119,8 @@ void define_md_data_raw()
             "abs_p_interp_order",
             "abs_t_interp_order",
             "abs_nls_interp_order",
-            "abs_n2",
-            "abs_lines_per_species",
-            "abs_lineshape",
-            "abs_cont_names",
-            "abs_cont_models",
-            "abs_cont_parameters",
-            "isotopologue_ratios",
-            "mc_seed"),
+            "mc_seed",
+            "abs_xsec_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1385,14 +1267,8 @@ void define_md_data_raw()
         IN( "abs_mat_per_species",
             "f_grid",
             "abs_species",
-            "abs_n2",
-            "abs_lines_per_species",
-            "abs_lineshape",
-            "abs_cont_names",
-            "abs_cont_models",
-            "abs_cont_parameters",
-            "isotopologue_ratios",
-            "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler"
+            "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler",
+            "abs_xsec_agenda"
            ),
         GIN(),
         GIN_TYPE(),
@@ -1468,26 +1344,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
     
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_n2Set" ),
-        DESCRIPTION
-        (
-         "Sets abs_n2 to the profile of the first tag group containing\n"
-         "molecular nitrogen. See *abs_h2oSet* for more details.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_n2" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "abs_species", "abs_vmrs" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_speciesAdd" ),
@@ -1703,7 +1559,8 @@ void define_md_data_raw()
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "abs_xsec_per_species_attenuation", "abs_species", "f_grid", "abs_p", "abs_t",
+      IN( "abs_xsec_per_species_attenuation", "abs_species", "abs_species_active",
+          "f_grid", "abs_p", "abs_t",
           "abs_vmrs", "abs_cia_data" ),
       GIN(      "robust" ),
       GIN_TYPE( "Index"),
@@ -1723,7 +1580,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_xsec_per_species_attenuation", "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
+        IN( "abs_xsec_per_species_attenuation", "abs_species", "abs_species_active",
+            "f_grid", "abs_p", "abs_t",
             "abs_vmrs", "abs_cont_names", "abs_cont_parameters",
             "abs_cont_models" ),
         GIN(),
@@ -1745,7 +1603,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_xsec_per_species_attenuation", "abs_species", "f_grid", "abs_p", "abs_t",
+        IN( "abs_xsec_per_species_attenuation", "abs_species", "abs_species_active",
+            "f_grid", "abs_p", "abs_t",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "isotopologue_ratios" ),
         GIN(),
@@ -1771,7 +1630,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "f_grid", "abs_p" ),
+        IN( "abs_species", "abs_species_active", "f_grid", "abs_p" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

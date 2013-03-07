@@ -43,6 +43,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
                                 ArrayOfMatrix& abs_xsec_per_species,
                                 // WS Input:
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const ArrayOfIndex& abs_species_active,
                                 const Vector& f_grid,
                                 const Vector& abs_p,
                                 const Vector& abs_t,
@@ -104,7 +105,10 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
     // Loop over CIA data sets.
     // Index i loops through the outer array (different tag groups),
     // index s through the inner array (different tags within each goup).
-    for (Index i = 0; i < abs_species.nelem(); i++)
+    for (Index ii = 0; ii < abs_species_active.nelem(); ii++)
+    {
+        const Index i = abs_species_active[ii];
+
         for (Index s = 0; s < abs_species[i].nelem(); s++)
           {
             const SpeciesTag& this_species = abs_species[i][s];
@@ -193,6 +197,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
               }
             
           }
+    }
 }
 
 

@@ -16,12 +16,6 @@ Arts2 {
 #
 ReadXML( isotopologue_ratios, "planets/Jupiter/isotopratio_Jupiter.xml" )
 
-#
-# The N2 VMR value is sometimes needed for the calculation of the
-# absorption coefficient of other species.
-#
-VectorSet( abs_n2, [ 0.0 ] )
-
 
 #
 # Reference ellipsoid (a spherical ellipsoid must be used for 1D)

@@ -92,7 +92,8 @@ void define_agenda_data()
        "and because they return an absorption matrix, rather than a scalar.\n"
        ),
       OUTPUT( "abs_xsec_per_species_attenuation" ),
-      INPUT(  "abs_species", "f_grid", "abs_p", "abs_t", "abs_vmrs" )));
+      INPUT(  "abs_species", "abs_species_active",
+              "f_grid", "abs_p", "abs_t", "abs_vmrs" )));
 
   agenda_data.push_back
     (AgRecord

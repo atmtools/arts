@@ -16,6 +16,8 @@ INCLUDE "general/general"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 
 # Frequency grid 
 # --------------

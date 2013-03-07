@@ -84,81 +84,67 @@ public:
                                     const String& name,
                                     const Verbosity& verbosity);
 
-  friend void abs_lookupCalc(// WS Output:
-                      GasAbsLookup& abs_lookup,
-                      Index& abs_lookup_is_adapted,
-                      // WS Input:
-                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                      const ArrayOfLineshapeSpec&     abs_lineshape,
-                      const ArrayOfArrayOfSpeciesTag& abs_nls,
-                      const Vector&                   f_grid,
-                      const Vector&                   abs_p,
-                      const Matrix&                   abs_vmrs,
-                      const Vector&                   abs_t,
-                      const Vector&                   abs_t_pert,
-                      const Vector&                   abs_nls_pert, 
-                      const Vector&                   abs_n2,            
-                      const ArrayOfString&            abs_cont_names,    
-                      const ArrayOfString&            abs_cont_models,   
-                      const ArrayOfVector&            abs_cont_parameters,
-                      const SpeciesAuxData&           isotopologue_ratios,
-                      const Verbosity&                verbosity);
+  friend void abs_lookupCalc(// Workspace reference:
+                             Workspace& ws,
+                             // WS Output:
+                             GasAbsLookup& abs_lookup,
+                             Index& abs_lookup_is_adapted,
+                             // WS Input:
+                             const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const ArrayOfArrayOfSpeciesTag& abs_nls,
+                             const Vector& f_grid,
+                             const Vector& abs_p,
+                             const Matrix& abs_vmrs,
+                             const Vector& abs_t,
+                             const Vector& abs_t_pert,
+                             const Vector& abs_nls_pert,
+                             const Agenda& abs_xsec_agenda,
+                             // Verbosity object:
+                             const Verbosity& verbosity);
 
   friend Numeric calc_lookup_error(// Parameters for lookup table:
-                      const GasAbsLookup& al,
-                      const Index&        abs_p_interp_order,  
-                      const Index&        abs_t_interp_order,  
-                      const Index&        abs_nls_interp_order,
-                      const bool          ignore_errors,
-                      // Parameters for LBL:
-                      const Vector&                   abs_n2,
-                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                      const ArrayOfLineshapeSpec&     abs_lineshape,
-                      const ArrayOfString&            abs_cont_names,
-                      const ArrayOfString&            abs_cont_models,
-                      const ArrayOfVector&            abs_cont_parameters,
-                      const SpeciesAuxData&           isotopologue_ratios,
-                      // Parameters for both:
-                      const Numeric&      local_p,
-                      const Numeric&      local_t,
-                      const Vector&       local_vmrs,
-                      const Verbosity&    verbosity);
+                                   Workspace& ws,
+                                   const GasAbsLookup& al,
+                                   const Index&        abs_p_interp_order,
+                                   const Index&        abs_t_interp_order,
+                                   const Index&        abs_nls_interp_order,
+                                   const bool          ignore_errors,
+                                   // Parameters for LBL:
+                                   const Agenda& abs_xsec_agenda,
+                                   // Parameters for both:
+                                   const Numeric&      local_p,
+                                   const Numeric&      local_t,
+                                   const Vector&       local_vmrs,
+                                   const Verbosity&    verbosity);
 
-  friend void abs_lookupTestAccuracy(// WS Input:
-                      const GasAbsLookup&             abs_lookup,
-                      const Index&                    abs_lookup_is_adapted, 
-                      const Index&                    abs_p_interp_order,
-                      const Index&                    abs_t_interp_order,
-                      const Index&                    abs_nls_interp_order,
-                      const Vector&                   abs_n2,
-                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                      const ArrayOfLineshapeSpec&     abs_lineshape,
-                      const ArrayOfString&            abs_cont_names,
-                      const ArrayOfString&            abs_cont_models,
-                      const ArrayOfVector&            abs_cont_parameters,
-                      const SpeciesAuxData&           isotopologue_ratios,
-                      const Verbosity&                verbosity);
+  friend void abs_lookupTestAccuracy(// Workspace reference:
+                                Workspace& ws,
+                                // WS Input:
+                                const GasAbsLookup& abs_lookup,
+                                const Index& abs_lookup_is_adapted,
+                                const Index& abs_p_interp_order,
+                                const Index& abs_t_interp_order,
+                                const Index& abs_nls_interp_order,
+                                const Agenda& abs_xsec_agenda,
+                                // Verbosity object:
+                                const Verbosity& verbosity);
 
-  friend void abs_lookupTestAccMC(// WS Input:
-                      const GasAbsLookup&             abs_lookup,
-                      const Index&                    abs_lookup_is_adapted, 
-                      const Index&                    abs_p_interp_order,
-                      const Index&                    abs_t_interp_order,
-                      const Index&                    abs_nls_interp_order,
-                      const Vector&                   abs_n2,
-                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                      const ArrayOfLineshapeSpec&     abs_lineshape,
-                      const ArrayOfString&            abs_cont_names,
-                      const ArrayOfString&            abs_cont_models,
-                      const ArrayOfVector&            abs_cont_parameters,
-                      const SpeciesAuxData&           isotopologue_ratios,
-                      const Index&                    mc_seed,
-                      const Verbosity&                verbosity);
+  friend void abs_lookupTestAccMC(// Workspace reference:
+                                  Workspace& ws,
+                                  // WS Input:
+                                  const GasAbsLookup& abs_lookup,
+                                  const Index& abs_lookup_is_adapted,
+                                  const Index& abs_p_interp_order,
+                                  const Index& abs_t_interp_order,
+                                  const Index& abs_nls_interp_order,
+                                  const Index& mc_seed,
+                                  const Agenda& abs_xsec_agenda,
+                                  // Verbosity object:
+                                  const Verbosity& verbosity);
 
-    friend void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&);
+  friend void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&);
   
-    friend void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&);
+  friend void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&);
   
 private:
 
