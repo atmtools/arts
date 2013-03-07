@@ -5369,7 +5369,7 @@ void define_md_data_raw()
             "abs_mat_per_species_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_pos2",
             "rte_alonglos_v", "ppath_lraytrace" ),
-        GIN(      "defocos_method", "defocus_shift" ),
+        GIN(      "defocus_method", "defocus_shift" ),
         GIN_TYPE( "Index", "Numeric" ),
         GIN_DEFAULT( "1", "1e-3" ),
         GIN_DESC( "Selection of defocusing calculation method. See above.",
