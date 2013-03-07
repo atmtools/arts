@@ -285,6 +285,11 @@ void abs_lookupCalc(// Workspace reference:
   String fail_msg;
   bool failed = false;
 
+  // We have to make a local copy of the Workspace and the agenda because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws(ws);
+  Agenda l_abs_xsec_agenda(abs_xsec_agenda);
+
   // Loop species:
   for ( Index i=0,spec=0; i<n_species; ++i )
     {
@@ -387,7 +392,8 @@ void abs_lookupCalc(// Workspace reference:
   if(!arts_omp_in_parallel()                                   \
      && (these_t_pert_nelem >= arts_omp_get_max_threads() ||   \
          these_t_pert_nelem >= abs_p.nelem()))                 \
-         private(this_t, abs_xsec_per_species_attenuation, abs_xsec_per_species_phase)
+         private(this_t, abs_xsec_per_species)                 \
+         firstprivate(l_ws, l_abs_xsec_agenda)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
               // Skip remaining iterations if an error occurred
@@ -418,7 +424,7 @@ void abs_lookupCalc(// Workspace reference:
       
                   
                   // Call agenda to calculate absorption:
-                  abs_xsec_agendaExecute(ws,
+                  abs_xsec_agendaExecute(l_ws,
                                          abs_xsec_per_species,
                                          abs_species,
                                          abs_species_active,
@@ -426,7 +432,7 @@ void abs_lookupCalc(// Workspace reference:
                                          abs_p,
                                          this_t,
                                          these_all_vmrs,
-                                         abs_xsec_agenda);
+                                         l_abs_xsec_agenda);
                   
                   
                   // Store in the right place:

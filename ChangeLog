@@ -1,3 +1,9 @@
+2013-03-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-540
+
+	* src/m_abs_lookup.cc (abs_lookupCalc): Adapt OpenMP loop.
+
 2013-03-07  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-539
