@@ -704,7 +704,7 @@ void cloudbox_checkedCalc(
                if( z_field(cloudbox_limits[1],a,o) <= z_surface(a,o) )
                  throw runtime_error( 
                    "The upper vertical limit of the cloudbox must be above "
-                   "the surface altitude (for all latitudes and longitides)." );
+                   "the surface altitude (for all latitudes and longitudes)." );
              }
          }
 
@@ -721,7 +721,7 @@ void cloudbox_checkedCalc(
        chk_atm_field( "pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3 );
        //
        if( min(pnd_field) < 0 )
-         throw runtime_error( "All values in *pnd_field* must be >= 0." );
+         throw runtime_error( "Negative values in *pnd_field* not allowed." );
        //
        for( Index a=0; a<g2.nelem(); a++ ) { 
          for( Index o=0; o<g3.nelem(); o++ ) { 
@@ -729,7 +729,7 @@ void cloudbox_checkedCalc(
                             z_field(cloudbox_limits[0],a,o) > z_surface(a,o) )
              throw runtime_error( "A non-zero value found in *pnd_field* at the"
                              " lower altitude limit of the cloudbox (but the "
-                             "position is not below the surface altitude)." );
+                             "position is not at or below the surface altitude)." );
          } }
        if( max(pnd_field(joker,g1.nelem()-1,joker,joker)) > 0 )
          throw runtime_error( "A non-zero value found in *pnd_field* at "
@@ -1265,20 +1265,9 @@ void pnd_fieldCalc(//WS Output:
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
-        // FIXME: OLE: This is an ugly fix to maintain backwards-compatibility.
-        // We set the gridnames explicitly to not require changes of the
-        // input files
-        ArrayOfGriddedField3 pnd_field_raw_tmp = pnd_field_raw;
-        for (Index i = 0; i < pnd_field_raw_tmp.nelem(); i++)
-        {
-            pnd_field_raw_tmp[i].set_grid_name(0, "Pressure");
-            pnd_field_raw_tmp[i].set_grid_name(1, "Latitude");
-            pnd_field_raw_tmp[i].set_grid_name(2, "Longitude");
-        }
-
         ArrayOfGriddedField3 pnd_field_tmp;
 
-        GriddedFieldPRegrid(pnd_field_tmp, p_grid_cloud, pnd_field_raw_tmp,
+        GriddedFieldPRegrid(pnd_field_tmp, p_grid_cloud, pnd_field_raw,
                             1, zeropadding, verbosity);
 
         FieldFromGriddedField(pnd_field,

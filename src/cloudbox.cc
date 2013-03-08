@@ -465,8 +465,11 @@ void chk_pnd_field_raw_only_in_cloudbox(
                     if (v != 0) {
                         // Verify pressure is between cloudbox limits
                         p = pnd_field_raw[n].get_numeric_grid(GFIELD3_P_GRID)[p_i];
-                        if (!((p <= p_grid[cloudbox_limits[0]]) &
-                              (p >= p_grid[cloudbox_limits[1]]))) {
+//                        if (!((p <= p_grid[cloudbox_limits[0]]) &
+//                              (p >= p_grid[cloudbox_limits[1]]))) {
+                        if ( (p <= p_grid[cloudbox_limits[1]]) ||
+                             ( (p >= p_grid[cloudbox_limits[0]]) &&
+                              (cloudbox_limits[0]!=0)) ) {
                             ostringstream os;
                             os << "Found non-zero pnd outside cloudbox. "
                                << "Cloudbox extends from p="
@@ -474,14 +477,15 @@ void chk_pnd_field_raw_only_in_cloudbox(
                                << " Pa to p="
                                << p_grid[cloudbox_limits[1]]
                                << " Pa, but found pnd=" << v
-                               << "/m³ at p=" << p << " Pa.";
+                               << "/m³ at p=" << p << " Pa for particle #" << n
+                               << ".";
                             throw runtime_error(os.str());
                         }
                         // Verify latitude is too
                         if (dim > 1) {
                             lat = pnd_field_raw[n].get_numeric_grid(GFIELD3_LAT_GRID)[lat_i];
-                            if (!((lat >= lat_grid[cloudbox_limits[2]]) &
-                                  (lat <= lat_grid[cloudbox_limits[3]]))) {
+                            if (!((lat > lat_grid[cloudbox_limits[2]]) &
+                                  (lat < lat_grid[cloudbox_limits[3]]))) {
                                 ostringstream os;
                                 os << "Found non-zero pnd outside cloudbox. "
                                    << "Cloudbox extends from lat="
@@ -489,15 +493,16 @@ void chk_pnd_field_raw_only_in_cloudbox(
                                    << "° to lat="
                                    << lat_grid[cloudbox_limits[3]]
                                    << "°, but found pnd=" << v
-                                   << "/m³ at lat=" << lat << "°.";
+                                   << "/m³ at lat=" << lat << "° for particle #" << n
+                                   << ".";
                                 throw runtime_error(os.str());
                             }
                         }
                         // Etc. for longitude
                         if (dim > 2) {
                             lon = pnd_field_raw[n].get_numeric_grid(GFIELD3_LON_GRID)[lon_i];
-                            if (!((lon >= lon_grid[cloudbox_limits[4]]) &
-                                  (lon <= lon_grid[cloudbox_limits[5]]))) {
+                            if (!((lon > lon_grid[cloudbox_limits[4]]) &
+                                  (lon < lon_grid[cloudbox_limits[5]]))) {
                                 ostringstream os;
                                 os << "Found non-zero pnd outside cloudbox. "
                                    << "Cloudbox extends from lon="
@@ -505,7 +510,8 @@ void chk_pnd_field_raw_only_in_cloudbox(
                                    << "° to lat="
                                    << lon_grid[cloudbox_limits[5]]
                                    << "°, but found pnd=" << v
-                                   << "/m³ at lon=" << lon << "°.";
+                                   << "/m³ at lon=" << lon << "° for particle #" << n
+                                   << ".";
                                 throw runtime_error(os.str());
                             }
                         }

@@ -1,3 +1,27 @@
+2013-03-08  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-541
+
+	* src/methods.cc:
+	Updated doc of AtmFieldsCalc and pnd_fieldCalc regarding zeropadding.
+
+	* src/workspace.cc:
+	Added info on requirement that outer points of pnd_field in each dim
+	have to have pnd=0.
+
+	* src/m_cloudbox.cc
+	(cloudbox_checkedCalc): Improved a couple of error messages.
+	(pnd_fieldCalc): Removed Oliver's recent grid name fix.
+
+	* src/cloudbox.cc (chk_pnd_field_raw_only_in_cloudbox):
+	Allow pnd to have non-zero values below lower cloudbox limit, if this is
+	at the lowerest pressure level. Also reject cases, where pnd has
+	non-zero values AT the cloudbox_limits and print info on which entry of
+	pnd_field_raw array is problematic.
+
+	* controlfiles/artscomponents/[doit/pnd_field_1D,montecarlo/pnd_field_raw].xml:
+	Add names for grids of GriddedField (now required by pnd_fieldCalc).
+
 2013-03-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-540
@@ -21,9 +45,9 @@
 	* src/absorption.h (abs_n2Set, abs_h2oSet): Moved declarations
 	here, since these are no longer WSMs.
 
-        * src/gas_abs_lookup.h (GasAbsLookup): Updated friend function declarations.
+	* src/gas_abs_lookup.h (GasAbsLookup): Updated friend function declarations.
 
-        * src/m_abs.cc
+	* src/m_abs.cc
 	(abs_h2oSet): Removed fancy treatment if no H2O is found. Instead,
 	throw runtime error directly, just as abs_n2Set does.
 	(abs_coefCalc): Removed this method, which is no longer needed.
@@ -40,14 +64,14 @@
 	certain absorption methods, such as the	line list,
 	etc.. Eliminated call of abs_coefCalc.
 
-        * src/m_cia.cc (abs_xsec_per_speciesAddCIA): Added input variable
+	* src/m_cia.cc (abs_xsec_per_speciesAddCIA): Added input variable
 	abs_species_active. Absorption is calculated only for the active
 	species.
 
-        * src/methods.cc (abs_coefCalc, abs_coefCalcSaveMemory)
+	* src/methods.cc (abs_coefCalc, abs_coefCalcSaveMemory)
 	(abs_h2oSet, abs_n2Set): Eliminated these WSMs.
 
-        * src/m_abs_lookup.cc
+	* src/m_abs_lookup.cc
 	(abs_lookupCalc): Use new agenda
 	abs_xsec_agenda, which considerably simplifies things. Removed
 	input variables that are specific to certain absorption methods,
@@ -55,12 +79,12 @@
 	(calc_lookup_error, abs_lookupTestAccuracy, abs_lookupTestAccMC):
 	Use new agenda abs_xsec_agenda.
 
-        * src/agendas.cc (abs_xsec_agenda): Added input variable
+	* src/agendas.cc (abs_xsec_agenda): Added input variable
 	abs_species_active.
 
 	* src/workspace.cc (abs_h2o, abs_n2): Eliminated these WSVs.
 
-        * controlfiles/*: Added
+	* controlfiles/*: Added
 	Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 	to most controlfiles. Removed calls of abs_h2oSet and abs_n2Set.
 
@@ -138,13 +162,13 @@
 
 	* arts-2-1-533
 
-        * src/gas_abs_lookup.cc (GasAbsLookup::Extract): Commented out
+	* src/gas_abs_lookup.cc (GasAbsLookup::Extract): Commented out
 	runtime error check that reference VMR is not zero.
 
-        * src/workspace.cc (abs_f_interp_order): Added this WSV. (Not yet
+	* src/workspace.cc (abs_f_interp_order): Added this WSV. (Not yet
 	used anywhere.)
 
-        * controlfiles/general/general.arts: Initialize abs_f_interp_order
+	* controlfiles/general/general.arts: Initialize abs_f_interp_order
 	to zero (no frequency interpolation).
 
 2013-03-05  Oliver Lemke  <olemke@core-dump.info>

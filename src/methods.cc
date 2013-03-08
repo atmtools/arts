@@ -2070,11 +2070,10 @@ void define_md_data_raw()
          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
          "\n"
          "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
-         "*GriddedFieldLatLonRegrid*. VMRs at *p_grid* levels exceeding the\n"
-         "raw VMR's pressure grid are set to 0 (using the *zeropadding*\n"
-         "option of *GriddedFieldPRegrid*). For all other data (T,z) and in other\n"
-         "dimensions (latitude, longitude) default 'half-grid-step' extrapolation\n"
-         "is allowed and applied.\n"
+         "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
+         "is allowed and applied. However, if *vmr_zeropadding*=1 then VMRs at\n"
+         "*p_grid* levels exceeding the raw VMRs' pressure grid are set to 0\n"
+         "(applying the *zeropadding* option of *GriddedFieldPRegrid*).\n"
          ),
         AUTHORS( "Claudia Emde", "Stefan Buehler" ),
         OUT( "t_field", "z_field", "vmr_field" ),
@@ -7362,12 +7361,19 @@ void define_md_data_raw()
     ( MdRecord
       ( NAME( "pnd_fieldCalc" ),
         DESCRIPTION
-        ( "Interpolates the particle number density fields.\n"
+        ( "Interpolation of particle number density fields to calculation grid\n"
+          "inside cloudbox.\n"
           "\n"
           "This methods interpolates the particle number density field\n"
           "from the raw data *pnd_field_raw* to obtain *pnd_field*.\n"
+          "For 1D cases, where internally *GriddedFieldPRegrid* and\n"
+          "*GriddedFieldLatLonRegrid* are applied, with *zeropadding*=1 pnds\n"
+          "at pressure levels levels exceeding pnd_field_raw's pressure grid\n"
+          "are set to 0 (not implemented for 2D and 3D yet; default:\n"
+          "zeropadding=0, which throws an error if calculation pressure grid\n"
+          "*p_grid* is not completly covered by pnd_field_raw's pressure grid.\n"
           ),
-        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde", "Oliver Lemke" ),
         OUT( "pnd_field" ),
         GOUT(),
         GOUT_TYPE(),
