@@ -1,3 +1,27 @@
+2013-03-08  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-542
+
+        * src/m_basic_types.cc: Added Compare for ArrayOfMatrix.
+
+        * src/methods.cc: Added Compare for ArrayOfMatrix.
+
+        * controlfiles/artscomponents/cia/TestCIA.arts: Added. Calculate
+	absorption cross sections for all CIA continua and compare to
+	reference calculation. Path to arts-xml-data needs adjustment, and
+	must still be added to suitable test target.
+
+        * controlfiles/artscomponents/cia/TestCIA.abs_xsec_per_species_reference.xml:
+	Reference result for the above.
+
+        * controlfiles/artscomponents/cia/TestRTwithCIA.arts: Added. Calculate
+	RT simulation with mixed CIA and other absorption tags. Compare to
+	reference calculation. Path to arts-xml-data needs adjustment, and
+	must still be added to suitable test target.
+
+        * controlfiles/artscomponents/cia/TestRTwithCIA.iy_reference.xml:
+	Reference result for the above.
+
 2013-03-08  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-541

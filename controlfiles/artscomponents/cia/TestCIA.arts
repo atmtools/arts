@@ -1,8 +1,7 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# An example ARTS controlfile that calculates absorption
-# coefficients. 
-# SAB 16.06.2000
+# Calculate absorption cross sections for all CIA continua
+# 2013-03-08 SAB
 
 Arts2 {
 
@@ -10,38 +9,85 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 
-SpeciesSet( abs_species, [ "N2-CIAfunCKDMT100, N2-CIArotCKDMT100",
-	                   "N2-CIA-N2-0",
-	                   "N2-CIA-N2-2" ] )
-#SpeciesSet( abs_species, [ "N2-CIAfunCKDMT100, N2-CIArotCKDMT100" ] )
+ReadXML(abs_cia_data, "../../../../arts-xml-data/spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz")
 
-abs_cia_dataReadFromCIA( abs_cia_data, 
-                         abs_species, 
-			 "/Volumes/storage3/data/catalogue/hitran/cia2011/CIA" )
+Print(abs_cia_data)
+
+# Output:
+# - Print
+#   CIA tag; Spectral range [cm-1]; Temp range [K]; # of sets
+#   N2-CIA-N2-0; 0.02 - 554.00; 40.00 - 400.00; 10
+#   N2-CIA-N2-1; 1850.00 - 3000.09; 228.20 - 362.50; 10
+#   N2-CIA-H2-0; 0.02 - 1886.00; 40.00 - 400.00; 10
+#   N2-CIA-CH4-0; 0.02 - 1379.00; 40.00 - 400.00; 10
+#   H2-CIA-H2-0; 20.00 - 10000.00; 200.00 - 3000.00; 113
+#   H2-CIA-He-0; 20.00 - 20000.00; 200.00 - 9900.00; 334
+#   H2-CIA-CH4-0; 0.02 - 1946.00; 40.00 - 400.00; 10
+#   H2-CIA-H-0; 100.00 - 10000.00; 1000.00 - 2500.00; 4
+#   He-CIA-H-0; 50.00 - 11000.00; 1500.00 - 10000.00; 10
+#   O2-CIA-O2-0; 1150.00 - 1950.00; 193.40 - 353.40; 15
+#   CO2-CIA-CO2-0; 1.00 - 250.00; 200.00 - 800.00; 7
+#   CH4-CIA-CH4-0; 0.02 - 990.00; 40.00 - 400.00; 10
+#   CH4-CIA-Ar-0; 1.00 - 697.00; 70.00 - 296.00; 5
+
+
+# Define all available CIA tags:
+SpeciesSet( abs_species, 
+        ["N2-CIA-N2-0, N2-CIA-N2-1",
+	 "N2-CIA-H2-0",   
+	 "N2-CIA-CH4-0",   
+	 "H2-CIA-H2-0",   
+	 "H2-CIA-He-0",   
+	 "H2-CIA-CH4-0",   
+#	 "H2-CIA-H-0",      # Only for high temperatures
+#	 "He-CIA-H-0",      # Only for high temperatures
+	 "O2-CIA-O2-0",   
+	 "CO2-CIA-CO2-0",   # Only up to 250 cm^-1 higher freq. features missing!
+	 "CH4-CIA-CH4-0",   
+	 "CH4-CIA-Ar-0",
+	 "H",               # From here on only needed to define VMR profiles of other species
+	 "Ar",
+	 "He"
+] )
 
 VectorNLinSpace( f_grid, 100, 0, 75e12 )
 
 VectorSet( abs_p, [1000e2] )
 
-VectorSet( abs_t, [240] )
-#VectorSet( abs_t, [310] )
+VectorSet( abs_t, [310] )
 
-MatrixSet( abs_vmrs, [0.7808; 0.7808; 0.7808] )
-#MatrixSet( abs_vmrs, [0.7808] )
+# Set all VMR values to the same value:
+nelemGet( nrows, abs_species )
+nelemGet( ncols, abs_t )
 
-VectorSet( abs_n2, [ 0.7808 ] )
+# Set all VMRs to 1. This is unphysical, since actually the total
+# should add up to 1. But does not play a role here. (As long as I
+# don't forget about it.)
+MatrixSetConstant( abs_vmrs, nrows, ncols, 1 )
 
-VectorSet( abs_h2o, [ 0 ] )
+ArrayOfIndexSet(abs_species_active, [0,1,2,3,4,5,6,7,8,9])
 
 abs_xsec_per_speciesInit
 
-abs_xsec_per_speciesAddConts
-
 abs_xsec_per_speciesAddCIA
 
-WriteXML ( "ascii", abs_xsec_per_species )
-WriteXML ( "ascii", f_grid )
+#WriteXML ( "ascii", abs_xsec_per_species_attenuation )
+#WriteXML ( "ascii", f_grid )
+#WriteXML ( "ascii", abs_t )
+#WriteXML ( "ascii", abs_p )
+#WriteXML ( "ascii", abs_species )
 
+#WriteXML ( "zascii", abs_cia_data )
+
+# Compare results to reference calculation:
+ArrayOfMatrixCreate( abs_xsec_per_species_reference )
+ReadXML( abs_xsec_per_species_reference,
+         "TestCIA.abs_xsec_per_species_reference.xml")
+
+Compare( abs_xsec_per_species_attenuation, 
+         abs_xsec_per_species_reference, 
+         1e-40, 
+	 "CIA Continua differe from reference calculation" )
 
 }
 
