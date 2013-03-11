@@ -1,5 +1,11 @@
 2013-03-11  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-544
+
+	* src/m_basic_types.cc, src/methods.cc: Add ArrayOfIndexLinSpace.
+
+2013-03-11  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-543
 
 	* controlfiles/CMakeLists.txt: Add cia testcases to check-xmldata.

@@ -92,6 +92,36 @@ void ArrayOfIndexSetConstant(ArrayOfIndex& aoi,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfIndexLinSpace(ArrayOfIndex&  x,
+                          const Index&   start,
+                          const Index&   stop,
+                          const Index&   step,
+                          const Verbosity& verbosity)
+{
+    CREATE_OUT2;
+    CREATE_OUT3;
+
+    Index n = (Index) floor( (stop-start)/step ) + 1;
+    if (n < 1) n = 1;
+
+    x.resize(n);
+
+    for ( Index i = 0; i < n; i++ )
+        x[i] = start + i*step;
+
+    out2 << "  Creating a linearly spaced ArrayOfIndex.\n";
+    out3 << "        length : " << x.nelem() << "\n";
+    out3 << "   first value : " << x[0] << "\n";
+
+    if ( x.nelem() > 1 )
+    {
+        out3 << "     step size : " << x[1]-x[0] << "\n";
+        out3 << "    last value : " << x[x.nelem()-1] << "\n";
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfStringSet(ArrayOfString&  sa,
                       const ArrayOfString&  sa2,
                       const Verbosity&)

@@ -1945,6 +1945,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfIndexLinSpace" ),
+        DESCRIPTION
+        (
+         "Initializes an ArrayOfIndex with linear spacing.\n"
+         "\n"
+         "The first element equals always the start value, and the spacing\n"
+         "equals always the step value, but the last value can deviate from\n"
+         "the stop value. *step* can be both positive and negative.\n"
+         "\n"
+         "The created array is [start, start+step, start+2*step, ...]\n "
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "out"      ),
+        GOUT_TYPE( "ArrayOfIndex" ),
+        GOUT_DESC( "Output array." ),
+        IN(),
+        GIN(         "start",   "stop",    "step"    ),
+        GIN_TYPE(    "Index",   "Index",   "Index" ),
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF     ),
+        GIN_DESC( "Start value.",
+                  "Maximum/minimum value of the end value",
+                  "Spacing of the array."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ArrayOfIndexSet" ),
         DESCRIPTION
         (
@@ -10088,7 +10116,7 @@ void define_md_data_raw()
       ( NAME( "VectorLinSpace" ),
         DESCRIPTION
         (
-         "Creates a vector with linear spacing.\n"
+         "Initializes a vector with linear spacing.\n"
          "\n"
          "The first element equals always the start value, and the spacing\n"
          "equals always the step value, but the last value can deviate from\n"
@@ -10116,7 +10144,7 @@ void define_md_data_raw()
       ( NAME( "VectorLogSpace" ),
         DESCRIPTION
         (
-         "Creates a vector with logarithmic spacing.\n"
+         "Initializes a vector with logarithmic spacing.\n"
          "\n"
          "The first element equals always the start value, and the spacing\n"
          "equals always the step value, but note that the last value can \n"
