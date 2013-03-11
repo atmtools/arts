@@ -133,6 +133,13 @@ if (ARTS_XML_DATA_DIR)
 
   arts_test_run_ctlfile(xmldata.isoratios
                         artscomponents/arts-xml-data/TestIsoRatios.arts)
+
+  arts_test_run_ctlfile(xmldata.cia
+                        artscomponents/cia/TestCIA.arts)
+
+  arts_test_run_ctlfile(xmldata.cia.rt
+                        artscomponents/cia/TestRTwithCIA.arts)
+
 endif (ARTS_XML_DATA_DIR)
 
 

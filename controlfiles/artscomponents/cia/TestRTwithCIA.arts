@@ -65,7 +65,7 @@ SpeciesSet( abs_species,
 
 # Read CIA data
 # ---
-ReadXML(abs_cia_data, "../../../../arts-xml-data/spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz")
+ReadXML(abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz")
 
 
 # Line file and a matching coarse frequency grid
@@ -73,7 +73,7 @@ ReadXML(abs_cia_data, "../../../../arts-xml-data/spectroscopy/cia/hitran2011/hit
 abs_linesReadFromSplitArtscat( 	
     abs_lines, 
     abs_species, 
-    "~/Dropbox/StefanDrop/checkouts/arts-xml-data/spectroscopy/Perrin/", 
+    "spectroscopy/Perrin/", 
     1e9, 3000e9 )
 VectorNLinSpace( f_grid, 100, 1e9, 3000e9 )
 

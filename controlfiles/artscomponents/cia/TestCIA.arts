@@ -9,7 +9,7 @@ INCLUDE "general/general.arts"
 INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 
-ReadXML(abs_cia_data, "../../../../arts-xml-data/spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz")
+ReadXML(abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz")
 
 Print(abs_cia_data)
 

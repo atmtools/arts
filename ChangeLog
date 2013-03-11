@@ -1,3 +1,14 @@
+2013-03-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-543
+
+	* controlfiles/CMakeLists.txt: Add cia testcases to check-xmldata.
+
+	* controlfiles/artscomponents/cia/TestCIA.arts,
+	controlfiles/artscomponents/cia/TestRTwithCIA.arts:
+
+	Adapt path to arts-xml-data.
+
 2013-03-08  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-542
