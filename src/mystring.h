@@ -155,6 +155,8 @@ inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
   // Range checks:
   assert(0<=pos);               // Start index must be 0 or greater 0.
 
+  if (!A.size()) return;
+
 //   cout << "A = " << A << "\n";
 //   cout << "pos = " << pos << "\n";
 //   cout << "size = " << A.size() << "\n";

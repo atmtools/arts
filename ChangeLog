@@ -1,5 +1,21 @@
 2013-03-11  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-545
+
+	* src/m_append.h: Several fixes.
+
+	Properly handle appending to or appending an empty variable.
+	Allow appending a variable to itself.
+	Don't run into an endless loop and eat all memory when appending an
+	ArrayOf to itself.
+
+	* src/mystring.h:
+
+	Fix bug in constructor that produced an assertion when trying to
+	create an arts String from an empty C++ string.
+
+2013-03-11  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-544
 
 	* src/m_basic_types.cc, src/methods.cc: Add ArrayOfIndexLinSpace.

@@ -45,11 +45,24 @@ void Append(// WS Generic Output:
             const String& direction _U_,
             const Verbosity&)
 {
-  // Reserve memory in advance to avoid reallocations:
-  out.reserve(out.nelem()+in.nelem());
-  // Append in to end of out:
-  for (Index i=0; i<in.nelem(); ++i)
-    out.push_back(in[i]);
+    const Array<T>* in_pnt;
+    Array<T> in_copy;
+
+    if (&in == &out)
+    {
+        in_copy = in;
+        in_pnt = &in_copy;
+    }
+    else
+        in_pnt = &in;
+
+    const Array<T>& in_ref = *in_pnt;
+
+    // Reserve memory in advance to avoid reallocations:
+    out.reserve(out.nelem() + in_ref.nelem());
+    // Append in to end of out:
+    for (Index i = 0; i < in_ref.nelem(); ++i)
+        out.push_back(in_ref[i]);
 }
 
 
@@ -75,17 +88,32 @@ void Append(// WS Generic Output:
             const String& direction _U_,
             const Verbosity&)
 {
-  // Get backup of out:
-  Vector dummy = out;
+    const Vector* in_pnt;
+    Vector in_copy;
 
-  // Make out the right size:
-  out.resize(dummy.nelem()+in.nelem());
+    if (&in == &out)
+    {
+        in_copy = in;
+        in_pnt = &in_copy;
+    }
+    else
+        in_pnt = &in;
 
-  // Copy dummy to first part of out:
-  out[Range(0,dummy.nelem())] = dummy;
-  
-  // Copy in to last part of out:
-  out[Range(dummy.nelem(),in.nelem())] = in;
+    const Vector &in_ref = *in_pnt;
+
+    // Get backup of out:
+    Vector dummy = out;
+
+    // Make out the right size:
+    out.resize(dummy.nelem() + in_ref.nelem());
+
+    // Copy dummy to first part of out:
+    if (dummy.nelem())
+        out[Range(0, dummy.nelem())] = dummy;
+
+    // Copy in to last part of out:
+    if (in_ref.nelem())
+        out[Range(dummy.nelem(), in_ref.nelem())] = in_ref;
 }
 
 
@@ -97,28 +125,46 @@ void Append(// WS Generic Output:
             const String& direction,
             const Verbosity&)
 {
-  // Get backup of out:
-  Matrix dummy = out;
+    const Matrix* in_pnt;
+    Matrix in_copy;
 
-  if (direction == "leading")
-  {
-    if (out.ncols() != in.ncols())
-      throw runtime_error("Input and output matrix must have the same number of columns.");
+    if (&in == &out)
+    {
+        in_copy = in;
+        in_pnt = &in_copy;
+    }
+    else
+        in_pnt = &in;
 
-    out.resize(dummy.nrows() + in.nrows(), dummy.ncols());
-    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-    out(Range(dummy.nrows(), in.nrows()), Range(0, in.ncols())) = in;
-  }
-  else if (direction == "trailing")
-  {
-    if (out.nrows() != in.nrows())
-      throw runtime_error("Input and output matrix must have the same number of rows.");
-    
-    out.resize(dummy.nrows(), dummy.ncols() + in.ncols());
-    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-    out(Range(0, in.nrows()), Range(dummy.ncols(), in.ncols())) = in;
-  }
-  else throw runtime_error("Dimension must be either \"leading\" or \"trailing\".");
+    const Matrix &in_ref = *in_pnt;
+
+    // Get backup of out:
+    Matrix dummy = out;
+
+    if (direction == "leading")
+    {
+        if (out.ncols() != in_ref.ncols())
+            throw runtime_error("Input and output matrix must have the same number of columns.");
+
+        out.resize(dummy.nrows() + in_ref.nrows(), dummy.ncols());
+
+        if (dummy.nrows() && dummy.ncols())
+            out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+        if (dummy.nrows() && in_ref.nrows() && in_ref.ncols())
+            out(Range(dummy.nrows(), in_ref.nrows()), Range(0, in_ref.ncols())) = in_ref;
+    }
+    else if (direction == "trailing")
+    {
+        if (out.nrows() != in_ref.nrows())
+            throw runtime_error("Input and output matrix must have the same number of rows.");
+
+        out.resize(dummy.nrows(), dummy.ncols() + in_ref.ncols());
+        if (dummy.nrows() && dummy.ncols())
+            out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+        if (dummy.ncols() && in_ref.nrows() && in_ref.ncols())
+            out(Range(0, in_ref.nrows()), Range(dummy.ncols(), in_ref.ncols())) = in_ref;
+    }
+    else throw runtime_error("Dimension must be either \"leading\" or \"trailing\".");
 }
 
 
@@ -130,28 +176,33 @@ void Append(// WS Generic Output:
             const String& direction,
             const Verbosity&)
 {
-  // Get backup of out:
-  Matrix dummy = out;
+    // Get backup of out:
+    Matrix dummy = out;
 
-  if (direction == "leading")
-  {
-    if (out.ncols() != in.nelem())
-      throw runtime_error("Number of elements in the input Vector has to match the number of columns in the output Matrix.");
+    if (direction == "leading")
+    {
+        if (out.ncols() != in.nelem())
+            throw runtime_error("Number of elements in the input Vector has to match "
+                                "the number of columns in the output Matrix.");
 
-    out.resize(dummy.nrows() + 1, dummy.ncols());
-    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-    out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(in);
-  }
-  else if (direction == "trailing")
-  {
-    if (out.nrows() != in.nelem())
-        throw runtime_error("Number of elements in the input Vector has to match the number of rows in the output Matrix.");
+        out.resize(dummy.nrows() + 1, dummy.ncols());
+        out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+        out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(in);
+    }
+    else if (direction == "trailing")
+    {
+        if (in.nelem())
+        {
+            if (out.nrows() != in.nelem())
+                throw runtime_error("Number of elements in the input Vector has to match "
+                                    "the number of rows in the output Matrix.");
 
-    out.resize(dummy.nrows(), dummy.ncols() + 1);
-    out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-    out(Range(0, in.nelem()), Range(dummy.ncols(), 1)) = in;
-  }
-  else throw runtime_error("Dimension must be either \"leading\" or \"trailing\".");
+            out.resize(dummy.nrows(), dummy.ncols() + 1);
+            out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+            out(Range(0, in.nelem()), Range(dummy.ncols(), 1)) = in;
+        }
+    }
+    else throw runtime_error("Dimension must be either \"leading\" or \"trailing\".");
 }
 
 
