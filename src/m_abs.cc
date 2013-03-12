@@ -1988,6 +1988,37 @@ void abs_mat_per_speciesInit(//WS Output
 
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_mat_per_speciesAddFaraday(// Workspace reference:
+                                   Workspace& ws _U_,
+                                   // WS Output:
+                                   Tensor4& abs_mat_per_species _U_,
+                                   // WS Input:
+                                   const Vector& f_grid _U_,
+                                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                                   const Numeric& rtp_pressure _U_,
+                                   const Numeric& rtp_temperature _U_,
+                                   const Vector& rtp_abs_species _U_,
+                                   const Numeric& rtp_doppler _U_,
+                                   const Agenda& abs_xsec_agenda _U_,
+                                   // Verbosity object:
+                                   const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+
+  for(Index sp = 0; sp < abs_species.nelem(); sp++)
+    {
+      // We don't have to loop over the tags in the group because
+      // 'free_electrons' can only appear alone
+      if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+        {
+          out2 << "  Calculating Faraday Rotation\n";
+        }
+    }
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_mat_per_speciesAddOnTheFly(// Workspace reference:
                                     Workspace& ws,

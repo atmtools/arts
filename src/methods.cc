@@ -1167,6 +1167,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_mat_per_speciesAddFaraday" ),
+        DESCRIPTION
+        (
+         "Stub method.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "abs_mat_per_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_mat_per_species",
+            "f_grid",
+            "abs_species",
+            "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler",
+            "abs_xsec_agenda"
+           ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "abs_mat_per_speciesAddFromAbsCoefPerSpecies" ),
         DESCRIPTION
         (

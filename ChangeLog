@@ -1,5 +1,30 @@
 2013-03-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-548
+
+	* src/mystring.h (my_basic_string):
+
+	Add trim method to remove whitespace from Strings.
+
+	Remove cruft.
+
+	* src/abs_species_tags.{cc,h}
+
+	(SpeciesTag): Add support for 'free_electrons' tag.
+
+	(species_index_from_species_name): Use new String.trim.
+
+	* src/m_abs_lookup.cc (SpeciesSet):
+
+	Make sure 'free_electrons' is not used with other tags in the same
+	group and not more than once overall.
+
+	* src/methods.cc, src/m_abs.cc:
+
+	Add stub for abs_mat_per_speciesAddFaraday.
+
+2013-03-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-547
 
 	* src/m_transmitter.cc:

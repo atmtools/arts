@@ -87,6 +87,17 @@ SpeciesTag::SpeciesTag(String def)
       def  = "";
     }
 
+  // Remove whitespace
+  name.trim();
+
+  // Check if species name contains the special tag for
+  // Faraday Rotation
+  if (name == "free_electrons")
+    {
+      mtype = TYPE_FREE_ELECTRONS;
+      return;
+    }
+
   // Obtain species index from species name.
   // (This will also remove possible whitespace.)
   mspecies = species_index_from_species_name( name );
@@ -333,6 +344,10 @@ String SpeciesTag::Name() const
            << mcia_dataset;
         
       }
+    else if (mtype == TYPE_FREE_ELECTRONS)
+      {
+        os << "free_electrons";
+      }
     else
       {
         // Zeeman flag.
@@ -552,24 +567,9 @@ Index species_index_from_species_name( String name )
 
   // For the return value:
   Index mspecies;
-  
-  // Remove leading whitespace, if there is any:
-  while ( 0 != name.nelem() && (
-                                ' '  == name[0] ||
-                                '\t' == name[0] ||
-                                '\n' == name[0] ||
-                                '\r' == name[0]
-                                )
-          )    name.erase(0,1);
 
-  // Remove trailing whitespace, if there is any:
-  while ( 0 != name.nelem() && (
-                                ' '  == name[name.nelem()-1] ||
-                                '\t' == name[name.nelem()-1] ||
-                                '\n' == name[name.nelem()-1] ||
-                                '\r' == name[name.nelem()-1]
-                                )
-          )    name.erase(name.nelem()-1);
+  // Trim whitespace
+  name.trim();
 
   //  cout << "name / def = " << name << " / " << def << endl;
 

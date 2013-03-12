@@ -90,12 +90,11 @@ public:
   void tolower() { std::transform ( this->begin(),  this->end(),
                                     this->begin(), ::tolower); }
   
+  /** Trim leading and trailing whitespace */
+  void trim();
+
   // Number of elements:
   Index nelem() const;
-
-  // Find functions:
-//   Index find(char c);
-//   Index find(const my_basic_string<charT>&  c);
 
   // Index operators:
   char operator[](Index n) const;
@@ -118,6 +117,7 @@ template<class charT>
 inline my_basic_string<charT>::my_basic_string() : basic_string<charT>()  
 { /* Nothing to do here. */ }
 
+
 /** Constructor setting size. You may give as a second argument a
     character with which to fill the new string. Per default this is
     zero. 
@@ -130,10 +130,6 @@ inline my_basic_string<charT>::my_basic_string(Index n, char c) :
   basic_string<charT>(n,c) 
 { /* Nothing to do here. */ }
 
-/** Construnctor from another my_basic_string. */
-// template<class charT>
-// inline my_basic_string<charT>::my_basic_string(const my_basic_string& A) : basic_string<charT>(A) 
-// { /* Nothing to do here. */ };
 
 /** Construnctor from a basic_string. This is important for handling
     of expressions like this to work correctly:
@@ -201,6 +197,7 @@ inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_
   return *this;
 }
 
+
 /** Insert string before all occurrences of the substring.
  
  \param[in] searchstr  String to search for.
@@ -225,6 +222,7 @@ inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT>& 
     }
 }
 
+
 /** Split string into substrings.
  
  \param[out] aos    ArrayOfString containing the returned substrings.
@@ -248,6 +246,32 @@ inline void my_basic_string<charT>::split (Array< my_basic_string<charT> > &aos,
   if (oldpos < (size_t)this->nelem()) aos.push_back(this->substr(oldpos));
 }
 
+
+/** Trim leading and trailing whitespace */
+template<class charT>
+void my_basic_string<charT>::trim()
+{
+    // Create ref to self for readability
+    my_basic_string& this_string = *this;
+
+    // Remove leading whitespace
+    while (0 != this_string.nelem()
+           && (' ' == this_string[0]
+               || '\t' == this_string[0]
+               || '\n' == this_string[0]
+               || '\r' == this_string[0]))
+        this_string.erase(0,1);
+
+    // Remove trailing whitespace
+    while (0 != this_string.nelem()
+           && (' ' == this_string[this_string.nelem()-1]
+               || '\t' == this_string[this_string.nelem()-1]
+               || '\n' == this_string[this_string.nelem()-1]
+               || '\r' == this_string[this_string.nelem()-1]))
+        this_string.erase(this_string.nelem()-1);
+}
+
+
 /** Number of elements. */
 template<class charT>
 inline Index my_basic_string<charT>::nelem() const
@@ -256,6 +280,7 @@ inline Index my_basic_string<charT>::nelem() const
   assert(s<LONG_MAX);
   return static_cast<long>(s);
 }
+
 
 /**
   Constant index operator. We redifine this here so that we can have
@@ -271,6 +296,7 @@ inline char my_basic_string<charT>::operator[](Index n) const
   return basic_string<charT>::operator[](n);
 }
 
+
 /**
   Non-constant index operator. We redifine this here so that we can
   have range checking by assert.
@@ -285,70 +311,12 @@ inline char& my_basic_string<charT>::operator[](Index n)
   return basic_string<charT>::operator[](n);
 }
 
-// Non-member functions:
-
-// /** Output operator. */
-// inline ostream& operator<<(ostream& os, const my_basic_string& v)
-// {
-//   my_basic_string<base>::const_iterator         i = v.begin();
-//   const my_basic_string<base>::const_iterator end = v.end();
-
-//   if ( i!=end )
-//     {
-//       os << *i;
-//       ++i;
-//     }
-
-//   for ( ; i!=end; ++i )
-//     {
-//       os << "\n" << setw(3) << *i;
-//     }
-
-
-//   // Just use the operator of string.
-//   operator<<(os,v);
-//   return os;
-// }
-
 
 /** The String type for ARTS. Implementation see documentation of
     class my_basic_string. */
 typedef my_basic_string<char> String;
 
-// Declare the existance of class Array:
-/*template<class base>
-class Array;*/
-
 /** An array of Strings. */
 typedef Array<String> ArrayOfString;
-
-//
-// We don't use this function, we use string.find() instead.
-//
-// //! Find first occurance.
-// /*!
-//   This returns the index of the first occurance of w in 
-//   string x.  
-// 
-//   A return value of -1 indicates that no matching element was found.
-// 
-//   \return   The index of the thing we looked for.
-//   \param  x The string to search.
-//   \param w  The character to look for.
-// 
-//   \author Stefan Buehler
-//   \date   2002-12-06
-// */
-// template <class base>
-// Index find_first( const my_basic_string<base>& x,
-//                   const base& w )
-// {
-//   for ( Index i=0; i<x.nelem(); ++i )
-//     if ( w == x[i] )
-//       return i;
-// 
-//   return -1;
-// }
-
 
 #endif  // mystring_h

@@ -112,7 +112,8 @@ public:
        TYPE_PLAIN,
        TYPE_ZEEMAN,
        TYPE_PREDEF,
-       TYPE_CIA
+       TYPE_CIA,
+       TYPE_FREE_ELECTRONS
    };
   
 

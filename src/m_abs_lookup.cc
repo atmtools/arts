@@ -1945,13 +1945,29 @@ void SpeciesSet(// WS Generic Output:
 
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Defined tag groups: ";
+  Index num_free_electrons = 0;
   for ( Index i=0; i<abs_species.nelem(); ++i )
     {
+      bool has_free_electrons = false;
       out3 << "\n  " << i << ":";
       for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
+          if (abs_species[i][s].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+            {
+              num_free_electrons++;
+              has_free_electrons = true;
+            }
+
           out3 << " " << abs_species[i][s].Name();
         }
+
+      if (abs_species[i].nelem() > 1 && has_free_electrons)
+        throw runtime_error("'free_electrons' must not be combined "
+                            "with other tags in the same group.");
+
+      if (num_free_electrons > 1)
+        throw runtime_error("'free_electrons' must not be defined "
+                            "more than once.");
     }
   out3 << '\n';
 }
