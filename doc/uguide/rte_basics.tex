@@ -124,10 +124,12 @@ atmospheric matter:
 \item[Absorbing species] This class covers atmospheric matter for which
   scattering can be neglected. The set of ``species'' to consider is described
   by the workspace variable \wsvindex{abs\_species}, and the associated
-  atmospheric fields are gathered into \wsvindex{abs\_species\_field}. The unit
-  for the fields varies, for gases it is volume mixing ratio, while
+  atmospheric fields are gathered into \wsvindex{vmr\_field}. As the name
+  indicates, this later variable is mainly containing volume mixing ratio (VMR)
+  data, but as this unit is not applicable in all cases also other units are
+  accepted. That is, the unit for the fields varies, for gases it is VMR, while
   particle mass concentrations are given in $g/m^3$ and electron density in
-  $m^{-3}$.
+  $m^{-3}$. 
 \item[Particles] This second class treats all matter causing significant
   scattering (and likely also adding to the absorption). The amount of
   scattering matter is given as particle number density fields ($m^{-3}$),
@@ -152,7 +154,7 @@ Related with the division between absorbing species and particles is:
   can be neglected.
 \end{description}
 The propagation effects of absorbing species and particles are kept separated.
-The total propagation matrix is
+The total propagation matrix is 
 \begin{equation}
   \label{eq:propmattotal}
   \ExtMat = \aAbsMat{a} + \aExtMat{p}, 
@@ -160,10 +162,16 @@ The total propagation matrix is
 where $a$ and $p$ refers to absorbing species and particles, respectively, and
 the symbol \AbsMat\ is used for the first term to remind about that the only
 extinction process covered by this matrix is absorption (but including
-magneto-optical effects). As workspace variables, \aAbsMat{a}\ and \aExtMat{p}\
-are denoted as \wsvindex{propmat\_clearsky} and \wsvindex{propmat\_particles},
-respectively. These variables are obtained by two agendas:
-\wsaindex{propmat\_clearsky\_agenda} and \wsaindex{propmat\_particles\_agenda}.
+magneto-optical effects). As workspace variable, \aAbsMat{a}\ is denoted as
+\wsvindex{propmat\_clearsky}, obtained by the
+\wsaindex{propmat\_clearsky\_agenda} agenda. \aExtMat{p}\ is obtained
+internally from \builtindoc{scat\_data\_raw}.
+
+% If propmat_particles_agenda is introduced:
+%As workspace variables, \aAbsMat{a}\ and \aExtMat{p}\
+%are denoted as \wsvindex{propmat\_clearsky} and \wsvindex{propmat\_particles},
+%respectively. These variables are obtained by two agendas:
+%\wsaindex{propmat\_clearsky\_agenda} and \wsaindex{propmat\_particles\_agenda}.
 
 
 
@@ -198,11 +206,12 @@ where \EmsVec\ can be seen as the emission source vector, defined as
 \end{equation}
 Hence, as only the first element of \EmsVec\ is non-zero, the absorption
 vector is in this case equal to the first column of \aAbsMat{a}.
-
 The absorption vector can not be extracted from \aExtMat{p}\ as this
-propagation matrix covers also scattering. As a consequence, the workspace
-variable \wsvindex{absvec\_particles} must be introduced, that is returned by
-\builtindoc{propmat\_particles\_agenda} together with \aExtMat{p}.
+propagation matrix covers also scattering and \wsvindex{scat\_data\_raw}
+must also contain such data.
+%As a consequence, the workspace
+%variable \wsvindex{absvec\_particles} must be introduced, that is returned by
+%\builtindoc{propmat\_particles\_agenda} together with \aExtMat{p}.
 
 In summary, the total absorption vector in ARTS is obtained as
 \begin{equation}
@@ -210,7 +219,7 @@ In summary, the total absorption vector in ARTS is obtained as
   \AbsVec = \aAbsVec{a} + \aAbsVec{p}
 \end{equation}
 where \aAbsVec{a}\ is the first column of \aAbsMat{a}\, and \aAbsVec{p}\ is the
-absorption vector due to particles (\builtindoc{absvec\_particles}).
+absorption vector due to particles.
 
 
 

@@ -1,3 +1,10 @@
+2013-03-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-546
+
+	* doc/uguide/rte_basics.tex: Modified following new discussions
+	about new WSV and their names. 
+
 2013-03-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-545
