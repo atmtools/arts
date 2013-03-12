@@ -279,7 +279,7 @@ void iyRadioLink(
     {
       Numeric fillvalue = 0;
       if( radback == 0 )
-        { fillvalue = 0.0/0.0; }  // // Should give NaN
+        { fillvalue = NAN; }
       //
       iy.resize( nf, stokes_dim );
       iy = fillvalue;
