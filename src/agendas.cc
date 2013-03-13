@@ -53,19 +53,19 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "abs_mat_per_species_agenda" ),
+     ( NAME( "propmat_clearsky_agenda" ),
        DESCRIPTION
        (
         "This agenda calculates the absorption coefficient matrix for all gas species\n"
         "as a function of the given atmospheric state for one point in the\n"
-        "atmosphere. The result is returned in *abs_mat_per_species*, the\n"
+        "atmosphere. The result is returned in *propmat_clearsky*, the\n"
         "atmospheric state has to be specified by *rtp_pressure*,\n"
         "*rtp_temperature*, *rtp_mag*, and *rtp_abs_species*.\n"
         "\n"
         "The methods inside this agenda may require a lot of additional\n"
         "input variables, such as *abs_species*, etc.\n"
         ),
-       OUTPUT( "abs_mat_per_species" ),
+       OUTPUT( "propmat_clearsky" ),
        INPUT(  "f_grid", "rtp_doppler", "rtp_mag", "rtp_los", "rtp_pressure", 
                "rtp_temperature", "rtp_abs_species" )));
   

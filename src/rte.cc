@@ -1200,7 +1200,7 @@ void get_ppath_atmvars(
 
     \param   ws                  Out: The workspace
     \param   ppath_abs_mat       Out: Absorption matrix at each ppath point
-    \param   abs_mat_per_species_agenda As the WSV.    
+    \param   propmat_clearsky_agenda As the WSV.    
     \param   ppath               As the WSV.    
     \param   ppath_p             Pressure for each ppath point.
     \param   ppath_t             Temperature for each ppath point.
@@ -1216,7 +1216,7 @@ void get_ppath_atmvars(
 void get_ppath_abs( 
         Workspace&      ws,
         Tensor5&        ppath_abs,
-  const Agenda&         abs_mat_per_species_agenda,
+  const Agenda&         propmat_clearsky_agenda,
   const Ppath&          ppath,
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
@@ -1249,26 +1249,26 @@ void get_ppath_abs(
   // Loop ppath points
   //
   Workspace l_ws (ws);
-  Agenda l_abs_mat_per_species_agenda (abs_mat_per_species_agenda);
+  Agenda l_propmat_clearsky_agenda (propmat_clearsky_agenda);
   //
   if (np)
 #pragma omp parallel for \
   if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
-  firstprivate(l_ws, l_abs_mat_per_species_agenda)
+  firstprivate(l_ws, l_propmat_clearsky_agenda)
   for( Index ip=0; ip<np; ip++ )
     {
       if (failed) continue;
 
       // Call agenda
       //
-      Tensor4  abs_mat_per_species;
+      Tensor4  propmat_clearsky;
       //
       try {
         const Numeric rtp_doppler = ppath_f(0,ip) - f_grid[0];
-        abs_mat_per_species_agendaExecute( l_ws, abs_mat_per_species, f_grid,
+        propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, f_grid,
                             rtp_doppler, ppath_mag(joker,ip), 
                             ppath.los(ip,joker), ppath_p[ip], ppath_t[ip], 
-                            ppath_vmr(joker,ip), l_abs_mat_per_species_agenda );
+                            ppath_vmr(joker,ip), l_propmat_clearsky_agenda );
       } catch (runtime_error e) {
 #pragma omp critical (get_ppath_abs_fail)
           { failed = true; fail_msg = e.what();}
@@ -1276,7 +1276,7 @@ void get_ppath_abs(
 
       // Copy to output argument
       if (!failed)
-          ppath_abs(joker,joker,joker,joker,ip) = abs_mat_per_species;
+          ppath_abs(joker,joker,joker,joker,ip) = propmat_clearsky;
     }
 
     if (failed)

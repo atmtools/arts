@@ -184,13 +184,13 @@ void pha_mat_labCalc(//Output:
                       const Numeric& theta_rad);
 
 
-// Get ext_mat and abs_vec from abs_mat_per_species:
+// Get ext_mat and abs_vec from propmat_clearsky:
 // ========================================================
 
-void opt_prop_sum_abs_mat_per_species(//Output:
+void opt_prop_sum_propmat_clearsky(//Output:
                                       Tensor3&         ext_mat,
                                       Matrix&          abs_vec,
                                       //Input:
-                                      const Tensor4    abs_mat_per_species);
+                                      const Tensor4    propmat_clearsky);
 
 #endif //optproperties_h

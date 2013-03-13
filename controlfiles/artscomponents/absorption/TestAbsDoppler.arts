@@ -18,7 +18,7 @@ Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 IndexSet( stokes_dim, 1 )
 
 # On-the-fly absorption
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # Read the spectroscopic line data from the ARTS catalogue and
 # create the workspace variable `lines'.
@@ -82,7 +82,7 @@ nelemGet( nelem, p_grid )
 VectorNLinSpace( doppler, nelem, 0, 1e9 )
 
 # Calculate field of absorption coefficients:
-abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_grid, 
+abs_mat_fieldCalc( abs_mat_field, propmat_clearsky_agenda, f_grid, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                vmr_field, doppler )
 
@@ -97,10 +97,10 @@ abs_lookupSetup
 abs_lookupCalc
 
 # absorption from LUT
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # Calculate field of absorption coefficients:
-abs_mat_fieldCalc( abs_mat_field, abs_mat_per_species_agenda, f_grid, 
+abs_mat_fieldCalc( abs_mat_field, propmat_clearsky_agenda, f_grid, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                vmr_field, doppler )
 

@@ -57,7 +57,7 @@ void clear_rt_vars_at_gp(Workspace&          ws,
                          MatrixView          ext_mat_mono,
                          VectorView          abs_vec_mono,
                          Numeric&            temperature,
-                         const Agenda&       abs_mat_per_species_agenda,
+                         const Agenda&       propmat_clearsky_agenda,
                          const Numeric&      f_mono,
                          const GridPos&      gp_p,
                          const GridPos&      gp_lat,
@@ -76,7 +76,7 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   //local versions of workspace variables
   Matrix  local_abs_vec;
   Tensor3 local_ext_mat;
-  Tensor4 local_abs_mat_per_species;
+  Tensor4 local_propmat_clearsky;
   ao_gp_p[0]=gp_p;
   ao_gp_lat[0]=gp_lat;
   ao_gp_lon[0]=gp_lon;
@@ -108,12 +108,12 @@ void clear_rt_vars_at_gp(Workspace&          ws,
   const Vector ppath_los_dummy;
   
   //calcualte absorption coefficient
-  abs_mat_per_species_agendaExecute(ws, local_abs_mat_per_species,
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
                                     Vector(1, f_mono), 0, rte_mag_dummy, ppath_los_dummy,p_vec[0],
                                     temperature, vmr_mat(joker, 0),
-                                    abs_mat_per_species_agenda);
+                                    propmat_clearsky_agenda);
 
-  opt_prop_sum_abs_mat_per_species(local_ext_mat, local_abs_vec, local_abs_mat_per_species);
+  opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
   
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
@@ -136,7 +136,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                           VectorView           abs_vec_mono,
                           VectorView           pnd_vec,
                           Numeric&             temperature,
-                          const Agenda&        abs_mat_per_species_agenda,
+                          const Agenda&        propmat_clearsky_agenda,
                           const Index          stokes_dim,
                           const Numeric&       f_mono,
                           const GridPos&       gp_p,
@@ -166,7 +166,7 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Numeric scat_za,scat_aa;
 
   //local versions of workspace variables
-  Tensor4 local_abs_mat_per_species;
+  Tensor4 local_propmat_clearsky;
   Matrix  local_abs_vec;
   Tensor3 local_ext_mat;
   //Numeric local_rte_pressure;
@@ -188,12 +188,12 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   const Vector ppath_los_dummy;
   
   //rte_vmr_list    = vmr_ppath(joker,0);
-  abs_mat_per_species_agendaExecute(ws, local_abs_mat_per_species,
+  propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
                                     Vector(1, f_mono), 0, rte_mag_dummy, ppath_los_dummy,p_ppath[0],
                                     temperature,vmr_ppath(joker, 0),
-                                    abs_mat_per_species_agenda);
+                                    propmat_clearsky_agenda);
   
-  opt_prop_sum_abs_mat_per_species(local_ext_mat, local_abs_vec, local_abs_mat_per_species);
+  opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
   
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
@@ -465,7 +465,7 @@ void mcPathTraceGeneral(
          bool&           inside_cloud,
    const Agenda&         ppath_step_agenda,
    const Numeric&        ppath_lraytrace,
-   const Agenda&         abs_mat_per_species_agenda,
+   const Agenda&         propmat_clearsky_agenda,
    const Index           stokes_dim,
    const Numeric&        f_mono,
    const Vector&         p_grid,
@@ -529,7 +529,7 @@ void mcPathTraceGeneral(
   if( inside_cloud )
     {
       cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec, 
-                            temperature, abs_mat_per_species_agenda, 
+                            temperature, propmat_clearsky_agenda, 
                             stokes_dim, f_mono, ppath_step.gp_p[0], 
                             ppath_step.gp_lat[0], ppath_step.gp_lon[0],
                             p_grid[p_range], 
@@ -541,7 +541,7 @@ void mcPathTraceGeneral(
   else
     {
       clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                           abs_mat_per_species_agenda, f_mono,
+                           propmat_clearsky_agenda, f_mono,
                            ppath_step.gp_p[0], ppath_step.gp_lat[0], 
                            ppath_step.gp_lon[0], p_grid, t_field, vmr_field );
       pnd_vec = 0.0;
@@ -596,7 +596,7 @@ void mcPathTraceGeneral(
       if( inside_cloud )
         {
           cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
-                                temperature, abs_mat_per_species_agenda, 
+                                temperature, propmat_clearsky_agenda, 
                                 stokes_dim, f_mono, ppath_step.gp_p[ip],
                                 ppath_step.gp_lat[ip], ppath_step.gp_lon[ip],
                                 p_grid[p_range], 
@@ -608,7 +608,7 @@ void mcPathTraceGeneral(
       else
         {
           clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                               abs_mat_per_species_agenda, f_mono,
+                               propmat_clearsky_agenda, f_mono,
                                ppath_step.gp_p[ip], ppath_step.gp_lat[ip],
                                ppath_step.gp_lon[ip], p_grid, t_field, 
                                vmr_field );

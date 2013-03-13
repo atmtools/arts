@@ -189,7 +189,7 @@ void get_ppath_atmvars(
 void get_ppath_abs( 
         Workspace&      ws,
         Tensor5&        ppath_abs,
-  const Agenda&         abs_mat_per_species_agenda,
+  const Agenda&         propmat_clearsky_agenda,
   const Ppath&          ppath,
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 

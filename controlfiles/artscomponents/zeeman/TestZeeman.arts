@@ -31,7 +31,7 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # on-the-fly absorption considering Zeeman splitting
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly_Zeeman )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_Zeeman )
 VectorSet(abs_n2,[-1])
 
 IndexSet( stokes_dim, 4 )

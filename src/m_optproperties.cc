@@ -681,7 +681,7 @@ void ext_matInit(Tensor3&         ext_mat,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddGas(Tensor3&      ext_mat,
-                   const Tensor4& abs_mat_per_species,
+                   const Tensor4& propmat_clearsky,
                    const Verbosity&)
 {
   // Number of Stokes parameters:
@@ -692,17 +692,17 @@ void ext_matAddGas(Tensor3&      ext_mat,
   if ( stokes_dim != ext_mat.nrows() )
     throw runtime_error("Row dimension of ext_mat inconsistent with "
                         "column dimension.");
-  if ( stokes_dim != abs_mat_per_species.ncols() )
-    throw runtime_error("Col dimension of abs_mat_per_species "
+  if ( stokes_dim != propmat_clearsky.ncols() )
+    throw runtime_error("Col dimension of propmat_clearsky "
                         "inconsistent with col dimension in ext_mat.");
 
   // Number of frequencies:
   const Index f_dim = ext_mat.npages();
 
   // This must be consistent with the second dimension of
-  // abs_mat_per_species. Check this:
-  if ( f_dim != abs_mat_per_species.npages() )
-    throw runtime_error("Frequency dimension of ext_mat and abs_mat_per_species\n"
+  // propmat_clearsky. Check this:
+  if ( f_dim != propmat_clearsky.npages() )
+    throw runtime_error("Frequency dimension of ext_mat and propmat_clearsky\n"
                         "are inconsistent in ext_matAddGas.");
 
   // Sum up absorption over all species.
@@ -716,7 +716,7 @@ void ext_matAddGas(Tensor3&      ext_mat,
   for ( Index iv=0; iv<f_dim; ++iv )
         for ( Index is1=0; is1<stokes_dim; ++is1 )
               for ( Index is2=0; is2<stokes_dim; ++is2 )
-                    abs_total(iv,is1,is2) += abs_mat_per_species(joker,iv,is1,is2).sum();
+                    abs_total(iv,is1,is2) += propmat_clearsky(joker,iv,is1,is2).sum();
   
     // Add the absorption value to all the elements:
       ext_mat += abs_total;
@@ -752,7 +752,7 @@ void abs_vecInit(Matrix&       abs_vec,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecAddGas(Matrix&       abs_vec,
-                   const Tensor4& abs_mat_per_species,
+                   const Tensor4& propmat_clearsky,
                    const Verbosity&)
 {
   // Number of frequencies:
@@ -760,22 +760,22 @@ void abs_vecAddGas(Matrix&       abs_vec,
   const Index stokes_dim = abs_vec.ncols();
   
   // This must be consistent with the second dimension of
-  // abs_mat_per_species. Check this:
-  if ( f_dim != abs_mat_per_species.npages() )
-    throw runtime_error("Frequency dimension of abs_vec and abs_mat_per_species\n"
+  // propmat_clearsky. Check this:
+  if ( f_dim != propmat_clearsky.npages() )
+    throw runtime_error("Frequency dimension of abs_vec and propmat_clearsky\n"
                         "are inconsistent in abs_vecAddGas.");
-  if ( stokes_dim != abs_mat_per_species.ncols() )
-    throw runtime_error("Stokes dimension of abs_vec and abs_mat_per_species\n"
+  if ( stokes_dim != propmat_clearsky.ncols() )
+    throw runtime_error("Stokes dimension of abs_vec and propmat_clearsky\n"
                         "are inconsistent in abs_vecAddGas.");
     
   // Loop all frequencies. Of course this includes the special case
   // that there is only one frequency.
   for ( Index i=0; i<f_dim; ++i )
     {
-      // Sum up the columns of abs_mat_per_species and add to the first
+      // Sum up the columns of propmat_clearsky and add to the first
       // element of abs_vec.
       for(Index is = 0; is < stokes_dim;is++)
-        abs_vec(i,is) += abs_mat_per_species(joker,i,is,0).sum();
+        abs_vec(i,is) += propmat_clearsky(joker,i,is,0).sum();
     }
 
   // We don't have to do anything about higher elements of abs_vec,

@@ -406,7 +406,7 @@ executed, which means that the method calls it contains are executed one
 after another.
 
 Figure \ref{fig:agendas} gives an example, for the agenda
-\wsaindex{abs\_mat\_per\_species\_agenda}. Several radiative transfer methods use this
+\wsaindex{propmat\_clearsky\_agenda}. Several radiative transfer methods use this
 agenda as input variable. When they need local absorption coefficients for a
 point in the atmosphere, they execute the agenda with the local pressure,
 temperature, and trace gas volume mixing ratio values as inputs. The agenda
@@ -415,12 +415,12 @@ then provides absorption coefficients as output.
 \begin{figure}
 \begin{code}
 *-------------------------------------------------------------------*
-Workspace variable = abs_mat_per_species_agenda
+Workspace variable = propmat_clearsky_agenda
 ---------------------------------------------------------------------
 
 This agenda calculates absorption coefficients for all gas species
 as a function of the given atmospheric state for one point in the
-atmosphere. The result is returned in *abs_mat_per_species*, the
+atmosphere. The result is returned in *propmat_clearsky*, the
 atmospheric state has to be specified by *rte_pressure*,
 *rte_temperature*, *rte_mag*, and *rte_vmr_list*.
 
@@ -428,7 +428,7 @@ The methods inside this agenda may require a lot of additional
 input variables, such as *f_grid*, *species*, etc.
 ---------------------------------------------------------------------
 Group  = Agenda
-Output = abs_mat_per_species
+Output = propmat_clearsky
 Input  = f_grid, rte_doppler, rte_mag, rte_pressure,
          rte_temperature, rte_vmr_list
 *-------------------------------------------------------------------*
@@ -436,11 +436,11 @@ Input  = f_grid, rte_doppler, rte_mag, rte_pressure,
 \begin{minipage}[t]{0.48\hsize}
 \begin{code}
 AgendaSet(
-abs_mat_per_species_agenda)
+propmat_clearsky_agenda)
 {
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddOnTheFly
-  abs_mat_per_speciesAddZeeman
+  propmat_clearskyInit
+  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddZeeman
 }
 \end{code}
 \end{minipage}
@@ -450,18 +450,18 @@ abs_mat_per_species_agenda)
 \begin{minipage}[t]{0.48\hsize}
 \begin{code}
 AgendaSet(
-abs_mat_per_species_agenda)
+propmat_clearsky_agenda)
 {
   Ignore(rte_mag)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddFromLookup
+  propmat_clearskyInit
+  propmat_clearskyAddFromLookup
 }
 \end{code}
 \end{minipage}
 \caption{Top: Built-in documentation for variable
-  \builtindoc{abs\_mat\_per\_species\_agenda}, obtained by command
-  `\shortcode{arts -d abs\_mat\_per\_species\_agenda}', or on page
-  \url{http://www.sat.ltu.se/arts/docserver/agendas/abs_mat_per_species_agenda}. Bottom
+  \builtindoc{propmat\_clearsky\_agenda}, obtained by command
+  `\shortcode{arts -d propmat\_clearsky\_agenda}', or on page
+  \url{http://www.sat.ltu.se/arts/docserver/agendas/propmat_clearsky_agenda}. Bottom
   left: Controlfile agenda definition for line-by-line absorption
   calculation. Bottom right: Controlfile agenda definition to extract
   absorption from a pre-calculated lookup table.}
@@ -477,9 +477,9 @@ coefficients are extracted from a pre-calculated lookup table.
 On invocation, an agenda executes its methods one after the
 other. The inputs and outputs defined for the agenda must be satisfied
 by the invoked workspace methods. E.g., if an agenda has
-\builtindoc{abs\_mat\_per\_species} in its list of output workspace
+\builtindoc{propmat\_clearsky} in its list of output workspace
 variables, at least one workspace method which generates
-\builtindoc{abs\_mat\_per\_species} must be added to the agenda in the
+\builtindoc{propmat\_clearsky} must be added to the agenda in the
 controlfile.
 
 \section{Include controlfiles}

@@ -188,7 +188,7 @@ void iyEmissionStandard(
    const ArrayOfArrayOfIndex&        jacobian_indices,
    const Agenda&                     ppath_agenda,
    const Agenda&                     blackbody_radiation_agenda,
-   const Agenda&                     abs_mat_per_species_agenda,
+   const Agenda&                     propmat_clearsky_agenda,
    const Agenda&                     iy_main_agenda,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     iy_surface_agenda,
@@ -339,7 +339,7 @@ void iyEmissionStandard(
                           edensity_field );      
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
-      get_ppath_abs(      ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+      get_ppath_abs(      ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim );
       get_ppath_trans(    trans_partial, trans_cumulat, scalar_tau, farrot_c1,
@@ -437,7 +437,7 @@ void iyEmissionStandard(
               if( is_t[iq] ) 
                 { 
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_abs( ws, ppath_at2, abs_mat_per_species_agenda, 
+                  get_ppath_abs( ws, ppath_at2, propmat_clearsky_agenda, 
                                  ppath, ppath_p, t2, ppath_vmr, ppath_f,
                                  ppath_mag, f_grid, stokes_dim );
                   get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
@@ -450,7 +450,7 @@ void iyEmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awu, abs_mat_per_species_agenda,
+                      get_ppath_abs( ws, ppath_awu, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
@@ -459,7 +459,7 @@ void iyEmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(1,joker) += dw;
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awv, abs_mat_per_species_agenda,
+                      get_ppath_abs( ws, ppath_awv, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
@@ -468,7 +468,7 @@ void iyEmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(2,joker) += dw;
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_aww, abs_mat_per_species_agenda,
+                      get_ppath_abs( ws, ppath_aww, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
@@ -935,7 +935,7 @@ void iyMC(
    const ArrayOfSingleScatteringData&   scat_data_raw,
    const Agenda&                     iy_space_agenda,
    const Agenda&                     surface_rtprop_agenda,
-   const Agenda&                     abs_mat_per_species_agenda, 
+   const Agenda&                     propmat_clearsky_agenda, 
    const Agenda&                     ppath_step_agenda, 
    const Numeric&                    ppath_lraytrace, 
    const Tensor4&                    pnd_field,
@@ -1005,7 +1005,7 @@ void iyMC(
   Workspace l_ws (ws);
   Agenda l_ppath_step_agenda (ppath_step_agenda);
   Agenda l_iy_space_agenda (iy_space_agenda);
-  Agenda l_abs_mat_per_species_agenda (abs_mat_per_species_agenda);
+  Agenda l_propmat_clearsky_agenda (propmat_clearsky_agenda);
   Agenda l_surface_rtprop_agenda (surface_rtprop_agenda);
 
   String fail_msg;
@@ -1014,7 +1014,7 @@ void iyMC(
   if (nf)
 #pragma omp parallel for                                          \
   if(!arts_omp_in_parallel()) \
-  firstprivate(l_ws, l_ppath_step_agenda, l_iy_space_agenda, l_abs_mat_per_species_agenda, l_surface_rtprop_agenda)
+  firstprivate(l_ws, l_ppath_step_agenda, l_iy_space_agenda, l_propmat_clearsky_agenda, l_surface_rtprop_agenda)
   for( Index f_index=0; f_index<nf; f_index++ )
     {
       if (failed) continue;
@@ -1037,7 +1037,7 @@ void iyMC(
         MCGeneral( l_ws, y, mc_iteration_count, mc_error, mc_points, mc_antenna,
                    f_grid, f_index, pos, los, stokes_dim, atmosphere_dim,
                    l_ppath_step_agenda, ppath_lraytrace, l_iy_space_agenda, 
-                   l_surface_rtprop_agenda, l_abs_mat_per_species_agenda, 
+                   l_surface_rtprop_agenda, l_propmat_clearsky_agenda, 
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
                    edensity_field, cloudbox_on, cloudbox_limits,

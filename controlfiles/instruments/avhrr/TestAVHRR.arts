@@ -109,9 +109,9 @@ Delete( arrayofmatrix_1 )
 abs_lookupSetupBatch
 abs_lookupCalc
 
-# Set abs_mat_per_species_agenda to use lookup table
+# Set propmat_clearsky_agenda to use lookup table
 # ---
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # Set up RT calculation
 # =====================

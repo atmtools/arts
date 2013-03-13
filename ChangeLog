@@ -1,3 +1,29 @@
+2013-03-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-549
+
+	* This commit breaks backwords-compatibility:
+
+	All occurences of abs_mat_per_species have been renamed to
+	propmat_clearsky. This includes all Workspace methods that have
+	abs_mat_per_species in their name and the abs_mat_per_species_agenda.
+
+	* src/agendas.cc, src/disort.cc, src/disort.h, src/doit.cc, src/doit.h,
+	src/m_abs.cc, src/m_abs_lookup.cc, src/m_cloudradar.cc, src/m_doit.cc,
+	src/m_montecarlo.cc, src/m_optproperties.cc, src/m_rte.cc,
+	src/m_transmitter.cc, src/m_zeeman.cc, src/methods.cc,
+	src/montecarlo.cc, src/montecarlo.h, src/optproperties.cc,
+	src/optproperties.h, src/rte.cc, src/rte.h, src/workspace.cc,
+	doc/uguide/absorption.tex, doc/uguide/concept.tex,
+	controlfiles/*/*/*.arts,
+	controlfiles/general/agendas.arts,
+	controlfiles/general/agendasDOIT.arts,
+	controlfiles/planetary_toolbox/includes/common/AbsLookup.arts,
+	controlfiles/planetary_toolbox/includes/common/AbsOnTheFly.arts,
+	controlfiles/planetary_toolbox/validation/common/spectroscopy/SpecCat_Consistency_Perrin-vs-HITRAN.arts:
+
+	s/abs_mat_per_species/propmat_clearskypropmat_clearsky/g
+	
 2013-03-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-548

@@ -29,7 +29,7 @@ Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( blackbody_radiation_agenda, blackbody_radiation_agenda__Planck )
 
 # on-the-fly absorption
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # Include CIA in spectroscopy
 Copy( abs_xsec_agenda, abs_xsec_agenda__withCIA )

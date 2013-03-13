@@ -56,7 +56,7 @@ ReadXML( abs_lookup ){
 abs_lookupAdapt
 
 # absorption from LUT
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 AtmFieldsCalc
 

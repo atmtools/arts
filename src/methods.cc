@@ -205,9 +205,9 @@ void define_md_data_raw()
          "\n"
          "The purpose of this method is to allow an explicit line-by-line\n"
          "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
-         "*abs_mat_per_species_agenda*. What the method does is to prepare absorption\n"
+         "*propmat_clearsky_agenda*. What the method does is to prepare absorption\n"
          "input parameters (pressure, temperature, VMRs), from the input\n"
-         "parameters to *abs_mat_per_species_agenda*.\n"
+         "parameters to *propmat_clearsky_agenda*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
@@ -1146,14 +1146,14 @@ void define_md_data_raw()
          "pre-calculated for the entire atmospheric field.\n"
          "\n"
          "The calculation itself is performed by the\n"
-         "*abs_mat_per_species_agenda*.\n"
+         "*propmat_clearsky_agenda*.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
         OUT( "abs_mat_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_mat_per_species_agenda",
+        IN( "propmat_clearsky_agenda",
             "f_grid",
             "atmosphere_dim",
             "p_grid", "lat_grid", "lon_grid",
@@ -1167,17 +1167,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddFaraday" ),
+      ( NAME( "propmat_clearskyAddFaraday" ),
         DESCRIPTION
         (
          "Stub method.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "abs_mat_per_species" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_mat_per_species",
+        IN( "propmat_clearsky",
             "f_grid",
             "abs_species",
             "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler",
@@ -1191,22 +1191,22 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddFromAbsCoefPerSpecies" ),
+      ( NAME( "propmat_clearskyAddFromAbsCoefPerSpecies" ),
         DESCRIPTION
         (
-         "Copy *abs_mat_per_species* from *abs_coef_per_species*. This is handy for putting an\n"
+         "Copy *propmat_clearsky* from *abs_coef_per_species*. This is handy for putting an\n"
          "explicit line-by-line calculation into the\n"
-         "*abs_mat_per_species_agenda*. This method is also used internally by.\n"
-         "*abs_mat_per_speciesAddOnTheFly*.\n"
-         "Like all other abs_mat_per_species methods, this method does not overwrite\n"
-         "prior content of *abs_mat_per_species*, but adds to it.\n"
+         "*propmat_clearsky_agenda*. This method is also used internally by.\n"
+         "*propmat_clearskyAddOnTheFly*.\n"
+         "Like all other propmat_clearsky methods, this method does not overwrite\n"
+         "prior content of *propmat_clearsky*, but adds to it.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_mat_per_species" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_mat_per_species","abs_coef_per_species" ),
+        IN( "propmat_clearsky","abs_coef_per_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1215,7 +1215,7 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddFromLookup" ),
+      ( NAME( "propmat_clearskyAddFromLookup" ),
         DESCRIPTION
         (
          "Extract gas absorption coefficients from lookup table.\n"
@@ -1241,14 +1241,14 @@ void define_md_data_raw()
          "Use extpolfac to control how much extrapolation to tolerate before throwing\n"
          "a runtime error. Default is to allow ten times the outermost grid distance.\n"
          "\n"
-         "See also: *abs_mat_per_speciesAddOnTheFly*.\n"
+         "See also: *propmat_clearskyAddOnTheFly*.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "abs_mat_per_species" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_mat_per_species", "abs_lookup", "abs_lookup_is_adapted",
+        IN( "propmat_clearsky", "abs_lookup", "abs_lookup_is_adapted",
             "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
             "f_grid", "rtp_pressure", "rtp_temperature", "rtp_abs_species", 
             "rtp_doppler" ),
@@ -1260,13 +1260,13 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddOnTheFly" ),
+      ( NAME( "propmat_clearskyAddOnTheFly" ),
         DESCRIPTION
         (
          "Calculates gas absorption coefficients line-by-line.\n"
          "\n"
-         "This method can be used inside *abs_mat_per_species_agenda* just like\n"
-         "*abs_mat_per_speciesAddFromLookup*. It is a shortcut for putting in some\n"
+         "This method can be used inside *propmat_clearsky_agenda* just like\n"
+         "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
          "other methods explicitly, namely:\n"
          "\n"
          "  1. *NumericScale*( rtp_doppler, rtp_doppler, -1 )\n"
@@ -1274,7 +1274,7 @@ void define_md_data_raw()
          "  3. *AbsInputFromRteScalars*\n"
          "  4. *abs_h2oSet*\n"
          "  5. *abs_coefCalc*\n"
-         "  6. *abs_mat_per_speciesAddFromAbsCoefPerSpecies*\n"
+         "  6. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
          "\n"
          "Sub-methods 2 and 3 are called only if rtp_doppler is not zero.\n"
          "The treatment of the Doppler-shift here is exact, since the underlying\n"
@@ -1284,11 +1284,11 @@ void define_md_data_raw()
          "of pressure, temperature, VMR values, and Doppler shift.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
-        OUT( "abs_mat_per_species" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_mat_per_species",
+        IN( "propmat_clearsky",
             "f_grid",
             "abs_species",
             "rtp_pressure", "rtp_temperature", "rtp_abs_species", "rtp_doppler",
@@ -1302,7 +1302,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesAddZeeman" ),
+      ( NAME( "propmat_clearskyAddZeeman" ),
         DESCRIPTION
         (
         "This function will, for each Zeeman species, make a local\n"
@@ -1325,11 +1325,11 @@ void define_md_data_raw()
         "the other two.\n"
          ),
         AUTHORS( "Richard Larsson" ),
-        OUT("abs_mat_per_species"),
+        OUT("propmat_clearsky"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("abs_mat_per_species",
+        IN("propmat_clearsky",
            "f_grid",
            "abs_species",
            "abs_lines_per_species",
@@ -1346,15 +1346,15 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "abs_mat_per_speciesInit" ),
+      ( NAME( "propmat_clearskyInit" ),
         DESCRIPTION
         (
          "Initialize stokes dim gas absorption coefficients line-by-line.\n"
          "\n"
-         "This method must be used inside *abs_mat_per_species_agenda*\n"
+         "This method must be used inside *propmat_clearsky_agenda*\n"
          ),
         AUTHORS( "Oliver Lemke, Richard Larsson" ),
-        OUT( "abs_mat_per_species" ),
+        OUT( "propmat_clearsky" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -1500,7 +1500,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_vec", "abs_mat_per_species" ),
+        IN( "abs_vec", "propmat_clearsky" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3572,7 +3572,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_i_field", "doit_i_field_old",
             "doit_scat_field", "cloudbox_limits",
-            "abs_mat_per_species_agenda",
+            "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
             "opt_prop_part_agenda", "ppath_step_agenda", "ppath_lraytrace", 
             "p_grid", "z_field", "refellipsoid", 
@@ -3603,7 +3603,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field", "doit_scat_field", "cloudbox_limits",
-            "abs_mat_per_species_agenda",
+            "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid", 
             "pnd_field", "opt_prop_part_agenda", "ppath_step_agenda", 
             "ppath_lraytrace", "p_grid", "z_field", "refellipsoid", 
@@ -3640,7 +3640,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_i_field",
             "doit_scat_field", "cloudbox_limits",
-            "abs_mat_per_species_agenda",
+            "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
             "opt_prop_part_agenda",
             "p_grid", "z_field", "t_field", "f_grid", "f_index" ),
@@ -3671,7 +3671,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field", "doit_scat_field", "cloudbox_limits", 
-            "abs_mat_per_species_agenda",
+            "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid",
             "pnd_field", "opt_prop_part_agenda", "ppath_step_agenda", 
             "ppath_lraytrace", "p_grid", "lat_grid", "lon_grid", "z_field",
@@ -3956,7 +3956,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ext_mat", "abs_mat_per_species" ),
+        IN( "ext_mat", "propmat_clearsky" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4279,11 +4279,11 @@ void define_md_data_raw()
          "Reduce f_grid to the frequency given by f_index.\n"
          "\n"
          "This is one of the methods necessary to do line by line absorption\n"
-         "calculations inside *abs_mat_per_species_agenda*.\n"
+         "calculations inside *propmat_clearsky_agenda*.\n"
          "\n"
          "It reduces the f_grid to only one frequency, the one given by\n"
          "f_index. If f_index is -1, then all frequencies are kept. This\n"
-         "behavior is consistent with *abs_mat_per_speciesAddFromLookup*.\n"
+         "behavior is consistent with *propmat_clearskyAddFromLookup*.\n"
 	 "FIXME Stefan: Remove this method?\n"
          ),
         AUTHORS( "Stefan Buehler" ),
@@ -4824,7 +4824,7 @@ void define_md_data_raw()
             "cloudbox_limits", "pnd_field", "use_mean_scat_data",
             "scat_data_raw", "particle_masses",
             "iy_unit", "iy_aux_vars", "jacobian_do", "ppath_agenda", 
-            "abs_mat_per_species_agenda", "iy_transmitter_agenda",
+            "propmat_clearsky_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los",
             "rte_alonglos_v", "ppath_lraytrace" ),
         GIN(      "ze_tref" ),
@@ -4923,7 +4923,7 @@ void define_md_data_raw()
             "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
             "jacobian_quantities", "jacobian_indices", 
             "ppath_agenda", "blackbody_radiation_agenda",
-            "abs_mat_per_species_agenda", "iy_main_agenda", 
+            "propmat_clearsky_agenda", "iy_main_agenda", 
             "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda", 
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
             "rte_pos2", "rte_alonglos_v", "ppath_lraytrace" ),
@@ -4972,7 +4972,7 @@ void define_md_data_raw()
             "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", "p_grid", 
             "z_field", "t_field", "vmr_field", "edensity_field", "cloudbox_on", 
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "blackbody_radiation_agenda", "abs_mat_per_species_agenda", "iy_main_agenda",
+            "blackbody_radiation_agenda", "propmat_clearsky_agenda", "iy_main_agenda",
             "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
             "fos_angles", "use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
@@ -5032,7 +5032,7 @@ void define_md_data_raw()
             "edensity_field", "refellipsoid", 
             "z_surface", "cloudbox_on", "cloudbox_limits", "cloudbox_checked",
             "stokes_dim", "f_grid", "scat_data_raw", "iy_space_agenda", 
-            "surface_rtprop_agenda", "abs_mat_per_species_agenda",
+            "surface_rtprop_agenda", "propmat_clearsky_agenda",
             "ppath_step_agenda", "ppath_lraytrace", "pnd_field", "iy_unit",
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_min_iter" ),
         GIN(),
@@ -5276,7 +5276,7 @@ void define_md_data_raw()
             "pnd_field", "use_mean_scat_data","scat_data_raw", 
             "particle_masses", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", "ppath_step_agenda",
-            "abs_mat_per_species_agenda", "iy_transmitter_agenda",
+            "propmat_clearsky_agenda", "iy_transmitter_agenda",
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_pos2",
             "rte_alonglos_v", "ppath_lraytrace" ),
         GIN(      "defocus_method", "defocus_shift" ),
@@ -5419,7 +5419,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "pnd_field", 
             "use_mean_scat_data", "scat_data_raw", "particle_masses",
             "iy_aux_vars", "jacobian_do", "jacobian_quantities", 
-            "jacobian_indices", "ppath_agenda", "abs_mat_per_species_agenda",
+            "jacobian_indices", "ppath_agenda", "propmat_clearsky_agenda",
             "iy_transmitter_agenda", "iy_agenda_call1", "iy_transmission", 
             "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", 
             "ppath_lraytrace" ),
@@ -6740,7 +6740,7 @@ void define_md_data_raw()
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
             "stokes_dim", "atmosphere_dim", "ppath_step_agenda", 
             "ppath_lraytrace", "iy_space_agenda", "surface_rtprop_agenda", 
-            "abs_mat_per_species_agenda", "p_grid",
+            "propmat_clearsky_agenda", "p_grid",
             "lat_grid", "lon_grid", "z_field", "refellipsoid", "z_surface", 
             "t_field", "vmr_field", "edensity_field",
             "cloudbox_on", "cloudbox_limits", 
@@ -8383,7 +8383,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
-            "abs_mat_per_species_agenda", "spt_calc_agenda", "pnd_field", "t_field",
+            "propmat_clearsky_agenda", "spt_calc_agenda", "pnd_field", "t_field",
             "z_field", "p_grid", "vmr_field", "scat_data_raw", "f_grid", 
             "scat_za_grid", "surface_emissivity_DISORT" ),
         GIN(),

@@ -34,7 +34,7 @@ IndexSet( stokes_dim, 1 )
 AtmFieldsCalc
 
 # On-the-fly absorption
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
 
@@ -77,7 +77,7 @@ abs_lookupSetup
 abs_lookupCalc
 
 # Reset absorption agenda:
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # Redo calculation:
 timerStart

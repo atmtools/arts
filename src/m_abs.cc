@@ -1883,30 +1883,30 @@ void abs_cont_descriptionAppend(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddFromAbsCoefPerSpecies(// WS Output:
-                               Tensor4&       abs_mat_per_species,
+void propmat_clearskyAddFromAbsCoefPerSpecies(// WS Output:
+                               Tensor4&       propmat_clearsky,
                                // WS Input:
                                const ArrayOfMatrix& abs_coef_per_species,
                                const Verbosity&)
 {
-  // abs_mat_per_species has format
+  // propmat_clearsky has format
   // [ abs_species, f_grid, stokes_dim, stokes_dim ].
   // abs_coef_per_species has format ArrayOfMatrix (over species),
   // where for each species the matrix has format [f_grid, abs_p].
 
   
   // Set stokes_dim (and check that the last two dimensions of
-  // abs_mat_per_species really are equal).
+  // propmat_clearsky really are equal).
   Index nr, nc, stokes_dim;
-  // In the two stokes dimensions, abs_mat_per_species should be a
+  // In the two stokes dimensions, propmat_clearsky should be a
   // square matrix of stokes_dim*stokes_dim. Check this, and determine
   // stokes_dim:
-  nr = abs_mat_per_species.nrows();
-  nc = abs_mat_per_species.ncols();
+  nr = propmat_clearsky.nrows();
+  nc = propmat_clearsky.ncols();
   if ( nr!=nc )
   {
     ostringstream os;
-    os << "The last two dimensions of abs_mat_per_species must be equal (stokes_dim).\n"
+    os << "The last two dimensions of propmat_clearsky must be equal (stokes_dim).\n"
     << "But here they are " << nr << " and " << nc << ".";
     throw runtime_error( os.str() );
   }
@@ -1932,35 +1932,35 @@ void abs_mat_per_speciesAddFromAbsCoefPerSpecies(// WS Output:
       throw runtime_error(os.str());
     }
   
-  // Check species dimension of abs_mat_per_species
-  if ( abs_mat_per_species.nbooks()!=n_species )
+  // Check species dimension of propmat_clearsky
+  if ( propmat_clearsky.nbooks()!=n_species )
   {
     ostringstream os;
-    os << "Species dimension of abs_mat_per_species does not\n"
+    os << "Species dimension of propmat_clearsky does not\n"
        << "match abs_coef_per_species.";
     throw runtime_error( os.str() );
   }
   
-  // Check frequency dimension of abs_mat_per_species
-  if ( abs_mat_per_species.npages()!=n_f )
+  // Check frequency dimension of propmat_clearsky
+  if ( propmat_clearsky.npages()!=n_f )
   {
     ostringstream os;
-    os << "Frequency dimension of abs_mat_per_species does not\n"
+    os << "Frequency dimension of propmat_clearsky does not\n"
        << "match abs_coef_per_species.";
     throw runtime_error( os.str() );
   }
   
-  // Loop species and stokes dimensions, and add to abs_mat_per_species:
+  // Loop species and stokes dimensions, and add to propmat_clearsky:
   for ( Index si=0; si<n_species; ++si )
     for ( Index ii=0; ii<stokes_dim; ++ii )
-      abs_mat_per_species(si,joker,ii, ii) += abs_coef_per_species[si](joker,0);
+      propmat_clearsky(si,joker,ii, ii) += abs_coef_per_species[si](joker,0);
 
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesInit(//WS Output
-                             Tensor4&                        abs_mat_per_species,
+void propmat_clearskyInit(//WS Output
+                             Tensor4&                        propmat_clearsky,
                              //WS Input
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Vector&                   f_grid,
@@ -1977,8 +1977,8 @@ void abs_mat_per_speciesInit(//WS Output
         {
             if(stokes_dim > 0)
             {
-                abs_mat_per_species.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
-                abs_mat_per_species = 0;
+                propmat_clearsky.resize(abs_species.nelem(),nf, stokes_dim, stokes_dim);
+                propmat_clearsky = 0;
             }
             else throw  runtime_error("stokes_dim = 0");
         }
@@ -1990,10 +1990,10 @@ void abs_mat_per_speciesInit(//WS Output
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddFaraday(// Workspace reference:
+void propmat_clearskyAddFaraday(// Workspace reference:
                                    Workspace& ws _U_,
                                    // WS Output:
-                                   Tensor4& abs_mat_per_species _U_,
+                                   Tensor4& propmat_clearsky _U_,
                                    // WS Input:
                                    const Vector& f_grid _U_,
                                    const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -2020,10 +2020,10 @@ void abs_mat_per_speciesAddFaraday(// Workspace reference:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddOnTheFly(// Workspace reference:
+void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     Workspace& ws,
                                     // WS Output:
-                                    Tensor4& abs_mat_per_species,
+                                    Tensor4& propmat_clearsky,
                                     // WS Input:
                                     const Vector& f_grid,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -2121,8 +2121,8 @@ void abs_mat_per_speciesAddOnTheFly(// Workspace reference:
                        abs_vmrs, abs_p, abs_t, verbosity);
   
   
-  // Now add abs_coef_per_species to abs_mat_per_species:
-  abs_mat_per_speciesAddFromAbsCoefPerSpecies(abs_mat_per_species,
+  // Now add abs_coef_per_species to propmat_clearsky:
+  propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky,
                                               abs_coef_per_species,
                                               verbosity);
 

@@ -98,7 +98,7 @@ void iyRadioLink(
    const Index&                       jacobian_do,
    const Agenda&                      ppath_agenda,
    const Agenda&                      ppath_step_agenda,
-   const Agenda&                      abs_mat_per_species_agenda,
+   const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_transmitter_agenda,
    const Index&                       iy_agenda_call1,
    const Tensor3&                     iy_transmission,
@@ -320,7 +320,7 @@ void iyRadioLink(
                          edensity_field);      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_abs(     ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+      get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim );
       if( !cloudbox_on )
@@ -627,7 +627,7 @@ void iyTransmissionStandard(
    const ArrayOfRetrievalQuantity&    jacobian_quantities,
    const ArrayOfArrayOfIndex&         jacobian_indices,
    const Agenda&                      ppath_agenda,
-   const Agenda&                      abs_mat_per_species_agenda,
+   const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_transmitter_agenda,
    const Index&                       iy_agenda_call1,
    const Tensor3&                     iy_transmission,
@@ -835,7 +835,7 @@ void iyTransmissionStandard(
                          edensity_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_abs(     ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+      get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_f, 
                          ppath_mag, f_grid, stokes_dim );
       if( !cloudbox_on )
@@ -933,7 +933,7 @@ void iyTransmissionStandard(
               if( is_t[iq] ) 
                 { 
                   Vector t2 = ppath_t;   t2 += dt;
-                  get_ppath_abs( ws, ppath_at2, abs_mat_per_species_agenda, 
+                  get_ppath_abs( ws, ppath_at2, propmat_clearsky_agenda, 
                                  ppath, ppath_p, t2, ppath_vmr, ppath_f,
                                  ppath_mag, f_grid, stokes_dim );
                 }
@@ -944,7 +944,7 @@ void iyTransmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awu, abs_mat_per_species_agenda,
+                      get_ppath_abs( ws, ppath_awu, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
@@ -953,7 +953,7 @@ void iyTransmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(1,joker) += dw;
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_awv, abs_mat_per_species_agenda,
+                      get_ppath_abs( ws, ppath_awv, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
@@ -962,7 +962,7 @@ void iyTransmissionStandard(
                       Matrix f2, w2 = ppath_wind;   w2(0,joker) += dw;
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
-                      get_ppath_abs( ws, ppath_aww, abs_mat_per_species_agenda,
+                      get_ppath_abs( ws, ppath_aww, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }

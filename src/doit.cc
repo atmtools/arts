@@ -222,7 +222,7 @@ void cloud_fieldsCalc(Workspace& ws,
   \param cloudbox_limits 
   \param doit_scat_field Scattered field.
   Calculate scalar gas absorption:
-  \param abs_mat_per_species_agenda
+  \param propmat_clearsky_agenda
   \param vmr_field
   Propagation path calculation:
   \param ppath_step_agenda
@@ -253,7 +253,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& abs_mat_per_species_agenda,
+                          const Agenda& propmat_clearsky_agenda,
                           ConstTensor4View vmr_field,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
@@ -353,7 +353,7 @@ void cloud_ppath_update1D(Workspace& ws,
       // at the intersection with the next layer and propagating
       // to the considered point.
       cloud_RT_no_background(ws, doit_i_field, 
-                             abs_mat_per_species_agenda,
+                             propmat_clearsky_agenda,
                                  ppath_step,
                              t_int, vmr_list_int,
                              ext_mat_int, abs_vec_int, sca_vec_int,
@@ -395,7 +395,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 ConstTensor6View doit_i_field_old,
                                 ConstTensor6View doit_scat_field,
                                 // Calculate scalar gas absorption:
-                                const Agenda& abs_mat_per_species_agenda,
+                                const Agenda& propmat_clearsky_agenda,
                                 ConstTensor4View vmr_field,
                                 // Propagation path calculation:
                                 const Agenda& ppath_step_agenda,
@@ -498,7 +498,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
       // at the intersection with the next layer and propagating
       // to the considered point.
       cloud_RT_no_background(ws, doit_i_field,
-                             abs_mat_per_species_agenda,
+                             propmat_clearsky_agenda,
                              ppath_step,
                              t_int, vmr_list_int,
                              ext_mat_int, abs_vec_int, sca_vec_int,
@@ -547,7 +547,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   \param cloudbox_limits 
   \param doit_scat_field Scattered field.
   Calculate scalar gas absorption:
-  \param abs_mat_per_species_agenda
+  \param propmat_clearsky_agenda
   \param vmr_field
   Propagation path calculation:
   \param ppath_step_agenda
@@ -580,7 +580,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& abs_mat_per_species_agenda,
+                          const Agenda& propmat_clearsky_agenda,
                           ConstTensor4View vmr_field,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
@@ -805,7 +805,7 @@ void cloud_ppath_update3D(Workspace& ws,
       
       out3 << "Calculate radiative transfer inside cloudbox.\n";
       cloud_RT_no_background(ws, doit_i_field, 
-                             abs_mat_per_species_agenda,
+                             propmat_clearsky_agenda,
                              ppath_step,
                              t_int, vmr_list_int,
                              ext_mat_int, abs_vec_int, sca_vec_int,
@@ -827,7 +827,7 @@ void cloud_ppath_update3D(Workspace& ws,
   with the updated values for a given zenith angle (scat_za_index) and 
   pressure (p_index).
   Input:
-  \param abs_mat_per_species_agenda Calculate gas absorption.
+  \param propmat_clearsky_agenda Calculate gas absorption.
   \param ppath_step Propagation path step from one pressure level to the next 
   (this can include several points)
   \param t_int Temperature values interpolated on propagation path points.
@@ -850,7 +850,7 @@ void cloud_RT_no_background(Workspace& ws,
                             //Output
                             Tensor6View doit_i_field,
                             // Input
-                            const Agenda& abs_mat_per_species_agenda,
+                            const Agenda& propmat_clearsky_agenda,
                             const Ppath& ppath_step, 
                             ConstVectorView t_int,
                             ConstMatrixView vmr_list_int,
@@ -879,17 +879,17 @@ void cloud_RT_no_background(Workspace& ws,
   Vector stokes_vec(stokes_dim, 0.);
   Vector rte_vmr_list_local(N_species,0.); 
 
-  // Two abs_mat_per_species to average between
-  Tensor4 abs_mat_per_species_local1;
-  Tensor4 abs_mat_per_species_local2;
+  // Two propmat_clearsky to average between
+  Tensor4 propmat_clearsky_local1;
+  Tensor4 propmat_clearsky_local2;
 
-  // Pointers to the abs_mat_per_species of the previous and the current point.
+  // Pointers to the propmat_clearsky of the previous and the current point.
   // When moving along the ppath points, the pointers are used to move
-  // the current to the previos abs_mat_per_species without the need to
+  // the current to the previos propmat_clearsky without the need to
   // copy a whole Tensor4.
-  Tensor4* cur_abs_mat_per_species = &abs_mat_per_species_local1;
-  Tensor4* prev_abs_mat_per_species = &abs_mat_per_species_local2;
-  Tensor4* tmp_abs_mat_per_species;
+  Tensor4* cur_propmat_clearsky = &propmat_clearsky_local1;
+  Tensor4* prev_propmat_clearsky = &propmat_clearsky_local2;
+  Tensor4* tmp_propmat_clearsky;
 
   Tensor3 ext_mat_local;
   Matrix abs_vec_local;  
@@ -899,11 +899,11 @@ void cloud_RT_no_background(Workspace& ws,
 
   for( Index k = ppath_step.np-1; k >= 0; k--)
     {
-      // Switch abs_mat_per_species pointers around so
+      // Switch propmat_clearsky pointers around so
       // that prev_... now points to the cur_... from previous iteration
-      tmp_abs_mat_per_species = prev_abs_mat_per_species;
-      prev_abs_mat_per_species = cur_abs_mat_per_species;
-      cur_abs_mat_per_species = tmp_abs_mat_per_species;
+      tmp_propmat_clearsky = prev_propmat_clearsky;
+      prev_propmat_clearsky = cur_propmat_clearsky;
+      cur_propmat_clearsky = tmp_propmat_clearsky;
 
       //
       // Calculate scalar gas absorption
@@ -911,26 +911,26 @@ void cloud_RT_no_background(Workspace& ws,
       const Vector rte_mag_dummy(3,0);
       const Vector ppath_los_dummy;
       
-      abs_mat_per_species_agendaExecute( ws, *cur_abs_mat_per_species,
+      propmat_clearsky_agendaExecute( ws, *cur_propmat_clearsky,
                                     f_grid[Range(f_index, 1)],
                                     0,
                                     rte_mag_dummy, ppath_los_dummy,
                                     p_int[k], 
                                     t_int[k], 
                                     vmr_list_int(joker,k),
-                                    abs_mat_per_species_agenda );
+                                    propmat_clearsky_agenda );
 
       // Skip any further calculations for the first point.
       // We need values at two ppath points before we can average.
       if (k == ppath_step.np-1)
           continue;
     
-      // Average prev_abs_mat_per_species with cur_abs_mat_per_species
-      *prev_abs_mat_per_species += *cur_abs_mat_per_species;
-      *prev_abs_mat_per_species *= 0.5;
+      // Average prev_propmat_clearsky with cur_propmat_clearsky
+      *prev_propmat_clearsky += *cur_propmat_clearsky;
+      *prev_propmat_clearsky *= 0.5;
         
-      opt_prop_sum_abs_mat_per_species(ext_mat_local, abs_vec_local,
-                                       *prev_abs_mat_per_species);
+      opt_prop_sum_propmat_clearsky(ext_mat_local, abs_vec_local,
+                                       *prev_propmat_clearsky);
         
       //
       // Add average particle extinction to ext_mat. 
@@ -1270,7 +1270,7 @@ void interp_cloud_coeff1D(//Output
   \param cloudbox_limits 
   \param doit_scat_field Scattered field.
   Calculate scalar gas absorption:
-  \param abs_mat_per_species_agenda
+  \param propmat_clearsky_agenda
   \param vmr_field
   Propagation path calculation:
   \param ppath_step_agenda
@@ -1295,7 +1295,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         const ArrayOfIndex& cloudbox_limits,
                                         ConstTensor6View doit_scat_field,
                                         // Calculate scalar gas absorption:
-                                        const Agenda& abs_mat_per_species_agenda,
+                                        const Agenda& propmat_clearsky_agenda,
                                         ConstTensor4View vmr_field,
                                         // Propagation path calculation:
                                         ConstVectorView p_grid,
@@ -1314,7 +1314,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = doit_i_field.ncols();
   const Index atmosphere_dim = 1;   
-  Tensor4 abs_mat_per_species;
+  Tensor4 propmat_clearsky;
   Tensor3 ext_mat;
   Matrix abs_vec;
   Vector rte_vmr_list(N_species,0.); 
@@ -1379,16 +1379,16 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               const Vector rte_mag_dummy(3,0);
 	      const Vector ppath_los_dummy;
                 
-              abs_mat_per_species_agendaExecute(ws, abs_mat_per_species,
+              propmat_clearsky_agendaExecute(ws, propmat_clearsky,
                                                 f_grid[Range(f_index, 1)],
                                                 0,
                                                 rte_mag_dummy,ppath_los_dummy,
                                                 rte_pressure,
                                                 rte_temperature,
                                                 rte_vmr_list,
-                                                abs_mat_per_species_agenda);
+                                                propmat_clearsky_agenda);
               
-              opt_prop_sum_abs_mat_per_species(ext_mat, abs_vec, abs_mat_per_species);
+              opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
               
               //
               // Add average particle extinction to ext_mat. 
@@ -1496,16 +1496,16 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               const Vector rte_mag_dummy(3,0);
 	      const Vector ppath_los_dummy;
               
-              abs_mat_per_species_agendaExecute( ws, abs_mat_per_species,
+              propmat_clearsky_agendaExecute( ws, propmat_clearsky,
                                             f_grid[Range(f_index, 1)],
                                             0,
                                             rte_mag_dummy,ppath_los_dummy,
                                             rte_pressure, 
                                             rte_temperature, 
                                             rte_vmr_list,
-                                            abs_mat_per_species_agenda );
+                                            propmat_clearsky_agenda );
 
-              opt_prop_sum_abs_mat_per_species(ext_mat, abs_vec, abs_mat_per_species);
+              opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
 
               //
               // Add average particle extinction to ext_mat. 

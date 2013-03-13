@@ -86,7 +86,7 @@ void iyCloudRadar(
    const ArrayOfString&               iy_aux_vars,
    const Index&                       jacobian_do,
    const Agenda&                      ppath_agenda,
-   const Agenda&                      abs_mat_per_species_agenda,
+   const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_transmitter_agenda,
    const Index&                       iy_agenda_call1,
    const Tensor3&                     iy_transmission,
@@ -223,7 +223,7 @@ void iyCloudRadar(
                          edensity_field );
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
-      get_ppath_abs(     ws, ppath_abs, abs_mat_per_species_agenda, ppath, 
+      get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_f, ppath_mag, 
                          f_grid, stokes_dim );
       if( !cloudbox_on )

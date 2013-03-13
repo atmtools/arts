@@ -64,7 +64,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& abs_mat_per_species_agenda,
+                          const Agenda& propmat_clearsky_agenda,
                           ConstTensor4View vmr_field,
                           // Gas absorption:
                           // Propagation path calculation:
@@ -96,7 +96,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 ConstTensor6View doit_i_field_old,
                                 ConstTensor6View doit_scat_field,
                                 // Calculate scalar gas absorption:
-                                const Agenda& abs_mat_per_species_agenda,
+                                const Agenda& propmat_clearsky_agenda,
                                 ConstTensor4View vmr_field,
                                 // Gas absorption:
                                 // Propagation path calculation:
@@ -127,7 +127,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         const ArrayOfIndex& cloudbox_limits,
                                         ConstTensor6View scat_field,
                                         // Calculate scalar gas absorption:
-                                        const Agenda& abs_mat_per_species_agenda,
+                                        const Agenda& propmat_clearsky_agenda,
                                         ConstTensor4View vmr_field,
                                         // Gas absorption:
                                         // Propagation path calculation:
@@ -156,7 +156,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& abs_mat_per_species_agenda,
+                          const Agenda& propmat_clearsky_agenda,
                           ConstTensor4View vmr_field,
                           // Gas absorption:
                           // Propagation path calculation:
@@ -183,7 +183,7 @@ void cloud_RT_no_background(Workspace& ws,
                             //Output
                             Tensor6View doit_i_field,
                             // Input
-                            const Agenda& abs_mat_per_species_agenda,
+                            const Agenda& propmat_clearsky_agenda,
                             const Ppath& ppath_step, 
                             ConstVectorView t_int,
                             ConstMatrixView vmr_list_int,

@@ -9,7 +9,7 @@ abs_linesReadFromSplitArtscat( abs_lines, abs_species, "spectroscopy/Perrin/", 0
 abs_lines_per_speciesCreateFromLines
 
 # LUT absorption
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 abs_lookupSetup
 abs_lookupCalc
 #WriteXML( "ascii", abs_lookup )

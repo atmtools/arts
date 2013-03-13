@@ -2050,7 +2050,7 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddFromLookup( Tensor4&       abs_mat_per_species,
+void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted,
                                       const Index&        abs_p_interp_order,
@@ -2215,22 +2215,22 @@ void abs_mat_per_speciesAddFromLookup( Tensor4&       abs_mat_per_species,
     
     Index nr, nc, stokes_dim;
     
-    // In the two stokes dimensions, abs_mat_per_species should be a
+    // In the two stokes dimensions, propmat_clearsky should be a
     // square matrix of stokes_dim*stokes_dim. Check this, and determine
     // stokes_dim:
-    nr = abs_mat_per_species.nrows();
-    nc = abs_mat_per_species.ncols();
+    nr = propmat_clearsky.nrows();
+    nc = propmat_clearsky.ncols();
     if ( nr!=nc )
     {
         ostringstream os;
-        os << "The last two dimensions of abs_mat_per_species must be equal (stokes_dim).\n"
+        os << "The last two dimensions of propmat_clearsky must be equal (stokes_dim).\n"
            << "But here they are " << nr << " and " << nc << ".";
         throw runtime_error( os.str() );
     }
     stokes_dim = nr;       // Could be nc here too, since they are the same.
     
     
-    for(Index ii = 0; ii < stokes_dim; ii++){abs_mat_per_species(joker,joker,ii, ii) += abs_scalar_gas;}
+    for(Index ii = 0; ii < stokes_dim; ii++){propmat_clearsky(joker,joker,ii, ii) += abs_scalar_gas;}
     
 }
 
@@ -2374,7 +2374,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
                 // Agenda output: asg
-                abs_mat_per_species_agendaExecute(l_ws,
+                propmat_clearsky_agendaExecute(l_ws,
                                                   amps,
                                                   f_grid, a_doppler,
                                                   rte_mag_dummy,ppath_los_dummy,
@@ -2541,18 +2541,18 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   // Now get absorption line-by-line.
   
   // Variable to hold result of absorption calculation:
-  Tensor4 abs_mat_per_species;
+  Tensor4 propmat_clearsky;
   
-  // Initialize abs_mat_per_species:
-  abs_mat_per_speciesInit(abs_mat_per_species,
+  // Initialize propmat_clearsky:
+  propmat_clearskyInit(propmat_clearsky,
                           al.species,
                           al.f_grid,
                           1,                 // Stokes dimension
                           verbosity);
     
-  // Add result of LBL calculation to abs_mat_per_species:
-  abs_mat_per_speciesAddOnTheFly(ws,
-                                 abs_mat_per_species,
+  // Add result of LBL calculation to propmat_clearsky:
+  propmat_clearskyAddOnTheFly(ws,
+                                 propmat_clearsky,
                                  al.f_grid,
                                  al.species,
                                  local_p,
@@ -2566,7 +2566,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
 
   // Sum up for all species, to get total absorption:
   for (Index i=0; i<n_f; ++i)
-    abs_lbl[i] = abs_mat_per_species(joker,i,0,0).sum();
+    abs_lbl[i] = propmat_clearsky(joker,i,0,0).sum();
 
 
   // Ok. What we have to compare is abs_tab and abs_lbl.

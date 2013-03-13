@@ -570,7 +570,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-    ( NAME( "abs_mat_per_species" ),
+    ( NAME( "propmat_clearsky" ),
       DESCRIPTION
       (
        "This contains the absorption coefficients for one point in the\n"
@@ -589,7 +589,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "abs_mat_per_species_agenda" ),
+    ( NAME( "propmat_clearsky_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc.\n"

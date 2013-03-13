@@ -42,7 +42,7 @@ AtmosphereSet1D
 IndexSet( stokes_dim, 1 )
 
 # use abs LUT
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 # set the source for catalogues
 StringCreate( hitranfile )

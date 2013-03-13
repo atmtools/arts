@@ -5,14 +5,14 @@
 
 Arts2{
 
-AgendaCreate( abs_mat_per_species_agenda__OnTheFly )
-AgendaSet( abs_mat_per_species_agenda__OnTheFly ){
+AgendaCreate( propmat_clearsky_agenda__OnTheFly )
+AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore( rtp_mag )
   Ignore( rtp_los )
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddOnTheFly
+  propmat_clearskyInit
+  propmat_clearskyAddOnTheFly
 }
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 
 AgendaCreate( mybatch )

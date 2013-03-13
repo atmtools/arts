@@ -163,7 +163,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                         //Numeric&              rte_pressure,
                         //Vector&               rte_vmr_list,
                         const Agenda&         ppath_step_agenda,
-                        const Agenda&         abs_mat_per_species_agenda,
+                        const Agenda&         propmat_clearsky_agenda,
                         const Index           stokes_dim,
                         const Numeric&        f_mono,
                         const Vector&         p_grid,
@@ -222,7 +222,7 @@ void mcPathTraceGeneral(Workspace&            ws,
   if (inside_cloud)
     {
       cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                           abs_mat_per_species_agenda,
+                           propmat_clearsky_agenda,
                            stokes_dim, f_mono, ppath_step.gp_p[0], ppath_step.gp_lat[0],
                            ppath_step.gp_lon[0],p_grid[p_range], 
                            t_field(p_range,lat_range,lon_range), 
@@ -233,7 +233,7 @@ void mcPathTraceGeneral(Workspace&            ws,
   else
     {
       clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-           abs_mat_per_species_agenda, f_mono,
+           propmat_clearsky_agenda, f_mono,
             ppath_step.gp_p[0], ppath_step.gp_lat[0], ppath_step.gp_lon[0],
             p_grid, t_field, vmr_field );
       pnd_vec=0.0;
@@ -275,7 +275,7 @@ void mcPathTraceGeneral(Workspace&            ws,
       if (inside_cloud)
         {
           cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                               abs_mat_per_species_agenda, stokes_dim, f_mono,
+                               propmat_clearsky_agenda, stokes_dim, f_mono,
                                ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
                                ppath_step.gp_lon[np-1],p_grid[p_range], 
                                t_field(p_range,lat_range,lon_range), 
@@ -286,7 +286,7 @@ void mcPathTraceGeneral(Workspace&            ws,
       else
         {
           clear_rt_vars_at_gp(ws, ext_mat_mono,abs_vec_mono,temperature, 
-               abs_mat_per_species_agenda, f_mono,
+               propmat_clearsky_agenda, f_mono,
                ppath_step.gp_p[np-1], ppath_step.gp_lat[np-1],
                ppath_step.gp_lon[np-1], p_grid, t_field, vmr_field);
           pnd_vec=0.0;
@@ -420,7 +420,7 @@ void mcPathTraceGeneral(Workspace&            ws,
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
             "stokes_dim", "atmosphere_dim", "iy_space_agenda", 
             "surface_rtprop_agenda",  
-            "abs_mat_per_species_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
+            "propmat_clearsky_agenda", "ppath_step_agenda", "p_grid", "lat_grid",
             "lon_grid", "z_field", "refellipsoid", "z_surface", "t_field", 
             "vmr_field", "edensity_field", "cloudbox_limits", "pnd_field", 
             "scat_data_mono", "mc_seed", "iy_unit",
@@ -446,7 +446,7 @@ void MCIPA(Workspace&            ws,
            const Index&          atmosphere_dim,
            const Agenda&         iy_space_agenda,
            const Agenda&         surface_rtprop_agenda,
-           const Agenda&         abs_mat_per_species_agenda, 
+           const Agenda&         propmat_clearsky_agenda, 
            const Agenda&         ppath_step_agenda,
            const Vector&         p_grid,
            const Vector&         lat_grid, 
@@ -567,7 +567,7 @@ void MCIPA(Workspace&            ws,
                          evol_op, abs_vec_mono, temperature, ext_mat_mono, rng,
                          local_rte_pos, local_rte_los, pnd_vec, g,
                          termination_flag, inside_cloud, 
-                         abs_mat_per_species_agenda, 
+                         propmat_clearsky_agenda, 
                          stokes_dim, f_mono, p_grid,
                          lat_grid, lon_grid, z_field, refellipsoid, z_surface,
                          t_field, vmr_field, cloudbox_limits, pnd_field,
@@ -850,7 +850,7 @@ void mcPathTraceIPA(Workspace&            ws,
                     Numeric&              g,
                     Index&                termination_flag,
                     bool&                 inside_cloud,
-                    const Agenda&         abs_mat_per_species_agenda,
+                    const Agenda&         propmat_clearsky_agenda,
                     const Index           stokes_dim,
                     const Numeric&        f_mono,
                     const Vector&         p_grid,
@@ -941,7 +941,7 @@ void mcPathTraceIPA(Workspace&            ws,
   if (inside_cloud)
     {
       cloudy_rt_vars_at_gp(ws, ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                           abs_mat_per_species_agenda, stokes_dim, f_mono,
+                           propmat_clearsky_agenda, stokes_dim, f_mono,
                            gp_p, gp_lat, gp_lon,p_grid[p_range], 
                            t_field(p_range,lat_range,lon_range), 
                            vmr_field(joker,p_range,lat_range,lon_range),
@@ -951,7 +951,7 @@ void mcPathTraceIPA(Workspace&            ws,
   else
     {
       clear_rt_vars_at_gp( ws, ext_mat_mono,abs_vec_mono,temperature, 
-                           abs_mat_per_species_agenda, f_mono,
+                           propmat_clearsky_agenda, f_mono,
                            gp_p, gp_lat, gp_lon, p_grid, t_field, vmr_field);
       pnd_vec=0.0;
     }
@@ -1084,7 +1084,7 @@ void mcPathTraceIPA(Workspace&            ws,
         {
           cloudy_rt_vars_at_gp(ws,
                                ext_mat_mono, abs_vec_mono, pnd_vec, temperature,
-                               abs_mat_per_species_agenda, stokes_dim, 
+                               propmat_clearsky_agenda, stokes_dim, 
                                f_mono, gp_p,gp_lat, gp_lon, p_grid[p_range],
                                t_field(p_range,lat_range,lon_range), 
                                vmr_field(joker,p_range,lat_range,lon_range),
@@ -1094,7 +1094,7 @@ void mcPathTraceIPA(Workspace&            ws,
       else
         {
           clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
-                      abs_mat_per_species_agenda, f_mono,
+                      propmat_clearsky_agenda, f_mono,
                       gp_p, gp_lat, gp_lon, p_grid, t_field, vmr_field);
           pnd_vec=0.0;
         }

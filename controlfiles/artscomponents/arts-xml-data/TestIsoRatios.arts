@@ -55,7 +55,7 @@ sensorOff
 StringSet( iy_unit, "PlanckBT" )
 
 # On-the-fly absorption
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__OnTheFly )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # Blackbody surface
 AgendaSet( surface_rtprop_agenda ){

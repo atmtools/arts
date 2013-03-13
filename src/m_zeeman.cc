@@ -845,7 +845,7 @@ void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesT
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_mat_per_speciesAddZeeman(  Tensor4& abs_mat_per_species,
+void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     const Vector& f_grid,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
@@ -892,14 +892,14 @@ void abs_mat_per_speciesAddZeeman(  Tensor4& abs_mat_per_species,
     // Begin TEST(s)
     for(Index II = 0; II<abs_species.nelem(); II++)
         if(is_zeeman(abs_species[II])) { do_zeeman = true; break; } // If any species is Zeeman, do it.
-    if( abs_mat_per_species.ncols()  != 4 )
+    if( propmat_clearsky.ncols()  != 4 )
         throw runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
-    if( abs_mat_per_species.nrows()  != 4 )
+    if( propmat_clearsky.nrows()  != 4 )
         throw runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
-    if( abs_mat_per_species.npages() != f_grid.nelem() )
-        throw runtime_error("Frequency dimension of abs_mat_per_species not equal to length of f_grid.");
-    if( abs_mat_per_species.nbooks() != abs_species.nelem() )
-        throw runtime_error("Species dimension of abs_mat_per_species not equal to length of abs_species.");
+    if( propmat_clearsky.npages() != f_grid.nelem() )
+        throw runtime_error("Frequency dimension of propmat_clearsky not equal to length of f_grid.");
+    if( propmat_clearsky.nbooks() != abs_species.nelem() )
+        throw runtime_error("Species dimension of propmat_clearsky not equal to length of abs_species.");
     if( rte_mag.nelem() != 3 )
       throw runtime_error("*rte_mag* must have length 3.");
     // End   TEST(s)
@@ -1196,33 +1196,33 @@ void abs_mat_per_speciesAddZeeman(  Tensor4& abs_mat_per_species,
             
             Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
             
-            // Add Pi contribution to final abs_mat_per_species
+            // Add Pi contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_pi, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, 0, II, verbosity );
-            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         
-            // Add Sigma minus contribution to final abs_mat_per_species
+            // Add Sigma minus contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_sm, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, -1, II, verbosity );
-            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
             
-            // Add Sigma plus contribution to final abs_mat_per_species
+            // Add Sigma plus contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                                 temp_abs_lines_sp, isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                                 theta, eta, 1, II, verbosity );
-            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
             
-            // Add Default contribution to final abs_mat_per_species
+            // Add Default contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_dt, isotopologue_ratios,
                               abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                               theta, eta, 1023, II, verbosity );
-            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }
     }
     else // if the magnetic field is ignored
@@ -1237,7 +1237,7 @@ void abs_mat_per_speciesAddZeeman(  Tensor4& abs_mat_per_species,
                                 abs_lines_per_species[II], isotopologue_ratios,
                                 abs_vmrs, abs_p, abs_t, *f_grid_pointer,
                                 0,0,1023, II, verbosity );
-            abs_mat_per_species(II, joker, joker, joker) += part_abs_mat;
+            propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }
     }
 }

@@ -181,9 +181,9 @@ abs_lookupCalc
 # lookup table generation, perhaps even more. So, it is not cheap!
 #abs_lookupTestAccuracy
 
-# Set abs_mat_per_species_agenda to use lookup table
+# Set propmat_clearsky_agenda to use lookup table
 # ---
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 
 # Set up RT calculation

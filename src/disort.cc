@@ -53,7 +53,7 @@ extern const Numeric BOLTZMAN_CONST;
   \param dtauc                 optical depths for all layers
   \param ssalb                 single scattering albedos for all layers
   \param opt_prop_part_agenda  use arts -d for docu
-  \param abs_mat_per_species_agenda use arts -d
+  \param propmat_clearsky_agenda use arts -d
   \param spt_calc_agenda       use arts -d 
   \param pnd_field             use arts -d 
   \param t_field               use arts -d 
@@ -69,7 +69,7 @@ void dtauc_ssalbCalc(Workspace& ws,
                      VectorView dtauc,
                      VectorView ssalb,
                      const Agenda& opt_prop_part_agenda,
-                     const Agenda& abs_mat_per_species_agenda,
+                     const Agenda& propmat_clearsky_agenda,
                      const Agenda& spt_calc_agenda,
                      ConstTensor4View pnd_field,
                      ConstTensor3View t_field,
@@ -95,13 +95,13 @@ void dtauc_ssalbCalc(Workspace& ws,
   Tensor3 ext_mat_local;
   Numeric rte_temperature_local; 
   Numeric rte_pressure_local;
-  Tensor4 abs_mat_per_species_local;
+  Tensor4 propmat_clearsky_local;
   Vector ext_vector(Np_cloud); 
   Vector abs_vector(Np_cloud); 
   Vector rte_vmr_list_local(vmr_field.nbooks());
   // Calculate ext_mat, abs_vec and sca_vec for all pressure points. 
 
-  abs_mat_per_species_local = 0.;
+  propmat_clearsky_local = 0.;
   
 
  for(Index scat_p_index_local = 0; scat_p_index_local < Np_cloud; 
@@ -155,17 +155,17 @@ void dtauc_ssalbCalc(Workspace& ws,
     const Vector rte_mag_dummy(3,0);
     const Vector ppath_los_dummy;
 
-     abs_mat_per_species_agendaExecute(ws,
-                                  abs_mat_per_species_local,
+     propmat_clearsky_agendaExecute(ws,
+                                  propmat_clearsky_local,
                                   f_mono,  // monochromatic calculation
                                   0,
                                   rte_mag_dummy,ppath_los_dummy,
                                   rte_pressure_local, 
                                   rte_temperature_local, 
                                   rte_vmr_list_local,
-                                  abs_mat_per_species_agenda);
+                                  propmat_clearsky_agenda);
 
-     Numeric abs_total = abs_mat_per_species_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
+     Numeric abs_total = propmat_clearsky_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
 
      dtauc[Np_cloud-2-i]=(ext+abs+abs_total)*
        (z_field(i+1, 0, 0)-z_field(i, 0, 0));

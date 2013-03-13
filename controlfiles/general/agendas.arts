@@ -168,51 +168,51 @@ AgendaSet( ppath_step_agenda__RefractedPath ){
 
 
 ##################################
-#    abs_mat_per_species_agenda
+#    propmat_clearsky_agenda
 ##################################
 
 ###
 # "on-the-fly" absorption
 #
-AgendaCreate( abs_mat_per_species_agenda__OnTheFly )
-AgendaSet( abs_mat_per_species_agenda__OnTheFly ){
+AgendaCreate( propmat_clearsky_agenda__OnTheFly )
+AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddOnTheFly
+  propmat_clearskyInit
+  propmat_clearskyAddOnTheFly
 }
 
 ###
 # "on-the-fly" absorption with Zeeman
 #
-AgendaCreate( abs_mat_per_species_agenda__OnTheFly_Zeeman )
-AgendaSet( abs_mat_per_species_agenda__OnTheFly_Zeeman ){
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddOnTheFly
-  abs_mat_per_speciesAddZeeman
+AgendaCreate( propmat_clearsky_agenda__OnTheFly_Zeeman )
+AgendaSet( propmat_clearsky_agenda__OnTheFly_Zeeman ){
+  propmat_clearskyInit
+  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddZeeman
 }
 
 ###
 # absorption lookup table
 # this could save (considerable) time, especially for batch calculations.
 # 
-AgendaCreate( abs_mat_per_species_agenda__LookUpTable )
-AgendaSet( abs_mat_per_species_agenda__LookUpTable ){
+AgendaCreate( propmat_clearsky_agenda__LookUpTable )
+AgendaSet( propmat_clearsky_agenda__LookUpTable ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddFromLookup
+  propmat_clearskyInit
+  propmat_clearskyAddFromLookup
 }
 
 ###
 # absorption lookup table with Zeeman
 # this could save (considerable) time, especially for batch calculations.
 # 
-AgendaCreate( abs_mat_per_species_agenda__LookUpTable_Zeeman )
-AgendaSet( abs_mat_per_species_agenda__LookUpTable_Zeeman ){
-  abs_mat_per_speciesInit
-  abs_mat_per_speciesAddFromLookup
-  abs_mat_per_speciesAddZeeman
+AgendaCreate( propmat_clearsky_agenda__LookUpTable_Zeeman )
+AgendaSet( propmat_clearsky_agenda__LookUpTable_Zeeman ){
+  propmat_clearskyInit
+  propmat_clearskyAddFromLookup
+  propmat_clearskyAddZeeman
 }
 
 

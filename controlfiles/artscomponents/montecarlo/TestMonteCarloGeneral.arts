@@ -65,7 +65,7 @@ ReadXML( scat_data_mono, "TestMonteCarloDataPrepare.scat_data_mono.xml" )
 #### Define Agendas #################################################
 
 # absorption from LUT
-Copy( abs_mat_per_species_agenda, abs_mat_per_species_agenda__LookUpTable )
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
 
 #### Define viewing position and line of sight #########################
