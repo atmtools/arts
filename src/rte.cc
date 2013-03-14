@@ -1252,8 +1252,9 @@ void get_ppath_abs(
   Agenda l_propmat_clearsky_agenda (propmat_clearsky_agenda);
   //
   if (np)
-#pragma omp parallel for \
-  if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
+#pragma omp parallel for                    \
+  if (!arts_omp_in_parallel()               \
+      && np >= arts_omp_get_max_threads())  \
   firstprivate(l_ws, l_propmat_clearsky_agenda)
   for( Index ip=0; ip<np; ip++ )
     {
@@ -1282,7 +1283,6 @@ void get_ppath_abs(
     if (failed)
         throw runtime_error(fail_msg);
 }
-
 
 
 //! get_ppath_blackrad
@@ -1646,7 +1646,8 @@ void get_ppath_trans(
         { 
 #if !(__APPLE__) || (__INTEL_COMPILER)
 #pragma omp parallel for \
-  if(!arts_omp_in_parallel())
+  if (!arts_omp_in_parallel() \
+      && nf >= arts_omp_get_max_threads())
 #endif
           for( Index iv=0; iv<nf; iv++ )
             {
@@ -1671,7 +1672,8 @@ void get_ppath_trans(
             }
 #if !(__APPLE__) || (__INTEL_COMPILER)
 #pragma omp parallel for \
-  if(!arts_omp_in_parallel())
+  if (!arts_omp_in_parallel() \
+      && nf >= arts_omp_get_max_threads())
 #endif
           for( Index iv=0; iv<nf; iv++ )
             {
@@ -2006,8 +2008,9 @@ void iyb_calc(
 
   // Start of actual calculations
   if (nza)
-#pragma omp parallel for                                          \
-  if(!arts_omp_in_parallel() && nza>=arts_omp_get_max_threads())  \
+#pragma omp parallel for                     \
+  if (!arts_omp_in_parallel()                \
+      && nza >= arts_omp_get_max_threads())  \
   firstprivate(l_ws, l_iy_main_agenda)
   for( Index iza=0; iza<nza; iza++ )
     {

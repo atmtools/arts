@@ -3061,10 +3061,10 @@ void xsec_species( MatrixView               xsec_attenuation,
 
   // Loop all pressures:
   if (np)
-#pragma omp parallel for                               \
-  if(!arts_omp_in_parallel()                           \
-     && (np >= arts_omp_get_max_threads() || np > nl)) \
-     firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
+#pragma omp parallel for                    \
+  if (!arts_omp_in_parallel()               \
+      && np >= arts_omp_get_max_threads())  \
+  firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
   for ( Index i=0; i<np; ++i )
     {
       if (failed) continue;
@@ -3117,9 +3117,10 @@ void xsec_species( MatrixView               xsec_attenuation,
 
       // Loop all lines:
       if (nl)
-#pragma omp parallel for                                            \
-  if(!arts_omp_in_parallel())                                       \
-      firstprivate(ls_attenuation, ls_phase, fac, f_local, aux) 
+#pragma omp parallel for                   \
+  if (!arts_omp_in_parallel()               \
+      && nl >= arts_omp_get_max_threads())  \
+  firstprivate(ls_attenuation, ls_phase, fac, f_local, aux)
       for ( Index l=0; l< nl; ++l )
         {
           // Skip remaining iterations if an error occurred

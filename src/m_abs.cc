@@ -107,8 +107,9 @@ void abs_linesArtscat4FromArtscat3(// WS Output:
     bool failed = false;
 
     // Loop over all lines, use member function to do conversion.
-#pragma omp parallel for    \
-if(!arts_omp_in_parallel())
+#pragma omp parallel for      \
+  if (!arts_omp_in_parallel()  \
+      && abs_lines.nelem() >= arts_omp_get_max_threads())
     for ( Index i=0; i<abs_lines.nelem(); ++i )
     {
         try
@@ -1648,13 +1649,14 @@ void abs_xsec_per_speciesAddLines(// WS Output:
           
         }
 
-      {
-        ostringstream os;
-        os << "  Tag group " << i
-           << " (" << get_tag_group_name(tgs[i]) << "): "
-           << ll.nelem() << " transitions\n";
-        out3 << os.str();
-      }
+      if (out3.sufficient_priority())
+        {
+          ostringstream os;
+          os << "  Tag group " << i
+             << " (" << get_tag_group_name(tgs[i]) << "): "
+             << ll.nelem() << " transitions\n";
+          out3 << os.str();
+        }
 
     } // End of species for loop.
 }
@@ -1792,13 +1794,14 @@ void abs_xsec_per_speciesAddConts(// WS Output:
 
                   // Ok, the tag specifies a valid continuum model and
                   // we have continuum parameters.
-                  
-                  {
-                    ostringstream os;
-                    os << "  Adding " << name
-                       << " to tag group " << i << ".\n";
-                    out3 << os.str();
-                  }
+
+                  if (out3.sufficient_priority())
+                    {
+                      ostringstream os;
+                      os << "  Adding " << name
+                         << " to tag group " << i << ".\n";
+                      out3 << os.str();
+                    }
 
                   // find the options for this continuum tag from the input array
                   // of options. The actual field of the array is n:

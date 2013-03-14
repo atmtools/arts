@@ -186,9 +186,10 @@ void ybatchCalc(Workspace&      ws,
     // Go through the batch:
 
     if (ybatch_n)
-#pragma omp parallel for                                     \
-if(!arts_omp_in_parallel())                                \
-firstprivate(l_ws, l_ybatch_calc_agenda)
+#pragma omp parallel for       \
+  if (!arts_omp_in_parallel()  \
+      && ybatch_n > 1)         \
+  firstprivate(l_ws, l_ybatch_calc_agenda)
     for(Index ybatch_index = first_ybatch_index;
         ybatch_index<ybatch_n;
         ybatch_index++ )

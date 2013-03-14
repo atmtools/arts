@@ -388,12 +388,11 @@ void abs_lookupCalc(// Workspace reference:
           // function. Anyway, shared is the correct setting for
           // abs_lookup, so there is no problem.
 
-#pragma omp parallel for                                       \
-  if(!arts_omp_in_parallel()                                   \
-     && (these_t_pert_nelem >= arts_omp_get_max_threads() ||   \
-         these_t_pert_nelem >= abs_p.nelem()))                 \
-         private(this_t, abs_xsec_per_species)                 \
-         firstprivate(l_ws, l_abs_xsec_agenda)
+#pragma omp parallel for                                   \
+  if (!arts_omp_in_parallel()                               \
+      && these_t_pert_nelem >= arts_omp_get_max_threads())  \
+  private(this_t, abs_xsec_per_species)                    \
+  firstprivate(l_ws, l_abs_xsec_agenda)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
               // Skip remaining iterations if an error occurred
@@ -2337,9 +2336,10 @@ void abs_mat_fieldCalc( Workspace& ws,
 
   // Now we have to loop all points in the atmosphere:
   if (n_pressures)
-#pragma omp parallel for                                                 \
-  if(!arts_omp_in_parallel() && n_pressures >= n_frequencies) \
-  firstprivate(l_ws, l_amps_agenda)                                       \
+#pragma omp parallel for                             \
+  if (!arts_omp_in_parallel()                        \
+      && n_pressures >= arts_omp_get_max_threads())  \
+  firstprivate(l_ws, l_amps_agenda)                  \
   private(amps, a_vmr_list)
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {

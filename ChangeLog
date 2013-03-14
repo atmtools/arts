@@ -1,5 +1,40 @@
 2013-03-13  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-550
+
+	* src/absorption.cc, src/continua.cc, src/m_abs.cc,
+	src/m_abs_lookup.cc, src/m_atmosphere.cc, src/m_batch.cc, src/m_rte.cc:
+
+	Revise all OpenMP loops. Make sure loops have enough iterations before
+	parallelizing them. Otherwise it can really hurt performance.
+	Basically now all loops require the number of iterations to be greater
+	or equal to the maximum number of threads (some exceptions such as
+	ybatchCalc). Here are some benchmarks:
+
+	make check (TEST_JOBS=4)
+
+	ubuntu5 before: 29 sec
+	ubuntu5 after : 18 sec
+
+	ubuntu1 before: DNF (stuck in fast.doit)
+	ubuntu1 after:  13 sec
+
+	ctest -j4 -R xmldata -E isoratios
+
+	ubuntu5 before: 43 sec
+	ubuntu5 after:  17 sec
+
+	ubuntu1 before: 22 sec
+	ubuntu1 after:  15 sec
+
+	ubuntu5 uses gcc 4.4.4, ubuntu1 gcc 4.6.3
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddLines,
+	abs_xsec_per_speciesAddLines), src/m_cia.cc
+	(abs_xsec_per_speciesAddCIA): Only output to out3/2 if visible.
+
+2013-03-13  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-549
 
 	* This commit breaks backwords-compatibility:

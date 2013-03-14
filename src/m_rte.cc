@@ -688,9 +688,10 @@ void iyEmissionStandard(
             }
           else
             {
-#pragma omp parallel for \
-  if(!arts_omp_in_parallel())
-    for( Index iv=0; iv<nf; iv++ )  
+#pragma omp parallel for      \
+  if (!arts_omp_in_parallel()  \
+      && nf >= arts_omp_get_max_threads())
+    for( Index iv=0; iv<nf; iv++ )
                 {
                   // Unpolarised absorption:
                   if( is_diagonal( trans_partial(iv,joker,joker,ip) ) )
@@ -1012,9 +1013,11 @@ void iyMC(
   bool failed = false;
 
   if (nf)
-#pragma omp parallel for                                          \
-  if(!arts_omp_in_parallel()) \
-  firstprivate(l_ws, l_ppath_step_agenda, l_iy_space_agenda, l_propmat_clearsky_agenda, l_surface_rtprop_agenda)
+#pragma omp parallel for                  \
+  if (!arts_omp_in_parallel()              \
+      && nf >= arts_omp_get_max_threads()) \
+  firstprivate(l_ws, l_ppath_step_agenda, l_iy_space_agenda, \
+               l_propmat_clearsky_agenda, l_surface_rtprop_agenda)
   for( Index f_index=0; f_index<nf; f_index++ )
     {
       if (failed) continue;
@@ -1364,10 +1367,9 @@ void yCalc(
   bool failed = false;
 
   if (nmblock)
-#pragma omp parallel for                                          \
-  if(!arts_omp_in_parallel() && \
-     nmblock>=arts_omp_get_max_threads() && \
-     nmblock>=nza)        \
+#pragma omp parallel for                         \
+  if (!arts_omp_in_parallel()                    \
+      && nmblock >= arts_omp_get_max_threads())  \
   firstprivate(l_ws, l_jacobian_agenda, l_iy_main_agenda)
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {

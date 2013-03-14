@@ -1453,7 +1453,9 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
 
     // Parallelise this for-loop (some interpolation is being done, so it may
     // be beneficial)
-#pragma omp parallel for if(!arts_omp_in_parallel())
+#pragma omp parallel for      \
+  if (!arts_omp_in_parallel()  \
+      && nelem >= arts_omp_get_max_threads())
     for (Index i=0; i<nelem; i++)
     {
         try {
@@ -1512,8 +1514,9 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
   bool failed = false;
 
   // Loop the batch cases:
-#pragma omp parallel for                                     \
-  if(!arts_omp_in_parallel())
+#pragma omp parallel for      \
+  if (!arts_omp_in_parallel()  \
+      && amnelem >= arts_omp_get_max_threads())
   for (Index i=0; i<amnelem; ++i)
     {
       // Skip remaining iterations if an error occurred

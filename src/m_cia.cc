@@ -127,14 +127,15 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
 
             const CIARecord& this_cia = abs_cia_data[this_cia_index];
             Matrix&          this_xsec = abs_xsec_per_species[i];
-            
-            {
-              // Some nice output to out2:
-              ostringstream os;
-              os << "  CIA Species found: "
-                 << this_species.Name() << "\n";
-              out2 << os.str();
-            }
+
+            if (out2.sufficient_priority())
+              {
+                // Some nice output to out2:
+                ostringstream os;
+                os << "  CIA Species found: "
+                   << this_species.Name() << "\n";
+                out2 << os.str();
+              }
             
             // Check that the dimension of this_xsec is
             // consistent with abs_p and f_grid.

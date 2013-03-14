@@ -1434,7 +1434,8 @@ void PWR98H2OAbsModel (MatrixView       pxsec,
 
   // Loop pressure/temperature:
 #pragma omp parallel for      \
-  if(!arts_omp_in_parallel())
+  if (!arts_omp_in_parallel()  \
+      && n_p >= arts_omp_get_max_threads())
   for ( Index i=0; i<n_p; ++i )
     {
       // here the total pressure is not multiplied by the H2O vmr for the
@@ -2307,7 +2308,6 @@ void CKD_222_self_h2o (MatrixView          pxsec,
 
   if (NPTC < 1)
     {
-      ostringstream os;
       out3 << "WARNING:\n"
      << "  CKD2.2.2 H2O self continuum:\n"
      << "  no elements of internal continuum coefficients could be found for the\n"
@@ -2828,7 +2828,6 @@ void CKD_242_self_h2o (MatrixView          pxsec,
 
   if (NPTC < 1)
     {
-      ostringstream os;
       out3 << "WARNING:\n"
      << "  CKDv2.4.2 H2O self continuum:\n"
      << "  no elements of internal continuum coefficients could be found for the\n"
@@ -3353,7 +3352,6 @@ void CKD_mt_100_self_h2o (MatrixView          pxsec,
 
   if (NPTC < 1)
     {
-      ostringstream os;
       out3 << "WARNING:\n"
      << "  CKD_MT 1.00 H2O self continuum:\n"
      << "  no elements of internal continuum coefficients could be found for the\n"
@@ -7318,7 +7316,8 @@ void PWR93O2AbsModel (MatrixView        pxsec,
 
   // Loop pressure/temperature:
 #pragma omp parallel for      \
-  if(!arts_omp_in_parallel())
+  if (!arts_omp_in_parallel()  \
+      && n_p >= arts_omp_get_max_threads())
   for ( Index i=0; i<n_p; ++i )
     {
       // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
