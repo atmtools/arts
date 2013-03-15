@@ -181,7 +181,15 @@ Numeric invplanck(
         const Numeric&  i,
         const Numeric&  f )
 {
-  assert( i >= 0 );
+  if (i < 0)
+  {
+      ostringstream os;
+      os << "Conversion to Planck brightness temperature failed: Radiance must be >= 0.\n"
+      << "r = " << i;
+      throw runtime_error(os.str());
+  }
+
+//  assert( i >= 0 );
   assert( f > 0 );
 
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;

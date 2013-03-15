@@ -3570,7 +3570,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "doit_i_field", "doit_i_field_old",
+        IN( "doit_i_field",
             "doit_scat_field", "cloudbox_limits",
             "propmat_clearsky_agenda",
             "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 

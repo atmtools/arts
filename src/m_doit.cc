@@ -609,7 +609,6 @@ doit_i_fieldUpdate1D(Workspace& ws,
                      // WS Input and Output:
                      Tensor6& doit_i_field,
                      // WS Input:
-                     const Tensor6& doit_i_field_old,
                      const Tensor6& doit_scat_field,
                      const ArrayOfIndex& cloudbox_limits,
                      // Calculate scalar gas absorption:
@@ -695,10 +694,6 @@ doit_i_fieldUpdate1D(Workspace& ws,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1, 1, 1, 
                    N_scat_za, 1, stokes_dim));
   
-  assert( is_size( doit_i_field_old, 
-                   (cloudbox_limits[1] - cloudbox_limits[0]) + 1, 1, 1, 
-                   scat_za_grid.nelem(), 1, stokes_dim));
-  
   assert( is_size( doit_scat_field, 
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1, 1, 1, 
                    N_scat_za, 1, stokes_dim));
@@ -725,7 +720,9 @@ doit_i_fieldUpdate1D(Workspace& ws,
                         stokes_dim, stokes_dim, 0.);
   Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
                         stokes_dim, 0.);
- 
+
+  Tensor6 doit_i_field_old(doit_i_field);
+
   //Only dummy variable:
   Index scat_aa_index_local = 0; 
 

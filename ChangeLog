@@ -1,3 +1,16 @@
+2013-03-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-551
+
+	* src/m_doit.cc, src/methods.cc (doit_i_fieldUpdate1D):
+
+	Remove doit_i_field_old from inputs. Instead, use a local variables
+	that's initialized from doit_i_field.
+
+	* src/physics_funcs.cc (invplanck):
+
+	Convert assertion for radiance < 0 to runtime_error.
+
 2013-03-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-550
