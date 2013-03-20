@@ -480,18 +480,26 @@ method can be added.
 \subsection{How to add a test case}
 %---------------------------------------
 \begin{enumerate}
-\item Create a new subdirectory in \fileindex{tests/}. If your test is closely
+\item Tests are located in subdirectories in the \fileindex{controlfiles}
+  folder. Instrument specific test cases are in the
+  \fileindex{controlfiles/instruments} folder, all other cases are
+  located in the \fileindex{controlfiles/artscomponents} folder. Create
+  a new subdirectory in the appropriate folder. If your test is closely
   related to another test case you can skip this step and instead add it
   to one of the existing subdirectories.
-\item Create your own test controlfile. The filename should start with
-  \fileindex{Test} followed by the name of the subdirectory it is located in,
-  e.g. \fileindex{tests/DOIT/TestDOIT.arts}. If the subdirectory contains more
-  than one test controlfile append a short descriptive text to the end of the
-  filename like \fileindex{tests/MonteCarlo/TestMonteCarloGaussian.arts}.
-\item Copy all required input files into the subdirectory.
-\item Add the necessary checks for your testcase to
-  \fileindex{tests/testall.py}.
-\item In \fileindex{tests/CMakeLists.txt} add an entry for your test case.
+\item Create your own test controlfile. The filename should start
+  with \fileindex{Test} followed by the name
+  of the subdirectory it is located in, e.g.
+  \fileindex{controlfiles/artscomponents/doit/TestDOIT.arts}.
+
+  If the subdirectory contains more than one test controlfile,
+  append a short descriptive text to the end of the filename like
+  \fileindex{controlfiles/artscomponents/ montecarlo/TestMonteCarloGaussian.arts}.
+\item Copy all required input files into the subdirectory. Input data that is
+  shared among several test cases should be placed in
+  \fileindex{controlfiles/testdata}.
+\item Add an entry for your test case in
+  \fileindex{controlfiles/CMakeLists.txt}.
 \end{enumerate}
 
 

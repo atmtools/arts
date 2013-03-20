@@ -1,3 +1,14 @@
+2013-03-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-552
+
+	* doc/uguide/concept.tex, uguide/development.tex,
+	doc/uguide/scattering.tex:
+
+	Update docs about test cases.
+
+	* tests/: Removed.
+
 2013-03-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-551
