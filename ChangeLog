@@ -1,3 +1,11 @@
+2013-03-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-553
+
+	* controlfiles/testdata/tropical.expanded.t.xml:
+	* controlfiles/testdata/tropical.expanded.z.xml: Grids still
+	lacked name. 
+
 2013-03-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-552
