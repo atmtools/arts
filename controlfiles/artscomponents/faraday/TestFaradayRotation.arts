@@ -5,7 +5,7 @@
 # The rotation for a signal transmitted along the zenith direction is
 # calculated.
 #
-# 2012-12-17, Patrick Eriksson
+# 2013-03-20, Patrick Eriksson
 
 Arts2 {
 
@@ -14,8 +14,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 
 # Number of Stokes components to be computed
 #
@@ -25,6 +23,7 @@ IndexSet( stokes_dim, 4 )
 # Frequency grid 
 #
 VectorNLogSpace( f_grid, 101, 0.1e9, 5e9 )
+#VectorSet( f_grid, [0.1e9] )
 
 
 # Dimensionality of the atmosphere
@@ -32,66 +31,63 @@ VectorNLogSpace( f_grid, 101, 0.1e9, 5e9 )
 AtmosphereSet1D
 
 
-#
-# Some settings resulting in no gas absorption
-#
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
-
-# Definition of species
-# 
-SpeciesSet( abs_species,
-            ["H2O", 
-             "N2",
-             "O2"] )
-
-# No line data needed here
-# 
-abs_lines_per_speciesSetEmpty
-
-
-
-
 # A pressure grid rougly matching 0 to 1000 km, in steps of 2km.
 #
 VectorNLogSpace( p_grid, 501, 1013e2, 1e-80 )
 
 
-# Surface altitude
-MatrixSetConstant( z_surface, 1, 1, 0 )
-
-
-# Neutral atmosphere, up to about 95 km
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-            "testdata/tropical" )
-
-# Tempature and z also covering the ionosphere
+# Tempature and z covering the ionosphere
 #
 ReadXML( t_field_raw, "testdata/tropical.expanded.t.xml" )
 ReadXML( z_field_raw, "testdata/tropical.expanded.z.xml" )
 
-# Interpolate to p_grid (VMR is "zero padded")
-AtmFieldsCalc( vmr_zeropadding=1 )
+
+#
+# Include som gas species
+#
+# (For demonstration only, no absorption set)
+
+abs_speciesInit
 
 GriddedField3Create( raw3 )
 
-# Free electrons
-ReadXML( raw3, "testdata/ne_iri_solmax_spring_12UTC_0latlon.xml" )
-GriddedFieldPRegrid( raw3, p_grid, raw3 )
-FieldFromGriddedField( edensity_field, p_grid, lat_grid, lon_grid, raw3 )
+# N2
+#
+abs_speciesAdd( species = [ "N2" ] )
+ReadXML( raw3, "testdata/tropical.N2.xml"  )
+Append( vmr_field_raw, raw3 )
 
-# Magnetic field components
-ReadXML( raw3, "testdata/bu_igrf11_2000_0latlon.xml" )
-GriddedFieldPRegrid( raw3, p_grid, raw3 )
-FieldFromGriddedField( mag_u_field, p_grid, lat_grid, lon_grid, raw3 )
-ReadXML( raw3, "testdata/bv_igrf11_2000_0latlon.xml" )
-GriddedFieldPRegrid( raw3, p_grid, raw3 )
-FieldFromGriddedField( mag_v_field, p_grid, lat_grid, lon_grid, raw3 )
-ReadXML( raw3, "testdata/bw_igrf11_2000_0latlon.xml" )
-GriddedFieldPRegrid( raw3, p_grid, raw3 )
-FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, raw3 )
+# O2
+#
+abs_speciesAdd( species = [ "O2" ] )
+ReadXML( raw3, "testdata/tropical.O2.xml"  )
+Append( vmr_field_raw, raw3 )
+
+# H2O
+#
+abs_speciesAdd( species = [ "H2O" ] )
+ReadXML( raw3, "testdata/tropical.H2O.xml"  )
+Append( vmr_field_raw, raw3 )
+
+
+#
+# Add free electrons
+#
+
+abs_speciesAdd( species = [ "free_electrons" ] )
+ReadXML( raw3, "testdata/ne_iri_solmax_spring_12UTC_0latlon.xml" )
+Append( vmr_field_raw, raw3 )
+
+
+# Interpolate to p_grid (VMR is "zero padded")
+#
+AtmFieldsCalc( vmr_zeropadding=1 )
+
+WriteXML( "ascii", vmr_field, "vmr.xml" )
+
+
+# Surface altitude
+MatrixSetConstant( z_surface, 1, 1, 0 )
 
 
 # Apply HSE
@@ -106,6 +102,41 @@ NumericSet( z_hse_accuracy, 10 )
 #
 basics_checkedCalc
 z_fieldFromHSE
+
+
+# Magnetic field components
+ReadXML( raw3, "testdata/bu_igrf11_2000_0latlon.xml" )
+GriddedFieldPRegrid( raw3, p_grid, raw3 )
+FieldFromGriddedField( mag_u_field, p_grid, lat_grid, lon_grid, raw3 )
+ReadXML( raw3, "testdata/bv_igrf11_2000_0latlon.xml" )
+GriddedFieldPRegrid( raw3, p_grid, raw3 )
+FieldFromGriddedField( mag_v_field, p_grid, lat_grid, lon_grid, raw3 )
+ReadXML( raw3, "testdata/bw_igrf11_2000_0latlon.xml" )
+GriddedFieldPRegrid( raw3, p_grid, raw3 )
+FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, raw3 )
+
+
+
+#
+# Absorption + Faraday
+#
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# No line data needed here
+# 
+abs_lines_per_speciesSetEmpty
+
+AgendaSet( propmat_clearsky_agenda ){
+  Ignore(rtp_mag)
+  Ignore(rtp_los)
+  propmat_clearskyInit
+  propmat_clearskyAddOnTheFly
+  propmat_clearskyAddFaraday
+}
+
+
 
 
 # No scattering

@@ -256,11 +256,11 @@ void iyRadioLink(
       else if( iy_aux_vars[i] == "Defocusing loss" )
         { auxDefocusingLoss = i;    iy_aux[i].resize( 1, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Faraday rotation" )
-        { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 ); iy_aux[i] = 0; }
       else if( iy_aux_vars[i] == "Faraday speed" )
-        { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); }
+        { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); iy_aux[i] = 0; }
       else if( iy_aux_vars[i] == "Extra path delay" )
-        { auxExtraPathDelay = i;    iy_aux[i].resize( 1, 1, 1, 1 ); }
+        { auxExtraPathDelay = i; iy_aux[i].resize( 1, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Bending angle" )
         { auxBendingAngle = i;      iy_aux[i].resize( 1, 1, 1, 1 ); } 
       else
@@ -269,6 +269,28 @@ void iyRadioLink(
           os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
              << "\"\nThis choice is not recognised.";
           throw runtime_error( os.str() );
+        }
+    }
+  
+  // Special stuff to handle Faraday rotation
+  Index ife = -1;  
+  if( auxFarRotTotal>=0  ||  auxFarRotSpeed>=0 )  
+    {
+      if( stokes_dim < 3 )
+        throw runtime_error( 
+                 "To include Faraday rotation, stokes_dim >= 3 is required." );
+
+      // Determine species index of fgree electrons
+      for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
+        {
+          if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+            { ife = sp; }
+        }
+      // If not found, then rotation is already set to zero
+      if( ife < 0 )
+        {
+          auxFarRotTotal = -1;
+          auxFarRotSpeed = -1;
         }
     }
   //===========================================================================
@@ -409,8 +431,8 @@ void iyRadioLink(
       // Faraday speed
       if( auxFarRotSpeed >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = RAD2DEG*farrot_c1[np-1] / 
-                                                   (f_grid[iv]*f_grid[iv]); } }
+            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = 0.5 *
+                                                ppath_abs(ife,iv,1,2,np-1); } }
       //=======================================================================
 
       // Loop ppath steps
@@ -494,11 +516,16 @@ void iyRadioLink(
           // Free space loss
           if( auxFreeSpaceAtte >= 0 )
             { iy_aux[auxFreeSpaceAtte](joker,0,0,ip) = 2/lbg; }
+          // Faraday rotation, total
+          if( auxFarRotTotal >= 0 )
+            { for( Index iv=0; iv<nf; iv++ ) {
+                iy_aux[auxFarRotTotal](iv,0,0,0) += RAD2DEG * ppath.lstep[ip] *
+                0.25*(ppath_abs(ife,iv,1,2,ip)+ppath_abs(ife,iv,1,2,ip+1)); } }
           // Faraday speed
           if( auxFarRotSpeed >= 0 )
-            { for( Index iv=0; iv<nf; iv++ ) {
-                iy_aux[auxFarRotSpeed](iv,0,0,ip) = RAD2DEG*farrot_c1[ip] / 
-                                                   (f_grid[iv]*f_grid[iv]); } }
+            { for( Index iv=0; iv<nf; iv++ ) {  
+                iy_aux[auxFarRotSpeed](iv,0,0,ip) = 0.5 *
+                                                  ppath_abs(ife,iv,1,2,ip); } }
           //===================================================================
         }
 
@@ -506,10 +533,6 @@ void iyRadioLink(
       //=== iy_aux part =======================================================
       if( auxAtmosphericLoss >= 0 )
         { iy_aux[auxAtmosphericLoss](joker,0,0,0) = iy(joker,0); }      
-      if( auxFarRotTotal >= 0 )
-        { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotTotal](iv,0,0,0) = RAD2DEG*farrot_c2 / 
-                                                   (f_grid[iv]*f_grid[iv]); } }
       if( auxImpactParam >= 0 )
         { 
           assert( ppath.constant >= 0 );
@@ -667,7 +690,7 @@ void iyTransmissionStandard(
   if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
     {
       ostringstream os;
-      os << "The size of *iy* returned from *iy_transmitter_agdna* is\n"
+      os << "The size of *iy* returned from *iy_transmitter_agenda* is\n"
          << "not correct:\n"
          << "  expected size = [" << nf << "," << stokes_dim << "]\n"
          << "  size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
@@ -778,15 +801,37 @@ void iyTransmissionStandard(
       else if( iy_aux_vars[i] == "Optical depth" )
         { auxOptDepth = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
       else if( iy_aux_vars[i] == "Faraday rotation" )
-        { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 ); }
+        { auxFarRotTotal = i; iy_aux[i].resize( nf, 1, 1, 1 ); iy_aux[i] = 0; }
       else if( iy_aux_vars[i] == "Faraday speed" )
-        { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); }
+        { auxFarRotSpeed = i; iy_aux[i].resize( nf, 1, 1, np ); iy_aux[i] = 0; }
       else
         {
           ostringstream os;
           os << "In *iy_aux_vars* you have included: \"" << iy_aux_vars[i]
              << "\"\nThis choice is not recognised.";
           throw runtime_error( os.str() );
+        }
+    }
+  
+  // Special stuff to handle Faraday rotation
+  Index ife = -1;  
+  if( auxFarRotTotal>=0  ||  auxFarRotSpeed>=0 )  
+    {
+      if( stokes_dim < 3 )
+        throw runtime_error( 
+                 "To include Faraday rotation, stokes_dim >= 3 is required." );
+
+      // Determine species index of fgree electrons
+      for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
+        {
+          if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+            { ife = sp; }
+        }
+      // If not found, then rotation is already set to zero
+      if( ife < 0 )
+        {
+          auxFarRotTotal = -1;
+          auxFarRotSpeed = -1;
         }
     }
   //===========================================================================
@@ -884,8 +929,7 @@ void iyTransmissionStandard(
   // Faraday rotation, total
   if( auxFarRotTotal >= 0 )
     { for( Index iv=0; iv<nf; iv++ ) {
-        iy_aux[auxFarRotTotal](iv,0,0,0) = RAD2DEG*farrot_c2 / 
-                                                   (f_grid[iv]*f_grid[iv]); } }
+        iy_aux[auxFarRotTotal](iv,0,0,0) = 0; } }
   //===========================================================================
 
 
@@ -1021,8 +1065,8 @@ void iyTransmissionStandard(
       // Faraday speed
       if( auxFarRotSpeed >= 0 )
         { for( Index iv=0; iv<nf; iv++ ) {
-            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = RAD2DEG*farrot_c1[np-1] / 
-                                                   (f_grid[iv]*f_grid[iv]); } }
+            iy_aux[auxFarRotSpeed](iv,0,0,np-1) = 0.5 *
+                                                ppath_abs(ife,iv,1,2,np-1); } }
       //=======================================================================
 
       
@@ -1235,11 +1279,16 @@ void iyTransmissionStandard(
           // Radiance 
           if( auxIy >= 0 ) 
             { iy_aux[auxIy](joker,joker,0,ip) = iy; }
+          // Faraday rotation, total
+          if( auxFarRotTotal >= 0 )
+            { for( Index iv=0; iv<nf; iv++ ) {
+                iy_aux[auxFarRotTotal](iv,0,0,0) += RAD2DEG * ppath.lstep[ip] *
+                0.25*(ppath_abs(ife,iv,1,2,ip)+ppath_abs(ife,iv,1,2,ip+1)); } }
           // Faraday speed
           if( auxFarRotSpeed >= 0 )
-            { for( Index iv=0; iv<nf; iv++ ) {
-                iy_aux[auxFarRotSpeed](iv,0,0,ip) = RAD2DEG*farrot_c1[ip] / 
-                                                   (f_grid[iv]*f_grid[iv]); } }
+            { for( Index iv=0; iv<nf; iv++ ) {  
+                iy_aux[auxFarRotSpeed](iv,0,0,ip) = 0.5 *
+                                                  ppath_abs(ife,iv,1,2,ip); } }
           //===================================================================
         } 
 

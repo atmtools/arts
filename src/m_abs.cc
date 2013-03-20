@@ -48,13 +48,23 @@
 #include "m_xml.h"
 #include "xml_io.h"
 #include "parameters.h"
+#include "rte.h"
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
 #include "nc_io.h"
 #endif
 
+
+extern const Numeric ELECTRON_CHARGE;
+extern const Numeric ELECTRON_MASS;
+extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric VACUUM_PERMITTIVITY;
+
+
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AbsInputFromRteScalars(// WS Output:
@@ -1993,34 +2003,63 @@ void propmat_clearskyInit(//WS Output
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddFaraday(// Workspace reference:
-                                   Workspace& ws _U_,
-                                   // WS Output:
-                                   Tensor4& propmat_clearsky _U_,
-                                   // WS Input:
-                                   const Vector& f_grid _U_,
-                                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                                   const Numeric& rtp_pressure _U_,
-                                   const Numeric& rtp_temperature _U_,
-                                   const Vector& rtp_vmr _U_,
-                                   const Numeric& rtp_doppler _U_,
-                                   const Agenda& abs_xsec_agenda _U_,
-                                   // Verbosity object:
-                                   const Verbosity& verbosity)
-{
-  CREATE_OUT2;
 
-  for(Index sp = 0; sp < abs_species.nelem(); sp++)
+/* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyAddFaraday(
+         Tensor4&                  propmat_clearsky,
+   const Index&                    stokes_dim,
+   const Index&                    atmosphere_dim,
+   const Vector&                   f_grid,
+   const ArrayOfArrayOfSpeciesTag& abs_species,
+   const Vector&                   rtp_vmr,
+   const Vector&                   rtp_los,
+   const Vector&                   rtp_mag,
+   const Verbosity& )
+{
+  // All the physical constants joined into one static constant:
+  // (abs as e defined as negative)
+  static const Numeric FRconst = abs( 
+                        ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
+                        ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
+                          ELECTRON_MASS * ELECTRON_MASS ) );
+
+  if( stokes_dim < 3 )
+    throw runtime_error( 
+                 "To include Faraday rotation, stokes_dim >= 3 is required." );
+
+
+  Index ife = -1;  
+  for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
     {
-      // We don't have to loop over the tags in the group because
-      // 'free_electrons' can only appear alone
       if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+        { ife = sp; }
+    }
+
+  if( ife < 0 )
+    {
+      throw runtime_error( "Free electrons not found in *abs_species* and "
+                           "Faraday rotation can not be calculated." );
+    }
+  else
+    {
+      const Numeric ne = rtp_vmr[ife];
+
+      if( ne!=0  &&  ( rtp_mag[0]!=0 || rtp_mag[1]!=0 || rtp_mag[2]!=0 ) )
         {
-          out2 << "  Calculating Faraday Rotation\n";
+          // Include remaining terms, beside /f^2
+          const Numeric c1 = 2 * FRconst * ne * dotprod_with_los( 
+                 rtp_los, rtp_mag[0], rtp_mag[1], rtp_mag[2], atmosphere_dim );
+
+          for( Index iv=0; iv<f_grid.nelem(); iv++ )
+            {
+              const Numeric r = c1 / ( f_grid[iv] * f_grid[iv] );
+              propmat_clearsky(ife,iv,1,2) = r;
+              propmat_clearsky(ife,iv,2,1) = -r;
+            }
         }
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
