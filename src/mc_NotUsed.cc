@@ -160,8 +160,6 @@ void mcPathTraceGeneral(Workspace&            ws,
                         Ppath&                ppath_step,
                         Index&                termination_flag,
                         bool&                 inside_cloud,
-                        //Numeric&              rte_pressure,
-                        //Vector&               rte_vmr_list,
                         const Agenda&         ppath_step_agenda,
                         const Agenda&         propmat_clearsky_agenda,
                         const Index           stokes_dim,
@@ -751,7 +749,7 @@ void MCIPA(Workspace&            ws,
          "\n"
          "Only a single particle type is handled and *scat_data_raw* must\n"
          "have length 1. The frequency is selected by *f_grid* and *f_index*.\n"
-         "The temperature is set by *rte_temperature*.\n"
+         "The temperature is set by *rtp_temperature*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( ),
@@ -760,7 +758,7 @@ void MCIPA(Workspace&            ws,
         GOUT_DESC( 
             "Phase matrix for a single frequency and combination of angles" ),
         IN( "f_grid", "f_index", "stokes_dim", "scat_data_raw", 
-            "rte_temperature" ),
+            "rtp_temperature" ),
         GIN( "za_out", "aa_out", "za_in", "aa_in" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Numeric" ), 
         GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
@@ -774,7 +772,7 @@ void pha_matExtractManually(Matrix&         pha_mat,
                             const Index&    f_index,
                             const Index&    stokes_dim,
                             const ArrayOfSingleScatteringData&   scat_data_raw,
-                            const Numeric&  rte_temperature,
+                            const Numeric&  rtp_temperature,
                             const Numeric&  za_out, 
                             const Numeric&  aa_out, 
                             const Numeric&  za_in, 
@@ -792,7 +790,7 @@ void pha_matExtractManually(Matrix&         pha_mat,
   pha_mat.resize( stokes_dim, stokes_dim );
   
   pha_mat_singleCalc( pha_mat, za_out, aa_out, za_in, aa_in,
-                      scat_data, stokes_dim, pnd, rte_temperature,
+                      scat_data, stokes_dim, pnd, rtp_temperature,
                       verbosity );
 }
 

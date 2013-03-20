@@ -132,7 +132,7 @@ void cloud_fieldsCalc(Workspace& ws,
   Tensor3 ext_mat_spt_local(N_pt, stokes_dim, stokes_dim, 0.);
   Matrix abs_vec_local;
   Tensor3 ext_mat_local;
-  Numeric rte_temperature_local;
+  Numeric rtp_temperature_local;
   
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
   // sca_vec can be obtained from the workspace variable doit_scat_field.
@@ -156,10 +156,10 @@ void cloud_fieldsCalc(Workspace& ws,
               scat_lon_index_local ++)
             {
               if (atmosphere_dim == 1)
-                rte_temperature_local = 
+                rtp_temperature_local = 
                   t_field(scat_p_index_local + cloudbox_limits[0], 0, 0);
               else
-                rte_temperature_local = 
+                rtp_temperature_local = 
                   t_field(scat_p_index_local + cloudbox_limits[0],
                           scat_lat_index_local + cloudbox_limits[2],
                           scat_lon_index_local + cloudbox_limits[4]);
@@ -171,7 +171,7 @@ void cloud_fieldsCalc(Workspace& ws,
                                      scat_p_index_local,
                                      scat_lat_index_local,
                                      scat_lon_index_local, 
-                                     rte_temperature_local,
+                                     rtp_temperature_local,
                                      scat_za_index,
                                      scat_aa_index,
                                      spt_calc_agenda);
@@ -877,7 +877,7 @@ void cloud_RT_no_background(Workspace& ws,
 
   Vector sca_vec_av(stokes_dim,0);
   Vector stokes_vec(stokes_dim, 0.);
-  Vector rte_vmr_list_local(N_species,0.); 
+  Vector rtp_vmr_local(N_species,0.); 
 
   // Two propmat_clearsky to average between
   Tensor4 propmat_clearsky_local1;
@@ -908,13 +908,13 @@ void cloud_RT_no_background(Workspace& ws,
       //
       // Calculate scalar gas absorption
       //
-      const Vector rte_mag_dummy(3,0);
+      const Vector rtp_mag_dummy(3,0);
       const Vector ppath_los_dummy;
       
       propmat_clearsky_agendaExecute( ws, *cur_propmat_clearsky,
                                     f_grid[Range(f_index, 1)],
                                     0,
-                                    rte_mag_dummy, ppath_los_dummy,
+                                    rtp_mag_dummy, ppath_los_dummy,
                                     p_int[k], 
                                     t_int[k], 
                                     vmr_list_int(joker,k),
@@ -1317,7 +1317,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   Tensor4 propmat_clearsky;
   Tensor3 ext_mat;
   Matrix abs_vec;
-  Vector rte_vmr_list(N_species,0.); 
+  Vector rtp_vmr(N_species,0.); 
   Vector sca_vec_av(stokes_dim,0);
  
   // Radiative transfer from one layer to the next, starting
@@ -1360,32 +1360,32 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               lstep =  abs(dz/cos_theta) ;
               
               // Average temperature
-              Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
+              Numeric rtp_temperature =   0.5 * (t_field(p_index,0,0)
                                                  + t_field(p_index + 1,0,0));
               //
               // Average pressure
-              Numeric rte_pressure = 0.5 * (p_grid[p_index]
+              Numeric rtp_pressure = 0.5 * (p_grid[p_index]
                                             + p_grid[p_index + 1]);
               
               // Average vmrs
               for (Index j = 0; j < N_species; j++)
-                rte_vmr_list[j] = 0.5 * (vmr_field(j,p_index,0,0) + 
+                rtp_vmr[j] = 0.5 * (vmr_field(j,p_index,0,0) + 
                                          vmr_field(j,p_index + 1,0,0));
               //
               // Calculate scalar gas absorption and add it to abs_vec 
               // and ext_mat.
               //
 
-              const Vector rte_mag_dummy(3,0);
+              const Vector rtp_mag_dummy(3,0);
 	      const Vector ppath_los_dummy;
                 
               propmat_clearsky_agendaExecute(ws, propmat_clearsky,
                                                 f_grid[Range(f_index, 1)],
                                                 0,
-                                                rte_mag_dummy,ppath_los_dummy,
-                                                rte_pressure,
-                                                rte_temperature,
-                                                rte_vmr_list,
+                                                rtp_mag_dummy,ppath_los_dummy,
+                                                rtp_pressure,
+                                                rtp_temperature,
+                                                rtp_vmr,
                                                 propmat_clearsky_agenda);
               
               opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
@@ -1422,7 +1422,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               //
               // Calculate Planck function
               //
-              Numeric rte_planck_value = planck(f, rte_temperature);
+              Numeric rte_planck_value = planck(f, rtp_temperature);
               
               // Some messages:
               out3 << "-----------------------------------------\n";
@@ -1476,33 +1476,33 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               lstep =  abs(dz/cos_theta) ;
               
               // Average temperature
-              Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
+              Numeric rtp_temperature =   0.5 * (t_field(p_index,0,0)
                                                  + t_field(p_index - 1,0,0));
               //
               // Average pressure
-              Numeric rte_pressure = 0.5 * (p_grid[p_index]
+              Numeric rtp_pressure = 0.5 * (p_grid[p_index]
                                             + p_grid[p_index - 1]);
               
               //
               // Average vmrs
               for (Index k = 0; k < N_species; k++)
-                rte_vmr_list[k] = 0.5 * (vmr_field(k,p_index,0,0) + 
+                rtp_vmr[k] = 0.5 * (vmr_field(k,p_index,0,0) + 
                                          vmr_field(k,p_index - 1,0,0));
               //
               // Calculate scalar gas absorption and add it to abs_vec 
               // and ext_mat.
               //
                 
-              const Vector rte_mag_dummy(3,0);
+              const Vector rtp_mag_dummy(3,0);
 	      const Vector ppath_los_dummy;
               
               propmat_clearsky_agendaExecute( ws, propmat_clearsky,
                                             f_grid[Range(f_index, 1)],
                                             0,
-                                            rte_mag_dummy,ppath_los_dummy,
-                                            rte_pressure, 
-                                            rte_temperature, 
-                                            rte_vmr_list,
+                                            rtp_mag_dummy,ppath_los_dummy,
+                                            rtp_pressure, 
+                                            rtp_temperature, 
+                                            rtp_vmr,
                                             propmat_clearsky_agenda );
 
               opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
@@ -1542,7 +1542,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               //
               // Calculate Planck function
               //
-              Numeric rte_planck_value = planck(f, rte_temperature);
+              Numeric rte_planck_value = planck(f, rtp_temperature);
               
               // Some messages:
               out3 << "-----------------------------------------\n";
@@ -1681,12 +1681,12 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           Numeric lstep =  abs(dz/cos_theta) ;
           
           // Average temperature
-          Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
+          Numeric rtp_temperature =   0.5 * (t_field(p_index,0,0)
                                              + t_field(p_index + 1,0,0));
           
           //
           // Average pressure
-          Numeric rte_pressure = 0.5 * (p_grid[p_index]
+          Numeric rtp_pressure = 0.5 * (p_grid[p_index]
                                         + p_grid[p_index + 1]);
           
           //
@@ -1694,7 +1694,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           // Average vmrs
           for (Index k = 0; k < N_species; k++)
             {
-              rte_vmr_list[k] = 0.5 * (vmr_field(k,p_index,0,0) + 
+              rtp_vmr[k] = 0.5 * (vmr_field(k,p_index,0,0) + 
                                        vmr_field(k,p_index + 1,0,0));
             }
           //
@@ -1743,7 +1743,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           //
           // Calculate Planck function
           //
-          Numeric rte_planck_value = planck(f, rte_temperature);
+          Numeric rte_planck_value = planck(f, rtp_temperature);
           
           assert (!is_singular( ext_mat(0,joker,joker)));
           

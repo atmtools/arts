@@ -852,11 +852,11 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     const ArrayOfLineshapeSpec& abs_lineshape,
                                     const SpeciesAuxData& isotopologue_ratios,
                                     const SpeciesAuxData& isotopologue_quantum,
-                                    const Numeric& rte_pressure,
-                                    const Numeric& rte_temperature,
-                                    const Vector& rte_vmr_list,
-                                    const Numeric& rte_doppler,
-                                    const Vector& rte_mag,
+                                    const Numeric& rtp_pressure,
+                                    const Numeric& rtp_temperature,
+                                    const Vector& rtp_vmr,
+                                    const Numeric& rtp_doppler,
+                                    const Vector& rtp_mag,
                                     const Vector& ppath_los,
                                     const Index& atmosphere_dim,
                                     const Index& manual_zeeman_angles_on,
@@ -900,8 +900,8 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
         throw runtime_error("Frequency dimension of propmat_clearsky not equal to length of f_grid.");
     if( propmat_clearsky.nbooks() != abs_species.nelem() )
         throw runtime_error("Species dimension of propmat_clearsky not equal to length of abs_species.");
-    if( rte_mag.nelem() != 3 )
-      throw runtime_error("*rte_mag* must have length 3.");
+    if( rtp_mag.nelem() != 3 )
+      throw runtime_error("*rtp_mag* must have length 3.");
     // End   TEST(s)
     Vector local_f_grid;
     // Make pointer point to original.
@@ -917,18 +917,18 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
         actual frequency values inside!
     */
     Vector local_doppler_f_grid;
-    if (rte_doppler==0)
+    if (rtp_doppler==0)
     {
         out3 << "  Doppler shift: None\n";
     }
     else
     {
         ostringstream os;
-        os << "  Doppler shift: " << rte_doppler << " Hz\n";
+        os << "  Doppler shift: " << rtp_doppler << " Hz\n";
         out3 << os.str();
 
         Numeric local_doppler;
-        NumericScale( local_doppler, rte_doppler, -1, verbosity );
+        NumericScale( local_doppler, rtp_doppler, -1, verbosity );
         // I could just have multiplied by -1 directly, but I like using
         // the WSM here.
 
@@ -941,12 +941,12 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
     // Using the standard scalar absorption functions to get physics parameters,
     Vector abs_p, abs_t; Matrix abs_vmrs;
     AbsInputFromRteScalars( abs_p, abs_t, abs_vmrs,                        // Output
-                            rte_pressure, rte_temperature, rte_vmr_list,  //Input
+                            rtp_pressure, rtp_temperature, rtp_vmr,  //Input
                             verbosity);                                  // Verbose!
-    if( do_zeeman  && ( rte_mag[0]!=0 || rte_mag[1]!=0 || rte_mag[2]!=0 ) )
+    if( do_zeeman  && ( rtp_mag[0]!=0 || rtp_mag[1]!=0 || rtp_mag[2]!=0 ) )
     {
         //Get the magnitude of the magnetic field and store a local unit Vector for simplified angle calculations.
-        const Numeric H_mag = sqrt( rte_mag * rte_mag );
+        const Numeric H_mag = sqrt( rtp_mag * rtp_mag );
         
         Numeric theta, eta;
         if(manual_zeeman_angles_on!=0)
@@ -957,7 +957,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
         else
         { // Getting angles from coordinate system
         Vector H(3);
-            H  = rte_mag;
+            H  = rtp_mag;
             H /= H_mag;
         // Direction vector of radiation
         Numeric dx, dy, dz;

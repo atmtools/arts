@@ -257,7 +257,7 @@ AgendaSet( refr_index_agenda__NoRefrac ){
   Ignore( rtp_edensity )
   Ignore( rtp_pressure )
   Ignore( rtp_temperature )
-  Ignore( rtp_abs_species )
+  Ignore( rtp_vmr )
   NumericSet( refr_index, 1.0 )
   NumericSet( refr_index_group, 1.0 )
 }

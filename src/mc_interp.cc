@@ -189,7 +189,7 @@ void interp_scat_angle_temperature(//Output:
                                    const Numeric& aa_sca,
                                    const Numeric& za_inc,
                                    const Numeric& aa_inc,
-                                   const Numeric& rte_temperature
+                                   const Numeric& rtp_temperature
                                    )
 {
   Numeric ANG_TOL=1e-7;
@@ -242,7 +242,7 @@ void interp_scat_angle_temperature(//Output:
     }
   else
     {
-      gridpos(t_gp, scat_data.T_grid, rte_temperature);
+      gridpos(t_gp, scat_data.T_grid, rtp_temperature);
           
       Vector itw(4);
       interpweights(itw, t_gp,thet_gp);

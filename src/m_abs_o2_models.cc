@@ -1552,9 +1552,9 @@ Index absPWRO2Model(// WS Output:
                                     should be considered if zeeman_o2_onoff is true
   \param    zeeman_o2_line           line to calculate with Zeeman 
   \param    ppath_index              index of propagation path index
-  \param    rte_pressure             total atmospheric pressure       [Pa]
-  \param    rte_temperature          temperature                      [K]
-  \param    rte_vmr_list             list of species vmr              [1]
+  \param    rtp_pressure             total atmospheric pressure       [Pa]
+  \param    rtp_temperature          temperature                      [K]
+  \param    rtp_vmr             list of species vmr              [1]
   \param    species_index            index of key species   
   \param    abs_model                model version of the P. W. Rosenkranz oxygen 
                                     absorption model
@@ -1625,9 +1625,9 @@ void absO2ZeemanModel(// WS Output:
                       const Numeric&   zeeman_o2_pressure_limit,
                       const Index&     zeeman_o2_line, 
                       const Index&     ppath_index _U_,      // index of propagation path index
-                      const Numeric&   rte_pressure,         // total atmospheric pressure       [Pa]
-                      const Numeric&   rte_temperature,      // temperature                      [K]
-                      const Vector&    rte_vmr_list,         // list of species vmr              [1]
+                      const Numeric&   rtp_pressure,         // total atmospheric pressure       [Pa]
+                      const Numeric&   rtp_temperature,      // temperature                      [K]
+                      const Vector&    rtp_vmr,         // list of species vmr              [1]
                       const ArrayOfIndex& species_index,     // index of key species   
                       const String&    abs_model,            // model selection string
                       const Vector&    abs_user_parameters,  // scaling factor(s)
@@ -1652,10 +1652,10 @@ void absO2ZeemanModel(// WS Output:
   // set for the moment the O2 VMR to a constant value of 0.21
   //const Numeric vmro2 = 0.20946e0;
   Numeric vmro2;
-  vmro2 = rte_vmr_list[ species_index[SPECIES_INDEX_O2] ];
+  vmro2 = rtp_vmr[ species_index[SPECIES_INDEX_O2] ];
 
   Numeric vmrh2o;
-  vmrh2o =  rte_vmr_list[ species_index[SPECIES_INDEX_H2O] ];
+  vmrh2o =  rtp_vmr[ species_index[SPECIES_INDEX_H2O] ];
 
   // resize and initialization the output variables
   ext_mat_zee.resize(f_grid.nelem(), stokes_dim, stokes_dim);
@@ -1680,8 +1680,8 @@ void absO2ZeemanModel(// WS Output:
                           zeeman_o2_pressure_limit,
                           zeeman_o2_line,
                           f_grid,
-                          rte_pressure,
-                          rte_temperature, 
+                          rtp_pressure,
+                          rtp_temperature, 
                           vmro2,
                           vmrh2o,
                           abs_model, 

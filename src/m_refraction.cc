@@ -100,8 +100,8 @@ void refr_indexFreeElectrons(
 void refr_indexIR(
           Numeric&   refr_index,
           Numeric&   refr_index_group,
-    const Numeric&   rte_pressure,
-    const Numeric&   rte_temperature,
+    const Numeric&   rtp_pressure,
+    const Numeric&   rtp_temperature,
     const Verbosity&)
 {
   static const Numeric bn0  = 1.000272620045304;
@@ -109,8 +109,8 @@ void refr_indexIR(
   static const Numeric bk   = 288.16 * (bn02-1.0) / (1013.25*(bn02+2.0));
 
   // Pa -> hPa
-  const Numeric n = sqrt( (2.0*bk*rte_pressure/100.0+rte_temperature) / 
-                          ( rte_temperature-bk*rte_pressure/100.0) ) - 1; 
+  const Numeric n = sqrt( (2.0*bk*rtp_pressure/100.0+rtp_temperature) / 
+                          ( rtp_temperature-bk*rtp_pressure/100.0) ) - 1; 
 
   refr_index       += n;
   refr_index_group += n;
@@ -122,15 +122,15 @@ void refr_indexIR(
 void refr_indexThayer(
           Numeric&   refr_index,
           Numeric&   refr_index_group,
-    const Numeric&   rte_pressure,
-    const Numeric&   rte_temperature,
-    const Vector&    rte_vmr_list,
+    const Numeric&   rtp_pressure,
+    const Numeric&   rtp_temperature,
+    const Vector&    rtp_vmr,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Verbosity& )
 {
-  if( abs_species.nelem() != rte_vmr_list.nelem() )
+  if( abs_species.nelem() != rtp_vmr.nelem() )
     throw runtime_error( "The number of tag groups differ between "
-                                         "*rte_vmr_list* and *abs_species*." );
+                                         "*rtp_vmr* and *abs_species*." );
 
   Index   firstH2O = find_first_species_tg( abs_species,
                                       species_index_from_species_name("H2O") );
@@ -141,10 +141,10 @@ void refr_indexThayer(
     //   "Water vapour is a required (must be a tag group in *abs_species*)." );
     e = 0.;
   else
-    e = rte_pressure * rte_vmr_list[firstH2O];
+    e = rtp_pressure * rtp_vmr[firstH2O];
 
-  const Numeric n = ( 77.6e-8 * ( rte_pressure - e ) + 
-             ( 64.8e-8 + 3.776e-3 / rte_temperature ) * e ) / rte_temperature;
+  const Numeric n = ( 77.6e-8 * ( rtp_pressure - e ) + 
+             ( 64.8e-8 + 3.776e-3 / rtp_temperature ) * e ) / rtp_temperature;
 
   refr_index       += n;
   refr_index_group += n;
@@ -156,9 +156,9 @@ void refr_indexThayer(
 void refr_indexMWgeneral(
           Numeric&   refr_index,
           Numeric&   refr_index_group,
-    const Numeric&   rte_pressure,
-    const Numeric&   rte_temperature,
-    const Vector&    rte_vmr_list,
+    const Numeric&   rtp_pressure,
+    const Numeric&   rtp_temperature,
+    const Vector&    rtp_vmr,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Verbosity& )
 {
@@ -196,9 +196,9 @@ void refr_indexMWgeneral(
   ref_n[4] =  34.51e-6;
 
 // Checks
-  if( abs_species.nelem() != rte_vmr_list.nelem() )
+  if( abs_species.nelem() != rtp_vmr.nelem() )
     throw runtime_error( "The number of tag groups differ between "
-                                         "*rte_vmr_list* and *abs_species*." );
+                                         "*rtp_vmr* and *abs_species*." );
 
 /*
    further checks:
@@ -241,8 +241,8 @@ void refr_indexMWgeneral(
   //       = sum (Nref_i * vmr_i*p/p_0 * T0/T)
   //       = p/p_0 * T0/T *  sum (  Nref_i  * vmr_i)
 
-  const Numeric ratioT = T0/rte_temperature;
-  const Numeric ratiop = rte_pressure/p0;
+  const Numeric ratioT = T0/rtp_temperature;
+  const Numeric ratiop = rtp_pressure/p0;
 
   Numeric ref_spec_vmr_sum = 0.;
   Numeric n = 0.;
@@ -252,10 +252,10 @@ void refr_indexMWgeneral(
       if ( ref_spec_locations[i] >= 0 ) {
 
           // Add to VMR sum:
-          ref_spec_vmr_sum += rte_vmr_list[ref_spec_locations[i]];
+          ref_spec_vmr_sum += rtp_vmr[ref_spec_locations[i]];
 
           // refraction contribution (excluding the constant factor p/p_0 * T0/T):
-          n += ref_n[i] * rte_vmr_list[ref_spec_locations[i]];
+          n += ref_n[i] * rtp_vmr[ref_spec_locations[i]];
       }
   }
 

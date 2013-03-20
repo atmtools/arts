@@ -1,5 +1,33 @@
 2013-03-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-554
+
+	* doc/uguide/atmosphere.tex:
+	* doc/uguide/absorption.tex
+	* doc/uguide/concept.tex: As below, but inside AUG.
+
+	* src/m_abs_lookup.cc:
+	* src/mc_interp.h:
+	* src/m_optproperties.cc:
+	* src/mc_interp.cc:
+	* controlfiles/general/agendas.arts:
+	* src/m_refraction.cc:
+	* src/refraction.cc:
+	* src/doit.cc :
+	* src/m_abs_o2_models.cc:
+	* src/m_zeeman.cc:
+	* src/montecarlo.cc:
+	* src/mc_NotUsed.cc:
+	* src/disort.cc:
+	* src/montecarlo.h:
+	* src/methods.cc: Changed all rte_temperature, rte_pressure, rte_mag
+	* src/agendas.cc: rte_doppler and rtp_abs_species, to new rtp-
+	* src/m_abs.cc: correspondance.
+
+	* src/workspace.cc: Renamed rtp_abs_species to rtp_vmr.
+
+2013-03-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-553
 
 	* controlfiles/testdata/tropical.expanded.t.xml:

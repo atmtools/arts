@@ -421,16 +421,16 @@ Workspace variable = propmat_clearsky_agenda
 This agenda calculates absorption coefficients for all gas species
 as a function of the given atmospheric state for one point in the
 atmosphere. The result is returned in *propmat_clearsky*, the
-atmospheric state has to be specified by *rte_pressure*,
-*rte_temperature*, *rte_mag*, and *rte_vmr_list*.
+atmospheric state has to be specified by *rtp_pressure*,
+*rtp_temperature*, *rtp_mag*, and *rtp_vmr*.
 
 The methods inside this agenda may require a lot of additional
 input variables, such as *f_grid*, *species*, etc.
 ---------------------------------------------------------------------
 Group  = Agenda
 Output = propmat_clearsky
-Input  = f_grid, rte_doppler, rte_mag, rte_pressure,
-         rte_temperature, rte_vmr_list
+Input  = f_grid, rtp_doppler, rtp_mag, rtp_pressure,
+         rtp_temperature, rtp_vmr
 *-------------------------------------------------------------------*
 \end{code}
 \begin{minipage}[t]{0.48\hsize}
@@ -452,7 +452,7 @@ propmat_clearsky_agenda)
 AgendaSet(
 propmat_clearsky_agenda)
 {
-  Ignore(rte_mag)
+  Ignore(rtp_mag)
   propmat_clearskyInit
   propmat_clearskyAddFromLookup
 }

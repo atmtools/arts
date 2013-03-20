@@ -60,14 +60,14 @@ void define_agenda_data()
         "as a function of the given atmospheric state for one point in the\n"
         "atmosphere. The result is returned in *propmat_clearsky*, the\n"
         "atmospheric state has to be specified by *rtp_pressure*,\n"
-        "*rtp_temperature*, *rtp_mag*, and *rtp_abs_species*.\n"
+        "*rtp_temperature*, *rtp_mag*, and *rtp_vmr*.\n"
         "\n"
         "The methods inside this agenda may require a lot of additional\n"
         "input variables, such as *abs_species*, etc.\n"
         ),
        OUTPUT( "propmat_clearsky" ),
        INPUT(  "f_grid", "rtp_doppler", "rtp_mag", "rtp_los", "rtp_pressure", 
-               "rtp_temperature", "rtp_abs_species" )));
+               "rtp_temperature", "rtp_vmr" )));
   
   agenda_data.push_back
     (AgRecord
@@ -595,7 +595,7 @@ void define_agenda_data()
         "group velocity.\n"
         ),
        OUTPUT( "refr_index", "refr_index_group" ),
-       INPUT(  "rtp_pressure", "rtp_temperature", "rtp_abs_species", 
+       INPUT(  "rtp_pressure", "rtp_temperature", "rtp_vmr", 
                "rtp_edensity", "f_grid" )));
 
   agenda_data.push_back

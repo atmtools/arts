@@ -93,12 +93,12 @@ void dtauc_ssalbCalc(Workspace& ws,
   Tensor3 ext_mat_spt_local(N_pt, stokes_dim, stokes_dim, 0.);
   Matrix abs_vec_local;
   Tensor3 ext_mat_local;
-  Numeric rte_temperature_local; 
-  Numeric rte_pressure_local;
+  Numeric rtp_temperature_local; 
+  Numeric rtp_pressure_local;
   Tensor4 propmat_clearsky_local;
   Vector ext_vector(Np_cloud); 
   Vector abs_vector(Np_cloud); 
-  Vector rte_vmr_list_local(vmr_field.nbooks());
+  Vector rtp_vmr_local(vmr_field.nbooks());
   // Calculate ext_mat, abs_vec and sca_vec for all pressure points. 
 
   propmat_clearsky_local = 0.;
@@ -107,7 +107,7 @@ void dtauc_ssalbCalc(Workspace& ws,
  for(Index scat_p_index_local = 0; scat_p_index_local < Np_cloud; 
       scat_p_index_local ++)
    {
-     rte_temperature_local = 
+     rtp_temperature_local = 
        t_field(scat_p_index_local, 0, 0);
      
      //Calculate optical properties for single particle types:
@@ -115,7 +115,7 @@ void dtauc_ssalbCalc(Workspace& ws,
                             ext_mat_spt_local, 
                             abs_vec_spt_local,
                             scat_p_index_local, 0, 0, //position
-                            rte_temperature_local,
+                            rtp_temperature_local,
                             0, 0, // angles, only needed for za=0
                             spt_calc_agenda);
 
@@ -144,25 +144,25 @@ void dtauc_ssalbCalc(Workspace& ws,
      if (ext!=0)
        ssalb[Np_cloud-2-i]=(ext-abs)/ext;
      
-     rte_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
-     rte_temperature_local = 0.5 * (t_field(i,0,0) + t_field(i+1,0,0));
+     rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
+     rtp_temperature_local = 0.5 * (t_field(i,0,0) + t_field(i+1,0,0));
      
      // Average vmrs
      for (Index j = 0; j < vmr_field.nbooks(); j++)
-       rte_vmr_list_local[j] = 0.5 * (vmr_field(j, i, 0, 0) +
+       rtp_vmr_local[j] = 0.5 * (vmr_field(j, i, 0, 0) +
                                       vmr_field(j, i+1, 0, 0));
    
-    const Vector rte_mag_dummy(3,0);
+    const Vector rtp_mag_dummy(3,0);
     const Vector ppath_los_dummy;
 
      propmat_clearsky_agendaExecute(ws,
                                   propmat_clearsky_local,
                                   f_mono,  // monochromatic calculation
                                   0,
-                                  rte_mag_dummy,ppath_los_dummy,
-                                  rte_pressure_local, 
-                                  rte_temperature_local, 
-                                  rte_vmr_list_local,
+                                  rtp_mag_dummy,ppath_los_dummy,
+                                  rtp_pressure_local, 
+                                  rtp_temperature_local, 
+                                  rtp_vmr_local,
                                   propmat_clearsky_agenda);
 
      Numeric abs_total = propmat_clearsky_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency

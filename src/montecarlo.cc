@@ -104,12 +104,12 @@ void clear_rt_vars_at_gp(Workspace&          ws,
 
   temperature = t_vec[0];
 
-  const Vector rte_mag_dummy(3,0);
+  const Vector rtp_mag_dummy(3,0);
   const Vector ppath_los_dummy;
   
   //calcualte absorption coefficient
   propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
-                                    Vector(1, f_mono), 0, rte_mag_dummy, ppath_los_dummy,p_vec[0],
+                                    Vector(1, f_mono), 0, rtp_mag_dummy, ppath_los_dummy,p_vec[0],
                                     temperature, vmr_mat(joker, 0),
                                     propmat_clearsky_agenda);
 
@@ -169,8 +169,6 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
   Tensor4 local_propmat_clearsky;
   Matrix  local_abs_vec;
   Tensor3 local_ext_mat;
-  //Numeric local_rte_pressure;
-  //Vector local_rte_vmrlist;
 
   ao_gp_p[0]=gp_p;
   ao_gp_lat[0]=gp_lat;
@@ -181,15 +179,14 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
                        ao_gp_lat,ao_gp_lon,cloudbox_limits,p_grid_cloud,
                        t_field_cloud, vmr_field_cloud,pnd_field);
    
-  //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
 
-  const Vector rte_mag_dummy(3,0);
+  const Vector rtp_mag_dummy(3,0);
   const Vector ppath_los_dummy;
   
-  //rte_vmr_list    = vmr_ppath(joker,0);
+  //rtp_vmr    = vmr_ppath(joker,0);
   propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
-                                    Vector(1, f_mono), 0, rte_mag_dummy, ppath_los_dummy,p_ppath[0],
+                                    Vector(1, f_mono), 0, rtp_mag_dummy, ppath_los_dummy,p_ppath[0],
                                     temperature,vmr_ppath(joker, 0),
                                     propmat_clearsky_agenda);
   
@@ -733,7 +730,7 @@ from scat_data_mono
    \param scat_data_mono  workspace variable
    \param stokes_dim     workspace variable
    \param pnd_vec         vector pf particle number densities (one element per particle type)
-   \param rte_temperature loacl temperature (workspace variable)
+   \param rtp_temperature loacl temperature (workspace variable)
 
    \author Cory Davis
    \date   2004-7-16
@@ -746,7 +743,7 @@ void opt_propCalc(
                   const ArrayOfSingleScatteringData& scat_data_mono,
                   const Index     stokes_dim,
                   ConstVectorView pnd_vec,
-                  const Numeric   rte_temperature,
+                  const Numeric   rtp_temperature,
                   const Verbosity& verbosity
                   )
 {
@@ -770,7 +767,7 @@ void opt_propCalc(
         {
           opt_propExtract( ext_mat_mono_spt, abs_vec_mono_spt,
                           scat_data_mono[i_pt], za, aa,
-                          rte_temperature, stokes_dim, verbosity);
+                          rtp_temperature, stokes_dim, verbosity);
 
           ext_mat_mono_spt *= pnd_vec[i_pt];
           abs_vec_mono_spt *= pnd_vec[i_pt];
@@ -787,7 +784,7 @@ void opt_propExtract(
                      const SingleScatteringData& scat_data,
                      const Numeric  za,
                      const Numeric  aa _U_, // avoid warning until we use ptype=10
-                     const Numeric  rte_temperature,
+                     const Numeric  rtp_temperature,
                      const Index    stokes_dim,
                      const Verbosity& verbosity
                      )
@@ -795,7 +792,7 @@ void opt_propExtract(
   // Temperature grid position
   GridPos t_gp;
   if( scat_data.T_grid.nelem() > 1)
-    { gridpos( t_gp, scat_data.T_grid, rte_temperature ); }
+    { gridpos( t_gp, scat_data.T_grid, rtp_temperature ); }
 
 
   switch (scat_data.ptype){
@@ -954,7 +951,7 @@ void opt_propExtract(
  \param[in]  stokes_dim      workspace variable
  \param[in]  pnd_vec         vector of particle number densities at the point 
                              in question
- \param[in]  rte_temperature workspace variable
+ \param[in]  rtp_temperature workspace variable
  \author Cory Davis
  \date   2003-11-27
 */
@@ -967,7 +964,7 @@ void pha_mat_singleCalc(
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index      stokes_dim,
                         ConstVectorView  pnd_vec,
-                        const Numeric    rte_temperature,
+                        const Numeric    rtp_temperature,
                         const Verbosity& verbosity
                         )
 {
@@ -984,7 +981,7 @@ void pha_mat_singleCalc(
       if (pnd_vec[i_pt]>0)
         {
           pha_mat_singleExtract(Z_spt,scat_data_mono[i_pt],za_sca,aa_sca,za_inc,
-                                aa_inc,rte_temperature,stokes_dim,verbosity);
+                                aa_inc,rtp_temperature,stokes_dim,verbosity);
           Z_spt*=pnd_vec[i_pt];
           Z+=Z_spt;
         }
@@ -1004,7 +1001,7 @@ void pha_mat_singleCalc(
   \param[in]  aa_sca
   \param[in]  za_inc
   \param[in]  aa_inc
-  \param[in]  rte_temperature
+  \param[in]  rtp_temperature
   \param[in]  stokes_dim
 
   \author Cory Davis
@@ -1018,7 +1015,7 @@ void pha_mat_singleExtract(
                            const Numeric aa_sca,
                            const Numeric za_inc,
                            const Numeric aa_inc,
-                           const Numeric rte_temperature,
+                           const Numeric rtp_temperature,
                            const Index   stokes_dim,
                            const Verbosity& verbosity
                            )                       
@@ -1043,7 +1040,7 @@ void pha_mat_singleExtract(
       // Interpolation of the data on the scattering angle:
       interp_scat_angle_temperature(pha_mat_int, theta_rad, 
                                     scat_data, za_sca, aa_sca, 
-                                    za_inc, aa_inc, rte_temperature);
+                                    za_inc, aa_inc, rtp_temperature);
       
       // Caclulate the phase matrix in the laboratory frame:
       pha_mat_labCalc(Z_spt, pha_mat_int, za_sca, aa_sca, za_inc, aa_inc, theta_rad);
@@ -1073,7 +1070,7 @@ void pha_mat_singleExtract(
                 throw runtime_error( os.str() );
         }
       
-      gridpos(t_gp, scat_data.T_grid, rte_temperature);
+      gridpos(t_gp, scat_data.T_grid, rtp_temperature);
       gridpos(delta_aa_gp,scat_data.aa_grid,abs(delta_aa));
       if (za_inc>90)
         {
@@ -1211,7 +1208,7 @@ void pha_mat_singleExtract(
    \param[in]     anyptype30
    \param[in]     Z11maxvector
    \param[in]     Csca
-   \param[in]     rte_temperature
+   \param[in]     rtp_temperature
 
    \author Cory Davis
    \date   2003-06-19
@@ -1229,7 +1226,7 @@ void Sample_los (
                  const bool       anyptype30,
                  ConstVectorView  Z11maxvector,
                  const Numeric    Csca,
-                 const Numeric    rte_temperature,
+                 const Numeric    rtp_temperature,
                  const Verbosity& verbosity
                  )
 {
@@ -1253,7 +1250,7 @@ void Sample_los (
       //The following is based on the assumption that the maximum value of the 
       //phase matrix for a given scattered direction is for forward scattering
       pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rte_temperature,
+                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
                          verbosity);
       Z11max=dummyZ(0,0);
     }  
@@ -1267,7 +1264,7 @@ void Sample_los (
         -180+new_rte_los[1]:180+new_rte_los[1];
       
       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rte_temperature,
+                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rtp_temperature,
                          verbosity);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted

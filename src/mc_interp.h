@@ -92,7 +92,7 @@ void interp_scat_angle_temperature(//Output:
                                    const Numeric& aa_sca,
                                    const Numeric& za_inc,
                                    const Numeric& aa_inc,
-                                   const Numeric& rte_temperature
+                                   const Numeric& rtp_temperature
                                    );
 
 void interpTArray(Matrix& T,

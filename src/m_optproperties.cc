@@ -79,7 +79,7 @@ void pha_mat_sptFromData( // Output:
                          const Index& scat_aa_index,
                          const Index& f_index,
                          const Vector& f_grid,
-                         const Numeric& rte_temperature,
+                         const Numeric& rtp_temperature,
                          const Tensor4& pnd_field, 
                          const Index& scat_p_index,
                          const Index& scat_lat_index,
@@ -131,7 +131,7 @@ void pha_mat_sptFromData( // Output:
           gridpos(freq_gp, F_DATAGRID, f_grid[f_index]);
 
           GridPos t_gp;
-          gridpos(t_gp, T_DATAGRID, rte_temperature);
+          gridpos(t_gp, T_DATAGRID, rtp_temperature);
 
           // Interpolationweights:
           Vector itw(4);
@@ -195,7 +195,7 @@ void pha_mat_sptFromDataDOITOpt(// Output:
                                 const Vector& scat_aa_grid,
                                 const Index& scat_za_index, // propagation directions
                                 const Index& scat_aa_index,
-                                const Numeric& rte_temperature,
+                                const Numeric& rtp_temperature,
                                 const Tensor4&  pnd_field, 
                                 const Index& scat_p_index,
                                 const Index&  scat_lat_index,
@@ -266,11 +266,11 @@ void pha_mat_sptFromDataDOITOpt(// Output:
               ostringstream os;
               os << "The temperature grid of the scattering data does not cover the \n"
                   "atmospheric temperature at cloud location. The data should \n"
-                  "include the value T="<< rte_temperature << " K. \n";
-              chk_interpolation_grids(os.str(),	scat_data_mono[i_pt].T_grid, rte_temperature);
+                  "include the value T="<< rtp_temperature << " K. \n";
+              chk_interpolation_grids(os.str(),	scat_data_mono[i_pt].T_grid, rtp_temperature);
               
               // Gridpositions:
-              gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
+              gridpos(T_gp, scat_data_mono[i_pt].T_grid, rtp_temperature); 
               // Interpolationweights:
               interpweights(itw, T_gp);
             }
@@ -325,7 +325,7 @@ void opt_prop_sptFromData(// Output and Input:
                           const Index& scat_aa_index,
                           const Index& f_index,
                           const Vector& f_grid,
-                          const Numeric& rte_temperature, 
+                          const Numeric& rtp_temperature, 
                           const Tensor4& pnd_field, 
                           const Index& scat_p_index,
                           const Index& scat_lat_index,
@@ -394,10 +394,10 @@ void opt_prop_sptFromData(// Output and Input:
               ostringstream os;
               os << "The temperature grid of the scattering data does not cover the \n"
                     "atmospheric temperature at cloud location. The data should \n"
-                    "include the value T="<< rte_temperature << " K. \n";
-              chk_interpolation_grids(os.str(),	T_DATAGRID, rte_temperature);
+                    "include the value T="<< rtp_temperature << " K. \n";
+              chk_interpolation_grids(os.str(),	T_DATAGRID, rtp_temperature);
               
-              gridpos(t_gp, T_DATAGRID, rte_temperature);
+              gridpos(t_gp, T_DATAGRID, rtp_temperature);
           
               // Interpolationweights:
               itw.resize(4);
@@ -1256,7 +1256,7 @@ void opt_prop_sptFromMonoData(// Output and Input:
                               const Vector& scat_aa_grid,
                               const Index& scat_za_index, // propagation directions
                               const Index& scat_aa_index,
-                              const Numeric& rte_temperature,
+                              const Numeric& rtp_temperature,
                               const Tensor4& pnd_field, 
                               const Index& scat_p_index,
                               const Index& scat_lat_index,
@@ -1315,13 +1315,13 @@ void opt_prop_sptFromMonoData(// Output and Input:
       
           if (t_grid.nelem() > 1)
             {
-              //   if ((rte_temperature<t_grid[0])||(rte_temperature>t_grid[t_grid.nelem()-1]))
+              //   if ((rtp_temperature<t_grid[0])||(rtp_temperature>t_grid[t_grid.nelem()-1]))
               //             {
-              //               throw runtime_error("rte_temperature outside scattering data temperature range");
+              //               throw runtime_error("rtp_temperature outside scattering data temperature range");
               //             }
           
               //interpolate over temperature
-              gridpos(t_gp, scat_data_mono[i_pt].T_grid, rte_temperature);
+              gridpos(t_gp, scat_data_mono[i_pt].T_grid, rtp_temperature);
               interpweights(itw, t_gp);
               for (Index i_p = 0; i_p < ext_npages ; i_p++)
                 {
@@ -1395,7 +1395,7 @@ void pha_mat_sptFromMonoData(// Output:
                              const Vector& scat_aa_grid,
                              const Index& scat_za_index, // propagation directions
                              const Index& scat_aa_index,
-                             const Numeric& rte_temperature,
+                             const Numeric& rtp_temperature,
                              const Tensor4& pnd_field, 
                              const Index& scat_p_index,
                              const Index& scat_lat_index,
@@ -1446,11 +1446,11 @@ void pha_mat_sptFromMonoData(// Output:
               ostringstream os;
               os << "The temperature grid of the scattering data does not cover the \n"
                     "atmospheric temperature at cloud location. The data should \n"
-                    "include the value T="<< rte_temperature << " K. \n";
-              chk_interpolation_grids(os.str(),	scat_data_mono[i_pt].T_grid, rte_temperature);
+                    "include the value T="<< rtp_temperature << " K. \n";
+              chk_interpolation_grids(os.str(),	scat_data_mono[i_pt].T_grid, rtp_temperature);
               
               // Gridpositions:
-              gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
+              gridpos(T_gp, scat_data_mono[i_pt].T_grid, rtp_temperature); 
               // Interpolationweights:
               interpweights(itw, T_gp);
             }

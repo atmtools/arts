@@ -94,8 +94,8 @@ void get_refr_index_1d(
     ConstVectorView   f_grid,
     const Numeric&    r )
 { 
-  Numeric   rte_pressure, rte_temperature, rte_edensity=0;
-  Vector    rte_vmr_list;
+  Numeric   rtp_pressure, rtp_temperature, rte_edensity=0;
+  Vector    rtp_vmr;
 
   // Pressure grid position
   ArrayOfGridPos   gp(1);
@@ -108,21 +108,21 @@ void get_refr_index_1d(
   // Pressure
   Vector   dummy(1);
   itw2p( dummy, p_grid, gp, itw );
-  rte_pressure = dummy[0];
+  rtp_pressure = dummy[0];
 
   // Temperature
   interp( dummy, itw, t_field(joker,0,0), gp );
-  rte_temperature = dummy[0];
+  rtp_temperature = dummy[0];
 
   // VMR
   const Index   ns = vmr_field.nbooks();
   //
-  rte_vmr_list.resize(ns);
+  rtp_vmr.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
       interp( dummy, itw, vmr_field(is,joker,0,0), gp );
-      rte_vmr_list[is] = dummy[0];
+      rtp_vmr[is] = dummy[0];
     }
 
   // Electron density (initiated to zero above)
@@ -133,7 +133,7 @@ void get_refr_index_1d(
     }
 
   refr_index_agendaExecute( ws, refr_index, refr_index_group, 
-                            rte_pressure, rte_temperature, rte_vmr_list, 
+                            rtp_pressure, rtp_temperature, rtp_vmr, 
                             rte_edensity, f_grid, refr_index_agenda );
 }
 
@@ -185,8 +185,8 @@ void get_refr_index_2d(
     const Numeric&    r,
     const Numeric&    lat )
 { 
-  Numeric   rte_pressure, rte_temperature, rte_edensity=0;
-  Vector    rte_vmr_list;
+  Numeric   rtp_pressure, rtp_temperature, rte_edensity=0;
+  Vector    rtp_vmr;
 
   // Determine the geometric altitudes at *lat*
   const Index      np = p_grid.nelem();
@@ -210,23 +210,23 @@ void get_refr_index_2d(
 
   // Pressure
   itw2p( dummy, p_grid, gp_p, itw );
-  rte_pressure = dummy[0];
+  rtp_pressure = dummy[0];
 
   // Temperature
   itw.resize(1,4);
   interpweights( itw, gp_p, gp_lat );
   interp( dummy, itw, t_field(joker,joker,0), gp_p, gp_lat );
-  rte_temperature = dummy[0];
+  rtp_temperature = dummy[0];
 
   // VMR
   const Index   ns = vmr_field.nbooks();
   //
-  rte_vmr_list.resize(ns);
+  rtp_vmr.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
       interp( dummy, itw, vmr_field(is,joker,joker,0), gp_p, gp_lat );
-      rte_vmr_list[is] = dummy[0];
+      rtp_vmr[is] = dummy[0];
     }
 
   // Electron density (initiated to zero above)
@@ -237,7 +237,7 @@ void get_refr_index_2d(
     }
 
   refr_index_agendaExecute( ws, refr_index, refr_index_group, 
-                            rte_pressure, rte_temperature, rte_vmr_list, 
+                            rtp_pressure, rtp_temperature, rtp_vmr, 
                             rte_edensity, f_grid, refr_index_agenda );
 }
 
@@ -289,8 +289,8 @@ void get_refr_index_3d(
     const Numeric&    lat,
     const Numeric&    lon )
 { 
-  Numeric   rte_pressure, rte_temperature, rte_edensity=0;
-  Vector    rte_vmr_list;
+  Numeric   rtp_pressure, rtp_temperature, rte_edensity=0;
+  Vector    rtp_vmr;
 
   // Determine the geometric altitudes at *lat* and *lon*
   const Index      np = p_grid.nelem();
@@ -316,24 +316,24 @@ void get_refr_index_3d(
 
   // Pressure
   itw2p( dummy, p_grid, gp_p, itw );
-  rte_pressure = dummy[0];
+  rtp_pressure = dummy[0];
 
   // Temperature
   itw.resize(1,8);
   interpweights( itw, gp_p, gp_lat, gp_lon );
   interp( dummy, itw, t_field, gp_p, gp_lat, gp_lon );
-  rte_temperature = dummy[0];
+  rtp_temperature = dummy[0];
 
   // VMR
   const Index   ns = vmr_field.nbooks();
   //
-  rte_vmr_list.resize(ns);
+  rtp_vmr.resize(ns);
   //
   for( Index is=0; is<ns; is++ )
     {
       interp( dummy, itw, vmr_field(is,joker,joker,joker), gp_p, gp_lat, 
                                                                       gp_lon );
-      rte_vmr_list[is] = dummy[0];
+      rtp_vmr[is] = dummy[0];
     }
 
   // Electron density (initiated to zero above)
@@ -344,7 +344,7 @@ void get_refr_index_3d(
     }
 
   refr_index_agendaExecute( ws, refr_index, refr_index_group, 
-                            rte_pressure, rte_temperature, rte_vmr_list, 
+                            rtp_pressure, rtp_temperature, rtp_vmr, 
                             rte_edensity, f_grid, refr_index_agenda );
 }
 

@@ -1825,7 +1825,7 @@ doit_scat_fieldCalc(Workspace& ws,
       for (Index p_index = 0; p_index<=cloudbox_limits[1]-cloudbox_limits[0] ;
            p_index++)
         {
-          Numeric rte_temperature_local =
+          Numeric rtp_temperature_local =
             t_field(p_index + cloudbox_limits[0], 0, 0);
           //There is only loop over zenith angle grid ; no azimuth angle grid.
           for (Index scat_za_index_local = 0;
@@ -1842,7 +1842,7 @@ doit_scat_fieldCalc(Workspace& ws,
                                         index_zero,
                                         p_index,
                                         scat_aa_index_local,
-                                        rte_temperature_local,
+                                        rtp_temperature_local,
                                         pha_mat_spt_agenda);
               
               // Sum over all particle types
@@ -1910,7 +1910,7 @@ doit_scat_fieldCalc(Workspace& ws,
               for (Index lon_index = 0; lon_index <= 
                      cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
                 {
-                  Numeric rte_temperature_local = 
+                  Numeric rtp_temperature_local = 
                     t_field(p_index + cloudbox_limits[0],
                             lat_index + cloudbox_limits[2],
                             lon_index + cloudbox_limits[4]);
@@ -1930,7 +1930,7 @@ doit_scat_fieldCalc(Workspace& ws,
                                                     lon_index,
                                                     p_index, 
                                                     scat_aa_index_local,
-                                                    rte_temperature_local,
+                                                    rtp_temperature_local,
                                                     pha_mat_spt_agenda);
                           
                           pha_matCalc(pha_mat_local, pha_mat_spt_local,
@@ -2155,7 +2155,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
            p_index <= cloudbox_limits[1]-cloudbox_limits[0];
            p_index++)
         {
-          Numeric rte_temperature_local = 
+          Numeric rtp_temperature_local = 
             t_field(p_index + cloudbox_limits[0], 0, 0);
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
@@ -2197,7 +2197,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                                         index_zero,
                                         p_index,
                                         scat_aa_index_local,
-                                        rte_temperature_local,
+                                        rtp_temperature_local,
                                         pha_mat_spt_agenda);
               
               // Sum over all particle types
@@ -2288,7 +2288,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                    cloudbox_limits[5] - cloudbox_limits[4]; lon_index++)
               {
                 
-                Numeric rte_temperature_local =
+                Numeric rtp_temperature_local =
                   t_field(p_index + cloudbox_limits[0],
                           lat_index + cloudbox_limits[2],
                           lon_index + cloudbox_limits[4]);
@@ -2318,7 +2318,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                                                   lon_index,
                                                   p_index, 
                                                   scat_aa_index_local,
-                                                  rte_temperature_local,
+                                                  rtp_temperature_local,
                                                   pha_mat_spt_agenda);
   
                         pha_matCalc(pha_mat_local, pha_mat_spt_local,

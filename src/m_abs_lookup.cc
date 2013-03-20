@@ -2368,7 +2368,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                 a_vmr_list    = vmr_field( Range(joker),
                                            ipr, ila, ilo );
 
-                const Vector rte_mag_dummy(3,0);
+                const Vector rtp_mag_dummy(3,0);
                 const Vector ppath_los_dummy;
 
                 // Execute agenda to calculate local absorption.
@@ -2377,7 +2377,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                 propmat_clearsky_agendaExecute(l_ws,
                                                   amps,
                                                   f_grid, a_doppler,
-                                                  rte_mag_dummy,ppath_los_dummy,
+                                                  rtp_mag_dummy,ppath_los_dummy,
                                                   a_pressure,
                                                   a_temperature, a_vmr_list,
                                                   l_amps_agenda);
@@ -2562,7 +2562,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                                  abs_xsec_agenda,
                                  verbosity);
   // Argument 0 above is the Doppler shift (usually
-  // rte_doppler). Should be zero in this case.
+  // rtp_doppler). Should be zero in this case.
 
   // Sum up for all species, to get total absorption:
   for (Index i=0; i<n_f; ++i)

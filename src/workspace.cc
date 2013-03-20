@@ -3407,7 +3407,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rtp_abs_species" ),
+    ( NAME( "rtp_vmr" ),
       DESCRIPTION
       (
        "Absorption species abundances for radiative transfer calculations.\n"

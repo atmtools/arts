@@ -111,8 +111,6 @@ void mcPathTraceGeneral (Workspace&            ws,
                          Ppath&                ppath_step,
                          Index&                termination_flag,
                          bool&                 inside_cloud,
-                         //Numeric&              rte_pressure,
-                         //Vector&               rte_vmr_list,
                          const Agenda&         ppath_step_agenda,
                          const Numeric&        ppath_lraytrace,
                          const Agenda&         propmat_clearsky_agenda,
@@ -139,7 +137,7 @@ void opt_propCalc (MatrixView      K,
                    const ArrayOfSingleScatteringData& scat_data_mono,
                    const Index     stokes_dim,
                    ConstVectorView pnd_vec,
-                   const Numeric   rte_temperature,
+                   const Numeric   rtp_temperature,
                    const Verbosity& verbosity);
 
 void opt_propExtract (MatrixView     K_spt,
@@ -147,7 +145,7 @@ void opt_propExtract (MatrixView     K_spt,
                       const SingleScatteringData& scat_data,
                       const Numeric  za,
                       const Numeric  aa,
-                      const Numeric  rte_temperature,
+                      const Numeric  rtp_temperature,
                       const Index    stokes_dim,
                       const Verbosity& verbosity);
 
@@ -159,7 +157,7 @@ void pha_mat_singleCalc (MatrixView Z,
                          const ArrayOfSingleScatteringData& scat_data_mono,
                          const Index      stokes_dim,
                          ConstVectorView  pnd_vec,
-                         const Numeric    rte_temperature,
+                         const Numeric    rtp_temperature,
                          const Verbosity& verbosity);
 
 void pha_mat_singleExtract (MatrixView Z_spt,
@@ -168,7 +166,7 @@ void pha_mat_singleExtract (MatrixView Z_spt,
                             const Numeric aa_sca,
                             const Numeric za_inc,
                             const Numeric aa_inc,
-                            const Numeric rte_temperature,
+                            const Numeric rtp_temperature,
                             const Index   stokes_dim,
                             const Verbosity& verbosity);
 
@@ -184,7 +182,7 @@ void Sample_los (VectorView       new_rte_los,
                  const bool       anyptype30,
                  ConstVectorView  Z11maxvector,
                  const Numeric    Csca,
-                 const Numeric    rte_temperature,
+                 const Numeric    rtp_temperature,
                  const Verbosity& verbosity);
 
 

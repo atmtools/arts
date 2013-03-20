@@ -62,22 +62,22 @@ void AbsInputFromRteScalars(// WS Output:
                             Vector&        abs_t,
                             Matrix&        abs_vmrs,
                             // WS Input:
-                            const Numeric& rte_pressure,
-                            const Numeric& rte_temperature,
-                            const Vector&  rte_vmr_list,
+                            const Numeric& rtp_pressure,
+                            const Numeric& rtp_temperature,
+                            const Vector&  rtp_vmr,
                             const Verbosity&)
 {
   // Prepare abs_p:
   abs_p.resize(1);
-  abs_p = rte_pressure;
+  abs_p = rtp_pressure;
 
   // Prepare abs_t:
   abs_t.resize(1);
-  abs_t = rte_temperature;
+  abs_t = rtp_temperature;
 
   // Prepare abs_vmrs:
-  abs_vmrs.resize(rte_vmr_list.nelem(),1);
-  abs_vmrs = rte_vmr_list;
+  abs_vmrs.resize(rtp_vmr.nelem(),1);
+  abs_vmrs = rtp_vmr;
 }
 
 
@@ -1992,6 +1992,7 @@ void propmat_clearskyInit(//WS Output
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFaraday(// Workspace reference:
                                    Workspace& ws _U_,
@@ -2002,7 +2003,7 @@ void propmat_clearskyAddFaraday(// Workspace reference:
                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                    const Numeric& rtp_pressure _U_,
                                    const Numeric& rtp_temperature _U_,
-                                   const Vector& rtp_abs_species _U_,
+                                   const Vector& rtp_vmr _U_,
                                    const Numeric& rtp_doppler _U_,
                                    const Agenda& abs_xsec_agenda _U_,
                                    // Verbosity object:
@@ -2032,7 +2033,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const Numeric& rtp_pressure,
                                     const Numeric& rtp_temperature,
-                                    const Vector& rtp_abs_species,
+                                    const Vector& rtp_vmr,
                                     const Numeric& rtp_doppler,
                                     const Agenda& abs_xsec_agenda,
                                     // Verbosity object:
@@ -2095,7 +2096,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                          abs_vmrs,
                          rtp_pressure,
                          rtp_temperature,
-                         rtp_abs_species,
+                         rtp_vmr,
                          verbosity);
   
   // Absorption cross sections per tag group.
