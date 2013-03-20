@@ -87,6 +87,10 @@ SpeciesTag::SpeciesTag(String def)
       def  = "";
     }
 
+  // Obtain species index from species name.
+  // (This will also remove possible whitespace.)
+  mspecies = species_index_from_species_name( name );
+
   // Remove whitespace
   name.trim();
 
@@ -97,10 +101,6 @@ SpeciesTag::SpeciesTag(String def)
       mtype = TYPE_FREE_ELECTRONS;
       return;
     }
-
-  // Obtain species index from species name.
-  // (This will also remove possible whitespace.)
-  mspecies = species_index_from_species_name( name );
 
   if ( 0 > mspecies )
     {
@@ -346,7 +346,7 @@ String SpeciesTag::Name() const
       }
     else if (mtype == TYPE_FREE_ELECTRONS)
       {
-        os << "free_electrons";
+        os << spr.Name();
       }
     else
       {

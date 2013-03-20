@@ -1141,5 +1141,14 @@ void define_basic_species_data()
          REC( "MPM93"   ,NAN             ,NAN    ,-1     ,-1     ,TAGS()      )
          ) ) );
 
+  // You also have to change the entry in the file
+  // partition_function_data.cc consistently! 
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("free_electrons"),
+        DEGFR(0),
+        ISOTOPOLOGUES
+        () ) );
+
   //cout << species_data;
 }

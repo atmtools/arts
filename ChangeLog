@@ -1,3 +1,17 @@
+2013-03-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-555
+
+	* src/abs_species_tags.cc (SpeciesTag::SpeciesTag):
+
+	Get the species index before handling the free_electrons tag.
+
+	(SpeciesTag::Name): Use name from species_data for free_electrons.
+
+	* src/species_data.cc (define_basic_species_data):
+
+	Add tag 'free_electrons'.
+
 2013-03-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-554
