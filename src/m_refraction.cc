@@ -65,19 +65,37 @@ void refr_indexFreeElectrons(
           Numeric&   refr_index,
           Numeric&   refr_index_group,
     const Vector&    f_grid,
-    const Numeric&   rte_edensity,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Vector&    rtp_vmr,
     const Verbosity&)
 {
-  // The expression used in found in many textbooks, e.g. Rybicki and Lightman
+  // The expression used is found in many textbooks, e.g. Rybicki and Lightman
   // (1979). Note that the refractive index corresponds to the phase velocity.
 
   static const Numeric k = ELECTRON_CHARGE * ELECTRON_CHARGE / 
                          ( VACUUM_PERMITTIVITY * ELECTRON_MASS * 4 * PI * PI );
 
-  if( rte_edensity > 0 )
+  Numeric edensity = 0;
+
+  Index ife = -1;  
+  for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
+    {
+      if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+        { ife = sp; }
+    }
+
+  if( ife < 0 )
+    {
+      throw runtime_error( "Free electrons not found in *abs_species* and "
+                   "contribution to refractive index can not be calculated." );
+    }
+  else
+    { edensity = rtp_vmr[ife]; }
+
+  if( edensity > 0 )
     {
       const Numeric f = ( f_grid[0] + last(f_grid) ) / 2.0;
-      const Numeric a = rte_edensity*k/(f*f);
+      const Numeric a = edensity*k/(f*f);
       const Numeric n = sqrt( 1 - a );
 
       if( a > 0.25 ) 
@@ -85,7 +103,7 @@ void refr_indexFreeElectrons(
           ostringstream os;
           os << "The frequency must at least be twice the plasma frequency.\n"
              << "For this particular point, the plasma frequency is: " 
-             << sqrt(rte_edensity*k)/1e6 << " MHz.";
+             << sqrt(edensity*k)/1e6 << " MHz.";
           throw runtime_error( os.str() );
         }
 

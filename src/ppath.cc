@@ -3504,7 +3504,6 @@ void ppath_step_geom_3d(
    \param   z_field      Geometrical altitudes (1D).
    \param   t_field      As the WSV with the same name.
    \param   vmr_field    As the WSV with the same name.
-   \param   edensity_field    As the WSV with the same name.
    \param   f_grid       As the WSV with the same name.
    \param   lmax         As the WSV ppath_lmax
    \param   refr_index_agenda   As the WSV with the same name.
@@ -3534,7 +3533,6 @@ void raytrace_1d_linear_basic(
         ConstVectorView        z_field,
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
-        ConstTensor3View       edensity_field,
         ConstVectorView        f_grid,
         const Numeric&         lmax,
         const Agenda&          refr_index_agenda,
@@ -3554,7 +3552,7 @@ void raytrace_1d_linear_basic(
   Numeric refr_index, refr_index_group;
   get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
                      p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                     edensity_field, f_grid, r );
+                     f_grid, r );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
@@ -3610,7 +3608,7 @@ void raytrace_1d_linear_basic(
       // Refractive index at *r*
       get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
                          p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                         edensity_field, f_grid, r );
+                         f_grid, r );
 
       // Calculate LOS zenith angle at found point.
 
@@ -3656,7 +3654,6 @@ void raytrace_1d_linear_basic(
    \param   z_field           Geometrical altitudes (1D).
    \param   t_field           As the WSV with the same name.
    \param   vmr_field         As the WSV with the same name.
-   \param   edensity_field    As the WSV with the same name.
    \param   f_grid            As the WSV with the same name.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitude (1D).
@@ -3676,7 +3673,6 @@ void ppath_step_refr_1d(
         ConstVectorView   z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
-        ConstTensor3View  edensity_field,
         ConstVectorView   f_grid,
         ConstVectorView   refellipsoid,
         const Numeric&    z_surface,
@@ -3705,7 +3701,7 @@ void ppath_step_refr_1d(
       Numeric refr_index, refr_index_group;
       get_refr_index_1d( ws, refr_index, refr_index_group, refr_index_agenda, 
                          p_grid, refellipsoid, z_field, t_field, vmr_field, 
-                         edensity_field, f_grid, r_start );
+                         f_grid, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
   else
@@ -3723,7 +3719,7 @@ void ppath_step_refr_1d(
     {
       raytrace_1d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
             n_array, ng_array, endface, refellipsoid, p_grid, z_field, t_field,
-            vmr_field, edensity_field, f_grid, lmax, refr_index_agenda, 
+            vmr_field, f_grid, lmax, refr_index_agenda, 
             lraytrace, ppc, refellipsoid[0] + z_surface, 
             refellipsoid[0]+z_field[ip], refellipsoid[0]+z_field[ip+1], 
             r_start, lat_start, za_start );
@@ -3785,7 +3781,6 @@ void ppath_step_refr_1d(
    \param   z_field         Geomtrical altitudes (2D).
    \param   t_field         The WSV with the same name.
    \param   vmr_field       The WSV with the same name.
-   \param   edensity_field  As the WSV with the same name.
    \param   f_grid          As the WSV with the same name.
    \param   lmax            As the WSV ppath_lmax
    \param   refr_index_agenda   The WSV with the same name.
@@ -3820,7 +3815,6 @@ void raytrace_2d_linear_basic(
         ConstMatrixView        z_field,
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
-        ConstTensor3View       edensity_field,
         ConstVectorView        f_grid,
         const Numeric&         lmax,
         const Agenda&          refr_index_agenda,
@@ -3844,7 +3838,7 @@ void raytrace_2d_linear_basic(
   Numeric refr_index, refr_index_group;
   get_refr_index_2d( ws, refr_index, refr_index_group, refr_index_agenda, 
                      p_grid, lat_grid, refellipsoid, z_field, t_field, 
-                     vmr_field, edensity_field, f_grid, r, lat );
+                     vmr_field, f_grid, r, lat );
   r_array.push_back( r );
   lat_array.push_back( lat );
   za_array.push_back( za );
@@ -3912,8 +3906,7 @@ void raytrace_2d_linear_basic(
       Numeric   dndr, dndlat;
       refr_gradients_2d( ws, refr_index, refr_index_group, dndr, dndlat, 
                          refr_index_agenda, p_grid, lat_grid, refellipsoid, 
-                         z_field, t_field, vmr_field, edensity_field, f_grid, 
-                         r, lat );
+                         z_field, t_field, vmr_field, f_grid, r, lat );
 
       // Calculate LOS zenith angle at found point.
       const Numeric   za_rad = DEG2RAD * za;
@@ -3967,7 +3960,6 @@ void raytrace_2d_linear_basic(
    \param   z_field           Geometrical altitudes (2D).
    \param   t_field           As the WSV with the same name.
    \param   vmr_field         As the WSV with the same name.
-   \param   edensity_field    As the WSV with the same name.
    \param   f_grid            As the WSV with the same name.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
@@ -3988,7 +3980,6 @@ void ppath_step_refr_2d(
         ConstMatrixView   z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
-        ConstTensor3View  edensity_field,
         ConstVectorView   f_grid,
         ConstVectorView   refellipsoid,
         ConstVectorView   z_surface,
@@ -4025,7 +4016,7 @@ void ppath_step_refr_2d(
       raytrace_2d_linear_basic( ws, r_array, lat_array, za_array, l_array, 
                                 n_array, ng_array, endface, p_grid, lat_grid, 
                                 refellipsoid, z_field, t_field, vmr_field,
-                                edensity_field, f_grid, lmax, 
+                                f_grid, lmax, 
                                 refr_index_agenda, lraytrace, lat1, lat3,
                                 rsurface1, rsurface3, r1a, r3a, r3b, r1b, 
                                 r_start, lat_start, za_start );
@@ -4094,7 +4085,6 @@ void ppath_step_refr_2d(
    \param   z_field        The WSV with the same name.
    \param   t_field        The WSV with the same name.
    \param   vmr_field      The WSV with the same name.
-   \param   edensity_field As the WSV with the same name.
    \param   f_grid         As the WSV with the same name.
    \param   lat1           Latitude of left end face of the grid cell.
    \param   lat3           Latitude of right end face of the grid cell.
@@ -4139,7 +4129,6 @@ void raytrace_3d_linear_basic(
         ConstTensor3View       z_field,
         ConstTensor3View       t_field,
         ConstTensor4View       vmr_field,
-        ConstTensor3View       edensity_field,
         ConstVectorView        f_grid,
         const Numeric&         lmax,
         const Agenda&          refr_index_agenda,
@@ -4173,7 +4162,7 @@ void raytrace_3d_linear_basic(
   Numeric refr_index, refr_index_group;
   get_refr_index_3d( ws, refr_index, refr_index_group, refr_index_agenda, 
                      p_grid, lat_grid, lon_grid, refellipsoid, z_field, t_field,
-                     vmr_field, edensity_field, f_grid, r, lat, lon );
+                     vmr_field, f_grid, r, lat, lon );
   r_array.push_back( r );
   lat_array.push_back( lat );
   lon_array.push_back( lon );
@@ -4237,7 +4226,7 @@ void raytrace_3d_linear_basic(
       refr_gradients_3d( ws, refr_index, refr_index_group, dndr, dndlat, dndlon,
                          refr_index_agenda, p_grid, lat_grid, lon_grid, 
                          refellipsoid, z_field, t_field, vmr_field, 
-                         edensity_field, f_grid, r, lat, lon );
+                         f_grid, r, lat, lon );
 
       // Calculate LOS zenith angle at found point.
       const Numeric   aterm  = RAD2DEG * lstep / refr_index;
@@ -4316,7 +4305,6 @@ void raytrace_3d_linear_basic(
    \param   z_field           Geometrical altitudes.
    \param   t_field           Atmospheric temperatures.
    \param   vmr_field         VMR values.
-   \param   edensity_field    As the WSV with the same name.
    \param   f_grid            As the WSV with the same name.
    \param   refellipsoid      As the WSV with the same name.
    \param   z_surface         Surface altitudes.
@@ -4338,7 +4326,6 @@ void ppath_step_refr_3d(
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
-        ConstTensor3View  edensity_field,
         ConstVectorView   f_grid,
         ConstVectorView   refellipsoid,
         ConstMatrixView   z_surface,
@@ -4381,7 +4368,7 @@ void ppath_step_refr_3d(
       raytrace_3d_linear_basic( ws, r_array, lat_array, lon_array, za_array,
                            aa_array, l_array, n_array, ng_array, endface, 
                            refellipsoid, p_grid, lat_grid, lon_grid, 
-                           z_field, t_field, vmr_field, edensity_field, 
+                           z_field, t_field, vmr_field, 
                            f_grid, lmax, refr_index_agenda, lraytrace, 
                            lat1, lat3, lon5, lon6, 
                            rsurface15, rsurface35, rsurface36, rsurface16,
@@ -5194,7 +5181,6 @@ void ppath_start_stepping(
    \param t_field            As the WSM with the same name.
    \param z_field            As the WSM with the same name.
    \param vmr_field          As the WSM with the same name.
-   \param edensity_field     As the WSM with the same name.
    \param f_grid             As the WSM with the same name.
    \param refellipsoid       As the WSM with the same name.
    \param z_surface          Surface altitude.
@@ -5219,7 +5205,6 @@ void ppath_calc(
     const Tensor3&        t_field,
     const Tensor3&        z_field,
     const Tensor4&        vmr_field,
-    const Tensor3&        edensity_field,
     const Vector&         f_grid,
     const Vector&         refellipsoid,
     const Matrix&         z_surface,
@@ -5293,7 +5278,7 @@ void ppath_calc(
       istep++;
       //
       ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, 
-                                z_field, vmr_field, edensity_field, f_grid, 
+                                z_field, vmr_field, f_grid, 
                                 ppath_step_agenda );
       // For debugging:
       //Print( ppath_step, 0, verbosity );
@@ -5529,7 +5514,7 @@ void ppath_calc(
         {
           //Print( ppath_step, 0, verbosity );
           ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, 
-                                    z_field, vmr_field, edensity_field, f_grid, 
+                                    z_field, vmr_field, f_grid, 
                                     ppath_step_agenda );
           ppath.nreal[0]  = ppath_step.nreal[0];
           ppath.ngroup[0] = ppath_step.ngroup[0];

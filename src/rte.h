@@ -91,7 +91,6 @@ void defocusing_general(
   ConstTensor3View   t_field,
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
-  ConstTensor3View   edensity_field,
   ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
@@ -111,7 +110,6 @@ void defocusing_sat2sat(
   ConstTensor3View   t_field,
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
-  ConstTensor3View   edensity_field,
   ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
@@ -172,7 +170,6 @@ void get_ppath_atmvars(
         Matrix&      ppath_vmr, 
         Matrix&      ppath_wind, 
         Matrix&      ppath_mag,
-        Vector&      ppath_ne,
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
@@ -183,8 +180,7 @@ void get_ppath_atmvars(
   ConstTensor3View   wind_w_field,
   ConstTensor3View   mag_u_field,
   ConstTensor3View   mag_v_field,
-  ConstTensor3View   mag_w_field,
-  ConstTensor3View   edensity_field );
+  ConstTensor3View   mag_w_field );
 
 void get_ppath_abs( 
         Workspace&      ws,
@@ -236,13 +232,8 @@ void get_ppath_trans(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
-        Vector&         farrot_c1,
-        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstMatrixView       ppath_mag, 
-  ConstVectorView       ppath_ne, 
-  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim );
 
@@ -250,13 +241,8 @@ void get_ppath_trans2(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
-        Vector&         farrot_c1,
-        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstMatrixView       ppath_mag, 
-  ConstVectorView       ppath_ne, 
-  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim,
   const ArrayOfIndex&   clear2cloudbox,

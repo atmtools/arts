@@ -202,7 +202,6 @@ Extract( farrot_total, y_aux, 0 )
 #WriteXML( "ascii", y, "yREFERENCE.xml" )
 #WriteXML( "ascii", farrot_total, "farrot_totalREFERENCE.xml" )
 #WriteXML( "ascii", z_field, "z_field.xml" )
-#WriteXML( "ascii", edensity_field, "ne_field.xml" )
 #WriteXML( "ascii", mag_w_field, "bw_field.xml" )
 
 

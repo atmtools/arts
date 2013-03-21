@@ -1243,7 +1243,6 @@ void basics_checkedCalc(
                         const Tensor3&   mag_u_field,
                         const Tensor3&   mag_v_field,
                         const Tensor3&   mag_w_field,
-                        const Tensor3&   edensity_field,
                         const Vector&    refellipsoid,
                         const Matrix&    z_surface,
                         const Index&     stokes_dim,
@@ -1393,15 +1392,6 @@ void basics_checkedCalc(
           chk_atm_field( "mag_v_field", mag_v_field, atmosphere_dim, 
                                                    p_grid, lat_grid, lon_grid);
         }
-    }
-
-  // Free electrons
-  if( edensity_field.npages() > 0 )
-    { 
-      chk_atm_field( "edensity_field", edensity_field, atmosphere_dim, 
-                                                  p_grid, lat_grid, lon_grid );
-      if( min(edensity_field) < 0 )
-        throw runtime_error( "All values in *edensity_field* must be >= 0." );
     }
 
   // Stokes and frequency grid

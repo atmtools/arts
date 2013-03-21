@@ -151,7 +151,6 @@ AgendaCreate( ppath_step_agenda__GeometricPath )
 AgendaSet( ppath_step_agenda__GeometricPath ){
   Ignore( t_field )
   Ignore( vmr_field )
-  Ignore( edensity_field )
   Ignore( f_grid )
   Ignore( ppath_lraytrace )
   ppath_stepGeometric
@@ -254,7 +253,6 @@ AgendaSet( abs_xsec_agenda__withCIA ){
 AgendaCreate( refr_index_agenda__NoRefrac )
 AgendaSet( refr_index_agenda__NoRefrac ){
   Ignore( f_grid )
-  Ignore( rtp_edensity )
   Ignore( rtp_pressure )
   Ignore( rtp_temperature )
   Ignore( rtp_vmr )
@@ -269,7 +267,6 @@ AgendaSet( refr_index_agenda__NoRefrac ){
 AgendaCreate( refr_index_agenda__GasThayer )
 AgendaSet( refr_index_agenda__GasThayer ){
   Ignore( f_grid )
-  Ignore( rtp_edensity )
   NumericSet( refr_index, 1.0 )
   NumericSet( refr_index_group, 1.0 )
   refr_indexThayer
@@ -282,7 +279,6 @@ AgendaSet( refr_index_agenda__GasThayer ){
 AgendaCreate( refr_index_agenda__GasIREarth )
 AgendaSet( refr_index_agenda__GasIREarth ){
   Ignore( f_grid )
-  Ignore( rtp_edensity )
   NumericSet( refr_index, 1.0 )
   NumericSet( refr_index_group, 1.0 )
   refr_indexIR
@@ -295,7 +291,6 @@ AgendaSet( refr_index_agenda__GasIREarth ){
 AgendaCreate( refr_index_agenda__GasMWgeneral )
 AgendaSet( refr_index_agenda__GasMWgeneral ){
   Ignore( f_grid )
-  Ignore( rtp_edensity )
   NumericSet( refr_index, 1.0 )
   NumericSet( refr_index_group, 1.0 )
   refr_indexMWgeneral

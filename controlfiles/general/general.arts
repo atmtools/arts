@@ -59,10 +59,8 @@ IndexSet( fos_i, 0 )
 ArrayOfStringSet( iy_aux_vars, [] )
 
 
-
-### basics_CheckedCalc requires them to be initialised. 0 seems an ok default.
 # 
-# Winds, Magnetic field, and electron density
+# Wind and magnetic fields
 # (all components set to be empty, shorthand for no winds/magnetic field)
 #
 Tensor3SetConstant( wind_u_field, 0, 0, 0, 0.0 )
@@ -71,7 +69,6 @@ Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_u_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_v_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
-Tensor3SetConstant( edensity_field, 0, 0, 0, 0.0 )
 
 
 

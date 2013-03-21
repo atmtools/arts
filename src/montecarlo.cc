@@ -473,7 +473,6 @@ void mcPathTraceGeneral(
    const Matrix&         z_surface,
    const Tensor3&        t_field,
    const Tensor4&        vmr_field,
-   const Tensor3&        edensity_field,
    const ArrayOfIndex&   cloudbox_limits,
    const Tensor4&        pnd_field,
    const ArrayOfSingleScatteringData& scat_data_mono,
@@ -575,8 +574,8 @@ void mcPathTraceGeneral(
       if( ip == ppath_step.np-1 ) 
         {
           ppath_step_agendaExecute( ws, ppath_step, ppath_lraytrace, t_field, 
-                                    z_field, vmr_field, edensity_field, 
-                                    f_grid, ppath_step_agenda );
+                                    z_field, vmr_field, f_grid, 
+                                    ppath_step_agenda );
           //Print( ppath_step, 0, verbosity );
           ip = 1;
 

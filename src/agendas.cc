@@ -535,7 +535,7 @@ void define_agenda_data()
        OUTPUT( "ppath" ),
        INPUT( "ppath_lraytrace", "rte_pos", "rte_los", "rte_pos2",
               "cloudbox_on", "ppath_inside_cloudbox_do", "t_field", "z_field", 
-              "vmr_field", "edensity_field", "f_grid" )));
+              "vmr_field", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord
@@ -581,7 +581,7 @@ void define_agenda_data()
         ),
        OUTPUT( "ppath_step" ),
        INPUT( "ppath_step", "ppath_lraytrace", "t_field", "z_field", 
-              "vmr_field", "edensity_field", "f_grid" )));
+              "vmr_field", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord
@@ -595,8 +595,7 @@ void define_agenda_data()
         "group velocity.\n"
         ),
        OUTPUT( "refr_index", "refr_index_group" ),
-       INPUT(  "rtp_pressure", "rtp_temperature", "rtp_vmr", 
-               "rtp_edensity", "f_grid" )));
+       INPUT(  "rtp_pressure", "rtp_temperature", "rtp_vmr", "f_grid" )));
 
   agenda_data.push_back
     (AgRecord

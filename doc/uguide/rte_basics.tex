@@ -167,12 +167,6 @@ magneto-optical effects). As workspace variable, \aAbsMat{a}\ is denoted as
 \wsaindex{propmat\_clearsky\_agenda} agenda. \aExtMat{p}\ is obtained
 internally from \builtindoc{scat\_data\_raw}.
 
-% If propmat_particles_agenda is introduced:
-%As workspace variables, \aAbsMat{a}\ and \aExtMat{p}\
-%are denoted as \wsvindex{propmat\_clearsky} and \wsvindex{propmat\_particles},
-%respectively. These variables are obtained by two agendas:
-%\wsaindex{propmat\_clearsky\_agenda} and \wsaindex{propmat\_particles\_agenda}.
-
 
 
 \subsection{Emission and absorption vectors}
@@ -189,9 +183,7 @@ Equation~\ref{eq:VRTE0} can be written as
 \end{equation}
 where \Planck\ is the Planck function (a scalar value), describing blackbody
 radiation. The related workspace variables are \wsvindex{blackbody\_radiation}
-and \wsaindex{blackbody\_radiation\_agenda}. The vector \aSrcVec{e}\ is
-denoted as \wsvindex{emission\_vector}, and is calculated by
-\wsaindex{emission\_vector\_agenda}.
+and \wsaindex{blackbody\_radiation\_agenda}. 
 
 The quantity \AbsVec\ is denoted as the absorption vector. For clear-sky
 calculations the absorption vector is given by \aAbsMat{a}, as in this case the
@@ -209,9 +201,6 @@ vector is in this case equal to the first column of \aAbsMat{a}.
 The absorption vector can not be extracted from \aExtMat{p}\ as this
 propagation matrix covers also scattering and \wsvindex{scat\_data\_raw}
 must also contain such data.
-%As a consequence, the workspace
-%variable \wsvindex{absvec\_particles} must be introduced, that is returned by
-%\builtindoc{propmat\_particles\_agenda} together with \aExtMat{p}.
 
 In summary, the total absorption vector in ARTS is obtained as
 \begin{equation}

@@ -400,7 +400,6 @@ void bending_angle1d(
     \param    t_field             As the WSV with the same name.
     \param    z_field             As the WSV with the same name.
     \param    vmr_field           As the WSV with the same name.
-    \param    edensity_field      As the WSV with the same name.
     \param    f_grid              As the WSV with the same name.
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
@@ -425,7 +424,6 @@ void defocusing_general_sub(
   ConstTensor3View   t_field,
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
-  ConstTensor3View   edensity_field,
   ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
@@ -444,7 +442,7 @@ void defocusing_general_sub(
   Ppath ppx;
   //
   ppath_calc( ws, ppx, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
-              lon_grid, t_field, z_field, vmr_field, edensity_field,
+              lon_grid, t_field, z_field, vmr_field, 
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
   //
@@ -525,7 +523,6 @@ void defocusing_general_sub(
     \param    t_field             As the WSV with the same name.
     \param    z_field             As the WSV with the same name.
     \param    vmr_field           As the WSV with the same name.
-    \param    edensity_field      As the WSV with the same name.
     \param    f_grid              As the WSV with the same name.
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
@@ -548,7 +545,6 @@ void defocusing_general(
   ConstTensor3View   t_field,
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
-  ConstTensor3View   edensity_field,
   ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
@@ -582,7 +578,7 @@ void defocusing_general(
   defocusing_general_sub( ws, pos1, rte_los, backg1, rte_pos, lo, 
                           ppath_step_agenda, ppath_lraytrace, atmosphere_dim, 
                           p_grid, lat_grid, lon_grid, t_field, z_field, 
-                          vmr_field, edensity_field, f_grid, refellipsoid, 
+                          vmr_field, f_grid, refellipsoid, 
                           z_surface, verbosity );
 
   // Same thing with negative zenit angle off-set
@@ -595,7 +591,7 @@ void defocusing_general(
   defocusing_general_sub( ws, pos2, rte_los, backg2, rte_pos, lo, 
                           ppath_step_agenda, ppath_lraytrace, atmosphere_dim, 
                           p_grid, lat_grid, lon_grid, t_field, z_field, 
-                          vmr_field, edensity_field, f_grid, refellipsoid, 
+                          vmr_field, f_grid, refellipsoid, 
                           z_surface, verbosity );
 
   // Calculate distance between pos1 and 2, and derive the loss factor
@@ -660,7 +656,6 @@ void defocusing_general(
     \param    t_field             As the WSV with the same name.
     \param    z_field             As the WSV with the same name.
     \param    vmr_field           As the WSV with the same name.
-    \param    edensity_field      As the WSV with the same name.
     \param    f_grid              As the WSV with the same name.
     \param    refellipsoid        As the WSV with the same name.
     \param    z_surface           As the WSV with the same name.
@@ -683,7 +678,6 @@ void defocusing_sat2sat(
   ConstTensor3View   t_field,
   ConstTensor3View   z_field,
   ConstTensor4View   vmr_field,
-  ConstTensor3View   edensity_field,
   ConstVectorView    f_grid,
   ConstVectorView    refellipsoid,
   ConstMatrixView    z_surface,
@@ -727,7 +721,7 @@ void defocusing_sat2sat(
   rte_los[0] -= dza;
   adjust_los( rte_los, atmosphere_dim );
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
-              lon_grid, t_field, z_field, vmr_field, edensity_field,
+              lon_grid, t_field, z_field, vmr_field, 
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
   bending_angle1d( alpha2, ppt );
@@ -737,7 +731,7 @@ void defocusing_sat2sat(
   rte_los[0] += 2*dza;
   adjust_los( rte_los, atmosphere_dim );
   ppath_calc( ws, ppt, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid,
-              lon_grid, t_field, z_field, vmr_field, edensity_field,
+              lon_grid, t_field, z_field, vmr_field, 
               f_grid, refellipsoid, z_surface, 0, ArrayOfIndex(0), 
               rte_pos, rte_los, ppath_lraytrace, 0, verbosity );
   // This path can hit the surface. And we need to check if ppt is OK.
@@ -1073,7 +1067,6 @@ void get_iy_of_background(
     \param   ppath_vmr         Out: VMR values for each ppath point.
     \param   ppath_wind        Out: Wind vector for each ppath point.
     \param   ppath_mag         Out: Mag. field vector for each ppath point.
-    \param   ppath_ne          Out: Free electron density for each ppath point.
     \param   ppath             As the WSV.
     \param   atmosphere_dim    As the WSV.
     \param   p_grid            As the WSV.
@@ -1087,7 +1080,6 @@ void get_iy_of_background(
     \param   mag_u_field       As the WSV.
     \param   mag_v_field       As the WSV.
     \param   mag_w_field       As the WSV.
-    \param   edensity_field    As the WSV.
 
     \author Patrick Eriksson 
     \date   2009-10-05
@@ -1098,7 +1090,6 @@ void get_ppath_atmvars(
         Matrix&      ppath_vmr, 
         Matrix&      ppath_wind, 
         Matrix&      ppath_mag,
-        Vector&      ppath_ne,
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
@@ -1109,8 +1100,7 @@ void get_ppath_atmvars(
   ConstTensor3View   wind_w_field,
   ConstTensor3View   mag_u_field,
   ConstTensor3View   mag_v_field,
-  ConstTensor3View   mag_w_field,
-  ConstTensor3View   edensity_field )
+  ConstTensor3View   mag_w_field )
 {
   const Index   np  = ppath.np;
   // Pressure:
@@ -1177,16 +1167,6 @@ void get_ppath_atmvars(
       interp_atmfield_by_itw( ppath_mag(2,joker), atmosphere_dim, mag_w_field,
                             ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
-
-  // Free electrons
-  ppath_ne.resize(np);
-  if( edensity_field.npages() > 0 )
-    {
-      interp_atmfield_by_itw( ppath_ne,  atmosphere_dim, edensity_field,
-                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-    }
-  else
-    { ppath_ne = 0; }
 }
 
 
@@ -1561,23 +1541,11 @@ void get_ppath_f(
 
     The scalar optical thickness is calculated in parellel.
 
-    Farday rotation is included in the transmission Mueller matrices. In
-    addition, coefficients for filling associated auxiliary variables are
-    provided: farrot_c1 and c2. The first one corresponds to the local rotation
-    speed [rad*Hz*Hz/m] at each ppath point (a vector), and the second the
-    total rotation [rad*Hz*Hz] (a scalar). The actual Faraday rotation is
-    obtained by dividing with the frequency squared.
-
     \param   trans_partial  Out: Transmission for each path step.
     \param   trans_cumulat  Out: Transmission to each path point.
     \param   scalar_tau     Out: Total (scalar) optical thickness of path
-    \param   farrot_c1      Out: Coefficient for local Faradation rot. speed 
-    \param   farrot_c2      Out: Coefficient for total Faradation rotatation
     \param   ppath          As the WSV.    
     \param   ppath_abs      See get_ppath_abs.
-    \param   ppath_mag      See get_ppath_atmvars.
-    \param   ppath_ne       See get_ppath_abs.
-    \param   atmosphere_dim As the WSV.    
     \param   f_grid         As the WSV.    
     \param   stokes_dim     As the WSV.
 
@@ -1588,13 +1556,8 @@ void get_ppath_trans(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
-        Vector&         farrot_c1,
-        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstMatrixView       ppath_mag, 
-  ConstVectorView       ppath_ne, 
-  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim )
 {
@@ -1609,21 +1572,9 @@ void get_ppath_trans(
   //
   scalar_tau.resize( nf );
   scalar_tau = 0;
-  //
-  farrot_c1.resize( np );
-  farrot_c1 = 0;
-  farrot_c2 = 0;
 
   // If any problems for Faraday rotation is found, remember to also update
   // get_ppath_trans2.
-
-  // Variables for Faraday rotation
-  //
-  // All the constants joined (abs as e defined as negative)
-  static const Numeric FRconst = abs( 
-                        ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
-                        ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
-                          ELECTRON_MASS * ELECTRON_MASS ) );
 
   // Loop ppath points (in the anti-direction of photons)  
   //
@@ -1631,15 +1582,6 @@ void get_ppath_trans(
   //
   for( Index ip=0; ip<np; ip++ )
     {
-      // Faraday rotation
-      if( ppath_ne[ip]!=0  &&  ( ppath_mag(0,ip)!=0 || ppath_mag(1,ip)!=0 || 
-                                                       ppath_mag(2,ip)!=0 ) )
-        { 
-          farrot_c1[ip] = FRconst * ppath_ne[ip] * dotprod_with_los( 
-                        ppath.los(ip,joker), ppath_mag(0,ip), ppath_mag(1,ip),
-                                             ppath_mag(2,ip), atmosphere_dim );
-        }
-
       // If first point, calculate sum of absorption and set transmission
       // to identity matrix.
       if( ip == 0 )
@@ -1662,14 +1604,6 @@ void get_ppath_trans(
 
       else
         {
-          // Any Faraday rotation?
-          Numeric rot_c = 0;  // Rotation for step, without f^2-factor
-          if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
-            { 
-              // Rotation for the step
-              rot_c = ppath.lstep[ip-1] * 0.5*(farrot_c1[ip-1]+farrot_c1[ip]);
-              farrot_c2 += rot_c;
-            }
 #if !(__APPLE__) || (__INTEL_COMPILER)
 #pragma omp parallel for \
   if (!arts_omp_in_parallel() \
@@ -1689,37 +1623,6 @@ void get_ppath_trans(
               scalar_tau[iv] -= ntau(0,0); 
               // (the function below checks if ntau ir diagonal or not)
               matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
-
-              // Include Faraday rotation?
-              if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
-                { 
-                  // Rotation for the step
-                  const Numeric rot_angle = rot_c / (f_grid[iv]*f_grid[iv]);
-
-                  // Fill up Mueller matrix and include in trans_partial
-                  if( stokes_dim > 1 )
-                    {
-                      // Mueller matrix for Faraday rotation (fill constant positions)
-                      Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
-                      FRmat(0,0) = 1;
-                      if( stokes_dim == 4 )
-                      { FRmat(3,3) = 1; }
-                        
-                      const Numeric cterm = cos( 2*rot_angle );
-                      FRmat(1,1) = cterm;
-                      //
-                      if( stokes_dim > 2 )
-                        {
-                          const Numeric sterm = sin( 2*rot_angle );
-                          FRmat(2,1) = sterm;
-                          FRmat(1,2) = -sterm;
-                          FRmat(2,2) = cterm;
-                        }                   
-                      Matrix Mtmp = trans_partial(iv,joker,joker,ip-1);
-                      // (the multiplication order below is arbitrary)
-                      mult( trans_partial(iv,joker,joker,ip-1), Mtmp, FRmat );
-                    }
-                } 
               
               // Cumulative transmission
               // (note that multiplication below depends on ppath loop order)
@@ -1744,13 +1647,8 @@ void get_ppath_trans(
     \param   trans_partial    Out: Transmission for each path step.
     \param   trans_cumulat    Out: Transmission to each path point.
     \param   scalar_tau       Out: Total (scalar) optical thickness of path
-    \param   farrot_c1        Out: Coefficient for local Faradation rot. speed 
-    \param   farrot_c2        Out: Coefficient for total Faradation rotatation
     \param   ppath            As the WSV.    
     \param   ppath_abs        See get_ppath_abs.
-    \param   ppath_mag        See get_ppath_atmvars.
-    \param   ppath_ne         See get_ppath_abs.
-    \param   atmosphere_dim   As the WSV.    
     \param   f_grid           As the WSV.    
     \param   stokes_dim       As the WSV.
     \param   clear2cloudbox   See get_ppath_ext.
@@ -1763,13 +1661,8 @@ void get_ppath_trans2(
         Tensor4&        trans_partial,
         Tensor4&        trans_cumulat,
         Vector&         scalar_tau,
-        Vector&         farrot_c1,
-        Numeric&        farrot_c2,
   const Ppath&          ppath,
   ConstTensor5View&     ppath_abs,
-  ConstMatrixView       ppath_mag, 
-  ConstVectorView       ppath_ne, 
-  const Index&          atmosphere_dim,
   ConstVectorView       f_grid, 
   const Index&          stokes_dim,
   const ArrayOfIndex&   clear2cloudbox,
@@ -1786,26 +1679,6 @@ void get_ppath_trans2(
   //
   scalar_tau.resize( nf );
   scalar_tau  = 0;
-  //
-  farrot_c1.resize( np );
-  farrot_c1 = 0;
-  farrot_c2 = 0;
-
-  // If any problems for Faraday rotation is found, remember to also update
-  // get_ppath_trans.
-
-  // Variables for Faraday rotation
-  //
-  // All the constants joined (abs as e defined as negative)
-  static const Numeric FRconst = abs( 
-                        ELECTRON_CHARGE * ELECTRON_CHARGE * ELECTRON_CHARGE / 
-                        ( 8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * 
-                          ELECTRON_MASS * ELECTRON_MASS ) );
-  // Mueller matrix for Faraday rotation (fill constant positions)
-  Matrix  FRmat( stokes_dim, stokes_dim, 0 );  
-  FRmat(0,0) = 1;
-  if( stokes_dim == 4 )
-    { FRmat(3,3) = 1; }
   
   // Loop ppath points (in the anti-direction of photons)  
   //
@@ -1813,15 +1686,6 @@ void get_ppath_trans2(
   //
   for( Index ip=0; ip<np; ip++ )
     {
-      // Faraday rotation
-      if( ppath_ne[ip]!=0  &&  ( ppath_mag(0,ip)!=0 || ppath_mag(1,ip)!=0 || 
-                                                       ppath_mag(2,ip)!=0 ) )
-        { 
-          farrot_c1[ip] = FRconst * ppath_ne[ip] * dotprod_with_los( 
-                        ppath.los(ip,joker), ppath_mag(0,ip), ppath_mag(1,ip),
-                                             ppath_mag(2,ip), atmosphere_dim );
-        }
-
       // If first point, calculate sum of absorption and set transmission
       // to identity matrix.
       if( ip == 0 )
@@ -1849,15 +1713,6 @@ void get_ppath_trans2(
 
       else
         {
-          // Any Faraday rotation?
-          Numeric rot_c = 0;  // Rotation for step, without f^2-factor
-          if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
-            { 
-              // Rotation for the step
-              rot_c = ppath.lstep[ip-1] * 0.5*(farrot_c1[ip-1]+farrot_c1[ip]);
-              farrot_c2 += rot_c;
-            }
-
           const Index ic = clear2cloudbox[ip];
           //
           for( Index iv=0; iv<nf; iv++ ) 
@@ -1877,31 +1732,6 @@ void get_ppath_trans2(
               scalar_tau[iv] -= ntau(0,0); 
               // (the function below checks if ntau ir diagonal or not)
               matrix_exp( trans_partial(iv,joker,joker,ip-1), ntau, 10 );
-
-              // Include Faraday rotation?
-              if( farrot_c1[ip-1] != 0  ||  farrot_c1[ip] != 0 )
-                { 
-                  // Rotation for the step
-                  const Numeric rot_angle = rot_c / (f_grid[iv]*f_grid[iv]);
-
-                  // Fill up Mueller matrix and include in trans_partial
-                  if( stokes_dim > 1 )
-                    {
-                      const Numeric cterm = cos( 2*rot_angle );
-                      FRmat(1,1) = cterm;
-                      //
-                      if( stokes_dim > 2 )
-                        {
-                          const Numeric sterm = sin( 2*rot_angle );
-                          FRmat(2,1) = sterm;
-                          FRmat(1,2) = -sterm;
-                          FRmat(2,2) = cterm;
-                        }                   
-                      Matrix Mtmp = trans_partial(iv,joker,joker,ip-1);
-                      // (the multiplication order below is arbitrary)
-                      mult( trans_partial(iv,joker,joker,ip-1), Mtmp, FRmat );
-                    }
-                } 
 
               // Note that multiplication below depends on ppath loop order
               mult( trans_cumulat(iv,joker,joker,ip), 

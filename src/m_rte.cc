@@ -179,7 +179,6 @@ void iyEmissionStandard(
    const Tensor3&                    mag_u_field,
    const Tensor3&                    mag_v_field,
    const Tensor3&                    mag_w_field,
-   const Tensor3&                    edensity_field,
    const Index&                      cloudbox_on,
    const String&                     iy_unit,
    const ArrayOfString&              iy_aux_vars,
@@ -205,8 +204,8 @@ void iyEmissionStandard(
   // Determine propagation path
   //
   ppath_agendaExecute( ws, ppath, ppath_lraytrace, rte_pos, rte_los, rte_pos2, 
-                       cloudbox_on, 0, t_field, z_field, vmr_field, 
-                       edensity_field, f_grid, ppath_agenda );
+                       cloudbox_on, 0, t_field, z_field, vmr_field, f_grid, 
+                       ppath_agenda );
 
   // Some basic sizes
   //
@@ -329,22 +328,17 @@ void iyEmissionStandard(
   //
   if( np > 1 )
     {
-      Vector  ppath_ne, farrot_c1; 
-      Numeric farrot_c2;
-      //
       get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
-                          ppath_ne, ppath, atmosphere_dim, p_grid, t_field, 
+                          ppath, atmosphere_dim, p_grid, t_field, 
                           vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                          mag_u_field, mag_v_field, mag_w_field, 
-                          edensity_field );      
+                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
       get_ppath_abs(      ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_vmr, ppath_f, 
                           ppath_mag, f_grid, stokes_dim );
-      get_ppath_trans(    trans_partial, trans_cumulat, scalar_tau, farrot_c1,
-                          farrot_c2, ppath, ppath_abs, ppath_mag, ppath_ne, 
-                          atmosphere_dim, f_grid, stokes_dim );
+      get_ppath_trans(    trans_partial, trans_cumulat, scalar_tau, ppath, 
+                          ppath_abs, f_grid, stokes_dim );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
                           ppath, ppath_t, ppath_f );
     }
@@ -925,7 +919,6 @@ void iyMC(
    const Tensor3&                    z_field,
    const Tensor3&                    t_field,
    const Tensor4&                    vmr_field,
-   const Tensor3&                    edensity_field,
    const Vector&                     refellipsoid,
    const Matrix&                     z_surface,
    const Index&                      cloudbox_on,
@@ -1043,7 +1036,7 @@ void iyMC(
                    l_surface_rtprop_agenda, l_propmat_clearsky_agenda, 
                    p_grid, lat_grid, lon_grid, z_field, 
                    refellipsoid, z_surface, t_field, vmr_field,
-                   edensity_field, cloudbox_on, cloudbox_limits,
+                   cloudbox_on, cloudbox_limits,
                    pnd_field, scat_data_mono, 1, cloudbox_checked,
                    mc_seed, iy_unit, mc_std_err, mc_max_time, mc_max_iter,
                    mc_min_iter, verbosity);

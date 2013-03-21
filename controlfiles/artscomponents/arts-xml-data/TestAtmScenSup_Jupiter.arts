@@ -38,6 +38,7 @@ VectorSet( f_grid, [300e9] )
 # 1-dimensional atmosphere
 AtmosphereSet1D
 
+Tensor3Create( edensity_field )
 GriddedField3Create( gf3tmp )
 StringCreate( caseext )
 StringCreate( casefull )

@@ -21,21 +21,19 @@ found below in Section~\ref{sec:faraday:theory}.
 \section{Practical usage}
 \label{sec:faraday:arts}
 %
-Faraday rotation is not treated by the DOIT and MC scattering modules.
-Beside this, the effect is automatically considered as soon as both the
-magnetic field and the free electron number density deviate from zero (this is
-checked for each step of the propagation paths). The resulting
-rotation is then included in the radiative transfer following
-Equation~\ref{eq:faraday:mueller}. This means that Faraday rotation is treated
-fully by e.g.\ \wsmindex{iyTransmissionStandard} and
-\wsmindex{iyRadioLink} (as these WSMs do not use MC or DOIT), and also for 
-\wsmindex{iyEmissionStandard} in the case of ``clear-sky''. 
+The first step is to ensure that the magnetic field and field of free electrons
+are non-zero. See Section~\ref{sec:atm:vecfields} for how to introduce a
+magnetic field. Free electrons are treated as an ``absorbing species'', and
+hence are part of \wsvindex{vmr\_index} (Sec.~\ref{sec:rteq:absspecies}). A
+further constrain is that the Stokes dimensionality (\wsvindex{stokes\_dim}) is
+set to 3 or 4. This can be understood by Equation~\ref{eq:faraday:mueller},
+Faraday rotation affects Stokes elements 2 and 3.
 
-However, a constrain for a correct treatment of the Faraday effect is that the
-Stokes dimensionality (\wsvindex{stokes\_dim}) is set to 3 or 4, which can be
-understood by Equation~\ref{eq:faraday:mueller}. The workspace variables
-corresponding to free electrons and the magnetic field are introduced in
-Section~\ref{sec:atm:ionosp}.
+Faraday rotation is treated by \wsaindex{propmat\_clearsky\_agenda}. For the
+moment, there exists a single workspace method for the task and that is
+\wsmindex{propmat\_clearskyAddFaraday}. That is, this method must be included
+in \builtindoc{propmat\_clearsky\_agenda} if you want to include Faraday
+rotation in your calculations.
 
 Information on the actual rotation can be obtained as auxiliary data by
 \builtindoc{iyTransmissionStandard} and \builtindoc{iyRadioLink}. The total
@@ -93,16 +91,29 @@ denotes the dot (scalar) product. Accordingly, the Faraday rotation is
 proportional to the part of the magnetic field along the propagation path,
 the field normal to the path gives no effect.
 
-The change in rotation angle along the
-propagation path is then given by
+The change in rotation angle along the propagation path, $r$ is then given by
 \begin{equation}
-  \frac{\DiffD \vartheta_{F}}{\DiffD s}=\frac{e^{3}}{8\pi 
+  r=\frac{\DiffD \vartheta_{F}}{\DiffD s}=\frac{e^{3}}{8\pi 
     \speedoflight\epsilon_{0}m^{2}\Frq^{2}}n_{e}(s) {\bf B_{geo}} (s) \cdot 
     \hat{\bf s}. 
  \label{eq:faraday:speed}
 \end{equation}
-The effect on the Stokes vector of the rotation of the electric field can be
-described by a Mueller matrix \citep{goldstein:polar:03,meissner:06:polar}:
+An ``magneto-optical'' effect (Sec.~\ref{sec:rteq:propmat}) of this type is
+mapped to a propagation matrix as 
+\begin{equation}
+ \ExtMat = \left[
+\begin{array}{cccc}
+0 & 0 & 0 & 0 \\
+0 & 0 & 2r & 0 \\
+0 & -2r & 0  & 0\\
+0 & 0 & 0 & 0\\
+\end{array}
+\right].
+\label{eq:faraday:propmat}
+\end{equation}
+If no other effects are present, the effect on the Stokes vector for some part
+of the propgation path can be expressed as a Mueller rotation matrix
+\citep{goldstein:polar:03,meissner:06:polar}:
 \begin{equation}
 \left[
 \begin{array}{c}
@@ -127,10 +138,8 @@ described by a Mueller matrix \citep{goldstein:polar:03,meissner:06:polar}:
 \StoU\\
 \StoV\\
 \end{array}
-\right], 
+\right].
 \label{eq:faraday:mueller}
 \end{equation}
-and we see that only the plane polarised components of the Stokes vector will
-be affected by Faraday rotation.
 
 

@@ -37,6 +37,7 @@ INCLUDE "general/planet_earth.arts"
 IndexSet( stokes_dim, 1 )
 VectorSet( f_grid, [300e9] )
 
+Tensor3Create( edensity_field )
 GriddedField3Create( gf3tmp )
 StringCreate( caseext )
 StringCreate( casefull )

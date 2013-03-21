@@ -1,3 +1,63 @@
+2013-03-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-557
+
+	* Big cleaning, to finish the transition to new way for handling
+	Faraday and storing free electrons.
+
+	* doc/uguide/faraday.tex: Updated to new approach for Faraday
+	rotation.
+
+	* doc/uguide/rte_basics.tex:
+	* doc/uguide/atmosphere.tex: Removed refences to unknown WSVs.
+
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts:
+	* controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Earth.arts:
+	Added
+	  Tensor3Create( edensity_field )
+	to keep the cfiles OK.
+
+	* controlfiles/artscomponents/faraday/TestFaradayRotation.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioLink.arts:
+	* controlfiles/artscomponents/radiolink/TestRadioOccultation.arts:
+	* controlfiles/general/agendas.arts:
+	* controlfiles/general/general.arts: Removed everything around
+	edensity.
+
+	* src/m_refraction.cc (refr_indexFreeElectrons): Now using rtp_vmr
+	instead of rtp_edensity.
+
+	* src/montecarlo.h:
+	* src/montecarlo.cc (mcPathTraceGeneral):
+	* src/m_montecarlo.cc (MCGeneral):
+	* src/m_rte.cc:
+	* src/refraction.cc:
+	* src/m_atmosphere.cc (basics_checkedCalc):
+	* src/ppath.cc:
+	* src/m_doit.cc:
+	* src/rte.cc:
+	* src/m_cloudradar.cc:
+	* src/doit.h:
+	* src/doit.cc: Removed everything around edensity_field.
+
+	* src/m_transmitter.cc (iyTransmissionStandard, iyRadioLink):
+	* src/m_rte.cc (iyEmissionStandard):
+	* src/m_cloudradar.cc (iyCloudRadar): Adopted to changes in rte.cc.
+
+	* src/rte.cc (get_ppath_atmvars): Removed part around ppath_ne.
+
+	(get_ppath_trans, get_ppath_trans2): Removed everything around
+	Faraday rotation.
+
+	* src/agendas.cc: Removed rtp_edensity as input for refr_index_agenda.
+	And edensity_field from both ppath agendas.
+
+	* src/workspace.cc (define_wsv_data): Removed rtp_edensity. This
+	is now part of rtp_vmr. And removed edensity_field. Now part of
+	vmr_field.
+
 2013-03-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-556
