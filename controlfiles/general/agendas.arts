@@ -170,6 +170,8 @@ AgendaSet( ppath_step_agenda__RefractedPath ){
 #    propmat_clearsky_agenda
 ##################################
 
+FlagOff( propmat_clearsky_agenda_checked )
+
 ###
 # "on-the-fly" absorption
 #
@@ -218,6 +220,8 @@ AgendaSet( propmat_clearsky_agenda__LookUpTable_Zeeman ){
 ##################################
 #    abs_xsec_agenda
 ##################################
+
+FlagOff( abs_xsec_agenda_checked )
 
 ###
 # Without CIA (only explicit lines and 

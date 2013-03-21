@@ -81,10 +81,11 @@ cloudbox_checkedCalc
 abs_lines_per_speciesCreateFromLines
 
 AbsInputFromAtmFields
-SpeciesSet( abs_nls, [] )
+abs_speciesSet( abs_species=abs_nls, species=[] )
 VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 
 # absorption from LUT
@@ -110,6 +111,8 @@ VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
 Matrix1ColFromVector( sensor_los, za )
 
 sensor_checkedCalc
+
+propmat_clearsky_agenda_checkedCalc
 
 
 

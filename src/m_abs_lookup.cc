@@ -1832,12 +1832,18 @@ void abs_lookupSetupWide(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesAdd(// WS Output:
                     ArrayOfArrayOfSpeciesTag& abs_species,
+                    Index& propmat_clearsky_agenda_checked,
+                    Index& abs_xsec_agenda_checked,
                     // Control Parameters:
                     const ArrayOfString& names,
                     const Verbosity& verbosity)
 {
   CREATE_OUT3;
   
+  // Invalidate agenda check flags
+  propmat_clearsky_agenda_checked = false;
+  abs_xsec_agenda_checked = false;
+
   // Size of initial array
   Index n_gs = abs_species.nelem();
   
@@ -1872,6 +1878,8 @@ void abs_speciesAdd2(// WS Output:
                      ArrayOfArrayOfSpeciesTag& abs_species,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda&                   jacobian_agenda,
+                     Index&                    propmat_clearsky_agenda_checked,
+                     Index&                    abs_xsec_agenda_checked,
                      // WS Input:
                      const Index&              atmosphere_dim,
                      const Vector&             p_grid,
@@ -1890,6 +1898,10 @@ void abs_speciesAdd2(// WS Output:
 {
   CREATE_OUT3;
   
+  // Invalidate agenda check flags
+  propmat_clearsky_agenda_checked = false;
+  abs_xsec_agenda_checked = false;
+
   // Add species to *abs_species*
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
@@ -1921,14 +1933,20 @@ void abs_speciesInit(ArrayOfArrayOfSpeciesTag& abs_species,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void SpeciesSet(// WS Generic Output:
-                ArrayOfArrayOfSpeciesTag& abs_species,
-                // Control Parameters:
-                const ArrayOfString& names,
-                const Verbosity& verbosity)
+void abs_speciesSet(// WS Output:
+                    ArrayOfArrayOfSpeciesTag& abs_species,
+                    Index& abs_xsec_agenda_checked,
+                    Index& propmat_clearsky_agenda_checked,
+                    // Control Parameters:
+                    const ArrayOfString& names,
+                    const Verbosity& verbosity)
 {
   CREATE_OUT3;
-  
+
+  // Invalidate agenda check flags
+  propmat_clearsky_agenda_checked = false;
+  abs_xsec_agenda_checked = false;
+
   abs_species.resize(names.nelem());
 
   //cout << "Names: " << names << "\n";
@@ -2542,12 +2560,14 @@ Numeric calc_lookup_error(// Parameters for lookup table:
   
   // Variable to hold result of absorption calculation:
   Tensor4 propmat_clearsky;
-  
+  Index propmat_clearsky_checked = 1; // FIXME: OLE: Properly pass this through?
+
   // Initialize propmat_clearsky:
   propmat_clearskyInit(propmat_clearsky,
                           al.species,
                           al.f_grid,
                           1,                 // Stokes dimension
+                          propmat_clearsky_checked,
                           verbosity);
     
   // Add result of LBL calculation to propmat_clearsky:

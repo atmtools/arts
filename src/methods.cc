@@ -1167,6 +1167,52 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "abs_xsec_agenda_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks if the *abs_xsec_agenda* contains all necessary\n"
+         "methods to calculate all the species in *abs_species*.\n"
+         "\n"
+         "This method should be called just before the *abs_xsec_agenda*\n"
+         "is used, e.g. *abs_lookupCalc*, *ybatchCalc*, *yCalc*\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "abs_xsec_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "abs_xsec_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "propmat_clearsky_agenda_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Checks if the *propmat_clearsky_agenda* contains all necessary\n"
+         "methods to calculate all the species in *abs_species*.\n"
+         "\n"
+         "This method should be called just before the *propmat_clearsky_agenda*\n"
+         "is used, e.g. *CloudboxGetIncoming*, *ybatchCalc*, *yCalc*\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "propmat_clearsky_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "propmat_clearsky_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "propmat_clearskyAddFaraday" ),
         DESCRIPTION
         (
@@ -1356,7 +1402,8 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_species",
             "f_grid",
-            "stokes_dim"
+            "stokes_dim",
+            "propmat_clearsky_agenda_checked"
         ),
         GIN(),
         GIN_TYPE(),
@@ -1371,15 +1418,15 @@ void define_md_data_raw()
         (
          "Adds species tag groups to the list of absorption species.\n"
          "\n"
-         "This WSM is similar to *SpeciesSet*, the only difference is that\n"
+         "This WSM is similar to *abs_speciesSet*, the only difference is that\n"
          "this method appends species to an existing list of absorption species instead\n"
          "of creating the whole list.\n"
          "\n"
-         "See *SpeciesSet* for details on how tags are defined and examples of\n"
+         "See *abs_speciesSet* for details on how tags are defined and examples of\n"
          "how to input them in the control file.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_species" ),
+        OUT( "abs_species", "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -1409,7 +1456,8 @@ void define_md_data_raw()
          "*abs_speciesAdd*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "abs_species", "jacobian_quantities", "jacobian_agenda" ),
+        OUT( "abs_species", "jacobian_quantities", "jacobian_agenda",
+             "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -1443,13 +1491,13 @@ void define_md_data_raw()
          "Define one tag group for each species known to ARTS and included in an\n"
          "atmospheric scenario.\n"
          "\n"
-         "You can use this as an alternative to *SpeciesSet* if you want to make an\n"
+         "You can use this as an alternative to *abs_speciesSet* if you want to make an\n"
          "absorption calculation that is as complete as possible. The method\n"
          "goes through all defined species and tries to open the VMR file. If\n"
          "this works the tag is included, otherwise it is skipped.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_species" ),
+        OUT( "abs_species", "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -1650,7 +1698,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "abs_species_active", "f_grid", "abs_p" ),
+        IN( "abs_species", "abs_species_active", "f_grid", "abs_p",
+            "abs_xsec_agenda_checked" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2760,7 +2809,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Display information about the given CIA tags.\n"
-         "The CIA tags shown are in the same format as needed by *SpeciesSet*.\n"
+         "The CIA tags shown are in the same format as needed by *abs_speciesSet*.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -9251,7 +9300,7 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "SpeciesSet" ),
+      ( NAME( "abs_speciesSet" ),
         DESCRIPTION
         (
          "Set up a list of absorption species tag groups.\n"
@@ -9280,9 +9329,6 @@ void define_md_data_raw()
          "with this tag. (It is not quite clear if this feature is useful for\n"
          "anything right now.)\n"
          "\n"
-         "This method used to be a specific method for *abs_species*. Now it is\n"
-         "generic, so that it can also be used to set *abs_nls* and *abs_pts*.\n"
-         "\n"
          "Example:\n"
          "\n"
          "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
@@ -9299,10 +9345,10 @@ void define_md_data_raw()
          "   data will be used for that third tag group.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT(),
-        GOUT(       "out"                         ),
-        GOUT_TYPE( "ArrayOfArrayOfSpeciesTag" ),
-        GOUT_DESC( "Output tag groups" ),
+        OUT( "abs_species", "abs_xsec_agenda_checked", "propmat_clearsky_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "species" ),
         GIN_TYPE(    "ArrayOfString"   ),

@@ -57,10 +57,10 @@ VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 
 # Definition of species
 # 
-SpeciesSet( abs_species,
-            ["H2O-PWR98", 
-             "N2-SelfContStandardType",
-             "O2-PWR93"] )
+abs_speciesSet( species=
+                ["H2O-PWR98", 
+                 "N2-SelfContStandardType",
+                 "O2-PWR93"] )
 
 # No line data needed here
 # 
@@ -115,6 +115,9 @@ jacobianOff
 
 # Perform RT calculations
 # 
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+
 basics_checkedCalc
 cloudbox_checkedCalc
 iyCalc

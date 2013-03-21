@@ -48,7 +48,7 @@ ReadXML( z_surface, "TestMonteCarloDataPrepare.z_surface.xml" )
 
 ReadXML( abs_lookup, "TestMonteCarloDataPrepare.abs_lookup.xml" )
 
-SpeciesSet( abs_species, ["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"] )
+abs_speciesSet( species=["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"] )
 
 abs_lookupAdapt
 
@@ -70,6 +70,8 @@ jacobianOff
 # absorption from LUT
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 #### Define viewing position and line of sight #########################
 

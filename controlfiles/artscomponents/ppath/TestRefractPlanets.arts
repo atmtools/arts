@@ -120,8 +120,8 @@ AgendaSet( forloop_agenda ){
 # Main atmospheric contributors (water vapour considered by Thayer refraction.
 #  However, when comparing effects of planetary composition, we don't want
 #  further confusion by H2O. so we leave it out here.)
-#SpeciesSet( abs_species, ["H2O","N2","O2"] )
-SpeciesSet( abs_species, ["N2","O2","CO2"] )
+#abs_speciesSet( species=["H2O","N2","O2"] )
+abs_speciesSet( species=["N2","O2","CO2"] )
 
 refellipsoidEarth( refellipsoid, "Sphere" )
 # convert (geometric) tangent altitudes to zenith angles at observer
@@ -147,7 +147,7 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 #####
 
 # Main atmospheric contributors
-SpeciesSet( abs_species, ["N2","O2","CO2","H2"] )
+abs_speciesSet( species=["N2","O2","CO2","H2"] )
 
 refellipsoidMars( refellipsoid, "Sphere" )
 # convert (geometric) tangent altitudes to zenith angles at observer
@@ -173,7 +173,7 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 #####
 
 # Main atmospheric contributors
-SpeciesSet( abs_species, ["N2","O2","CO2"] )
+abs_speciesSet( species=["N2","O2","CO2"] )
 
 refellipsoidVenus( refellipsoid, "Sphere" )
 # convert (geometric) tangent altitudes to zenith angles at observer
@@ -199,7 +199,7 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 #####
 
 # Main atmospheric contributors
-SpeciesSet( abs_species, ["CO2","H2","He"] )
+abs_speciesSet( species=["CO2","H2","He"] )
 
 refellipsoidJupiter( refellipsoid, "Sphere" )
 # convert (geometric) tangent altitudes to zenith angles at observer

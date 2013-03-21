@@ -79,9 +79,7 @@ AgendaSet( surface_rtprop_agenda ){
 }
 
 # Definition of species: here we neglect continua
-SpeciesSet( abs_species,
-            ["H2O-161", "H2O-162",
-             "N2", "O2"] )
+abs_speciesSet( species=["H2O-161", "H2O-162", "N2", "O2"] )
 
 # use planetary catalogue
 abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 3e12)
@@ -99,6 +97,9 @@ AtmFieldsCalc
 
 # Surface at bottom of defined atosphere
 Extract( z_surface, z_field, 0 )
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 # check basic atm&surface setup of
 basics_checkedCalc

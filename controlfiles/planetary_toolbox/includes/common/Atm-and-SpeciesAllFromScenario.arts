@@ -6,7 +6,7 @@
 Arts2{
 
 # derive abs species from scenario data
-abs_speciesDefineAllInScenario( abs_species, atmcase )
+abs_speciesDefineAllInScenario( basename=atmcase )
 
 # get corresponding atmospheric data
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,

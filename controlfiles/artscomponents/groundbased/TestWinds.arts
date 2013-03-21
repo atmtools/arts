@@ -47,7 +47,7 @@ VectorAddScalar( f_grid, f_grid, v0 )
 
 # ---- Species ---------------------------------------------------------------
 
-SpeciesSet( abs_species, [ "O3", "H2O" ] )
+abs_speciesSet( species=[ "O3", "H2O" ] )
 
 
 
@@ -119,6 +119,9 @@ MatrixSetConstant( sensor_pos, 1, atmosphere_dim, 0 )
 cloudboxOff
 sensorOff
 jacobianOff
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 basics_checkedCalc
 cloudbox_checkedCalc

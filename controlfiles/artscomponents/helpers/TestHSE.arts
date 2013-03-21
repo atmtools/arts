@@ -36,10 +36,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # Definition of species
 # 
-SpeciesSet( abs_species,
-            ["H2O", 
-             "N2",
-             "O2"] )
+abs_speciesSet( species=["H2O", "N2", "O2"] )
 
 # No line data needed here
 # 
@@ -117,9 +114,9 @@ Compare( z_field, zREFERENCE, 1e-4 )
 # (result: dev<50m for z<1400km - basically indicates that H2O is not that important...)
 #
 # we need to re-prepare the atmo setup without H2O
-#SpeciesSet( abs_species,
-#            ["N2",
-#             "O2"] )
+#abs_speciesSet( species=
+#                ["N2",
+#                 "O2"] )
 #AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
 #            "testdata/tropical" )
 #ReadXML( t_field_raw, "testdata/tropical.expanded.t.xml" )

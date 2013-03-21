@@ -32,12 +32,14 @@ abs_linesReadFromArts( abs_lines, "lines.xml", 1e9, 200e9 )
 #        200e9 )
 
 # Define the list of absorption species:
-SpeciesSet( abs_species, [ "H2O-PWR98",
-                           "O2-PWR93",
-                           "N2-SelfContStandardType" ] )
+abs_speciesSet( species=[ "H2O-PWR98",
+                          "O2-PWR93",
+                          "N2-SelfContStandardType" ] )
+
+
 
 # Alternatively select all species that we can find in the scenario:
-#abs_speciesDefineAllInScenario( abs_species, "testdata/tropical" )
+#abs_speciesDefineAllInScenario( basename="testdata/tropical" )
 
 # This separates the lines into the different tag groups and creates
 # the workspace variable `abs_lines_per_species':
@@ -64,6 +66,8 @@ AbsInputFromAtmFields
 VectorNLinSpace( f_grid, 500, 50e9, 150e9 )
 
 # Calculate field of absorption coefficients:
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 abs_mat_fieldCalc
 
 # Write out:
@@ -90,7 +94,6 @@ abs_mat_fieldCalc( abs_mat_field, propmat_clearsky_agenda, f_grid,
 Tensor7Create(abs_field_doppler)
 Copy(abs_field_doppler, abs_mat_field)
 WriteXML( output_file_format, abs_field_doppler )
-
 
 # Now with Doppler and lookup table!
 abs_lookupSetup

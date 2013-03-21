@@ -5,7 +5,7 @@
 
 Arts2{
 
-SpeciesSet( abs_species, aostrtmp )
+abs_speciesSet( species=aostrtmp )
 
 # get atmospheric data
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,

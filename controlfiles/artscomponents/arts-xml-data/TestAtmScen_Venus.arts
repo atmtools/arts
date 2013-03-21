@@ -72,56 +72,56 @@ AgendaSet( forloop_agenda ){
   Print( atmcase )
 
   # derive absspecies with standard name from scenario
-  abs_speciesDefineAllInScenario( abs_species, atmcase )
+  abs_speciesDefineAllInScenario( basename=atmcase )
   #WriteXMLIndexed( "ascii", forloop_index,
   #                 abs_species, "TestAtmScen_Venus_allInScen.abs_species" )
   AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
               abs_species, atmcase )
 
   # adding species or variants that do not follow the general naming convention
-  abs_speciesAdd( abs_species, ["H2O-162"] )
+  abs_speciesAdd( species=["H2O-162"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".H2O-162_high" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["H2O-162"] )
+  abs_speciesAdd( species=["H2O-162"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".H2O-162_low" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["H2O-162"] )
+  abs_speciesAdd( species=["H2O-162"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".H2O-162_mid" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["H2O-162"] )
+  abs_speciesAdd( species=["H2O-162"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".H2O-162_uncorrected" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["H2O"] )
+  abs_speciesAdd( species=["H2O"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".H2O_high" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["H2O"] )
+  abs_speciesAdd( species=["H2O"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".H2O_low" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["H2O"] )
+  abs_speciesAdd( species=["H2O"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".H2O_mid" )
   Append( casefull, caseext )
@@ -138,14 +138,14 @@ AgendaSet( forloop_agenda ){
   Print( atmcase )
 
   # add the profiles (and a dummy abs_species) of the unused species
-  abs_speciesAdd( abs_species, ["N2"] )
+  abs_speciesAdd( species=["N2"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".S2" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["N2"] )
+  abs_speciesAdd( species=["N2"] )
   Copy( casefull, atmcase )
   StringSet( caseext, ".SO3" )
   Append( casefull, caseext )

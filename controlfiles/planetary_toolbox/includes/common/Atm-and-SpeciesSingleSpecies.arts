@@ -5,7 +5,7 @@
 
 Arts2{
 
-abs_speciesAdd( abs_species, aostrtmp )
+abs_speciesAdd( species=aostrtmp )
 Copy( casefull, atmcase )
 Append( casefull, caseext )
 ReadXML( gf3tmp, casefull )

@@ -71,7 +71,7 @@ StringCreate( atmcase )
 StringSet( atmcase, "planets/Earth/Fascod/tropical/tropical" )
 
 # derive abs species from scenario data
-abs_speciesDefineAllInScenario( abs_species, atmcase )
+abs_speciesDefineAllInScenario( basename=atmcase )
 
 # Atmospheric scenario
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
@@ -94,6 +94,8 @@ MatrixSetConstant( sensor_los, 1, 1, 60. )
 
 
 # check basic atm&surface setup of
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 basics_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc

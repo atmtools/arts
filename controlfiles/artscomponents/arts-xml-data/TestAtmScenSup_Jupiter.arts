@@ -105,7 +105,7 @@ AgendaSet( forloop_agenda_Ne ){
 Extract( basename, basecasearray, 0 )
 
 # we manually select a minumim set of basic atm data (main atm constituents)
-SpeciesSet( abs_species, ["H2", "He"] )
+abs_speciesSet( species=["H2", "He"] )
 
 # get atm scenario raw data
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,

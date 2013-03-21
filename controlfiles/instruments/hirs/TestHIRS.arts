@@ -169,6 +169,7 @@ abs_lookupSetupBatch
 
 # Create the lookup table
 # ---
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 
 #WriteXML("binary", abs_lookup)
@@ -263,6 +264,7 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 
 # Execute the batch calculations:
 # ---
+propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 

@@ -37,10 +37,10 @@ VectorNLogSpace( p_grid, 321, 1013e2, 1 )
 
 # Definition of species
 # 
-SpeciesSet( abs_species,
-            ["H2O-PWR98", 
-             "N2-SelfContStandardType",
-             "O2-PWR93"] )
+abs_speciesSet( species=
+                ["H2O-PWR98", 
+                 "N2-SelfContStandardType",
+                 "O2-PWR93"] )
 
 
 # No line data needed here
@@ -124,6 +124,9 @@ ArrayOfStringSet( iy_aux_vars, [
     "Free space loss", "Free space attenuation", 
     "Defocusing loss", "Extra path delay", "Bending angle" ] )
 
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 # Run and save
 #

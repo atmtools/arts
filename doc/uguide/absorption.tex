@@ -158,7 +158,7 @@ are stored in variable \wsvindex{vmr\_field}). Total absorption is the
 sum of the partial absorptions of all absorption species. Absorption
 species are defined in the ARTS controlfile by special `tags', which
 are stored in the variable \wsvindex{abs\_species}, and set by the
-method \wsmindex{SpeciesSet}.
+method \wsmindex{abs\_speciesSet}.
 
 The absorption species tags describe not only the different absorbers,
 but also the model that should be used to calculate the absorption.
@@ -178,14 +178,13 @@ calculations for individual isotopologues, the VMR numbers in the
 variable \wsvindex{vmr\_field} should not be adjusted for the isotopologue
 ratio. As an example, to make a line-by-line calculation for all ozone
 isotopologues, you could represent them in different ways by
-\wsmindex{SpeciesSet}.
+\wsmindex{abs\_speciesSet}.
 \begin{code}
-a) SpeciesSet(abs_species, 
-              ["O3"])
-b) SpeciesSet(abs_species, 
-              ["O3-666, O3-668, O3-686, O3-667, O3-676"])
-c) SpeciesSet(abs_species, 
-              ["O3-666", "O3-668", "O3-686", "O3-667", "O3-676"])
+a) abs_speciesSet(species=["O3"])
+b) abs_speciesSet(species=
+                  ["O3-666, O3-668, O3-686, O3-667, O3-676"])
+c) abs_speciesSet(species= 
+                  ["O3-666", "O3-668", "O3-686", "O3-667", "O3-676"])
 \end{code}
 Options (a) and (b) are equivalent, you will have one ozone species
 that represents are isotopologues, and that will be associated with a
@@ -197,7 +196,7 @@ and (b).
 
 Overall, the tag mechanism allows quite complex
 absorption setups. The built-in documentation for
-\wsmindex{SpeciesSet} gives a detailed explanation of the tag syntax
+\wsmindex{abs\_speciesSet} gives a detailed explanation of the tag syntax
 and some examples.  
 
 It is important to note that there is no `intelligence' in ARTS that
@@ -355,7 +354,7 @@ itself.  Consequently, the first four steps in Table
 The pure continua are intended to be used together with an explicit ARTS
 line-by-line calculation, the complete models are intended to be used alone.
 To select a continuum or complete absorption model, simply use the
-corresponding tag with \wsmindex{SpeciesSet}.  Currently available
+corresponding tag with \wsmindex{abs\_speciesSet}.  Currently available
 models are listed in Table \ref{tab:absorption:continua}.
 
 \begin{table}

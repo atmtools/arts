@@ -94,7 +94,7 @@ VectorSet( f_grid, [300e9] )
 # some stuff to get a basic atmosphere
 #####
 # we manually select a minumim set of basic atm data (main atm constituents)
-SpeciesSet( abs_species, ["O2", "N2"] )
+abs_speciesSet( species=["O2", "N2"] )
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
             abs_species, atmcase )
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
@@ -168,6 +168,9 @@ Copy( casefull, surfpath )
 Append( casefull, surfmaskname )
 GriddedField2Create( lsmask )
 ReadXML( lsmask, casefull )
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc

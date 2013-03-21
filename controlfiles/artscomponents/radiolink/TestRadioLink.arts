@@ -37,10 +37,10 @@ VectorNLogSpace( p_grid, 321, 1013e2, 1 )
 
 # Definition of species
 # 
-SpeciesSet( abs_species,
-            ["H2O-PWR98", 
-             "N2-SelfContStandardType",
-             "O2-PWR93"] )
+abs_speciesSet( species=
+                ["H2O-PWR98", 
+                 "N2-SelfContStandardType",
+                 "O2-PWR93"] )
 
 
 # No line data needed here
@@ -144,6 +144,8 @@ NumericSet( impact_parREFERENCE, 6.389047041e+06 )
 # Free space, defocusing and atmospheric loss part of y, and no need to check
 # those terms 
 
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 # Calculate and check iy
 #

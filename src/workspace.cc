@@ -569,6 +569,17 @@ void Workspace::define_wsv_data()
       GROUP( "Tensor7" )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_xsec_agenda_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for *abs_xsec_agenda*.\n"
+       "\n"
+       "Set by *abs_xsec_agenda_checkedCalc*.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
     (WsvRecord
     ( NAME( "propmat_clearsky" ),
       DESCRIPTION
@@ -586,15 +597,6 @@ void Workspace::define_wsv_data()
        "Unit: 1/m\n"
        ),
       GROUP( "Tensor4" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "propmat_clearsky_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -625,7 +627,7 @@ void Workspace::define_wsv_data()
         "\n"
         "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
         "available tag groups for the calculation of scalar gas absorption\n"
-        "coefficients.  See online documentation of method *SpeciesSet* for\n"
+        "coefficients.  See online documentation of method *abs_speciesSet* for\n"
         "more detailed information how tag groups work and some examples.\n"
         ), 
        GROUP( "ArrayOfArrayOfSpeciesTag" )));
@@ -3019,6 +3021,26 @@ void Workspace::define_wsv_data()
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "propmat_clearsky_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "propmat_clearsky_agenda_checked" ),
+      DESCRIPTION
+      (
+       "OK-flag for *propmat_clearksy_agenda*.\n"
+       "\n"
+       "Set by *propmat_clearsky_agenda_checkedCalc*.\n"
+       ),
+      GROUP( "Index" )));
 
    wsv_data.push_back
    (WsvRecord

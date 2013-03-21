@@ -72,14 +72,14 @@ AgendaSet( forloop_agenda_solar ){
   Print( basename, 0 )
 
   # derive absspecies with standard name from scenario
-  abs_speciesDefineAllInScenario( abs_species, basename )
+  abs_speciesDefineAllInScenario( basename=basename )
   #WriteXMLIndexed( "ascii", forloop_index,
   #                 abs_species, "TestAtmScen_Mars_allInScen.abs_species" )
   AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
               abs_species, basename )
 
   # adding species or variants that do not follow the general naming convention
-  abs_speciesAdd( abs_species, ["CH4"] )
+  abs_speciesAdd( species=["CH4"] )
   Copy( casefull, basename )
   StringSet( caseext, ".CH4_high" )
   Append( casefull, caseext )
@@ -87,7 +87,7 @@ AgendaSet( forloop_agenda_solar ){
   ReadXML( gf3tmp, casefull )
   Append( vmr_field_raw, gf3tmp )
 
-  abs_speciesAdd( abs_species, ["H2O-162"] )
+  abs_speciesAdd( species=["H2O-162"] )
   Copy( casefull, basename )
   StringSet( caseext, ".H2O-162" )
   Append( casefull, caseext )

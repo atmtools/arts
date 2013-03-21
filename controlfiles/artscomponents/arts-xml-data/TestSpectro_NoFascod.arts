@@ -27,10 +27,10 @@ StringCreate( atmcase )
 StringSet( atmcase, "planetary_toolbox/validation/common/spectroscopy/data/" )
 
 # set absspecies to be considered (O2, N2 needed as broadening species with ARTS4)
-SpeciesSet( abs_species, ["C2H4","C3H8","CF4","CH3Br","CH3CN","CH3OH",
-                          "ClONO2","H2S","H2SO4","HCOOH","HO2","HOBr",
-                          "NO+","O","OCS","SO",
-                          "O2","N2","H2O"])
+abs_speciesSet( species=["C2H4","C3H8","CF4","CH3Br","CH3CN","CH3OH",
+                         "ClONO2","H2S","H2SO4","HCOOH","HO2","HOBr",
+                         "NO+","O","OCS","SO",
+                         "O2","N2","H2O"])
 
 INCLUDE "TestSpectro_core.arts"
 

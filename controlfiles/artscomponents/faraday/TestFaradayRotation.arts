@@ -190,6 +190,8 @@ ArrayOfStringSet( iy_aux_vars, [
 
 # Calculate 
 #
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 yCalc
 
 

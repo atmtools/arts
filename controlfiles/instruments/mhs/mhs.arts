@@ -38,10 +38,10 @@ AgendaSet( surface_rtprop_agenda ){
 ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
 abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
 
-SpeciesSet( abs_species, [ "H2O-PWR98",
-                           "O3",
-                           "O2-PWR93",
-                           "N2-SelfContStandardType" ] )
+abs_speciesSet( species=[ "H2O-PWR98",
+                          "O3",
+                          "O2-PWR93",
+                          "N2-SelfContStandardType" ] )
 
 # Read HITRAN catalog (needed for O3):
 #abs_linesReadFromHitran2004( abs_lines,

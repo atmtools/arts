@@ -158,7 +158,7 @@ Append( basename, caseext )
 Append( basename, atmcase )
 
 # we manually select a minumim set of basic atm data (main atm constituents)
-SpeciesSet( abs_species, ["O2", "N2"] )
+abs_speciesSet( species=["O2", "N2"] )
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
             abs_species, basename )
 p_gridFromZRaw(	p_grid, z_field_raw, 0 )
@@ -309,7 +309,7 @@ Append( basename, atmcase )
 
 # we manually select a minumim set of basic atm data (main atm constituents)
 Delete( vmr_field_raw )
-SpeciesSet( abs_species, ["O2", "N2"] )
+abs_speciesSet( species=["O2", "N2"] )
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw,
             abs_species, basename )
 

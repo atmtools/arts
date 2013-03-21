@@ -66,7 +66,7 @@ VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 
 # Definition of species
 # ---
-SpeciesSet( abs_species,
+abs_speciesSet( species=
             ["H2O-SelfContStandardType, H2O-ForeignContStandardType, H2O", 
              "N2-SelfContStandardType",
              "O3"] )
@@ -115,6 +115,8 @@ VectorSet( rte_pos2, [] )     # A dummy value
 
 # Perform RT calculations
 # ---
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 basics_checkedCalc
 cloudbox_checkedCalc
 iyCalc

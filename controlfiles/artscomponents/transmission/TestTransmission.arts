@@ -54,7 +54,7 @@ AtmosphereSet3D
 
 # Definition of species
 # 
-SpeciesSet( abs_species,
+abs_speciesSet( species=
             ["H2O-PWR98", 
              "N2-SelfContStandardType",
              "O2-PWR93"] )
@@ -123,6 +123,9 @@ ArrayOfStringSet( iy_aux_vars,
     [ "Pressure", "Temperature", "VMR, species 0", "Absorption, summed",
       "Absorption, species 1", "iy", "Transmission", "Optical depth" ] )
 
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 # Calculate
 #

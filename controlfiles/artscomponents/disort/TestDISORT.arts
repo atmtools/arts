@@ -35,7 +35,7 @@ ReadXML( p_grid ){
 }
 
 # Definition of species
-SpeciesSet(abs_species){
+abs_speciesSet(abs_species){
   species = [ "H2O", "N2", "O2"]
 }
 

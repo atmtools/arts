@@ -650,6 +650,35 @@ void Agenda::find_unused_variables()
 }
 
 
+//! Check if method is in Agenda.
+/*!
+  This function checks if the method with the given name is
+  called by this agenda.
+
+  \param methodname     Name of method to look for.
+
+  \return True if method is part of Agenda.
+
+  \author Oliver Lemke
+  \date   2013-03-18
+*/
+bool Agenda::has_method(const String& methodname) const
+{
+    extern Array<MdRecord> md_data;
+
+    bool found = false;
+    for (Array<MRecord>::const_iterator it = mml.begin();
+         !found && it != mml.end();
+         it++)
+    {
+        if (md_data[it->Id()].Name() == methodname)
+            found = true;
+    }
+
+    return found;
+}
+
+
 //! Print an agenda.
 /*!
   This prints an agenda, by printing the individual methods, just as

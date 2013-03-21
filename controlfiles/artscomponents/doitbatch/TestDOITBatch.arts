@@ -120,10 +120,10 @@ Delete( arrayofmatrix_1 )
 # 4. Absorption-------------------------------------------------
 #---------------------------------------------------------------
 
-SpeciesSet( abs_species, [ "H2O-PWR98",
-                           "O3",
-                           "O2-PWR93",
-                           "N2-SelfContStandardType" ] )
+abs_speciesSet( species=[ "H2O-PWR98",
+                          "O3",
+                          "O2-PWR93",
+                          "N2-SelfContStandardType" ] )
 
 # Creation of abs_lookup table
 #-----------------------------
@@ -297,6 +297,7 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 # that none of the jobs fails. 
 # If settings are changed, especially if the input atmospheres are altered 
 # or exchanged, the robust option in *ybatchCalc* should be used.
+propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 # Call *ybatchCalc* robust:

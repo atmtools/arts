@@ -31,8 +31,8 @@ ReadXML( lat_grid, "lat_grid.xml" )
 
 ReadXML( lon_grid, "lon_grid.xml" )
 
-SpeciesSet( abs_species,
-            [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
+abs_speciesSet( species=
+                [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
 
 abs_lines_per_speciesSetEmpty
 
@@ -53,6 +53,8 @@ nelemGet( ncols, lon_grid )
 MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 
 WriteXML( output_file_format, z_surface )
+
+abs_xsec_agenda_checkedCalc
 
 abs_lookupSetup
 abs_lookupCalc

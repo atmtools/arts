@@ -27,7 +27,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # ---- Species ---------------------------------------------------------------
 
-SpeciesSet( abs_species, [ "O3", "H2O" ] )
+abs_speciesSet( species=[ "O3", "H2O" ] )
 
 
 # ---- Atmospheric scenario --------------------------------------------------
@@ -129,6 +129,9 @@ VectorAddScalar( f_grid, f_grid, v0 )
 IndexSet( stokes_dim, 1 )
 cloudboxOff
 jacobianOff
+
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 
 basics_checkedCalc
 cloudbox_checkedCalc

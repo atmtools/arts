@@ -1,3 +1,70 @@
+2013-03-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-558
+
+	* WARNING! This version requires you to adapt your controlfiles:
+
+	Replace SpeciesSet with abs_speciesSet!
+
+	Insert abs_xsec_agenda_checkedCalc and
+	propmat_clearsky_agenda_checkedCalc where needed.
+
+	I recommend to always call abs_speciesSet, abs_speciesAdd and
+	abs_speciesDefineAllInScenario by keyword:
+	
+	Use abs_speciesSet( species=["CO2"] ) instead of
+	abs_speciesSet( abs_species, ["CO2"] ).
+
+	Same for abs_speciesAdd and DefineAllScenarios:
+
+	abs_speciesAdd( species=["H2O"] )
+	abs_speciesDefineAllInScenario( basename="testdata/tropical" )
+
+	* src/methods.cc, src/m_abs.cc, src/m_abs_lookup.cc:
+
+	(abs_xsec_agenda_checkedCalc, propmat_clearsky_agenda_checkedCalc):
+
+	Two new checks that have to be called before abs_xsec_agenda or
+	propmat_clearsky_agenda are used. They ensure that the two agendas
+	contain the required methods to satisfy calculation of all tags set in
+	abs_species.
+
+	(abs_speciesDefineAllInScenario, abs_speciesAdd, abs_speciesAdd2):
+
+	Add propmat_clearsky_agenda_checked and abs_xsec_agenda_checked as
+	output.
+
+	(propmat_clearskyInit): Add propmat_clearsky_agenda_checked as input.
+
+	(abs_xsec_per_speciesInit): Add abs_xsec_agenda_checked as input.
+
+	(abs_speciesSet):
+	Change abs_species output type from generic to specific and rename the
+	function accordingly.
+	In almost all cases this method is called with abs_species. By
+	changing it to a specific output, it can be left out in the call. The
+	rare case of setting abs_nls directly can be easily done by calling:
+
+	abs_speciesSet( abs_species=abs_nls, species=["H2O-PWR98"] )
+
+	* src/agenda_class.{cc,h} (Agenda::has_method): Added.
+
+	* src/workspace.cc:
+
+	Add abs_xsec_agenda_checked and propmat_clearsky_agenda_checked.
+	
+	* src/abs_species_tags.cc (get_tagindex_for_Strings): Removed.
+
+	* doc/uguide/absorption.tex: SpeciesSet -> abs_speciesSet.
+
+	* controlfiles/*/*/*.arts:
+
+	Use keywords in SpeciesSet, abs_speciesAdd and
+	abs_speciesDefineAllInScenario.
+	
+	Insert abs_xsec_agenda_checkedCalc,
+	propmat_clearsky_agenda_checkedCalc where needed.
+
 2013-03-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-557

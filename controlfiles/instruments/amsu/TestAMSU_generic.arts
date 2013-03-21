@@ -100,6 +100,7 @@ abs_lookupSetupBatch
 
 # Create the lookup table
 # ---
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 
 # Test (and print) lookup table accuracy
@@ -201,6 +202,7 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 
 # Execute the batch calculations:
 # ---
+propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 }

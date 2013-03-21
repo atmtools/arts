@@ -47,7 +47,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # Possibility to change considered species
 # For example
-#SpeciesSet( abs_species, [
+#abs_speciesSet( species=[
 #  "H2O,H2O-ForeignContStandardType,H2O-SelfContStandardType",
 #  "O3" 
 #] )
@@ -86,10 +86,11 @@ cloudbox_checkedCalc
 abs_lines_per_speciesCreateFromLines
 
 AbsInputFromAtmFields
-SpeciesSet( abs_nls, [] )
+abs_speciesSet( abs_species=abs_nls, species=[] )
 VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 
 # absorption from LUT
@@ -121,6 +122,7 @@ sensor_checkedCalc
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
+propmat_clearsky_agenda_checkedCalc
 yCalc
 
 

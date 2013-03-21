@@ -56,7 +56,7 @@ jacobianOff
 
 # Definition of species
 # ---
-SpeciesSet( abs_species,
+abs_speciesSet( species=
             ["H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100, H2O", 
              "O2",
              "N2-CIA-N2-0, N2-CIA-N2-1"] )
@@ -126,6 +126,8 @@ VectorSet( rte_pos2, [] )     # A dummy value
 
 # Perform RT calculations
 # ---
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 basics_checkedCalc
 cloudbox_checkedCalc
 iyCalc

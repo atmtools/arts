@@ -45,7 +45,7 @@ VectorSet(f_grid, [ 61.14e9, 61.15e9, 61.16e9, 61.17e9])
 
 # Definition of species
 # ---
-SpeciesSet( abs_species, ["H2O","O2-Z"] )
+abs_speciesSet( species=["H2O","O2-Z"] )
 
 # read line catalogue
 StringCreate( hitranfile )
@@ -128,6 +128,8 @@ abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", "VVH", 750e9 )
 
 # Perform RT calculations
 # ---
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
 basics_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc

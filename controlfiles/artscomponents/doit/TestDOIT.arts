@@ -61,7 +61,7 @@ AtmosphereSet1D
 ReadXML( p_grid, "p_grid.xml" )
 
 # Definition of species
-SpeciesSet( abs_species, [ "H2O", "N2", "O2"] )
+abs_speciesSet( species=[ "H2O", "N2", "O2"] )
 
 # Atmospheric profiles
 AtmRawRead( basename="testdata/tropical" )
@@ -252,6 +252,8 @@ jacobianOff
 
 #==================start==========================
 
+
+propmat_clearsky_agenda_checkedCalc
 basics_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc

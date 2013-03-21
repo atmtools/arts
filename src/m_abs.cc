@@ -988,12 +988,18 @@ void abs_lines_per_speciesCompact(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesDefineAllInScenario(// WS Output:
                                     ArrayOfArrayOfSpeciesTag& tgs,
+                                    Index& propmat_clearsky_agenda_checked,
+                                    Index& abs_xsec_agenda_checked,
                                     // Control Parameters:
                                     const String& basename,
                                     const Verbosity& verbosity)
 {
   CREATE_OUT2;
-  
+
+  // Invalidate agenda check flags
+  propmat_clearsky_agenda_checked = false;
+  abs_xsec_agenda_checked = false;
+
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
 
@@ -1385,6 +1391,131 @@ void abs_coefCalcFromXsec(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
+                                 Index& abs_xsec_agenda_checked,
+                                 // WS Input:
+                                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                                 const Agenda& abs_xsec_agenda,
+                                 const Verbosity&
+                                 )
+{
+    bool needs_lines = false;
+    bool needs_continua = false;
+    bool needs_cia = false;
+
+    for (Index sp = 0; sp < abs_species.nelem(); sp++)
+    {
+        for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++)
+        {
+            switch (abs_species[sp][tgs].Type())
+            {
+                case SpeciesTag::TYPE_PLAIN: needs_lines = true; break;
+                case SpeciesTag::TYPE_ZEEMAN: break;
+                case SpeciesTag::TYPE_PREDEF: needs_continua = true; break;
+                case SpeciesTag::TYPE_CIA: needs_cia = true; break;
+                case SpeciesTag::TYPE_FREE_ELECTRONS: break;
+                default:
+                    ostringstream os;
+                    os << "Unknown species type: " << abs_species[sp][tgs].Type();
+                    throw runtime_error(os.str());
+                    break;
+            }
+
+        }
+
+    }
+
+    if (needs_lines
+        && !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines"))
+    {
+        throw runtime_error("*abs_species* contains line species but *abs_xsec_agenda*\n"
+                            "does not contain *abs_xsec_per_speciesAddLines*.");
+    }
+
+    if (needs_continua
+        && !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddConts"))
+    {
+        throw runtime_error("*abs_species* contains continuum species but *abs_xsec_agenda*\n"
+                            "does not contain *abs_xsec_per_speciesAddConts*.");
+    }
+
+    if (needs_cia
+        && !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddCIA"))
+    {
+        throw runtime_error("*abs_species* contains CIA species but *abs_xsec_agenda*\n"
+                            "does not contain *abs_xsec_per_speciesAddCIA*.");
+    }
+
+    abs_xsec_agenda_checked = 1;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearsky_agenda_checkedCalc(Workspace& ws _U_,
+                                         Index& propmat_clearsky_agenda_checked,
+                                         // WS Input:
+                                         const ArrayOfArrayOfSpeciesTag& abs_species,
+                                         const Agenda& propmat_clearsky_agenda,
+                                         const Verbosity&
+                                         )
+{
+    bool needs_lines = false;
+    bool needs_zeeman = false;
+    bool needs_continua = false;
+    bool needs_cia = false;
+    bool needs_free_electrons = false;
+
+    for (Index sp = 0; sp < abs_species.nelem(); sp++)
+    {
+        for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++)
+        {
+            switch (abs_species[sp][tgs].Type())
+            {
+                case SpeciesTag::TYPE_PLAIN: needs_lines = true; break;
+                case SpeciesTag::TYPE_ZEEMAN: needs_zeeman = true; break;
+                case SpeciesTag::TYPE_PREDEF: needs_continua = true; break;
+                case SpeciesTag::TYPE_CIA: needs_cia = true; break;
+                case SpeciesTag::TYPE_FREE_ELECTRONS: needs_free_electrons = true; break;
+                default:
+                    ostringstream os;
+                    os << "Unknown species type: " << abs_species[sp][tgs].Type();
+                    throw runtime_error(os.str());
+                    break;
+            }
+
+        }
+
+    }
+
+    if ((needs_lines || needs_continua || needs_cia)
+        && !(propmat_clearsky_agenda.has_method("propmat_clearskyAddOnTheFly")
+             || propmat_clearsky_agenda.has_method("propmat_clearskyAddFromLookup")))
+    {
+        throw runtime_error("*abs_species* contains line species, CIA species, or continua but "
+                            "*propmat_clearsky_agenda*\n"
+                            "does not contain *propmat_clearskyAddOnTheFly* nor "
+                            "*propmat_clearskyAddFromLookup*.");
+    }
+
+    if (needs_zeeman
+        && !propmat_clearsky_agenda.has_method("propmat_clearskyAddZeeman"))
+    {
+        throw runtime_error("*abs_species* contains Zeeman species but *propmat_clearsky_agenda*\n"
+                            "does not contain *propmat_clearskyAddZeeman*.");
+    }
+
+    if (needs_free_electrons
+        && !propmat_clearsky_agenda.has_method("propmat_clearskyAddFaraday"))
+    {
+        throw runtime_error("*abs_species* contains free electrons but *propmat_clearsky_agenda*\n"
+                            "does not contain *propmat_clearskyAddFaraday*.");
+    }
+
+    propmat_clearsky_agenda_checked = 1;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesInit(// WS Output:
                               ArrayOfMatrix&   abs_xsec_per_species_attenuation,
                               ArrayOfMatrix&   abs_xsec_per_species_phase,
@@ -1393,11 +1524,15 @@ void abs_xsec_per_speciesInit(// WS Output:
                               const ArrayOfIndex& abs_species_active,
                               const Vector&    f_grid,
                               const Vector&    abs_p,
+                              const Index&     abs_xsec_agenda_checked,
                               const Verbosity& verbosity
                               )
 {
   CREATE_OUT3;
-  
+
+  if (!abs_xsec_agenda_checked)
+    throw runtime_error("You must call *abs_xsec_agenda_checkedCalc* before calling this method.");
+
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
   abs_xsec_per_species_attenuation.resize( tgs.nelem() );
@@ -1978,10 +2113,13 @@ void propmat_clearskyInit(//WS Output
                              const ArrayOfArrayOfSpeciesTag& abs_species,
                              const Vector&                   f_grid,
                              const Index&                    stokes_dim,
+                             const Index&                    propmat_clearsky_agenda_checked,
                              const Verbosity&                
                             )
 {
-    
+    if (!propmat_clearsky_agenda_checked)
+        throw runtime_error("You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.");
+
     Index nf = f_grid.nelem();
     
     if(abs_species.nelem() > 0 )

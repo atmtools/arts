@@ -35,12 +35,12 @@ abs_linesReadFromArts( abs_lines, "lines.xml", 1e9, 200e9 )
 #
 # The continuum tags are special, since continua are not added by
 # default. Thus, just selecting "H2O" will give you no continuum. 
-SpeciesSet( abs_species, [ "H2O-PWR98",
-                           "O2-PWR93",
-                           "N2-SelfContStandardType" ] )
+abs_speciesSet( species=[ "H2O-PWR98",
+                          "O2-PWR93",
+                          "N2-SelfContStandardType" ] )
 
 # Alternatively select all species that we can find in the scenario:
-#abs_speciesDefineAllInScenario( abs_species, "testdata/tropical" )
+#abs_speciesDefineAllInScenario( basename="testdata/tropical" )
 
 # This separates the lines into the different tag groups and creates
 # the workspace variable `abs_lines_per_species':
@@ -71,8 +71,8 @@ VectorNLinSpace( f_grid, 100, 50e9, 150e9 )
 #abs_coefCalc
 
 # Select species for non-linear treatment in lookup table:
-SpeciesSet( abs_nls, [] )
-#SpeciesSet( abs_nls, ["H2O-PWR98", "O2-PWR93"] )
+abs_speciesSet( abs_species=abs_nls, species=[] )
+#abs_speciesSet( abs_species=abs_nls, species=["H2O-PWR98", "O2-PWR93"] )
 
 # Set tempertature perturbation vector for lookup table:
 VectorSet( abs_t_pert, [] )
@@ -82,6 +82,7 @@ VectorSet( abs_t_pert, [] )
 VectorSet( abs_nls_pert, [] )
 #VectorNLogSpace( abs_nls_pert, 5, 0.01, 10 )
 
+abs_xsec_agenda_checkedCalc
 abs_lookupCalc
 
 # Optionally write these to files:

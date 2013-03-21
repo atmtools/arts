@@ -27,7 +27,7 @@ StringCreate( atmcase )
 StringSet( atmcase, "planets/Earth/Fascod/tropical/tropical" )
 
 # derive abs species from scenario data
-abs_speciesDefineAllInScenario( abs_species, atmcase )
+abs_speciesDefineAllInScenario( basename=atmcase )
 
 INCLUDE "TestSpectro_core.arts"
 
