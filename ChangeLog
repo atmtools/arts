@@ -1,5 +1,16 @@
 2013-03-21  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-559
+
+	* src/m_doit.cc (DoitInit):
+
+	Throw runtime_error if scat_za_grid is not increasing. Fixes assertion
+	in doit_scat_fieldCalcLimb reported by Jana.
+
+	Fix typo in the scat_aa_grid runtime error (s/za/aa/).
+
+2013-03-21  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-558
 
 	* WARNING! This version requires you to adapt your controlfiles:

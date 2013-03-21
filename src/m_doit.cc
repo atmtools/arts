@@ -1565,12 +1565,15 @@ void DoitInit(//WS Output
   if (scat_za_grid[0] != 0. || scat_za_grid[N_scat_za-1] != 180.)
     throw runtime_error("The range of *scat_za_grid* must [0 180].");
   
+  if (!is_increasing(scat_za_grid))
+    throw runtime_error("*scat_za_grid* must be increasing.");
+
   // Number of azimuth angles.
   const Index N_scat_aa = scat_aa_grid.nelem();
   
   if (scat_aa_grid[0] != 0. || scat_aa_grid[N_scat_aa-1] != 360.)
-    throw runtime_error("The range of *scat_za_grid* must [0 360]."); 
-  
+    throw runtime_error("The range of *scat_aa_grid* must [0 360].");
+
   if (doit_za_grid_size < 16)
     throw runtime_error(
      "*doit_za_grid_size* must be greater than 15 for accurate results");
