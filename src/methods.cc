@@ -10005,12 +10005,13 @@ void define_md_data_raw()
         (
          "Initializes the CPU timer."
          "\n"
-         "Use *timerStop* to output the consumed cpu time since *timerStart*.\n"
+         "Use *timerStop* to stop the timer.\n"
          "\n"
          "Usage example:\n"
          "   timerStart\n"
          "   ReadXML(f_grid,\"frequencies.xml\")\n"
          "   timerStop\n"
+         "   Print(timer)\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "timer" ),
@@ -10031,11 +10032,10 @@ void define_md_data_raw()
         (
          "Stops the CPU timer."
          "\n"
-         "Use *timerStop* to output the consumed cpu time since *timerStart*.\n"
          "See *timerStart* for example usage.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT(),
+        OUT( "timer" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

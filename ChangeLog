@@ -1,3 +1,23 @@
+2013-03-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-560
+
+	* src/m_cloudbox.cc (ParticleTypeInit):
+
+	Do a resize(0) instead of a reserve(20) because the latter does not do
+	any initialization. This is required behaviour of Init methods.
+
+	* arts.h (DEBUG_PRINT): Add convenience macro for debugging to cerr.
+
+	DEBUG_PRINT(x) outputs DBG: x: 1
+
+	Can be used with expressions too: DEBUG_PRINT(x+1) outputs DBG: x+1: 2
+
+	* src/m_general.{cc,h}, src/methods.cc:
+
+	Fix behaviour of timer WSV. Instead of outputting the timer values
+	inside the timerStop method, move that implementation to Print.
+
 2013-03-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-559

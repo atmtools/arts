@@ -235,20 +235,64 @@ void Print(// WS Generic Input:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+#ifdef TIME_SUPPORT
 void Print(// WS Generic Input:
-           const Timer&   /* x */,
+           const Timer& timer,
            // Keywords:
-           const Index&   /* level */,
-           const Verbosity&)
+           const Index& level,
+           const Verbosity& verbosity)
 {
-/*  ostringstream os;
-  CREATE_OUTS;
-  cout << "  *" << x_name <<"* =";
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n");
-  for( Index i=0; i<x.nelem(); i++ )
-    os << x[i] << '\n';
-  SWITCH_OUTPUT (level, os.str ()); */
+    CREATE_OUTS;
+
+    if (!timer.finished)
+    {
+        SWITCH_OUTPUT(level, "Timer error: Nothing to output. Use timerStart/timerStop first.");
+        return;
+    }
+
+    ostringstream os;
+    os.setf (ios::showpoint | ios::fixed);
+
+    static long clktck = 0;
+
+    if (clktck == 0)
+        if ((clktck = sysconf (_SC_CLK_TCK)) < 0)
+            throw runtime_error ("Timer error: Unable to determine CPU clock ticks");
+
+    os << "  * CPU time  total: " << setprecision (2)
+    << (Numeric)((timer.cputime_end.tms_stime - timer.cputime_start.tms_stime)
+                 + (timer.cputime_end.tms_utime - timer.cputime_start.tms_utime))
+    / (Numeric)clktck;
+
+    os << "  user: " << setprecision (2)
+    << (Numeric)(timer.cputime_end.tms_utime - timer.cputime_start.tms_utime)
+    / (Numeric)clktck;
+
+    os << "  system: " << setprecision (2)
+    << (Numeric)(timer.cputime_end.tms_stime - timer.cputime_end.tms_stime)
+    / (Numeric)clktck;
+
+    os << "\n               real: " << setprecision (2)
+    << (Numeric)(timer.realtime_end - timer.realtime_start) / (Numeric)clktck;
+
+    os << "  " << setprecision (2)
+    << (Numeric)((timer.cputime_end.tms_stime - timer.cputime_start.tms_stime)
+                 + (timer.cputime_end.tms_utime - timer.cputime_start.tms_utime))
+    / (Numeric)(timer.realtime_end - timer.realtime_start) * 100.
+    << "%CPU\n";
+
+    SWITCH_OUTPUT(level, os.str());
 }
+#else
+void Print(// WS Generic Input:
+           const Timer&,
+           // Keywords:
+           const Index& level,
+           const Verbosity& verbosity)
+{
+    SWITCH_OUTPUT (level, "Timer error: ARTS was compiled without timer support");
+}
+#endif
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -290,11 +334,14 @@ void PrintWorkspace(// Workspace reference
 #ifdef TIME_SUPPORT
 void
 timerStart (// WS Output
-            Timer& starttime,
+            Timer& timer,
             const Verbosity&)
 {
-  if ((starttime.realtime = times (&starttime.cputime)) == (clock_t)-1)
-    throw runtime_error ("Timer error: Unable to get current CPU time");
+    if ((timer.realtime_start = times (&timer.cputime_start)) == (clock_t)-1)
+        throw runtime_error ("Timer error: Unable to get current CPU time");
+
+    timer.running = true;
+    timer.finished = false;
 }
 #else
 void
@@ -311,45 +358,17 @@ timerStart (// WS Output
 #ifdef TIME_SUPPORT
 void
 timerStop (// WS Input
-           const Timer& starttime,
-           const Verbosity& verbosity)
+           Timer& timer,
+           const Verbosity&)
 {
-  CREATE_OUT1;
-  
-  Timer endtime;
-  static long clktck = 0;
+    if (!timer.running)
+        throw runtime_error("Timer error: Unable to stop timer that's not running.");
 
-  if (clktck == 0)
-    if ((clktck = sysconf (_SC_CLK_TCK)) < 0)
-      throw runtime_error ("Timer error: Unable to determine CPU clock ticks");
+    if ((timer.realtime_end = times (&(timer.cputime_end))) == (clock_t)-1)
+        throw runtime_error ("Timer error: Unable to get current CPU time");
 
-  if ((endtime.realtime = times (&endtime.cputime)) == (clock_t)-1)
-    throw runtime_error ("Timer error: Unable to get current CPU time");
-
-  // FIXME: out1 does not have setf, but we need to set it here
-  cout.setf (ios::showpoint | ios::fixed);
-
-  out1 << "  * CPU time  total: " << setprecision (2)
-    << (Numeric)((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
-        + (endtime.cputime.tms_utime - starttime.cputime.tms_utime))
-    / (Numeric)clktck;
-
-  out1 << "  user: " << setprecision (2)
-    << (Numeric)(endtime.cputime.tms_utime - starttime.cputime.tms_utime)
-    / (Numeric)clktck;
-
-  out1 << "  system: " << setprecision (2)
-    << (Numeric)(endtime.cputime.tms_stime - starttime.cputime.tms_stime)
-    / (Numeric)clktck;
-
-  out1 << "\n               real: " << setprecision (2)
-    << (Numeric)(endtime.realtime - starttime.realtime) / (Numeric)clktck;
-
-  out1 << "  " << setprecision (2)
-    << (Numeric)((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
-        + (endtime.cputime.tms_utime - starttime.cputime.tms_utime))
-    / (Numeric)(endtime.realtime - starttime.realtime) * 100.
-    << "%CPU\n";
+    timer.running = false;
+    timer.finished = true;
 }
 #else
 void

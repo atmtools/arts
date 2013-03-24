@@ -56,10 +56,16 @@ default: throw runtime_error ("Output level must have value from 0-3"); \
 }
 
 
-struct Timer {
+class Timer {
+public:
+    Timer() : running(false), finished(false) {}
+    bool running;
+    bool finished;
 #ifdef TIME_SUPPORT
-  struct tms cputime;
-  clock_t realtime;
+    struct tms cputime_start;
+    clock_t realtime_start;
+    struct tms cputime_end;
+    clock_t realtime_end;
 #endif
 };
 

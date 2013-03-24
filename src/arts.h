@@ -150,7 +150,13 @@ void arts_exit_with_error_message(const String& m, ArtsOut &os);
 #define DEBUG_COUNTER(n) \
 { \
   static Index n = 0; \
-  cerr << #n << ": " << ++n << endl; \
+  cerr << "DBG: " << #n << ": " << ++n << endl; \
+}
+
+// Print expression for debug
+#define DEBUG_PRINT(e) \
+{ \
+  cerr << "DBG: " << #e << ": " << (e) << endl; \
 }
 
 #else
@@ -158,6 +164,8 @@ void arts_exit_with_error_message(const String& m, ArtsOut &os);
 #define DEBUG_ONLY(...)
 
 #define DEBUG_COUNTER(n)
+
+#define DEBUG_PRINT(e)
 
 #endif
 

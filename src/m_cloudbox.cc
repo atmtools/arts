@@ -841,8 +841,8 @@ void ParticleTypeInit (//WS Output:
                        ArrayOfGriddedField3& pnd_field_raw,
                        const Verbosity&)
 {
-  scat_data_raw.reserve ( 20 );
-  pnd_field_raw.reserve ( 20 );
+  scat_data_raw.resize(0);
+  pnd_field_raw.resize(0);
 }
 
 
