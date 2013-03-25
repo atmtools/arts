@@ -405,11 +405,17 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 //      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_CO2)
 //      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_H2)
 //      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_He)
-      ls << " " << lr.Upper_GQuanta()
-         << " " << lr.Lower_GQuanta()
-         << " " << lr.Upper_LQuanta()
-         << " " << lr.Lower_LQuanta();
 
+        // Do not write quantas from Hitran into ARTSCAT-4
+        // because they're not compatible with our format
+        // Only quantum numbers in Agnes' format are valid
+//      ls << " " << lr.Upper_GQuanta()
+//         << " " << lr.Lower_GQuanta()
+//         << " " << lr.Upper_LQuanta()
+//         << " " << lr.Lower_LQuanta();
+
+      if (lr.QuantumNumbers().nelem())
+          ls << " " << lr.QuantumNumbers();
       os << ls.str();
       
       break;
@@ -2579,6 +2585,10 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 //      icecream >> mdelta_co2;
 //      icecream >> mdelta_h2;
 //      icecream >> mdelta_he;
+
+      // Remaining entries are the quantum numbers
+      getline(icecream, mquantum_numbers);
+      mquantum_numbers.trim();
 
       // FIXME: OLE: Added this if to catch crash for species like CO, PH3
       // where the line in the catalog is too short. Better would be to

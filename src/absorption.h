@@ -622,7 +622,8 @@ public:
       mupper_n (-1     ),
       mupper_j (-1     ),
       mlower_n (-1     ),
-      mlower_j (-1     )
+      mlower_j (-1     ),
+      mquantum_numbers("")
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -673,7 +674,8 @@ public:
       mupper_n (-1     ),
       mupper_j (-1     ),
       mlower_n (-1     ),
-      mlower_j (-1     )
+      mlower_j (-1     ),
+      mquantum_numbers("")
   {
     // Thanks to Matpack, initialization of misotopologue with isotopologue
     // should now work correctly.  
@@ -906,6 +908,9 @@ public:
 
   /** Lower state local quanta J */
   Rational Lower_J() const { return mlower_j; }
+
+  /** String with quantum numbers */
+  const String& QuantumNumbers() const { return mquantum_numbers; }
 
   
   /** Indices of different broadening species in Gamma_foreign, 
@@ -1438,6 +1443,9 @@ private:
   Rational mlower_n;
   /** Lower state local J quanta */
   Rational mlower_j;
+
+  /** String with quantum numbers for ARTSCAT-4 */
+  String mquantum_numbers;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotopologue data within arts

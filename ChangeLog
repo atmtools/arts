@@ -1,3 +1,21 @@
+2013-03-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-561
+
+	* absorption.{cc,h}:
+
+	(LineRecord): Add member mquantum_numbers.
+
+	(LineRecord::ReadFromArtscat4Stream):
+
+	Read quantum numbers into string.
+
+	(LineRecord::operator<<):
+
+	Do not write quantas from Hitran into ARTSCAT-4. They are incompatible
+	with our format. Instead, use the quantum numbers that were read
+	from the original ARTSCAT-4 file (if this LineRecord has them).
+
 2013-03-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-560
