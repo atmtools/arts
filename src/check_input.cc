@@ -1088,14 +1088,14 @@ void chk_interpolation_grids(const String&   which_interpolation,
 
   if (!new_grid.nelem()) throw runtime_error("The new grid is not allowed to be empty.");
 
-  ostringstream os;
-  os << "There is a problem with the grids for the\n"
-     << "following interpolation: " << which_interpolation << ".\n";
 
   // Old grid must have at least order+1 elements:
   if (n_old < order+1)
     {
-      os << "The original grid must have at least " << order+1 << " elements.";
+      ostringstream os;
+      os << "There is a problem with the grids for the\n"
+         << "following interpolation: " << which_interpolation << ".\n"
+         << "The original grid must have at least " << order+1 << " elements.";
       throw runtime_error( os.str() );
     }
   
@@ -1111,7 +1111,10 @@ void chk_interpolation_grids(const String&   which_interpolation,
       // Old grid must be strictly increasing (no duplicate values.)
       if ( !is_increasing(old_grid) )
         {
-          os << "The original grid must be strictly sorted\n"
+          ostringstream os;
+          os << "There is a problem with the grids for the\n"
+             << "following interpolation: " << which_interpolation << ".\n"
+             << "The original grid must be strictly sorted\n"
              << "(no duplicate values). Yours is:\n"
              << old_grid << ".";
           throw runtime_error( os.str() );
@@ -1128,7 +1131,10 @@ void chk_interpolation_grids(const String&   which_interpolation,
       // Old grid must be strictly decreasing (no duplicate values.)
       if ( !is_decreasing(old_grid) )
         {
-          os << "The original grid must be strictly sorted\n"
+          ostringstream os;
+          os << "There is a problem with the grids for the\n"
+             << "following interpolation: " << which_interpolation << ".\n"
+             << "The original grid must be strictly sorted\n"
              << "(no duplicate values). Yours is:\n"
              << old_grid << ".";
           throw runtime_error( os.str() );
@@ -1151,7 +1157,10 @@ void chk_interpolation_grids(const String&   which_interpolation,
 
   if (ng_min < og_min)
     {
-      os << "The minimum of the new grid must be inside\n"
+      ostringstream os;
+      os << "There is a problem with the grids for the\n"
+         << "following interpolation: " << which_interpolation << ".\n"
+         << "The minimum of the new grid must be inside\n"
          << "the original grid. (We allow a bit of extrapolation,\n"
          << "but not so much).\n"
          << "Minimum of original grid:           " << min(old_grid);
@@ -1165,7 +1174,10 @@ void chk_interpolation_grids(const String&   which_interpolation,
 
   if (ng_max > og_max)
     {
-      os << "The maximum of the new grid must be inside\n"
+      ostringstream os;
+      os << "There is a problem with the grids for the\n"
+         << "following interpolation: " << which_interpolation << ".\n"
+         << "The maximum of the new grid must be inside\n"
          << "the original grid. (We allow a bit of extrapolation,\n"
          << "but not so much).\n"
          << "Maximum of original grid:           " << max(old_grid);

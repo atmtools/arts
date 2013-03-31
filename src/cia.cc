@@ -66,19 +66,20 @@ void cia_interpolation(VectorView result,
     // Get data grids:
     ConstVectorView data_f_grid = cia_data.get_numeric_grid(0);
     ConstVectorView data_T_grid = cia_data.get_numeric_grid(1);
-    
-  {
-    // Some detailed information to the most verbose output stream:
-    ostringstream os;
-    os   << "    f_grid:      " << f_grid[0] << " - "
-         << f_grid[nf-1] << " Hz\n"
-         << "    data_f_grid: " << data_f_grid[0] << " - "
-         << data_f_grid[data_f_grid.nelem()-1] << " Hz\n"
-         << "    temperature: " << temperature << " K\n"
-         << "    data_T_grid: " << data_T_grid[0] << " - "
-         << data_T_grid[data_T_grid.nelem()-1] << " K\n";
-    out3 << os.str();
-  }
+
+    if (out3.sufficient_priority())
+    {
+        // Some detailed information to the most verbose output stream:
+        ostringstream os;
+        os   << "    f_grid:      " << f_grid[0] << " - "
+        << f_grid[nf-1] << " Hz\n"
+        << "    data_f_grid: " << data_f_grid[0] << " - "
+        << data_f_grid[data_f_grid.nelem()-1] << " Hz\n"
+        << "    temperature: " << temperature << " K\n"
+        << "    data_T_grid: " << data_T_grid[0] << " - "
+        << data_T_grid[data_T_grid.nelem()-1] << " K\n";
+        out3 << os.str();
+    }
     
     // Initialize result to zero (important for those frequencies outside the data grid).
     result = 0;
@@ -103,13 +104,14 @@ void cia_interpolation(VectorView result,
     
     // Extent for active frequency vector:
     const Index f_extent = i_fstop-i_fstart+1;
-    
-  {
-    ostringstream os;
-    os << "    " << f_extent << " frequency extraction points starting at "
-       << "frequency index " << i_fstart << ".\n";
-    out3 << os.str();
-  }
+
+    if (out3.sufficient_priority())
+    {
+        ostringstream os;
+        os << "    " << f_extent << " frequency extraction points starting at "
+           << "frequency index " << i_fstart << ".\n";
+        out3 << os.str();
+    }
     
     // If f_extent is less than one, then the entire data_f_grid is between two
     // grid points of f_grid. (So that we do not have any f_grid points inside
@@ -244,7 +246,8 @@ void cia_interpolation(VectorView result,
 
  \returns Index of this species combination in cia_data. -1 if not found.
  */
-Index cia_get_index(ArrayOfCIARecord cia_data, Index sp1, Index sp2)
+Index cia_get_index(const ArrayOfCIARecord& cia_data,
+                    const Index sp1, const Index sp2)
 {
     for (Index i = 0; i < cia_data.nelem(); i++)
         if ((cia_data[i].Species(0) == sp1 && cia_data[i].Species(1) ==  sp2)

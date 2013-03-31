@@ -52,7 +52,8 @@ void cia_interpolation(VectorView result,
                        const Index& robust,
                        const Verbosity& verbosity);
 
-Index cia_get_index(ArrayOfCIARecord cia_data, Index sp1, Index sp2);
+Index cia_get_index(const ArrayOfCIARecord& cia_data,
+                    const Index sp1, const Index sp2);
 
 
 /** CIA data for a single pair of molecules.

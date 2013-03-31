@@ -131,10 +131,7 @@ void abs_xsec_per_speciesAddCIA(// WS Output:
             if (out2.sufficient_priority())
               {
                 // Some nice output to out2:
-                ostringstream os;
-                os << "  CIA Species found: "
-                   << this_species.Name() << "\n";
-                out2 << os.str();
+                out2 << "  CIA Species found: " + this_species.Name() + "\n";
               }
             
             // Check that the dimension of this_xsec is
