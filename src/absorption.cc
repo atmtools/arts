@@ -1069,7 +1069,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
           // We have to be careful and check for the case that all
           // HITRAN isotopologue tags are -1 (this species is missing in HITRAN).
 
-          if ( 0 < sr.Isotopologue()[0].HitranTag() )
+          if ( sr.Isotopologue().nelem() && 0 < sr.Isotopologue()[0].HitranTag() )
             {
               // The HITRAN tags are stored as species plus isotopologue tags
               // (MO and ISO)

@@ -77,7 +77,7 @@ abs_xsec_per_speciesInit
 
 abs_xsec_per_speciesAddCIA
 
-#WriteXML ( "ascii", abs_xsec_per_species_attenuation )
+#WriteXML ( "ascii", abs_xsec_per_species )
 #WriteXML ( "ascii", f_grid )
 #WriteXML ( "ascii", abs_t )
 #WriteXML ( "ascii", abs_p )
@@ -90,10 +90,10 @@ ArrayOfMatrixCreate( abs_xsec_per_species_reference )
 ReadXML( abs_xsec_per_species_reference,
          "TestCIA.abs_xsec_per_species_reference.xml")
 
-Compare( abs_xsec_per_species_attenuation, 
+Compare( abs_xsec_per_species, 
          abs_xsec_per_species_reference, 
          1e-40, 
-	 "CIA Continua differe from reference calculation" )
+	 "CIA Continua differ from reference calculation" )
 
 }
 

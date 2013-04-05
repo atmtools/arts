@@ -1,5 +1,15 @@
 2013-04-05  Richard Larsson  <ric.larsson@gmail.com>
 
+    * arts-2-1-564
+    
+    * src/absorption.cc: Fix HITRAN reading routine for species without 
+    isotopologues.
+    
+    * controlfiles/artscomponents/cia/TestCIA.arts: Fix what previous commit 
+    broke.    
+    
+2013-04-05  Richard Larsson  <ric.larsson@gmail.com>
+
 	* arts-2-1-563
 	
 	* src/workspace.cc: Returned to not having a phase xsec. Also added extra
