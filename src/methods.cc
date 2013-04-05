@@ -238,7 +238,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_xsec_per_species_attenuation", "abs_vmrs", "abs_p", "abs_t" ),
+        IN( "abs_xsec_per_species", "abs_vmrs", "abs_p", "abs_t" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -1623,11 +1623,11 @@ void define_md_data_raw()
        "runs, since subsequent functions will not be able to deal with NAN values.\n"
        ),
       AUTHORS( "Stefan Buehler" ),
-      OUT( "abs_xsec_per_species_attenuation" ),
+      OUT( "abs_xsec_per_species" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "abs_xsec_per_species_attenuation", "abs_species", "abs_species_active",
+      IN( "abs_xsec_per_species", "abs_species", "abs_species_active",
           "f_grid", "abs_p", "abs_t",
           "abs_vmrs", "abs_cia_data" ),
       GIN(      "robust" ),
@@ -1644,11 +1644,11 @@ void define_md_data_raw()
          "Calculate absorption cross sections per tag group for continua.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_xsec_per_species_attenuation" ),
+        OUT( "abs_xsec_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_xsec_per_species_attenuation", "abs_species", "abs_species_active",
+        IN( "abs_xsec_per_species", "abs_species", "abs_species_active",
             "f_grid", "abs_p", "abs_t",
             "abs_vmrs", "abs_cont_names", "abs_cont_parameters",
             "abs_cont_models" ),
@@ -1664,14 +1664,14 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Calculates the line spectrum for both attenuation and phase\n"
-         "for each tag group and adds it to abs_xsec_per_species_*.\n"
+         "for each tag group and adds it to abs_xsec_per_species.\n"
          ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
-        OUT( "abs_xsec_per_species_attenuation", "abs_xsec_per_species_phase" ),
+        OUT( "abs_xsec_per_species"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_xsec_per_species_attenuation", "abs_species", "abs_species_active",
+        IN( "abs_xsec_per_species", "abs_species", "abs_species_active",
             "f_grid", "abs_p", "abs_t",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
             "isotopologue_ratios" ),
@@ -1694,7 +1694,7 @@ void define_md_data_raw()
          "The size is determined from *abs_species*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_xsec_per_species_attenuation", "abs_xsec_per_species_phase" ),
+        OUT( "abs_xsec_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

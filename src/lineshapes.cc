@@ -1684,23 +1684,23 @@ void lineshape_CO2_drayson(Vector&         ls_attenuation,
   Keep Faddeeva.{cc,hh} up to date in speed and accuracy by watching:
   http://ab-initio.mit.edu/Faddeeva sometimes.
 
-  \retval ls_attenuation            The shape function.
-  \retval xvector       Auxillary parameter to store frequency grid.
-  \param  f0            Line center frequency.
-  \param  gamma         The pressure broadening parameter.
-  \param  sigma         The Doppler broadening parameter.
-  \param  f_grid        The frequency grid.
+  \retval ls_attenuation        The shape function.
+  \retval xvector               Auxillary parameter to store frequency grid.
+  \param  f0                    Line center frequency.
+  \param  gamma                 The pressure broadening parameter.
+  \param  sigma                 The Doppler broadening parameter.
+  \param  f_grid                The frequency grid.
 
   \author Richard Larsson 2013-01-17
 
  */ 
-void faddeeva_algorithm_916(     Vector&         ls_attenuation,
-                                       Vector&         ls_phase,
-                                       Vector&         xvector,
-                                       const Numeric   f0,
-                                       const Numeric   gamma,
-                                       const Numeric   sigma,
-                                       ConstVectorView f_grid)
+void faddeeva_algorithm_916(    Vector&         ls_attenuation,
+                                Vector&         ls_phase,
+                                Vector&         xvector,
+                                const Numeric   f0,
+                                const Numeric   gamma,
+                                const Numeric   sigma,
+                                ConstVectorView f_grid)
 
 {
     const Index nf = f_grid.nelem();
@@ -1715,7 +1715,11 @@ void faddeeva_algorithm_916(     Vector&         ls_attenuation,
     Numeric fac = 1.0 / sigma * sqrt_invPI;
     
     // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-    Numeric YNUMERIC = gamma / sigma;
+    Numeric YNUMERIC = gamma / (2*PI*sigma);
+    /* Note that we seem to define gamma as HWHS not FWHS, 
+    which means we should be divide by 2*PI here instead of 4*PI,
+    c.f. Jefferies, Lites, and Skumanich, Transfer of Line Radiation in a Magnetic Field (1989),
+    Equation 13 and lineshape_lorentz above. */
     
     // frequency in units of Doppler
     for (Index ii=0; ii<nf; ii++)
@@ -1730,10 +1734,9 @@ void faddeeva_algorithm_916(     Vector&         ls_attenuation,
         z = Faddeeva::w(z);
         
         ls_attenuation[ii] = fac * z.real();
-        ls_phase[ii] = fac * z.imag();
+        ls_phase[ii]       = fac * z.imag();
     }
 }
-
 
 
 //------------------------------------------------------------------------
@@ -1931,7 +1934,10 @@ void define_lineshape_data()
     lineshape_data.push_back
     (LineshapeRecord
     ("Faddeeva_Algorithm_916",
-    "Voigt and Faraday-Voigt function as per Faddeeva function solution by JPL.",
+    "Voigt and Faraday-Voigt function as per Faddeeva function solution by JPL.\n"
+    "Line shape is considered from w(z)=exp(-z^2)*erfc(-iz) where z=v'+ia, and \n"
+    "v' is a Doppler weighted freqeuncy parameter and a is a Doppler weighted  \n"
+    "pressure parameter.",
     faddeeva_algorithm_916));
 }
 

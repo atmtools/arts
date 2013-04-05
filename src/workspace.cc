@@ -761,7 +761,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "abs_xsec_per_species_attenuation" ),
+     ( NAME( "abs_xsec_per_species" ),
        DESCRIPTION
        (
         "Absorption cross sections for the attenuation.\n"
@@ -776,24 +776,6 @@ void Workspace::define_wsv_data()
         "            where n is total density.\n"
         ),
        GROUP( "ArrayOfMatrix" )));
-
-    wsv_data.push_back
-    (WsvRecord
-    ( NAME( "abs_xsec_per_species_phase" ),
-      DESCRIPTION
-      (
-          "Absorption cross sections for the phase.\n"
-          "\n"
-          "This variable contains absorption cross section xsec individually for\n"
-          "each tag group. The Array contains one matrix for each tag group, the\n"
-          "matrix format is the same as that of abs_coef.\n"
-          "\n"
-          "Dimensions: [abs_species](f_grid, abs_p)\n"
-          "\n"
-          "Unit:       m^2 (alpha = xsec * n * VMR),\n"
-          "            where n is total density.\n"
-      ),
-      GROUP( "ArrayOfMatrix" )));
     
   wsv_data.push_back
     (WsvRecord
@@ -1732,10 +1714,13 @@ void Workspace::define_wsv_data()
     ( NAME( "isotopologue_quantum" ),
       DESCRIPTION
       (
-          "Quantum physical values not easily available in other databases.\n"
+          "Quantum physical values for the Zeeman effect to work not easily available in other databases.\n"
           "\n"
           "Example:\n"
-          "This variable should contain spin and g_s for the Zeeman effect to work\n"
+          "This variable should contain total spin [denoted S, with units in angular momentum]\n"
+          "and the molecular Landé g-factor [denoted g_s, with, to the author, unknown units].\n"
+          "\n"
+          "The variable can, e.g., be loaded from a file formated as '@ isotopologue g_s S'\n"
       ),
       GROUP( "SpeciesAuxData" )));
     

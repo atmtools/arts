@@ -1517,8 +1517,7 @@ void propmat_clearsky_agenda_checkedCalc(Workspace& ws _U_,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesInit(// WS Output:
-                              ArrayOfMatrix&   abs_xsec_per_species_attenuation,
-                              ArrayOfMatrix&   abs_xsec_per_species_phase,
+                              ArrayOfMatrix&   abs_xsec_per_species,
                               // WS Input:
                               const ArrayOfArrayOfSpeciesTag& tgs,
                               const ArrayOfIndex& abs_species_active,
@@ -1535,8 +1534,7 @@ void abs_xsec_per_speciesInit(// WS Output:
 
   // Initialize abs_xsec_per_species. The array dimension of abs_xsec_per_species
   // is the same as that of abs_lines_per_species.
-  abs_xsec_per_species_attenuation.resize( tgs.nelem() );
-  abs_xsec_per_species_phase.resize( tgs.nelem() );
+  abs_xsec_per_species.resize( tgs.nelem() );
 
   // Loop abs_xsec_per_species and make each matrix the right size,
   // initializing to zero.
@@ -1545,10 +1543,8 @@ void abs_xsec_per_speciesInit(// WS Output:
     {
       const Index i = abs_species_active[ii];
       // Make this element of abs_xsec_per_species the right size:
-      abs_xsec_per_species_attenuation[i].resize( f_grid.nelem(), abs_p.nelem() );
-      abs_xsec_per_species_attenuation[i] = 0;       // Matpack can set all elements like this.
-      abs_xsec_per_species_phase[i].resize( f_grid.nelem(), abs_p.nelem() );
-      abs_xsec_per_species_phase[i] = 0;       // Matpack can set all elements like this.
+      abs_xsec_per_species[i].resize( f_grid.nelem(), abs_p.nelem() );
+      abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.
     }
 
   ostringstream os;
@@ -1561,8 +1557,7 @@ void abs_xsec_per_speciesInit(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLines(// WS Output:
-                                  ArrayOfMatrix&                   abs_xsec_per_species_attenuation,
-                                  ArrayOfMatrix&                   abs_xsec_per_species_phase,
+                                  ArrayOfMatrix&                   abs_xsec_per_species,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
                                   const ArrayOfIndex& abs_species_active,
@@ -1595,7 +1590,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
   // groups as a dimension are consistent.
   {
     const Index n_tgs    = tgs.nelem();
-    const Index n_xsec   = abs_xsec_per_species_attenuation.nelem();
+    const Index n_xsec   = abs_xsec_per_species.nelem();
     const Index n_vmrs   = abs_vmrs.nrows();
     const Index n_lines  = abs_lines_per_species.nelem();
     const Index n_shapes = abs_lineshape.nelem();
@@ -1609,7 +1604,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
         ostringstream os;
         os << "The following variables must all have the same dimension:\n"
            << "tgs:          " << tgs.nelem() << "\n"
-           << "abs_xsec_per_species:  " << abs_xsec_per_species_attenuation.nelem() << "\n"
+           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
            << "abs_vmrs:         " << abs_vmrs.nrows() << "\n"
            << "abs_lines_per_species: " << abs_lines_per_species.nelem() << "\n"
            << "abs_lineshape:    " << abs_lineshape.nelem() << "\n"
@@ -1773,9 +1768,9 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                     }
                 }
             }
-            
-            xsec_species( abs_xsec_per_species_attenuation[i],
-                        abs_xsec_per_species_phase[i],
+            Matrix undefined = abs_xsec_per_species[i];
+            xsec_species( abs_xsec_per_species[i],
+                          undefined,
                         f_grid,
                         abs_p,
                         abs_t,
@@ -1808,7 +1803,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddConts(// WS Output:
-                                  ArrayOfMatrix&                   abs_xsec_per_species_attenuation,
+                                  ArrayOfMatrix&                   abs_xsec_per_species,
                                   // WS Input:             
                                   const ArrayOfArrayOfSpeciesTag&  tgs,
                                   const ArrayOfIndex& abs_species_active,
@@ -1830,7 +1825,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
   // groups as a dimension are consistent.
   {
     const Index n_tgs    = tgs.nelem();
-    const Index n_xsec   = abs_xsec_per_species_attenuation.nelem();
+    const Index n_xsec   = abs_xsec_per_species.nelem();
     const Index n_vmrs   = abs_vmrs.nrows();
 
     if ( n_tgs != n_xsec || n_tgs != n_vmrs )
@@ -1838,7 +1833,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
         ostringstream os;
         os << "The following variables must all have the same dimension:\n"
            << "tgs:          " << tgs.nelem() << "\n"
-           << "abs_xsec_per_species:  " << abs_xsec_per_species_attenuation.nelem() << "\n"
+           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
            << "abs_vmrs.nrows():      " << abs_vmrs.nrows();
         throw runtime_error(os.str());
       }
@@ -1961,7 +1956,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // abs_vmrs(i,Range(joker)). The other vmr variable, `abs_h2o'
                   // contains the real H2O vmr, which is needed for
                   // the oxygen continuum.
-                  xsec_continuum_tag( abs_xsec_per_species_attenuation[i],
+                  xsec_continuum_tag( abs_xsec_per_species[i],
                                       name,
                                       abs_cont_parameters[n],
                                       abs_cont_models[n], 

@@ -1,3 +1,25 @@
+2013-04-05  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-563
+	
+	* src/workspace.cc: Returned to not having a phase xsec. Also added extra
+	commentary to isotopologue_quantum. 
+	
+	* src/m_zeeman.cc: Removed reference to line mixing. LM will be handeled 
+	internally in xsec_species in the future.
+	
+	* src/methods.cc,src/m_abs.cc,src/agendas.cc: Returned to not having a phase
+	xsec explicitly for functions that don't care about it. (xsec_species) still
+	return the phase variable because functions like m_zeeman require the phase.
+	
+	* src/lineshapes.cc:  Fixed major bug in treatment of pressure broadening in
+	(faddeeva_algorithm_916). We treat the pressure broadening parameter as half
+	width half strength,  not full width half strength.  So to get the necessary
+	parameter for the Faddeeva function, gamma should thus be divided by 2PI and
+	nothing else.  This might have to be clarified in the related paper,  but it
+	does not change the results in there the slightest,  since the related paper
+	is clearly in the temperature region of atmospheric broadening.
+
 2013-03-31  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-562

@@ -91,7 +91,7 @@ void define_agenda_data()
        "and free electron density tags, because they need additional input\n"
        "and because they return an absorption matrix, rather than a scalar.\n"
        ),
-      OUTPUT( "abs_xsec_per_species_attenuation" ),
+      OUTPUT( "abs_xsec_per_species" ),
       INPUT(  "abs_species", "abs_species_active",
               "f_grid", "abs_p", "abs_t", "abs_vmrs" )));
 

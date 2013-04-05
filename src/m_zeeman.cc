@@ -820,9 +820,6 @@ void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesT
         xsec_species( attenuation, phase, f_grid, abs_p, abs_t, abs_vmrs, abs_species, this_species, lr,
                     abs_lineshape[i].Ind_ls(), abs_lineshape[i].Ind_lsn(), abs_lineshape[i].Cutoff(),
                     isotopologue_ratios, verbosity ); // Now in cross section
-
-        if(true) //Line mixing goes here for non-Zeeman treated molecules. After this abs_xsec_per_species_phase should be invalid again.
-            {  }
         
         attenuation *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
         phase *= abs_vmrs(this_species, 0) * number_density( abs_p[0],abs_t[0]); // Now in absorption coef.
@@ -1019,6 +1016,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                 const Index DN    = N - temp_LR.Upper_N();
                 Numeric RS_sum    = 0; //Sum relative strength (which ought be close to one by the end)
                 // Only look at lines which have no change in the main rotational number
+                // cout << "RSpi=[];RSsp=[];RSsm=[];DFpi=[];DFsm=[];DFsp=[];\n";
                 
                 if (J != -1 && N != -1 && S>0 ) // This means the lines are considered erroneous.
                 {
@@ -1040,6 +1038,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sm.push_back(temp_LR);
+                                // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                 RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1047,6 +1046,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
+                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                                 
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
                                 RS = RELATIVE_STRENGTH(N, M, J, DJ, +1);
@@ -1054,6 +1054,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_sp.push_back(temp_LR);
+                                // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
                             }
                             else if ( DJ ==  0 )
                             { // Then all DM transitions possible for all M
@@ -1063,6 +1064,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sm.push_back(temp_LR);
+                            // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                             if( ! (M == 0) )
                             {
                                 DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
@@ -1071,6 +1073,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                 temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                 temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                 temp_abs_lines_pi.push_back(temp_LR);
+                                // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                             }
                             
                             DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, +1, DN, H_mag, GS);
@@ -1079,6 +1082,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                             temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                             temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                             temp_abs_lines_sp.push_back(temp_LR);
+                            // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
                             }
                             else if ( DJ == -1 )
                             { // Then certain M results in blocked DM transitions
@@ -1090,6 +1094,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
+                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
                                     
                                 }
                                 else if ( M == -J + DJ + 1 && M!=0 )
@@ -1100,6 +1105,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
+                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1107,6 +1113,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                                 }
                                 else if ( M ==  J - DJ - 1 && M!=0 )
                                 { // Next to upper limit M can only allow DM = 0, -1
@@ -1116,6 +1123,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
@@ -1123,6 +1131,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
+                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 }
                                 else if ( M == J - DJ && M!=0 )
                                 { // Upper limit M only allow DM = -1
@@ -1132,6 +1141,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
+                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 }
                                 else if( (-J + DJ + 1) ==  (J - DJ - 1) && M == 0)
                                 { // Special case for N=1, J=0, M=0. Only allows DM = 0
@@ -1141,6 +1151,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
                                 }
                                 else
                                 { // All DM transitions are possible for these M(s)
@@ -1150,6 +1161,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sp.push_back(temp_LR);
+                                    // cout << "RSsp=[RSsp " << RS << "];DFsp=[DFsp " << DF << "];\n";
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ,  0, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ,  0);
@@ -1157,6 +1169,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_pi.push_back(temp_LR);
+                                    // cout << "RSpi=[RSpi " << RS << "];DFpi=[DFpi " << DF << "];\n";
 
                                     DF =  FREQUENCY_CHANGE(N, M, J, S, DJ, -1, DN, H_mag, GS);
                                     RS = RELATIVE_STRENGTH(N, M, J, DJ, -1);
@@ -1164,6 +1177,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                                     temp_LR.setF(  abs_lines_per_species[II][ii].F()  + DF );
                                     temp_LR.setI0( abs_lines_per_species[II][ii].I0() * RS );
                                     temp_abs_lines_sm.push_back(temp_LR);
+                                    // cout << "RSsm=[RSsm " << RS << "];DFsm=[DFsm " << DF << "];\n";
                                 }
                             }
                             else
