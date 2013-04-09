@@ -699,7 +699,10 @@ void Docserver::doc_method(const string& mname)
         {
           buf.str("");
           buf << "<tr>";
-          buf <<    "<td>OUT</td>";
+          if (std::find(mdr.In().begin(), mdr.In().end(), mdr.Out()[i]) == mdr.In().end())
+              buf <<    "<td>OUT</td>";
+          else
+              buf <<    "<td>OUT+IN</td>";
     
           {
             const String& vname = Workspace::wsv_data[mdr.Out()[i]].Name();
@@ -775,6 +778,9 @@ void Docserver::doc_method(const string& mname)
 
       for (Index i = 0; i < mdr.In().nelem(); ++i)
         {
+          if (std::find(mdr.Out().begin(), mdr.Out().end(), mdr.In()[i]) != mdr.Out().end())
+              continue;
+              
           buf.str("");
           buf << "<tr>";
           buf <<    "<td>IN</td>";

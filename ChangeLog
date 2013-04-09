@@ -1,5 +1,14 @@
 2013-04-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-567
+
+	* src/docserver.cc (Docserver::doc_method):
+
+	Instead of listing variables that are used both as input and output
+	twice, just list them once and mark them with 'OUT+IN'.
+
+2013-04-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-566
 
 	* src/workspace.cc: Remove abs_species_lookup and abs_species_onthefly.
