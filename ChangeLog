@@ -1,3 +1,13 @@
+2013-04-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-566
+
+	* src/workspace.cc: Remove abs_species_lookup and abs_species_onthefly.
+
+	* src/methods.cc, src/m_abs_lookup.cc (SpeciesPartitionLookupOnthefly):
+
+	Removed.
+
 2013-04-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-565
