@@ -31,7 +31,7 @@ graphviz (optional)
 USING CMAKE
 ===========
 
-Here are the steps to use cmake to build arts.
+Here are the steps to use cmake to build ARTS.
 
 Go into the build directory in the arts directory and run:
 
@@ -72,12 +72,12 @@ options in an empty build directory.
 TESTS
 =====
 
-'make check' will run several test cases to ensure that arts is working
+'make check' will run several test cases to ensure that ARTS is working
 properly. Use 'make check-all' to run all available controlfiles, including
 computation time-intensive ones.
 
 Some tests depend on the arts-xml-data package. cmake automatically looks if it
-is available in the same location as arts itself. If necessary, a custom path
+is available in the same location as ARTS itself. If necessary, a custom path
 can be specified:
 
 cmake -DARTS_XML_DATA_PATH=/home/myname/arts-xml-data ..
@@ -93,17 +93,22 @@ X is the number of tests that should be started in parallel.
 
 You can also use the ctest command directly to run the tests:
 
-ctest --output-on-failure -j4
+ctest -j4
 
 To run specific tests, use the -R option and specify part of the test case
-name you want to run:
+name you want to run. The following command will run all tests that have 'ppath'
+in their name, e.g. arts.ctlfile.fast.ppath1d ...:
 
-ctest --output-on-failure -R ppath
+ctest -R ppath
 
-This will run all tests that have 'ppath' in their name.
+To see the output of ARTS, use the -V option:
 
-If you don't want to pass --output-on-failure every time, you can set the
-CTEST_OUTPUT_ON_FAILURE environment variable.
+ctest -V -R fast.doit
+
+By default, ctest will not print any output from ARTS to the screen. The option
+--output-on-failure can be passed to ctest to see output in the case an error
+occurs. If you want to always enable this, you can set the environment variable
+CTEST_OUTPUT_ON_FAILURE:
 
 export CTEST_OUTPUT_ON_FAILURE=1
 
@@ -151,7 +156,7 @@ C++ library[2] (if available):
 
 CC=clang CXX=clang++ CXXFLAGS="-std=c++11 -stdlib=libc++" cmake ..
 
-Note that at this point, clang does support OpenMP.
+Note that at this point, clang does not support OpenMP.
 
 [1] http://clang.llvm.org
 [2] http://libcxx.llvm.org
@@ -161,7 +166,7 @@ MAC OS X / XCODE
 ================
 
 If you're on a Mac and have the Apple Xcode development environment installed,
-you can generate a project file and use Xcode to build arts:
+you can generate a project file and use Xcode to build ARTS:
 
 cmake -G Xcode ..
 open ARTS.xcodeproj

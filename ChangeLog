@@ -1,5 +1,12 @@
 2013-04-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-568
+
+	* README: Cleanup TESTS section. Fix factual error: clang does NOT
+	support OpenMP.
+
+2013-04-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-567
 
 	* src/docserver.cc (Docserver::doc_method):
