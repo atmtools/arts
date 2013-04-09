@@ -38,6 +38,10 @@ VectorSet( f_grid, [300e9] )
 # 1-dimensional atmosphere
 AtmosphereSet1D
 
+# We have to set the absorption lookup table interpolation order, 
+# since we are using wind fields. basics_checkedCalc will otherwise throw an error.
+IndexSet( abs_f_interp_order, 1 )
+
 Tensor3Create( edensity_field )
 GriddedField3Create( gf3tmp )
 StringCreate( caseext )

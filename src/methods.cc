@@ -2609,6 +2609,7 @@ void define_md_data_raw()
          " 5. If atmospheric fields, and *z_surface* have sizes consistent\n"
          "    with the atmospheric grids.\n"
          " 6. There is no gap between *z_surface* and *z_field*.\n"
+         " 7. That abs_f_interp_order is not zero if any wind is nonzero.\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *basics_checked*\n"
          "is set to 1.\n"
@@ -2624,7 +2625,7 @@ void define_md_data_raw()
             "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field",
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
              "refellipsoid", "z_surface", 
-            "stokes_dim", "f_grid" ),
+            "stokes_dim", "f_grid", "abs_f_interp_order" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

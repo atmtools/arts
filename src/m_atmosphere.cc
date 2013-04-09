@@ -1247,6 +1247,7 @@ void basics_checkedCalc(
                         const Matrix&    z_surface,
                         const Index&     stokes_dim,
                         const Vector&    f_grid,
+                        const Index&     abs_f_interp_order,
                         const Verbosity&)
 {
   // Consistency between dim, grids and atmospheric fields/surfaces
@@ -1357,6 +1358,22 @@ void basics_checkedCalc(
               chk_atm_field( "wind_v_field", wind_v_field, atmosphere_dim, 
                                                    p_grid, lat_grid, lon_grid);
             }
+        }
+    }
+    
+  // If any of the wind fields exist, abs_f_interp_order must not be zero.
+  if (wind_u_field.npages() > 0 ||
+      wind_v_field.npages() > 0 ||
+      wind_w_field.npages() > 0)
+    {
+      if (abs_f_interp_order==0)
+        {
+          ostringstream os;
+          os << "You have a wind field set, but abs_f_interp_order zero.\n"
+             << "We cannot let you do this, the absorption lookup table\n"
+             << "will handle Doppler shift correctly only if\n"
+             << "abs_f_interp_order is greater than zero.";
+          throw runtime_error(os.str());
         }
     }
 

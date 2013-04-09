@@ -1,3 +1,21 @@
+2013-04-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-569
+
+	* src/methods.cc (basics_checkedCalc): Added input variable
+	*abs_f_interp_order*.
+
+	* src/m_atmosphere.cc (basics_checkedCalc): If any of the wind
+	fields exist, abs_f_interp_order must not be zero. This to make
+	sure that absorption lookup table extraction still works if the
+	frequency grid is Doppler shifted.
+
+	* controlfiles/artscomponents/groundbased/TestWinds.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts,
+	controlfiles/artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts:
+	Set abs_f_interp_order to 1 to avoid runtime error.
+
 2013-04-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-568

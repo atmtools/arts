@@ -100,6 +100,10 @@ abs_cont_descriptionInit
 # on-the-fly absorption
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
+# We have to also set the absorption lookup table interpolation order, even though
+# we are not using the lookup table here. basics_checkedCalc will otherwise throw an error.
+IndexSet( abs_f_interp_order, 1 )
+
 
 
 # ---- The surface -----------------------------------------------------
