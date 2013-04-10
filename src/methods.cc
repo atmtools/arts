@@ -4279,6 +4279,40 @@ void define_md_data_raw()
         GIN_DEFAULT( ".1e9" ),
         GIN_DESC( "Desired grid spacing in Hz." )
         ));
+  
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "f_gridFromSensorAMSUgeneric" ),
+        DESCRIPTION
+        (
+         "Automatcially calculate f_grid to match the sensor. \n"
+         "This function is based on 'f_gridFromSensorAMSU' \n"
+         "\n"
+         "The method calculates *f_grid* to match the instrument, as given by\n"
+         "the backend frequencies *f_backend*, and the backend channel\n"
+         "responses *backend_channel_response*.\n"
+         "\n"
+         "You have to specify the desired spacing in the keyword *spacing*,\n"
+         "which has a default value of 100 MHz. (The actual value is 0.1e9,\n"
+         "since our unit is Hz.)"
+         "\n"
+         "The produced grid will not have exactly the requested spacing, but\n"
+         "will not be coarser than requested. The algorithm starts with the band\n"
+         "edges, then adds additional points until the spacing is at least as\n"
+         "fine as requested.\n"
+         ),
+        AUTHORS( "Oscar Isoz" ),
+        OUT( "f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "f_backend","backend_channel_response" ),
+        GIN( "spacing"),
+        GIN_TYPE(    "Numeric"),
+        GIN_DEFAULT( ".1e9" ),
+        GIN_DESC( "Desired grid spacing in Hz.")
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -9158,6 +9192,60 @@ void define_md_data_raw()
         GIN_DEFAULT( ".1e9" ),
         GIN_DESC( "Desired grid spacing in Hz." )
         ));
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responseGenericAMSU" ),
+        DESCRIPTION
+        (
+         "Simplified sensor setup for an AMSU-type instrument.\n"
+         "\n"
+         "This function is derived from 'sensor_responseSimpleAMSU' \n"
+         "but is more generalized since the number of passbands in each \n"
+         "can be in the range from 1 to 4 - in order to correctly simulate\n"
+         "AMSU-A type sensors \n"
+         "\n"
+         "This method allows quick and simple definition of AMSU-type\n"
+         "sensors. Assumptions:\n"
+         "\n"
+         "1. Pencil beam antenna.\n"
+         "2. 1-4 Passband/sidebands per channel.\n"
+         "3. Sideband mode \"upper\"\n"
+         "4. The channel response is rectangular.\n"
+         "\n"
+         "Under these assumptions the only inputs needed are the LO positions,\n"
+         "the offsets from the LO, and the IF bandwidths. They are provided\n"
+         "in sensor_description_amsu.\n"
+        ),
+        AUTHORS( "Oscar Isoz" ),
+        OUT( "f_grid", 
+          "antenna_dim", 
+          "mblock_za_grid", 
+          "mblock_aa_grid",
+          "sensor_response", 
+          "sensor_response_f", 
+          "sensor_response_pol", 
+          "sensor_response_za", 
+          "sensor_response_aa", 
+          "sensor_response_f_grid", 
+          "sensor_response_pol_grid", 
+          "sensor_response_za_grid", 
+          "sensor_response_aa_grid", 
+          "sensor_norm"
+          ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim",
+            "stokes_dim",
+            "sensor_description_amsu" ),
+        GIN( "spacing" ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( ".1e9" ),
+        GIN_DESC( "Desired grid spacing in Hz." )
+        ));
+  
 
         /* Not yet updated
      md_data_raw.push_back

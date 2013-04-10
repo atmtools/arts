@@ -1,0 +1,113 @@
+#DEFINITIONS:  -*-sh-*-
+
+# ARTS setup file for AMSUA simulations
+#
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# THIS FILE IS CURRENTLY NOT SIMULATING TRUE AMSU-A 
+# ONLY THE AMSU-A CHANNEL FUNCTIONALITY
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Arts2 {
+
+
+# 1. General
+#-----------
+
+output_file_formatSetZippedAscii
+
+# AMSU uses Planck brightness temperatures
+# ---
+StringSet( iy_unit, "PlanckBT" )
+
+#
+# modifiy the maximum propagation step, from the default(10.e3)
+# to 250 m :
+#
+NumericSet( ppath_lmax, 250 )
+
+# Surface
+AgendaSet( surface_rtprop_agenda ){
+  specular_losCalc
+  InterpSurfaceFieldToRtePos( surface_skin_t, atmosphere_dim, lat_grid, 
+      lon_grid, rte_pos, t_surface )
+  surfaceFlatScalarReflectivity
+} 
+
+# 2. Spectroscopy
+#----------------
+
+# We take a smaller cutoff, since the line-by-line calculation is 
+# only for O3, where only the local lines matter.
+# Could be speed-optimized further by selecting only the relevant 
+# lines from the line list.
+ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
+abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
+
+abs_speciesSet( species=[ "H2O-PWR98",
+                          "O3",
+                          "O2-PWR93",
+                          "N2-SelfContStandardType" ] )
+
+# Read HITRAN catalog (needed for O3):
+#abs_linesReadFromHitran2004( abs_lines,
+#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
+#                             80e9,
+#                             200e9 )
+#WriteXML( "ascii", abs_lines, "amsub.hitran04_lines.xml" )
+
+ReadXML( abs_lines, "amsub.hitran04_lines.xml" )
+abs_lines_per_speciesCreateFromLines
+
+# WARNING: If you redefine abs_species, and want to do a line-by-line
+# calculation, you also have to call
+# abs_lines_per_speciesCreateFromLines again.
+
+
+# 3. Sensor:
+#-----------
+
+# Definition of sensor position and LOS
+# ---
+ReadXML( sensor_los, "amsub.sensor_los.xml" )
+nrowsGet( nrows, sensor_los )
+ncolsGet( ncols, sensor_los )
+MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
+
+
+# Sensor response setup
+# ---
+#Nominal frequencies 
+#MatrixSet( sensor_description_amsu
+#           # center freq[Hz],offset1[Hz], BW[Hz], Verbosity
+#           
+#           [    23.8e9,         0.0e6,   0.0e6,     270e6 ,  0; #1
+#                31.4e9,         0.0e6,   0.0e6,     180e6 ,  0; #2
+#                50.3e9,         0.0e6,   0.0e6,     180e6 ,  0; #3
+#                52.8e9,         0.0e6,   0.0e6,     400e6 ,  0; #4
+#                53.596115e6,  115.0e6,   0.0e6,     170e6 ,  0; #5
+#                54.400e9,       0.0e6,   0.0e6,     400e6 ,  0; #6
+#                54.940e9,       0.0e6,   0.0e6,     400e6 ,  0; #7
+#                55.50e9,        0.0e6,   0.0e6,     330e6 ,  0; #8
+#                57.290344e9,    0.0e6,   0.0e6,     330e6 ,  0; #9
+#                57.290344e9,  217.0e6,   0.0e6,      78e6 ,  0; #10
+#                57.290344e9,  322.2e6,   48.0e6,     36e6 ,  0; #11
+#                57.290344e9,  322.2e6,   22.0e6,     16e6 ,  0; #12
+#                57.290344e9,  322.2e6,   10.0e6,      8e6 ,  0; #13
+#                57.290344e9,  322.2e6,    4.5e6,      3e6 ,  0; #14
+#      	        89.0e9,         0.0e9,    0.0e6,     2000e6 , 0] ) # 15
+#
+# ---
+# Until we have a good AMSU-A test case use the AMSU-B  test
+# ---
+MatrixSet( sensor_description_amsu,
+           [  89.00e9, 0.90e9, 1000e6, 0,  100e6;   # original part of the AMSU-B sensor
+            #  88.10e9, 0.00e9, 1000e6, 0,  0;   # part one of the single band 
+            #  89.90e9, 0.00e9, 1000e6, 0,  0;   # part two of a single band 
+           #  89.00e9, 0.90e9,  500e6, 250e6,100e6; # Four band example
+      	     150.00e9, 0.90e9, 1000e6,  0,  100e6;
+      	     183.31e9, 1.00e9,  500e6,  0,  100e6;
+      	     183.31e9, 3.00e9, 1000e6,  0,  100e6;
+      	     183.31e9, 7.00e9, 2000e6,  0,  100e6])
+
+sensor_responseGenericAMSU
+}

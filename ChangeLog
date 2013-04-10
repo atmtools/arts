@@ -1,3 +1,15 @@
+2012-04-10 Oscar Isoz <oscar.isoz(at)ltu.se>
+
+	* arts-2-1-570
+
+	* src/methods.cc, src/m_sensor.cc
+	(sensor_responseGenericAMSU,f_gridFromSensorAMSUgeneric): 
+	Added workspace methods for implementation of AMSU-A type sensors,
+
+	* controlfiles/instruments/amsu/TestAMSUA.arts, 
+	controlfiles/instruments/amsu/amsua.arts :
+	Added preliminary testcases for AMSU-A type sensor 
+
 2013-04-09  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-569
