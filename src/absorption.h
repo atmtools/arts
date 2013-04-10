@@ -589,11 +589,6 @@ void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad
 class LineRecord {
 public:
     
-  /** Make the helper function linesElowToJoule a friend, so that it
-      can change the lower state energy. FIXME: Remove this when we
-      don't need the helper function anymore. */
-  friend void linesElowToJoule(Array<LineRecord>& abs_lines);
-
   /** Default constructor. Initialize to default values. The indices
       are initialized to large numbers, so that we at least get range
       errors when we try to used un-initialized data. */

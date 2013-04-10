@@ -26,9 +26,10 @@ USA. */
 #ifndef rational_h
 #define rational_h
 
-#include "matpack.h"
 #include <cassert>
 #include <ostream>
+#include "matpack.h"
+#include "array.h"
 
 class Rational
 {
@@ -40,7 +41,7 @@ public:
     Rational(const Index& n1, const Index& n2){assert(n2>0);top=n1;low=n2;Simplify();}
     
     // Reading values of object
-    Index Top() const{return top;}
+    Index Top() const {return top;}
     Index Low() const {return low;}
     
     // Converting object
@@ -49,26 +50,7 @@ public:
     operator bool() const{return top==0?false:true;}
     
     // Useful. Keep this around and/or improve.
-    void Simplify()
-    {
-        Index ii = low;
-        
-        while( ii != 0 )
-        {
-            if( top % ii == 0 && low % ii == 0 )
-            {
-                top /= ii;
-                low /= ii;
-                
-                if( top == 1 || low == 1 || top == 0 || top == -1 )
-                    break;
-            }
-            if( low < ii )
-                ii = low;
-            else
-                ii--;
-        }
-    }
+    void Simplify();
     
     // Assigning values to object.
     void operator=(const Rational& a){top = a.Top();low = a.Low();Simplify();}
@@ -157,5 +139,7 @@ private:
 ostream& operator<<(ostream& os, const Rational& a);
 
 Rational abs(const Rational& a);
+
+typedef Array<Rational> ArrayOfRational;
 
 #endif // rational_h

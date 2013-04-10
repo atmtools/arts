@@ -25,6 +25,34 @@ USA. */
 
 #include "rational.h"
 
-ostream& operator<<(ostream& os, const Rational& a){os << a.Top() << "/" << a.Low(); return os;}
+void Rational::Simplify()
+{
+    Index ii = low;
 
-Rational abs(const Rational& a){return a<0?-a:a;}
+    while( ii != 0 )
+    {
+        if( top % ii == 0 && low % ii == 0 )
+        {
+            top /= ii;
+            low /= ii;
+
+            if( top == 1 || low == 1 || top == 0 || top == -1 )
+                break;
+        }
+        if( low < ii )
+            ii = low;
+        else
+            ii--;
+    }
+}
+
+ostream& operator<<(ostream& os, const Rational& a)
+{
+    os << a.Top() << "/" << a.Low();
+    return os;
+}
+
+Rational abs(const Rational& a)
+{
+    return a<0?-a:a;
+}

@@ -1,3 +1,17 @@
+2013-04-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-571
+
+	* src/m_abs.cc, src/absorption.h (linesElowToJoule):
+
+	Removed unused function.
+
+	* src/rational.{cc,h}:
+
+	Add typedef for ArrayOfRational.
+
+	Move implementation of Simplify to cc file.
+
 2012-04-10 Oscar Isoz <oscar.isoz(at)ltu.se>
 
 	* arts-2-1-570

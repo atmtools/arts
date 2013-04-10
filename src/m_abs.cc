@@ -491,15 +491,6 @@ void abs_linesReadFromArtsObsolete(// WS Output:
 }
 
 
-/* FIXME: OLE: Do we need this function? */
-void linesElowToJoule(// WS Output:
-                      ArrayOfLineRecord& abs_lines )
-{
-  for ( Index i=0; i<abs_lines.nelem(); ++i )
-    abs_lines[i].melow = wavenumber_to_joule(abs_lines[i].melow); 
-}
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesReadFromCatalogues(// WS Output:
                                              ArrayOfArrayOfLineRecord& abs_lines_per_species,
