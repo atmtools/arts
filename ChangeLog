@@ -1,3 +1,26 @@
+2013-04-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-572
+
+	* src/quantum.{cc,h}: Quantum numbers implementation. Unfinished.
+
+	* src/absorption.{cc,h}:
+
+	Rename QuantumNumbers to QuantumNumbersString. Will be removed once
+	the new implementation is completed.
+
+	Add QuantumNumberRecord to LineRecord.
+
+	* src/CMakeLists.txt: Add quantum.cc.
+
+	* src/rational.{cc,h}:
+
+	Remove assertion for denom>0 (for now). Because we want to use
+	Rational(0,0) as an undefined value.
+
+	Use less controversial names for  member
+	variables. top -> mnom, low -> mdenom.
+
 2013-04-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-571

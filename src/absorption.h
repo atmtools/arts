@@ -37,6 +37,8 @@
 #include "messages.h"
 #include "abs_species_tags.h"
 #include "rational.h"
+#include "quantum.h"
+
 
 /** The type that is used to store pointers to lineshape
     functions.  */
@@ -618,7 +620,8 @@ public:
       mupper_j (-1     ),
       mlower_n (-1     ),
       mlower_j (-1     ),
-      mquantum_numbers("")
+      mquantum_numbers_str(""),
+      mquantum_numbers()
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -670,7 +673,8 @@ public:
       mupper_j (-1     ),
       mlower_n (-1     ),
       mlower_j (-1     ),
-      mquantum_numbers("")
+      mquantum_numbers_str(""),
+      mquantum_numbers()
   {
     // Thanks to Matpack, initialization of misotopologue with isotopologue
     // should now work correctly.  
@@ -905,9 +909,12 @@ public:
   Rational Lower_J() const { return mlower_j; }
 
   /** String with quantum numbers */
-  const String& QuantumNumbers() const { return mquantum_numbers; }
+  const String& QuantumNumbersString() const { return mquantum_numbers_str; }
 
-  
+  /** Quantum numbers */
+  const QuantumNumberRecord& QuantumNumbers() const { return mquantum_numbers; }
+    
+
   /** Indices of different broadening species in Gamma_foreign, 
    N_foreign, and Delta_foreign. */
   enum {
@@ -1440,7 +1447,10 @@ private:
   Rational mlower_j;
 
   /** String with quantum numbers for ARTSCAT-4 */
-  String mquantum_numbers;
+  String mquantum_numbers_str;
+
+  /** Quantum numbers from HITRAN */
+  QuantumNumberRecord mquantum_numbers;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotopologue data within arts

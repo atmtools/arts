@@ -212,6 +212,7 @@ add_library (artscore STATIC
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
+  quantum.cc
   rational.cc
   refraction.cc
   rng.cc

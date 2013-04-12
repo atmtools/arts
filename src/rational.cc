@@ -27,20 +27,20 @@ USA. */
 
 void Rational::Simplify()
 {
-    Index ii = low;
+    Index ii = mdenom;
 
     while( ii != 0 )
     {
-        if( top % ii == 0 && low % ii == 0 )
+        if( mnom % ii == 0 && mdenom % ii == 0 )
         {
-            top /= ii;
-            low /= ii;
+            mnom /= ii;
+            mdenom /= ii;
 
-            if( top == 1 || low == 1 || top == 0 || top == -1 )
+            if( mnom == 1 || mdenom == 1 || mnom == 0 || mnom == -1 )
                 break;
         }
-        if( low < ii )
-            ii = low;
+        if( mdenom < ii )
+            ii = mdenom;
         else
             ii--;
     }
@@ -48,7 +48,7 @@ void Rational::Simplify()
 
 ostream& operator<<(ostream& os, const Rational& a)
 {
-    os << a.Top() << "/" << a.Low();
+    os << a.Nom() << "/" << a.Denom();
     return os;
 }
 

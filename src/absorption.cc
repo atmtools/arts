@@ -414,8 +414,8 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 //         << " " << lr.Upper_LQuanta()
 //         << " " << lr.Lower_LQuanta();
 
-      if (lr.QuantumNumbers().nelem())
-          ls << " " << lr.QuantumNumbers();
+      if (lr.QuantumNumbersString().nelem())
+          ls << " " << lr.QuantumNumbersString();
       os << ls.str();
       
       break;
@@ -1434,6 +1434,8 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
         DN =  -  mlower_lquanta.compare(1,1,"Q");
         mupper_n = mlower_n - DN;
         mupper_j = mlower_j - DJ;
+
+        mquantum_numbers.SetLower(QN_J, Rational(1,1)); // FIXME: Just a test
       }
       else if(species_data[mspecies].Name()=="NO")//NO FIXME: Different mspecies versus HITRAN?
       {
@@ -2587,8 +2589,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 //      icecream >> mdelta_he;
 
       // Remaining entries are the quantum numbers
-      getline(icecream, mquantum_numbers);
-      mquantum_numbers.trim();
+      getline(icecream, mquantum_numbers_str);
+      mquantum_numbers_str.trim();
 
       // FIXME: OLE: Added this if to catch crash for species like CO, PH3
       // where the line in the catalog is too short. Better would be to
