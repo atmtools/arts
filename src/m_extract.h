@@ -60,29 +60,6 @@ void Extract(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Extract(
-      // WS Generic Output:
-      Index&                 i,
-      // WS Input:
-      // WS Generic Input:
-      const ArrayOfIndex&    aoi,
-      const Index&           index,
-      const Verbosity&)
-{
-  if( index >= aoi.nelem() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the range of the Array.";
-      throw runtime_error( os.str() );
-
-    }
-
-  i = aoi[ index ];
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
       // WS Generic Output:
       ArrayOfIndex&          aoi,
