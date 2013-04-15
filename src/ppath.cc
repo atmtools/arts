@@ -4873,8 +4873,9 @@ void ppath_start_stepping(
       bool      islatlonin = false;
       Numeric    r_e;  // Ellipsoid radius at sensor position
       Numeric    z_toa   = -99e99;
-      if( rte_pos[1] > lat_grid[0]  &&  rte_pos[1] < lat_grid[llat]  &&
-          lon2use > lon_grid[0]  &&  lon2use < lon_grid[llon] )
+
+      if( rte_pos[1] >= lat_grid[0]  &&  rte_pos[1] <= lat_grid[llat]  &&
+          lon2use >= lon_grid[0]  &&  lon2use <= lon_grid[llon] )
         { 
           islatlonin = true; 
           gridpos( gp_lat, lat_grid, rte_pos[1] );

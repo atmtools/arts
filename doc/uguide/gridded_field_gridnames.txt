@@ -4,9 +4,9 @@
 
 Complex         Complex number "grid" (i.e. exactly 2 elements: real and imaginary)
 Frequency       Frequency dimension for spectral dependent fields.
-Latitude        Latitude dimension for atmospheric fields.
-Longitude       Longitude dimension for atmospheric fields.
-Pressure        Pressure dimension for atmospheric fields.
+Latitude        Latitude dimension for atmospheric fields (z,T,VMRs,winds,Ne,B,pnd).
+Longitude       Longitude dimension for atmospheric fields (z,T,VMRs,winds,Ne,B,pnd).
+Pressure        Pressure dimension for atmospheric fields (z,T,VMRs,winds,Ne,B,pnd).
 
 
 
@@ -15,4 +15,5 @@ Pressure        Pressure dimension for atmospheric fields.
 Temperature     Temperature field
 VMR             Volume mixing ratio field
 Altitude        Altitude/height field
+pnd_field       Particle number density field
 

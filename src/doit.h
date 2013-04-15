@@ -261,6 +261,8 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                               const Vector&         scat_aa_grid,
                               const Vector&         f_grid,
                               const String&         interpmeth,
+                              const Index&          rigorous,
+                              const Numeric&        maxratio,
                               const Verbosity&      verbosity);
 
 void doit_scat_fieldNormalize(Workspace& ws,

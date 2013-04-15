@@ -8740,9 +8740,9 @@ void MPM93WaterDropletAbs (MatrixView         pxsec,
   << " CE = " << CE << "\n";
 
 
-  const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m³
-  const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m³]
-  const Numeric high_lim_den = 10.00e-3; // lower limit of suspended droplet particle density vector [kg/m³]
+  const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
+  const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
+  const Numeric high_lim_den = 10.00e-3; // upper limit of suspended droplet particle density vector [kg/m3]
 
   const Index n_p = abs_p.nelem();  // Number of pressure levels
   const Index n_f = f_grid.nelem();  // Number of frequencies

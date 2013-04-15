@@ -2855,10 +2855,11 @@ void define_md_data_raw()
             "f_grid", "stokes_dim", 
             "iy_unit", "blackbody_radiation_agenda", 
             "scat_za_grid", "scat_aa_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "rigorous", "maxratio" ),
+        GIN_TYPE( "Index", "Numeric" ),
+        GIN_DEFAULT( "1", "100" ),
+        GIN_DESC( "Fail if incoming field is not safely interpolable.",
+                  "Maximum allowed ratio of two radiances regarded as interpolable." )
         ));
 
   md_data_raw.push_back
@@ -2869,14 +2870,11 @@ void define_md_data_raw()
          "Calculates incoming radiation field of the cloudbox by repeated\n"
          "radiative transfer calculations.\n"
          "\n"
-         "The method performs monochromatic pencil beam calculations for\n"
-         "all grid positions on the cloudbox boundary, and all directions\n"
-         "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
-         "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
-         "conditions when scattering inside the cloud box is solved by the\n"
-         "DOIT method.\n"
+         "This is a (unfinished?) reimplementation of *CloudboxGetIncoming*\n"
+         "providing the complete radiance field within the cloudbox instead\n"
+         "of only the cloudbox boundary fields.\n"
          ),
-        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUT( "doit_i_field2" ),
         GOUT(),
         GOUT_TYPE(),
@@ -3970,12 +3968,12 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "needle" ),
-        GOUT_TYPE( "ArrayOfIndex, Numeric, Vector, Matrix, Matrix, Tensor3, Tensor4,"
+        GOUT_TYPE( "Index, ArrayOfIndex, Numeric, Vector, Matrix, Matrix, Tensor3, Tensor4,"
                    "Tensor4, ArrayOfGriddedField3, GriddedField4, String" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
-        GIN_TYPE( "ArrayOfArrayOfIndex, Vector, ArrayOfVector, ArrayOfMatrix, Tensor3,"
+        GIN_TYPE( "ArrayOfIndex, ArrayOfArrayOfIndex, Vector, ArrayOfVector, ArrayOfMatrix, Tensor3,"
                   "Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGriddedField3,"
                   "ArrayOfGriddedField4, ArrayOfString",
                   "Index" ),
@@ -5151,10 +5149,11 @@ void define_md_data_raw()
             "cloudbox_limits", "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "stokes_dim", 
             "scat_za_grid", "scat_aa_grid", "f_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "rigorous", "maxratio" ),
+        GIN_TYPE( "Index", "Numeric" ),
+        GIN_DEFAULT( "1", "3" ),
+        GIN_DESC( "Fail if cloudbox field is not safely interpolable.",
+                  "Maximum allowed ratio of two radiances regarded as interpolable." )
         ));
 
   md_data_raw.push_back
@@ -5164,20 +5163,13 @@ void define_md_data_raw()
         (
          "Interpolates the intensity field of the cloud box.\n"
          "\n"
-         "This is the standard method to put in *iy_cloudbox_agenda* if the\n"
-         "the scattering inside the cloud box is handled by the DOIT method.\n"
-         "\n"
-         "The intensity field is interpolated to the position (specified by\n"
-         "*rtp_pos*) and direction (specified by *rtp_los*) given. A linear\n"
-         "interpolation is used for all dimensions.\n"
-         "\n"
-         "The intensity field on the cloux box boundaries is provided by\n"
-         "*scat_i_p/lat/lon* and these variables are interpolated if the\n"
-         "given position is at any boundary.\n"
-         "\n"
-         "Interpolation of the internal field is not yet possible.\n"
+         "This is NOT the standard method to put in *iy_cloudbox_agenda* if the\n"
+         "the scattering inside the cloud box is handled by the DOIT method,\n"
+         "but a (unfinished?) reimplementation applying the full radiance\n"
+         "field from inside the cloudbox instead of only the cloudbox\n"
+         "boundary fields.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),

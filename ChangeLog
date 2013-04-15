@@ -1,3 +1,34 @@
+2013-03-08  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-573
+
+	* src/m_extract.h (Extract): Added Extract for Index from ArrayOfIndex.
+
+	* src/m_doit.cc
+
+	(CloudboxGetIncoming, iyInterpCloudboxField): Introduce sanity check for
+	radiance field interpolation - throws an error if radiance ratio between
+	two interpolation points exceeds a threshold. Can be switched off (and
+	old non-check behaviour used instead, which is preferable for very thin
+	atmospheres, where radiance field is a step function when going from
+	downlooking to limb) via "rigorous" keyword. Only for 1D case
+	implemented, though.
+
+	(doit_za_grid_optCalc): Throw level-1 warning instead of runtime error
+	if number of zenith angles for grid optimizations seems too low (<500).
+
+	* src/methods.cc: Adapted to the changes in WSM above.
+
+	* src/doit.[cc,h] (iy_interp_cloudbox_field): Sanity check for radiance
+	field interpolation (see iyInterpCloudboxField above).
+
+	* src/ppath.cc (ppath_start_stepping): Minor fix: in 3D allow sensor to
+	be right on the edge of the defined lon-grid.
+
+	* src/continua.cc
+	controlfiles/artscomponents/arts-xml-data/TestAtmScen_Mars.arts:
+	Minor spellfixes.
+
 2013-04-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-572
@@ -569,24 +600,24 @@
 
 	* arts-2-1-542
 
-        * src/m_basic_types.cc: Added Compare for ArrayOfMatrix.
+	* src/m_basic_types.cc: Added Compare for ArrayOfMatrix.
 
-        * src/methods.cc: Added Compare for ArrayOfMatrix.
+	* src/methods.cc: Added Compare for ArrayOfMatrix.
 
-        * controlfiles/artscomponents/cia/TestCIA.arts: Added. Calculate
+	* controlfiles/artscomponents/cia/TestCIA.arts: Added. Calculate
 	absorption cross sections for all CIA continua and compare to
 	reference calculation. Path to arts-xml-data needs adjustment, and
 	must still be added to suitable test target.
 
-        * controlfiles/artscomponents/cia/TestCIA.abs_xsec_per_species_reference.xml:
+	* controlfiles/artscomponents/cia/TestCIA.abs_xsec_per_species_reference.xml:
 	Reference result for the above.
 
-        * controlfiles/artscomponents/cia/TestRTwithCIA.arts: Added. Calculate
+	* controlfiles/artscomponents/cia/TestRTwithCIA.arts: Added. Calculate
 	RT simulation with mixed CIA and other absorption tags. Compare to
 	reference calculation. Path to arts-xml-data needs adjustment, and
 	must still be added to suitable test target.
 
-        * controlfiles/artscomponents/cia/TestRTwithCIA.iy_reference.xml:
+	* controlfiles/artscomponents/cia/TestRTwithCIA.iy_reference.xml:
 	Reference result for the above.
 
 2013-03-08  Jana Mendrok <jana.mendrok@ltu.se>

@@ -24,7 +24,7 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_mars.arts"
 
 
-# some seeting in order to be able to use basics_checkedCalc
+# some settings in order to be able to use basics_checkedCalc
 #####
 IndexSet( stokes_dim, 1 )
 VectorSet( f_grid, [300e9] )

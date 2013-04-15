@@ -2401,8 +2401,9 @@ void doit_za_grid_optCalc(//WS Output
                           const Index& doit_za_interp,
                           //Keywords:
                           const Numeric& acc,
-                          const Verbosity&)
+                          const Verbosity& verbosity)
 {
+  CREATE_OUT1;
   //-------- Check the input ---------------------------------
   
   // Here it is checked whether doit_i_field is 1D and whether it is 
@@ -2418,15 +2419,20 @@ void doit_za_grid_optCalc(//WS Output
                         "columns in *doit_i_field* must be a number between\n"
                         "1 and 4, but it is not!");
   
-  if(scat_za_grid.nelem() < 500)
-    throw runtime_error("The fine grid (*scat_za_grid*) has less than \n"
-                        "500 grid points which is not sufficient for \n"
-                        "grid_optimization");
-
   if( !(doit_za_interp == 0  ||  doit_za_interp == 1 ) )
     throw runtime_error( "Interpolation method is not defined. Use \n"
                          "*doit_za_interpSet*.\n");
 
+  if(scat_za_grid.nelem() < 500)
+    {
+      out1 << "Warning: The fine grid (*scat_za_grid*) has less than\n" <<
+              "500 grid points which is likely not sufficient for\n" <<
+              "grid_optimization\n" ;
+/*    throw runtime_error("The fine grid (*scat_za_grid*) has less than \n"
+                        "500 grid points which is not sufficient for \n"
+                        "grid_optimization");
+*/
+    }
   // ------------- end of checks ------------------------------------- 
   
   // Here only used as dummy variable. 
@@ -2754,6 +2760,8 @@ void CloudboxGetIncoming(Workspace&      ws,
                          const Agenda&   blackbody_radiation_agenda,
                          const Vector&   scat_za_grid,
                          const Vector&   scat_aa_grid,
+                         const Index&    rigorous,
+                         const Numeric&  maxratio,
                          const Verbosity&)
 {
   // Basics and cloudbox OK?
@@ -2817,7 +2825,14 @@ void CloudboxGetIncoming(Workspace&      ws,
         {
           pos[0] = z_field( cloudbox_limits[boundary], 0, 0 );
 
-          for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
+          // doing the first angle separately for allowing dy between 2 angles
+          // in the loop
+          los[0] =  scat_za_grid[0];
+          get_iy( ws, iy, t_field, z_field, vmr_field, 0, f_grid, pos, los, 
+                  Vector(0), iy_main_agenda );
+          scat_i_p( joker, boundary, 0, 0, 0, 0, joker ) = iy;
+
+          for (Index scat_za_index = 1; scat_za_index < Nza; scat_za_index ++)
             {
               los[0] =  scat_za_grid[scat_za_index];
 
@@ -2825,6 +2840,31 @@ void CloudboxGetIncoming(Workspace&      ws,
                       Vector(0), iy_main_agenda );
 
               scat_i_p( joker, boundary, 0, 0, scat_za_index, 0, joker ) = iy;
+
+              if( rigorous )
+                {
+                  for (Index fi = 0; fi < Nf; fi ++)
+                    {
+                      if( scat_i_p(fi,boundary,0,0,scat_za_index-1,0,0)/scat_i_p(fi,boundary,0,0,scat_za_index,0,0) > maxratio ||
+                          scat_i_p(fi,boundary,0,0,scat_za_index-1,0,0)/scat_i_p(fi,boundary,0,0,scat_za_index,0,0) < 1/maxratio )
+                        {
+                          ostringstream os;
+                          os << "ERROR: Radiance difference between interpolation\n"
+                             << "points is too large (factor " << maxratio << ") to\n"
+                             << "safely interpolate. This might be due to za_grid\n"
+                             << "being too coarse or the radiance field being a\n"
+                             << "step-like function.\n";
+                          os << "Happens at boundary " << boundary << " between zenith\n"
+                             << "angels " << scat_za_grid[scat_za_index-1] << " and "
+                             << scat_za_grid[scat_za_index] << "deg for frequency"
+                             << "#" << fi << ", where radiances are "
+                             << scat_i_p(fi,boundary,0,0,scat_za_index-1,0,0)
+                             << " and " << scat_i_p(fi,boundary,0,0,scat_za_index,0,0)
+                             << " W/(sr m2 Hz).";
+                          throw runtime_error(os.str());
+                        }
+                    }
+                }
             }
         }
     }
@@ -3167,14 +3207,16 @@ void iyInterpCloudboxField(Matrix&         iy,
                            const Index&    cloudbox_on,
                            const ArrayOfIndex&   cloudbox_limits,
                            const Index&    atmosphere_dim,
-                           const Vector&    p_grid,
-                           const Vector&    lat_grid,
-                           const Vector&    lon_grid,
-                           const Tensor3&   z_field,
+                           const Vector&   p_grid,
+                           const Vector&   lat_grid,
+                           const Vector&   lon_grid,
+                           const Tensor3&  z_field,
                            const Index&    stokes_dim,
                            const Vector&   scat_za_grid,
                            const Vector&   scat_aa_grid,
                            const Vector&   f_grid,
+                           const Index&    rigorous,
+                           const Numeric&  maxratio,
                            const Verbosity& verbosity)
 {
   // Retrieval variables
@@ -3193,6 +3235,7 @@ void iyInterpCloudboxField(Matrix&         iy,
                             rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "linear",
+                            rigorous, maxratio,
                             verbosity );
 }
 
@@ -3209,10 +3252,10 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
                                const Index&    cloudbox_on,
                                const ArrayOfIndex&   cloudbox_limits,
                                const Index&    atmosphere_dim,
-                               const Vector&    p_grid,
-                               const Vector&    lat_grid,
-                               const Vector&    lon_grid,
-                               const Tensor3&   z_field,
+                               const Vector&   p_grid,
+                               const Vector&   lat_grid,
+                               const Vector&   lon_grid,
+                               const Tensor3&  z_field,
                                const Index&    stokes_dim,
                                const Vector&   scat_za_grid,
                                const Vector&   scat_aa_grid,
@@ -3235,6 +3278,7 @@ void iyInterpPolyCloudboxField(Matrix&         iy,
                             rte_los, cloudbox_on, cloudbox_limits, 
                             atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial",
+                            0, 10,
                             verbosity );
 }
 

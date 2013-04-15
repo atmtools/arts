@@ -1826,7 +1826,7 @@ void za_gridOpt(//Output:
       max_diff_za = 0.;
       max_diff_p = 0.;
 
-      // Interpolate reduced internsity field on fine za_grid for 
+      // Interpolate reduced intensity field on fine za_grid for 
       // all pressure levels
       for( Index i_p = 0; i_p < N_p; i_p++ )
         {
@@ -1927,7 +1927,10 @@ void za_gridOpt(//Output:
    \param p_grid            In: As the WSV with same name.
    \param interpmeth        Interpolation method. Can be "linear" or 
    "polynomial".
- 
+   \param rigorous          Fail if incoming field is not safely interpolable.
+   \param maxratio          Maximum allowed ratio of two radiances regarded as
+   interpolable.
+
    \author Claudia Emde and Patrick Eriksson
    \date 2004-09-29
 */
@@ -1948,6 +1951,8 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                               const Vector&         scat_aa_grid,
                               const Vector&         f_grid,
                               const String&         interpmeth,
+                              const Index&          rigorous,
+                              const Numeric&        maxratio,
                               const Verbosity&      verbosity)
 {
   CREATE_OUT3;
@@ -1982,7 +1987,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
   //
   // Let us introduce a number coding for cloud box borders.
   // Borders have the same number as position in *cloudbox_limits*.
-  // Innside cloud box is coded as 99, and outside as > 100.
+  // Inside cloud box is coded as 99, and outside as > 100.
   Index  border  = 999;
   //
   //- Check if at any border
@@ -2003,7 +2008,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
     }
 
   //
-  //- Check if inside
+  //- Check if inside (till here border<100 means we are at some border)
   if( border > 100 )
     {
       // Assume inside as it is easiest to detect if outside (can be detected
@@ -2144,7 +2149,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
         out3 << "       top side\n";
       else
         out3 << "       bottom side\n";
-      
+
       // Grid position in *scat_za_grid*
       GridPos gp;
       gridpos( gp, scat_za_grid, rte_los[0] );
@@ -2157,12 +2162,48 @@ void iy_interp_cloudbox_field(Matrix&               iy,
         {
           for(Index is = 0; is < stokes_dim; is++ )
             {
-              for(Index iv = 0; iv < nf; iv++ )
+              if( is==0 && rigorous )
                 {
-
-                  iy(iv,is) = interp( itw, 
-                                    scat_i_p( iv, border, 0, 0, joker, 0, is ),
-                                      gp );
+                  for(Index iv = 0; iv < nf; iv++ )
+                    {
+                      cout << scat_i_p(iv,border,0,0,gp.idx,0,is)/
+                              scat_i_p(iv,border,0,0,gp.idx+1,0,is) << "\n";
+                      if( scat_i_p(iv,border,0,0,gp.idx,0,is)/
+                          scat_i_p(iv,border,0,0,gp.idx+1,0,is) > 1/maxratio &&
+                          scat_i_p(iv,border,0,0,gp.idx,0,is)/
+                          scat_i_p(iv,border,0,0,gp.idx+1,0,is) < maxratio )
+                        {
+                          iy(iv,is) = interp( itw, 
+                                              scat_i_p( iv, border, 0, 0, joker, 0, is ),
+                                              gp );
+                        }
+                      else
+                        {
+                          ostringstream os;
+                          os << "ERROR: Radiance difference between interpolation\n"
+                             << "points is too large (factor " << maxratio << ") to\n"
+                             << "safely interpolate. This might be due to za_grid\n"
+                             << "being too coarse or the radiance field being a\n"
+                             << "step-like function.\n";
+                          os << "Happens at boundary " << border << " between zenith\n"
+                             << "angels " << scat_za_grid[gp.idx] << " and "
+                             << scat_za_grid[gp.idx+1] << "deg for frequency"
+                             << "#" << iv << ", where radiances are "
+                             << scat_i_p(iv,border,0,0,gp.idx,0,0)
+                             << " and " << scat_i_p(iv,border,0,0,gp.idx+1,0,0)
+                             << " W/(sr m2 Hz).";
+                          throw runtime_error(os.str());
+                        }
+                    }
+                }
+              else
+                {
+                  for(Index iv = 0; iv < nf; iv++ )
+                    {
+                      iy(iv,is) = interp( itw, 
+                                          scat_i_p( iv, border, 0, 0, joker, 0, is ),
+                                          gp );
+                    }                  
                 }
             }
         }
