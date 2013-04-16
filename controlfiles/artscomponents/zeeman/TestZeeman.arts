@@ -32,7 +32,6 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # on-the-fly absorption considering Zeeman splitting
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_Zeeman )
-VectorSet(abs_n2,[-1])
 
 IndexSet( stokes_dim, 4 )
 
@@ -50,6 +49,7 @@ abs_speciesSet( species=["H2O","O2-Z"] )
 # read line catalogue
 StringCreate( hitranfile )
 StringSet( hitranfile, "/storage3/data/catalogue/hitran/hitran2008/HITRAN08.par" )
+#StringSet( hitranfile, "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par" )
 #StringSet( hitranfile, "/home/mendrok/data/lines/hitran/HITRAN08.par" )
 abs_linesReadFromHitran(abs_lines, hitranfile, 61.1e9, 61.2e9)
 #abs_linesArtscat4FromArtscat3( abs_lines )

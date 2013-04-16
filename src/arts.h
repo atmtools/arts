@@ -133,6 +133,14 @@ void define_lineshape_norm_data();
 void arts_exit (int status = EXIT_FAILURE);
 void arts_exit_with_error_message(const String& m, ArtsOut &os);
 
+// In C++ 11 isnan and isinf were introduced.
+// This confuses g++ because it can't decide whether to
+// call the old functions or the new ones
+#if (__cplusplus >= 201103L)
+#define isnan std::isnan
+#define isinf std::isinf
+#endif
+
 //
 // Physical constants are now in constants.cc
 //

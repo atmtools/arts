@@ -36,6 +36,9 @@
 #include "gridded_fields.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/* This template function covers all implementations of extracting
+   an element X from an ArrayOfX
+ */
 template <typename T>
 void Extract(
       // WS Generic Output:

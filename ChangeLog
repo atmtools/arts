@@ -1,3 +1,18 @@
+2013-04-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-575
+
+	* src/arts.h: Add define for isnan an isinf to fix compilation on
+	g++ (>=4.7) using the new c++11 standard.
+
+	* controlfiles/artscomponents/zeeman/yREFERENCE_3D.xml:
+
+	Update reference file.
+
+	* controlfiles/artscomponents/zeeman/TestZeeman.arts: Remove abs_n2.
+
+	* src/m_extract.h: Update docs for Extract template function.
+
 2013-04-15  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-574
