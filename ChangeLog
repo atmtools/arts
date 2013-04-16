@@ -1,3 +1,13 @@
+2013-04-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-576
+
+	* src/ppath.cc (raytrace_1d_linear_basic)
+	(raytrace_2d_linear_basic, raytrace_3d_linear_basic): With
+	ppath_lmax=-1, lmax was effectively set lraytrace and number of
+	path points could differ between geometric and refraction calcs.
+	Expanded an if-statement, to solve this problem.
+
 2013-04-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-575

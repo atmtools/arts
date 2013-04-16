@@ -3623,7 +3623,7 @@ void raytrace_1d_linear_basic(
         }
 
       // Store found point?
-      if( ready  ||  lcum + lraytrace > lmax )
+      if( ready  ||  ( lmax > 0  &&  lcum + lraytrace > lmax ) )
         {
           r_array.push_back( r );
           lat_array.push_back( lat );
@@ -3930,7 +3930,7 @@ void raytrace_2d_linear_basic(
         { endface = 3;   ready = 1; }
       
       // Store found point?
-      if( ready  ||  lcum + lraytrace > lmax )
+      if( ready  ||  ( lmax > 0  &&  lcum + lraytrace > lmax ) )
         {
           r_array.push_back( r );
           lat_array.push_back( lat );
@@ -4272,7 +4272,7 @@ void raytrace_3d_linear_basic(
         }
 
       // Store found point?
-      if( ready  ||  lcum + lraytrace > lmax )
+      if( ready  ||  ( lmax > 0  &&  lcum + lraytrace > lmax ) )
         {
           r_array.push_back( r );
           lat_array.push_back( lat );
