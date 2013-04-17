@@ -79,7 +79,7 @@ arts_test_ctlfile_depends(fast.montecarlo.rtecalc fast.montecarlo.dataprepare)
 
 arts_test_run_ctlfile(slow.wfuns artscomponents/wfuns/TestWfuns.arts)
 
-#arts_test_run_ctlfile(slow.zeeman artscomponents/zeeman/TestZeeman.arts)
+arts_test_run_ctlfile(nocheck.zeeman artscomponents/zeeman/TestZeeman.arts)
 
 #arts_test_run_ctlfile(slow.disort artscomponents/disort/TestDISORT.arts)
 

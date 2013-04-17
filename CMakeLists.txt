@@ -294,14 +294,13 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.slow.|.xmldata.\)' DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.|.slow.|.xmldata.\)' DEPENDS arts)
 
 add_custom_target(check-xmldata
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.xmldata.\)' DEPENDS arts)
-#  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.slow.\)' DEPENDS arts)
 
 add_custom_target(check-all
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.\)' DEPENDS arts)
 
 
 ########### subdirectories ###############

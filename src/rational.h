@@ -125,12 +125,12 @@ public:
     bool operator!=(const int& a) const{Rational b(*this); b.Simplify(); return b.Denom()!=1?false:b.Nom()!=a;}
     
     // Boolean operations involving other Rational
-    bool operator<(const Rational& a)  const{return mnom*a.Denom()<mdenom*a.Nom();}
-    bool operator>(const Rational& a)  const{return mnom*a.Denom()>mdenom*a.Nom();}
-    bool operator<=(const Rational& a) const{return mnom*a.Denom()<=mdenom*a.Nom();}
-    bool operator>=(const Rational& a) const{return mnom*a.Denom()>=mdenom*a.Nom();}
-    bool operator==(const Rational& a) const{return mnom*a.Denom()==mdenom*a.Nom();}
-    bool operator!=(const Rational& a) const{return mnom*a.Denom()!=mdenom*a.Nom();}
+    bool operator<(const Rational& a)  const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()<mdenom*a.Nom();}
+    bool operator>(const Rational& a)  const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()>mdenom*a.Nom();}
+    bool operator<=(const Rational& a) const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()<=mdenom*a.Nom();}
+    bool operator>=(const Rational& a) const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()>=mdenom*a.Nom();}
+    bool operator==(const Rational& a) const{return mdenom!=0 && a.Denom()!=0 && mnom*a.Denom()==mdenom*a.Nom();}
+    bool operator!=(const Rational& a) const{return mdenom==0 || a.Denom()==0 || mnom*a.Denom()!=mdenom*a.Nom();}
 
 private:
     // Rational is supposed to be used rationally ( mnom / mdenom )

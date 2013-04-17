@@ -1,5 +1,24 @@
 2013-04-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-578
+
+	* src/rational.h: Tweak comparison operators. If the denominator is 0,
+	the comparison is always false (except !=).
+
+	* CMakeLists.txt:
+
+	Don't run testcases with 'nocheck' in their name automatically.
+
+	This way we can have testcases defined that are currently broken /
+	under construction without breaking 'make check' and still run them
+	easily with ctest directly.
+
+	* controlfiles/CMakeLists.txt:
+
+	Enable test_zeeman, add 'nocheck' to testcase name.
+
+2013-04-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-577
 
 	* src/CMakeLists.txt: Add test_quantum.
