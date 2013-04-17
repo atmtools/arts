@@ -1569,4 +1569,25 @@ void abs_h2oSet(Vector&          abs_h2o,
                 const Verbosity&);
 
 
+//======================================================================
+//         Functions for searches inside the line catalog
+//======================================================================
+
+typedef enum {
+    LINE_MATCH_FIRST,
+    LINE_MATCH_UNIQUE,
+    LINE_MATCH_ALL
+} LineMatchingCriteria;
+
+
+//! Search in line catalog
+/**
+ */
+bool find_matching_lines(ArrayOfIndex& matches,
+                         const ArrayOfLineRecord& abs_lines,
+                         const Index species,
+                         const Index isotopologue,
+                         const QuantumNumberRecord qr,
+                         const LineMatchingCriteria match_criteria = LINE_MATCH_ALL);
+
 #endif // absorption_h

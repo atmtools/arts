@@ -28,8 +28,6 @@
 #include "arts.h"
 #include "rational.h"
 
-#define QUANTUM_UNDEFINED Rational(0, 0)
-
 //! Enum for Quantum Numbers used for indexing
 typedef enum {
     QN_J,           // Total
@@ -50,7 +48,7 @@ public:
     {
     }
 
-    QuantumNumbers(Index nquantum) : mqnumbers(nquantum, QUANTUM_UNDEFINED)
+    QuantumNumbers(Index nquantum) : mqnumbers(nquantum, RATIONAL_UNDEFINED)
     {
     }
 
@@ -59,6 +57,18 @@ public:
 
     //! Return reference to quantum number
     Rational& operator[](const Index qn) { return mqnumbers[qn]; }
+
+    const ArrayOfRational& GetNumbers() const { return mqnumbers; }
+
+    //! Compare Quantum Numbers
+    /**
+     Ignores any undefined numbers in the comparison
+
+     \param[in] qn  Quantum Numbers to compare to
+
+     \returns True for match
+     */
+    bool Compare(const QuantumNumbers& qn) const;
 
 private:
     ArrayOfRational mqnumbers;
@@ -80,6 +90,12 @@ public:
     //! Set upper quantum number
     void SetUpper(const Index i, const Rational r) { mqn_upper[i] = r; }
 
+    //! Get lower quantum number
+    Rational Lower(Index i) const { return mqn_lower[i]; }
+
+    //! Get upper quantum number
+    Rational Upper(Index i) const { return mqn_upper[i]; }
+
     //! Get lower quantum numbers
     QuantumNumbers& Lower() { return mqn_lower; }
 
@@ -96,6 +112,11 @@ private:
     QuantumNumbers mqn_upper;
     QuantumNumbers mqn_lower;
 };
+
+
+ostream& operator<<(ostream& os, const QuantumNumbers& qn);
+
+ostream& operator<<(ostream& os, const QuantumNumberRecord& qr);
 
 #endif
 

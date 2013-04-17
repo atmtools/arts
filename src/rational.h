@@ -43,7 +43,9 @@ public:
     // Reading values of object
     Index Nom() const {return mnom;}
     Index Denom() const {return mdenom;}
-    
+
+    bool isUndefined() const { return (mnom == 0 && mdenom == 0); }
+
     // Converting object
     operator Index() const{Rational b(*this); b.Simplify();assert(b.Denom()==1);return b.Nom();}
     operator Numeric() const{return (Numeric)mnom/(Numeric)mdenom;}
@@ -129,12 +131,14 @@ public:
     bool operator>=(const Rational& a) const{return mnom*a.Denom()>=mdenom*a.Nom();}
     bool operator==(const Rational& a) const{return mnom*a.Denom()==mdenom*a.Nom();}
     bool operator!=(const Rational& a) const{return mnom*a.Denom()!=mdenom*a.Nom();}
-    
+
 private:
     // Rational is supposed to be used rationally ( mnom / mdenom )
     Index mnom;
     Index mdenom;
 };
+
+#define RATIONAL_UNDEFINED Rational(0, 0)
 
 ostream& operator<<(ostream& os, const Rational& a);
 

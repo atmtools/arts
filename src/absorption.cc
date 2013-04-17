@@ -1426,16 +1426,20 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   if (mlower_lquanta.nelem() == 15)
   {
       Index DN = 0, DJ = 0;
-      if(species_data[mspecies].Name()=="O2")//O2 FIXME: Different mspecies versus HITRAN?
+      if(species_data[mspecies].Name() == "O2")//O2 FIXME: Different mspecies versus HITRAN?
       {
-        mlower_n = atoi(mlower_lquanta.substr(2,3).c_str());
-        mlower_j = atoi(mlower_lquanta.substr(6,3).c_str());
-        DJ =  -  mlower_lquanta.compare(5,1,"Q");
-        DN =  -  mlower_lquanta.compare(1,1,"Q");
+        mlower_n = atoi(mlower_lquanta.substr(2, 3).c_str());
+        mlower_j = atoi(mlower_lquanta.substr(6, 3).c_str());
+        DJ =  -  mlower_lquanta.compare(5, 1, "Q");
+        DN =  -  mlower_lquanta.compare(1, 1, "Q");
         mupper_n = mlower_n - DN;
         mupper_j = mlower_j - DJ;
 
-        mquantum_numbers.SetLower(QN_J, Rational(1,1)); // FIXME: Just a test
+        mquantum_numbers.SetLower(QN_N, mlower_n);
+        mquantum_numbers.SetLower(QN_J, mlower_j);
+        mquantum_numbers.SetUpper(QN_N, mlower_n - DN);
+        mquantum_numbers.SetUpper(QN_J, mlower_j - DJ);
+//          cout << F() << " " << mquantum_numbers << endl;
       }
       else if(species_data[mspecies].Name()=="NO")//NO FIXME: Different mspecies versus HITRAN?
       {
@@ -3693,3 +3697,42 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
     return os;
 }
 
+
+//======================================================================
+//         Functions for searches inside the line catalog
+//======================================================================
+
+bool find_matching_lines(ArrayOfIndex& matches,
+                         const ArrayOfLineRecord& abs_lines,
+                         const Index species,
+                         const Index isotopologue,
+                         const QuantumNumberRecord qr,
+                         const LineMatchingCriteria match_criteria)
+{
+    bool ret = true;
+    matches.resize(0);
+    matches.reserve(100);
+
+    for (Index l = 0; l < abs_lines.nelem(); l++)
+    {
+        const LineRecord& this_line = abs_lines[l];
+
+        if (this_line.Species() == species
+            && this_line.Isotopologue() == isotopologue
+            && qr.Lower().Compare(this_line.QuantumNumbers().Lower())
+            && qr.Upper().Compare(this_line.QuantumNumbers().Upper()))
+        {
+            matches.push_back(l);
+
+            if (match_criteria == LINE_MATCH_FIRST)
+                break;
+            if (match_criteria == LINE_MATCH_UNIQUE && matches.nelem() > 1)
+            {
+                ret = false;
+                break;
+            }
+        }
+    }
+
+    return true;
+}

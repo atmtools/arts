@@ -353,6 +353,11 @@ target_link_libraries (test_matpack matpack)
 
 ########### next testcase ###############
 
+add_executable (test_quantum test_quantum.cc)
+target_link_libraries (test_quantum ${ALL_ARTS_LIBRARIES})
+
+########### next testcase ###############
+
 add_executable (test_sparse test_sparse.cc)
 target_link_libraries (test_sparse ${ALL_ARTS_LIBRARIES})
 

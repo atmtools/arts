@@ -1008,12 +1008,16 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
             {
                 // local LineRecord
                 LineRecord temp_LR = abs_lines_per_species[II][ii];
-                const Rational J  = temp_LR.Lower_J();
-                const Rational N  = temp_LR.Lower_N();
+//                const Rational J  = temp_LR.Lower_J();
+//                const Rational N  = temp_LR.Lower_N();
+                const Rational J  = temp_LR.QuantumNumbers().Lower(QN_J);
+                const Rational N  = temp_LR.QuantumNumbers().Lower(QN_N);
                 const Numeric S   = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 1);
                 const Numeric GS  = isotopologue_quantum.getParam(temp_LR.Species(), temp_LR.Isotopologue(), 0);
-                const Index DJ    = J - temp_LR.Upper_J();
-                const Index DN    = N - temp_LR.Upper_N();
+//                const Index DJ    = J - temp_LR.Upper_J();
+//                const Index DN    = N - temp_LR.Upper_N();
+                const Index DJ    = J - temp_LR.QuantumNumbers().Upper(QN_J);
+                const Index DN    = N - temp_LR.QuantumNumbers().Upper(QN_N);
                 Numeric RS_sum    = 0; //Sum relative strength (which ought be close to one by the end)
                 // Only look at lines which have no change in the main rotational number
                 // cout << "RSpi=[];RSsp=[];RSsm=[];DFpi=[];DFsm=[];DFsp=[];\n";
