@@ -1,3 +1,22 @@
+2013-04-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-579
+
+	* src/partition_function_data.cc:
+
+	(define_partition_species_data): Add assertion at the end to ensure
+	that all species have been taken care of. Add dummy entry for the
+	free_electrons species.
+
+	(spec, iso): Remove empty if statements that were just there to avoid
+	an unused variable warning from the compiler when compiling without
+	assertions. Instead, add _U_ in function parameter list to the variable
+	that is only used in the assertion.
+
+	* src/partition_function_data.cc (open_input_file):
+
+	Respect ARTS search path.
+
 2013-04-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-578

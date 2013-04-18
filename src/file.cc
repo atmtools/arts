@@ -166,6 +166,15 @@ void open_input_file(ifstream& file, const String& name)
 {
   String ename = expand_path(name);
   
+  // Command line parameters which give us the include search path.
+  extern const Parameters parameters;
+  ArrayOfString allpaths = parameters.includepath;
+  allpaths.insert(allpaths.end(),
+                  parameters.datapath.begin(),
+                  parameters.datapath.end());
+
+  find_file(ename, "", allpaths);
+
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you

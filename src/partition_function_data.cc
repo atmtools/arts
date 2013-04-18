@@ -872,33 +872,33 @@ iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93",Qcoeff( 0              ,0               ,0              ,0  ) );
 
+  // Skip free_electrons
+  spec(it_species, it_isotopologue, "free_electrons");
+
+  // Ensure that we took care of all species
+  assert(it_species == species_data.end());
 }
 
 
 void spec(Array<SpeciesRecord>::iterator& is,
           Array<IsotopologueRecord>::iterator& ii,
-          String name)
+          String name _U_)
 {
-  
   assert( name == is->Name() );
 
-  if (name ==  is->Name() ){}
   ii = is->Isotopologue().begin();
 
   is++;
-
 }
 
 
 void iso(Array<IsotopologueRecord>::iterator& ii,
-         String name,
+         String name _U_,
          const ArrayOfNumeric& coeff)
 {
   assert( name == ii->Name() );
 
-  if (name ==  ii->Name() ){}
   ii->SetPartitionFctCoeff(coeff);
 
   ii++;
-
 }
