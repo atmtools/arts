@@ -1,5 +1,11 @@
 2013-04-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-580
+
+	* ChangeLog: Correct filename in previous entry.
+
+2013-04-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-579
 
 	* src/partition_function_data.cc:
@@ -13,7 +19,7 @@
 	assertions. Instead, add _U_ in function parameter list to the variable
 	that is only used in the assertion.
 
-	* src/partition_function_data.cc (open_input_file):
+	* src/file.cc (open_input_file):
 
 	Respect ARTS search path.
 
