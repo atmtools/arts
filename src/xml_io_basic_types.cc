@@ -29,6 +29,7 @@
 */
 
 #include "arts.h"
+#include "file.h"
 #include "xml_io.h"
 #include "xml_io_private.h"
 #include "xml_io_types.h"
@@ -152,7 +153,7 @@ void xml_read_from_stream(istream&         is_xml,
             }
           else
             {
-              is_xml >> matrix(r, c);
+              is_xml >> double_imanip() >> matrix(r, c);
               if (is_xml.fail())
                 {
                   ostringstream os;
@@ -252,7 +253,7 @@ void xml_read_from_stream(istream&         is_xml,
     }
   else
     {
-      is_xml >> numeric;
+      is_xml >> double_imanip() >> numeric;
       if (is_xml.fail())
         {
           xml_data_parse_error(tag, "");
@@ -395,7 +396,7 @@ void xml_read_from_stream(istream&         is_xml,
             }
         }
       else {
-          is_xml >> data[i];
+          is_xml >> double_imanip() >> data[i];
           if (is_xml.fail()) {
               ostringstream os;
               os << " near "
@@ -646,7 +647,7 @@ void xml_read_from_stream(istream&         is_xml,
                 }
               else
                 {
-                  is_xml >> tensor(p, r, c);
+                  is_xml >> double_imanip() >> tensor(p, r, c);
                   if (is_xml.fail())
                     {
                       ostringstream os;
@@ -771,7 +772,7 @@ void xml_read_from_stream(istream&         is_xml,
                     }
                   else
                     {
-                      is_xml >> tensor(b, p, r, c);
+                      is_xml >> double_imanip() >> tensor(b, p, r, c);
                       if (is_xml.fail())
                         {
                           ostringstream os;
@@ -906,7 +907,7 @@ void xml_read_from_stream(istream&         is_xml,
                         }
                       else
                         {
-                          is_xml >> tensor(s, b, p, r, c);
+                          is_xml >> double_imanip() >> tensor(s, b, p, r, c);
                           if (is_xml.fail())
                             {
                               ostringstream os;
@@ -1051,7 +1052,7 @@ void xml_read_from_stream(istream&         is_xml,
                             }
                           else
                             {
-                              is_xml >> tensor(v, s, b, p, r, c);
+                              is_xml >> double_imanip() >> tensor(v, s, b, p, r, c);
                               if (is_xml.fail())
                                 {
                                   ostringstream os;
@@ -1206,7 +1207,7 @@ void xml_read_from_stream(istream&         is_xml,
                                 }
                               else
                                 {
-                                  is_xml >> tensor(l, v, s, b, p, r, c);
+                                  is_xml >> double_imanip() >> tensor(l, v, s, b, p, r, c);
                                   if (is_xml.fail())
                                     {
                                       ostringstream os;
@@ -1341,7 +1342,7 @@ void xml_parse_from_stream(istream&    is_xml,
         }
       else
         {
-          is_xml >> vector[n];
+          is_xml >> double_imanip() >> vector[n];
           if (is_xml.fail())
             {
               ostringstream os;

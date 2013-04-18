@@ -1,5 +1,15 @@
 2013-04-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-582
+
+	* src/xml_io_basic_types.cc:
+
+	Use double_imanip() whenever reading a floating point number from an
+	ASCII XML file. Allows proper reading of nan and inf values even if
+	the compiler doesn't support it by default (such as gcc).
+
+2013-04-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-581
 
 	* src/abs_species_tags.cc (SpeciesTag::SpeciesTag(String def)):
