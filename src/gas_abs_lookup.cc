@@ -917,6 +917,24 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // Free dimension is frequency.
           VectorView res(xsec_pre_interpolated(pi,si,Range(joker)));
 
+          // Ignore species such as Zeeman and free_electrons which are not
+          // stored in the lookup table. For those the result is set to 0.
+          if (is_zeeman(species[si])
+              || species[si][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+          {
+              if (do_VMR)
+              {
+                  ostringstream os;
+                  os << "Problem with gas absorption lookup table.\n"
+                  << "VMR interpolation is not allowed for species \""
+                  << species[si][0].Name() << "\"";
+                  throw runtime_error(os.str());
+              }
+              res = 0.;
+              fpi++;
+              continue;
+          }
+
           if (do_T)
             if (do_VMR)
               {

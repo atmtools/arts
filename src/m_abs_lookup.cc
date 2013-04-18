@@ -259,6 +259,7 @@ void abs_lookupCalc(// Workspace reference:
     d = n_p_grid;
 
     abs_lookup.xsec.resize( a, b, c, d );
+    abs_lookup.xsec = NAN;
   }
 
   // 6.a. Set up these_t_pert. This is done so that we can use the
@@ -293,9 +294,11 @@ void abs_lookupCalc(// Workspace reference:
   // Loop species:
   for ( Index i=0,spec=0; i<n_species; ++i )
     {
-      // Skipping Zeeman species. (Mixed tag groups between Zeeman and other
-      // species are not allowed.)
-      if ( is_zeeman(abs_species[i]) ) { continue; }
+      // Skipping Zeeman and free_electrons species.
+      // (Mixed tag groups between those and other species are not allowed.)
+        if (is_zeeman(abs_species[i])
+            || abs_species[i][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+          continue;
 
       // spec is the index for the second dimension of abs_lookup.xsec.
       
