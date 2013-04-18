@@ -1022,7 +1022,7 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
                 // Only look at lines which have no change in the main rotational number
                 // cout << "RSpi=[];RSsp=[];RSsm=[];DFpi=[];DFsm=[];DFsp=[];\n";
                 
-                if (J != -1 && N != -1 && S>0 ) // This means the lines are considered erroneous.
+                if (!J.isUndefined() != 0 && !N.isUndefined() != 0 && S>0 ) // This means the lines are considered erroneous.
                 {
                     if ( true )
                     {

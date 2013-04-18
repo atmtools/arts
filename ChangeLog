@@ -1,3 +1,19 @@
+2013-04-18  Richard Larsson  <ric.larsson@gmail.com>
+
+	* arts-2-1-584
+	
+	* src/m_zeeman.cc: Use the unDefined
+	
+	* src/lineshape.cc: Return to the previous way of doing Faddeeva. 
+	I personally think there is something fishy going on in how we use gamma
+	and sigma in ARTS. I think there should be a more clear-cut definition and
+	that names should change more often between the functions (e.g. be clear
+	when gamma is self-broadening, Lorentz-broadening and/or collisional
+	half-life).
+	
+	In any case, the Faddeeva function passes the standard clearsky test case
+	and should therefore represent the Voigt shape quite well.
+	
 2013-04-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-583

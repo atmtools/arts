@@ -1715,11 +1715,7 @@ void faddeeva_algorithm_916(    Vector&         ls_attenuation,
     Numeric fac = 1.0 / sigma * sqrt_invPI;
     
     // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-    Numeric YNUMERIC = gamma / (2*PI*sigma);
-    /* Note that we seem to define gamma as HWHS not FWHS, 
-    which means we should be divide by 2*PI here instead of 4*PI,
-    c.f. Jefferies, Lites, and Skumanich, Transfer of Line Radiation in a Magnetic Field (1989),
-    Equation 13 and lineshape_lorentz above. */
+    Numeric YNUMERIC = gamma / (sigma);
     
     // frequency in units of Doppler
     for (Index ii=0; ii<nf; ii++)
