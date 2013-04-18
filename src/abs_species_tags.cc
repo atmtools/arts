@@ -56,6 +56,9 @@ SpeciesTag::SpeciesTag(String def)
   // Aux index:
   Index n;
 
+  // Set default values for isotopologue
+  misotopologue = -1;
+
   // Set frequency limits to default values (no limits):
   mlf = -1;
   muf = -1;

@@ -1,5 +1,17 @@
 2013-04-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-581
+
+	* src/abs_species_tags.cc (SpeciesTag::SpeciesTag(String def)):
+
+	Initialize misotopologue with -1.
+
+	* src/gas_abs_lookup.cc (GasAbsLookup::Adapt):
+
+	species -> abs_species in chk_contains message.
+
+2013-04-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-580
 
 	* ChangeLog: Correct filename in previous entry.

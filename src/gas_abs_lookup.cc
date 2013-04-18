@@ -321,7 +321,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       // chk_contains function throws a runtime error if the species
       // is not found exactly once.
       i_current_species[i] =
-        chk_contains( "species", species, current_species[i] );
+        chk_contains( "abs_species", species, current_species[i] );
       out3 << "found.\n";
     }
 
