@@ -704,8 +704,8 @@ void iyTransmissionStandard(
         auxFarRotSpeed = -1;
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
   ArrayOfIndex auxVmrSpecies(0), auxVmrIsp(0);
-  ArrayOfIndex auxPartCont(0), auxPartContI(0);
-  ArrayOfIndex auxPartField(0), auxPartFieldI(0);
+  ArrayOfIndex auxPartCont(0),   auxPartContI(0);
+  ArrayOfIndex auxPartField(0),  auxPartFieldI(0);
   //
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
@@ -815,7 +815,7 @@ void iyTransmissionStandard(
         throw runtime_error( 
                  "To include Faraday rotation, stokes_dim >= 3 is required." );
 
-      // Determine species index of fgree electrons
+      // Determine species index of free electrons
       for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
         {
           if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)

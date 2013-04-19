@@ -1561,7 +1561,8 @@ void Workspace::define_wsv_data()
        "Usage: Method output.\n"
        ),
       GROUP( "Index" )));
-
+  
+  /* 
   wsv_data.push_back
     (WsvRecord
      (NAME( "fos_angles" ),
@@ -1627,7 +1628,8 @@ void Workspace::define_wsv_data()
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
-  
+  */
+
 //  wsv_data.push_back
 //    (WsvRecord
 //     ( NAME( "geomag_los_calc_agenda" ),

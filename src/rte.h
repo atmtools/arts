@@ -125,6 +125,12 @@ Numeric dotprod_with_los(
   const Numeric&    w,
   const Index&      atmosphere_dim );
 
+void emission_rtstep(
+          Matrix&      iy,
+    const Index&       stokes_dim,
+    ConstVectorView    bbar,
+    ConstTensor3View   t );
+
 void ext2trans(
          MatrixView   trans_mat,
    ConstMatrixView    ext_mat_av,
@@ -296,17 +302,6 @@ void pos2true_latlon(
     ConstVectorView    lat_true,
     ConstVectorView    lon_true,
     ConstVectorView    pos );
-
-void rte_step_std(
-         //Output and Input:
-         VectorView stokes_vec,
-         MatrixView trans_mat,
-         //Input
-         ConstMatrixView ext_mat_av,
-         ConstVectorView abs_vec_av,
-         ConstVectorView sca_vec_av, 
-         const Numeric& l_step,
-         const Numeric& rtp_planck_value );
 
 void surface_calc(
               Matrix&         iy,

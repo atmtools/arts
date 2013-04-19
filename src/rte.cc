@@ -806,6 +806,72 @@ Numeric dotprod_with_los(
 
 
 
+//! emission_rtstep
+/*!
+    Radiative transfer over a step, with emission.
+
+    In scalar notation, this is done: iy = iy*t + bbar*(1-t)
+
+    Frequency is throughout leftmost dimension.
+
+    \param   iy           In/out: Radiance values
+    \param   stokes_dim   In: As the WSV.
+    \param   bbar         In: Average of emission source function
+    \param   t            In: Transmission matrix of the step.
+
+    \author Patrick Eriksson 
+    \date   2013-04-19
+*/
+void emission_rtstep(
+          Matrix&      iy,
+    const Index&       stokes_dim,
+    ConstVectorView    bbar,
+    ConstTensor3View   t )
+{
+  const Index nf = bbar.nelem();
+
+  assert( t.ncols() == stokes_dim  &&  t.nrows() == stokes_dim ); 
+  assert( t.npages() == nf );
+
+  // Spectrum at end of ppath step 
+  if( stokes_dim == 1 )
+    {
+      for( Index iv=0; iv<nf; iv++ )  
+        { iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) ); }
+    }
+  else
+    {
+#pragma omp parallel for      \
+  if (!arts_omp_in_parallel()  \
+      && nf >= arts_omp_get_max_threads())
+      for( Index iv=0; iv<nf; iv++ )
+        {
+          // Unpolarised absorption:
+          if( is_diagonal( t(iv,joker,joker) ) )
+            {
+              iy(iv,0) = iy(iv,0) * t(iv,0,0) + bbar[iv] * ( 1 - t(iv,0,0) );
+              for( Index is=1; is<stokes_dim; is++ )
+                { iy(iv,is) = iy(iv,is) * t(iv,is,is); }
+            }
+          // The general case:
+          else
+            {
+              // Transmitted term
+              Vector tt(stokes_dim);
+              mult( tt, t(iv,joker,joker), iy(iv,joker));
+              // Add emission, first Stokes element
+              iy(iv,0) = tt[0] + bbar[iv] * ( 1 - t(iv,0,0) );
+              // Remaining Stokes elements
+              for( Index i=1; i<stokes_dim; i++ )
+                { iy(iv,i) = tt[i] - bbar[iv] * t(iv,i,0); }
+                      
+            }
+        }
+    }
+}
+
+ 
+
 //! 
 /*!
     Converts an extinction matrix to a transmission matrix
@@ -823,11 +889,10 @@ Numeric dotprod_with_los(
     \author Claudia Emde and Patrick Eriksson, 
     \date   2010-10-15
 */
-void ext2trans(//Output and Input:
-              MatrixView trans_mat,
-              //Input
-              ConstMatrixView ext_mat_av,
-              const Numeric& lstep )
+void ext2trans(
+         MatrixView trans_mat,
+   ConstMatrixView  ext_mat_av,
+   const Numeric&   lstep )
 {
   //Stokes dimension:
   Index stokes_dim = ext_mat_av.nrows();
@@ -838,7 +903,7 @@ void ext2trans(//Output and Input:
   assert( lstep >= 0 );
   assert( !is_singular( ext_mat_av ) );
 
-  // Any changes here should also be implemented in rte_step_std.
+  // Any changes here should also be implemented in rte_step_doit.
 
   //--- Scalar case: ---------------------------------------------------------
   if( stokes_dim == 1 )
@@ -861,7 +926,6 @@ void ext2trans(//Output and Input:
           trans_mat(i,i)  = tv;
         }
     }
-
 
   //- General case
   else
@@ -2166,184 +2230,6 @@ void pos2true_latlon(
       lon = pos[2];
     }
 }
-
-
-//! rte_step_std
-/*!
-    Solves monochromatic VRTE for an atmospheric slab with constant 
-    conditions.
-
-    The function can be used for cloudbox calculations.
-
-    The function is best explained by considering a homogenous layer. That is,
-    the physical conditions inside the layer are constant. In reality they
-    are not constant, so in practical all coefficients have to be averaged 
-    before calling this function. 
-    Total extinction and absorption inside the layer are described by
-    *ext_mat_av* and *abs_vec_av* respectively,
-    the blackbdody radiation of the layer is given by *rte_planck_value*
-    and the propagation path length through the layer is *lstep*.
-
-    There is an additional scattering source term in the 
-    VRTE, the scattering integral term. For this function a constant
-    scattering term is assumed. The radiative transfer step is only a part 
-    the iterative solution of the scattering problem, for more 
-    information consider AUG. In the clearsky case this variable has to be
-    set to 0.
-
-    When calling the function, the vector *stokes_vec* shall contain the
-    Stokes vector for the incoming radiation. The function returns this
-    vector, then containing the outgoing radiation on the other side of the 
-    layer.
-
-    The function performs the calculations differently depending on the
-    conditions to improve the speed. There are three cases: <br>
-       1. Scalar absorption (stokes_dim = 1). <br>
-       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
-       3. The total general case.
-
-    \param   stokes_vec         Input/Output: A Stokes vector.
-    \param   trans_mat          Input/Output: Transmission matrix of slab.
-    \param   ext_mat_av         Input: Averaged extinction matrix.
-    \param   abs_vec_av         Input: Averaged absorption vector.
-    \param   sca_vec_av         Input: averaged scattering vector.
-    \param   lstep             Input: The length of the RTE step.
-    \param   rtp_planck_value   Input: Blackbody radiation.
-
-    \author Claudia Emde and Patrick Eriksson, 
-    \date   2002-11-22
-*/
-void rte_step_std(//Output and Input:
-              VectorView stokes_vec,
-              MatrixView trans_mat,
-              //Input
-              ConstMatrixView ext_mat_av,
-              ConstVectorView abs_vec_av,
-              ConstVectorView sca_vec_av,
-              const Numeric& lstep,
-              const Numeric& rtp_planck_value )
-{
-  //Stokes dimension:
-  Index stokes_dim = stokes_vec.nelem();
-
-  //Check inputs:
-  assert(is_size(trans_mat, stokes_dim, stokes_dim));
-  assert(is_size(ext_mat_av, stokes_dim, stokes_dim));
-  assert(is_size(abs_vec_av, stokes_dim));
-  assert(is_size(sca_vec_av, stokes_dim));
-  assert( rtp_planck_value >= 0 );
-  assert( lstep >= 0 );
-  assert (!is_singular( ext_mat_av ));
-
-  // Check, if only the first component of abs_vec is non-zero:
-  bool unpol_abs_vec = true;
-
-  for (Index i = 1; i < stokes_dim; i++)
-    if (abs_vec_av[i] != 0)
-      unpol_abs_vec = false;
-
-  bool unpol_sca_vec = true;
-
-  for (Index i = 1; i < stokes_dim; i++)
-    if (sca_vec_av[i] != 0)
-      unpol_sca_vec = false;
-
-
-  //--- Scalar case: ---------------------------------------------------------
-  if( stokes_dim == 1 )
-    {
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
-      stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) +
-                       (abs_vec_av[0] * rtp_planck_value + sca_vec_av[0]) /
-        ext_mat_av(0,0) * (1 - trans_mat(0,0));
-    }
-
-
-  //--- Vector case: ---------------------------------------------------------
-
-  // We have here two cases, diagonal or non-diagonal ext_mat_gas
-  // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
-  // non-zero value in position 1.
-
-  //- Unpolarised
-  else if( is_diagonal(ext_mat_av) && unpol_abs_vec && unpol_sca_vec )
-    {
-      trans_mat      = 0;
-      trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
-
-      // Stokes dim 1
-      //   assert( ext_mat_av(0,0) == abs_vec_av[0] );
-      //   Numeric transm = exp( -lstep * abs_vec_av[0] );
-      stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) +
-                      (abs_vec_av[0] * rtp_planck_value + sca_vec_av[0]) /
-                      ext_mat_av(0,0) * (1 - trans_mat(0,0));
-
-      // Stokes dims > 1
-      for( Index i=1; i<stokes_dim; i++ )
-        {
-          //      assert( abs_vec_av[i] == 0.);
-          trans_mat(i,i) = trans_mat(0,0);
-          stokes_vec[i]  = stokes_vec[i] * trans_mat(i,i) +
-                       sca_vec_av[i] / ext_mat_av(i,i)  * (1 - trans_mat(i,i));
-        }
-    }
-
-
-  //- General case
-  else
-    {
-      //Initialize internal variables:
-
-      // Matrix LU used for LU decompostion and as dummy variable:
-      Matrix LU(stokes_dim, stokes_dim);
-      ArrayOfIndex indx(stokes_dim); // index for pivoting information
-      Vector b(stokes_dim); // dummy variable
-      Vector x(stokes_dim); // solution vector for K^(-1)*b
-      Matrix I(stokes_dim, stokes_dim);
-
-      Vector B_abs_vec(stokes_dim);
-      B_abs_vec = abs_vec_av;
-      B_abs_vec *= rtp_planck_value;
-      
-      for (Index i=0; i<stokes_dim; i++)
-        b[i] = B_abs_vec[i] + sca_vec_av[i];  // b = abs_vec * B + sca_vec
-
-      // solve K^(-1)*b = x
-      ludcmp(LU, indx, ext_mat_av);
-      lubacksub(x, LU, b, indx);
-
-
-      Matrix ext_mat_ds(stokes_dim, stokes_dim);
-      ext_mat_ds = ext_mat_av;
-      ext_mat_ds *= -lstep; // ext_mat_ds = -ext_mat*ds
-
-      Index q = 10;  // index for the precision of the matrix exp function
-      //Matrix exp_ext_mat(stokes_dim, stokes_dim);
-      //matrix_exp(exp_ext_mat, ext_mat_ds, q);
-      matrix_exp( trans_mat, ext_mat_ds, q);
-
-      Vector term1(stokes_dim);
-      Vector term2(stokes_dim);
-
-      id_mat(I);
-      for(Index i=0; i<stokes_dim; i++)
-        {
-          for(Index j=0; j<stokes_dim; j++)
-            LU(i,j) = I(i,j) - trans_mat(i,j); // take LU as dummy variable
-          // LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
-        }
-      mult(term2, LU, x); // term2: second term of the solution of the RTE with
-                          //fixed scattered field
-
-      // term1: first term of solution of the RTE with fixed scattered field
-      //mult(term1, exp_ext_mat, stokes_vec);
-      mult( term1, trans_mat, stokes_vec );
-
-      for (Index i=0; i<stokes_dim; i++)
-        stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
-    }
-}
-
 
 
 //! surface_calc

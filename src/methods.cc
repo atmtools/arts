@@ -4165,34 +4165,6 @@ void define_md_data_raw()
                   "End value.",
                   "Step size." )
         ));
-  /*
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "fos_yStandard" ),
-        DESCRIPTION
-        (
-         "DO NOT USE!\n"
-         "\n"
-         "This method is used by Patrick for testing a new scattering scheme.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "fos_y", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid", "z_field", 
-            "t_field", "vmr_field", "cloudbox_on", 
-            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "blackbody_radiation_agenda", "abs_scalar_gas_agenda", "iy_main_agenda",
-            "iy_transmission", "pnd_field", "scat_data_raw", 
-            "fos_y_agenda", "fos_angles",
-            "use_mean_scat_data", "fos_n", "fos_i" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -5011,54 +4983,80 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (
-         "DO NOT USE! So far just used for testing by Patrick.\n"
+         "Method in development. Don't use without contacting Patrick.\n"
          "\n"
-         "A fixed order of scattering (FOS) scheme.\n"
+         "Designed to be part of *iy_main_agenda*. That is, only valid\n"
+         "outside the cloudbox (no scattering). Assumes local thermodynamic\n"
+         "equilibrium for emission. The basic calculation strategy is to take\n"
+         "the average of the absorption and the emission source function at\n"
+         "the end points of each step of the propagation path. For details\n"
+         "see the user guide.\n" 
          "\n"
-         "The scattering integral is here solved by calculating the incoming\n"
-         "radiation and phase matrix for a set of directions, that can be\n"
-         "distributed freely over the sphere of integration. These directions\n"
-         "are specified by a combination of zenith angd azimuth angles for\n"
-         "each integration point. The product of incoming radiation and phase\n"
-         "matrix is summed up, with a weight specified for each product.\n"
-         "These angles and integration weights are packed into the WSV\n" 
-         "*fos_angles*.\n"
+         "Regarding radiance unit, works exactly as *iyEmissionStandard*.\n"
          "\n"
-         "If *fos_n* equals 1, the incoming radiation is calculated without\n"
-         "scattering. This is thus a singel scattering scheme.\n"
-         "For *fos_n* = n, the incoming radiation for a point at the\n"
-         "unscattered propgation path is calculated as for fos_n = n-1. This\n"
-         "gives a scheme where n scattering events are considered.\n"
+         "The following auxiliary data can be obtained:\n"
+         "  \"Pressure\": The pressure along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"Temperature\": The temperature along the propagation path.\n"
+         "     Size: [1,1,1,np].\n"
+         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
+         "     For example, adding the string \"VMR, species 0\" extracts the\n"
+         "     VMR of the first species. Size: [1,1,1,np].\n"
+         "  \"Absorption, summed\": The total absorption matrix along the\n"
+         "     path. Size: [nf,ns,ns,np].\n"
+         "  \"Absorption, species X\": The absorption matrix along the path\n"
+         "     for an individual species (X works as for VMR).\n"
+         "     Size: [nf,ns,ns,np].\n"
+         "  \"PND, type X\": The particle number density for particle type X\n"
+         "       (ie. corresponds to book X in pnd_field). Size: [1,1,1,np].\n"
+         "  \"Mass content, X\": The particle content for mass category X.\n"
+         "       This corresponds to column X in *particle_masses* (zero-\n"
+         "       based indexing). Size: [1,1,1,np].\n"
+         "* \"Radiative background\": Index value flagging the radiative\n"
+         "     background. The following coding is used: 0=space and\n"
+         "     and 1=surface. Size: [nf,1,1,1].\n"
+         "  \"iy\": The radiance at each point along the path (*iy_unit* is.\n"
+         "     considered). Size: [nf,ns,1,np].\n"
+         "* \"Optical depth\": The scalar optical depth between the\n"
+         "     observation point and the end of the primary propagation path\n"
+         "     (ie. the optical depth to the surface, cloudbox or space.)\n"
+         "     Size: [nf,1,1,1].\n"
+         "where\n"
+         "  nf: Number of frequencies.\n"
+         "  ns: Number of Stokes elements.\n"
+         "  np: Number of propagation path points.\n"
          "\n"
-         "For regions of no scattering there is a marginal difference between\n"
-         "running this method and the corresponding pure clear-sky agenda,\n"
-         "and there is not critical to set the cloudbox limits in a \"tight\"\n"
-         "manner.\n"
+         "The auxiliary data are returned in *iy_aux* with quantities\n"
+         "selected by *iy_aux_vars*. Most variables require that the method\n"
+         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
+         "the selection is restricted to the variables marked with *.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "diy_dx" ),
+        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "diy_dx", "iy_transmission",
-            "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", "p_grid", 
-            "z_field", "t_field", "vmr_field", "cloudbox_on", 
-            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_agenda", 
-            "blackbody_radiation_agenda", "propmat_clearsky_agenda", "iy_main_agenda",
-            "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
-            "fos_angles", "use_mean_scat_data", "fos_n", "fos_i" ),
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
+            "t_field", "vmr_field", "abs_species", 
+            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
+            "mag_v_field", "mag_w_field", "cloudbox_on", "cloudbox_limits",
+            "pnd_field", "use_mean_scat_data", "scat_data_raw",
+            "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
+            "ppath_agenda", "blackbody_radiation_agenda",
+            "propmat_clearsky_agenda", "iy_main_agenda", 
+            "iy_space_agenda", "iy_surface_agenda", 
+            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
+            "rte_pos2", "rte_alonglos_v", "ppath_lraytrace" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  */
 
   md_data_raw.push_back
     ( MdRecord

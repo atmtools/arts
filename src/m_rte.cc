@@ -674,6 +674,9 @@ void iyEmissionStandard(
           //###################################################################
 
           // Spectrum at end of ppath step 
+          emission_rtstep( iy, stokes_dim, bbar, 
+                           trans_partial(joker,joker,joker,ip) );
+          /*
           if( stokes_dim == 1 )
             {
               for( Index iv=0; iv<nf; iv++ )  
@@ -710,6 +713,7 @@ void iyEmissionStandard(
                     }
                 }
             }
+          */
 
           //=== iy_aux part ===================================================
           // Pressure

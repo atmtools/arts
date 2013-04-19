@@ -227,7 +227,8 @@ void define_agenda_data()
         ),
        OUTPUT(),
        INPUT( "forloop_index" )));
-
+ 
+  /*
   agenda_data.push_back
     (AgRecord
      ( NAME( "fos_y_agenda" ),
@@ -248,7 +249,8 @@ void define_agenda_data()
         ),
        OUTPUT( "fos_y" ),
        INPUT( "rte_pos", "fos_angles", "fos_n", "fos_i" )));
- 
+  */
+
 //   agenda_data.push_back
 //     (AgRecord
 //      ( NAME( "geomag_los_calc_agenda" ),

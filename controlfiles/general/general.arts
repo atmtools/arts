@@ -49,11 +49,6 @@ NumericSet( rte_alonglos_v, 0 )
 
 
 #
-# FOS 
-#
-IndexSet( fos_i, 0 )
-
-#
 # No auxiliary variables as default
 #
 ArrayOfStringSet( iy_aux_vars, [] )

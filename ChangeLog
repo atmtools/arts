@@ -1,3 +1,28 @@
+2013-04-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-587
+
+	* src/m_fos.cc (iyFOS): FOS restarted. So far just some kind of
+	zero-order verson.
+
+	* doc/uguide/faraday.tex (section{Practical usage}): Fixed typo,
+	that check-all did not like.
+
+	* src/make_array.h: Introduced array lengths 38 and 39. Turned out
+	to be not needed right now, but kept anyhow.
+
+	* src/doit.cc (rte_step_doit): rte_step_std renamed.
+
+	* src/rte.cc (rte_step_std): Moved and renamed (see above).
+	(emission_rtstep): New, dedicated for iyEmission.
+
+	* src/m_transmitter.cc (iyTransmissionStandard): Typo in a comment
+
+	* controlfiles/general/general.arts: Remobed fos_i.
+
+	* src/workspace.cc:
+	* src/agendas.cc: Commented out all variables associated with FOS.
+
 2013-04-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-586
@@ -38,19 +63,20 @@
 2013-04-18  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-584
-	
+
 	* src/m_zeeman.cc: Use the unDefined
-	
-	* src/lineshape.cc: Return to the previous way of doing Faddeeva. 
-	I personally think there is something fishy going on in how we use gamma
-	and sigma in ARTS. I think there should be a more clear-cut definition and
-	that names should change more often between the functions (e.g. be clear
-	when gamma is self-broadening, Lorentz-broadening and/or collisional
-	half-life).
-	
-	In any case, the Faddeeva function passes the standard clearsky test case
-	and should therefore represent the Voigt shape quite well.
-	
+
+	* src/lineshape.cc: Return to the previous way of doing Faddeeva.
+	I personally think there is something fishy going on in how we use
+	gamma and sigma in ARTS. I think there should be a more clear-cut
+	definition and that names should change more often between the
+	functions (e.g. be clear when gamma is self-broadening,
+	Lorentz-broadening and/or collisional half-life).
+
+	In any case, the Faddeeva function passes the standard clearsky
+	test case and should therefore represent the Voigt shape quite
+	well.
+
 2013-04-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-583
