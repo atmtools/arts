@@ -3557,7 +3557,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "f_grid", 
+        IN( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", "f_grid",
             "f_index", "p_grid", "lat_grid", "lon_grid", 
             "cloudbox_limits", "atmosphere_dim" ),
         GIN( "all_frequencies" ),
@@ -9165,8 +9165,8 @@ void define_md_data_raw()
          "This method allows quick and simple definition of AMSU-type\n"
          "sensors. Assumptions:\n"
          "\n"
-     "1. Pencil beam antenna.\n"
-         "2. Douple sideband receivers.\n"
+         "1. Pencil beam antenna.\n"
+         "2. Double sideband receivers.\n"
          "3. Sideband mode \"upper\"\n"
          "4. The channel response is rectangular.\n"
          "\n"
