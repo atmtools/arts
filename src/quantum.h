@@ -25,6 +25,7 @@
 #ifndef quantum_h
 #define quantum_h
 
+#include <map>
 #include "arts.h"
 #include "rational.h"
 
@@ -44,21 +45,26 @@ typedef enum {
 class QuantumNumbers
 {
 public:
+    typedef map<Index, Rational> QuantumContainer;
+
     QuantumNumbers()
     {
     }
 
-    QuantumNumbers(Index nquantum) : mqnumbers(nquantum, RATIONAL_UNDEFINED)
+    //! Return copy of quantum number
+    Rational operator[](const Index qn) const
     {
+        QuantumContainer::const_iterator it = mqnumbers.find(qn);
+        if (it != mqnumbers.end())
+            return it->second;
+        else
+            return RATIONAL_UNDEFINED;
     }
 
-    //! Return copy of quantum number
-    Rational operator[](const Index qn) const { return mqnumbers[qn]; }
+    //! Set quantum number
+    void Set(Index qn, Rational r) { assert(qn < QN_FINAL_ENTRY); mqnumbers[qn] = r; }
 
-    //! Return reference to quantum number
-    Rational& operator[](const Index qn) { return mqnumbers[qn]; }
-
-    const ArrayOfRational& GetNumbers() const { return mqnumbers; }
+    const QuantumContainer& GetNumbers() const { return mqnumbers; }
 
     //! Compare Quantum Numbers
     /**
@@ -71,7 +77,7 @@ public:
     bool Compare(const QuantumNumbers& qn) const;
 
 private:
-    ArrayOfRational mqnumbers;
+    QuantumContainer mqnumbers;
 };
 
 
@@ -79,16 +85,15 @@ private:
 class QuantumNumberRecord
 {
 public:
-    QuantumNumberRecord() : mqn_upper(QN_FINAL_ENTRY),
-                            mqn_lower(QN_FINAL_ENTRY)
+    QuantumNumberRecord()
     {
     }
 
     //! Set lower quantum number
-    void SetLower(const Index i, const Rational r) { mqn_lower[i] = r; }
+    void SetLower(const Index i, const Rational r) { mqn_lower.Set(i, r); }
 
     //! Set upper quantum number
-    void SetUpper(const Index i, const Rational r) { mqn_upper[i] = r; }
+    void SetUpper(const Index i, const Rational r) { mqn_upper.Set(i, r); }
 
     //! Get lower quantum number
     Rational Lower(Index i) const { return mqn_lower[i]; }

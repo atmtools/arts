@@ -3734,5 +3734,5 @@ bool find_matching_lines(ArrayOfIndex& matches,
         }
     }
 
-    return true;
+    return ret;
 }

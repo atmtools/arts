@@ -27,25 +27,28 @@
 
 bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 {
-    const ArrayOfRational& qnumbers2 = qn.GetNumbers();
-
-    assert(mqnumbers.nelem() == qnumbers2.nelem());
+    const QuantumContainer& qnumbers2 = qn.GetNumbers();
 
     bool match = true;
 
-    // Compare Upper Quantum Numbers
-    ArrayOfRational::const_iterator qnr1it = mqnumbers.begin();
-    ArrayOfRational::const_iterator qnr2it = qnumbers2.begin();
+    QuantumContainer::const_iterator qnr1it = mqnumbers.begin();
+    QuantumContainer::const_iterator qnr2it;
 
-    while (match && qnr1it != mqnumbers.end() && qnr2it != qnumbers2.end())
+    // Loop over all quantum numbers in mqnumbers and use their keys
+    // to find the corresponding numbers in qnumbers2
+    while (match && qnr1it != mqnumbers.end())
     {
-        if (*qnr1it != *qnr2it
-            && !(*qnr1it).isUndefined()
-            && !(*qnr2it).isUndefined())
+        qnr2it = qnumbers2.find(qnr1it->first);
+
+        // If one of the two numbers is undefined, it is considered as
+        // a match.
+        if (qnr2it != qnumbers2.end()
+            && !(qnr1it->second).isUndefined()
+            && !(qnr2it->second).isUndefined()
+            && qnr1it->second != qnr2it->second)
             match = false;
 
         qnr1it++;
-        qnr2it++;
     }
 
     return match;
@@ -53,15 +56,16 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 
 ostream& operator<<(ostream& os, const QuantumNumbers& qn)
 {
-    os << qn.GetNumbers() << endl;
+    for (Index i = 0; i < QN_FINAL_ENTRY; i++)
+        os << qn[i] << " ";
 
     return os;
 }
 
 ostream& operator<<(ostream& os, const QuantumNumberRecord& qr)
 {
-    os << "Upper: " << qr.Upper().GetNumbers() << " ";
-    os << "Lower: " << qr.Lower().GetNumbers() << endl;
+    os << "Upper: " << qr.Upper() << " ";
+    os << "Lower: " << qr.Lower();
 
     return os;
 }

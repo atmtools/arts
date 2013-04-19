@@ -1,3 +1,21 @@
+2013-04-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-585
+
+	* src/quantum.{h,cc}:
+
+	Change internal storage class of Quantum Numbers from ArrayOfRational
+	to a map. Saves memory and is also faster.
+
+	* controlfiles/artscomponents/zeeman/yREFERENCE_3D.xml:
+
+	Update references values to calculation results after richard's
+	previous change.
+
+	* src/absorption.cc (find_matching_lines): Return ret.
+
+	* src/test_quantum.cc: Playing around.
+
 2013-04-18  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-584
