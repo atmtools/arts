@@ -1,5 +1,11 @@
 2013-04-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-1-588
+
+	* src/m_fos.cc (iyFOS): A bit better handling of hgher stokes_dims.
+
+2013-04-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-1-587
 
 	* src/m_fos.cc (iyFOS): FOS restarted. So far just some kind of

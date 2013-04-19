@@ -401,7 +401,11 @@ void iyFOS(
               if( any_pabs )
                 {
                   for( Index iv=0; iv<nf; iv++ )  
-                    { t(iv,0,0) *= exp( -0.5 * ppath.lstep[ip] * pabs[iv] ); }
+                    { 
+                      const Numeric f = exp( -0.5*ppath.lstep[ip]*pabs[iv] );
+                      for( Index is=0; is<ns; is++ )
+                        { t(iv,is,is) *= f; }
+                    }
                 }
               
               // Perform RT
