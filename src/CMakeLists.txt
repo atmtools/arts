@@ -184,6 +184,7 @@ add_library (artscore STATIC
   m_general.cc
   m_geodetic.cc
   m_jacobian.cc
+  m_linemixing.cc
   m_montecarlo.cc
   m_optproperties.cc
   m_physics.cc

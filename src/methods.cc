@@ -6362,6 +6362,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "line_mixing_o2Read" ),
+        DESCRIPTION
+        (
+         "Read line mixing data and match it to *abs_lines_per_species*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "line_mixing_o2", "line_mixing_o2_lut" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lines_per_species", "abs_species" ),
+        GIN(         "filename" ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "O2 line mixing data file.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Massdensity_cleanup" ),
         DESCRIPTION
         (

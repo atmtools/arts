@@ -887,6 +887,8 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
     checkIsotopologueRatios(abs_species, isotopologue_ratios);
 
     // Begin TEST(s)
+    if (abs_species.nelem() != abs_lines_per_species.nelem())
+        throw runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
     for(Index II = 0; II<abs_species.nelem(); II++)
         if(is_zeeman(abs_species[II])) { do_zeeman = true; break; } // If any species is Zeeman, do it.
     if( propmat_clearsky.ncols()  != 4 )
@@ -894,11 +896,11 @@ void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
     if( propmat_clearsky.nrows()  != 4 )
         throw runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
     if( propmat_clearsky.npages() != f_grid.nelem() )
-        throw runtime_error("Frequency dimension of propmat_clearsky not equal to length of f_grid.");
+        throw runtime_error("Frequency dimension of *propmat_clearsky* not equal to length of *f_grid*.");
     if( propmat_clearsky.nbooks() != abs_species.nelem() )
-        throw runtime_error("Species dimension of propmat_clearsky not equal to length of abs_species.");
+        throw runtime_error("Species dimension of *propmat_clearsky* not equal to length of *abs_species*.");
     if( rtp_mag.nelem() != 3 )
-      throw runtime_error("*rtp_mag* must have length 3.");
+        throw runtime_error("*rtp_mag* must have length 3.");
     // End   TEST(s)
     Vector local_f_grid;
     // Make pointer point to original.

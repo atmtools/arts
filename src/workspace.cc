@@ -2060,6 +2060,30 @@ void Workspace::define_wsv_data()
       GROUP( "Vector" )));
  
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "line_mixing_o2" ),
+       DESCRIPTION
+       (
+        "O2 line mixing data.\n"
+        "Dimensions: Number of array elements corresponds to lines with mixing data,\n"
+        "            the vectors contain the line mixing data"
+       ),
+       GROUP( "ArrayOfVector" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "line_mixing_o2_lut" ),
+       DESCRIPTION
+       (
+        "Lookup table to match the LineRecords in abs_lines_per_species to entries\n"
+        "in the line mixing data stored in *line_mixing_o2*.\n"
+        "Dimensions: First dimension has same size as abs_lines_per_species.\n"
+        "            Second dimension is zero for non-O2 line mixing species,\n"
+        "            and the same size as abs_lines_per_species for O2.\n"
+       ),
+       GROUP( "ArrayOfArrayOfIndex" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "lo" ),
       DESCRIPTION

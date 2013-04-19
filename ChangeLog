@@ -1,5 +1,24 @@
 2013-04-19  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-586
+
+	* src/m_zeeman.cc (propmat_clearskyAddZeeman):
+
+	Check that abs_species and abs_lines_per_species match in size.
+
+	* src/workspace.cc:
+
+	Add line_mixing_o2 and line_mixing_o2_lut. Names might change.
+
+	* src/methods.cc: Add line_mixing_o2Read.
+
+	* src/src/m_linemixing.cc: New file. Only contains stub
+	for line_mixing_o2Read.
+
+	* src/CMakeLists.txt: Add m_linemixing.cc.
+
+2013-04-19  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-585
 
 	* src/quantum.{h,cc}:
