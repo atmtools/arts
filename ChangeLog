@@ -1,3 +1,12 @@
+2013-04-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-590
+
+	* src/m_abs_lookup.cc (abs_lookupCalc):
+
+	Increase spec index if a species is skipped (Zeeman / free_electrons).
+	Otherwise the following species are stored in the wrong place.
+
 2013-04-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-589

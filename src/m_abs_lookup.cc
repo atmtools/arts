@@ -298,7 +298,10 @@ void abs_lookupCalc(// Workspace reference:
       // (Mixed tag groups between those and other species are not allowed.)
         if (is_zeeman(abs_species[i])
             || abs_species[i][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
-          continue;
+          {
+            spec++;
+            continue;
+          }
 
       // spec is the index for the second dimension of abs_lookup.xsec.
       
