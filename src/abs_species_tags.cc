@@ -105,6 +105,14 @@ SpeciesTag::SpeciesTag(String def)
       return;
     }
 
+  // Check if species name contains the special tag for
+  // Particles
+  if (name == "particles")
+    {
+      mtype = TYPE_PARTICLES;
+      return;
+    }
+
   if ( 0 > mspecies )
     {
       ostringstream os;
@@ -347,7 +355,7 @@ String SpeciesTag::Name() const
            << mcia_dataset;
         
       }
-    else if (mtype == TYPE_FREE_ELECTRONS)
+    else if (mtype == TYPE_FREE_ELECTRONS || mtype == TYPE_PARTICLES)
       {
         os << spr.Name();
       }

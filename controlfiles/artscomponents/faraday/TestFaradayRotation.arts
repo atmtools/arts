@@ -131,6 +131,7 @@ abs_lines_per_speciesSetEmpty
 AgendaSet( propmat_clearsky_agenda ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
+  Ignore(rtp_pnd)
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   propmat_clearskyAddFaraday

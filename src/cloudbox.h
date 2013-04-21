@@ -57,7 +57,6 @@ void chk_pnd_data (const GriddedField3& pnd_field_raw,
                    ConstVectorView p_grid,
                    ConstVectorView lat_grid,
                    ConstVectorView lon_grid,
-                   const ArrayOfIndex& cloudbox_limits,
                    const Verbosity& verbosity);
 
 void chk_pnd_raw_data (const ArrayOfGriddedField3& pnd_field_raw,
@@ -66,7 +65,6 @@ void chk_pnd_raw_data (const ArrayOfGriddedField3& pnd_field_raw,
                        ConstVectorView p_grid,
                        ConstVectorView lat_grid,
                        ConstVectorView lon_grid,
-                       const ArrayOfIndex& cloudbox_limits,
                        const Verbosity& verbosity);
 
 void chk_pnd_field_raw_only_in_cloudbox(

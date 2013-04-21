@@ -279,7 +279,7 @@ void iyRadioLink(
         throw runtime_error( 
                  "To include Faraday rotation, stokes_dim >= 3 is required." );
 
-      // Determine species index of fgree electrons
+      // Determine species index of free electrons
       for( Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++ )
         {
           if (abs_species[sp][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
@@ -333,14 +333,16 @@ void iyRadioLink(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, 
-                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                         mag_u_field, mag_v_field, mag_w_field );      
+      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
+                          ppath_pnd, ppath_wind, ppath_mag, 
+                          ppath, atmosphere_dim, p_grid, t_field, 
+                          vmr_field, pnd_field, cloudbox_on,
+                          wind_u_field, wind_v_field, wind_w_field,
+                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
-                         ppath_p, ppath_t, ppath_vmr, ppath_f, 
+                         ppath_p, ppath_t, ppath_vmr, ppath_pnd, ppath_f, 
                          ppath_mag, f_grid, stokes_dim );
       if( !cloudbox_on )
         { 
@@ -865,14 +867,16 @@ void iyTransmissionStandard(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
-                         ppath, atmosphere_dim, p_grid, t_field, 
-                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                         mag_u_field, mag_v_field, mag_w_field );      
+      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
+                          ppath_pnd, ppath_wind, ppath_mag, 
+                          ppath, atmosphere_dim, p_grid, t_field, 
+                          vmr_field, pnd_field, cloudbox_on,
+                          wind_u_field, wind_v_field, wind_w_field,
+                          mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
-                         ppath_p, ppath_t, ppath_vmr, ppath_f, 
+                         ppath_p, ppath_t, ppath_vmr, ppath_pnd, ppath_f, 
                          ppath_mag, f_grid, stokes_dim );
       if( !cloudbox_on )
         { 
@@ -967,8 +971,8 @@ void iyTransmissionStandard(
                 { 
                   Vector t2 = ppath_t;   t2 += dt;
                   get_ppath_abs( ws, ppath_at2, propmat_clearsky_agenda, 
-                                 ppath, ppath_p, t2, ppath_vmr, ppath_f,
-                                 ppath_mag, f_grid, stokes_dim );
+                                 ppath, ppath_p, t2, ppath_vmr, ppath_pnd, 
+                                 ppath_f, ppath_mag, f_grid, stokes_dim );
                 }
               else if( wind_i[iq] )
                 {
@@ -978,7 +982,7 @@ void iyTransmissionStandard(
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awu, propmat_clearsky_agenda,
-                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
                   else if( wind_i[iq] == 2 )
@@ -987,7 +991,7 @@ void iyTransmissionStandard(
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awv, propmat_clearsky_agenda,
-                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
                   else if( wind_i[iq] == 3 )
@@ -996,7 +1000,7 @@ void iyTransmissionStandard(
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_aww, propmat_clearsky_agenda,
-                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
                 }

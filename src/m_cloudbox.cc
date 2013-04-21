@@ -856,7 +856,6 @@ void ParticleTypeAddAll (//WS Output:
                          const Vector& p_grid,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
-                         const ArrayOfIndex& cloudbox_limits,
                          // Keywords:
                          const String& filename_scat_data,
                          const String& pnd_field_file,
@@ -870,13 +869,6 @@ void ParticleTypeAddAll (//WS Output:
   chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
-  // Cloudbox limits
-  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
-    throw runtime_error (
-      "*cloudbox_limits* is a vector which contains"
-      "the upper and lower\n"
-      "limit of the cloud for all atmospheric dimensions.\n"
-      "So its length must be 2 x *atmosphere_dim*" );
   // Frequency grid
   if ( f_grid.nelem() == 0 )
     throw runtime_error ( "The frequency grid is empty." );
@@ -905,7 +897,7 @@ void ParticleTypeAddAll (//WS Output:
 
   chk_pnd_raw_data ( pnd_field_raw,
                      pnd_field_file, atmosphere_dim, p_grid, lat_grid,
-                     lon_grid, cloudbox_limits, verbosity);
+                     lon_grid, verbosity);
 }
 
 
@@ -1136,7 +1128,6 @@ void ParticleTypeAdd( //WS Output:
                      const Vector& p_grid,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
-                     const ArrayOfIndex& cloudbox_limits,
                      // Keywords:
                      const String& scat_data_file,
                      const String& pnd_field_file,
@@ -1150,13 +1141,6 @@ void ParticleTypeAdd( //WS Output:
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
-  // Cloudbox limits
-  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
-    throw runtime_error(
-                        "*cloudbox_limits* is a vector which contains"
-                        "the upper and lower\n"
-                        "limit of the cloud for all atmospheric dimensions.\n"
-                        "So its length must be 2 x *atmosphere_dim*" ); 
   // Frequency grid
   if( f_grid.nelem() == 0 )
     throw runtime_error( "The frequency grid is empty." );
@@ -1192,10 +1176,9 @@ void ParticleTypeAdd( //WS Output:
       
       chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
                    pnd_field_file, atmosphere_dim, p_grid, lat_grid,
-                   lon_grid, cloudbox_limits, verbosity);
+                   lon_grid, verbosity);
     }
 }
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1224,12 +1207,40 @@ void pnd_fieldCalc(//WS Output:
                         );
   
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+  ArrayOfIndex cloudbox_limits_tmp;
+  if ( cloudbox_limits.nelem()== 0 )
+    {
+      //If no limits set, the cloud(box) is supposed to cover the
+      //complete atmosphere. This particularly to facilitate use of
+      //scat_data&pnd_fields for non-scatt, greybody cloud calculations.
+      //Hence, set the limits to first & last elements of the different grids.
+      //Note: no margin left at lat/lon_grid edges!.
+      cloudbox_limits_tmp.resize(2*atmosphere_dim);
+
+      // Pressure limits
+      cloudbox_limits_tmp[0] = 0;
+      cloudbox_limits_tmp[1] = p_grid.nelem() - 1;
+      // Latitude limits
+      if( atmosphere_dim >= 2 )
+        {
+          cloudbox_limits_tmp[2] = 0;
+          cloudbox_limits_tmp[3] = lat_grid.nelem() - 1;
+        }
+      // Longitude limits
+      if( atmosphere_dim == 3 )
+        {
+          cloudbox_limits_tmp[4] = 0;
+          cloudbox_limits_tmp[5] = lon_grid.nelem() - 1;
+        }
+    }
+  else if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
                         "*cloudbox_limits* is a vector which contains the"
                         "upper and lower limit of the cloud for all "
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*");
+  else
+    cloudbox_limits_tmp = cloudbox_limits;
 
   // Check that pnd_field_raw has at least 2 grid-points in each dimension.
   // Otherwise, interpolation further down will fail with assertion.
@@ -1253,14 +1264,14 @@ void pnd_fieldCalc(//WS Output:
             }
         }
     }
-  const Index Np_cloud = cloudbox_limits[1]-cloudbox_limits[0]+1;
+  const Index Np_cloud = cloudbox_limits_tmp[1]-cloudbox_limits_tmp[0]+1;
   
-  ConstVectorView p_grid_cloud = p_grid[Range(cloudbox_limits[0], Np_cloud)];
+  ConstVectorView p_grid_cloud = p_grid[Range(cloudbox_limits_tmp[0], Np_cloud)];
 
   // Check that no scatterers exist outside the cloudbox
   chk_pnd_field_raw_only_in_cloudbox(atmosphere_dim, pnd_field_raw,
                                      p_grid, lat_grid, lon_grid,
-                                     cloudbox_limits);
+                                     cloudbox_limits_tmp);
 
   //==========================================================================
   if ( atmosphere_dim == 1)
@@ -1278,10 +1289,10 @@ void pnd_fieldCalc(//WS Output:
     }
   else if(atmosphere_dim == 2)
     {
-      const Index Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
+      const Index Nlat_cloud = cloudbox_limits_tmp[3]-cloudbox_limits_tmp[2]+1;
 
       ConstVectorView lat_grid_cloud = 
-        lat_grid[Range(cloudbox_limits[2],Nlat_cloud)];           
+        lat_grid[Range(cloudbox_limits_tmp[2],Nlat_cloud)];           
 
       if (zeropadding)
         {
@@ -1318,8 +1329,8 @@ void pnd_fieldCalc(//WS Output:
     }
   else
     {
-      const Index Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
-      const Index Nlon_cloud = cloudbox_limits[5]-cloudbox_limits[4]+1;
+      const Index Nlat_cloud = cloudbox_limits_tmp[3]-cloudbox_limits_tmp[2]+1;
+      const Index Nlon_cloud = cloudbox_limits_tmp[5]-cloudbox_limits_tmp[4]+1;
 
       if (zeropadding)
         {
@@ -1329,9 +1340,9 @@ void pnd_fieldCalc(//WS Output:
         }
 
       ConstVectorView lat_grid_cloud =
-        lat_grid[Range(cloudbox_limits[2],Nlat_cloud)];           
+        lat_grid[Range(cloudbox_limits_tmp[2],Nlat_cloud)];           
       ConstVectorView lon_grid_cloud = 
-        lon_grid[Range(cloudbox_limits[4],Nlon_cloud)];
+        lon_grid[Range(cloudbox_limits_tmp[4],Nlon_cloud)];
       
       //Resize variables
       pnd_field.resize( pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, 

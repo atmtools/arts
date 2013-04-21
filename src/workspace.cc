@@ -2933,9 +2933,9 @@ void Workspace::define_wsv_data()
       (
        "Flag to perform ray tracing inside the cloudbox.\n"
        "\n"
-       "Standard propagation path calculations stop at the bounday of the\n"
-       "clouxbox, or stop directly if started inside the cloudbox. This WSV\n"
-       "allows scatting methods to obtain propagation paths inside the\n"
+       "Standard propagation path calculations stop at the boundary of the\n"
+       "cloudbox, or stop directly if started inside the cloudbox. This WSV\n"
+       "allows scattering methods to obtain propagation paths inside the\n"
        "cloudbox. Hence, this variable is for internal usage primarily.\n"
        "\n"
        "Usage: For communication between modules of arts.\n"
@@ -3305,6 +3305,29 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
    
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rtp_pnd" ),
+      DESCRIPTION
+      (
+       "Particle number densities for (non-scatt.) radiative transfer calculations.\n"
+       "\n"
+       "This vector variable holds the local abundance of the different\n"
+       "particle types with corresponding single scattering data in\n"
+       "*scat_data_raw*. Only applied if *abs_species* contains the species\n"
+       "'particles'.\n"
+       "\n"
+       "The WSV is used as input to methods and agendas calculating radiative\n"
+       "properties for a given conditions.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ #/m3. ]\n"
+       "\n"
+       "Size:  Should match scat_data_raw.nelem()\n"
+       ),
+      GROUP( "Vector" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "rtp_pos" ),

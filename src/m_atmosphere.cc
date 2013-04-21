@@ -1243,10 +1243,12 @@ void basics_checkedCalc(
                         const Tensor3&   mag_u_field,
                         const Tensor3&   mag_v_field,
                         const Tensor3&   mag_w_field,
+                        const Tensor4&   pnd_field,
                         const Vector&    refellipsoid,
                         const Matrix&    z_surface,
                         const Index&     stokes_dim,
                         const Vector&    f_grid,
+                        const Index&     cloudbox_on,
                         const Index&     abs_f_interp_order,
                         const Verbosity&)
 {
@@ -1408,6 +1410,65 @@ void basics_checkedCalc(
         {
           chk_atm_field( "mag_v_field", mag_v_field, atmosphere_dim, 
                                                    p_grid, lat_grid, lon_grid);
+        }
+    }
+
+  // pnd field:
+  //  Only to be checked if !cloudbox_on, where pnd has to either be empty or
+  //  cover the complete atmosphere. We only check for correct atmospheric
+  //  dimensions here. Consistency with scat_data_raw, i.e.,
+  // (nd_field.books()==scat_data_raw.nelem(), has to be checked elsewhere.
+  Index part_in_abs=0;
+  for (Index as=0; as<abs_species.nelem(); as++)
+    {
+      if ( abs_species[as][0].Type()==SpeciesTag::TYPE_PARTICLES )
+        part_in_abs=1;
+    }
+  if (!cloudbox_on)
+    {
+      Index ns = pnd_field.nbooks();
+      if ( ns > 0 )
+        {
+          if ( part_in_abs )
+            {
+              chk_atm_field( "pnd_field", pnd_field, atmosphere_dim,
+                             ns, p_grid, lat_grid, lon_grid );
+            }
+          else
+            {
+              ostringstream os; 
+              os << "When cloudbox is off and abs_species does not contain the"
+                 << "species 'particles', pnd_field must be empty!";
+              throw runtime_error( os.str() );
+            }
+        }
+/*
+      // we do this part only in propmat_clearskyAddParticles, as we can check
+      // for both pnd_field and scat_data_raw there.
+      else
+        if ( part_in_abs )
+          {
+            ostringstream os; 
+            os << "When abs_species contains species 'particles', pnd_field "
+               << "(and scat_data_raw) can not be empty.\n";
+            throw runtime_error( os.str() );
+          }
+*/
+    }
+  else
+    // if cloudbox is on, ensure abs_species does not contain the species
+    // "particles" as this is using scat_data_raw and pnd_field, which will
+    // already taken care of in the cloudbox parts.
+    {
+      for (Index as=0; as<abs_species.nelem(); as++)
+        {
+          if ( part_in_abs )
+            {
+              ostringstream os; 
+              os << "When cloudbox is on, abs_species is not allowed to\n"
+                 << "contain the species 'particles'.";
+              throw runtime_error( os.str() );
+            }
         }
     }
 

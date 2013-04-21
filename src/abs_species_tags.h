@@ -113,7 +113,8 @@ public:
        TYPE_ZEEMAN,
        TYPE_PREDEF,
        TYPE_CIA,
-       TYPE_FREE_ELECTRONS
+       TYPE_FREE_ELECTRONS,
+       TYPE_PARTICLES
    };
   
 
@@ -145,10 +146,13 @@ private:
    
    The type can be:
    <PRE>
-   TYPE_PLAIN:  A normal line-by-line tag
-   TYPE_ZEEMAN: A line-by-line tag with Zeeman calculation
-   TYPE_PREDEF: A tag for a predefined absorption model (continuum or full absorption model)
-   TYPE_CIA:    A HITRAN collision induces absorption (CIA) tag
+   TYPE_PLAIN:          A normal line-by-line tag
+   TYPE_ZEEMAN:         A line-by-line tag with Zeeman calculation
+   TYPE_PREDEF:         A tag for a predefined absorption model (continuum or
+                         full absorption model)
+   TYPE_CIA:            A HITRAN collision induces absorption (CIA) tag
+   TYPE_FREE_ELECTRONS: A free electrons tag
+   TYPE_PARTICLES:      A particle tag
    </PRE>
    */
   Index mtype;

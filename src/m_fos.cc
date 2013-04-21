@@ -247,14 +247,16 @@ void iyFOS(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
+      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
+                          ppath_pnd, ppath_wind, ppath_mag, 
                           ppath, atmosphere_dim, p_grid, t_field, 
-                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
-                          mag_u_field, mag_v_field, mag_w_field );      
+                          vmr_field, pnd_field, cloudbox_on,
+                          wind_u_field, wind_v_field, wind_w_field,
+                          mag_u_field, mag_v_field, mag_w_field );
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
       get_ppath_abs(      ws, ppath_abs, propmat_clearsky_agenda, ppath, 
-                          ppath_p, ppath_t, ppath_vmr, ppath_f, 
+                          ppath_p, ppath_t, ppath_vmr, ppath_pnd, ppath_f, 
                           ppath_mag, f_grid, stokes_dim );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
                           ppath, ppath_t, ppath_f );
@@ -859,10 +861,12 @@ void iyFOS(Workspace&          ws,
   if( np > 1 )
     {
       // Get pressure, temperature and VMRs
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, 
-                         ppath_wind_u, ppath_wind_v, ppath_wind_w,
-                         ppath, atmosphere_dim, p_grid, t_field, vmr_field,
-                         wind_field_dummy, wind_field_dummy, wind_field_dummy );
+      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
+                          ppath_pnd, ppath_wind, ppath_mag, 
+                          ppath, atmosphere_dim, p_grid, t_field, 
+                          vmr_field, pnd_field, cloudbox_on,
+                          wind_field_dummy, wind_field_dummy, wind_field_dummy,
+                          mag_field_dummy, mag_field_dummy, mag_field_dummy );
 
       // Particle number densities
       get_ppath_pnd( ppath_pnd, 

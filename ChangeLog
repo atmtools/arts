@@ -1,3 +1,112 @@
+2013-04-21  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-591
+
+	* Introduced a "particles" abs_species, that takes the absorption
+	properties from scat_data_raw and "vmr"s prom pnd_field. Note that this
+	approach completely ignores scattering - both in extinction as well as
+	in source part! Allows to consistently use the cloud/dust optical
+	property data and density fields from arts-xml-data in non-scattering
+	calcs (and only there!).
+	The only change required for "usual" ARTS setups is when applying DOIT,
+	iyEmissionStandard in the iy_main_agenda needs to get passed an empty
+	dummy pnd_field.
+	TO DO: Adapt documentation in AUG. Adapt abs_mat_fieldCalc.
+
+	* src/abs_species_tags.cc:
+	Adapted constructor and tag name extraction for new species "particles".
+
+	* src/species_data.cc, partition_function_data.cc, abs_species_tags.h:
+	Introduced species "particles" and type PARTICLES.
+
+	* src/m_abs.cc
+	(propmat_clearskyAddParticles): Introduced this method. Provides the
+	propmat_clearsky for abs_species "particles" from scat_data_raw and
+	rtp_pnd (taken from pnd_field).
+	(abs_xsec_agenda_checkedCalc, propmat_clearsky_agenda_checkedCalc):
+	Adapted for new abs_species "particles" and its type PARTICLES.
+
+	* src/workspace.cc: Added rtp_pnd.
+
+	* src/agendas.cc: Added rtp_pnd as input to propmat_clearsky_agenda.
+
+	* src/rte.[cc,h]
+	(get_ppath_atmvars): Added ppath_pnd as output, pnd_field and cloudbox_on
+	as input, and functionality to calc ppath_pnd (only in case cloudbox_on
+	is false).
+	(get_ppath_abs): Added ppath_pnd as input and pass to
+	propmat_clearsky_agenda.
+
+	* src/m_rte.cc (iyEmissionStandard): Added pnd_field as input allowing
+	to use in clear-sky absorption calculations (for abs_species "particle).
+	Adapted	all calls of get_ppath_atmvars and get_ppath_abs accordingly.
+
+	* src/m_transmitter.cc, m_cloudradar.cc, m_fos.cc (iyRadioLink,
+	iyTransmissionStandard, iyCloudRadar, iyFOS):
+	Adapted calls of get_ppath_atmvars and get_ppath_abs.
+
+	* src/montecarlo.cc, disort.cc, doit.cc:
+	Adapted all calls of propmat_clearsky_agenda passing a dummy rtp_pnd.
+
+	* src/m_abs_lookup.cc
+	(abs_lookupCalc, abs_speciesSet): Adapted for use with abs_species
+	"particles".
+	(abs_mat_fieldCalc): Temporarily adapted call of propmat_clearsky_agenda
+	passing a dummy rtp_pnd.
+
+	* src/gas_abs_lookup.cc (GasAbsLookup::Extract):
+	Adapted for new type PARTICLES (no extraction for this. in analogy to
+	FREE_ELECTRONS).
+
+	* src/m_atmosphere.cc (basics_checkedCalc):
+	Added some pnd_field and "particles" abs_species related checks
+	("particles" only allowed when cloudbox off; if cloudbox off &
+	pnd_field set, then pnd_field needs to cover whole atmo AND "particles"
+	need to be in abs_species).
+
+	* src/m_cloudbox.cc
+	(ParticleTypeAdd, ParticleTypeAddAll): Removed any usage of
+	cloudbox_limits.
+	(pnd_fieldCalc): Allow empty cloudbox_limits assuming then pnd_field has
+	to cover complete atmosphere (this facilitates the non-cloudbox usage of
+	pnd_field for "particles" abs_species).
+
+	* src/cloudbox.[cc,h] (chk_pnd_data, chk_pnd_raw_data): Removed check
+	for all non-zero pnd values to be inside the cloudbox. Makes
+	ParticleTypeAdd independent of the cloudbox definition, i.e. allows to
+	get the particle data before defining the cloudbox (useful e.g. for
+	auto-cloudbox detection). Check	is then anyway done by pnd_fieldCalc
+	using chk_pnd_field_raw_only_in_cloudbox.
+
+	* src/m_doit.cc, m_doit2.cc
+	(CloudboxGetIncoming): Moved if (!cloudbox_on) to the very beginning.
+	We don't need to do anything here, if cloudbox is off - not even
+	checking that certain other checks were done.
+	(CloudboxGetIncoming1DAtm): As CloudboxGetIncoming. And added
+	sensor_checked for consitency with CloudboxGetIncoming.
+	(CloudboxGetIncoming2): Added sensor_checked for consitency with
+	CloudboxGetIncoming.
+
+	* src/methods.cc: Adapted to changes above.
+
+	* controlfiles/general/agendas.arts,
+	controlfiles/artscomponents/helpers/TestAgendaCopy.arts,
+	controlfiles/artscomponents/faraday/TestFaradayRotation.arts:
+	Adapted propmat_clearsky_agenda definitions to ignore rtp_pnd.
+
+	* controlfiles/general/general.arts:
+	Default set FlagOff( cloudbox_on ) and empty pnd_field.
+
+	* controlfiles/artscomponents/doit/TestDOIT.arts,
+	doitbatch/TestDOITBatch.arts:
+	Pass empty dummy pnd_field into iyEmissionStandard (to avoid it trying
+	to use the real, cloudbox-targeted pnd_field when called from
+	CloudboxGetIncoming with a cloudbox_on=false flag)
+
+	* controlfiles/artscomponents/montecarlo/TestMonteCarloDataPrepare.arts,
+	TestMonteCarloGeneral.arts:
+	Use named method parameters.
+
 2013-04-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-590

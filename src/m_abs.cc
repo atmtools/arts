@@ -49,6 +49,7 @@
 #include "xml_io.h"
 #include "parameters.h"
 #include "rte.h"
+#include "montecarlo.h"
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
@@ -1405,6 +1406,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
                 case SpeciesTag::TYPE_PREDEF: needs_continua = true; break;
                 case SpeciesTag::TYPE_CIA: needs_cia = true; break;
                 case SpeciesTag::TYPE_FREE_ELECTRONS: break;
+                case SpeciesTag::TYPE_PARTICLES: break;
                 default:
                     ostringstream os;
                     os << "Unknown species type: " << abs_species[sp][tgs].Type();
@@ -1455,6 +1457,7 @@ void propmat_clearsky_agenda_checkedCalc(Workspace& ws _U_,
     bool needs_continua = false;
     bool needs_cia = false;
     bool needs_free_electrons = false;
+    bool needs_particles = false;
 
     for (Index sp = 0; sp < abs_species.nelem(); sp++)
     {
@@ -1467,6 +1470,7 @@ void propmat_clearsky_agenda_checkedCalc(Workspace& ws _U_,
                 case SpeciesTag::TYPE_PREDEF: needs_continua = true; break;
                 case SpeciesTag::TYPE_CIA: needs_cia = true; break;
                 case SpeciesTag::TYPE_FREE_ELECTRONS: needs_free_electrons = true; break;
+                case SpeciesTag::TYPE_PARTICLES: needs_particles = true; break;
                 default:
                     ostringstream os;
                     os << "Unknown species type: " << abs_species[sp][tgs].Type();
@@ -1500,6 +1504,13 @@ void propmat_clearsky_agenda_checkedCalc(Workspace& ws _U_,
     {
         throw runtime_error("*abs_species* contains free electrons but *propmat_clearsky_agenda*\n"
                             "does not contain *propmat_clearskyAddFaraday*.");
+    }
+
+    if (needs_particles
+        && !propmat_clearsky_agenda.has_method("propmat_clearskyAddParticles"))
+    {
+        throw runtime_error("*abs_species* contains particles but *propmat_clearsky_agenda*\n"
+                            "does not contain *propmat_clearskyAddParticles*.");
     }
 
     propmat_clearsky_agenda_checked = 1;
@@ -2122,7 +2133,6 @@ void propmat_clearskyInit(//WS Output
         else throw runtime_error("nf = 0");
     }
     else throw runtime_error("abs_species.nelem() = 0");
-
 }
 
 
@@ -2185,6 +2195,107 @@ void propmat_clearskyAddFaraday(
 }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyAddParticles(
+                                    // WS Output:
+                                    Tensor4& propmat_clearsky,
+                                    // WS Input:
+                                    const Index& stokes_dim,
+                                    const Index& atmosphere_dim,
+                                    const Vector& f_grid,
+                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                    const Vector& rtp_pnd,
+                                    const Vector& rtp_los,
+                                    const Numeric& rtp_temperature,
+                                    const ArrayOfSingleScatteringData& scat_data_raw,
+                                    // Verbosity object:
+                                    const Verbosity& verbosity)
+{
+  Index ip = -1;
+  Index np = 0;
+  for( Index sp = 0; sp < abs_species.nelem() && ip < 0; sp++ )
+    {
+      if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES)
+        {
+          ip = sp;
+          np++;
+        }
+    }
+
+  if( ip < 0 )
+    {
+       ostringstream os; 
+       os << "For applying propmat_clearskyAddParticles, abs_species needs to"
+          << "contain species 'particles', but it does not.\n";
+       throw runtime_error( os.str() );
+    }
+  else if( np > 1 )
+    {
+      throw runtime_error( "Several 'particles' species found in *abs_species*,\n"
+                           "but only a single entry can be handled!" );
+    }
+  else
+    {
+      if ( scat_data_raw.nelem()<1 || rtp_pnd.nelem()<1 )
+          {
+            ostringstream os; 
+            os << "For applying propmat_clearskyAddParticles, pnd_field "
+               << "and scat_data_raw can not be empty,\n"
+               << "but at least one of them is!\n";
+            throw runtime_error( os.str() );
+          }
+
+      const Index nf = f_grid.nelem();
+      Vector rtp_los_back;
+      mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
+      ArrayOfSingleScatteringData scat_data_mono;
+      Matrix pnd_ext_mat(stokes_dim,stokes_dim);
+      Vector pnd_abs_vec(stokes_dim);
+      for( Index iv=0; iv<nf; iv++ )
+        { 
+          // first, get the scat_data (all particle types) at the required
+          // frequency
+          scat_data_monoCalc( scat_data_mono, scat_data_raw, f_grid, iv, 
+                              verbosity );
+
+          // second, get bulk extinction matrix and absorption vector from
+          // getting extinction matrix and absorption vector at required
+          // temperature and direction for all individual particle types,
+          // multiply with their occurence and sum up over the particle types
+          opt_propCalc( pnd_ext_mat, pnd_abs_vec,
+                        rtp_los_back[0], rtp_los_back[1],
+                        scat_data_mono, stokes_dim,
+                        rtp_pnd, rtp_temperature, verbosity );
+
+          // last, sort the extracted absorption vector data into propmat_clearsky,
+          // which is of extinction matrix type
+
+          // that's how it would be sufficient if we take the extinction matrix,
+          // i.e., mimic scattering by emission. however, that's unphysical. and
+          // not sure how that acts for stokes_dim>1
+          // propmat_clearsky(ip,iv,joker,joker) = pnd_ext_mat
+
+          // so, we really have to explicitly & separately fill the different
+          // elements in the extinction matrix with the absorption vector entries
+          // FIXME: not sure what happens for general particles (p10). but
+          // should be sufficient for p20 and p30, though.
+          // first: diagonal elements
+          for (Index is=0; is<stokes_dim; is++)
+            {
+              propmat_clearsky(ip,iv,is,is) += pnd_abs_vec[0];
+            }
+          // second: off-diagonal elements, namely first row and column
+          for (Index is=1; is<stokes_dim; is++)
+            {
+              propmat_clearsky(ip,iv,0,is) += pnd_abs_vec[is];
+              propmat_clearsky(ip,iv,is,0) += pnd_abs_vec[is];
+            }
+          // nothing more to do. the other elements should be empty. at least
+          // for p20 and p30.
+        }
+    }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddOnTheFly(// Workspace reference:

@@ -1233,6 +1233,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "propmat_clearskyAddParticles" ),
+        DESCRIPTION
+        (
+         "Stub method.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "propmat_clearsky" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
+            "f_grid", "abs_species",
+            "rtp_pnd", "rtp_los", "rtp_temperature", "scat_data_raw" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "propmat_clearskyAddFromAbsCoefPerSpecies" ),
         DESCRIPTION
         (
@@ -1314,8 +1335,11 @@ void define_md_data_raw()
          "  1. *NumericScale*( rtp_doppler, rtp_doppler, -1 )\n"
          "  2. *VectorAddScalar*( f_grid, f_grid, rtp_doppler )\n"
          "  3. *AbsInputFromRteScalars*\n"
-         "  4. *abs_h2oSet*\n"
-         "  5. *abs_coefCalc*\n"
+         "  4. abs_xsec_per_species calculation, e.g, by\n"
+         "    a) *abs_xsec_per_speciesInit*\n"
+         "    b) *abs_xsec_per_speciesAddLines*\n"
+         "    c) *abs_xsec_per_speciesAddConts*\n"
+         "  5. *abs_coefCalcFromXsec*\n"
          "  6. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
          "\n"
          "Sub-methods 2 and 3 are called only if rtp_doppler is not zero.\n"
@@ -2593,8 +2617,9 @@ void define_md_data_raw()
          "Checks consistency of the (clear sky) atmosphere.\n"
          "\n"
          "The following WSVs are treated: *f_grid*, *stokes_dim*, *p_grid*,\n"
-         "*lat_grid*, *lon_grid*, *t_field*, *z_field*, *vmr_field*, wind_u/v/w_field,\n"
-         "*refellipsoid* and *z_surface*.\n"
+         "*lat_grid*, *lon_grid*, *t_field*, *z_field*, *vmr_field*,\n"
+         "wind_u/v/w_field, *pnd_field* (only if !cloudbox_on),\n"
+         "*refellipsoid*, and *z_surface*.\n"
          "If any of these variables are changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
@@ -2624,8 +2649,8 @@ void define_md_data_raw()
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
             "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field",
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
-             "refellipsoid", "z_surface", 
-            "stokes_dim", "f_grid", "abs_f_interp_order" ),
+            "pnd_field", "refellipsoid", "z_surface", 
+            "stokes_dim", "f_grid", "cloudbox_on", "abs_f_interp_order" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2850,7 +2875,8 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", "lon_grid", 
-            "z_field", "t_field", "vmr_field", "cloudbox_on", "cloudbox_limits",
+            "z_field", "t_field", "vmr_field",
+            "cloudbox_on", "cloudbox_limits",
             "basics_checked", "cloudbox_checked", "sensor_checked",
             "f_grid", "stokes_dim", 
             "iy_unit", "blackbody_radiation_agenda", 
@@ -2880,9 +2906,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", "lon_grid", 
-            "z_field", "t_field", "vmr_field", "z_surface", "cloudbox_on",
-            "cloudbox_limits", "basics_checked", "cloudbox_checked", "f_grid", 
-            "stokes_dim", "iy_unit", "blackbody_radiation_agenda", 
+            "z_field", "t_field", "vmr_field", "z_surface",
+            "cloudbox_on", "cloudbox_limits",
+            "basics_checked", "cloudbox_checked", "sensor_checked",
+            "f_grid", "stokes_dim", "iy_unit", "blackbody_radiation_agenda", 
             "scat_za_grid", "scat_aa_grid" ),
         GIN(         "fill_interior" ),
         GIN_TYPE(    "Index"         ),
@@ -2909,9 +2936,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", 
-            "lon_grid", "z_field", "t_field", "vmr_field", "cloudbox_on", 
-            "cloudbox_limits", "basics_checked", "cloudbox_checked", 
+        IN( "iy_main_agenda", "atmosphere_dim", "lat_grid", "lon_grid",
+            "z_field", "t_field", "vmr_field",
+            "cloudbox_on", "cloudbox_limits",
+            "basics_checked", "cloudbox_checked",  "sensor_checked",
             "f_grid", "stokes_dim", "iy_unit", 
             "blackbody_radiation_agenda", "scat_za_grid", "scat_aa_grid" ),
         GIN(),
@@ -4967,7 +4995,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
-            "t_field", "vmr_field", "abs_species", 
+            "t_field", "vmr_field", "abs_species", "pnd_field", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
@@ -5338,8 +5366,9 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "z_field", "t_field", "vmr_field", "abs_species",
+        IN( "stokes_dim", "f_grid", "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid",
+            "z_field", "t_field", "vmr_field", "abs_species",
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", 
             "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits", 
@@ -5482,8 +5511,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field", 
-            "t_field", "vmr_field", "abs_species", 
+        IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+            "z_field", "t_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", 
             "cloudbox_on", "cloudbox_limits", "pnd_field", 
@@ -7308,8 +7337,34 @@ void define_md_data_raw()
         GIN_DESC("Array of pnd calculation parameters.",
                  "Delimiter string of *part_species* elements." )
         ));
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleTypeAdd" ),
+        DESCRIPTION
+        (
+         "Reads single scattering data and corresonding particle number\n"
+         "density fields.\n"
+         "\n"
+         "The methods reads the specified files and appends the obtained data\n"
+         "to *scat_data_raw* and *pnd_field_raw*.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "scat_data_raw", "pnd_field_raw" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid" ),
+        GIN(         "filename_scat_data", "filename_pnd_field" ),
+        GIN_TYPE(    "String",             "String"             ),
+        GIN_DEFAULT( NODEF,                NODEF                ),
+        GIN_DESC( "Filename of single scattering data.",
+                  "Filename of the corresponding pnd_field." 
+                  )
+        ));
+
  
-    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeAddAll" ),
@@ -7334,8 +7389,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
-            "cloudbox_limits" ),
+        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid" ),
         GIN(         "filename_scat_data", "filename_pnd_field" ),
         GIN_TYPE(    "String",             "String"             ),
         GIN_DEFAULT( NODEF,                NODEF                ),
@@ -7344,32 +7398,6 @@ void define_md_data_raw()
                   )
         ));
 
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleTypeAdd" ),
-        DESCRIPTION
-        (
-         "Reads single scattering data and corresonding particle number\n"
-         "density fields.\n"
-         "\n"
-         "The methods reads the specified files and appends the obtained data\n"
-         "to *scat_data_raw* and *pnd_field_raw*.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "scat_data_raw", "pnd_field_raw" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
-            "cloudbox_limits" ),
-        GIN(         "filename_scat_data", "filename_pnd_field" ),
-        GIN_TYPE(    "String",             "String"             ),
-        GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "Filename of single scattering data.",
-                  "Filename of the corresponding pnd_field." 
-                  )
-        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7505,14 +7533,14 @@ void define_md_data_raw()
         ( "Interpolation of particle number density fields to calculation grid\n"
           "inside cloudbox.\n"
           "\n"
-          "This methods interpolates the particle number density field\n"
+          "This method interpolates the particle number density field\n"
           "from the raw data *pnd_field_raw* to obtain *pnd_field*.\n"
           "For 1D cases, where internally *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid* are applied, with *zeropadding*=1 pnds\n"
-          "at pressure levels levels exceeding pnd_field_raw's pressure grid\n"
-          "are set to 0 (not implemented for 2D and 3D yet; default:\n"
-          "zeropadding=0, which throws an error if calculation pressure grid\n"
-          "*p_grid* is not completly covered by pnd_field_raw's pressure grid.\n"
+          "*GriddedFieldLatLonRegrid* are applied, *zeropadding*=1 sets the\n"
+          "*pnd_field* at pressure levels levels exceeding pnd_field_raw's\n"
+          "pressure grid to 0 (not implemented for 2D and 3D yet). Default:\n"
+          "zeropadding=0, which throws an error if the calculation pressure grid\n"
+          "*p_grid* is not completely covered by pnd_field_raw's pressure grid.\n"
           ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde", "Oliver Lemke" ),
         OUT( "pnd_field" ),

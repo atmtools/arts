@@ -214,15 +214,17 @@ void iyCloudRadar(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
+                         ppath_pnd, ppath_wind, ppath_mag, 
                          ppath, atmosphere_dim, p_grid, t_field, 
-                         vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                         vmr_field, pnd_field, cloudbox_on,
+                         wind_u_field, wind_v_field, wind_w_field,
                          mag_u_field, mag_v_field, mag_w_field );
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
-                         ppath_p, ppath_t, ppath_vmr, ppath_f, ppath_mag, 
-                         f_grid, stokes_dim );
+                         ppath_p, ppath_t, ppath_vmr, ppath_pnd,
+                         ppath_f, ppath_mag, f_grid, stokes_dim );
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 

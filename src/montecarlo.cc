@@ -106,12 +106,15 @@ void clear_rt_vars_at_gp(Workspace&          ws,
 
   const Vector rtp_mag_dummy(3,0);
   const Vector ppath_los_dummy;
+  const Vector rtp_pnd_dummy;
   
   //calcualte absorption coefficient
   propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
-                                    Vector(1, f_mono), 0, rtp_mag_dummy, ppath_los_dummy,p_vec[0],
-                                    temperature, vmr_mat(joker, 0),
-                                    propmat_clearsky_agenda);
+                                 Vector(1, f_mono), 0, rtp_mag_dummy,
+                                 ppath_los_dummy,p_vec[0],
+                                 temperature, vmr_mat(joker, 0),
+                                 rtp_pnd_dummy,
+                                 propmat_clearsky_agenda);
 
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
   
@@ -183,12 +186,15 @@ void cloudy_rt_vars_at_gp(Workspace&           ws,
 
   const Vector rtp_mag_dummy(3,0);
   const Vector ppath_los_dummy;
+  const Vector rtp_pnd_dummy;
   
   //rtp_vmr    = vmr_ppath(joker,0);
   propmat_clearsky_agendaExecute(ws, local_propmat_clearsky,
-                                    Vector(1, f_mono), 0, rtp_mag_dummy, ppath_los_dummy,p_ppath[0],
-                                    temperature,vmr_ppath(joker, 0),
-                                    propmat_clearsky_agenda);
+                                 Vector(1, f_mono), 0, rtp_mag_dummy,
+                                 ppath_los_dummy,p_ppath[0],
+                                 temperature,vmr_ppath(joker, 0),
+                                 rtp_pnd_dummy,
+                                 propmat_clearsky_agenda);
   
   opt_prop_sum_propmat_clearsky(local_ext_mat, local_abs_vec, local_propmat_clearsky);
 

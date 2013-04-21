@@ -920,7 +920,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // Ignore species such as Zeeman and free_electrons which are not
           // stored in the lookup table. For those the result is set to 0.
           if (is_zeeman(species[si])
-              || species[si][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+              || species[si][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS
+              || species[si][0].Type() == SpeciesTag::TYPE_PARTICLES)
           {
               if (do_VMR)
               {

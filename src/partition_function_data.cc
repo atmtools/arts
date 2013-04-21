@@ -851,29 +851,33 @@ iso(it_isotopologue,	"21" ,  Qcoeff(-1.826371e+04,  1.397636e+03, -3.770229e+00,
   iso(it_isotopologue,	"8",  Qcoeff( 1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00 ));
 
 
-  // particles
+  // liquid cloud particles
   // Coeff:       1      1
   spec(it_species, it_isotopologue, "liquidcloud");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93", Qcoeff( 0      ,0              ,0              ,0  ) );
 
-  // particle
+  // ice cloud particles
   // Coeff:       1      1
   spec(it_species, it_isotopologue, "icecloud");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93",Qcoeff( 0              ,0               ,0              ,0  ) );
 
-  // particle
+  // rain particles
   // Coeff:       1      1
   spec(it_species, it_isotopologue, "rain");
   //                    Name            c0              c1              c2              c3
   //                    |               |               |               |               |
   iso(it_isotopologue,       "MPM93",Qcoeff( 0              ,0               ,0              ,0  ) );
 
-  // Skip free_electrons
+  // free_electrons: skip iso setting
   spec(it_species, it_isotopologue, "free_electrons");
+
+  // particles (to be derived from scat_data_raw and pnd_field): skip iso setting
+  spec(it_species, it_isotopologue, "particles");
+
 
   // Ensure that we took care of all species
   assert(it_species == species_data.end());

@@ -154,8 +154,9 @@ void dtauc_ssalbCalc(Workspace& ws,
    
     const Vector rtp_mag_dummy(3,0);
     const Vector ppath_los_dummy;
+    const Vector rtp_pnd_dummy;
 
-     propmat_clearsky_agendaExecute(ws,
+    propmat_clearsky_agendaExecute(ws,
                                   propmat_clearsky_local,
                                   f_mono,  // monochromatic calculation
                                   0,
@@ -163,7 +164,8 @@ void dtauc_ssalbCalc(Workspace& ws,
                                   rtp_pressure_local, 
                                   rtp_temperature_local, 
                                   rtp_vmr_local,
-                                  propmat_clearsky_agenda);
+                                  rtp_pnd_dummy,
+                                  propmat_clearsky_agenda);  
 
      Numeric abs_total = propmat_clearsky_local(joker,0,0,0).sum(); //Assuming non-polarized light and only one frequency
 

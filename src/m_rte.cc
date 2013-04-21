@@ -173,6 +173,7 @@ void iyEmissionStandard(
    const Tensor3&                    t_field,
    const Tensor4&                    vmr_field,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Tensor4&                    pnd_field,
    const Tensor3&                    wind_u_field,
    const Tensor3&                    wind_v_field,
    const Tensor3&                    wind_w_field,
@@ -319,7 +320,7 @@ void iyEmissionStandard(
   //
   // "atmvars"
   Vector    ppath_p, ppath_t;
-  Matrix    ppath_vmr, ppath_wind, ppath_mag, ppath_f;
+  Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
   // Attenuation vars
   Tensor5   ppath_abs;
   Tensor4   trans_partial, trans_cumulat;
@@ -328,14 +329,16 @@ void iyEmissionStandard(
   //
   if( np > 1 )
     {
-      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr, ppath_wind, ppath_mag, 
+      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
+                          ppath_pnd, ppath_wind, ppath_mag, 
                           ppath, atmosphere_dim, p_grid, t_field, 
-                          vmr_field, wind_u_field, wind_v_field, wind_w_field,
+                          vmr_field, pnd_field, cloudbox_on,
+                          wind_u_field, wind_v_field, wind_w_field,
                           mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(        ppath_f, ppath, f_grid,  atmosphere_dim, 
                           rte_alonglos_v, ppath_wind );
       get_ppath_abs(      ws, ppath_abs, propmat_clearsky_agenda, ppath, 
-                          ppath_p, ppath_t, ppath_vmr, ppath_f, 
+                          ppath_p, ppath_t, ppath_vmr, ppath_pnd, ppath_f, 
                           ppath_mag, f_grid, stokes_dim );
       get_ppath_trans(    trans_partial, trans_cumulat, scalar_tau, ppath, 
                           ppath_abs, f_grid, stokes_dim );
@@ -432,8 +435,8 @@ void iyEmissionStandard(
                 { 
                   Vector t2 = ppath_t;   t2 += dt;
                   get_ppath_abs( ws, ppath_at2, propmat_clearsky_agenda, 
-                                 ppath, ppath_p, t2, ppath_vmr, ppath_f,
-                                 ppath_mag, f_grid, stokes_dim );
+                                 ppath, ppath_p, t2, ppath_vmr, ppath_pnd, 
+                                 ppath_f, ppath_mag, f_grid, stokes_dim );
                   get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
                                       ppath, t2, ppath_f );
                 }
@@ -445,7 +448,7 @@ void iyEmissionStandard(
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awu, propmat_clearsky_agenda,
-                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
                   else if( wind_i[iq] == 2 )
@@ -454,7 +457,7 @@ void iyEmissionStandard(
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awv, propmat_clearsky_agenda,
-                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
                   else if( wind_i[iq] == 3 )
@@ -463,7 +466,7 @@ void iyEmissionStandard(
                       get_ppath_f(   f2, ppath, f_grid,  atmosphere_dim, 
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_aww, propmat_clearsky_agenda,
-                                     ppath, ppath_p, ppath_t, ppath_vmr, 
+                                     ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
                                      f2, ppath_mag, f_grid, stokes_dim );
                     }
                 }

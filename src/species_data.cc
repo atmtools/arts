@@ -1150,5 +1150,14 @@ void define_basic_species_data()
         ISOTOPOLOGUES
         () ) );
 
+  // You also have to change the entry in the file
+  // partition_function_data.cc consistently! 
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("particles"),
+        DEGFR(0),
+        ISOTOPOLOGUES
+        () ) );
+
   //cout << species_data;
 }

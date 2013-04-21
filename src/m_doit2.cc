@@ -40,6 +40,7 @@ void CloudboxGetIncoming2(
    const ArrayOfIndex&   cloudbox_limits,
    const Index&          basics_checked,
    const Index&          cloudbox_checked,
+   const Index&          sensor_checked,
    const Vector&         f_grid,
    const Index&          stokes_dim,
    const String&         iy_unit,
@@ -59,6 +60,9 @@ void CloudboxGetIncoming2(
   if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
+  if( !sensor_checked )
+    throw runtime_error( "The sensor variables must be flagged to have passed"
+                         "a consistency check (sensor_checked=1)." );
 
   // Main sizes
   const Index  Nf   = f_grid.nelem();

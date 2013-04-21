@@ -297,7 +297,8 @@ void abs_lookupCalc(// Workspace reference:
       // Skipping Zeeman and free_electrons species.
       // (Mixed tag groups between those and other species are not allowed.)
         if (is_zeeman(abs_species[i])
-            || abs_species[i][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+            || abs_species[i][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS
+            || abs_species[i][0].Type() == SpeciesTag::TYPE_PARTICLES)
           {
             spec++;
             continue;
@@ -1969,9 +1970,11 @@ void abs_speciesSet(// WS Output:
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Defined tag groups: ";
   Index num_free_electrons = 0;
+  Index num_particles = 0;
   for ( Index i=0; i<abs_species.nelem(); ++i )
     {
       bool has_free_electrons = false;
+      bool has_particles = false;
       out3 << "\n  " << i << ":";
       for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
@@ -1981,15 +1984,27 @@ void abs_speciesSet(// WS Output:
               has_free_electrons = true;
             }
 
+          if (abs_species[i][s].Type() == SpeciesTag::TYPE_PARTICLES)
+            {
+              num_particles++;
+              has_particles = true;
+            }
+
           out3 << " " << abs_species[i][s].Name();
         }
 
       if (abs_species[i].nelem() > 1 && has_free_electrons)
         throw runtime_error("'free_electrons' must not be combined "
                             "with other tags in the same group.");
-
       if (num_free_electrons > 1)
         throw runtime_error("'free_electrons' must not be defined "
+                            "more than once.");
+
+      if (abs_species[i].nelem() > 1 && has_particles)
+        throw runtime_error("'particles' must not be combined "
+                            "with other tags in the same group.");
+      if (num_particles > 1)
+        throw runtime_error("'particles' must not be defined "
                             "more than once.");
     }
   out3 << '\n';
@@ -2330,6 +2345,7 @@ void abs_mat_fieldCalc( Workspace& ws,
 
                 const Vector rtp_mag_dummy(3,0);
                 const Vector ppath_los_dummy;
+                const Vector rtp_pnd_dummy;
 
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
@@ -2340,6 +2356,7 @@ void abs_mat_fieldCalc( Workspace& ws,
                                                   rtp_mag_dummy,ppath_los_dummy,
                                                   a_pressure,
                                                   a_temperature, a_vmr_list,
+                                                  rtp_pnd_dummy,
                                                   l_amps_agenda);
 
                 // Verify, that the number of species in asg is

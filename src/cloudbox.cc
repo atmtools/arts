@@ -278,8 +278,8 @@ void chk_if_pnd_zero_lon(const Index& i_lon,
 //! Check particle number density files
 /*!
   This function checks, whether the particle number density file
-  has the right atmospheric dimension and whether the cloudbox includes
-  all points where the particle number density is non-zero. 
+  has the right atmospheric dimension (check for no non-zero pnd values outside
+  cloudbox removed. done in pnd_fieldCalc). 
 
   \param pnd_field_raw   pnd field data
   \param pnd_field_file  pnd field filename
@@ -287,7 +287,6 @@ void chk_if_pnd_zero_lon(const Index& i_lon,
   \param p_grid          Pressure grid
   \param lat_grid        Latitude grid
   \param lon_grid        Longitude grid
-  \param cloudbox_limits Cloudbox limits
 
   \author Claudia Emde
   \date   2005-04-05
@@ -299,7 +298,6 @@ void chk_pnd_data(
                   ConstVectorView p_grid,
                   ConstVectorView lat_grid,
                   ConstVectorView lon_grid,
-                  const ArrayOfIndex& cloudbox_limits,
                   const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -315,20 +313,6 @@ void chk_pnd_data(
   out3 << "Check particle number density file " << pnd_field_file 
        << "\n"; 
  
-  Index i_p;
- 
-  // Lower pressure limit
-  for (i_p = 0; pfr_p_grid[i_p] > p_grid[cloudbox_limits[0]]; i_p++)
-    { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file, verbosity); }
-  // The first point inside the cloudbox also needs to be zero !!
-  //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
-  
-  //Upper pressure limit 
-  for (i_p = pfr_p_grid.nelem()-1;
-       pfr_p_grid[i_p] < p_grid[cloudbox_limits[1]]; i_p--)
-    { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file, verbosity); }
-  //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
-  
   if (atmosphere_dim == 1 && (pfr_lat_grid.nelem() != 1 
                               || pfr_lon_grid.nelem() != 1) )
     {
@@ -351,38 +335,6 @@ void chk_pnd_data(
              << " is for a 1D or a 2D atmosphere. \n";
           throw runtime_error( os.str() );
         }
-
-      Index i_lat;
-      Index i_lon;
-
-      // Lower latitude limit
-      for (i_lat = 0; pfr_lat_grid[i_lat] > 
-                      lat_grid[cloudbox_limits[2]]; i_lat++)
-        { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file, verbosity); }
-
-      // The first point inside the cloudbox also needs to be zero !!
-      // chk_if_pnd_zero_lat(i_lat+1, pnd_field_raw, pnd_field_file);
-
-      //Upper latitude limit 
-      for (i_lat = pfr_lat_grid.nelem()-1;
-           pfr_lat_grid[i_lat] < lat_grid[cloudbox_limits[3]]; 
-           i_lat--)
-        { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file, verbosity); }
-      //chk_if_pnd_zero_lat(i_lat-1, pnd_field_raw, pnd_field_file, verbosity);
-      
-      // Lower longitude limit
-      for (i_lon = 0; pfr_lon_grid[i_lon] > 
-           lon_grid[cloudbox_limits[4]]; i_lon++)
-        { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file, verbosity); }
-      // The first point inside the cloudbox also needs to be zero !!
-      // chk_if_pnd_zero_lon(i_lon+1, pnd_field_raw, pnd_field_file, verbosity);
-      
-      //Upper longitude limit 
-      for (i_lon = pfr_lon_grid.nelem()-1;
-           pfr_lon_grid[i_lon] < lon_grid[cloudbox_limits[5]]; 
-           i_lon--)
-        { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file, verbosity); }
-      //chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file, verbosity);
     } 
   
   out3 << "Particle number density data is o.k. \n";  
@@ -411,7 +363,6 @@ void chk_pnd_raw_data(
                       ConstVectorView p_grid,
                       ConstVectorView lat_grid,
                       ConstVectorView lon_grid,
-                      const ArrayOfIndex& cloudbox_limits,
                       const Verbosity& verbosity
                       )
 {
@@ -422,7 +373,7 @@ void chk_pnd_raw_data(
       out3 << "Element in pnd_field_raw_file:" << i << "\n";
       chk_pnd_data(pnd_field_raw[i],
                    pnd_field_file, atmosphere_dim,
-                   p_grid, lat_grid, lon_grid, cloudbox_limits, verbosity);
+                   p_grid, lat_grid, lon_grid, verbosity);
     }
 }
 
