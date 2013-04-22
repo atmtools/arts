@@ -6389,17 +6389,39 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "line_mixing_o2Read" ),
+      ( NAME( "line_mixing_o2Init" ),
         DESCRIPTION
         (
-         "Read line mixing data and match it to *abs_lines_per_species*.\n"
+         "Initialize *line_mixing_o2* and *line_mixing_o2_lut*.\n"
+         "Resizes the lookup table to the right size.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "line_mixing_o2", "line_mixing_o2_lut" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_lines_per_species", "abs_species" ),
+        IN( "abs_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "line_mixing_o2Read" ),
+        DESCRIPTION
+        (
+         "Read line mixing data and match it to *abs_lines_per_species*.\n"
+         "*line_mixing_o2Init* must be called before this method.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "line_mixing_o2", "line_mixing_o2_lut" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "line_mixing_o2", "line_mixing_o2_lut",
+            "abs_lines_per_species", "abs_species" ),
         GIN(         "filename" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),

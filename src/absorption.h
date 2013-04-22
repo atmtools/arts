@@ -1580,8 +1580,16 @@ typedef enum {
 } LineMatchingCriteria;
 
 
-//! Search in line catalog
+//! Find lines matching the given criteria.
 /**
+ \param[out] matches        Matching indexes in abs_lines
+ \param[in]  species        Species index (-1 matches all)
+ \param[in]  isotopologue   Isotopologue index (-1 matches all)
+ \param[in]  qr             QuantumNumberRecord
+ \param[in]  match_criteria One of LINE_MATCH_FIRST, LINE_MATCH_UNIQUE,
+                            LINE_MATCH_ALL
+
+ \returns true if the match_criteria was satisfied
  */
 bool find_matching_lines(ArrayOfIndex& matches,
                          const ArrayOfLineRecord& abs_lines,

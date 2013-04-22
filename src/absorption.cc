@@ -3703,6 +3703,7 @@ ostream& operator<< (ostream &os, const LineshapeSpec& lsspec)
 //         Functions for searches inside the line catalog
 //======================================================================
 
+
 bool find_matching_lines(ArrayOfIndex& matches,
                          const ArrayOfLineRecord& abs_lines,
                          const Index species,
@@ -3718,8 +3719,8 @@ bool find_matching_lines(ArrayOfIndex& matches,
     {
         const LineRecord& this_line = abs_lines[l];
 
-        if (this_line.Species() == species
-            && this_line.Isotopologue() == isotopologue
+        if ((species == -1 || this_line.Species() == species)
+            && (isotopologue == -1 || this_line.Isotopologue() == isotopologue)
             && qr.Lower().Compare(this_line.QuantumNumbers().Lower())
             && qr.Upper().Compare(this_line.QuantumNumbers().Upper()))
         {
@@ -3734,6 +3735,8 @@ bool find_matching_lines(ArrayOfIndex& matches,
             }
         }
     }
+
+    if (!matches.nelem()) ret = false;
 
     return ret;
 }

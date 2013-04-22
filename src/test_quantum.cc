@@ -70,7 +70,7 @@ main (int /*argc*/, char * /*argv*/ [])
     timerStart(timer, v);
     abs_linesReadFromHitran(abs_lines,
                             "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par",
-                            1.1875e+11, 1.1876e+11, v);
+                            1, 1.1876e+11, v);
 //    1, 3e12, v);
 //    118e9, 119e9, v);
     timerStop(timer, v);
@@ -79,10 +79,10 @@ main (int /*argc*/, char * /*argv*/ [])
 
 
     Index species = species_index_from_species_name("O2");
-    Index iso = 0;
+    Index iso = -1;
     QuantumNumberRecord qnr;
-//    qnr.SetUpper(QN_J, Rational(57, 1));
-//    qnr.SetLower(QN_J, Rational(58, 1));
+    qnr.SetUpper(QN_J, Rational(57, 1));
+    qnr.SetLower(QN_J, Rational(58, 1));
 
     ArrayOfIndex matches;
 

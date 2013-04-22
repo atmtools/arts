@@ -1,5 +1,25 @@
 2013-04-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-593
+
+	* src/m_linemixing.cc (line_mixing_o2Read):
+
+	Implement reading of line mixing data and matching it to lines in
+	abs_lines_per_species. Needs more work in picking the right species.
+	Currently just looks for the first O2 tag.
+
+	* src/absorption.{cc,h} (find_matching_lines):
+
+	Use -1 as wildcard for species and isotopologue. Add docs.
+
+	* src/methods.cc, src/m_linemixing.cc (line_mixing_o2Init): Added.
+
+	* src/workspace.cc (line_mixing_o2_lut): Update docs.
+
+	* src/test_quantum.cc: Updated.
+
+2013-04-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-592
 
 	* src/rational.{cc,h} (operator>>):
