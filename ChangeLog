@@ -1,3 +1,19 @@
+2013-04-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-592
+
+	* src/rational.{cc,h} (operator>>):
+
+	Implement input operator for quantum numbers.
+
+	* src/quantum.cc (operator<<): Prettier output with QN names.
+
+	* src/absorption.cc (LineRecord::ReadFromHitran2004Stream):
+
+	Parse upper/lower global quanta v1 value for O2.
+
+	* src/test_quantum.cc: More tests.
+
 2013-04-21  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-591

@@ -107,7 +107,7 @@ public:
     Rational operator/(const Rational& a) const{return Rational(mnom*a.Denom(),mdenom * a.Nom());}
     Rational operator*(const Rational& a) const{return Rational(mnom*a.Nom(),mdenom * a.Denom());}
     Rational operator%(const Rational& a) const{return Rational((mnom*a.Denom())%(mdenom*a.Nom()),mdenom*a.Denom());}
-        
+
     // Boolean operations involving Index
     bool  operator<(const Index& a) const{return mnom<a*mdenom;}
     bool  operator>(const Index& a) const{return mnom>a*mdenom;}
@@ -141,6 +141,8 @@ private:
 #define RATIONAL_UNDEFINED Rational(0, 0)
 
 ostream& operator<<(ostream& os, const Rational& a);
+
+istream& operator>>(istream& os, Rational& a);
 
 Rational abs(const Rational& a);
 

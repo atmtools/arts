@@ -56,15 +56,19 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 
 ostream& operator<<(ostream& os, const QuantumNumbers& qn)
 {
-    for (Index i = 0; i < QN_FINAL_ENTRY; i++)
-        os << qn[i] << " ";
+    os << "J: " << qn[QN_J] << " "
+       << "N: " << qn[QN_N] << " "
+       << "S: " << qn[QN_S] << " "
+       << "v1: " << qn[QN_v1] << " "
+       << "v2: " << qn[QN_v2] << " "
+       << "v3: " << qn[QN_v3] << endl;
 
     return os;
 }
 
 ostream& operator<<(ostream& os, const QuantumNumberRecord& qr)
 {
-    os << "Upper: " << qr.Upper() << " ";
+    os << "Upper: " << qr.Upper();
     os << "Lower: " << qr.Lower();
 
     return os;

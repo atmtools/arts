@@ -41,6 +41,24 @@ main (int /*argc*/, char * /*argv*/ [])
     cout << "Compare q1==q2: " << q1.Compare(q2) << endl;
     cout << "Compare q2==q1: " << q2.Compare(q1) << endl;
 
+    istringstream is("1 2/4 3/1.2");
+    Rational r;
+
+    try {
+        is >> r;
+        cout << r << endl;
+        is >> r;
+        cout << r << endl;
+        is >> r;
+        cout << r << endl;
+    }
+    catch (runtime_error e)
+    {
+        cout << e.what() << endl;
+    }
+
+    cout << endl << "========================================" << endl << endl;
+
     define_species_data();
     define_species_map();
 
@@ -52,7 +70,8 @@ main (int /*argc*/, char * /*argv*/ [])
     timerStart(timer, v);
     abs_linesReadFromHitran(abs_lines,
                             "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par",
-                            1, 3e12, v);
+                            1.1875e+11, 1.1876e+11, v);
+//    1, 3e12, v);
 //    118e9, 119e9, v);
     timerStop(timer, v);
 
@@ -62,8 +81,8 @@ main (int /*argc*/, char * /*argv*/ [])
     Index species = species_index_from_species_name("O2");
     Index iso = 0;
     QuantumNumberRecord qnr;
-    qnr.SetUpper(QN_J, Rational(57, 1));
-    qnr.SetLower(QN_J, Rational(58, 1));
+//    qnr.SetUpper(QN_J, Rational(57, 1));
+//    qnr.SetLower(QN_J, Rational(58, 1));
 
     ArrayOfIndex matches;
 
@@ -71,6 +90,8 @@ main (int /*argc*/, char * /*argv*/ [])
     find_matching_lines(matches, abs_lines, species, iso, qnr);
     timerStop(timer, v);
     Print(timer, 1, v);
+
+    cout << "========================================" << endl << endl;
 
     cout << "Matches: " << matches.nelem() << endl;
 
@@ -80,6 +101,9 @@ main (int /*argc*/, char * /*argv*/ [])
         cout << abs_lines[matches[i]].QuantumNumbers() << endl;
     }
 
+    cout << "========================================" << endl << endl;
+
+    cout << "Search key: " << endl;
     cout << qnr << endl;
 
     return (0);

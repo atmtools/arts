@@ -1439,7 +1439,8 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
         mquantum_numbers.SetLower(QN_J, mlower_j);
         mquantum_numbers.SetUpper(QN_N, mlower_n - DN);
         mquantum_numbers.SetUpper(QN_J, mlower_j - DJ);
-//          cout << F() << " " << mquantum_numbers << endl;
+        mquantum_numbers.SetLower(QN_v1, atoi(mlower_lquanta.substr(13, 2).c_str()));
+        mquantum_numbers.SetUpper(QN_v1, atoi(mupper_lquanta.substr(13, 2).c_str()));
       }
       else if(species_data[mspecies].Name()=="NO")//NO FIXME: Different mspecies versus HITRAN?
       {
