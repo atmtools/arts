@@ -145,14 +145,14 @@ void line_mixing_o2Read(// WS Output:
         }
         else if (matches.nelem() == 1)
         {
+            out3 << "  Found matching line for\n" << aqnr[i] << "\n";
             line_mixing_o2_lut[abs_o2_index][matches[0]] = i;
             nmatches++;
         }
         else
         {
             ostringstream os;
-            os << "  Found multiple lines for\n"
-            << aqnr[i] << endl
+            os << "  Found multiple lines for\n" << aqnr[i] << endl
             << "  Matching lines are: " << endl;
             for (Index m = 0; m < matches.nelem(); m++)
                 os << "  " << abs_lines_per_species[abs_o2_index][matches[m]] << endl

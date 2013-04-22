@@ -35,6 +35,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include "file.h"
 #include "absorption.h"
 #include "math_funcs.h"
@@ -1439,8 +1440,33 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
         mquantum_numbers.SetLower(QN_J, mlower_j);
         mquantum_numbers.SetUpper(QN_N, mlower_n - DN);
         mquantum_numbers.SetUpper(QN_J, mlower_j - DJ);
-        mquantum_numbers.SetLower(QN_v1, atoi(mlower_lquanta.substr(13, 2).c_str()));
-        mquantum_numbers.SetUpper(QN_v1, atoi(mupper_lquanta.substr(13, 2).c_str()));
+        mquantum_numbers.SetLower(QN_v1, atoi(mlower_gquanta.substr(13, 2).c_str()));
+        mquantum_numbers.SetUpper(QN_v1, atoi(mupper_gquanta.substr(13, 2).c_str()));
+
+        // Parse lower local quanta F
+        String qnf = mlower_lquanta.substr(9, 5);
+        qnf.trim();
+        if (qnf.nelem())
+        {
+          ArrayOfString as;
+          qnf.split(as, ".");
+          if (as.nelem() == 2)
+          {
+            Index nom;
+            char* endptr;
+
+            nom = strtol(as[0].c_str(), &endptr, 10);
+            if (endptr != as[0].c_str()+as[0].nelem())
+                throw runtime_error("Error parsing quantum number F");
+
+            if (as[1] == "5")
+                mquantum_numbers.SetLower(QN_F, Rational(nom * 2 + 1, 2));
+            else if (as[1] == "0")
+                mquantum_numbers.SetLower(QN_F, nom);
+            else
+                throw runtime_error("Error parsing quantum number F");
+          }
+        }
       }
       else if(species_data[mspecies].Name()=="NO")//NO FIXME: Different mspecies versus HITRAN?
       {

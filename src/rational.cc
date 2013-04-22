@@ -23,7 +23,6 @@ USA. */
    \date   2012-10-31
 **/
 
-#include <cerrno>
 #include "rational.h"
 #include "exceptions.h"
 #include "mystring.h"
@@ -71,17 +70,17 @@ istream& operator>>(istream& is, Rational& a)
     if (as.nelem() == 1)
     {
         nom=strtol(s.c_str(), &endptr, 10);
-        if (errno == EINVAL || endptr != s.c_str()+s.nelem())
+        if (endptr != s.c_str()+s.nelem())
             throw runtime_error("Error parsing quantum number");
         a = Rational(nom, 1);
     }
     else if (as.nelem() == 2)
     {
         nom=strtol(as[0].c_str(), &endptr, 10);
-        if (errno == EINVAL || endptr != as[0].c_str()+as[0].nelem())
+        if (endptr != as[0].c_str()+as[0].nelem())
             throw runtime_error("Error parsing quantum number nominator");
         denom=strtol(as[1].c_str(), &endptr, 10);
-        if (errno == EINVAL || endptr != as[1].c_str()+as[1].nelem())
+        if (endptr != as[1].c_str()+as[1].nelem())
             throw runtime_error("Error parsing quantum number denominator");
         a = Rational(nom, denom);
     }

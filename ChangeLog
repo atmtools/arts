@@ -1,5 +1,19 @@
 2013-04-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-594
+
+	* src/absorption.cc (LineRecord::ReadFromHitran2004Stream):
+
+	Fix parsing of v1 for O2. Add parsing of F'' for O2.
+
+	* src/quantum.{h,cc}: Add quantum number F.
+
+	* src/rational.cc (operator>>): Don't check for EINVAL.
+
+	* src/m_linemixing.cc (line_mixing_o2Read): Add out3 info for matches.
+
+2013-04-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-593
 
 	* src/m_linemixing.cc (line_mixing_o2Read):

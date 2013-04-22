@@ -59,6 +59,7 @@ ostream& operator<<(ostream& os, const QuantumNumbers& qn)
     os << "J: " << qn[QN_J] << " "
        << "N: " << qn[QN_N] << " "
        << "S: " << qn[QN_S] << " "
+       << "F: " << qn[QN_F] << " "
        << "v1: " << qn[QN_v1] << " "
        << "v2: " << qn[QN_v2] << " "
        << "v3: " << qn[QN_v3] << endl;
