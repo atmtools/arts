@@ -1,3 +1,23 @@
+2013-04-23  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-597
+
+        * src/gas_abs_lookup.h: Cosmetics.
+
+        * src/gas_abs_lookup.cc (GasAbsLookup::Adapt): The current species
+	list may now contain species that are not included in the original
+	lookup table IF they are trivial species, such as free electrons
+	or zeeman species, for which there is no lookup table absorption
+	anyway. The data for these additional species is simply set to
+	NAN, the same value that *GasAbsLookup::Adapt* would produce.
+
+        * src/check_input.h (runtime_error_not_found,
+	runtime_error_not_unique): Added these two new classes, which are
+	public derivatives of *runtime_error*.
+	(chk_contains): Use the new error classes. This makes it possible
+	for the caller to selectively catch one of the two error
+	conditions, which is needed in *GasAbsLookup::Adapt*.
+
 2013-04-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-596

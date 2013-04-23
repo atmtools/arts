@@ -251,7 +251,7 @@ private:
 
     Note that the last three dimensions are identical to the
     dimensions of abs_per_tg in ARTS-1-0. This should simplify
-    computation of the lookup table with this old ARTS version.  */
+    computation of the lookup table with the old ARTS version.  */
   Tensor4 xsec;
 
 };

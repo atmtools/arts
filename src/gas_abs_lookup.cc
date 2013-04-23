@@ -95,6 +95,9 @@ void find_new_grid_in_old_grid( ArrayOfIndex& pos,
   1. Find and remember the indices of the current species in the
   lookup table. At the same time verify that each species is included
   in the table exactly once.
+  As a special case, if a species is missing, but is trivial (a species for 
+  which no lookup information should be generated anyway), then we take note of 
+  that
 
   2. Find and remember the frequencies of the current calculation in
   the lookup table. At the same time verify that all frequencies are
@@ -317,12 +320,25 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   for ( Index i=0; i<n_current_species; ++i )
     {
       out3 << "  " << get_tag_group_name( current_species[i] ) << ": ";
-      // We need no error checking for the next statement, since the
-      // chk_contains function throws a runtime error if the species
-      // is not found exactly once.
-      i_current_species[i] =
-        chk_contains( "abs_species", species, current_species[i] );
-      out3 << "found.\n";
+
+      try {
+          i_current_species[i] =
+          chk_contains( "abs_species", species, current_species[i] );
+
+      } catch (runtime_error_not_found) {
+          
+          // Is this one of the trivial species?
+          const Index spec_type = current_species[i][0].Type();
+          if (spec_type == SpeciesTag::TYPE_ZEEMAN ||
+              spec_type == SpeciesTag::TYPE_FREE_ELECTRONS ||
+              spec_type == SpeciesTag::TYPE_PARTICLES)
+            {
+              // Set to -1 to flag that this needs special handling later on.
+              i_current_species[i] = -1;
+            }
+      }
+
+      out3 << "found (or trivial).\n";
     }
 
   // 1a. Find out which of the current species are nonlinear species:
@@ -335,13 +351,16 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   out3 << "  Finding out which of the current species are nonlinear:\n";
   for ( Index i=0; i<n_current_species; ++i )
     {
-      // Check if this is a nonlinear species:
-      if (non_linear[i_current_species[i]])
+      if (i_current_species[i]>=0)     // Jump over trivial species here.
         {
-          out3 << "  " << get_tag_group_name( current_species[i] ) << "\n";
-
-          current_non_linear[i] = 1;
-          ++n_current_nonlinear_species;
+          // Check if this is a nonlinear species:
+          if (non_linear[i_current_species[i]])
+            {
+              out3 << "  " << get_tag_group_name( current_species[i] ) << "\n";
+              
+              current_non_linear[i] = 1;
+              ++n_current_nonlinear_species;
+            }
         }
     }
 
@@ -371,11 +390,21 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   new_table.species.resize( n_current_species );
   for ( Index i=0; i<n_current_species; ++i )
     {
-      new_table.species[i] = species[i_current_species[i]];
+      if (i_current_species[i]>=0)
+        {
+          new_table.species[i] = species[i_current_species[i]];
 
-      // Is this a nonlinear species?
-      if (current_non_linear[i])
-        new_table.nonlinear_species.push_back( i );
+          // Is this a nonlinear species?
+          if (current_non_linear[i])
+              new_table.nonlinear_species.push_back( i );
+        }
+      else
+        {
+          // Here we handle the case of the trivial species, for which we simply
+          // copy the name:
+        
+          new_table.species[i] = current_species[i];
+        }
     }
 
   // Frequency grid:
@@ -394,10 +423,17 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
                              n_p_grid     );
   for ( Index i=0; i<n_current_species; ++i )
     {
-      new_table.vmrs_ref( i,
-                          Range(joker) )
-        = vmrs_ref( i_current_species[i],
-                    Range(joker)          );
+      if (i_current_species[i]>=0)
+        {
+          new_table.vmrs_ref(i, Range(joker))
+          = vmrs_ref(i_current_species[i], Range(joker));
+        }
+      else
+        {
+          // Here we handle the case of the trivial species, for which we set
+          // the reference VMR to NAN.
+          new_table.vmrs_ref(i, Range(joker)) = NAN;
+        }
     }
 
   // Reference temperature profile:
@@ -442,15 +478,29 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       // Do frequencies:
       for ( Index i_f=0; i_f<n_current_f_grid; ++i_f )
         {
-          new_table.xsec( Range(joker),
-                          Range(sp,n_v),
-                          i_f,
-                          Range(joker) )
+          if (i_current_species[i_s]>=0)
+            {
+              new_table.xsec(Range(joker),
+                             Range(sp,n_v),
+                             i_f,
+                             Range(joker) )
             =
-            xsec( Range(joker),
-                  Range(original_spec_pos_in_xsec[i_current_species[i_s]],n_v),
-                  i_current_f_grid[i_f],
-                  Range(joker) );
+            xsec(Range(joker),
+                 Range(original_spec_pos_in_xsec[i_current_species[i_s]],n_v),
+                 i_current_f_grid[i_f],
+                 Range(joker) );
+            }
+          else
+            {
+              // Here we handle the case of the trivial species, which we simply
+              // set to NAN:
+              new_table.xsec(Range(joker),
+                             Range(sp,n_v),
+                             i_f,
+                             Range(joker) ) = NAN;
+              
+            }
+
 
 //           cout << "result: " << xsec( Range(joker),
 //                                       Range(original_spec_pos_in_xsec[i_current_species[i_s]],n_v),

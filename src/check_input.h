@@ -114,6 +114,27 @@ void chk_matrix_nrows(
         ConstMatrixView    x,
         const Index&       l );
 
+/** Subclasses of runtime_error.
+ 
+ This is so that I can distinguish what went wrong in chk_contains.
+ 
+ \author Stefan Buehler
+ \date   2013-04-23 */
+class runtime_error_not_found : public runtime_error {
+public:
+    runtime_error_not_found(const string& s) : runtime_error(s) {}
+};
+
+/** Subclasses of runtime_error.
+ 
+ This is so that I can distinguish what went wrong in chk_contains.
+ 
+ \author Stefan Buehler
+ \date   2013-04-23 */
+class runtime_error_not_unique : public runtime_error {
+public:
+    runtime_error_not_unique(const string& s) : runtime_error(s) {}
+};
 
 /*===========================================================================
   === Template Functions for Arrays
@@ -133,6 +154,8 @@ void chk_matrix_nrows(
   \param x_name Name of the array to check
   \param x The array to check
   \param what The value to look for.
+ 
+  \throw runtime_error_not_found, runtime_error_not_unique
 
   \author Stefan Buehler
   \date   2002-11-28
@@ -158,7 +181,7 @@ Index chk_contains( const String&   x_name,
     os << "The array *" << x_name
       <<  "* must contain the element " << what << ",\n"
       << "but it does not.";
-    throw runtime_error( os.str() );
+    throw runtime_error_not_found( os.str() );
     break;
 
   case 1:
@@ -171,7 +194,7 @@ Index chk_contains( const String&   x_name,
       <<  "* must contain the element " << what << "\n"
       << "exactly once, but it does contain it "
       << pos.nelem() << " times.";
-    throw runtime_error( os.str() );
+    throw runtime_error_not_unique( os.str() );
     break;
   }
 
