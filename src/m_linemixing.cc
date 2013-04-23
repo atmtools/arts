@@ -23,35 +23,40 @@ USA. */
 #define NUM_LINE_MIXING_PARAMS 10
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void line_mixing_o2Init(// WS Output:
-                        ArrayOfVector& line_mixing_o2,
-                        ArrayOfArrayOfIndex& line_mixing_o2_lut,
-                        // WS Input:
-                        const ArrayOfArrayOfSpeciesTag& abs_species,
-                        // Verbosity object:
-                        const Verbosity&)
+void line_mixing_dataInit(// WS Output:
+                          ArrayOfArrayOfVector& line_mixing_data,
+                          ArrayOfArrayOfIndex& line_mixing_data_lut,
+                          // WS Input:
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
+                          // Verbosity object:
+                          const Verbosity&)
 {
-    line_mixing_o2.resize(0);
-    line_mixing_o2_lut.resize(abs_species.nelem());
+    line_mixing_data.resize(abs_species.nelem());
+    line_mixing_data_lut.resize(abs_species.nelem());
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void line_mixing_o2Read(// WS Output:
-                        ArrayOfVector& line_mixing_o2,
-                        ArrayOfArrayOfIndex& line_mixing_o2_lut,
-                        // WS Input:
-                        const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                        const ArrayOfArrayOfSpeciesTag& abs_species,
-                        const String& filename,
-                        const Verbosity& verbosity)
+void line_mixing_dataRead(// WS Output:
+                          ArrayOfArrayOfVector& line_mixing_data,
+                          ArrayOfArrayOfIndex& line_mixing_data_lut,
+                          // WS Input:
+                          const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
+                          const String& species_tag,
+                          const String& filename,
+                          const Verbosity& verbosity)
 {
     CREATE_OUT2;
     CREATE_OUT3;
 
-    if (abs_species.nelem() != line_mixing_o2_lut.nelem())
-        throw runtime_error( "*line_mixing_o2_lut* doesn't match *abs_species*.\n"
-                             "Make sure to call line_mixing_o2Init first." );
+    if (abs_species.nelem() != line_mixing_data.nelem())
+        throw runtime_error( "*line_mixing_data* doesn't match *abs_species*.\n"
+                             "Make sure to call line_mixing_dataInit first." );
+    if (abs_species.nelem() != line_mixing_data_lut.nelem())
+        throw runtime_error( "*line_mixing_data_lut* doesn't match *abs_species*.\n"
+                            "Make sure to call line_mixing_dataInit first." );
+
     ifstream ifs;
     String line;
     QuantumNumberRecord qnr;
@@ -61,30 +66,28 @@ void line_mixing_o2Read(// WS Output:
 
     Index linenr = 0;
 
-    Index species_o2_index = species_index_from_species_name("O2");
-    // Find index of O2 in abs_lines_per_species
-    Index abs_o2_index = -1;
-    for (Index sp = 0; sp < abs_species.nelem(); sp++)
-    {
-        // FIXME: OLE: Temporarily we just look for an O2 tag. This will
-        // change in the near future once we have a special linemixing tag
-        if (abs_species[sp].nelem()
-            && abs_species[sp][0].Species() == species_o2_index)
-        {
-            abs_o2_index = sp;
-            break;
-        }
-    }
+    // Find index of species_tag in abs_species
+    SpeciesTag this_species( species_tag );
+    Index species_index = -1;
+    for (Index i = 0; species_index == -1 && i < abs_species.nelem(); i++)
+        // We only look at the first SpeciesTag in each group because
+        // line mixing tags can not be combined with other tags
+        if (this_species == abs_species[i][0])
+            species_index = i;
 
-    if (abs_o2_index == -1)
-        throw runtime_error("Can't find O2 in *abs_species*");
+    if (species_index == -1)
+    {
+        ostringstream os;
+        os << "Can't find tag \"" << species_tag << "\" in *abs_species*.";
+        throw runtime_error(os.str());
+    }
 
     open_input_file(ifs, filename);
 
     Vector params;
     params.resize(NUM_LINE_MIXING_PARAMS);
 
-    line_mixing_o2.resize(0);
+    line_mixing_data[species_index].resize(0);
 
     // First we read the whole line mixing file and also
     // temporarily store the quantum numbers from the file
@@ -102,7 +105,7 @@ void line_mixing_o2Read(// WS Output:
         is.clear();
         is.str(line);
         try {
-            is >> r; qnr.SetLower(QN_v1, r);
+            is >> r; qnr.SetLower(QN_v1, r); qnr.SetUpper(QN_v1, r);
             is >> r; qnr.SetUpper(QN_N, r);
             is >> r; qnr.SetLower(QN_N, r);
             is >> r; qnr.SetUpper(QN_J, r);
@@ -113,7 +116,7 @@ void line_mixing_o2Read(// WS Output:
             for (Index i = 0; i < NUM_LINE_MIXING_PARAMS; i++)
                 is >> params[i];
 
-            line_mixing_o2.push_back(params);
+            line_mixing_data[species_index].push_back(params);
             
         } catch (runtime_error e) {
             ostringstream os;
@@ -125,18 +128,18 @@ void line_mixing_o2Read(// WS Output:
     }
 
     ArrayOfIndex matches;
-    line_mixing_o2_lut[abs_o2_index].resize(abs_lines_per_species[abs_o2_index].nelem());
-    line_mixing_o2_lut[abs_o2_index] = -1;
+    line_mixing_data_lut[species_index].resize(abs_lines_per_species[species_index].nelem());
+    line_mixing_data_lut[species_index] = -1;
 
     // Now we use the quantum numbers to match the line mixing
     // data to lines in abs_lines_per_species
     Index nmatches = 0;
-    for (Index i = 0; i < line_mixing_o2.nelem(); i++)
+    for (Index i = 0; i < line_mixing_data.nelem(); i++)
     {
         find_matching_lines(matches,
-                            abs_lines_per_species[abs_o2_index],
-                            species_o2_index,
-                            -1,
+                            abs_lines_per_species[species_index],
+                            this_species.Species(),
+                            this_species.Isotopologue(),
                             aqnr[i]);
 
         if (!matches.nelem())
@@ -146,7 +149,7 @@ void line_mixing_o2Read(// WS Output:
         else if (matches.nelem() == 1)
         {
             out3 << "  Found matching line for\n" << aqnr[i] << "\n";
-            line_mixing_o2_lut[abs_o2_index][matches[0]] = i;
+            line_mixing_data_lut[species_index][matches[0]] = i;
             nmatches++;
         }
         else
@@ -155,14 +158,14 @@ void line_mixing_o2Read(// WS Output:
             os << "  Found multiple lines for\n" << aqnr[i] << endl
             << "  Matching lines are: " << endl;
             for (Index m = 0; m < matches.nelem(); m++)
-                os << "  " << abs_lines_per_species[abs_o2_index][matches[m]] << endl
-                << "  " << abs_lines_per_species[abs_o2_index][matches[m]].QuantumNumbers() << endl;
+                os << "  " << abs_lines_per_species[species_index][matches[m]] << endl
+                << "  " << abs_lines_per_species[species_index][matches[m]].QuantumNumbers() << endl;
             throw runtime_error(os.str());
         }
     }
 
-    out2 << "  Matched " << nmatches << " lines out of " << line_mixing_o2.nelem() << "\n";
-    out2 << "  abs_lines_per_species contains " << abs_lines_per_species[abs_o2_index].nelem()
+    out2 << "  Matched " << nmatches << " lines out of " << line_mixing_data[species_index].nelem() << "\n";
+    out2 << "  abs_lines_per_species contains " << abs_lines_per_species[species_index].nelem()
     << " lines.\n";
 }
 

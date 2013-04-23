@@ -217,13 +217,7 @@ bool is_zeeman(const ArrayOfSpeciesTag& tg);
 // Functions from ARTS-1-0. Are they still needed?
 //--------------------------------------------------------------------------------
 
-
-void get_tagindex_for_Strings( 
-              ArrayOfIndex&   tags1_index, 
-        const ArrayOfArrayOfSpeciesTag&      tags1, 
-        const ArrayOfString&  tags2_Strings );
-
-void get_tag_group_index_for_tag_group( 
+void get_tag_group_index_for_tag_group(
               Index&         tags1_index, 
         const ArrayOfArrayOfSpeciesTag&      tags1, 
         const Array<SpeciesTag>&  tags2 );

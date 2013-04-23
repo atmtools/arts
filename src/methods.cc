@@ -6389,14 +6389,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "line_mixing_o2Init" ),
+      ( NAME( "line_mixing_dataInit" ),
         DESCRIPTION
         (
-         "Initialize *line_mixing_o2* and *line_mixing_o2_lut*.\n"
-         "Resizes the lookup table to the right size.\n"
+         "Initialize *line_mixing_data* and *line_mixing_data_lut*.\n"
+         "Resizes first dimension of both to the same size as *abs_species*.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "line_mixing_o2", "line_mixing_o2_lut" ),
+        OUT( "line_mixing_data", "line_mixing_data_lut" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -6409,23 +6409,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "line_mixing_o2Read" ),
+      ( NAME( "line_mixing_dataRead" ),
         DESCRIPTION
         (
          "Read line mixing data and match it to *abs_lines_per_species*.\n"
-         "*line_mixing_o2Init* must be called before this method.\n"
+         "*line_mixing_dataInit* must be called before this method.\n"
+         "\n"
+         "The data is connected to the lines of the given species tag.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "line_mixing_o2", "line_mixing_o2_lut" ),
+        OUT( "line_mixing_data", "line_mixing_data_lut" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "line_mixing_o2", "line_mixing_o2_lut",
+        IN( "line_mixing_data", "line_mixing_data_lut",
             "abs_lines_per_species", "abs_species" ),
-        GIN(         "filename" ),
-        GIN_TYPE(    "String" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC(    "O2 line mixing data file.")
+        GIN(         "species_tag", "filename" ),
+        GIN_TYPE(    "String",      "String" ),
+        GIN_DEFAULT( NODEF,         NODEF ),
+        GIN_DESC(    "Species tag", "Line mixing data file.")
         ));
 
   md_data_raw.push_back

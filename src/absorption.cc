@@ -3740,13 +3740,20 @@ bool find_matching_lines(ArrayOfIndex& matches,
     bool ret = true;
     matches.resize(0);
     matches.reserve(100);
+    Index iso;
+
+    extern const Array<SpeciesRecord> species_data;
+    if (species != -1 && isotopologue == species_data[species].Isotopologue().nelem())
+        iso = -1;
+    else
+        iso = isotopologue;
 
     for (Index l = 0; l < abs_lines.nelem(); l++)
     {
         const LineRecord& this_line = abs_lines[l];
 
         if ((species == -1 || this_line.Species() == species)
-            && (isotopologue == -1 || this_line.Isotopologue() == isotopologue)
+            && (iso == -1 || this_line.Isotopologue() == iso)
             && qr.Lower().Compare(this_line.QuantumNumbers().Lower())
             && qr.Upper().Compare(this_line.QuantumNumbers().Upper()))
         {

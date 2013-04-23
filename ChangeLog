@@ -1,3 +1,32 @@
+2013-04-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-595
+
+	* src/m_linemixing.cc, src/methods.cc, src/workspace.cc:
+
+	line_mixing_o2 -> line_mixing_data.
+	line_mixing_o2_lut ->line_mixing_data_lut
+	line_mixing_o2Read -> line_mixing_dataRead
+	line_mixing_o2Init -> line_mixing_dataInit
+
+	Change type of l_m_d to ArrayOfArrayOfVector. This way it can hold all
+	the line mixing data for all species.
+
+	Add argument species_tag to line_mixing_dataRead to specify to which
+	abs_species this line mixing data should be attached to.
+
+	* src/absorption.cc (find_matching_lines):
+
+	If isotopologue index equals the total number of isotopologues in that
+	species, it is also treated as a wildcard. Consistent with the
+	behavior of SpeciesTag.
+
+	* src/abs_species_tags.h (get_tagindex_for_Strings):
+
+	Removed. Unused, no implementation present.
+
+	* src/test_quantum.cc: Updated.
+
 2013-04-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-594

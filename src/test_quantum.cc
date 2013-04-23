@@ -78,8 +78,7 @@ main (int /*argc*/, char * /*argv*/ [])
     Print(timer, 1, v);
 
 
-    Index species = species_index_from_species_name("O2");
-    Index iso = -1;
+    SpeciesTag stag("O2");
     QuantumNumberRecord qnr;
     qnr.SetUpper(QN_J, Rational(57, 1));
     qnr.SetLower(QN_J, Rational(58, 1));
@@ -87,7 +86,7 @@ main (int /*argc*/, char * /*argv*/ [])
     ArrayOfIndex matches;
 
     timerStart(timer, v);
-    find_matching_lines(matches, abs_lines, species, iso, qnr);
+    find_matching_lines(matches, abs_lines, stag.Species(), stag.Isotopologue(), qnr);
     timerStop(timer, v);
     Print(timer, 1, v);
 
@@ -104,6 +103,7 @@ main (int /*argc*/, char * /*argv*/ [])
     cout << "========================================" << endl << endl;
 
     cout << "Search key: " << endl;
+    cout << "Species: " << stag.Name() << " species: " << stag.Species() << " iso: " << stag.Isotopologue() << endl;
     cout << qnr << endl;
 
     return (0);
