@@ -704,6 +704,57 @@ void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
 }
 
 
+//! Check the correctness of abs_species.
+/*!
+   Checks on the correctness of the tags will be performed,
+   e.g. free_electrons and particles species are only allowed once in
+   abs_species.
+
+   \param tags  Array of Array of SpeciesTag.
+
+   \author Oliver Lemke
+   \date   2013-04-23
+*/
+void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
+{
+    Index num_free_electrons = 0;
+    Index num_particles = 0;
+    for ( Index i=0; i<abs_species.nelem(); ++i )
+    {
+        bool has_free_electrons = false;
+        bool has_particles = false;
+        for ( Index s=0; s<abs_species[i].nelem(); ++s )
+        {
+            if (abs_species[i][s].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
+            {
+                num_free_electrons++;
+                has_free_electrons = true;
+            }
+
+            if (abs_species[i][s].Type() == SpeciesTag::TYPE_PARTICLES)
+            {
+                num_particles++;
+                has_particles = true;
+            }
+        }
+
+        if (abs_species[i].nelem() > 1 && has_free_electrons)
+            throw runtime_error("'free_electrons' must not be combined "
+                                "with other tags in the same group.");
+        if (num_free_electrons > 1)
+            throw runtime_error("'free_electrons' must not be defined "
+                                "more than once.");
+
+        if (abs_species[i].nelem() > 1 && has_particles)
+            throw runtime_error("'particles' must not be combined "
+                                "with other tags in the same group.");
+        if (num_particles > 1)
+            throw runtime_error("'particles' must not be defined "
+                                "more than once.");
+    }
+}
+
+
 /**
  Is this a Zeeman tag group?
 

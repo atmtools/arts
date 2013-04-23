@@ -1,5 +1,17 @@
 2013-04-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-596
+
+	* src/abs_species_tags.{h,cc} (check_abs_species):
+
+	Gather checks for abs_species in one function.
+
+	* m_abs_lookup.cc (abs_speciesSet, abs_speciesAdd, abs_speciesAdd2):
+
+	Call check_abs_species after modifying abs_species.
+
+2013-04-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-595
 
 	* src/m_linemixing.cc, src/methods.cc, src/workspace.cc:

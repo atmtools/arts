@@ -1865,6 +1865,8 @@ void abs_speciesAdd(// WS Output:
       abs_species.push_back(temp);
     }
 
+  check_abs_species( abs_species );
+
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Added tag groups:";
   for ( Index i=n_gs; i<abs_species.nelem(); ++i )
@@ -1913,6 +1915,8 @@ void abs_speciesAdd2(// WS Output:
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
   abs_species.push_back( tags );
+
+  check_abs_species( abs_species );
 
   // Print list of added tag group to the most verbose output stream:
   out3 << "  Appended tag group:";
@@ -1964,48 +1968,18 @@ void abs_speciesSet(// WS Output:
     {
       // This part has now been moved to array_species_tag_from_string.
       // Call this function.
-      array_species_tag_from_string( abs_species[i], names[i] );  
+      array_species_tag_from_string( abs_species[i], names[i] );
     }
+
+  check_abs_species( abs_species );
 
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Defined tag groups: ";
-  Index num_free_electrons = 0;
-  Index num_particles = 0;
   for ( Index i=0; i<abs_species.nelem(); ++i )
     {
-      bool has_free_electrons = false;
-      bool has_particles = false;
       out3 << "\n  " << i << ":";
       for ( Index s=0; s<abs_species[i].nelem(); ++s )
-        {
-          if (abs_species[i][s].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
-            {
-              num_free_electrons++;
-              has_free_electrons = true;
-            }
-
-          if (abs_species[i][s].Type() == SpeciesTag::TYPE_PARTICLES)
-            {
-              num_particles++;
-              has_particles = true;
-            }
-
           out3 << " " << abs_species[i][s].Name();
-        }
-
-      if (abs_species[i].nelem() > 1 && has_free_electrons)
-        throw runtime_error("'free_electrons' must not be combined "
-                            "with other tags in the same group.");
-      if (num_free_electrons > 1)
-        throw runtime_error("'free_electrons' must not be defined "
-                            "more than once.");
-
-      if (abs_species[i].nelem() > 1 && has_particles)
-        throw runtime_error("'particles' must not be combined "
-                            "with other tags in the same group.");
-      if (num_particles > 1)
-        throw runtime_error("'particles' must not be defined "
-                            "more than once.");
     }
   out3 << '\n';
 }

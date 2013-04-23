@@ -210,6 +210,8 @@ Index find_next_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
 void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
                                     const String& names );
 
+void check_abs_species( const ArrayOfArrayOfSpeciesTag& tags );
+
 bool is_zeeman(const ArrayOfSpeciesTag& tg);
 
 
