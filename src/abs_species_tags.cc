@@ -69,6 +69,9 @@ SpeciesTag::SpeciesTag(String def)
   // Set type to normal LBL species by default
   mtype = TYPE_PLAIN;
   
+  // Set line mixing type to none by default
+  mline_mixing_type = LINE_MIXING_TYPE_NONE;
+
   // We cannot set a default value for the isotopologue, because the
   // default should be `ALL' and the value for `ALL' depends on the
   // species. 
@@ -272,6 +275,30 @@ SpeciesTag::SpeciesTag(String def)
       return;
     }
 
+  // Check if a line mixing type is present
+
+  if (def.substr(0, 2) == "LM")
+  {
+      n = def.find('-');    // find the '-' or the end
+      if (n == def.npos) n = def.nelem();
+
+      String lmtype = def.substr(0, n);
+      if (lmtype == "LM_2NDORDER")
+          mline_mixing_type = LINE_MIXING_TYPE_2NDORDER;
+      else if (lmtype == "LM_NONE")
+          mline_mixing_type = LINE_MIXING_TYPE_NONE;
+      else
+      {
+          ostringstream os;
+          os << "Unknown line mixing type \"" << lmtype << "\"";
+          throw runtime_error(os.str());
+      }
+
+      def.erase(0, n+1);
+
+      // Return if there's nothing else to parse
+      if (!def.nelem()) return;
+  }
 
   // Look for the two frequency limits:
   
@@ -379,7 +406,23 @@ String SpeciesTag::Name() const
           {
             os << spr.Isotopologue()[misotopologue].Name() << "-";
           }
-        
+
+        // Line Mixing Type
+
+        if (mline_mixing_type != LINE_MIXING_TYPE_NONE)
+        {
+            os << "LM_";
+            switch (mline_mixing_type)
+            {
+                case LINE_MIXING_TYPE_2NDORDER:
+                    os << "2NDORDER";
+                    break;
+                default:
+                    throw runtime_error("Invalid line mixing type. This is impossible.");
+            }
+            os << "-";
+        }
+
         // Now the frequency limits, if there are any. For this we first
         // need to determine the floating point precision.
         
@@ -723,6 +766,7 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
     {
         bool has_free_electrons = false;
         bool has_particles = false;
+        bool has_line_mixing = false;
         for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
             if (abs_species[i][s].Type() == SpeciesTag::TYPE_FREE_ELECTRONS)
@@ -735,6 +779,11 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
             {
                 num_particles++;
                 has_particles = true;
+            }
+
+            if (abs_species[i][s].LineMixingType() != SpeciesTag::LINE_MIXING_TYPE_NONE)
+            {
+                has_line_mixing = true;
             }
         }
 
@@ -751,6 +800,9 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
         if (num_particles > 1)
             throw runtime_error("'particles' must not be defined "
                                 "more than once.");
+        if (abs_species[i].nelem() > 1 && has_line_mixing)
+            throw runtime_error("Line mixing species must not be combined "
+                                "with other tags in the same group.");
     }
 }
 

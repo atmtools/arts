@@ -842,24 +842,26 @@ void Part_Return_Zeeman(  Tensor3View part_abs_mat, const ArrayOfArrayOfSpeciesT
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddZeeman(  Tensor4& propmat_clearsky,
-                                    const Vector& f_grid,
-                                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                    const ArrayOfLineshapeSpec& abs_lineshape,
-                                    const SpeciesAuxData& isotopologue_ratios,
-                                    const SpeciesAuxData& isotopologue_quantum,
-                                    const Numeric& rtp_pressure,
-                                    const Numeric& rtp_temperature,
-                                    const Vector& rtp_vmr,
-                                    const Numeric& rtp_doppler,
-                                    const Vector& rtp_mag,
-                                    const Vector& ppath_los,
-                                    const Index& atmosphere_dim,
-                                    const Index& manual_zeeman_angles_on,
-                                    const Numeric& manual_zeeman_theta,
-                                    const Numeric& manual_zeeman_eta,
-                                    const Verbosity& verbosity)
+void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
+                               const Vector& f_grid,
+                               const ArrayOfArrayOfSpeciesTag& abs_species,
+                               const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                               const ArrayOfLineshapeSpec& abs_lineshape,
+                               const SpeciesAuxData& isotopologue_ratios,
+                               const SpeciesAuxData& isotopologue_quantum,
+                               const Numeric& rtp_pressure,
+                               const Numeric& rtp_temperature,
+                               const Vector& rtp_vmr,
+                               const Numeric& rtp_doppler,
+                               const Vector& rtp_mag,
+                               const Vector& ppath_los,
+                               const Index& atmosphere_dim,
+                               const ArrayOfArrayOfVector& line_mixing_data _U_,
+                               const ArrayOfArrayOfIndex& line_mixing_data_lut _U_,
+                               const Index& manual_zeeman_angles_on,
+                               const Numeric& manual_zeeman_theta,
+                               const Numeric& manual_zeeman_eta,
+                               const Verbosity& verbosity)
 {
     CREATE_OUT3;
     Vector R_path_los;

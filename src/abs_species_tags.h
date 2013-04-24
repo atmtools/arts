@@ -51,6 +51,7 @@ public:
                  mlf(0.),
                  muf(0.),
                  mtype(-1),
+                 mline_mixing_type(LINE_MIXING_TYPE_NONE),
                  mcia_second(-1),
                  mcia_dataset(-1)
   { /* Nothing to be done here. */ }
@@ -97,16 +98,18 @@ public:
   */
   bool operator==(const SpeciesTag& other) const
   {
-    if ( other.mspecies != mspecies ) return false;
-    if ( other.misotopologue != misotopologue ) return false;
-    if ( other.mlf      != mlf      ) return false;
-    if ( other.muf      != muf      ) return false;
+    if ( other.mspecies          != mspecies ) return false;
+    if ( other.misotopologue     != misotopologue ) return false;
+    if ( other.mlf               != mlf      ) return false;
+    if ( other.muf               != muf      ) return false;
+    if ( other.mtype             != mtype    ) return false;
+    if ( other.mline_mixing_type != mline_mixing_type ) return false;
     return true;
   }
 
 
   /** Enum for type of this tag.
-   
+
   See private member mtype for more explanations.   */
    enum {
        TYPE_PLAIN,
@@ -116,13 +119,29 @@ public:
        TYPE_FREE_ELECTRONS,
        TYPE_PARTICLES
    };
+
+
+  /** Enum for line mixing type of this tag.
+
+  See private member mline_mixing_type for more explanations.   */
+   enum {
+       LINE_MIXING_TYPE_NONE,
+       LINE_MIXING_TYPE_2NDORDER
+   };
   
 
   /** Return the type of this tag.
    
    See private member mtype for more explanations.   */
   Index Type() const { return mtype; }
-    
+
+
+  /** Return the line mixing type of this tag.
+
+   See private member mtype for more explanations.   */
+  Index LineMixingType() const { return mline_mixing_type; }
+
+
 private:
   //! Molecular species index.
   Index mspecies;
@@ -156,6 +175,16 @@ private:
    </PRE>
    */
   Index mtype;
+
+  /** Line Mixing Type of this tag.
+
+   The type can be:
+   <PRE>
+   LINE_MIXING_TYPE_NONE:     No line mixing
+   LINE_MIXING_TYPE_2NDORDER: 2nd order line mixing
+   </PRE>
+   */
+  Index mline_mixing_type;
 
   //! 2nd CIA species index.
   /*! Contains the species index of the second CIA species that should be used for this tag. */

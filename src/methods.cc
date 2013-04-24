@@ -1403,7 +1403,8 @@ void define_md_data_raw()
            "isotopologue_ratios",
            "isotopologue_quantum",
            "rtp_pressure", "rtp_temperature", "rtp_vmr", "rtp_doppler",
-           "rtp_mag", "rtp_los", "atmosphere_dim"),
+           "rtp_mag", "rtp_los", "atmosphere_dim",
+           "line_mixing_data", "line_mixing_data_lut" ),
         GIN("manual_zeeman_angles_on","manual_zeeman_theta","manual_zeeman_eta"),
         GIN_TYPE("Index","Numeric","Numeric"),
         GIN_DEFAULT("0","0","0"),
@@ -1698,7 +1699,7 @@ void define_md_data_raw()
         IN( "abs_xsec_per_species", "abs_species", "abs_species_active",
             "f_grid", "abs_p", "abs_t",
             "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
-            "isotopologue_ratios" ),
+            "isotopologue_ratios", "line_mixing_data", "line_mixing_data_lut" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9438,6 +9439,12 @@ void define_md_data_raw()
          "\n"
          "To turn on Zeeman calculation for a Species, \"-Z\" may be appended\n"
          "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
+         "\n"
+         "To turn on line mixing for a Species, \"-LM_METHOD\" may be appended\n"
+         "to its name. Currently only one METHOD is supported: 2NDORDER.\n"
+         "Line mixing data has to be provided if this is turned on.\n"
+         "See *line_mixing_dataInit* and *line_mixing_dataRead*\n."
+         "Example: \"O2-66-LM_2NDORDER\".\n"
          "\n"
          "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
          "frequency range and isotopologue may be omitted.\n"

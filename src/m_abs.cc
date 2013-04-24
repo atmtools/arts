@@ -1570,6 +1570,8 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
                                   const SpeciesAuxData&            isotopologue_ratios,
+                                  const ArrayOfArrayOfVector&      line_mixing_data _U_,
+                                  const ArrayOfArrayOfIndex&       line_mixing_data_lut _U_,
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
@@ -1770,21 +1772,29 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                     }
                 }
             }
-            Matrix undefined = abs_xsec_per_species[i];
-            xsec_species( abs_xsec_per_species[i],
-                          undefined,
-                        f_grid,
-                        abs_p,
-                        abs_t,
-                        abs_vmrs,
-                        tgs,
-                        i,
-                        ll,
-                        ls.Ind_ls(),
-                        ls.Ind_lsn(),
-                        ls.Cutoff(),
-                        isotopologue_ratios,
-                        verbosity );
+            if (tgs[i][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE)
+            {
+                Matrix undefined = abs_xsec_per_species[i];
+                xsec_species( abs_xsec_per_species[i],
+                             undefined,
+                             f_grid,
+                             abs_p,
+                             abs_t,
+                             abs_vmrs,
+                             tgs,
+                             i,
+                             ll,
+                             ls.Ind_ls(),
+                             ls.Ind_lsn(),
+                             ls.Cutoff(),
+                             isotopologue_ratios,
+                             verbosity );
+            }
+            else
+            {
+                // FIXME: Richard
+                throw runtime_error("Line mixing not yet implemented");
+            }
           // Note that we call xsec_species with a row of abs_vmrs,
           // selected by the above Matpack expression. This is
           // possible, because xsec_species is using Views.
