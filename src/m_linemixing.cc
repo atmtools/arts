@@ -105,11 +105,12 @@ void line_mixing_dataRead(// WS Output:
         is.clear();
         is.str(line);
         try {
-            is >> r; qnr.SetLower(QN_v1, r); qnr.SetUpper(QN_v1, r);
-            is >> r; qnr.SetUpper(QN_N, r);
-            is >> r; qnr.SetLower(QN_N, r);
-            is >> r; qnr.SetUpper(QN_J, r);
-            is >> r; qnr.SetLower(QN_J, r);
+            is >> r; qnr.SetLower(QN_v1, r); 
+                     qnr.SetUpper(QN_v1, r);
+            is >> r; qnr.SetUpper(QN_N,  r);
+            is >> r; qnr.SetLower(QN_N,  r);
+            is >> r; qnr.SetUpper(QN_J,  r);
+            is >> r; qnr.SetLower(QN_J,  r);
             aqnr.push_back(qnr);
 
             params = NAN;
@@ -134,14 +135,14 @@ void line_mixing_dataRead(// WS Output:
     // Now we use the quantum numbers to match the line mixing
     // data to lines in abs_lines_per_species
     Index nmatches = 0;
-    for (Index i = 0; i < line_mixing_data.nelem(); i++)
+    for (Index i = 0; i < line_mixing_data[species_index].nelem(); i++)
     {
         find_matching_lines(matches,
                             abs_lines_per_species[species_index],
                             this_species.Species(),
                             this_species.Isotopologue(),
                             aqnr[i]);
-
+        
         if (!matches.nelem())
         {
             out3 << "  Found no matching lines for\n" << aqnr[i] << "\n";

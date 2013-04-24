@@ -1524,6 +1524,42 @@ void xsec_species(MatrixView               xsec_attenuation,
                   const Verbosity&         verbosity );
 
 
+void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
+                                        MatrixView               xsec_phase,
+                                        const ArrayOfArrayOfVector& line_mixing_data,
+                                        const ArrayOfArrayOfIndex& line_mixing_data_lut,
+                                        ConstVectorView          f_grid,
+                                        ConstVectorView          abs_p,
+                                        ConstVectorView          abs_t,
+                                        ConstMatrixView          all_vmrs,
+                                        const ArrayOfArrayOfSpeciesTag& abs_species,
+                                        const Index              this_species,
+                                        const ArrayOfLineRecord& abs_lines,
+                                        const Index              ind_ls,
+                                        const Index              ind_lsn,
+                                        const Numeric            cutoff,
+                                        const SpeciesAuxData&    isotopologue_ratios,
+                                        const Verbosity&         verbosity );
+
+
+void xsec_species_line_mixing_2nd_order(    MatrixView               xsec_attenuation,
+                                            MatrixView               xsec_phase,
+                                            const ArrayOfArrayOfVector& line_mixing_data,
+                                            const ArrayOfArrayOfIndex& line_mixing_data_lut,
+                                            ConstVectorView          f_grid,
+                                            ConstVectorView          abs_p,
+                                            ConstVectorView          abs_t,
+                                            ConstMatrixView          all_vmrs,
+                                            const ArrayOfArrayOfSpeciesTag& abs_species,
+                                            const Index              this_species,
+                                            const ArrayOfLineRecord& abs_lines,
+                                            const Index              ind_ls,
+                                            const Index              ind_lsn,
+                                            const Numeric            cutoff,
+                                            const SpeciesAuxData&    isotopologue_ratios,
+                                            const Verbosity&         verbosity );
+
+
 // A helper function for energy conversion:
 Numeric wavenumber_to_joule(Numeric e);
 

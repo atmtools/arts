@@ -1570,8 +1570,8 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                                   const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                                   const ArrayOfLineshapeSpec&      abs_lineshape,
                                   const SpeciesAuxData&            isotopologue_ratios,
-                                  const ArrayOfArrayOfVector&      line_mixing_data _U_,
-                                  const ArrayOfArrayOfIndex&       line_mixing_data_lut _U_,
+                                  const ArrayOfArrayOfVector&      line_mixing_data,
+                                  const ArrayOfArrayOfIndex&       line_mixing_data_lut,
                                   const Verbosity&                 verbosity)
 {
   CREATE_OUT3;
@@ -1792,8 +1792,24 @@ void abs_xsec_per_speciesAddLines(// WS Output:
             }
             else
             {
-                // FIXME: Richard
-                throw runtime_error("Line mixing not yet implemented");
+                Matrix xsec_phase = abs_xsec_per_species[i];
+                xsec_phase = 0;
+                xsec_species_line_mixing_wrapper( abs_xsec_per_species[i],
+                              xsec_phase,
+                              line_mixing_data,
+                              line_mixing_data_lut,
+                              f_grid,
+                              abs_p,
+                              abs_t,
+                              abs_vmrs,
+                              tgs,
+                              i,
+                              ll,
+                              ls.Ind_ls(),
+                              ls.Ind_lsn(),
+                              ls.Cutoff(),
+                              isotopologue_ratios,
+                              verbosity );
             }
           // Note that we call xsec_species with a row of abs_vmrs,
           // selected by the above Matpack expression. This is

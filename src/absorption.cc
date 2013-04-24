@@ -3740,25 +3740,18 @@ bool find_matching_lines(ArrayOfIndex& matches,
     bool ret = true;
     matches.resize(0);
     matches.reserve(100);
-    Index iso;
-
-    extern const Array<SpeciesRecord> species_data;
-    if (species != -1 && isotopologue == species_data[species].Isotopologue().nelem())
-        iso = -1;
-    else
-        iso = isotopologue;
-
+    
     for (Index l = 0; l < abs_lines.nelem(); l++)
     {
         const LineRecord& this_line = abs_lines[l];
-
+        
         if ((species == -1 || this_line.Species() == species)
-            && (iso == -1 || this_line.Isotopologue() == iso)
+            && (isotopologue == -1 || this_line.Isotopologue() == isotopologue)
             && qr.Lower().Compare(this_line.QuantumNumbers().Lower())
             && qr.Upper().Compare(this_line.QuantumNumbers().Upper()))
         {
             matches.push_back(l);
-
+            
             if (match_criteria == LINE_MATCH_FIRST)
                 break;
             if (match_criteria == LINE_MATCH_UNIQUE && matches.nelem() > 1)
@@ -3768,8 +3761,179 @@ bool find_matching_lines(ArrayOfIndex& matches,
             }
         }
     }
-
+    
     if (!matches.nelem()) ret = false;
-
+    
     return ret;
+}
+
+
+/**
+ *  
+ *  This will work as a wrapper for linemixing when abs_species contain relevant data.
+ *  The funciton will only pass on arguments to xsec_species if there is no linemixing.
+ *  
+ *  \retval xsec_attenuation    Cross section of one tag group. This is now the
+ *                              true attenuation cross section in units of m^2.
+ *  \retval xsec_phase          Cross section of one tag group. This is now the
+ *                              true phase cross section in units of m^2.
+ *  \param line_mixing_data     Line mixing data for specific type of line mixing.
+ *  \param line_mixing_data_lut Line mixing data lookup table.
+ *  \param f_grid               Frequency grid.
+ *  \param abs_p                Pressure grid.
+ *  \param abs_t                Temperatures associated with abs_p.
+ *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param abs_species          Species tags for all species.
+ *  \param this_species         Index of the current species in abs_species.
+ *  \param abs_lines            The spectroscopic line list.
+ *  \param ind_ls               Index to lineshape function.
+ *  \param ind_lsn              Index to lineshape norm.
+ *  \param cutoff               Lineshape cutoff.
+ *  \param isotopologue_ratios  Isotopologue ratios.
+ * 
+ *  \author Richard Larsson
+ *  \date   2013-04-24
+ * 
+ */
+void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuation,
+                                        MatrixView               xsec_phase,
+                                        const ArrayOfArrayOfVector& line_mixing_data,
+                                        const ArrayOfArrayOfIndex& line_mixing_data_lut,
+                                        ConstVectorView          f_grid,
+                                        ConstVectorView          abs_p,
+                                        ConstVectorView          abs_t,
+                                        ConstMatrixView          all_vmrs,
+                                        const ArrayOfArrayOfSpeciesTag& abs_species,
+                                        const Index              this_species,
+                                        const ArrayOfLineRecord& abs_lines,
+                                        const Index              ind_ls,
+                                        const Index              ind_lsn,
+                                        const Numeric            cutoff,
+                                        const SpeciesAuxData&    isotopologue_ratios,
+                                        const Verbosity&         verbosity )
+{
+    if(abs_species[this_species][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE) // If no linemixing data exists
+        xsec_species(xsec_attenuation, xsec_phase, f_grid, abs_p, abs_t, all_vmrs,
+                     abs_species, this_species, abs_lines, ind_ls, ind_lsn, cutoff,
+                     isotopologue_ratios, verbosity);
+        else // If linemixing data exists
+    {
+        switch(abs_species[this_species][0].LineMixingType())
+        {
+            case SpeciesTag::LINE_MIXING_TYPE_2NDORDER:
+                xsec_species_line_mixing_2nd_order(xsec_attenuation, xsec_phase, line_mixing_data, 
+                                                   line_mixing_data_lut, f_grid, abs_p, abs_t, all_vmrs,
+                                                   abs_species, this_species, abs_lines, ind_ls, ind_lsn, 
+                                                   cutoff, isotopologue_ratios, verbosity);
+                break;
+                //             default:
+                //                 //ERROR
+        }
+    }
+    
+}
+
+
+/** 
+ *  
+ *  This is the second order line mixing correction as presented by:
+ *  Makarov, D.S, M.Yu. Tretyakov and P.W. Rosenkranz, 2011, 60-GHz
+ *  oxygen band: Precise experimental profiles and extended absorption
+ *  modeling in a wide temperature range, JQSRT 112, 1420-1428.
+ *  
+ *  \retval xsec_attenuation    Cross section of one tag group. This is now the
+ *                              true attenuation cross section in units of m^2.
+ *  \retval xsec_phase          Cross section of one tag group. This is now the
+ *                              true phase cross section in units of m^2.
+ *  \param line_mixing_data     Line mixing data for specific type of line mixing.
+ *  \param line_mixing_data_lut Line mixing data lookup table.
+ *  \param f_grid               Frequency grid.
+ *  \param abs_p                Pressure grid.
+ *  \param abs_t                Temperatures associated with abs_p.
+ *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param abs_species          Species tags for all species.
+ *  \param this_species         Index of the current species in abs_species.
+ *  \param abs_lines            The spectroscopic line list.
+ *  \param ind_ls               Index to lineshape function.
+ *  \param ind_lsn              Index to lineshape norm.
+ *  \param cutoff               Lineshape cutoff.
+ *  \param isotopologue_ratios  Isotopologue ratios.
+ * 
+ *  \author Richard Larsson
+ *  \date   2013-04-24
+ * 
+ */
+void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuation,
+                                        MatrixView               xsec_phase,
+                                        const ArrayOfArrayOfVector& line_mixing_data,
+                                        const ArrayOfArrayOfIndex& line_mixing_data_lut,
+                                        ConstVectorView          f_grid,
+                                        ConstVectorView          abs_p,
+                                        ConstVectorView          abs_t,
+                                        ConstMatrixView          all_vmrs,
+                                        const ArrayOfArrayOfSpeciesTag& abs_species,
+                                        const Index              this_species,
+                                        const ArrayOfLineRecord& abs_lines,
+                                        const Index              ind_ls,
+                                        const Index              ind_lsn,
+                                        const Numeric            cutoff,
+                                        const SpeciesAuxData&    isotopologue_ratios,
+                                        const Verbosity&         verbosity )
+{
+    
+    // FIXME: A test for lineshape allowing both attenuation and phase.;
+    const ArrayOfVector data = line_mixing_data[this_species];
+    const ArrayOfIndex  lut  = line_mixing_data_lut[this_species];
+    
+    // Helper variables
+    Matrix attenuation = xsec_attenuation, phase = xsec_phase;
+    
+    //Since we need to be able to modify the line.
+    ArrayOfLineRecord ll;
+    ll.resize(1);
+    
+    // The structure of the line mixing data Vector should follow:
+    //  (0)=y0 (1)=y1 (2)=g0 (3)=g1 (4)=dv0 (5)=dv1 (6)=Ts (7)=x_y (8)=x_g (9)=x_dv
+    
+    const Numeric p = abs_p[0], T = abs_t[0];
+    
+    for(Index ii = 0; ii < lut.nelem(); ii++)
+    {
+        // Since we need cross section per line to do the mixing.
+        ll[0] = abs_lines[ii];//Possible speed-up by separating all non-split lines and doing those as a batch?
+        
+        // Since we need line mixing only for selected lines the rest should ignore by doing nothing.
+        Vector a(2,0);
+        
+        if(lut[ii]!=-1)
+        {
+            const Vector& dat = data[lut[ii]];
+            // First order line mixing coefficient scales with pressure
+            a[0] =              1e-5* p //Is this really the right forefactor for 1/bar
+            * ( ( dat[0] + dat[1] * ( dat[6]/T-1 ) ) 
+            * pow( dat[6]/T, dat[7] ) );
+            // Second order line mixing coefficient scales with pressure squared
+            a[1] =     1e-5*1e-5* p * p //Is this really the right forefactor for 1/bar2
+            * ( ( dat[2] + dat[3] * ( dat[6]/T-1 ) ) 
+            * pow( dat[6]/T, dat[8] ) );           
+            ll[0].setF( 1e9*1e-5*1e-5*p * p //Is this really the right forefactor for GHz/bar2
+            * ( ( dat[4] +  dat[5] * ( dat[6]/T-1 ) ) 
+            * pow( dat[6]/T, dat[9] ) ) + ll[0].F());
+        }
+        
+        attenuation=0;
+        phase=0;
+        
+        xsec_species(attenuation, phase, f_grid, abs_p, abs_t, all_vmrs,
+                     abs_species, this_species, ll, ind_ls, ind_lsn, cutoff,
+                     isotopologue_ratios, verbosity);
+        
+        // Do the actual line mixing and add this to xsec_attenuation.
+        phase *= a[0];
+        xsec_phase += phase;
+        xsec_attenuation += attenuation;
+        attenuation *= a[1];
+        xsec_attenuation += attenuation;
+        
+    }
 }
