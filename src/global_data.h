@@ -30,6 +30,10 @@
 
 // Needed for global_data::species_data
 class SpeciesRecord;
+// Needed for global_data::lineshape_data
+class LineshapeRecord;
+// Needed for global_data::lineshape_norm_data
+class LineshapeNormRecord;
 
 namespace global_data {
 
@@ -77,7 +81,7 @@ extern const Array<AgRecord> agenda_data;
 
 //! The map associated with agenda_data.
 /**
- Defined in agenda_record.cc
+ Defined in agenda_record.cc.
  */
 extern const map<String, Index> AgendaMap;
 
@@ -91,14 +95,26 @@ extern const ArrayOfString wsv_group_names;
 
 //! The map associated with wsv_group_names.
 /**
- Defined in groups.cc
+ Defined in groups.cc.
  */
 extern const map<String, Index> WsvGroupMap;
 
 //! Species Data
 /**
- Defined in species_data.cc
+ Defined in species_data.cc.
  */
 extern const Array<SpeciesRecord> species_data;
 
-} /* global_data */
+//! The lookup data for the different lineshapes.
+/**
+ Defined in lineshapes.cc.
+ */
+extern const Array<LineshapeRecord> lineshape_data;
+
+//! The lookup data for the different normalization factors to the lineshapes.
+/**
+ Defined in lineshapes.cc.
+ */
+extern const Array<LineshapeNormRecord> lineshape_norm_data;
+
+} /* namespace global_data */

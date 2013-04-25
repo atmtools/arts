@@ -61,15 +61,18 @@ public:
   /** Default constructor. */
   LineshapeRecord() : mname(),
                       mdescription(),
+                      mphase(),
                       mfunction()
   { /* Nothing to do here. */ }
 
   /** Initializing constructor, used to build the lookup table. */
   LineshapeRecord(const String& name,
                   const String& description,
-                  lsf_type      function)
+                  lsf_type      function,
+                  const bool    phase)
     : mname(name),
       mdescription(description),
+      mphase(phase),
       mfunction(function)
   { /* Nothing to do here. */ }
   /** Return the name of this lineshape. */
@@ -78,9 +81,12 @@ public:
   const String&  Description() const { return mdescription; }
   /** Return pointer to lineshape function. */
   lsf_type Function() const { return mfunction; }
+  /** Returns true if lineshape function calculates phase information. */
+  bool Phase() const { return mphase; }
 private:        
   String  mname;        ///< Name of the function (e.g., Lorentz).
   String  mdescription; ///< Short description.
+  bool    mphase;       ///< Does this lineshape calculate phase information?
   lsf_type mfunction;   ///< Pointer to lineshape function.
 
 };

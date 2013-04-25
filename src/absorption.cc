@@ -2918,8 +2918,8 @@ void xsec_species( MatrixView               xsec_attenuation,
                    const Verbosity&         verbosity )
 {
   // Make lineshape and species lookup data visible:
-  extern const Array<LineshapeRecord> lineshape_data;
-  extern const Array<LineshapeNormRecord> lineshape_norm_data;
+  using global_data::lineshape_data;
+  using global_data::lineshape_norm_data;
 
   // speed of light constant
   extern const Numeric SPEED_OF_LIGHT;
@@ -3968,6 +3968,9 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
 {
     
     // FIXME: A test for lineshape allowing both attenuation and phase.;
+//    using global_data::lineshape_data;
+//    bool lineshape_returns_phase = lineshape_data[ind_ls].Phase();
+
     const ArrayOfVector data = line_mixing_data[this_species];
     const ArrayOfIndex  lut  = line_mixing_data_lut[this_species];
     

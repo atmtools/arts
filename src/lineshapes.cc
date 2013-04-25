@@ -1848,10 +1848,17 @@ void lineshape_norm_VVH(Vector&         fac,
 //------------------------------------------------------------------------
 
 /*! The lookup data for the different lineshapes. */
+namespace global_data {
 Array<LineshapeRecord> lineshape_data;
+}
 
 void define_lineshape_data()
 {
+  using global_data::lineshape_data;
+
+  const bool PHASE = true;
+  const bool NO_PHASE = false;
+
   // Initialize to empty, just in case.
   lineshape_data.resize(0);
 
@@ -1860,43 +1867,43 @@ void define_lineshape_data()
      ("no_shape",
       "This lineshape does nothing. It only exists, because formally\n"
       "you have to specify a lineshape also for continuum tags.", 
-      lineshape_no_shape));
+      lineshape_no_shape, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Lorentz",
       "The Lorentz line shape.",
-      lineshape_lorentz));
+      lineshape_lorentz, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Doppler",
       "The Doppler line shape.",
-      lineshape_doppler));
+      lineshape_doppler, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz6",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-6",
-      lineshape_voigt_kuntz6));
+      lineshape_voigt_kuntz6, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz3",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-3",
-      lineshape_voigt_kuntz3));
+      lineshape_voigt_kuntz3, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz4",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-4",
-      lineshape_voigt_kuntz4));
+      lineshape_voigt_kuntz4, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Drayson",
       "The Voigt line shape. Approximation by Drayson.",
-      lineshape_voigt_drayson));
+      lineshape_voigt_drayson, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -1911,7 +1918,7 @@ void define_lineshape_data()
       "\n"
       "NOTE: Temperature dependency is not yet included. The chi factor is\n"
       "valid for 238 K.",
-      lineshape_CO2_lorentz));
+      lineshape_CO2_lorentz, NO_PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -1925,7 +1932,7 @@ void define_lineshape_data()
       "\n"
       "NOTE: Temperature dependency is not yet included. The chi factor is\n"
       "valid for 238 K.",
-      lineshape_CO2_drayson));
+      lineshape_CO2_drayson, NO_PHASE));
 
     lineshape_data.push_back
     (LineshapeRecord
@@ -1934,15 +1941,19 @@ void define_lineshape_data()
     "Line shape is considered from w(z)=exp(-z^2)*erfc(-iz) where z=v'+ia, and \n"
     "v' is a Doppler weighted freqeuncy parameter and a is a Doppler weighted  \n"
     "pressure parameter.",
-    faddeeva_algorithm_916));
+    faddeeva_algorithm_916, PHASE));
 }
 
 /*! The lookup data for the different normalization factors to the
   lineshapes. */
+namespace global_data {
 Array<LineshapeNormRecord> lineshape_norm_data;
+}
 
 void define_lineshape_norm_data()
 {
+  using global_data::lineshape_norm_data;
+
   // Initialize to empty, just in case.
   lineshape_norm_data.resize(0);
 

@@ -1068,8 +1068,8 @@ void abs_lineshapeDefine(// WS Output:
   CREATE_OUT2;
   
   // Make lineshape and normalization factor data visible:
-  extern const Array<LineshapeRecord> lineshape_data;
-  extern const Array<LineshapeNormRecord> lineshape_norm_data;
+  using global_data::lineshape_data;
+  using global_data::lineshape_norm_data;
 
 
   // generate the right number of elements
@@ -1138,8 +1138,8 @@ void abs_lineshape_per_tgDefine(// WS Output:
   CREATE_OUT2;
   
   // Make lineshape and normalization factor data visible:
-  extern const Array<LineshapeRecord> lineshape_data;
-  extern const Array<LineshapeNormRecord> lineshape_norm_data;
+  using global_data::lineshape_data;
+  using global_data::lineshape_norm_data;
 
   // check that the number of elements are equal
   Index tg_sz = tgs.nelem();
@@ -1706,7 +1706,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
           // an index. With that index we can go into lineshape_data
           // to get the name.
           // We will need this for safety checks later on.
-          extern const Array<LineshapeRecord> lineshape_data;
+          using global_data::lineshape_data;
           String lineshape_name = lineshape_data[ls.Ind_ls()].Name();
 
 

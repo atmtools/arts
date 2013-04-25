@@ -1,5 +1,30 @@
 2013-04-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-602
+
+	* src/absorption.h (LineshapeRecord):
+
+	Add bool member to store if this lineshape calculates phase
+	information. Important to determine later whether this lineshape can
+	be used for line mixing calculations.
+
+	* src/absorption.cc (xsec_species_line_mixing_2nd_order):
+
+	Add example code for Richard on how to get LineshapeRecord::Phase().
+
+	* src/global_data.h: Declare lineshape_data and lineshape_norm_data.
+
+	* src/lineshapes.cc (define_lineshape_data):
+
+	Add PHASE or NO_PHASE to each LineshapeRecord constructor call.
+
+	Define lineshape_data and lineshape_norm_data inside global_data
+	namespace.
+
+	* src/m_abs.cc: extern const... -> using... for l_d and l_n_d.
+
+2013-04-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-601
 
 	* Cleanup of global variables.
