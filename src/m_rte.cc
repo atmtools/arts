@@ -679,44 +679,6 @@ void iyEmissionStandard(
           // Spectrum at end of ppath step 
           emission_rtstep( iy, stokes_dim, bbar, 
                            trans_partial(joker,joker,joker,ip) );
-          /*
-          if( stokes_dim == 1 )
-            {
-              for( Index iv=0; iv<nf; iv++ )  
-                { iy(iv,0) = iy(iv,0) * trans_partial(iv,0,0,ip) +
-                       bbar[iv] * ( 1 - trans_partial(iv,0,0,ip) ); }
-            }
-          else
-            {
-#pragma omp parallel for      \
-  if (!arts_omp_in_parallel()  \
-      && nf >= arts_omp_get_max_threads())
-    for( Index iv=0; iv<nf; iv++ )
-                {
-                  // Unpolarised absorption:
-                  if( is_diagonal( trans_partial(iv,joker,joker,ip) ) )
-                    {
-                      iy(iv,0) = iy(iv,0) * trans_partial(iv,0,0,ip) +
-                           bbar[iv] * ( 1 - trans_partial(iv,0,0,ip) );
-                      for( Index is=1; is<ns; is++ )
-                        { iy(iv,is) = iy(iv,is) * trans_partial(iv,is,is,ip); }
-                    }
-                  // The general case:
-                  else
-                    {
-                      // Transmitted term
-                      Vector tt(ns);
-                      mult( tt, trans_partial(iv,joker,joker,ip), iy(iv,joker));
-                      // Add emission, first Stokes element
-                      iy(iv,0) = tt[0] + bbar[iv]*(1-trans_partial(iv,0,0,ip));
-                      // Remaining Stokes elements
-                      for( Index i=1; i<ns; i++ )
-                        { iy(iv,i) = tt[i] - bbar[iv]*trans_partial(iv,i,0,ip);}
-                      
-                    }
-                }
-            }
-          */
 
           //=== iy_aux part ===================================================
           // Pressure

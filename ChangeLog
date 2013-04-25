@@ -1,20 +1,36 @@
+2013-04-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-600
+
+	* src/m_fos.cc: Adding support for fos_n > 0. Work in progress.
+	Don't use FOS at all!!!
+
+	* src/m_rte.cc (iyEmissionStandard): Removed non-active code,
+	moved to sub-function.
+
+	* src/workspace.cc: Removed all FOS specific variables.
+
 2013-04-24  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-599
 
-	* src/absorption.h: Two new functions: (xsec_species_line_mixing_wrapper) 
-	and (xsec_species_line_mixing_2nd_order) that will act as a line mixing 
-	layer for (xsec_species).
+	* src/absorption.h: Two new functions:
+	(xsec_species_line_mixing_wrapper) and
+	(xsec_species_line_mixing_2nd_order) that will act as a line
+	mixing layer for (xsec_species).
 
-	* src/m_linemixing.cc: Fix to work with new ArrayOfArray* line_mixing_data*.
+	* src/m_linemixing.cc: Fix to work with new ArrayOfArray*
+	line_mixing_data*.
 
-	* src/m_abs.cc: Made line_mixing_data* active variables. Added call to
+	* src/m_abs.cc: Made line_mixing_data* active variables. Added
+	call to
 	(xsec_species_line_mixing_wrapper) where appropriate.
 
-	* src/absorption.cc: (xsec_species_line_mixing_wrapper) and 
-	(xsec_species_line_mixing_2nd_order) added. When utilized with data from
-	Makarov etal 2011 these will change O2 band near 6 GHz both positively and 
-	negatively (I have seen at most 1 K). These still require more testing.
+	* src/absorption.cc: (xsec_species_line_mixing_wrapper) and
+	(xsec_species_line_mixing_2nd_order) added. When utilized with
+	data from Makarov etal 2011 these will change O2 band near 6 GHz
+	both positively and negatively (I have seen at most 1 K). These
+	still require more testing.
 
 2013-04-24  Oliver Lemke  <olemke@core-dump.info>
 

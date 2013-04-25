@@ -5019,14 +5019,15 @@ void define_md_data_raw()
         (
          "Method in development. Don't use without contacting Patrick.\n"
          "\n"
-         "Designed to be part of *iy_main_agenda*. That is, only valid\n"
-         "outside the cloudbox (no scattering). Assumes local thermodynamic\n"
-         "equilibrium for emission. The basic calculation strategy is to take\n"
-         "the average of the absorption and the emission source function at\n"
-         "the end points of each step of the propagation path. For details\n"
-         "see the user guide.\n" 
-         "\n"
          "Regarding radiance unit, works exactly as *iyEmissionStandard*.\n"
+         "\n"
+         "The *fos_n* argument determines the maximum scattering order that\n"
+         "will be considered. For example, 1 corresponds to that only single\n"
+         "scattering is considered. The value 0 is accepted and results\n"
+         "in calculations of clear-sky type. In the later case, particle\n"
+         "absorption/emission is considered if cloudbox is active. If\n"
+         "cloudbox is not active,clear-sky results are returned for all\n"
+         "values of *fos_n*.\n"
          "\n"
          "The following auxiliary data can be obtained:\n"
          "  \"Pressure\": The pressure along the propagation path.\n"
@@ -5081,10 +5082,10 @@ void define_md_data_raw()
             "iy_space_agenda", "iy_surface_agenda", 
             "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
             "rte_pos2", "rte_alonglos_v", "ppath_lraytrace" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "fos_n" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Max scattering order to consider." )
         ));
 
   md_data_raw.push_back
