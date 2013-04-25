@@ -21,6 +21,7 @@
 #include "matpackI.h"
 #include "file.h"
 #include "array.h"
+#include "global_data.h"
 
 int main()
 {
@@ -30,7 +31,7 @@ int main()
       define_wsv_group_names();
 
       // Make the names visible.
-      extern const ArrayOfString wsv_group_names;
+      using global_data::wsv_group_names;
 
       ofstream ofs;
       open_output_file(ofs,"auto_workspace.h");

@@ -30,6 +30,14 @@
 #include "wsv_aux.h"
 #include "workspace_ng.h"
 
+namespace global_data {
+//! The map associated with agenda_data.
+map<String, Index> AgendaMap;
+
+extern const Array<AgRecord> agenda_data;
+extern const ArrayOfString wsv_group_names;
+}
+
 //! The only non-trivial constructor for AgRecord, which sets all the fields.
 /*! 
   We work on the assumption, that the workspace lookup data has been
@@ -91,8 +99,8 @@ AgRecord::AgRecord(const char               name[],
 
 void define_agenda_map()
 {
-  extern const Array<AgRecord> agenda_data;
-  extern map<String, Index> AgendaMap;
+  using global_data::agenda_data;
+  using global_data::AgendaMap;
 
   for (Index i = 0; i < agenda_data.nelem(); ++i)
     {
@@ -114,8 +122,8 @@ void define_agenda_map()
 bool check_agenda_data()
 {
   // Make external data visible
-  extern const Array<AgRecord>  agenda_data;
-  DEBUG_ONLY(extern map<String, Index> AgendaMap);
+  using global_data::agenda_data;
+  DEBUG_ONLY(using global_data::AgendaMap);
 
   Index i, j, k;
 
@@ -179,8 +187,6 @@ bool check_agenda_data()
 */
 ostream& operator<<(ostream& os, const AgRecord& agr)
 {
-  //  extern const ArrayOfString wsv_group_names;
-  //  extern const String TokValTypeName[];
   bool first;
 
   os << "\n*-------------------------------------------------------------------*\n"
@@ -188,9 +194,6 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
   << "\n---------------------------------------------------------------------\n"
   << "\n" << agr.Description() << "\n"
   << "\n---------------------------------------------------------------------\n";
-
-  //  os << "\n-----\nName = " << agr.Name() << '\n\n'
-  //     << "Description =\n" << agr.Description() << "\n\n";
 
   os << "Group  = Agenda\n";
 
@@ -234,7 +237,7 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
 */
 ostream& operator<<(ostream& os, const WsvRecord& wr)
 {
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   // We need a special treatment for the case that the WSV is an agenda.
 
@@ -254,9 +257,10 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
     {
       // Agenda.
 
-      extern const Array<AgRecord>    agenda_data;
+      using global_data::agenda_data;
+
       // AgendaMap is constant here and should never be changed
-      extern map<String, Index> AgendaMap;
+      using global_data::AgendaMap;
 
       map<String, Index>::const_iterator j =
         AgendaMap.find(wr.Name());
@@ -278,7 +282,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 void write_agenda_wrapper_header(ofstream&       ofs,
                                  const AgRecord& agr)
 {
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   // Wrapper function
   ofs << "void " << agr.Name() << "Execute(\n";

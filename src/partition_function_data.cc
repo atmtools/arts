@@ -39,6 +39,10 @@
 #include "make_array.h"
 #include "absorption.h"
 
+namespace global_data {
+extern Array<SpeciesRecord> species_data;
+}
+
 /*
   Default values for a linear molecule:
 
@@ -178,7 +182,7 @@ void iso(Array<IsotopologueRecord>::iterator& ii,
 
 void define_partition_species_data()
 {
-  extern Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   Array<SpeciesRecord>::iterator it_species = species_data.begin();
   Array<IsotopologueRecord>::iterator it_isotopologue;

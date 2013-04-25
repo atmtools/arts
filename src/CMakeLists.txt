@@ -84,7 +84,6 @@ add_executable (make_auto_md_h
 	arts.cc
   auto_workspace.h
 	file.cc
-	globals_2.cc
 	make_auto_md_h.cc
 	messages.cc
 	parameters.cc
@@ -107,7 +106,6 @@ add_executable (make_auto_md_cc
 	arts.cc
   auto_workspace.h
 	file.cc
-	globals_2.cc
 	make_auto_md_cc.cc
 	messages.cc
 	parameters.cc
@@ -159,7 +157,6 @@ add_library (artscore STATIC
   gas_abs_lookup.cc
   geomag_calc.cc
   geodetic.cc
-  globals_2.cc
   gridded_fields.cc
   gzstream.cc
   interpolation.cc

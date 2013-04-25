@@ -31,6 +31,7 @@
 #include <cmath>
 #include "cia.h"
 #include "interpolation_poly.h"
+#include "absorption.h"
 #include "abs_species_tags.h"
 #include "file.h"
 

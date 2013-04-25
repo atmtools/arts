@@ -350,6 +350,7 @@
 #include "array.h"
 #include "absorption.h"
 #include "continua.h"
+#include "global_data.h"
 
 
 // #################################################################################
@@ -12933,7 +12934,7 @@ void xsec_continuum_tag (MatrixView             xsec,
 void check_continuum_model(const String& name)
 {
   // The species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // For the list of valid continuum models:
   ArrayOfString valid_models;

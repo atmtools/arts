@@ -21,6 +21,7 @@
 #include "methods.h"
 #include "workspace_ng.h"
 #include "agenda_record.h"
+#include "global_data.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
@@ -41,8 +42,8 @@ int main()
   try
     {
       // Make the global data visible:
-      extern Array<MdRecord> md_data;
-      extern const ArrayOfString wsv_group_names;
+      using global_data::md_data;
+      using global_data::wsv_group_names;
       const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
       // Initialize the wsv group name array:
@@ -92,6 +93,7 @@ int main()
           << "#include \"m_basic_types.h\"\n"
           << "#include \"agenda_record.h\"\n"
           << "#include \"workspace_ng.h\"\n"
+          << "#include \"global_data.h\"\n"
           << "\n";
 
       //ofs << "static Index agendacallcount = 0;\n";
@@ -478,7 +480,7 @@ int main()
       Workspace::define_wsv_map ();
       define_agenda_data ();
 
-      extern const Array<AgRecord> agenda_data;
+      using global_data::agenda_data;
       for (Index i = 0; i < agenda_data.nelem (); i++)
         {
           const AgRecord& agr = agenda_data[i];
@@ -494,8 +496,8 @@ int main()
 
           if (ago.nelem () || agi.nelem ())
             {
-              ofs << "  extern map<String, Index> AgendaMap;\n"
-                << "  extern const Array<AgRecord> agenda_data;\n"
+              ofs << "  using global_data::AgendaMap;\n"
+                << "  using global_data::agenda_data;\n"
                 << "\n"
                 << "  const AgRecord& agr =\n"
                 << "    agenda_data[AgendaMap.find (input_agenda.name ())->second];\n"

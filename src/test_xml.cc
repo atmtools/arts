@@ -21,24 +21,26 @@
 #include "xml_io.h"
 #include "exceptions.h"
 #include "absorption.h"
+#include "global_data.h"
 
-extern Array<SpeciesRecord> species_data;
 
 int
 main (int /*argc*/, char * /*argv*/ [])
 {
+  using global_data::species_data;
+
   define_species_data ();
   try
     {
       xml_write_to_file ("sdata1.xml", species_data, FILE_TYPE_ASCII, Verbosity());
       cout << "Wrote species_data: " << endl;
 
-      species_data.clear ();
+      Array<SpeciesRecord> my_species_data;
 
-      xml_read_from_file ("sdata1.xml", species_data, Verbosity());
+      xml_read_from_file ("sdata1.xml", my_species_data, Verbosity());
       cout << "Read species_data: " << endl;
 
-      xml_write_to_file ("sdata2.xml", species_data, FILE_TYPE_ASCII, Verbosity());
+      xml_write_to_file ("sdata2.xml", my_species_data, FILE_TYPE_ASCII, Verbosity());
       cout << "Wrote species_data: " << endl;
     }
   catch (runtime_error e)

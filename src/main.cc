@@ -59,12 +59,14 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 #include "docserver.h"
+#include "global_data.h"
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
 {
   cerr << "Try `arts --help' for help.\n";
   arts_exit ();
+
 }
 
 /**
@@ -130,10 +132,9 @@ void option_methods(const String& methods)
   Workspace workspace;
   workspace.initialize();
   // Make global data visible:
-  extern const Array<MdRecord>  md_data_raw;
+  using global_data::md_data_raw;
   extern const Parameters parameters;
-  //  extern const map<String, Index> MdMap;
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -349,9 +350,8 @@ void option_methods(const String& methods)
 void option_input(const String& input)
 {
   // Make global data visible:
-  extern const Array<MdRecord>  md_data_raw;
-  //  extern const map<String, Index> MdMap;
-  extern const ArrayOfString wsv_group_names;
+  using global_data::md_data_raw;
+  using global_data::wsv_group_names;
 
   // Ok, so the user has probably specified a workspace variable or
   // workspace variable group.
@@ -545,11 +545,10 @@ void option_input(const String& input)
 void option_workspacevariables(const String& workspacevariables)
 {
   // Make global data visible:
-  extern const Array<MdRecord>  md_data;
-  extern const map<String, Index> MdMap;
+  using global_data::md_data;
+  using global_data::MdMap;
   extern const Parameters parameters;
-  //  extern const map<String, Index> WsvMap;
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -639,9 +638,8 @@ void option_workspacevariables(const String& workspacevariables)
 void option_describe(const String& describe)
 {
   // Make global data visible:
-  extern const Array<MdRecord>  md_data_raw;
-  extern const map<String, Index> MdRawMap;
-  //  extern const ArrayOfString wsv_group_names;
+  using global_data::md_data_raw;
+  using global_data::MdRawMap;
 
   // Let's first assume it is a method that the user wants to have
   // described.
@@ -866,10 +864,8 @@ int main (int argc, char **argv)
   define_lineshape_data();
   define_lineshape_norm_data();
 
-  // Make all these data visible:
-  //  extern const Array<MdRecord>  md_data;
-  //  extern const map<String, Index> MdMap;
-  extern const ArrayOfString wsv_group_names;
+  // Make all global data visible:
+  using global_data::wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
   // switches. 

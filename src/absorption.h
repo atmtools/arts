@@ -964,12 +964,8 @@ public:
    artscat-4 broadening species,
    as function of its broadening spcecies index. Meant to be called with the 
    enum constants defined in this class. */
-  static Index BroadSpecSpecIndex(const Index i)  {
-    // No need for asserts of i here, since the default clause in
-    // BroadSpecName catches everything.
-    return species_index_from_species_name(BroadSpecName(i));
-  }
-  
+  static Index BroadSpecSpecIndex(const Index i);
+
   /** Converts line parameters from ARTSCAT-3 to ARTSCAT-4 format.
      
      ARTSCAT-4 lines contain more information than ARTSCAT-3 lines,
@@ -1564,6 +1560,13 @@ void xsec_species_line_mixing_2nd_order(    MatrixView               xsec_attenu
 Numeric wavenumber_to_joule(Numeric e);
 
 
+//======================================================================
+//             Functions related to species
+//======================================================================
+
+Index species_index_from_species_name( String name );
+
+String species_name_from_species_index( const Index spec_ind );
 
 
 //======================================================================

@@ -37,11 +37,14 @@
 #define INPUT    MakeArray<String>
 
 /*! The lookup information for the agendas. */
+namespace global_data {
 Array<AgRecord> agenda_data;
-
+}
 
 void define_agenda_data()
 {
+  using global_data::agenda_data;
+
   // Initialize to zero, just in case:
   agenda_data.resize(0);
 

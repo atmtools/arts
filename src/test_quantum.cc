@@ -23,8 +23,6 @@
 #include "exceptions.h"
 #include "absorption.h"
 
-extern Array<SpeciesRecord> species_data;
-
 int
 main (int /*argc*/, char * /*argv*/ [])
 {
@@ -78,10 +76,10 @@ main (int /*argc*/, char * /*argv*/ [])
     Print(timer, 1, v);
 
 
-    SpeciesTag stag("O2");
+    SpeciesTag stag("O2-66");
     QuantumNumberRecord qnr;
-    qnr.SetUpper(QN_J, Rational(57, 1));
-    qnr.SetLower(QN_J, Rational(58, 1));
+    qnr.SetUpper(QN_J, Rational(1, 1));
+    qnr.SetLower(QN_J, Rational(1, 1));
 
     ArrayOfIndex matches;
 

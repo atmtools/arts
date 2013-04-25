@@ -1,3 +1,64 @@
+2013-04-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-601
+
+	* Cleanup of global variables.
+
+	* src/global_data.h:
+
+	Gather extern const declarations of all global variables in a separate
+	namespace and document in which files the variables are defined.
+
+	If you need access to a global variable (e.g. md_data), include this
+	file and make the variable visible in the function where you need it
+	with:
+
+	using global_data::md_data;
+	(The old way was: extern const Array<MdRecord> md_data;)
+
+	Now you can access the variable as usual: md_data.bla();
+
+	To keep things clean, this file should never be included in .h files,
+	only in .cc files.
+
+	* src/globals_2.cc:
+
+	Removed. Moved definitions into the cc files where the initialization
+	function of each variables is implemented.
+
+	* src/CMakeLists.txt: Remove globals_2.cc.
+
+	* src/abs_species_tags.cc, src/absorption.{cc,h},
+	src/agenda_class.cc, src/agenda_record.cc, src/agendas.cc,
+	src/cia.cc, src/continua.cc, src/docserver.cc, src/groups.cc,
+	src/m_abs.cc, src/m_abs_lookup.cc, src/m_atmosphere.cc
+	src/make_auto_md_cc.cc, src/make_auto_md_h.cc,
+	src/make_auto_workspace_h.cc, src/methods.cc, src/methods_aux.cc
+	src/parser.cc, src/partition_function_data.cc, src/species_data.cc
+	src/test_quantum.cc, src/test_xml.cc, src/xml_io_compound_types.cc,
+	src/main.cc:
+
+	Import global_data.h where needed and replace all 'extern const...'
+	statements by 'using global_data::...'.
+
+	* src/abs_species_tags.{cc,h}, src/absorption.{h,cc}:
+
+	Move species_index_from_species_name and
+	species_name_from_species_index from a_s_t to absorption.
+	They act on the species, not on the species tag. Also removes the
+	necessity of SpeciesMap being a global variable which is defined in
+	absorption.cc.
+
+	* src/absorption.{h,cc} (LineRecord::BroadSpecSpecIndex):
+
+	Move implementation to cc file.
+
+	* src/matpack.h: Move isnan and isinf fix from arts.h to here.
+
+	* src/debug.h: Added. Move debug macros from arts.h to here.
+
+	* src/arts.h: See above.
+
 2013-04-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-600

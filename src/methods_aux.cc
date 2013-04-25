@@ -34,6 +34,22 @@
 #include "wsv_aux.h"
 #include "workspace_ng.h"
 
+namespace global_data {
+//! The map associated with md_data.
+map<String, Index> MdMap;
+//! The map associated with md_data_raw.
+map<String, Index> MdRawMap;
+//! Lookup information for workspace methods.
+/*!
+ This is the data with expanded supergeneric methods. That means,
+ e.g., instead of supergeneric method Copy(Any,Any) there will be
+ Copy(Vector,Vector), Copy(Matrix,Matrix), etc..
+ */
+Array<MdRecord> md_data;
+
+extern const Array<MdRecord> md_data_raw;
+extern const ArrayOfString wsv_group_names;
+}
 
 void limit_line_length( ostream& os, ostringstream& curline,
                         ostringstream& token, const String& indent,
@@ -285,7 +301,7 @@ void MdRecord::subst_any_with_group( Index g )
 {
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
   // The group names, we need them for the expansion:
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   // Make sure they are initialized:
   assert( 0 != wsv_group_names.nelem() );
@@ -329,7 +345,7 @@ void MdRecord::subst_any_with_group( Index g )
 void MdRecord::subst_any_with_specific_group( Index g )
 {
   // The group names, we need them for the expansion:
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
 
@@ -379,11 +395,11 @@ void MdRecord::subst_any_with_specific_group( Index g )
 */
 void expand_md_data_raw_to_md_data()
 {
-  extern const Array<MdRecord> md_data_raw;
-  extern Array<MdRecord>       md_data;
+  using global_data::md_data_raw;
+  using global_data::md_data;
 
   // The group names, we need them for the expansion:
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
 
@@ -456,9 +472,9 @@ void expand_md_data_raw_to_md_data()
 void define_md_map()
 {
   // md_data is constant here and should never be changed
-  extern Array<MdRecord> md_data;
-  extern map<String, Index> MdMap;
-  DEBUG_ONLY( extern const ArrayOfString wsv_group_names; )
+  using global_data::md_data;
+  using global_data::MdMap;
+  DEBUG_ONLY( using global_data::wsv_group_names; )
 
   // Check that md_data and wsv_group_names have already be defined:
   assert( 0 != md_data.nelem() );
@@ -497,8 +513,8 @@ void define_md_map()
 */
 void define_md_raw_map()
 {
-  extern const Array<MdRecord> md_data_raw;
-  extern map<String, Index> MdRawMap;
+  using global_data::md_data_raw;
+  using global_data::MdRawMap;
 
   for ( Index i=0 ; i<md_data_raw.nelem() ; ++i)
     {
@@ -572,7 +588,7 @@ void get_short_wsv_description(String &s, const String &desc)
 ostream& MdRecord::PrintTemplate(ostream& os,
                                  bool show_description) const
 {
-  extern const  ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
 
   if (show_description)
     {
@@ -656,7 +672,7 @@ void limit_line_length( ostream& os,
 //! Output operator for MdRecord.
 ostream& operator<<(ostream& os, const MdRecord& mdr)
 {
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
   bool first;
   ostringstream buf;
   ostringstream param;

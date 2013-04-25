@@ -42,6 +42,8 @@
 #include "messages.h"
 #include "logic.h"
 
+#include "global_data.h"
+
 
 /** The map associated with species_data. */
 std::map<String, Index> SpeciesMap;
@@ -73,10 +75,9 @@ Numeric IsotopologueRecord::CalculatePartitionFctAtTemp( Numeric
   return result;
 }
 
-
 void SpeciesAuxData::initParams(Index nparams)
 {
-    extern const Array<SpeciesRecord> species_data;
+    using global_data::species_data;
 
     mparams.resize(species_data.nelem());
 
@@ -93,7 +94,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid, istream& is, Index nparams, 
     CREATE_OUT3;
 
     // Global species lookup data:
-    extern const Array<SpeciesRecord> species_data;
+    using global_data::species_data;
 
     // We need a species index sorted by Arts identifier. Keep this in a
     // static variable, so that we have to do this only once.  The ARTS
@@ -232,7 +233,7 @@ bool SpeciesAuxData::ReadFromStream(String& artsid, istream& is, Index nparams, 
 void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
                              const SpeciesAuxData& isoratios)
 {
-    extern const Array<SpeciesRecord> species_data;
+    using global_data::species_data;
     
     // Check total number of species:
     if (species_data.nelem() != isoratios.getParams().nelem())
@@ -291,7 +292,7 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
 
 void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad)
 {
-    extern const Array<SpeciesRecord> species_data;
+    using global_data::species_data;
 
     sad.initParams(1);
 
@@ -308,7 +309,7 @@ void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad
     \author Stefan Buehler */
 void define_species_map()
 {
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   for ( Index i=0 ; i<species_data.nelem() ; ++i)
     {
@@ -487,7 +488,7 @@ void extract(T&      x,
   using the species and isotopologue index. */
 String LineRecord::Name() const {
   // The species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
   const SpeciesRecord& sr = species_data[mspecies];
   return sr.Name() + "-" + sr.Isotopologue()[misotopologue].Name();
 }
@@ -504,7 +505,7 @@ String LineRecord::Name() const {
     variable species_data. */
 const SpeciesRecord& LineRecord::SpeciesData() const {
   // The species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
   return species_data[mspecies];
 }
 
@@ -522,8 +523,15 @@ const SpeciesRecord& LineRecord::SpeciesData() const {
     species_data. */
 const IsotopologueRecord& LineRecord::IsotopologueData() const {
   // The species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
   return species_data[mspecies].Isotopologue()[misotopologue];
+}
+
+
+Index LineRecord::BroadSpecSpecIndex(const Index i)  {
+    // No need for asserts of i here, since the default clause in
+    // BroadSpecName catches everything.
+    return species_index_from_species_name(BroadSpecName(i));
 }
 
 
@@ -583,7 +591,7 @@ bool LineRecord::ReadFromHitranStream(istream& is, const Verbosity& verbosity)
   CREATE_OUT3;
   
   // Global species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // This value is used to flag missing data both in species and
   // isotopologue lists. Could be any number, it just has to be made sure
@@ -1032,7 +1040,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   CREATE_OUT3;
   
   // Global species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // This value is used to flag missing data both in species and
   // isotopologue lists. Could be any number, it just has to be made sure
@@ -1605,7 +1613,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   CREATE_OUT3;
   
   // Global species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // This value is used to flag missing data both in species and
   // isotopologue lists. Could be any number, it just has to be made sure
@@ -2003,7 +2011,7 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   CREATE_OUT3;
   
   // Global species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // We need a species index sorted by JPL tag. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
@@ -2249,7 +2257,7 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
   CREATE_OUT3;
  
   // Global species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
   
   // We need a species index sorted by Arts identifier. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
@@ -2444,7 +2452,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
   CREATE_OUT3;
   
   // Global species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // We need a species index sorted by Arts identifier. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
@@ -3540,6 +3548,84 @@ Numeric wavenumber_to_joule(Numeric e)
 
   return e*lower_energy_const; 
 }
+
+
+//======================================================================
+//             Functions related to species
+//======================================================================
+
+//! Return species index for given species name.
+/*! 
+  This is useful in connection with other functions that need a species
+  index.
+
+  \see find_first_species_tg.
+
+  \param name Species name.
+
+  \return Species index, -1 means not found.
+
+  \author Stefan Buehler
+  \date   2003-01-13
+*/
+Index species_index_from_species_name( String name )
+{
+  // For the return value:
+  Index mspecies;
+
+  // Trim whitespace
+  name.trim();
+
+  //  cout << "name / def = " << name << " / " << def << endl;
+
+  // Look for species name in species map:
+  map<String, Index>::const_iterator mi = SpeciesMap.find(name);
+  if ( mi != SpeciesMap.end() )
+    {
+      // Ok, we've found the species. Set mspecies.
+      mspecies = mi->second;
+    }
+  else
+    {
+      // The species does not exist!
+      mspecies = -1;
+    }
+
+  return mspecies;
+}
+
+
+//! Return species name for given species index.
+/*!
+ This is useful in connection with other functions that use a species
+ index.
+ 
+ Does an assertion that the index really corresponds to a species.
+ 
+ \param spec_ind Species index.
+ 
+ \return Species name
+ 
+ \author Stefan Buehler
+ \date   2013-01-04
+ */
+String species_name_from_species_index( const Index spec_ind )
+{
+    // Species lookup data:
+    using global_data::species_data;
+
+    // Assert that spec_ind is inside species data. (This is an assertion,
+    // because species indices should never be user input, but set by the
+    // program automatically, based on species names.)
+    assert( spec_ind>=0 );
+    assert( spec_ind<species_data.nelem() );
+    
+    // A reference to the relevant record of the species data:
+    const  SpeciesRecord& spr = species_data[spec_ind];
+    
+    return spr.Name();
+}
+
 
 //======================================================================
 //        Functions to convert the accuracy index to ARTS units

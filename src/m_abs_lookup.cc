@@ -41,6 +41,7 @@
 #include "interpolation_poly.h"
 #include "rng.h"
 #include "absorption.h"
+#include "global_data.h"
 
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
@@ -518,7 +519,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
   // Loop tag groups:
   for ( Index i=0; i<abs_species.nelem(); ++i )
     {
-      extern const Array<SpeciesRecord> species_data; 
+      using global_data::species_data;
 
       // Loop tags in tag group
       for ( Index s=0; s<abs_species[i].nelem(); ++s )

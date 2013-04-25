@@ -71,6 +71,7 @@
 #include "methods.h"
 #include "workspace_ng.h"
 #include "agenda_record.h"
+#include "global_data.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
@@ -272,7 +273,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 void write_method_header( ofstream& ofs,
                           const MdRecord& mdd )
 {
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
   const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
 //   // Work out the full name to use:
@@ -603,8 +604,8 @@ int main()
   try
     {
       // Make the global data visible:
-      extern Array<MdRecord> md_data_raw;
-      extern Array<MdRecord> md_data;
+      using global_data::md_data_raw;
+      using global_data::md_data;
 
       // Initialize the wsv group name array:
       define_wsv_group_names();
@@ -659,16 +660,6 @@ int main()
           << "#define N_MD " << n_md << "\n\n";
 
      
-      // We don't really need these handles, do we?
-
-//       ofs << "enum MdHandle{\n";
-//       for (Index i=0; i<n_md-1; ++i)
-//      {
-//        ofs << "  " << md_data[i].Name() << "_,\n";
-//      }
-//       ofs << "  " << md_data[n_md-1].Name() << "_\n";
-//       ofs << "};\n\n";
-
       // Add all the method function declarations
       ofs << "// Method function declarations:\n\n";
       for (Index i=0; i<n_md; ++i)
@@ -719,7 +710,7 @@ int main()
       Workspace::define_wsv_map ();
       define_agenda_data ();
 
-      extern const Array<AgRecord> agenda_data;
+      using global_data::agenda_data;
       for (Index i = 0; i < agenda_data.nelem (); i++)
         {
           write_agenda_wrapper_header (ofs, agenda_data[i]);

@@ -37,6 +37,7 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 #include "auto_md.h"
+#include "global_data.h"
 
 
 //! Appends methods to an agenda
@@ -58,13 +59,13 @@
 void Agenda::append(const String& methodname,
                     const TokVal& keywordvalue)
 {
-  extern const map<String, Index> MdMap;
+  using global_data::MdMap;
 
   const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
   assert(i2 != MdMap.end());
   Index id = i2->second;            
           
-  extern const Array<MdRecord> md_data;
+  using global_data::md_data;
   ArrayOfIndex output = md_data[id].Out();
 
   // Find explicit method id in MdMap.
@@ -83,8 +84,8 @@ void Agenda::append(const String& methodname,
 void Agenda::check(Workspace& ws, const Verbosity& verbosity)
 {
   // Make external data visible
-  extern const Array<AgRecord>  agenda_data;
-  extern const map<String, Index> AgendaMap;
+  using global_data::agenda_data;
+  using global_data::AgendaMap;
 
   // First we have to find the lookup information for this agenda. We
   // use AgendaMap for this.
@@ -181,7 +182,7 @@ void Agenda::execute(Workspace& ws) const
   assert(mname != "");
 
   // The method description lookup table:
-  extern const Array<MdRecord> md_data;
+  using global_data::md_data;
 
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
@@ -285,7 +286,7 @@ void Agenda::execute(Workspace& ws) const
 */
 void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
 {
-  extern const Array<MdRecord>  md_data;
+  using global_data::md_data;
 
   set<Index> inputs;
   set<Index> outputs;
@@ -341,8 +342,8 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
                  insert_iterator< set<Index> >(outs2push,
                                                outs2push.begin()));
 
-  extern const map<String, Index> AgendaMap;
-  extern const Array<AgRecord> agenda_data;
+  using global_data::AgendaMap;
+  using global_data::agenda_data;
 
   const AgRecord& agr = agenda_data[AgendaMap.find(name())->second];
   const ArrayOfIndex& aout = agr.Out();
@@ -477,8 +478,8 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity)
 bool Agenda::is_input(Workspace& ws, Index var) const
 {
   // Make global method data visible:
-  extern const Array<MdRecord>  md_data;
-  extern const ArrayOfString wsv_group_names;
+  using global_data::md_data;
+  using global_data::wsv_group_names;
 
   // Make sure that var is the index of a valid method:
   assert(0 <= var);
@@ -561,7 +562,7 @@ bool Agenda::is_output(Index var) const
       // Is var a specific output?
       {
         // Make global method data visible:
-        extern const Array<MdRecord>  md_data;
+        using global_data::md_data;
 
         // Get a handle on the Output list for the current method:
         const ArrayOfIndex& output = md_data[this_method.Id()].Out();
@@ -613,7 +614,7 @@ String Agenda::name() const
 
 void Agenda::find_unused_variables()
 {
-  extern const Array<MdRecord>  md_data;
+  using global_data::md_data;
 
   MdRecord tmd;
 
@@ -664,7 +665,7 @@ void Agenda::find_unused_variables()
 */
 bool Agenda::has_method(const String& methodname) const
 {
-    extern Array<MdRecord> md_data;
+    using global_data::md_data;
 
     bool found = false;
     for (Array<MRecord>::const_iterator it = mml.begin();
@@ -748,7 +749,7 @@ ostream& operator<<(ostream& os, const Agenda& a)
 */
 void MRecord::print(ostream& os, const String& indent) const
 {
-  extern const Array<MdRecord>  md_data;
+  using global_data::md_data;
 
   // Get a handle on the right record:
   const MdRecord tmd = md_data[Id()];

@@ -37,8 +37,10 @@
 
 /*! The names associated with Wsv groups as Strings.
   See function define_wsv_group_names for more information. */
+namespace global_data {
 ArrayOfString wsv_group_names;
 map<String, Index> WsvGroupMap;
+}
 
 /*! Groups that can be used as keywords */
 ArrayOfIndex valid_keyword_groups;
@@ -58,6 +60,8 @@ void define_valid_keyword_groups()
 
 void define_wsv_group_map()
 {
+  using global_data::wsv_group_names;
+  using global_data::WsvGroupMap;
   for ( Index i=0 ; i<wsv_group_names.nelem() ; ++i )
     {
       WsvGroupMap[wsv_group_names[i]] = i;
@@ -79,6 +83,7 @@ void define_wsv_group_map()
 */
 void define_wsv_group_names()
 {
+  using global_data::wsv_group_names;
 
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
@@ -197,6 +202,7 @@ void get_wsv_group_ids(ArrayOfIndex& ids, String name)
 
 Index get_wsv_group_id(const String& name)
 {
+  using global_data::WsvGroupMap;
   map<String, Index>::const_iterator it = WsvGroupMap.find (name);
   if (it == WsvGroupMap.end())
     return -1;
@@ -206,8 +212,9 @@ Index get_wsv_group_id(const String& name)
 
 String get_array_groups_as_string(bool basetype_is_group, bool return_basetype_only)
 {
+  using global_data::wsv_group_names;
   String arraygroups;
-  
+
   bool first = true;
   for (Index i = 0; i < wsv_group_names.nelem(); i++)
   {

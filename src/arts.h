@@ -100,6 +100,7 @@
 #include <cstdlib>
 #include "matpack.h"
 #include "mystring.h"
+#include "debug.h"
 
 //----------< First of all, include the configuration header >----------
 #include "config_global.h"
@@ -114,8 +115,7 @@
 #endif
 
 //---------------< Global variable declarations >---------------
-// (Definitions of these are in FIXME: where?)
-
+// See global_data.h
 
 //---------------< Global function declarations: >---------------
 // Documentations are with function definitions.
@@ -133,49 +133,11 @@ void define_lineshape_norm_data();
 void arts_exit (int status = EXIT_FAILURE);
 void arts_exit_with_error_message(const String& m, ArtsOut &os);
 
-// In C++ 11 isnan and isinf were introduced.
-// This confuses g++ because it can't decide whether to
-// call the old functions or the new ones
-#if (__cplusplus >= 201103L)
-#define isnan std::isnan
-#define isinf std::isinf
-#endif
-
 //
 // Physical constants are now in constants.cc
 //
 
 //---------------< Global macro definitions: >---------------
-
-#ifndef NDEBUG
-
-// Use this macro around function parameter names and variable definitions
-// which are only used in assertions
-#define DEBUG_ONLY(...) __VA_ARGS__
-
-// Use this macro to output a counter value everytime a
-// certain place is reached
-#define DEBUG_COUNTER(n) \
-{ \
-  static Index n = 0; \
-  cerr << "DBG: " << #n << ": " << ++n << endl; \
-}
-
-// Print expression for debug
-#define DEBUG_PRINT(e) \
-{ \
-  cerr << "DBG: " << #e << ": " << (e) << endl; \
-}
-
-#else
-
-#define DEBUG_ONLY(...)
-
-#define DEBUG_COUNTER(n)
-
-#define DEBUG_PRINT(e)
-
-#endif
 
 #endif // arts_h
 

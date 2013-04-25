@@ -39,6 +39,7 @@
 #include "matpackVII.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
+#include "global_data.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1272,7 +1273,7 @@ void xml_write_to_stream(ostream&                 os_xml,
                          const Verbosity&         verbosity)
 
 {
-    extern Array<SpeciesRecord> species_data;
+    using global_data::species_data;
 
     ArtsXMLTag open_tag(verbosity);
     ArtsXMLTag close_tag(verbosity);

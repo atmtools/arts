@@ -40,6 +40,7 @@
 #include "workspace_ng.h"
 #include "agenda_record.h"
 #include "auto_version.h"
+#include "global_data.h"
 
 #define DOCSERVER_NAME "ARTS built-in documentation server"
 
@@ -391,7 +392,7 @@ void Docserver::list_agendas()
   */
 void Docserver::list_groups()
 {
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
   Index i;
   
   get_os() << "<h2>Workspace Groups</h2>" << endl;
@@ -418,7 +419,7 @@ void Docserver::list_groups()
   */
 void Docserver::list_methods()
 {
-  extern const Array<MdRecord> md_data_raw;
+  using global_data::md_data_raw;
   Index i;
   
   get_os() << "<h2>Workspace Methods</h2>" << endl;
@@ -493,8 +494,8 @@ String Docserver::description_add_links(const String& desc, const String& mname)
   bool inside_link = false;
   string::const_iterator it = desc.begin();
   
-  extern const map<String, Index> MdRawMap;
-  extern const map<String, Index> AgendaMap;
+  using global_data::MdRawMap;
+  using global_data::AgendaMap;
 
   while (it != desc.end())
     {
@@ -520,14 +521,14 @@ String Docserver::description_add_links(const String& desc, const String& mname)
                 ret += insert_group_link(link);
               else if (mname != "")
                 {
-                  extern const map<String, Index> MdRawMap;
+                  using global_data::MdRawMap;
                   bool found = false;
 
                   // Find method id:
                   map<String, Index>::const_iterator mit = MdRawMap.find(mname);
                   if (mit != MdRawMap.end())
                     {
-                      extern const Array<MdRecord>  md_data_raw;
+                      using global_data::md_data_raw;
                       const MdRecord& mdr = md_data_raw[mit->second];
 
                       for (ArrayOfString::const_iterator sit = mdr.GIn().begin();
@@ -594,9 +595,9 @@ String Docserver::description_add_links(const String& desc, const String& mname)
 void Docserver::doc_method(const string& mname)
 {
   // Make global data visible:
-  extern const Array<MdRecord>  md_data_raw;
-  extern const map<String, Index> MdRawMap;
-  extern const ArrayOfString wsv_group_names;
+  using global_data::md_data_raw;
+  using global_data::MdRawMap;
+  using global_data::wsv_group_names;
   
   // Let's first assume it is a method that the user wants to have
   // described.
@@ -885,7 +886,7 @@ void Docserver::doc_variable_methods(const string& vname)
 {
   // Check if the user gave the name of a specific variable.
   map<String, Index>::const_iterator mi = Workspace::WsvMap.find(vname);
-  extern const Array<MdRecord>  md_data_raw;
+  using global_data::md_data_raw;
   if (mi != Workspace::WsvMap.end())
     {
       // If we are here, then the given name matches a variable.
@@ -1043,7 +1044,7 @@ void Docserver::doc_variable_methods(const string& vname)
       get_os() << endl << "</ul>" << endl;
     
       // List agendas with this variable as output:
-      extern Array<AgRecord> agenda_data;
+      using global_data::agenda_data;
       hitcount = 0;
       get_os()
       << "<h3>Agendas that can generate " << vname << "</h3>" << endl
@@ -1103,7 +1104,7 @@ void Docserver::doc_variable_methods(const string& vname)
   */
 void Docserver::doc_variable(const string& vname)
 {
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
   
   // Find wsv id:
   map<String, Index>::const_iterator it = Workspace::WsvMap.find(vname);
@@ -1139,12 +1140,12 @@ void Docserver::doc_variable(const string& vname)
   */
 void Docserver::doc_agenda(const string& aname)
 {
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
   
   // Find wsv id:
   map<String, Index>::const_iterator it = Workspace::WsvMap.find(aname);
-  extern Array<AgRecord> agenda_data;
-  extern const map<String, Index> AgendaMap;
+  using global_data::agenda_data;
+  using global_data::AgendaMap;
   map<String, Index>::const_iterator ait = AgendaMap.find(aname);
   
   if (it != Workspace::WsvMap.end() && ait != AgendaMap.end())
@@ -1250,7 +1251,7 @@ void Docserver::doc_group(const string& gname)
 {
   // Check if the user gave the name of a specific variable.
   Index gid = get_wsv_group_id(gname);
-  extern const Array<MdRecord>  md_data_raw;
+  using global_data::md_data_raw;
   if (gid != -1)
     {
       // If we are here, then the given name matches a group.
@@ -1464,8 +1465,8 @@ void Docserver::find_token_type()
   if (tokens.size() < 1 || tokens[0] != "all") return;
   
   // Make global data visible:
-  extern const map<String, Index> MdRawMap;
-  extern const map<String, Index> AgendaMap;
+  using global_data::MdRawMap;
+  using global_data::AgendaMap;
   
   // Find method id:
   if (MdRawMap.find(tokens[1]) != MdRawMap.end())
@@ -1917,7 +1918,7 @@ void Docserver::insert_broken_doc_links()
     }
   
   // Broken links in agenda descriptions
-  extern Array<AgRecord> agenda_data;
+  using global_data::agenda_data;
   first = true;
   for (Array<AgRecord>::const_iterator ait = agenda_data.begin();
        ait != agenda_data.end();
@@ -1945,7 +1946,8 @@ void Docserver::insert_broken_doc_links()
     }
   
   // Broken links in method descriptions
-  extern const Array<MdRecord> md_data_raw;
+  using global_data::md_data_raw;
+
   first = true;
   for (Array<MdRecord>::const_iterator mit = md_data_raw.begin();
        mit != md_data_raw.end();
@@ -1996,8 +1998,8 @@ vector<string> Docserver::find_broken_description_links(const String& desc, cons
   bool inside_link = false;
   string::const_iterator it = desc.begin();
   
-  extern const map<String, Index> MdRawMap;
-  extern const map<String, Index> AgendaMap;
+  using global_data::MdRawMap;
+  using global_data::AgendaMap;
   
   while (it != desc.end())
     {
@@ -2021,13 +2023,13 @@ vector<string> Docserver::find_broken_description_links(const String& desc, cons
                 found = true;
               else if (mname != "")
                 {
-                  extern const map<String, Index> MdRawMap;
+                  using global_data::MdRawMap;
 
                   // Find method id:
                   map<String, Index>::const_iterator mit = MdRawMap.find(mname);
                   if (mit != MdRawMap.end())
                     {
-                      extern const Array<MdRecord>  md_data_raw;
+                      using global_data::md_data_raw;
                       const MdRecord& mdr = md_data_raw[mit->second];
 
                       for (ArrayOfString::const_iterator sit = mdr.GIn().begin();

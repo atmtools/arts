@@ -24,6 +24,7 @@
 #include "parameters.h"
 #include "wsv_aux.h"
 #include "workspace_ng.h"
+#include "global_data.h"
 
 
 /** Constructs a new parser.
@@ -185,7 +186,7 @@ void ArtsParser::parse_main()
 
     try
     {
-        extern const Array<MdRecord> md_data;
+        using global_data::md_data;
 
         // For method ids:
         Index id;
@@ -350,7 +351,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
     CREATE_OUT2;
     CREATE_OUT3;
 
-    extern const Array<MdRecord> md_data;
+    using global_data::md_data;
 
     // For method ids:
     Index id;
@@ -431,15 +432,15 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
 
                 // If Create was called on a variable that already existed,
                 // insert a Delete call to set it back to an uninitialized state
-                extern const Array<MdRecord> md_data;
+                using global_data::md_data;
                 const String& mname = md_data[id].Name();
 
                 if (mname.length() > 6 &&
                     mname.find ("Create") == mname.length() - 6 &&
                     get_wsv_group_id(mname.substr(0, mname.length() - 6)) != -1)
                 {
-                    extern const map<String, Index> MdMap;
-                    extern const ArrayOfString wsv_group_names;
+                    using global_data::MdMap;
+                    using global_data::wsv_group_names;
                     String method_name = "Delete_sg_" + wsv_group_names[Workspace::wsv_data[output[0]].Group()];
                     map<String, Index>::const_iterator mdit;
                     mdit = MdMap.find(method_name);
@@ -690,7 +691,7 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
         }
         else
         {
-            extern const ArrayOfString wsv_group_names;
+            using global_data::wsv_group_names;
             ostringstream os;
             os
             << "Default values for generic inputs with type "
@@ -784,10 +785,10 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
                                    ArrayOfIndex&    auto_vars,
                                    Array<TokVal>&   auto_vars_values)
 {
-    extern const map<String, Index> MdRawMap;
-    extern const Array<MdRecord> md_data;
-    extern const Array<MdRecord> md_data_raw;
-    extern const map<String, Index> MdMap;
+    using global_data::MdRawMap;
+    using global_data::md_data;
+    using global_data::md_data_raw;
+    using global_data::MdMap;
 
     bool still_supergeneric=true; // Flag that our MdRecord still is
     // from md_data_raw, not from
@@ -1015,9 +1016,9 @@ void ArtsParser::parse_generic_input(const MdRecord*& mdd,
 {
     String wsvname;
     Index wsvid;
-    extern const ArrayOfString wsv_group_names;
-    extern const Array<MdRecord> md_data;
-    extern const map<String, Index> MdMap;
+    using global_data::wsv_group_names;
+    using global_data::md_data;
+    using global_data::MdMap;
 
     // Then parse all generic input variables
     for ( Index j=0 ; j<mdd->GInType().nelem() ; ++j )
@@ -1220,9 +1221,9 @@ void ArtsParser::parse_generic_output(const MdRecord*& mdd,
 {
     String wsvname;
     Index wsvid;
-    extern const ArrayOfString wsv_group_names;
-    extern const Array<MdRecord> md_data;
-    extern const map<String, Index> MdMap;
+    using global_data::wsv_group_names;
+    using global_data::md_data;
+    using global_data::MdMap;
 
     // Parse all generic output variables
     for ( Index j=0 ; j<mdd->GOut().nelem() ; ++j )
@@ -1442,7 +1443,7 @@ void ArtsParser::parse_specific_input(const MdRecord* mdd,
                                       NamedArguments& named_args,
                                       bool            call_by_name)
 {
-    extern const ArrayOfString wsv_group_names;
+    using global_data::wsv_group_names;
 
     // There are two lists of arguments that we have to read.
     ArrayOfIndex  vo=mdd->Out();  // Output
@@ -1545,7 +1546,7 @@ void ArtsParser::parse_specific_output(const MdRecord* mdd,
                                        NamedArguments& named_args,
                                        bool            call_by_name)
 {
-    extern const ArrayOfString wsv_group_names;
+    using global_data::wsv_group_names;
 
     ArrayOfIndex  vo=mdd->Out();
 
@@ -1672,8 +1673,8 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
                                             const Index          method_type,
                                             Agenda&              tasklist)
 {
-    extern const map<String, Index> MdMap;
-    extern const ArrayOfString wsv_group_names;
+    using global_data::MdMap;
+    using global_data::wsv_group_names;
 
     for (Index i=0; i<auto_vars.nelem(); i++)
     {
@@ -1967,7 +1968,7 @@ Index ArtsParser::read_name_or_value(String&         name,
     }
     else
     {
-        extern const ArrayOfString wsv_group_names;
+        using global_data::wsv_group_names;
         ostringstream os;
         os << "Unsupported argument type: " << wsv_group_names[group];
         throw ParseError (os.str(),

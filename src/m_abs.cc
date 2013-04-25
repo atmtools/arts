@@ -50,6 +50,7 @@
 #include "parameters.h"
 #include "rte.h"
 #include "montecarlo.h"
+#include "global_data.h"
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
@@ -334,8 +335,8 @@ void abs_lines_per_speciesWriteToSplitArtscat(// WS Input:
                                               const String& basename,
                                               const Verbosity& verbosity)
 {
-  extern const Array<SpeciesRecord> species_data;
-  
+  using global_data::species_data;
+
   for (ArrayOfArrayOfLineRecord::const_iterator it = abs_lines_per_species.begin();
        it != abs_lines_per_species.end();
        it++)
@@ -364,7 +365,7 @@ void abs_linesReadFromSplitArtscat(// WS Output:
                                    const Verbosity& verbosity)
 {
   CREATE_OUT2;
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
  
   // Build a set of species indices. Duplicates are ignored.
   set<Index> unique_species;
@@ -713,7 +714,7 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
   CREATE_OUT3;
   
   // The species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // As a safety feature, we will watch out for the case that a
   // species is included in the calculation, but not all lines are
@@ -993,7 +994,7 @@ void abs_speciesDefineAllInScenario(// WS Output:
   abs_xsec_agenda_checked = false;
 
   // Species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
 
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
@@ -1697,7 +1698,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
           // it is for us more convenient to get the species index
           // from the LineRecord member function Species(), and then
           // use this to look up the species name in species_data.
-          extern const Array<SpeciesRecord> species_data;
+          using global_data::species_data;
           String species_name = species_data[ll[0].Species()].Name();
 
           // Get the name of the lineshape. For that we use the member
@@ -1924,7 +1925,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
     {
       const Index i = abs_species_active[ii];
 
-      extern const Array<SpeciesRecord> species_data;
+      using global_data::species_data;
 
       // Go through the tags in the current tag group to see if they
       // are continuum tags:  

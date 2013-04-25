@@ -35,10 +35,12 @@
 #include "make_array.h"
 #include "absorption.h"
 
-
 /*! The lookup information for all the different species. */
+namespace global_data {
 Array<SpeciesRecord> species_data;
+}
 
+using global_data::species_data;
 
 /*! \name Some #defines for better readability */
 //@{ 

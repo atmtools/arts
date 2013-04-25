@@ -35,6 +35,11 @@
 #include "methods.h"
 #include "wsv_aux.h"
 
+namespace global_data {
+    Array<MdRecord> md_data_raw;
+    extern const ArrayOfString wsv_group_names;
+}
+
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x
 #define DESCRIPTION(x) x
@@ -121,7 +126,7 @@
 void define_md_data_raw()
 {
   // The variable md_data is defined in file methods_aux.cc.
-  extern Array<MdRecord> md_data_raw;
+  using global_data::md_data_raw;
 
   // Initialise to zero, just in case:
   md_data_raw.resize(0);
@@ -133,7 +138,7 @@ void define_md_data_raw()
   // String with all array types whose element type is also available as a group
   const String ARRAY_GROUPS_WITH_BASETYPE = get_array_groups_as_string(true, false);
 
-  extern const ArrayOfString wsv_group_names;
+  using global_data::wsv_group_names;
   
   for (ArrayOfString::const_iterator it = wsv_group_names.begin();
        it != wsv_group_names.end(); it++)

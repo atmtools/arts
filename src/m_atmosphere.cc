@@ -59,6 +59,7 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "xml_io.h"
+#include "global_data.h"
 
 extern const Index GFIELD3_P_GRID;
 extern const Index GFIELD3_LAT_GRID;
@@ -1715,7 +1716,7 @@ void AtmFieldsFromCompact(// WS Output:
       const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+nsp+i];
       
       // Get name of species from abs_species:      
-      extern const Array<SpeciesRecord> species_data;  // The species lookup data:
+      using global_data::species_data;  // The species lookup data:
       const String as_species = species_data[abs_species[i][0].Species()].Name();
 
       // Species in field name and abs_species should be the same:
@@ -2341,8 +2342,7 @@ void AtmRawRead(//WS Output:
   vmr_field_raw.resize(0);
 
   // The species lookup data:
-
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
   
   // We need to read one profile for each tag group.
   for ( Index i=0; i<abs_species.nelem(); i ++)

@@ -34,6 +34,7 @@
 #include "absorption.h"
 #include "auto_md.h"
 #include "abs_species_tags.h"
+#include "global_data.h"
 
 //! Constructor from a tag definition String. 
 /*! 
@@ -50,7 +51,7 @@ SpeciesTag::SpeciesTag(String def)
   String def_original = def;
     
   // Species lookup data:
-  extern const Array<SpeciesRecord> species_data;
+  using global_data::species_data;
   // Name of species and isotopologue (aux variables):
   String name, isoname;
   // Aux index:
@@ -365,7 +366,7 @@ SpeciesTag::SpeciesTag(String def)
 String SpeciesTag::Name() const 
 {
     // Species lookup data:
-    extern const Array<SpeciesRecord> species_data;
+    using global_data::species_data;
     // A reference to the relevant record of the species data:
     const  SpeciesRecord& spr = species_data[mspecies];
     // For return value:
@@ -600,80 +601,7 @@ Index find_next_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
   return -1;
 }
 
-//! Return species index for given species name.
-/*! 
-  This is useful in connection with other functions that need a species
-  index.
 
-  \see find_first_species_tg.
-
-  \param name Species name.
-
-  \return Species index, -1 means not found.
-
-  \author Stefan Buehler
-  \date   2003-01-13
-*/
-Index species_index_from_species_name( String name )
-{
-  // The species map. This is used to find the species id.
-  extern map<String, Index> SpeciesMap;
-
-  // For the return value:
-  Index mspecies;
-
-  // Trim whitespace
-  name.trim();
-
-  //  cout << "name / def = " << name << " / " << def << endl;
-
-  // Look for species name in species map:
-  map<String, Index>::const_iterator mi = SpeciesMap.find(name);
-  if ( mi != SpeciesMap.end() )
-    {
-      // Ok, we've found the species. Set mspecies.
-      mspecies = mi->second;
-    }
-  else
-    {
-      // The species does not exist!
-      mspecies = -1;
-    }
-
-  return mspecies;
-}
-
-//! Return species name for given species index.
-/*!
- This is useful in connection with other functions that use a species
- index.
- 
- Does an assertion that the index really corresponds to a species.
- 
- \param spec_ind Species index.
- 
- \return Species name
- 
- \author Stefan Buehler
- \date   2013-01-04
- */
-String species_name_from_species_index( const Index spec_ind )
-{
-    // Species lookup data:
-    extern const Array<SpeciesRecord> species_data;
-
-    // Assert that spec_ind is inside species data. (This is an assertion,
-    // because species indices should never be user input, but set by the
-    // program automatically, based on species names.)
-    assert( spec_ind>=0 );
-    assert( spec_ind<species_data.nelem() );
-    
-    // A reference to the relevant record of the species data:
-    const  SpeciesRecord& spr = species_data[spec_ind];
-    
-    return spr.Name();
-}
-    
 //! Converts a String to ArrayOfSpeciesTag
 /*!
    This function is used when preparing strings read from e.g. control
