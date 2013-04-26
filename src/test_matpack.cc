@@ -28,6 +28,11 @@
 #include "describe.h"
 #include "matpackII.h"
 
+using std::cout;
+using std::endl;
+using std::runtime_error;
+
+
 Numeric by_reference(const Numeric& x)
 {
   return x+1;
@@ -786,7 +791,7 @@ void test41()
   try {
     vv = 2;
   } catch (runtime_error e) {
-    cerr << e.what() << endl;
+    std::cerr << e.what() << endl;
     exit(EXIT_FAILURE);
   }
   

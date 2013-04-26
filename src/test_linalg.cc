@@ -32,6 +32,9 @@
 #include "make_vector.h"
 #include "array.h"
 
+using std::cout;
+using std::endl;
+
 
 //! 
 /*! The function tests the LU-decompusition method for solving a 

@@ -23,6 +23,10 @@
 #include "array.h"
 #include "matpackVII.h"
 
+using std::cout;
+using std::setprecision;
+
+
 /* --------------------------------------------------------------
      Helper functions for filling tensors with running numbers,
      starting with start = 1 (default).

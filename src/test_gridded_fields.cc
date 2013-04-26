@@ -2,6 +2,10 @@
 #include "make_array.h"
 #include "gridded_fields.h"
 
+using std::cout;
+using std::endl;
+
+
 int main (void)
 {
   // Creating two gridded fields

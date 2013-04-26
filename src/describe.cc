@@ -29,11 +29,14 @@
 
 #include "describe.h"
 
+using std::ostringstream;
+
+
 //! Describe Tensor7.
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( ConstTensor7View x )
+String describe( ConstTensor7View x )
 {
   ostringstream os;
   os << "Tensor7 ["
@@ -51,7 +54,7 @@ string describe( ConstTensor7View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( ConstTensor6View x )
+String describe( ConstTensor6View x )
 {
   ostringstream os;
   os << "Tensor6 ["
@@ -68,7 +71,7 @@ string describe( ConstTensor6View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( ConstTensor5View x )
+String describe( ConstTensor5View x )
 {
   ostringstream os;
   os << "Tensor5 ["
@@ -84,7 +87,7 @@ string describe( ConstTensor5View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( ConstTensor4View x )
+String describe( ConstTensor4View x )
 {
   ostringstream os;
   os << "Tensor4 ["
@@ -99,7 +102,7 @@ string describe( ConstTensor4View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( ConstTensor3View x )
+String describe( ConstTensor3View x )
 {
   ostringstream os;
   os << "Tensor3 ["
@@ -113,7 +116,7 @@ string describe( ConstTensor3View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( ConstMatrixView x )
+String describe( ConstMatrixView x )
 {
   ostringstream os;
   os << "Matrix ["
@@ -126,7 +129,7 @@ string describe( ConstMatrixView x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( ConstVectorView x )
+String describe( ConstVectorView x )
 {
   ostringstream os;
   os << "Vector ["
@@ -138,7 +141,7 @@ string describe( ConstVectorView x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-string describe( const Numeric& x )
+String describe( const Numeric& x )
 {
   ostringstream os;
   os << "Scalar (" << x << ")";

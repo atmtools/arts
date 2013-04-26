@@ -26,6 +26,9 @@
 #include <iostream>
 #include "complex.h"
 
+using std::cout;
+
+
 void test01()
 {
   Complex a;

@@ -1,3 +1,17 @@
+2013-04-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-609
+
+	* src/test_complex.cc, src/test_gridded_fields.cc, src/test_linalg.cc
+	src/test_matpack.cc, src/test_tensor.cc:
+
+	Forgot to fix the test_* files in previous commit.
+
+	* src/describe.{cc,h}: Use our String class instead of the standard
+	string. Good example for a type error that went unnoticed before
+	because std::string was visible everywhere although we don't want to
+	use it.
+
 2013-04-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-608

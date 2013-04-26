@@ -31,13 +31,13 @@
 #include "matpackVII.h"
 #include "mystring.h"
 
-string describe( ConstTensor7View x );
-string describe( ConstTensor6View x );
-string describe( ConstTensor5View x );
-string describe( ConstTensor4View x );
-string describe( ConstTensor3View x );
-string describe( ConstMatrixView x );
-string describe( ConstVectorView x );
-string describe( const Numeric& x );
+String describe( ConstTensor7View x );
+String describe( ConstTensor6View x );
+String describe( ConstTensor5View x );
+String describe( ConstTensor4View x );
+String describe( ConstTensor3View x );
+String describe( ConstMatrixView x );
+String describe( ConstVectorView x );
+String describe( const Numeric& x );
 
 #endif // describe_h
