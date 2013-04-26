@@ -45,6 +45,9 @@
 #include <iterator>
 #include "matpackII.h"
 
+using std::vector;
+using std::setw;
+
 
 // Simple member Functions
 // ----------------
@@ -381,7 +384,7 @@ void Sparse::insert_row(Index r, Vector v)
             {
               // The row index was not found, look for the first index
               // greater than r
-              rpos = find_if(rstart,rend,bind2nd(greater<Index>(),r));
+              rpos = find_if(rstart,rend,bind2nd(std::greater<Index>(),r));
               dpos = dstart+(rpos-rstart);
 
               // Copy the first part of the column to the output vector.
@@ -477,7 +480,7 @@ void Sparse::make_I( Index r, Index c)
   assert( 0<=c );
 
   // First get number of ones in the identity matrix
-  Index n = min(r,c);
+  Index n = std::min(r,c);
 
   // Remake and assign values to vectors
   delete mcolptr;
@@ -596,7 +599,7 @@ Sparse& Sparse::operator=(const Sparse& m)
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-ostream& operator<<(ostream& os, const Sparse& v)
+std::ostream& operator<<(std::ostream& os, const Sparse& v)
 {
   for (size_t c=0; c<v.mcolptr->size()-1; ++c)
     {
@@ -913,7 +916,7 @@ void mult( Sparse& A,
         {
           // Get the intersection between the elements in the two columns and
           // and store them in a temporary vector
-          set<Index> colintersec;
+          std::set<Index> colintersec;
           set_intersection(C.mrowind->begin()+*(C.mcolptr->begin()+c),
             C.mrowind->begin()+*(C.mcolptr->begin()+c+1),
             Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b),
@@ -925,7 +928,7 @@ void mult( Sparse& A,
           if (!colintersec.empty())
             {
               Numeric tempA = 0.0;
-              for (set<Index>::iterator i=colintersec.begin();
+              for (std::set<Index>::iterator i=colintersec.begin();
                 i!=colintersec.end(); ++i)
                 {
                   // To get iterators to the data elements in Bt and C, we

@@ -76,9 +76,9 @@ public:
   Index ncols() const;
   Index nnz()   const;
 
-  const vector<Numeric> * data () const {return mdata;}
-  const vector<Index> * rowind () const {return mrowind;}
-  const vector<Index> * colptr () const {return mcolptr;}
+  const std::vector<Numeric> * data () const {return mdata;}
+  const std::vector<Index> * rowind () const {return mrowind;}
+  const std::vector<Index> * colptr () const {return mcolptr;}
 
   // Index Operators:
   Numeric& rw(Index r, Index c);
@@ -89,7 +89,7 @@ public:
   Sparse& operator=(const Sparse& m);
 
   // Friends:
-  friend ostream& operator<<(ostream& os, const Sparse& v);
+  friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
   friend void abs (Sparse& A, const Sparse& B );
   friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
   friend void mult (MatrixView A, const Sparse& B, ConstMatrixView C );
@@ -100,11 +100,11 @@ public:
 
 private:
   //! The actual data values.
-  vector<Numeric> *mdata;
+  std::vector<Numeric> *mdata;
   //! Row indices.
-  vector<Index> *mrowind;
+  std::vector<Index> *mrowind;
   //! Pointers to first data element for each column.
-  vector<Index> *mcolptr;
+  std::vector<Index> *mcolptr;
   //! Number of rows in the sparse matrix.
   Index mrr;
   //! Number of rows in the sparse matrix.

@@ -103,14 +103,14 @@ typedef Array<Tensor7> ArrayOfTensor7;
     constructors are provided by the derived class MakeArray.
 */
 template<class base>
-class Array : public vector<base>
+class Array : public std::vector<base>
 {
 public:
   // Constructors:
-  Array()                     : vector<base>()  { /* Nothing to do here. */ }
-  explicit Array(Index n)     : vector<base>(n) { /* Nothing to do here. */ }
+  Array()                     : std::vector<base>()  { /* Nothing to do here. */ }
+  explicit Array(Index n)     : std::vector<base>(n) { /* Nothing to do here. */ }
   Array(Index n, const base& fillvalue);
-  Array(const Array<base>& A) : vector<base>(A) { /* Nothing to do here. */ }
+  Array(const Array<base>& A) : std::vector<base>(A) { /* Nothing to do here. */ }
 
   // Assignment operators:
   Array& operator=(base x);
@@ -131,7 +131,7 @@ public:
 /** Constructor filling with constant value. */
 template<class base>
 inline Array<base>::Array(Index n, const base& fillvalue) :
-  vector<base>(n)
+  std::vector<base>(n)
 {
   // Use fill to fill.
   fill(this->begin(),this->end(),fillvalue);
@@ -187,7 +187,7 @@ inline const base& Array<base>::operator[](Index n) const
 {
   assert(0<=n);
   assert(n<nelem());
-  return vector<base>::operator[](n);
+  return std::vector<base>::operator[](n);
 }
 
 /** Non-constant index operator. We redifine this here so that we can
@@ -197,7 +197,7 @@ inline base& Array<base>::operator[](Index n)
 {
   assert(0<=n);
   assert(n<nelem());
-  return vector<base>::operator[](n);
+  return std::vector<base>::operator[](n);
 }
 
 
@@ -205,20 +205,20 @@ inline base& Array<base>::operator[](Index n)
 
 /** Output operator. */
 template<class base>
-inline ostream& operator<<(ostream& os, const Array<base>& v)
+inline std::ostream& operator<<(std::ostream& os, const Array<base>& v)
 {
   typename Array<base>::const_iterator         i = v.begin();
   const typename Array<base>::const_iterator end = v.end();
 
   if ( i!=end )
     {
-      os << setw(3) << *i;
+      os << std::setw(3) << *i;
       ++i;
     }
 
   for ( ; i!=end; ++i )
     {
-      os << " " << setw(3) << *i;
+      os << " " << std::setw(3) << *i;
     }
 
   return os;

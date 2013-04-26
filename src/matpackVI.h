@@ -978,7 +978,7 @@ Numeric max(const ConstTensor6View& x);
 
 Numeric min(const ConstTensor6View& x);
 
-ostream& operator<<(ostream& os, const ConstTensor6View& v);
+std::ostream& operator<<(std::ostream& os, const ConstTensor6View& v);
 
 ////////////////////////////////
 // Helper function for debugging

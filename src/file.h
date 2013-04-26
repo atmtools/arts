@@ -54,13 +54,13 @@ void filename_bin(
 //   Functions to open and read ASCII files
 ////////////////////////////////////////////////////////////////////////////
 
-void open_output_file(ofstream& file, const String& name);
+void open_output_file(std::ofstream& file, const String& name);
 
-void cleanup_output_file(ofstream& file, const String& name);
+void cleanup_output_file(std::ofstream& file, const String& name);
 
-void open_input_file(ifstream& file, const String& name);
+void open_input_file(std::ifstream& file, const String& name);
 
-void read_text_from_stream(ArrayOfString& text, istream& is);
+void read_text_from_stream(ArrayOfString& text, std::istream& is);
 
 void read_text_from_file(ArrayOfString& text, const String& name);
 

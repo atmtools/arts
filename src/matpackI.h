@@ -848,9 +848,9 @@ Numeric mean(const ConstMatrixView& x);
 
 Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
 
-ostream& operator<<(ostream& os, const ConstVectorView& v);
+std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 
-ostream& operator<<(ostream& os, const ConstMatrixView& v);
+std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
 
 ////////////////////////////////
 // Helper function for debugging

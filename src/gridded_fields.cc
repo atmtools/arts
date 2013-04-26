@@ -43,6 +43,10 @@
 #include "gridded_fields.h"
 
 
+using std::ostream;
+using std::ostringstream;
+using std::endl;
+using std::runtime_error;
 
 /*===========================================================================
   === The functions (in alphabetical order)

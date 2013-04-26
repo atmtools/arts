@@ -88,7 +88,7 @@ public:
   operator Matrix() const;
 
   /** Output operator. */
-  friend ostream& operator<<(ostream& os, const TokVal& a);
+  friend std::ostream& operator<<(std::ostream& os, const TokVal& a);
 
 private:
   TokValType    mtype;

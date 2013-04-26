@@ -38,6 +38,9 @@
 #include "exceptions.h"
 #include "complex.h"
 
+using std::ostringstream;
+using std::runtime_error;
+
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

@@ -192,7 +192,7 @@ public:
   //! GriddedField virtual destructor
   virtual ~GriddedField() {}
 
-  friend ostream& operator<<(ostream& os, const GriddedField& gf);
+  friend std::ostream& operator<<(std::ostream& os, const GriddedField& gf);
 };
 
 
@@ -214,7 +214,7 @@ public:
   {
     if (!checksize())
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "GriddedField1 ";
         if (get_name().length()) os << "(" << get_name() << ") ";
         os << CHECK_ERROR_BOILERPLATE;
@@ -223,7 +223,7 @@ public:
         os << " = " << get_grid_size(0) << "\n";
         os << "Data";
         os << " = " << data.nelem();
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   }
 
@@ -241,7 +241,7 @@ public:
     data.resize(n);
   }
 
-  friend ostream& operator<<(ostream& os, const GriddedField1& gf);
+  friend std::ostream& operator<<(std::ostream& os, const GriddedField1& gf);
 
   Vector data;
 };
@@ -267,7 +267,7 @@ public:
   {
     if (!checksize())
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "GriddedField2 ";
         if (get_name().length()) os << "(" << get_name() << ") ";
         os << CHECK_ERROR_BOILERPLATE;
@@ -279,7 +279,7 @@ public:
           }
         os << "Data";
         os << " = " << data.nrows() << ", " << data.ncols();
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   }
 
@@ -298,7 +298,7 @@ public:
     data.resize(r, c);
   }
 
-  friend ostream& operator<<(ostream& os, const GriddedField2& gf);
+  friend std::ostream& operator<<(std::ostream& os, const GriddedField2& gf);
 
   Matrix data;
 };
@@ -333,7 +333,7 @@ public:
   {
     if (!checksize())
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "GriddedField3 ";
         if (get_name().length()) os << "(" << get_name() << ") ";
         os << CHECK_ERROR_BOILERPLATE;
@@ -345,7 +345,7 @@ public:
           }
         os << "Data";
         os << " = " << data.npages() << ", " << data.nrows() << ", " << data.ncols();
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   }
 
@@ -365,7 +365,7 @@ public:
     data.resize(p, r, c);
   }
 
-  friend ostream& operator<<(ostream& os, const GriddedField3& gf);
+  friend std::ostream& operator<<(std::ostream& os, const GriddedField3& gf);
 
   Tensor3 data;
 };
@@ -395,7 +395,7 @@ public:
   {
     if (!checksize())
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "GriddedField4 ";
         if (get_name().length()) os << "(" << get_name() << ") ";
         os << CHECK_ERROR_BOILERPLATE;
@@ -408,7 +408,7 @@ public:
         os << "Data";
         os << " = " << data.nbooks() << ", " << data.npages() << ", ";
         os << data.nrows()  << ", " << data.ncols();
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   }
 
@@ -429,7 +429,7 @@ public:
     data.resize(b, p, r, c);
   }
 
-  friend ostream& operator<<(ostream& os, const GriddedField4& gf);
+  friend std::ostream& operator<<(std::ostream& os, const GriddedField4& gf);
 
   Tensor4 data;
 };
@@ -461,7 +461,7 @@ public:
   {
     if (!checksize())
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "GriddedField5 ";
         if (get_name().length()) os << "(" << get_name() << ") ";
         os << CHECK_ERROR_BOILERPLATE;
@@ -474,7 +474,7 @@ public:
         os << "Data";
         os << " = " << data.nshelves() << ", " << data.nbooks() << ", ";
         os << data.npages() << ", " << data.nrows()  << ", " << data.ncols();
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   }
 
@@ -496,7 +496,7 @@ public:
     data.resize(s, b, p, r, c);
   }
 
-  friend ostream& operator<<(ostream& os, const GriddedField5& gf);
+  friend std::ostream& operator<<(std::ostream& os, const GriddedField5& gf);
 
   Tensor5 data;
 };
@@ -530,7 +530,7 @@ public:
   {
     if (!checksize())
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "GriddedField6 ";
         if (get_name().length()) os << "(" << get_name() << ") ";
         os << CHECK_ERROR_BOILERPLATE;
@@ -543,7 +543,7 @@ public:
         os << "Data";
         os << " = " << data.nvitrines() << data.nshelves() << ", " << data.nbooks() << ", ";
         os << data.npages() << ", " << data.nrows()  << ", " << data.ncols();
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   }
 
@@ -566,7 +566,7 @@ public:
     data.resize(v, s, b, p, r, c);
   }
 
-  friend ostream& operator<<(ostream& os, const GriddedField6& gf);
+  friend std::ostream& operator<<(std::ostream& os, const GriddedField6& gf);
 
   Tensor6 data;
 };
@@ -575,13 +575,13 @@ public:
 
 /********** Output operators **********/
 
-ostream& operator<<(ostream& os, const GriddedField& gf);
-ostream& operator<<(ostream& os, const GriddedField1& gf);
-ostream& operator<<(ostream& os, const GriddedField2& gf);
-ostream& operator<<(ostream& os, const GriddedField3& gf);
-ostream& operator<<(ostream& os, const GriddedField4& gf);
-ostream& operator<<(ostream& os, const GriddedField5& gf);
-ostream& operator<<(ostream& os, const GriddedField6& gf);
+std::ostream& operator<<(std::ostream& os, const GriddedField& gf);
+std::ostream& operator<<(std::ostream& os, const GriddedField1& gf);
+std::ostream& operator<<(std::ostream& os, const GriddedField2& gf);
+std::ostream& operator<<(std::ostream& os, const GriddedField3& gf);
+std::ostream& operator<<(std::ostream& os, const GriddedField4& gf);
+std::ostream& operator<<(std::ostream& os, const GriddedField5& gf);
+std::ostream& operator<<(std::ostream& os, const GriddedField6& gf);
 
 /************ Array types *************/
 

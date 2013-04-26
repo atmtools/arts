@@ -377,7 +377,7 @@ Numeric max(const ConstTensor3View& x);
 
 Numeric min(const ConstTensor3View& x);
 
-ostream& operator<<(ostream& os, const ConstTensor3View& v);
+std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v);
 
 ////////////////////////////////
 // Helper function for debugging

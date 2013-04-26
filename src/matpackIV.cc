@@ -25,6 +25,9 @@
 #include "matpackIV.h"
 #include "exceptions.h"
 
+using std::runtime_error;
+
+
 /** The -> operator is needed, so that we can write i->begin() to get
     the 3D iterators. */
 Tensor3View* Iterator4D::operator->()
@@ -493,7 +496,7 @@ ConstTensor4View::ConstTensor4View(Numeric *data,
 /** Output operator. This demonstrates how iterators can be used to
     traverse the tensor. We use the standard output operator for
     Tensor to print each book in turn. */
-ostream& operator<<(ostream& os, const ConstTensor4View& v)
+std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v)
 {
   // Page iterators:
   ConstIterator4D ib = v.begin();

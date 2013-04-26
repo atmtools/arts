@@ -1,3 +1,37 @@
+2013-04-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-608
+
+	* src/matpack.h: Remove 'using namespace std;' from header. It is bad
+	practice because it pollutes the global namespace of every file it is
+	included by. Removing it here makes at least matpack behave nicely.
+	Still present in arts.h.
+
+	* src/array.h src/complex.{cc,h}, src/exceptions.h, src/fastem.cc,
+	src/file.h, src/gridded_fields.{cc,h}, src/make_array.h,
+	src/matpack*.{cc,h}, src/mystring.h, src/rational.{cc,h},
+	src/sourcetext.{cc,h}:
+
+	In header files, add prefix std:: to all entities from the std
+	namespace.
+
+	In cc files, it is ok(ish) to use 'using namespace std;'. But it is
+	preferable to only import what is actually used. This can be done at
+	the beginning of the file after the include directives,
+	e.g. 'using std::runtime_error;'.
+
+	* src/sourcetext.cc (operator<<): Write to os not cout.
+
+	* src/jacobian.h (RetrievalQuantity):
+
+	Remove unneeded copy constructor.
+
+	Change type of grids argument in constructor from MakeArray<Vector> to
+	ArrayOfVector.
+
+	* src/m_jacobian.cc: Remove unnecessary assignments of
+	RetrievalQuantity() in variable definitions.
+
 2013-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-607

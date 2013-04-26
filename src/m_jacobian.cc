@@ -267,7 +267,7 @@ void jacobianAddAbsSpecies(
     }
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( ABSSPECIES_MAINTAG );
   rq.Subtag( species );
   rq.Mode( mode );
@@ -601,7 +601,7 @@ void jacobianAddFreqShift(
              "The polynomial order can not be >= length of *sensor_time*." ); }
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( FREQUENCY_MAINTAG );
   rq.Subtag( FREQUENCY_SUBTAG_0 );
   rq.Mode( "" );
@@ -827,7 +827,7 @@ void jacobianAddFreqStretch(
              "The polynomial order can not be >= length of *sensor_time*." ); }
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( FREQUENCY_MAINTAG );
   rq.Subtag( FREQUENCY_SUBTAG_1 );
   rq.Mode( "" );
@@ -1068,7 +1068,7 @@ void jacobianAddPointingZa(
              "The polynomial order can not be >= length of *sensor_time*." ); }
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( POINTING_MAINTAG );
   rq.Subtag( POINTING_SUBTAG_A );
   rq.Analytical( 0 );
@@ -1410,7 +1410,7 @@ void jacobianAddPolyfit(
     grids[3] = Vector(0,sensor_pos.nrows(),1);
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( POLYFIT_MAINTAG );
   rq.Mode( "" );
   rq.Analytical( 0 );
@@ -1585,7 +1585,7 @@ void jacobianAddSinefit(
     grids[3] = Vector(0,sensor_pos.nrows(),1);
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( SINEFIT_MAINTAG );
   rq.Mode( "" );
   rq.Analytical( 0 );
@@ -1800,7 +1800,7 @@ void jacobianAddTemperature(
     }
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( TEMPERATURE_MAINTAG );
   rq.Subtag( subtag );
   rq.Mode( "abs" );
@@ -2106,7 +2106,7 @@ void jacobianAddWind(
     }
 
   // Create the new retrieval quantity
-  RetrievalQuantity rq = RetrievalQuantity();
+  RetrievalQuantity rq;
   rq.MainTag( WIND_MAINTAG );
   rq.Subtag( component );
   rq.Analytical( 1 );
@@ -2250,7 +2250,7 @@ void jacobianCalcWindAnalytical(
 //   }
 
 //   // Common part for all particle variables
-//   RetrievalQuantity rq = RetrievalQuantity();
+//   RetrievalQuantity rq;
 //   rq.MainTag("Particles");
 //   rq.Grids(grids);
 //   rq.Analytical(0);

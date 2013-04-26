@@ -25,6 +25,8 @@
 
 #include "complex.h"
 
+using std::complex;
+
 complex<float> operator+ (const double& d, const complex<float>& c)
 {
   return (float(d) + c);

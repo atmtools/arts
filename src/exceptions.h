@@ -37,7 +37,7 @@
 
 // Special stuff for the parser:
 
-class ParseError : public runtime_error {
+class ParseError : public std::runtime_error {
 public:
   ParseError( const String& s="",
               const String& f="",

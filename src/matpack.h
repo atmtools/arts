@@ -20,11 +20,6 @@
 
 #include "config_global.h"
 
-#ifdef HAVE_NAMESPACES
-  // We need those to support ansi-compliant compilers (gcc-3x)
-  namespace std {}
-  using namespace std;
-#endif
 
 //--------------------< Set floating point type >--------------------
 /** The type to use for all floating point numbers. You should never

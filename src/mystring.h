@@ -42,6 +42,7 @@
 #include "sstream.h"
 #endif
 
+
 /**
    The implementation for String, the ARTS string class. 
 
@@ -59,13 +60,13 @@
    not from string directly.
 */
 template<class charT>
-class my_basic_string : public basic_string<charT>
+class my_basic_string : public std::basic_string<charT>
 {
 public:
   // Constructors:
   my_basic_string();
   explicit my_basic_string(Index n, char c=' ');
-  my_basic_string(const basic_string<charT>& A,
+  my_basic_string(const std::basic_string<charT>& A,
                   Index pos=0,
                   Index numpos=my_basic_string<charT>::npos);
   my_basic_string(const char A[]);
@@ -101,7 +102,7 @@ public:
   char& operator[](Index n);
 
   /** Define npos: */
-  static const Index npos = static_cast<Index>(basic_string<charT>::npos);
+  static const Index npos = static_cast<Index>(std::basic_string<charT>::npos);
 
   typedef Index size_type;
 };
@@ -114,7 +115,7 @@ public:
 
 /** Default constructor. */
 template<class charT>
-inline my_basic_string<charT>::my_basic_string() : basic_string<charT>()  
+inline my_basic_string<charT>::my_basic_string() : std::basic_string<charT>()
 { /* Nothing to do here. */ }
 
 
@@ -127,7 +128,7 @@ inline my_basic_string<charT>::my_basic_string() : basic_string<charT>()
 */
 template<class charT>
 inline my_basic_string<charT>::my_basic_string(Index n, char c) :
-  basic_string<charT>(n,c) 
+  std::basic_string<charT>(n,c)
 { /* Nothing to do here. */ }
 
 
@@ -144,7 +145,7 @@ inline my_basic_string<charT>::my_basic_string(Index n, char c) :
     \param numpos How many characters to copy
 */
 template<class charT>
-inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
+inline my_basic_string<charT>::my_basic_string(const std::basic_string<charT>& A,
                                                Index pos,
                                                Index numpos)
 { 
@@ -157,12 +158,12 @@ inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
 //   cout << "pos = " << pos << "\n";
 //   cout << "size = " << A.size() << "\n";
 
-  assert(static_cast<typename basic_string<charT>::size_type>(pos)<A.size());      
+  assert(static_cast<typename std::basic_string<charT>::size_type>(pos)<A.size());
   // At most the last element of the original string.
 
   assert( numpos==my_basic_string<charT>::npos ||
           ( (numpos >= 0) &&
-            (static_cast<typename basic_string<charT>::size_type>(numpos)<=(A.size()-pos))
+            (static_cast<typename std::basic_string<charT>::size_type>(numpos)<=(A.size()-pos))
             )
           );  // Number of characters to copy must be at the most the
               // number left. -1 means all remaining characters. 
@@ -174,13 +175,13 @@ inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
   // case npos -1 (=my_basic_string<charT>::npos) is also handled
   // correctly.)
 
-  basic_string<charT>::operator=(basic_string<charT>(A,pos,numpos));
+  std::basic_string<charT>::operator=(std::basic_string<charT>(A,pos,numpos));
 
 }
 
 /** Constructor from a C-style char array. */
 template<class charT>
-inline my_basic_string<charT>::my_basic_string(const char A[]) : basic_string<charT>(A) 
+inline my_basic_string<charT>::my_basic_string(const char A[]) : std::basic_string<charT>(A)
 { /* Nothing to do here. */ }
 
 
@@ -193,7 +194,7 @@ inline my_basic_string<charT>::my_basic_string(const char A[]) : basic_string<ch
 template<class charT>
 inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_string<charT>& A)
 {
-  basic_string<charT>::operator=(A);
+  std::basic_string<charT>::operator=(A);
   return *this;
 }
 
@@ -211,10 +212,10 @@ inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT>& 
   size_t insstr_size = insstr.size();
   size_t start_pos = 0;
 
-  while (start_pos != string::npos)
+  while (start_pos != std::string::npos)
     {
       start_pos = this->find (searchstr, start_pos);
-      if (start_pos && start_pos != string::npos)
+      if (start_pos && start_pos != std::string::npos)
         {
           this->insert (start_pos, insstr);
           start_pos += searchstr_size + insstr_size;
@@ -293,7 +294,7 @@ inline char my_basic_string<charT>::operator[](Index n) const
 {
   assert(0<=n);
   assert(n<nelem());
-  return basic_string<charT>::operator[](n);
+  return std::basic_string<charT>::operator[](n);
 }
 
 
@@ -308,7 +309,7 @@ inline char& my_basic_string<charT>::operator[](Index n)
 {
   assert(0<=n);
   assert(n<nelem());
-  return basic_string<charT>::operator[](n);
+  return std::basic_string<charT>::operator[](n);
 }
 
 
@@ -340,7 +341,7 @@ void extract(T&      x,
     // This will contain the short subString with the item to extract.
     // Make it a String stream, for easy parsing,
     // extracting subString of width n from line:
-    istringstream item( line.substr(0,n) );
+    std::istringstream item( line.substr(0,n) );
 
     //  cout << "line = '" << line << "'\n";
     //   cout << "line.substr(0,n) = " << line.substr(0,n) << endl;

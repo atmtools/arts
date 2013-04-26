@@ -55,24 +55,13 @@ public:
   { /* Nothing to do here. */ }
 
 
-  /** Copy constructor. We need this, since operator= does not work
-      correctly for Arrays. (Target Array has to be resized first.) */
-  RetrievalQuantity(const RetrievalQuantity& x) :
-    mmaintag(x.mmaintag),
-    msubtag(x.msubtag),
-    mmode(x.mmode),
-    manalytical(x.manalytical),
-    mperturbation(x.mperturbation),
-    mgrids(x.mgrids)
-  { /* Nothing left to do here. */ }
-
   /** Constructor that sets the values. */
   RetrievalQuantity(const String&             maintag,
                     const String&             subtag,
                     const String&             mode,
                     const Index&              analytical,
                     const Numeric&            perturbation,
-                    const MakeArray<Vector>&  grids ) :
+                    const ArrayOfVector&      grids ) :
     mmaintag(maintag),
     msubtag(subtag),
     mmode(mode),

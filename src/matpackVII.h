@@ -1956,7 +1956,7 @@ Numeric max(const ConstTensor7View& x);
 
 Numeric min(const ConstTensor7View& x);
 
-ostream& operator<<(ostream& os, const ConstTensor7View& v);
+std::ostream& operator<<(std::ostream& os, const ConstTensor7View& v);
 
 ////////////////////////////////
 // Helper function for debugging

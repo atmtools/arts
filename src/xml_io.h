@@ -77,4 +77,10 @@ void xml_write_to_file(const String&    filename,
                        const FileType   ftype,
                        const Verbosity& verbosity);
 
+template<typename T>
+void xml_read_from_file(const String&, T&, const Verbosity&);
+
+template<typename T>
+void xml_write_to_file(const String&, const T&, FileType, const Verbosity&);
+
 #endif

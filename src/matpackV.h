@@ -480,7 +480,7 @@ Numeric max(const ConstTensor5View& x);
 
 Numeric min(const ConstTensor5View& x);
 
-ostream& operator<<(ostream& os, const ConstTensor5View& v);
+std::ostream& operator<<(std::ostream& os, const ConstTensor5View& v);
 
 ////////////////////////////////
 // Helper function for debugging

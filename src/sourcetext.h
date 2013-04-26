@@ -106,7 +106,7 @@ public:
   bool  LineBreak() const { return mLineBreak; }
 
   /** Output operator for SourceText. (Only used for debugging) */
-  friend ostream& operator << (ostream& os, const SourceText& text);
+  friend std::ostream& operator << (std::ostream& os, const SourceText& text);
 
 private:
 

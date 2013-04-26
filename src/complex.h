@@ -29,19 +29,19 @@
 #include <complex>
 #include "matpack.h"
 
-typedef complex<Numeric> Complex;
+typedef std::complex<Numeric> Complex;
 
-complex<float> operator+ (const double& d, const complex<float>& c);
-complex<float> operator* (const double& d, const complex<float>& c);
+std::complex<float> operator+ (const double& d, const std::complex<float>& c);
+std::complex<float> operator* (const double& d, const std::complex<float>& c);
 
-complex<float> operator+ (const complex<float>& c, const double& d);
-complex<float> operator* (const complex<float>& c, const double& d);
+std::complex<float> operator+ (const std::complex<float>& c, const double& d);
+std::complex<float> operator* (const std::complex<float>& c, const double& d);
 
-complex<double> operator+ (const float& f, const complex<double>& c);
-complex<double> operator* (const float& f, const complex<double>& c);
+std::complex<double> operator+ (const float& f, const std::complex<double>& c);
+std::complex<double> operator* (const float& f, const std::complex<double>& c);
 
-complex<double> operator+ (const complex<double>& c, const float& d);
-complex<double> operator* (const complex<double>& c, const float& d);
+std::complex<double> operator+ (const std::complex<double>& c, const float& d);
+std::complex<double> operator* (const std::complex<double>& c, const float& d);
 
 #endif
 

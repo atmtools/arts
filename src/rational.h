@@ -140,9 +140,9 @@ private:
 
 #define RATIONAL_UNDEFINED Rational(0, 0)
 
-ostream& operator<<(ostream& os, const Rational& a);
+std::ostream& operator<<(std::ostream& os, const Rational& a);
 
-istream& operator>>(istream& os, Rational& a);
+std::istream& operator>>(std::istream& os, Rational& a);
 
 Rational abs(const Rational& a);
 

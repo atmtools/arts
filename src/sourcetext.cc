@@ -149,12 +149,12 @@ void SourceText::Init()
 }
 
 
-ostream& operator << (ostream& os, const SourceText& text)
+std::ostream& operator << (std::ostream& os, const SourceText& text)
 {
   for (Index i=0; i<text.mText.nelem();++i)
-    cout << i
-         << "(" << text.mText[i].nelem() << ")"
-         << ": " << text.mText[i] << '\n';
+    os << i
+       << "(" << text.mText[i].nelem() << ")"
+       << ": " << text.mText[i] << '\n';
   return(os);
 }
 
