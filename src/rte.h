@@ -203,7 +203,8 @@ void get_ppath_abs(
   ConstMatrixView       ppath_f, 
   ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
-  const Index&          stokes_dim );
+  const Index&          stokes_dim,
+  const bool&           only_sum_abs );
 
 void get_ppath_blackrad( 
         Workspace&   ws,

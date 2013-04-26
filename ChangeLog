@@ -1,3 +1,25 @@
+2013-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-604
+
+	* src/m_cloudradar.cc:
+	* src/m_fos.cc:
+
+	* src/m_transmitter.cc:
+	* src/m_rte.cc: Adopted all calls of get_ppath_abs.
+
+	* src/rte.cc (get_ppath_abs): Introduced only_sum_abs. This flag
+	can be set to true when only summed absorption is needed, that in
+	some cases will save considerable amount of memory. Cases where
+	this flag must be false is when abs_species jacobians are
+	calculated, "abs per species" is aux output and when Faraday is
+	aux output.
+
+	* src/rte.cc (get_ppath_trans): Removed obselete comment about
+	Faraday.
+
+	* src/m_fos.cc: Further work on reimplementation ...
+
 2013-04-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-603

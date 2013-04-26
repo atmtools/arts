@@ -322,6 +322,7 @@ void iyEmissionStandard(
   Vector    ppath_p, ppath_t;
   Matrix    ppath_vmr, ppath_pnd, ppath_wind, ppath_mag, ppath_f;
   // Attenuation vars
+  bool      only_sum_abs = !( j_analytical_do || auxAbsSpecies.nelem()>0 ); 
   Tensor5   ppath_abs;
   Tensor4   trans_partial, trans_cumulat;
   Matrix    ppath_blackrad;
@@ -339,7 +340,7 @@ void iyEmissionStandard(
                           rte_alonglos_v, ppath_wind );
       get_ppath_abs(      ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                           ppath_p, ppath_t, ppath_vmr, ppath_pnd, ppath_f, 
-                          ppath_mag, f_grid, stokes_dim );
+                          ppath_mag, f_grid, stokes_dim, only_sum_abs );
       get_ppath_trans(    trans_partial, trans_cumulat, scalar_tau, ppath, 
                           ppath_abs, f_grid, stokes_dim );
       get_ppath_blackrad( ws, ppath_blackrad, blackbody_radiation_agenda, 
@@ -436,7 +437,7 @@ void iyEmissionStandard(
                   Vector t2 = ppath_t;   t2 += dt;
                   get_ppath_abs( ws, ppath_at2, propmat_clearsky_agenda, 
                                  ppath, ppath_p, t2, ppath_vmr, ppath_pnd, 
-                                 ppath_f, ppath_mag, f_grid, stokes_dim );
+                                 ppath_f, ppath_mag, f_grid, stokes_dim, true );
                   get_ppath_blackrad( ws, ppath_bt2, blackbody_radiation_agenda,
                                       ppath, t2, ppath_f );
                 }
@@ -449,7 +450,7 @@ void iyEmissionStandard(
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awu, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
-                                     f2, ppath_mag, f_grid, stokes_dim );
+                                     f2, ppath_mag, f_grid, stokes_dim, true );
                     }
                   else if( wind_i[iq] == 2 )
                     {
@@ -458,7 +459,7 @@ void iyEmissionStandard(
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awv, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
-                                     f2, ppath_mag, f_grid, stokes_dim );
+                                     f2, ppath_mag, f_grid, stokes_dim, true );
                     }
                   else if( wind_i[iq] == 3 )
                     {
@@ -467,7 +468,7 @@ void iyEmissionStandard(
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_aww, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
-                                     f2, ppath_mag, f_grid, stokes_dim );
+                                     f2, ppath_mag, f_grid, stokes_dim, true );
                     }
                 }
             }

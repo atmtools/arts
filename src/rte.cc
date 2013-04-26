@@ -1297,7 +1297,9 @@ void get_ppath_atmvars(
     \param   ppath_mag           See get_ppath_atmvars.
     \param   f_grid              As the WSV.    
     \param   stokes_dim          As the WSV.
-
+    \param   only_sum_abs        If set to true, only the summed absorption
+                                 is returned. Otherwise, the contribution of
+                                 each abs_species is kept seperated.
     \author Patrick Eriksson 
     \date   2012-08-15
 */
@@ -1313,7 +1315,8 @@ void get_ppath_abs(
   ConstMatrixView       ppath_f, 
   ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
-  const Index&          stokes_dim )
+  const Index&          stokes_dim,
+  const bool&           only_sum_abs )
 {
   // Sizes
   const Index   nf   = f_grid.nelem();
@@ -1322,7 +1325,13 @@ void get_ppath_abs(
 
   // Size variable
   try {
-    ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np );
+    if( only_sum_abs )
+      { 
+        ppath_abs.resize( 1, nf, stokes_dim, stokes_dim, np ); 
+        ppath_abs = 0;   // Here we sum up
+      }
+    else  // Here we fill and no need to set to 0
+      { ppath_abs.resize( nabs, nf, stokes_dim, stokes_dim, np ); }
   } catch (std::bad_alloc x) {
       ostringstream os;
       os << "Run-time error in function: get_ppath_abs" << endl
@@ -1373,7 +1382,27 @@ void get_ppath_abs(
 
       // Copy to output argument
       if (!failed)
-          ppath_abs(joker,joker,joker,joker,ip) = propmat_clearsky;
+        {
+          if( only_sum_abs )
+            {
+              for( Index i1=0; i1<propmat_clearsky.nbooks(); i1++ )
+                {
+                  for( Index i2=0; i2<propmat_clearsky.npages(); i2++ )
+                    {
+                      for( Index i3=0; i3<propmat_clearsky.nrows(); i3++ )
+                        {
+                          for( Index i4=0; i4<propmat_clearsky.ncols(); i4++ )
+                            {
+                              ppath_abs(0,i2,i3,i4,ip) +=
+                                               propmat_clearsky(i1,i2,i3,i4);
+                            }
+                        }
+                    }
+                }
+            }
+          else
+            { ppath_abs(joker,joker,joker,joker,ip) = propmat_clearsky; }
+        }
     }
 
     if (failed)
@@ -1688,9 +1717,6 @@ void get_ppath_trans(
   //
   scalar_tau.resize( nf );
   scalar_tau = 0;
-
-  // If any problems for Faraday rotation is found, remember to also update
-  // get_ppath_trans2.
 
   // Loop ppath points (in the anti-direction of photons)  
   //

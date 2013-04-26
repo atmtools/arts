@@ -330,6 +330,7 @@ void iyRadioLink(
   Tensor4      trans_partial, trans_cumulat, pnd_ext_mat;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox;
+  bool         only_sum_abs = !( auxAbsSpecies.nelem()>0 ); 
   //
   if( np > 1 )
     {
@@ -343,7 +344,7 @@ void iyRadioLink(
                          rte_alonglos_v, ppath_wind );
       get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_pnd, ppath_f, 
-                         ppath_mag, f_grid, stokes_dim );
+                         ppath_mag, f_grid, stokes_dim, only_sum_abs );
       if( !cloudbox_on )
         { 
           get_ppath_trans(  trans_partial, trans_cumulat, scalar_tau, ppath, 
@@ -864,20 +865,22 @@ void iyTransmissionStandard(
   Tensor4      trans_partial, trans_cumulat, pnd_ext_mat;
   Vector       scalar_tau;
   ArrayOfIndex clear2cloudbox;
+  bool         only_sum_abs = !( j_analytical_do   || auxAbsSpecies.nelem()>0 ||
+                                 auxFarRotTotal>=0 || auxFarRotSpeed>=0 ); 
   //
   if( np > 1 )
     {
-      get_ppath_atmvars(  ppath_p, ppath_t, ppath_vmr,
-                          ppath_pnd, ppath_wind, ppath_mag, 
-                          ppath, atmosphere_dim, p_grid, t_field, 
-                          vmr_field, pnd_field, cloudbox_on,
-                          wind_u_field, wind_v_field, wind_w_field,
-                          mag_u_field, mag_v_field, mag_w_field );      
+      get_ppath_atmvars( ppath_p, ppath_t, ppath_vmr,
+                         ppath_pnd, ppath_wind, ppath_mag, 
+                         ppath, atmosphere_dim, p_grid, t_field, 
+                         vmr_field, pnd_field, cloudbox_on,
+                         wind_u_field, wind_v_field, wind_w_field,
+                         mag_u_field, mag_v_field, mag_w_field );      
       get_ppath_f(       ppath_f, ppath, f_grid,  atmosphere_dim, 
                          rte_alonglos_v, ppath_wind );
       get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_pnd, ppath_f, 
-                         ppath_mag, f_grid, stokes_dim );
+                         ppath_mag, f_grid, stokes_dim, only_sum_abs );
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, trans_cumulat, scalar_tau,
@@ -972,7 +975,7 @@ void iyTransmissionStandard(
                   Vector t2 = ppath_t;   t2 += dt;
                   get_ppath_abs( ws, ppath_at2, propmat_clearsky_agenda, 
                                  ppath, ppath_p, t2, ppath_vmr, ppath_pnd, 
-                                 ppath_f, ppath_mag, f_grid, stokes_dim );
+                                 ppath_f, ppath_mag, f_grid, stokes_dim, true );
                 }
               else if( wind_i[iq] )
                 {
@@ -983,7 +986,7 @@ void iyTransmissionStandard(
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awu, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
-                                     f2, ppath_mag, f_grid, stokes_dim );
+                                     f2, ppath_mag, f_grid, stokes_dim, true );
                     }
                   else if( wind_i[iq] == 2 )
                     {
@@ -992,7 +995,7 @@ void iyTransmissionStandard(
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_awv, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
-                                     f2, ppath_mag, f_grid, stokes_dim );
+                                     f2, ppath_mag, f_grid, stokes_dim, true );
                     }
                   else if( wind_i[iq] == 3 )
                     {
@@ -1001,7 +1004,7 @@ void iyTransmissionStandard(
                                      rte_alonglos_v, w2 );
                       get_ppath_abs( ws, ppath_aww, propmat_clearsky_agenda,
                                      ppath, ppath_p, ppath_t, ppath_vmr, ppath_pnd, 
-                                     f2, ppath_mag, f_grid, stokes_dim );
+                                     f2, ppath_mag, f_grid, stokes_dim, true );
                     }
                 }
             }

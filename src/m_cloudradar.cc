@@ -224,7 +224,7 @@ void iyCloudRadar(
                          rte_alonglos_v, ppath_wind );
       get_ppath_abs(     ws, ppath_abs, propmat_clearsky_agenda, ppath, 
                          ppath_p, ppath_t, ppath_vmr, ppath_pnd,
-                         ppath_f, ppath_mag, f_grid, stokes_dim );
+                         ppath_f, ppath_mag, f_grid, stokes_dim, true );
       if( !cloudbox_on )
         { 
           get_ppath_trans( trans_partial, trans_cumulat, scalar_tau, 
