@@ -176,7 +176,6 @@ add_library (artscore STATIC
   m_cloudbox.cc
   m_disort.cc
   m_doit.cc
-  m_fos.cc
   m_general.cc
   m_jacobian.cc
   m_montecarlo.cc

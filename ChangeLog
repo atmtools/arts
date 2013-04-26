@@ -1,3 +1,18 @@
+2013-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-0-48
+
+	* Discovered a serious bug in FOS (rte_pos2 not set properly in
+	later part). FOS is being reimplemented in v2.1, and then decided
+	to deactivate FOS totally in this branch. Source code kept for
+	future reference, but removed WSVs and WSM.
+
+	* src/CMakeLists.txt:
+	* includes/general.arts:
+	* src/methods.cc:
+	* src/workspace.cc:
+	* src/agendas.cc: FOS stuff removed.
+
 2013-02-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-0-47

@@ -3985,34 +3985,6 @@ void define_md_data_raw()
                   "Step size." )
         ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "fos_yStandard" ),
-        DESCRIPTION
-        (
-         "DO NOT USE!\n"
-         "\n"
-         "This method is used by Patrick for testing a new scattering scheme.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "fos_y", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
-            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
-            "f_grid", "ppath_step_agenda", "emission_agenda",
-            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
-            "iy_transmission", "pnd_field", "scat_data_raw", 
-            "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
-            "use_mean_scat_data", "fos_n", "fos_i" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "f_gridFromGasAbsLookup" ),
@@ -4521,54 +4493,6 @@ void define_md_data_raw()
             "f_grid", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
             "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "iyFOS" ),
-        DESCRIPTION
-        (
-         "DO NOT USE! So far just used for testing by Patrick.\n"
-         "\n"
-         "A fixed order of scattering (FOS) scheme.\n"
-         "\n"
-         "The scattering integral is here solved by calculating the incoming\n"
-         "radiation and phase matrix for a set of directions, that can be\n"
-         "distributed freely over the sphere of integration. These directions\n"
-         "are specified by a combination of zenith angd azimuth angles for\n"
-         "each integration point. The product of incoming radiation and phase\n"
-         "matrix is summed up, with a weight specified for each product.\n"
-         "These angles and integration weights are packed into the WSV\n" 
-         "*fos_angles*.\n"
-         "\n"
-         "If *fos_n* equals 1, the incoming radiation is calculated without\n"
-         "scattering. This is thus a singel scattering scheme.\n"
-         "For *fos_n* = n, the incoming radiation for a point at the\n"
-         "unscattered propgation path is calculated as for fos_n = n-1. This\n"
-         "gives a scheme where n scattering events are considered.\n"
-         "\n"
-         "For regions of no scattering there is a marginal difference between\n"
-         "running this method and the corresponding pure clear-sky agenda,\n"
-         "and there is not critical to set the cloudbox limits in a \"tight\"\n"
-         "manner.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "iy_error", "iy_error_type", "iy_aux", "diy_dx", "iy_transmission",
-            "rte_pos", "rte_los", "jacobian_do","atmosphere_dim", 
-            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
-            "vmr_field", "r_geoid", "z_surface", "cloudbox_on", 
-            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
-            "emission_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
-            "pnd_field", "scat_data_raw", "opt_prop_gas_agenda", "fos_y_agenda",
-            "fos_angles", "use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

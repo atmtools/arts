@@ -194,10 +194,5 @@ jacobianOff
 IndexSet( ybatch_start, 0 )
 
 
-#
-# FOS 
-#
-IndexSet( fos_i, 0 )
-
 }
 

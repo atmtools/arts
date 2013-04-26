@@ -213,27 +213,6 @@ void define_agenda_data()
        OUTPUT(),
        INPUT( "forloop_index" )));
 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "fos_y_agenda" ),
-       DESCRIPTION
-       (
-        "Calculation of incoming radiation field for FOS method.\n"
-        "\n"
-        "The direct task of the agenda is to determine the incoming radiation\n"
-        "field, to evaluate of the scattering integral, for each angle in\n"
-        "*fos_angle*. The data are packed into *fos_y*.\n"
-        "\n"
-        "The underlying purpose of this agenda is to allow different\n"
-        "shortcuts for estimating the incoming radiation field. For example,\n"
-        "calculations can be performed for a few directions and then an\n"
-        "interpolation is performed to obtain the intensity for other\n"
-        "directions. The data could also be taken from a pre-calculated\n"
-        "database.\n"
-        ),
-       OUTPUT( "fos_y" ),
-       INPUT( "rte_pos", "fos_angles", "fos_n", "fos_i" )));
- 
 //   agenda_data.push_back
 //     (AgRecord
 //      ( NAME( "geomag_los_calc_agenda" ),
