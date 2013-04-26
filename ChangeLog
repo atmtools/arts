@@ -1,5 +1,31 @@
 2013-04-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-606
+
+	* src/linerecord.{cc,h}:
+
+	Added.  Move LineRecord class from absorption.{cc,h} into its own file.
+	It's a large class and absorption.{h,cc} became very cluttered.
+	Also moved all method documentation from the cc into the header file.
+
+	(LineRecord::ReadFromHitranStream): Rename to ReadFromHitran2001Stream
+	to be consistent with ReadFromHitran2004Stream.
+
+	* src/m_abs.cc (abs_linesReadFromHitranPre2004):
+	Call lr.ReadFromHitran2001Stream.
+
+	* src/absorption.{cc,h}: Remove LineRecord class. Remove unnecessary
+	includes. Include linerecord.h.
+
+	* src/mystring.h:
+
+	Moved extract helper function from absorption.cc to here. It is not
+	specific to absorption and might be handy for other cases.
+
+	* src/CMakeLists.txt: Add linerecord.cc to artscore.
+
+2013-04-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-605
 
 	* src/continua.{cc,h}:

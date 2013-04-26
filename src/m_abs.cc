@@ -163,7 +163,7 @@ void abs_linesReadFromHitranPre2004(
   while ( go_on )
     {
       LineRecord lr;
-      if ( lr.ReadFromHitranStream(is, verbosity) )
+      if ( lr.ReadFromHitran2001Stream(is, verbosity) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.

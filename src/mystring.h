@@ -319,4 +319,39 @@ typedef my_basic_string<char> String;
 /** An array of Strings. */
 typedef Array<String> ArrayOfString;
 
+
+/** Extract something from the beginning of a string. This is just a small helper
+ function to safe some typing.
+
+ \retval x    What was extracted from the beginning of the line.
+ \retval line What was extracted is also cut away from line.
+ \param n     The width of the stuff to extract.
+
+ \author Stefan Buehler */
+template<class T>
+void extract(T&      x,
+             String& line,
+             Index  n)
+{
+    // Initialize output to zero! This is important, because otherwise
+    // the output variable could `remember' old values.
+    x = T(0);
+
+    // This will contain the short subString with the item to extract.
+    // Make it a String stream, for easy parsing,
+    // extracting subString of width n from line:
+    istringstream item( line.substr(0,n) );
+
+    //  cout << "line = '" << line << "'\n";
+    //   cout << "line.substr(0,n) = " << line.substr(0,n) << endl;
+    //   cout << "item = " << item.str() << endl;
+
+    // Shorten line by n:
+    line.erase(0,n);
+    //  cout << "line = " << line << endl;
+
+    // Convert with the aid of String stream item:
+    item >> x;
+}
+
 #endif  // mystring_h
