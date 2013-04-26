@@ -1499,6 +1499,24 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "fos_iyin_za_angles" ),
+       DESCRIPTION
+       (
+        "So far just testing of FOS ..."
+        ),
+        GROUP( "Vector" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "fos_scatint_angles" ),
+       DESCRIPTION
+       (
+        "So far just testing of FOS ..."
+        ),
+        GROUP( "Matrix" )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "f_backend" ),
        DESCRIPTION
        (

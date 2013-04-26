@@ -5083,14 +5083,16 @@ void define_md_data_raw()
             "pnd_field", "use_mean_scat_data", "scat_data_raw",
             "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", "blackbody_radiation_agenda",
-            "propmat_clearsky_agenda", "iy_main_agenda", 
-            "iy_space_agenda", "iy_surface_agenda", 
-            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
-            "rte_pos2", "rte_alonglos_v", "ppath_lraytrace" ),
-        GIN( "fos_n" ),
-        GIN_TYPE( "Index" ),
-        GIN_DEFAULT( "1" ),
-        GIN_DESC( "Max scattering order to consider." )
+            "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda", 
+            "iy_surface_agenda", "iy_agenda_call1", "iy_transmission", 
+            "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v", "ppath_lraytrace",
+            "fos_scatint_angles", "fos_iyin_za_angles"
+            ),
+        GIN( "fos_za_interporder", "fos_n" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "1", "1" ),
+        GIN_DESC( "Polynomial order for zenith angle interpolation.",
+                  "Max scattering order to consider." )
         ));
 
   md_data_raw.push_back
@@ -8902,7 +8904,7 @@ void define_md_data_raw()
             "sensor_response_f_grid", "sensor_response_pol_grid", 
             "sensor_response_za_grid", "sensor_response_aa_grid",
             "f_backend", "backend_channel_response", "sensor_norm" ),
-        GIN(    "df_1", "df2" ),
+        GIN(    "df1", "df2" ),
         GIN_TYPE(   "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Frequency throw for cycle1.", "Frequency throw for cycle2.")

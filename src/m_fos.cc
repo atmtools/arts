@@ -44,6 +44,7 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
+#include "math_funcs.h"
 #include "montecarlo.h"
 #include "rte.h"
 #include "special_interp.h"
@@ -96,6 +97,9 @@ void fos(
    const Vector&                        rte_pos2, 
    const Numeric&                       rte_alonglos_v,      
    const Numeric&                       ppath_lraytrace,
+   const Matrix&                        fos_scatint_angles,
+   const Vector&                        fos_iyin_za_angles,
+   const Index&                         fos_za_interporder,
    const Index&                         fos_n,
    const Index&                         fos_i,
    const Verbosity&                     verbosity )
@@ -442,12 +446,6 @@ void fos(
                     { ssource0 = 0; }
                   else
                     {
-                      const Vector fos_za_grid(0,10,10);
-                      const Vector fos_aa_grid(0,45,8);
-
-                      const Index  nza = fos_za_grid.nelem();
-                      const Index  naa = fos_aa_grid.nelem();
-
                       // Present position 
                       // (Note that the Ppath positions (ppath.pos) for 1D have
                       // one column more than expected by most functions. Only 
@@ -456,12 +454,13 @@ void fos(
 
                       // Calculate incoming radiation
                       //
+                      const Index  nza = fos_iyin_za_angles.nelem();
                       Tensor3 Y(nza,nf,ns);
                       //
                       for( Index i=0; i<nza; i++ )
                         {
                           // LOS
-                          Vector los(1,fos_za_grid[i]);
+                          Vector los( 1, fos_iyin_za_angles[i] );
 
                           // Call recursively, with fos_i increased
                           // 
@@ -483,7 +482,9 @@ void fos(
                                propmat_clearsky_agenda, iy_main_agenda, 
                                iy_space_agenda, iy_surface_agenda, 0,
                                iy_transmission, pos, los, rte_pos2, 
-                               rte_alonglos_v, ppath_lraytrace, fos_n, fos_i+1,
+                               rte_alonglos_v, ppath_lraytrace, 
+                               fos_scatint_angles, fos_iyin_za_angles, 
+                               fos_za_interporder, fos_n, fos_i+1,
                                verbosity );
                           
                           Y(i,joker,joker) = iyl;
@@ -496,47 +497,37 @@ void fos(
                       mirror_los( outlos, ppath.los(ip,joker), atmosphere_dim );
 
                       // Determine phase matrix 
-                      Tensor5  P( nza, naa, nfs, stokes_dim, stokes_dim );
+                      const Index nin = fos_scatint_angles.nrows();
+                      Tensor4  P( nin, nfs, stokes_dim, stokes_dim );
                       Matrix   P1( stokes_dim, stokes_dim );
                       //
-                      for( Index iz=0; iz<nza; iz++ )
+                      for( Index ii=0; ii<nin; ii++ )
                         {
-                          for( Index ia=0; ia<naa; ia++ )
-                            { 
-                              // Avoid duplicating calculations for za=0/180
-                              if( ( iz==0 || iz==nza-1 ) && ia>0 )  
-                                {
-                                  P(iz,ia,joker,joker,joker) = 
-                                                    P(iz,0,joker,joker,joker);
-                                }
-                              else
-                                {
-                                  for( Index iv=0; iv<nfs; iv++ )
-                                    {
-                                      pha_mat_singleCalc( P1, outlos[0], 
-                                               outlos[1], fos_za_grid[iz], 
-                                               fos_aa_grid[ia], scat_data[iv], 
-                                               stokes_dim, ppath_pnd(joker,ip),
-                                               ppath_t[ip], verbosity );
-                                      P(iz,ia,iv,joker,joker) = P1;
-                                    }
-                                }
+                          for( Index iv=0; iv<nfs; iv++ )
+                            {
+                              pha_mat_singleCalc( P1, outlos[0], outlos[1], 
+                                                  fos_scatint_angles(ii,0), 
+                                                  fos_scatint_angles(ii,1), 
+                                                  scat_data[iv], stokes_dim, 
+                                                  ppath_pnd(joker,ip),
+                                                  ppath_t[ip], verbosity );
+                              P(ii,iv,joker,joker) = P1;
                             }
                         }
-                      /*
+
                       // Scattering source term
                       ssource0 = 0.0;
                       for( Index iv=0; iv<nf; iv++ )
                         { 
                           Vector sp(stokes_dim);
-                          for( Index ia=0; ia<nfosa; ia++ )
+                          for( Index ii=0; ii<nin; ii++ )
                             { 
-                              mult( sp, P(ia,iv*ivf,joker,joker), Y(ia,iv,joker) );
-                              sp           *= fos_angles(ia,2);
-                              s2(iv,joker) += sp;
+                              // Add interpolation of Y
+                              mult( sp, P(ii,iv*ivf,joker,joker), 
+                                        Y(0,iv,joker) );
+                              ssource0(iv,joker) += sp;
                             }
                         }
-                      */
                     }
                  
                   // RT of ppath step 
@@ -559,8 +550,7 @@ void fos(
                                 {
                                   ext_mat(is1,is2) = 0.5 * (
                                    ppath_abs(joker,iv,is1,is2,ip).sum() +
-                                   pnd_ext_mat(iv,is1,is2,clear2cloudbox[ip]) 
-                                  );
+                                   pnd_ext_mat(iv,is1,is2,clear2cloudbox[ip]) );
                                 }
                             }
                         }
@@ -576,8 +566,7 @@ void fos(
                                 {
                                   ext_mat(is1,is2) = 0.5 * (
                                    ppath_abs(joker,iv,is1,is2,ip+1).sum() +
-                                   pnd_ext_mat(iv,is1,is2,clear2cloudbox[ip+1]) 
-                                  );
+                                   pnd_ext_mat(iv,is1,is2,clear2cloudbox[ip+1]));
                                 }
                             }
                         }
@@ -730,6 +719,9 @@ void iyFOS(
    const Vector&                      rte_pos2, 
    const Numeric&                     rte_alonglos_v,      
    const Numeric&                     ppath_lraytrace,
+   const Matrix&                      fos_scatint_angles,
+   const Vector&                      fos_iyin_za_angles,
+   const Index&                       fos_za_interporder,
    const Index&                       fos_n,
    const Verbosity&                   verbosity )
 {
@@ -737,8 +729,30 @@ void iyFOS(
   if( jacobian_do )
     throw runtime_error( 
      "This method does not yet provide any jacobians (jacobian_do must be 0)" );
+  if( fos_scatint_angles.ncols() != 2 )
+    throw runtime_error( "The WSV *fos_scatint_angles* must have two columns." );
+  if( min(fos_scatint_angles(joker,0))<0 || 
+      max(fos_scatint_angles(joker,0))>180 )
+    throw runtime_error( 
+          "The zenith angles in *fos_scatint_angles* shall be inside [0,180]." );
+  if( min(fos_scatint_angles(joker,1))<-180 || 
+      max(fos_scatint_angles(joker,1))>180 )
+    throw runtime_error( 
+      "The azimuth angles in *fos_scatint_angles* shall be inside [-180,180]." );
+  if( min(fos_iyin_za_angles)<0 || max(fos_iyin_za_angles)>180 )
+    throw runtime_error( 
+          "The zenith angles in *fos_iyin_za_angles* shall be inside [0,180]." );
+  if( fos_iyin_za_angles[0] != 0 ) 
+    throw runtime_error( "The first value in *fos_iyin_za_angles* must be 0." );
+  if( last(fos_iyin_za_angles) != 180 ) 
+    throw runtime_error( "The last value in *fos_iyin_za_angles* must be 180." );
+  if( fos_za_interporder < 1 )
+    throw runtime_error( "The argument *fos_za_interporder* must be >= 1." );
+  if( fos_iyin_za_angles.nelem() <= fos_za_interporder )
+    throw runtime_error( "The length of *fos_iyin_za_angles* must at least "
+                         "be *fos_za_interporder* + 1." );
   if( fos_n < 0 )
-    throw runtime_error( "The WSV *fos_n* must be >= 0." );
+    throw runtime_error( "The argument *fos_n* must be >= 0." );
 
   fos( ws, iy, iy_aux, ppath, diy_dx, stokes_dim, f_grid, atmosphere_dim,
        p_grid, z_field, t_field, vmr_field, abs_species, wind_u_field, 
@@ -748,5 +762,6 @@ void iyFOS(
        ppath_agenda, blackbody_radiation_agenda, propmat_clearsky_agenda,
        iy_main_agenda, iy_space_agenda, iy_surface_agenda, iy_agenda_call1,
        iy_transmission, rte_pos, rte_los, rte_pos2, rte_alonglos_v, 
-       ppath_lraytrace, fos_n, 0, verbosity );
+       ppath_lraytrace, fos_scatint_angles, fos_iyin_za_angles, 
+       fos_za_interporder, fos_n, 0, verbosity );
 }

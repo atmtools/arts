@@ -1,3 +1,14 @@
+2013-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-607
+
+	* src/m_fos.cc: Extended, but still not complete. 
+
+	* src/methods.cc: GIN for sensor_responseBackendFrequencySwitching
+	had inconsistent names.
+
+	* src/workspace.cc: Introduced fos_scatint_angles and fos_iyin_za_angles.
+
 2013-04-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-606
