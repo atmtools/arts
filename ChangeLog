@@ -1,3 +1,11 @@
+2013-04-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-603
+
+	* src/matpack.h:
+
+	Include cmath before applying the isnan-isinf-fix for GCC C++11.
+
 2013-04-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-602

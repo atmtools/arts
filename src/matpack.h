@@ -42,6 +42,7 @@ typedef INDEX Index;
 // This confuses g++ because it can't decide whether to
 // call the old functions or the new ones
 #if (__cplusplus >= 201103L)
+#include <cmath>
 #define isnan std::isnan
 #define isinf std::isinf
 #endif
