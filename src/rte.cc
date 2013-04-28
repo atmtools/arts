@@ -884,7 +884,7 @@ void emission_rtstep(
 
     \param   trans_mat          Input/Output: Transmission matrix of slab.
     \param   ext_mat            Input: Averaged extinction matrix.
-    \param   lstep             Input: The length of the RTE step.
+    \param   lstep              Input: The length of the RTE step.
 
     \author Claudia Emde and Patrick Eriksson, 
     \date   2010-10-15

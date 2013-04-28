@@ -95,11 +95,11 @@ extern const Numeric RAD2DEG;
        3. The total general case.
 
     \param   stokes_vec         Input/Output: A Stokes vector.
-    \param   trans_mat          Input/Output: Transmission matrix of slab.
+    \param   trans_mat          Output: Transmission matrix of slab.
     \param   ext_mat_av         Input: Averaged extinction matrix.
     \param   abs_vec_av         Input: Averaged absorption vector.
     \param   sca_vec_av         Input: averaged scattering vector.
-    \param   lstep             Input: The length of the RTE step.
+    \param   lstep              Input: The length of the RTE step.
     \param   rtp_planck_value   Input: Blackbody radiation.
 
     \author Claudia Emde and Patrick Eriksson, 
@@ -146,8 +146,8 @@ void rte_step_doit(//Output and Input:
     {
       trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
       stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) +
-                       (abs_vec_av[0] * rtp_planck_value + sca_vec_av[0]) /
-        ext_mat_av(0,0) * (1 - trans_mat(0,0));
+        ( abs_vec_av[0] * rtp_planck_value + sca_vec_av[0] ) / 
+        ext_mat_av(0,0) * (1 - trans_mat(0,0) );
     }
 
 
@@ -164,19 +164,16 @@ void rte_step_doit(//Output and Input:
       trans_mat(0,0) = exp(-ext_mat_av(0,0) * lstep);
 
       // Stokes dim 1
-      //   assert( ext_mat_av(0,0) == abs_vec_av[0] );
-      //   Numeric transm = exp( -lstep * abs_vec_av[0] );
       stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) +
-                      (abs_vec_av[0] * rtp_planck_value + sca_vec_av[0]) /
-                      ext_mat_av(0,0) * (1 - trans_mat(0,0));
+                      ( abs_vec_av[0] * rtp_planck_value + sca_vec_av[0] ) /
+                      ext_mat_av(0,0) * (1 - trans_mat(0,0) );
 
       // Stokes dims > 1
       for( Index i=1; i<stokes_dim; i++ )
         {
-          //      assert( abs_vec_av[i] == 0.);
           trans_mat(i,i) = trans_mat(0,0);
-          stokes_vec[i]  = stokes_vec[i] * trans_mat(i,i) +
-                       sca_vec_av[i] / ext_mat_av(i,i)  * (1 - trans_mat(i,i));
+          stokes_vec[i]  = stokes_vec[i] * trans_mat(i,i) + sca_vec_av[i] / 
+                           ext_mat_av(i,i)  * (1 - trans_mat(i,i));
         }
     }
 
@@ -204,14 +201,11 @@ void rte_step_doit(//Output and Input:
       ludcmp(LU, indx, ext_mat_av);
       lubacksub(x, LU, b, indx);
 
-
       Matrix ext_mat_ds(stokes_dim, stokes_dim);
       ext_mat_ds = ext_mat_av;
       ext_mat_ds *= -lstep; // ext_mat_ds = -ext_mat*ds
 
       Index q = 10;  // index for the precision of the matrix exp function
-      //Matrix exp_ext_mat(stokes_dim, stokes_dim);
-      //matrix_exp(exp_ext_mat, ext_mat_ds, q);
       matrix_exp( trans_mat, ext_mat_ds, q);
 
       Vector term1(stokes_dim);
@@ -222,13 +216,11 @@ void rte_step_doit(//Output and Input:
         {
           for(Index j=0; j<stokes_dim; j++)
             LU(i,j) = I(i,j) - trans_mat(i,j); // take LU as dummy variable
-          // LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
         }
       mult(term2, LU, x); // term2: second term of the solution of the RTE with
                           //fixed scattered field
 
       // term1: first term of solution of the RTE with fixed scattered field
-      //mult(term1, exp_ext_mat, stokes_vec);
       mult( term1, trans_mat, stokes_vec );
 
       for (Index i=0; i<stokes_dim; i++)

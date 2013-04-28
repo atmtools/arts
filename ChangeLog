@@ -1,3 +1,14 @@
+2013-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-610
+
+	* src/m_fos.cc: A complete version. So far only 1D only, and just
+	a few rudimentary checks made.
+
+	* src/doit.h: Included rte_step_doit.
+
+	* src/doit.cc (rte_step_doit): Removed some inactive old lines.
+
 2013-04-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-609
