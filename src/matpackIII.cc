@@ -842,13 +842,9 @@ Tensor3::Tensor3(const Tensor3& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor3& Tensor3::operator=(const Tensor3& m)
+Tensor3& Tensor3::operator=(Tensor3 x)
 {
-  //  cout << "Tensor3 copy: m = " << m.nrows() << " " << m.ncols() << "\n";
-  //  cout << "             n = " << nrows() << " " << ncols() << "\n";
-
-  resize( m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
-  copy( m.begin(), m.end(), begin() );
+  swap(*this, x);
   return *this;
 }
 
@@ -889,6 +885,17 @@ void Tensor3::resize(Index p, Index r, Index c)
       mcr.mstride = 1;
     }
 }
+
+
+/** Swaps two objects. */
+void swap(Tensor3& t1, Tensor3& t2)
+{
+  std::swap(t1.mpr, t2.mpr);
+  std::swap(t1.mrr, t2.mrr);
+  std::swap(t1.mcr, t2.mcr);
+  std::swap(t1.mdata, t2.mdata);
+}
+
 
 /** Destructor for Tensor3. This is important, since Tensor3 uses new to
     allocate storage. */

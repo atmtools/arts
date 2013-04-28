@@ -38,10 +38,6 @@ public:
   /** Default constructor. */
   Iterator7D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
-  /** Copy constructor. */
-  Iterator7D(const Iterator7D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
-
   /** Explicit constructor. */
   Iterator7D(const Tensor6View& x, Index stride) : msv(x), mstride(stride)
       { /* Nothing to do here. */ }
@@ -95,10 +91,6 @@ public:
   // Constructors:
   /** Default constructor. */
   ConstIterator7D() : msv(), mstride(0) { /* Nothing to do here. */ }
-
-  /** Copy constructor. */
-  ConstIterator7D(const ConstIterator7D& o) : msv(o.msv), mstride(o.mstride)
-    { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
   ConstIterator7D(const ConstTensor6View& x, Index stride)
@@ -1924,13 +1916,16 @@ public:
   Tensor7(const Tensor7& v);
 
   // Assignment operators:
-  Tensor7& operator=(const Tensor7& x);
+  Tensor7& operator=(Tensor7 x);
   Tensor7& operator=(Numeric x);
 
   // Resize function:
   void resize(Index        l,
               Index        v, Index        s, Index        b,
               Index        p, Index        r, Index        c);
+
+  // Swap function:
+  friend void swap(Tensor7& t1, Tensor7& t2);
 
   // Destructor:
   virtual ~Tensor7();

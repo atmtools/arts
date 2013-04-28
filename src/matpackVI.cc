@@ -2820,14 +2820,9 @@ Tensor6::Tensor6(const Tensor6& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor6& Tensor6::operator=(const Tensor6& m)
+Tensor6& Tensor6::operator=(Tensor6 x)
 {
-  //  cout << "Tensor6 copy: m = " << m.nrows() << " " << m.ncols() << "\n";
-  //  cout << "             n = " << nrows() << " " << ncols() << "\n";
-
-  resize( m.mvr.mextent, m.msr.mextent, m.mbr.mextent,
-          m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
-  copy( m.begin(), m.end(), begin() );
+  swap(*this, x);
   return *this;
 }
 
@@ -2887,6 +2882,20 @@ void Tensor6::resize(Index v, Index s, Index b,
       mcr.mstride = 1;
     }
 }
+
+
+/** Swaps two objects. */
+void swap(Tensor6& t1, Tensor6& t2)
+{
+  std::swap(t1.mvr, t2.mvr);
+  std::swap(t1.msr, t2.msr);
+  std::swap(t1.mbr, t2.mbr);
+  std::swap(t1.mpr, t2.mpr);
+  std::swap(t1.mrr, t2.mrr);
+  std::swap(t1.mcr, t2.mcr);
+  std::swap(t1.mdata, t2.mdata);
+}
+
 
 /** Destructor for Tensor6. This is important, since Tensor6 uses new to
     allocate storage. */

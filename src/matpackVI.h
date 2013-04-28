@@ -41,10 +41,6 @@ public:
   /** Default constructor. */
   Iterator6D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
-  /** Copy constructor. */
-  Iterator6D(const Iterator6D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
-
   /** Explicit constructor. */
   Iterator6D(const Tensor5View& x, Index stride) : msv(x), mstride(stride)
       { /* Nothing to do here. */ }
@@ -96,10 +92,6 @@ public:
   // Constructors:
   /** Default constructor. */
   ConstIterator6D() : msv(), mstride(0) { /* Nothing to do here. */ }
-
-  /** Copy constructor. */
-  ConstIterator6D(const ConstIterator6D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
   ConstIterator6D(const ConstTensor5View& x, Index stride) : msv(x), mstride(stride)
@@ -947,12 +939,15 @@ public:
   Tensor6(const Tensor6& v);
 
   // Assignment operators:
-  Tensor6& operator=(const Tensor6& x);
+  Tensor6& operator=(Tensor6 x);
   Tensor6& operator=(Numeric x);
 
   // Resize function:
   void resize(Index        v, Index        s, Index        b,
               Index        p, Index        r, Index        c);
+
+  // Swap function:
+  friend void swap(Tensor6& t1, Tensor6& t2);
 
   // Destructor:
   virtual ~Tensor6();

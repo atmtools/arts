@@ -44,10 +44,6 @@ public:
   /** Default constructor. */
   Iterator5D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
-  /** Copy constructor. */
-  Iterator5D(const Iterator5D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
-
   /** Explicit constructor. */
   Iterator5D(const Tensor4View& x, Index stride) : msv(x), mstride(stride)
       { /* Nothing to do here. */ }
@@ -94,10 +90,6 @@ public:
   // Constructors:
   /** Default constructor. */
   ConstIterator5D() : msv(), mstride(0) { /* Nothing to do here. */ }
-
-  /** Copy constructor. */
-  ConstIterator5D(const ConstIterator5D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
   ConstIterator5D(const ConstTensor4View& x, Index stride)
@@ -450,11 +442,14 @@ public:
   Tensor5(const Tensor5& v);
 
   // Assignment operators:
-  Tensor5& operator=(const Tensor5& x);
+  Tensor5& operator=(Tensor5 x);
   Tensor5& operator=(Numeric x);
 
   // Resize function:
   void resize(Index s, Index b, Index p, Index r, Index c);
+
+  // Swap function:
+  friend void swap(Tensor5& t1, Tensor5& t2);
 
   // Destructor:
   virtual ~Tensor5();

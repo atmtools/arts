@@ -67,7 +67,7 @@ Index Sparse::ncols() const
 //! Returns the number of nonzero elements. 
 Index Sparse::nnz() const
 {
-  return *(mcolptr->end()-1);
+  return *(mcolptr.end()-1);
 }
 
 // Index Operators
@@ -99,12 +99,12 @@ Numeric& Sparse::rw(Index r, Index c)
   assert( c<mcr );
 
   // Get index of first data element of this column:
-  Index i = (*mcolptr)[c];
+  Index i = mcolptr[c];
 
   // Get index of first data element of next column. (This always works,
   // because mcolptr has one extra element pointing behind the last
   // column.)
-  const Index end = (*mcolptr)[c+1];
+  const Index end = mcolptr[c+1];
 
   // See if we find an element with the right row index in this
   // range. We assume that the elements are sorted by ascending row
@@ -112,11 +112,11 @@ Numeric& Sparse::rw(Index r, Index c)
   // initialized above.
   for ( ; i<end; ++i )
     {
-      Index rowi = (*mrowind)[i];
+      Index rowi = mrowind[i];
       if ( r <  rowi )
         break;
       if ( r == rowi )
-        return (*mdata)[i];
+        return mdata[i];
     }
 
   // If we are here, then the requested data element does not yet
@@ -124,8 +124,8 @@ Numeric& Sparse::rw(Index r, Index c)
 
   // We have to adjust the array of column pointers. The values
   // in all columns above the current one have to be increased by 1.
-  for ( vector<Index>::iterator j = mcolptr->begin() + c + 1;
-        j < mcolptr->end();
+  for ( vector<Index>::iterator j = mcolptr.begin() + c + 1;
+        j < mcolptr.end();
         ++j )
     ++(*j);
 
@@ -133,8 +133,8 @@ Numeric& Sparse::rw(Index r, Index c)
   // position before the index i. We can use insert to achieve
   // this. Because they return an iterator to the newly inserted
   // element, we can return directly from the second call.
-  mrowind->insert( mrowind->begin()+i, r );
-  return *( mdata->insert( mdata->begin()+i, 0 ) );
+  mrowind.insert( mrowind.begin()+i, r );
+  return *( mdata.insert( mdata.begin()+i, 0 ) );
 }
 
 //! Plain index operator.
@@ -176,23 +176,23 @@ Numeric Sparse::ro (Index r, Index c) const
   assert( c<mcr );
 
   // Get index of first data element of this column:
-  Index begin = (*mcolptr)[c];
+  Index begin = mcolptr[c];
 
   // Get index of first data element of next column. (This always works,
   // because mcolptr has one extra element pointing behind the last
   // column.)
-  const Index end = (*mcolptr)[c+1];
+  const Index end = mcolptr[c+1];
 
   // See if we find an element with the right row index in this
   // range. We assume that the elements are sorted by ascending row
   // index. 
   for ( Index i=begin; i<end; ++i )
     {
-      Index rowi = (*mrowind)[i];
+      Index rowi = mrowind[i];
       if ( r <  rowi )
         return 0;
       if ( r == rowi )
-        return (*mdata)[i];
+        return mdata[i];
     }
   return 0;
 }
@@ -207,9 +207,9 @@ Numeric Sparse::ro (Index r, Index c) const
   \date   Tue Jul 15 15:05:40 2003 
 */
 Sparse::Sparse() :
-  mdata(NULL),
-  mrowind(NULL),
-  mcolptr(NULL),
+  mdata(),
+  mrowind(),
+  mcolptr(),
   mrr(0),
   mcr(0)
 {
@@ -236,57 +236,15 @@ Sparse::Sparse() :
   \date   Tue Jul 15 15:05:40 2003 
 */
 Sparse::Sparse(Index r, Index c) :
-  mdata(new vector<Numeric>),
-  mrowind(new vector<Index>),
-  mcolptr(new vector<Index>(c+1,0)),
+  mdata(),
+  mrowind(),
+  mcolptr(c+1,0),
   mrr(r),
   mcr(c)
 {
   // Nothing to do here.
 }
 
-
-//! Copy constructor from another Sparse.
-/*! 
-  This automatically sets the size and copies the data.
-  
-  \param m The other Sparse to copy from.
-
-  \author Stefan Buehler <sbuehler@ltu.se>
-  \date   Tue Jul 15 15:05:40 2003 
-*/
-Sparse::Sparse(const Sparse& m) :
-//  mdata(new vector<Numeric>(*m.mdata)),
-//  mrowind(new vector<Index>(*m.mrowind)),
-//  mcolptr(new vector<Index>(*m.mcolptr)),    
-  mdata(NULL),
-  mrowind(NULL),
-  mcolptr(NULL),    
-  mrr(m.mrr),
-  mcr(m.mcr)
-{
-  if (m.mdata)   mdata = new vector<Numeric>(*m.mdata);
-  if (m.mrowind) mrowind = new vector<Index>(*m.mrowind);
-  if (m.mcolptr) mcolptr = new vector<Index>(*m.mcolptr);
-
-//   cout << "Original:\n" << m << "\n";
-//   cout << "Copied:\n" << *this << "\n";
-}
-
-
-//! Destructor for Sparse.
-/*! 
-  This is important, since Sparse uses new to allocate storage.
-
-  \author Stefan Buehler <sbuehler@ltu.se>
-  \date   Tue Jul 15 15:05:40 2003 
-*/
-Sparse::~Sparse()
-{
-  delete mdata;
-  delete mrowind;
-  delete mcolptr;
-}
 
 //! Insert row function
 /*!
@@ -323,18 +281,21 @@ void Sparse::insert_row(Index r, Vector v)
   // Count number of already existing elements in this row. Create
   // reference mrowind and mdata vector that copies of the real mrowind and
   // mdata. Resize the real mrowind and mdata to the correct output size.
-  Index rnnz = vnnz - count(mrowind->begin(),mrowind->end(),r);
-  vector<Index> mrowind_ref(mrowind->size());
-  copy(mrowind->begin(), mrowind->end(), mrowind_ref.begin());
-  vector<Numeric> mdata_ref(mdata->size());
-  copy(mdata->begin(), mdata->end(), mdata_ref.begin());
-  mrowind->resize(mrowind_ref.size()+rnnz);
-  mdata->resize(mdata_ref.size()+rnnz);
+  Index rnnz = vnnz - count(mrowind.begin(),mrowind.end(),r);
+
+  vector<Index> mrowind_ref(mrowind.size());
+  copy(mrowind.begin(), mrowind.end(), mrowind_ref.begin());
+
+  vector<Numeric> mdata_ref(mdata.size());
+  copy(mdata.begin(), mdata.end(), mdata_ref.begin());
+
+  mrowind.resize(mrowind_ref.size()+rnnz);
+  mdata.resize(mdata_ref.size()+rnnz);
 
   // Create iterators to the output vectors to keep track of current
   // positions.
-  vector<Index>::iterator mrowind_it = mrowind->begin();
-  vector<Numeric>::iterator mdata_it = mdata->begin();
+  vector<Index>::iterator mrowind_it = mrowind.begin();
+  vector<Numeric>::iterator mdata_it = mdata.begin();
 
   // Create a variable to store the change to mcolptr for each run
   Index colptr_mod = 0;
@@ -344,18 +305,14 @@ void Sparse::insert_row(Index r, Vector v)
     {
       // Get mdata- and mrowind iterators to start and end of this
       // (the i:th) reference column.
-      vector<Numeric>::iterator dstart =
-        mdata_ref.begin()+(*mcolptr)[i];
-      vector<Numeric>::iterator dend =
-        mdata_ref.begin()+(*mcolptr)[i+1];
-      vector<Index>::iterator rstart =
-        mrowind_ref.begin()+(*mcolptr)[i];
-      vector<Index>::iterator rend =
-        mrowind_ref.begin()+(*mcolptr)[i+1];
+      vector<Numeric>::iterator dstart = mdata_ref.begin()+mcolptr[i];
+      vector<Numeric>::iterator dend = mdata_ref.begin()+mcolptr[i+1];
+      vector<Index>::iterator rstart = mrowind_ref.begin()+mcolptr[i];
+      vector<Index>::iterator rend = mrowind_ref.begin()+mcolptr[i+1];
 
       // Apply mcolptr change now that we have the iterators to the
       // data and row indices.
-      (*mcolptr)[i] = colptr_mod;
+      mcolptr[i] = colptr_mod;
 
       if (v[i]!=0)
         {
@@ -378,7 +335,7 @@ void Sparse::insert_row(Index r, Vector v)
               mdata_it += dend-dstart;
 
               // Set the mcolptr step, for next loop
-              colptr_mod = (*mcolptr)[i]+(rend-rstart);
+              colptr_mod = mcolptr[i]+(rend-rstart);
             }
           else
             {
@@ -415,7 +372,7 @@ void Sparse::insert_row(Index r, Vector v)
               mdata_it += dend-dpos;
 
               // Set the mcolptr step, for next loop
-              colptr_mod = (*mcolptr)[i]+(rend-rstart+1);
+              colptr_mod = mcolptr[i]+(rend-rstart+1);
             }
         }
       else
@@ -436,7 +393,7 @@ void Sparse::insert_row(Index r, Vector v)
               mdata_it += dend-dstart-1;
 
               // Set the mcolptr step, for next loop
-              colptr_mod = (*mcolptr)[i]+(rend-rstart-1);
+              colptr_mod = mcolptr[i]+(rend-rstart-1);
             }
           else
             {
@@ -450,16 +407,12 @@ void Sparse::insert_row(Index r, Vector v)
               mdata_it += dend-dstart;
 
               // Set the mcolptr step, for next loop
-              colptr_mod = (*mcolptr)[i]+(rend-rstart);
+              colptr_mod = mcolptr[i]+(rend-rstart);
             }
         }
     }
   // Apply mcolptr change for the one extra mcolptr element.
-  *(mcolptr->end()-1) = colptr_mod;
-
-  // Clean up?
-  //delete mrowind_ref;
-  //delete mdata_ref;
+  *(mcolptr.end()-1) = colptr_mod;
 }
 
 //! Make Identity matrix
@@ -483,17 +436,14 @@ void Sparse::make_I( Index r, Index c)
   Index n = std::min(r,c);
 
   // Remake and assign values to vectors
-  delete mcolptr;
-  mcolptr = new vector<Index>( c+1, n);
-  delete mrowind;
-  mrowind = new vector<Index>(n);
-  delete mdata;
-  mdata = new vector<Numeric>(n,1.0);
+  mcolptr = vector<Index>( c+1, n);
+  mrowind = vector<Index>(n);
+  mdata = vector<Numeric>(n,1.0);
 
   // Loop over number of ones and assign values [0:n-1] to mcolptr and
   // mrowind
-  vector<Index>::iterator rit = mrowind->begin();
-  vector<Index>::iterator cit = mcolptr->begin();
+  vector<Index>::iterator rit = mrowind.begin();
+  vector<Index>::iterator cit = mcolptr.begin();
   for( Index i=0; i<n; i++ ) {
     *rit++ = i;
     *cit++ = i;
@@ -522,72 +472,15 @@ void Sparse::resize(Index r, Index c)
   assert( 0<=c );
   if ( mrr!=r || mcr!=c )
     {
-      delete mdata;
-      mdata = new vector<Numeric>;
-      delete mrowind;
-      mrowind = new vector<Index>;
-      delete mcolptr;
-      mcolptr = new vector<Index>(c+1,0);
+      mdata.resize(0);
+      mrowind.resize(0);
+      mcolptr = vector<Index>(c+1,0);
 
       mrr = r;
       mcr = c;
     }
 }
 
-//! Assignment from another Sparse.
-/*!
-  It is crucial that we implement this, otherwise the compiler creates
-  a default assignment operator which does not do the right thing. (It
-  will lead to segmentation faults).
-
-  The dimensions of the target sparse matrix are adjusted
-  automatically. This is important, so that structures containing
-  Sparse are copied correctly.
-
-  \param m The other Sparse to copy to this one.
-
-  \return This Sparse, by tradition, to allow assignment chains.
-
-  \author Stefan Buehler
-  \date   2002-12-19
-*/
-Sparse& Sparse::operator=(const Sparse& m)
-{
-  // It is important that we first delete previous content of the
-  // target, otherwise we create a memory leak!
-  //
-  // The scalar delete operator is the correct one to use here, since
-  // only one vector object has been allocated by new in each
-  // case. (That the object itself is a vector does not matter.)
-  //
-  // Caveat: We should delete only if there really *is* previous
-  // content, otherwise we will generate a core dump.
-  if (mdata!=NULL)
-    {
-      assert (mrowind!=NULL);
-      assert (mcolptr!=NULL);
-
-      delete mdata;
-      delete mrowind;
-      delete mcolptr;
-
-      mdata   = NULL;
-      mrowind = NULL;
-      mcolptr = NULL;
-    }
-
-  mrr = m.mrr;
-  mcr = m.mcr;
-
-  if (m.mdata!=NULL)
-    {
-      mdata   = new vector<Numeric>(*m.mdata);
-      mrowind = new vector<Index>(*m.mrowind);
-      mcolptr = new vector<Index>(*m.mcolptr);
-    }
-
-  return *this;
-}
 
 //! Output operator for Sparse.
 /*!
@@ -601,26 +494,26 @@ Sparse& Sparse::operator=(const Sparse& m)
 */
 std::ostream& operator<<(std::ostream& os, const Sparse& v)
 {
-  for (size_t c=0; c<v.mcolptr->size()-1; ++c)
+  for (size_t c=0; c<v.mcolptr.size()-1; ++c)
     {
       // Get index of first data element of this column:
-      Index begin = (*v.mcolptr)[c];
+      Index begin = v.mcolptr[c];
 
       // Get index of first data element of next column. (This always works,
       // because mcolptr has one extra element pointing behind the last
       // column.)
-      const Index end = (*v.mcolptr)[c+1];
+      const Index end = v.mcolptr[c+1];
 
       // Loop through the elements in this column:
       for ( Index i=begin; i<end; ++i )
         {
           // Get row index:
-          Index r = (*v.mrowind)[i];
+          Index r = v.mrowind[i];
 
           // Output everything:
           os << setw(3) << r << " "
              << setw(3) << c << " "
-             << setw(3) << (*v.mdata)[i] << "\n";
+             << setw(3) << v.mdata[i] << "\n";
         }
     }
 
@@ -650,20 +543,20 @@ void abs(       Sparse& A,
 
   // Here we allocate memory for the A.mdata vector so that it matches the
   // input matrix, and then store the absolute values of B.mdata in it.
-  A.mdata->resize( B.mdata->size() );
-  Index end = B.mdata->size();
+  A.mdata.resize( B.mdata.size() );
+  Index end = B.mdata.size();
   for (Index i=0; i<end; i++)
     {
-      (*A.mdata)[i] = fabs((*B.mdata)[i]);
+      A.mdata[i] = fabs(B.mdata[i]);
     }
   
   // The column pointer and row index vectors are copies of the input  
-  A.mcolptr->resize( B.mcolptr->size() );
-  copy(B.mcolptr->begin(), B.mcolptr->end(), A.mcolptr->begin());
-  A.mrowind->resize( B.mrowind->size() );
-  copy(B.mrowind->begin(), B.mrowind->end(), A.mrowind->begin());
-  
+  A.mcolptr.resize( B.mcolptr.size() );
+  copy(B.mcolptr.begin(), B.mcolptr.end(), A.mcolptr.begin());
+  A.mrowind.resize( B.mrowind.size() );
+  copy(B.mrowind.begin(), B.mrowind.end(), A.mrowind.begin());
 }
+
 
 //! Sparse matrix - Vector multiplication.
 /*!
@@ -696,27 +589,28 @@ void mult( VectorView y,
 
   // Looping through every element of M, multiplying it with the
   // appropriate elements of x.
-  for (size_t c=0; c<M.mcolptr->size()-1; ++c)
+  for (size_t c=0; c<M.mcolptr.size()-1; ++c)
     {
       // Get index of first data element of this column:
-      Index begin = (*M.mcolptr)[c];
+      Index begin = M.mcolptr[c];
 
       // Get index of first data element of next column. (This always works,
       // because mcolptr has one extra element pointing behind the last
       // column.)
-      const Index end = (*M.mcolptr)[c+1];
+      const Index end = M.mcolptr[c+1];
 
       // Loop through the elements in this column:
       for ( Index i=begin; i<end; ++i )
         {
           // Get row index:
-          Index r = (*M.mrowind)[i];
+          Index r = M.mrowind[i];
 
           // Compute this element:
-          y[r] += (*M.mdata)[i] * x[c];
+          y[r] += M.mdata[i] * x[c];
         }
     }
 }
+
 
 //! SparseMatrix - Matrix multiplication.
 /*!
@@ -749,21 +643,21 @@ void mult( MatrixView A,
   A = 0.0;
 
   // Loop through the elements of B:
-  for (size_t c=0; c<B.mcolptr->size()-1; ++c)
+  for (size_t c=0; c<B.mcolptr.size()-1; ++c)
     {
       // Get index of first data element of this column:
-      Index begin = (*B.mcolptr)[c];
+      Index begin = B.mcolptr[c];
 
       // Get index of first data element of next column. (This always works,
       // because mcolptr has one extra element pointing behind the last
       // column.)
-      const Index end = (*B.mcolptr)[c+1];
+      const Index end = B.mcolptr[c+1];
 
       // Loop through the elements in this column:
       for ( Index i=begin; i<end; ++i )
         {
           // Get row index:
-          Index r = (*B.mrowind)[i];
+          Index r = B.mrowind[i];
 
           // Multiply this element with the corresponding row of C and
           // add the product to the right row of A
@@ -773,7 +667,7 @@ void mult( MatrixView A,
                  A(r,j) += B.ro(r,c) * C(c,j);
                  But we don't need to use the index operator, because
                  we have the right element right here: */
-              A(r,j) += (*B.mdata)[i] * C(c,j);
+              A(r,j) += B.mdata[i] * C(c,j);
             }
         }
     }
@@ -798,58 +692,58 @@ void transpose( Sparse& A,
   // Check dimensions
   assert( A.nrows() == B.ncols() );
   assert( A.ncols() == B.nrows() );
-  if ( B.mdata->size() == 0) return;
+  if ( B.mdata.size() == 0) return;
 
   // Here we allocate memory for the A.mdata and A.mrowind vectors so that
   // it matches the input matrix. (NB: that mdata and mrowind already has
   // the same size.)
-  A.mdata->resize( B.mdata->size() );
-  A.mrowind->resize( B.mrowind->size() );
+  A.mdata.resize( B.mdata.size() );
+  A.mrowind.resize( B.mrowind.size() );
 
   // Find the minimum and maximum existing row number in B.
   // (This maybe unnecessary in our case since we mostly treat diagonally
   // banded matrices where the minimum and maximum existing row numbers
   // coincide with the border numbers of the matrix.)
-  vector<Index>::iterator startrow, stoprow;
-  startrow = min_element( B.mrowind->begin(), B.mrowind->end() );
-  stoprow = max_element( B.mrowind->begin(), B.mrowind->end() );
+  vector<Index>::const_iterator startrow, stoprow;
+  startrow = min_element( B.mrowind.begin(), B.mrowind.end() );
+  stoprow = max_element( B.mrowind.begin(), B.mrowind.end() );
 
   // To create the A.mcolptr vector we loop through the existing row
   // numbers of B and count how many there are in B.mrowind.
   // First we make sure it is initialized to all zeros.
-  A.mcolptr->assign( A.mcr+1, 0 );
+  A.mcolptr.assign( A.mcr+1, 0 );
   for (Index i=*startrow; i<=*stoprow; i++)
     {
-      Index n = count( B.mrowind->begin(), B.mrowind->end(), i);
+      Index n = count( B.mrowind.begin(), B.mrowind.end(), i);
 
       // The column pointer for the column above the current one in A
       // are then set to the current one plus this amount.
-      (*A.mcolptr)[i+1] = (*A.mcolptr)[i] + n;
+      A.mcolptr[i+1] = A.mcolptr[i] + n;
     }
 
   // Next we loop through the columns of A and search for the corresponding
   // row index within each column of B (i.e. two loops). The elements are
   // then stored in A. We know that for every column in B we will have
   // the corresponding rowindex in A.
-  vector<Numeric>::iterator dataA_it = A.mdata->begin();
-  vector<Index>::iterator rowindA_it = A.mrowind->begin();
+  vector<Numeric>::iterator dataA_it = A.mdata.begin();
+  vector<Index>::iterator rowindA_it = A.mrowind.begin();
 
   // Looping over columns in A to keep track of what row number we are
   // looking for.
-  for (size_t c=0; c<A.mcolptr->size(); ++c)
+  for (size_t c=0; c<A.mcolptr.size(); ++c)
     {
       // Looping over columns in B to get the elements in the right order,
       // this will turn into row index in A.
-      for (size_t i=0; i<B.mcolptr->size()-1; i++)
+      for (size_t i=0; i<B.mcolptr.size()-1; i++)
         {
           // Since only one element can occupy one row in a column, we
           // only need to call find() once per column in B.
-          vector<Index>::iterator elem_it =
-            find(B.mrowind->begin()+*(B.mcolptr->begin()+i),
-                 B.mrowind->begin()+*(B.mcolptr->begin()+i+1), Index (c));
+          vector<Index>::const_iterator elem_it =
+            find(B.mrowind.begin()+*(B.mcolptr.begin()+i),
+                 B.mrowind.begin()+*(B.mcolptr.begin()+i+1), Index (c));
 
           // If we found the element, store it in A.mrowind and A.mdata
-          if (elem_it != B.mrowind->begin()+*(B.mcolptr->begin()+i+1))
+          if (elem_it != B.mrowind.begin()+*(B.mcolptr.begin()+i+1))
             {
               *rowindA_it = i;
               rowindA_it++;
@@ -857,8 +751,8 @@ void transpose( Sparse& A,
               // To get the corresponding element in B.mdata we subtract
               // the initial value of the row index iterator from elem_it
               // and add the difference to a mdata iterator.
-              Index diff = elem_it - B.mrowind->begin();
-              vector<Numeric>::iterator elemdata_it=B.mdata->begin() + diff;
+              Index diff = elem_it - B.mrowind.begin();
+              vector<Numeric>::const_iterator elemdata_it=B.mdata.begin() + diff;
               *dataA_it = *elemdata_it;
               dataA_it++;
             }
@@ -891,9 +785,9 @@ void mult( Sparse& A,
   assert( A.nrows() == B.nrows() );
   assert( A.ncols() == C.ncols() );
   assert( B.ncols() == C.nrows() );
-  A.mcolptr->assign( A.mcr+1, 0);
-  A.mrowind->clear();
-  A.mdata->clear();
+  A.mcolptr.assign( A.mcr+1, 0);
+  A.mrowind.clear();
+  A.mdata.clear();
 
   // Transpose B to simplify multiplication algorithm, after transposing we
   // can extract columns form the two matrices and multiply them, (which is
@@ -906,21 +800,21 @@ void mult( Sparse& A,
   // By looping over columns in C and multiply them with every column in Bt
   // (instead of the conventional loooping over Bt), we get the output
   // elements in the right order for storing them.
-  for (size_t c=0; c<C.mcolptr->size()-1; ++c)
+  for (size_t c=0; c<C.mcolptr.size()-1; ++c)
     {
       // Get row indices of this column
       //Index beginC = (*C.mcolptr)[c];
       //Index endC = (*C.mcolptr)[c+1];
 
-      for (size_t b=0; b<Bt.mcolptr->size()-1; ++b)
+      for (size_t b=0; b<Bt.mcolptr.size()-1; ++b)
         {
           // Get the intersection between the elements in the two columns and
           // and store them in a temporary vector
           std::set<Index> colintersec;
-          set_intersection(C.mrowind->begin()+*(C.mcolptr->begin()+c),
-            C.mrowind->begin()+*(C.mcolptr->begin()+c+1),
-            Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b),
-            Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b+1),
+          set_intersection(C.mrowind.begin()+*(C.mcolptr.begin()+c),
+            C.mrowind.begin()+*(C.mcolptr.begin()+c+1),
+            Bt.mrowind.begin()+*(Bt.mcolptr.begin()+b),
+            Bt.mrowind.begin()+*(Bt.mcolptr.begin()+b+1),
             inserter(colintersec, colintersec.begin()));
 
           // If we got an intersection, loop through it and multiply the
@@ -938,17 +832,17 @@ void mult( Sparse& A,
                   // from the start of the both vectors mrowind and mdata to
                   // the intersecting values and can add them to the
                   // iterator that points to the beginning of mdata.
-                  vector<Index>::iterator rowindBt_it =
-                    find(Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b),
-                      Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b+1), *i);
-                  vector<Index>::iterator rowindC_it =
-                    find(C.mrowind->begin()+*(C.mcolptr->begin()+c),
-                      C.mrowind->begin()+*(C.mcolptr->begin()+c+1), *i);
+                  vector<Index>::const_iterator rowindBt_it =
+                    find(Bt.mrowind.begin()+*(Bt.mcolptr.begin()+b),
+                      Bt.mrowind.begin()+*(Bt.mcolptr.begin()+b+1), *i);
+                  vector<Index>::const_iterator rowindC_it =
+                    find(C.mrowind.begin()+*(C.mcolptr.begin()+c),
+                      C.mrowind.begin()+*(C.mcolptr.begin()+c+1), *i);
 
-                  vector<Numeric>::iterator dataBt_it =
-                    Bt.mdata->begin()+(rowindBt_it-Bt.mrowind->begin());
-                  vector<Numeric>::iterator dataC_it =
-                    C.mdata->begin()+(rowindC_it-C.mrowind->begin());
+                  vector<Numeric>::const_iterator dataBt_it =
+                    Bt.mdata.begin()+(rowindBt_it-Bt.mrowind.begin());
+                  vector<Numeric>::const_iterator dataC_it =
+                    C.mdata.begin()+(rowindC_it-C.mrowind.begin());
 
                   tempA += *dataBt_it * *dataC_it;
                 }
@@ -986,7 +880,7 @@ void add( Sparse& A,
   // loop over the matrix with the fewer number of elements to perform
   // the actual addition later. 
   const Sparse* D;
-  if (B.data()->size() < C.data()->size())
+  if (B.data().size() < C.data().size())
     {
       A=C;
       D=&B;
@@ -997,12 +891,12 @@ void add( Sparse& A,
       D=&C;
     }
 
-  for (size_t c = 0; c < D->mcolptr->size()-1; ++c)
+  for (size_t c = 0; c < D->mcolptr.size()-1; ++c)
     {
       // Loop through the elements in this column:
-      for (Index i = (*D->mcolptr)[c]; i < (*D->mcolptr)[c+1]; ++i)
+      for (Index i = D->mcolptr[c]; i < D->mcolptr[c+1]; ++i)
         {
-          A.rw((*D->mrowind)[i], c) += (*D->mdata)[i];
+          A.rw(D->mrowind[i], c) += D->mdata[i];
         }
     }
 }
@@ -1033,12 +927,12 @@ void sub( Sparse& A,
 
   A=B;
 
-  for (size_t c = 0; c < C.mcolptr->size()-1; ++c)
+  for (size_t c = 0; c < C.mcolptr.size()-1; ++c)
     {
       // Loop through the elements in this column:
-      for (Index i = (*C.mcolptr)[c]; i < (*C.mcolptr)[c+1]; ++i)
+      for (Index i = C.mcolptr[c]; i < C.mcolptr[c+1]; ++i)
         {
-          A.rw((*C.mrowind)[i], c) -= (*C.mdata)[i];
+          A.rw(C.mrowind[i], c) -= C.mdata[i];
         }
     }
 }

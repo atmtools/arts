@@ -41,10 +41,6 @@ public:
   /** Default constructor. */
   Iterator4D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
-  /** Copy constructor. */
-  Iterator4D(const Iterator4D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
-
   /** Explicit constructor. */
   Iterator4D(const Tensor3View& x, Index stride)
     : msv(x), mstride(stride)
@@ -89,10 +85,6 @@ public:
 
   /** Default constructor. */
   ConstIterator4D() : msv(), mstride(0) { /* Nothing to do here. */ }
-
-  /** Copy constructor. */
-  ConstIterator4D(const ConstIterator4D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
   ConstIterator4D(const ConstTensor3View& x, Index stride)
@@ -382,11 +374,14 @@ public:
   Tensor4(const Tensor4& v);
 
   // Assignment operators:
-  Tensor4& operator=(const Tensor4& x);
+  Tensor4& operator=(Tensor4 x);
   Tensor4& operator=(Numeric x);
 
   // Resize function:
   void resize(Index b, Index p, Index r, Index c);
+
+  // Swap function:
+  friend void swap(Tensor4& t1, Tensor4& t2);
 
   // Destructor:
   virtual ~Tensor4();

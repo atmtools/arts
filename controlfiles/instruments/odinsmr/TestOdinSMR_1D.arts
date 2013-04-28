@@ -109,6 +109,9 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 propmat_clearsky_agenda_checkedCalc
 yCalc
 
+VectorCreate( yREFERENCE )
+ReadXML( yREFERENCE, "yREFERENCE_1D.xml" )
+Compare( y, yREFERENCE, 1e-2 )
 
 WriteXML( output_file_format, y )
 

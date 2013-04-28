@@ -5315,15 +5315,9 @@ Tensor7::Tensor7(const Tensor7& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor7& Tensor7::operator=(const Tensor7& m)
+Tensor7& Tensor7::operator=(Tensor7 x)
 {
-  //  cout << "Tensor7 copy: m = " << m.nrows() << " " << m.ncols() << "\n";
-  //  cout << "             n = " << nrows() << " " << ncols() << "\n";
-
-  resize( m.mlr.mextent,
-          m.mvr.mextent, m.msr.mextent, m.mbr.mextent,
-          m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
-  copy( m.begin(), m.end(), begin() );
+  swap(*this, x);
   return *this;
 }
 
@@ -5390,6 +5384,21 @@ void Tensor7::resize( Index l,
       mcr.mstride = 1;
     }
 }
+
+
+/** Swaps two objects. */
+void swap(Tensor7& t1, Tensor7& t2)
+{
+  std::swap(t1.mlr, t2.mlr);
+  std::swap(t1.mvr, t2.mvr);
+  std::swap(t1.msr, t2.msr);
+  std::swap(t1.mbr, t2.mbr);
+  std::swap(t1.mpr, t2.mpr);
+  std::swap(t1.mrr, t2.mrr);
+  std::swap(t1.mcr, t2.mcr);
+  std::swap(t1.mdata, t2.mdata);
+}
+
 
 /** Destructor for Tensor7. This is important, since Tensor7 uses new to
     allocate storage. */

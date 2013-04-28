@@ -37,10 +37,6 @@ public:
   /** Default constructor. */
   Iterator3D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
-  /** Copy constructor. */
-  Iterator3D(const Iterator3D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
-
   /** Explicit constructor. */
   Iterator3D(const MatrixView& x, Index stride) : msv(x), mstride(stride)
       { /* Nothing to do here. */ }
@@ -84,10 +80,6 @@ public:
   // Constructors:
   /** Default constructor. */
   ConstIterator3D() : msv(), mstride(0) { /* Nothing to do here. */ }
-
-  /** Copy constructor. */
-  ConstIterator3D(const ConstIterator3D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
   ConstIterator3D(const ConstMatrixView& x, Index stride)
@@ -347,11 +339,14 @@ public:
   Tensor3(const Tensor3& v);
 
   // Assignment operators:
-  Tensor3& operator=(const Tensor3& x);
+  Tensor3& operator=(Tensor3 x);
   Tensor3& operator=(Numeric x);
 
   // Resize function:
   void resize(Index p, Index r, Index c);
+
+  // Swap function:
+  friend void swap(Tensor3& t1, Tensor3& t2);
 
   // Destructor:
   virtual ~Tensor3();

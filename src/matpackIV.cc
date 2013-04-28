@@ -1383,13 +1383,9 @@ Tensor4::Tensor4(const Tensor4& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor4& Tensor4::operator=(const Tensor4& m)
+Tensor4& Tensor4::operator=(Tensor4 x)
 {
-  //  cout << "Tensor4 copy: m = " << m.nrows() << " " << m.ncols() << "\n";
-  //  cout << "              n = " << nrows() << " " << ncols() << "\n";
-
-  resize( m.mbr.mextent, m.mpr.mextent, m.mrr.mextent, m.mcr.mextent );
-  copy( m.begin(), m.end(), begin() );
+  swap(*this, x);
   return *this;
 }
 
@@ -1436,6 +1432,18 @@ void Tensor4::resize(Index b, Index p, Index r, Index c)
       mcr.mstride = 1;
     }
 }
+
+
+/** Swaps two objects. */
+void swap(Tensor4& t1, Tensor4& t2)
+{
+  std::swap(t1.mbr, t2.mbr);
+  std::swap(t1.mpr, t2.mpr);
+  std::swap(t1.mrr, t2.mrr);
+  std::swap(t1.mcr, t2.mcr);
+  std::swap(t1.mdata, t2.mdata);
+}
+
 
 /** Destructor for Tensor4. This is important, since Tensor4 uses new to
     allocate storage. */

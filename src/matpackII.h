@@ -57,7 +57,6 @@ public:
   // Constructors:
   Sparse();
   Sparse(Index r, Index c);
-  Sparse(const Sparse& m);
   
   // Insert functions
   void insert_row(Index r, Vector v);
@@ -68,25 +67,19 @@ public:
   // Resize function:
   void resize(Index r, Index c);
 
-  // Destructor:
-  ~Sparse();
-
   // Member functions:
   Index nrows() const;
   Index ncols() const;
   Index nnz()   const;
 
-  const std::vector<Numeric> * data () const {return mdata;}
-  const std::vector<Index> * rowind () const {return mrowind;}
-  const std::vector<Index> * colptr () const {return mcolptr;}
+  const std::vector<Numeric> & data () const {return mdata;}
+  const std::vector<Index> & rowind () const {return mrowind;}
+  const std::vector<Index> & colptr () const {return mcolptr;}
 
   // Index Operators:
   Numeric& rw(Index r, Index c);
   Numeric  ro(Index r, Index c) const;
   Numeric  operator() (Index r, Index c) const;
-
-  // Assignment Operator:
-  Sparse& operator=(const Sparse& m);
 
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
@@ -100,11 +93,11 @@ public:
 
 private:
   //! The actual data values.
-  std::vector<Numeric> *mdata;
+  std::vector<Numeric> mdata;
   //! Row indices.
-  std::vector<Index> *mrowind;
+  std::vector<Index> mrowind;
   //! Pointers to first data element for each column.
-  std::vector<Index> *mcolptr;
+  std::vector<Index> mcolptr;
   //! Number of rows in the sparse matrix.
   Index mrr;
   //! Number of rows in the sparse matrix.

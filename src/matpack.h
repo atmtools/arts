@@ -19,6 +19,7 @@
 #define matpack_h
 
 #include "config_global.h"
+#include "debug.h"
 
 
 //--------------------< Set floating point type >--------------------

@@ -216,10 +216,6 @@ public:
   /** Default constructor. */
   Iterator1D() : mx(NULL), mstride(0) { /* Nothing to do here. */ }
 
-  /** Copy constructor. */
-  Iterator1D(const Iterator1D& o) : mx(o.mx), mstride(o.mstride)
-    { /* Nothing to do here. */ }
-
   /** Explicit constructor. */
   Iterator1D(Numeric *x, Index stride) : mx(x), mstride(stride)
       { /* Nothing to do here. */ }
@@ -255,10 +251,6 @@ public:
   /** Default constructor. */
   ConstIterator1D() : mx(NULL), mstride(0)
     { /* Nothing to do here. */ }
-
-  /** Copy constructor. */
-  ConstIterator1D(const ConstIterator1D& o) : mx(o.mx), mstride(o.mstride)
-      { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
   ConstIterator1D(Numeric *x, Index stride) : mx(x), mstride(stride)
@@ -318,6 +310,7 @@ public:
     }
 
   ConstVectorView operator[](const Range& r) const;
+  friend Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
 
   // Functions returning iterators:
   ConstIterator1D begin() const;
@@ -462,10 +455,6 @@ public:
   /** Default constructor. */
   Iterator2D() : msv(), mstride(0)  { /* Nothing to do here. */ }
 
-  /** Copy constructor. */
-  Iterator2D(const Iterator2D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
-
   /** Explicit constructor. */
   Iterator2D(const VectorView& x, Index stride) : msv(x), mstride(stride)
       { /* Nothing to do here. */ }
@@ -505,10 +494,6 @@ public:
   // Constructors:
   /** Default constructor. */
   ConstIterator2D() : msv(), mstride(0) { /* Nothing to do here. */ }
-
-  /** Copy constructor. */
-  ConstIterator2D(const ConstIterator2D& o) : msv(o.msv), mstride(o.mstride)
-      { /* Nothing to do here. */ }
 
   /** Explicit constructor. */
   ConstIterator2D(const ConstVectorView& x, Index stride)
@@ -563,12 +548,15 @@ public:
   Vector(const Vector& v);
 
   // Assignment operators:
-  Vector& operator=(const Vector& v);
-  Vector& operator=(const Array<Numeric>& v); 
+  Vector& operator=(Vector v);
+  Vector& operator=(const Array<Numeric>& v);
   Vector& operator=(Numeric x);
 
   // Resize function:
   void resize(Index n);
+
+  // Swap function:
+  friend void swap(Vector& v1, Vector& v2);
 
   // Destructor:
   virtual ~Vector();
@@ -774,12 +762,15 @@ public:
   Matrix(const Matrix& v);
 
   // Assignment operators:
-  Matrix& operator=(const Matrix& x);
+  Matrix& operator=(Matrix x);
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
 
   // Resize function:
   void resize(Index r, Index c);
+
+  // Swap function:
+  friend void swap(Matrix& m1, Matrix& m2);
 
   // Destructor:
   virtual ~Matrix();

@@ -574,7 +574,7 @@ void fos(
                               ssource0(iv,joker) += sp;
                             }
                         }
-                      ssource0 *= 4*PI/nin;
+                      ssource0 *= 4*PI/(Numeric)nin;
                     }
                  
                   // RT of ppath step 

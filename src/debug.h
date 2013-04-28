@@ -29,6 +29,9 @@
 
 #ifndef NDEBUG
 
+#include <iostream>
+
+
 // Use this macro around function parameter names and variable definitions
 // which are only used in assertions
 #define DEBUG_ONLY(...) __VA_ARGS__
@@ -38,13 +41,13 @@
 #define DEBUG_COUNTER(n) \
 { \
   static Index n = 0; \
-  cerr << "DBG: " << #n << ": " << ++n << endl; \
+  std::cerr << "DBG: " << #n << ": " << ++n << std::endl; \
 }
 
 // Print expression for debug
 #define DEBUG_PRINT(e) \
 { \
-  cerr << "DBG: " << #e << ": " << (e) << endl; \
+  std::cerr << "DBG: " << #e << ": " << (e) << std::endl; \
 }
 
 #else

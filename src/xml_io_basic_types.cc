@@ -456,9 +456,9 @@ void xml_write_to_stream(ostream&         os_xml,
     {
       if (pbofs)
         //FIXME: It should be the longer lines
-        *pbofs << (*sparse.rowind())[i];
+        *pbofs << sparse.rowind()[i];
       else
-        os_xml << (*sparse.rowind())[i] << '\n';
+        os_xml << sparse.rowind()[i] << '\n';
     }
   close_tag.set_name("/RowIndex");
   close_tag.write_to_stream(os_xml);
@@ -466,9 +466,9 @@ void xml_write_to_stream(ostream&         os_xml,
 
   col_tag.write_to_stream(os_xml);
   os_xml << '\n';
-  for (size_t i = 0; i < sparse.colptr()->size()-1; i++)
+  for (size_t i = 0; i < sparse.colptr().size()-1; i++)
     {
-      for (Index j = 0; j < (*sparse.colptr())[i+1]-(*sparse.colptr())[i]; j++)
+      for (Index j = 0; j < sparse.colptr()[i+1]-sparse.colptr()[i]; j++)
         {
           if (pbofs)
             *pbofs << (Index)i;
@@ -486,9 +486,9 @@ void xml_write_to_stream(ostream&         os_xml,
   for (Index i = 0; i < sparse.nnz(); i++)
     {
       if (pbofs)
-        *pbofs << (*sparse.data())[i];
+        *pbofs << sparse.data()[i];
       else
-        os_xml << (*sparse.data())[i] << ' ';
+        os_xml << sparse.data()[i] << ' ';
     }
   os_xml << '\n';
   close_tag.set_name("/SparseData");

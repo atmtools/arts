@@ -730,10 +730,9 @@ Vector::Vector(const Vector& v) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Vector& Vector::operator=(const Vector& v)
+Vector& Vector::operator=(Vector v)
 {
-  resize( v.nelem() ); 
-  copy( v.begin(), v.end(), begin() );
+  swap(*this, v);
   return *this;
 }
 
@@ -795,6 +794,15 @@ void Vector::resize(Index n)
       mrange.mstride = 1;
     }
 }
+
+
+/** Swaps two objects. */
+void swap(Vector& v1, Vector& v2)
+{
+  std::swap(v1.mrange, v2.mrange);
+  std::swap(v1.mdata, v2.mdata);
+}
+
 
 /** Destructor for Vector. This is important, since Vector uses new to
     allocate storage. */
@@ -1518,14 +1526,9 @@ Matrix::Matrix(const Matrix& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Matrix& Matrix::operator=(const Matrix& m)
+Matrix& Matrix::operator=(Matrix m)
 {
-  //  cout << "Matrix copy: m = " << m.nrows() << " " << m.ncols() << "\n";
-  //  cout << "             n = " << nrows() << " " << ncols() << "\n";
-
-  resize( m.mrr.mextent, m.mcr.mextent ); 
-
-  copy( m.begin(), m.end(), begin() );
+  swap(*this, m);
   return *this;
 }
 
@@ -1580,6 +1583,16 @@ void Matrix::resize(Index r, Index c)
       mcr.mstride = 1;
     }
 }
+
+
+/** Swaps two objects. */
+void swap(Matrix& m1, Matrix& m2)
+{
+  std::swap(m1.mrr, m2.mrr);
+  std::swap(m1.mcr, m2.mcr);
+  std::swap(m1.mdata, m2.mdata);
+}
+
 
 /** Destructor for Matrix. This is important, since Matrix uses new to
     allocate storage. */
