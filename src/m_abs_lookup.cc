@@ -480,6 +480,10 @@ void abs_lookupCalc(// Workspace reference:
         }
     }
 
+  // 6. Initialize fgp_default.
+  abs_lookup.fgp_default.resize(f_grid.nelem());
+  gridpos_poly( abs_lookup.fgp_default, abs_lookup.f_grid, abs_lookup.f_grid, 0 );
+
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
   abs_lookup_is_adapted = 1;
@@ -2005,11 +2009,11 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
                                       const Index&        abs_p_interp_order,
                                       const Index&        abs_t_interp_order,
                                       const Index&        abs_nls_interp_order,
-                                      const Vector&        f_grid,
+                                      const Index&        abs_f_interp_order,
+                                      const Vector&       f_grid,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
                                       const Vector&       a_vmr_list,
-                                      const Numeric&      a_doppler,
                                       const Numeric&      extpolfac,
                                       const Verbosity&    verbosity)
 {
@@ -2017,149 +2021,27 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
     
     // Variables needed by abs_lookup.Extract:
     Matrix abs_scalar_gas;
-    Index  f_index;
     
     // Check if the table has been adapted:
     if ( 1!=abs_lookup_is_adapted )
         throw runtime_error("Gas absorption lookup table must be adapted,\n"
                             "use method abs_lookupAdapt.");
-    
-    // Extraction is done for the frequencies in f_grid. However, there are
-    // some restrictions: f_grid must either be the same as the internal
-    // frequency grid of the lookup table (for efficiency reasons, only the
-    // first and last element of f_grid are checked), or must have only a
-    // single element. Handle this:
-    
-    // Get lookup table frequency grid:
-    const Vector& f_grid_lookup = abs_lookup.GetFgrid();
-    if (f_grid.nelem()==f_grid_lookup.nelem())
-    {
-        // Extract for all frequencies. Simple f_grid constistency check here.
-        
-        f_index = -1;
-        
-        if (f_grid[0]!=f_grid_lookup[0])
-        {
-            ostringstream os;
-            os << "First frequency in f_grid inconsistent with lookup table.\n"
-               << "f_grid[0]        = " << f_grid[0] << "\n"
-               << "f_grid_lookup[0] = " << f_grid_lookup[0] << ".";
-            throw runtime_error( os.str() );
-        }
-        
-        if (f_grid[f_grid.nelem()-1]!=f_grid_lookup[f_grid_lookup.nelem()-1])
-        {
-            ostringstream os;
-            os << "Last frequency in f_grid inconsistent with lookup table.\n"
-               << "f_grid[f_grid.nelem()-1]]              = " << f_grid[0] << "\n"
-               << "f_grid_lookup[f_grid_lookup.nelem()-1] = " << f_grid_lookup[0] << ".";
-            throw runtime_error( os.str() );
-        }
-    }
-    else if (f_grid.nelem()==1)
-    {
-        // Find f_index here.
-        
-        GridPos gp;
-        
-        gridpos( gp,
-                f_grid_lookup,
-                f_grid[0],
-                extpolfac );
-        
-        // We should be *on* a grid position, otherwise throw a runtime error.
-        // We check this with a fractional accuracy of 1 permille (0.001).
-        if (abs(gp.fd[0]) < 0.001)
-            f_index = gp.idx;
-        else if (abs(gp.fd[1]) < 0.001)
-            f_index = gp.idx+1;
-        else
-        {
-            ostringstream os;
-            os << "The frequency in f_grid (" << f_grid[0] << ") is not close\n"
-               << "to any frequency in the grid of the absorption table.";
-            throw runtime_error( os.str() );
-        }
-        
-        // As a double check, assert that the frequencies really are close:
-        if (abs(f_grid[0]-f_grid_lookup[f_index]) > 1)
-        {
-            ostringstream os;
-            os << "The frequency in f_grid (" << f_grid[0] << ") disagrees by\n"
-               << "more than 1 Hz from the closest frequency in the grid of\n"
-               << "the absorption table (" << f_grid_lookup[f_index] << ").";
-            throw runtime_error( os.str() );
-        }
-        
-    }
-    else
-    {
-        // Throw runtime error here.
-        ostringstream os;
-        os << "Variable f_grid must either match the internal frequency grid\n"
-           << "of the absorption lookup table, or have exactly one element.\n"
-           << "Here it has " << f_grid.nelem() << " elements.";
-        throw runtime_error( os.str() );
-    }
-    
+
     // The function we are going to call here is one of the few helper
     // functions that adjust the size of their output argument
     // automatically.
-    abs_lookup.Extract( abs_scalar_gas,
+    abs_lookup.Extract(abs_scalar_gas,
                        abs_p_interp_order,
                        abs_t_interp_order,
                        abs_nls_interp_order,
-                       f_index,
+                       abs_f_interp_order,
                        a_pressure,
                        a_temperature,
-                       a_vmr_list );
-    
-    // Apply Doppler shift, if necessary.
-    if (0==a_doppler)
-    {
-        out3 << "  Doppler shift: None\n";
-    }
-    else
-    {
-        ostringstream os;
-        os << "  Doppler shift: " << a_doppler << " Hz\n";
-        out3 << os.str();
-        
-        // Get shifted frequency grid.
-        Vector f_shifted = f_grid;
-        f_shifted -= a_doppler;
-        
-        // Check that the shifted grid is within extpolfac of the original grid.
-        chk_interpolation_grids("Absorption from original frequency grid "
-                                "to Doppler-shifted frequency grid",
-                                f_grid,
-                                f_shifted,
-                                1,
-                                extpolfac );
-        
-        // Grid positions.
-        ArrayOfGridPos gp(f_shifted.nelem());
-        gridpos(gp,f_grid,f_shifted,extpolfac);
-        
-        // Weights.
-        Matrix itw(gp.nelem(),2);
-        interpweights(itw,gp);
-        
-        // Do interpolation.
-        Vector abs_interpolated(abs_scalar_gas.ncols());
-        // The vector temporarily holds interpolated absorption for each gas species.
-        for (Index i=0; i<abs_scalar_gas.nrows(); ++i)
-        {
-            interp(abs_interpolated,
-                   itw,
-                   abs_scalar_gas(i,joker),
-                   gp);
-            // Copy interpolated absorption to abs_scalar_gas.
-            abs_scalar_gas(i,joker) = abs_interpolated;
-        }
-        
-    }
-    
+                       a_vmr_list,
+                       f_grid,
+                       extpolfac);
+ 
+       
     // Now add to the right place in the absorption matrix.
     
     Index nr, nc, stokes_dim;
@@ -2178,8 +2060,10 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
     }
     stokes_dim = nr;       // Could be nc here too, since they are the same.
     
-    
-    for(Index ii = 0; ii < stokes_dim; ii++){propmat_clearsky(joker,joker,ii, ii) += abs_scalar_gas;}
+    for(Index ii = 0; ii < stokes_dim; ii++)
+      {
+        propmat_clearsky(joker,joker,ii, ii) += abs_scalar_gas;
+      }
     
 }
 
@@ -2187,9 +2071,9 @@ void propmat_clearskyAddFromLookup( Tensor4&       propmat_clearsky,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_mat_fieldCalc( Workspace& ws,
                         // WS Output:
-                        Tensor7& amps_field,
+                        Tensor7& abs_field,
                         // WS Input:
-                        const Agenda&  amps_agenda,
+                        const Agenda&  abs_agenda,
                         const Vector&  f_grid,
                         const Index&   atmosphere_dim,
                         const Vector&  p_grid,
@@ -2205,7 +2089,7 @@ void abs_mat_fieldCalc( Workspace& ws,
   CREATE_OUT2;
   CREATE_OUT3;
   
-  Tensor4  amps;
+  Tensor4  abs;
   Vector  a_vmr_list;
 
   // Get the number of species from the leading dimension of vmr_field:
@@ -2267,7 +2151,7 @@ void abs_mat_fieldCalc( Workspace& ws,
        << "    " << n_latitudes << "  latitudes,\n"
        << "    " << n_longitudes << " longitudes.\n";
 
-  amps_field.resize(n_species,
+  abs_field.resize(n_species,
                     n_frequencies,
                     stokes_dim,
                     stokes_dim,
@@ -2279,18 +2163,21 @@ void abs_mat_fieldCalc( Workspace& ws,
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
-  Agenda l_amps_agenda (amps_agenda);
+  Agenda l_abs_agenda (abs_agenda);
 
   String fail_msg;
   bool failed = false;
 
+  // Make local copy of f_grid, so that we can apply Dopler if we want.
+  Vector this_f_grid = f_grid;
+    
   // Now we have to loop all points in the atmosphere:
   if (n_pressures)
 #pragma omp parallel for                             \
   if (!arts_omp_in_parallel()                        \
       && n_pressures >= arts_omp_get_max_threads())  \
-  firstprivate(l_ws, l_amps_agenda)                  \
-  private(amps, a_vmr_list)
+  firstprivate(l_ws, l_abs_agenda, this_f_grid)     \
+  private(abs, a_vmr_list)
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
       // Skip remaining iterations if an error occurred
@@ -2302,8 +2189,11 @@ void abs_mat_fieldCalc( Workspace& ws,
         {
           Numeric a_pressure = p_grid[ipr];
           
-          Numeric a_doppler = 0;
-          if (0!=doppler.nelem()) a_doppler = doppler[ipr];
+          if (0!=doppler.nelem())
+            {
+              this_f_grid = f_grid;
+              this_f_grid += doppler[ipr];
+            }
           
           {
             ostringstream os;
@@ -2326,35 +2216,35 @@ void abs_mat_fieldCalc( Workspace& ws,
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
                 // Agenda output: asg
                 propmat_clearsky_agendaExecute(l_ws,
-                                                  amps,
-                                                  f_grid, a_doppler,
+                                                  abs,
+                                                  this_f_grid,
                                                   rtp_mag_dummy,ppath_los_dummy,
                                                   a_pressure,
                                                   a_temperature, a_vmr_list,
                                                   rtp_pnd_dummy,
-                                                  l_amps_agenda);
+                                                  l_abs_agenda);
 
                 // Verify, that the number of species in asg is
                 // constistent with vmr_field:
-                if ( n_species != amps.nbooks() )
+                if ( n_species != abs.nbooks() )
                   {
                     ostringstream os;
                     os << "The number of gas species in vmr_field is "
                        << n_species << ",\n"
                        << "but the number of species returned by the agenda is "
-                       << amps.nbooks() << ".";
+                       << abs.nbooks() << ".";
                     throw runtime_error( os.str() );
                   }
 
                 // Verify, that the number of frequencies in asg is
                 // constistent with f_extent:
-                if ( n_frequencies != amps.npages() )
+                if ( n_frequencies != abs.npages() )
                   {
                     ostringstream os;
                     os << "The number of frequencies desired is "
                        << n_frequencies << ",\n"
                        << "but the number of frequencies returned by the agenda is "
-                       << amps.npages() << ".";
+                       << abs.npages() << ".";
                     throw runtime_error( os.str() );
                   }
 
@@ -2363,11 +2253,11 @@ void abs_mat_fieldCalc( Workspace& ws,
                 // two variables are:
                 // asg_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
                 // asg:       [ f_grid, abs_species ]
-                amps_field( joker,
+                abs_field( joker,
                             joker,
                             joker,
                             joker,
-                           ipr, ila, ilo ) = amps ;
+                           ipr, ila, ilo ) = abs ;
             
               }
         }
@@ -2459,10 +2349,12 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                  abs_p_interp_order,
                  abs_t_interp_order,
                  abs_nls_interp_order,
-                 -1,
+                 0,              // f_interp_order
                  local_p,
                  local_t,
-                 local_vmrs );
+                 local_vmrs,
+                 al.f_grid,
+                 0.0);           // Extpolfac
     }
   catch (runtime_error x)
     {
@@ -2512,7 +2404,6 @@ Numeric calc_lookup_error(// Parameters for lookup table:
                                  local_p,
                                  local_t,
                                  local_vmrs,
-                                 0,
                                  abs_xsec_agenda,
                                  verbosity);
   // Argument 0 above is the Doppler shift (usually

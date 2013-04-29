@@ -77,7 +77,6 @@ AtmRawRead( basename="testdata/tropical" )
 
 # for how to create lookup tables, see ../absorption/TestAbs.arts
 ReadXML( abs_lookup, "gas_abs_lookup.xml" )
-   	
 abs_lookupAdapt
 
 # absorption from LUT

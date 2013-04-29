@@ -109,7 +109,7 @@ const Numeric sum_check_epsilon = 1e-6;
 /*!
   This function performs the same task as gridpos, but for arbitrary
   orders of interpolation. (Linear is also possible, as a special
-  case.) 
+  case.) We even handle nearest neighbour interpolation, as order 0.
   
   The formula for calculating the weights w is taken from Numerical
   Recipes, 2nd edition, section 3.1, eq. 3.1.1.
@@ -118,7 +118,7 @@ const Numeric sum_check_epsilon = 1e-6;
   \param old_grid Original grid.
   \param new_grid New grid.
   \param order Interpolation order.
-               1 = linear, 2 = quadratic, etc..
+               0 = nearest neighbour, 1 = linear, 2 = quadratic, etc..
                The number of points used in the
                interpolation will be order+1.
   \param extpolfac Extrapolation fraction. Should normally not be
@@ -146,8 +146,28 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
   
   // First call the traditional gridpos to find the grid positions:
   ArrayOfGridPos gp_trad(n_new);
-  gridpos( gp_trad, old_grid, new_grid, extpolfac );
-
+  if (n_old>1)
+    {
+      gridpos( gp_trad, old_grid, new_grid, extpolfac );
+    }
+  else if (n_old==1)
+    {
+      // This case is not handled by traditional gridpos, but is ok for zero
+      // order interpolation, so we handle it explicitly here. Since there is
+      // only 1 point in the old grid, it is nearest neighbour to all
+      // interpolation points.
+      for (Index i=0; i<n_new; ++i) {
+          gp_trad[i].idx = 0;
+          gp_trad[i].fd[0] = 0;
+          gp_trad[i].fd[1] = 1;
+      }
+    }
+  else
+    {
+      // We should never be here.
+      assert(false);
+    }
+    
   for (Index s=0; s<n_new; ++s)
     {
                    
@@ -155,9 +175,28 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
       // points used for interpolation. For linear interpolation this
       // is identical to j. The idea for this expression is from
       // Numerical Receipes (Chapter 3, section "after the hunt"), but
-      // there is is for 1-based arrays.
-      Index k = IMIN(IMAX(gp_trad[s].idx-(m-1)/2, 0),
+      // there it is for 1-based arrays.
+      Index k;
+      if (m!=1)
+        {
+          k = IMIN(IMAX(gp_trad[s].idx-(m-1)/2, 0),
                      n_old-m);
+        }
+      else
+        {
+          // The above formula for k is not valid for m==1
+          // (nearest neighbour interpolation).
+          if (gp_trad[s].fd[0]<=0.5)
+              k=gp_trad[s].idx;
+          else
+              k=gp_trad[s].idx+1;
+
+          // It is a matter of definition what we do with the exact fd==0.5 case.
+          // Here I arbitrarily decided to stick with the "left" point (smaller
+          // index). I believe this is consistent with the behaviour for m=3,
+          // where 2 points on the left and 1 point on the right is used. (So,
+          // we always prefer the left side.)
+        }
 
       //      cout << "m: "<< m << ", k: " << k << endl;
 

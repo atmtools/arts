@@ -1288,26 +1288,33 @@ void define_md_data_raw()
         (
          "Extract gas absorption coefficients from lookup table.\n"
          "\n"
-         "This extracts the absorption coefficient for all non-Zeeman species in\n"
-         "the current calculation from the lookup table. Extraction is for one\n"
-         "specific atmospheric condition, i.e., a set of pressure, temperature,\n"
-         "VMR values, and Doppler shift.\n"
+         "This extracts the absorption coefficient for all species from the\n"
+         "lookup table, and adds them to the propagation matrix. Extraction is\n"
+         "for one specific atmospheric condition, i.e., a set of pressure,\n"
+         "temperature, and VMR values.\n"
          "\n"
-         "Extraction is done for the frequencies in f_grid. However, there are\n"
-         "some restrictions: f_grid must either be the same as the internal\n"
-         "frequency grid of the lookup table (for efficiency reasons, only the\n"
-         "first and last element of f_grid are checked), or must have only a\n"
-         "single element.\n"
+         "Some special species are ignored, for example Zeeman species and free\n"
+         "electrons, since their absorption properties are not simple scalars\n"
+         "and cannot be handled by the lookup table.\n"
          "\n"
          "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
          "and *abs_nls_interp_order*, respectively.\n"
          "\n"
-         "Note that the treatment of the Doppler-shift here is approximate, since\n"
-         "there is a linear interpolation of absorption to a shifted frequency grid.\n"
-         "Due to this, with Doppler shift there will be an extrapolation on one edge\n"
-         "of the grid, where the spectrum is pushed out of the calculated range.\n"
-         "Use extpolfac to control how much extrapolation to tolerate before throwing\n"
-         "a runtime error. Default is to allow ten times the outermost grid distance.\n"
+         "Extraction is done for the frequencies in f_grid. Frequency\n"
+         "interpolation is controlled by *abs_f_interp_order*. If this is zero,\n"
+         "then f_grid must either be the same as the internal frequency grid of\n"
+         "the lookup table (for efficiency reasons, only the first and last\n"
+         "element of f_grid are checked), or must have only a single element.\n"
+         "If *abs_f_interp_order* is above zero, then frequency is interpolated\n"
+         "along with the other interpolation dimensions. This is useful for\n"
+         "calculations with Doppler shift.\n"
+         "\n"
+         "For Doppler calculations, you should generate the table with a\n"
+         "somewhat larger frequency grid than the calculation itself has, since\n"
+         "the Doppler shift will push the frequency grid out of the table range\n"
+         "on one side. Alternatively, you can set the input\n"
+         "parameter *extpolfac* to a larger value, to allow extrapolation at the\n"
+         "edges.\n"
          "\n"
          "See also: *propmat_clearskyAddOnTheFly*.\n"
          ),
@@ -1318,12 +1325,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "propmat_clearsky", "abs_lookup", "abs_lookup_is_adapted",
             "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order",
-            "f_grid", "rtp_pressure", "rtp_temperature", "rtp_vmr", 
-            "rtp_doppler" ),
+            "abs_f_interp_order", "f_grid",
+            "rtp_pressure", "rtp_temperature", "rtp_vmr" ),
         GIN("extpolfac"),
         GIN_TYPE("Numeric"),
-        GIN_DEFAULT("10"),
-        GIN_DESC("Extrapolation factor (for grid edge).")
+        GIN_DEFAULT("0.5"),
+        GIN_DESC("Extrapolation factor (for grid edges).")
         ));
     
   md_data_raw.push_back
@@ -1337,22 +1344,13 @@ void define_md_data_raw()
          "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
          "other methods explicitly, namely:\n"
          "\n"
-         "  1. *NumericScale*( rtp_doppler, rtp_doppler, -1 )\n"
-         "  2. *VectorAddScalar*( f_grid, f_grid, rtp_doppler )\n"
-         "  3. *AbsInputFromRteScalars*\n"
-         "  4. abs_xsec_per_species calculation, e.g, by\n"
-         "    a) *abs_xsec_per_speciesInit*\n"
-         "    b) *abs_xsec_per_speciesAddLines*\n"
-         "    c) *abs_xsec_per_speciesAddConts*\n"
-         "  5. *abs_coefCalcFromXsec*\n"
-         "  6. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
-         "\n"
-         "Sub-methods 2 and 3 are called only if rtp_doppler is not zero.\n"
-         "The treatment of the Doppler-shift here is exact, since the underlying\n"
-         "frequency grid is shifted.\n"
+         "  1. *AbsInputFromRteScalars*\n"
+         "  2. Execute *abs_xsec_agenda*\n"
+         "  3. *abs_coefCalcFromXsec*\n"
+         "  4. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
          "\n"
          "The calculation is for one specific atmospheric condition, i.e., a set\n"
-         "of pressure, temperature, VMR values, and Doppler shift.\n"
+         "of pressure, temperature, and VMR values.\n"
          ),
         AUTHORS( "Stefan Buehler, Richard Larsson" ),
         OUT( "propmat_clearsky" ),
@@ -1362,7 +1360,7 @@ void define_md_data_raw()
         IN( "propmat_clearsky",
             "f_grid",
             "abs_species",
-            "rtp_pressure", "rtp_temperature", "rtp_vmr", "rtp_doppler",
+            "rtp_pressure", "rtp_temperature", "rtp_vmr",
             "abs_xsec_agenda"
            ),
         GIN(),
@@ -1407,7 +1405,7 @@ void define_md_data_raw()
            "abs_lineshape",
            "isotopologue_ratios",
            "isotopologue_quantum",
-           "rtp_pressure", "rtp_temperature", "rtp_vmr", "rtp_doppler",
+           "rtp_pressure", "rtp_temperature", "rtp_vmr",
            "rtp_mag", "rtp_los", "atmosphere_dim",
            "line_mixing_data", "line_mixing_data_lut" ),
         GIN("manual_zeeman_angles_on","manual_zeeman_theta","manual_zeeman_eta"),

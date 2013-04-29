@@ -10,6 +10,10 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
+# Turn on frequency interpolation
+# (we could also try higher order interpolation here)
+IndexSet( abs_f_interp_order, 1 )
+
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 
@@ -96,11 +100,22 @@ Copy(abs_field_doppler, abs_mat_field)
 WriteXML( output_file_format, abs_field_doppler )
 
 # Now with Doppler and lookup table!
+
+# Make the absorption lookupt table frequency grid cover a larger range 
+# (we will move outside the original f_grid due to Doppler).
+# At the same time, make it also denser for better accuracy.
+VectorCreate(f_grid_backup)
+Copy(f_grid_backup, f_grid)
+VectorNLinSpace( f_grid, 1000, 49e9, 151e9 )
+
 abs_lookupSetup
 abs_lookupCalc
 
 # absorption from LUT
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+
+# Restore original frequency grid
+Copy(f_grid, f_grid_backup)
 
 # Calculate field of absorption coefficients:
 abs_mat_fieldCalc( abs_mat_field, propmat_clearsky_agenda, f_grid, 

@@ -685,7 +685,7 @@ String arts_mod_time (String filename)
   if (stat (filename.c_str(), &buf) != -1)
     {
       String ts = ctime (&buf.st_mtime);
-      return String(" (") + ts.substr (0, ts.length()-1) + ")";
+      return String(" (compiled ") + ts.substr (0, ts.length()-1) + ")";
     }
   else
       return String("");
@@ -1044,8 +1044,17 @@ int main (int argc, char **argv)
   // one are general stuff like file opening errors.
   try
     {
+      out1 << "Executing ARTS.\n";
+      
+      // Output command line:
+      out1 << "Command line:\n";
+      for (Index i=0; i<argc; ++i) {
+          out1 << argv[i] << " ";
+      }
+      out1 << "\n";
+      
       // Output full program name (with version number):		
-      out1 << ARTS_FULL_VERSION << arts_mod_time (argv[0]) << "\n";
+      out1 << "Version: " << ARTS_FULL_VERSION << arts_mod_time (argv[0]) << "\n";
 
       // Output more details about the compilation:
       out2 << osfeatures.str() << "\n";

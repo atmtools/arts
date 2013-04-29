@@ -115,8 +115,9 @@ void find_new_grid_in_old_grid( ArrayOfIndex& pos,
   runtime errors are thrown, rather than assertions, if something is
   wrong. 
 
-  \param current_species The list of species for the current calculation.
-  \param current_f_grid  The list of frequencies for the current calculation.
+  \param[in] current_species The list of species for the current calculation.
+  \param[in] current_f_grid  The list of frequencies for the current calculation.
+  \param[in] verbosity       Verbosity settings.
 
   \date 2002-12-12
 */
@@ -521,16 +522,22 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   transform( log_p_grid,
              log,
              p_grid );
+  
+  // 6. Initialize fgp_default.
+  fgp_default.resize(f_grid.nelem());
+  gridpos_poly( fgp_default, f_grid, f_grid, 0 );
+
 }
 
-//! Extract scalar gas absorption coefficients from the lookup table. 
+//! Extract scalar gas absorption coefficients from the lookup table.
 /*!  
-  This carries out a simple interpolation in temperature and
-  pressure. The interpolated value is then scaled by the ratio between
+  This carries out a simple interpolation in temperature,
+  pressure, and sometimes frequency. The interpolated value is then 
+  scaled by the ratio between
   actual VMR and reference VMR. In the case of nonlinear species the
   interpolation goes also over H2O VMR.
 
-  All input parameters (f_index, p, T, VMRs for non-linear species)
+  All input parameters 
   must be in the range coverd by the table. Violation will result in a
   runtime error. Those checks are here, because they are a bit
   difficult to make outside, due to the irregularity of the
@@ -544,23 +551,35 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   with the result that log p interpolation is slightly better, so that
   is used.
 
-  \retval sga A Matrix with scalar gas absorption coefficients
-  [1/m]. Dimension is adjusted automatically to either
-  [1,n_species] or [n_f_grid,n_species]!
+  \param[out] sga A Matrix with scalar gas absorption coefficients
+              [1/m]. Dimension is adjusted automatically to [n_species,f_grid].
+ 
+  \param[in] p_interp_order Interpolation order for pressure.
 
-  \param f_index The frequency index. If this is >=0, it means that
-  absorption for this frequency will be extracted. (The leading
-  dimension of sga will be 1.) If this is <0, it means that absorption
-  for ALL frequencies is extracted. (The leading dimension of sga will
-  be n_f_grid.)
+  \param[in] t_interp_order Interpolation order for temperature.
+ 
+  \param[in] h2o_interp_order Interpolation order for water vapor.
+ 
+  \param[in] f_interp_order Interpolation order for frequency. This should
+             normally be zero, except for calculations with Doppler shift.
+ 
+  \param[in] p The pressures [Pa].
 
-  \param p The pressures [Pa].
+  \param[in] T The temperature [K].
 
-  \param T The temperature [K].
+  \param[in] abs_vmrs The VMRs [absolute number]. Dimension: [species].  
 
-  \param abs_vmrs The VMRs [absolute number]. Dimension: [species].  
-
-  \date 2002-09-20, 2003-02-22, 2007-05-22
+  \param[in] new_f_grid The frequency grid where absorption should be 
+             extracted. With frequency interpolation order 0, this has
+             to match the lookup table's internal grid, or have exactly
+             1 element. With higher frequency interpolation order it can be
+             an arbitrary grid.
+ 
+  \param[in] extpolfac How much extrapolation to allow. Useful for Doppler 
+             calculations. (But there even better to make the lookup table
+             grid wider and denser than the calculation grid.)
+ 
+  \date 2002-09-20, 2003-02-22, 2007-05-22, 2013-04-29
 
   \author Stefan Buehler
 */
@@ -568,10 +587,12 @@ void GasAbsLookup::Extract( Matrix&         sga,
                             const Index&    p_interp_order,
                             const Index&    t_interp_order,
                             const Index&    h2o_interp_order,
-                            const Index&    f_index,
+                            const Index&    f_interp_order,
                             const Numeric&  p,
                             const Numeric&  T,
-                            ConstVectorView abs_vmrs ) const
+                            ConstVectorView abs_vmrs,
+                            ConstVectorView new_f_grid,
+                            const Numeric&  extpolfac) const
 {
   // 1. Obtain some properties of the lookup table:
   
@@ -657,7 +678,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
       throw runtime_error( os.str() );
     }
 
-  // Verify that we have enough pressure, temperature and humdity grid points
+  // Verify that we have enough pressure, temperature,humdity, and frequency grid points
   // for the desired interpolation orders. This check is not only
   // table internal, since abs_nls_interp_order and abs_t_interp_order
   // are separate WSVs that could have been modified. Hence, these are
@@ -690,6 +711,15 @@ void GasAbsLookup::Extract( Matrix&         sga,
       throw runtime_error( os.str() );
     }
 
+    if ( (n_f_grid < f_interp_order+1) )
+      {
+        ostringstream os;
+        os << "The number of frequency grid points in the table ("
+        << n_f_grid << ") is not enough for the desired order of interpolation ("
+        << f_interp_order << ").";
+        throw runtime_error( os.str() );
+      }
+    
 
   // 3. Checks on the input variables:
 
@@ -705,35 +735,82 @@ void GasAbsLookup::Extract( Matrix&         sga,
     
 
   // 4. Set up some things we will need later on:
+    
+  // 4.a Frequency grid positions
 
-  // Set the start and extent for the frequency loop:
-  Index f_start, f_extent;
-  if ( f_index < 0 )
+  // Frequency grid positions. The pointer is used to save copying of the
+  // default from the lookup table.
+  const ArrayOfGridPosPoly *fgp;
+  ArrayOfGridPosPoly fgp_local;
+
+  // With f_interp_order 0 the frequency grid has to have the same size as in the
+  // lookup table, or exactly one element. If it matches the lookup table, we
+  // do no frequency interpolation at all. (We set the frequency grid positions
+  // to the predefined ones that come with the lookup table.)
+  if (f_interp_order==0)
     {
-      // This means we should extract for all frequencies.
-
-      f_start  = 0;
-      f_extent = n_f_grid;
+      if (new_f_grid.nelem()==n_f_grid) {
+          
+          // Use the default fgp that is stored in the lookup table itself
+          // (which effectively means no frequency interpolation)
+          fgp = &fgp_default;
+          
+          // Check identitiy of first and last element for safety's sake.
+          
+          if (f_grid[0]!=new_f_grid[0])
+            {
+              ostringstream os;
+              os << "First frequency in f_grid inconsistent with lookup table.\n"
+              << "f_grid[0]        = " << f_grid[0] << "\n"
+              << "new_f_grid[0] = " << new_f_grid[0] << ".";
+              throw runtime_error( os.str() );
+            }
+          
+          if (f_grid[f_grid.nelem()-1]!=new_f_grid[new_f_grid.nelem()-1])
+            {
+              ostringstream os;
+              os << "Last frequency in f_grid inconsistent with lookup table.\n"
+              << "f_grid[f_grid.nelem()-1]              = " << f_grid[f_grid.nelem()-1] << "\n"
+              << "new_f_grid[new_f_grid.nelem()-1] = " << new_f_grid[new_f_grid.nelem()-1] << ".";
+              throw runtime_error( os.str() );
+            }
+      }
+      else if (new_f_grid.nelem()==1) {
+          fgp = &fgp_local;
+          fgp_local.resize(1);
+          gridpos_poly( fgp_local, f_grid, new_f_grid, 0 );
+          
+          // Check that we really are on a frequency grid point, for safety's sake.
+          if (fgp_local[0].w[0]!=1)
+            {
+              ostringstream os;
+              os << "Cannot find a matching lookup table frequency for frequency\n"
+                 << new_f_grid[0] << ".";
+              throw runtime_error( os.str() );
+            }
+      }
+      else {
+          ostringstream os;
+          os << "With f_interp_order 0 the frequency grid has to have the same\n"
+             << "size as in the lookup table, or exactly one element.";
+          throw runtime_error( os.str() );
+      }
     }
   else
     {
-      // This means we should extract only for one frequency.
-
-      // Check that f_index is inside f_grid:
-      if ( f_index >= n_f_grid )
-      {
-        ostringstream os;
-        os << "Problem with gas absorption lookup table.\n"
-           << "Frequency index f_index is too high, you have " << f_index
-           << ", the largest allowed value is " << n_f_grid-1 << ".";
-        throw runtime_error( os.str() );
-      }
-      
-      f_start  = f_index;
-      f_extent = 1;
+      // We do have real frequency interpolation (f_interp_order!=0).
+      fgp = &fgp_local;
+      fgp_local.resize(new_f_grid.nelem());
+      gridpos_poly( fgp_local, f_grid, new_f_grid, f_interp_order);
     }
-  const Range f_range(f_start,f_extent);
+    
 
+  // 4.b Other stuff
+
+  // Flag for temperature interpolation, if this is not 0 we want
+  // to do T interpolation:
+  const Index do_T = n_t_pert;
+  
 
   // Set up a logical array for the nonlinear species
   ArrayOfIndex non_linear(n_species,0);
@@ -778,12 +855,47 @@ void GasAbsLookup::Extract( Matrix&         sga,
   gridpos_poly( pgp,
                 log_p_grid,
                 log(p),
-                p_interp_order );
+                p_interp_order,
+                extpolfac );
 
   // Pressure interpolation weights:
   Vector pitw;
   pitw.resize(p_interp_order+1);
   interpweights(pitw,pgp[0]);
+
+    
+  // Define also other grid positions and interpolation weights here, so that
+  // we do not have to allocate them over and over in the loops below.
+
+  // Define the GridPosPoly that corresponds to "no interpolation at all".
+  // Warning: Don't use this for arrays of GridPos!
+  GridPosPoly gp_trivial;
+  gp_trivial.idx.resize(1);
+  gp_trivial.w.resize(1);
+  gp_trivial.idx[0] = 0;
+  gp_trivial.w[0]   = 1;
+    
+  // Temperature grid positions. For the !do_T case we simply take the single
+  // temperature that is there, so we initialize tgp accordingly.
+  ArrayOfGridPosPoly tgp(1);       // only a scalar
+  tgp[0] = gp_trivial;
+    
+  // Set this_t_interp_order, depending on whether we do T interpolation or not.
+  Index this_t_interp_order; // Local T interpolation order
+  if (do_T)
+    {
+      this_t_interp_order = t_interp_order;
+    }
+  else
+    {
+      this_t_interp_order = 0;
+    }
+    
+    
+  // H2O(VMR) grid positions. vgp is what will be used in the interpolation.
+  // Depending on species, it is either set to gp_trivial, or to vgp_h2o.
+  ArrayOfGridPosPoly vgp(1);           // only a scalar
+  ArrayOfGridPosPoly vgp_h2o(1);       // only a scalar
 
 
   // 6. We do the T and VMR interpolation for the pressure levels
@@ -792,8 +904,24 @@ void GasAbsLookup::Extract( Matrix&         sga,
   
   // To store the interpolated result for the p_interp_order+1
   // pressure levels:
-  Tensor3 xsec_pre_interpolated;
-  xsec_pre_interpolated.resize( p_interp_order+1, n_species, f_extent );
+  // xsec dimensions are:
+  //   Temperature
+  //   H2O
+  //   Frequency
+  //   Pressure
+  // Dimensions of pre_interpolated are:
+  //   Pressure    (interpolation points)
+  //   Species
+  //   Temperature (always 1)
+  //   H2O         (always 1)
+  //   Frequency
+
+  Tensor5 xsec_pre_interpolated;
+  xsec_pre_interpolated.resize(p_interp_order+1, n_species,
+                               1, 1, new_f_grid.nelem() );
+    
+  // Define variable for interpolation weights outside the loop.
+  Tensor4 itw;
 
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
@@ -817,14 +945,9 @@ void GasAbsLookup::Extract( Matrix&         sga,
       // Index into p_grid:
       const Index this_p_grid_index = pgp[0].idx[pi];
 
-      // Flag for temperature interpolation, if this is not 0 we want
-      // to do T interpolation: 
-      const Index do_T = n_t_pert;
-
       // Determine temperature grid position. This is only done if we
       // want temperature interpolation, but the variable tgp has to
       // be visible also outside for later use:
-      ArrayOfGridPosPoly tgp(1);       // only a scalar
       if (do_T)
         {
             
@@ -882,14 +1005,13 @@ void GasAbsLookup::Extract( Matrix&         sga,
             }
           }
 
-          gridpos_poly( tgp, t_pert, T_offset, t_interp_order );
+        gridpos_poly( tgp, t_pert, T_offset, t_interp_order, extpolfac );
         }
 
       // Determine the H2O VMR grid position. We need to do this only
       // once, since the only species who's VMR is interpolated is
       // H2O. We do this only if there are nonlinear species, but the
       // variable has to be visible later.
-      ArrayOfGridPosPoly vgp(1);       // only a scalar
       if (n_nls>0)
         {
           // Similar to the T case, we first interpolate the reference
@@ -944,7 +1066,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
           }
 
           // For now, do linear interpolation in the fractional VMR.
-          gridpos_poly( vgp, nls_pert, VMR_frac, h2o_interp_order );
+          gridpos_poly( vgp_h2o, nls_pert, VMR_frac, h2o_interp_order, extpolfac );
         }
 
       // 7. Loop species:
@@ -954,157 +1076,72 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // Flag for VMR interpolation, if this is not 0 we want to
           // do VMR interpolation:
           const Index do_VMR = non_linear[si];
-
-          // We now have everything that we need to handle all
-          // different interpolation cases.
-
-          // 8. Do the interpolation in T and/or VMR. Here are
-          // handlers for 4 different cases (all possible
-          // combinations). 
-
+          
           // For interpolation result.
           // Fixed pressure level and species.
-          // Free dimension is frequency.
-          VectorView res(xsec_pre_interpolated(pi,si,Range(joker)));
+          // Free dimension is T, H2O, and frequency.
+          Tensor3View res(xsec_pre_interpolated(pi,si,
+                                                Range(joker),
+                                                Range(joker),
+                                                Range(joker)));
 
           // Ignore species such as Zeeman and free_electrons which are not
           // stored in the lookup table. For those the result is set to 0.
           if (is_zeeman(species[si])
               || species[si][0].Type() == SpeciesTag::TYPE_FREE_ELECTRONS
               || species[si][0].Type() == SpeciesTag::TYPE_PARTICLES)
-          {
+            {
               if (do_VMR)
-              {
+                {
                   ostringstream os;
                   os << "Problem with gas absorption lookup table.\n"
                   << "VMR interpolation is not allowed for species \""
                   << species[si][0].Name() << "\"";
                   throw runtime_error(os.str());
-              }
+                }
               res = 0.;
               fpi++;
               continue;
-          }
+            }
 
-          if (do_T)
-            if (do_VMR)
-              {
-                // With T and VMR
-
-                // This is a "red" 2D interpolation case.
-
-                Vector itw;
-                itw.resize( (t_interp_order+1)*
-                            (h2o_interp_order+1) );
-                
-                interpweights(itw,tgp[0],vgp[0]);
-
-                // Get the right view on xsec:
-                ConstTensor3View this_xsec
-                  = xsec( Range(joker),          // Temperature range
-                          Range(fpi,n_nls_pert), // VMR profile range
-                          f_range,               // Frequency range
-                          this_p_grid_index );   // Pressure index 
-
-                // We must do the same interpolation for all
-                // frequencies. Instead of playing with interp and
-                // Views and looping the whole thing over frequency, I
-                // choose to do this explicitly here, but directly for
-                // all frequencies. This should be much more efficient.
-
-                // Initialize result to zero:
-                res = 0;
-                Index iti = 0;
-                for ( Index r=0; r<t_interp_order+1; ++r )
-                  for ( Index c=0; c<h2o_interp_order+1; ++c )
-                    {
-                      for ( Index f=0; f<f_extent; ++f )
-                        res[f] += itw[iti] * this_xsec( tgp[0].idx[r], vgp[0].idx[c], f );
-                      
-                      ++iti;
-                    }
-              }
-            else
-              {
-                // With T no VMR
-
-                // This is a "red" 1D interpolation case.
-
-                Vector itw;
-                itw.resize(t_interp_order+1);
-                
-                interpweights(itw,tgp[0]);
-
-                // Get the right view on xsec:
-                ConstMatrixView this_xsec
-                  = xsec( Range(joker),          // Temperature range
-                          fpi,                   // the matching species
-                          f_range,               // Frequency range
-                          this_p_grid_index );   // Pressure index 
-
-                // We must do the same interpolation for all
-                // frequencies. Instead of playing with interp and
-                // Views and looping the whole thing over frequency, I
-                // choose to do this explicitly here, but directly for
-                // all frequencies. This should be much more efficient.
-
-                // Initialize result to zero:
-                res = 0;
-                Index iti = 0;
-                for ( Index r=0; r<t_interp_order+1; ++r )
-                  {
-                    for ( Index f=0; f<f_extent; ++f )
-                      res[f] += itw[iti] * this_xsec( tgp[0].idx[r], f );
-
-                    ++iti;
-                  }
-              }
+          // Set h2o related interpolation parameters:
+          Index this_h2o_extent;            // Range of H2O interpolation
+          Index this_h2o_interp_order; // H2O interpolation order
+          if (do_VMR)
+            {
+              vgp                   = vgp_h2o;
+              this_h2o_extent       = n_nls_pert;
+              this_h2o_interp_order = h2o_interp_order;
+            }
           else
-            if (do_VMR)
-              {
-                // No T with VMR
-
-                // This is a "red" 1D interpolation case.
-
-                Vector itw;
-                itw.resize(h2o_interp_order+1);
-                
-                interpweights(itw,vgp[0]);
-
-                // Get the right view on xsec:
-                ConstMatrixView this_xsec
-                  = xsec( 0,                     // no T variations
-                          Range(fpi,n_nls_pert), // VMR profile range
-                          f_range,               // Frequency range
-                          this_p_grid_index );   // Pressure index 
-
-                // We must do the same interpolation for all
-                // frequencies. Instead of playing with interp and
-                // Views and looping the whole thing over frequency, I
-                // choose to do this explicitly here, but directly for
-                // all frequencies. This should be much more efficient.
-
-                // Initialize result to zero:
-                res = 0;
-                Index iti = 0;
-                for ( Index c=0; c<h2o_interp_order+1; ++c )
-                  {
-                    for ( Index f=0; f<f_extent; ++f )                      
-                      res[f] += itw[iti] * this_xsec( vgp[0].idx[c], f );             
-                      
-                    ++iti;
-                  }
-              }
-            else
-              {
-                // No T no VMR
-
-                // No need to interpolate anything here, actually.
-                // We can copy all frequencies simultaneously, using
-                // the range variable f_range.
-                res = xsec(0,fpi,f_range,this_p_grid_index);
-              }
-
+            {
+              vgp                   = gp_trivial;
+              this_h2o_extent       = 1;
+              this_h2o_interp_order = 0;
+            }
+          
+          // Get the right view on xsec.
+          ConstTensor3View this_xsec
+          = xsec(Range(joker),          // Temperature range
+                 Range(fpi,this_h2o_extent), // VMR profile range
+                 Range(joker),          // Frequency range
+                 this_p_grid_index );   // Pressure index
+          
+          
+          // Calculate interpolation weights.
+          itw.resize(1, 1, new_f_grid.nelem(),
+                     (this_t_interp_order+1)*
+                     (this_h2o_interp_order+1)*
+                     (f_interp_order+1));
+          interpweights(itw, tgp, vgp, *fgp);
+          
+          // Do interpolation.
+          interp(res,                          // result
+                 itw,                          // weights
+                 this_xsec,                    // input
+                 tgp, vgp, *fgp);              // grid positions
+          
+          
           // Increase fpi. fpi marks the position of the first profile
           // of the current species in xsec. This is needed to find
           // the right subsection of xsec in the presence of nonlinear species.
@@ -1127,15 +1164,27 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // (But for a matrix in frequency and species.) Doing a loop over
   // frequency and species with an interp call inside would be
   // unefficient, so we do this by hand here.
-  sga.resize(n_species, f_extent);
+  sga.resize(n_species, new_f_grid.nelem());
   sga = 0;
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
-      // Multiply pre interpolated quantities with pressure interpolation weights:
-      xsec_pre_interpolated(pi,Range(joker),Range(joker)) *= pitw[pi];
+      // Multiply pre interpolated quantities with pressure interpolation weights.
+      // Dimensions of pre_interpolated are:
+      //   Pressure    (interpolation points)
+      //   Species
+      //   Temperature (always 1)
+      //   H2O         (always 1)
+      //   Frequency
+      xsec_pre_interpolated(pi,
+                            Range(joker),
+                            Range(joker),
+                            Range(joker),
+                            Range(joker)) *= pitw[pi];
 
-      // Add up in sga:
-      sga += xsec_pre_interpolated(pi,Range(joker),Range(joker));
+      // Add up in sga.
+      // Dimensions of sga are (species, frequency)
+      sga += xsec_pre_interpolated(pi, Range(joker),
+                                   0, 0, Range(joker));
     }
 
   // Watch out, this is not yet the final result, we

@@ -30,6 +30,8 @@
 #include "absorption.h"
 #include "abs_species_tags.h"
 #include "messages.h"
+#include "interpolation_poly.h"
+
 
 // Declare existance of some classes:
 class bifstream;
@@ -64,10 +66,12 @@ public:
                 const Index&    p_interp_order,
                 const Index&    t_interp_order,
                 const Index&    h2o_interp_order,
-                const Index&    f_index,
+                const Index&    f_interp_order,
                 const Numeric&  p,
                 const Numeric&  T,
-                ConstVectorView abs_vmrs ) const;
+                ConstVectorView abs_vmrs,
+                ConstVectorView new_f_grid,
+                const Numeric&      extpolfac ) const;
 
   const Vector& GetFgrid() const;
 
@@ -164,6 +168,16 @@ private:
   /*! Must be sorted in ascending order. */
   Vector    f_grid;
 
+  //! Frequency grid positions.
+  /*! This is not stored with the table, it is calculated by the
+   abs_lookupAdapt method.
+   
+   We are precalculating this for the trivial case that we want to 
+   extract all frequencies. (Nearest neighbor interpolation onto exactly the
+   same frequency grid.) This is the most comon case, so no point in
+   doing it over and over again. */
+  ArrayOfGridPosPoly fgp_default;
+  
   //! The pressure grid for the table [Pa].
   /*! Must be sorted in decreasing order. */
   Vector    p_grid;  

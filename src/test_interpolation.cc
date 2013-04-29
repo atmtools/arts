@@ -509,7 +509,7 @@ void test08()
        << "new higher order polynomials.\n";
 
   Vector og(1,5,+1);            // 1, 2, 3, 4, 5
-  Vector ng(2,5,0.25);          // 2.0, 2,25, 2.5, 2.75, 3.0
+  Vector ng(2,9,0.25);          // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
 
   cout << "Original grid:\n" << og << "\n";
   cout << "New grid:\n" << ng << "\n";
@@ -517,7 +517,7 @@ void test08()
   // To store the grid positions:
   ArrayOfGridPosPoly gp(ng.nelem());
 
-  Index order=2;                // Interpolation order.
+  Index order=0;                // Interpolation order.
 
   gridpos_poly(gp,og,ng,order);
   cout << "Grid positions:\n" << gp;
@@ -542,7 +542,7 @@ void test08()
   cout << "New field (order=" << order << "):\n" << nf << "\n";  
 
   cout << "All orders systematically:\n";
-  for (order=1; order<5; ++order)
+  for (order=0; order<5; ++order)
     {
       gridpos_poly(gp,og,ng,order);
       itw.resize(gp.nelem(),order+1);

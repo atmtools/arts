@@ -1,3 +1,94 @@
+2013-04-29  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-2-1-616
+
+	* Implemented frequency interpolation in lookup table extraction,
+	to allow for more elegant Doppler shift treatment.
+
+        * src/gas_abs_lookup.{h,cc}
+	(GasAbsLookup:fgp_default): Added this new member, which holds the
+	trivial frequency grid positions (without frequency interpolation).
+	(GasAbsLookup::Adapt): Initialize fgp_default.
+	(GasAbsLookup::Extract): Implemented frequency
+	interpolation. Required significant reorganization. The new
+	philosophy is to first determine grid positions for all
+	dimensions, including trivial grid positions in case a dimension
+	should not be interpolated. Then the code for the interpolation
+	itself (calculate weights and interpolate) can be the same for all
+	cases. So, overall messiness somewhat reduced.
+
+        * src/rte.cc
+	(get_ppath_abs): Get rid of rtp_doppler, directly pass ppath_f
+	to propmat_clearsky_agendaExecute.
+	(get_ppath_f): Inverted the sign of the Doppler shift. For
+	absorption features to shift to higher frequencies, the
+	calculation grid for the absorption calculation has to be shifted
+	to lower frequencies. With this change, the TestWinds control file
+	gives the same result as before. Patrick, please confirm my change.
+
+        * src/montecarlo.cc: Adapted.
+
+        * src/disort.cc: Adapted.
+
+        * src/doit.cc: Adapted. Also removed or commented-out some cout
+	command that seem to be old debugging remnants.
+
+        * src/interpolation_poly.cc (gridpos_poly): Implemented nearest
+	neighbour interpolation (interpolation order 0). This is very
+	handy, because it can be used to make interpolation code robust to
+	the case that a particular dimension should not be interpolated at all.
+
+        * src/test_interpolation.cc: Test the new order 0 interpolation.
+
+        * src/main.cc
+	(arts_mod_time): Added "compiled" to give some
+	indication what the date/time means.
+	(main): Added a copy of the command line to the report output. My
+	main reason is that I wanted see the name of the control file from
+	the report file. But perhaps also useful to see what other
+	switches were used.
+
+        * src/workspace.cc (rtp_doppler): Removed. Bye-bye.
+
+        * src/methods.cc (propmat_clearskyAddFromLookup)
+	(propmat_clearskyAddOnTheFly, propmat_clearskyAddZeeman): Removed
+	input argument rtp_doppler. Updated documentation.
+
+        * src/agendas.cc (propmat_clearsky_agenda): Removed input argument
+	rtp_doppler.
+
+        * src/m_abs.cc (propmat_clearskyAddOnTheFly): Removed input argument
+	rtp_doppler and code handling it.
+
+        * src/m_zeeman.cc (propmat_clearskyAddZeeman): Removed input argument
+	rtp_doppler and code handling it.
+
+        * src/m_abs_lookup.cc
+	(abs_lookupCalc): Initialize fgp_default.
+	(propmat_clearskyAddFromLookup): Added input argument
+	abs_f_interp_order. Considerably simplified the function itself,
+	since more work is now done in GasAbsLookup::Extract.
+	(abs_mat_fieldCalc): Adapted. Also renamed all
+	ampsXXX variables back to absXXX. This method still takes Doppler
+	shift as input (it is just used for plotting and testing purposes,
+	where this is handy). It constructs a new frequency grid and
+	calls propmat_clearsky_agendaExecute with it. A remark: It would
+	make sense to get rid of the Stokes dimension in
+	abs_mat_field. abs_mat_fieldCalc can anyway not handle effects
+	that would cause polarization, so only the (1,1) element of the
+	absorption matrix (propmat_clearsky) is of interest here. And then
+	revert both to their old names (abs_field and abs_fieldCalc).
+	(calc_lookup_error): Adapted.
+
+        * controlfiles/artscomponents/absorption/TestAbsDoppler.arts:
+	Adapted and tested.
+
+        * controlfiles/artscomponents/doit/TestDOIT.arts: Cosmetics.
+
+        * controlfiles/artscomponents/wfuns/TestWfuns.arts: Set
+	abs_f_interp_order to 1, to avoid runtime error with wind
+	Jacobians.
+
 2013-04-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-615
@@ -22,41 +113,40 @@
 	* arts-2-1-613
 
 	* src/m_sensor.cc (sensor_responseWMRF): removed the check if the
-	f_grid is inside the sensor_reponse_function. This is apparentky
+	f_grid is inside the sensor_reponse_function. This is apparently
 	obsolete.
 
 	The following lines were removed.
 
      	else // Finding the minimum or maximum will result in assertion if empty
-    { 
+    {
       // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
       if( min(f_backend) < min(sensor_response_f_grid) )
         {
-          os << "At least one value in *f_backend* (" << min(f_backend) 
+          os << "At least one value in *f_backend* (" << min(f_backend)
              << ") below range\ncovered by *sensor_response_f_grid* ("
              << min(sensor_response_f_grid) << ").\n";
           error_found = true;
         }
       if( max(f_backend) > max(sensor_response_f_grid) )
         {
-          os << "At least one value in *f_backend* (" << max(f_backend) 
+          os << "At least one value in *f_backend* (" << max(f_backend)
              << ") above range\ncovered by *sensor_response_f_grid* ("
              << max(sensor_response_f_grid) << ").\n";
           error_found = true;
         }
     }
 
-
 2013-04-29  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-612
-	
+
 	* src/lineshapes.cc: Made the lorentz function slower by calculating the
 	phase shape function as well, which is necessary for Zeeman and line mixing.
-	
+
 	* src/absorption.cc (xsec_species_line_mixing_2nd_order): Fixed error in the
 	mathematics that ignored the first-order line-mixing. Also, it only accepts
-	calculations if the specified line-shape returns the phase, as this is 
+	calculations if the specified line-shape returns the phase, as this is
 	necessary for line-mixing. Also, now takes data in SI units. The data
 	will soon be added to arts-xml-data.
 
@@ -81,7 +171,7 @@
 	presence of a custom copy constructor will prevent the generation of
 	an implicit move constructor. Might give better performance.
 
-	(Vector, Matrix, TensorX): 
+	(Vector, Matrix, TensorX):
 	Change the argument type of the assignment operator from a const
 	reference to a call by value. This way, we can let the copy
 	constructor do the work instead of duplicating its initialization code
@@ -2127,7 +2217,7 @@
 	Totally new WSV: rte_alonglos_v, rtp_pos
 
 	In addition, rte_vmr_list renamed to rtp_abs_species
-	
+
 2013-02-20  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-511
@@ -2221,7 +2311,6 @@
 
 	* doc/uguide/rte_basics.tex: Revised.
 
->>>>>>> .r8218
 2013-02-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-506
@@ -5250,7 +5339,7 @@
 	This run took 0.35s (0.32s CPU time)
 	Run-time error in controlfile: doitbatch/TestDOITBatch_test.arts
 	Run-time error in method: ybatchCalc
-	Run-time error at ybatch_index 0: 
+	Run-time error at ybatch_index 0:
 	Run-time error in agenda: ybatch_calc_agenda
 	Run-time error in method: CloudboxGetIncoming
 	Run-time error in agenda: iy_main_agenda
@@ -5260,7 +5349,7 @@
 	Method abs_mat_per_speciesAddOnTheFly needs input variable: abs_lines_per_species
 	Stopping ARTS execution.
 	Goodbye.
-	
+
 	* src/absorption.cc (xsec_species),
 	src/m_abs_lookup.cc (abs_lookupCalc, abs_mat_fieldCalc),
 	src/m_abs.cc (abs_linesArtscat4FromArtscat3),

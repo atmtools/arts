@@ -1363,15 +1363,14 @@ void get_ppath_abs(
       Tensor4  propmat_clearsky;
       //
       try {
-        const Numeric rtp_doppler = ppath_f(0,ip) - f_grid[0];
         // first dim of ppath_pnd might be 0. can't apply a joker on an empty
         // dimension, hence setting the variable to pass explicitly depending on
         // ppath_pnd's size.
         Vector rtp_pnd(0,1);
         if ( ppath_pnd.nrows()>0 )
           rtp_pnd = ppath_pnd(joker,ip);
-        propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, f_grid,
-                            rtp_doppler, ppath_mag(joker,ip), 
+        propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, ppath_f(joker,ip),
+                            ppath_mag(joker,ip),
                             ppath.los(ip,joker), ppath_p[ip], ppath_t[ip], 
                             ppath_vmr(joker,ip), rtp_pnd,
                             l_propmat_clearsky_agenda );
@@ -1660,7 +1659,7 @@ void get_ppath_f(
         }
       else
         { 
-          const Numeric a = 1 + v_doppler / SPEED_OF_LIGHT;
+          const Numeric a = 1 - v_doppler / SPEED_OF_LIGHT;
           for( Index iv=0; iv<nf; iv++ )
             { ppath_f(iv,ip) = a * f_grid[iv]; }
         }

@@ -264,6 +264,7 @@ jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim,
 
 jacobianClose
 
+IndexSet( abs_f_interp_order, 1 )
 yCalc
 
 }

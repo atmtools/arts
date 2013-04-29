@@ -3198,25 +3198,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rtp_doppler" ),
-      DESCRIPTION
-      (
-       "Doppler shift at a radiative transfer point.\n"
-       "\n"
-       "This scalar variable holds the local Doppler shift. Positive values\n"
-       "mean that the spectrum is shifted towards higher frequencies\n"
-       "\n"
-       "The WSV is used as input to methods and agendas calculating radiative\n"
-       "properties for a given conditions.\n"
-       "\n"
-       "Usage: Communication variable.\n"
-       "\n"
-       "Units: [ Hz ]\n"
-       ),
-      GROUP( "Numeric" )));
-  
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "rtp_mag" ),
       DESCRIPTION
       (

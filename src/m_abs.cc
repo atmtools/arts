@@ -2335,7 +2335,6 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                                     const Numeric& rtp_pressure,
                                     const Numeric& rtp_temperature,
                                     const Vector& rtp_vmr,
-                                    const Numeric& rtp_doppler,
                                     const Agenda& abs_xsec_agenda,
                                     // Verbosity object:
                                     const Verbosity& verbosity)
@@ -2353,45 +2352,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   // Output of abs_coefCalc:
   Matrix                         abs_coef;
   ArrayOfMatrix                  abs_coef_per_species;
-  
-  
-  // This construct is needed for the Doppler treatment,
-  // since that also modifies the local frequency grid.)
-  Vector local_f_grid;
-  const Vector* f_grid_pointer;
-  
-  // Make pointer point to original.
-  f_grid_pointer = &f_grid;
-  
-  // Doppler treatment, do this only if there is a non-zero Doppler
-  // shift. We do this after the frequency selection, so in the case
-  // that we have only a single frequency, we have to shift only that!
-  
-  // Unfortunately, we need yet another local copy of f_grid. In
-  // constrast to the frequency selection, we here want to modify the
-  // actual frequency values inside!
-  Vector local_doppler_f_grid;
-  if (0==rtp_doppler)
-  {
-    out3 << "  Doppler shift: None\n";
-  }
-  else
-  {
-    ostringstream os;
-    os << "  Doppler shift: " << rtp_doppler << " Hz\n";
-    out3 << os.str();
     
-    Numeric local_doppler;
-    NumericScale( local_doppler, rtp_doppler, -1, verbosity );
-    // I could just have multiplied by -1 directly, but I like using
-    // the WSM here.
-    
-    VectorAddScalar( local_doppler_f_grid,  *f_grid_pointer, local_doppler, verbosity );
-    
-    // Make pointer point to the doppler shifted frequency grid.
-    f_grid_pointer = &local_doppler_f_grid;
-  }
-  
   AbsInputFromRteScalars(abs_p,
                          abs_t,
                          abs_vmrs,
@@ -2414,7 +2375,7 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
                          abs_xsec_per_species,
                          abs_species,
                          abs_species_active,
-                         *f_grid_pointer,
+                         f_grid,
                          abs_p,
                          abs_t,
                          abs_vmrs,
@@ -2430,7 +2391,6 @@ void propmat_clearskyAddOnTheFly(// Workspace reference:
   propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky,
                                               abs_coef_per_species,
                                               verbosity);
-
 }
 
 

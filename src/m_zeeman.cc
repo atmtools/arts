@@ -852,7 +852,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                                const Numeric& rtp_pressure,
                                const Numeric& rtp_temperature,
                                const Vector& rtp_vmr,
-                               const Numeric& rtp_doppler,
                                const Vector& rtp_mag,
                                const Vector& ppath_los,
                                const Index& atmosphere_dim,
@@ -904,40 +903,6 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
     if( rtp_mag.nelem() != 3 )
         throw runtime_error("*rtp_mag* must have length 3.");
     // End   TEST(s)
-    Vector local_f_grid;
-    // Make pointer point to original.
-    const Vector* f_grid_pointer = &f_grid;
-
-    /*
-        Doppler treatment, do this only if there is a non-zero Doppler
-        shift. We do this after the frequency selection, so in the case
-        that we have only a single frequency, we have to shift only that!
-
-        Unfortunately, we need yet another local copy of f_grid. In
-        contrast to the frequency selection, we here want to modify the
-        actual frequency values inside!
-    */
-    Vector local_doppler_f_grid;
-    if (rtp_doppler==0)
-    {
-        out3 << "  Doppler shift: None\n";
-    }
-    else
-    {
-        ostringstream os;
-        os << "  Doppler shift: " << rtp_doppler << " Hz\n";
-        out3 << os.str();
-
-        Numeric local_doppler;
-        NumericScale( local_doppler, rtp_doppler, -1, verbosity );
-        // I could just have multiplied by -1 directly, but I like using
-        // the WSM here.
-
-        VectorAddScalar( local_doppler_f_grid,  *f_grid_pointer, local_doppler, verbosity );
-
-        // Make pointer point to the doppler shifted frequency grid.
-        f_grid_pointer = &local_doppler_f_grid;
-    }
 
     // Using the standard scalar absorption functions to get physics parameters,
     Vector abs_p, abs_t; Matrix abs_vmrs;
@@ -1216,33 +1181,33 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
                 sort(temp_abs_lines_dt.begin(), temp_abs_lines_dt.end(), sortF);
             }
             
-            Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+            Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
             
             // Add Pi contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_pi, isotopologue_ratios,
-                              abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                              abs_vmrs, abs_p, abs_t, f_grid,
                               theta, eta, 0, II, verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         
             // Add Sigma minus contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_sm, isotopologue_ratios,
-                              abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                              abs_vmrs, abs_p, abs_t, f_grid,
                               theta, eta, -1, II, verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
             
             // Add Sigma plus contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                                 temp_abs_lines_sp, isotopologue_ratios,
-                                abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                abs_vmrs, abs_p, abs_t, f_grid,
                                 theta, eta, 1, II, verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
             
             // Add Default contribution to final propmat_clearsky
             Part_Return_Zeeman( part_abs_mat, abs_species, abs_lineshape,
                               temp_abs_lines_dt, isotopologue_ratios,
-                              abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                              abs_vmrs, abs_p, abs_t, f_grid,
                               theta, eta, 1023, II, verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }
@@ -1254,10 +1219,10 @@ void propmat_clearskyAddZeeman(Tensor4& propmat_clearsky,
             // If the species isn't Zeeman, look at the next species.
             if(!is_zeeman(abs_species[II])) continue;
             
-            Tensor3 part_abs_mat((*f_grid_pointer).nelem(), 4, 4);
+            Tensor3 part_abs_mat(f_grid.nelem(), 4, 4);
             Part_Return_Zeeman(   part_abs_mat, abs_species, abs_lineshape,
                                 abs_lines_per_species[II], isotopologue_ratios,
-                                abs_vmrs, abs_p, abs_t, *f_grid_pointer,
+                                abs_vmrs, abs_p, abs_t, f_grid,
                                 0,0,1023, II, verbosity );
             propmat_clearsky(II, joker, joker, joker) += part_abs_mat;
         }

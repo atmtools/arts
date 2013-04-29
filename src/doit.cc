@@ -1084,7 +1084,6 @@ void cloud_RT_no_background(Workspace& ws,
       
       propmat_clearsky_agendaExecute( ws, *cur_propmat_clearsky,
                                     f_grid[Range(f_index, 1)],
-                                    0,
                                     rtp_mag_dummy, ppath_los_dummy,
                                     p_int[k], 
                                     t_int[k], 
@@ -1554,7 +1553,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
               propmat_clearsky_agendaExecute(ws, propmat_clearsky,
                                                 f_grid[Range(f_index, 1)],
-                                                0,
                                                 rtp_mag_dummy,ppath_los_dummy,
                                                 rtp_pressure,
                                                 rtp_temperature,
@@ -1673,7 +1671,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       
               propmat_clearsky_agendaExecute( ws, propmat_clearsky,
                                             f_grid[Range(f_index, 1)],
-                                            0,
                                             rtp_mag_dummy,ppath_los_dummy,
                                             rtp_pressure, 
                                             rtp_temperature, 
@@ -2272,7 +2269,7 @@ void iy_interp_cloudbox_field(Matrix&               iy,
           gridpos_upperend_check( gp_p, cloudbox_limits[1] - 
                                         cloudbox_limits[0] );
           
-          cout << gp_p << endl;
+          //          cout << gp_p << endl;
 
           Vector itw_p(2);
           interpweights( itw_p, gp_p );
@@ -2345,8 +2342,8 @@ void iy_interp_cloudbox_field(Matrix&               iy,
                 {
                   for(Index iv = 0; iv < nf; iv++ )
                     {
-                      cout << scat_i_p(iv,border,0,0,gp.idx,0,is)/
-                              scat_i_p(iv,border,0,0,gp.idx+1,0,is) << "\n";
+                      //                      cout << scat_i_p(iv,border,0,0,gp.idx,0,is)/
+                      //                              scat_i_p(iv,border,0,0,gp.idx+1,0,is) << "\n";
                       if( scat_i_p(iv,border,0,0,gp.idx,0,is)/
                           scat_i_p(iv,border,0,0,gp.idx+1,0,is) > 1/maxratio &&
                           scat_i_p(iv,border,0,0,gp.idx,0,is)/

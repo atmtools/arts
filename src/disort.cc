@@ -159,7 +159,6 @@ void dtauc_ssalbCalc(Workspace& ws,
     propmat_clearsky_agendaExecute(ws,
                                   propmat_clearsky_local,
                                   f_mono,  // monochromatic calculation
-                                  0,
                                   rtp_mag_dummy,ppath_los_dummy,
                                   rtp_pressure_local, 
                                   rtp_temperature_local, 

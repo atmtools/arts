@@ -69,7 +69,7 @@ void define_agenda_data()
         "input variables, such as *abs_species*, etc.\n"
         ),
        OUTPUT( "propmat_clearsky" ),
-       INPUT(  "f_grid", "rtp_doppler", "rtp_mag", "rtp_los", "rtp_pressure", 
+       INPUT(  "f_grid", "rtp_mag", "rtp_los", "rtp_pressure", 
                "rtp_temperature", "rtp_vmr", "rtp_pnd" )));
   
   agenda_data.push_back
