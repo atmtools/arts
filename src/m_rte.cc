@@ -221,6 +221,7 @@ void iyEmissionStandard(
         auxAbsSum      = -1,
         auxBackground  = -1,
         auxIy          = -1,
+        auxTrans       = -1,
         auxOptDepth    = -1;
   ArrayOfIndex auxAbsSpecies(0), auxAbsIsp(0);
   ArrayOfIndex auxVmrSpecies(0), auxVmrIsp(0);
@@ -276,6 +277,8 @@ void iyEmissionStandard(
             { auxBackground = i;   iy_aux[i].resize( nf, 1, 1, 1 ); }
           else if( iy_aux_vars[i] == "iy"   &&  auxIy < 0 )
             { auxIy = i;           iy_aux[i].resize( nf, ns, 1, np ); }
+          else if( iy_aux_vars[i] == "Transmission"   &&  auxTrans < 0 )
+            { auxTrans = i;        iy_aux[i].resize( nf, ns, ns, np ); }
           else if( iy_aux_vars[i] == "Optical depth" )
             { auxOptDepth = i;     iy_aux[i].resize( nf, 1, 1, 1 ); }
           else if( iy_aux_vars[i].substr(0,14) == "Mass content, " )
@@ -384,7 +387,15 @@ void iyEmissionStandard(
   // Radiance 
   if( auxIy >= 0 ) 
     { iy_aux[auxIy](joker,joker,0,np-1) = iy; }
-  // Transmission, total
+  // Transmission variables
+  if( auxTrans >= 0 ) // Complete tensor filled!
+    { 
+      if( np == 1 )
+        { for( Index iv=0; iv<nf; iv++ ) {
+            id_mat( iy_aux[auxTrans](iv,joker,joker,0) ); } }
+      else
+        { iy_aux[auxTrans] = trans_cumulat; }
+    }
   if( auxOptDepth >= 0 ) 
     { iy_aux[auxOptDepth](joker,0,0,0) = scalar_tau; }
   //===========================================================================
