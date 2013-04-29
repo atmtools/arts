@@ -987,9 +987,8 @@ void iyMC(
   bool failed = false;
 
   if (nf)
-#pragma omp parallel for                  \
-  if (!arts_omp_in_parallel()              \
-      && nf >= arts_omp_get_max_threads()) \
+#pragma omp parallel for                   \
+  if (!arts_omp_in_parallel() && nf > 1)   \
   firstprivate(l_ws, l_ppath_step_agenda, l_iy_space_agenda, \
                l_propmat_clearsky_agenda, l_surface_rtprop_agenda)
   for( Index f_index=0; f_index<nf; f_index++ )

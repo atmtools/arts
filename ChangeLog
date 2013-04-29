@@ -1,3 +1,13 @@
+2013-04-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-617
+
+	* src/m_rte.cc (iyMC):
+
+	Fix parallelization of frequency loop. There is no further
+	parallisation in the MonteCarlo code, therefore it is best to
+	parallelize for nf>1 instead of nf>max_threads.
+
 2013-04-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-2-1-616
