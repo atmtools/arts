@@ -1,3 +1,31 @@
+2013-04-29  Mathias Milz  <mathias.milz@ltu.se>
+
+	* arts-2-611
+
+	src/m_sensor.cc: removed the check if the f)grid is inside the sensor_reponse_function. This is apparentky obsolete. 
+
+	The following lines were removed.
+	
+     	else // Finding the minimum or maximum will result in assertion if empty
+    { 
+      // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
+      if( min(f_backend) < min(sensor_response_f_grid) )
+        {
+          os << "At least one value in *f_backend* (" << min(f_backend) 
+             << ") below range\ncovered by *sensor_response_f_grid* ("
+             << min(sensor_response_f_grid) << ").\n";
+          error_found = true;
+        }
+      if( max(f_backend) > max(sensor_response_f_grid) )
+        {
+          os << "At least one value in *f_backend* (" << max(f_backend) 
+             << ") above range\ncovered by *sensor_response_f_grid* ("
+             << max(sensor_response_f_grid) << ").\n";
+          error_found = true;
+        }
+    }
+
+
 2013-04-29  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-611

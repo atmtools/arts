@@ -2753,24 +2753,6 @@ void sensor_responseWMRF(// WS Output:
          << nf << ", " << npol << ", " << nza << ")" << "\n";
       error_found = true;
     }
-  else // Finding the minimum or maximum will result in assertion if empty
-    { 
-      // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
-      if( min(f_backend) < min(sensor_response_f_grid) )
-        {
-          os << "At least one value in *f_backend* (" << min(f_backend) 
-             << ") below range\ncovered by *sensor_response_f_grid* ("
-             << min(sensor_response_f_grid) << ").\n";
-          error_found = true;
-        }
-      if( max(f_backend) > max(sensor_response_f_grid) )
-        {
-          os << "At least one value in *f_backend* (" << max(f_backend) 
-             << ") above range\ncovered by *sensor_response_f_grid* ("
-             << max(sensor_response_f_grid) << ").\n";
-          error_found = true;
-        }
-    }
 
   // Check number of rows in WMRF weight matrix
   //
