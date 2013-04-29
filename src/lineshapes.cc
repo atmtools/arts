@@ -84,7 +84,7 @@ void lineshape_no_shape(  Vector&         ls_attenuation _U_,
     \author Stefan Buehler 
     \date 2000-06-16 */
 void lineshape_lorentz(Vector&         ls_attenuation,
-                       Vector&         ls_phase _U_,
+                       Vector&         ls_phase,
                        Vector&         X _U_,
                        const Numeric   f0,
                        const Numeric   gamma,
@@ -104,6 +104,7 @@ void lineshape_lorentz(Vector&         ls_attenuation,
   for ( Index i=0; i<nf; ++i )
     {
       ls_attenuation[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
+      ls_phase[i] =  fac/gamma / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 ) * (f_grid[i]-f0);
     }
 }
 
@@ -1873,7 +1874,7 @@ void define_lineshape_data()
     (LineshapeRecord
      ("Lorentz",
       "The Lorentz line shape.",
-      lineshape_lorentz, NO_PHASE));
+      lineshape_lorentz, PHASE));
 
   lineshape_data.push_back
     (LineshapeRecord

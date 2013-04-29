@@ -1598,9 +1598,15 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
 {
     
     // FIXME: A test for lineshape allowing both attenuation and phase.;
-//    using global_data::lineshape_data;
-//    bool lineshape_returns_phase = lineshape_data[ind_ls].Phase();
-
+    using global_data::lineshape_data;
+    if (! lineshape_data[ind_ls].Phase())
+    {
+        ostringstream os;
+        os <<  "\n\nThis is an error message. You are using " << lineshape_data[ind_ls].Name() <<
+        ".\n"<<"This line shape does not include phase in its calculations and\nis therefore invalid for " <<
+        "second order line mixing.\n\n";
+        throw runtime_error(os.str());
+    }
     const ArrayOfVector data = line_mixing_data[this_species];
     const ArrayOfIndex  lut  = line_mixing_data_lut[this_species];
     
@@ -1615,28 +1621,28 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
     //  (0)=y0 (1)=y1 (2)=g0 (3)=g1 (4)=dv0 (5)=dv1 (6)=Ts (7)=x_y (8)=x_g (9)=x_dv
     
     const Numeric p = abs_p[0], T = abs_t[0];
-    
+    Vector a(2);
     for(Index ii = 0; ii < lut.nelem(); ii++)
     {
         // Since we need cross section per line to do the mixing.
         ll[0] = abs_lines[ii];//Possible speed-up by separating all non-split lines and doing those as a batch?
         
         // Since we need line mixing only for selected lines the rest should ignore by doing nothing.
-        Vector a(2,0);
+        a=0;
         
         if(lut[ii]!=-1)
         {
             const Vector& dat = data[lut[ii]];
             // First order line mixing coefficient scales with pressure
-            a[0] =              1e-5* p //Is this really the right forefactor for 1/bar
-            * ( ( dat[0] + dat[1] * ( dat[6]/T-1 ) ) 
+            a[0] =              p //Is this really the right forefactor for 1/bar
+            * ( ( dat[0] + dat[1] * ( dat[6]/T-1. ) ) 
             * pow( dat[6]/T, dat[7] ) );
             // Second order line mixing coefficient scales with pressure squared
-            a[1] =     1e-5*1e-5* p * p //Is this really the right forefactor for 1/bar2
-            * ( ( dat[2] + dat[3] * ( dat[6]/T-1 ) ) 
+            a[1] =      p * p //Is this really the right forefactor for 1/bar2
+            * ( ( dat[2] + dat[3] * ( dat[6]/T-1. ) ) 
             * pow( dat[6]/T, dat[8] ) );           
-            ll[0].setF( 1e9*1e-5*1e-5*p * p //Is this really the right forefactor for GHz/bar2
-            * ( ( dat[4] +  dat[5] * ( dat[6]/T-1 ) ) 
+            ll[0].setF( p * p //Is this really the right forefactor for GHz/bar2
+            * ( ( dat[4] +  dat[5] * ( dat[6]/T-1. ) ) 
             * pow( dat[6]/T, dat[9] ) ) + ll[0].F());
         }
         
@@ -1648,8 +1654,9 @@ void xsec_species_line_mixing_2nd_order(MatrixView               xsec_attenuatio
                      isotopologue_ratios, verbosity);
         
         // Do the actual line mixing and add this to xsec_attenuation.
-        phase *= a[0];
         xsec_phase += phase;
+        phase *= a[0];
+        xsec_attenuation += phase;
         xsec_attenuation += attenuation;
         attenuation *= a[1];
         xsec_attenuation += attenuation;
