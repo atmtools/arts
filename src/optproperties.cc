@@ -536,6 +536,60 @@ void pha_matTransform(//Output
 
 
 
+//! Derive extinction matrix from absorption vector.
+/*! 
+  In case, when only absorption of a particle shall be considered, and the
+  scattering is negelected, the extinction matrix is set from the absorption
+  vector only.
+
+  Extinction matrix is set the following way:
+  
+  K11 = K22 = K33 = K44 = a1
+  K12 = K21 = a2
+  K13 = K31 = a3
+  K14 = K41 = a4
+
+  Other elements remain 0.
+  However, note that the other elements might be supposed to contain non-zero
+  values as well. We couldn't find an appropriate solution yet, though, and
+  these elements are expected to be rather small. Also, using the absorption
+  part only is anyway only a rough approximation. Hence, we deem the assumption
+  of setting the remaining elements to zero reasonable.
+
+  Output and Input:
+  \param ext_mat     Extinction matrix.
+  Input: 
+  \param abs_vec     Absorption vector.
+  \param stokes_dim  as the WSV.
+  
+  \author Jana Mendrok
+  \date   2013-04-30 
+*/
+void ext_matFromabs_vec(//Output:
+                        MatrixView ext_mat,
+                        //Input:
+                        ConstVectorView abs_vec,
+                        const Index& stokes_dim)
+{
+  assert( stokes_dim>=1  &&  stokes_dim<=4 );
+  assert( ext_mat.nrows() == stokes_dim );
+  assert( ext_mat.ncols() == stokes_dim );
+  assert( abs_vec.nelem() == stokes_dim );
+
+  // first: diagonal elements
+  for (Index is=0; is<stokes_dim; is++)
+    {
+      ext_mat(is,is) += abs_vec[0];
+    }
+  // second: off-diagonal elements, namely first row and column
+  for (Index is=1; is<stokes_dim; is++)
+    {
+      ext_mat(0,is) += abs_vec[is];
+      ext_mat(is,0) += abs_vec[is];
+    }
+}
+
+
 
 //! Interpolate data on the scattering angle.
 /*! 

@@ -157,6 +157,11 @@ void pha_matTransform(//Output
                       const Verbosity& verbosity);
 
 
+void ext_matFromabs_vec(//Output:
+                        MatrixView ext_mat,
+                        //Input:
+                        ConstVectorView abs_vec,
+                        const Index& stokes_dim);
 
 // Functions for the case: Randomly oriented particles: 
 // ========================================================

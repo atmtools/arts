@@ -37,20 +37,21 @@
 #include "array.h"
 #include "messages.h"
 #include "file.h"
-#include "absorption.h"
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "make_array.h"
-#include "physics_funcs.h"
-#include "continua.h"
 #include "make_vector.h"
+#include "global_data.h"
+#include "physics_funcs.h"
+#include "absorption.h"
+#include "continua.h"
 #include "check_input.h"
+#include "montecarlo.h"
 #include "m_xml.h"
-#include "xml_io.h"
+#include "optproperties.h"
 #include "parameters.h"
 #include "rte.h"
-#include "montecarlo.h"
-#include "global_data.h"
+#include "xml_io.h"
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
@@ -2289,40 +2290,23 @@ void propmat_clearskyAddParticles(
             {
               np++;
 
-              // second, get extinction matrix and absorption vector at required
-              // temperature and direction for the individual particle type and
-              // multiply with their occurence.
-              opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_mono[np],
-                              rtp_los_back[0], rtp_los_back[1],
-                              rtp_temperature, stokes_dim, verbosity);
-              //pnd_ext_mat *= rtp_vmr[sp];
-              pnd_abs_vec *= rtp_vmr[sp];
-
-              // last, sort the extracted absorption vector data into propmat_clearsky,
-              // which is of extinction matrix type
-
-              // that's how it would be sufficient if we take the extinction matrix,
-              // i.e., mimic scattering by emission. however, that's unphysical. and
-              // not sure how that acts for stokes_dim>1
-              // propmat_clearsky(ip,iv,joker,joker) = pnd_ext_mat
-
-              // so, we really have to explicitly & separately fill the different
-              // elements in the extinction matrix with the absorption vector entries
-              // FIXME: not sure what happens for general particles (p10). but
-              // should be sufficient for p20 and p30, though.
-              // first: diagonal elements
-              for (Index is=0; is<stokes_dim; is++)
+              if ( rtp_vmr[sp] > 0. )
                 {
-                  propmat_clearsky(sp,iv,is,is) += pnd_abs_vec[0];
+                  // second, get extinction matrix and absorption vector at required
+                  // temperature and direction for the individual particle type and
+                  // multiply with their occurence.
+                  opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_mono[np],
+                                  rtp_los_back[0], rtp_los_back[1],
+                                  rtp_temperature, stokes_dim, verbosity);
+                  //pnd_ext_mat *= rtp_vmr[sp];
+                  pnd_abs_vec *= rtp_vmr[sp];
+
+                  // last, sort the extracted absorption vector data into propmat_clearsky,
+                  // which is of extinction matrix type
+
+                  ext_matFromabs_vec(propmat_clearsky(sp,iv,joker,joker),
+                                     pnd_abs_vec, stokes_dim);
                 }
-              // second: off-diagonal elements, namely first row and column
-              for (Index is=1; is<stokes_dim; is++)
-                {
-                  propmat_clearsky(sp,iv,0,is) += pnd_abs_vec[is];
-                  propmat_clearsky(sp,iv,is,0) += pnd_abs_vec[is];
-                }
-              // nothing more to do. the other elements should be empty. at least
-              // for p20 and p30.
             }
         }
     }
