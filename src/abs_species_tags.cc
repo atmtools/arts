@@ -301,7 +301,7 @@ SpeciesTag::SpeciesTag(String def)
       if (!def.nelem()) return;
   }
 
-  if (def[0] != '*' && !isnumber(def[0]))
+  if (def[0] != '*' && !isdigit(def[0]))
     {
       ostringstream os;
       os << "Expected frequency limits, but got \"" << def << "\"";
@@ -325,7 +325,7 @@ SpeciesTag::SpeciesTag(String def)
           // The default for mlf is already -1, meaning `ALL'.
           // So there is nothing to do here.
         }
-      else if (!isnumber(fname[0]))
+      else if (!isdigit(fname[0]))
         {
           ostringstream os;
           os << "Expected frequency limit, but got \"" << fname << "\"";
@@ -360,7 +360,7 @@ SpeciesTag::SpeciesTag(String def)
       // The default for muf is already -1, meaning `ALL'.
       // So there is nothing to do here.
     }
-  else if (!isnumber(def[0]))
+  else if (!isdigit(def[0]))
     {
       ostringstream os;
       os << "Expected frequency limit, but got \"" << def << "\"";
