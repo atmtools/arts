@@ -1076,6 +1076,7 @@ void get_iy_of_background(
     case 1:   //--- Space ---------------------------------------------------- 
       {
         agenda_name = "iy_space_agenda";
+        chk_not_empty( agenda_name, iy_space_agenda );
         iy_space_agendaExecute( ws, iy, f_grid, rtp_pos, rtp_los, 
                                 iy_space_agenda );
       }
@@ -1084,6 +1085,7 @@ void get_iy_of_background(
     case 2:   //--- The surface -----------------------------------------------
       {
         agenda_name = "iy_surface_agenda";
+        chk_not_empty( agenda_name, iy_surface_agenda );
         iy_surface_agendaExecute( ws, iy, diy_dx, iy_transmission, cloudbox_on,
                                   jacobian_do, t_field, z_field, vmr_field,
                                   f_grid, iy_main_agenda, rtp_pos, rtp_los, 
@@ -1095,6 +1097,7 @@ void get_iy_of_background(
     case 4:
       {
         agenda_name = "iy_cloudbox_agenda";
+        chk_not_empty( agenda_name, iy_cloudbox_agenda );
         iy_cloudbox_agendaExecute( ws, iy, f_grid, rtp_pos, rtp_los, 
                                    iy_cloudbox_agenda );
       }

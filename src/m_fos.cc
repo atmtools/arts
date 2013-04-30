@@ -413,17 +413,11 @@ void fos(
                       Matrix pabs_mat(ns,ns,0);
                       //
                       if( clear2cloudbox[ip] >= 0 )
-                        { 
-                          for( Index is1=0; is1<stokes_dim; is1++ ) 
-                            { pabs_mat(is1,is1) += 
-                                pnd_abs_vec(iv,0,clear2cloudbox[ip]); } 
-                        }
+                        { ext_matFromabs_vec( pabs_mat, pnd_abs_vec(iv,joker,
+                                          clear2cloudbox[ip]), stokes_dim ); } 
                       if( clear2cloudbox[ip+1] >= 0 )
-                        { 
-                          for( Index is1=0; is1<stokes_dim; is1++ ) 
-                            { pabs_mat(is1,is1) += 
-                                pnd_abs_vec(iv,0,clear2cloudbox[ip+1]); } 
-                        }
+                        { ext_matFromabs_vec( pabs_mat, pnd_abs_vec(iv,joker,
+                                        clear2cloudbox[ip+1]), stokes_dim ); } 
 
                       // Transmission of step
                       Matrix ntau(stokes_dim,stokes_dim);  // -1*tau

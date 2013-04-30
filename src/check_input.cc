@@ -456,8 +456,8 @@ void chk_matrix_nrows(
   is generated if the size is not correct.
 
   \param    x_name   The name of the agenda.
-  \param    x        A variable of type Agenda.
-  \param    c        Required number of columns
+  \param    x        A variable of type Vector.
+  \param    c        Required number of elements
 
   \author Stefan Buehler
   \date   2002-11-29
@@ -486,7 +486,7 @@ void chk_size( const String&    x_name,
   is generated if the size is not correct.
 
   \param    x_name   The name of the agenda.
-  \param    x        A variable of type Agenda.
+  \param    x        A variable of type Matrix.
   \param    r        Required number of rows
   \param    c        Required number of columns
 
@@ -520,7 +520,7 @@ void chk_size( const String&    x_name,
   is generated if the size is not correct.
 
   \param    x_name   The name of the agenda.
-  \param    x        A variable of type Agenda.
+  \param    x        A variable of type Tensor3.
   \param    p        Required number of pages
   \param    r        Required number of rows
   \param    c        Required number of columns
@@ -558,7 +558,7 @@ void chk_size( const String&    x_name,
   is generated if the size is not correct.
 
   \param    x_name   The name of the agenda.
-  \param    x        A variable of type Agenda.
+  \param    x        A variable of type Tensor4.
   \param    b        Required number of books
   \param    p        Required number of pages
   \param    r        Required number of rows
@@ -600,7 +600,7 @@ void chk_size( const String&    x_name,
   is generated if the size is not correct.
 
   \param    x_name   The name of the agenda.
-  \param    x        A variable of type Agenda.
+  \param    x        A variable of type Tensor5.
   \param    s        Required number of shelves
   \param    b        Required number of books
   \param    p        Required number of pages
@@ -646,7 +646,7 @@ void chk_size( const String&    x_name,
   is generated if the size is not correct.
 
   \param    x_name   The name of the agenda.
-  \param    x        A variable of type Agenda.
+  \param    x        A variable of type Tensor6.
   \param    v        Required number of vitrines
   \param    s        Required number of shelves
   \param    b        Required number of books
@@ -696,7 +696,7 @@ void chk_size( const String&    x_name,
   is generated if the size is not correct.
 
   \param    x_name   The name of the agenda.
-  \param    x        A variable of type Agenda.
+  \param    x        A variable of type Tensor7.
   \param    l        Required number of libraries
   \param    v        Required number of vitrines
   \param    s        Required number of shelves
@@ -773,7 +773,7 @@ void chk_not_empty(
     {
       ostringstream os;
       os << "The agenda *" << x_name << "* is empty.\nIt is not allowed \n"
-         << "that an agenda that is actually used to be empty.\n"
+         << "that an empty agenda that is actually used.\n"
          << "Empty agendas are only created of methods setting dummy values \n"
          << "to variables.";
       throw runtime_error( os.str() );

@@ -1,3 +1,16 @@
+2013-04-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-623
+
+	* src/m_fos.cc (fos): Now using ext_matFromabs_vec.
+
+	* src/rte.cc (get_iy_of_background): Added chk_not_empty call for
+	all agendas used. To catch highly non-standard usage where
+	dummy agendas can end up to being called.
+
+	* src/check_input.cc: Type for x was wrong for most chk_size
+	functions.
+
 2013-04-30  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-622
