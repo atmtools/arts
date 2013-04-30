@@ -1,3 +1,13 @@
+2013-04-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-1-620
+
+	* src/abs_species_tags.cc (SpeciesTag::SpeciesTag):
+
+	Make parsing of SpeciesTag strings more robust. Invalid frequency
+	numbers where silently ignored. Same for wrong placement of Zeeman
+	tag. It must be located after the species, not after the isotopologue.
+
 2013-04-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-1-619

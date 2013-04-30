@@ -301,8 +301,15 @@ SpeciesTag::SpeciesTag(String def)
       if (!def.nelem()) return;
   }
 
+  if (def[0] != '*' && !isnumber(def[0]))
+    {
+      ostringstream os;
+      os << "Expected frequency limits, but got \"" << def << "\"";
+      throw runtime_error(os.str());
+    }
+
   // Look for the two frequency limits:
-  
+
   // Extract first frequency
   n    = def.find('-');    // find the '-'
   if (n != def.npos )
@@ -318,11 +325,23 @@ SpeciesTag::SpeciesTag(String def)
           // The default for mlf is already -1, meaning `ALL'.
           // So there is nothing to do here.
         }
+      else if (!isnumber(fname[0]))
+        {
+          ostringstream os;
+          os << "Expected frequency limit, but got \"" << fname << "\"";
+          throw runtime_error(os.str());
+        }
       else
         {
           // Convert to Numeric:
-          istringstream is(fname);
-          is >> mlf;
+          char *endptr;
+          mlf = strtod(fname.c_str(), &endptr);
+          if (endptr != fname.c_str() + fname.nelem())
+            {
+              ostringstream os;
+              os << "Error parsing frequency limit \"" << fname << "\"";
+              throw runtime_error(os.str());
+            }
         }
     }
   else
@@ -341,11 +360,23 @@ SpeciesTag::SpeciesTag(String def)
       // The default for muf is already -1, meaning `ALL'.
       // So there is nothing to do here.
     }
+  else if (!isnumber(def[0]))
+    {
+      ostringstream os;
+      os << "Expected frequency limit, but got \"" << def << "\"";
+      throw runtime_error(os.str());
+    }
   else
     {
       // Convert to Numeric:
-      istringstream is(def);
-      is >> muf;
+      char *endptr;
+      muf = strtod(def.c_str(), &endptr);
+      if (endptr != def.c_str() + def.nelem())
+        {
+          ostringstream os;
+          os << "Error parsing frequency limit \"" << def << "\"";
+          throw runtime_error(os.str());
+        }
     }
 }
 
