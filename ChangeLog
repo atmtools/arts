@@ -1,3 +1,9 @@
+2013-04-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-1-619
+
+	* src/m_fos.cc: Now also fos_za_interporder considered.
+
 2013-04-30  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-2-1-618

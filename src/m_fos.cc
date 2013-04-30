@@ -520,10 +520,11 @@ void fos(
                           }
 
                         // Zenith angle interpolation of Y
-                        ArrayOfGridPos gp( nin );
-                        gridpos( gp, fos_iyin_za_angles, 
-                                 fos_scatint_angles(joker,0) );
-                        Matrix itw(nin,2);
+                        ArrayOfGridPosPoly gp( nin );
+                        gridpos_poly( gp, fos_iyin_za_angles, 
+                                      fos_scatint_angles(joker,0),
+                                      fos_za_interporder );
+                        Matrix itw( nin, fos_za_interporder+1 );
                         interpweights( itw, gp );
                         //
                         for( Index iv=0; iv<nfs; iv++ ) 
@@ -567,7 +568,6 @@ void fos(
                           Vector sp(stokes_dim);
                           for( Index ii=0; ii<nin; ii++ )
                             { 
-                              // Add interpolation of Y
                               mult( sp, P(ii,iv*ivf,joker,joker), 
                                         Y(ii,iv,joker) );
                               ssource0(iv,joker) += sp;
