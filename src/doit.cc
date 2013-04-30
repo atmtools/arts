@@ -1080,7 +1080,6 @@ void cloud_RT_no_background(Workspace& ws,
       //
       const Vector rtp_mag_dummy(3,0);
       const Vector ppath_los_dummy;
-      const Vector rtp_pnd_dummy;
       
       propmat_clearsky_agendaExecute( ws, *cur_propmat_clearsky,
                                     f_grid[Range(f_index, 1)],
@@ -1088,7 +1087,6 @@ void cloud_RT_no_background(Workspace& ws,
                                     p_int[k], 
                                     t_int[k], 
                                     vmr_list_int(joker,k),
-                                    rtp_pnd_dummy,
                                     propmat_clearsky_agenda );
 
       // Skip any further calculations for the first point.
@@ -1549,7 +1547,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
               const Vector rtp_mag_dummy(3,0);
               const Vector ppath_los_dummy;
-              const Vector rtp_pnd_dummy;
 
               propmat_clearsky_agendaExecute(ws, propmat_clearsky,
                                                 f_grid[Range(f_index, 1)],
@@ -1557,7 +1554,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                                 rtp_pressure,
                                                 rtp_temperature,
                                                 rtp_vmr,
-                                                rtp_pnd_dummy,
                                                 propmat_clearsky_agenda);
               
               opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
@@ -1667,7 +1663,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                 
               const Vector rtp_mag_dummy(3,0);
               const Vector ppath_los_dummy;
-              const Vector rtp_pnd_dummy;
       
               propmat_clearsky_agendaExecute( ws, propmat_clearsky,
                                             f_grid[Range(f_index, 1)],
@@ -1675,7 +1670,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                             rtp_pressure, 
                                             rtp_temperature, 
                                             rtp_vmr,
-                                            rtp_pnd_dummy,
                                             propmat_clearsky_agenda );
 
               opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);

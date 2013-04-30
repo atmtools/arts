@@ -3242,29 +3242,6 @@ void Workspace::define_wsv_data()
    
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "rtp_pnd" ),
-      DESCRIPTION
-      (
-       "Particle number densities for (non-scatt.) radiative transfer calculations.\n"
-       "\n"
-       "This vector variable holds the local abundance of the different\n"
-       "particle types with corresponding single scattering data in\n"
-       "*scat_data_raw*. Only applied if *abs_species* contains the species\n"
-       "'particles'.\n"
-       "\n"
-       "The WSV is used as input to methods and agendas calculating radiative\n"
-       "properties for a given conditions.\n"
-       "\n"
-       "Usage: Communication variable.\n"
-       "\n"
-       "Units: [ #/m3. ]\n"
-       "\n"
-       "Size:  Should match scat_data_raw.nelem()\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "rtp_pos" ),
       DESCRIPTION
       (

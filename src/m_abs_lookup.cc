@@ -2210,7 +2210,6 @@ void abs_mat_fieldCalc( Workspace& ws,
 
                 const Vector rtp_mag_dummy(3,0);
                 const Vector ppath_los_dummy;
-                const Vector rtp_pnd_dummy;
 
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
@@ -2221,7 +2220,6 @@ void abs_mat_fieldCalc( Workspace& ws,
                                                   rtp_mag_dummy,ppath_los_dummy,
                                                   a_pressure,
                                                   a_temperature, a_vmr_list,
-                                                  rtp_pnd_dummy,
                                                   l_abs_agenda);
 
                 // Verify, that the number of species in asg is

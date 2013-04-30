@@ -190,7 +190,7 @@ inline const base& Array<base>::operator[](Index n) const
   return std::vector<base>::operator[](n);
 }
 
-/** Non-constant index operator. We redifine this here so that we can
+/** Non-constant index operator. We redefine this here so that we can
     have range checking by assert. */
 template<class base>
 inline base& Array<base>::operator[](Index n)

@@ -55,7 +55,7 @@ ArrayOfStringSet( iy_aux_vars, [] )
 
 
 # 
-# Wind, magnetic, and pnd fields
+# Wind and magnetic fields
 # (all components set to be empty, shorthand for no winds/magnetic/pnd field)
 #
 Tensor3SetConstant( wind_u_field, 0, 0, 0, 0.0 )
@@ -64,8 +64,6 @@ Tensor3SetConstant( wind_w_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_u_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_v_field, 0, 0, 0, 0.0 )
 Tensor3SetConstant( mag_w_field, 0, 0, 0, 0.0 )
-Tensor4SetConstant( pnd_field, 0, 0, 0, 0, 0.0 )
-
 
 
 ############
@@ -137,8 +135,6 @@ NumericSet( ppath_lmax, 10e3 )
 #
 NumericSet( ppath_lraytrace, 1e3 )
 
-
-FlagOff( cloudbox_on )
 
 #
 # MC

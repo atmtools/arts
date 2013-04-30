@@ -54,17 +54,11 @@ void chk_if_pnd_zero_lon (const Index& i_lon,
 void chk_pnd_data (const GriddedField3& pnd_field_raw,
                    const String& pnd_field_file,
                    const Index& atmosphere_dim,
-                   ConstVectorView p_grid,
-                   ConstVectorView lat_grid,
-                   ConstVectorView lon_grid,
                    const Verbosity& verbosity);
 
 void chk_pnd_raw_data (const ArrayOfGriddedField3& pnd_field_raw,
                        const String& pnd_field_file,
                        const Index& atmosphere_dim,
-                       ConstVectorView p_grid,
-                       ConstVectorView lat_grid,
-                       ConstVectorView lon_grid,
                        const Verbosity& verbosity);
 
 void chk_pnd_field_raw_only_in_cloudbox(

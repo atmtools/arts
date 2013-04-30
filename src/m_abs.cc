@@ -2163,8 +2163,6 @@ void propmat_clearskyInit(//WS Output
 }
 
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFaraday(
          Tensor4&                  propmat_clearsky,
@@ -2222,7 +2220,6 @@ void propmat_clearskyAddFaraday(
 }
 
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddParticles(
                                     // WS Output:
@@ -2232,97 +2229,105 @@ void propmat_clearskyAddParticles(
                                     const Index& atmosphere_dim,
                                     const Vector& f_grid,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                                    const Vector& rtp_pnd,
+                                    const Vector& rtp_vmr,
                                     const Vector& rtp_los,
                                     const Numeric& rtp_temperature,
                                     const ArrayOfSingleScatteringData& scat_data_raw,
                                     // Verbosity object:
                                     const Verbosity& verbosity)
 {
-  Index ip = -1;
+  const Index ns = scat_data_raw.nelem();
   Index np = 0;
-  for( Index sp = 0; sp < abs_species.nelem() && ip < 0; sp++ )
+  for( Index sp = 0; sp < abs_species.nelem(); sp++ )
     {
       if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES)
         {
-          ip = sp;
           np++;
         }
     }
 
-  if( ip < 0 )
+  if( np == 0 )
     {
        ostringstream os; 
        os << "For applying propmat_clearskyAddParticles, abs_species needs to"
           << "contain species 'particles', but it does not.\n";
        throw runtime_error( os.str() );
     }
-  else if( np > 1 )
+
+  if ( ns != np )
     {
-      throw runtime_error( "Several 'particles' species found in *abs_species*,\n"
-                           "but only a single entry can be handled!" );
+      ostringstream os; 
+      os << "Number of 'particles' entries in abs_species and of elements in\n"
+         << "scat_data_raw needs to be identical. But you have " << np
+         << " 'particles' entries\n"
+         << "and " << ns << " scat_data_raw elements.\n";
+      throw runtime_error( os.str() );
     }
-  else
-    {
-      if ( scat_data_raw.nelem()<1 || rtp_pnd.nelem()<1 )
-          {
-            ostringstream os; 
-            os << "For applying propmat_clearskyAddParticles, pnd_field "
-               << "and scat_data_raw can not be empty,\n"
-               << "but at least one of them is!\n";
-            throw runtime_error( os.str() );
-          }
 
-      const Index nf = f_grid.nelem();
-      Vector rtp_los_back;
-      mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
-      ArrayOfSingleScatteringData scat_data_mono;
-      Matrix pnd_ext_mat(stokes_dim,stokes_dim);
-      Vector pnd_abs_vec(stokes_dim);
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          // first, get the scat_data (all particle types) at the required
-          // frequency
-          scat_data_monoCalc( scat_data_mono, scat_data_raw, f_grid, iv, 
-                              verbosity );
+  const Index nf = f_grid.nelem();
+  Vector rtp_los_back;
+  mirror_los( rtp_los_back, rtp_los, atmosphere_dim );
+  ArrayOfSingleScatteringData scat_data_mono;
+  Matrix pnd_ext_mat(stokes_dim,stokes_dim);
+  Vector pnd_abs_vec(stokes_dim);
 
-          // second, get bulk extinction matrix and absorption vector from
-          // getting extinction matrix and absorption vector at required
-          // temperature and direction for all individual particle types,
-          // multiply with their occurence and sum up over the particle types
-          opt_propCalc( pnd_ext_mat, pnd_abs_vec,
-                        rtp_los_back[0], rtp_los_back[1],
-                        scat_data_mono, stokes_dim,
-                        rtp_pnd, rtp_temperature, verbosity );
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      // first, get the scat_data at the required frequency. we can do that for
+      // all particle types at once.
+      scat_data_monoCalc( scat_data_mono, scat_data_raw, f_grid, iv, 
+                          verbosity );
 
-          // last, sort the extracted absorption vector data into propmat_clearsky,
-          // which is of extinction matrix type
-
-          // that's how it would be sufficient if we take the extinction matrix,
-          // i.e., mimic scattering by emission. however, that's unphysical. and
-          // not sure how that acts for stokes_dim>1
-          // propmat_clearsky(ip,iv,joker,joker) = pnd_ext_mat
-
-          // so, we really have to explicitly & separately fill the different
-          // elements in the extinction matrix with the absorption vector entries
-          // FIXME: not sure what happens for general particles (p10). but
-          // should be sufficient for p20 and p30, though.
-          // first: diagonal elements
-          for (Index is=0; is<stokes_dim; is++)
+      // now we again need to loop over the abs_species entries. we need to do
+      // this as there is no guarantee that all the 'particles' are
+      // one-after-the-other. and we need separate output per abs_species entry,
+      // i.e., per particle type.
+      np = -1;
+      for( Index sp = 0; sp < abs_species.nelem(); sp++ )
+        {
+          if (abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES)
             {
-              propmat_clearsky(ip,iv,is,is) += pnd_abs_vec[0];
+              np++;
+
+              // second, get extinction matrix and absorption vector at required
+              // temperature and direction for the individual particle type and
+              // multiply with their occurence.
+              opt_propExtract(pnd_ext_mat, pnd_abs_vec, scat_data_mono[np],
+                              rtp_los_back[0], rtp_los_back[1],
+                              rtp_temperature, stokes_dim, verbosity);
+              //pnd_ext_mat *= rtp_vmr[sp];
+              pnd_abs_vec *= rtp_vmr[sp];
+
+              // last, sort the extracted absorption vector data into propmat_clearsky,
+              // which is of extinction matrix type
+
+              // that's how it would be sufficient if we take the extinction matrix,
+              // i.e., mimic scattering by emission. however, that's unphysical. and
+              // not sure how that acts for stokes_dim>1
+              // propmat_clearsky(ip,iv,joker,joker) = pnd_ext_mat
+
+              // so, we really have to explicitly & separately fill the different
+              // elements in the extinction matrix with the absorption vector entries
+              // FIXME: not sure what happens for general particles (p10). but
+              // should be sufficient for p20 and p30, though.
+              // first: diagonal elements
+              for (Index is=0; is<stokes_dim; is++)
+                {
+                  propmat_clearsky(sp,iv,is,is) += pnd_abs_vec[0];
+                }
+              // second: off-diagonal elements, namely first row and column
+              for (Index is=1; is<stokes_dim; is++)
+                {
+                  propmat_clearsky(sp,iv,0,is) += pnd_abs_vec[is];
+                  propmat_clearsky(sp,iv,is,0) += pnd_abs_vec[is];
+                }
+              // nothing more to do. the other elements should be empty. at least
+              // for p20 and p30.
             }
-          // second: off-diagonal elements, namely first row and column
-          for (Index is=1; is<stokes_dim; is++)
-            {
-              propmat_clearsky(ip,iv,0,is) += pnd_abs_vec[is];
-              propmat_clearsky(ip,iv,is,0) += pnd_abs_vec[is];
-            }
-          // nothing more to do. the other elements should be empty. at least
-          // for p20 and p30.
         }
     }
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddOnTheFly(// Workspace reference:

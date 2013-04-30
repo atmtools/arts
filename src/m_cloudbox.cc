@@ -565,6 +565,7 @@ void cloudbox_checkedCalc(
    const Tensor4&        pnd_field,
    const ArrayOfSingleScatteringData& scat_data_raw,
    const Matrix&         particle_masses,
+   const ArrayOfArrayOfSpeciesTag& abs_species,
    const Verbosity&)
 {
   // Demanded space between cloudbox and lat and lon edges [degrees]
@@ -602,7 +603,7 @@ void cloudbox_checkedCalc(
              << " but it is " << cloudbox_limits.nelem() << ".";
           throw runtime_error( os.str() );
         }
-       if( cloudbox_limits[1]<=cloudbox_limits[0] || cloudbox_limits[0]<0 ||
+      if( cloudbox_limits[1]<=cloudbox_limits[0] || cloudbox_limits[0]<0 ||
                                            cloudbox_limits[1]>=p_grid.nelem() )
         {
           ostringstream os;
@@ -615,156 +616,174 @@ void cloudbox_checkedCalc(
           throw runtime_error( os.str() );
         }
        
-       Index nlat=1, nlon=1;
+      Index nlat=1, nlon=1;
 
-       if( atmosphere_dim >= 2 )
-         {
-           nlat = lat_grid.nelem();
-           if( cloudbox_limits[3]<=cloudbox_limits[2] || 
-               cloudbox_limits[2]<1 || cloudbox_limits[3]>=nlat-1 )
-             {
-               ostringstream os;
-               os << "Incorrect value(s) for cloud box latitude limit(s) found."
-                  << "\nValues are either out of range or upper limit is not "
-                  << "greater than lower limit.\nWith present length of "
-                  << "*lat_grid*, OK values are 1 - " << nlat-2
-                  << ".\nThe latitude index limits are set to " 
-                  << cloudbox_limits[2] << " - " << cloudbox_limits[3] << ".";
-               throw runtime_error( os.str() );
-             }
-           if( ( lat_grid[cloudbox_limits[2]] - lat_grid[0] < llmin )  &&
-               ( atmosphere_dim==2  || (atmosphere_dim==3 && lat_grid[0]>-90)) )
-             {
-               ostringstream os;
-               os << "Too small distance between cloudbox and lower end of "
-                  << "latitude grid.\n"
-                  << "This distance must be " << llmin << " degrees.\n"
-                  << "Cloudbox ends at " << lat_grid[cloudbox_limits[2]]
-                  << " and latitude grid starts at " << lat_grid[0] << ".";
-               throw runtime_error( os.str() );
-             }
-           if( ( lat_grid[nlat-1] - lat_grid[cloudbox_limits[3]] < llmin )  &&
-               ( atmosphere_dim==2  || 
-                 (atmosphere_dim==3 && lat_grid[nlat-1]<90) ) )
-             {
-               ostringstream os;
-               os << "Too small distance between cloudbox and upper end of "
-                  << "latitude grid.\n"
-                  << "This distance must be " << llmin << " degrees.\n"
-                  << "Cloudbox ends at " << lat_grid[cloudbox_limits[3]]
-                  << " and latitude grid ends at " << lat_grid[nlat-1] << ".";
+      if( atmosphere_dim >= 2 )
+        {
+          nlat = lat_grid.nelem();
+          if( cloudbox_limits[3]<=cloudbox_limits[2] || 
+              cloudbox_limits[2]<1 || cloudbox_limits[3]>=nlat-1 )
+            {
+              ostringstream os;
+              os << "Incorrect value(s) for cloud box latitude limit(s) found."
+                 << "\nValues are either out of range or upper limit is not "
+                 << "greater than lower limit.\nWith present length of "
+                 << "*lat_grid*, OK values are 1 - " << nlat-2
+                 << ".\nThe latitude index limits are set to " 
+                 << cloudbox_limits[2] << " - " << cloudbox_limits[3] << ".";
               throw runtime_error( os.str() );
-             }
-         }
+            }
+          if( ( lat_grid[cloudbox_limits[2]] - lat_grid[0] < llmin )  &&
+              ( atmosphere_dim==2  || (atmosphere_dim==3 && lat_grid[0]>-90)) )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and lower end of "
+                 << "latitude grid.\n"
+                 << "This distance must be " << llmin << " degrees.\n"
+                 << "Cloudbox ends at " << lat_grid[cloudbox_limits[2]]
+                 << " and latitude grid starts at " << lat_grid[0] << ".";
+              throw runtime_error( os.str() );
+            }
+          if( ( lat_grid[nlat-1] - lat_grid[cloudbox_limits[3]] < llmin )  &&
+              ( atmosphere_dim==2  || 
+                (atmosphere_dim==3 && lat_grid[nlat-1]<90) ) )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and upper end of "
+                 << "latitude grid.\n"
+                 << "This distance must be " << llmin << " degrees.\n"
+                 << "Cloudbox ends at " << lat_grid[cloudbox_limits[3]]
+                 << " and latitude grid ends at " << lat_grid[nlat-1] << ".";
+              throw runtime_error( os.str() );
+            }
+        }
        
-       if( atmosphere_dim >= 3 )
-         {
-           nlon = lon_grid.nelem();
-           if( cloudbox_limits[5]<=cloudbox_limits[4] || cloudbox_limits[4]<1 ||
+      if( atmosphere_dim >= 3 )
+        {
+          nlon = lon_grid.nelem();
+          if( cloudbox_limits[5]<=cloudbox_limits[4] || cloudbox_limits[4]<1 ||
                                                    cloudbox_limits[5]>=nlon-1 )
-             {
-               ostringstream os;
-               os << "Incorrect value(s) for cloud box longitude limit(s) found"
-                  << ".\nValues are either out of range or upper limit is not "
-                  << "greater than lower limit.\nWith present length of "
-                  << "*lon_grid*, OK values are 1 - " << nlon-2
-                  << ".\nThe longitude limits are set to " 
-                  << cloudbox_limits[4] << " - " << cloudbox_limits[5] << ".";
-               throw runtime_error( os.str() );
-             }
-           if( lon_grid[nlon-1] - lon_grid[0] < 360 )
-             {
-               const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
+            {
+              ostringstream os;
+              os << "Incorrect value(s) for cloud box longitude limit(s) found"
+                 << ".\nValues are either out of range or upper limit is not "
+                 << "greater than lower limit.\nWith present length of "
+                 << "*lon_grid*, OK values are 1 - " << nlon-2
+                 << ".\nThe longitude limits are set to " 
+                 << cloudbox_limits[4] << " - " << cloudbox_limits[5] << ".";
+              throw runtime_error( os.str() );
+            }
+          if( lon_grid[nlon-1] - lon_grid[0] < 360 )
+            {
+              const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
                                           abs(lat_grid[cloudbox_limits[3]]) );
-               const Numeric lfac = 1 / cos( DEG2RAD*latmax );
-               if( lon_grid[cloudbox_limits[4]]-lon_grid[0] < llmin/lfac )
-                 {
-                   ostringstream os;
-                   os << "Too small distance between cloudbox and lower end of"
-                      << "the longitude\ngrid. This distance must here be " 
-                      << llmin/lfac << " degrees.";
-                   throw runtime_error( os.str() );
-                 }
-               if( lon_grid[nlon-1]-lon_grid[cloudbox_limits[5]] < llmin/lfac )
-                 {
-                   ostringstream os;
-                   os << "Too small distance between cloudbox and upper end of"
-                      << "the longitude\ngrid. This distance must here be " 
-                      << llmin/lfac << " degrees.";
-                   throw runtime_error( os.str() );
-                 }
-             }
-         }
+              const Numeric lfac = 1 / cos( DEG2RAD*latmax );
+              if( lon_grid[cloudbox_limits[4]]-lon_grid[0] < llmin/lfac )
+                {
+                  ostringstream os;
+                  os << "Too small distance between cloudbox and lower end of"
+                     << "the longitude\ngrid. This distance must here be " 
+                     << llmin/lfac << " degrees.";
+                  throw runtime_error( os.str() );
+                }
+              if( lon_grid[nlon-1]-lon_grid[cloudbox_limits[5]] < llmin/lfac )
+                {
+                  ostringstream os;
+                  os << "Too small distance between cloudbox and upper end of"
+                     << "the longitude\ngrid. This distance must here be " 
+                     << llmin/lfac << " degrees.";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
 
-       // Check with respect to z_surface
-       for( Index o=0; o<nlon; o++ )
-         {
-           for( Index a=0; a<nlat; a++ )
-             {
-               if( z_field(cloudbox_limits[1],a,o) <= z_surface(a,o) )
-                 throw runtime_error( 
-                   "The upper vertical limit of the cloudbox must be above "
-                   "the surface altitude (for all latitudes and longitudes)." );
-             }
-         }
+      // Check with respect to z_surface
+      for( Index o=0; o<nlon; o++ )
+        {
+          for( Index a=0; a<nlat; a++ )
+            {
+              if( z_field(cloudbox_limits[1],a,o) <= z_surface(a,o) )
+                throw runtime_error( 
+                  "The upper vertical limit of the cloudbox must be above "
+                  "the surface altitude (for all latitudes and longitudes)." );
+            }
+        }
 
-       // pnd_field
-       //
-       const Index np = scat_data_raw.nelem();
-       // Dummy variables to mimic grids of correct size
-       Vector g1( cloudbox_limits[1]-cloudbox_limits[0]+1 ), g2(0), g3(0);
-       if( atmosphere_dim >= 2 ) 
-         { g2.resize( cloudbox_limits[3]-cloudbox_limits[2]+1 ); }
-       if( atmosphere_dim == 3 ) 
-         { g3.resize( cloudbox_limits[5]-cloudbox_limits[4]+1 ); }
-       //
-       chk_atm_field( "pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3 );
-       //
-       if( min(pnd_field) < 0 )
-         throw runtime_error( "Negative values in *pnd_field* not allowed." );
-       //
-       for( Index a=0; a<g2.nelem(); a++ ) { 
-         for( Index o=0; o<g3.nelem(); o++ ) { 
-           if( max(pnd_field(joker,0,a,o)) > 0  && 
-                            z_field(cloudbox_limits[0],a,o) > z_surface(a,o) )
-             throw runtime_error( "A non-zero value found in *pnd_field* at the"
-                             " lower altitude limit of the cloudbox (but the "
-                             "position is not at or below the surface altitude)." );
-         } }
-       if( max(pnd_field(joker,g1.nelem()-1,joker,joker)) > 0 )
-         throw runtime_error( "A non-zero value found in *pnd_field* at "
+      // pnd_field
+      //
+      const Index np = scat_data_raw.nelem();
+      // Dummy variables to mimic grids of correct size
+      Vector g1( cloudbox_limits[1]-cloudbox_limits[0]+1 ), g2(0), g3(0);
+      if( atmosphere_dim >= 2 ) 
+        { g2.resize( cloudbox_limits[3]-cloudbox_limits[2]+1 ); }
+      if( atmosphere_dim == 3 ) 
+        { g3.resize( cloudbox_limits[5]-cloudbox_limits[4]+1 ); }
+      //
+      chk_atm_field( "pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3 );
+      //
+      if( min(pnd_field) < 0 )
+        throw runtime_error( "Negative values in *pnd_field* not allowed." );
+      //
+      for( Index a=0; a<g2.nelem(); a++ ) { 
+        for( Index o=0; o<g3.nelem(); o++ ) { 
+          if( max(pnd_field(joker,0,a,o)) > 0  && 
+              z_field(cloudbox_limits[0],a,o) > z_surface(a,o) )
+            throw runtime_error( "A non-zero value found in *pnd_field* at the"
+                              " lower altitude limit of the cloudbox (but the "
+                           "position is not at or below the surface altitude)." );
+          } }
+      if( max(pnd_field(joker,g1.nelem()-1,joker,joker)) > 0 )
+        throw runtime_error( "A non-zero value found in *pnd_field* at "
                              "upper altitude limit of the cloudbox." );
-       if( atmosphere_dim >= 2 )
-         {
-           if( max(pnd_field(joker,joker,0,joker)) > 0 )
-             throw runtime_error( "A non-zero value found in *pnd_field* at "
-                                  "lower latitude limit of the cloudbox." );
-           if( max(pnd_field(joker,joker,g2.nelem()-1,joker)) > 0 ) 
-             throw runtime_error( "A non-zero value found in *pnd_field* at "
-                                  "upper latitude limit of the cloudbox." );
-         }
-       if( atmosphere_dim == 3 )
-         {
-           if( max(pnd_field(joker,joker,joker,0)) > 0 )
-             throw runtime_error( "A non-zero value found in *pnd_field* at "
-                                  "lower longitude limit of the cloudbox." );
-           if( max(pnd_field(joker,joker,joker,g3.nelem()-1)) > 0 ) 
-             throw runtime_error( "A non-zero value found in *pnd_field* at "
-                                  "upper longitude limit of the cloudbox." );
-         }
+      if( atmosphere_dim >= 2 )
+        {
+          if( max(pnd_field(joker,joker,0,joker)) > 0 )
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "lower latitude limit of the cloudbox." );
+          if( max(pnd_field(joker,joker,g2.nelem()-1,joker)) > 0 ) 
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "upper latitude limit of the cloudbox." );
+        }
+      if( atmosphere_dim == 3 )
+        {
+          if( max(pnd_field(joker,joker,joker,0)) > 0 )
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "lower longitude limit of the cloudbox." );
+          if( max(pnd_field(joker,joker,joker,g3.nelem()-1)) > 0 ) 
+            throw runtime_error( "A non-zero value found in *pnd_field* at "
+                                 "upper longitude limit of the cloudbox." );
+        }
 
-       // particle_masses
-       //
-       if( particle_masses.nrows() > 0 )
-         {
-           if( particle_masses.nrows() != np )
-             throw runtime_error( "The WSV *particle_masses* must either be "
-                                  "empty or have a row size matching the "
-                                  "length of *scat_data_raw*." );
-           if( min(particle_masses) < 0 )
-             throw runtime_error( 
-                            "All values in *particles_masses* must be >= 0." );
-         }
+      // particle_masses
+      //
+      if( particle_masses.nrows() > 0 )
+        {
+          if( particle_masses.nrows() != np )
+            throw runtime_error( "The WSV *particle_masses* must either be "
+                                 "empty or have a row size matching the "
+                                 "length of *scat_data_raw*." );
+          if( min(particle_masses) < 0 )
+            throw runtime_error( 
+                           "All values in *particles_masses* must be >= 0." );
+        }
+
+      // no "particles" in abs_species if cloudbox is on (they act on the same
+      // scat_data_raw! and there not enough reason to have some particles as
+      // abs-only, if we anyway do a scattering calculation.).
+      Index has_absparticles=0;
+      for( Index sp = 0; sp < abs_species.nelem() && has_absparticles < 1; sp++ )
+        {
+          if ( abs_species[sp][0].Type() == SpeciesTag::TYPE_PARTICLES )
+            {
+              has_absparticles=1;
+            }
+        }
+      if ( has_absparticles )
+        {
+          throw runtime_error( "For scattering calculations (cloudbox is on),"
+                               "abs_species is not allowed to contain\n"
+                               "'particles' (absorbing-only particles)!" );
+        }
     }
 
   // If here, all OK
@@ -847,6 +866,143 @@ void ParticleTypeInit (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleTypeAdd( //WS Output:
+                     ArrayOfSingleScatteringData& scat_data_raw,
+                     ArrayOfGriddedField3&  pnd_field_raw,
+                     // WS Input (needed for checking the datafiles):
+                     const Index& atmosphere_dim,
+                     const Vector& f_grid,
+                     const Vector& p_grid,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     // Keywords:
+                     const String& scat_data_file,
+                     const String& pnd_field_file,
+                     const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  
+  //--- Check input ---------------------------------------------------------
+  
+  // Atmosphere
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+  // Frequency grid
+  if( f_grid.nelem() == 0 )
+    throw runtime_error( "The frequency grid is empty." );
+  chk_if_increasing( "f_grid", f_grid );
+  
+
+  //--- Reading the data ---------------------------------------------------
+
+  // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
+  SingleScatteringData scat_data;
+  scat_data_raw.push_back(scat_data);
+  
+  GriddedField3 pnd_field_data;
+  pnd_field_raw.push_back(pnd_field_data);
+  
+  out2 << "  Read single scattering data\n";
+  xml_read_from_file(scat_data_file, scat_data_raw[scat_data_raw.nelem()-1],
+                     verbosity);
+
+  chk_single_scattering_data(scat_data_raw[scat_data_raw.nelem()-1],
+                             scat_data_file, f_grid, verbosity);       
+  
+  out2 << "  Read particle number density field\n";
+  if (pnd_field_file.nelem() < 1)
+  {
+    CREATE_OUT1;
+    out1 << "Warning: No pnd_field_file specified. Ignored. \n";
+  }
+  else
+    {
+      xml_read_from_file(pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1],
+                         verbosity);
+      
+      chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
+                   pnd_field_file, atmosphere_dim, verbosity);
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ParticleType2abs_speciesAdd( //WS Output:
+                     ArrayOfSingleScatteringData& scat_data_raw,
+                     ArrayOfGriddedField3& vmr_field_raw,
+                     ArrayOfArrayOfSpeciesTag& abs_species,
+                     Index& propmat_clearsky_agenda_checked,
+                     Index& abs_xsec_agenda_checked,
+                     // WS Input (needed for checking the datafiles):
+                     const Index& atmosphere_dim,
+                     const Vector& f_grid,
+                     const Vector& p_grid,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     // Keywords:
+                     const String& scat_data_file,
+                     const String& pnd_field_file,
+                     const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  
+  //--- Check input ---------------------------------------------------------
+  
+  // Atmosphere
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+  // Frequency grid
+  if( f_grid.nelem() == 0 )
+    throw runtime_error( "The frequency grid is empty." );
+  chk_if_increasing( "f_grid", f_grid );
+  
+
+  //--- Reading the data ---------------------------------------------------
+
+  // Append *scat_data_raw* and (later on) *vmr_field_raw* with empty Arrays of
+  // Tensors, then fill those from file. 
+  SingleScatteringData scat_data;
+  scat_data_raw.push_back(scat_data);
+  
+  out2 << "  Read single scattering data\n";
+  xml_read_from_file(scat_data_file, scat_data_raw[scat_data_raw.nelem()-1],
+                     verbosity);
+
+  chk_single_scattering_data(scat_data_raw[scat_data_raw.nelem()-1],
+                             scat_data_file, f_grid, verbosity);       
+  
+  out2 << "  Read particle number density field\n";
+  if (pnd_field_file.nelem() < 1)
+  {
+    CREATE_OUT1;
+    out1 << "Warning: No pnd_field_file specified. Ignored here,\n"
+         << "but user HAS TO add that later on!\n";
+  }
+  else
+    {
+      GriddedField3 pnd_field_data;
+      vmr_field_raw.push_back(pnd_field_data);
+  
+      xml_read_from_file(pnd_field_file, vmr_field_raw[vmr_field_raw.nelem()-1],
+                         verbosity);
+      
+      chk_pnd_data(vmr_field_raw[vmr_field_raw.nelem()-1],
+                   pnd_field_file, atmosphere_dim, verbosity);
+    }
+
+  out2 << "  Append 'particle' field to abs_species\n";
+  ArrayOfString species;
+  species.push_back("particles");
+
+  abs_speciesAdd( abs_species,
+                  propmat_clearsky_agenda_checked, abs_xsec_agenda_checked,
+                  species, verbosity );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAddAll (//WS Output:
                          ArrayOfSingleScatteringData& scat_data_raw,
                          ArrayOfGriddedField3&  pnd_field_raw,
@@ -857,8 +1013,8 @@ void ParticleTypeAddAll (//WS Output:
                          const Vector& lat_grid,
                          const Vector& lon_grid,
                          // Keywords:
-                         const String& filename_scat_data,
-                         const String& pnd_field_file,
+                         const String& filelist_scat_data,
+                         const String& pnd_fieldarray_file,
                          const Verbosity& verbosity)
 {
   CREATE_OUT2;
@@ -877,7 +1033,7 @@ void ParticleTypeAddAll (//WS Output:
 
   //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
-  xml_read_from_file ( filename_scat_data, data_files, verbosity );
+  xml_read_from_file ( filelist_scat_data, data_files, verbosity );
   scat_data_raw.resize ( data_files.nelem() );
 
   for ( Index i = 0; i<data_files.nelem(); i++ )
@@ -893,11 +1049,10 @@ void ParticleTypeAddAll (//WS Output:
   }
 
   out2 << "  Read particle number density data \n";
-  xml_read_from_file ( pnd_field_file, pnd_field_raw, verbosity );
+  xml_read_from_file ( pnd_fieldarray_file, pnd_field_raw, verbosity );
 
   chk_pnd_raw_data ( pnd_field_raw,
-                     pnd_field_file, atmosphere_dim, p_grid, lat_grid,
-                     lon_grid, verbosity);
+                     pnd_fieldarray_file, atmosphere_dim, verbosity);
 }
 
 
@@ -1119,69 +1274,6 @@ void particle_massesSet (//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ParticleTypeAdd( //WS Output:
-                     ArrayOfSingleScatteringData& scat_data_raw,
-                     ArrayOfGriddedField3&  pnd_field_raw,
-                     // WS Input (needed for checking the datafiles):
-                     const Index& atmosphere_dim,
-                     const Vector& f_grid,
-                     const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
-                     // Keywords:
-                     const String& scat_data_file,
-                     const String& pnd_field_file,
-                     const Verbosity& verbosity)
-{
-  CREATE_OUT2;
-  
-  //--- Check input ---------------------------------------------------------
-  
-  // Atmosphere
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-
-  // Frequency grid
-  if( f_grid.nelem() == 0 )
-    throw runtime_error( "The frequency grid is empty." );
-  chk_if_increasing( "f_grid", f_grid );
-  
-
-  //--- Reading the data ---------------------------------------------------
-
-  // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
-  SingleScatteringData scat_data;
-  scat_data_raw.push_back(scat_data);
-  
-  GriddedField3 pnd_field_data;
-  pnd_field_raw.push_back(pnd_field_data);
-  
-  out2 << "  Read single scattering data\n";
-  xml_read_from_file(scat_data_file, scat_data_raw[scat_data_raw.nelem()-1],
-                     verbosity);
-
-  chk_single_scattering_data(scat_data_raw[scat_data_raw.nelem()-1],
-                             scat_data_file, f_grid, verbosity);       
-  
-  out2 << "  Read particle number density field\n";
-  if (pnd_field_file.nelem() < 1)
-  {
-    CREATE_OUT1;
-    out1 << "Warning: No pnd_field_file specified. Ignored. \n";
-  }
-  else
-    {
-      xml_read_from_file(pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1],
-                         verbosity);
-      
-      chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
-                   pnd_field_file, atmosphere_dim, p_grid, lat_grid,
-                   lon_grid, verbosity);
-    }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldCalc(//WS Output:
                    Tensor4& pnd_field,
                    //WS Input
@@ -1208,7 +1300,7 @@ void pnd_fieldCalc(//WS Output:
   
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   ArrayOfIndex cloudbox_limits_tmp;
-  if ( cloudbox_limits.nelem()== 0 )
+  /*if ( cloudbox_limits.nelem()== 0 )
     {
       //If no limits set, the cloud(box) is supposed to cover the
       //complete atmosphere. This particularly to facilitate use of
@@ -1233,7 +1325,8 @@ void pnd_fieldCalc(//WS Output:
           cloudbox_limits_tmp[5] = lon_grid.nelem() - 1;
         }
     }
-  else if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+  else */
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
                         "*cloudbox_limits* is a vector which contains the"
                         "upper and lower limit of the cloud for all "

@@ -284,9 +284,6 @@ void chk_if_pnd_zero_lon(const Index& i_lon,
   \param pnd_field_raw   pnd field data
   \param pnd_field_file  pnd field filename
   \param atmosphere_dim  Atmospheric dimension
-  \param p_grid          Pressure grid
-  \param lat_grid        Latitude grid
-  \param lon_grid        Longitude grid
 
   \author Claudia Emde
   \date   2005-04-05
@@ -295,9 +292,6 @@ void chk_pnd_data(
                   const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
                   const Index& atmosphere_dim,
-                  ConstVectorView p_grid,
-                  ConstVectorView lat_grid,
-                  ConstVectorView lon_grid,
                   const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -348,10 +342,6 @@ void chk_pnd_data(
   \param pnd_field_raw   pnd field raw data (array for all particle types)
   \param pnd_field_file  pnd field filename
   \param atmosphere_dim  Atmospheric dimension
-  \param p_grid          Pressure grid
-  \param lat_grid        Latitude grid
-  \param lon_grid        Longitude grid
-  \param cloudbox_limits Cloudbox limits
  
   \author Claudia Emde
   \date   2005-04-05
@@ -360,9 +350,6 @@ void chk_pnd_raw_data(
                       const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file,
                       const Index& atmosphere_dim,
-                      ConstVectorView p_grid,
-                      ConstVectorView lat_grid,
-                      ConstVectorView lon_grid,
                       const Verbosity& verbosity
                       )
 {
@@ -373,7 +360,7 @@ void chk_pnd_raw_data(
       out3 << "Element in pnd_field_raw_file:" << i << "\n";
       chk_pnd_data(pnd_field_raw[i],
                    pnd_field_file, atmosphere_dim,
-                   p_grid, lat_grid, lon_grid, verbosity);
+                   verbosity);
     }
 }
 

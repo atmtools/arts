@@ -1250,7 +1250,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "propmat_clearsky", "stokes_dim", "atmosphere_dim",
             "f_grid", "abs_species",
-            "rtp_pnd", "rtp_los", "rtp_temperature", "scat_data_raw" ),
+            "rtp_vmr", "rtp_los", "rtp_temperature", "scat_data_raw" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2014,21 +2014,22 @@ void define_md_data_raw()
          "addition, for matrices, the 'append dimension' can be selected.\n" 
          "The third argument, *dimension*, indicates how to append, where\n"
          "\"leading\" means to append row-wise, and \"trailing\" means\n"
-         "column-wise.\n"
+         "column-wise. Other types are currently only implemented for\n"
+         "appending to the leading dimension.\n"
          "\n"
-         "This method is not implemented for all types, just for those where\n"
-         "an append makes sense. (See variable list below.).\n"
+         "This method is not implemented for all types, just for which were\n"
+         "thought to be useful. (See variable list below.).\n"
          ),
         AUTHORS( "Stefan Buehler, Oliver Lemke" ),
         OUT(),
         GOUT( "out" ),
-        GOUT_TYPE( "Vector, Matrix, Matrix, String, " +
+        GOUT_TYPE( "Vector, Matrix, Matrix, Tensor4, String, " +
                    ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE ),
         GOUT_DESC( "The variable to append to." ),
         IN(),
         GIN( "in",
              "dimension" ),
-        GIN_TYPE( "Vector, Matrix, Vector, String, " +
+        GIN_TYPE( "Vector, Matrix, Vector, Tensor4, String, " +
                   ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE,
                   "String" ),
         GIN_DEFAULT( NODEF,
@@ -2622,8 +2623,7 @@ void define_md_data_raw()
          "\n"
          "The following WSVs are treated: *f_grid*, *stokes_dim*, *p_grid*,\n"
          "*lat_grid*, *lon_grid*, *t_field*, *z_field*, *vmr_field*,\n"
-         "wind_u/v/w_field, *pnd_field* (only if !cloudbox_on),\n"
-         "*refellipsoid*, and *z_surface*.\n"
+         "wind_u/v/w_field, *refellipsoid*, and *z_surface*.\n"
          "If any of these variables are changed, then this method shall be\n"
          "called again (no automatic check that this is fulfilled!).\n"
          "\n"
@@ -2632,7 +2632,7 @@ void define_md_data_raw()
          "    are inside defined ranges.\n"
          " 2. That *f_grid* is sorted and increasing.\n"
          " 3. If atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
-         "    *atmosphere_dim*.\n"
+         "    *atmosphere_dim* (and vmr_field also regarding *abs_species*).\n"
          " 4. If *refellipsoid* has correct size, and that eccentricity is\n"
          "    set to zero if 1D atmosphere.\n"
          " 5. If atmospheric fields, and *z_surface* have sizes consistent\n"
@@ -2653,8 +2653,8 @@ void define_md_data_raw()
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
             "z_field", "t_field", "vmr_field", "wind_u_field", "wind_v_field",
             "wind_w_field", "mag_u_field", "mag_v_field", "mag_w_field",
-            "pnd_field", "refellipsoid", "z_surface", 
-            "stokes_dim", "f_grid", "cloudbox_on", "abs_f_interp_order" ),
+            "refellipsoid", "z_surface", 
+            "stokes_dim", "f_grid", "abs_f_interp_order" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3156,11 +3156,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "basics_checked", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "z_field", "z_surface",
+        IN( "basics_checked", "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid",
+            "z_field", "z_surface",
             "wind_u_field", "wind_v_field", "wind_w_field", 
             "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_raw",
-            "particle_masses" ),
+            "particle_masses",
+            "abs_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4000,13 +4002,18 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "needle" ),
-        GOUT_TYPE( "Index, ArrayOfIndex, Numeric, Vector, Matrix, Matrix, Tensor3, Tensor4,"
-                   "Tensor4, ArrayOfGriddedField3, GriddedField4, String" ),
+        GOUT_TYPE( "Index, ArrayOfIndex, Numeric, Vector,"
+                   "Matrix, Matrix,"
+                   "Tensor3, Tensor4, Tensor4,"
+                   "GriddedField3, ArrayOfGriddedField3,"
+                   "GriddedField4, String" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
-        GIN_TYPE( "ArrayOfIndex, ArrayOfArrayOfIndex, Vector, ArrayOfVector, ArrayOfMatrix, Tensor3,"
-                  "Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGriddedField3,"
+        GIN_TYPE( "ArrayOfIndex, ArrayOfArrayOfIndex, Vector, ArrayOfVector,"
+                  "ArrayOfMatrix, Tensor3,"
+                  "Tensor4, ArrayOfTensor4, Tensor5,"
+                  "ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3,"
                   "ArrayOfGriddedField4, ArrayOfString",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
@@ -4502,7 +4509,7 @@ void define_md_data_raw()
          "If the input longitude grid is outside of *lon_true* it will be shifted\n"
          "left or right by 360. If it covers 360 degrees, a cyclic interpolation\n"
          "will be performed.\n"
-         "gfield_raw_out and gfield_raw_in can be the same variable.\n"
+         "in and out fields can be the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -4534,7 +4541,7 @@ void define_md_data_raw()
          "errors later on).\n"
          "Extrapolation is allowed within the common 0.5grid-step margin,\n"
          "but is overruled by zeropadding.\n"
-         "gfield_raw_out and gfield_raw_in can be the same variable.\n"
+         "in and out fields can be the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -5003,7 +5010,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "f_grid", "atmosphere_dim", "p_grid", "z_field",
-            "t_field", "vmr_field", "abs_species", "pnd_field", 
+            "t_field", "vmr_field", "abs_species", 
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", 
             "cloudbox_on", "iy_unit", "iy_aux_vars", "jacobian_do", 
@@ -7396,8 +7403,8 @@ void define_md_data_raw()
         GIN(         "filename_scat_data", "filename_pnd_field" ),
         GIN_TYPE(    "String",             "String"             ),
         GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "Filename of single scattering data.",
-                  "Filename of the corresponding pnd_field." 
+        GIN_DESC( "Name of single scattering data file.",
+                  "Name of the corresponding pnd_field file." 
                   )
         ));
 
@@ -7416,7 +7423,7 @@ void define_md_data_raw()
          "*pnd_field_raw*. In contrast to the scattering data, all corresponding pnd-fields\n"
          "are stored in a single XML-file containing an ArrayofGriddedField3\n"
          "\n"
-         "Very important note:\n"
+         "Important note:\n"
          "The order of the filenames for the scattering data files has to\n"
          "correspond to the order of the pnd-fields, stored in the variable\n"
          "*pnd_field_raw*.\n"
@@ -7427,11 +7434,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid" ),
-        GIN(         "filename_scat_data", "filename_pnd_field" ),
+        GIN(         "filelist_scat_data", "filename_pnd_fieldarray" ),
         GIN_TYPE(    "String",             "String"             ),
         GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "File containing single scattering data.",
-                  "File including *pnd_field_raw*." 
+        GIN_DESC( "Name of file with array of single scattering data filenames.",
+                  "Name of file holding the correspnding array of pnd_field data." 
                   )
         ));
 
@@ -7461,7 +7468,39 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-    
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleType2abs_speciesAdd" ),
+        DESCRIPTION
+        (
+         "Appends an instance of species 'particles' to abs_species including\n"
+         "reading single scattering data and corresonding pnd field.\n"
+         "\n"
+         "The methods reads the specified single scattering and pnd_field\n"
+         "data and appends the obtained data to *scat_data_raw* and\n"
+         "*vmr_field_raw*. It also appends one instance of species 'particles'\n"
+         "to *abs_species*.\n"
+         ),
+        AUTHORS( "Jana Mendrok" ),
+        OUT( "scat_data_raw", "vmr_field_raw", "abs_species",
+             "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "vmr_field_raw", "abs_species",
+            "propmat_clearsky_agenda_checked", "abs_xsec_agenda_checked",
+            "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid" ),
+        GIN(         "filename_scat_data", "filename_pnd_field" ),
+        GIN_TYPE(    "String",             "String"             ),
+        GIN_DEFAULT( NODEF,                NODEF                ),
+        GIN_DESC( "Name of single scattering data file.",
+                  "Name of the corresponding pnd_field file." 
+                  )
+        ));
+
+ 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_matCalc" ),

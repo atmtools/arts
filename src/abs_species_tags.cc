@@ -689,7 +689,6 @@ void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
 void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
 {
     Index num_free_electrons = 0;
-    Index num_particles = 0;
     for ( Index i=0; i<abs_species.nelem(); ++i )
     {
         bool has_free_electrons = false;
@@ -705,7 +704,6 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
 
             if (abs_species[i][s].Type() == SpeciesTag::TYPE_PARTICLES)
             {
-                num_particles++;
                 has_particles = true;
             }
 
@@ -725,9 +723,6 @@ void check_abs_species( const ArrayOfArrayOfSpeciesTag& abs_species )
         if (abs_species[i].nelem() > 1 && has_particles)
             throw runtime_error("'particles' must not be combined "
                                 "with other tags in the same group.");
-        if (num_particles > 1)
-            throw runtime_error("'particles' must not be defined "
-                                "more than once.");
         if (abs_species[i].nelem() > 1 && has_line_mixing)
             throw runtime_error("Line mixing species must not be combined "
                                 "with other tags in the same group.");

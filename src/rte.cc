@@ -1129,7 +1129,6 @@ void get_iy_of_background(
     \param   ppath_p           Out: Pressure for each ppath point.
     \param   ppath_t           Out: Temperature for each ppath point.
     \param   ppath_vmr         Out: VMR values for each ppath point.
-    \param   ppath_pnd         Out: Particle number densities for each ppath point.
     \param   ppath_wind        Out: Wind vector for each ppath point.
     \param   ppath_mag         Out: Mag. field vector for each ppath point.
     \param   ppath             As the WSV.
@@ -1139,8 +1138,6 @@ void get_iy_of_background(
     \param   lon_grid          As the WSV.
     \param   t_field           As the WSV.
     \param   vmr_field         As the WSV.
-    \param   pnd_field         As the WSV.
-    \param   cloudbox_on       As the WSV.
     \param   wind_u_field      As the WSV.
     \param   wind_v_field      As the WSV.
     \param   wind_w_field      As the WSV.
@@ -1155,7 +1152,6 @@ void get_ppath_atmvars(
         Vector&      ppath_p, 
         Vector&      ppath_t, 
         Matrix&      ppath_vmr, 
-        Matrix&      ppath_pnd, 
         Matrix&      ppath_wind, 
         Matrix&      ppath_mag,
   const Ppath&       ppath,
@@ -1163,8 +1159,6 @@ void get_ppath_atmvars(
   ConstVectorView    p_grid,
   ConstTensor3View   t_field,
   ConstTensor4View   vmr_field,
-  ConstTensor4View   pnd_field,
-  const Index&       cloudbox_on,
   ConstTensor3View   wind_u_field,
   ConstTensor3View   wind_v_field,
   ConstTensor3View   wind_w_field,
@@ -1196,43 +1190,6 @@ void get_ppath_atmvars(
                               vmr_field( is, joker, joker, joker ), 
                               ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
                               itw_field );
-    }
-
-  // PND fields (only for no-scatt application, hence for cloudbox_on==false):
-  const Index nt = pnd_field.nbooks();
-  ppath_pnd.resize(nt,np);
-  ppath_pnd = 0;
-  if ( !cloudbox_on && nt > 0 )
-    {
-      // ensure, we are indeed using a pnd_field that has the proper size
-      // (covering complete atmosphere). basically we shouldn't end up here for
-      // cloudbox_on cases, but e.g. ClouboxGetIncoming locally sets cloudbox_on
-      // to false and we arrive here (when not having set up iyEmissionStandard in
-      // the iy_main_agenda) with a cloudboxy pnd_field. So to avoid an
-      // assertion, we explicitly check...
-      if (pnd_field.npages()==t_field.npages() &&
-          pnd_field.nrows()==t_field.nrows() && 
-          pnd_field.ncols()==t_field.ncols())
-        {
-          for( Index it=0; it<nt; it++ )
-            {
-              interp_atmfield_by_itw( ppath_pnd(it, joker), atmosphere_dim,
-                                      pnd_field( it, joker, joker, joker ), 
-                                      ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
-                                      itw_field );
-            }
-        }
-      else
-        {
-          ostringstream os;
-          os << "pnd_field dimensions here are expected to agree with p_grid\n"
-             << "and lat/lon_grid (i.e., to cover the full atmosphere), but\n"
-             << "it does not. This might be because you intend to use DOIT\n"
-             << "but don't pass an empty dummy pnd_field to\n"
-             << "iyEmissionStandard in the iy_main_agenda instead of the\n"
-             << "cloudbox-shaped default pnd_field.";
-          throw runtime_error( os.str() );
-        }
     }
 
   // Winds:
@@ -1292,7 +1249,6 @@ void get_ppath_atmvars(
     \param   ppath_p             Pressure for each ppath point.
     \param   ppath_t             Temperature for each ppath point.
     \param   ppath_vmr           VMR values for each ppath point.
-    \param   ppath_pnd           Particle number densities for each ppath point.
     \param   ppath_f             See get_ppath_f.
     \param   ppath_mag           See get_ppath_atmvars.
     \param   f_grid              As the WSV.    
@@ -1311,7 +1267,6 @@ void get_ppath_abs(
   ConstVectorView       ppath_p, 
   ConstVectorView       ppath_t, 
   ConstMatrixView       ppath_vmr, 
-  ConstMatrixView       ppath_pnd, 
   ConstMatrixView       ppath_f, 
   ConstMatrixView       ppath_mag,
   ConstVectorView       f_grid, 
@@ -1363,16 +1318,10 @@ void get_ppath_abs(
       Tensor4  propmat_clearsky;
       //
       try {
-        // first dim of ppath_pnd might be 0. can't apply a joker on an empty
-        // dimension, hence setting the variable to pass explicitly depending on
-        // ppath_pnd's size.
-        Vector rtp_pnd(0,1);
-        if ( ppath_pnd.nrows()>0 )
-          rtp_pnd = ppath_pnd(joker,ip);
         propmat_clearsky_agendaExecute( l_ws, propmat_clearsky, ppath_f(joker,ip),
                             ppath_mag(joker,ip),
                             ppath.los(ip,joker), ppath_p[ip], ppath_t[ip], 
-                            ppath_vmr(joker,ip), rtp_pnd,
+                            ppath_vmr(joker,ip),
                             l_propmat_clearsky_agenda );
       } catch (runtime_error e) {
 #pragma omp critical (get_ppath_abs_fail)

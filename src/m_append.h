@@ -206,6 +206,49 @@ void Append(// WS Generic Output:
 }
 
 
+/* Implementation for Tensor4 */
+void Append(// WS Generic Output:
+            Tensor4& out,
+            // WS Generic Input:
+            const Tensor4& in,
+//            const String& direction,
+            const String& direction _U_,
+            const Verbosity&)
+{
+    const Tensor4* in_pnt;
+    Tensor4 in_copy;
+
+    if (&in == &out)
+    {
+        in_copy = in;
+        in_pnt = &in_copy;
+    }
+    else
+        in_pnt = &in;
+
+    const Tensor4 &in_ref = *in_pnt;
+
+    // Get backup of out:
+    Tensor4 dummy = out;
+
+    if (out.npages() != in_ref.npages() || out.nrows() != in_ref.nrows() ||
+        out.ncols() != in_ref.ncols())
+        throw runtime_error("Input and output Tensor4 must have the same number"
+                            "of books.");
+
+    out.resize(dummy.nbooks() + in_ref.nbooks(), dummy.npages(),
+               dummy.nrows(), dummy.ncols());
+
+    if (dummy.nbooks() && dummy.npages() && dummy.nrows() && dummy.ncols())
+        out(Range(0, dummy.nbooks()), Range(0, dummy.npages()),
+            Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
+    if (dummy.nbooks() && in_ref.nbooks() && in_ref.npages() &&
+        in_ref.nrows() && in_ref.ncols())
+        out(Range(dummy.nbooks(), in_ref.nbooks()), Range(0, in_ref.npages()),
+            Range(0, in_ref.nrows()), Range(0, in_ref.ncols())) = in_ref;
+}
+
+
 /* Implementation for String */
 void Append(// WS Generic Output:
             String& out,

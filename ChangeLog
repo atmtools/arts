@@ -1,3 +1,72 @@
+2013-04-30  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-2-1-618
+
+	* Nicer (not mis-using pnd_field) version of handling particles as
+	absorbing-only, reverting obsolete parts of the older version.
+	Now EACH particle type is added as an instance to abs_species, with its
+	pnd field going into the corresponding vmr_field(_raw) entry. Single
+	scattering data continue to be hold in scat_data_raw (we disallow
+	parallel usage of "particles" in abs_species and scattering (i.e.,
+	cloudbox on) calculations). A new method added - 
+	ParticleType2abs_speciesAdd - corresponding to ParticleTypeAdd
+	(corresponding version of ParticleTypeAddAll to come soon), which adds a
+	"particle" instance to abs_species, reads the single scattering data,
+	reads and appends pnd data to vmr_field_raw.
+
+	* src/m_abs.cc (propmat_clearskyAddParticles):
+	Adapted for looping over abs_species, handling multiple "particles"
+	instances therein (provinding propmat_clearsky separately for particle
+	type).
+
+	* src/m_cloudbox.cc (cloudbox_checkedCalc):
+	Added check that abs_species has not "particles" while cloudbox is on.
+
+	* src/abs_species_tags.cc (check_abs_species):
+	Removed obsolete requirement of only one "particles" instance in
+	abs_species.
+
+	* src/rte.[cc,h] (get_ppath_atmvars, get_ppath_abs):
+	Removed parameters ppath_pnd, pnd_field, cloudbox_on.
+
+	* src/m_rte.cc (iyEmissionStandard), m_cloudradar.cc (iyCloudRadar),
+	m_transmitter.cc (iyRadioLink, iyTransmissionStandard)
+	m_fos.cc (fos):
+	Removed ppath_pnd, pnd_field, cloudbox_on from calls of
+	get_ppath_atmvars and get_ppath_abs.
+
+	* src/agendas.cc (propmat_clearsky_agenda),
+	montecarlo.cc (clear_rt_vars_at_gp, cloudy_rt_vars_at_gp),
+	disort.cc (dtauc_ssalbCalc), m_abs_lookup.cc (abs_mat_fieldCalc)
+	doit.cc (cloud_RT_no_background, cloud_ppath_update1D_planeparallel):
+	Removed obsolete usage of rtp_pnd in propmat_clearsky_agenda call.
+
+	* src/workspace.cc: Removed rtp_pnd.
+
+	* src/m_atmosphere.cc (basics_checkedCalc):
+	Removed pnd_field checks and method parameters pnd_field, cloudbox_on.
+
+	* src/cloudbox.[cc,h] (chk_pnd_data, chk_pnd_raw_data):
+	Remove obsolete parameters p_grid, lat_grid, lon_grid.
+
+	* src/m_append.h (Append): Added a version for Tensor-to-Tensor append
+	(leading dimension only). Needed for appending (modified) data (like
+	profiles/fields of a single absorbing species) to vmr_field.
+
+	* src/array.h: spell fix.
+
+	* src/methods.cc: Adapted to changes above.
+
+	* controlfiles/general/agendas.arts,
+	controlfiles/artscomponents/doit/TestDOIT.arts,
+	doitbatch/TestDOITBatch.arts, helpers/TestAgendaCopy.arts,
+	montecarlo/TestMonteCarloGeneralGaussian.arts,
+	faraday/TestFaradayRotation.arts:
+	Removed rtp_pnd usage in propmat_clearsky_agenda definitions.
+
+	* controlfiles/general/general.arts:
+	Removed obsolete pnd_field=0 and cloudbox_on=off settings.
+
 2013-04-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-1-617
@@ -15,7 +84,7 @@
 	* Implemented frequency interpolation in lookup table extraction,
 	to allow for more elegant Doppler shift treatment.
 
-        * src/gas_abs_lookup.{h,cc}
+	* src/gas_abs_lookup.{h,cc}
 	(GasAbsLookup:fgp_default): Added this new member, which holds the
 	trivial frequency grid positions (without frequency interpolation).
 	(GasAbsLookup::Adapt): Initialize fgp_default.
@@ -27,7 +96,7 @@
 	itself (calculate weights and interpolate) can be the same for all
 	cases. So, overall messiness somewhat reduced.
 
-        * src/rte.cc
+	* src/rte.cc
 	(get_ppath_abs): Get rid of rtp_doppler, directly pass ppath_f
 	to propmat_clearsky_agendaExecute.
 	(get_ppath_f): Inverted the sign of the Doppler shift. For
@@ -36,21 +105,21 @@
 	to lower frequencies. With this change, the TestWinds control file
 	gives the same result as before. Patrick, please confirm my change.
 
-        * src/montecarlo.cc: Adapted.
+	* src/montecarlo.cc: Adapted.
 
-        * src/disort.cc: Adapted.
+	* src/disort.cc: Adapted.
 
-        * src/doit.cc: Adapted. Also removed or commented-out some cout
+	* src/doit.cc: Adapted. Also removed or commented-out some cout
 	command that seem to be old debugging remnants.
 
-        * src/interpolation_poly.cc (gridpos_poly): Implemented nearest
+	* src/interpolation_poly.cc (gridpos_poly): Implemented nearest
 	neighbour interpolation (interpolation order 0). This is very
 	handy, because it can be used to make interpolation code robust to
 	the case that a particular dimension should not be interpolated at all.
 
-        * src/test_interpolation.cc: Test the new order 0 interpolation.
+	* src/test_interpolation.cc: Test the new order 0 interpolation.
 
-        * src/main.cc
+	* src/main.cc
 	(arts_mod_time): Added "compiled" to give some
 	indication what the date/time means.
 	(main): Added a copy of the command line to the report output. My
@@ -58,22 +127,22 @@
 	the report file. But perhaps also useful to see what other
 	switches were used.
 
-        * src/workspace.cc (rtp_doppler): Removed. Bye-bye.
+	* src/workspace.cc (rtp_doppler): Removed. Bye-bye.
 
-        * src/methods.cc (propmat_clearskyAddFromLookup)
+	* src/methods.cc (propmat_clearskyAddFromLookup)
 	(propmat_clearskyAddOnTheFly, propmat_clearskyAddZeeman): Removed
 	input argument rtp_doppler. Updated documentation.
 
-        * src/agendas.cc (propmat_clearsky_agenda): Removed input argument
+	* src/agendas.cc (propmat_clearsky_agenda): Removed input argument
 	rtp_doppler.
 
-        * src/m_abs.cc (propmat_clearskyAddOnTheFly): Removed input argument
+	* src/m_abs.cc (propmat_clearskyAddOnTheFly): Removed input argument
 	rtp_doppler and code handling it.
 
-        * src/m_zeeman.cc (propmat_clearskyAddZeeman): Removed input argument
+	* src/m_zeeman.cc (propmat_clearskyAddZeeman): Removed input argument
 	rtp_doppler and code handling it.
 
-        * src/m_abs_lookup.cc
+	* src/m_abs_lookup.cc
 	(abs_lookupCalc): Initialize fgp_default.
 	(propmat_clearskyAddFromLookup): Added input argument
 	abs_f_interp_order. Considerably simplified the function itself,
@@ -90,12 +159,12 @@
 	revert both to their old names (abs_field and abs_fieldCalc).
 	(calc_lookup_error): Adapted.
 
-        * controlfiles/artscomponents/absorption/TestAbsDoppler.arts:
+	* controlfiles/artscomponents/absorption/TestAbsDoppler.arts:
 	Adapted and tested.
 
-        * controlfiles/artscomponents/doit/TestDOIT.arts: Cosmetics.
+	* controlfiles/artscomponents/doit/TestDOIT.arts: Cosmetics.
 
-        * controlfiles/artscomponents/wfuns/TestWfuns.arts: Set
+	* controlfiles/artscomponents/wfuns/TestWfuns.arts: Set
 	abs_f_interp_order to 1, to avoid runtime error with wind
 	Jacobians.
 
@@ -125,27 +194,6 @@
 	* src/m_sensor.cc (sensor_responseWMRF): removed the check if the
 	f_grid is inside the sensor_reponse_function. This is apparently
 	obsolete.
-
-	The following lines were removed.
-
-     	else // Finding the minimum or maximum will result in assertion if empty
-    {
-      // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
-      if( min(f_backend) < min(sensor_response_f_grid) )
-        {
-          os << "At least one value in *f_backend* (" << min(f_backend)
-             << ") below range\ncovered by *sensor_response_f_grid* ("
-             << min(sensor_response_f_grid) << ").\n";
-          error_found = true;
-        }
-      if( max(f_backend) > max(sensor_response_f_grid) )
-        {
-          os << "At least one value in *f_backend* (" << max(f_backend)
-             << ") above range\ncovered by *sensor_response_f_grid* ("
-             << max(sensor_response_f_grid) << ").\n";
-          error_found = true;
-        }
-    }
 
 2013-04-29  Richard Larsson  <ric.larsson@gmail.com>
 
@@ -491,16 +539,16 @@
 
 	* arts-2-1-597
 
-        * src/gas_abs_lookup.h: Cosmetics.
+	* src/gas_abs_lookup.h: Cosmetics.
 
-        * src/gas_abs_lookup.cc (GasAbsLookup::Adapt): The current species
+	* src/gas_abs_lookup.cc (GasAbsLookup::Adapt): The current species
 	list may now contain species that are not included in the original
 	lookup table IF they are trivial species, such as free electrons
 	or zeeman species, for which there is no lookup table absorption
 	anyway. The data for these additional species is simply set to
 	NAN, the same value that *GasAbsLookup::Adapt* would produce.
 
-        * src/check_input.h (runtime_error_not_found,
+	* src/check_input.h (runtime_error_not_found,
 	runtime_error_not_unique): Added these two new classes, which are
 	public derivatives of *runtime_error*.
 	(chk_contains): Use the new error classes. This makes it possible
@@ -1098,13 +1146,13 @@
 2013-04-05  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-564
-    
+
 	* src/absorption.cc: Fix HITRAN reading routine for species without 
 	isotopologues.
-    
+
 	* controlfiles/artscomponents/cia/TestCIA.arts: Fix what previous commit
 	broke.
-    
+
 2013-04-05  Richard Larsson  <ric.larsson@gmail.com>
 
 	* arts-2-1-563
