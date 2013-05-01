@@ -499,6 +499,8 @@ int main()
               ofs << "  using global_data::AgendaMap;\n"
                 << "  using global_data::agenda_data;\n"
                 << "\n"
+                << "  assert(input_agenda.checked());\n"
+                << "\n"
                 << "  const AgRecord& agr =\n"
                 << "    agenda_data[AgendaMap.find (input_agenda.name ())->second];\n"
                 << "\n";

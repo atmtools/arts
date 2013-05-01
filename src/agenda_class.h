@@ -81,6 +81,7 @@ public:
   void set_main_agenda() { main_agenda = true; mchecked = true; }
   bool is_main_agenda() const { return main_agenda; }
   void find_unused_variables();
+  bool checked() const { return mchecked; }
 
 private:
   String         mname; /*!< Agenda name. */
