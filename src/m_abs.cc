@@ -1776,9 +1776,11 @@ void abs_xsec_per_speciesAddLines(// WS Output:
             }
             if (tgs[i][0].LineMixingType() == SpeciesTag::LINE_MIXING_TYPE_NONE)
             {
-                Matrix undefined = abs_xsec_per_species[i];
-                xsec_species( abs_xsec_per_species[i],
-                             undefined,
+                Matrix dummy_phase(abs_xsec_per_species[i].nrows(),
+                                   abs_xsec_per_species[i].ncols(),
+                                   0.);
+                xsec_species(abs_xsec_per_species[i],
+                             dummy_phase,
                              f_grid,
                              abs_p,
                              abs_t,
@@ -1794,24 +1796,25 @@ void abs_xsec_per_speciesAddLines(// WS Output:
             }
             else
             {
-                Matrix xsec_phase = abs_xsec_per_species[i];
-                xsec_phase = 0;
-                xsec_species_line_mixing_wrapper( abs_xsec_per_species[i],
-                              xsec_phase,
-                              line_mixing_data,
-                              line_mixing_data_lut,
-                              f_grid,
-                              abs_p,
-                              abs_t,
-                              abs_vmrs,
-                              tgs,
-                              i,
-                              ll,
-                              ls.Ind_ls(),
-                              ls.Ind_lsn(),
-                              ls.Cutoff(),
-                              isotopologue_ratios,
-                              verbosity );
+                Matrix dummy_phase(abs_xsec_per_species[i].nrows(),
+                                   abs_xsec_per_species[i].ncols(),
+                                   0.);
+                xsec_species_line_mixing_wrapper(abs_xsec_per_species[i],
+                                                 dummy_phase,
+                                                 line_mixing_data,
+                                                 line_mixing_data_lut,
+                                                 f_grid,
+                                                 abs_p,
+                                                 abs_t,
+                                                 abs_vmrs,
+                                                 tgs,
+                                                 i,
+                                                 ll,
+                                                 ls.Ind_ls(),
+                                                 ls.Ind_lsn(),
+                                                 ls.Cutoff(),
+                                                 isotopologue_ratios,
+                                                 verbosity);
             }
           // Note that we call xsec_species with a row of abs_vmrs,
           // selected by the above Matpack expression. This is

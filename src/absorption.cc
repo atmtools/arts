@@ -630,6 +630,8 @@ void xsec_species( MatrixView               xsec_attenuation,
 
   const bool cut = (cutoff != -1) ? true : false;
 
+  const bool calc_phase = lineshape_data[ind_ls].Phase();
+
   // Check that the frequency grid is sorted in the case of lineshape
   // with cutoff. Duplicate frequency values are allowed.
   if (cut)
@@ -874,10 +876,6 @@ void xsec_species( MatrixView               xsec_attenuation,
               // call to the lineshape functions later on:
               Index nfls = nf;      
 
-              // The baseline to substract for cutoff frequency
-              Numeric base_attenuation=0.0;
-              Numeric base_phase=0.0;
-
               // abs_lines[l] is used several times, this construct should be
               // faster (Oliver Lemke)
               const LineRecord& l_l = abs_lines[l];  // which line are we dealing with
@@ -1121,15 +1119,13 @@ void xsec_species( MatrixView               xsec_attenuation,
                   // cutoff ?
                   if ( cut )
                     {
+                      // Subtract baseline for cutoff frequency
                       // The index nfls-1 should be exactly the index pointing
                       // to the value at the cutoff frequency.
-                      base_attenuation = ls_attenuation[nfls-1];
-                      base_phase = ls_phase[nfls-1];
-
                       // Subtract baseline from xsec. 
                       // this_xsec -= base;
-                      this_ls_attenuation -= base_attenuation;
-                      this_ls_phase       -= base_phase;
+                      this_ls_attenuation -= ls_attenuation[nfls-1];
+                      if (calc_phase) this_ls_phase -= ls_phase[nfls-1];
                     }
 
                   // Add line to xsec. 
@@ -1157,12 +1153,14 @@ void xsec_species( MatrixView               xsec_attenuation,
 
                     this_ls_attenuation *= this_fac;
                     this_ls_attenuation *= factors;
-                    this_ls_phase *= this_fac;
-                    this_ls_phase *= factors;
-                    
                     this_xsec_attenuation += this_ls_attenuation;
-                    this_xsec_phase += this_ls_phase;
 
+                    if (calc_phase)
+                      {
+                        this_ls_phase *= this_fac;
+                        this_ls_phase *= factors;
+                        this_xsec_phase += this_ls_phase;
+                      }
                   }
                 }
 
@@ -1183,10 +1181,12 @@ void xsec_species( MatrixView               xsec_attenuation,
         {
           xsec_i_attenuation += xsec_accum_attenuation(j, Range(joker));
         }
-      for (Index j=0; j<xsec_accum_phase.nrows(); ++j)
-        {
+
+      if (calc_phase)
+        for (Index j=0; j<xsec_accum_phase.nrows(); ++j)
+          {
             xsec_i_phase += xsec_accum_phase(j, Range(joker));
-        }
+          }
     } // end of parallel pressure loop
 
   if (failed) throw runtime_error("Run-time error in function: xsec_species\n" + fail_msg);

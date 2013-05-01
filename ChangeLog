@@ -1,5 +1,33 @@
 2013-05-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-1-625
+
+	* src/absorption.cc (xsec_species):
+
+	Fix bug for lineshapes that don't calculate phase information. ls_phase
+	was never initialized and garbage values where used in later
+	calculations. this_ls_phase *= this_fac was up to 2 times slower
+	under some circumstances (mostly in the profiler) when t_l_p contained
+	garbage.
+
+	Further phase calculations are now skipped if the chosen lineshape
+	doesn't return phase. Still some memory allocation overhead left.
+
+	Would be much nicer to be able to pass in a zero-sized xsec_phase to
+	skip the phase calculations altogether. But that's tricky with the
+	current use of Views.
+
+	Removed variables base_attenuation and base_phase as they were only
+	used in one place.
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddLines):
+
+	Don't make a full copy of another variable and then set it to zero.
+	Instead use the appropriate constructor to create it with the right size
+	and value in one go.
+
+2013-05-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-1-624
 
 	* src/make_auto_md_cc.cc:
